@@ -1,0 +1,30 @@
+table {
+	border-collapse: collapse;
+}
+
+td, th {
+	text-align: left;
+	vertical-align: top;
+	padding: 0.2em;
+	margin: 0px;
+}
+
+th {
+	background: #ddd;
+}
+
+td {
+	border: solid #ddd 1px;
+}
+
+h1, h2 {
+	background-color: #ccf;
+}
+
+h3 {
+	border-top: solid #ddd 1px;
+}
+
+.fullDocBody {
+	margin-left: 2em;
+}

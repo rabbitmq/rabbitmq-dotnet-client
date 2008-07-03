@@ -1,0 +1,51 @@
+While with AMQP 0-8 it was sufficient to assume
+
+ - TCP
+ - no channel living longer than an individual TCP connection
+
+this is no longer sufficient. With AMQP 0-10, other transports have been specified, and sessions have been split out as a transport-independent notion.
+
+In our current (0-8) Java client, our ConnectionParameters/ConnectionFactory objects contain settings for
+ - Username
+ - Password
+ - Virtual Host
+ - Channel Max
+ - Frame Max
+ - Heartbeat interval
+ - AccessRequest suppression
+ - a list of Addresses (Hostname/Portnumber pairs) where the broker is reachable
+
+These need splitting up.
+
+@table
+  TCP connection configuration
+  || General connection configuration
+
+  - Hostname/Portnumber
+  - Channel Max
+  - Frame Max
+  || - Username
+  || - Password
+  || - Virtual Host
+  || - AccessRequest suppression
+
+So, let's define a bunch of entities.
+
+ - Peer: a broker/client/server/proxy/etc. An addressable AMQP [b thing].
+   - has a list of Endpoints, in order of preference.
+   - can open Connections, via its Endpoints
+ - Endpoint: a means of reaching a peer - an address for a peer
+   - supplied to a Peer; otherwise not part of the main API
+   - Variants:
+     - TcpEndpoint
+       - host
+       - port (may vary with spec protocol version)
+     - SctpEndpoint
+     - UdpEndpoint, HttpEndpoint etc etc
+ - Connection: an open, authenticated network-level virtual circuit between two peers, supporting associations
+   - knows the Peer to which it is connected
+   - can create new or reattach to existing Sessions
+   - Variants for TCP, SCTP, UDP, HTTP etc etc.
+ - Association: an open, available means of delivering frames along a session between two peers
+   - an internal notion. The API doesn't deal with these.
+ - Session: (see definition in 0-10)

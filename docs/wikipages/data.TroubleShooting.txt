@@ -1,0 +1,28 @@
+** Heartbeat issue with Mono 1.1.17.1 on Redhat FC6/x86-64
+
+[b Fix:] Upgrade Mono to 1.2.x.
+
+[b Symptom:] Exception while connecting. Appears immediately, not after the expected 3 or 6 seconds.
+
+[b Example symptom trace:]
+
+@code
+ Unexpected connection Connection(d49c7727-3d56-4101-909e-5a7ff17b5647,
+ amqp-0-9://127.0.0.1:5672) closure: AMQP close-reason, initiated by Library,
+ code=0, text="End of stream", classId=0, methodId=0,
+ cause=System.IO.EndOfStreamException: Heartbeat missing with
+ heartbeat == 3 seconds
+ at RabbitMQ.Client.Impl.ConnectionBase.HandleSocketTimeout () [0x00000] 
+ at RabbitMQ.Client.Impl.ConnectionBase.MainLoopIteration () [0x00000] 
+ at RabbitMQ.Client.Impl.ConnectionBase.MainLoop () [0x00000]
+
+[b Problematic Mono version:]
+
+@code
+ $ mono --version
+ Mono JIT compiler version 1.1.17.1, (C) 2002-2006 Novell, Inc and Contributors.
+         www.mono-project.com 
+         TLS: __thread
+         GC: Included Boehm (with typed GC)
+         SIGSEGV: normal
+         Disabled: none

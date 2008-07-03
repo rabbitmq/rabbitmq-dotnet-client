@@ -1,0 +1,71 @@
+This section gives an overview of the simple examples provided
+with .Net client distribution.
+
+** How to run examples
+
+From the command line go to the directory where RabbitMQ .Net/C# client
+is installed, and then to the bin directory. All of the examples require
+additional arguments to run. Typing the name of the example, e.g.
+[code SendString.exe] will print the list of required and optional
+arguments to the program.
+
+** Examples overview
+
+*** AddClient
+
+Example that illustrates the usage of remote procedure calls.
+The client sends a list of numbers (given in the program's arguments)
+using the 'AddServer' routing key. The message is then read by the client
+which performs the function of the server, namely [code AddServer]. The sum
+is calculated and the result is sent back to AddClient via an acknowledgement.
+
+*** AddServer
+
+[code AddServer] performs the function of the remote procedure call server.
+On the lower level it uses the Subscription pattern that reads messages from
+the queue, calculates the sum of the numbers included in the body of the
+message and sends an acknowledgement with the result.
+
+*** DeclareQueue
+
+This example creates a queue (if it does not exist yet) and binds it to multiple
+exchanges using the exchange name and routing key tuple. 
+
+*** ExceptionTest
+
+[code ExceptionTest] allows to see the usage of Shutdown protocols in a real
+scenario. We attach three event handlers to both the connection and the model,
+which then print information messages in an order defined in the shutdown
+protocol. 
+
+*** LogTail
+
+The [code LogTail] example makes use of the [code Subscription] pattern
+described in the MessagingPatterns section. When the exchange name is empty,
+it declares a named queue, otherwise it declares an exchange of the specified
+type and a temporary queue from which it will consume messages. [code LogTail]
+quietly consumes messages until it receives a message with only 'quit' in the
+body. 
+
+*** SendMap
+
+[code SendMap] publishes a single message to the exchange which is constructed
+from key/value pairs given as arguments. Keys that start with '+' are placed
+in the body of the message, whereas those starting with '-' go to the header.
+Supported values' types are: string/byte array, byte array (base-64), boolean,
+32-bit integer, double precision float and fixed-point decimal. Refer to the
+info printed in the command line for detailed information on how to specify
+values with particular types.
+
+*** SendString
+
+The SendString example performs a single message publish, according to the given
+routing key. If the exchange name is not empty it declares an exchange with the
+given name and type. Otherwise it declares a queue with the name given in the
+routing key.
+
+*** SingleGet
+
+SingleGet will try to retrieve a message from the queue, the name of which is
+given in the command line. If there is no message in the queue it will close
+the connection and exit.

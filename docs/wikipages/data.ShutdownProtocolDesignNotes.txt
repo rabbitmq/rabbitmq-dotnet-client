@@ -1,0 +1,209 @@
+** Use Cases
+
+Application causes model closedown:
+
+@sequence AppModelShutdown
+  object(App,"Application");
+  object(Model,"Model");
+  object(Session,"Session");
+  object(Connection,"Connection");
+  object(Socket,"Socket");
+  step();
+
+  message(App,Model,"Shutdown");
+  message(Model,Session,"Close");
+  message(Session,Socket,"Channel.Close");
+  message(Socket,Session,"Channel.CloseOk");
+  message(Session,Model,"Closed");
+  message(Model,App,"Closed");
+
+  step();
+  complete(Socket);
+  complete(Connection);
+  complete(Session);
+  complete(Model);
+  complete(App);
+
+----
+
+TCP socket error or Connection.Close causes connection shutdown:
+
+@sequence SocketShutdown
+  object(App,"Application");
+  object(Model,"Model");
+  object(Session,"Session");
+  object(Connection,"Connection");
+  object(Socket,"Socket");
+  step();
+
+  message(Socket,Connection,"TCP close or Connection.Close");
+  message(Connection,Session,"Connection.Close");
+  message(Session,Model,"Channel.Close");
+  message(Model,App,"Closed");
+
+  step();
+  complete(Socket);
+  complete(Connection);
+  complete(Session);
+  complete(Model);
+  complete(App);
+
+Note that the connection closure is interpreted as causing session
+death for 0-8 and 0-9; in 0-10, it may not cause session death.
+
+----
+
+Application causes connection closedown:
+
+@sequence AppConnectionShutdown
+  object(App,"Application");
+  object(Model,"Model");
+  object(Session,"Session");
+  object(Connection,"Connection");
+  object(Socket,"Socket");
+  step();
+
+  message(App,Connection,"Shutdown");
+  message(Connection,Socket,"Connection.Close");
+  message(Socket,Connection,"Connection.CloseOk");
+  message(Connection,Session,"Connection.Close");
+  message(Session,Model,"Channel.Close");
+  message(Model,App,"Closed");
+
+  step();
+  complete(Socket);
+  complete(Connection);
+  complete(Session);
+  complete(Model);
+  complete(App);
+
+----
+
+Internal error in Model causes connection closedown:
+
+@sequence AppConnectionShutdown
+  object(App,"Application");
+  object(Model,"Model");
+  object(Session,"Session");
+  object(Connection,"Connection");
+  object(Socket,"Socket");
+  step();
+
+  message(Model,Model,"Internal error");
+  message(Model,Connection,"Close");
+  message(Connection,Socket,"Connection.Close");
+  message(Socket,Connection,"Connection.CloseOk");
+  message(Connection,Session,"Connection.Close");
+  message(Session,Model,"Channel.Close");
+  message(Model,App,"Closed");
+
+  step();
+  complete(Socket);
+  complete(Connection);
+  complete(Session);
+  complete(Model);
+  complete(App);
+
+** General shutdown pattern
+
+In general,
+
+ - requests from a higher layer (e.g. the application) should go
+   through all the lower layers before a reply is sent higher
+
+ - if the lower layers don't respond within a certain time, it can be
+   assumed that they're dead and the broadcast to higher layers can be
+   sent anyway.
+
+   - In the case of nonresponse to [code channel.close], the lack of a
+     reply could be seen as requiring a [code connection.close]...?
+
+ - an asynchronous closure-notification coming in from a lower layer
+   can be processed and sent up without further ado.
+
+ - there's a state machine for the lifetime of each participant
+   (model, session, connection).
+
+*** Participant states
+
+@dot LifetimeState
+  digraph LifetimeState {
+    node [fontsize=10, fontname="Verdana"];
+    edge [fontsize=10, fontname="Verdana", weight=4];
+
+    open -> closing [label="request from\nhigher layer"];
+    closing -> closewait [label="request to\nlower layer"];
+
+    open -> closed [label="signal from\nlower layer"];
+    closing -> closed [label="signal from\nlower layer"];
+    closewait -> closed [label="signal from\nlower layer"];
+  }
+
+In all states other than [code open], a close-request from a higher
+layer is ignored, since you can't close an already closed (or closing)
+channel. (For a start, what if the close-reasons differ?) This
+follows, e.g., Java's Closeable interface API, where double-closing is
+explicitly permitted. An accessor should be provided on a participant
+to retrieve the close reason.
+
+The participant is not available for use when in any state other than
+[code open]. Any operation other than close that is called in non-open
+state throws an exception.
+
+On entry to [code closed] state, the closed-notification event fires,
+signalling the layer higher up.
+
+*** Participant message sequence diagram
+
+@sequence ParticipantMessageSequence
+  object(Hi,"Higher layer");
+  placeholder_object(HiListener);
+  object(Me,"This layer");
+  placeholder_object(MeListener);
+  object(Lo,"Lower layer");
+  step();
+
+  sync();
+  create_message(Me,MeListener,"listener");
+  async();
+  message(MeListener,Lo,"subscribe");
+  step();
+
+  sync();
+  create_message(Hi,HiListener,"listener");
+  async();
+  message(HiListener,Me,"subscribe");
+  message(Hi,Me,"close");
+  message(Me,Lo,"close");
+  message(Lo,MeListener,"closed");
+  sync();
+  return_message(MeListener,Me,"complete");
+  async();
+  complete(MeListener);
+  message(Me,HiListener,"closed");
+  sync();
+  return_message(HiListener,Hi,"complete");
+  async();
+  complete(HiListener);
+
+  step();
+  complete(Hi);
+  complete(Me);
+  complete(Lo);
+
+State transitions:
+
+ - After the [code close] message from the higher layer, our
+   participant enters state [code closing].
+
+ - After the [code close] message from our participant, our
+   participant enters state [code closewait].
+
+ - When the [code closed] event arrives from the lower layer, we enter
+   state [code closed].
+
+ - As we enter state [code closed], we broadcast a [code closed] event
+   to our subscribers (i.e. higher layers) and clear the subscription
+   list. Any subscribers arriving when we are in state [code closed]
+   immediately receive the [code closed] event that all our other
+   subscribers received.

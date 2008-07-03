@@ -1,0 +1,17 @@
+Chapters in the user manual:
+
+ - UserGuide (first chapter, contains intro)
+ - ApiOverview
+ - MessagingPatterns
+ - ShutdownProtocols
+ - TroubleShooting
+ - Examples
+ - BuildingTheClient
+ - BuildingTheWcfBinding
+ - ImplementationGuide
+ - ApiGen
+
+Non-manual or out-of-date pages:
+
+ - SessionApi
+ - ShutdownProtocolDesignNotes

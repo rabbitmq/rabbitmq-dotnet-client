@@ -1,0 +1,140 @@
+###########################################################################
+# Configuration of the Wiki
+###########################################################################
+import User
+import Store
+
+# Skin to use for display. Should be a list of directories, which will
+# be tried in order.
+skin = ['rabbit-templates', 'templates']
+
+# Session signing passphrase (erk)
+session_passphrase = 'changeit'
+
+# Session expiry time, in seconds; use -1 for infinite
+# Each time the session is checked, its expiry timer is reset,
+# so if session_expiry_time is 5, it will expire five seconds
+# after the user's most recent action (unless another action
+# comes in to reset the timer).
+session_expiry_time = -1
+
+# Name of default page
+frontpage = 'FrontPage'
+
+# Internal-link pattern - be careful when changing this
+linkpattern = r'\b([A-Z]+[a-z0-9]+){2,}'
+
+# Location of stored files
+#file_store = Store.FileStore('./pyledb')
+#file_store = Store.CvsStore('./cvstest/data')
+#file_store = Store.SvnStore('./cvstest/trunk')
+#file_store = Store.DarcsStore('./darcs-pyledb')
+#file_store = Store.DarcsStore('../..', 'docs/wikipages')
+file_store = Store.FileStore('../../docs/wikipages')
+
+# Location for attachments, or None to disable attachments
+#attachment_store = Store.FileStore('./pyledb/attachments')
+#attachment_store = Store.DarcsStore('./darcs-pyledb/attachments')
+#attachment_store = Store.DarcsStore('../..', 'docs/wikipages/attachments')
+attachment_store = Store.FileStore('../../docs/wikipages/attachments')
+
+# Temporary cached data store.
+cache_store = Store.FileStore('./pyledb_cache')
+
+# Use "enscript" to format @code blocks? Set to None to disable.
+code_enscript_command = '/usr/bin/env enscript'
+# code_enscript_command = None
+
+# Where may "dot" be found, to render graph figures?
+dot_command = '/usr/bin/env dot'
+
+# What should be used as the canonical base URL for this instance of
+# Pyle? (Leave the trailing slash off)
+canonical_base_url = 'http://localhost:8080'
+
+# Use the canonical_base_url in regular HTTP requests?
+use_canonical_base_url = True
+
+# How should Pyle authenticate users?
+user_authenticator = \
+        User.BugzillaAuthenticator(url = 'https://extra.lshift.net/bugzilla/relogin.cgi',
+                                   default_email_suffix = 'lshift.net',
+                                   success_regex = '<h1>Logged Out</h1>')
+
+# A FilteringAuthenticator can be used to restrict access to a
+# particular instance to a certain subset of otherwise-valid users,
+# after authenticating with some base authenticator (such as a
+# BugzillaAuthenticator). The example below authenticates first with
+# whatever user_authenticator is configured above, and then checks the
+# username against a "permitted" list. Other variants are possible:
+# explicit "deny" lists, group membership, use of re.match to check
+# usernames, etc etc.
+#
+# def my_filter_function(username):
+#     return username in ['permittedusername1', 'permittedusername2']
+# user_authenticator = User.FilteringAuthenticator(my_filter_function, user_authenticator)
+
+# How should Pyle store user properties?
+user_data_store = Store.FileStore('./pyledb_users')
+
+# URL of web-based user creation service; None to disable
+#user_creation_service = None
+user_creation_service = 'https://extra.lshift.net/bugzilla/createaccount.cgi'
+
+# URL of web-based password change service; None to disable
+#password_change_service = None
+password_change_service = 'https://extra.lshift.net/bugzilla/userprefs.cgi'
+
+# What defaults should Pyle use for user properties?
+default_user_properties = {}
+
+# Name to display when no other name is available; used when referring
+# to actions taken by anonymous users
+anonymous_user = "Anonymous"
+
+# Which group should control editing of pages that don't have a specific group set?
+default_edit_group = 'Anybody'
+
+# Which group should control viewing of pages that don't have a specific group set?
+default_view_group = 'Anybody'
+
+# Which group is the wheel group?
+wheel_group = 'Wheel'
+
+# When running a standalone FTP frontend to pyle, if running as root,
+# setuid to this user first:
+ftp_server_user = 'www-data'
+
+# Hostname and port of SMTP server to use when sending notification
+# emails. Set to None to disable email sending.
+smtp_hostname = 'smtp.lshift.net'
+smtp_portnumber = 25
+
+# This email address is used as the "From" email address when sending
+# notification emails.
+daemon_email_address = 'pyle2-daemon@lshift.net'
+
+# For the bug spanhandler - template for linking to bugs.
+bug_url_template = 'https://extra.lshift.net/bugzilla/show_bug.cgi?id=%s'
+
+# Mime types recognised for attachment uploads - feel free to change these
+mimetypes = [
+    'application/octet-stream',
+    'text/html',
+    'text/plain',
+    'image/gif',
+    'image/jpeg',
+    'image/png',
+    'application/rtf',
+    'application/pdf',
+    'application/msword',
+    'application/vnd.ms-project',
+    'application/x-gzip',
+    'application/x-gzipped-tar',
+    'application/x-zip-compressed',
+    'audio/wav',
+]
+
+# Set to True to enable table-of-contents generation in "print
+# friendly" mode.
+include_toc_in_print_friendly = False

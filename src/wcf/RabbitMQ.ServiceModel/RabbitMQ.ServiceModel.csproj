@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{F9732EA2-7475-4A89-933B-51C5C36138EF}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>RabbitMQ.ServiceModel</RootNamespace>
+    <AssemblyName>RabbitMQ.ServiceModel</AssemblyName>
+    <DocumentationFile>RabbitMQ.ServiceModel.xml</DocumentationFile>
+    <TargetFrameworkVersion>v3.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>
+    </DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="RabbitMQ.Client, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\build\bin\RabbitMQ.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.ServiceModel">
+      <RequiredTargetFramework>3.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Debug.cs" />
+    <Compile Include="RabbitMQ\ServiceModel\CommunicationOperation.cs" />
+    <Compile Include="RabbitMQ\ServiceModel\CurrentVersion.cs" />
+    <Compile Include="RabbitMQ\ServiceModel\RabbitMQBinding.cs" />
+    <Compile Include="RabbitMQ\ServiceModel\RabbitMQBindingConfigurationElement.cs" />
+    <Compile Include="RabbitMQ\ServiceModel\RabbitMQBindingSection.cs" />
+    <Compile Include="RabbitMQ\ServiceModel\RabbitMQChannelBase.cs" />
+    <Compile Include="RabbitMQ\ServiceModel\RabbitMQChannelFactory.cs" />
+    <Compile Include="RabbitMQ\ServiceModel\RabbitMQChannelListener.cs" />
+    <Compile Include="RabbitMQ\ServiceModel\RabbitMQChannelListenerBase.cs" />
+    <Compile Include="RabbitMQ\ServiceModel\RabbitMQInputChannel.cs" />
+    <Compile Include="RabbitMQ\ServiceModel\RabbitMQInputChannelBase.cs" />
+    <Compile Include="RabbitMQ\ServiceModel\RabbitMQOutputChannel.cs" />
+    <Compile Include="RabbitMQ\ServiceModel\RabbitMQOutputChannelBase.cs" />
+    <Compile Include="RabbitMQ\ServiceModel\RabbitMQTransportBindingElement.cs" />
+    <Compile Include="RabbitMQ\ServiceModel\RabbitMQTransportElement.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

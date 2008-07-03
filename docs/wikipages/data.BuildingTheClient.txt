@@ -1,0 +1,150 @@
+** Source Tree Layout
+
+The source tree is laid out as follows:
+
+  - configs - contains NAnt property definition XML files, for individual build and deployment configurations, selectable via inclusion from [code default.build] and [code local.build]
+     - dotnet-1.1.build - configuration for Microsoft .NET v1.1
+     - dotnet-2.0.build - configuration for Microsoft .NET v2.0
+  - default.build - the main NAnt build script
+  - docs - contains both external documentation and the project's own documentation
+     - namespaces.xml - Per-namespace documentation, for feeding into NDocProc
+     - specs - AMQP specification documents and XML files
+	- amqp-xml-doc0-9.pdf
+	- amqp0-9.pdf
+	- amqp0-9.xml
+	- qpid-amqp.0-8.xml
+        - amqp0-8.xml
+     - wikipages - RabbitMQ .NET client library documentation in Pyle Wiki markup format
+  - local.build.example - Sample [code local.build] file; used to select a configuration from the [code configs] directory
+  - src - Source code to the various parts of the system
+      - apigen - Source code for the XML specification parser and code generator
+      - client
+	  - api - C# client public API interfaces and classes
+          - content - C# QPid-compatible JMS message body codecs
+          - events - C# event handler delegates and event classes
+          - exceptions - C# API-visible exception definitions
+	  - impl - C# client internal/private implementation classes
+             - v0_8 - AMQP 0-8 specific code
+             - v0_8qpid - AMQP 0-8 code specific to QPid's M1 implementation
+             - v0_9 - AMQP 0-9 specific code
+          - messagepatterns - Implementation of common patterns in using AMQP; see the chapter on MessagePatterns
+      - examples - simple AMQP client example programs in C#
+      - unit - NUnit unit-tests
+         - nunit - a copy of NUnit compiled for .NET 1.1, unpacked for convenience
+      - util - Utility classes, compiled in to the client assembly
+      - wcf - WCF binding source code, project files, and build products
+         - RabbitMQ.ServiceModel.sln - Visual Studio solution file
+         - RabbitMQ.ServiceModel - WCF binding library
+            - RabbitMQ.ServiceModel.csproj - Visual Studio/MSBuild project file
+	    - RabbitMQ/ServiceModel/*.cs - code for the WCF binding
+         - Test - WCF example programs
+	    - RabbitMQ.ServiceModel.Test.csproj - Visual Studio/MSBuild project file
+
+  - tools - Third-party tools, such as NAnt, NUnit, NDocProc, and Pyle Wiki, as well as utility scripts
+
+** Build Prerequisites
+
+To compile the RabbitMQ .NET client library, you will need
+
+ - a .NET development environment. Environments tested include
+   - Microsoft .NET 1.1 on Windows XP
+   - Microsoft .NET 2.0 on Windows XP
+
+ - NAnt v0.85 or compatible (http://nant.sourceforge.net/); see the [code tools] directory
+
+To build the Javadoc-style documentation, you will need
+
+ - NDocProc; see the [code tools] directory
+
+To run the unit tests, you will need
+
+ - NUnit 2.4.3; see the [code tools] directory
+
+See BuildingTheWcfBinding for more information about the WCF binding.
+
+** Configuring Your Tree
+
+Copy [code local.build.example] to [code local.build], and edit it so that it points to one of the build configuration files in the [code configs/] directory.
+
+For instance, a [code local.build] that contains the text
+
+@code
+  <project>
+    <property name="config.name" value="dotnet-1.1" />
+  </project>
+
+will use the [code configs/dotnet-1.1.build] file to control the build configuration.
+
+** Available Build Targets
+
+To run a particular build target, run
+
+@code sh
+  NAnt.exe [targetname]
+
+*** clean
+
+Removes the [code build/] directory, which contains all binaries, generated sources and generated documentation.
+
+*** build (default)
+
+Builds the main client DLL. Runs ApiGen as part of the process, if necessary.
+
+*** doc
+
+Generates the Javadoc-like HTML code documentation, using NDocProc. The included binary version of NDocProc is compiled for .NET 1.1.
+
+*** examples
+
+Generates the example AMQP clients included in the [code src/examples/] directory, like [code SendString.exe] and [code LogTail.exe].
+
+*** unit
+
+Runs the included unit tests. (.NET 1.1 and compatible only.)
+
+*** stamp
+
+Removes the preprocessed generated [code AssemblyInfo.cs], so that on a subsequent build, a fresh one will be generated from [code AssemblyInfo.cs.in] with a fresh build identifier.
+
+** Build Products
+
+The build products available after a successful [code nant examples] are:
+
+ - [code build/bin/RabbitMQ.Client.dll] - The final client assembly
+ - Example client programs, like [code build/bin/SendString.exe] and [code build/bin/LogTail.exe]
+
+Other files in the [code build/bin/] directory:
+
+ - [code apigen-bootstrap.dll] - fed into ApiGen
+ - [code rabbitmq-dotnet-apigen.exe] - the ApiGen tool itself
+ - [code unit-tests.dll] - contains NUnit unit-tests
+
+Other build products:
+
+ - [code build/gensrc/*.cs] - Protocol-specific autogenerated code, produced by ApiGen
+ - [code build/doc/RabbitMQ.Client.xml] - [code csc]-generated XML documentation excerpt file, used as input to NDocProc
+ - [code build/doc/xml/] - XML documentation files as generated by NDocProc
+ - [code build/doc/html/] - HTML documentation as generated by NDocProc's stylesheets from the XML files
+
+** Assembly Versioning
+
+As part of the build process, the source file [code AssemblyInfo.cs.in] is copied to [code AssemblyInfo.cs], and the tokens [code @VERSION@], [code @BUILD@] and [code @REVISION@] are replaced with values computed by the [code default.build] NAnt script.
+
+The assembly version number is built from the template
+
+@code java
+  "@VERSION@.@BUILD@.@REVISION@"
+
+which will produce version numbers of the form
+
+@code java
+  "1.2.7269.1741"
+
+or more generally
+
+@code java
+  "X.Y.ZZZZ.WWWW"
+
+where X.Y is the client major.minor version number, ZZZZ is the year and day-of-year (in the example "7" for 2007 and "269" meaning the 26th of September), and WWWW is the build time (in the example "1741" for 5:41pm, but in general could be anything from "0" through "159" through "2359" or even "2400", depending on leap seconds).
+
+To force an update to the version number, the [code nant stamp] target deletes [code AssemblyInfo.cs], forcing its regeneration in subsequent builds.

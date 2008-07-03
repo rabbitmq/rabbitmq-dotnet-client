@@ -1,0 +1,27 @@
+<?xml version="1.0"?> <!-- NAnt build file. -*- nxml -*- -->
+<project name="NDocProcTransformXml" default="build" basedir=".">
+  <property name="stylesheet.dir" value="."/>
+  <target name="build" description="compiles the XML documentation to HTML">
+    <mkdir dir="${html.dir}" />
+    <style style="${stylesheet.dir}/index.xsl"
+	       in="${xml.dir}/index.xml"
+	       out="${html.dir}/index.html" />
+    <style style="${stylesheet.dir}/namespace.xsl"
+	       destdir="${html.dir}"
+	       extension="html">
+      <infiles>
+	    <include name="${xml.dir}/namespace-*.xml"/>
+      </infiles>
+    </style>
+    <style style="${stylesheet.dir}/type.xsl"
+	       destdir="${html.dir}"
+	       extension="html">
+      <infiles>
+	    <include name="${xml.dir}/type-*.xml"/>
+      </infiles>
+      <parameters>
+        <parameter name="config" value="${xml.dir}/config.xml"/>
+      </parameters>
+    </style>
+  </target>
+</project>

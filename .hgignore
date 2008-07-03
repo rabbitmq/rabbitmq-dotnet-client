@@ -1,0 +1,11 @@
+syntax: regexp
+^build$
+^scratch$
+^local\.build$
+^TestResult.xml$
+^releases$
+
+^src/wcf/.*/(bin|obj)$
+
+^src/wcf/RabbitMQ\.ServiceModel/RabbitMQ\.ServiceModel\.xml
+^src/wcf/RabbitMQ\.ServiceModel/AssemblyInfo\.cs$
