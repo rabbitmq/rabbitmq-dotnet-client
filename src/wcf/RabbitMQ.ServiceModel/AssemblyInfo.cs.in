@@ -22,4 +22,4 @@ using System.Runtime.InteropServices;
 
 // We don't provide an AssemblyFileVersion, which (according to MSDN)
 // means that AssemblyVersion will be used for the Win32 file version.
-[assembly: AssemblyVersion("@VERSION@.@BUILD@.@REVISION@")]
+[assembly: AssemblyVersion("@VERSION@")]
