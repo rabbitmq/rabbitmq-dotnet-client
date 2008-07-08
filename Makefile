@@ -1,10 +1,10 @@
-NAME=rabbitmq-dotnet
+NAME=rabbitmq-dotnet-client
 NAME_VSN=${NAME}-${RABBIT_VSN}
 
 RELEASE_DIR=releases/${NAME}/v${RABBIT_VSN}
 
-STAGE_RELEASE_DIR=charlotte:/home/rabbitmq/stage-extras/releases/rabbitmq-dotnet
-LIVE_RELEASE_DIR=charlotte:/home/rabbitmq/live-extras/releases/rabbitmq-dotnet
+STAGE_RELEASE_DIR=charlotte:/home/rabbitmq/stage-extras/releases/${NAME}
+LIVE_RELEASE_DIR=charlotte:/home/rabbitmq/live-extras/releases/${NAME}
 
 RSYNC_CMD=rsync -irvl --delete-after
 
@@ -19,10 +19,10 @@ rabbit-vsn:
 endif
 
 deploy-stage: rabbit-vsn ensure-deliverables
-	${RSYNC_CMD} --exclude=${TMPXMLZIP} releases/rabbitmq-dotnet/ ${STAGE_RELEASE_DIR}
+	${RSYNC_CMD} --exclude=${TMPXMLZIP} releases/${NAME}/ ${STAGE_RELEASE_DIR}
 
 deploy-live: rabbit-vsn ensure-deliverables
-	${RSYNC_CMD} --exclude=${TMPXMLZIP} releases/rabbitmq-dotnet/ ${LIVE_RELEASE_DIR}
+	${RSYNC_CMD} --exclude=${TMPXMLZIP} releases/${NAME}/ ${LIVE_RELEASE_DIR}
 
 ensure-deliverables: rabbit-vsn
 	file ${RELEASE_DIR}/${NAME_VSN}.zip
