@@ -38,8 +38,8 @@
   <property name="fullversion" value="${version.major.minor.release}"/>
   <property name="version.assembly" value="${fullversion}.0" />
 
-  <property name="nameversion" value="rabbitmq-dotnet-${fullversion}"/>
-  <property name="release.dir" value="releases/rabbitmq-dotnet"/>
+  <property name="nameversion" value="rabbitmq-dotnet-client-${fullversion}"/>
+  <property name="release.dir" value="releases/rabbitmq-dotnet-client"/>
   <property name="release.version.dir" value="${release.dir}/v${fullversion}"/>
   <property name="release.src.zip" value="${nameversion}.zip" />
 
@@ -306,14 +306,14 @@
 
   <target name="build-doc-zip" description="(internal) zips up a HTML doc distribution">
     <property name="fq.dist"
-	          value="rabbitmq-dotnet-${fullversion}-${target.framework}-htmldoc"/>
+	          value="${nameversion}-${target.framework}-htmldoc"/>
     <property name="doc.zip.source.dir" value="${gendoc.html.dir}"/>
     <call target="generic-build-doc-zip"/>
   </target>
 
   <target name="build-wcf-doc-zip" description="(internal) zips up a WCF HTML doc distribution">
     <property name="fq.dist"
-	          value="rabbitmq-dotnet-${fullversion}-net-3.0-wcf-htmldoc"/>
+	          value="${nameversion}-net-3.0-wcf-htmldoc"/>
     <property name="doc.zip.source.dir" value="${wcf.bin.dir}/Debug/doc/html"/>
     <call target="generic-build-doc-zip"/>
   </target>
@@ -354,7 +354,7 @@
   </target>
 
   <target name="generic-build-dist-zip" description="(internal) zips up a binary distribution">
-    <property name="fq.dist" value="rabbitmq-dotnet-${fullversion}-${target.framework}${basename.suffix}"/>
+    <property name="fq.dist" value="${nameversion}-${target.framework}${basename.suffix}"/>
     <property name="fq.dist.dir" value="${build.dir}/${fq.dist}"/>
     <property name="fq.dist.zipname" value="${fq.dist.dir}.zip"/>
     <move todir="${fq.dist.dir}">
