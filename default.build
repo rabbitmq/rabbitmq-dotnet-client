@@ -499,7 +499,7 @@
         <arg value="-t"/>
         <arg value="zip"/>
         <arg value="-r"/>
-        <arg value="default"/>
+        <arg value="${fullversion}"/>
         <arg value="${build.dir}/${release.src.zip}" />
       </exec>
   </target>
