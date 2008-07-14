@@ -102,7 +102,7 @@ namespace RabbitMQ.Client.Impl
         public volatile ShutdownEventArgs m_closeReason = null;
         public CallbackExceptionEventHandler m_callbackException;
         
-        public BlockingCell m_appContinuation = new BlockingCell();
+        public ManualResetEvent m_appContinuation = new ManualResetEvent(false);
         public AutoResetEvent m_heartbeatRead = new AutoResetEvent(false);
         public AutoResetEvent m_heartbeatWrite = new AutoResetEvent(false);
         public volatile bool closed = false;
@@ -404,7 +404,7 @@ namespace RabbitMQ.Client.Impl
             if (!SetCloseReason(reason))
                 if (abort)
                 {
-                    if (!m_appContinuation.Wait(m_appContinuation.validatedTimeout(timeout)))
+                    if (!m_appContinuation.WaitOne(BlockingCell.validatedTimeout(timeout), true))
                         m_frameHandler.Close();
                     return;
                 } else {
@@ -435,7 +435,7 @@ namespace RabbitMQ.Client.Impl
             {
                 TerminateMainloop();
             }
-            if (!m_appContinuation.Wait(m_appContinuation.validatedTimeout(timeout)))
+            if (!m_appContinuation.WaitOne(BlockingCell.validatedTimeout(timeout),true))
                 m_frameHandler.Close();
         }
 
@@ -594,7 +594,7 @@ namespace RabbitMQ.Client.Impl
             
             FinishClose();
 
-            m_appContinuation.Notify();
+            m_appContinuation.Set();
         }
         
         public void MainLoopIteration()

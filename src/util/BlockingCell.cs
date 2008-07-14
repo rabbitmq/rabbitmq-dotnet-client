@@ -139,43 +139,10 @@ namespace RabbitMQ.Util {
             }
         }
         
-        ///<summary>Notify any objects waiting on this object that
-        ///they are able to continue</summary>
-        ///<remarks>Method Notify() should be idempotent</remarks>
-        public void Notify()
-        {
-            lock(this) {
-                m_valueSet = true;
-                Monitor.PulseAll(this);
-            }
-        }
-        
-        ///<summary>Wait for the notification on this object with a timeout
-        ///or continue if such notification was already received.
-        ///Return true if finished because of notification, false otherwise
-        ///</summary>
-        ///<remarks>
-        ///<para>
-        /// A timeout of -1 (i.e. System.Threading.Timeout.Infinite)
-        /// will be interpreted as a command to wait for an
-        /// indefinitely long period of time for the cell's value to
-        /// become available. See the MSDN documentation for
-        /// System.Threading.Monitor.Wait(object,int).
-        ///</para>
-        ///</remarks>
-        public bool Wait(int millisecondsTimeout)
-        {
-            lock (this) {
-                if (!m_valueSet)
-                    Monitor.Wait(this, validatedTimeout(millisecondsTimeout));
-                return m_valueSet;
-            }
-        }
-        
         ///<summary>Return valid timeout value</summary>
         ///<remarks>If value of the parameter is less then zero, return 0
         ///to mean infinity</remarks>
-        public int validatedTimeout(int timeout)
+        public static int validatedTimeout(int timeout)
         {
             return (timeout != Timeout.Infinite)
                 && (timeout < 0) ? 0 : timeout;
