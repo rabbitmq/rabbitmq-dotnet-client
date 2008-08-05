@@ -42,6 +42,7 @@
   <property name="release.dir" value="releases/rabbitmq-dotnet-client"/>
   <property name="release.version.dir" value="${release.dir}/v${fullversion}"/>
   <property name="release.src.zip" value="${nameversion}.zip" />
+  <property name="web.url" value="http://stage.rabbitmq.com/" />
 
   <target name="clean" description="remove all generated files"
 	      depends="clean-base,clean-wcf" />
@@ -380,18 +381,17 @@
   <target name="build-dist-dir" description="(internal) just copy files into a dist dir, without cleaning or stamping">
     <delete dir="${dist.dir}" failonerror="false"/>
     <mkdir dir="${dist.dir}"/>
+    <copy file="BUILD.in" tofile="${dist.dir}/BUILD"/>
+    <exec program="links" append="true" output="${dist.dir}/BUILD" failonerror="false">
+      <arg value="-dump" />
+      <arg value="${web.url}build-dotnet-client.html" />
+    </exec>
     <copy todir="${dist.dir}">
       <fileset>
-	    <include name="README.txt"/>
 	    <include name="LICENSE"/>
 	    <include name="LICENSE-APACHE2"/>
 	    <include name="LICENSE-MPL-RabbitMQ"/>
       </fileset>
-      <filterchain>
-	    <replacetokens>
-	      <token key="FULLVERSION" value="${fullversion}" />
-	    </replacetokens>
-      </filterchain>
     </copy>
     <mkdir dir="${dist.dir}/bin"/>
     <copy todir="${dist.dir}/bin" flatten="true">
