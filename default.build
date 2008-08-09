@@ -29,7 +29,7 @@
   <property name="wcf.bin.dir" value="src/wcf/RabbitMQ.ServiceModel/bin"/>
   <property name="wcf.test.bin.dir" value="src/wcf/Test/bin"/>
   
-  <property name="hg.exec" value="hg" />
+  <property name="hg.exec" value="/usr/bin/hg" />
 
   <include buildfile="local.build" />
   <include buildfile="configs/${config.name}.build" />
@@ -492,13 +492,15 @@
   </target>
   
   <target name="src-dist" description="create zip from current state of the repository">
-      <exec program="${hg.exec}">
-	    <arg value="archive"/>
-	    <arg value="-t"/>
-	    <arg value="zip"/>
-	    <arg value="-r"/>
-	    <arg value="${fullversion}"/>
-	    <arg value="${build.dir}/${release.src.zip}" />
+      <mkdir dir="${build.dir}"/>
+      <exec program="${python.exec}">
+        <arg value="${hg.exec}"/>
+        <arg value="archive"/>
+        <arg value="-t"/>
+        <arg value="zip"/>
+        <arg value="-r"/>
+        <arg value="${fullversion}"/>
+        <arg value="${build.dir}/${release.src.zip}" />
       </exec>
   </target>
 
