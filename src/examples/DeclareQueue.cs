@@ -49,6 +49,7 @@
 //
 //---------------------------------------------------------------------------
 using System;
+using System.Collections;
 using System.IO;
 using System.Text;
 
@@ -64,9 +65,17 @@ namespace RabbitMQ.Client.Examples {
                 int optionIndex = 0;
                 bool durable = false;
                 bool delete = false;
+                IDictionary arguments = null;
                 while (optionIndex < args.Length) {
                     if (args[optionIndex] == "/durable") { durable = true; }
                     else if (args[optionIndex] == "/delete") { delete = true; }
+                    else if (args[optionIndex].StartsWith("/arg:")) {
+                        if (arguments == null) { arguments = new Hashtable(); }
+                        string[] pieces = args[optionIndex].Split(new Char[] { ':' });
+                        if (pieces.Length >= 3) {
+                            arguments[pieces[1]] = pieces[2];
+                        }
+                    }
                     else { break; }
                     optionIndex++;
                 }
@@ -79,6 +88,7 @@ namespace RabbitMQ.Client.Examples {
                     Console.Error.WriteLine("Available options:");
                     Console.Error.WriteLine("  /durable      declare a durable queue");
                     Console.Error.WriteLine("  /delete       delete after declaring");
+                    Console.Error.WriteLine("  /arg:KEY:VAL  add longstr entry to arguments table");
                     return 1;
                 }
 
@@ -90,7 +100,9 @@ namespace RabbitMQ.Client.Examples {
                     using (IModel ch = conn.CreateModel()) {
                         ushort ticket = ch.AccessRequest("/data");
 
-                        string finalName = ch.QueueDeclare(ticket, inputQueueName, durable);
+                        string finalName = ch.QueueDeclare(ticket, inputQueueName,
+                                                           false, durable, false, false,
+                                                           false, arguments);
                         Console.WriteLine("{0}\t{1}", finalName, durable);
                 
                         while ((optionIndex + 1) < args.Length) {
