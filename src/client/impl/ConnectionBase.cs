@@ -650,7 +650,7 @@ namespace RabbitMQ.Client.Impl
             closed = true;
             m_heartbeatRead.Set();
             m_heartbeatWrite.Set();
-        
+
             m_frameHandler.Close();                
             m_model0.SetCloseReason(m_closeReason);
             m_model0.FinishClose();
@@ -684,10 +684,10 @@ namespace RabbitMQ.Client.Impl
         ///</remarks>
         public void ClosingLoop()
         {
-            m_frameHandler.Timeout = ConnectionCloseTimeout;
-            DateTime startTimeout = DateTime.Now;
             try
             {
+                m_frameHandler.Timeout = ConnectionCloseTimeout;
+                DateTime startTimeout = DateTime.Now;
                 // Wait for response/socket closure or timeout
                 while (!closed)
                 {
@@ -698,6 +698,11 @@ namespace RabbitMQ.Client.Impl
                     }
                     MainLoopIteration();
                 }
+            }
+            catch (ObjectDisposedException ode)
+            {
+                if (!closed)
+                    LogCloseError("Connection didn't close cleanly", ode);
             }
             catch (EndOfStreamException eose)
             {
