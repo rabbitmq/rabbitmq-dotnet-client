@@ -150,7 +150,8 @@
   </target>
 
   <target name="stamp" description="removes the version identifier, so that the next build generates a fresh one">
-    <delete file="${assemblyinfo.target}" failonerror="false" />
+    <delete file="${core.assemblyinfo.target}" failonerror="false" />
+    <delete file="${wcf.assemblyinfo.target}" failonerror="false" />
   </target>
 
   <target name="doc" description="produces HTML documentation from the code"
