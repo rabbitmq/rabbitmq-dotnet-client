@@ -702,7 +702,7 @@ namespace RabbitMQ.Client.Impl
             catch (ObjectDisposedException ode)
             {
                 if (!closed)
-                    LogCloseError("Connection didnt' close cleanly", ode);
+                    LogCloseError("Connection didn't close cleanly", ode);
             }
             catch (EndOfStreamException eose)
             {
