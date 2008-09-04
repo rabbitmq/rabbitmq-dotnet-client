@@ -128,23 +128,20 @@ Other build products:
 
 ** Assembly Versioning
 
-As part of the build process, the source file [code AssemblyInfo.cs.in] is copied to [code AssemblyInfo.cs], and the tokens [code @VERSION@], [code @BUILD@] and [code @REVISION@] are replaced with values computed by the [code default.build] NAnt script.
+As part of the build process, the source file [code AssemblyInfo.cs.in] is copied to
+[code AssemblyInfo.cs], and the token [code @VERSION@] is replaced with value specified by
+the property [code version.major.minor.release]  in the [code local.build] NAnt script.
 
-The assembly version number is built from the template
-
-@code java
-  "@VERSION@.@BUILD@.@REVISION@"
-
-which will produce version numbers of the form
+The assembly version number is of the form
 
 @code java
-  "1.2.7269.1741"
+  "1.2.0"
 
 or more generally
 
 @code java
-  "X.Y.ZZZZ.WWWW"
+  "Major.Minor.Release"
 
-where X.Y is the client major.minor version number, ZZZZ is the year and day-of-year (in the example "7" for 2007 and "269" meaning the 26th of September), and WWWW is the build time (in the example "1741" for 5:41pm, but in general could be anything from "0" through "159" through "2359" or even "2400", depending on leap seconds).
+that represents major, minor and release client version numbers, respectively.
 
 To force an update to the version number, the [code nant stamp] target deletes [code AssemblyInfo.cs], forcing its regeneration in subsequent builds.
