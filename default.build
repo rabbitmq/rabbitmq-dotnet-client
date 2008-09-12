@@ -271,6 +271,7 @@
     <property name="example.program" value="SendString"/><call target="one-example"/>
     <property name="example.program" value="SendMap"/><call target="one-example"/>
     <property name="example.program" value="LogTail"/><call target="one-example"/>
+    <property name="example.program" value="LowlevelLogTail"/><call target="one-example"/>
     <property name="example.program" value="SingleGet"/><call target="one-example"/>
     <property name="example.program" value="ExceptionTest"/><call target="one-example"/>
     <property name="example.program" value="DeclareQueue"/><call target="one-example"/>
@@ -401,6 +402,7 @@
 	    <include name="${bin.dir}/SendString.exe"/>
 	    <include name="${bin.dir}/SendMap.exe"/>
 	    <include name="${bin.dir}/LogTail.exe"/>
+	    <include name="${bin.dir}/LowlevelLogTail.exe"/>
 	    <include name="${bin.dir}/SingleGet.exe"/>
 	    <include name="${bin.dir}/ExceptionTest.exe"/>
 	    <include name="${bin.dir}/DeclareQueue.exe"/>
