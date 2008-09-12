@@ -539,7 +539,7 @@ namespace RabbitMQ.Client.Impl
             FinishClose();
         }
         
-        public void NotifyHearbeatThread()
+        public void NotifyHeartbeatThread()
         {
             if (m_heartbeat == 0) {
                 // Heartbeating not enabled for this connection.
@@ -600,7 +600,7 @@ namespace RabbitMQ.Client.Impl
         {
             Frame frame = m_frameHandler.ReadFrame();
 
-            NotifyHearbeatThread();
+            NotifyHeartbeatThread();
             // We have received an actual frame.
             if (frame.Type == CommonFraming.Constants.FrameHeartbeat) {
                 // Ignore it: we've already just reset the heartbeat
