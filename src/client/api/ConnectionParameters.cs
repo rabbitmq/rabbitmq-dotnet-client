@@ -74,8 +74,8 @@ namespace RabbitMQ.Client
         public const uint DefaultFrameMax = 0; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
 
         /// <summary>Default value for desired heartbeat interval, in
-        /// seconds, with zero meaning none (value: 3)</summary>
-        public const ushort DefaultHeartbeat = 3; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
+        /// seconds, with zero meaning none (value: 0)</summary>
+        public const ushort DefaultHeartbeat = 0; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
 
         private string m_userName = DefaultUser;
         private string m_password = DefaultPass;
