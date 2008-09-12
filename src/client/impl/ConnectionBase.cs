@@ -600,7 +600,7 @@ namespace RabbitMQ.Client.Impl
         {
             Frame frame = m_frameHandler.ReadFrame();
 
-			NotifyHearbeatThread();
+            NotifyHearbeatThread();
             // We have received an actual frame.
             if (frame.Type == CommonFraming.Constants.FrameHeartbeat) {
                 // Ignore it: we've already just reset the heartbeat
