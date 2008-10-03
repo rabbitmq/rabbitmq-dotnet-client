@@ -72,6 +72,8 @@ namespace RabbitMQ.Client.Impl
             m_endpoint = endpoint;
             m_socket = new TcpClient();
             m_socket.Connect(endpoint.HostName, endpoint.Port);
+            // disable Nagle's algorithm, for more consistently low latency 
+            m_socket.NoDelay = true;
 
             Stream netstream = m_socket.GetStream();
             m_reader = new NetworkBinaryReader(netstream);
