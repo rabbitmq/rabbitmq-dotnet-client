@@ -334,7 +334,17 @@ namespace RabbitMQ.Client.Impl
 
         void IDisposable.Dispose()
         {
-            Close();
+            Abort();
+            if (ShutdownReport.Count > 0)
+            {
+            	foreach (ShutdownReportEntry entry in ShutdownReport)
+            	{
+            	    if (entry.Exception != null)
+            	        throw entry.Exception;
+            	}
+            	
+            	throw new OperationInterruptedException(null);
+            }
         }
 
         ///<summary>API-side invocation of connection close.</summary>
