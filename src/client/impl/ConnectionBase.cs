@@ -122,7 +122,7 @@ namespace RabbitMQ.Client.Impl
 
             m_sessionManager = new SessionManager(this);
             m_session0 = new MainSession(this);
-            m_session0.Handler = NotifyReceivedClose;
+            m_session0.Handler = new MainSession.SessionCloseDelegate(NotifyReceivedClose);
             m_model0 = (ModelBase)Protocol.CreateModel(m_session0);
 
             StartMainLoop();
