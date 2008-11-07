@@ -110,7 +110,7 @@ namespace RabbitMQ.Client.Impl
         public SessionCloseDelegate Handler
         {
             get { return handler; }
-            set { handler = new SessionCloseDelegate(value); }
+            set { handler = value; }
         }
 
         public override void HandleFrame(Frame frame)
