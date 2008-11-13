@@ -76,6 +76,8 @@ namespace RabbitMQ.Client.Impl
         private readonly object m_eventLock = new object();
         private BasicReturnEventHandler m_basicReturn;
         private CallbackExceptionEventHandler m_callbackException;
+        
+        public ManualResetEvent m_flowControlBlock = new ManualResetEvent(true);
 
         public event ModelShutdownEventHandler ModelShutdown
         {
@@ -225,6 +227,7 @@ namespace RabbitMQ.Client.Impl
                     }
                 }
             }
+            m_flowControlBlock.Set();
         }
 
         public virtual void OnBasicReturn(BasicReturnEventArgs args)
@@ -318,6 +321,9 @@ namespace RabbitMQ.Client.Impl
 
         public void ModelSend(MethodBase method, ContentHeaderBase header, byte[] body)
         {
+            if (method.HasContent) {
+                m_flowControlBlock.WaitOne();
+            }
             m_session.Transmit(new Command(method, header, body));
         }
         
@@ -380,6 +386,17 @@ namespace RabbitMQ.Client.Impl
             e.BasicProperties = basicProperties;
             e.Body = body;
             OnBasicReturn(e);
+        }
+        
+        public abstract void _Private_ChannelFlowOk();
+        
+        public void HandleChannelFlow(bool active)
+        {
+            if (active)
+                m_flowControlBlock.Set();
+            else
+                m_flowControlBlock.Reset();
+            _Private_ChannelFlowOk();
         }
 
         public void HandleConnectionStart(byte versionMajor,

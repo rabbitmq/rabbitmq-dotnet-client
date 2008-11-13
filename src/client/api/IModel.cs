@@ -620,6 +620,15 @@ namespace RabbitMQ.Client.Impl
                                IBasicProperties basicProperties,
                                [AmqpContentBodyMapping]
                                byte[] body);
+                               
+        ///<summary>Used to send a Channel.FlowOk. Confirms that
+        ///Channel.Flow from the broker was processed.</summary>
+        [AmqpMethodMapping(null, "channel", "flow-ok")]
+        void _Private_ChannelFlowOk();
+        
+        ///<summary>Handle incoming Channel.Flow methods. Either
+        ///stops or resumes sending the methods that have content.</summary>
+        void HandleChannelFlow(bool active);
 
         ///<summary>Handle an incoming Channel.Close. Shuts down the
         ///session and model.</summary>
