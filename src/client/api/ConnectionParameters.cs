@@ -83,7 +83,6 @@ namespace RabbitMQ.Client
         private ushort m_requestedChannelMax = DefaultChannelMax;
         private uint m_requestedFrameMax = DefaultFrameMax;
         private ushort m_requestedHeartbeat = DefaultHeartbeat;
-        private AccessRequestConfig m_accessRequestConfig = AccessRequestConfig.UseDefault;
 
         ///<summary>Construct a fresh instance, with all fields set to
         ///their respective defaults.</summary>
@@ -129,15 +128,6 @@ namespace RabbitMQ.Client
         {
             get { return m_requestedHeartbeat; }
             set { m_requestedHeartbeat = value; }
-        }
-
-        /// <summary>Used to control whether Access.Request methods
-        /// are sent to the peer or not, in conjunction with the
-        /// protocol default.</summary>
-        public AccessRequestConfig AccessRequestConfig
-        {
-            get { return m_accessRequestConfig; }
-            set { m_accessRequestConfig = value; }
         }
 
         ///<summary>Implement ICloneable.Clone by delegating to our type-safe variant.</summary>

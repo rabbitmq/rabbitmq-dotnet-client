@@ -100,7 +100,6 @@ namespace RabbitMQ.ServiceModel
                 this.VirtualHost = rabbind.Transport.ConnectionParameters.VirtualHost;
                 this.Username = rabbind.Transport.ConnectionParameters.UserName;
                 this.Password = rabbind.Transport.ConnectionParameters.Password;
-                this.AccessRequestConfig = rabbind.Transport.ConnectionParameters.AccessRequestConfig;
             }
         }
 
@@ -122,21 +121,9 @@ namespace RabbitMQ.ServiceModel
             rabbind.BrokerProtocol = this.Protocol;
             rabbind.OneWayOnly = this.OneWayOnly;
             rabbind.TransactionFlow = this.TransactionFlowEnabled;
-            rabbind.Transport.Realm = this.Realm;
-            rabbind.Transport.ConnectionParameters.AccessRequestConfig = this.AccessRequestConfig;
             rabbind.Transport.ConnectionParameters.Password = this.Password;
             rabbind.Transport.ConnectionParameters.UserName = this.Username;
             rabbind.Transport.ConnectionParameters.VirtualHost = this.VirtualHost;
-        }
-
-        /// <summary>
-        /// Used to control suppression of Access.Request calls
-        /// </summary>
-        [ConfigurationProperty("accessRequestConfig", DefaultValue = AccessRequestConfig.UseDefault)]
-        public AccessRequestConfig AccessRequestConfig
-        {
-            get { return ((AccessRequestConfig)base["accessRequestConfig"]); }
-            set { base["accessRequestConfig"] = value; }
         }
 
         /// <summary>
@@ -232,14 +219,6 @@ namespace RabbitMQ.ServiceModel
         {
             get { return ((string)base["virtualHost"]); }
             set { base["virtualHost"] = value; }
-        }
-
-        ///<summary>The security realm to use when calling IModel.AccessRequest</summary>
-        [ConfigurationProperty("realm", DefaultValue = CurrentVersion.DefaultRealm)]
-        public string Realm
-        {
-            get { return ((string) base["realm"]); }
-            set { base["realm"] = value; }
         }
 
         protected override System.Type BindingElementType

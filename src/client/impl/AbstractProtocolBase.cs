@@ -59,8 +59,6 @@ namespace RabbitMQ.Client.Impl {
         public abstract string ApiName { get; }
         public abstract int DefaultPort { get; }
 
-	public abstract bool DefaultSuppressAccessRequest { get; }
-
         public abstract IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint);
         public abstract IConnection CreateConnection(ConnectionParameters parameters,
                                                      bool insist,

@@ -72,13 +72,11 @@ namespace RabbitMQ.Client.Examples {
                 using (IConnection conn = new ConnectionFactory().CreateConnection(serverAddress))
                 {
                     using (IModel ch = conn.CreateModel()) {
-                        ushort ticket = ch.AccessRequest("/data");
 
                         if (exchange != "") {
-                            ch.ExchangeDeclare(ticket, exchange, exchangeType);
+                            ch.ExchangeDeclare(exchange, exchangeType);
                         }
-                        ch.BasicPublish(ticket,
-                                        exchange,
+                        ch.BasicPublish(exchange,
                                         routingKey,
                                         null,
                                         Encoding.UTF8.GetBytes(message));

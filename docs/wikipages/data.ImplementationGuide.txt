@@ -115,7 +115,7 @@ waiting [code IRpcContinuation], about which more below.
 There are two styles of interaction available to [code ModelBase]:
 
  - synchronous, RPC-style interaction, e.g. [code ExchangeDeclare],
-   [code BasicGet], [code BasicConsume] and [code AccessRequest].
+   [code BasicGet] and [code BasicConsume].
 
  - asynchronous, event-style interaction, e.g. [code BasicAck], [code
    BasicPublish].

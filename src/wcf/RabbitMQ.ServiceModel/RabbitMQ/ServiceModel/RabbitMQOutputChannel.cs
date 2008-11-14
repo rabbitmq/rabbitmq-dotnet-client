@@ -67,9 +67,8 @@ namespace RabbitMQ.ServiceModel
         private RabbitMQTransportBindingElement bindingElement;
         private MessageEncoder encoder;
         private IModel model;
-        private ushort ticket;
 
-        public RabbitMQOutputChannel(BindingContext context, IModel model, ushort ticket, EndpointAddress address)
+        public RabbitMQOutputChannel(BindingContext context, IModel model, EndpointAddress address)
             : base(context, address)
         {
             this.bindingElement = context.Binding.Elements.Find<RabbitMQTransportBindingElement>();
@@ -78,7 +77,6 @@ namespace RabbitMQ.ServiceModel
                 this.encoder = encoderElement.CreateMessageEncoderFactory().Encoder;
             }
             this.model = model;
-            this.ticket = ticket;
         }
 
         public override void Send(Message message, TimeSpan timeout)
@@ -99,8 +97,7 @@ namespace RabbitMQ.ServiceModel
                     body.Length,
                     message.Headers.Action.Remove(0, message.Headers.Action.LastIndexOf('/')));
 #endif
-                model.BasicPublish(ticket,
-                                   base.RemoteAddress.Uri.Host,
+                model.BasicPublish(base.RemoteAddress.Uri.Host,
                                    base.RemoteAddress.Uri.PathAndQuery,
                                    null,
                                    body);

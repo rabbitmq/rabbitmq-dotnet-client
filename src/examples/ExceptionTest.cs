@@ -82,12 +82,11 @@ namespace RabbitMQ.Client.Examples {
                         ch.ModelShutdown += new ModelShutdownEventHandler(Second);
                         ch.CallbackException += new CallbackExceptionEventHandler(OnCallbackException);
 
-                        ushort ticket = ch.AccessRequest("/data");
-                        string queueName = ch.QueueDeclare(ticket);
+                        string queueName = ch.QueueDeclare();
 
                         ThrowingConsumer consumer = new ThrowingConsumer(ch);
-                        string consumerTag = ch.BasicConsume(ticket, queueName, null, consumer);
-                        ch.BasicPublish(ticket, "", queueName, null, Encoding.UTF8.GetBytes("test"));
+                        string consumerTag = ch.BasicConsume(queueName, null, consumer);
+                        ch.BasicPublish("", queueName, null, Encoding.UTF8.GetBytes("test"));
                         ch.BasicCancel(consumerTag);
                         return 0;
                     }

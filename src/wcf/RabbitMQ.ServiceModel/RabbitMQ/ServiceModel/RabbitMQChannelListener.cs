@@ -67,14 +67,12 @@ namespace RabbitMQ.ServiceModel
 
         private IInputChannel channel;
         private IModel model;
-        private ushort ticket;
 
         internal RabbitMQChannelListener(BindingContext context)
             : base(context)
         {
             this.channel = null;
             this.model = null;
-            this.ticket = 0;
         }
 
         protected override IInputChannel OnAcceptChannel(TimeSpan timeout)
@@ -84,7 +82,7 @@ namespace RabbitMQ.ServiceModel
             if (channel != null)
                 return null;
 
-            channel = new RabbitMQInputChannel(Context, model, ticket, new EndpointAddress(Uri.ToString()));
+            channel = new RabbitMQInputChannel(Context, model, new EndpointAddress(Uri.ToString()));
             channel.Closed += new EventHandler(ListenChannelClosed);
             return channel;
         }
@@ -101,7 +99,6 @@ namespace RabbitMQ.ServiceModel
             DebugHelper.Start();
 #endif            
             model = bindingElement.Open(timeout);
-            ticket = model.AccessRequest(bindingElement.Realm);
 #if VERBOSE
             DebugHelper.Stop(" ## In.Open {{Time={0}ms}}.");
 #endif
@@ -122,7 +119,6 @@ namespace RabbitMQ.ServiceModel
             {
                 bindingElement.Close(model, timeout);
                 model = null;
-                ticket = 0;
             }
 #if VERBOSE
             DebugHelper.Stop(" ## In.Close {{Time={0}ms}}.");

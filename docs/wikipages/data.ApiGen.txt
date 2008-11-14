@@ -295,7 +295,7 @@ method to cause code-generation to skip that method.
 
 @code java
     [AmqpMethodDoNotImplement(null)]
-    void ExchangeDeclare(ushort ticket, string exchange, string type);
+    void ExchangeDeclare(string exchange, string type);
 
 It should be used to mark interface methods that are backed by
 hand-written code: for example, the [code ExchangeDeclare] overload
@@ -360,8 +360,7 @@ of the interaction style of the command. The [code AmqpNowaitArgument]
 attribute should be used for this purpose:
 
 @code java
-    void ExchangeDelete(ushort ticket,
-                        string exchange,
+    void ExchangeDelete(string exchange,
                         bool ifUnused,
                           [AmqpNowaitArgument(null)]
                         bool nowait);
@@ -449,7 +448,7 @@ of the returned struct.
 
 @code java
     [return: AmqpFieldMapping(null, "messageCount")]
-    uint QueuePurge(ushort ticket, ...);
+    uint QueuePurge(...);
 
 The above example extracts and returns just the "message-count" field
 of the [code queue.purge-ok] reply.
@@ -542,8 +541,7 @@ applications:
 @code java
     [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
     [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-    void QueueUnbind(ushort ticket,
-                     string queue,
+    void QueueUnbind(string queue,
                      string exchange,
                      string routingKey,
                      IDictionary arguments);

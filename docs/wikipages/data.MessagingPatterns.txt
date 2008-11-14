@@ -254,10 +254,9 @@ MySimpleRpcServerSubclass] extending [code SimpleRpcServer]):
   using (IConnection conn = new ConnectionFactory()
                                   .CreateConnection(serverAddress)) {
       using (IModel ch = conn.CreateModel()) {
-          ushort ticket = ch.AccessRequest("/data");
 
           Subscription subscription =
-              new Subscription(ch, ticket, /* ... */);
+              new Subscription(ch, /* ... */);
           // in the line above, the "..." indicates the parameters
           // used to specify the address to use to route messages
           // to the subscription. This subscription will be used
@@ -306,9 +305,8 @@ The basic pattern for using [code SimpleRpcClient] is as follows:
   using (IConnection conn = new ConnectionFactory()
                                   .CreateConnection(args[0])) {
       using (IModel ch = conn.CreateModel()) {
-          ushort ticket = ch.AccessRequest("/data");
 
-          SimpleRpcClient client = new SimpleRpcClient(ch, ticket, /* ... */);
+          SimpleRpcClient client = new SimpleRpcClient(ch, /* ... */);
           // in the line above, the "..." indicates the parameters
           // used to specify the address to use to route messages
           // to the service.
@@ -365,14 +363,12 @@ For example:
   using (IConnection conn = new ConnectionFactory()
                                   .CreateConnection(args[0])) {
       using (IModel ch = conn.CreateModel()) {
-          ushort ticket = ch.AccessRequest("/data");
 
 	  IBasicProperties props = ch.CreateBasicProperties();
           FillInHeaders(props); // or similar
           byte[] body = ComputeBody(props); // or similar
 
-          ch.BasicPublish(ticket,
-                          "exchangeName",
+          ch.BasicPublish("exchangeName",
                           "chosen.routing.key",
                           props,
                           body);
@@ -391,8 +387,8 @@ declaration and queue binding, as well as consumer declaration and
 management. For example,
 
 @code java
-  // "IModel ch" and "ushort ticket" in scope.
-  Subscription sub = new Subscription(ch, ticket, "price", "topic", "STOCK.IBM.#");
+  // "IModel ch" in scope.
+  Subscription sub = new Subscription(ch, "price", "topic", "STOCK.IBM.#");
   foreach (BasicDeliverEventArgs e in sub) {
     // handle the message contained in e ...
     // ... and finally acknowledge it
@@ -423,10 +419,10 @@ application wanted to retrieve all prices regarding IBM on queue
 "MyApplicationQueue":
 
 @code java
-  // "IModel ch" and "ushort ticket" in scope.
-  ch.ExchangeDeclare(ticket, "prices", "topic");
-  ch.QueueDeclare(ticket, "MyApplicationQueue");
-  ch.QueueBind(ticket, "MyApplicationQueue", "prices",
+  // "IModel ch" in scope.
+  ch.ExchangeDeclare("prices", "topic");
+  ch.QueueDeclare("MyApplicationQueue");
+  ch.QueueBind("MyApplicationQueue", "prices",
                "STOCK.IBM.#", false, null);
 
 ... followed by consumption of messages from "MyApplicationQueue"

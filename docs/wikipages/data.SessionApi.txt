@@ -12,7 +12,6 @@ In our current (0-8) Java client, our ConnectionParameters/ConnectionFactory obj
  - Channel Max
  - Frame Max
  - Heartbeat interval
- - AccessRequest suppression
  - a list of Addresses (Hostname/Portnumber pairs) where the broker is reachable
 
 These need splitting up.
@@ -27,7 +26,6 @@ These need splitting up.
   || - Username
   || - Password
   || - Virtual Host
-  || - AccessRequest suppression
 
 So, let's define a bunch of entities.
 

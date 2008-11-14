@@ -68,14 +68,13 @@ namespace RabbitMQ.Client.Examples {
 
                 using (IConnection conn = new ConnectionFactory().CreateConnection(args[0])) {
                     using (IModel ch = conn.CreateModel()) {
-                        ushort ticket = ch.AccessRequest("/data");
 
                         object[] addends = new object[args.Length - 1];
                         for (int i = 0; i < args.Length - 1; i++) {
                             addends[i] = double.Parse(args[i + 1]);
                         }
 
-                        SimpleRpcClient client = new SimpleRpcClient(ch, ticket, "AddServer");
+                        SimpleRpcClient client = new SimpleRpcClient(ch, "AddServer");
 			client.TimeoutMilliseconds = 5000;
 			client.TimedOut += new EventHandler(TimedOutHandler);
 			client.Disconnected += new EventHandler(DisconnectedHandler);

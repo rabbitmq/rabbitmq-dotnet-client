@@ -138,22 +138,13 @@ ConnectionParameters] object before calling [code CreateConnection]:
  params.VirtualHost = virtualHost;
  IConnection conn = factory.CreateConnection(protocol, hostName, portNumber);
 
-The IConnection interface can then be used to open a channel and
-request an access ticket to a realm:
+The IConnection interface can then be used to open a channel:
 
 @code java
  IModel channel = conn.CreateModel();
- string realm = "/data";
- ushort ticket = channel.AccessRequest(realm);
 
-The channel and access ticket can now be used to send and receive
-messages, as described in subsequent sections.
-
-Some AMQP brokers do not understand the [code access.request] method.
-The environment variable [code AMQP_ACCESS_REQUEST] specifies behaviour
-of the client when communicating with such broker. The valid values 
-ENABLE, SUPPRESS and USE_DEFAULT are explained in api-guide in
-the [code AccessRequestConfig].
+The channel can now be used to send and receive messages,
+as described in subsequent sections.
 
 ** Disconnecting from a broker
 
@@ -194,9 +185,9 @@ Continuing the previous example, the following code declares an
 exchange and a queue, then binds them together.
 
 @code java
- channel.ExchangeDeclare(ticket, exchangeName, ExchangeType.Direct);
- channel.QueueDeclare(ticket, queueName);
- channel.QueueBind(ticket, queueName, exchangeName, routingKey, false, null);
+ channel.ExchangeDeclare(exchangeName, ExchangeType.Direct);
+ channel.QueueDeclare(queueName);
+ channel.QueueBind(queueName, exchangeName, routingKey, false, null);
 
 This will actively declare the following objects:
 
@@ -224,7 +215,7 @@ follows:
 
 @code java
  byte[] messageBodyBytes = System.Text.Encoding.UTF8.GetBytes("Hello, world!");
- channel.BasicPublish(ticket, exchangeName, routingKey, null, messageBodyBytes);
+ channel.BasicPublish(exchangeName, routingKey, null, messageBodyBytes);
 
 For fine control, you can use overloaded variants to specify the
 mandatory and immediate flags, or send messages with basic-class
@@ -235,7 +226,7 @@ header properties:
  IBasicProperties props = channel.CreateBasicProperties();
  props.ContentType = "text/plain";
  props.DeliveryMode = 2;
- channel.BasicPublish(ticket, exchangeName,
+ channel.BasicPublish(exchangeName,
                       routingKey, props,
                       messageBodyBytes);
 
@@ -252,7 +243,7 @@ information (properties) and message body can be extracted:
 
 @code java
  bool noAck = false;
- BasicGetResult result = channel.BasicGet(ticket, queueName, noAck);
+ BasicGetResult result = channel.BasicGet(queueName, noAck);
  if (result == null) {
      // No message available at this time.
  } else {
@@ -283,7 +274,7 @@ deliveries from the [code SharedQueue] instance contained therein:
 
 @code java
  QueueingBasicConsumer consumer = new QueueingBasicConsumer(channel);
- channel.BasicConsume(ticket, queueName, null, consumer);
+ channel.BasicConsume(queueName, null, consumer);
  while (true) {
      try {
          RabbitMQ.Client.Events.BasicDeliverEventArgs e =
@@ -441,7 +432,7 @@ For example, to construct (and send) a MapMessage:
   b.Body["field1"] = 123.45;
   b.Body["field2"] = new byte[] { 1, 2, 3 };
 
-  channel.BasicPublish(ticket, exchange, routingKey,
+  channel.BasicPublish(exchange, routingKey,
                        (IBasicProperties)  b.GetContentHeader(),
                        b.GetContentBody());
 

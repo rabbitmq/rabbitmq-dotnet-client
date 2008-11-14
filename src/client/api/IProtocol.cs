@@ -67,12 +67,6 @@ namespace RabbitMQ.Client
         ///<summary>Retrieve the protocol's default TCP port</summary>
         int DefaultPort { get; }
 
-        ///<summary>Returns false if this protocol variant defaults to
-        ///permitting Access.Requests to be sent to the peer, or true
-        ///if Access.Requests should be suppressed by
-        ///default.</summary>
-        bool DefaultSuppressAccessRequest { get; }
-
         ///<summary>Construct a frame handler for a given endpoint.</summary>
         IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint);
         ///<summary>Construct a connection from a given set of

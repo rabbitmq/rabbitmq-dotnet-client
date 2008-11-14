@@ -118,34 +118,6 @@ namespace RabbitMQ.Client
         [return: AmqpFieldMapping(null, "active")]
         void ChannelFlow(bool active);
 
-        ///<summary>(Spec method) Convenience method, asking for
-        ///non-exclusive access to all capabilities within a
-        ///realm.</summary>
-        ///<remarks>
-        ///If Access.Request is disabled, either through the IProtocol
-        ///default or through the AccessRequestConfig property of
-        ///ConnectionParameters, no request is sent to the peer and a
-        ///dummy ticket number is returned.
-        ///</remarks>
-        [AmqpMethodDoNotImplement(null)]
-        ushort AccessRequest(string realm);
-
-        ///<summary>(Spec method) Retrieve an access ticket
-        ///("capability") for a realm.</summary>
-        ///<remarks>
-        ///If Access.Request is disabled, either through the IProtocol
-        ///default or through the AccessRequestConfig property of
-        ///ConnectionParameters, no request is sent to the peer and a
-        ///dummy ticket number is returned.
-        ///</remarks>
-        [AmqpMethodDoNotImplement(null)]
-        ushort AccessRequest(string realm,
-                             bool exclusive,
-                             bool passive,
-                             bool active,
-                             bool write,
-                             bool read);
-
         ///<summary>(Spec method) Declare an exchange.</summary>
         ///<remarks>
         ///The exchange is declared non-passive, non-autodelete, and
@@ -153,7 +125,7 @@ namespace RabbitMQ.Client
         ///exercised.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        void ExchangeDeclare(ushort ticket, string exchange, string type, bool durable);
+        void ExchangeDeclare(string exchange, string type, bool durable);
 
         ///<summary>(Spec method) Declare an exchange.</summary>
         ///<remarks>
@@ -162,11 +134,10 @@ namespace RabbitMQ.Client
         ///exercised.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        void ExchangeDeclare(ushort ticket, string exchange, string type);
+        void ExchangeDeclare(string exchange, string type);
 
         ///<summary>(Spec method) Declare an exchange.</summary>
-        void ExchangeDeclare(ushort ticket,
-                             string exchange,
+        void ExchangeDeclare(string exchange,
                              string type,
                              bool passive,
                              bool durable,
@@ -177,8 +148,7 @@ namespace RabbitMQ.Client
                              IDictionary arguments);
 
         ///<summary>(Spec method) Delete an exchange.</summary>
-        void ExchangeDelete(ushort ticket,
-                            string exchange,
+        void ExchangeDelete(string exchange,
                             bool ifUnused,
                             [AmqpNowaitArgument(null)]
                             bool nowait);
@@ -191,7 +161,7 @@ namespace RabbitMQ.Client
         ///name is the return value of this method.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        string QueueDeclare(ushort ticket);
+        string QueueDeclare();
 
         ///<summary>(Spec method) Declare a queue.</summary>
         ///<remarks>
@@ -199,8 +169,7 @@ namespace RabbitMQ.Client
         ///non-exclusive, and non-autodelete, with no arguments.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        string QueueDeclare(ushort ticket,
-                            string queue);
+        string QueueDeclare(string queue);
 
         ///<summary>(Spec method) Declare a queue.</summary>
         ///<remarks>
@@ -208,8 +177,7 @@ namespace RabbitMQ.Client
         ///non-autodelete, with no arguments.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        string QueueDeclare(ushort ticket,
-                            string queue,
+        string QueueDeclare(string queue,
                             bool durable);
 
         ///<summary>(Spec method) Declare a queue.</summary>
@@ -217,8 +185,7 @@ namespace RabbitMQ.Client
         ///Returns the name of the queue that was declared.
         ///</remarks>
         [return: AmqpFieldMapping(null, "queue")]
-        string QueueDeclare(ushort ticket,
-                            string queue,
+        string QueueDeclare(string queue,
                             bool passive,
                             bool durable,
                             bool exclusive,
@@ -228,8 +195,7 @@ namespace RabbitMQ.Client
                             IDictionary arguments);
 
         ///<summary>(Spec method) Bind a queue to an exchange.</summary>
-        void QueueBind(ushort ticket,
-                       string queue,
+        void QueueBind(string queue,
                        string exchange,
                        string routingKey,
                        [AmqpNowaitArgument(null)]
@@ -243,8 +209,7 @@ namespace RabbitMQ.Client
         ///</remarks>
         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        void QueueUnbind(ushort ticket,
-                         string queue,
+        void QueueUnbind(string queue,
                          string exchange,
                          string routingKey,
                          IDictionary arguments);
@@ -255,8 +220,7 @@ namespace RabbitMQ.Client
         ///specified, returns <code>uint.MaxValue</code>.
         ///</remarks>
         [return: AmqpFieldMapping(null, "messageCount")]
-        uint QueuePurge(ushort ticket,
-                        string queue,
+        uint QueuePurge(string queue,
                         [AmqpNowaitArgument(null, "0xFFFFFFFF")]
                         bool nowait);
 
@@ -267,8 +231,7 @@ namespace RabbitMQ.Client
         ///<code>uint.MaxValue</code>.
         ///</remarks>
         [return: AmqpFieldMapping(null, "messageCount")]
-        uint QueueDelete(ushort ticket,
-                         string queue,
+        uint QueueDelete(string queue,
                          bool ifUnused,
                          bool ifEmpty,
                          [AmqpNowaitArgument(null, "0xFFFFFFFF")]
@@ -281,8 +244,7 @@ namespace RabbitMQ.Client
         ///noLocal=false and exclusive=false.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        string BasicConsume(ushort ticket,
-                            string queue,
+        string BasicConsume(string queue,
                             IDictionary filter,
                             IBasicConsumer consumer);
 
@@ -293,8 +255,7 @@ namespace RabbitMQ.Client
         ///noLocal=false and exclusive=false.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        string BasicConsume(ushort ticket,
-                            string queue,
+        string BasicConsume(string queue,
                             bool noAck,
                             IDictionary filter,
                             IBasicConsumer consumer);
@@ -305,8 +266,7 @@ namespace RabbitMQ.Client
         ///noLocal=false and exclusive=false.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        string BasicConsume(ushort ticket,
-                            string queue,
+        string BasicConsume(string queue,
                             bool noAck,
                             string consumerTag,
                             IDictionary filter,
@@ -314,8 +274,7 @@ namespace RabbitMQ.Client
 
         ///<summary>Start a Basic content-class consumer.</summary>
         [AmqpMethodDoNotImplement(null)]
-        string BasicConsume(ushort ticket,
-                            string queue,
+        string BasicConsume(string queue,
                             bool noAck,
                             string consumerTag,
                             bool noLocal,
@@ -337,8 +296,7 @@ namespace RabbitMQ.Client
         ///The publication occurs with mandatory=false and immediate=false.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        void BasicPublish(ushort ticket,
-                          PublicationAddress addr,
+        void BasicPublish(PublicationAddress addr,
                           IBasicProperties basicProperties,
                           byte[] body);
 
@@ -347,8 +305,7 @@ namespace RabbitMQ.Client
         ///The publication occurs with mandatory=false and immediate=false.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        void BasicPublish(ushort ticket,
-                          string exchange,
+        void BasicPublish(string exchange,
                           string routingKey,
                           IBasicProperties basicProperties,
                           byte[] body);
@@ -356,8 +313,7 @@ namespace RabbitMQ.Client
         ///<summary>(Spec method) Publish a message using the Basic
         ///content-class.</summary>
         [AmqpMethodDoNotImplement(null)]
-        void BasicPublish(ushort ticket,
-                          string exchange,
+        void BasicPublish(string exchange,
                           string routingKey,
                           bool mandatory,
                           bool immediate,
@@ -380,8 +336,7 @@ namespace RabbitMQ.Client
         ///no messages are currently available. See also
         ///IModel.BasicAck.</summary>
         [AmqpMethodDoNotImplement(null)]
-        BasicGetResult BasicGet(ushort ticket,
-                                string queue,
+        BasicGetResult BasicGet(string queue,
                                 bool noAck);
 
         ///<summary>(Spec method) Enable TX mode for this session.</summary>
@@ -490,19 +445,6 @@ namespace RabbitMQ.Client.Impl
     ///<see cref="RabbitMQ.Client.Framing.Impl.v0_9.Model"/>
     public interface IFullModel : RabbitMQ.Client.IModel
     {
-        ///<summary>Used to send an Access.Request method. Called by
-        ///the public API after checking whether our peer's
-        ///implementation can actually handle access
-        ///requests.</summary>
-        [AmqpMethodMapping(null, "access", "request")]
-        [return: AmqpFieldMapping(null, "ticket")]
-        ushort _Private_AccessRequest(string realm,
-                      bool exclusive,
-                      bool passive,
-                      bool active,
-                      bool write,
-                      bool read);
-
         ///<summary>Used to send a Basic.Publish method. Called by the
         ///public publish method after potential null-reference issues
         ///have been rectified.</summary>
