@@ -79,7 +79,7 @@ namespace RabbitMQ.Client.Impl
         
         ///<summary>Deprecated. When 0.9.1 is signed off, tickets can be removed
         ///from the codec and this field can be deleted.</summary>
-        public ushort TICKET = 1;
+        public ushort TICKET = 0;
 
         public event ModelShutdownEventHandler ModelShutdown
         {
