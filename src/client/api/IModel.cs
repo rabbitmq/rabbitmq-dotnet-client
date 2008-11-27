@@ -449,8 +449,7 @@ namespace RabbitMQ.Client.Impl
         ///public publish method after potential null-reference issues
         ///have been rectified.</summary>
         [AmqpMethodMapping(null, "basic", "publish")]
-        void _Private_BasicPublish(ushort ticket,
-                                   string exchange,
+        void _Private_BasicPublish(string exchange,
                                    string routingKey,
                                    bool mandatory,
                                    bool immediate,
@@ -464,8 +463,7 @@ namespace RabbitMQ.Client.Impl
         ///datastructures.</summary>
         [AmqpForceOneWay]
         [AmqpMethodMapping(null, "basic", "consume")]
-        void _Private_BasicConsume(ushort ticket,
-                                   string queue,
+        void _Private_BasicConsume(string queue,
                                    string consumerTag,
                                    bool noLocal,
                                    bool noAck,
@@ -515,8 +513,7 @@ namespace RabbitMQ.Client.Impl
         ///required.</summary>
         [AmqpForceOneWay]
         [AmqpMethodMapping(null, "basic", "get")]
-        void _Private_BasicGet(ushort ticket,
-                               string queue,
+        void _Private_BasicGet(string queue,
                                bool noAck);
 
         ///<summary>Handle incoming Basic.GetOk methods. Routes the

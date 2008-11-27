@@ -76,10 +76,6 @@ namespace RabbitMQ.Client.Impl
         private readonly object m_eventLock = new object();
         private BasicReturnEventHandler m_basicReturn;
         private CallbackExceptionEventHandler m_callbackException;
-        
-        ///<summary>Deprecated. When 0.9.1 is signed off, tickets can be removed
-        ///from the codec and this field can be deleted.</summary>
-        public ushort TICKET = 0;
 
         public event ModelShutdownEventHandler ModelShutdown
         {
@@ -584,7 +580,7 @@ namespace RabbitMQ.Client.Impl
             // the RPC response, but a response is still expected.
             try
             {
-                _Private_BasicConsume(TICKET, queue, consumerTag, noLocal, noAck, exclusive,
+                _Private_BasicConsume(queue, consumerTag, noLocal, noAck, exclusive,
                     /*nowait:*/ false, filter);
             }
             catch (AlreadyClosedException)
@@ -686,7 +682,7 @@ namespace RabbitMQ.Client.Impl
             Enqueue(k);
             try
             {
-                _Private_BasicGet(TICKET, queue, noAck);
+                _Private_BasicGet(queue, noAck);
             }
             catch (AlreadyClosedException)
             {
@@ -702,8 +698,7 @@ namespace RabbitMQ.Client.Impl
                                       ushort prefetchCount,
                                       bool global);
 
-        public abstract void _Private_BasicConsume(ushort ticket,
-                                                   string queue,
+        public abstract void _Private_BasicConsume(string queue,
                                                    string consumerTag,
                                                    bool noLocal,
                                                    bool noAck,
@@ -748,8 +743,7 @@ namespace RabbitMQ.Client.Impl
             {
                 basicProperties = CreateBasicProperties();
             }
-            _Private_BasicPublish(TICKET,
-                                  exchange,
+            _Private_BasicPublish(exchange,
                                   routingKey,
                                   mandatory,
                                   immediate,
@@ -757,8 +751,7 @@ namespace RabbitMQ.Client.Impl
                                   body);
         }
 
-        public abstract void _Private_BasicPublish(ushort ticket,
-                                                   string exchange,
+        public abstract void _Private_BasicPublish(string exchange,
                                                    string routingKey,
                                                    bool mandatory,
                                                    bool immediate,
@@ -814,8 +807,7 @@ namespace RabbitMQ.Client.Impl
 
         public abstract void _Private_ChannelCloseOk();
 
-        public abstract void _Private_BasicGet(ushort ticket,
-                                               string queue,
+        public abstract void _Private_BasicGet(string queue,
                                                bool noAck);
 
         public void HandleBasicGetOk(ulong deliveryTag,
