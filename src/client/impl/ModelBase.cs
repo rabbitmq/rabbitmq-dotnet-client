@@ -775,22 +775,49 @@ namespace RabbitMQ.Client.Impl
 
         void IDisposable.Dispose()
         {
-            Close(200, "");
+            Close();
+        }
+        
+        public void Close()
+        {
+        	Close(200, "Goodbye");
         }
 
-        public void Close(ushort replyCode, string replyText)
+		public void Close(ushort replyCode, string replyText)
+        {
+        	Close(replyCode, replyText, false);
+        }
+        
+        public void Abort() 
+        {
+            Abort(200, "Goodbye");
+        }
+        
+        public void Abort(ushort replyCode, string replyText)
+        {
+            Close(replyCode, replyText, true);
+        }
+        
+        public void Close(ushort replyCode, string replyText, bool abort)
         {
             ShutdownContinuation k = new ShutdownContinuation();
             ModelShutdown += new ModelShutdownEventHandler(k.OnShutdown);
-
-            if (SetCloseReason(new ShutdownEventArgs(ShutdownInitiator.Application,
-                                 replyCode,
-                                 replyText)))
-            {
-                _Private_ChannelClose(replyCode, replyText, 0, 0);
+            
+            try {
+                if (SetCloseReason(new ShutdownEventArgs(ShutdownInitiator.Application,
+                                     replyCode,
+                                     replyText)))
+                {
+                    _Private_ChannelClose(replyCode, replyText, 0, 0);
+                }
+                k.Wait();
+            } catch (AlreadyClosedException ace) {
+            	if (!abort)
+            		throw ace;
+            } catch (IOException ioe) {
+            	if (!abort)
+            		throw ioe;
             }
-
-            k.Wait();
         }
 
         public void HandleChannelCloseOk()
