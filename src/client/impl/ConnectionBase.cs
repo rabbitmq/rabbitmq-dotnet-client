@@ -353,27 +353,39 @@ namespace RabbitMQ.Client.Impl
             Close(200, "Goodbye", Timeout.Infinite);
         }
         
+        ///<summary>API-side invocation of connection close.</summary>
+        public void Close(ushort reasonCode, string reasonText)
+        {
+            Close(reasonCode, reasonText, Timeout.Infinite);
+        }
+        
         ///<summary>API-side invocation of connection close with timeout.</summary>
         public void Close(int timeout)
         {
             Close(200, "Goodbye", timeout);
         }
-
-        public void Close(ShutdownEventArgs reason)
-        {
-            Close(reason, false, Timeout.Infinite);
-        }
         
+        ///<summary>API-side invocation of connection close with timeout.</summary>
         public void Close(ushort reasonCode, string reasonText, int timeout)
         {
             Close(new ShutdownEventArgs(ShutdownInitiator.Application, reasonCode, reasonText), false, timeout);
         }
-        
+
+        public void Close(ShutdownEventArgs reason)
+        {
+            Close(reason, false, Timeout.Infinite);
+        }        
         
         ///<summary>API-side invocation of connection abort.</summary>
         public void Abort()
         {
             Abort(Timeout.Infinite);
+        }
+
+        ///<summary>API-side invocation of connection abort.</summary>
+        public void Abort(ushort reasonCode, string reasonText)
+        {
+            Abort(reasonCode, reasonText, Timeout.Infinite);
         }
         
         ///<summary>API-side invocation of connection abort with timeout.</summary>
@@ -382,6 +394,7 @@ namespace RabbitMQ.Client.Impl
             Abort(200, "Connection close forced", timeout);
         }
         
+        ///<summary>API-side invocation of connection abort with timeout.</summary>
         public void Abort(ushort reasonCode, string reasonText, int timeout)
         {
             Abort(reasonCode, reasonText, ShutdownInitiator.Application, timeout);
