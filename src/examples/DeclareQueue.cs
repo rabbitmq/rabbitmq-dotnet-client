@@ -98,22 +98,21 @@ namespace RabbitMQ.Client.Examples {
                 using (IConnection conn = new ConnectionFactory().CreateConnection(serverAddress))
                 {
                     using (IModel ch = conn.CreateModel()) {
-                        ushort ticket = ch.AccessRequest("/data");
 
-                        string finalName = ch.QueueDeclare(ticket, inputQueueName,
-                                                           false, durable, false, false,
+                        string finalName = ch.QueueDeclare(inputQueueName, false,
+                                                           durable, false, false,
                                                            false, arguments);
                         Console.WriteLine("{0}\t{1}", finalName, durable);
                 
                         while ((optionIndex + 1) < args.Length) {
                             string exchange = args[optionIndex++];
                             string routingKey = args[optionIndex++];
-                            ch.QueueBind(ticket, finalName, exchange, routingKey, false, null);
+                            ch.QueueBind(finalName, exchange, routingKey, false, null);
                             Console.WriteLine("{0}\t{1}\t{2}", finalName, exchange, routingKey);
                         }
 
                         if (delete) {
-                            ch.QueueDelete(ticket, finalName, false, false, false);
+                            ch.QueueDelete(finalName, false, false, false);
                         }
 
                         return 0;

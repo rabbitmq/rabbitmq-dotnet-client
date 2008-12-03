@@ -78,9 +78,8 @@ namespace RabbitMQ.Client.MessagePatterns {
     ///	using (IConnection conn = new ConnectionFactory()
     ///	                                .CreateConnection(serverAddress)) {
     ///	    using (IModel ch = conn.CreateModel()) {
-    ///	        ushort ticket = ch.AccessRequest("/data");
     ///	        SimpleRpcClient client =
-    ///	            new SimpleRpcClient(ch, ticket, queueName);
+    ///	            new SimpleRpcClient(ch, queueName);
     ///	        client.TimeoutMilliseconds = 5000; // optional
     ///	
     ///	        /// ... make use of the various Call() overloads
@@ -125,15 +124,12 @@ namespace RabbitMQ.Client.MessagePatterns {
 	public event EventHandler Disconnected;
 
         protected IModel m_model;
-        protected ushort m_ticket;
         protected Subscription m_subscription;
         private PublicationAddress m_address;
         private int m_timeout;
 
         ///<summary>Retrieve the IModel this instance uses to communicate.</summary>
         public IModel Model { get { return m_model; } }
-        ///<summary>Retrieve the ticket this instance uses to take AMQP actions.</summary>
-        public ushort Ticket { get { return m_ticket; } }
 
         ///<summary>Retrieve the Subscription that is used to receive
         ///RPC replies corresponding to Call() RPC requests. May be
@@ -185,29 +181,28 @@ namespace RabbitMQ.Client.MessagePatterns {
         ///<summary>Construct an instance with no configured
         ///Address. The Address property must be set before Call() or
         ///Cast() are called.</summary>
-        public SimpleRpcClient(IModel model, ushort ticket)
-            : this(model, ticket, (PublicationAddress) null) {}
+        public SimpleRpcClient(IModel model)
+            : this(model, (PublicationAddress) null) {}
 
         ///<summary>Construct an instance that will deliver to the
         ///default exchange (""), with routing key equal to the passed
         ///in queueName, thereby delivering directly to a named queue
         ///on the AMQP server.</summary>
-        public SimpleRpcClient(IModel model, ushort ticket, string queueName)
-            : this(model, ticket, new PublicationAddress(ExchangeType.Direct, "", queueName)) {}
+        public SimpleRpcClient(IModel model, string queueName)
+            : this(model, new PublicationAddress(ExchangeType.Direct, "", queueName)) {}
 
         ///<summary>Construct an instance that will deliver to the
         ///named and typed exchange, with the given routing
         ///key.</summary>
-        public SimpleRpcClient(IModel model, ushort ticket,
-                               string exchange, string exchangeType, string routingKey)
-            : this(model, ticket, new PublicationAddress(exchangeType, exchange, routingKey)) {}
+        public SimpleRpcClient(IModel model, string exchange,
+                               string exchangeType, string routingKey)
+            : this(model, new PublicationAddress(exchangeType, exchange, routingKey)) {}
 
         ///<summary>Construct an instance that will deliver to the
         ///given address.</summary>
-        public SimpleRpcClient(IModel model, ushort ticket, PublicationAddress address)
+        public SimpleRpcClient(IModel model, PublicationAddress address)
         {
             m_model = model;
-            m_ticket = ticket;
             m_address = address;
             m_subscription = null;
 	    m_timeout = Timeout.Infinite;
@@ -234,7 +229,7 @@ namespace RabbitMQ.Client.MessagePatterns {
         protected virtual void EnsureSubscription()
         {
             if (m_subscription == null) {
-                m_subscription = new Subscription(m_model, m_ticket);
+                m_subscription = new Subscription(m_model);
             }
         }
 
@@ -426,8 +421,7 @@ namespace RabbitMQ.Client.MessagePatterns {
         public virtual void Cast(IBasicProperties requestProperties,
                                  byte[] body)
         {
-            m_model.BasicPublish(m_ticket,
-                                 Address,
+            m_model.BasicPublish(Address,
                                  requestProperties,
                                  body);
         }

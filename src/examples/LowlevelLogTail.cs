@@ -79,20 +79,18 @@ namespace RabbitMQ.Client.Examples {
                 {
                     using (IModel ch = conn.CreateModel())
                     {
-                        ushort ticket = ch.AccessRequest("/data");
-
                         string queueName;
                         if (exchange == "") {
-                            ch.QueueDeclare(ticket, routingKey);
+                            ch.QueueDeclare(routingKey);
                             queueName = routingKey;
                         } else {
-                            ch.ExchangeDeclare(ticket, exchange, exchangeType);
-                            queueName = ch.QueueDeclare(ticket);
-                            ch.QueueBind(ticket, queueName, exchange, routingKey, false, null);
+                            ch.ExchangeDeclare(exchange, exchangeType);
+                            queueName = ch.QueueDeclare();
+                            ch.QueueBind(queueName, exchange, routingKey, false, null);
                         }
 
                         MyConsumer consumer = new MyConsumer(ch);
-                        ch.BasicConsume(ticket, queueName, null, consumer);
+                        ch.BasicConsume(queueName, null, consumer);
 
                         Console.WriteLine("Consumer tag: " + consumer.ConsumerTag);
 

@@ -74,10 +74,9 @@ namespace RabbitMQ.Client.Examples {
 
                 using (IModel ch = conn.CreateModel()) {
                     conn.AutoClose = true;
-                    ushort ticket = ch.AccessRequest("/data");
 
-                    ch.QueueDeclare(ticket, queueName);
-                    BasicGetResult result = ch.BasicGet(ticket, queueName, false);
+                    ch.QueueDeclare(queueName);
+                    BasicGetResult result = ch.BasicGet(queueName, false);
                     if (result == null) {
                         Console.WriteLine("No message available.");
                     } else {

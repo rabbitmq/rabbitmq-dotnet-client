@@ -77,7 +77,6 @@ namespace RabbitMQ.Client
     ///     IConnection conn = factory.CreateConnection(protocol, hostName, portNumber);
     ///     //
     ///     IModel ch = conn.CreateModel();
-    ///     ushort ticket = ch.AccessRequest("/data");
     ///     //
     ///     // ... use ch's IModel methods ...
     ///     //

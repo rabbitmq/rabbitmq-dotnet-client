@@ -78,13 +78,11 @@ namespace RabbitMQ.Client.Examples {
                 using (IConnection conn = new ConnectionFactory().CreateConnection(serverAddress))
                 {
                     using (IModel ch = conn.CreateModel()) {
-                        ushort ticket = ch.AccessRequest("/data");
-
                         Subscription sub;
                         if (exchange == "") {
-                            sub = new Subscription(ch, ticket, routingKey);
+                            sub = new Subscription(ch, routingKey);
                         } else {
-                            sub = new Subscription(ch, ticket, exchange, exchangeType, routingKey);
+                            sub = new Subscription(ch, exchange, exchangeType, routingKey);
                         }
 
                         Console.WriteLine("Consumer tag: " + sub.ConsumerTag);

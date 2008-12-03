@@ -54,7 +54,6 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Framing.Impl.v0_8 {
     public abstract class ProtocolBase: AbstractProtocolBase {
-	public override bool DefaultSuppressAccessRequest { get { return false; } }
 
         public override IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint) {
             return new SocketFrameHandler_0_9(endpoint);

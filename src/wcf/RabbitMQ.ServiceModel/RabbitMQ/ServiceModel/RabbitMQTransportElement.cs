@@ -77,8 +77,6 @@ namespace RabbitMQ.ServiceModel
 
             rabbind.Broker = this.Broker;
             rabbind.BrokerProtocol = this.Protocol;
-            rabbind.Realm = this.Realm;
-            rabbind.ConnectionParameters.AccessRequestConfig = this.AccessRequestConfig;
             rabbind.ConnectionParameters.Password = this.Password;
             rabbind.ConnectionParameters.UserName = this.Username;
             rabbind.ConnectionParameters.VirtualHost = this.VirtualHost;
@@ -92,8 +90,6 @@ namespace RabbitMQ.ServiceModel
             {
                 this.Broker = element.Broker;
                 this.ProtocolVersion = element.ProtocolVersion;
-                this.Realm = element.Realm;
-                this.AccessRequestConfig = element.AccessRequestConfig;
                 this.Password = element.Password;
                 this.Username = element.Username;
                 this.VirtualHost = element.VirtualHost;
@@ -130,8 +126,6 @@ namespace RabbitMQ.ServiceModel
 
             this.Broker = rabbind.Broker;
             this.ProtocolVersion = rabbind.BrokerProtocol.ApiName;
-            this.Realm = rabbind.Realm;
-            this.AccessRequestConfig = rabbind.ConnectionParameters.AccessRequestConfig;
             this.Password = rabbind.ConnectionParameters.Password;
             this.Username = rabbind.ConnectionParameters.UserName;
             this.VirtualHost = rabbind.ConnectionParameters.VirtualHost;
@@ -140,16 +134,6 @@ namespace RabbitMQ.ServiceModel
         public override System.Type BindingElementType
         {
             get { return typeof(RabbitMQTransportElement); }
-        }
-
-        /// <summary>
-        /// Used to control suppression of Access.Request calls
-        /// </summary>
-        [ConfigurationProperty("accessRequestConfig", DefaultValue = AccessRequestConfig.UseDefault)]
-        public AccessRequestConfig AccessRequestConfig
-        {
-            get { return ((AccessRequestConfig)base["accessRequestConfig"]); }
-            set { base["accessRequestConfig"] = value; }
         }
 
         /// <summary>
@@ -223,14 +207,6 @@ namespace RabbitMQ.ServiceModel
         {
             get { return ((string)base["virtualHost"]); }
             set { base["virtualHost"] = value; }
-        }
-
-        ///<summary>The security realm to use when calling IModel.AccessRequest</summary>
-        [ConfigurationProperty("realm", DefaultValue = CurrentVersion.DefaultRealm)]
-        public string Realm
-        {
-            get { return ((string)base["realm"]); }
-            set { base["realm"] = value; }
         }
 
         protected override ConfigurationPropertyCollection Properties

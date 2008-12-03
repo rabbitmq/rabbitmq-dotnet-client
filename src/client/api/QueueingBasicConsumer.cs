@@ -80,7 +80,7 @@ namespace RabbitMQ.Client
     ///<example><code>
     ///	IModel channel = ...;
     ///	QueueingBasicConsumer consumer = new QueueingBasicConsumer(channel);
-    ///	channel.BasicConsume(ticket, queueName, null, consumer);
+    ///	channel.BasicConsume(queueName, null, consumer);
     ///	
     ///	// At this point, messages will be being asynchronously delivered,
     ///	// and will be queueing up in consumer.Queue.

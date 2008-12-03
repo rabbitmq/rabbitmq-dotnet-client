@@ -69,8 +69,7 @@ namespace RabbitMQ.Client.Examples {
 
                 using (IConnection conn = new ConnectionFactory().CreateConnection(args[0])) {
                     using (IModel ch = conn.CreateModel()) {
-                        ushort ticket = ch.AccessRequest("/data");
-                        Subscription sub = new Subscription(ch, ticket, "AddServer");
+                        Subscription sub = new Subscription(ch, "AddServer");
                         new AddServer(sub).MainLoop();
                     }
                 }

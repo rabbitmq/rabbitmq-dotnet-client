@@ -72,7 +72,6 @@ namespace RabbitMQ.ServiceModel
         private IProtocol brokerProtocol;
         private ConnectionFactory connectionFactory;
         private IConnection connection;
-        private string realm = CurrentVersion.DefaultRealm;
 
         /// <summary>
         /// Creates a new instance of the RabbitMQTransportBindingElement Class using the default protocol.
@@ -89,7 +88,6 @@ namespace RabbitMQ.ServiceModel
         {
             brokerProtocol = other.brokerProtocol;
             broker = other.Broker;
-            Realm = other.Realm;
         }
 
         
@@ -197,12 +195,6 @@ namespace RabbitMQ.ServiceModel
         public ConnectionParameters ConnectionParameters
         {
             get { return connectionFactory.Parameters; }
-        }
-
-        public string Realm
-        {
-            get { return realm ?? CurrentVersion.DefaultRealm; }
-            set { realm = value; }
         }
 
         //internal ConnectionFactory ConnectionFactory

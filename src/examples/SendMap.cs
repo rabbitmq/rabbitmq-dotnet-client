@@ -96,12 +96,11 @@ namespace RabbitMQ.Client.Examples {
                     Console.Error.WriteLine("  /persist     send message in 'persistent' mode");
                     return 1;
                 }
-
-		Uri uri = new Uri(args[optionIndex++]);
+                
+                Uri uri = new Uri(args[optionIndex++]);
                 string exchange = uri.Segments[1].TrimEnd(new char[] { '/' });
-                string exchangeType =
-		    uri.Query.StartsWith("?type=") ? uri.Query.Substring(6) : null;
-		string routingKey = uri.Segments.Length > 2 ? uri.Segments[2] : "";
+                string exchangeType = uri.Query.StartsWith("?type=") ? uri.Query.Substring(6) : null;
+                string routingKey = uri.Segments.Length > 2 ? uri.Segments[2] : "";
 
                 if (exchange == "amq.default") {
                     exchange = "";
@@ -110,10 +109,9 @@ namespace RabbitMQ.Client.Examples {
                 using (IConnection conn = new ConnectionFactory().CreateConnection(uri))
                 {
                     using (IModel ch = conn.CreateModel()) {
-                        ushort ticket = ch.AccessRequest("/data");
 
                         if (exchangeType != null) {
-                            ch.ExchangeDeclare(ticket, exchange, exchangeType);
+                            ch.ExchangeDeclare(exchange, exchangeType);
                         }
 
                         IMapMessageBuilder b = new MapMessageBuilder(ch);
@@ -182,8 +180,7 @@ namespace RabbitMQ.Client.Examples {
                         if (persistMode) {
                             ((IBasicProperties) b.GetContentHeader()).DeliveryMode = 2;
                         }
-                        ch.BasicPublish(ticket,
-                                        exchange,
+                        ch.BasicPublish(exchange,
                                         routingKey,
                                         (IBasicProperties) b.GetContentHeader(),
                                         b.GetContentBody());

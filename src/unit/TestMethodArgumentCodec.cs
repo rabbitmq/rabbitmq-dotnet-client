@@ -129,35 +129,4 @@ public class TestMethodArgumentCodec {
                                0x79, 0x49, 0x12, 0x34,
                                0x56, 0x78 });
     }
-
-    private static byte[] THE_ACCESS_REQUEST = new byte[] { 0x05, 0x2F, 0x64, 0x61,
-                                                            0x74, 0x61, 0x1E };
-
-    [Test]
-    public void TestAccessRequestWrite() {
-        RabbitMQ.Client.Framing.Impl.v0_8.AccessRequest req = new RabbitMQ.Client.Framing.Impl.v0_8.AccessRequest();
-        req.m_realm = "/data";
-        req.m_exclusive = false;
-        req.m_passive = true;
-        req.m_active = true;
-        req.m_write = true;
-        req.m_read = true;
-        req.WriteArgumentsTo(w);
-        w.Flush();
-        Check(w, THE_ACCESS_REQUEST);
-    }
-
-    [Test]
-    public void TestAccessRequestRead() {
-        RabbitMQ.Client.Framing.Impl.v0_8.AccessRequest result = new RabbitMQ.Client.Framing.Impl.v0_8.AccessRequest();
-        result.ReadArgumentsFrom(Reader(THE_ACCESS_REQUEST));
-        RabbitMQ.Client.Framing.v0_8.IAccessRequest req =
-            (RabbitMQ.Client.Framing.v0_8.IAccessRequest) result;
-        Assert.AreEqual("/data", req.Realm);
-        Assert.IsFalse(req.Exclusive);
-        Assert.IsTrue(req.Passive);
-        Assert.IsTrue(req.Active);
-        Assert.IsTrue(req.Write);
-        Assert.IsTrue(req.Read);
-    }
 }

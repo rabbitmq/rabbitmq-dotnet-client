@@ -68,10 +68,9 @@ namespace RabbitMQ.ServiceModel
         private RabbitMQTransportBindingElement bindingElement;
         private MessageEncoder encoder;
         private IModel model;
-        private ushort ticket;
         private QueueingBasicConsumer messageQueue;
 
-        public RabbitMQInputChannel(BindingContext context, IModel model, ushort ticket, EndpointAddress address)
+        public RabbitMQInputChannel(BindingContext context, IModel model, EndpointAddress address)
             : base(context, address)
         {
             this.bindingElement = context.Binding.Elements.Find<RabbitMQTransportBindingElement>();
@@ -80,7 +79,6 @@ namespace RabbitMQ.ServiceModel
                 this.encoder = encoderElem.CreateMessageEncoderFactory().Encoder;
             }
             this.model = model;
-            this.ticket = ticket;
             this.messageQueue = null;
         }
 
@@ -158,12 +156,12 @@ namespace RabbitMQ.ServiceModel
             DebugHelper.Start();
 #endif
             //Create a queue for messages destined to this service, bind it to the service URI routing key
-            string queue = model.QueueDeclare(ticket);
-            model.QueueBind(ticket, queue, base.LocalAddress.Uri.Host, base.LocalAddress.Uri.PathAndQuery, false, null);
+            string queue = model.QueueDeclare();
+            model.QueueBind(queue, base.LocalAddress.Uri.Host, base.LocalAddress.Uri.PathAndQuery, false, null);
 
             //Listen to the queue
             messageQueue = new QueueingBasicConsumer(model);
-            model.BasicConsume(ticket, queue, null, messageQueue);
+            model.BasicConsume(queue, null, messageQueue);
 
 #if VERBOSE
             DebugHelper.Stop(" ## In.Channel.Open {{\n\tAddress={1}, \n\tTime={0}ms}}.", LocalAddress.Uri.PathAndQuery);

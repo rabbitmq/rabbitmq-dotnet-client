@@ -66,7 +66,6 @@ namespace RabbitMQ.ServiceModel
         private CommunicationOperation openMethod;
         private RabbitMQTransportBindingElement bindingElement;
         private IModel model;
-        private ushort ticket;
 
         public RabbitMQChannelFactory(BindingContext context)
         {
@@ -74,12 +73,11 @@ namespace RabbitMQ.ServiceModel
             this.openMethod = new CommunicationOperation(Open);
             this.bindingElement = context.Binding.Elements.Find<RabbitMQTransportBindingElement>();
             this.model = null;
-            this.ticket = 0;
         }
 
         protected override IOutputChannel OnCreateChannel(EndpointAddress address, Uri via)
         {
-            return new RabbitMQOutputChannel(context, model, ticket, address);
+            return new RabbitMQOutputChannel(context, model, address);
         }
         
         protected override IAsyncResult OnBeginOpen(TimeSpan timeout, AsyncCallback callback, object state)
@@ -98,7 +96,6 @@ namespace RabbitMQ.ServiceModel
             DebugHelper.Start();
 #endif
             model = bindingElement.Open(timeout);
-            ticket = model.AccessRequest(bindingElement.Realm);
 #if VERBOSE
             DebugHelper.Stop(" ## Out.Open {{Time={0}ms}}.");
 #endif
@@ -113,7 +110,6 @@ namespace RabbitMQ.ServiceModel
             if (model != null) {
                 bindingElement.Close(model, timeout);
                 model = null;
-                ticket = 0;
             }
 
 #if VERBOSE
