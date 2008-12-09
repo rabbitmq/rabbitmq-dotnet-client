@@ -383,11 +383,6 @@
   <target name="build-dist-dir" description="(internal) just copy files into a dist dir, without cleaning or stamping">
     <delete dir="${dist.dir}" failonerror="false"/>
     <mkdir dir="${dist.dir}"/>
-    <copy file="BUILD.in" tofile="${dist.dir}/BUILD"/>
-    <exec program="links" append="true" output="${dist.dir}/BUILD" failonerror="false">
-      <arg value="-dump" />
-      <arg value="${web.url}build-dotnet-client.html" />
-    </exec>
     <copy todir="${dist.dir}">
       <fileset>
 	    <include name="LICENSE"/>
