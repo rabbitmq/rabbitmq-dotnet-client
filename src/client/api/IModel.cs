@@ -211,9 +211,10 @@ namespace RabbitMQ.Client
         ///<summary>(Spec method) Unbind a queue from an exchange.</summary>
         ///<remarks>
         ///Note: This operation is only supported when communicating
-        ///using AMQP protocol version 0-9.
+        ///using AMQP protocol version 0-9, or when communicating with
+        ///a 0-8 broker that has been enhanced with the unofficial
+        ///addition of a queue.unbind method.
         ///</remarks>
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
         void QueueUnbind(string queue,
                          string exchange,
