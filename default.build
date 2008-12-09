@@ -406,6 +406,8 @@
 	    <include name="${bin.dir}/SingleGet.exe"/>
 	    <include name="${bin.dir}/ExceptionTest.exe"/>
 	    <include name="${bin.dir}/DeclareQueue.exe"/>
+	    <include name="${bin.dir}/AddServer.exe"/>
+	    <include name="${bin.dir}/AddClient.exe"/>
       </fileset>
     </copy>
     <mkdir dir="${dist.dir}/examples"/>
