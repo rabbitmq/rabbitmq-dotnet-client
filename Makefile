@@ -6,7 +6,7 @@ RELEASE_DIR=releases/${NAME}/v${RABBIT_VSN}
 STAGE_RELEASE_DIR=charlotte:/home/rabbitmq/stage-extras/releases/${NAME}
 LIVE_RELEASE_DIR=charlotte:/home/rabbitmq/live-extras/releases/${NAME}
 
-RSYNC_CMD=rsync -irvl --delete-after
+RSYNC_CMD=rsync -irvpl
 
 TMPXMLZIP=${NAME_VSN}-tmp-xmldoc.zip
 
@@ -18,11 +18,14 @@ else
 rabbit-vsn: 
 endif
 
-deploy-stage: rabbit-vsn ensure-deliverables
+deploy-stage: rabbit-vsn ensure-deliverables ensure-universally-readable
 	${RSYNC_CMD} --exclude=${TMPXMLZIP} releases/${NAME}/ ${STAGE_RELEASE_DIR}
 
-deploy-live: rabbit-vsn ensure-deliverables
+deploy-live: rabbit-vsn ensure-deliverables ensure-universally-readable
 	${RSYNC_CMD} --exclude=${TMPXMLZIP} releases/${NAME}/ ${LIVE_RELEASE_DIR}
+
+ensure-universally-readable:
+	chmod -R a+rX releases
 
 ensure-deliverables: rabbit-vsn
 	file ${RELEASE_DIR}/${NAME_VSN}.zip
