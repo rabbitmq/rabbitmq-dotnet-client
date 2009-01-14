@@ -128,7 +128,7 @@ namespace RabbitMQ.Client.Impl
 
             m_sessionManager = new SessionManager(this);
             m_session0 = new MainSession(this);
-            m_session0.Handler = new MainSession.SessionCloseDelegate(NotifyReceivedClose);
+            m_session0.Handler = new MainSession.SessionCloseDelegate(NotifyReceivedCloseOk);
             m_model0 = (ModelBase)Protocol.CreateModel(m_session0);
 
             StartMainLoop();
@@ -749,11 +749,10 @@ namespace RabbitMQ.Client.Impl
             }
         }
         
-        public void NotifyReceivedClose()
+        public void NotifyReceivedCloseOk()
         {
             TerminateMainloop();
             closed = true;
-            m_frameHandler.Close();
         }
         
         ///<summary>
