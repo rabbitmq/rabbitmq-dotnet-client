@@ -751,6 +751,7 @@ namespace RabbitMQ.Client.Impl
         
         public void NotifyReceivedClose()
         {
+            TerminateMainloop();
             closed = true;
             m_frameHandler.Close();
         }
