@@ -383,11 +383,6 @@
   <target name="build-dist-dir" description="(internal) just copy files into a dist dir, without cleaning or stamping">
     <delete dir="${dist.dir}" failonerror="false"/>
     <mkdir dir="${dist.dir}"/>
-    <copy file="README.in" tofile="${dist.dir}/README"/>
-    <exec program="links" append="true" output="${dist.dir}/README" failonerror="false">
-      <arg value="-dump" />
-      <arg value="${web.url}build-dotnet-client.html" />
-    </exec>
     <copy todir="${dist.dir}">
       <fileset>
 	    <include name="LICENSE"/>
@@ -501,12 +496,27 @@
       <exec program="${python.exec}">
         <arg value="${hg.exec}"/>
         <arg value="archive"/>
-        <arg value="-t"/>
-        <arg value="zip"/>
         <arg value="-r"/>
         <arg value="${fullversion}"/>
-        <arg value="${build.dir}/${release.src.zip}" />
+        <arg value="${build.dir}/${nameversion}" />
       </exec>
+      
+      <move file="${build.dir}/${nameversion}/README.in" tofile="${build.dir}/${nameversion}/README"/>
+      <exec program="links" append="true" output="${build.dir}/${nameversion}/README" failonerror="false">
+        <arg value="-dump" />
+        <arg value="${web.url}build-dotnet-client.html" />
+      </exec>
+      <delete>
+        <fileset basedir="${build.dir}/${nameversion}">
+          <include name=".hg*" />
+        </fileset>
+      </delete>
+      <zip zipfile="${build.dir}/${release.src.zip}">
+        <fileset basedir="${build.dir}">
+          <include name="${nameversion}/**" />
+        </fileset>
+      </zip>
+      <delete dir="${build.dir}/${nameversion}" />
   </target>
 
   <target name="windows-deliverables"
