@@ -69,11 +69,13 @@ namespace RabbitMQ.Client.Impl {
         event SessionShutdownEventHandler SessionShutdown;
 
         int ChannelNumber { get; }
-	IConnection Connection { get; }
-	ShutdownEventArgs CloseReason { get; }
+        IConnection Connection { get; }
+        ShutdownEventArgs CloseReason { get; }
         bool IsOpen { get; }
         void HandleFrame(Frame frame);
         void Transmit(Command cmd);
         void Close(ShutdownEventArgs reason);
+        void Close(ShutdownEventArgs reason, bool notify);
+        void Notify();
     }
 }

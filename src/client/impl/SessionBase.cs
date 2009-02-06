@@ -72,6 +72,9 @@ namespace RabbitMQ.Client.Impl
 
         public readonly ConnectionBase m_connection;
         public readonly int m_channelNumber;
+        
+        public int m_channelCloseOkClassId;
+        public int m_channelCloseOkMethodId;
 
         public SessionBase(ConnectionBase connection, int channelNumber)
         {
@@ -80,6 +83,12 @@ namespace RabbitMQ.Client.Impl
             if (channelNumber != 0)
                 connection.ConnectionShutdown +=
                     new ConnectionShutdownEventHandler(this.OnConnectionShutdown);
+            
+            Command request;
+            connection.Protocol.CreateChannelClose(0,"",
+            										out request,
+            										out m_channelCloseOkClassId,
+            										out m_channelCloseOkMethodId);
         }
 
         public virtual void OnCommandReceived(Command cmd)
@@ -171,7 +180,11 @@ namespace RabbitMQ.Client.Impl
             {
                 if (m_closeReason != null)
                 {
-                    throw new AlreadyClosedException(m_closeReason);
+                    // Allow always for sending close ok
+               	    MethodBase method = cmd.m_method;
+               	    if ( (method.ProtocolClassId != m_channelCloseOkClassId)
+                  	    || (method.ProtocolMethodId != m_channelCloseOkMethodId))
+                  	    throw new AlreadyClosedException(m_closeReason);
                 }
                 // We transmit *inside* the lock to avoid interleaving
                 // of frames within a channel.
@@ -181,6 +194,11 @@ namespace RabbitMQ.Client.Impl
 
         public void Close(ShutdownEventArgs reason)
         {
+            Close(reason, true);
+        }
+        
+        public void Close(ShutdownEventArgs reason, bool notify)
+        {
             lock (m_shutdownLock)
             {
                 if (m_closeReason == null)
@@ -188,7 +206,19 @@ namespace RabbitMQ.Client.Impl
                     m_closeReason = reason;
                 }
             }
-
+            if (notify)
+                OnSessionShutdown(m_closeReason);
+        }
+        
+        public void Notify()
+        {
+            // Ensure that we notify only when session is already closed
+            // If not, throw exception, since this is a serious bug in the library
+            lock (m_shutdownLock)
+            {
+        	    if (m_closeReason == null)
+                    throw new Exception("Internal Error in Session.Close");   	
+            }
             OnSessionShutdown(m_closeReason);
         }
     }
