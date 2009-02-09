@@ -146,7 +146,7 @@ namespace RabbitMQ.Client
         ///<para>
         /// If the argument is null, Protocols.DefaultProtocol is
         /// used. If the protocol variant named is not found,
-        /// ConfigurationException is thrown.
+        /// ArgumentException is thrown.
         ///</para>
         ///<para>
         /// In many cases, FromEnvironment() will be a more
@@ -155,10 +155,10 @@ namespace RabbitMQ.Client
         /// answer to the question "does a suitable IProtocol property
         /// with this name exist, and if so, what is its value?", with
         /// the additional guarantee that if a suitable property does
-        /// not exist, a ConfigurationException will be thrown.
+        /// not exist, an ArgumentException will be thrown.
         ///</para>
         ///</remarks>
-        ///<exception cref="ConfigurationException"/>
+        ///<exception cref="ArgumentException"/>
         public static IProtocol SafeLookup(string name)
         {
             if (name != null)
@@ -170,7 +170,7 @@ namespace RabbitMQ.Client
                 }
                 else
                 {
-                    throw new ConfigurationException("Unsupported protocol variant name: " + name);
+                    throw new ArgumentException("Unsupported protocol variant name: " + name);
                 }
             }
             return DefaultProtocol;
@@ -205,10 +205,7 @@ namespace RabbitMQ.Client
         ///<exception cref="ConfigurationException"/>
         public static IProtocol FromConfiguration(string appSettingsKey)
         {
-            // FIXME: ConfigurationSettings.AppSettings is
-            // obsolete. Use ConfigurationManager.AppSettings once we
-            // decide that supporting .NET 1.1 is no longer required.
-            string name = ConfigurationSettings.AppSettings[appSettingsKey];
+            string name = ConfigurationManager.AppSettings[appSettingsKey];
             return SafeLookup(name);
         }
 
@@ -224,10 +221,7 @@ namespace RabbitMQ.Client
         ///<exception cref="ConfigurationException"/>
         public static IProtocol FromEnvironment(string appSettingsKey)
         {
-            // FIXME: ConfigurationSettings.AppSettings is
-            // obsolete. Use ConfigurationManager.AppSettings once we
-            // decide that supporting .NET 1.1 is no longer required.
-            string name = ConfigurationSettings.AppSettings[appSettingsKey];
+            string name = ConfigurationManager.AppSettings[appSettingsKey];
             if (name == null) {
                 name = ReadEnvironmentVariable();
             }
