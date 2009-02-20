@@ -348,7 +348,6 @@ namespace RabbitMQ.Client.Impl
             	    if (entry.Exception != null)
             	        throw entry.Exception;
             	}
-            	
             	throw new OperationInterruptedException(null);
             }
         }

@@ -101,5 +101,10 @@ namespace RabbitMQ.Client.Framing.Impl.v0_8 {
             replyClassId = RabbitMQ.Client.Framing.Impl.v0_8.ChannelCloseOk.ClassId;
             replyMethodId = RabbitMQ.Client.Framing.Impl.v0_8.ChannelCloseOk.MethodId;                                                                                     
         }
+        
+        public override bool CanSendWhileClosed(Command cmd)
+        {
+            return cmd.m_method is RabbitMQ.Client.Framing.Impl.v0_8.ChannelCloseOk;
+        }
     }
 }
