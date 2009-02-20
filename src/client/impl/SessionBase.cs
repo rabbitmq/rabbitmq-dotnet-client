@@ -72,9 +72,6 @@ namespace RabbitMQ.Client.Impl
 
         public readonly ConnectionBase m_connection;
         public readonly int m_channelNumber;
-        
-        public int m_channelCloseOkClassId;
-        public int m_channelCloseOkMethodId;
 
         public SessionBase(ConnectionBase connection, int channelNumber)
         {
@@ -83,12 +80,6 @@ namespace RabbitMQ.Client.Impl
             if (channelNumber != 0)
                 connection.ConnectionShutdown +=
                     new ConnectionShutdownEventHandler(this.OnConnectionShutdown);
-            
-            Command request;
-            connection.Protocol.CreateChannelClose(0,"",
-            										out request,
-            										out m_channelCloseOkClassId,
-            										out m_channelCloseOkMethodId);
         }
 
         public virtual void OnCommandReceived(Command cmd)
@@ -180,10 +171,7 @@ namespace RabbitMQ.Client.Impl
             {
                 if (m_closeReason != null)
                 {
-                    // Allow always for sending close ok
-               	    MethodBase method = cmd.m_method;
-               	    if ( (method.ProtocolClassId != m_channelCloseOkClassId)
-                  	    || (method.ProtocolMethodId != m_channelCloseOkMethodId))
+                    if (!m_connection.Protocol.CanSendWhileClosed(cmd))
                   	    throw new AlreadyClosedException(m_closeReason);
                 }
                 // We transmit *inside* the lock to avoid interleaving
