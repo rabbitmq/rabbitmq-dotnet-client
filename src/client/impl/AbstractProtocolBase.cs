@@ -89,6 +89,10 @@ namespace RabbitMQ.Client.Impl {
                                                    out Command request,
                                                    out int replyClassId,
                                                    out int replyMethodId);
+                                                   
+        ///<summary>Used in the quiescing session to determine if the command
+        ///is allowed to be sent.</summary>
+        public abstract bool CanSendWhileClosed(Command cmd); 
 
         public AmqpVersion Version {
             get {

@@ -171,7 +171,8 @@ namespace RabbitMQ.Client.Impl
             {
                 if (m_closeReason != null)
                 {
-                    throw new AlreadyClosedException(m_closeReason);
+                    if (!m_connection.Protocol.CanSendWhileClosed(cmd))
+                  	    throw new AlreadyClosedException(m_closeReason);
                 }
                 // We transmit *inside* the lock to avoid interleaving
                 // of frames within a channel.
@@ -181,6 +182,11 @@ namespace RabbitMQ.Client.Impl
 
         public void Close(ShutdownEventArgs reason)
         {
+            Close(reason, true);
+        }
+        
+        public void Close(ShutdownEventArgs reason, bool notify)
+        {
             lock (m_shutdownLock)
             {
                 if (m_closeReason == null)
@@ -188,7 +194,19 @@ namespace RabbitMQ.Client.Impl
                     m_closeReason = reason;
                 }
             }
-
+            if (notify)
+                OnSessionShutdown(m_closeReason);
+        }
+        
+        public void Notify()
+        {
+            // Ensure that we notify only when session is already closed
+            // If not, throw exception, since this is a serious bug in the library
+            lock (m_shutdownLock)
+            {
+        	    if (m_closeReason == null)
+                    throw new Exception("Internal Error in Session.Close");   	
+            }
             OnSessionShutdown(m_closeReason);
         }
     }

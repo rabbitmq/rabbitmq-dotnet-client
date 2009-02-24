@@ -467,8 +467,13 @@ namespace RabbitMQ.Client.Impl
                              replyText,
                              classId,
                              methodId));
-            FinishClose();
-            _Private_ChannelCloseOk();
+            
+            m_session.Close(m_closeReason, false);
+            try {
+                _Private_ChannelCloseOk();
+            } finally {
+                m_session.Notify();
+            }
         }
 
         public void FinishClose()
