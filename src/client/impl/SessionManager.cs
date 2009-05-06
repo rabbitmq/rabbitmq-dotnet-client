@@ -173,7 +173,7 @@ namespace RabbitMQ.Client.Impl
         public int Allocate()
         {
             ushort maxChannels = (m_channelMax == 0) ? ushort.MaxValue : m_channelMax;
-            for (int candidate = 1; candidate < maxChannels; candidate++)
+            for (int candidate = 1; candidate <= maxChannels; candidate++)
             {
                 if (!m_sessionMap.ContainsKey(candidate))
                 {
