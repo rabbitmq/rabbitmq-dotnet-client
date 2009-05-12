@@ -91,6 +91,22 @@ namespace RabbitMQ.Client
             set { m_port = value; }
         }
 
+        private bool m_sslIsEnabled;
+
+        public bool SslIsEnabled
+        {
+            get { return m_sslIsEnabled; }
+            set { m_sslIsEnabled = value; }
+        }
+
+        private SslOption m_sslOption;
+        ///<summary>Retrieve the SSL options for this AmqpTcpEndpoint.
+        ///If not set, null is returned</summary>
+        public SslOption SslOption
+        {
+            get { return m_sslOption; }
+        }
+
         ///<summary>Construct an AmqpTcpEndpoint with the given
         ///IProtocol, hostname, and port number. If the port number is
         ///-1, the default port number for the IProtocol will be
@@ -100,6 +116,22 @@ namespace RabbitMQ.Client
             m_protocol = protocolVariant;
             m_hostName = hostname;
             m_port = portOrMinusOne;
+        }
+
+        public void UseSsl(string certPath, string serverName)
+        {
+            m_sslOption = new SslOption(serverName, certPath);
+            m_sslIsEnabled = true;
+        }
+
+        public void UseSsl(string certPath)
+        {
+            UseSsl(certPath, m_hostName);
+        }
+
+        public void UseSsl()
+        {
+            UseSsl("", m_hostName);
         }
 
         ///<summary>Returns a URI-like string of the form
