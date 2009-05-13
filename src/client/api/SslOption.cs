@@ -67,36 +67,47 @@ namespace RabbitMQ.Client
     public class SslOption
     {
 
-        private SslProtocols m_sslVersion = SslProtocols.Ssl3;
+        private bool m_enabled;
 
-        ///<summary>Retrieve or set the path to client certificate.
-        ///</summary>
-        public SslProtocols SslVersion
+        ///<summary>Flag specifying if Ssl should indeed be
+        ///used</summary>
+        public bool Enabled
         {
-            get { return m_sslVersion; }
-            set { m_sslVersion=value; }
+            get { return m_enabled; }
+            set { m_enabled = value; }
         }
 
-        private string m_cert;
+
+        private SslProtocols m_version = SslProtocols.Ssl3;
 
         ///<summary>Retrieve or set the path to client certificate.
         ///</summary>
-        public string Cert
+        public SslProtocols Version
         {
-            get { return m_cert; }
-            set { m_cert=value; }
+            get { return m_version; }
+            set { m_version = value; }
+        }
+
+        private string m_certPath;
+
+        ///<summary>Retrieve or set the path to client certificate.
+        ///</summary>
+        public string CertPath
+        {
+            get { return m_certPath; }
+            set { m_certPath = value; }
         }
 
         ///<summary>Convenience read-only property to retrieve an X509CertificateCollection
         ///containing the client certificate</summary>
-        public X509CertificateCollection CertCollection
+        public X509CertificateCollection Certs
         {
             get { 
-                if(m_cert == "") {
+                if(m_certPath == "") {
                     return null;
                 } else {
                     X509CertificateCollection c = new X509CertificateCollection();
-                    c.Add(X509Certificate.CreateFromCertFile(m_cert));
+                    c.Add(X509Certificate.CreateFromCertFile(m_certPath));
                     return c;
                 }
             }
@@ -109,24 +120,31 @@ namespace RabbitMQ.Client
         public string ServerName
         {
             get { return m_serverName; }
-            set { m_serverName=value; }
+            set { m_serverName = value; }
         }
 
 
-        ///<summary>Construct an SslOption with just the server cannonical name.
-        ///The Certificate path is set to an empty string
-        ///</summary>
-        public SslOption(string serverName): this(serverName, "")
-        {
-        }
 
         ///<summary>Construct an SslOption specifying both the server cannonical name
         ///and the client's certificate path.
         ///</summary>
-        public SslOption(string serverName, string cert)
+        public SslOption(string serverName, string certPath, bool enabled)
         {
             m_serverName= serverName;
-            m_cert = cert;
+            m_certPath = certPath;
+            m_enabled = enabled;
+        }
+
+        ///<summary>Construct an SslOption with just the server cannonical name.
+        ///The Certificate path is set to an empty string
+        ///</summary>
+        public SslOption(string serverName): this(serverName, "", false)
+        {
+        }
+
+        ///<summary>Construct an SslOption with no parameters set</summary>
+        public SslOption(): this("", "", false)
+        {
         }
 
     }
