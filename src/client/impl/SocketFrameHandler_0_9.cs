@@ -83,10 +83,10 @@ namespace RabbitMQ.Client.Impl
 
             Stream netstream;
 
-            if(!endpoint.SslIsEnabled) {
+            if(!endpoint.Ssl.Enabled) {
                 netstream = m_socket.GetStream();
             } else {
-                netstream = SslHelper.TcpUpgrade(m_socket.GetStream(), endpoint.SslOption);
+                netstream = SslHelper.TcpUpgrade(m_socket.GetStream(), endpoint.Ssl);
             }
 
             m_reader = new NetworkBinaryReader(netstream);
