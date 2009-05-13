@@ -89,6 +89,7 @@ namespace RabbitMQ.Client
         private ushort m_requestedChannelMax = DefaultChannelMax;
         private uint m_requestedFrameMax = DefaultFrameMax;
         private ushort m_requestedHeartbeat = DefaultHeartbeat;
+        private SslOption m_ssl = new SslOption();
 
         ///<summary>Construct a fresh instance, with all fields set to
         ///their respective defaults.</summary>
@@ -134,6 +135,13 @@ namespace RabbitMQ.Client
         {
             get { return m_requestedHeartbeat; }
             set { m_requestedHeartbeat = value; }
+        }
+
+        ///<summary>Ssl options setting</summary>
+        public SslOption Ssl
+        {
+            get { return m_ssl; }
+            set { m_ssl = value; }
         }
 
         ///<summary>Implement ICloneable.Clone by delegating to our type-safe variant.</summary>
