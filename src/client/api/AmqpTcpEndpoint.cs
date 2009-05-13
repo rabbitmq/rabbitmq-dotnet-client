@@ -91,47 +91,35 @@ namespace RabbitMQ.Client
             set { m_port = value; }
         }
 
-        private bool m_sslIsEnabled;
 
-        public bool SslIsEnabled
-        {
-            get { return m_sslIsEnabled; }
-            set { m_sslIsEnabled = value; }
-        }
-
-        private SslOption m_sslOption;
+        private SslOption m_ssl;
         ///<summary>Retrieve the SSL options for this AmqpTcpEndpoint.
         ///If not set, null is returned</summary>
-        public SslOption SslOption
+        public SslOption Ssl
         {
-            get { return m_sslOption; }
+            get { return m_ssl; }
+            set { m_ssl = value; }
         }
 
         ///<summary>Construct an AmqpTcpEndpoint with the given
         ///IProtocol, hostname, and port number. If the port number is
         ///-1, the default port number for the IProtocol will be
         ///used.</summary>
-        public AmqpTcpEndpoint(IProtocol protocolVariant, string hostname, int portOrMinusOne)
+        public AmqpTcpEndpoint(IProtocol protocolVariant, string hostname, int portOrMinusOne):
+            this(protocolVariant, hostname, portOrMinusOne, new SslOption())
+        {
+        }
+
+        ///<summary>Construct an AmqpTcpEndpoint with the given
+        ///IProtocol, hostname, port number and Ssl option. If the port 
+        ///number is -1, the default port number for the IProtocol 
+        ///will be used.</summary>
+        public AmqpTcpEndpoint(IProtocol protocolVariant, string hostname, int portOrMinusOne, SslOption ssl)
         {
             m_protocol = protocolVariant;
             m_hostName = hostname;
             m_port = portOrMinusOne;
-        }
-
-        public void UseSsl(string certPath, string serverName)
-        {
-            m_sslOption = new SslOption(serverName, certPath);
-            m_sslIsEnabled = true;
-        }
-
-        public void UseSsl(string certPath)
-        {
-            UseSsl(certPath, m_hostName);
-        }
-
-        public void UseSsl()
-        {
-            UseSsl("", m_hostName);
+            m_ssl = ssl;
         }
 
         ///<summary>Returns a URI-like string of the form
