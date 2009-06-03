@@ -94,49 +94,49 @@ public class TestContentHeaderCodec {
         }
     }
 
-    public ContentHeaderPropertyWriter w;
+    public ContentHeaderPropertyWriter m_w;
 
     [SetUp]
     public void SetUp() {
-        w = Writer();
+        m_w = Writer();
     }
 
     [Test]
     public void TestPresence() {
-	w.WritePresence(false);
-	w.WritePresence(true);
-	w.WritePresence(false);
-	w.WritePresence(true);
-	w.FinishPresence();
-	Check(w, new byte[] { 0x50, 0x00 });
+        m_w.WritePresence(false);
+        m_w.WritePresence(true);
+        m_w.WritePresence(false);
+        m_w.WritePresence(true);
+        m_w.FinishPresence();
+        Check(m_w, new byte[] { 0x50, 0x00 });
     }
 
     [Test]
     public void TestLongPresence() {
-	w.WritePresence(false);
-	w.WritePresence(true);
-	w.WritePresence(false);
-	w.WritePresence(true);
+        m_w.WritePresence(false);
+        m_w.WritePresence(true);
+        m_w.WritePresence(false);
+        m_w.WritePresence(true);
 	for (int i = 0; i < 20; i++) {
-	    w.WritePresence(false);
+        m_w.WritePresence(false);
 	}
-	w.WritePresence(true);
-	w.FinishPresence();
-	Check(w, new byte[] { 0x50, 0x01, 0x00, 0x40 });
+    m_w.WritePresence(true);
+    m_w.FinishPresence();
+    Check(m_w, new byte[] { 0x50, 0x01, 0x00, 0x40 });
     }
 
     [Test]
     public void TestNoPresence() {
-	w.FinishPresence();
-	Check(w, new byte[] { 0x00, 0x00 });
+        m_w.FinishPresence();
+        Check(m_w, new byte[] { 0x00, 0x00 });
     }
 
     [Test]
     public void TestBodyLength() {
 	RabbitMQ.Client.Framing.v0_8.BasicProperties prop =
 	    new RabbitMQ.Client.Framing.v0_8.BasicProperties();
-	prop.WriteTo(w.BaseWriter, 0x123456789ABCDEF0UL);
-	Check(w, new byte[] { 0x00, 0x00, // weight
+    prop.WriteTo(m_w.BaseWriter, 0x123456789ABCDEF0UL);
+    Check(m_w, new byte[] { 0x00, 0x00, // weight
 			      0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0, // body len
 			      0x00, 0x00}); // props flags
     }
@@ -146,8 +146,8 @@ public class TestContentHeaderCodec {
 	RabbitMQ.Client.Framing.v0_8.BasicProperties prop =
 	    new RabbitMQ.Client.Framing.v0_8.BasicProperties();
 	prop.ContentType = "text/plain";
-	prop.WriteTo(w.BaseWriter, 0x123456789ABCDEF0UL);
-	Check(w, new byte[] { 0x00, 0x00, // weight
+    prop.WriteTo(m_w.BaseWriter, 0x123456789ABCDEF0UL);
+    Check(m_w, new byte[] { 0x00, 0x00, // weight
 			      0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0, // body len
 			      0x80, 0x00, // props flags
 			      0x0A, // shortstr len

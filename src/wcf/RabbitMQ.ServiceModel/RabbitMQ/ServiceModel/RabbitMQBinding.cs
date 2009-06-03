@@ -73,16 +73,16 @@ namespace RabbitMQ.ServiceModel
     /// </summary>
     public sealed class RabbitMQBinding : Binding
     {
-        private Uri broker;
-        private IProtocol brokerProtocol;
-        private CompositeDuplexBindingElement compositeDuplex;
-        private MessageEncodingBindingElement encoding;
-        private bool isInitialized;
-        private bool oneWayOnly;
-        private ReliableSessionBindingElement session;
-        private TransactionFlowBindingElement transactionFlow;
-        private bool transactionsEnabled;
-        private RabbitMQTransportBindingElement transport;
+        private Uri m_broker;
+        private IProtocol m_brokerProtocol;
+        private CompositeDuplexBindingElement m_compositeDuplex;
+        private MessageEncodingBindingElement m_encoding;
+        private bool m_isInitialized;
+        private bool m_oneWayOnly;
+        private ReliableSessionBindingElement m_session;
+        private TransactionFlowBindingElement m_transactionFlow;
+        private bool m_transactionsEnabled;
+        private RabbitMQTransportBindingElement m_transport;
 
         /// <summary>
         /// Creates a new instance of the RabbitMQBinding class initialized 
@@ -119,7 +119,7 @@ namespace RabbitMQ.ServiceModel
         /// <param name="protocol">The protocol version to use</param>
         public RabbitMQBinding(IProtocol protocol)
         {
-            this.brokerProtocol = protocol;
+            this.m_brokerProtocol = protocol;
             base.Name = "RabbitMQBinding";
             base.Namespace = "http://schemas.rabbitmq.com/2007/RabbitMQ/";
 
@@ -147,21 +147,21 @@ namespace RabbitMQ.ServiceModel
 
         public override BindingElementCollection CreateBindingElements()
         {
-            this.transport.Broker = this.Broker;
-            this.transport.BrokerProtocol = this.BrokerProtocol;
+            this.m_transport.Broker = this.Broker;
+            this.m_transport.BrokerProtocol = this.BrokerProtocol;
             BindingElementCollection elements = new BindingElementCollection();
 
-            if (transactionsEnabled)
+            if (m_transactionsEnabled)
             {
-                elements.Add(transactionFlow);
+                elements.Add(m_transactionFlow);
             }
             if (!OneWayOnly)
             {
-                elements.Add(session);
-                elements.Add(compositeDuplex);
+                elements.Add(m_session);
+                elements.Add(m_compositeDuplex);
             }
-            elements.Add(encoding);
-            elements.Add(transport);
+            elements.Add(m_encoding);
+            elements.Add(m_transport);
 
             return elements;
         }
@@ -170,15 +170,15 @@ namespace RabbitMQ.ServiceModel
         {
             lock (this)
             {
-                if (!this.isInitialized)
+                if (!this.m_isInitialized)
                 {
-                    this.transport = new RabbitMQTransportBindingElement();
-                    this.encoding = new TextMessageEncodingBindingElement(); // new TextMessageEncodingBindingElement();
-                    this.session = new ReliableSessionBindingElement();
-                    this.compositeDuplex = new CompositeDuplexBindingElement();
-                    this.transactionFlow = new TransactionFlowBindingElement();
+                    this.m_transport = new RabbitMQTransportBindingElement();
+                    this.m_encoding = new TextMessageEncodingBindingElement(); // new TextMessageEncodingBindingElement();
+                    this.m_session = new ReliableSessionBindingElement();
+                    this.m_compositeDuplex = new CompositeDuplexBindingElement();
+                    this.m_transactionFlow = new TransactionFlowBindingElement();
 
-                    this.isInitialized = true;
+                    this.m_isInitialized = true;
                 }
             }
         }
@@ -197,8 +197,8 @@ namespace RabbitMQ.ServiceModel
         [ConfigurationProperty("broker")]
         public Uri Broker
         {
-            get { return broker; }
-            set { broker = value; }
+            get { return m_broker; }
+            set { m_broker = value; }
         }
 
         /// <summary>
@@ -206,8 +206,8 @@ namespace RabbitMQ.ServiceModel
         /// </summary>
         public IProtocol BrokerProtocol
         {
-            get { return brokerProtocol; }
-            set { brokerProtocol = value; }
+            get { return m_brokerProtocol; }
+            set { m_brokerProtocol = value; }
         }
 
         /// <summary>
@@ -215,7 +215,7 @@ namespace RabbitMQ.ServiceModel
         /// </summary>
         public RabbitMQTransportBindingElement Transport
         {
-            get { return transport; }
+            get { return m_transport; }
         }
 
         /// <summary>
@@ -223,7 +223,7 @@ namespace RabbitMQ.ServiceModel
         /// </summary>
         public ReliableSession ReliableSession
         {
-            get { return new ReliableSession(session); }
+            get { return new ReliableSession(m_session); }
         }
 
         /// <summary>
@@ -232,8 +232,8 @@ namespace RabbitMQ.ServiceModel
         /// </summary>
         public bool TransactionFlow
         {
-            get { return transactionsEnabled; }
-            set { transactionsEnabled = value; }
+            get { return m_transactionsEnabled; }
+            set { m_transactionsEnabled = value; }
         }
 
         /// <summary>
@@ -242,8 +242,8 @@ namespace RabbitMQ.ServiceModel
         /// </summary>
         public bool OneWayOnly
         {
-            get { return oneWayOnly; }
-            set { oneWayOnly = value; }
+            get { return m_oneWayOnly; }
+            set { m_oneWayOnly = value; }
         }
     }
 }

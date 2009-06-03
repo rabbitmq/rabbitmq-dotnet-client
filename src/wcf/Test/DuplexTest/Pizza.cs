@@ -63,30 +63,30 @@ namespace RabbitMQ.ServiceModel.Test.DuplexTest
     [DataContract]
     public class Pizza
     {
-        private PizzaBase @base;
-        private string toppings;
+        private PizzaBase m_base;
+        private string m_toppings;
 
         public Pizza()
         { }
 
         public Pizza(PizzaBase @base, string toppings)
         {
-            this.@base = @base;
-            this.toppings = toppings;
+            this.m_base = @base;
+            this.m_toppings = toppings;
         }
 
         [DataMember]
         public string Toppings
         {
-            get { return toppings; }
-            set { toppings = value; }
+            get { return m_toppings; }
+            set { m_toppings = value; }
         }
 
         [DataMember]
         public PizzaBase Base
         {
-            get { return @base; }
-            set { @base = value; }
+            get { return m_base; }
+            set { m_base = value; }
         }
     }
 }

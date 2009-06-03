@@ -63,41 +63,41 @@ namespace RabbitMQ.ServiceModel.Test.OneWayTest
     [DataContract]
     public class LogData
     {
-        private LogLevel level;
-        private String message;
-        private DateTime timeStamp;
+        private LogLevel m_level;
+        private String m_message;
+        private DateTime m_timeStamp;
 
         public LogData()
         {
-            this.timeStamp = DateTime.Now;
+            this.m_timeStamp = DateTime.Now;
         }
 
         public LogData(LogLevel level, String message)
             :base()
         {
-            this.level = level;
-            this.message = message;
+            this.m_level = level;
+            this.m_message = message;
         }
 
         [DataMember]
         public LogLevel Level
         {
-            get { return level; }
-            set { level = value; }
+            get { return m_level; }
+            set { m_level = value; }
         }
         
         [DataMember]
         public String Message
         {
-            get { return message; }
-            set { message = value; }
+            get { return m_message; }
+            set { m_message = value; }
         }
         
         [DataMember]
         public DateTime TimeStamp
         {
-            get { return timeStamp; }
-            set { timeStamp = value; }
+            get { return m_timeStamp; }
+            set { m_timeStamp = value; }
         }
     }
 }

@@ -65,32 +65,35 @@ using RabbitMQ.Util;
 
 [TestFixture]
 public class TestBlockingCell {
-    public class DelayedSetter {
-	public BlockingCell k;
-	public int delayMs;
-	public object v;
-	public void Run() {
-	    Thread.Sleep(delayMs);
-	    k.Value = v;
-	}
+    public class DelayedSetter
+    {
+        public BlockingCell m_k;
+        public int m_delayMs;
+        public object m_v;
+        public void Run()
+        {
+            Thread.Sleep(m_delayMs);
+            m_k.Value = m_v;
+        }
     }
 
-    public static void SetAfter(int delayMs, BlockingCell k, object v) {
-	DelayedSetter ds = new DelayedSetter();
-	ds.k = k;
-	ds.delayMs = delayMs;
-	ds.v = v;
-	new Thread(new ThreadStart(ds.Run)).Start();
+    public static void SetAfter(int delayMs, BlockingCell k, object v)
+    {
+        DelayedSetter ds = new DelayedSetter();
+        ds.m_k = k;
+        ds.m_delayMs = delayMs;
+        ds.m_v = v;
+        new Thread(new ThreadStart(ds.Run)).Start();
     }
 
-    public DateTime startTime;
+    public DateTime m_startTime;
 
     public void ResetTimer() {
-	startTime = DateTime.Now;
+        m_startTime = DateTime.Now;
     }
 
     public int ElapsedMs() {
-	return (int) ((DateTime.Now - startTime).TotalMilliseconds);
+        return (int) ((DateTime.Now - m_startTime).TotalMilliseconds);
     }
 
     [Test]

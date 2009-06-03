@@ -66,57 +66,57 @@ namespace RabbitMQ.ServiceModel
 
     internal abstract class RabbitMQInputChannelBase : RabbitMQChannelBase, IInputChannel
     {
-        private EndpointAddress localAddress;
-        private CommunicationOperation<Message> receiveMethod;
-        private CommunicationOperation<bool, Message> tryReceiveMethod;
-        private CommunicationOperation<bool> waitForMessage;
+        private EndpointAddress m_localAddress;
+        private CommunicationOperation<Message> m_receiveMethod;
+        private CommunicationOperation<bool, Message> m_tryReceiveMethod;
+        private CommunicationOperation<bool> m_waitForMessage;
 
 
         protected RabbitMQInputChannelBase(BindingContext context, EndpointAddress localAddress)
         :base(context)
         {
-            this.localAddress = localAddress;
-            this.receiveMethod = new CommunicationOperation<Message>(Receive);
-            this.tryReceiveMethod = new CommunicationOperation<bool, Message>(TryReceive);
-            this.waitForMessage = new CommunicationOperation<bool>(WaitForMessage);
+            this.m_localAddress = localAddress;
+            this.m_receiveMethod = new CommunicationOperation<Message>(Receive);
+            this.m_tryReceiveMethod = new CommunicationOperation<bool, Message>(TryReceive);
+            this.m_waitForMessage = new CommunicationOperation<bool>(WaitForMessage);
         }
 
 
         #region Async Methods
         public virtual IAsyncResult BeginReceive(TimeSpan timeout, AsyncCallback callback, object state)
         {
-            return receiveMethod.BeginInvoke(timeout, callback, state);
+            return m_receiveMethod.BeginInvoke(timeout, callback, state);
         }
 
         public virtual IAsyncResult BeginReceive(AsyncCallback callback, object state)
         {
-            return receiveMethod.BeginInvoke(Context.Binding.ReceiveTimeout, callback, state);
+            return m_receiveMethod.BeginInvoke(Context.Binding.ReceiveTimeout, callback, state);
         }
 
         public virtual IAsyncResult BeginTryReceive(TimeSpan timeout, AsyncCallback callback, object state)
         {
             Message message = null;
-            return tryReceiveMethod.BeginInvoke(timeout, out message, callback, state);
+            return m_tryReceiveMethod.BeginInvoke(timeout, out message, callback, state);
         }
 
         public virtual IAsyncResult BeginWaitForMessage(TimeSpan timeout, AsyncCallback callback, object state)
         {
-            return waitForMessage.BeginInvoke(timeout, callback, state);
+            return m_waitForMessage.BeginInvoke(timeout, callback, state);
         }
 
         public virtual Message EndReceive(IAsyncResult result)
         {
-            return receiveMethod.EndInvoke(result);
+            return m_receiveMethod.EndInvoke(result);
         }
 
         public virtual bool EndTryReceive(IAsyncResult result, out Message message)
         {
-            return tryReceiveMethod.EndInvoke(out message, result);
+            return m_tryReceiveMethod.EndInvoke(out message, result);
         }
 
         public virtual bool EndWaitForMessage(IAsyncResult result)
         {
-            return waitForMessage.EndInvoke(result);
+            return m_waitForMessage.EndInvoke(result);
         }
         #endregion
 
@@ -134,7 +134,7 @@ namespace RabbitMQ.ServiceModel
         
         public EndpointAddress LocalAddress
         {
-            get { return localAddress; }
+            get { return m_localAddress; }
         }
     }
 }

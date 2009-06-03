@@ -83,19 +83,19 @@ public class TestSemaphore {
     }
 
     public class SingleCycle {
-        public TestSemaphore semTest;
-        public string name;
-        public int[] sleepTimes;
+        public TestSemaphore m_semTest;
+        public string m_name;
+        public int[] m_sleepTimes;
 
         public SingleCycle(TestSemaphore semTest, string name, int[] sleepTimes) {
-            this.semTest = semTest;
-            this.name = name;
-            this.sleepTimes = sleepTimes;
+            m_semTest = semTest;
+            m_name = name;
+            m_sleepTimes = sleepTimes;
             new Thread(new ThreadStart(MainLoop)).Start();
         }
 
         public void MainLoop() {
-            semTest.SingleCycleMainLoop(name, sleepTimes);
+            m_semTest.SingleCycleMainLoop(m_name, m_sleepTimes);
         }
     }
 

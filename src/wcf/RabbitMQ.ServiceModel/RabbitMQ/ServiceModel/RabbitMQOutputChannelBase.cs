@@ -68,15 +68,15 @@ namespace RabbitMQ.ServiceModel
     {
         
         
-        private SendOperation sendMethod;
-        private EndpointAddress address;
+        private SendOperation m_sendMethod;
+        private EndpointAddress m_address;
 
 
         protected RabbitMQOutputChannelBase(BindingContext context, EndpointAddress address)
             : base(context)
         {
-            this.address = address;
-            this.sendMethod = new SendOperation(Send);
+            this.m_address = address;
+            this.m_sendMethod = new SendOperation(Send);
         }
 
 
@@ -84,17 +84,17 @@ namespace RabbitMQ.ServiceModel
 
         public IAsyncResult BeginSend(Message message, TimeSpan timeout, AsyncCallback callback, object state)
         {
-            return sendMethod.BeginInvoke(message, timeout, callback, state);
+            return m_sendMethod.BeginInvoke(message, timeout, callback, state);
         }
 
         public IAsyncResult BeginSend(Message message, AsyncCallback callback, object state)
         {
-            return sendMethod.BeginInvoke(message, Context.Binding.SendTimeout, callback, state);
+            return m_sendMethod.BeginInvoke(message, Context.Binding.SendTimeout, callback, state);
         }
 
         public void EndSend(IAsyncResult result)
         {
-            sendMethod.EndInvoke(result);
+            m_sendMethod.EndInvoke(result);
         }
 
         #endregion
@@ -108,7 +108,7 @@ namespace RabbitMQ.ServiceModel
 
         public EndpointAddress RemoteAddress
         {
-            get { return address; }
+            get { return m_address; }
         }
 
         public Uri Via

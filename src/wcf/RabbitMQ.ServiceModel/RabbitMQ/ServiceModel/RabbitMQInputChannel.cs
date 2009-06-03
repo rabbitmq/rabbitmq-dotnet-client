@@ -71,21 +71,21 @@ namespace RabbitMQ.ServiceModel
 
     internal sealed class RabbitMQInputChannel : RabbitMQInputChannelBase
     {
-        private RabbitMQTransportBindingElement bindingElement;
-        private MessageEncoder encoder;
-        private IModel model;
-        private QueueingBasicConsumer messageQueue;
+        private RabbitMQTransportBindingElement m_bindingElement;
+        private MessageEncoder m_encoder;
+        private IModel m_model;
+        private QueueingBasicConsumer m_messageQueue;
 
         public RabbitMQInputChannel(BindingContext context, IModel model, EndpointAddress address)
             : base(context, address)
         {
-            this.bindingElement = context.Binding.Elements.Find<RabbitMQTransportBindingElement>();
+            this.m_bindingElement = context.Binding.Elements.Find<RabbitMQTransportBindingElement>();
             MessageEncodingBindingElement encoderElem = context.BindingParameters.Find<MessageEncodingBindingElement>();
             if (encoderElem != null) {
-                this.encoder = encoderElem.CreateMessageEncoderFactory().Encoder;
+                this.m_encoder = encoderElem.CreateMessageEncoderFactory().Encoder;
             }
-            this.model = model;
-            this.messageQueue = null;
+            this.m_model = model;
+            this.m_messageQueue = null;
         }
 
 
@@ -93,13 +93,13 @@ namespace RabbitMQ.ServiceModel
         {
             try
             {
-                BasicDeliverEventArgs msg = messageQueue.Queue.Dequeue() as BasicDeliverEventArgs;
+                BasicDeliverEventArgs msg = m_messageQueue.Queue.Dequeue() as BasicDeliverEventArgs;
 #if VERBOSE
                 DebugHelper.Start();
 #endif
-                Message result = encoder.ReadMessage(new MemoryStream(msg.Body), (int)bindingElement.MaxReceivedMessageSize);
+                Message result = m_encoder.ReadMessage(new MemoryStream(msg.Body), (int)m_bindingElement.MaxReceivedMessageSize);
                 result.Headers.To = base.LocalAddress.Uri;
-                messageQueue.Model.BasicAck(msg.DeliveryTag, false);
+                m_messageQueue.Model.BasicAck(msg.DeliveryTag, false);
 #if VERBOSE
                 DebugHelper.Stop(" #### Message.Receive {{\n\tAction={2}, \n\tBytes={1}, \n\tTime={0}ms}}.",
                         msg.Body.Length,
@@ -109,7 +109,7 @@ namespace RabbitMQ.ServiceModel
             }
             catch (EndOfStreamException)
             {
-                if (messageQueue== null || messageQueue.ShutdownReason != null && messageQueue.ShutdownReason.ReplyCode != 200)
+                if (m_messageQueue== null || m_messageQueue.ShutdownReason != null && m_messageQueue.ShutdownReason.ReplyCode != 200)
                 {
                     OnFaulted();
                 }
@@ -142,9 +142,9 @@ namespace RabbitMQ.ServiceModel
 #if VERBOSE
             DebugHelper.Start();
 #endif
-            if (messageQueue != null) {
-                model.BasicCancel(messageQueue.ConsumerTag);
-                messageQueue = null;
+            if (m_messageQueue != null) {
+                m_model.BasicCancel(m_messageQueue.ConsumerTag);
+                m_messageQueue = null;
             }
 #if VERBOSE
             DebugHelper.Stop(" ## In.Channel.Close {{\n\tAddress={1}, \n\tTime={0}ms}}.", LocalAddress.Uri.PathAndQuery);
@@ -162,12 +162,12 @@ namespace RabbitMQ.ServiceModel
             DebugHelper.Start();
 #endif
             //Create a queue for messages destined to this service, bind it to the service URI routing key
-            string queue = model.QueueDeclare();
-            model.QueueBind(queue, base.LocalAddress.Uri.Host, base.LocalAddress.Uri.PathAndQuery, false, null);
+            string queue = m_model.QueueDeclare();
+            m_model.QueueBind(queue, base.LocalAddress.Uri.Host, base.LocalAddress.Uri.PathAndQuery, false, null);
 
             //Listen to the queue
-            messageQueue = new QueueingBasicConsumer(model);
-            model.BasicConsume(queue, null, messageQueue);
+            m_messageQueue = new QueueingBasicConsumer(m_model);
+            m_model.BasicConsume(queue, null, m_messageQueue);
 
 #if VERBOSE
             DebugHelper.Stop(" ## In.Channel.Open {{\n\tAddress={1}, \n\tTime={0}ms}}.", LocalAddress.Uri.PathAndQuery);

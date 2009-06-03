@@ -70,19 +70,19 @@ namespace RabbitMQ.ServiceModel
 
     internal sealed class RabbitMQOutputChannel : RabbitMQOutputChannelBase
     {
-        private RabbitMQTransportBindingElement bindingElement;
-        private MessageEncoder encoder;
-        private IModel model;
+        private RabbitMQTransportBindingElement m_bindingElement;
+        private MessageEncoder m_encoder;
+        private IModel m_model;
 
         public RabbitMQOutputChannel(BindingContext context, IModel model, EndpointAddress address)
             : base(context, address)
         {
-            this.bindingElement = context.Binding.Elements.Find<RabbitMQTransportBindingElement>();
+            this.m_bindingElement = context.Binding.Elements.Find<RabbitMQTransportBindingElement>();
             MessageEncodingBindingElement encoderElement = context.Binding.Elements.Find<MessageEncodingBindingElement>();
             if (encoderElement != null) {
-                this.encoder = encoderElement.CreateMessageEncoderFactory().Encoder;
+                this.m_encoder = encoderElement.CreateMessageEncoderFactory().Encoder;
             }
-            this.model = model;
+            this.m_model = model;
         }
 
         public override void Send(Message message, TimeSpan timeout)
@@ -95,7 +95,7 @@ namespace RabbitMQ.ServiceModel
 #endif
                 using (MemoryStream str = new MemoryStream())
                 {
-                    this.encoder.WriteMessage(message, str);
+                    this.m_encoder.WriteMessage(message, str);
                     body = str.ToArray();
                 }
 #if VERBOSE
@@ -103,7 +103,7 @@ namespace RabbitMQ.ServiceModel
                     body.Length,
                     message.Headers.Action.Remove(0, message.Headers.Action.LastIndexOf('/')));
 #endif
-                model.BasicPublish(base.RemoteAddress.Uri.Host,
+                m_model.BasicPublish(base.RemoteAddress.Uri.Host,
                                    base.RemoteAddress.Uri.PathAndQuery,
                                    null,
                                    body);
