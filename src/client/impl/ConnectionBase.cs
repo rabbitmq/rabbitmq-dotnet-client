@@ -964,15 +964,15 @@ namespace RabbitMQ.Client.Impl
                                            "en_US");
 
             ushort channelMax = (ushort) NegotiatedMaxValue(m_parameters.RequestedChannelMax,
-                                                            connectionTune.channelMax);
+                                                            connectionTune.m_channelMax);
             ChannelMax = channelMax;
 
             uint frameMax = NegotiatedMaxValue(m_parameters.RequestedFrameMax,
-                                               connectionTune.frameMax);
+                                               connectionTune.m_frameMax);
             FrameMax = frameMax;
 
             ushort heartbeat = (ushort) NegotiatedMaxValue(m_parameters.RequestedHeartbeat,
-                                                           connectionTune.heartbeat);
+                                                           connectionTune.m_heartbeat);
             Heartbeat = heartbeat;
 
             m_model0.ConnectionTuneOk(channelMax,

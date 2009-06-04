@@ -263,7 +263,7 @@ namespace RabbitMQ.Client.Apigen {
         public void Generate() {
             LoadSpec();
             ParseSpec();
-	    ReflectModel();
+	        ReflectModel();
             GenerateOutput();
         }
 
@@ -290,7 +290,7 @@ namespace RabbitMQ.Client.Apigen {
             }
         }
 
-	public void ReflectModel() {
+        public void ReflectModel() {
             m_modelTypes.Add(m_modelType);
             for (int i = 0; i < m_modelTypes.Count; i++)
             {
@@ -299,7 +299,7 @@ namespace RabbitMQ.Client.Apigen {
                     m_modelTypes.Add(intf);
                 }
             }
-	}
+        }
 
         public string ResolveDomain(string d) {
             while (m_domains[d] != null) {
@@ -396,18 +396,18 @@ namespace RabbitMQ.Client.Apigen {
             }
         }
 
-	public bool HasFactoryMethod(AmqpClass c) {
-	    foreach (Type t in m_modelTypes) {
-		foreach (MethodInfo method in t.GetMethods()) {
-		    AmqpContentHeaderFactoryAttribute f = (AmqpContentHeaderFactoryAttribute)
-			Attribute(method, typeof(AmqpContentHeaderFactoryAttribute));
-		    if (f != null && MangleClass(f.m_contentClass) == MangleClass(c.Name)) {
-			return true;
-		    }
-		}
-	    }
-	    return false;
-	}
+        public bool HasFactoryMethod(AmqpClass c) {
+            foreach (Type t in m_modelTypes) {
+                foreach (MethodInfo method in t.GetMethods()) {
+                    AmqpContentHeaderFactoryAttribute f = (AmqpContentHeaderFactoryAttribute)
+                        Attribute(method, typeof(AmqpContentHeaderFactoryAttribute));
+                    if (f != null && MangleClass(f.m_contentClass) == MangleClass(c.Name)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
 
 	public bool IsBoolean(AmqpField f) {
 	    return ResolveDomain(f.Domain) == "bit";
@@ -416,6 +416,16 @@ namespace RabbitMQ.Client.Apigen {
 	public bool IsReferenceType(AmqpField f) {
 	    return (bool) m_primitiveTypeFlagMap[ResolveDomain(f.Domain)];
 	}
+
+    public bool IsAmqpClass(Type t)
+    {
+        foreach (AmqpClass c in m_classes)
+        {
+            if (c.Name == t.Name)
+                return true;
+        }
+        return false;
+    }
 
         public void EmitClassProperties(AmqpClass c) {
 	    bool hasCommonApi = HasFactoryMethod(c);
@@ -571,7 +581,7 @@ namespace RabbitMQ.Client.Apigen {
                 {
                     EmitLine("    "+MapDomain(f.Domain)+" I"+MangleMethodClass(c,m)+
                              "."+MangleClass(f.Name)+" { get {"
-                             +" return m_"+MangleMethod(f.Name)+"; } }");
+                             + " return m_" + MangleMethod(f.Name) + "; } }");
                 }
                 EmitLine("");
                 if (m.m_Fields.Count > 0)
@@ -594,7 +604,7 @@ namespace RabbitMQ.Client.Apigen {
                 EmitLine("    {");
                 foreach (AmqpField f in m.m_Fields)
                 {
-                    EmitLine("      m_"+MangleMethod(f.Name)+" = init"+MangleClass(f.Name)+";");
+                    EmitLine("      m_" + MangleMethod(f.Name) + " = init" + MangleClass(f.Name) + ";");
                 }
                 EmitLine("    }");
                 EmitLine("");
@@ -607,7 +617,7 @@ namespace RabbitMQ.Client.Apigen {
                 EmitLine("    public override void ReadArgumentsFrom(RabbitMQ.Client.Impl.MethodArgumentReader reader) {");
                 foreach (AmqpField f in m.m_Fields)
                 {
-                    EmitLine("      m_"+MangleMethod(f.Name)+" = reader.Read"+MangleClass(ResolveDomain(f.Domain))+"();");
+                    EmitLine("      m_" + MangleMethod(f.Name) + " = reader.Read" + MangleClass(ResolveDomain(f.Domain)) + "();");
                 }
                 EmitLine("    }");
                 EmitLine("");
@@ -615,7 +625,7 @@ namespace RabbitMQ.Client.Apigen {
                 foreach (AmqpField f in m.m_Fields)
                 {
                     EmitLine("      writer.Write"+MangleClass(ResolveDomain(f.Domain))
-                             +"(m_"+MangleMethod(f.Name)+");");
+                             + "(m_" + MangleMethod(f.Name) + ");");
                 }
                 EmitLine("    }");
                 EmitLine("");
@@ -625,7 +635,7 @@ namespace RabbitMQ.Client.Apigen {
                     int remaining = m.m_Fields.Count;
                     foreach (AmqpField f in m.m_Fields)
                     {
-                        Emit("      sb.Append(m_"+MangleMethod(f.Name)+");");
+                        Emit("      sb.Append(m_" + MangleMethod(f.Name) + ");");
                         remaining--;
                         if (remaining > 0) {
                             EmitLine(" sb.Append(\",\");");
@@ -802,7 +812,7 @@ namespace RabbitMQ.Client.Apigen {
         {
             amqpClass = null;
             amqpMethod = null;
-
+            
             // First, try autodetecting the class/method via the
             // IModel method name.
 
@@ -969,20 +979,21 @@ namespace RabbitMQ.Client.Apigen {
                     // No need to further examine the reply.
                 } else {
                     // At this point, we have the reply method. Extract values from it.
-
                     AmqpFieldMappingAttribute returnMapping =
                         Attribute(method.ReturnTypeCustomAttributes, typeof(AmqpFieldMappingAttribute))
                         as AmqpFieldMappingAttribute;
                     if (returnMapping == null) {
+                        string fieldPrefix = IsAmqpClass(method.ReturnType) ? "m_" : "";
+
                         // No field mapping --> it's assumed to be a struct to fill in.
                         EmitLine("      "+method.ReturnType+" __result = new "+method.ReturnType+"();");
                         foreach (FieldInfo fi in method.ReturnType.GetFields()) {
                             AmqpFieldMappingAttribute returnFieldMapping =
                                 Attribute(fi, typeof(AmqpFieldMappingAttribute)) as AmqpFieldMappingAttribute;
                             if (returnFieldMapping != null) {
-                                EmitLine("      __result."+fi.Name+" = __rep.m_"+returnFieldMapping.m_fieldName+";");
+                                EmitLine("      __result." + fi.Name + " = __rep." + fieldPrefix + returnFieldMapping.m_fieldName + ";");
                             } else {
-                                EmitLine("      __result."+fi.Name+" = __rep.m_"+fi.Name+";");
+                                EmitLine("      __result." + fi.Name + " = __rep." + fieldPrefix + fi.Name + ";");
                             }
                         }
                         EmitLine("      return __result;");
