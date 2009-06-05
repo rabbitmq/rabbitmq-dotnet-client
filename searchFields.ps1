@@ -5,11 +5,6 @@
 # Optionally, you may specify another prefix as the second argument.
 ##############################
 
-function Invoke-Ternary ([bool] $decider, [object] $iftrue, [object] $iffalse)
-{
-    if ($decider) { $iftrue } else { $iffalse }
-}
-
 if ($args.Length -lt 1) {
     ""
     "This script finds all fields in all classes in a supplied dll that"
@@ -19,8 +14,6 @@ if ($args.Length -lt 1) {
 }
 else
 {
-    set-Alias ?: Invoke-Ternary
-    
     $dllPath = $args[0]
     if ($args[1] -eq $null) { 
         $prefix = "m_" 
