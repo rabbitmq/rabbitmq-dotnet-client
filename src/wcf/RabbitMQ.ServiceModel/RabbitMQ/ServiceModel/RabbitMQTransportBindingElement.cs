@@ -205,7 +205,7 @@ namespace RabbitMQ.ServiceModel
 
         //internal ConnectionFactory ConnectionFactory
         //{
-        //    get { return this.connectionFactory; }
+        //    get { return m_connectionFactory; }
         //}
     }
 }
