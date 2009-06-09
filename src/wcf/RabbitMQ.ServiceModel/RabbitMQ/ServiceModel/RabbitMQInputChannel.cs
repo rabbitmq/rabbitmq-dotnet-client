@@ -79,13 +79,13 @@ namespace RabbitMQ.ServiceModel
         public RabbitMQInputChannel(BindingContext context, IModel model, EndpointAddress address)
             : base(context, address)
         {
-            this.m_bindingElement = context.Binding.Elements.Find<RabbitMQTransportBindingElement>();
+            m_bindingElement = context.Binding.Elements.Find<RabbitMQTransportBindingElement>();
             MessageEncodingBindingElement encoderElem = context.BindingParameters.Find<MessageEncodingBindingElement>();
             if (encoderElem != null) {
-                this.m_encoder = encoderElem.CreateMessageEncoderFactory().Encoder;
+                m_encoder = encoderElem.CreateMessageEncoderFactory().Encoder;
             }
-            this.m_model = model;
-            this.m_messageQueue = null;
+            m_model = model;
+            m_messageQueue = null;
         }
 
 

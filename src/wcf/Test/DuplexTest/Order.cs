@@ -70,9 +70,9 @@ namespace RabbitMQ.ServiceModel.Test.DuplexTest
 
         public Order()
         {
-            this.m_id = Guid.NewGuid();
-            this.m_items = new List<Pizza>();
-            this.m_ordered = DateTime.Now;
+            m_id = Guid.NewGuid();
+            m_items = new List<Pizza>();
+            m_ordered = DateTime.Now;
         }
 
         [DataMember]

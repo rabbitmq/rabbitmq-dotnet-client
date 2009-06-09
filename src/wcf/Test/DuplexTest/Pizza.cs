@@ -71,8 +71,8 @@ namespace RabbitMQ.ServiceModel.Test.DuplexTest
 
         public Pizza(PizzaBase @base, string toppings)
         {
-            this.m_base = @base;
-            this.m_toppings = toppings;
+            m_base = @base;
+            m_toppings = toppings;
         }
 
         [DataMember]

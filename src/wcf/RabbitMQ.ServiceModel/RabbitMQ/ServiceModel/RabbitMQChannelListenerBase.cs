@@ -77,20 +77,20 @@ namespace RabbitMQ.ServiceModel
 
         protected RabbitMQChannelListenerBase(BindingContext context)
         {
-            this.m_context = context;
-            this.m_bindingElement = context.Binding.Elements.Find<RabbitMQTransportBindingElement>();
-            this.m_closeMethod = new CommunicationOperation(OnClose);
-            this.m_openMethod = new CommunicationOperation(OnOpen);
-            this.m_waitForChannelMethod = new CommunicationOperation<bool>(OnWaitForChannel);
-            this.m_acceptChannelMethod = new CommunicationOperation<TChannel>(OnAcceptChannel);
+            m_context = context;
+            m_bindingElement = context.Binding.Elements.Find<RabbitMQTransportBindingElement>();
+            m_closeMethod = new CommunicationOperation(OnClose);
+            m_openMethod = new CommunicationOperation(OnOpen);
+            m_waitForChannelMethod = new CommunicationOperation<bool>(OnWaitForChannel);
+            m_acceptChannelMethod = new CommunicationOperation<TChannel>(OnAcceptChannel);
             
             if (context.ListenUriMode == ListenUriMode.Explicit && context.ListenUriBaseAddress != null)
             {
-                this.m_listenUri = new Uri(context.ListenUriBaseAddress, context.ListenUriRelativeAddress);
+                m_listenUri = new Uri(context.ListenUriBaseAddress, context.ListenUriRelativeAddress);
             }
             else
             {
-                this.m_listenUri = new Uri(new Uri("soap.amqp:///"), Guid.NewGuid().ToString());
+                m_listenUri = new Uri(new Uri("soap.amqp:///"), Guid.NewGuid().ToString());
             }
 
         }

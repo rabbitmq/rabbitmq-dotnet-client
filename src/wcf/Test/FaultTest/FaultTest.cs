@@ -95,7 +95,7 @@ namespace RabbitMQ.ServiceModel.Test.FaultTest
         public void StopClient(IExplode client)
         {
             Util.Write(ConsoleColor.Yellow, "  Stopping Client...");
-            this.m_client.Abort();
+            m_client.Abort();
 
             Util.WriteLine(ConsoleColor.Green, "[DONE]");
         }

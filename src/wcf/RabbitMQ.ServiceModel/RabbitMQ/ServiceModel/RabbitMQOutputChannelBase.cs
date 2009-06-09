@@ -75,8 +75,8 @@ namespace RabbitMQ.ServiceModel
         protected RabbitMQOutputChannelBase(BindingContext context, EndpointAddress address)
             : base(context)
         {
-            this.m_address = address;
-            this.m_sendMethod = new SendOperation(Send);
+            m_address = address;
+            m_sendMethod = new SendOperation(Send);
         }
 
 

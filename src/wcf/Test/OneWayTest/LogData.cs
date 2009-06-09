@@ -69,14 +69,14 @@ namespace RabbitMQ.ServiceModel.Test.OneWayTest
 
         public LogData()
         {
-            this.m_timeStamp = DateTime.Now;
+            m_timeStamp = DateTime.Now;
         }
 
         public LogData(LogLevel level, String message)
             :base()
         {
-            this.m_level = level;
-            this.m_message = message;
+            m_level = level;
+            m_message = message;
         }
 
         [DataMember]

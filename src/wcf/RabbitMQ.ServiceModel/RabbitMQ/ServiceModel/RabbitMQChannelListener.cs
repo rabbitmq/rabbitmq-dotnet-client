@@ -77,8 +77,8 @@ namespace RabbitMQ.ServiceModel
         internal RabbitMQChannelListener(BindingContext context)
             : base(context)
         {
-            this.m_channel = null;
-            this.m_model = null;
+            m_channel = null;
+            m_model = null;
         }
 
         protected override IInputChannel OnAcceptChannel(TimeSpan timeout)

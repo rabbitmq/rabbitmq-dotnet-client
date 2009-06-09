@@ -75,10 +75,10 @@ namespace RabbitMQ.ServiceModel
 
         public RabbitMQChannelFactory(BindingContext context)
         {
-            this.m_context = context;
-            this.m_openMethod = new CommunicationOperation(Open);
-            this.m_bindingElement = context.Binding.Elements.Find<RabbitMQTransportBindingElement>();
-            this.m_model = null;
+            m_context = context;
+            m_openMethod = new CommunicationOperation(Open);
+            m_bindingElement = context.Binding.Elements.Find<RabbitMQTransportBindingElement>();
+            m_model = null;
         }
 
         protected override IOutputChannel OnCreateChannel(EndpointAddress address, Uri via)

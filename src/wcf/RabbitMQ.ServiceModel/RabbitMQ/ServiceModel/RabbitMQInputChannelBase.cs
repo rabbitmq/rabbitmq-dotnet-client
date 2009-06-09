@@ -75,10 +75,10 @@ namespace RabbitMQ.ServiceModel
         protected RabbitMQInputChannelBase(BindingContext context, EndpointAddress localAddress)
         :base(context)
         {
-            this.m_localAddress = localAddress;
-            this.m_receiveMethod = new CommunicationOperation<Message>(Receive);
-            this.m_tryReceiveMethod = new CommunicationOperation<bool, Message>(TryReceive);
-            this.m_waitForMessage = new CommunicationOperation<bool>(WaitForMessage);
+            m_localAddress = localAddress;
+            m_receiveMethod = new CommunicationOperation<Message>(Receive);
+            m_tryReceiveMethod = new CommunicationOperation<bool, Message>(TryReceive);
+            m_waitForMessage = new CommunicationOperation<bool>(WaitForMessage);
         }
 
 

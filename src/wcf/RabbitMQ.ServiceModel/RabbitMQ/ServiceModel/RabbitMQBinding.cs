@@ -119,7 +119,7 @@ namespace RabbitMQ.ServiceModel
         /// <param name="protocol">The protocol version to use</param>
         public RabbitMQBinding(IProtocol protocol)
         {
-            this.m_brokerProtocol = protocol;
+            m_brokerProtocol = protocol;
             base.Name = "RabbitMQBinding";
             base.Namespace = "http://schemas.rabbitmq.com/2007/RabbitMQ/";
 
@@ -147,8 +147,8 @@ namespace RabbitMQ.ServiceModel
 
         public override BindingElementCollection CreateBindingElements()
         {
-            this.m_transport.Broker = this.Broker;
-            this.m_transport.BrokerProtocol = this.BrokerProtocol;
+            m_transport.Broker = this.Broker;
+            m_transport.BrokerProtocol = this.BrokerProtocol;
             BindingElementCollection elements = new BindingElementCollection();
 
             if (m_transactionsEnabled)
@@ -170,15 +170,15 @@ namespace RabbitMQ.ServiceModel
         {
             lock (this)
             {
-                if (!this.m_isInitialized)
+                if (!m_isInitialized)
                 {
-                    this.m_transport = new RabbitMQTransportBindingElement();
-                    this.m_encoding = new TextMessageEncodingBindingElement(); // new TextMessageEncodingBindingElement();
-                    this.m_session = new ReliableSessionBindingElement();
-                    this.m_compositeDuplex = new CompositeDuplexBindingElement();
-                    this.m_transactionFlow = new TransactionFlowBindingElement();
+                    m_transport = new RabbitMQTransportBindingElement();
+                    m_encoding = new TextMessageEncodingBindingElement(); // new TextMessageEncodingBindingElement();
+                    m_session = new ReliableSessionBindingElement();
+                    m_compositeDuplex = new CompositeDuplexBindingElement();
+                    m_transactionFlow = new TransactionFlowBindingElement();
 
-                    this.m_isInitialized = true;
+                    m_isInitialized = true;
                 }
             }
         }

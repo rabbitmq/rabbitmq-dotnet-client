@@ -73,15 +73,15 @@ namespace RabbitMQ.ServiceModel
 
         private RabbitMQChannelBase()
         {
-            this.m_state = CommunicationState.Created;
-            this.m_closeMethod = new CommunicationOperation(Close);
-            this.m_openMethod = new CommunicationOperation(Open);
+            m_state = CommunicationState.Created;
+            m_closeMethod = new CommunicationOperation(Close);
+            m_openMethod = new CommunicationOperation(Open);
         }
 
         protected RabbitMQChannelBase(BindingContext context)
             : this()
         {
-            this.m_context = context;
+            m_context = context;
         }
 
         public abstract void Close(TimeSpan timeout);

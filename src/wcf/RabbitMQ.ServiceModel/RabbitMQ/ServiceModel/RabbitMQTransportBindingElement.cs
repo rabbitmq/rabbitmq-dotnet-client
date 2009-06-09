@@ -184,8 +184,8 @@ namespace RabbitMQ.ServiceModel
         [ConfigurationProperty("broker")]
         public Uri Broker
         {
-            get { return this.m_broker; }
-            set { this.m_broker = value; }
+            get { return m_broker; }
+            set { m_broker = value; }
         }
 
         /// <summary>

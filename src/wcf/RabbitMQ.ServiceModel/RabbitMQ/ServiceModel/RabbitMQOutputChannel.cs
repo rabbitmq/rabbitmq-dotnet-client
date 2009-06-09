@@ -77,12 +77,12 @@ namespace RabbitMQ.ServiceModel
         public RabbitMQOutputChannel(BindingContext context, IModel model, EndpointAddress address)
             : base(context, address)
         {
-            this.m_bindingElement = context.Binding.Elements.Find<RabbitMQTransportBindingElement>();
+            m_bindingElement = context.Binding.Elements.Find<RabbitMQTransportBindingElement>();
             MessageEncodingBindingElement encoderElement = context.Binding.Elements.Find<MessageEncodingBindingElement>();
             if (encoderElement != null) {
-                this.m_encoder = encoderElement.CreateMessageEncoderFactory().Encoder;
+                m_encoder = encoderElement.CreateMessageEncoderFactory().Encoder;
             }
-            this.m_model = model;
+            m_model = model;
         }
 
         public override void Send(Message message, TimeSpan timeout)
@@ -95,7 +95,7 @@ namespace RabbitMQ.ServiceModel
 #endif
                 using (MemoryStream str = new MemoryStream())
                 {
-                    this.m_encoder.WriteMessage(message, str);
+                    m_encoder.WriteMessage(message, str);
                     body = str.ToArray();
                 }
 #if VERBOSE

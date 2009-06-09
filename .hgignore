@@ -10,3 +10,5 @@ syntax: regexp
 
 ^src/wcf/RabbitMQ\.ServiceModel/RabbitMQ\.ServiceModel\.xml
 ^src/wcf/RabbitMQ\.ServiceModel/AssemblyInfo\.cs$
+~$
+
