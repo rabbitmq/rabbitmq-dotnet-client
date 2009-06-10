@@ -62,19 +62,19 @@ namespace RabbitMQ.ServiceModel.Test.SessionTest
     [DataContract]
     public sealed class CartItem
     {
-        private double price;
-        private string name;
+        private double m_price;
+        private string m_name;
 
         [DataMember]
         public double Price {
-            get { return price; }
-            set { price = value; }
+            get { return m_price; }
+            set { m_price = value; }
         }
         
         [DataMember]
         public string Name {
-            get { return name; }
-            set { name = value; }
+            get { return m_name; }
+            set { m_name = value; }
         }
     }
 }

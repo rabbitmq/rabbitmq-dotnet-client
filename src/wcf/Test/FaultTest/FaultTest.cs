@@ -63,15 +63,15 @@ namespace RabbitMQ.ServiceModel.Test.FaultTest
 
     public class FaultTest : IServiceTest<IExplode>
     {
-        ServiceHost service;
-        ExplodingClient client;
+        ServiceHost m_service;
+        ExplodingClient m_client;
 
         public void StartService(Binding binding)
         {
             Util.Write(ConsoleColor.Yellow, "  Binding Service...");
-            service = new ServiceHost(typeof(ExplodingService), new Uri("soap.amqp:///"));
-            service.AddServiceEndpoint(typeof(IExplode), binding, "FaultTest");
-            service.Open();
+            m_service = new ServiceHost(typeof(ExplodingService), new Uri("soap.amqp:///"));
+            m_service.AddServiceEndpoint(typeof(IExplode), binding, "FaultTest");
+            m_service.Open();
 
             System.Threading.Thread.Sleep(500);
             Util.WriteLine(ConsoleColor.Green, "[DONE]");
@@ -80,22 +80,22 @@ namespace RabbitMQ.ServiceModel.Test.FaultTest
         public void StopService()
         {
             Util.Write(ConsoleColor.Yellow, "  Stopping Service...");
-            service.Close();
+            m_service.Close();
             Util.WriteLine(ConsoleColor.Green, "[DONE]");
         }
 
         public IExplode GetClient(Binding binding)
         {
-            client = new ExplodingClient(binding, new EndpointAddress("soap.amqp:///FaultTest"));
-            client.Open();
+            m_client = new ExplodingClient(binding, new EndpointAddress("soap.amqp:///FaultTest"));
+            m_client.Open();
 
-            return client;
+            return m_client;
         }
 
         public void StopClient(IExplode client)
         {
             Util.Write(ConsoleColor.Yellow, "  Stopping Client...");
-            this.client.Abort();
+            m_client.Abort();
 
             Util.WriteLine(ConsoleColor.Green, "[DONE]");
         }
@@ -106,7 +106,7 @@ namespace RabbitMQ.ServiceModel.Test.FaultTest
             {
                 StartService(Program.GetBinding());
                 GetClient(Program.GetBinding());
-                client.GoBang();
+                m_client.GoBang();
             }
             catch (FaultException)
             {
@@ -114,7 +114,7 @@ namespace RabbitMQ.ServiceModel.Test.FaultTest
             }
             finally
             {
-                StopClient(client);
+                StopClient(m_client);
                 StopService();
             }
 

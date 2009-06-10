@@ -74,26 +74,26 @@ namespace RabbitMQ.ServiceModel
     /// </summary>
     public sealed class RabbitMQTransportBindingElement : TransportBindingElement
     {
-        private Uri broker;
-        private IProtocol brokerProtocol;
-        private ConnectionFactory connectionFactory;
-        private IConnection connection;
+        private Uri m_broker;
+        private IProtocol m_brokerProtocol;
+        private ConnectionFactory m_connectionFactory;
+        private IConnection m_connection;
 
         /// <summary>
         /// Creates a new instance of the RabbitMQTransportBindingElement Class using the default protocol.
         /// </summary>
         public RabbitMQTransportBindingElement()
         {
-            brokerProtocol = Protocols.DefaultProtocol;
-            connectionFactory = new ConnectionFactory();
-            connection = null;
+            m_brokerProtocol = Protocols.DefaultProtocol;
+            m_connectionFactory = new ConnectionFactory();
+            m_connection = null;
         }
 
         private RabbitMQTransportBindingElement(RabbitMQTransportBindingElement other)
             : this()
         {
-            brokerProtocol = other.brokerProtocol;
-            broker = other.Broker;
+            m_brokerProtocol = other.m_brokerProtocol;
+            m_broker = other.Broker;
         }
 
         
@@ -129,16 +129,16 @@ namespace RabbitMQ.ServiceModel
 
         internal void EnsureConnectionAvailable()
         {
-            if (connection == null) {
-                connection = connectionFactory.CreateConnection(BrokerProtocol, Broker.Host, Broker.Port);
+            if (m_connection == null) {
+                m_connection = m_connectionFactory.CreateConnection(BrokerProtocol, Broker.Host, Broker.Port);
                 //TODO: configure connection parameters
             }
         }
 
         internal IModel InternalOpen() {
             EnsureConnectionAvailable();
-            IModel result = connection.CreateModel();
-            connection.AutoClose = true;
+            IModel result = m_connection.CreateModel();
+            m_connection.AutoClose = true;
             return result;
         }
 
@@ -152,7 +152,7 @@ namespace RabbitMQ.ServiceModel
             } catch (ChannelAllocationException) {
                 // fall through
             }
-            connection = null;
+            m_connection = null;
             return InternalOpen();
         }
 
@@ -184,8 +184,8 @@ namespace RabbitMQ.ServiceModel
         [ConfigurationProperty("broker")]
         public Uri Broker
         {
-            get { return this.broker; }
-            set { this.broker = value; }
+            get { return m_broker; }
+            set { m_broker = value; }
         }
 
         /// <summary>
@@ -194,18 +194,18 @@ namespace RabbitMQ.ServiceModel
         /// </summary>
         public IProtocol BrokerProtocol
         {
-            get { return brokerProtocol; }
-            set { brokerProtocol = value; }
+            get { return m_brokerProtocol; }
+            set { m_brokerProtocol = value; }
         }
 
         public ConnectionParameters ConnectionParameters
         {
-            get { return connectionFactory.Parameters; }
+            get { return m_connectionFactory.Parameters; }
         }
 
         //internal ConnectionFactory ConnectionFactory
         //{
-        //    get { return this.connectionFactory; }
+        //    get { return m_connectionFactory; }
         //}
     }
 }

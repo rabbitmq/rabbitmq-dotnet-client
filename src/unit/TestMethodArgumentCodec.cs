@@ -94,19 +94,19 @@ public class TestMethodArgumentCodec {
         }
     }
 
-    public MethodArgumentWriter w;
+    public MethodArgumentWriter m_w;
 
     [SetUp]
     public void SetUp() {
-        w = Writer();
+        m_w = Writer();
     }
 
     [Test]
     public void TestTableLengthWrite() {
         Hashtable t = new Hashtable();
         t["abc"] = "def";
-        w.WriteTable(t);
-        Check(w, new byte [] { 0x00, 0x00, 0x00, 0x0C,
+        m_w.WriteTable(t);
+        Check(m_w, new byte[] { 0x00, 0x00, 0x00, 0x0C,
                                0x03, 0x61, 0x62, 0x63,
                                0x53, 0x00, 0x00, 0x00,
                                0x03, 0x64, 0x65, 0x66 });
@@ -128,8 +128,8 @@ public class TestMethodArgumentCodec {
         Hashtable x = new Hashtable();
         x["y"] = 0x12345678;
         t["x"] = x;
-        w.WriteTable(t);
-        Check(w, new byte [] { 0x00, 0x00, 0x00, 0x0E,
+        m_w.WriteTable(t);
+        Check(m_w, new byte[] { 0x00, 0x00, 0x00, 0x0E,
                                0x01, 0x78, 0x46, 0x00,
                                0x00, 0x00, 0x07, 0x01,
                                0x79, 0x49, 0x12, 0x34,

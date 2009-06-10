@@ -64,36 +64,36 @@ namespace RabbitMQ.ServiceModel.Test.DuplexTest
     [DataContract]
     public class Order
     {
-        private Guid id;
-        private List<Pizza> items;
-        private DateTime ordered;
+        private Guid m_id;
+        private List<Pizza> m_items;
+        private DateTime m_ordered;
 
         public Order()
         {
-            this.id = Guid.NewGuid();
-            this.items = new List<Pizza>();
-            this.ordered = DateTime.Now;
+            m_id = Guid.NewGuid();
+            m_items = new List<Pizza>();
+            m_ordered = DateTime.Now;
         }
 
         [DataMember]
         public Guid Id
         {
-            get { return id; }
-            set { id = value; }
+            get { return m_id; }
+            set { m_id = value; }
         }
         
         [DataMember]
         public List<Pizza> Items
         {
-            get { return items; }
-            set { items = value; }
+            get { return m_items; }
+            set { m_items = value; }
         }
         
         [DataMember]
         public DateTime Ordered
         {
-            get { return ordered; }
-            set { ordered = value; }
+            get { return m_ordered; }
+            set { m_ordered = value; }
         }
     }
 }
