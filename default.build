@@ -82,7 +82,6 @@
 	      depends="generate-api">
     <property name="keyfile.ok"
               value="${(property::exists('keyfile') and file::exists(property::get-value('keyfile')) and property::get-value('config.name') != 'dotnet-1.1')}" />
-    <property name="keyfile" value="" unless="${keyfile.ok}"/>
     <mkdir dir="${bin.dir}" />
     <mkdir dir="${doc.dir}" />
     <property name="gen.assemblyinfo.src" value="${core.assemblyinfo.src}"/>
