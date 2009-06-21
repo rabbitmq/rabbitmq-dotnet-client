@@ -68,7 +68,6 @@ public class TestSslEndpoint {
         ConnectionFactory cf = new ConnectionFactory();
 
         cf.Parameters.Ssl.ServerName = System.Net.Dns.GetHostName();
-//        cf.Parameters.Ssl.CertPath = "/etc/rabbitmq/clientcert.cer";
         cf.Parameters.Ssl.Enabled = true;
 
         IProtocol proto = Protocols.DefaultProtocol;
