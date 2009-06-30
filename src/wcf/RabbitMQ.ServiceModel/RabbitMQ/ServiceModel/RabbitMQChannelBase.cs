@@ -66,22 +66,22 @@ namespace RabbitMQ.ServiceModel
 
     internal abstract class RabbitMQChannelBase : IChannel
     {   
-        private CommunicationOperation closeMethod;
-        private BindingContext context;
-        private CommunicationOperation openMethod;
-        private CommunicationState state;
+        private CommunicationOperation m_closeMethod;
+        private BindingContext m_context;
+        private CommunicationOperation m_openMethod;
+        private CommunicationState m_state;
 
         private RabbitMQChannelBase()
         {
-            this.state = CommunicationState.Created;
-            this.closeMethod = new CommunicationOperation(Close);
-            this.openMethod = new CommunicationOperation(Open);
+            m_state = CommunicationState.Created;
+            m_closeMethod = new CommunicationOperation(Close);
+            m_openMethod = new CommunicationOperation(Open);
         }
 
         protected RabbitMQChannelBase(BindingContext context)
             : this()
         {
-            this.context = context;
+            m_context = context;
         }
 
         public abstract void Close(TimeSpan timeout);
@@ -95,7 +95,7 @@ namespace RabbitMQ.ServiceModel
 
         public virtual void Close()
         {
-            Close(context.Binding.CloseTimeout);
+            Close(m_context.Binding.CloseTimeout);
         }
 
         public virtual T GetProperty<T>() where T : class
@@ -105,39 +105,39 @@ namespace RabbitMQ.ServiceModel
 
         public virtual void Open()
         {
-            Open(context.Binding.OpenTimeout);
+            Open(m_context.Binding.OpenTimeout);
         }
 
         #region Async Methods
         
         public virtual IAsyncResult BeginClose(TimeSpan timeout, AsyncCallback callback, object state)
         {
-            return closeMethod.BeginInvoke(timeout, callback, state);
+            return m_closeMethod.BeginInvoke(timeout, callback, state);
         }
 
         public virtual IAsyncResult BeginClose(AsyncCallback callback, object state)
         {
-            return closeMethod.BeginInvoke(context.Binding.CloseTimeout, callback, state);
+            return m_closeMethod.BeginInvoke(m_context.Binding.CloseTimeout, callback, state);
         }
 
         public virtual IAsyncResult BeginOpen(TimeSpan timeout, AsyncCallback callback, object state)
         {
-            return openMethod.BeginInvoke(timeout, callback, state);
+            return m_openMethod.BeginInvoke(timeout, callback, state);
         }
 
         public virtual IAsyncResult BeginOpen(AsyncCallback callback, object state)
         {
-            return openMethod.BeginInvoke(context.Binding.OpenTimeout, callback, state);
+            return m_openMethod.BeginInvoke(m_context.Binding.OpenTimeout, callback, state);
         }
         
         public virtual void EndClose(IAsyncResult result)
         {
-            closeMethod.EndInvoke(result);
+            m_closeMethod.EndInvoke(result);
         }
 
         public virtual void EndOpen(IAsyncResult result)
         {
-            openMethod.EndInvoke(result);
+            m_openMethod.EndInvoke(result);
         }
         
         #endregion
@@ -146,35 +146,35 @@ namespace RabbitMQ.ServiceModel
         
         protected void OnOpening()
         {
-            state = CommunicationState.Opening;
+            m_state = CommunicationState.Opening;
             if (Opening != null)
                 Opening(this, null);
         }
 
         protected void OnOpened()
         {
-            state = CommunicationState.Opened;
+            m_state = CommunicationState.Opened;
             if (Opened != null)
                 Opened(this, null);
         }
 
         protected void OnClosing()
         {
-            state = CommunicationState.Closing;
+            m_state = CommunicationState.Closing;
             if (Closing != null)
                 Closing(this, null);
         }
 
         protected void OnClosed()
         {
-            state = CommunicationState.Closed;
+            m_state = CommunicationState.Closed;
             if (Closed != null)
                 Closed(this, null);
         }
 
         protected void OnFaulted()
         {
-            state = CommunicationState.Faulted;
+            m_state = CommunicationState.Faulted;
             if (Faulted != null)
                 Faulted(this, null);
         }
@@ -184,12 +184,12 @@ namespace RabbitMQ.ServiceModel
 
         public CommunicationState State
         {
-            get { return state; }
+            get { return m_state; }
         }
 
         protected BindingContext Context
         {
-            get { return context; }
+            get { return m_context; }
         }
 
 

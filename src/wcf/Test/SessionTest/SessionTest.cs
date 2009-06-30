@@ -64,15 +64,15 @@ namespace RabbitMQ.ServiceModel.Test.SessionTest
 
     public class SessionTest : IServiceTest<ICart>
     {
-        ServiceHost service;
-        ChannelFactory<ICart> factory;
+        ServiceHost m_service;
+        ChannelFactory<ICart> m_factory;
 
         public void StartService(Binding binding)
         {
             Util.Write(ConsoleColor.Yellow, "  Binding Service...");
-            service = new ServiceHost(typeof(Cart), new Uri("soap.amqp:///"));
-            service.AddServiceEndpoint(typeof(ICart), binding, "Cart");
-            service.Open();
+            m_service = new ServiceHost(typeof(Cart), new Uri("soap.amqp:///"));
+            m_service.AddServiceEndpoint(typeof(ICart), binding, "Cart");
+            m_service.Open();
 
             Thread.Sleep(500);
             Util.WriteLine(ConsoleColor.Green, "[DONE]");
@@ -81,22 +81,22 @@ namespace RabbitMQ.ServiceModel.Test.SessionTest
         public void StopService()
         {
             Util.Write(ConsoleColor.Yellow, "  Stopping Service...");
-            service.Close();
+            m_service.Close();
             Util.WriteLine(ConsoleColor.Green, "[DONE]");
         }
 
         public ICart GetClient(Binding binding)
         {
-            factory = new ChannelFactory<ICart>(binding, "soap.amqp:///Cart");
-            factory.Open();
-            return factory.CreateChannel();
+            m_factory = new ChannelFactory<ICart>(binding, "soap.amqp:///Cart");
+            m_factory.Open();
+            return m_factory.CreateChannel();
         }
 
         public void StopClient(ICart client)
         {
             Util.Write(ConsoleColor.Yellow, "  Stopping Client...");
             ((IChannel)client).Close();
-            factory.Close();
+            m_factory.Close();
             Util.WriteLine(ConsoleColor.Green, "[DONE]");
         }
 

@@ -63,10 +63,10 @@ namespace RabbitMQ.ServiceModel.Test.OneWayTest
     [ServiceBehavior(InstanceContextMode=InstanceContextMode.Single)]
     public class LogService : ILogServiceContract
     {
-        public int i;
+        public int m_i;
         public void Log(LogData entry)
         {
-            Util.WriteLine(ConsoleColor.Magenta, "  [SVC] {3} [{0,-6}] {1, 12}: {2}", entry.Level, entry.TimeStamp, entry.Message, i++);
+            Util.WriteLine(ConsoleColor.Magenta, "  [SVC] {3} [{0,-6}] {1, 12}: {2}", entry.Level, entry.TimeStamp, entry.Message, m_i++);
         }
     }
 }

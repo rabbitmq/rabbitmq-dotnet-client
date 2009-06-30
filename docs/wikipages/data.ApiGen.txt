@@ -227,7 +227,7 @@ implement. The common interface is in two pieces:
 
 Apigen is linked with these interfaces, and at runtime uses reflection
 to look for the [code IFullModel] interface (see definition of [code
-Apigen.modelType]).
+Apigen.m_modelType]).
 
 The definitions in [code IFullModel], taken together with the class
 and method definitions in the AMQP specification XML, guide the code
@@ -463,9 +463,9 @@ of the [code queue.purge-ok] reply.
 @code java
     public struct ConnectionTuneDetails
     {
-        public ushort channelMax;
-        public uint frameMax;
-        public ushort heartbeat;
+        public ushort m_channelMax;
+        public uint m_frameMax;
+        public ushort m_heartbeat;
     }
 
 The above example extracts the "channel-max", "frame-max" and

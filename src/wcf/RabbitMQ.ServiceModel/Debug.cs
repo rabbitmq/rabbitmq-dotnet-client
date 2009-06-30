@@ -63,7 +63,7 @@ namespace RabbitMQ.ServiceModel
 {
     public static class DebugHelper
     {
-        static long started;
+        static long m_started;
 
         static DebugHelper()
         {
@@ -72,7 +72,7 @@ namespace RabbitMQ.ServiceModel
 
         public static void Start()
         {
-            started = Timer.ElapsedMilliseconds;
+            m_started = Timer.ElapsedMilliseconds;
             Timer.Start();
         }
 
@@ -84,7 +84,7 @@ namespace RabbitMQ.ServiceModel
             {
                 object[] args1 = new object[args.Length + 1];
                 args.CopyTo(args1, 1);
-                args1[0] = Timer.ElapsedMilliseconds - started;
+                args1[0] = Timer.ElapsedMilliseconds - m_started;
                 if (Console.CursorLeft != 0)
                     Console.WriteLine();
                 Console.WriteLine(messageFormat, args1);
