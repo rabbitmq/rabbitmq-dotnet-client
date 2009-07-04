@@ -613,6 +613,14 @@
     <copy file="${wix.dotnet.client.msi}" tofile="${release.msi}" />
   </target>
   
+  <target name="validate-windows-install-msm" description="validate created windows installer merge module. Note: This will always output succeed. Check printed warnings and errors.">
+    <exec program="MsiVal2.exe">
+      <arg value="${wix.dotnet.client.msm}" />
+      <arg value="lib/mergemod.cub" />
+      <arg value="-f" />
+    </exec>
+  </target>
+  
   <target name="validate-windows-install-msi" description="validate created windows installer file. Note: This will always output succeed. Check printed warnings and errors.">
     <exec program="MsiVal2.exe">
       <arg value="${wix.dotnet.client.msi}" />
