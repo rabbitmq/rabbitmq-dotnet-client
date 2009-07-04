@@ -56,6 +56,7 @@
   <property name="release.version.dir" value="${release.dir}/v${fullversion}"/>
   <property name="release.src.zip" value="${nameversion}.zip" />
   <property name="web.url" value="http://stage.rabbitmq.com/" />
+  <property name="release.msi" value="${release.version.dir}/rabbitmq-dotnet-client-${fullversion}.msi" />
 
   <target name="clean" description="remove all generated files"
 	      depends="clean-base,clean-wcf,clean-wix,stamp" />
@@ -584,7 +585,7 @@
     </exec>
   </target>
   
-  <target name="build-windows-install-msi" description="create windows installer file. This requires the .dll to be signed" >
+  <target name="build-windows-install-msi" description="create windows installer file. This requires the .dll to be signed">
     <call target="build-windows-install-msm" />
     <if test="${(not file::up-to-date(wix.product.src, wix.product.target))}">
       <delete file="${wix.product.target}" failonerror="false" />
@@ -608,6 +609,15 @@
         <arg value="${wix.ui.lib}" />
         <arg value="-loc" />
         <arg value="${wix.localization}" />
+    </exec>
+    <copy file="${wix.dotnet.client.msi}" tofile="${release.msi}" />
+  </target>
+  
+  <target name="validate-windows-install-msi" description="validate created windows installer file. Note: This will always output succeed. Check printed warnings and errors.">
+    <exec program="MsiVal2.exe">
+      <arg value="${wix.dotnet.client.msi}" />
+      <arg value="lib/darice.cub" />
+      <arg value="-f" />
     </exec>
   </target>
 </project>
