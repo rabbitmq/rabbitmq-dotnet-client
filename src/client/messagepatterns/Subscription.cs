@@ -98,10 +98,10 @@ namespace RabbitMQ.Client.MessagePatterns {
         public IModel Model { get { return m_model; } }
 
         protected string m_queueName;
-        protected QueueingBasicConsumer m_consumer;
+        protected volatile QueueingBasicConsumer m_consumer;
         protected string m_consumerTag;
         protected bool m_noAck;
-        protected bool m_shouldDelete;
+        protected volatile bool m_shouldDelete;
 
         ///<summary>Retrieve the queue name we have subscribed to. May
         ///be a server-generated name, depending on how the
@@ -219,9 +219,18 @@ namespace RabbitMQ.Client.MessagePatterns {
         public void Close()
         {
             try {
-                if (m_consumer != null) {
-                    m_model.BasicCancel(m_consumerTag);
+                bool shouldCancelConsumer = false;
+                lock (this) {
+                    if (m_consumer != null) {
+                        shouldCancelConsumer = true;
+                        m_consumer = null;
+                    }
                 }
+                if (shouldCancelConsumer) {
+                    m_model.BasicCancel(m_consumerTag);
+                    m_consumerTag = null;
+                }
+
                 if (m_shouldDelete) {
                     m_shouldDelete = false;
                     // We set m_shouldDelete false before attempting
@@ -232,8 +241,6 @@ namespace RabbitMQ.Client.MessagePatterns {
             } catch (OperationInterruptedException) {
                 // We don't mind, here.
             }
-            m_consumer = null;
-            m_consumerTag = null;
         }
 
         ///<summary>Causes the queue to which we have subscribed to be
@@ -319,9 +326,10 @@ namespace RabbitMQ.Client.MessagePatterns {
             try {
                 if (m_consumer == null) {
                     // Closed!
-                    throw new InvalidOperationException();
+                    m_latestEvent = null;
+                } else {
+                    m_latestEvent = (BasicDeliverEventArgs) m_consumer.Queue.Dequeue();
                 }
-                m_latestEvent = (BasicDeliverEventArgs) m_consumer.Queue.Dequeue();
             } catch (EndOfStreamException) {
                 m_latestEvent = null;
             }
@@ -377,14 +385,15 @@ namespace RabbitMQ.Client.MessagePatterns {
             try {
                 if (m_consumer == null) {
                     // Closed!
-                    throw new InvalidOperationException();
+                    m_latestEvent = null;
+                } else {
+                    object qValue;
+                    if (!m_consumer.Queue.Dequeue(millisecondsTimeout, out qValue)) {
+                        result = null;
+                        return false;
+                    }
+                    m_latestEvent = (BasicDeliverEventArgs) qValue;
                 }
-                object qValue;
-                if (!m_consumer.Queue.Dequeue(millisecondsTimeout, out qValue)) {
-                    result = null;
-                    return false;
-                }
-                m_latestEvent = (BasicDeliverEventArgs) qValue;
             } catch (EndOfStreamException) {
                 m_latestEvent = null;
             }
