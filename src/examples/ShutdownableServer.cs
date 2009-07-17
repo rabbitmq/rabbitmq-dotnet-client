@@ -76,8 +76,10 @@ namespace RabbitMQ.Client.Examples {
                     using (IModel ch = conn.CreateModel()) {
                         Subscription sub = new Subscription(ch, "ShutdownableServer");
                         new ShutdownableServer(sub).MainLoop();
+                        Console.Out.WriteLine("Returned from MainLoop.");
                     }
                 }
+                Console.Out.WriteLine("Leaving the program.");
                 return 0;
             } catch (Exception e) {
                 Console.Error.WriteLine(e);
