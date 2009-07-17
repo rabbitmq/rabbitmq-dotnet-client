@@ -281,6 +281,8 @@
     <property name="example.program" value="DeclareQueue"/><call target="one-example"/>
     <property name="example.program" value="AddServer"/><call target="one-example"/>
     <property name="example.program" value="AddClient"/><call target="one-example"/>
+    <property name="example.program" value="ShutdownableServer"/><call target="one-example"/>
+    <property name="example.program" value="ShutdownableClient"/><call target="one-example"/>
   </target>
 
   <target name="build-unit" description="compile unit tests"
