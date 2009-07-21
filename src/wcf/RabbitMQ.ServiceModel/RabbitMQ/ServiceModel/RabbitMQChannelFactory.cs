@@ -68,32 +68,32 @@ namespace RabbitMQ.ServiceModel
 
     internal sealed class RabbitMQChannelFactory<TChannel> : ChannelFactoryBase<IOutputChannel>
     {
-        private BindingContext context;
-        private CommunicationOperation openMethod;
-        private RabbitMQTransportBindingElement bindingElement;
-        private IModel model;
+        private BindingContext m_context;
+        private CommunicationOperation m_openMethod;
+        private RabbitMQTransportBindingElement m_bindingElement;
+        private IModel m_model;
 
         public RabbitMQChannelFactory(BindingContext context)
         {
-            this.context = context;
-            this.openMethod = new CommunicationOperation(Open);
-            this.bindingElement = context.Binding.Elements.Find<RabbitMQTransportBindingElement>();
-            this.model = null;
+            m_context = context;
+            m_openMethod = new CommunicationOperation(Open);
+            m_bindingElement = context.Binding.Elements.Find<RabbitMQTransportBindingElement>();
+            m_model = null;
         }
 
         protected override IOutputChannel OnCreateChannel(EndpointAddress address, Uri via)
         {
-            return new RabbitMQOutputChannel(context, model, address);
+            return new RabbitMQOutputChannel(m_context, m_model, address);
         }
         
         protected override IAsyncResult OnBeginOpen(TimeSpan timeout, AsyncCallback callback, object state)
         {
-            return openMethod.BeginInvoke(timeout, callback, state);
+            return m_openMethod.BeginInvoke(timeout, callback, state);
         }
 
         protected override void OnEndOpen(IAsyncResult result)
         {
-            openMethod.EndInvoke(result);
+            m_openMethod.EndInvoke(result);
         }
 
         protected override void OnOpen(TimeSpan timeout)
@@ -101,7 +101,7 @@ namespace RabbitMQ.ServiceModel
 #if VERBOSE
             DebugHelper.Start();
 #endif
-            model = bindingElement.Open(timeout);
+            m_model = m_bindingElement.Open(timeout);
 #if VERBOSE
             DebugHelper.Stop(" ## Out.Open {{Time={0}ms}}.");
 #endif
@@ -113,9 +113,9 @@ namespace RabbitMQ.ServiceModel
             DebugHelper.Start();
 #endif
             
-            if (model != null) {
-                bindingElement.Close(model, timeout);
-                model = null;
+            if (m_model != null) {
+                m_bindingElement.Close(m_model, timeout);
+                m_model = null;
             }
 
 #if VERBOSE
@@ -126,7 +126,7 @@ namespace RabbitMQ.ServiceModel
         protected override void OnAbort()
         {
             base.OnAbort();
-            OnClose(context.Binding.CloseTimeout);
+            OnClose(m_context.Binding.CloseTimeout);
         }
     }
 }

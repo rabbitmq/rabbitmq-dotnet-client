@@ -65,15 +65,15 @@ namespace RabbitMQ.ServiceModel.Test.TwoWayTest
 
     public class TwoWayTest : IServiceTest<ICalculator>
     {
-        ServiceHost service; 
-        ChannelFactory<ICalculator> fac;
+        ServiceHost m_service; 
+        ChannelFactory<ICalculator> m_fac;
 
         public void StartService(Binding binding)
         {
             Util.Write(ConsoleColor.Yellow, "  Binding Service...");
-            service = new ServiceHost(typeof(Calculator), new Uri("soap.amqp:///"));
-            service.AddServiceEndpoint(typeof(ICalculator), binding, "Calculator");
-            service.Open();
+            m_service = new ServiceHost(typeof(Calculator), new Uri("soap.amqp:///"));
+            m_service.AddServiceEndpoint(typeof(ICalculator), binding, "Calculator");
+            m_service.Open();
             
             Thread.Sleep(500);
             Util.WriteLine(ConsoleColor.Green, "[DONE]");
@@ -83,15 +83,15 @@ namespace RabbitMQ.ServiceModel.Test.TwoWayTest
         {
 
             Util.Write(ConsoleColor.Yellow, "  Stopping Service...");
-            service.Close();
+            m_service.Close();
             Util.WriteLine(ConsoleColor.Green, "[DONE]");
         }
 
         public ICalculator GetClient(Binding binding)
         {
-            fac = new ChannelFactory<ICalculator>(binding, "soap.amqp:///Calculator");
-            fac.Open();
-            return fac.CreateChannel();
+            m_fac = new ChannelFactory<ICalculator>(binding, "soap.amqp:///Calculator");
+            m_fac.Open();
+            return m_fac.CreateChannel();
         }
 
         public void StopClient(ICalculator client)
@@ -102,7 +102,7 @@ namespace RabbitMQ.ServiceModel.Test.TwoWayTest
             // Factories share a *SINGLE* input channel for *all* proxies managed by them.
             // Closing the individual proxy closes only its output channel.
             // To close the sole input channel, closing the actual factory is required.
-            fac.Close();
+            m_fac.Close();
             Util.WriteLine(ConsoleColor.Green, "[DONE]");
         }
 

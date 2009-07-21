@@ -65,32 +65,34 @@ using RabbitMQ.Util;
 
 [TestFixture]
 public class TestSharedQueue {
-    public class DelayedEnqueuer {
-	public SharedQueue q;
-	public int delayMs;
-	public object v;
-	public void Run() {
-	    Thread.Sleep(delayMs);
-	    q.Enqueue(v);
-	}
+    public class DelayedEnqueuer
+    {
+        public SharedQueue m_q;
+        public int m_delayMs;
+        public object m_v;
+        public void Run()
+        {
+            Thread.Sleep(m_delayMs);
+            m_q.Enqueue(m_v);
+        }
     }
 
     public static void EnqueueAfter(int delayMs, SharedQueue q, object v) {
 	DelayedEnqueuer de = new DelayedEnqueuer();
-	de.q = q;
-	de.delayMs = delayMs;
-	de.v = v;
+    de.m_q = q;
+    de.m_delayMs = delayMs;
+    de.m_v = v;
 	new Thread(new ThreadStart(de.Run)).Start();
     }
 
-    public DateTime startTime;
+    public DateTime m_startTime;
 
     public void ResetTimer() {
-	startTime = DateTime.Now;
+        m_startTime = DateTime.Now;
     }
 
     public int ElapsedMs() {
-	return (int) ((DateTime.Now - startTime).TotalMilliseconds);
+        return (int) ((DateTime.Now - m_startTime).TotalMilliseconds);
     }
 
     [Test]

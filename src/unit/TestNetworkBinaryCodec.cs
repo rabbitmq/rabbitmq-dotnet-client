@@ -80,29 +80,29 @@ public class TestNetworkBinaryCodec {
         Assert.AreEqual(bytes, Contents(w));
     }
 
-    public NetworkBinaryWriter w;
+    public NetworkBinaryWriter m_w;
 
     [SetUp]
     public void SetUp() {
-        w = Writer();
+        m_w = Writer();
     }
 
     [Test]
     public void TestWriteInt16_positive() {
-        w.Write((short) 0x1234);
-        Check(w, new byte[] { 0x12, 0x34 });
+        m_w.Write((short) 0x1234);
+        Check(m_w, new byte[] { 0x12, 0x34 });
     }
 
     [Test]
     public void TestWriteInt16_negative() {
-        w.Write((short) -0x1234);
-        Check(w, new byte[] { 0xED, 0xCC });
+        m_w.Write((short) -0x1234);
+        Check(m_w, new byte[] { 0xED, 0xCC });
     }
 
     [Test]
     public void TestWriteUInt16() {
-        w.Write((ushort) 0x89AB);
-        Check(w, new byte[] { 0x89, 0xAB });
+        m_w.Write((ushort) 0x89AB);
+        Check(m_w, new byte[] { 0x89, 0xAB });
     }
 
     [Test]
@@ -118,21 +118,21 @@ public class TestNetworkBinaryCodec {
 
     [Test]
     public void TestWriteInt32_positive() {
-        w.Write((int) 0x12345678);
-        Check(w, new byte[] { 0x12, 0x34, 0x56, 0x78 });
+        m_w.Write((int) 0x12345678);
+        Check(m_w, new byte[] { 0x12, 0x34, 0x56, 0x78 });
     }
 
     [Test]
     public void TestWriteInt32_negative() {
-        w.Write((int) -0x12345678);
-        Check(w, new byte[] { 0xED, 0xCB, 0xA9, 0x88 });
+        m_w.Write((int) -0x12345678);
+        Check(m_w, new byte[] { 0xED, 0xCB, 0xA9, 0x88 });
     }
 
     [Test]
     public void TestWriteUInt32() {
         NetworkBinaryWriter w = Writer();
-        w.Write((uint) 0x89ABCDEF);
-        Check(w, new byte[] { 0x89, 0xAB, 0xCD, 0xEF });
+        m_w.Write((uint) 0x89ABCDEF);
+        Check(m_w, new byte[] { 0x89, 0xAB, 0xCD, 0xEF });
     }
 
     [Test]
@@ -148,21 +148,21 @@ public class TestNetworkBinaryCodec {
 
     [Test]
     public void TestWriteInt64_positive() {
-        w.Write((long) 0x123456789ABCDEF0);
-        Check(w, new byte[] { 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0 });
+        m_w.Write((long) 0x123456789ABCDEF0);
+        Check(m_w, new byte[] { 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0 });
     }
 
     [Test]
     public void TestWriteInt64_negative() {
-        w.Write((long) -0x123456789ABCDEF0);
-        Check(w, new byte[] { 0xED, 0xCB, 0xA9, 0x87, 0x65, 0x43, 0x21, 0x10 });
+        m_w.Write((long) -0x123456789ABCDEF0);
+        Check(m_w, new byte[] { 0xED, 0xCB, 0xA9, 0x87, 0x65, 0x43, 0x21, 0x10 });
     }
 
     [Test]
     public void TestWriteUInt64() {
         NetworkBinaryWriter w = Writer();
-        w.Write((ulong) 0x89ABCDEF01234567);
-        Check(w, new byte[] { 0x89, 0xAB, 0xCD, 0xEF, 0x01, 0x23, 0x45, 0x67 });
+        m_w.Write((ulong) 0x89ABCDEF01234567);
+        Check(m_w, new byte[] { 0x89, 0xAB, 0xCD, 0xEF, 0x01, 0x23, 0x45, 0x67 });
     }
 
     [Test]

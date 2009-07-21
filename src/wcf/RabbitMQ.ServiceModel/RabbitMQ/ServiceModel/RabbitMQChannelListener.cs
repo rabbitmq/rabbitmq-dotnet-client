@@ -71,26 +71,26 @@ namespace RabbitMQ.ServiceModel
     internal sealed class RabbitMQChannelListener<TChannel> : RabbitMQChannelListenerBase<IInputChannel> where TChannel : class, IChannel
     {
 
-        private IInputChannel channel;
-        private IModel model;
+        private IInputChannel m_channel;
+        private IModel m_model;
 
         internal RabbitMQChannelListener(BindingContext context)
             : base(context)
         {
-            this.channel = null;
-            this.model = null;
+            m_channel = null;
+            m_model = null;
         }
 
         protected override IInputChannel OnAcceptChannel(TimeSpan timeout)
         {
             // Since only one connection to a broker is required (even for communication
             // with multiple exchanges 
-            if (channel != null)
+            if (m_channel != null)
                 return null;
 
-            channel = new RabbitMQInputChannel(Context, model, new EndpointAddress(Uri.ToString()));
-            channel.Closed += new EventHandler(ListenChannelClosed);
-            return channel;
+            m_channel = new RabbitMQInputChannel(Context, m_model, new EndpointAddress(Uri.ToString()));
+            m_channel.Closed += new EventHandler(ListenChannelClosed);
+            return m_channel;
         }
         
         protected override bool OnWaitForChannel(TimeSpan timeout)
@@ -104,7 +104,7 @@ namespace RabbitMQ.ServiceModel
 #if VERBOSE
             DebugHelper.Start();
 #endif            
-            model = bindingElement.Open(timeout);
+            m_model = m_bindingElement.Open(timeout);
 #if VERBOSE
             DebugHelper.Stop(" ## In.Open {{Time={0}ms}}.");
 #endif
@@ -115,16 +115,16 @@ namespace RabbitMQ.ServiceModel
 #if VERBOSE
             DebugHelper.Start();
 #endif  
-            if (channel != null)
+            if (m_channel != null)
             {
-                channel.Close();
-                channel = null;
+                m_channel.Close();
+                m_channel = null;
             }
 
-            if (model != null)
+            if (m_model != null)
             {
-                bindingElement.Close(model, timeout);
-                model = null;
+                m_bindingElement.Close(m_model, timeout);
+                m_model = null;
             }
 #if VERBOSE
             DebugHelper.Stop(" ## In.Close {{Time={0}ms}}.");

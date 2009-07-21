@@ -6,8 +6,12 @@ syntax: regexp
 ^releases$
 
 ^src/wcf/.*/(bin|obj)$
+^src/wcf/.*/*.suo$
 
 ^src/wcf/RabbitMQ\.ServiceModel/RabbitMQ\.ServiceModel\.xml
 ^src/wcf/RabbitMQ\.ServiceModel/AssemblyInfo\.cs$
+
 ^commit$
 ^diff$
+~$
+
