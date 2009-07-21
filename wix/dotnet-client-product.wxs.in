@@ -16,7 +16,7 @@
             <Directory Id='ProgramFilesFolder' Name='PFiles'>
                 <Directory Id='RabbitMQFolder' Name='RabbitMQ'>
                     <Directory Id='DOTNET_CLIENT_INSTALLDIR' Name='DNClient' LongName='DotNetClient'>
-                        <Merge Id='DotNetClientModule' Language='1033' SourceFile='build\wix\rabbitmq-dotnet-client.msm' DiskId='1' />
+                        <Merge Id='DotNetClientModule' Language='1033' SourceFile='..\build\wix\rabbitmq-dotnet-client.msm' DiskId='1' />
                     </Directory>
                 </Directory>
             </Directory>
@@ -28,6 +28,6 @@
 
         <UIRef Id='WixUI_FeatureTree' />
         <UIRef Id='WixUI_ErrorProgressText' />
-        <Binary Id="wixca" src="lib\wixca.dll"/>
+        <Binary Id="wixca" src="..\lib\wixca.dll"/>
     </Product>
 </Wix>
