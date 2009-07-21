@@ -71,7 +71,7 @@ public class TestSslEndpoint {
         cf.Parameters.Ssl.Enabled = true;
 
         IProtocol proto = Protocols.DefaultProtocol;
-        IConnection conn = cf.CreateConnection(proto, "localhost", 5673);
+        IConnection conn = cf.CreateConnection(proto, "localhost", 5671);
 
         IModel ch = conn.CreateModel();
 
