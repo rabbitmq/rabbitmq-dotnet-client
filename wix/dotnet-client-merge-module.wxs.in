@@ -4,9 +4,25 @@
         <Package Id='????????-????-????-????-????????????' Description='RabbitMQ .NET Client @VERSION@' Manufacturer='LShift Ltd.' InstallerVersion='150' Languages='1033' Compressed='yes' SummaryCodepage='1252' />
 
         <Directory Id='TARGETDIR' Name='SourceDir'>
-            <Component Id='ClientLibrary' Guid='06543EE8-DED2-4C1C-826E-6AAE0B403AF3'>
-                <File Id='RabbitMQClientDll' Name='RMQClnt.dll' LongName='RabbitMQ.Client.dll' Vital='yes' Assembly='.net' KeyPath='yes' Source='..\build\bin\RabbitMQ.Client.dll' />
+            <!-- Note that RabbitMQ.Client.dll has to appear twice
+                 (once for having it copied to Windows\assembly and once for
+                 having it in our own bin folder).
+                 This is a bug in WiX 2.0 and will be fixed in WiX 3.0
+                 (i.e. will only have to be specified once, with Assembly='.net'
+                 in order to be copied in both places). -->
+            <Component Id='ClientLibraryAssembly' Guid='06543EE8-DED2-4C1C-826E-6AAE0B403AF3'>
+                <File Id='RabbitMQClientDllAssembly' Name='RMQClnt.dll' LongName='RabbitMQ.Client.dll' Vital='yes' Assembly='.net' KeyPath='yes' Source='..\build\bin\RabbitMQ.Client.dll' />
             </Component>
+
+            <Directory Id='BinFolder' Name='bin'>
+                <Component Id='ClientLibraryBin' Guid='83A1DE00-CCB6-42C2-BD14-FBAEDDBC50E8'>
+                    <CreateFolder />
+                    <File Id='RabbitMQClientDllBin' Name='RMQClnt.dll' LongName='RabbitMQ.Client.dll' Vital='yes' KeyPath='yes' Source='..\build\bin\RabbitMQ.Client.dll' />
+                    <Registry Id='RabbitMQAssemblyFolderReg' Action='createKeyAndRemoveKeyOnUninstall' Key='SOFTWARE\Microsoft\.NETFramework\AssemblyFolders\RabbitMQ' Root='HKLM'>
+                        <Registry Id='RabbitMQAssemblyFolderRegVal' Action='write' Type='string' Value='[BinFolder]' />
+                    </Registry>
+                </Component>
+            </Directory>
 
             <Directory Id='ExamplesFolder' Name='examples'>
                 <Directory Id='BinExamplesFolder' Name='bin' FileSource='..\build\bin'>
