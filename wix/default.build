@@ -1,0 +1,117 @@
+<!-- NAnt build file. -*- nxml -*- -->
+<project name="RabbitMQ .NET Client Installer" default="build-windows-install-msi" basedir=".">
+
+  <property name="wix.build.dir" value="../build/wix" />
+
+  <property name="wix.mergemodule.src" value="dotnet-client-merge-module.wxs.in" />
+  <property name="wix.mergemodule.target" value="dotnet-client-merge-module.wxs" />
+  <property name="wix.mergemodule.obj" value="${wix.build.dir}/rabbitmq-dotnet-client-msm.wixobj" />
+  <property name="wix.dotnet.client.msm" value="${wix.build.dir}/rabbitmq-dotnet-client.msm" />
+  <property name="wix.product.src" value="dotnet-client-product.wxs.in" />
+  <property name="wix.product.target" value="dotnet-client-product.wxs" />
+  <property name="wix.product.obj" value="${wix.build.dir}/rabbitmq-dotnet-client-msi.wixobj" />
+  <property name="wix.dotnet.client.msi" value="${wix.build.dir}/rabbitmq-dotnet-client.msi" />
+
+  <property name="wix.localization" value="WixUI_en-us.wxl" />
+  <property name="wix.ui.lib" value="../lib/wixui.wixlib" />
+
+  <property name="release.msi" value="../${release.version.dir}/rabbitmq-dotnet-client-${fullversion}.msi" />
+
+  <property name="license.file" value="../LICENSE" />
+  <property name="license.apache.file" value="../LICENSE-APACHE2" />
+  <property name="license.mpl.file" value="../LICENSE-MPL-RabbitMQ" />
+  <property name="license.rtf.src" value="License.rtf.in" />
+  <property name="license.rtf.target" value="License.rtf" />
+
+  <target name="clean" description="remove all generated files in the .msm and .msi building process">
+    <delete dir="${wix.build.dir}" failonerror="false" />
+  </target>
+
+  <target name="stamp">
+    <delete file="${wix.mergemodule.target}" failonerror="false" />
+    <delete file="${wix.product.target}" failonerror="false" />
+    <delete file="${license.rtf.target}" failonerror="false" />
+  </target>
+
+  <target name="build-windows-install-msm" description="create windows installer merge module. This requires the .dll to be signed" >
+    <if test="${(not file::up-to-date(license.rtf.src, license.rtf.target))}">
+      <loadfile file="${license.file}" property="license.text" />
+      <loadfile file="${license.apache.file}" property="license.apache.text" />
+      <loadfile file="${license.mpl.file}" property="license.mpl.text" />
+      <copy file="${license.rtf.src}" tofile="${license.rtf.target}">
+        <filterchain>
+          <replacetokens>
+            <token key="LICENSE" value="${string::replace(string::replace(license.text, 'For the Apache License, please see the file LICENSE-APACHE2.&#xA;&#xA;For the Mozilla Public License, please see the file LICENSE-MPL-RabbitMQ.&#xA;', ''), '&#xA;', '&#xA;\par ')}" />
+            <token key="LICENSEAPACHE2" value="${string::replace(license.apache.text, '&#xA;', '&#xA;\par ')}" />
+            <token key="LICENSEMPL" value="${string::replace(license.mpl.text, '&#xA;', '&#xA;\par ')}" />
+          </replacetokens>
+        </filterchain>
+      </copy>
+    </if>
+    <if test="${(not file::up-to-date(wix.mergemodule.src, wix.mergemodule.target))}">
+      <delete file="${wix.mergemodule.target}" failonerror="false" />
+      <copy file="${wix.mergemodule.src}" tofile="${wix.mergemodule.target}">
+        <filterchain>
+          <replacetokens>
+            <token key="VERSION" value="${fullversion}" />
+          </replacetokens>
+        </filterchain>
+      </copy>
+    </if>
+    <mkdir dir="${wix.build.dir}" />
+        <exec program="candle">
+        <arg value="-out" />
+        <arg value="${wix.mergemodule.obj}" />
+        <arg value="${wix.mergemodule.target}" />
+    </exec>
+    <exec program="light">
+        <arg value="-out" />
+        <arg value="${wix.dotnet.client.msm}" />
+        <arg value="${wix.mergemodule.obj}" />
+    </exec>
+  </target>
+
+  <target name="build-windows-install-msi" description="create windows installer file. This requires the .dll to be signed">
+    <call target="build-windows-install-msm" />
+    <if test="${(not file::up-to-date(wix.product.src, wix.product.target))}">
+      <delete file="${wix.product.target}" failonerror="false" />
+      <copy file="${wix.product.src}" tofile="${wix.product.target}">
+        <filterchain>
+          <replacetokens>
+            <token key="VERSION" value="${fullversion}" />
+          </replacetokens>
+        </filterchain>
+      </copy>
+    </if>
+    <exec program="candle">
+        <arg value="-out" />
+        <arg value="${wix.product.obj}" />
+        <arg value="${wix.product.target}" />
+    </exec>
+    <exec program="light">
+        <arg value="-out" />
+        <arg value="${wix.dotnet.client.msi}" />
+        <arg value="${wix.product.obj}" />
+        <arg value="${wix.ui.lib}" />
+        <arg value="-loc" />
+        <arg value="${wix.localization}" />
+    </exec>
+    <copy file="${wix.dotnet.client.msi}" tofile="${release.msi}" />
+  </target>
+
+  <target name="validate-windows-install-msm" description="validate created windows installer merge module. Note: This will always output succeed. Check printed warnings and errors.">
+    <exec program="MsiVal2.exe">
+      <arg value="${wix.dotnet.client.msm}" />
+      <arg value="../lib/mergemod.cub" />
+      <arg value="-f" />
+    </exec>
+  </target>
+
+  <target name="validate-windows-install-msi" description="validate created windows installer file. Note: This will always output succeed. Check printed warnings and errors.">
+    <exec program="MsiVal2.exe">
+      <arg value="${wix.dotnet.client.msi}" />
+      <arg value="../lib/darice.cub" />
+      <arg value="-f" />
+    </exec>
+  </target>
+</project>
