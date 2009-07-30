@@ -72,5 +72,33 @@ namespace RabbitMQ.Client.Impl
         public abstract void ClearHeaders();
         public abstract void ClearPriority();
         public abstract void ClearTimestamp();
+
+        public abstract bool IsContentTypePresent();
+        public abstract bool IsContentEncodingPresent();
+        public abstract bool IsHeadersPresent();
+        public abstract bool IsPriorityPresent();
+        public abstract bool IsTimestampPresent();
+
+        protected override void setCloneableMembersFrom(object src)
+        {
+            base.setCloneableMembersFrom(src);
+            StreamProperties spSrc = src as StreamProperties;
+
+            if (spSrc.IsContentTypePresent())
+                ContentType = spSrc.ContentType;
+            if (spSrc.IsContentEncodingPresent())
+                ContentEncoding = spSrc.ContentEncoding;
+            if (spSrc.IsHeadersPresent())
+            {
+                Headers = new Hashtable();
+                IDictionaryEnumerator enumHeaders = spSrc.Headers.GetEnumerator();
+                while (enumHeaders.MoveNext())
+                    Headers.Add(enumHeaders.Entry.Key, enumHeaders.Entry.Value);
+            }
+            if (spSrc.IsPriorityPresent())
+                Priority = spSrc.Priority;
+            if (spSrc.IsTimestampPresent())
+                Timestamp = spSrc.Timestamp;
+        }
     }
 }

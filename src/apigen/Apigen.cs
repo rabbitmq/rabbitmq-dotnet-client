@@ -482,10 +482,25 @@ namespace RabbitMQ.Client.Apigen {
 		    EmitLine("    public "+maybeOverride+"void Clear"+MangleClass(f.Name)+"() { m_"+MangleMethod(f.Name)+"_present = false; }");
 		}
             }
+
+            EmitLine("");
+            foreach (AmqpField f in c.m_Fields)
+            {
+                if (!IsBoolean(f))
+                    EmitLine("    public " + maybeOverride + "bool Is" + MangleClass(f.Name) + "Present() { return m_" + MangleMethod(f.Name) + "_present; }");
+            }
+
             EmitLine("");
             EmitLine("    public "+MangleClass(c.Name)+"Properties() {}");
             EmitLine("    public override int ProtocolClassId { get { return "+c.Index+"; } }");
             EmitLine("    public override string ProtocolClassName { get { return \""+c.Name+"\"; } }");
+            EmitLine("");
+            EmitLine("    public override object Clone()");
+            EmitLine("    {");
+            EmitLine("        " + MangleClass(c.Name) + "Properties copy = new " + MangleClass(c.Name) + "Properties();");
+            EmitLine("        copy.setCloneableMembersFrom(this);");
+            EmitLine("        return copy;");
+            EmitLine("    }");
             EmitLine("");
             EmitLine("    public override void ReadPropertiesFrom(RabbitMQ.Client.Impl.ContentHeaderPropertyReader reader) {");
             foreach (AmqpField f in c.m_Fields)

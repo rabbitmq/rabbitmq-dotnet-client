@@ -80,5 +80,45 @@ namespace RabbitMQ.Client.Impl
         public abstract void ClearFilename();
         public abstract void ClearTimestamp();
         public abstract void ClearClusterId();
+
+        public abstract bool IsContentTypePresent();
+        public abstract bool IsContentEncodingPresent();
+        public abstract bool IsHeadersPresent();
+        public abstract bool IsPriorityPresent();
+        public abstract bool IsReplyToPresent();
+        public abstract bool IsMessageIdPresent();
+        public abstract bool IsFilenamePresent();
+        public abstract bool IsTimestampPresent();
+        public abstract bool IsClusterIdPresent();
+
+        protected override void setCloneableMembersFrom(object src)
+        {
+            base.setCloneableMembersFrom(src);
+            FileProperties fpSrc = src as FileProperties;
+
+            if (fpSrc.IsContentTypePresent())
+                ContentType = fpSrc.ContentType;
+            if (fpSrc.IsContentEncodingPresent())
+                ContentEncoding = fpSrc.ContentEncoding;
+            if (fpSrc.IsHeadersPresent())
+            {
+                Headers = new Hashtable();
+                IDictionaryEnumerator enumHeaders = fpSrc.Headers.GetEnumerator();
+                while (enumHeaders.MoveNext())
+                    Headers.Add(enumHeaders.Entry.Key, enumHeaders.Entry.Value);
+            }
+            if (fpSrc.IsPriorityPresent())
+                Priority = fpSrc.Priority;
+            if (fpSrc.IsReplyToPresent())
+                ReplyTo = fpSrc.ReplyTo;
+            if (fpSrc.IsMessageIdPresent())
+                MessageId = fpSrc.MessageId;
+            if (fpSrc.IsFilenamePresent())
+                Filename = fpSrc.Filename;
+            if (fpSrc.IsTimestampPresent())
+                Timestamp = fpSrc.Timestamp;
+            if (fpSrc.IsClusterIdPresent())
+                ClusterId = fpSrc.ClusterId;
+        }
     }
 }

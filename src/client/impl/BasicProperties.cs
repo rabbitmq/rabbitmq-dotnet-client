@@ -89,6 +89,21 @@ namespace RabbitMQ.Client.Impl {
 	public abstract void ClearAppId();
 	public abstract void ClearClusterId();
 
+    public abstract bool IsContentTypePresent();
+    public abstract bool IsContentEncodingPresent();
+    public abstract bool IsHeadersPresent();
+    public abstract bool IsDeliveryModePresent();
+    public abstract bool IsPriorityPresent();
+    public abstract bool IsCorrelationIdPresent();
+    public abstract bool IsReplyToPresent();
+    public abstract bool IsExpirationPresent();
+    public abstract bool IsMessageIdPresent();
+    public abstract bool IsTimestampPresent();
+    public abstract bool IsTypePresent();
+    public abstract bool IsUserIdPresent();
+    public abstract bool IsAppIdPresent();
+    public abstract bool IsClusterIdPresent();
+
         public PublicationAddress ReplyToAddress {
             get {
                 return PublicationAddress.Parse(ReplyTo);
@@ -105,5 +120,45 @@ namespace RabbitMQ.Client.Impl {
 		DeliveryMode = 1;
 	    }
 	}
+
+    protected override void setCloneableMembersFrom(Object src)
+    {
+        base.setCloneableMembersFrom(src);
+        BasicProperties bpSrc = src as BasicProperties;
+
+        if(bpSrc.IsContentTypePresent())
+            ContentType = bpSrc.ContentType;
+        if(bpSrc.IsContentEncodingPresent())
+            ContentEncoding = bpSrc.ContentEncoding;
+        if(bpSrc.IsHeadersPresent())
+        {
+            Headers = new Hashtable();
+            IDictionaryEnumerator enumHeaders = bpSrc.Headers.GetEnumerator();
+            while (enumHeaders.MoveNext())
+                Headers.Add(enumHeaders.Entry.Key, enumHeaders.Entry.Value);
+        }
+        if(bpSrc.IsDeliveryModePresent())
+            DeliveryMode = bpSrc.DeliveryMode;
+        if(bpSrc.IsPriorityPresent())
+            Priority = bpSrc.Priority;
+        if(bpSrc.IsCorrelationIdPresent())
+            CorrelationId = bpSrc.CorrelationId;
+        if(bpSrc.IsReplyToPresent())
+            ReplyTo = bpSrc.ReplyTo;
+        if(bpSrc.IsExpirationPresent())
+            Expiration = bpSrc.Expiration;
+        if(bpSrc.IsMessageIdPresent())
+            MessageId = bpSrc.MessageId;
+        if(bpSrc.IsTimestampPresent())
+            Timestamp = bpSrc.Timestamp;
+        if(bpSrc.IsTypePresent())
+            Type = bpSrc.Type;
+        if(bpSrc.IsUserIdPresent())
+            UserId = bpSrc.UserId;
+        if(bpSrc.IsAppIdPresent())
+            AppId = bpSrc.AppId;
+        if(bpSrc.IsClusterIdPresent())
+            ClusterId = bpSrc.ClusterId;
+    }
     }
 }
