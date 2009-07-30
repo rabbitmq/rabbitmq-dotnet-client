@@ -497,8 +497,8 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("");
             EmitLine("    public override object Clone()");
             EmitLine("    {");
-            EmitLine("        " + MangleClass(c.Name) + "Properties copy = new " + MangleClass(c.Name) + "Properties();");
-            EmitLine("        copy.setCloneableMembersFrom(this);");
+            EmitLine("        "+MangleClass(c.Name)+"Properties copy = MemberwiseClone() as "+MangleClass(c.Name)+"Properties;");
+            EmitLine("        copy.SetDeepCloneableMembersFrom(this);");
             EmitLine("        return copy;");
             EmitLine("    }");
             EmitLine("");

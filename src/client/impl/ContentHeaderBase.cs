@@ -101,7 +101,7 @@ namespace RabbitMQ.Client.Impl
             WritePropertiesTo(new ContentHeaderPropertyWriter(writer));
         }
 
-        protected virtual void setCloneableMembersFrom(Object src)
+        protected virtual void SetDeepCloneableMembersFrom(Object src)
         {
             if (!this.GetType().Equals(src.GetType()))
                 throw new InvalidCastException("Trying to clone from object of different type");

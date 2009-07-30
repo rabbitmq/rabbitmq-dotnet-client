@@ -121,44 +121,17 @@ namespace RabbitMQ.Client.Impl {
 	    }
 	}
 
-    protected override void setCloneableMembersFrom(Object src)
+    protected override void SetDeepCloneableMembersFrom(Object src)
     {
-        base.setCloneableMembersFrom(src);
+        base.SetDeepCloneableMembersFrom(src);
         BasicProperties bpSrc = src as BasicProperties;
 
-        if(bpSrc.IsContentTypePresent())
-            ContentType = bpSrc.ContentType;
-        if(bpSrc.IsContentEncodingPresent())
-            ContentEncoding = bpSrc.ContentEncoding;
-        if(bpSrc.IsHeadersPresent())
+        if (bpSrc.IsHeadersPresent())
         {
             Headers = new Hashtable();
-            IDictionaryEnumerator enumHeaders = bpSrc.Headers.GetEnumerator();
-            while (enumHeaders.MoveNext())
-                Headers.Add(enumHeaders.Entry.Key, enumHeaders.Entry.Value);
+            foreach (DictionaryEntry entry in bpSrc.Headers)
+                Headers[entry.Key] = entry.Value;
         }
-        if(bpSrc.IsDeliveryModePresent())
-            DeliveryMode = bpSrc.DeliveryMode;
-        if(bpSrc.IsPriorityPresent())
-            Priority = bpSrc.Priority;
-        if(bpSrc.IsCorrelationIdPresent())
-            CorrelationId = bpSrc.CorrelationId;
-        if(bpSrc.IsReplyToPresent())
-            ReplyTo = bpSrc.ReplyTo;
-        if(bpSrc.IsExpirationPresent())
-            Expiration = bpSrc.Expiration;
-        if(bpSrc.IsMessageIdPresent())
-            MessageId = bpSrc.MessageId;
-        if(bpSrc.IsTimestampPresent())
-            Timestamp = bpSrc.Timestamp;
-        if(bpSrc.IsTypePresent())
-            Type = bpSrc.Type;
-        if(bpSrc.IsUserIdPresent())
-            UserId = bpSrc.UserId;
-        if(bpSrc.IsAppIdPresent())
-            AppId = bpSrc.AppId;
-        if(bpSrc.IsClusterIdPresent())
-            ClusterId = bpSrc.ClusterId;
     }
     }
 }

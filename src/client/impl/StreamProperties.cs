@@ -79,26 +79,17 @@ namespace RabbitMQ.Client.Impl
         public abstract bool IsPriorityPresent();
         public abstract bool IsTimestampPresent();
 
-        protected override void setCloneableMembersFrom(object src)
+        protected override void SetDeepCloneableMembersFrom(object src)
         {
-            base.setCloneableMembersFrom(src);
+            base.SetDeepCloneableMembersFrom(src);
             StreamProperties spSrc = src as StreamProperties;
 
-            if (spSrc.IsContentTypePresent())
-                ContentType = spSrc.ContentType;
-            if (spSrc.IsContentEncodingPresent())
-                ContentEncoding = spSrc.ContentEncoding;
             if (spSrc.IsHeadersPresent())
             {
                 Headers = new Hashtable();
-                IDictionaryEnumerator enumHeaders = spSrc.Headers.GetEnumerator();
-                while (enumHeaders.MoveNext())
-                    Headers.Add(enumHeaders.Entry.Key, enumHeaders.Entry.Value);
+                foreach (DictionaryEntry entry in spSrc.Headers)
+                    Headers[entry.Key] = entry.Value;
             }
-            if (spSrc.IsPriorityPresent())
-                Priority = spSrc.Priority;
-            if (spSrc.IsTimestampPresent())
-                Timestamp = spSrc.Timestamp;
         }
     }
 }
