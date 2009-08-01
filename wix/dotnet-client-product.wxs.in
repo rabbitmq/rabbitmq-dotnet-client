@@ -28,6 +28,6 @@
 
         <UIRef Id='WixUI_FeatureTree' />
         <UIRef Id='WixUI_ErrorProgressText' />
-        <Binary Id="wixca" src="..\lib\wixca.dll"/>
+        <Binary Id="wixca" src="..\lib\wix\wixca.dll"/>
     </Product>
 </Wix>

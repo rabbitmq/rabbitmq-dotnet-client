@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PropTargetFramework>v2.0</PropTargetFramework>
+    <PropAssemblyVersion>1.6.0</PropAssemblyVersion>
+    <PropUsingMono>false</PropUsingMono>
+    
+    <!-- Assembly strong naming - $(ProjectDir) is the RabbitMQ.Client project directory -->
+    <!-- <PropKeyfile>$(ProjectDir)rabbit.snk</PropKeyfile> -->
+
+    <!-- WCF component only for Windows, .NET 3.0 -->
+    <PropBuildWcf Condition="'$(PropUsingMono)' != 'true' And ('$(PropTargetFramework)' == 'v3.0' Or '$(PropTargetFramework)' == 'v3.5' Or '$(PropTargetFramework)' == 'v4.0')">true</PropBuildWcf>
+  </PropertyGroup>
+</Project>
+

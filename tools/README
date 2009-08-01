@@ -4,8 +4,6 @@ software or its documentation. Each tool has its own copyright and
 software license, and is unaffected by the copyright and licensing of
 the RabbitMQ .NET client library.
 
-NAnt - build manager
-
 NDocProc - .NET documentation compiler, akin to javadoc
 
 NUnit - unit-test library and driver
@@ -13,3 +11,4 @@ NUnit - unit-test library and driver
 Pyle 2 - wiki, used for rendering the user guide
 
 WiX - Windows Installer XML toolset, used for creating windows installer files
+
