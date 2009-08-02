@@ -80,7 +80,7 @@ namespace RabbitMQ.Client
 
         private SslProtocols m_version = SslProtocols.Ssl3;
 
-        ///<summary>Retrieve or set the path to client certificate.
+        ///<summary>Retrieve or set the Ssl protocol version
         ///</summary>
         public SslProtocols Version
         {
@@ -107,7 +107,7 @@ namespace RabbitMQ.Client
                     return null;
                 } else {
                     X509CertificateCollection c = new X509CertificateCollection();
-                    c.Add(X509Certificate.CreateFromCertFile(m_certPath));
+                    c.Add(new X509Certificate2(m_certPath));
                     return c;
                 }
             }
