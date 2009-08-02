@@ -71,11 +71,22 @@ namespace RabbitMQ.Client
     public class SslHelper
     {
 
+        static X509Certificate CertificateSelectionCallback(object sender,
+                string targetHost,
+                X509CertificateCollection localCertificates,
+                X509Certificate remoteCertificate,
+                string[] acceptableIssuers)
+        {
+            return localCertificates[0];
+        }
+
         ///<summary>Upgrade a Tcp stream to an Ssl stream using the SSL options
         ///provided</summary>
         public static Stream TcpUpgrade(Stream tcpStream, SslOption sslOption)
         {
-            SslStream sslStream = new SslStream(tcpStream, false);
+            SslStream sslStream = new SslStream(tcpStream, false,
+                    null,
+                    new LocalCertificateSelectionCallback(CertificateSelectionCallback));
             
             sslStream.AuthenticateAsClient(sslOption.ServerName,
                         sslOption.Certs,
