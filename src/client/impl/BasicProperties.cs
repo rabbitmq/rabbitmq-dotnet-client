@@ -61,35 +61,35 @@ namespace RabbitMQ.Client.Impl
 {
     public abstract class BasicProperties: ContentHeaderBase, IBasicProperties
     {
-	    public abstract string ContentType { get; set; }
-	    public abstract string ContentEncoding { get; set; }
-	    public abstract IDictionary Headers { get; set; }
-	    public abstract byte DeliveryMode { get; set; }
-	    public abstract byte Priority { get; set; }
-	    public abstract string CorrelationId { get; set; }
-	    public abstract string ReplyTo { get; set; }
-	    public abstract string Expiration { get; set; }
-	    public abstract string MessageId { get; set; }
-	    public abstract AmqpTimestamp Timestamp { get; set; }
-	    public abstract string Type { get; set; }
-	    public abstract string UserId { get; set; }
-	    public abstract string AppId { get; set; }
-	    public abstract string ClusterId { get; set; }
+        public abstract string ContentType { get; set; }
+        public abstract string ContentEncoding { get; set; }
+        public abstract IDictionary Headers { get; set; }
+        public abstract byte DeliveryMode { get; set; }
+        public abstract byte Priority { get; set; }
+        public abstract string CorrelationId { get; set; }
+        public abstract string ReplyTo { get; set; }
+        public abstract string Expiration { get; set; }
+        public abstract string MessageId { get; set; }
+        public abstract AmqpTimestamp Timestamp { get; set; }
+        public abstract string Type { get; set; }
+        public abstract string UserId { get; set; }
+        public abstract string AppId { get; set; }
+        public abstract string ClusterId { get; set; }
 
-	    public abstract void ClearContentType();
-	    public abstract void ClearContentEncoding();
-	    public abstract void ClearHeaders();
-	    public abstract void ClearDeliveryMode();
-	    public abstract void ClearPriority();
-	    public abstract void ClearCorrelationId();
-	    public abstract void ClearReplyTo();
-	    public abstract void ClearExpiration();
-	    public abstract void ClearMessageId();
-	    public abstract void ClearTimestamp();
-	    public abstract void ClearType();
-	    public abstract void ClearUserId();
-	    public abstract void ClearAppId();
-	    public abstract void ClearClusterId();
+        public abstract void ClearContentType();
+        public abstract void ClearContentEncoding();
+        public abstract void ClearHeaders();
+        public abstract void ClearDeliveryMode();
+        public abstract void ClearPriority();
+        public abstract void ClearCorrelationId();
+        public abstract void ClearReplyTo();
+        public abstract void ClearExpiration();
+        public abstract void ClearMessageId();
+        public abstract void ClearTimestamp();
+        public abstract void ClearType();
+        public abstract void ClearUserId();
+        public abstract void ClearAppId();
+        public abstract void ClearClusterId();
 
         public abstract bool IsContentTypePresent();
         public abstract bool IsContentEncodingPresent();
@@ -118,13 +118,13 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-	    public void SetPersistent(bool persistent)
+        public void SetPersistent(bool persistent)
         {
-	        if (persistent)
-		        DeliveryMode = 2;
-	        else
-		        DeliveryMode = 1;
-	    }
+            if (persistent)
+                DeliveryMode = 2;
+            else
+                DeliveryMode = 1;
+        }
 
         public override object Clone()
         {
