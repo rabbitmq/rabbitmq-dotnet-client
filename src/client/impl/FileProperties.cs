@@ -80,5 +80,28 @@ namespace RabbitMQ.Client.Impl
         public abstract void ClearFilename();
         public abstract void ClearTimestamp();
         public abstract void ClearClusterId();
+
+        public abstract bool IsContentTypePresent();
+        public abstract bool IsContentEncodingPresent();
+        public abstract bool IsHeadersPresent();
+        public abstract bool IsPriorityPresent();
+        public abstract bool IsReplyToPresent();
+        public abstract bool IsMessageIdPresent();
+        public abstract bool IsFilenamePresent();
+        public abstract bool IsTimestampPresent();
+        public abstract bool IsClusterIdPresent();
+
+        public override object Clone()
+        {
+            FileProperties clone = MemberwiseClone() as FileProperties;
+            if (IsHeadersPresent())
+            {
+                clone.Headers = new Hashtable();
+                foreach (DictionaryEntry entry in Headers)
+                    clone.Headers[entry.Key] = entry.Value;
+            }
+
+            return clone;
+        }
     }
 }

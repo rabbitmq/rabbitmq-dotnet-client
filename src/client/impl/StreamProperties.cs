@@ -72,5 +72,24 @@ namespace RabbitMQ.Client.Impl
         public abstract void ClearHeaders();
         public abstract void ClearPriority();
         public abstract void ClearTimestamp();
+
+        public abstract bool IsContentTypePresent();
+        public abstract bool IsContentEncodingPresent();
+        public abstract bool IsHeadersPresent();
+        public abstract bool IsPriorityPresent();
+        public abstract bool IsTimestampPresent();
+
+        public override object Clone()
+        {
+            StreamProperties clone = MemberwiseClone() as StreamProperties;
+            if (IsHeadersPresent())
+            {
+                clone.Headers = new Hashtable();
+                foreach (DictionaryEntry entry in Headers)
+                    clone.Headers[entry.Key] = entry.Value;
+            }
+
+            return clone;
+        }
     }
 }

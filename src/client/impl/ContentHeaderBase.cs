@@ -99,5 +99,10 @@ namespace RabbitMQ.Client.Impl
             writer.Write((ulong)bodySize);
             WritePropertiesTo(new ContentHeaderPropertyWriter(writer));
         }
+
+        public virtual object Clone()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
