@@ -121,17 +121,17 @@ namespace RabbitMQ.Client.Impl {
 	    }
 	}
 
-    protected override void SetDeepCloneableMembersFrom(Object src)
+    public override object Clone()
     {
-        base.SetDeepCloneableMembersFrom(src);
-        BasicProperties bpSrc = src as BasicProperties;
-
-        if (bpSrc.IsHeadersPresent())
+        BasicProperties clone = MemberwiseClone() as BasicProperties;
+        if (IsHeadersPresent())
         {
-            Headers = new Hashtable();
-            foreach (DictionaryEntry entry in bpSrc.Headers)
-                Headers[entry.Key] = entry.Value;
+            clone.Headers = new Hashtable();
+            foreach (DictionaryEntry entry in Headers)
+                clone.Headers[entry.Key] = entry.Value;
         }
+
+        return clone;
     }
     }
 }

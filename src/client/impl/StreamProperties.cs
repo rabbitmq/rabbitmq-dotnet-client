@@ -79,17 +79,17 @@ namespace RabbitMQ.Client.Impl
         public abstract bool IsPriorityPresent();
         public abstract bool IsTimestampPresent();
 
-        protected override void SetDeepCloneableMembersFrom(object src)
+        public override object Clone()
         {
-            base.SetDeepCloneableMembersFrom(src);
-            StreamProperties spSrc = src as StreamProperties;
-
-            if (spSrc.IsHeadersPresent())
+            StreamProperties clone = MemberwiseClone() as StreamProperties;
+            if (IsHeadersPresent())
             {
-                Headers = new Hashtable();
-                foreach (DictionaryEntry entry in spSrc.Headers)
-                    Headers[entry.Key] = entry.Value;
+                clone.Headers = new Hashtable();
+                foreach (DictionaryEntry entry in Headers)
+                    clone.Headers[entry.Key] = entry.Value;
             }
+
+            return clone;
         }
     }
 }

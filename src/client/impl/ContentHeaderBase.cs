@@ -69,7 +69,6 @@ namespace RabbitMQ.Client.Impl
         public abstract void ReadPropertiesFrom(ContentHeaderPropertyReader reader);
         public abstract void WritePropertiesTo(ContentHeaderPropertyWriter writer);
         public abstract void AppendPropertyDebugStringTo(System.Text.StringBuilder sb);
-        public abstract Object Clone();
 
         ///<summary>Fill this instance from the given byte buffer
         ///stream. Throws BodyTooLongException, which is the reason
@@ -101,10 +100,9 @@ namespace RabbitMQ.Client.Impl
             WritePropertiesTo(new ContentHeaderPropertyWriter(writer));
         }
 
-        protected virtual void SetDeepCloneableMembersFrom(Object src)
+        public virtual object Clone()
         {
-            if (!this.GetType().Equals(src.GetType()))
-                throw new InvalidCastException("Trying to clone from object of different type");
+            throw new NotImplementedException();
         }
     }
 }

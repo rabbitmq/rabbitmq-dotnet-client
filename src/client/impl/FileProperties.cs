@@ -91,17 +91,17 @@ namespace RabbitMQ.Client.Impl
         public abstract bool IsTimestampPresent();
         public abstract bool IsClusterIdPresent();
 
-        protected override void SetDeepCloneableMembersFrom(object src)
+        public override object Clone()
         {
-            base.SetDeepCloneableMembersFrom(src);
-            FileProperties fpSrc = src as FileProperties;
-
-            if (fpSrc.IsHeadersPresent())
+            FileProperties clone = MemberwiseClone() as FileProperties;
+            if (IsHeadersPresent())
             {
-                Headers = new Hashtable();
-                foreach (DictionaryEntry entry in fpSrc.Headers)
-                    Headers[entry.Key] = entry.Value;
+                clone.Headers = new Hashtable();
+                foreach (DictionaryEntry entry in Headers)
+                    clone.Headers[entry.Key] = entry.Value;
             }
+
+            return clone;
         }
     }
 }
