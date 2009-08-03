@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("LShift Ltd.")]
 [assembly: AssemblyProduct("ApiGenBootstrap")]
-[assembly: AssemblyCopyright("Copyright ©  2007-2009")]
+[assembly: AssemblyCopyright("Copyright © 2007-2009 LShift Ltd., Cohesive Financial Technologies LLC., and Rabbit Technologies Ltd.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

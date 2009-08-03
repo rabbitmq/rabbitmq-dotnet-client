@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("LShift Ltd.")]
 [assembly: AssemblyProduct("RabbitMQ")]
-[assembly: AssemblyCopyright("Copyright © 2007, 2008 LShift Ltd., Cohesive Financial Technologies LLC., and Rabbit Technologies Ltd.")]
+[assembly: AssemblyCopyright("Copyright © 2007-2009 LShift Ltd., Cohesive Financial Technologies LLC., and Rabbit Technologies Ltd.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

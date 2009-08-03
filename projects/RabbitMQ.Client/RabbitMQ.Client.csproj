@@ -13,7 +13,7 @@
   </PropertyGroup>
   <Import Project="$(MSBuildCommunityTasksPath)MSBuild.Community.Tasks.Targets" />
   
-  <!-- General properties -->
+  <!-- Gensrc dir -->
   <PropertyGroup>
     <GensrcDir>..\..\gensrc\RabbitMQ.Client\</GensrcDir>
   </PropertyGroup>
