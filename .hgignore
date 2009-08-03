@@ -4,6 +4,8 @@ syntax: regexp
 ^local\.build$
 ^TestResult.xml$
 ^releases$
+^commit$
+^diff$
 
 ^src/wcf/.*/(bin|obj)$
 ^src/wcf/.*/*.suo$
@@ -11,7 +13,8 @@ syntax: regexp
 ^src/wcf/RabbitMQ\.ServiceModel/RabbitMQ\.ServiceModel\.xml
 ^src/wcf/RabbitMQ\.ServiceModel/AssemblyInfo\.cs$
 
-^commit$
-^diff$
+^wix/dotnet-client-merge-module\.wxs$
+^wix/dotnet-client-product\.wxs$
+^wix/License\.rtf$
 ~$
 
