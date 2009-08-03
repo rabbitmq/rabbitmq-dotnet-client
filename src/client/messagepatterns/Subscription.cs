@@ -98,10 +98,12 @@ namespace RabbitMQ.Client.MessagePatterns {
         public IModel Model { get { return m_model; } }
 
         protected string m_queueName;
-        protected QueueingBasicConsumer m_consumer;
-        protected string m_consumerTag;
         protected bool m_noAck;
-        protected bool m_shouldDelete;
+
+        protected readonly object m_consumerLock = new object();
+        protected volatile QueueingBasicConsumer m_consumer;
+        protected string m_consumerTag;
+        protected volatile bool m_shouldDelete;
 
         ///<summary>Retrieve the queue name we have subscribed to. May
         ///be a server-generated name, depending on how the
@@ -127,9 +129,10 @@ namespace RabbitMQ.Client.MessagePatterns {
         protected BasicDeliverEventArgs m_latestEvent;
 
         ///<summary>Returns the most recent value returned by Next(),
-        ///or null when either no values have been retrieved yet, or
-        ///the most recent value has already been Ack()ed. See also
-        ///the documentation for Ack().</summary>
+        ///or null when either no values have been retrieved yet, the
+        ///end of the subscription has been reached, or the most
+        ///recent value has already been Ack()ed. See also the
+        ///documentation for Ack().</summary>
         public BasicDeliverEventArgs LatestEvent { get { return m_latestEvent; } }
 
         ///<summary>Creates a new Subscription in "noAck" mode,
@@ -219,21 +222,33 @@ namespace RabbitMQ.Client.MessagePatterns {
         public void Close()
         {
             try {
-                if (m_consumer != null) {
-                    m_model.BasicCancel(m_consumerTag);
-                }
-                if (m_shouldDelete) {
-                    m_shouldDelete = false;
+                bool shouldCancelConsumer = false;
+                bool shouldDelete = false;
+
+                lock (m_consumerLock) {
+                    if (m_consumer != null) {
+                        shouldCancelConsumer = true;
+                        m_consumer = null;
+                    }
+
+                    shouldDelete = m_shouldDelete;
                     // We set m_shouldDelete false before attempting
                     // the delete, because trying twice is worse than
                     // trying once and failing.
+                    m_shouldDelete = false;
+                }
+
+                if (shouldCancelConsumer) {
+                    m_model.BasicCancel(m_consumerTag);
+                    m_consumerTag = null;
+                }
+
+                if (shouldDelete) {
                     m_model.QueueDelete(m_queueName, false, false, false);
                 }
             } catch (OperationInterruptedException) {
                 // We don't mind, here.
             }
-            m_consumer = null;
-            m_consumerTag = null;
         }
 
         ///<summary>Causes the queue to which we have subscribed to be
@@ -317,11 +332,16 @@ namespace RabbitMQ.Client.MessagePatterns {
         public BasicDeliverEventArgs Next()
         {
             try {
-                if (m_consumer == null) {
+                // Alias the pointer as otherwise it may change out
+                // from under us by the operation of Close() from
+                // another thread.
+                QueueingBasicConsumer consumer = m_consumer;
+                if (consumer == null) {
                     // Closed!
-                    throw new InvalidOperationException();
+                    m_latestEvent = null;
+                } else {
+                    m_latestEvent = (BasicDeliverEventArgs) consumer.Queue.Dequeue();
                 }
-                m_latestEvent = (BasicDeliverEventArgs) m_consumer.Queue.Dequeue();
             } catch (EndOfStreamException) {
                 m_latestEvent = null;
             }
@@ -375,16 +395,21 @@ namespace RabbitMQ.Client.MessagePatterns {
         public bool Next(int millisecondsTimeout, out BasicDeliverEventArgs result)
         {
             try {
-                if (m_consumer == null) {
+                // Alias the pointer as otherwise it may change out
+                // from under us by the operation of Close() from
+                // another thread.
+                QueueingBasicConsumer consumer = m_consumer;
+                if (consumer == null) {
                     // Closed!
-                    throw new InvalidOperationException();
+                    m_latestEvent = null;
+                } else {
+                    object qValue;
+                    if (!consumer.Queue.Dequeue(millisecondsTimeout, out qValue)) {
+                        result = null;
+                        return false;
+                    }
+                    m_latestEvent = (BasicDeliverEventArgs) qValue;
                 }
-                object qValue;
-                if (!m_consumer.Queue.Dequeue(millisecondsTimeout, out qValue)) {
-                    result = null;
-                    return false;
-                }
-                m_latestEvent = (BasicDeliverEventArgs) qValue;
             } catch (EndOfStreamException) {
                 m_latestEvent = null;
             }
