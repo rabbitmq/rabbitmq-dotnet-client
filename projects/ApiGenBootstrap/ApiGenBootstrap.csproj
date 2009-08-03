@@ -95,6 +95,7 @@
     <_DisabledWarnings>$(NoWarn)</_DisabledWarnings>
   </PropertyGroup>
   <Target Name="BeforeBuild" />
+  <Target Name="AfterBuild" />
   <Target Name="BeforeClean" />
    
   <!-- Microsoft CSharp targets -->

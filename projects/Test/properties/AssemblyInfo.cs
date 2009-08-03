@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("ApiGen")]
+[assembly: AssemblyTitle("RabbitMQ.Client Unit Tests")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("LShift Ltd.")]
-[assembly: AssemblyProduct("ApiGen")]
+[assembly: AssemblyProduct("RabbitMQ.Client")]
 [assembly: AssemblyCopyright("Copyright © 2007-2009 LShift Ltd., Cohesive Financial Technologies LLC., and Rabbit Technologies Ltd.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,5 +20,4 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("047d6662-98f3-412d-b8a1-3a50b45493f4")]
-
+[assembly: Guid("42d39d91-847a-44fa-9875-a508ae59bda6")]

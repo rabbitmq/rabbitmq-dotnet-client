@@ -1,4 +1,4 @@
-﻿OneWay Service Test
+OneWay Service Test
 ===================================
 
 Ensures RabbitMQBinding Supports 'fire and forget' one way Services.

@@ -4,16 +4,17 @@ syntax: regexp
 ^projects/RabbitMQ\.Client/rabbit\.snk$
 
 ^scratch$
-^TestResult.xml$
-^releases$
+^releases/
+^wix/dotnet-client-merge-module\.wxs$
+^wix/dotnet-client-product\.wxs$
+^wix/License\.rtf$
 
 ^projects/.*/(build|obj)$
 ^.*\.suo$
 ^RabbitMQ.Client.sln.proj$
 ^gensrc/RabbitMQ\.Client/
+^projects/.*/.*\.csproj\.user$
+^projects/Test/TestResult\.xml$
 
-^wix/dotnet-client-merge-module\.wxs$
-^wix/dotnet-client-product\.wxs$
-^wix/License\.rtf$
 ~$
 

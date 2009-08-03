@@ -7,6 +7,10 @@
     
     <!-- Assembly strong naming - $(ProjectDir) is the RabbitMQ.Client project directory -->
     <!-- <PropKeyfile>$(ProjectDir)rabbit.snk</PropKeyfile> -->
+    
+    <!-- Program to prepend to commands when launching .exe files (note the trailing space) -->
+    <!-- (do not worry about this under Windows, just set PropUsingMono to false) -->
+    <PropLaunchExe Condition="'$(PropUsingMono)' == 'true'">mono </PropLaunchExe>
 
     <!-- WCF component only for Windows, .NET 3.0 -->
     <PropBuildWcf Condition="'$(PropUsingMono)' != 'true' And ('$(PropTargetFramework)' == 'v3.0' Or '$(PropTargetFramework)' == 'v3.5' Or '$(PropTargetFramework)' == 'v4.0')">true</PropBuildWcf>
