@@ -98,6 +98,17 @@ namespace RabbitMQ.Client
             set { m_certPath = value; }
         }
 
+        private string m_certPass;
+
+        ///<summary>Retrieve or set the path to client certificate.
+        ///</summary>
+        public string CertPassphrase
+        {
+            get { return m_certPass; }
+            set { m_certPass = value; }
+        }
+
+
         ///<summary>Convenience read-only property to retrieve an X509CertificateCollection
         ///containing the client certificate</summary>
         public X509CertificateCollection Certs
@@ -107,7 +118,7 @@ namespace RabbitMQ.Client
                     return null;
                 } else {
                     X509CertificateCollection c = new X509CertificateCollection();
-                    c.Add(new X509Certificate2(m_certPath));
+                    c.Add(new X509Certificate2(m_certPath, m_certPass));
                     return c;
                 }
             }
