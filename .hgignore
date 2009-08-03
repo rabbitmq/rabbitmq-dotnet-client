@@ -1,7 +1,7 @@
 syntax: regexp
 
 ^Local.props$
-^projects/RabbitMQ.Client/rabbit.snk$
+^projects/RabbitMQ\.Client/rabbit\.snk$
 
 ^scratch$
 ^TestResult.xml$
@@ -9,6 +9,8 @@ syntax: regexp
 
 ^projects/.*/(build|obj)$
 ^.*\.suo$
+^RabbitMQ.Client.sln.proj$
+^gensrc/RabbitMQ\.Client/
 
 ^wix/dotnet-client-merge-module\.wxs$
 ^wix/dotnet-client-product\.wxs$
