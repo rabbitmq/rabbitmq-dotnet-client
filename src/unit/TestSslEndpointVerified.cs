@@ -63,19 +63,23 @@ public class TestSslEndpointVerified: TestSslEndpointUnverified {
 
     [Test]
     public void TestHostWithPort() {
-        ConnectionFactory cf = new ConnectionFactory();
-
-        cf.Parameters.Ssl.ServerName = System.Net.Dns.GetHostName();
         string sslDir = Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
-        Assert.IsNotNull(sslDir);
-        cf.Parameters.Ssl.CertPath = sslDir + "/client/keycert.p12";
-        string p12Password = Environment.GetEnvironmentVariable("PASSWORD");
-        Assert.IsNotNull(p12Password);
-        cf.Parameters.Ssl.CertPassphrase = p12Password;
-        cf.Parameters.Ssl.Enabled = true;
+        if (null == sslDir) {
+            return;
+        } else {
+            ConnectionFactory cf = new ConnectionFactory();
 
-        IProtocol proto = Protocols.DefaultProtocol;
-        IConnection conn = cf.CreateConnection(proto, "localhost", 5671);
-        SendReceive(conn);
+            cf.Parameters.Ssl.ServerName = System.Net.Dns.GetHostName();
+            Assert.IsNotNull(sslDir);
+            cf.Parameters.Ssl.CertPath = sslDir + "/client/keycert.p12";
+            string p12Password = Environment.GetEnvironmentVariable("PASSWORD");
+            Assert.IsNotNull(p12Password);
+            cf.Parameters.Ssl.CertPassphrase = p12Password;
+            cf.Parameters.Ssl.Enabled = true;
+
+            IProtocol proto = Protocols.DefaultProtocol;
+            IConnection conn = cf.CreateConnection(proto, "localhost", 5671);
+            SendReceive(conn);
+        }
     }
 }

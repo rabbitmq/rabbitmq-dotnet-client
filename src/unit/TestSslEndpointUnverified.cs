@@ -89,13 +89,18 @@ public class TestSslEndpointUnverified {
 
     [Test]
     public void TestHostWithPort() {
-        ConnectionFactory cf = new ConnectionFactory();
+        string sslDir = Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
+        if (null == sslDir) {
+            return;
+        } else {
+            ConnectionFactory cf = new ConnectionFactory();
 
-        cf.Parameters.Ssl.ServerName = System.Net.Dns.GetHostName();
-        cf.Parameters.Ssl.Enabled = true;
+            cf.Parameters.Ssl.ServerName = System.Net.Dns.GetHostName();
+            cf.Parameters.Ssl.Enabled = true;
 
-        IProtocol proto = Protocols.DefaultProtocol;
-        IConnection conn = cf.CreateConnection(proto, "localhost", 5671);
-        SendReceive(conn);
+            IProtocol proto = Protocols.DefaultProtocol;
+            IConnection conn = cf.CreateConnection(proto, "localhost", 5671);
+            SendReceive(conn);
+        }
     }
 }

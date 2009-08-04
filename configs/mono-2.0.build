@@ -4,4 +4,5 @@
   <property name="debug" value="true"/>
   <property name="msbuild" value="xbuild"/>
   <property name="python.exec" value="python"/>
+  <property name="certmgr.exec" value="certmgr"/>
 </project>
