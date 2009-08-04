@@ -63,189 +63,208 @@ using System.Threading;
 
 using RabbitMQ.Util;
 
-[TestFixture]
-public class TestSharedQueue {
-    public class DelayedEnqueuer
+namespace RabbitMQ.Client.Unit
+{
+    [TestFixture]
+    public class TestSharedQueue
     {
-        public SharedQueue m_q;
-        public int m_delayMs;
-        public object m_v;
-        public void Run()
+        public class DelayedEnqueuer
         {
-            Thread.Sleep(m_delayMs);
-            m_q.Enqueue(m_v);
+            public SharedQueue m_q;
+            public int m_delayMs;
+            public object m_v;
+            public void Run()
+            {
+                Thread.Sleep(m_delayMs);
+                m_q.Enqueue(m_v);
+            }
         }
-    }
 
-    public static void EnqueueAfter(int delayMs, SharedQueue q, object v) {
-	DelayedEnqueuer de = new DelayedEnqueuer();
-    de.m_q = q;
-    de.m_delayMs = delayMs;
-    de.m_v = v;
-	new Thread(new ThreadStart(de.Run)).Start();
-    }
+        public static void EnqueueAfter(int delayMs, SharedQueue q, object v)
+        {
+            DelayedEnqueuer de = new DelayedEnqueuer();
+            de.m_q = q;
+            de.m_delayMs = delayMs;
+            de.m_v = v;
+            new Thread(new ThreadStart(de.Run)).Start();
+        }
 
-    public DateTime m_startTime;
+        public DateTime m_startTime;
 
-    public void ResetTimer() {
-        m_startTime = DateTime.Now;
-    }
+        public void ResetTimer()
+        {
+            m_startTime = DateTime.Now;
+        }
 
-    public int ElapsedMs() {
-        return (int) ((DateTime.Now - m_startTime).TotalMilliseconds);
-    }
+        public int ElapsedMs()
+        {
+            return (int)((DateTime.Now - m_startTime).TotalMilliseconds);
+        }
 
-    [Test]
-    public void TestDequeueNoWait1() {
-        SharedQueue q = new SharedQueue();
-        q.Enqueue(1);
-        Assert.AreEqual(1, q.DequeueNoWait(0));
-        Assert.AreEqual(0, q.DequeueNoWait(0));
-    }
+        [Test]
+        public void TestDequeueNoWait1()
+        {
+            SharedQueue q = new SharedQueue();
+            q.Enqueue(1);
+            Assert.AreEqual(1, q.DequeueNoWait(0));
+            Assert.AreEqual(0, q.DequeueNoWait(0));
+        }
 
-    [Test]
-    public void TestDequeueNoWait2() {
-        SharedQueue q = new SharedQueue();
-        q.Enqueue(1);
-        Assert.AreEqual(1, q.Dequeue());
-        Assert.AreEqual(0, q.DequeueNoWait(0));
-    }
+        [Test]
+        public void TestDequeueNoWait2()
+        {
+            SharedQueue q = new SharedQueue();
+            q.Enqueue(1);
+            Assert.AreEqual(1, q.Dequeue());
+            Assert.AreEqual(0, q.DequeueNoWait(0));
+        }
 
-    [Test]
-    public void TestDequeueNoWait3() {
-        SharedQueue q = new SharedQueue();
-        Assert.AreEqual(null, q.DequeueNoWait(null));
-    }
+        [Test]
+        public void TestDequeueNoWait3()
+        {
+            SharedQueue q = new SharedQueue();
+            Assert.AreEqual(null, q.DequeueNoWait(null));
+        }
 
-    [Test]
-    public void TestDelayedEnqueue() {
-	SharedQueue q = new SharedQueue();
-	ResetTimer();
-	EnqueueAfter(50, q, 1);
-	Assert.AreEqual(0, q.DequeueNoWait(0));
-	Assert.Greater(45, ElapsedMs());
-	Assert.AreEqual(1, q.Dequeue());
-	Assert.Greater(ElapsedMs(), 45);
-    }
+        [Test]
+        public void TestDelayedEnqueue()
+        {
+            SharedQueue q = new SharedQueue();
+            ResetTimer();
+            EnqueueAfter(50, q, 1);
+            Assert.AreEqual(0, q.DequeueNoWait(0));
+            Assert.Greater(45, ElapsedMs());
+            Assert.AreEqual(1, q.Dequeue());
+            Assert.Greater(ElapsedMs(), 45);
+        }
 
-    [Test]
-    public void TestTimeoutShort() {
-	SharedQueue q = new SharedQueue();
-	q.Enqueue(123);
+        [Test]
+        public void TestTimeoutShort()
+        {
+            SharedQueue q = new SharedQueue();
+            q.Enqueue(123);
 
-	ResetTimer();
-	object v;
-	bool r = q.Dequeue(250, out v);
-	Assert.Greater(50, ElapsedMs());
-	Assert.IsTrue(r);
-	Assert.AreEqual(123, v);
-    }
+            ResetTimer();
+            object v;
+            bool r = q.Dequeue(250, out v);
+            Assert.Greater(50, ElapsedMs());
+            Assert.IsTrue(r);
+            Assert.AreEqual(123, v);
+        }
 
-    [Test]
-    public void TestTimeoutLong() {
-	SharedQueue q = new SharedQueue();
+        [Test]
+        public void TestTimeoutLong()
+        {
+            SharedQueue q = new SharedQueue();
 
-	ResetTimer();
-	object v;
-	bool r = q.Dequeue(250, out v);
-	Assert.Greater(ElapsedMs(), 200);
-	Assert.IsTrue(!r);
-	Assert.AreEqual(null, v);
-    }
+            ResetTimer();
+            object v;
+            bool r = q.Dequeue(250, out v);
+            Assert.Greater(ElapsedMs(), 200);
+            Assert.IsTrue(!r);
+            Assert.AreEqual(null, v);
+        }
 
-    [Test]
-    public void TestTimeoutNegative() {
-	SharedQueue q = new SharedQueue();
+        [Test]
+        public void TestTimeoutNegative()
+        {
+            SharedQueue q = new SharedQueue();
 
-	ResetTimer();
-	object v;
-	bool r = q.Dequeue(-10000, out v);
-	Assert.Greater(50, ElapsedMs());
-	Assert.IsTrue(!r);
-	Assert.AreEqual(null, v);
-    }
+            ResetTimer();
+            object v;
+            bool r = q.Dequeue(-10000, out v);
+            Assert.Greater(50, ElapsedMs());
+            Assert.IsTrue(!r);
+            Assert.AreEqual(null, v);
+        }
 
-    [Test]
-    public void TestTimeoutInfinite() {
-	SharedQueue q = new SharedQueue();
-	EnqueueAfter(250, q, 123);
+        [Test]
+        public void TestTimeoutInfinite()
+        {
+            SharedQueue q = new SharedQueue();
+            EnqueueAfter(250, q, 123);
 
-	ResetTimer();
-	object v;
-	bool r = q.Dequeue(Timeout.Infinite, out v);
-	Assert.Greater(ElapsedMs(), 200);
-	Assert.IsTrue(r);
-	Assert.AreEqual(123, v);
-    }
+            ResetTimer();
+            object v;
+            bool r = q.Dequeue(Timeout.Infinite, out v);
+            Assert.Greater(ElapsedMs(), 200);
+            Assert.IsTrue(r);
+            Assert.AreEqual(123, v);
+        }
 
-    [Test]
-    public void TestBgShort() {
-	SharedQueue q = new SharedQueue();
-	EnqueueAfter(50, q, 123);
+        [Test]
+        public void TestBgShort()
+        {
+            SharedQueue q = new SharedQueue();
+            EnqueueAfter(50, q, 123);
 
-	ResetTimer();
-	object v;
-	bool r = q.Dequeue(100, out v);
-	Assert.Greater(ElapsedMs(), 40);
-	Assert.IsTrue(r);
-	Assert.AreEqual(123, v);
-    }
+            ResetTimer();
+            object v;
+            bool r = q.Dequeue(100, out v);
+            Assert.Greater(ElapsedMs(), 40);
+            Assert.IsTrue(r);
+            Assert.AreEqual(123, v);
+        }
 
-    [Test]
-    public void TestBgLong() {
-	SharedQueue q = new SharedQueue();
-	EnqueueAfter(150, q, 123);
+        [Test]
+        public void TestBgLong()
+        {
+            SharedQueue q = new SharedQueue();
+            EnqueueAfter(150, q, 123);
 
-	ResetTimer();
-	object v;
-	bool r = q.Dequeue(100, out v);
-	Assert.Greater(110, ElapsedMs());
-	Assert.IsTrue(!r);
-	Assert.AreEqual(null, v);
-    }
+            ResetTimer();
+            object v;
+            bool r = q.Dequeue(100, out v);
+            Assert.Greater(110, ElapsedMs());
+            Assert.IsTrue(!r);
+            Assert.AreEqual(null, v);
+        }
 
-    [Test]
-    public void TestDoubleBg() {
-	SharedQueue q = new SharedQueue();
-	EnqueueAfter(50, q, 123);
-	EnqueueAfter(100, q, 234);
+        [Test]
+        public void TestDoubleBg()
+        {
+            SharedQueue q = new SharedQueue();
+            EnqueueAfter(50, q, 123);
+            EnqueueAfter(100, q, 234);
 
-	ResetTimer();
-	object v;
-	bool r;
+            ResetTimer();
+            object v;
+            bool r;
 
-	r = q.Dequeue(100, out v);
-	Assert.Greater(ElapsedMs(), 40);
-	Assert.Greater(60, ElapsedMs());
-	Assert.IsTrue(r);
-	Assert.AreEqual(123, v);
+            r = q.Dequeue(100, out v);
+            Assert.Greater(ElapsedMs(), 40);
+            Assert.Greater(60, ElapsedMs());
+            Assert.IsTrue(r);
+            Assert.AreEqual(123, v);
 
-	r = q.Dequeue(100, out v);
-	Assert.Greater(ElapsedMs(), 90);
-	Assert.Greater(110, ElapsedMs());
-	Assert.IsTrue(r);
-	Assert.AreEqual(234, v);
-    }
+            r = q.Dequeue(100, out v);
+            Assert.Greater(ElapsedMs(), 90);
+            Assert.Greater(110, ElapsedMs());
+            Assert.IsTrue(r);
+            Assert.AreEqual(234, v);
+        }
 
-    [Test]
-    public void TestDoublePoll() {
-	SharedQueue q = new SharedQueue();
-	EnqueueAfter(50, q, 123);
+        [Test]
+        public void TestDoublePoll()
+        {
+            SharedQueue q = new SharedQueue();
+            EnqueueAfter(50, q, 123);
 
-	ResetTimer();
-	object v;
-	bool r;
+            ResetTimer();
+            object v;
+            bool r;
 
-	r = q.Dequeue(25, out v);
-	Assert.Greater(ElapsedMs(), 15);
-	Assert.Greater(35, ElapsedMs());
-	Assert.IsTrue(!r);
-	Assert.AreEqual(null, v);
+            r = q.Dequeue(25, out v);
+            Assert.Greater(ElapsedMs(), 15);
+            Assert.Greater(35, ElapsedMs());
+            Assert.IsTrue(!r);
+            Assert.AreEqual(null, v);
 
-	r = q.Dequeue(50, out v);
-	Assert.Greater(ElapsedMs(), 40);
-	Assert.Greater(60, ElapsedMs());
-	Assert.IsTrue(r);
-	Assert.AreEqual(123, v);
+            r = q.Dequeue(50, out v);
+            Assert.Greater(ElapsedMs(), 40);
+            Assert.Greater(60, ElapsedMs());
+            Assert.IsTrue(r);
+            Assert.AreEqual(123, v);
+        }
     }
 }
