@@ -1,21 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Warning! This file contains important customizations. Using Visual Studio to edit project's properties might break things. -->
-  
   <!-- Props file -->
-  <Import Project="$(ProjectDir)..\..\Local.props" />
-  
-  <!-- Visual Studio generated properties -->
+  <Import Project="$(ProjectDir)..\..\..\Local.props" />
+  <!-- Visual Studio generated -->
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>9.0.21022</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{DC9022AA-DC30-4871-AD28-3F166E05DBB5}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{EB2F5C4D-7A66-469A-99E8-1933715B0540}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>properties</AppDesignerFolder>
-    <RootNamespace>RabbitMQ.Client.Test</RootNamespace>
-    <AssemblyName>unit-tests</AssemblyName>
+    <RootNamespace>RabbitMQ.Client.Examples</RootNamespace>
+    <AssemblyName>LowlevelLogTail</AssemblyName>
     <TargetFrameworkVersion>$(PropTargetFramework)</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -28,6 +26,14 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'DebugNoTest|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>build\bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
@@ -36,64 +42,30 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-
-  <!-- Running the tests -->
-  <Target Name="RunUnitTests">
-    <Exec Command='$(PropLaunchExe)..\..\lib\nunit\nunit-console.exe "build\bin\$(AssemblyName).dll"' WorkingDirectory="$(ProjectDir)" ContinueOnError="true" />
-  </Target>
-  
-  <!-- Clean test result file -->
-  <Target Name="CleanTestResults">
-    <Delete Files="TestResult.xml" />
-  </Target>
-  
-  <!-- Visual Studio generated reference and file list -->
   <ItemGroup>
-    <Reference Include="nunit.framework, Version=2.4.3.0, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\lib\nunit\nunit.framework.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="properties\AssemblyInfo.cs" />
-    <Compile Include="src\unit\TestAmqpTcpEndpointParsing.cs" />
-    <Compile Include="src\unit\TestBlockingCell.cs" />
-    <Compile Include="src\unit\TestBytesWireFormatting.cs" />
-    <Compile Include="src\unit\TestContentHeaderCodec.cs" />
-    <Compile Include="src\unit\TestFieldTableFormatting.cs" />
-    <Compile Include="src\unit\TestMapMessage.cs" />
-    <Compile Include="src\unit\TestMethodArgumentCodec.cs" />
-    <Compile Include="src\unit\TestNetworkBinaryCodec.cs" />
-    <Compile Include="src\unit\TestPublicationAddress.cs" />
-    <Compile Include="src\unit\TestSemaphore.cs" />
-    <Compile Include="src\unit\TestSharedQueue.cs" />
-    <Compile Include="src\unit\TestStreamWireFormatting.cs" />
-    <Compile Include="src\unit\WireFormattingFixture.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\RabbitMQ.Client\RabbitMQ.Client.csproj">
+    <ProjectReference Include="..\..\RabbitMQ.Client\RabbitMQ.Client.csproj">
       <Project>{71713FDD-D5EC-40B2-A924-76F80AD57E12}</Project>
       <Name>RabbitMQ.Client</Name>
     </ProjectReference>
   </ItemGroup>
-  
+  <ItemGroup>
+    <Compile Include="src\examples\LowlevelLogTail.cs" />
+  </ItemGroup>
   <!-- Mono compatibility workarounds -->
   <PropertyGroup Condition=" '$(PropUsingMono)' == 'true'">
     <_DisabledWarnings>$(NoWarn)</_DisabledWarnings>
   </PropertyGroup>
   <Target Name="BeforeBuild" />
-  
+  <Target Name="AfterBuild" />
+  <Target Name="BeforeClean" />
   <!-- Microsoft CSharp targets -->
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  
-  <!-- Custom AfterBuild -->
-  <Target Name="AfterBuild" DependsOnTargets="RunUnitTests" />
-  
-  <!-- Custom BeforeClean -->  
-  <Target Name="BeforeClean" DependsOnTargets="CleanTestResults" />
-  
 </Project>
-
