@@ -59,41 +59,23 @@ using System;
 using RabbitMQ.Client;
 
 [TestFixture]
-public class TestSslEndpoint {
+public class TestSslEndpointVerified: TestSslEndpointUnverified {
+
     [Test]
     public void TestHostWithPort() {
-
-        string message = "Hello C# SSL Client World";
-
         ConnectionFactory cf = new ConnectionFactory();
 
         cf.Parameters.Ssl.ServerName = System.Net.Dns.GetHostName();
+        string sslDir = Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
+        Assert.IsNotNull(sslDir);
+        cf.Parameters.Ssl.CertPath = sslDir + "/client/keycert.p12";
+        string p12Password = Environment.GetEnvironmentVariable("PASSWORD");
+        Assert.IsNotNull(p12Password);
+        cf.Parameters.Ssl.CertPassphrase = p12Password;
         cf.Parameters.Ssl.Enabled = true;
 
         IProtocol proto = Protocols.DefaultProtocol;
         IConnection conn = cf.CreateConnection(proto, "localhost", 5671);
-
-        IModel ch = conn.CreateModel();
-
-
-        ch.ExchangeDeclare("Exchange_TestSslEndPoint", ExchangeType.Direct);
-        ch.QueueDeclare("Queue_TestSslEndpoint");
-        ch.QueueBind("Queue_TestSslEndpoint", "Exchange_TestSslEndPoint", "Key_TestSslEndpoint", false, null);
-
-        byte[] msgBytes =  System.Text.Encoding.UTF8.GetBytes(message);
-        ch.BasicPublish("Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null, msgBytes);
-
-        bool noAck = false;
-
-        BasicGetResult result = ch.BasicGet("Queue_TestSslEndpoint", noAck);
-        byte[] body = result.Body;
-
-        string resultMessage = System.Text.Encoding.UTF8.GetString(body);
-
-        ch.Close(200, "Closing the channel");
-        conn.Close();
-
-        Assert.AreEqual(message, resultMessage);
-
+        SendReceive(conn);
     }
 }
