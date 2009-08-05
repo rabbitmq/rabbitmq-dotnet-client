@@ -4,18 +4,18 @@
   
   <!-- Props file -->
   <PropertyGroup>
-    <LocalPropsFile>$(ProjectDir)..\..\Local.props</LocalPropsFile>
+    <LocalPropsFile>$(MSBuildProjectDirectory)\..\..\..\Local.props</LocalPropsFile>
   </PropertyGroup>
   <Import Project="$(LocalPropsFile)" />
   <!-- MSBuild Community Tasks -->
   <PropertyGroup>
-    <MSBuildCommunityTasksPath>$(ProjectDir)..\..\lib\MSBuild.Community.Tasks\</MSBuildCommunityTasksPath>
+    <MSBuildCommunityTasksPath>$(MSBuildProjectDirectory)\..\..\..\lib\MSBuild.Community.Tasks\</MSBuildCommunityTasksPath>
   </PropertyGroup>
   <Import Project="$(MSBuildCommunityTasksPath)MSBuild.Community.Tasks.Targets" />
   
   <!-- Gensrc dir -->
   <PropertyGroup>
-    <GensrcDir>..\..\gensrc\$(MSBuildProjectName)\</GensrcDir>
+    <GensrcDir>..\..\..\gensrc\$(MSBuildProjectName)\</GensrcDir>
   </PropertyGroup>
   <Target Name="CreateGensrcDir">
     <MakeDir Directories="$(GensrcDir)" />
@@ -96,7 +96,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\RabbitMQ.Client\RabbitMQ.Client.csproj">
+    <ProjectReference Include="..\..\client\RabbitMQ.Client\RabbitMQ.Client.csproj">
       <Project>{71713FDD-D5EC-40B2-A924-76F80AD57E12}</Project>
       <Name>RabbitMQ.Client</Name>
     </ProjectReference>

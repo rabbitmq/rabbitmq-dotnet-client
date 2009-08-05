@@ -14,7 +14,7 @@ syntax: regexp
 ^RabbitMQ.Client.sln.proj$
 ^gensrc/
 ^projects/.*/.*\.csproj\.user$
-^projects/Test/TestResult\.xml$
+^projects/client/Test/TestResult\.xml$
 
 ~$
 

@@ -4,18 +4,18 @@
   
   <!-- Props file -->
   <PropertyGroup>
-    <LocalPropsFile>$(ProjectDir)..\..\Local.props</LocalPropsFile>
+    <LocalPropsFile>$(MSBuildProjectDirectory)\..\..\..\Local.props</LocalPropsFile>
   </PropertyGroup>
   <Import Project="$(LocalPropsFile)" />
   <!-- MSBuild Community Tasks -->
   <PropertyGroup>
-    <MSBuildCommunityTasksPath>$(ProjectDir)..\..\lib\MSBuild.Community.Tasks\</MSBuildCommunityTasksPath>
+    <MSBuildCommunityTasksPath>$(MSBuildProjectDirectory)\..\..\..\lib\MSBuild.Community.Tasks\</MSBuildCommunityTasksPath>
   </PropertyGroup>
   <Import Project="$(MSBuildCommunityTasksPath)MSBuild.Community.Tasks.Targets" />
   
   <!-- Gensrc dir -->
   <PropertyGroup>
-    <GensrcDir>..\..\gensrc\$(MSBuildProjectName)\</GensrcDir>
+    <GensrcDir>..\..\..\gensrc\$(MSBuildProjectName)\</GensrcDir>
   </PropertyGroup>
   <Target Name="CreateGensrcDir">
     <MakeDir Directories="$(GensrcDir)" />
@@ -23,7 +23,7 @@
 
   <!-- API autogeneration -->
   <PropertyGroup>
-    <SpecsDir>..\..\docs\specs\</SpecsDir>
+    <SpecsDir>..\..\..\docs\specs\</SpecsDir>
     <AmqpSpec0_9BaseName>amqp0-9.xml</AmqpSpec0_9BaseName>
     <AmqpSpec0_8qpidBaseName>qpid-amqp.0-8.xml</AmqpSpec0_8qpidBaseName>
     <AmqpSpec0_8BaseName>amqp0-8.xml</AmqpSpec0_8BaseName>
@@ -106,16 +106,6 @@
     <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <RegisterForComInterop>false</RegisterForComInterop>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'DebugNoTest|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>build\bin\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DocumentationFile>build\bin\RabbitMQ.Client.xml</DocumentationFile>
-    <NoWarn>1591</NoWarn>
-    <DebugType>full</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>none</ErrorReport>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
