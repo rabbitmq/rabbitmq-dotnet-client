@@ -15,7 +15,7 @@
   
   <!-- Gensrc dir -->
   <PropertyGroup>
-    <GensrcDir>..\..\gensrc\RabbitMQ.Client\</GensrcDir>
+    <GensrcDir>..\..\gensrc\$(MSBuildProjectName)\</GensrcDir>
   </PropertyGroup>
   <Target Name="CreateGensrcDir">
     <MakeDir Directories="$(GensrcDir)" />
@@ -92,8 +92,6 @@
     <AssemblyName>RabbitMQ.Client</AssemblyName>
     <TargetFrameworkVersion>$(PropTargetFramework)</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <SignAssembly Condition="'$(PropKeyfile)' != ''">true</SignAssembly>
-    <AssemblyOriginatorKeyFile>$(PropKeyfile)</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -130,6 +128,8 @@
     <NoWarn>1591</NoWarn>
     <DebugSymbols>true</DebugSymbols>
     <RegisterForComInterop>false</RegisterForComInterop>
+    <SignAssembly Condition="'$(PropKeyfile)' != ''">true</SignAssembly>
+    <AssemblyOriginatorKeyFile>$(PropKeyfile)</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="src\client\api\AmqpTcpEndpoint.cs" />
