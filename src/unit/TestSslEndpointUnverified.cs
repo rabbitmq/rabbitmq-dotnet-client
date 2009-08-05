@@ -88,7 +88,7 @@ public class TestSslEndpointUnverified {
 
 
     [Test]
-    public void TestHostWithPort() {
+    public virtual void TestHostWithPort() {
         string sslDir = Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
         if (null == sslDir) {
             return;

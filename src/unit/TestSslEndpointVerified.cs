@@ -62,7 +62,7 @@ using RabbitMQ.Client;
 public class TestSslEndpointVerified: TestSslEndpointUnverified {
 
     [Test]
-    public void TestHostWithPort() {
+    public override void TestHostWithPort() {
         string sslDir = Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
         if (null == sslDir) {
             return;
