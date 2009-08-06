@@ -5,9 +5,6 @@ Notes when creating a new VS project:
 - The easiest way to create a new project is probably using Visual Studio
 (takes care of the solution file)
 
-- Add the new project under the 'projects' folder in the solution; remember to
-set the location to 'projects' (these are two separate things).
-
 - Add all the source files to the projects now (if you already have the sources)
 
 - After creating the new project, manually edit the .csproj
@@ -30,26 +27,6 @@ i.e.:
 - Add empty targets for BeforeBuild, BeforeClean and AfterBuild if not using
 them yourself (this is required for compatibility with mono - target override
 is not yet implemented properly)
-
-- Make sure there is a section for DebugNoTest|AnyCPU section, like this one:
-
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'DebugNoTest|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>build\bin\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <NoWarn>1591</NoWarn>
-    <DebugType>full</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>none</ErrorReport>
-  </PropertyGroup>
-  
-If there isn't one, copy-paste the Debug|AnyCPU section and rename to
-DebugNoTest|AnyCPU
-
-
-
-- In the solution file, make sure the DebugNoTest solution configuration points
-to DebugNoTest of your new project (it might point to Debug by default).
 
 - It's probably best to add new files by hand in the project (by copying the
 file to the appropriate location and editing the .csproj by hand)

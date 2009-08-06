@@ -11,7 +11,7 @@ syntax: regexp
 
 ^projects/.*/(build|obj)$
 ^.*\.suo$
-^RabbitMQ.Client.sln.proj$
+^RabbitMQDotNetClient.sln.proj$
 ^gensrc/
 ^projects/.*/.*\.csproj\.user$
 ^projects/client/Test/TestResult\.xml$
