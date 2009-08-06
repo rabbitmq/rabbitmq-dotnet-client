@@ -54,7 +54,7 @@
 //   Contributor(s): ______________________________________.
 //
 //---------------------------------------------------------------------------
-namespace Server
+namespace RabbitMQ.ServiceModel.Examples.ConfigDemo.Server
 {
     using System;
     using System.ServiceModel;

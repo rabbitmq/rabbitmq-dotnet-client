@@ -54,24 +54,21 @@
 //   Contributor(s): ______________________________________.
 //
 //---------------------------------------------------------------------------
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Server
+namespace RabbitMQ.ServiceModel.Examples.ConfigDemo.Client
 {
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            Console.Title = "SERVER";
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine("SERVER");
-            Console.ForegroundColor = ConsoleColor.Gray;
-            Console.WriteLine();
+    using System.ServiceModel;
+    using WcfServiceLibrary1;
 
-            Server svr = new Server();
-            svr.Run();
+    public class HelloClient : ClientBase<IHelloContract>, IHelloContract
+    {
+
+        public HelloClient(string configurationName)
+            : base(configurationName) { }
+
+
+        public string Hello(string name)
+        {
+            return base.Channel.Hello(name);
         }
     }
 }

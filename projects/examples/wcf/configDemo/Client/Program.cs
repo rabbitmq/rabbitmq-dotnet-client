@@ -56,23 +56,29 @@
 //---------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
-using System.ServiceModel;
 using System.Text;
+using System.Threading;
 
-namespace WcfServiceLibrary1
+namespace RabbitMQ.ServiceModel.Examples.ConfigDemo.Client
 {
-    public class HelloService : IHelloContract
+    class Program
     {
-
-        #region IHelloContract Members
-
-        public string Hello(string name)
+        static void Main(string[] args)
         {
-            Console.WriteLine("Hello {0}!", name);
-            return "Hello";
-        }
+            Console.Title = "CLIENT";
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("CLIENT");
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.WriteLine();
+            Thread.Sleep(500);
 
-        #endregion
+            
+            Client cli = new Client();
+            cli.Run();
+            
+            Console.WriteLine();
+            Console.Write("Press Enter to Exit...");
+            Console.ReadLine();
+        }
     }
 }

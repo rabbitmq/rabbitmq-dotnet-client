@@ -54,21 +54,18 @@
 //   Contributor(s): ______________________________________.
 //
 //---------------------------------------------------------------------------
-namespace Client
+using System;
+using System.Collections.Generic;
+using System.Runtime.Serialization;
+using System.ServiceModel;
+using System.Text;
+
+namespace RabbitMQ.ServiceModel.Examples.ConfigDemo.WcfServiceLibrary1
 {
-    using System.ServiceModel;
-    using WcfServiceLibrary1;
-
-    public class HelloClient : ClientBase<IHelloContract>, IHelloContract
+    [ServiceContract]
+    public interface IHelloContract
     {
-
-        public HelloClient(string configurationName)
-            : base(configurationName) { }
-
-
-        public string Hello(string name)
-        {
-            return base.Channel.Hello(name);
-        }
+        [OperationContract]
+        string Hello(string name);
     }
 }

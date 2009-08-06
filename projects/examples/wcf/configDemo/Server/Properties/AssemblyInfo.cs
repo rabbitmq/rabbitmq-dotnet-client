@@ -61,12 +61,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Client")]
+[assembly: AssemblyTitle("Server")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Client")]
-[assembly: AssemblyCopyright("Copyright © 2007, 2008 LShift Ltd., Cohesive Financial Technologies LLC., and Rabbit Technologies Ltd.")]
+[assembly: AssemblyProduct("Server")]
+[assembly: AssemblyCopyright("Copyright © 2007-2009 LShift Ltd., Cohesive Financial Technologies LLC., and Rabbit Technologies Ltd.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -76,7 +76,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("59eb95c7-7a03-44b3-bab8-7bc6a7f52377")]
+[assembly: Guid("9e7e8227-7a18-4d71-843f-fb03aa884921")]
 
 // Version information for an assembly consists of the following four values:
 //
