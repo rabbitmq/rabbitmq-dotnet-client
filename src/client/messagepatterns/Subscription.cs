@@ -136,11 +136,11 @@ namespace RabbitMQ.Client.MessagePatterns {
         public BasicDeliverEventArgs LatestEvent { get { return m_latestEvent; } }
 
         ///<summary>Creates a new Subscription in "noAck" mode,
-        ///consuming from a fresh, autodelete, anonymous queue. The
-        ///name of the queue can be retrieved using the QueueName
-        ///property of the Subscription. After creating the queue, the
-        ///queue is bound to the named exchange, using Bind() with the
-        ///given routingKey bind parameter.</summary>
+        ///consuming from a fresh, exclusive, autodelete, anonymous
+        ///queue. The name of the queue can be retrieved using the
+        ///QueueName property of the Subscription. After creating the
+        ///queue, the queue is bound to the named exchange, using
+        ///Bind() with the given routingKey bind parameter.</summary>
         public Subscription(IModel model, string exchangeName,
                             string exchangeType, string routingKey)
             : this(model)
@@ -149,20 +149,21 @@ namespace RabbitMQ.Client.MessagePatterns {
         }
 
         ///<summary>Creates a new Subscription in "noAck" mode,
-        ///consuming from a fresh, autodelete, anonymous queue. The
-        ///name of the queue can be retrieved using the QueueName
-        ///property of the Subscription.</summary>
+        ///consuming from a fresh, exclusive, autodelete, anonymous
+        ///queue. The name of the queue can be retrieved using the
+        ///QueueName property of the Subscription.</summary>
         public Subscription(IModel model)
             : this(model, null) {}
 
         ///<summary>Creates a new Subscription in "noAck" mode,
         ///consuming from a named queue. If the queueName parameter is
-        ///null or the empty-string, creates a fresh, autodelete,
-        ///anonymous queue; otherwise, the queue is declared using
-        ///IModel.QueueDeclare() before IModel.BasicConsume() is
-        ///called. After declaring the queue and starting the
-        ///consumer, the queue is bound to the named exchange, using
-        ///Bind() with the given routingKey bind parameter.</summary>
+        ///null or the empty-string, creates a fresh, exclusive,
+        ///autodelete, anonymous queue; otherwise, the queue is
+        ///declared using IModel.QueueDeclare() before
+        ///IModel.BasicConsume() is called. After declaring the queue
+        ///and starting the consumer, the queue is bound to the named
+        ///exchange, using Bind() with the given routingKey bind
+        ///parameter.</summary>
         public Subscription(IModel model, string queueName, string exchangeName,
                             string exchangeType, string routingKey)
             : this(model, queueName)
@@ -172,20 +173,20 @@ namespace RabbitMQ.Client.MessagePatterns {
 
         ///<summary>Creates a new Subscription in "noAck" mode,
         ///consuming from a named queue. If the queueName parameter is
-        ///null or the empty-string, creates a fresh, autodelete,
-        ///anonymous queue; otherwise, the queue is declared using
-        ///IModel.QueueDeclare() before IModel.BasicConsume() is
-        ///called.</summary>
+        ///null or the empty-string, creates a fresh, exclusive,
+        ///autodelete, anonymous queue; otherwise, the queue is
+        ///declared using IModel.QueueDeclare() before
+        ///IModel.BasicConsume() is called.</summary>
         public Subscription(IModel model, string queueName)
             : this(model, queueName, true) {}
 
         ///<summary>Creates a new Subscription, with full control over
         ///both "noAck" mode and the name of the queue (which, if null
-        ///or the empty-string, will be a fresh autodelete queue, as
-        ///for the other constructor overloads). After declaring the
-        ///queue and starting the consumer, the queue is bound to the
-        ///named exchange, using Bind() with the given routingKey bind
-        ///parameter.</summary>
+        ///or the empty-string, will be a fresh, exclusive,
+        ///autodelete, anonymous queue, as for the other constructor
+        ///overloads). After declaring the queue and starting the
+        ///consumer, the queue is bound to the named exchange, using
+        ///Bind() with the given routingKey bind parameter.</summary>
         public Subscription(IModel model, string queueName, bool noAck,
                             string exchangeName, string exchangeType, string routingKey)
             : this(model, queueName, noAck)
@@ -195,8 +196,9 @@ namespace RabbitMQ.Client.MessagePatterns {
 
         ///<summary>Creates a new Subscription, with full control over
         ///both "noAck" mode and the name of the queue (which, if null
-        ///or the empty-string, will be a fresh autodelete queue, as
-        ///for the other constructor overloads).</summary>
+        ///or the empty-string, will be a fresh, exclusive,
+        ///autodelete, anonymous queue, as for the other constructor
+        ///overloads).</summary>
         public Subscription(IModel model, string queueName, bool noAck)
         {
             m_model = model;
@@ -213,12 +215,12 @@ namespace RabbitMQ.Client.MessagePatterns {
         }
 
         ///<summary>Closes this Subscription, cancelling the consumer
-        ///record in the server. If an anonymous, autodelete queue
-        ///(i.e., one with a server-generated name) was created during
-        ///construction of the Subscription, this method also deletes
-        ///the created queue (which is an optimisation: autodelete
-        ///queues will be deleted when the IModel closes in any
-        ///case).</summary>
+        ///record in the server. If an anonymous, exclusive,
+        ///autodelete queue (i.e., one with a server-generated name)
+        ///was created during construction of the Subscription, this
+        ///method also deletes the created queue (which is an
+        ///optimisation: autodelete queues will be deleted when the
+        ///IModel closes in any case).</summary>
         public void Close()
         {
             try {
