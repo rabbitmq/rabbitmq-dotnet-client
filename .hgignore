@@ -1,7 +1,8 @@
 syntax: regexp
 
 ^Local.props$
-^projects/RabbitMQ\.Client/rabbit\.snk$
+^local.dist$
+^projects/client/RabbitMQ\.Client/rabbit\.snk$
 
 ^scratch$
 ^releases/
@@ -14,7 +15,7 @@ syntax: regexp
 ^RabbitMQDotNetClient.sln.proj$
 ^gensrc/
 ^projects/.*/.*\.csproj\.user$
-^projects/client/Test/TestResult\.xml$
+^projects/client/Unit/TestResult\.xml$
 
 ~$
 
