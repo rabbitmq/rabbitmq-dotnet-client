@@ -103,7 +103,6 @@ namespace RabbitMQ.Client.MessagePatterns {
         protected readonly object m_consumerLock = new object();
         protected volatile QueueingBasicConsumer m_consumer;
         protected string m_consumerTag;
-        protected volatile bool m_shouldDelete;
 
         ///<summary>Retrieve the queue name we have subscribed to. May
         ///be a server-generated name, depending on how the
@@ -136,11 +135,10 @@ namespace RabbitMQ.Client.MessagePatterns {
         public BasicDeliverEventArgs LatestEvent { get { return m_latestEvent; } }
 
         ///<summary>Creates a new Subscription in "noAck" mode,
-        ///consuming from a fresh, exclusive, autodelete, anonymous
-        ///queue. The name of the queue can be retrieved using the
-        ///QueueName property of the Subscription. After creating the
-        ///queue, the queue is bound to the named exchange, using
-        ///Bind() with the given routingKey bind parameter.</summary>
+        ///consuming from a queue declared by calling
+        ///DeclareQueue(null). The queue is bound to the named
+        ///exchange, using Bind() with the given routingKey bind
+        ///parameter.</summary>
         public Subscription(IModel model, string exchangeName,
                             string exchangeType, string routingKey)
             : this(model)
@@ -149,19 +147,15 @@ namespace RabbitMQ.Client.MessagePatterns {
         }
 
         ///<summary>Creates a new Subscription in "noAck" mode,
-        ///consuming from a fresh, exclusive, autodelete, anonymous
-        ///queue. The name of the queue can be retrieved using the
-        ///QueueName property of the Subscription.</summary>
+        ///consuming from a queue declared by calling DeclareQueue(null).
+        ///</summary>
         public Subscription(IModel model)
             : this(model, null) {}
 
         ///<summary>Creates a new Subscription in "noAck" mode,
-        ///consuming from a named queue. If the queueName parameter is
-        ///null or the empty-string, creates a fresh, exclusive,
-        ///autodelete, anonymous queue; otherwise, the queue is
-        ///declared using IModel.QueueDeclare() before
-        ///IModel.BasicConsume() is called. After declaring the queue
-        ///and starting the consumer, the queue is bound to the named
+        ///consuming from a queue declared by calling
+        ///DeclareQueue(queueName). After declaring the queue and
+        ///starting the consumer, the queue is bound to the named
         ///exchange, using Bind() with the given routingKey bind
         ///parameter.</summary>
         public Subscription(IModel model, string queueName, string exchangeName,
@@ -172,21 +166,17 @@ namespace RabbitMQ.Client.MessagePatterns {
         }
 
         ///<summary>Creates a new Subscription in "noAck" mode,
-        ///consuming from a named queue. If the queueName parameter is
-        ///null or the empty-string, creates a fresh, exclusive,
-        ///autodelete, anonymous queue; otherwise, the queue is
-        ///declared using IModel.QueueDeclare() before
-        ///IModel.BasicConsume() is called.</summary>
+        ///consuming from a queue declared by calling
+        ///DeclareQueue(queueName).</summary>
         public Subscription(IModel model, string queueName)
             : this(model, queueName, true) {}
 
         ///<summary>Creates a new Subscription, with full control over
-        ///both "noAck" mode and the name of the queue (which, if null
-        ///or the empty-string, will be a fresh, exclusive,
-        ///autodelete, anonymous queue, as for the other constructor
-        ///overloads). After declaring the queue and starting the
-        ///consumer, the queue is bound to the named exchange, using
-        ///Bind() with the given routingKey bind parameter.</summary>
+        ///both "noAck" mode and the name of the queue. After
+        ///declaring the queue by calling DeclareQueue(queueName) and
+        ///starting the consumer, the queue is bound to the named
+        ///exchange, using Bind() with the given routingKey bind
+        ///parameter.</summary>
         public Subscription(IModel model, string queueName, bool noAck,
                             string exchangeName, string exchangeType, string routingKey)
             : this(model, queueName, noAck)
@@ -195,58 +185,38 @@ namespace RabbitMQ.Client.MessagePatterns {
         }
 
         ///<summary>Creates a new Subscription, with full control over
-        ///both "noAck" mode and the name of the queue (which, if null
-        ///or the empty-string, will be a fresh, exclusive,
-        ///autodelete, anonymous queue, as for the other constructor
-        ///overloads).</summary>
+        ///both "noAck" mode and the name of the queue. The
+        ///subscription consumes from a queue declared by calling
+        ///QueueDeclare(queueName)</summary>
         public Subscription(IModel model, string queueName, bool noAck)
         {
             m_model = model;
-            if (queueName == null || queueName.Equals("")) {
-                m_queueName = m_model.QueueDeclare();
-                m_shouldDelete = true;
-            } else {
-                m_queueName = m_model.QueueDeclare(queueName);
-                m_shouldDelete = false;
-            }
+            m_queueName = DeclareQueue(model, queueName);
             m_consumer = new QueueingBasicConsumer(m_model);
             m_consumerTag = m_model.BasicConsume(m_queueName, m_noAck, null, m_consumer);
             m_latestEvent = null;
         }
 
         ///<summary>Closes this Subscription, cancelling the consumer
-        ///record in the server. If an anonymous, exclusive,
-        ///autodelete queue (i.e., one with a server-generated name)
-        ///was created during construction of the Subscription, this
-        ///method also deletes the created queue (which is an
-        ///optimisation: autodelete queues will be deleted when the
-        ///IModel closes in any case).</summary>
+        ///record in the server. If an autodelete queue was created
+        ///during construction of the Subscription, it is deleted by
+        ///the server if this was the last subscription to that queue.
+        ///</summary>
         public void Close()
         {
             try {
                 bool shouldCancelConsumer = false;
-                bool shouldDelete = false;
 
                 lock (m_consumerLock) {
                     if (m_consumer != null) {
                         shouldCancelConsumer = true;
                         m_consumer = null;
                     }
-
-                    shouldDelete = m_shouldDelete;
-                    // We set m_shouldDelete false before attempting
-                    // the delete, because trying twice is worse than
-                    // trying once and failing.
-                    m_shouldDelete = false;
                 }
 
                 if (shouldCancelConsumer) {
                     m_model.BasicCancel(m_consumerTag);
                     m_consumerTag = null;
-                }
-
-                if (shouldDelete) {
-                    m_model.QueueDelete(m_queueName, false, false, false);
                 }
             } catch (OperationInterruptedException) {
                 // We don't mind, here.
@@ -275,6 +245,31 @@ namespace RabbitMQ.Client.MessagePatterns {
         {
             m_model.ExchangeDeclare(exchangeName, exchangeType);
             m_model.QueueBind(m_queueName, exchangeName, routingKey, false, null);
+        }
+
+        ///<summary>Declares a queue, returning its name. If the
+        ///queueName parameter is null or the empty string then a
+        ///fresh, exclusive, autodelete, anonymous queue is declared
+        ///using IModel.QueueDeclare(). Otherwise, the queue is
+        ///declared using IModel.QueueDeclare(queueName).</summary>
+        ///<remarks>
+        ///<para>
+        ///This method is called by all of the Subscription
+        ///constructors. The name of the declared queue can
+        ///subsequently be retrieved via the QueueName property.
+        ///</para>
+        ///<para>
+        ///Subclasses can override this method to, say, suppress queue
+        ///declaration altogether or declare the queue with different
+        ///parameters.
+
+        ///</para>
+        ///</remarks>
+        public virtual string DeclareQueue(IModel model, string queueName)
+        {
+            return (queueName == null || queueName.Equals("")) ?
+                model.QueueDeclare() :
+                model.QueueDeclare(queueName);
         }
 
         ///<summary>If LatestEvent is non-null, passes it to
