@@ -57,6 +57,8 @@
 ##
 ##---------------------------------------------------------------------------
 
+### Disable sharing files by default (this would cause some things not to work)
+CYGWIN=nontsec
 
 while read line; do $line; done < local.dist
 
@@ -73,14 +75,16 @@ DEVENV=devenv.com
 
 function main {
     ### Remove everything in the release dir and create the dir again
-    rm -v -rf $RELEASE_DIR
+    ### (workaround for file name too long bug in cygwin)
+    mv $RELEASE_DIR /tmp/del
+    rm -rf /tmp/del
     mkdir -p $RELEASE_DIR
 
     ### Get specified version snapshot from hg
     take-hg-snapshot
 
     ### Copy keyfile in the hg snapshot
-    cp -v $KEYFILE tmp/hg-snapshot/projects/client/RabbitMQ.Client/
+    cp $KEYFILE tmp/hg-snapshot/projects/client/RabbitMQ.Client/
 
     ### Generate dist zip files
     cd tmp/hg-snapshot
@@ -90,25 +94,9 @@ function main {
     gendoc-dist
     cd ../../
 
-    ### Remove tmp and containing hg snapshot
-    rm -v -rf tmp   
-}
-
-
-function test-dir-tmp-hgsnapshot {
-    LAST_DIR="${PWD##/*/}"
-    PWD_WO_LAST_DIR="${PWD%/$LAST_DIR}"
-    PREV_DIR="${PWD_WO_LAST_DIR##/*/}"
-    if [ "$LAST_DIR" != "hg-snapshot" ]; then
-        FAIL="true"
-    fi
-    if [ "$PREV_DIR" != 'tmp' ]; then
-        FAIL="true"
-    fi
-    if [ $FAIL ]; then
-        echo "FAILED! Expected to be in tmp/hg-snapshot"
-        exit 1
-    fi
+    ### Remove tmp and containing hg snapshot (workaround for file name too long bug in cygwin)
+    mv tmp /tmp/del
+    rm -rf /tmp/del
 }
 
 
@@ -116,15 +104,15 @@ function cp-license-to {
     ### Assuming we're in tmp/hg-snapshot/
     test-dir-tmp-hgsnapshot
 
-    cp -v LICENSE $1
-    cp -v LICENSE-APACHE2 $1
-    cp -v LICENSE-MPL-RabbitMQ $1
+    cp LICENSE $1
+    cp LICENSE-APACHE2 $1
+    cp LICENSE-MPL-RabbitMQ $1
 }
 
 
 function take-hg-snapshot {
     mkdir -p tmp
-    hg clone hg.rabbitmq.com/rabbitmq-dotnet-client -r $RABBIT_VSN tmp/hg-snapshot
+    hg clone -r $RABBIT_VSN $HG_REPO tmp/hg-snapshot || exit $?
 }
 
 
@@ -134,14 +122,14 @@ function src-dist {
 
     ### Copy files to be zipped to tmp/srcdist/
     mkdir -p ../srcdist/docs/specs ../srcdist/lib
-    cp -v RabbitMQDotNetClient.sln ../srcdist/
-    cp -v -r projects ../srcdist/
-    rm -v -f ../srcdist/projects/README
-    cp -v -r docs/specs/*.xml ../srcdist/docs/specs/
-    cp -v -r lib/MSBuild.Community.Tasks ../srcdist/lib/
-    cp -v -r lib/nunit ../srcdist/lib/
-    cp -v Local.props.example ../srcdist/
-    cp -v README.in ../srcdist/README
+    cp RabbitMQDotNetClient.sln ../srcdist/
+    cp -r projects ../srcdist/
+    rm -f ../srcdist/projects/README
+    cp -r docs/specs/*.xml ../srcdist/docs/specs/
+    cp -r lib/MSBuild.Community.Tasks ../srcdist/lib/
+    cp -r lib/nunit ../srcdist/lib/
+    cp Local.props.example ../srcdist/
+    cp README.in ../srcdist/README
     links -dump $RABBIT_WEBSITE/build-dotnet-client.html >> ../srcdist/README
     cp-license-to ../srcdist/
 
@@ -151,7 +139,7 @@ function src-dist {
     cd ../hg-snapshot
     
     ### Remove tmp/srcdist
-    rm -v -rf ../srcdist
+    rm -rf ../srcdist
 }
 
 
@@ -162,7 +150,7 @@ function dist-target-framework {
     test-dir-tmp-hgsnapshot
 
     ### Copy Local.props specific to dist
-    cp -v ../../Dist-$TARGET_FRAMEWORK.props ./Local.props
+    cp ../../Dist-$TARGET_FRAMEWORK.props ./Local.props
 
     ### Clean build
     $DEVENV RabbitMQDotNetClient.sln /Clean "Release|AnyCPU"
@@ -170,17 +158,17 @@ function dist-target-framework {
     
     ### Copy files to be zipped to tmp/dist/
     mkdir -p ../dist/dll ../dist/projects/examples
-    cp -v projects/client/RabbitMQ.Client/build/bin/RabbitMQ.Client.dll ../dist/dll/
-    cp -v -r projects/examples/client ../dist/projects/examples/
-    rm -v -rf ../dist/projects/examples/client/AddClient/obj
-    rm -v -rf ../dist/projects/examples/client/AddServer/obj
-    rm -v -rf ../dist/projects/examples/client/DeclareQueue/obj
-    rm -v -rf ../dist/projects/examples/client/ExceptionTest/obj
-    rm -v -rf ../dist/projects/examples/client/LogTail/obj
-    rm -v -rf ../dist/projects/examples/client/LowlevelLogTail/obj
-    rm -v -rf ../dist/projects/examples/client/SendMap/obj
-    rm -v -rf ../dist/projects/examples/client/SendString/obj
-    rm -v -rf ../dist/projects/examples/client/SingleGet/obj
+    cp projects/client/RabbitMQ.Client/build/bin/RabbitMQ.Client.dll ../dist/dll/
+    cp -r projects/examples/client ../dist/projects/examples/
+    rm -rf ../dist/projects/examples/client/AddClient/obj
+    rm -rf ../dist/projects/examples/client/AddServer/obj
+    rm -rf ../dist/projects/examples/client/DeclareQueue/obj
+    rm -rf ../dist/projects/examples/client/ExceptionTest/obj
+    rm -rf ../dist/projects/examples/client/LogTail/obj
+    rm -rf ../dist/projects/examples/client/LowlevelLogTail/obj
+    rm -rf ../dist/projects/examples/client/SendMap/obj
+    rm -rf ../dist/projects/examples/client/SendString/obj
+    rm -rf ../dist/projects/examples/client/SingleGet/obj
     cp-license-to ../dist/
     
     ### Zip tmp/dist
@@ -189,7 +177,7 @@ function dist-target-framework {
     cd ../hg-snapshot
 
     ### Remove tmp/dist
-    rm -v -rf ../dist
+    rm -rf ../dist
 }
 
 
@@ -220,8 +208,8 @@ function gendoc-dist {
     genhtml type- type
     
     ### Remove generated xml's and copy remaining files to be added to the .zip
-    rm -v -rf ../gendoc/xml
-    cp -v lib/ndocproc-bin/xsl/style.css ../gendoc/html/
+    rm -rf ../gendoc/xml
+    cp  lib/ndocproc-bin/xsl/style.css ../gendoc/html/
     cp-license-to ../gendoc/
     
     ### Zip tmp/gendoc
@@ -230,11 +218,14 @@ function gendoc-dist {
     cd ../hg-snapshot
 
     ### Remove tmp/gendoc
-    rm -v -rf ../gendoc
+    rm -rf ../gendoc
 }
 
 
 function genhtml {
+    ### Assuming we're in tmp/hg-snapshot/
+    test-dir-tmp-hgsnapshot
+    
     for f in $(ls ../gendoc/xml/$1*.xml); do
         f_base_name="${f##*/}"
         echo "(xsltproc) Processing $f_base_name ..."
@@ -243,5 +234,21 @@ function genhtml {
 }
 
 
+function test-dir-tmp-hgsnapshot {
+    last_dir="${PWD##/*/}"
+    pwd_wo_last_dir="${PWD%/$last_dir}"
+    prev_dir="${pwd_wo_last_dir##/*/}"
+    if [ "$last_dir" != "hg-snapshot" ]; then
+        fail="true"
+    fi
+    if [ "$prev_dir" != 'tmp' ]; then
+        fail="true"
+    fi
+    if [ $fail ]; then
+        echo "FAILED! Expected working dir tmp/hg-snapshot"
+        exit 1
+    fi
+}
+
+
 main $@
-exit $?
