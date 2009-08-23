@@ -61,7 +61,7 @@ using System.Threading;
 
 namespace RabbitMQ.Util {
     ///<summary>A thread-safe shared queue implementation.</summary>
-    public class SharedQueue: IDisposable {
+    public class SharedQueue {
         ///<summary>The shared queue.</summary>
         ///<remarks>
         ///Subclasses must ensure appropriate locking discipline when
@@ -86,12 +86,6 @@ namespace RabbitMQ.Util {
                 m_isOpen = false;
                 Monitor.PulseAll(m_queue);
             }
-        }
-
-        ///<summary>Implement IDisposable.Dispose. Delegates directly
-        ///to Close().</summary>
-        public void Dispose() {
-            Close();
         }
 
         ///<summary>Call only when the lock on m_queue is held.</summary>
