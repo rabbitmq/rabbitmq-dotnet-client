@@ -65,6 +65,9 @@ using RabbitMQ.Util;
 
 [TestFixture]
 public class TestSharedQueue {
+
+    public delegate void Thunk();
+
     public class DelayedEnqueuer
     {
         public SharedQueue m_q;
@@ -83,6 +86,13 @@ public class TestSharedQueue {
         de.m_delayMs = delayMs;
         de.m_v = v;
         new Thread(new ThreadStart(de.Run)).Start();
+    }
+
+    public static void ExpectEof(Thunk thunk) {
+        try {
+            thunk();
+            Assert.Fail("expected System.IO.EndOfStreamException");
+        } catch (System.IO.EndOfStreamException) {}
     }
 
     public DateTime m_startTime;
@@ -247,5 +257,45 @@ public class TestSharedQueue {
         Assert.Greater(60, ElapsedMs());
         Assert.IsTrue(r);
         Assert.AreEqual(123, v);
+    }
+
+    [Test]
+    public void TestCloseWhenEmpty() {
+        SharedQueue q = new SharedQueue();
+        object v; 
+        q.Close();
+        ExpectEof(delegate () { q.Enqueue(1); });
+        ExpectEof(delegate () { q.Dequeue(); });
+        ExpectEof(delegate () { q.DequeueNoWait(0); });
+        ExpectEof(delegate () { q.Dequeue(1, out v); });
+    }
+
+    [Test]
+    public void TestCloseWhenFull() {
+        SharedQueue q = new SharedQueue();
+        object v; 
+        q.Enqueue(1);
+        q.Enqueue(2);
+        q.Enqueue(3);
+        q.Close();
+        ExpectEof(delegate () { q.Enqueue(4); });
+        Assert.AreEqual(1, q.Dequeue());
+        Assert.AreEqual(2, q.DequeueNoWait(0));
+        bool r = q.Dequeue(1, out v);
+        Assert.IsTrue(r);
+        Assert.AreEqual(3, v);
+        ExpectEof(delegate () { q.Dequeue(); });
+    }
+
+    [Test]
+    public void TestCloseWhenWaiting() {
+        SharedQueue q = new SharedQueue();
+        Thread t = new Thread(delegate() {
+                ExpectEof(delegate () { q.Dequeue(); });
+            });
+        t.Start();
+        Thread.Sleep(10);
+        q.Close();
+        t.Join();
     }
 }
