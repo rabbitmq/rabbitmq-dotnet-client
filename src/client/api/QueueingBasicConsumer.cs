@@ -76,8 +76,8 @@ namespace RabbitMQ.Client
     /// When the consumer is closed, through BasicCancel or through
     /// the shutdown of the underlying IModel or IConnection, the
     /// SharedQueue's Close() method is called, which causes any
-    /// threads blocked on the queue's Enqueue() or Dequeue()
-    /// operations to throw EndOfStreamException (see the comment for
+    /// Enqueue() operations, and Dequeue() operations when the queue
+    /// is empty, to throw EndOfStreamException (see the comment for
     /// SharedQueue.Close()).
     ///</para>
     ///<para>
