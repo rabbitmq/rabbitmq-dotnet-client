@@ -191,7 +191,7 @@ namespace RabbitMQ.Util {
         ///</para>
         ///<para>
         /// If no items are present and the queue is in a closed
-        /// state, or if at any time while waiting the queue is
+        /// state, or if at any time while waiting the queue
         /// transitions to a closed state (by a call to Close()), this
         /// method will throw EndOfStreamException.
         ///</para>
