@@ -65,24 +65,52 @@ using RabbitMQ.Util;
 
 [TestFixture]
 public class TestSharedQueue {
+
+    public delegate void Thunk();
+
     public class DelayedEnqueuer
     {
         public SharedQueue m_q;
         public int m_delayMs;
         public object m_v;
-        public void Run()
+	public DelayedEnqueuer(SharedQueue q, int delayMs, object v) {
+	    m_q = q;
+	    m_delayMs = delayMs;
+	    m_v = v;
+	}
+        public void EnqueueValue()
         {
             Thread.Sleep(m_delayMs);
             m_q.Enqueue(m_v);
         }
+	public void Dequeue()
+	{
+	    m_q.Dequeue();
+	}
+	public void DequeueNoWaitZero()
+	{
+	    m_q.DequeueNoWait(0);
+	}
+	public void DequeueAfterOneIntoV()
+	{
+	    m_q.Dequeue(1, out m_v);
+	}
+	public void BackgroundEofExpectingDequeue()
+	{
+	    ExpectEof(new Thunk(this.Dequeue));
+	}
     }
 
     public static void EnqueueAfter(int delayMs, SharedQueue q, object v) {
-        DelayedEnqueuer de = new DelayedEnqueuer();
-        de.m_q = q;
-        de.m_delayMs = delayMs;
-        de.m_v = v;
-        new Thread(new ThreadStart(de.Run)).Start();
+        DelayedEnqueuer de = new DelayedEnqueuer(q, delayMs, v);
+        new Thread(new ThreadStart(de.EnqueueValue)).Start();
+    }
+
+    public static void ExpectEof(Thunk thunk) {
+        try {
+            thunk();
+            Assert.Fail("expected System.IO.EndOfStreamException");
+        } catch (System.IO.EndOfStreamException) {}
     }
 
     public DateTime m_startTime;
@@ -247,5 +275,45 @@ public class TestSharedQueue {
         Assert.Greater(120, ElapsedMs());
         Assert.IsTrue(r);
         Assert.AreEqual(123, v);
+    }
+
+    [Test]
+    public void TestCloseWhenEmpty() {
+	DelayedEnqueuer de = new DelayedEnqueuer(new SharedQueue(), 0, 1);
+        de.m_q.Close();
+        ExpectEof(new Thunk(de.EnqueueValue));
+        ExpectEof(new Thunk(de.Dequeue));
+        ExpectEof(new Thunk(de.DequeueNoWaitZero));
+        ExpectEof(new Thunk(de.DequeueAfterOneIntoV));
+    }
+
+    [Test]
+    public void TestCloseWhenFull() {
+        SharedQueue q = new SharedQueue();
+        object v; 
+        q.Enqueue(1);
+        q.Enqueue(2);
+        q.Enqueue(3);
+        q.Close();
+	DelayedEnqueuer de = new DelayedEnqueuer(q, 0, 4);
+        ExpectEof(new Thunk(de.EnqueueValue));
+        Assert.AreEqual(1, q.Dequeue());
+        Assert.AreEqual(2, q.DequeueNoWait(0));
+        bool r = q.Dequeue(1, out v);
+        Assert.IsTrue(r);
+        Assert.AreEqual(3, v);
+        ExpectEof(new Thunk(de.Dequeue));
+    }
+
+    [Test]
+    public void TestCloseWhenWaiting() {
+        SharedQueue q = new SharedQueue();
+	DelayedEnqueuer de = new DelayedEnqueuer(q, 0, null);
+        Thread t =
+	    new Thread(new ThreadStart(de.BackgroundEofExpectingDequeue));
+        t.Start();
+        Thread.Sleep(10);
+        q.Close();
+        t.Join();
     }
 }
