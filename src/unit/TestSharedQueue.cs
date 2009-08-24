@@ -207,22 +207,22 @@ public class TestSharedQueue {
     [Test]
     public void TestDoubleBg() {
         SharedQueue q = new SharedQueue();
-        EnqueueAfter(50, q, 123);
-        EnqueueAfter(100, q, 234);
+        EnqueueAfter(100, q, 123);
+        EnqueueAfter(200, q, 234);
 
         ResetTimer();
         object v;
         bool r;
 
-        r = q.Dequeue(100, out v);
-        Assert.Greater(ElapsedMs(), 40);
-        Assert.Greater(60, ElapsedMs());
+        r = q.Dequeue(200, out v);
+        Assert.Greater(ElapsedMs(), 80);
+        Assert.Greater(120, ElapsedMs());
         Assert.IsTrue(r);
         Assert.AreEqual(123, v);
 
-        r = q.Dequeue(100, out v);
-        Assert.Greater(ElapsedMs(), 90);
-        Assert.Greater(110, ElapsedMs());
+        r = q.Dequeue(200, out v);
+        Assert.Greater(ElapsedMs(), 180);
+        Assert.Greater(220, ElapsedMs());
         Assert.IsTrue(r);
         Assert.AreEqual(234, v);
     }
@@ -230,21 +230,21 @@ public class TestSharedQueue {
     [Test]
     public void TestDoublePoll() {
         SharedQueue q = new SharedQueue();
-        EnqueueAfter(50, q, 123);
+        EnqueueAfter(100, q, 123);
 
         ResetTimer();
         object v;
         bool r;
 
-        r = q.Dequeue(25, out v);
-        Assert.Greater(ElapsedMs(), 15);
-        Assert.Greater(35, ElapsedMs());
+        r = q.Dequeue(50, out v);
+        Assert.Greater(ElapsedMs(), 30);
+        Assert.Greater(70, ElapsedMs());
         Assert.IsTrue(!r);
         Assert.AreEqual(null, v);
 
-        r = q.Dequeue(50, out v);
-        Assert.Greater(ElapsedMs(), 40);
-        Assert.Greater(60, ElapsedMs());
+        r = q.Dequeue(100, out v);
+        Assert.Greater(ElapsedMs(), 80);
+        Assert.Greater(120, ElapsedMs());
         Assert.IsTrue(r);
         Assert.AreEqual(123, v);
     }
