@@ -57,11 +57,19 @@
 ##
 ##---------------------------------------------------------------------------
 
-### Disable sharing files by default (this would cause some things not to work)
+
+### Disable sharing files by default (it causes things not to work properly)
 CYGWIN=nontsec
 
-while read line; do $line; done < local.dist
+### Run commands in local.dist
+if [ ! -f local.dist ]; then
+    echo "Could not find local.dist"
+    exit 1
+fi
+while read line; do $line || exit $?; done < local.dist
 
+
+### Some general vars
 RABBIT_WEBSITE=http://www.rabbitmq.com
 
 NAME=rabbitmq-dotnet-client
@@ -75,10 +83,11 @@ DEVENV=devenv.com
 
 function main {
     ### Remove everything in the release dir and create the dir again
-    ### (workaround for file name too long bug in cygwin)
-    mv $RELEASE_DIR /tmp/del
-    rm -rf /tmp/del
+    safe-rm-deep-dir $RELEASE_DIR
     mkdir -p $RELEASE_DIR
+
+    ### Remove tmp dir
+    safe-rm-deep-dir tmp
 
     ### Get specified version snapshot from hg
     take-hg-snapshot
@@ -88,15 +97,44 @@ function main {
 
     ### Generate dist zip files
     cd tmp/hg-snapshot
-    src-dist
-    dist-target-framework dotnet-2.0
-    dist-target-framework dotnet-3.0
-    gendoc-dist
+    dist-zips
     cd ../../
 
-    ### Remove tmp and containing hg snapshot (workaround for file name too long bug in cygwin)
-    mv tmp /tmp/del
-    rm -rf /tmp/del
+    ### Remove tmp and containing hg snapshot
+    safe-rm-deep-dir tmp
+}
+
+
+function dist-zips {
+    ### Assuming we're in tmp/hg-snapshot/
+    test-dir-tmp-hgsnapshot
+
+    ### Source dist
+    src-dist
+
+    ### .NET 2.0 library (bin) and examples (src and bin) dist
+    dist-target-framework dotnet-2.0
+    ### HTML documentation for the .NET 2.0 library dist
+    gendoc-dist \
+        projects/client/RabbitMQ.Client/build/bin/RabbitMQ.Client.xml \
+        $NAME_VSN-client-htmldoc.zip \
+        "/suppress:RabbitMQ.Client.Framing.v0_8 \
+         /suppress:RabbitMQ.Client.Framing.v0_8qpid \
+         /suppress:RabbitMQ.Client.Framing.v0_9 \
+         /suppress:RabbitMQ.Client.Framing.Impl.v0_8 \
+         /suppress:RabbitMQ.Client.Framing.Impl.v0_8qpid \
+         /suppress:RabbitMQ.Client.Framing.Impl.v0_9 \
+         /suppress:RabbitMQ.Client.Impl \
+         /suppress:RabbitMQ.Client.Apigen.Attributes"
+
+    ### .NET 3.0 library (bin), examples (src and bin), WCF bindings library (bin)
+    ### and WCF examples (src) dist
+    dist-target-framework dotnet-3.0
+    ### HTML documentation for the WCF bindings library dist
+    gendoc-dist \
+        projects/wcf/RabbitMQ.ServiceModel/build/bin/RabbitMQ.ServiceModel.xml \
+        $NAME_VSN-wcf-htmldoc.zip \
+        ""
 }
 
 
@@ -107,6 +145,15 @@ function cp-license-to {
     cp LICENSE $1
     cp LICENSE-APACHE2 $1
     cp LICENSE-MPL-RabbitMQ $1
+}
+
+
+function safe-rm-deep-dir {
+    ### Workaround for the path-too-long bug in cygwin
+    if [ -e $1 ]; then
+        mv -f $1 /tmp/del
+        rm -rf /tmp/del
+    fi
 }
 
 
@@ -145,6 +192,8 @@ function src-dist {
 
 function dist-target-framework {
     TARGET_FRAMEWORK="$1"
+    BUILD_WCF=
+    test "$TARGET_FRAMEWORK" == "dotnet-3.0" && BUILD_WCF="true"
 
     ### Assuming we're in tmp/hg-snapshot/
     test-dir-tmp-hgsnapshot
@@ -152,23 +201,30 @@ function dist-target-framework {
     ### Copy Local.props specific to dist
     cp ../../Dist-$TARGET_FRAMEWORK.props ./Local.props
 
-    ### Clean build
+    mkdir -p ../dist/bin ../dist/projects/examples
+
+    ### Clean
     $DEVENV RabbitMQDotNetClient.sln /Clean "Release|AnyCPU"
+
+    ### Copy examples code to be zipped to tmp/dist/
+    cp -r projects/examples/client ../dist/projects/examples/
+    test "$BUILD_WCF" && cp -r projects/examples/wcf ../dist/projects/examples/
+
+    ### Build
     $DEVENV RabbitMQDotNetClient.sln /Build "Release|AnyCPU"
     
-    ### Copy files to be zipped to tmp/dist/
-    mkdir -p ../dist/dll ../dist/projects/examples
-    cp projects/client/RabbitMQ.Client/build/bin/RabbitMQ.Client.dll ../dist/dll/
-    cp -r projects/examples/client ../dist/projects/examples/
-    rm -rf ../dist/projects/examples/client/AddClient/obj
-    rm -rf ../dist/projects/examples/client/AddServer/obj
-    rm -rf ../dist/projects/examples/client/DeclareQueue/obj
-    rm -rf ../dist/projects/examples/client/ExceptionTest/obj
-    rm -rf ../dist/projects/examples/client/LogTail/obj
-    rm -rf ../dist/projects/examples/client/LowlevelLogTail/obj
-    rm -rf ../dist/projects/examples/client/SendMap/obj
-    rm -rf ../dist/projects/examples/client/SendString/obj
-    rm -rf ../dist/projects/examples/client/SingleGet/obj
+    ### Copy bin files to be zipped to tmp/dist/
+    cp projects/client/RabbitMQ.Client/build/bin/RabbitMQ.Client.dll ../dist/bin/
+    cp projects/examples/client/AddClient/build/bin/AddClient.exe ../dist/bin/
+    cp projects/examples/client/AddServer/build/bin/AddServer.exe ../dist/bin/
+    cp projects/examples/client/DeclareQueue/build/bin/DeclareQueue.exe ../dist/bin/
+    cp projects/examples/client/ExceptionTest/build/bin/ExceptionTest.exe ../dist/bin/
+    cp projects/examples/client/LogTail/build/bin/LogTail.exe ../dist/bin/
+    cp projects/examples/client/LowlevelLogTail/build/bin/LowlevelLogTail.exe ../dist/bin/
+    cp projects/examples/client/SendMap/build/bin/SendMap.exe ../dist/bin/
+    cp projects/examples/client/SendString/build/bin/SendString.exe ../dist/bin/
+    cp projects/examples/client/SingleGet/build/bin/SingleGet.exe ../dist/bin/
+    test "$BUILD_WCF" && cp projects/wcf/RabbitMQ.ServiceModel/build/bin/RabbitMQ.ServiceModel.dll ../dist/bin/
     cp-license-to ../dist/
     
     ### Zip tmp/dist
@@ -182,24 +238,23 @@ function dist-target-framework {
 
 
 function gendoc-dist {
+    XML_SOURCE_FILE="$1"
+    ZIP_DESTINATION_FILENAME="$2"
+    EXTRA_NDOCPROC_ARGS="$3"
+
     ### Assuming we're in tmp/hg-snapshot/
     test-dir-tmp-hgsnapshot
 
     mkdir -p ../gendoc/xml ../gendoc/html
 
+    cat $XML_SOURCE_FILE
+
     ### Generate xml's with ndocproc    
     lib/ndocproc-bin/bin/ndocproc.exe \
     /nosubtypes \
-    /suppress:RabbitMQ.Client.Framing.v0_8 \
-    /suppress:RabbitMQ.Client.Framing.v0_8qpid \
-    /suppress:RabbitMQ.Client.Framing.v0_9 \
-    /suppress:RabbitMQ.Client.Framing.Impl.v0_8 \
-    /suppress:RabbitMQ.Client.Framing.Impl.v0_8qpid \
-    /suppress:RabbitMQ.Client.Framing.Impl.v0_9 \
-    /suppress:RabbitMQ.Client.Impl \
-    /suppress:RabbitMQ.Client.Apigen.Attributes \
+    $EXTRA_NDOCPROC_ARGS \
     ../gendoc/xml \
-    projects/client/RabbitMQ.Client/build/bin/RabbitMQ.Client.xml \
+    $XML_SOURCE_FILE \
     docs/namespaces.xml
     
     ### Transform to html, using xsltproc
@@ -214,7 +269,7 @@ function gendoc-dist {
     
     ### Zip tmp/gendoc
     cd ../gendoc
-    zip -r ../../$RELEASE_DIR/$NAME_VSN-$TARGET_FRAMEWORK-htmldoc.zip .
+    zip -r ../../$RELEASE_DIR/$ZIP_DESTINATION_FILENAME .
     cd ../hg-snapshot
 
     ### Remove tmp/gendoc
