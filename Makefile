@@ -60,3 +60,9 @@ doc: rabbit-vsn ensure-prerequisites ensure-release-dir ensure-docs
 	mv build/doc/userguide/user-guide.pdf ${RELEASE_DIR}/${NAME_VSN}-user-guide.pdf
 	cp docs/"RabbitMQ Service Model.pdf" \
 	  ${RELEASE_DIR}/${NAME_VSN}-wcf-service-model.pdf
+	cd ${RELEASE_DIR} && \
+	  rm -rf ${NAME_VSN}-htmldoc && \
+	  unzip ${NAME_VSN}-client-htmldoc.zip -d ${NAME_VSN}-client-htmldoc && \
+	  rm -rf ${NAME_VSN}-wcf-htmldoc && \
+	  unzip ${NAME_VSN}-wcf-htmldoc.zip -d ${NAME_VSN}-wcf-htmldoc
+
