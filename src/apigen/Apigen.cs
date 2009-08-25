@@ -482,6 +482,14 @@ namespace RabbitMQ.Client.Apigen {
 		    EmitLine("    public "+maybeOverride+"void Clear"+MangleClass(f.Name)+"() { m_"+MangleMethod(f.Name)+"_present = false; }");
 		}
             }
+
+            EmitLine("");
+            foreach (AmqpField f in c.m_Fields)
+            {
+                if (!IsBoolean(f))
+                    EmitLine("    public " + maybeOverride + "bool Is" + MangleClass(f.Name) + "Present() { return m_" + MangleMethod(f.Name) + "_present; }");
+            }
+
             EmitLine("");
             EmitLine("    public "+MangleClass(c.Name)+"Properties() {}");
             EmitLine("    public override int ProtocolClassId { get { return "+c.Index+"; } }");

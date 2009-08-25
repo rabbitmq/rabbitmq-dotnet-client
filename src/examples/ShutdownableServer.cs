@@ -55,53 +55,62 @@
 //
 //---------------------------------------------------------------------------
 using System;
-using System.Collections;
+using System.Timers;
 
-namespace RabbitMQ.Client.Impl
-{
-    public abstract class FileProperties : ContentHeaderBase, IFileProperties
-    {
-        public abstract string ContentType { get; set; }
-        public abstract string ContentEncoding { get; set; }
-        public abstract IDictionary Headers { get; set; }
-        public abstract byte Priority { get; set; }
-        public abstract string ReplyTo { get; set; }
-        public abstract string MessageId { get; set; }
-        public abstract string Filename { get; set; }
-        public abstract AmqpTimestamp Timestamp { get; set; }
-        public abstract string ClusterId { get; set; }
+using RabbitMQ.Client;
+using RabbitMQ.Client.Content;
+using RabbitMQ.Client.MessagePatterns;
+using RabbitMQ.Util;
 
-        public abstract void ClearContentType();
-        public abstract void ClearContentEncoding();
-        public abstract void ClearHeaders();
-        public abstract void ClearPriority();
-        public abstract void ClearReplyTo();
-        public abstract void ClearMessageId();
-        public abstract void ClearFilename();
-        public abstract void ClearTimestamp();
-        public abstract void ClearClusterId();
+namespace RabbitMQ.Client.Examples {
+    public class ShutdownableServer: SimpleRpcServer {
+        public static int Main(string[] args) {
+            try {
+                if (args.Length < 1) {
+                    Console.Error.WriteLine("Usage: ShutdownableServer <hostname>[:<portnumber>]");
+                    Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
+                    return 1;
+                }
 
-        public abstract bool IsContentTypePresent();
-        public abstract bool IsContentEncodingPresent();
-        public abstract bool IsHeadersPresent();
-        public abstract bool IsPriorityPresent();
-        public abstract bool IsReplyToPresent();
-        public abstract bool IsMessageIdPresent();
-        public abstract bool IsFilenamePresent();
-        public abstract bool IsTimestampPresent();
-        public abstract bool IsClusterIdPresent();
-
-        public override object Clone()
-        {
-            FileProperties clone = MemberwiseClone() as FileProperties;
-            if (IsHeadersPresent())
-            {
-                clone.Headers = new Hashtable();
-                foreach (DictionaryEntry entry in Headers)
-                    clone.Headers[entry.Key] = entry.Value;
+                using (IConnection conn = new ConnectionFactory().CreateConnection(args[0])) {
+                    using (IModel ch = conn.CreateModel()) {
+                        Subscription sub = new Subscription(ch, "ShutdownableServer");
+                        new ShutdownableServer(sub).MainLoop();
+                        Console.Out.WriteLine("Returned from MainLoop.");
+                    }
+                }
+                Console.Out.WriteLine("Leaving the program.");
+                return 0;
+            } catch (Exception e) {
+                Console.Error.WriteLine(e);
+                return 2;
             }
+        }
 
-            return clone;
+        public ShutdownableServer(Subscription sub): base(sub) {}
+
+        public override void HandleStreamMessageCall(IStreamMessageBuilder replyWriter,
+                                                     bool isRedelivered,
+                                                     IBasicProperties requestProperties,
+                                                     object[] args)
+        {
+            Console.Out.WriteLine("ShutdownableServer received a {0} request.",
+                                  isRedelivered ? "redelivered" : "new");
+            if ((double) args[0] == 0) {
+                Console.Out.WriteLine("Shutting down immediately.");
+                Close();
+                replyWriter.WriteObject("Shut down immediately");
+            } else {
+                Timer t = new Timer((int) (((double) args[0]) * 1000));
+                t.Elapsed += new ElapsedEventHandler(OnTimeout);
+                t.Enabled = true;
+                replyWriter.WriteObject("Will shut down in " + args[0] + " seconds");
+            }
+        }
+
+        private void OnTimeout(object source, ElapsedEventArgs e) {
+            Console.Out.WriteLine("Delayed shutdown happening now.");
+            Close();
         }
     }
 }
