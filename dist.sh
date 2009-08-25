@@ -125,7 +125,8 @@ function dist-zips {
          /suppress:RabbitMQ.Client.Framing.Impl.v0_8qpid \
          /suppress:RabbitMQ.Client.Framing.Impl.v0_9 \
          /suppress:RabbitMQ.Client.Impl \
-         /suppress:RabbitMQ.Client.Apigen.Attributes"
+         /suppress:RabbitMQ.Client.Apigen.Attributes" \
+        $NAME_VSN-tmp-xmldoc.zip
 
     ### .NET 3.0 library (bin), examples (src and bin), WCF bindings library (bin)
     ### and WCF examples (src) dist
@@ -134,6 +135,7 @@ function dist-zips {
     gendoc-dist \
         projects/wcf/RabbitMQ.ServiceModel/build/bin/RabbitMQ.ServiceModel.xml \
         $NAME_VSN-wcf-htmldoc.zip \
+        "" \
         ""
 }
 
@@ -241,13 +243,13 @@ function gendoc-dist {
     XML_SOURCE_FILE="$1"
     ZIP_DESTINATION_FILENAME="$2"
     EXTRA_NDOCPROC_ARGS="$3"
+    ### If this is an empty string, the intermediate xml output will not be saved in a zip
+    ZIP_TMP_XML_DOC_FILENAME="$4"
 
     ### Assuming we're in tmp/hg-snapshot/
     test-dir-tmp-hgsnapshot
 
     mkdir -p ../gendoc/xml ../gendoc/html
-
-    cat $XML_SOURCE_FILE
 
     ### Generate xml's with ndocproc    
     lib/ndocproc-bin/bin/ndocproc.exe \
@@ -256,6 +258,13 @@ function gendoc-dist {
     ../gendoc/xml \
     $XML_SOURCE_FILE \
     docs/namespaces.xml
+
+    ### Zip ndocproc's output if tmp xml doc zip filename
+    if [ $ZIP_TMP_XML_DOC_FILENAME ]; then
+        cd ../gendoc/xml
+        zip -r ../../../$RELEASE_DIR/$ZIP_TMP_XML_DOC_FILENAME .
+        cd ../../hg-snapshot
+    fi
     
     ### Transform to html, using xsltproc
     genhtml index index

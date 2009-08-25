@@ -17,5 +17,8 @@ syntax: regexp
 ^projects/.*/.*\.csproj\.user$
 ^projects/client/Unit/TestResult\.xml$
 
+^docs/pyle\.log$
+^build/
+
 ~$
 
