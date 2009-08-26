@@ -260,7 +260,7 @@ namespace RabbitMQ.Client
                                             int portNumber)
         {
             return CreateConnection(new AmqpTcpEndpoint[] {
-                                        new AmqpTcpEndpoint(version, hostName, portNumber)
+                                        new AmqpTcpEndpoint(version, hostName, portNumber, m_parameters.Ssl)
                                     });
         }
 

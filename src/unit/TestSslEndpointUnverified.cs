@@ -54,98 +54,53 @@
 //   Contributor(s): ______________________________________.
 //
 //---------------------------------------------------------------------------
+using NUnit.Framework;
 using System;
-using System.IO;
-using System.Net.Sockets;
-using System.Text;
+using RabbitMQ.Client;
 
-using RabbitMQ.Util;
+[TestFixture]
+public class TestSslEndpointUnverified {
 
-namespace RabbitMQ.Client.Impl
-{
-    public class SocketFrameHandler_0_9 : IFrameHandler
-    {
-        public const int WSAEWOULDBLOCK = 10035; 
-        // ^^ System.Net.Sockets.SocketError doesn't exist in .NET 1.1
+    public void SendReceive(IConnection conn) {
+        string message = "Hello C# SSL Client World";
 
-        public AmqpTcpEndpoint m_endpoint;
-        public TcpClient m_socket;
-        public NetworkBinaryReader m_reader;
-        public NetworkBinaryWriter m_writer;
+        IModel ch = conn.CreateModel();
 
-        public SocketFrameHandler_0_9(AmqpTcpEndpoint endpoint)
-        {
-            m_endpoint = endpoint;
-            m_socket = new TcpClient();
-            m_socket.Connect(endpoint.HostName, endpoint.Port);
-            // disable Nagle's algorithm, for more consistently low latency 
-            m_socket.NoDelay = true;
+        ch.ExchangeDeclare("Exchange_TestSslEndPoint", ExchangeType.Direct);
+        ch.QueueDeclare("Queue_TestSslEndpoint");
+        ch.QueueBind("Queue_TestSslEndpoint", "Exchange_TestSslEndPoint", "Key_TestSslEndpoint", false, null);
 
-            Stream netstream;
+        byte[] msgBytes =  System.Text.Encoding.UTF8.GetBytes(message);
+        ch.BasicPublish("Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null, msgBytes);
 
-            if(!endpoint.Ssl.Enabled) {
-                netstream = m_socket.GetStream();
-            } else {
-                netstream = SslHelper.TcpUpgrade(m_socket.GetStream(), endpoint.Ssl);
-            }
+        bool noAck = false;
 
-            m_reader = new NetworkBinaryReader(netstream);
-            m_writer = new NetworkBinaryWriter(netstream);
-        }
+        BasicGetResult result = ch.BasicGet("Queue_TestSslEndpoint", noAck);
+        byte[] body = result.Body;
 
-        public AmqpTcpEndpoint Endpoint
-        {
-            get
-            {
-                return m_endpoint;
-            }
-        }
+        string resultMessage = System.Text.Encoding.UTF8.GetString(body);
 
-        public int Timeout
-        {
-            get
-            {
-                return m_socket.ReceiveTimeout;
-            }
-            set
-            {
-                m_socket.ReceiveTimeout = value;
-            }
-        }
+        ch.Close(200, "Closing the channel");
+        conn.Close();
 
-        public void SendHeader()
-        {
-            lock (m_writer)
-            {
-                m_writer.Write(Encoding.ASCII.GetBytes("AMQP"));
-                m_writer.Write((byte)1);
-                m_writer.Write((byte)1);
-                m_writer.Write((byte)m_endpoint.Protocol.MajorVersion);
-                m_writer.Write((byte)m_endpoint.Protocol.MinorVersion);
-            }
-        }
+        Assert.AreEqual(message, resultMessage);
+    }
 
-        public Frame ReadFrame()
-        {
-            lock (m_reader)
-            {
-                    return Frame.ReadFrom(m_reader);
-            }
-        }
 
-        public void WriteFrame(Frame frame)
-        {
-            lock (m_writer)
-            {
-                frame.WriteTo(m_writer);
-                //Console.WriteLine("OUTBOUND:");
-                //DebugUtil.DumpProperties(frame, Console.Out, 2);
-            }
-        }
+    [Test]
+    public virtual void TestHostWithPort() {
+        string sslDir = Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
+        if (null == sslDir) {
+            return;
+        } else {
+            ConnectionFactory cf = new ConnectionFactory();
 
-        public void Close()
-        {
-            m_socket.Close();
+            cf.Parameters.Ssl.ServerName = System.Net.Dns.GetHostName();
+            cf.Parameters.Ssl.Enabled = true;
+
+            IProtocol proto = Protocols.DefaultProtocol;
+            IConnection conn = cf.CreateConnection(proto, "localhost", 5671);
+            SendReceive(conn);
         }
     }
 }

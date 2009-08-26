@@ -54,98 +54,32 @@
 //   Contributor(s): ______________________________________.
 //
 //---------------------------------------------------------------------------
+using NUnit.Framework;
 using System;
-using System.IO;
-using System.Net.Sockets;
-using System.Text;
+using RabbitMQ.Client;
 
-using RabbitMQ.Util;
+[TestFixture]
+public class TestSslEndpointVerified: TestSslEndpointUnverified {
 
-namespace RabbitMQ.Client.Impl
-{
-    public class SocketFrameHandler_0_9 : IFrameHandler
-    {
-        public const int WSAEWOULDBLOCK = 10035; 
-        // ^^ System.Net.Sockets.SocketError doesn't exist in .NET 1.1
+    [Test]
+    public override void TestHostWithPort() {
+        string sslDir = Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
+        if (null == sslDir) {
+            return;
+        } else {
+            ConnectionFactory cf = new ConnectionFactory();
 
-        public AmqpTcpEndpoint m_endpoint;
-        public TcpClient m_socket;
-        public NetworkBinaryReader m_reader;
-        public NetworkBinaryWriter m_writer;
+            cf.Parameters.Ssl.ServerName = System.Net.Dns.GetHostName();
+            Assert.IsNotNull(sslDir);
+            cf.Parameters.Ssl.CertPath = sslDir + "/client/keycert.p12";
+            string p12Password = Environment.GetEnvironmentVariable("PASSWORD");
+            Assert.IsNotNull(p12Password);
+            cf.Parameters.Ssl.CertPassphrase = p12Password;
+            cf.Parameters.Ssl.Enabled = true;
 
-        public SocketFrameHandler_0_9(AmqpTcpEndpoint endpoint)
-        {
-            m_endpoint = endpoint;
-            m_socket = new TcpClient();
-            m_socket.Connect(endpoint.HostName, endpoint.Port);
-            // disable Nagle's algorithm, for more consistently low latency 
-            m_socket.NoDelay = true;
-
-            Stream netstream;
-
-            if(!endpoint.Ssl.Enabled) {
-                netstream = m_socket.GetStream();
-            } else {
-                netstream = SslHelper.TcpUpgrade(m_socket.GetStream(), endpoint.Ssl);
-            }
-
-            m_reader = new NetworkBinaryReader(netstream);
-            m_writer = new NetworkBinaryWriter(netstream);
-        }
-
-        public AmqpTcpEndpoint Endpoint
-        {
-            get
-            {
-                return m_endpoint;
-            }
-        }
-
-        public int Timeout
-        {
-            get
-            {
-                return m_socket.ReceiveTimeout;
-            }
-            set
-            {
-                m_socket.ReceiveTimeout = value;
-            }
-        }
-
-        public void SendHeader()
-        {
-            lock (m_writer)
-            {
-                m_writer.Write(Encoding.ASCII.GetBytes("AMQP"));
-                m_writer.Write((byte)1);
-                m_writer.Write((byte)1);
-                m_writer.Write((byte)m_endpoint.Protocol.MajorVersion);
-                m_writer.Write((byte)m_endpoint.Protocol.MinorVersion);
-            }
-        }
-
-        public Frame ReadFrame()
-        {
-            lock (m_reader)
-            {
-                    return Frame.ReadFrom(m_reader);
-            }
-        }
-
-        public void WriteFrame(Frame frame)
-        {
-            lock (m_writer)
-            {
-                frame.WriteTo(m_writer);
-                //Console.WriteLine("OUTBOUND:");
-                //DebugUtil.DumpProperties(frame, Console.Out, 2);
-            }
-        }
-
-        public void Close()
-        {
-            m_socket.Close();
+            IProtocol proto = Protocols.DefaultProtocol;
+            IConnection conn = cf.CreateConnection(proto, "localhost", 5671);
+            SendReceive(conn);
         }
     }
 }

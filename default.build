@@ -307,8 +307,25 @@
     <copy file="${nunit.dllname}" todir="${bin.dir}"/>
   </target>
 
+  <target name="detect-ssl">
+    <property name="ssl.avail" value="false"/>
+    <property name="ssl.avail" value="true"
+      if="${environment::variable-exists('SSL_CERTS_DIR')}"/>
+    <property name="ssl.certs.dir" value="${environment::get-variable('SSL_CERTS_DIR')}"
+      if="${environment::variable-exists('SSL_CERTS_DIR')}"/>
+  </target>
+
+  <target name="import-ssl" description="import cacert into certmgr" depends="detect-ssl" if="${ssl.avail}">
+    <exec program="${certmgr.exec}">
+      <arg value="-add"/>
+      <arg value="-c"/>
+      <arg value="Trust"/>
+      <arg value="${ssl.certs.dir}/testca/cacert.cer"/>
+    </exec>
+  </target>
+
   <target name="unit" description="run unit tests"
-	      depends="build-unit">
+	      depends="build-unit,import-ssl">
     <exec program="src/unit/nunit/nunit-console.exe" useruntimeengine="true">
       <arg value="${unit-tests.dllname}"/>
     </exec>

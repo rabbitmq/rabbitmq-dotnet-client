@@ -55,97 +55,46 @@
 //
 //---------------------------------------------------------------------------
 using System;
+using System.Collections;
 using System.IO;
-using System.Net.Sockets;
-using System.Text;
+using System.Net.Security;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
+using RabbitMQ.Client.Impl;
 
-using RabbitMQ.Util;
-
-namespace RabbitMQ.Client.Impl
+namespace RabbitMQ.Client
 {
-    public class SocketFrameHandler_0_9 : IFrameHandler
+
+    ///<summary>Represents an SslHelper which does the actual heavy lifting
+    ///to set up an SSL connection, using the config options in an SslOption
+    ///to make things cleaner</summary>
+    public class SslHelper
     {
-        public const int WSAEWOULDBLOCK = 10035; 
-        // ^^ System.Net.Sockets.SocketError doesn't exist in .NET 1.1
 
-        public AmqpTcpEndpoint m_endpoint;
-        public TcpClient m_socket;
-        public NetworkBinaryReader m_reader;
-        public NetworkBinaryWriter m_writer;
-
-        public SocketFrameHandler_0_9(AmqpTcpEndpoint endpoint)
+        static X509Certificate CertificateSelectionCallback(object sender,
+                string targetHost,
+                X509CertificateCollection localCertificates,
+                X509Certificate remoteCertificate,
+                string[] acceptableIssuers)
         {
-            m_endpoint = endpoint;
-            m_socket = new TcpClient();
-            m_socket.Connect(endpoint.HostName, endpoint.Port);
-            // disable Nagle's algorithm, for more consistently low latency 
-            m_socket.NoDelay = true;
-
-            Stream netstream;
-
-            if(!endpoint.Ssl.Enabled) {
-                netstream = m_socket.GetStream();
-            } else {
-                netstream = SslHelper.TcpUpgrade(m_socket.GetStream(), endpoint.Ssl);
-            }
-
-            m_reader = new NetworkBinaryReader(netstream);
-            m_writer = new NetworkBinaryWriter(netstream);
+            return localCertificates[0];
         }
 
-        public AmqpTcpEndpoint Endpoint
+        ///<summary>Upgrade a Tcp stream to an Ssl stream using the SSL options
+        ///provided</summary>
+        public static Stream TcpUpgrade(Stream tcpStream, SslOption sslOption)
         {
-            get
-            {
-                return m_endpoint;
-            }
+            SslStream sslStream = new SslStream(tcpStream, false,
+                    null,
+                    new LocalCertificateSelectionCallback(CertificateSelectionCallback));
+            
+            sslStream.AuthenticateAsClient(sslOption.ServerName,
+                        sslOption.Certs,
+                        sslOption.Version,
+                        false);
+
+            return sslStream;
         }
 
-        public int Timeout
-        {
-            get
-            {
-                return m_socket.ReceiveTimeout;
-            }
-            set
-            {
-                m_socket.ReceiveTimeout = value;
-            }
-        }
-
-        public void SendHeader()
-        {
-            lock (m_writer)
-            {
-                m_writer.Write(Encoding.ASCII.GetBytes("AMQP"));
-                m_writer.Write((byte)1);
-                m_writer.Write((byte)1);
-                m_writer.Write((byte)m_endpoint.Protocol.MajorVersion);
-                m_writer.Write((byte)m_endpoint.Protocol.MinorVersion);
-            }
-        }
-
-        public Frame ReadFrame()
-        {
-            lock (m_reader)
-            {
-                    return Frame.ReadFrom(m_reader);
-            }
-        }
-
-        public void WriteFrame(Frame frame)
-        {
-            lock (m_writer)
-            {
-                frame.WriteTo(m_writer);
-                //Console.WriteLine("OUTBOUND:");
-                //DebugUtil.DumpProperties(frame, Console.Out, 2);
-            }
-        }
-
-        public void Close()
-        {
-            m_socket.Close();
-        }
     }
 }
