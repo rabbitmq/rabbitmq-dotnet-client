@@ -40,7 +40,7 @@ ensure-deliverables: rabbit-vsn
 	file ${RELEASE_DIR}/${NAME_VSN}-net-3.0-wcf-htmldoc
 
 ensure-prerequisites: rabbit-vsn
-	dpkg -L htmldoc plotutils transfig graphviz > /dev/null
+	dpkg -L htmldoc plotutils transfig graphviz docbook-utils > /dev/null
 
 ensure-release-dir: rabbit-vsn
 	touch ${RELEASE_DIR}/
