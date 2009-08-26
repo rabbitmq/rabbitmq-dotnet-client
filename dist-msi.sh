@@ -97,7 +97,7 @@ function build-msm-msi {
 
     candle -out ../tmp/wix/rabbitmq-dotnet-client-msm.wixobj dotnet-client-merge-module.wxs || exit $?
     light -out ../tmp/wix/rabbitmq-dotnet-client.msm ../tmp/wix/rabbitmq-dotnet-client-msm.wixobj || exit $?
-    MsiVal2.exe ../tmp/wix/rabbitmq-dotnet-client.msm ../lib/wix/mergemod.cub -f
+    MsiVal2.exe ../tmp/wix/rabbitmq-dotnet-client.msm ../lib/wix/mergemod.cub -f || exit $?
 
     candle -out ../tmp/wix/rabbitmq-dotnet-client-msi.wixobj dotnet-client-product.wxs || exit $?
     light -out ../tmp/wix/rabbitmq-dotnet-client.msi \
@@ -105,12 +105,12 @@ function build-msm-msi {
         ../lib/wix/wixui.wixlib \
         -loc WixUI_en-us.wxl \
        || exit $?
-    MsiVal2.exe ../tmp/wix/rabbitmq-dotnet-client.msi ../lib/wix/darice.cub -f
+    MsiVal2.exe ../tmp/wix/rabbitmq-dotnet-client.msi ../lib/wix/darice.cub -f || exit $?
 
     cd ..
 
-    cp tmp/wix/rabbitmq-dotnet-client.msm $RELEASE_DIR/
-    cp tmp/wix/rabbitmq-dotnet-client.msi $RELEASE_DIR/
+    cp tmp/wix/rabbitmq-dotnet-client.msm $RELEASE_DIR/$NAME_VSN.msm
+    cp tmp/wix/rabbitmq-dotnet-client.msi $RELEASE_DIR/$NAME_VSN.msi
 
     safe-rm-deep-dir tmp/wix
 }
