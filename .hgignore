@@ -16,5 +16,5 @@ syntax: regexp
 ^wix/dotnet-client-merge-module\.wxs$
 ^wix/dotnet-client-product\.wxs$
 ^wix/License\.rtf$
-~$
 
+~$
