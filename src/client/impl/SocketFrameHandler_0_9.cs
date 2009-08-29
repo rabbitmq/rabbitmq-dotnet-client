@@ -81,13 +81,9 @@ namespace RabbitMQ.Client.Impl
             // disable Nagle's algorithm, for more consistently low latency 
             m_socket.NoDelay = true;
 
-            Stream netstream;
-
-            if(!endpoint.Ssl.Enabled) {
-                netstream = m_socket.GetStream();
-            } else {
-                netstream = SslHelper.TcpUpgrade(m_socket.GetStream(), endpoint.Ssl);
-            }
+            Stream netstream = endpoint.Ssl.Enabled ?
+                SslHelper.TcpUpgrade(m_socket.GetStream(), endpoint.Ssl) :
+                m_socket.GetStream();
 
             m_reader = new NetworkBinaryReader(netstream);
             m_writer = new NetworkBinaryWriter(netstream);
