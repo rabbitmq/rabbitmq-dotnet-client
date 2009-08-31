@@ -4,14 +4,17 @@ syntax: regexp
 ^local\.build$
 ^TestResult.xml$
 ^releases$
+^commit$
+^diff$
 
 ^src/wcf/.*/(bin|obj)$
 ^src/wcf/.*/*.suo$
 
 ^src/wcf/RabbitMQ\.ServiceModel/RabbitMQ\.ServiceModel\.xml
 ^src/wcf/RabbitMQ\.ServiceModel/AssemblyInfo\.cs$
+
 ^wix/dotnet-client-merge-module\.wxs$
 ^wix/dotnet-client-product\.wxs$
 ^wix/License\.rtf$
-~$
 
+~$

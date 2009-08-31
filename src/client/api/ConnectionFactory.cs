@@ -261,7 +261,8 @@ namespace RabbitMQ.Client
         {
             return CreateConnection(new AmqpTcpEndpoint(version,
                                                         hostName,
-                                                        portNumber));
+                                                        portNumber,
+                                                        m_parameters.Ssl));
         }
 
         ///<summary>Create a connection to the endpoint specified. The

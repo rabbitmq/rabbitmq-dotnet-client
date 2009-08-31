@@ -99,15 +99,35 @@ namespace RabbitMQ.Client
             set { m_port = value; }
         }
 
+
+        private SslOption m_ssl;
+        ///<summary>Retrieve the SSL options for this AmqpTcpEndpoint.
+        ///If not set, null is returned</summary>
+        public SslOption Ssl
+        {
+            get { return m_ssl; }
+            set { m_ssl = value; }
+        }
+
         ///<summary>Construct an AmqpTcpEndpoint with the given
-        ///IProtocol, hostname, and port number. If the port number is
-        ///-1, the default port number for the IProtocol will be
-        ///used.</summary>
-        public AmqpTcpEndpoint(IProtocol protocol, string hostName, int portOrMinusOne)
+        ///IProtocol, hostname, port number and ssl option. If the port 
+        ///number is -1, the default port number for the IProtocol 
+        ///will be used.</summary>
+        public AmqpTcpEndpoint(IProtocol protocol, string hostName, int portOrMinusOne, SslOption ssl)
         {
             m_protocol = protocol;
             m_hostName = hostName;
             m_port = portOrMinusOne;
+            m_ssl = ssl;
+        }
+
+        ///<summary>Construct an AmqpTcpEndpoint with the given
+        ///IProtocol, hostname, and port number. If the port number is
+        ///-1, the default port number for the IProtocol will be
+        ///used.</summary>
+        public AmqpTcpEndpoint(IProtocol protocol, string hostName, int portOrMinusOne) :
+            this(protocol, hostName, portOrMinusOne, new SslOption())
+        {
         }
 
         ///<summary>Construct an AmqpTcpEndpoint with the given
@@ -151,6 +171,17 @@ namespace RabbitMQ.Client
         ///that IProtocol.</summary>
         public AmqpTcpEndpoint() :
             this(Protocols.FromEnvironment())
+        {
+        }
+
+        ///<summary>Construct an AmqpTcpEndpoint with the given
+        ///IProtocol, Uri and ssl options.</summary>
+        ///<remarks>
+        /// Please see the class overview documentation for
+        /// information about the Uri format in use.
+        ///</remarks>
+        public AmqpTcpEndpoint(IProtocol protocol, Uri uri, SslOption ssl) :
+            this(protocol, uri.Host, uri.Port, ssl)
         {
         }
 
