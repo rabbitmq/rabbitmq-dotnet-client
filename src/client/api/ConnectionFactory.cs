@@ -259,9 +259,10 @@ namespace RabbitMQ.Client
                                             string hostName,
                                             int portNumber)
         {
-            return CreateConnection(new AmqpTcpEndpoint[] {
-                                        new AmqpTcpEndpoint(version, hostName, portNumber, m_parameters.Ssl)
-                                    });
+            return CreateConnection(new AmqpTcpEndpoint(version,
+                                                        hostName,
+                                                        portNumber,
+                                                        m_parameters.Ssl));
         }
 
         ///<summary>Create a connection to the endpoint specified. The
@@ -269,7 +270,7 @@ namespace RabbitMQ.Client
         ///<exception cref="ArgumentException"/>
         public IConnection CreateConnection(IProtocol version, string hostName)
         {
-            return CreateConnection(version, hostName, -1);
+            return CreateConnection(new AmqpTcpEndpoint(version, hostName));
         }
 
         ///<summary>Create a connection to the endpoint specified.</summary>
@@ -280,7 +281,7 @@ namespace RabbitMQ.Client
         ///<exception cref="ArgumentException"/>
         public IConnection CreateConnection(IProtocol version, Uri uri)
         {
-            return CreateConnection(version, uri.Host, uri.Port);
+            return CreateConnection(new AmqpTcpEndpoint(version, uri));
         }
 
         ///<summary>Create a connection to the endpoint specified,
@@ -292,7 +293,7 @@ namespace RabbitMQ.Client
         ///</remarks>
         public IConnection CreateConnection(Uri uri)
         {
-            return CreateConnection(Protocols.FromEnvironment(), uri.Host, uri.Port);
+            return CreateConnection(new AmqpTcpEndpoint(uri));
         }
 
         ///<summary>Create a connection to the host (and optional
