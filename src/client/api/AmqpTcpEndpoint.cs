@@ -63,6 +63,14 @@ namespace RabbitMQ.Client
     ///<summary>Represents a TCP-addressable AMQP peer, including the
     ///protocol variant to use, and a host name and port
     ///number.</summary>
+    ///<para>
+    /// Some of the constructors take, as a convenience, a System.Uri
+    /// instance representing an AMQP server address. The use of Uri
+    /// here is not standardised - Uri is simply a convenient
+    /// container for internet-address-like components. In particular,
+    /// the Uri "Scheme" property is ignored: only the "Host" and
+    /// "Port" properties are extracted.
+    ///</para>
     public class AmqpTcpEndpoint
     {
         private IProtocol m_protocol;
@@ -95,11 +103,78 @@ namespace RabbitMQ.Client
         ///IProtocol, hostname, and port number. If the port number is
         ///-1, the default port number for the IProtocol will be
         ///used.</summary>
-        public AmqpTcpEndpoint(IProtocol protocolVariant, string hostname, int portOrMinusOne)
+        public AmqpTcpEndpoint(IProtocol protocol, string hostName, int portOrMinusOne)
         {
-            m_protocol = protocolVariant;
-            m_hostName = hostname;
+            m_protocol = protocol;
+            m_hostName = hostName;
             m_port = portOrMinusOne;
+        }
+
+        ///<summary>Construct an AmqpTcpEndpoint with the given
+        ///IProtocol and hostname, using the default port for the
+        ///IProtocol.</summary>
+        public AmqpTcpEndpoint(IProtocol protocol, string hostName) :
+            this(protocol, hostName, -1)
+        {
+        }
+
+        ///<summary>Construct an AmqpTcpEndpoint with the given
+        ///IProtocol, "localhost" as the hostname, and using the
+        ///default port for the IProtocol.</summary>
+        public AmqpTcpEndpoint(IProtocol protocol) :
+            this(protocol, "localhost", -1)
+        {
+        }
+
+        ///<summary>Construct an AmqpTcpEndpoint with the given
+        ///hostname and port number, using the IProtocol from
+        ///Protocols.FromEnvironment(). If the port number is
+        ///-1, the default port number for the IProtocol will be
+        ///used.</summary>
+        public AmqpTcpEndpoint(string hostName, int portOrMinusOne) :
+            this(Protocols.FromEnvironment(), hostName, portOrMinusOne)
+        {
+        }
+
+        ///<summary>Construct an AmqpTcpEndpoint with the given
+        ///hostname, using the IProtocol from
+        ///Protocols.FromEnvironment(), and the default port number of
+        ///that IProtocol.</summary>
+        public AmqpTcpEndpoint(string hostName) :
+            this(Protocols.FromEnvironment(), hostName)
+        {
+        }
+
+        ///<summary>Construct an AmqpTcpEndpoint with a hostname of
+        ///"localhost", using the IProtocol from
+        ///Protocols.FromEnvironment(), and the default port number of
+        ///that IProtocol.</summary>
+        public AmqpTcpEndpoint() :
+            this(Protocols.FromEnvironment())
+        {
+        }
+
+        ///<summary>Construct an AmqpTcpEndpoint with the given
+        ///IProtocol and Uri.</summary>
+        ///<remarks>
+        /// Please see the class overview documentation for
+        /// information about the Uri format in use.
+        ///</remarks>
+        public AmqpTcpEndpoint(IProtocol protocol, Uri uri) :
+            this(protocol, uri.Host, uri.Port)
+        {
+        }
+
+        ///<summary>Construct an AmqpTcpEndpoint with the given
+        ///Uri, using the IProtocol from
+        ///Protocols.FromEnvironment().</summary>
+        ///<remarks>
+        /// Please see the class overview documentation for
+        /// information about the Uri format in use.
+        ///</remarks>
+        public AmqpTcpEndpoint(Uri uri) :
+            this(Protocols.FromEnvironment(), uri)
+        {
         }
 
         ///<summary>Returns a URI-like string of the form
