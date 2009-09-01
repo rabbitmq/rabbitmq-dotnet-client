@@ -99,7 +99,7 @@
   <Target Name="BeforeClean" />
    
   <!-- Microsoft CSharp targets -->
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   
 </Project>
 

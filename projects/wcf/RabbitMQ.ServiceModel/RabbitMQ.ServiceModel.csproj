@@ -125,7 +125,7 @@
   <Target Name="Clean" Condition="'$(PropBuildWcf)' != 'true'">
     <Message Text="Not cleaning anything in $(MSBuildProjectName) because PropBuildWcf is false." />
   </Target>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" Condition="'$(PropBuildWcf)' == 'true'"/>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" Condition="'$(PropBuildWcf)' == 'true'"/>
   
   <!-- Custom BeforeBuild-->
   <Target Name="BeforeBuild" DependsOnTargets="Detokenize" />

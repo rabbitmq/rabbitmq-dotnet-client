@@ -77,7 +77,7 @@ NAME_VSN=$NAME-$RABBIT_VSN
 
 RELEASE_DIR=releases/$NAME/v$RABBIT_VSN
 
-DEVENV=devenv.com
+MSBUILD=msbuild.exe
 
 
 
@@ -189,14 +189,14 @@ function dist-target-framework {
     mkdir -p tmp/dist/bin tmp/dist/projects/examples
 
     ### Clean
-    $DEVENV RabbitMQDotNetClient.sln /Clean "Release|AnyCPU" || exit $?
+    $MSBUILD RabbitMQDotNetClient.sln /t:Clean /property:Configuration="Release" || exit $?
 
     ### Copy examples code to be zipped to tmp/dist/
     cp -r projects/examples/client tmp/dist/projects/examples/
     test "$BUILD_WCF" && cp -r projects/examples/wcf tmp/dist/projects/examples/
 
     ### Build
-    $DEVENV RabbitMQDotNetClient.sln /Build "Release|AnyCPU" || exit $?
+    $MSBUILD RabbitMQDotNetClient.sln /t:Build /property:Configuration="Release" || exit $?
     
     ### Copy bin files to be zipped to tmp/dist/
     cp projects/client/RabbitMQ.Client/build/bin/RabbitMQ.Client.dll tmp/dist/bin/

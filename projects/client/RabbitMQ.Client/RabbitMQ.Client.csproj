@@ -257,7 +257,7 @@
   <Target Name="AfterBuild" />
 
   <!-- Microsoft CSharp targets -->
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />  
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />  
   
   <!-- Custom BeforeBuild-->
   <Target Name="BeforeBuild" DependsOnTargets="GenerateApi; Detokenize" />
