@@ -86,19 +86,15 @@ function main {
     safe-rm-deep-dir $RELEASE_DIR
     mkdir -p $RELEASE_DIR
 
-    ### Remove tmp dir
-    safe-rm-deep-dir tmp
-
-    ### Get specified version snapshot from hg
-    take-hg-snapshot
-
     ### Copy keyfile in the hg snapshot
-    cp $KEYFILE tmp/hg-snapshot/projects/client/RabbitMQ.Client/
+    cp $KEYFILE projects/client/RabbitMQ.Client/rabbit.snk
+
+    ### Remove everything in tmp dir and create it again
+    safe-rm-deep-dir tmp
+    mkdir -p tmp
 
     ### Generate dist zip files
-    cd tmp/hg-snapshot
     dist-zips
-    cd ../../
 
     ### Remove tmp and containing hg snapshot
     safe-rm-deep-dir tmp
@@ -106,9 +102,6 @@ function main {
 
 
 function dist-zips {
-    ### Assuming we're in tmp/hg-snapshot/
-    test-dir-tmp-hgsnapshot
-
     ### Source dist
     src-dist
 
@@ -141,9 +134,6 @@ function dist-zips {
 
 
 function cp-license-to {
-    ### Assuming we're in tmp/hg-snapshot/
-    test-dir-tmp-hgsnapshot
-
     cp LICENSE $1
     cp LICENSE-APACHE2 $1
     cp LICENSE-MPL-RabbitMQ $1
@@ -159,36 +149,27 @@ function safe-rm-deep-dir {
 }
 
 
-function take-hg-snapshot {
-    mkdir -p tmp
-    hg clone -r $RABBIT_VSN $HG_REPO tmp/hg-snapshot || exit $?
-}
-
-
 function src-dist {
-    ### Assuming we're in tmp/hg-snapshot/
-    test-dir-tmp-hgsnapshot
-
     ### Copy files to be zipped to tmp/srcdist/
-    mkdir -p ../srcdist/docs/specs ../srcdist/lib
-    cp RabbitMQDotNetClient.sln ../srcdist/
-    cp -r projects ../srcdist/
-    rm -f ../srcdist/projects/README
-    cp -r docs/specs/*.xml ../srcdist/docs/specs/
-    cp -r lib/MSBuild.Community.Tasks ../srcdist/lib/
-    cp -r lib/nunit ../srcdist/lib/
-    cp Local.props.example ../srcdist/
-    cp README.in ../srcdist/README
-    links -dump $RABBIT_WEBSITE/build-dotnet-client.html >> ../srcdist/README
-    cp-license-to ../srcdist/
+    mkdir -p tmp/srcdist/docs/specs tmp/srcdist/lib
+    cp RabbitMQDotNetClient.sln tmp/srcdist/
+    cp -r projects tmp/srcdist/
+    rm -f tmp/srcdist/projects/README
+    cp -r docs/specs/*.xml tmp/srcdist/docs/specs/
+    cp -r lib/MSBuild.Community.Tasks tmp/srcdist/lib/
+    cp -r lib/nunit tmp/srcdist/lib/
+    cp Local.props.example tmp/srcdist/
+    cp README.in tmp/srcdist/README
+    links -dump $RABBIT_WEBSITE/build-dotnet-client.html >> tmp/srcdist/README
+    cp-license-to tmp/srcdist/
 
     ### Zip tmp/srcdist
-    cd ../srcdist
+    cd tmp/srcdist
     zip -r ../../$RELEASE_DIR/$NAME_VSN.zip . -x \*.snk \*.resharper \*.csproj.user
-    cd ../hg-snapshot
+    cd ../..
     
     ### Remove tmp/srcdist
-    rm -rf ../srcdist
+    rm -rf tmp/srcdist
 }
 
 
@@ -197,45 +178,51 @@ function dist-target-framework {
     BUILD_WCF=
     test "$TARGET_FRAMEWORK" == "dotnet-3.0" && BUILD_WCF="true"
 
-    ### Assuming we're in tmp/hg-snapshot/
-    test-dir-tmp-hgsnapshot
+    ### Save current Local.props
+    LOCAL_PROPS_EXISTS=
+    test -f Local.props && LOCAL_PROPS_EXISTS="true"
+    test "$LOCAL_PROPS_EXISTS" && mv ./Local.props ./Local.props.user
 
-    ### Copy Local.props specific to dist
-    cp ../../Dist-$TARGET_FRAMEWORK.props ./Local.props
+    ### Overwrite Local.props with settings specific to dist
+    cp ./Dist-$TARGET_FRAMEWORK.props ./Local.props
 
-    mkdir -p ../dist/bin ../dist/projects/examples
+    mkdir -p tmp/dist/bin tmp/dist/projects/examples
 
     ### Clean
-    $DEVENV RabbitMQDotNetClient.sln /Clean "Release|AnyCPU"
+    $DEVENV RabbitMQDotNetClient.sln /Clean "Release|AnyCPU" || exit $?
 
     ### Copy examples code to be zipped to tmp/dist/
-    cp -r projects/examples/client ../dist/projects/examples/
-    test "$BUILD_WCF" && cp -r projects/examples/wcf ../dist/projects/examples/
+    cp -r projects/examples/client tmp/dist/projects/examples/
+    test "$BUILD_WCF" && cp -r projects/examples/wcf tmp/dist/projects/examples/
 
     ### Build
-    $DEVENV RabbitMQDotNetClient.sln /Build "Release|AnyCPU"
+    $DEVENV RabbitMQDotNetClient.sln /Build "Release|AnyCPU" || exit $?
     
     ### Copy bin files to be zipped to tmp/dist/
-    cp projects/client/RabbitMQ.Client/build/bin/RabbitMQ.Client.dll ../dist/bin/
-    cp projects/examples/client/AddClient/build/bin/AddClient.exe ../dist/bin/
-    cp projects/examples/client/AddServer/build/bin/AddServer.exe ../dist/bin/
-    cp projects/examples/client/DeclareQueue/build/bin/DeclareQueue.exe ../dist/bin/
-    cp projects/examples/client/ExceptionTest/build/bin/ExceptionTest.exe ../dist/bin/
-    cp projects/examples/client/LogTail/build/bin/LogTail.exe ../dist/bin/
-    cp projects/examples/client/LowlevelLogTail/build/bin/LowlevelLogTail.exe ../dist/bin/
-    cp projects/examples/client/SendMap/build/bin/SendMap.exe ../dist/bin/
-    cp projects/examples/client/SendString/build/bin/SendString.exe ../dist/bin/
-    cp projects/examples/client/SingleGet/build/bin/SingleGet.exe ../dist/bin/
-    test "$BUILD_WCF" && cp projects/wcf/RabbitMQ.ServiceModel/build/bin/RabbitMQ.ServiceModel.dll ../dist/bin/
-    cp-license-to ../dist/
+    cp projects/client/RabbitMQ.Client/build/bin/RabbitMQ.Client.dll tmp/dist/bin/
+    cp projects/examples/client/AddClient/build/bin/AddClient.exe tmp/dist/bin/
+    cp projects/examples/client/AddServer/build/bin/AddServer.exe tmp/dist/bin/
+    cp projects/examples/client/DeclareQueue/build/bin/DeclareQueue.exe tmp/dist/bin/
+    cp projects/examples/client/ExceptionTest/build/bin/ExceptionTest.exe tmp/dist/bin/
+    cp projects/examples/client/LogTail/build/bin/LogTail.exe tmp/dist/bin/
+    cp projects/examples/client/LowlevelLogTail/build/bin/LowlevelLogTail.exe tmp/dist/bin/
+    cp projects/examples/client/SendMap/build/bin/SendMap.exe tmp/dist/bin/
+    cp projects/examples/client/SendString/build/bin/SendString.exe tmp/dist/bin/
+    cp projects/examples/client/SingleGet/build/bin/SingleGet.exe tmp/dist/bin/
+    test "$BUILD_WCF" && cp projects/wcf/RabbitMQ.ServiceModel/build/bin/RabbitMQ.ServiceModel.dll tmp/dist/bin/
+    cp-license-to tmp/dist/
     
     ### Zip tmp/dist
-    cd ../dist
+    cd tmp/dist
     zip -r ../../$RELEASE_DIR/$NAME_VSN-$TARGET_FRAMEWORK.zip .
-    cd ../hg-snapshot
+    cd ../..
 
     ### Remove tmp/dist
-    rm -rf ../dist
+    rm -rf tmp/dist
+    
+    ### Restore Local.props
+    rm -f ./Local.props
+    test "$LOCAL_PROPS_EXISTS" && mv ./Local.props.user ./Local.props
 }
 
 
@@ -246,24 +233,21 @@ function gendoc-dist {
     ### If this is an empty string, the intermediate xml output will not be saved in a zip
     ZIP_TMP_XML_DOC_FILENAME="$4"
 
-    ### Assuming we're in tmp/hg-snapshot/
-    test-dir-tmp-hgsnapshot
+    mkdir -p tmp/gendoc/xml tmp/gendoc/html
 
-    mkdir -p ../gendoc/xml ../gendoc/html
-
-    ### Generate xml's with ndocproc    
+    ### Generate XMLs with ndocproc    
     lib/ndocproc-bin/bin/ndocproc.exe \
     /nosubtypes \
     $EXTRA_NDOCPROC_ARGS \
-    ../gendoc/xml \
+    tmp/gendoc/xml \
     $XML_SOURCE_FILE \
     docs/namespaces.xml
 
-    ### Zip ndocproc's output if tmp xml doc zip filename
+    ### Zip ndocproc's output
     if [ $ZIP_TMP_XML_DOC_FILENAME ]; then
-        cd ../gendoc/xml
+        cd tmp/gendoc/xml
         zip -r ../../../$RELEASE_DIR/$ZIP_TMP_XML_DOC_FILENAME .
-        cd ../../hg-snapshot
+        cd ../../..
     fi
     
     ### Transform to html, using xsltproc
@@ -271,47 +255,27 @@ function gendoc-dist {
     genhtml namespace- namespace
     genhtml type- type
     
-    ### Remove generated xml's and copy remaining files to be added to the .zip
-    rm -rf ../gendoc/xml
-    cp  lib/ndocproc-bin/xsl/style.css ../gendoc/html/
-    cp-license-to ../gendoc/
+    ### Remove generated XMLs and copy remaining files to be added to the .zip
+    rm -rf tmp/gendoc/xml
+    cp  lib/ndocproc-bin/xsl/style.css tmp/gendoc/html/
+    cp-license-to tmp/gendoc/
     
     ### Zip tmp/gendoc
-    cd ../gendoc
+    cd tmp/gendoc
     zip -r ../../$RELEASE_DIR/$ZIP_DESTINATION_FILENAME .
-    cd ../hg-snapshot
+    cd ../..
 
     ### Remove tmp/gendoc
-    rm -rf ../gendoc
+    rm -rf tmp/gendoc
 }
 
 
 function genhtml {
-    ### Assuming we're in tmp/hg-snapshot/
-    test-dir-tmp-hgsnapshot
-    
-    for f in $(ls ../gendoc/xml/$1*.xml); do
+    for f in $(ls tmp/gendoc/xml/$1*.xml); do
         f_base_name="${f##*/}"
         echo "(xsltproc) Processing $f_base_name ..."
-        xsltproc -o ../gendoc/html/${f_base_name%.xml}.html --param config ../gendoc/xml/config.xml lib/ndocproc-bin/xsl/$2.xsl $f
+        xsltproc -o tmp/gendoc/html/${f_base_name%.xml}.html --param config tmp/gendoc/xml/config.xml lib/ndocproc-bin/xsl/$2.xsl $f
     done
-}
-
-
-function test-dir-tmp-hgsnapshot {
-    last_dir="${PWD##/*/}"
-    pwd_wo_last_dir="${PWD%/$last_dir}"
-    prev_dir="${pwd_wo_last_dir##/*/}"
-    if [ "$last_dir" != "hg-snapshot" ]; then
-        fail="true"
-    fi
-    if [ "$prev_dir" != 'tmp' ]; then
-        fail="true"
-    fi
-    if [ $fail ]; then
-        echo "FAILED! Expected working dir tmp/hg-snapshot"
-        exit 1
-    fi
 }
 
 

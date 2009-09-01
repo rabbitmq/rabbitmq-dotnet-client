@@ -1,3 +1,2 @@
 declare RABBIT_VSN=1.6.0
-declare KEYFILE=projects/client/RabbitMQ.Client/rabbit.snk
-declare HG_REPO=http://hg.rabbitmq.com/rabbitmq-dotnet-client
+declare KEYFILE=rabbit.snk

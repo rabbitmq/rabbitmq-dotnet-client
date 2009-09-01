@@ -2,7 +2,7 @@ syntax: regexp
 
 ^Local.props$
 ^local.dist$
-^projects/client/RabbitMQ\.Client/rabbit\.snk$
+rabbit\.snk$
 
 ^scratch$
 ^releases/
