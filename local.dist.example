@@ -1,2 +1,0 @@
-declare RABBIT_VSN=1.6.0
-declare KEYFILE=rabbit.snk

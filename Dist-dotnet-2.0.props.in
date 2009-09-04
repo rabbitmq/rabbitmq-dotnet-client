@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PropTargetFramework>v2.0</PropTargetFramework>
+    <PropAssemblyVersion>@VERSION@</PropAssemblyVersion>
+    <PropUseKeyfile>@USE_KEYFILE@</PropUseKeyfile>
+    <PropKeyfile Condition="'$(PropUseKeyfile)' == 'true'">$(MSBuildProjectDirectory)\rabbit.snk</PropKeyfile>
+  </PropertyGroup>
+</Project>

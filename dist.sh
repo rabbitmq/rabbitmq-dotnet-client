@@ -61,33 +61,30 @@
 ### Disable sharing files by default (it causes things not to work properly)
 CYGWIN=nontsec
 
-### Run commands in local.dist
-if [ ! -f local.dist ]; then
-    echo "Could not find local.dist"
-    exit 1
-fi
-while read line; do $line || exit $?; done < local.dist
+### Overrideable vars
+test "$KEYFILE" || KEYFILE=rabbit.snk
+test "$RABBIT_VSN" || RABBIT_VSN=0.0.0
+test "$MSBUILD" || MSBUILD=msbuild.exe
+test "$RABBIT_WEBSITE" || RABBIT_WEBSITE=http://www.rabbitmq.com
 
-
-### Some general vars
-RABBIT_WEBSITE=http://www.rabbitmq.com
-
+### Other, general vars
 NAME=rabbitmq-dotnet-client
 NAME_VSN=$NAME-$RABBIT_VSN
-
 RELEASE_DIR=releases/$NAME/v$RABBIT_VSN
-
-MSBUILD=msbuild.exe
-
-
+USE_KEYFILE=
+test -f "$KEYFILE" && USE_KEYFILE="true"
 
 function main {
     ### Remove everything in the release dir and create the dir again
     safe-rm-deep-dir $RELEASE_DIR
     mkdir -p $RELEASE_DIR
 
-    ### Copy keyfile in the hg snapshot
-    cp $KEYFILE projects/client/RabbitMQ.Client/rabbit.snk
+    ### Copy keyfile in the expected location
+    if [ "$USE_KEYFILE" ]; then
+        cp $KEYFILE projects/client/RabbitMQ.Client/rabbit.snk
+    else
+        echo "WARNING! Keyfile $KEYFILE not found. dist-msi.sh will not work if keyfile is not provided."
+    fi
 
     ### Remove everything in tmp dir and create it again
     safe-rm-deep-dir tmp
@@ -96,7 +93,7 @@ function main {
     ### Generate dist zip files
     dist-zips
 
-    ### Remove tmp and containing hg snapshot
+    ### Remove tmp
     safe-rm-deep-dir tmp
 }
 
@@ -184,7 +181,7 @@ function dist-target-framework {
     test "$LOCAL_PROPS_EXISTS" && mv ./Local.props ./Local.props.user
 
     ### Overwrite Local.props with settings specific to dist
-    cp ./Dist-$TARGET_FRAMEWORK.props ./Local.props
+    gen-props Dist-$TARGET_FRAMEWORK.props.in ./Local.props
 
     mkdir -p tmp/dist/bin tmp/dist/projects/examples
 
@@ -225,6 +222,11 @@ function dist-target-framework {
     test "$LOCAL_PROPS_EXISTS" && mv ./Local.props.user ./Local.props
 }
 
+function gen-props {
+    sed -e "s:@VERSION@:$RABBIT_VSN:g" \
+        -e "s:@USE_KEYFILE@:$USE_KEYFILE:g" \
+    < $1 > $2
+}
 
 function gendoc-dist {
     XML_SOURCE_FILE="$1"

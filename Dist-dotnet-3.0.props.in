@@ -2,11 +2,9 @@
 <Project ToolsVersion="3.5" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <PropTargetFramework>v3.0</PropTargetFramework>
-    <PropAssemblyVersion>1.6.0</PropAssemblyVersion>
-    
-    <!-- Assembly strong naming - $(MSBuildProjectDirectory) is the RabbitMQ.Client project directory -->
-    <PropKeyfile>$(MSBuildProjectDirectory)\rabbit.snk</PropKeyfile>
-    
     <PropBuildWcf>true</PropBuildWcf>
+    <PropAssemblyVersion>@VERSION@</PropAssemblyVersion>
+    <PropUseKeyfile>@USE_KEYFILE@</PropUseKeyfile>
+    <PropKeyfile Condition="'$(PropUseKeyfile)' == 'true'">$(MSBuildProjectDirectory)\rabbit.snk</PropKeyfile>
   </PropertyGroup>
 </Project>

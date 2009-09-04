@@ -60,18 +60,20 @@
 ### Disable sharing files by default (it causes things not to work properly)
 CYGWIN=nontsec
 
-### Run commands in local.dist
-if [ ! -f local.dist ]; then
-    echo "Could not find local.dist"
-    exit 1
-fi
-while read line; do $line || exit $?; done < local.dist
+### Overrideable vars
+test "$KEYFILE" || KEYFILE=rabbit.snk
+test "$RABBIT_VSN" || RABBIT_VSN=0.0.0
 
-### Some general vars
+### Other, general vars
 NAME=rabbitmq-dotnet-client
 NAME_VSN=$NAME-$RABBIT_VSN
 RELEASE_DIR=releases/$NAME/v$RABBIT_VSN
 
+### Check that we have a keyfile
+if [ ! -f "$KEYFILE" ]; then
+    echo "ERROR! Keyfile $KEYFILE not found."
+    exit 1
+fi
 
 
 function main {
@@ -141,7 +143,7 @@ function gen-license-rtf {
     sed -e "s:""For the Apache License, please see the file LICENSE-APACHE2.""::" \
         -e "s:""For the Mozilla Public License, please see the file LICENSE-MPL-RabbitMQ.""::" \
         -e "s:$:\n\\\par:" \
-         < LICENSE \
+        < LICENSE \
         > tmp/LICENSE.out
 
     sed -e "s:$:\n\\\par:" < LICENSE-APACHE2 > tmp/LICENSE-APACHE2.out
