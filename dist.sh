@@ -62,8 +62,9 @@
 CYGWIN=nontsec
 
 ### Overrideable vars
-test "$KEYFILE" || KEYFILE=rabbit.snk
+test "$KEYFILE" || KEYFILE=rabbit-mock.snk
 test "$RABBIT_VSN" || RABBIT_VSN=0.0.0
+test "$OFFICIAL_RELEASE" || OFFICIAL_RELEASE=
 test "$MSBUILD" || MSBUILD=msbuild.exe
 test "$RABBIT_WEBSITE" || RABBIT_WEBSITE=http://www.rabbitmq.com
 
@@ -71,19 +72,22 @@ test "$RABBIT_WEBSITE" || RABBIT_WEBSITE=http://www.rabbitmq.com
 NAME=rabbitmq-dotnet-client
 NAME_VSN=$NAME-$RABBIT_VSN
 RELEASE_DIR=releases/$NAME/v$RABBIT_VSN
-USE_KEYFILE=
-test -f "$KEYFILE" && USE_KEYFILE="true"
+
 
 function main {
     ### Remove everything in the release dir and create the dir again
     safe-rm-deep-dir $RELEASE_DIR
     mkdir -p $RELEASE_DIR
 
-    ### Copy keyfile in the expected location
-    if [ "$USE_KEYFILE" ]; then
-        cp $KEYFILE projects/client/RabbitMQ.Client/rabbit.snk
-    else
-        echo "WARNING! Keyfile $KEYFILE not found. dist-msi.sh will not work if keyfile is not provided."
+    ### Check keyfile exists and generate if necessary, or exit with error if
+    ### we're building an official release
+    if [ ! -f "$KEYFILE" ]; then
+        if [ ! "$OFFICIAL_RELEASE" ]; then
+            sn -k $KEYFILE || exit $?
+        else
+            echo "ERROR! Keyfile $KEYFILE not found."
+            exit 1
+        fi
     fi
 
     ### Remove everything in tmp dir and create it again
@@ -224,7 +228,7 @@ function dist-target-framework {
 
 function gen-props {
     sed -e "s:@VERSION@:$RABBIT_VSN:g" \
-        -e "s:@USE_KEYFILE@:$USE_KEYFILE:g" \
+        -e "s:@KEYFILE@:$KEYFILE:g" \
     < $1 > $2
 }
 

@@ -61,19 +61,12 @@
 CYGWIN=nontsec
 
 ### Overrideable vars
-test "$KEYFILE" || KEYFILE=rabbit.snk
 test "$RABBIT_VSN" || RABBIT_VSN=0.0.0
 
 ### Other, general vars
 NAME=rabbitmq-dotnet-client
 NAME_VSN=$NAME-$RABBIT_VSN
 RELEASE_DIR=releases/$NAME/v$RABBIT_VSN
-
-### Check that we have a keyfile
-if [ ! -f "$KEYFILE" ]; then
-    echo "ERROR! Keyfile $KEYFILE not found."
-    exit 1
-fi
 
 
 function main {

@@ -3,7 +3,6 @@
   <PropertyGroup>
     <PropTargetFramework>v2.0</PropTargetFramework>
     <PropAssemblyVersion>@VERSION@</PropAssemblyVersion>
-    <PropUseKeyfile>@USE_KEYFILE@</PropUseKeyfile>
-    <PropKeyfile Condition="'$(PropUseKeyfile)' == 'true'">$(MSBuildProjectDirectory)\rabbit.snk</PropKeyfile>
+    <PropKeyfile>$(MSBuildProjectDirectory)\..\..\..\@KEYFILE@</PropKeyfile>
   </PropertyGroup>
 </Project>
