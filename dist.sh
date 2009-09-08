@@ -58,6 +58,9 @@
 ##---------------------------------------------------------------------------
 
 
+### Fail on any non-zero return
+set -e
+
 ### Disable sharing files by default (it causes things not to work properly)
 CYGWIN=nontsec
 
@@ -83,7 +86,7 @@ function main {
     ### we're building an official release
     if [ ! -f "$KEYFILE" ]; then
         if [ ! "$OFFICIAL_RELEASE" ]; then
-            sn -k $KEYFILE || exit $?
+            sn -k $KEYFILE
         else
             echo "ERROR! Keyfile $KEYFILE not found."
             exit 1
@@ -143,7 +146,7 @@ function cp-license-to {
 
 function safe-rm-deep-dir {
     ### Workaround for the path-too-long bug in cygwin
-    if [ -e $1 ]; then
+    if [ -e "$1" ]; then
         mv -f $1 /tmp/del
         rm -rf /tmp/del
     fi
@@ -194,14 +197,14 @@ function dist-target-framework {
     mkdir -p tmp/dist/bin tmp/dist/projects/examples
 
     ### Clean
-    $MSBUILD RabbitMQDotNetClient.sln /t:Clean /property:Configuration="Release" || exit $?
+    $MSBUILD RabbitMQDotNetClient.sln /t:Clean /property:Configuration="Release"
 
     ### Copy examples code to be zipped to tmp/dist/
     cp -r projects/examples/client tmp/dist/projects/examples/
     test "$BUILD_WCF" && cp -r projects/examples/wcf tmp/dist/projects/examples/
 
     ### Build
-    $MSBUILD RabbitMQDotNetClient.sln /t:Build /property:Configuration="Release" || exit $?
+    $MSBUILD RabbitMQDotNetClient.sln /t:Build /property:Configuration="Release"
     
     ### Copy bin files to be zipped to tmp/dist/
     cp projects/client/RabbitMQ.Client/build/bin/RabbitMQ.Client.dll tmp/dist/bin/
@@ -245,6 +248,9 @@ function gendoc-dist {
 
     mkdir -p tmp/gendoc/xml tmp/gendoc/html
 
+    ### Make sure we can use ndocproc (it might be from a remote location)
+    chmod +x lib/ndocproc-bin/bin/ndocproc.exe
+
     ### Generate XMLs with ndocproc    
     lib/ndocproc-bin/bin/ndocproc.exe \
     /nosubtypes \
@@ -254,7 +260,7 @@ function gendoc-dist {
     docs/namespaces.xml
 
     ### Zip ndocproc's output
-    if [ $ZIP_TMP_XML_DOC_FILENAME ]; then
+    if [ "$ZIP_TMP_XML_DOC_FILENAME" ]; then
         cd tmp/gendoc/xml
         zip -r ../../../$RELEASE_DIR/$ZIP_TMP_XML_DOC_FILENAME .
         cd ../../..

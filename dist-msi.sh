@@ -57,6 +57,9 @@
 ##
 ##---------------------------------------------------------------------------
 
+### Fail on any non-zero return
+set -e
+
 ### Disable sharing files by default (it causes things not to work properly)
 CYGWIN=nontsec
 
@@ -90,17 +93,16 @@ function build-msm-msi {
 
     cd wix
 
-    candle -out ../tmp/wix/rabbitmq-dotnet-client-msm.wixobj dotnet-client-merge-module.wxs || exit $?
-    light -out ../tmp/wix/rabbitmq-dotnet-client.msm ../tmp/wix/rabbitmq-dotnet-client-msm.wixobj || exit $?
-    MsiVal2.exe ../tmp/wix/rabbitmq-dotnet-client.msm ../lib/wix/mergemod.cub -f || exit $?
+    candle -out ../tmp/wix/rabbitmq-dotnet-client-msm.wixobj dotnet-client-merge-module.wxs
+    light -out ../tmp/wix/rabbitmq-dotnet-client.msm ../tmp/wix/rabbitmq-dotnet-client-msm.wixobj
+    MsiVal2.exe ../tmp/wix/rabbitmq-dotnet-client.msm ../lib/wix/mergemod.cub -f
 
-    candle -out ../tmp/wix/rabbitmq-dotnet-client-msi.wixobj dotnet-client-product.wxs || exit $?
+    candle -out ../tmp/wix/rabbitmq-dotnet-client-msi.wixobj dotnet-client-product.wxs
     light -out ../tmp/wix/rabbitmq-dotnet-client.msi \
         ../tmp/wix/rabbitmq-dotnet-client-msi.wixobj \
         ../lib/wix/wixui.wixlib \
-        -loc WixUI_en-us.wxl \
-       || exit $?
-    MsiVal2.exe ../tmp/wix/rabbitmq-dotnet-client.msi ../lib/wix/darice.cub -f || exit $?
+        -loc WixUI_en-us.wxl
+    MsiVal2.exe ../tmp/wix/rabbitmq-dotnet-client.msi ../lib/wix/darice.cub -f
 
     cd ..
 
@@ -163,7 +165,7 @@ function gen-license-rtf {
 
 function safe-rm-deep-dir {
     ### Workaround for the path-too-long bug in cygwin
-    if [ -e $1 ]; then
+    if [ -e "$1" ]; then
         mv -f $1 /tmp/del
         rm -rf /tmp/del
     fi
