@@ -104,6 +104,8 @@ function main {
 
     ### Remove tmp
     safe-rm-deep-dir tmp
+
+    echo "SUCCESS!"
 }
 
 
@@ -232,7 +234,7 @@ function dist-target-framework {
     
     ### Restore Local.props
     rm -f ./Local.props
-    test "$LOCAL_PROPS_EXISTS" && mv ./Local.props.user ./Local.props
+    test "$LOCAL_PROPS_EXISTS" && mv ./Local.props.user ./Local.props || true
 }
 
 function gen-props {

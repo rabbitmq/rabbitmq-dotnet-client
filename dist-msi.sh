@@ -67,6 +67,7 @@ CYGWIN=nontsec
 
 ### Overrideable vars
 test "$RABBIT_VSN" || RABBIT_VSN=0.0.0
+test "$SKIP_MSIVAL2" || SKIP_MSIVAL2=
 
 ### Other, general vars
 NAME=rabbitmq-dotnet-client
@@ -86,6 +87,8 @@ function main {
     rm -f wix/License.rtf
 
     safe-rm-deep-dir tmp
+
+    echo "SUCCESS!"
 }
 
 
@@ -97,14 +100,14 @@ function build-msm-msi {
 
     candle -out ../tmp/wix/rabbitmq-dotnet-client-msm.wixobj dotnet-client-merge-module.wxs
     light -out ../tmp/wix/rabbitmq-dotnet-client.msm ../tmp/wix/rabbitmq-dotnet-client-msm.wixobj
-    MsiVal2.exe ../tmp/wix/rabbitmq-dotnet-client.msm ../lib/wix/mergemod.cub -f
+    test "$SKIP_MSIVAL2" || MsiVal2.exe ../tmp/wix/rabbitmq-dotnet-client.msm ../lib/wix/mergemod.cub -f
 
     candle -out ../tmp/wix/rabbitmq-dotnet-client-msi.wixobj dotnet-client-product.wxs
     light -out ../tmp/wix/rabbitmq-dotnet-client.msi \
         ../tmp/wix/rabbitmq-dotnet-client-msi.wixobj \
         ../lib/wix/wixui.wixlib \
         -loc WixUI_en-us.wxl
-    MsiVal2.exe ../tmp/wix/rabbitmq-dotnet-client.msi ../lib/wix/darice.cub -f
+    test "$SKIP_MSIVAL2" || MsiVal2.exe ../tmp/wix/rabbitmq-dotnet-client.msi ../lib/wix/darice.cub -f
 
     cd ..
 
