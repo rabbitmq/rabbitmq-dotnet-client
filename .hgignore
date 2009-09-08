@@ -13,7 +13,8 @@ rabbit\.snk$
 
 ^projects/.*/(build|obj)$
 ^.*\.suo$
-^RabbitMQDotNetClient.sln.proj$
+^RabbitMQDotNetClient\.sln\.proj$
+^RabbitMQDotNetClient\.sln\.cache$
 ^gensrc/
 ^projects/.*/.*\.csproj\.user$
 ^projects/client/Unit/TestResult\.xml$

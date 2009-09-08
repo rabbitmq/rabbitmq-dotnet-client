@@ -179,6 +179,10 @@ function dist-target-framework {
     BUILD_WCF=
     test "$TARGET_FRAMEWORK" == "dotnet-3.0" && BUILD_WCF="true"
 
+    ### Make sure we can use MSBuild.Community.Tasks.dll (it might be from a
+    ### remote location)
+    chmod +x lib/MSBuild.Community.Tasks/MSBuild.Community.Tasks.dll
+
     ### Save current Local.props
     LOCAL_PROPS_EXISTS=
     test -f Local.props && LOCAL_PROPS_EXISTS="true"
