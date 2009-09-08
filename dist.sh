@@ -60,6 +60,8 @@
 
 ### Fail on any non-zero return
 set -e
+### Print command traces
+set -x
 
 ### Disable sharing files by default (it causes things not to work properly)
 CYGWIN=nontsec
