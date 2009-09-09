@@ -54,54 +54,53 @@
 //   Contributor(s): ______________________________________.
 //
 //---------------------------------------------------------------------------
+using NUnit.Framework;
 using System;
-using System.Collections;
+using RabbitMQ.Client;
 
-namespace RabbitMQ.Client.Impl
-{
-    public abstract class FileProperties : ContentHeaderBase, IFileProperties
-    {
-        public abstract string ContentType { get; set; }
-        public abstract string ContentEncoding { get; set; }
-        public abstract IDictionary Headers { get; set; }
-        public abstract byte Priority { get; set; }
-        public abstract string ReplyTo { get; set; }
-        public abstract string MessageId { get; set; }
-        public abstract string Filename { get; set; }
-        public abstract AmqpTimestamp Timestamp { get; set; }
-        public abstract string ClusterId { get; set; }
+[TestFixture]
+public class TestSslEndpointUnverified {
 
-        public abstract void ClearContentType();
-        public abstract void ClearContentEncoding();
-        public abstract void ClearHeaders();
-        public abstract void ClearPriority();
-        public abstract void ClearReplyTo();
-        public abstract void ClearMessageId();
-        public abstract void ClearFilename();
-        public abstract void ClearTimestamp();
-        public abstract void ClearClusterId();
+    public void SendReceive(IConnection conn) {
+        string message = "Hello C# SSL Client World";
 
-        public abstract bool IsContentTypePresent();
-        public abstract bool IsContentEncodingPresent();
-        public abstract bool IsHeadersPresent();
-        public abstract bool IsPriorityPresent();
-        public abstract bool IsReplyToPresent();
-        public abstract bool IsMessageIdPresent();
-        public abstract bool IsFilenamePresent();
-        public abstract bool IsTimestampPresent();
-        public abstract bool IsClusterIdPresent();
+        IModel ch = conn.CreateModel();
 
-        public override object Clone()
-        {
-            FileProperties clone = MemberwiseClone() as FileProperties;
-            if (IsHeadersPresent())
-            {
-                clone.Headers = new Hashtable();
-                foreach (DictionaryEntry entry in Headers)
-                    clone.Headers[entry.Key] = entry.Value;
-            }
+        ch.ExchangeDeclare("Exchange_TestSslEndPoint", ExchangeType.Direct);
+        ch.QueueDeclare("Queue_TestSslEndpoint");
+        ch.QueueBind("Queue_TestSslEndpoint", "Exchange_TestSslEndPoint", "Key_TestSslEndpoint", false, null);
 
-            return clone;
+        byte[] msgBytes =  System.Text.Encoding.UTF8.GetBytes(message);
+        ch.BasicPublish("Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null, msgBytes);
+
+        bool noAck = false;
+
+        BasicGetResult result = ch.BasicGet("Queue_TestSslEndpoint", noAck);
+        byte[] body = result.Body;
+
+        string resultMessage = System.Text.Encoding.UTF8.GetString(body);
+
+        ch.Close(200, "Closing the channel");
+        conn.Close();
+
+        Assert.AreEqual(message, resultMessage);
+    }
+
+
+    [Test]
+    public virtual void TestHostWithPort() {
+        string sslDir = Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
+        if (null == sslDir) {
+            return;
+        } else {
+            ConnectionFactory cf = new ConnectionFactory();
+
+            cf.Parameters.Ssl.ServerName = System.Net.Dns.GetHostName();
+            cf.Parameters.Ssl.Enabled = true;
+
+            IProtocol proto = Protocols.DefaultProtocol;
+            IConnection conn = cf.CreateConnection(proto, "localhost", 5671);
+            SendReceive(conn);
         }
     }
 }

@@ -3,11 +3,6 @@ NAME_VSN=${NAME}-${RABBIT_VSN}
 
 RELEASE_DIR=releases/${NAME}/v${RABBIT_VSN}
 
-STAGE_RELEASE_DIR=charlotte:/home/rabbitmq/stage-extras/releases/${NAME}
-LIVE_RELEASE_DIR=charlotte:/home/rabbitmq/live-extras/releases/${NAME}
-
-RSYNC_CMD=rsync -irvpl
-
 TMPXMLZIP=${NAME_VSN}-tmp-xmldoc.zip
 
 ifeq "$(RABBIT_VSN)" ""
@@ -18,11 +13,8 @@ else
 rabbit-vsn: 
 endif
 
-deploy-stage: rabbit-vsn ensure-deliverables ensure-universally-readable
-	${RSYNC_CMD} --exclude=${TMPXMLZIP} releases/${NAME}/ ${STAGE_RELEASE_DIR}
-
-deploy-live: rabbit-vsn ensure-deliverables ensure-universally-readable
-	${RSYNC_CMD} --exclude=${TMPXMLZIP} releases/${NAME}/ ${LIVE_RELEASE_DIR}
+dist: rabbit-vsn ensure-deliverables ensure-universally-readable
+	rm -f $(RELEASE_DIR)/$(TMPXMLZIP)
 
 ensure-universally-readable:
 	chmod -R a+rX releases
@@ -40,7 +32,7 @@ ensure-deliverables: rabbit-vsn
 	file ${RELEASE_DIR}/${NAME_VSN}-wcf-htmldoc
 
 ensure-prerequisites: rabbit-vsn
-	dpkg -L htmldoc plotutils transfig graphviz > /dev/null
+	dpkg -L htmldoc plotutils transfig graphviz docbook-utils > /dev/null
 
 ensure-release-dir: rabbit-vsn
 	touch ${RELEASE_DIR}/

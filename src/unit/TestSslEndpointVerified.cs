@@ -54,54 +54,32 @@
 //   Contributor(s): ______________________________________.
 //
 //---------------------------------------------------------------------------
+using NUnit.Framework;
 using System;
-using System.Collections;
+using RabbitMQ.Client;
 
-namespace RabbitMQ.Client.Impl
-{
-    public abstract class FileProperties : ContentHeaderBase, IFileProperties
-    {
-        public abstract string ContentType { get; set; }
-        public abstract string ContentEncoding { get; set; }
-        public abstract IDictionary Headers { get; set; }
-        public abstract byte Priority { get; set; }
-        public abstract string ReplyTo { get; set; }
-        public abstract string MessageId { get; set; }
-        public abstract string Filename { get; set; }
-        public abstract AmqpTimestamp Timestamp { get; set; }
-        public abstract string ClusterId { get; set; }
+[TestFixture]
+public class TestSslEndpointVerified: TestSslEndpointUnverified {
 
-        public abstract void ClearContentType();
-        public abstract void ClearContentEncoding();
-        public abstract void ClearHeaders();
-        public abstract void ClearPriority();
-        public abstract void ClearReplyTo();
-        public abstract void ClearMessageId();
-        public abstract void ClearFilename();
-        public abstract void ClearTimestamp();
-        public abstract void ClearClusterId();
+    [Test]
+    public override void TestHostWithPort() {
+        string sslDir = Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
+        if (null == sslDir) {
+            return;
+        } else {
+            ConnectionFactory cf = new ConnectionFactory();
 
-        public abstract bool IsContentTypePresent();
-        public abstract bool IsContentEncodingPresent();
-        public abstract bool IsHeadersPresent();
-        public abstract bool IsPriorityPresent();
-        public abstract bool IsReplyToPresent();
-        public abstract bool IsMessageIdPresent();
-        public abstract bool IsFilenamePresent();
-        public abstract bool IsTimestampPresent();
-        public abstract bool IsClusterIdPresent();
+            cf.Parameters.Ssl.ServerName = System.Net.Dns.GetHostName();
+            Assert.IsNotNull(sslDir);
+            cf.Parameters.Ssl.CertPath = sslDir + "/client/keycert.p12";
+            string p12Password = Environment.GetEnvironmentVariable("PASSWORD");
+            Assert.IsNotNull(p12Password);
+            cf.Parameters.Ssl.CertPassphrase = p12Password;
+            cf.Parameters.Ssl.Enabled = true;
 
-        public override object Clone()
-        {
-            FileProperties clone = MemberwiseClone() as FileProperties;
-            if (IsHeadersPresent())
-            {
-                clone.Headers = new Hashtable();
-                foreach (DictionaryEntry entry in Headers)
-                    clone.Headers[entry.Key] = entry.Value;
-            }
-
-            return clone;
+            IProtocol proto = Protocols.DefaultProtocol;
+            IConnection conn = cf.CreateConnection(proto, "localhost", 5671);
+            SendReceive(conn);
         }
     }
 }

@@ -55,53 +55,57 @@
 //
 //---------------------------------------------------------------------------
 using System;
-using System.Collections;
+using System.IO;
+using System.Text;
 
-namespace RabbitMQ.Client.Impl
-{
-    public abstract class FileProperties : ContentHeaderBase, IFileProperties
-    {
-        public abstract string ContentType { get; set; }
-        public abstract string ContentEncoding { get; set; }
-        public abstract IDictionary Headers { get; set; }
-        public abstract byte Priority { get; set; }
-        public abstract string ReplyTo { get; set; }
-        public abstract string MessageId { get; set; }
-        public abstract string Filename { get; set; }
-        public abstract AmqpTimestamp Timestamp { get; set; }
-        public abstract string ClusterId { get; set; }
+using RabbitMQ.Client;
+using RabbitMQ.Client.Content;
+using RabbitMQ.Client.MessagePatterns;
 
-        public abstract void ClearContentType();
-        public abstract void ClearContentEncoding();
-        public abstract void ClearHeaders();
-        public abstract void ClearPriority();
-        public abstract void ClearReplyTo();
-        public abstract void ClearMessageId();
-        public abstract void ClearFilename();
-        public abstract void ClearTimestamp();
-        public abstract void ClearClusterId();
+namespace RabbitMQ.Client.Examples {
+    public class ShutdownableClient {
+        public static int Main(string[] args) {
+            try {
+                if (args.Length < 1) {
+                    Console.Error.WriteLine("Usage: ShutdownableClient <hostname>[:<portnumber>] [<secondsdelay>]");
+                    Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
+                    return 1;
+                }
 
-        public abstract bool IsContentTypePresent();
-        public abstract bool IsContentEncodingPresent();
-        public abstract bool IsHeadersPresent();
-        public abstract bool IsPriorityPresent();
-        public abstract bool IsReplyToPresent();
-        public abstract bool IsMessageIdPresent();
-        public abstract bool IsFilenamePresent();
-        public abstract bool IsTimestampPresent();
-        public abstract bool IsClusterIdPresent();
+                using (IConnection conn = new ConnectionFactory().CreateConnection(args[0])) {
+                    using (IModel ch = conn.CreateModel()) {
+                        object[] callArgs = new object[1];
+                        if (args.Length > 1) {
+                            callArgs[0] = double.Parse(args[1]);
+                        } else {
+                            callArgs[0] = (double) 0.0;
+                        }
 
-        public override object Clone()
-        {
-            FileProperties clone = MemberwiseClone() as FileProperties;
-            if (IsHeadersPresent())
-            {
-                clone.Headers = new Hashtable();
-                foreach (DictionaryEntry entry in Headers)
-                    clone.Headers[entry.Key] = entry.Value;
+                        SimpleRpcClient client = new SimpleRpcClient(ch, "ShutdownableServer");
+			client.TimeoutMilliseconds = 5000;
+			client.TimedOut += new EventHandler(TimedOutHandler);
+			client.Disconnected += new EventHandler(DisconnectedHandler);
+                        object[] reply = client.Call(callArgs);
+			if (reply == null) {
+			    Console.WriteLine("Timeout or disconnection.");
+			} else {
+			    Console.WriteLine("Reply: {0}", reply[0]);
+			}
+                    }
+                }
+                return 0;
+            } catch (Exception e) {
+                Console.Error.WriteLine(e);
+                return 2;
             }
-
-            return clone;
         }
+
+	public static void TimedOutHandler(object sender, EventArgs e) {
+	    Console.WriteLine("Timed out.");
+	}
+
+	public static void DisconnectedHandler(object sender, EventArgs e) {
+	    Console.WriteLine("Disconnected.");
+	}
     }
 }

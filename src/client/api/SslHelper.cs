@@ -56,52 +56,45 @@
 //---------------------------------------------------------------------------
 using System;
 using System.Collections;
+using System.IO;
+using System.Net.Security;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
+using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Impl
+namespace RabbitMQ.Client
 {
-    public abstract class FileProperties : ContentHeaderBase, IFileProperties
+
+    ///<summary>Represents an SslHelper which does the actual heavy lifting
+    ///to set up an SSL connection, using the config options in an SslOption
+    ///to make things cleaner</summary>
+    public class SslHelper
     {
-        public abstract string ContentType { get; set; }
-        public abstract string ContentEncoding { get; set; }
-        public abstract IDictionary Headers { get; set; }
-        public abstract byte Priority { get; set; }
-        public abstract string ReplyTo { get; set; }
-        public abstract string MessageId { get; set; }
-        public abstract string Filename { get; set; }
-        public abstract AmqpTimestamp Timestamp { get; set; }
-        public abstract string ClusterId { get; set; }
 
-        public abstract void ClearContentType();
-        public abstract void ClearContentEncoding();
-        public abstract void ClearHeaders();
-        public abstract void ClearPriority();
-        public abstract void ClearReplyTo();
-        public abstract void ClearMessageId();
-        public abstract void ClearFilename();
-        public abstract void ClearTimestamp();
-        public abstract void ClearClusterId();
-
-        public abstract bool IsContentTypePresent();
-        public abstract bool IsContentEncodingPresent();
-        public abstract bool IsHeadersPresent();
-        public abstract bool IsPriorityPresent();
-        public abstract bool IsReplyToPresent();
-        public abstract bool IsMessageIdPresent();
-        public abstract bool IsFilenamePresent();
-        public abstract bool IsTimestampPresent();
-        public abstract bool IsClusterIdPresent();
-
-        public override object Clone()
+        static X509Certificate CertificateSelectionCallback(object sender,
+                string targetHost,
+                X509CertificateCollection localCertificates,
+                X509Certificate remoteCertificate,
+                string[] acceptableIssuers)
         {
-            FileProperties clone = MemberwiseClone() as FileProperties;
-            if (IsHeadersPresent())
-            {
-                clone.Headers = new Hashtable();
-                foreach (DictionaryEntry entry in Headers)
-                    clone.Headers[entry.Key] = entry.Value;
-            }
-
-            return clone;
+            return localCertificates[0];
         }
+
+        ///<summary>Upgrade a Tcp stream to an Ssl stream using the SSL options
+        ///provided</summary>
+        public static Stream TcpUpgrade(Stream tcpStream, SslOption sslOption)
+        {
+            SslStream sslStream = new SslStream(tcpStream, false,
+                    null,
+                    new LocalCertificateSelectionCallback(CertificateSelectionCallback));
+            
+            sslStream.AuthenticateAsClient(sslOption.ServerName,
+                        sslOption.Certs,
+                        sslOption.Version,
+                        false);
+
+            return sslStream;
+        }
+
     }
 }

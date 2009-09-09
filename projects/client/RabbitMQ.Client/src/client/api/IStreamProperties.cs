@@ -107,5 +107,20 @@ namespace RabbitMQ.Client
 
         ///<summary> Clear the Timestamp property. </summary>
         void ClearTimestamp();
+
+        ///<summary> Returns true iff the ContentType property is present. </summary>
+        bool IsContentTypePresent();
+
+        ///<summary> Returns true iff the ContentEncoding property is present. </summary>
+        bool IsContentEncodingPresent();
+
+        ///<summary> Returns true iff the Headers property is present. </summary>
+        bool IsHeadersPresent();
+
+        ///<summary> Returns true iff the Priority property is present. </summary>
+        bool IsPriorityPresent();
+
+        ///<summary> Returns true iff the Timestamp property is present. </summary>
+        bool IsTimestampPresent();
     }
 }

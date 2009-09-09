@@ -146,7 +146,6 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestWriteUInt32()
         {
-            NetworkBinaryWriter w = Writer();
             m_w.Write((uint)0x89ABCDEF);
             Check(m_w, new byte[] { 0x89, 0xAB, 0xCD, 0xEF });
         }
@@ -181,7 +180,6 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestWriteUInt64()
         {
-            NetworkBinaryWriter w = Writer();
             m_w.Write((ulong)0x89ABCDEF01234567);
             Check(m_w, new byte[] { 0x89, 0xAB, 0xCD, 0xEF, 0x01, 0x23, 0x45, 0x67 });
         }
