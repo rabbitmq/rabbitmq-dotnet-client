@@ -5,6 +5,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "projects", "projects", "{06
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "client", "client", "{ECCBAEE2-24C9-4C95-A88C-03B68E866F0F}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "wcf", "wcf", "{9093855F-C802-407D-B127-CADD8F92FCD8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{23B4D18E-E5D3-4BF8-A488-021B96A5DD72}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "client", "client", "{78D13AD2-B1AC-442C-95C8-958D643FC40B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "wcf", "wcf", "{EA42A7EF-7CE6-4EDA-98EA-6675C7EF7F69}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ConfigDemo", "ConfigDemo", "{20E34D9F-EE72-4B55-B6FE-1D0DBE5B74CD}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMQ.Client.ApigenBootstrap", "projects\client\ApigenBootstrap\RabbitMQ.Client.ApigenBootstrap.csproj", "{CC8F4572-6730-4C4D-A0BB-15151E2A26AE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMQ.Client.Apigen", "projects\client\Apigen\RabbitMQ.Client.Apigen.csproj", "{9E8B8DC5-3837-46E9-90D7-8391CC62AB45}"
@@ -16,13 +26,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMQ.Client", "projects
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMQ.Client.Unit", "projects\client\Unit\RabbitMQ.Client.Unit.csproj", "{DC9022AA-DC30-4871-AD28-3F166E05DBB5}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "wcf", "wcf", "{9093855F-C802-407D-B127-CADD8F92FCD8}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMQ.ServiceModel", "projects\wcf\RabbitMQ.ServiceModel\RabbitMQ.ServiceModel.csproj", "{5117232B-EE07-46F8-8AF5-2B636F1DBF56}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{23B4D18E-E5D3-4BF8-A488-021B96A5DD72}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "client", "client", "{78D13AD2-B1AC-442C-95C8-958D643FC40B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMQ.Client.Examples.AddClient", "projects\examples\client\AddClient\RabbitMQ.Client.Examples.AddClient.csproj", "{F03945AD-08C5-4531-805C-5B0BA110E9CF}"
 EndProject
@@ -42,10 +46,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMQ.Client.Examples.Se
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMQ.Client.Examples.SingleGet", "projects\examples\client\SingleGet\RabbitMQ.Client.Examples.SingleGet.csproj", "{6BF8B993-1722-446E-89B3-7BAC6066BECC}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "wcf", "wcf", "{EA42A7EF-7CE6-4EDA-98EA-6675C7EF7F69}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ConfigDemo", "ConfigDemo", "{20E34D9F-EE72-4B55-B6FE-1D0DBE5B74CD}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMQ.ServiceModel.Examples.ConfigDemo.Client", "projects\examples\wcf\configDemo\Client\RabbitMQ.ServiceModel.Examples.ConfigDemo.Client.csproj", "{201B37E1-9BFC-4A01-9760-30C5BB19CFE3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMQ.ServiceModel.Examples.ConfigDemo.Server", "projects\examples\wcf\configDemo\Server\RabbitMQ.ServiceModel.Examples.ConfigDemo.Server.csproj", "{8D0DEB29-349C-4617-B61E-B22DE144BD22}"
@@ -53,6 +53,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMQ.ServiceModel.Examples.ConfigDemo.WcfServiceLibrary1", "projects\examples\wcf\configDemo\WcfServiceLibrary1\RabbitMQ.ServiceModel.Examples.ConfigDemo.WcfServiceLibrary1.csproj", "{034B2E6C-78F4-4205-A73A-5D74E83B5F26}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMQ.ServiceModel.Test", "projects\examples\wcf\Test\RabbitMQ.ServiceModel.Test.csproj", "{39CA1299-1F9E-452E-AA00-4BF874944B1E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMQ.Client.Examples.ShutdownableClient", "projects\examples\client\ShutdownableClient\RabbitMQ.Client.Examples.ShutdownableClient.csproj", "{44D14FF0-1015-4AAA-ABCA-BF611879816C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMQ.Client.Examples.ShutdownableServer", "projects\examples\client\ShutdownableServer\RabbitMQ.Client.Examples.ShutdownableServer.csproj", "{8BCE15DB-C92F-4FA4-AE57-9CA73DE91EB2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -168,6 +172,18 @@ Global
 		{39CA1299-1F9E-452E-AA00-4BF874944B1E}.DebugNoTest|Any CPU.Build.0 = Debug|Any CPU
 		{39CA1299-1F9E-452E-AA00-4BF874944B1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{39CA1299-1F9E-452E-AA00-4BF874944B1E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{44D14FF0-1015-4AAA-ABCA-BF611879816C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44D14FF0-1015-4AAA-ABCA-BF611879816C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44D14FF0-1015-4AAA-ABCA-BF611879816C}.DebugNoTest|Any CPU.ActiveCfg = Debug|Any CPU
+		{44D14FF0-1015-4AAA-ABCA-BF611879816C}.DebugNoTest|Any CPU.Build.0 = Debug|Any CPU
+		{44D14FF0-1015-4AAA-ABCA-BF611879816C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44D14FF0-1015-4AAA-ABCA-BF611879816C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8BCE15DB-C92F-4FA4-AE57-9CA73DE91EB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BCE15DB-C92F-4FA4-AE57-9CA73DE91EB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BCE15DB-C92F-4FA4-AE57-9CA73DE91EB2}.DebugNoTest|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BCE15DB-C92F-4FA4-AE57-9CA73DE91EB2}.DebugNoTest|Any CPU.Build.0 = Debug|Any CPU
+		{8BCE15DB-C92F-4FA4-AE57-9CA73DE91EB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BCE15DB-C92F-4FA4-AE57-9CA73DE91EB2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -192,6 +208,8 @@ Global
 		{A626CC84-04E9-4614-A389-FCE3122BE6BC} = {78D13AD2-B1AC-442C-95C8-958D643FC40B}
 		{23680866-F877-4E06-B999-FDFD0B6A8CF6} = {78D13AD2-B1AC-442C-95C8-958D643FC40B}
 		{6BF8B993-1722-446E-89B3-7BAC6066BECC} = {78D13AD2-B1AC-442C-95C8-958D643FC40B}
+		{44D14FF0-1015-4AAA-ABCA-BF611879816C} = {78D13AD2-B1AC-442C-95C8-958D643FC40B}
+		{8BCE15DB-C92F-4FA4-AE57-9CA73DE91EB2} = {78D13AD2-B1AC-442C-95C8-958D643FC40B}
 		{20E34D9F-EE72-4B55-B6FE-1D0DBE5B74CD} = {EA42A7EF-7CE6-4EDA-98EA-6675C7EF7F69}
 		{39CA1299-1F9E-452E-AA00-4BF874944B1E} = {EA42A7EF-7CE6-4EDA-98EA-6675C7EF7F69}
 		{201B37E1-9BFC-4A01-9760-30C5BB19CFE3} = {20E34D9F-EE72-4B55-B6FE-1D0DBE5B74CD}

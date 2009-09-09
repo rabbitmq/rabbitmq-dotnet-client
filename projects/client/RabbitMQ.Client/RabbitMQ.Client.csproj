@@ -145,6 +145,8 @@
     <Compile Include="src\client\api\ShutdownEventArgs.cs" />
     <Compile Include="src\client\api\ShutdownInitiator.cs" />
     <Compile Include="src\client\api\ShutdownReportEntry.cs" />
+    <Compile Include="src\client\api\SslHelper.cs" />
+    <Compile Include="src\client\api\SslOption.cs" />
     <Compile Include="src\client\content\BasicMessageBuilder.cs" />
     <Compile Include="src\client\content\BasicMessageReader.cs" />
     <Compile Include="src\client\content\BytesMessageBuilder.cs" />

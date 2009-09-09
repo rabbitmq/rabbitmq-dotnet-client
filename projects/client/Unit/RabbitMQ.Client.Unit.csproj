@@ -67,9 +67,12 @@
     <Compile Include="src\unit\TestMapMessage.cs" />
     <Compile Include="src\unit\TestMethodArgumentCodec.cs" />
     <Compile Include="src\unit\TestNetworkBinaryCodec.cs" />
+    <Compile Include="src\unit\TestPropertiesClone.cs" />
     <Compile Include="src\unit\TestPublicationAddress.cs" />
     <Compile Include="src\unit\TestSemaphore.cs" />
     <Compile Include="src\unit\TestSharedQueue.cs" />
+    <Compile Include="src\unit\TestSslEndpointUnverified.cs" />
+    <Compile Include="src\unit\TestSslEndpointVerified.cs" />
     <Compile Include="src\unit\TestStreamWireFormatting.cs" />
     <Compile Include="src\unit\WireFormattingFixture.cs" />
   </ItemGroup>
