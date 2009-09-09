@@ -69,7 +69,7 @@ CYGWIN=nontsec
 ### Overrideable vars
 test "$KEYFILE" || KEYFILE=rabbit-mock.snk
 test "$RABBIT_VSN" || RABBIT_VSN=0.0.0
-test "$OFFICIAL_RELEASE" || OFFICIAL_RELEASE=
+test "$UNOFFICIAL_RELEASE" || UNOFFICIAL_RELEASE=true
 test "$MSBUILD" || MSBUILD=msbuild.exe
 test "$RABBIT_WEBSITE" || RABBIT_WEBSITE=http://www.rabbitmq.com
 
@@ -87,7 +87,7 @@ function main {
     ### Check keyfile exists and generate if necessary, or exit with error if
     ### we're building an official release
     if [ ! -f "$KEYFILE" ]; then
-        if [ ! "$OFFICIAL_RELEASE" ]; then
+        if [ "$UNOFFICIAL_RELEASE" == "true" ]; then
             sn -k $KEYFILE
         else
             echo "ERROR! Keyfile $KEYFILE not found."
