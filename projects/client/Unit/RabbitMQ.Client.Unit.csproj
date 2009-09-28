@@ -87,7 +87,6 @@
   <PropertyGroup Condition=" '$(PropUsingMono)' == 'true'">
     <_DisabledWarnings>$(NoWarn)</_DisabledWarnings>
   </PropertyGroup>
-  <Target Name="BeforeBuild" />
   
   <!-- Microsoft CSharp targets -->
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

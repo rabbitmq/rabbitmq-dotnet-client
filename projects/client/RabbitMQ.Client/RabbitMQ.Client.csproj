@@ -256,7 +256,6 @@
   <PropertyGroup Condition=" '$(PropUsingMono)' == 'true'">
     <_DisabledWarnings>$(NoWarn)</_DisabledWarnings>
   </PropertyGroup>
-  <Target Name="AfterBuild" />
 
   <!-- Microsoft CSharp targets -->
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />  
