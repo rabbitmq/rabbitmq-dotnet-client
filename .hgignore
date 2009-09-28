@@ -1,15 +1,15 @@
 syntax: regexp
-^build$
+
+^Local.props$
+^local.dist$
+rabbit\.snk$
+^rabbit\-mock\.snk$
+
 ^scratch$
-^local\.build$
-^TestResult.xml$
-^releases$
+^releases/
+^build$
 ^commit$
 ^diff$
-
-^src/wcf/.*/(bin|obj)$
-^src/wcf/.*/*.suo$
-
 ^src/wcf/RabbitMQ\.ServiceModel/RabbitMQ\.ServiceModel\.xml
 ^src/wcf/RabbitMQ\.ServiceModel/AssemblyInfo\.cs$
 
@@ -17,4 +17,18 @@ syntax: regexp
 ^wix/dotnet-client-product\.wxs$
 ^wix/License\.rtf$
 
+^projects/.*/(build|obj)$
+^.*\.suo$
+^RabbitMQDotNetClient\.sln\.proj$
+^RabbitMQDotNetClient\.sln\.cache$
+^UpgradeLog\.XML$
+^\_UpgradeReport\_Files/
+^gensrc/
+^projects/.*/.*\.csproj\.user$
+^projects/client/Unit/TestResult\.xml$
+
+^docs/pyle\.log$
+^build/
+
 ~$
+

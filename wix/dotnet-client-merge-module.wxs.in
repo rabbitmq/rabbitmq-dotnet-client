@@ -11,13 +11,13 @@
                  (i.e. will only have to be specified once, with Assembly='.net'
                  in order to be copied in both places). -->
             <Component Id='ClientLibraryAssembly' Guid='06543EE8-DED2-4C1C-826E-6AAE0B403AF3'>
-                <File Id='RabbitMQClientDllAssembly' Name='RMQClnt.dll' LongName='RabbitMQ.Client.dll' Vital='yes' Assembly='.net' KeyPath='yes' Source='..\build\bin\RabbitMQ.Client.dll' />
+                <File Id='RabbitMQClientDllAssembly' Name='RMQClnt.dll' LongName='RabbitMQ.Client.dll' Vital='yes' Assembly='.net' KeyPath='yes' Source='..\tmp\unzip\rabbitmq-dotnet-client-@VERSION@-dotnet-2.0\bin\RabbitMQ.Client.dll' />
             </Component>
 
             <Directory Id='BinFolder' Name='bin'>
                 <Component Id='ClientLibraryBin' Guid='83A1DE00-CCB6-42C2-BD14-FBAEDDBC50E8'>
                     <CreateFolder />
-                    <File Id='RabbitMQClientDllBin' Name='RMQClnt.dll' LongName='RabbitMQ.Client.dll' Vital='yes' KeyPath='yes' Source='..\build\bin\RabbitMQ.Client.dll' />
+                    <File Id='RabbitMQClientDllBin' Name='RMQClnt.dll' LongName='RabbitMQ.Client.dll' Vital='yes' KeyPath='yes' Source='..\tmp\unzip\rabbitmq-dotnet-client-@VERSION@-dotnet-2.0\bin\RabbitMQ.Client.dll' />
                     <Registry Id='RabbitMQAssemblyFolderReg' Action='createKeyAndRemoveKeyOnUninstall' Key='SOFTWARE\Microsoft\.NETFramework\AssemblyFolders\RabbitMQ' Root='HKLM'>
                         <Registry Id='RabbitMQAssemblyFolderRegVal' Action='write' Type='string' Value='[BinFolder]' />
                     </Registry>
@@ -25,7 +25,7 @@
             </Directory>
 
             <Directory Id='ExamplesFolder' Name='examples'>
-                <Directory Id='BinExamplesFolder' Name='bin' FileSource='..\build\bin'>
+                <Directory Id='BinExamplesFolder' Name='bin' FileSource='..\tmp\unzip\rabbitmq-dotnet-client-@VERSION@-dotnet-2.0\bin\'>
                     <Component Id='ExampleBinaries' Guid='1C270D1C-CD79-49D8-9413-E6211F52B5A8'>
                         <File Id='AddClientExe' Name='AddClnt.exe' LongName='AddClient.exe' Vital='yes' />
                         <File Id='AddServerExe' Name='AddServ.exe' LongName='AddServer.exe' Vital='yes' />
@@ -39,17 +39,17 @@
                     </Component>
                 </Directory>
                 
-                <Directory Id='SrcExamplesFolder' Name='src' FileSource='..\src\examples'>
+                <Directory Id='SrcExamplesFolder' Name='src'>
                     <Component Id='ExampleSources' Guid='962896C3-D476-4C8E-B5F3-BE963D566A49'>
-                        <File Id='AddClientCs' Name='AddClnt.cs' LongName='AddClient.cs' Vital='yes' />
-                        <File Id='AddServerCs' Name='AddServ.cs' LongName='AddServer.cs' Vital='yes' />
-                        <File Id='DeclareQueueCs' Name='DecQueue.cs' LongName='DeclareQueue.cs' Vital='yes' />
-                        <File Id='ExceptionTestCs' Name='ExcnTest.cs' LongName='ExceptionTest.cs' Vital='yes' />
-                        <File Id='LogTailCs' Name='LogTail.cs' LongName='LogTail.cs' Vital='yes' />
-                        <File Id='LowlevelLogTailCs' Name='LLogTail.cs' LongName='LowlevelLogTail.cs' Vital='yes' />
-                        <File Id='SendMapCs' Name='SendMap.cs' LongName='SendMap.cs' Vital='yes' />
-                        <File Id='SendStringCs' Name='SendStr.cs' LongName='SendString.cs' Vital='yes' />
-                        <File Id='SingleGetCs' Name='SnglGet.cs' LongName='SingleGet.cs' Vital='yes' />
+                        <File Id='AddClientCs' Name='AddClnt.cs' LongName='AddClient.cs' Source='..\tmp\unzip\rabbitmq-dotnet-client-@VERSION@-dotnet-2.0\projects\examples\client\AddClient\src\examples\AddClient.cs' Vital='yes' />
+                        <File Id='AddServerCs' Name='AddServ.cs' LongName='AddServer.cs' Source='..\tmp\unzip\rabbitmq-dotnet-client-@VERSION@-dotnet-2.0\projects\examples\client\AddServer\src\examples\AddServer.cs' Vital='yes' />
+                        <File Id='DeclareQueueCs' Name='DecQueue.cs' LongName='DeclareQueue.cs' Source='..\tmp\unzip\rabbitmq-dotnet-client-@VERSION@-dotnet-2.0\projects\examples\client\DeclareQueue\src\examples\DeclareQueue.cs' Vital='yes' />
+                        <File Id='ExceptionTestCs' Name='ExcnTest.cs' LongName='ExceptionTest.cs' Source='..\tmp\unzip\rabbitmq-dotnet-client-@VERSION@-dotnet-2.0\projects\examples\client\ExceptionTest\src\examples\ExceptionTest.cs' Vital='yes' />
+                        <File Id='LogTailCs' Name='LogTail.cs' LongName='LogTail.cs' Source='..\tmp\unzip\rabbitmq-dotnet-client-@VERSION@-dotnet-2.0\projects\examples\client\LogTail\src\examples\LogTail.cs' Vital='yes' />
+                        <File Id='LowlevelLogTailCs' Name='LLogTail.cs' LongName='LowlevelLogTail.cs' Source='..\tmp\unzip\rabbitmq-dotnet-client-@VERSION@-dotnet-2.0\projects\examples\client\LowlevelLogTail\src\examples\LowlevelLogTail.cs' Vital='yes' />
+                        <File Id='SendMapCs' Name='SendMap.cs' LongName='SendMap.cs' Source='..\tmp\unzip\rabbitmq-dotnet-client-@VERSION@-dotnet-2.0\projects\examples\client\SendMap\src\examples\SendMap.cs' Vital='yes' />
+                        <File Id='SendStringCs' Name='SendStr.cs' LongName='SendString.cs' Source='..\tmp\unzip\rabbitmq-dotnet-client-@VERSION@-dotnet-2.0\projects\examples\client\SendString\src\examples\SendString.cs' Vital='yes' />
+                        <File Id='SingleGetCs' Name='SnglGet.cs' LongName='SingleGet.cs' Source='..\tmp\unzip\rabbitmq-dotnet-client-@VERSION@-dotnet-2.0\projects\examples\client\SingleGet\src\examples\SingleGet.cs' Vital='yes' />
                     </Component>
                 </Directory>
                 
@@ -61,7 +61,7 @@
             </Directory>
 
             <Directory Id='DocFolder' Name='doc'>
-                <Directory Id='HtmlFolder' Name='html' FileSource='..\build\doc\html\'>
+                <Directory Id='HtmlFolder' Name='html' FileSource='..\tmp\unzip\rabbitmq-dotnet-client-@VERSION@-client-htmldoc\html\'>
                     <Component Id='HtmlApiDocumentation' Guid='7B03679B-9677-4679-AE2B-1F70E7D92B45'>
                         <!--
                             The following was generated using
@@ -165,7 +165,7 @@
                     </Component>
                 </Directory>
                 
-                <Directory Id='PdfFolder' Name='pdf' FileSource='..\releases\rabbitmq-dotnet-client\v@VERSION@\'>
+                <Directory Id='PdfFolder' Name='pdf' FileSource='..\tmp\unzip\'>
                     <Component Id='PdfApiDocumentation' Guid='018D0FDF-9B7F-4C44-9072-A1030336B076'>
                         <File Id='ApiGuidePdf' Name='apiguide.pdf' LongName='rabbitmq-dotnet-client-@VERSION@-api-guide.pdf' Vital='yes'>
                             <Shortcut Id='PdfApiDocShortcut' Directory='DOTNET_CLIENT_MENU_DIR' Name='ApiPdf' LongName='Autogenerated API documentation (PDF)' />
