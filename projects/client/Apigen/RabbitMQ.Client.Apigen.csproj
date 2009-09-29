@@ -57,11 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="properties\AssemblyInfo.cs" />
-    <Compile Include="src\apigen\AmqpClass.cs" />
-    <Compile Include="src\apigen\AmqpEntity.cs" />
-    <Compile Include="src\apigen\AmqpField.cs" />
-    <Compile Include="src\apigen\AmqpMethod.cs" />
-    <Compile Include="src\apigen\Apigen.cs" />
+    <Compile Include="src\apigen\**\*.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ApigenBootstrap\RabbitMQ.Client.ApigenBootstrap.csproj">

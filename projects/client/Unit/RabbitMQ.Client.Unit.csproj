@@ -59,22 +59,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="properties\AssemblyInfo.cs" />
-    <Compile Include="src\unit\TestAmqpTcpEndpointParsing.cs" />
-    <Compile Include="src\unit\TestBlockingCell.cs" />
-    <Compile Include="src\unit\TestBytesWireFormatting.cs" />
-    <Compile Include="src\unit\TestContentHeaderCodec.cs" />
-    <Compile Include="src\unit\TestFieldTableFormatting.cs" />
-    <Compile Include="src\unit\TestMapMessage.cs" />
-    <Compile Include="src\unit\TestMethodArgumentCodec.cs" />
-    <Compile Include="src\unit\TestNetworkBinaryCodec.cs" />
-    <Compile Include="src\unit\TestPropertiesClone.cs" />
-    <Compile Include="src\unit\TestPublicationAddress.cs" />
-    <Compile Include="src\unit\TestSemaphore.cs" />
-    <Compile Include="src\unit\TestSharedQueue.cs" />
-    <Compile Include="src\unit\TestSslEndpointUnverified.cs" />
-    <Compile Include="src\unit\TestSslEndpointVerified.cs" />
-    <Compile Include="src\unit\TestStreamWireFormatting.cs" />
-    <Compile Include="src\unit\WireFormattingFixture.cs" />
+    <Compile Include="src\unit\**\*.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\RabbitMQ.Client\RabbitMQ.Client.csproj">

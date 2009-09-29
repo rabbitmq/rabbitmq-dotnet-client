@@ -91,22 +91,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="src\serviceModel\CommunicationOperation.cs" />
-    <Compile Include="src\serviceModel\CurrentVersion.cs" />
-    <Compile Include="src\serviceModel\Debug.cs" />
-    <Compile Include="src\serviceModel\RabbitMQBinding.cs" />
-    <Compile Include="src\serviceModel\RabbitMQBindingConfigurationElement.cs" />
-    <Compile Include="src\serviceModel\RabbitMQBindingSection.cs" />
-    <Compile Include="src\serviceModel\RabbitMQChannelBase.cs" />
-    <Compile Include="src\serviceModel\RabbitMQChannelFactory.cs" />
-    <Compile Include="src\serviceModel\RabbitMQChannelListener.cs" />
-    <Compile Include="src\serviceModel\RabbitMQChannelListenerBase.cs" />
-    <Compile Include="src\serviceModel\RabbitMQInputChannel.cs" />
-    <Compile Include="src\serviceModel\RabbitMQInputChannelBase.cs" />
-    <Compile Include="src\serviceModel\RabbitMQOutputChannel.cs" />
-    <Compile Include="src\serviceModel\RabbitMQOutputChannelBase.cs" />
-    <Compile Include="src\serviceModel\RabbitMQTransportBindingElement.cs" />
-    <Compile Include="src\serviceModel\RabbitMQTransportElement.cs" />
+    <Compile Include="src\serviceModel\**\*.cs" />
   </ItemGroup>
 
   <!-- Mono compatibility workarounds -->
