@@ -159,7 +159,6 @@
                         <File Id="file81" Name="TY32A5_1.HTM" LongName="type-RabbitMQ.Util.EitherAlternative.html" Vital="yes" />
                         <File Id="file82" Name="TY3355_1.HTM" LongName="type-RabbitMQ.Util.NetworkBinaryReader.html" Vital="yes" />
                         <File Id="file83" Name="TYDDDB_1.HTM" LongName="type-RabbitMQ.Util.NetworkBinaryWriter.html" Vital="yes" />
-                        <File Id="file84" Name="TYD1DA_1.HTM" LongName="type-RabbitMQ.Util.Semaphore.html" Vital="yes" />
                         <File Id="file85" Name="TYC72D_1.HTM" LongName="type-RabbitMQ.Util.SharedQueue.html" Vital="yes" />
                         <File Id="file86" Name="TY07F9_1.HTM" LongName="type-RabbitMQ.Util.XmlUtil.html" Vital="yes" />
                     </Component>
