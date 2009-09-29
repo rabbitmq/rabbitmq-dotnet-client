@@ -24,10 +24,6 @@ i.e.:
 
 - Copy-paste the "mono workarounds" bit
 
-- Add empty targets for BeforeBuild, BeforeClean and AfterBuild if not using
-them yourself (this is required for compatibility with mono - target override
-is not yet implemented properly)
-
 - It's probably best to add new files by hand in the project (by copying the
 file to the appropriate location and editing the .csproj by hand)
 
