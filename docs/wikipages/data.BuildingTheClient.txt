@@ -47,7 +47,7 @@ The projects in the RabbitMQ .NET client contain some customizations in order to
 
 To skip running the NUnit tests as part of the build, select the [code DebugNoTest] build configuration.
 
-If you change a property in [code Local.props] while the solution is loaded in Visual Studio, you will have to close the solution and reopen it, for the changes to take effect.
+Note: If you change a property in [code Local.props] while the solution is loaded in Visual Studio, you will have to close the solution and reopen it, for the changes to take effect.
 
 *** On Windows, without Visual Studio
 
