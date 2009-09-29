@@ -47,6 +47,8 @@ The projects in the RabbitMQ .NET client contain some customizations in order to
 
 To skip running the NUnit tests as part of the build, select the [code DebugNoTest] build configuration.
 
+If you change a property in [code Local.props] while the solution is loaded in Visual Studio, you will have to close the solution and reopen it, for the changes to take effect.
+
 *** On Windows, without Visual Studio
 
 To build the client library without Visual Studio, first you need to make sure you have the .NET's framework directory in your [code PATH] environment variable. The .NET framework directory can usually be found at [code %WINDIR%\Microsoft.NET\Framework\v2.0.50727] for .NET 2.0 or [code %WINDIR%\Microsoft.NET\Framework\v3.0] for .NET 3.0.
