@@ -171,7 +171,10 @@ function src-dist {
     links -dump $RABBIT_WEBSITE/build-dotnet-client.html >> tmp/srcdist/README
     cp-license-to tmp/srcdist/
 
-    ### Zip tmp/srcdist
+    ### Zip tmp/srcdist making $NAME_VSN the root dir in the archive
+    mv tmp/srcdist tmp/$NAME_VSN
+    mkdir tmp/srcdist
+    mv tmp/$NAME_VSN tmp/srcdist/
     cd tmp/srcdist
     zip -r ../../$RELEASE_DIR/$NAME_VSN.zip . -x \*.snk \*.resharper \*.csproj.user
     cd ../..
@@ -212,15 +215,9 @@ function dist-target-framework {
     
     ### Copy bin files to be zipped to tmp/dist/
     cp projects/client/RabbitMQ.Client/build/bin/RabbitMQ.Client.dll tmp/dist/bin/
-    cp projects/examples/client/AddClient/build/bin/AddClient.exe tmp/dist/bin/
-    cp projects/examples/client/AddServer/build/bin/AddServer.exe tmp/dist/bin/
-    cp projects/examples/client/DeclareQueue/build/bin/DeclareQueue.exe tmp/dist/bin/
-    cp projects/examples/client/ExceptionTest/build/bin/ExceptionTest.exe tmp/dist/bin/
-    cp projects/examples/client/LogTail/build/bin/LogTail.exe tmp/dist/bin/
-    cp projects/examples/client/LowlevelLogTail/build/bin/LowlevelLogTail.exe tmp/dist/bin/
-    cp projects/examples/client/SendMap/build/bin/SendMap.exe tmp/dist/bin/
-    cp projects/examples/client/SendString/build/bin/SendString.exe tmp/dist/bin/
-    cp projects/examples/client/SingleGet/build/bin/SingleGet.exe tmp/dist/bin/
+    for example in $(ls projects/examples/client); do
+        cp projects/examples/client/$example/build/bin/$example.exe tmp/dist/bin/
+    done
     test "$BUILD_WCF" && cp projects/wcf/RabbitMQ.ServiceModel/build/bin/RabbitMQ.ServiceModel.dll tmp/dist/bin/
     cp-license-to tmp/dist/
     
