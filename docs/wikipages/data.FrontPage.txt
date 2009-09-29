@@ -7,7 +7,6 @@ Chapters in the user manual:
  - TroubleShooting
  - Examples
  - BuildingTheClient
- - BuildingTheWcfBinding
  - ImplementationGuide
  - ApiGen
 
