@@ -70,7 +70,7 @@ CYGWIN=nontsec
 test "$KEYFILE" || KEYFILE=rabbit-mock.snk
 test "$RABBIT_VSN" || RABBIT_VSN=0.0.0
 test "$MSBUILD" || MSBUILD=msbuild.exe
-test "$RABBIT_WEBSITE" || RABBIT_WEBSITE=http://www.rabbitmq.com
+test "$WEB_URL" || WEB_URL=http://stage.rabbitmq.com
 test "$UNOFFICIAL_RELEASE" || UNOFFICIAL_RELEASE=
 
 ### Other, general vars
@@ -168,7 +168,7 @@ function src-dist {
     cp -r lib/nunit tmp/srcdist/lib/
     cp Local.props.example tmp/srcdist/
     cp README.in tmp/srcdist/README
-    links -dump $RABBIT_WEBSITE/build-dotnet-client.html >> tmp/srcdist/README
+    links -dump $WEB_URL/build-dotnet-client.html >> tmp/srcdist/README
     cp-license-to tmp/srcdist/
 
     ### Zip tmp/srcdist making $NAME_VSN the root dir in the archive
