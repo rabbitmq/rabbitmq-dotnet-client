@@ -37,8 +37,24 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
 
+  <!-- SSL test support -->
+  
+  <!-- I'd use the Choose construct for this, but it seems broken on Mono -->
+  <PropertyGroup Condition="'$(SSL_CERTS_DIR)' == ''">
+    <SSLAvail>false</SSLAvail>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(SSL_CERTS_DIR)' != ''">
+    <SSLAvail>true</SSLAvail>
+    <SSLCertsDir>$(SSL_CERTS_DIR)</SSLCertsDir>
+  </PropertyGroup>
+
+  <Target Name="ImportSSL" Condition="$(SSLAvail)">
+    <!-- import cacert into certmgr -->
+    <Exec Command="certmgr -add -c Trust $(SSLCertsDir)/testca/cacert.cer"/>
+  </Target>
+
   <!-- Running the tests -->
-  <Target Name="RunUnitTests">
+  <Target Name="RunUnitTests" DependsOnTargets="ImportSSL">
     <Exec Command='$(PropLaunchExe)..\..\..\lib\nunit\nunit-console.exe "build\bin\$(AssemblyName).dll"' WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="true" />
   </Target>
   
