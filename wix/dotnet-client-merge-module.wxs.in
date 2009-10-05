@@ -25,31 +25,15 @@
             </Directory>
 
             <Directory Id='ExamplesFolder' Name='examples'>
-                <Directory Id='BinExamplesFolder' Name='bin' FileSource='..\tmp\unzip\rabbitmq-dotnet-client-@VERSION@-dotnet-2.0\bin\'>
+                <Directory Id='BinExamplesFolder' Name='bin'>
                     <Component Id='ExampleBinaries' Guid='1C270D1C-CD79-49D8-9413-E6211F52B5A8'>
-                        <File Id='AddClientExe' Name='AddClnt.exe' LongName='AddClient.exe' Vital='yes' />
-                        <File Id='AddServerExe' Name='AddServ.exe' LongName='AddServer.exe' Vital='yes' />
-                        <File Id='DeclareQueueExe' Name='DecQueue.exe' LongName='DeclareQueue.exe' Vital='yes' />
-                        <File Id='ExceptionTestExe' Name='ExcnTest.exe' LongName='ExceptionTest.exe' Vital='yes' />
-                        <File Id='LogTailExe' Name='LogTail.exe' LongName='LogTail.exe' Vital='yes' />
-                        <File Id='LowlevelLogTailExe' Name='LLogTail.exe' LongName='LowlevelLogTail.exe' Vital='yes' />
-                        <File Id='SendMapExe' Name='SendMap.exe' LongName='SendMap.exe' Vital='yes' />
-                        <File Id='SendStringExe' Name='SendStr.exe' LongName='SendString.exe' Vital='yes' />
-                        <File Id='SingleGetExe' Name='SnglGet.exe' LongName='SingleGet.exe' Vital='yes' />
+@FILES ../tmp/unzip/rabbitmq-dotnet-client-@VERSION@-dotnet-2.0/bin -name *.exe
                     </Component>
                 </Directory>
                 
                 <Directory Id='SrcExamplesFolder' Name='src'>
                     <Component Id='ExampleSources' Guid='962896C3-D476-4C8E-B5F3-BE963D566A49'>
-                        <File Id='AddClientCs' Name='AddClnt.cs' LongName='AddClient.cs' Source='..\tmp\unzip\rabbitmq-dotnet-client-@VERSION@-dotnet-2.0\projects\examples\client\AddClient\src\examples\AddClient.cs' Vital='yes' />
-                        <File Id='AddServerCs' Name='AddServ.cs' LongName='AddServer.cs' Source='..\tmp\unzip\rabbitmq-dotnet-client-@VERSION@-dotnet-2.0\projects\examples\client\AddServer\src\examples\AddServer.cs' Vital='yes' />
-                        <File Id='DeclareQueueCs' Name='DecQueue.cs' LongName='DeclareQueue.cs' Source='..\tmp\unzip\rabbitmq-dotnet-client-@VERSION@-dotnet-2.0\projects\examples\client\DeclareQueue\src\examples\DeclareQueue.cs' Vital='yes' />
-                        <File Id='ExceptionTestCs' Name='ExcnTest.cs' LongName='ExceptionTest.cs' Source='..\tmp\unzip\rabbitmq-dotnet-client-@VERSION@-dotnet-2.0\projects\examples\client\ExceptionTest\src\examples\ExceptionTest.cs' Vital='yes' />
-                        <File Id='LogTailCs' Name='LogTail.cs' LongName='LogTail.cs' Source='..\tmp\unzip\rabbitmq-dotnet-client-@VERSION@-dotnet-2.0\projects\examples\client\LogTail\src\examples\LogTail.cs' Vital='yes' />
-                        <File Id='LowlevelLogTailCs' Name='LLogTail.cs' LongName='LowlevelLogTail.cs' Source='..\tmp\unzip\rabbitmq-dotnet-client-@VERSION@-dotnet-2.0\projects\examples\client\LowlevelLogTail\src\examples\LowlevelLogTail.cs' Vital='yes' />
-                        <File Id='SendMapCs' Name='SendMap.cs' LongName='SendMap.cs' Source='..\tmp\unzip\rabbitmq-dotnet-client-@VERSION@-dotnet-2.0\projects\examples\client\SendMap\src\examples\SendMap.cs' Vital='yes' />
-                        <File Id='SendStringCs' Name='SendStr.cs' LongName='SendString.cs' Source='..\tmp\unzip\rabbitmq-dotnet-client-@VERSION@-dotnet-2.0\projects\examples\client\SendString\src\examples\SendString.cs' Vital='yes' />
-                        <File Id='SingleGetCs' Name='SnglGet.cs' LongName='SingleGet.cs' Source='..\tmp\unzip\rabbitmq-dotnet-client-@VERSION@-dotnet-2.0\projects\examples\client\SingleGet\src\examples\SingleGet.cs' Vital='yes' />
+@FILES ../tmp/unzip/rabbitmq-dotnet-client-@VERSION@-dotnet-2.0/projects/examples/client -name *.cs -not -name AssemblyInfo.cs
                     </Component>
                 </Directory>
                 
@@ -61,106 +45,10 @@
             </Directory>
 
             <Directory Id='DocFolder' Name='doc'>
-                <Directory Id='HtmlFolder' Name='html' FileSource='..\tmp\unzip\rabbitmq-dotnet-client-@VERSION@-client-htmldoc\html\'>
+                <Directory Id='HtmlFolder' Name='html'>
                     <Component Id='HtmlApiDocumentation' Guid='7B03679B-9677-4679-AE2B-1F70E7D92B45'>
-                        <!--
-                            The following was generated using
-                                > tallow -d build\doc\html -dav
-
-                            Source attributes were removed with a regex replace of:
-                                 Source[=]["][^"]*?["]
-                            with a space.
-
-                            file0's shortcut was manually included afterwards.
-                        -->
-                        <File Id="file0" Name="INDEX_1.HTM" LongName="index.html" Vital="yes">
-                            <Shortcut Id='HtmlApiDocShortcut' Directory='DOTNET_CLIENT_MENU_DIR' Name='HtmlDoc' LongName='Autogenerated API documentation (HTML)' />
-                        </File>
-                        <File Id="file1" Name="NAMESP_1.HTM" LongName="namespace-RabbitMQ.Client.Content.html" Vital="yes" />
-                        <File Id="file2" Name="NAMESP_2.HTM" LongName="namespace-RabbitMQ.Client.Events.html" Vital="yes" />
-                        <File Id="file3" Name="NAMESP_3.HTM" LongName="namespace-RabbitMQ.Client.Exceptions.html" Vital="yes" />
-                        <File Id="file4" Name="NA19D7_1.HTM" LongName="namespace-RabbitMQ.Client.html" Vital="yes" />
-                        <File Id="file5" Name="NAMESP_4.HTM" LongName="namespace-RabbitMQ.Client.MessagePatterns.html" Vital="yes" />
-                        <File Id="file6" Name="NA712C_1.HTM" LongName="namespace-RabbitMQ.Util.html" Vital="yes" />
-                        <File Id="file7" Name="style.css" Vital="yes" />
-                        <File Id="file8" Name="TYPE-R_1.HTM" LongName="type-RabbitMQ.Client.AmqpTcpEndpoint.html" Vital="yes" />
-                        <File Id="file9" Name="TYPE-R_2.HTM" LongName="type-RabbitMQ.Client.AmqpTimestamp.html" Vital="yes" />
-                        <File Id="file10" Name="TYPE-R_3.HTM" LongName="type-RabbitMQ.Client.AmqpVersion.html" Vital="yes" />
-                        <File Id="file11" Name="TYPE-R_4.HTM" LongName="type-RabbitMQ.Client.BasicGetResult.html" Vital="yes" />
-                        <File Id="file12" Name="TY8B2A_1.HTM" LongName="type-RabbitMQ.Client.BinaryTableValue.html" Vital="yes" />
-                        <File Id="file13" Name="TY4CC6_1.HTM" LongName="type-RabbitMQ.Client.ConnectionFactory.html" Vital="yes" />
-                        <File Id="file14" Name="TY1373_1.HTM" LongName="type-RabbitMQ.Client.ConnectionParameters.html" Vital="yes" />
-                        <File Id="file15" Name="TYA577_1.HTM" LongName="type-RabbitMQ.Client.Content.BasicMessageBuilder.html" Vital="yes" />
-                        <File Id="file16" Name="TY8ED0_1.HTM" LongName="type-RabbitMQ.Client.Content.BasicMessageReader.html" Vital="yes" />
-                        <File Id="file17" Name="TYC537_1.HTM" LongName="type-RabbitMQ.Client.Content.BytesMessageBuilder.html" Vital="yes" />
-                        <File Id="file18" Name="TYCE50_1.HTM" LongName="type-RabbitMQ.Client.Content.BytesMessageReader.html" Vital="yes" />
-                        <File Id="file19" Name="TYE5C7_1.HTM" LongName="type-RabbitMQ.Client.Content.BytesWireFormatting.html" Vital="yes" />
-                        <File Id="file20" Name="TY23C6_1.HTM" LongName="type-RabbitMQ.Client.Content.IBytesMessageBuilder.html" Vital="yes" />
-                        <File Id="file21" Name="TY2FF3_1.HTM" LongName="type-RabbitMQ.Client.Content.IBytesMessageReader.html" Vital="yes" />
-                        <File Id="file22" Name="TY0A1F_1.HTM" LongName="type-RabbitMQ.Client.Content.IMapMessageBuilder.html" Vital="yes" />
-                        <File Id="file23" Name="TY0654_1.HTM" LongName="type-RabbitMQ.Client.Content.IMapMessageReader.html" Vital="yes" />
-                        <File Id="file24" Name="TY8ED6_1.HTM" LongName="type-RabbitMQ.Client.Content.IMessageBuilder.html" Vital="yes" />
-                        <File Id="file25" Name="TY40BF_1.HTM" LongName="type-RabbitMQ.Client.Content.IMessageReader.html" Vital="yes" />
-                        <File Id="file26" Name="TYE566_1.HTM" LongName="type-RabbitMQ.Client.Content.IStreamMessageBuilder.html" Vital="yes" />
-                        <File Id="file27" Name="TY1FB6_1.HTM" LongName="type-RabbitMQ.Client.Content.IStreamMessageReader.html" Vital="yes" />
-                        <File Id="file28" Name="TYDB65_1.HTM" LongName="type-RabbitMQ.Client.Content.MapMessageBuilder.html" Vital="yes" />
-                        <File Id="file29" Name="TYFAC4_1.HTM" LongName="type-RabbitMQ.Client.Content.MapMessageReader.html" Vital="yes" />
-                        <File Id="file30" Name="TYFBF5_1.HTM" LongName="type-RabbitMQ.Client.Content.MapWireFormatting.html" Vital="yes" />
-                        <File Id="file31" Name="TY85CA_1.HTM" LongName="type-RabbitMQ.Client.Content.PrimitiveParser.html" Vital="yes" />
-                        <File Id="file32" Name="TY27D6_1.HTM" LongName="type-RabbitMQ.Client.Content.StreamMessageBuilder.html" Vital="yes" />
-                        <File Id="file33" Name="TY231C_1.HTM" LongName="type-RabbitMQ.Client.Content.StreamMessageReader.html" Vital="yes" />
-                        <File Id="file34" Name="TY36BE_1.HTM" LongName="type-RabbitMQ.Client.Content.StreamWireFormatting.html" Vital="yes" />
-                        <File Id="file35" Name="TYF60D_1.HTM" LongName="type-RabbitMQ.Client.Content.StreamWireFormattingTag.html" Vital="yes" />
-                        <File Id="file36" Name="TYA185_1.HTM" LongName="type-RabbitMQ.Client.DefaultBasicConsumer.html" Vital="yes" />
-                        <File Id="file37" Name="TY893F_1.HTM" LongName="type-RabbitMQ.Client.Events.BasicDeliverEventArgs.html" Vital="yes" />
-                        <File Id="file38" Name="TY78D2_1.HTM" LongName="type-RabbitMQ.Client.Events.BasicDeliverEventHandler.html" Vital="yes" />
-                        <File Id="file39" Name="TY618B_1.HTM" LongName="type-RabbitMQ.Client.Events.BasicReturnEventArgs.html" Vital="yes" />
-                        <File Id="file40" Name="TY787E_1.HTM" LongName="type-RabbitMQ.Client.Events.BasicReturnEventHandler.html" Vital="yes" />
-                        <File Id="file41" Name="TY2300_1.HTM" LongName="type-RabbitMQ.Client.Events.CallbackExceptionEventArgs.html" Vital="yes" />
-                        <File Id="file42" Name="TY59B1_1.HTM" LongName="type-RabbitMQ.Client.Events.CallbackExceptionEventHandler.html" Vital="yes" />
-                        <File Id="file43" Name="TY15CF_1.HTM" LongName="type-RabbitMQ.Client.Events.ConnectionShutdownEventHandler.html" Vital="yes" />
-                        <File Id="file44" Name="TY75BB_1.HTM" LongName="type-RabbitMQ.Client.Events.ConsumerEventArgs.html" Vital="yes" />
-                        <File Id="file45" Name="TY77FA_1.HTM" LongName="type-RabbitMQ.Client.Events.ConsumerEventHandler.html" Vital="yes" />
-                        <File Id="file46" Name="TY7EBE_1.HTM" LongName="type-RabbitMQ.Client.Events.ConsumerShutdownEventHandler.html" Vital="yes" />
-                        <File Id="file47" Name="TYF3AA_1.HTM" LongName="type-RabbitMQ.Client.Events.EventingBasicConsumer.html" Vital="yes" />
-                        <File Id="file48" Name="TY1FF1_1.HTM" LongName="type-RabbitMQ.Client.Events.ModelShutdownEventHandler.html" Vital="yes" />
-                        <File Id="file49" Name="TY4CBD_1.HTM" LongName="type-RabbitMQ.Client.Exceptions.AlreadyClosedException.html" Vital="yes" />
-                        <File Id="file50" Name="TY3804_1.HTM" LongName="type-RabbitMQ.Client.Exceptions.BrokerUnreachableException.html" Vital="yes" />
-                        <File Id="file51" Name="TYD747_1.HTM" LongName="type-RabbitMQ.Client.Exceptions.ChannelAllocationException.html" Vital="yes" />
-                        <File Id="file52" Name="TY37F2_1.HTM" LongName="type-RabbitMQ.Client.Exceptions.OperationInterruptedException.html" Vital="yes" />
-                        <File Id="file53" Name="TY1629_1.HTM" LongName="type-RabbitMQ.Client.Exceptions.PacketNotRecognizedException.html" Vital="yes" />
-                        <File Id="file54" Name="TYFABA_1.HTM" LongName="type-RabbitMQ.Client.Exceptions.ProtocolVersionMismatchException.html" Vital="yes" />
-                        <File Id="file55" Name="TY9FCD_1.HTM" LongName="type-RabbitMQ.Client.Exceptions.UnexpectedMethodException.html" Vital="yes" />
-                        <File Id="file56" Name="TY9BB8_1.HTM" LongName="type-RabbitMQ.Client.Exceptions.UnsupportedMethodException.html" Vital="yes" />
-                        <File Id="file57" Name="TY34C2_1.HTM" LongName="type-RabbitMQ.Client.Exceptions.UnsupportedMethodFieldException.html" Vital="yes" />
-                        <File Id="file58" Name="TYD827_1.HTM" LongName="type-RabbitMQ.Client.Exceptions.WireFormattingException.html" Vital="yes" />
-                        <File Id="file59" Name="TYCFA8_1.HTM" LongName="type-RabbitMQ.Client.ExchangeType.html" Vital="yes" />
-                        <File Id="file60" Name="TY883B_1.HTM" LongName="type-RabbitMQ.Client.IBasicConsumer.html" Vital="yes" />
-                        <File Id="file61" Name="TYE88D_1.HTM" LongName="type-RabbitMQ.Client.IBasicProperties.html" Vital="yes" />
-                        <File Id="file62" Name="TY2F04_1.HTM" LongName="type-RabbitMQ.Client.IConnection.html" Vital="yes" />
-                        <File Id="file63" Name="TYDA15_1.HTM" LongName="type-RabbitMQ.Client.IContentHeader.html" Vital="yes" />
-                        <File Id="file64" Name="TYFFA0_1.HTM" LongName="type-RabbitMQ.Client.IFileProperties.html" Vital="yes" />
-                        <File Id="file65" Name="TY67B6_1.HTM" LongName="type-RabbitMQ.Client.IMethod.html" Vital="yes" />
-                        <File Id="file66" Name="TY5225_1.HTM" LongName="type-RabbitMQ.Client.IModel.html" Vital="yes" />
-                        <File Id="file67" Name="TY5785_1.HTM" LongName="type-RabbitMQ.Client.IProtocol.html" Vital="yes" />
-                        <File Id="file68" Name="TYFC9E_1.HTM" LongName="type-RabbitMQ.Client.IStreamProperties.html" Vital="yes" />
-                        <File Id="file69" Name="TYB6CD_1.HTM" LongName="type-RabbitMQ.Client.MessagePatterns.SimpleRpcClient.html" Vital="yes" />
-                        <File Id="file70" Name="TYB540_1.HTM" LongName="type-RabbitMQ.Client.MessagePatterns.SimpleRpcServer.html" Vital="yes" />
-                        <File Id="file71" Name="TY75DC_1.HTM" LongName="type-RabbitMQ.Client.MessagePatterns.Subscription.html" Vital="yes" />
-                        <File Id="file72" Name="TY70EA_1.HTM" LongName="type-RabbitMQ.Client.Protocols.html" Vital="yes" />
-                        <File Id="file73" Name="TYF3C1_1.HTM" LongName="type-RabbitMQ.Client.PublicationAddress.html" Vital="yes" />
-                        <File Id="file74" Name="TY3DED_1.HTM" LongName="type-RabbitMQ.Client.QueueingBasicConsumer.html" Vital="yes" />
-                        <File Id="file75" Name="TY39A0_1.HTM" LongName="type-RabbitMQ.Client.ShutdownEventArgs.html" Vital="yes" />
-                        <File Id="file76" Name="TY3AD4_1.HTM" LongName="type-RabbitMQ.Client.ShutdownInitiator.html" Vital="yes" />
-                        <File Id="file77" Name="TYA67C_1.HTM" LongName="type-RabbitMQ.Client.ShutdownReportEntry.html" Vital="yes" />
-                        <File Id="file78" Name="TY177D_1.HTM" LongName="type-RabbitMQ.Util.BlockingCell.html" Vital="yes" />
-                        <File Id="file79" Name="TYD6D5_1.HTM" LongName="type-RabbitMQ.Util.DebugUtil.html" Vital="yes" />
-                        <File Id="file80" Name="TY4397_1.HTM" LongName="type-RabbitMQ.Util.Either.html" Vital="yes" />
-                        <File Id="file81" Name="TY32A5_1.HTM" LongName="type-RabbitMQ.Util.EitherAlternative.html" Vital="yes" />
-                        <File Id="file82" Name="TY3355_1.HTM" LongName="type-RabbitMQ.Util.NetworkBinaryReader.html" Vital="yes" />
-                        <File Id="file83" Name="TYDDDB_1.HTM" LongName="type-RabbitMQ.Util.NetworkBinaryWriter.html" Vital="yes" />
-                        <File Id="file85" Name="TYC72D_1.HTM" LongName="type-RabbitMQ.Util.SharedQueue.html" Vital="yes" />
-                        <File Id="file86" Name="TY07F9_1.HTM" LongName="type-RabbitMQ.Util.XmlUtil.html" Vital="yes" />
+@FILES ../tmp/unzip/rabbitmq-dotnet-client-@VERSION@-client-htmldoc/html -name *.html
+                        <Shortcut Id='HtmlApiDocShortcut' Target="[#indexhtml]" Directory='DOTNET_CLIENT_MENU_DIR' Name='HtmlDoc' LongName='Autogenerated API documentation (HTML)' />
                     </Component>
                 </Directory>
                 
