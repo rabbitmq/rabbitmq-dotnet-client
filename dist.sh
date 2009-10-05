@@ -70,7 +70,7 @@ CYGWIN=nontsec
 test "$KEYFILE" || KEYFILE=rabbit-mock.snk
 test "$RABBIT_VSN" || RABBIT_VSN=0.0.0
 test "$MSBUILD" || MSBUILD=msbuild.exe
-test "$WEB_URL" || WEB_URL=http://stage.rabbitmq.com
+test "$WEB_URL" || WEB_URL=http://stage.rabbitmq.com/
 test "$UNOFFICIAL_RELEASE" || UNOFFICIAL_RELEASE=
 
 ### Other, general vars
