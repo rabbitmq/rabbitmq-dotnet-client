@@ -78,13 +78,8 @@ RELEASE_DIR=releases/$NAME/v$RABBIT_VSN
 function main {
     get-sources
     gen-license-rtf
-    gen-wxs
 
     build-msm-msi
-
-    rm -f wix/dotnet-client-merge-module.wxs
-    rm -f wix/dotnet-client-product.wxs
-    rm -f wix/License.rtf
 
     safe-rm-deep-dir tmp
 
@@ -98,10 +93,12 @@ function build-msm-msi {
 
     cd wix
 
+    gen-wxs dotnet-client-merge-module.wxs
     candle -out ../tmp/wix/rabbitmq-dotnet-client-msm.wixobj dotnet-client-merge-module.wxs
     light -out ../tmp/wix/rabbitmq-dotnet-client.msm ../tmp/wix/rabbitmq-dotnet-client-msm.wixobj
     test "$SKIP_MSIVAL2" || MsiVal2.exe ../tmp/wix/rabbitmq-dotnet-client.msm ../lib/wix/mergemod.cub -f
-
+    
+    gen-wxs dotnet-client-product.wxs
     candle -out ../tmp/wix/rabbitmq-dotnet-client-msi.wixobj dotnet-client-product.wxs
     light -out ../tmp/wix/rabbitmq-dotnet-client.msi \
         ../tmp/wix/rabbitmq-dotnet-client-msi.wixobj \
@@ -129,13 +126,50 @@ function get-sources {
 
 
 function gen-wxs {
-    sed -e "s:@VERSION@:$RABBIT_VSN:g" \
-        < wix/dotnet-client-merge-module.wxs.in \
-        > wix/dotnet-client-merge-module.wxs
-      
-    sed -e "s:@VERSION@:$RABBIT_VSN:g" \
-        < wix/dotnet-client-product.wxs.in \
-        > wix/dotnet-client-product.wxs
+    set +x
+    f=$1
+    local IFS=''
+    sed -e "s:@VERSION@:$RABBIT_VSN:g" <${f}.in | while read -r l ; do
+        if [ -z "$l" -o -n "${l##@FILES *}" ] ; then
+            echo "$l"
+        else
+            # This is fairly hairy, due to the fact that .wxs file
+            # lists are quite far from being simple lists of
+            # filenames.  Wix comes with a tool (tallow) for creating
+            # these lists, but it seems to be principally intended for
+            # creating an initial .wxs file, which you then hand-edit.
+            # So it's not a good fit for our needs here.  Instead, we
+            # use find+awk to generate the File elements.
+            echo "$l" | (
+                IFS=' '
+                read -r intro args
+                # Windows has its own find command.  Make sure we get
+                # the cygwin one.
+                /bin/find $args -printf "%h %f\n" | awk '
+{
+    path = $1 "/" $2;
+    gsub("/", "\\", path);
+
+    id = $2;
+    gsub("[^a-zA-Z0-9]", "", id);
+
+    split($2, shorta, "\\.");
+    short = substr(shorta[1], 0, 8);
+    ext = substr(shorta[2], 0, 3);
+    count = 0;
+    while (short in shorts) {
+        count++;
+        short = substr(short, 0, 7-length(count)) "_" count;
+    }
+    shorts[short] = 1;
+    short = toupper(short) "." toupper(ext);
+
+    print "<File Id=\"" id "\" Name=\"" short "\" LongName=\"" $2 "\" Source=\"" path "\" Vital=\"yes\"/>"
+}'
+            )
+        fi
+    done >$f
+    set -x
 }
 
 
