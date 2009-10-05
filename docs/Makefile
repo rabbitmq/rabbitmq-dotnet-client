@@ -4,7 +4,7 @@ MANDIR=$(BUILDDIR)/doc/userguide
 TMPDIR=$(BUILDDIR)/doc/tmp
 BASEURL=http://localhost:8080
 
-PAGES=UserGuide ApiOverview MessagingPatterns ShutdownProtocols TroubleShooting Examples BuildingTheClient BuildingTheWcfBinding ImplementationGuide ApiGen
+PAGES=UserGuide ApiOverview MessagingPatterns ShutdownProtocols TroubleShooting Examples BuildingTheClient ImplementationGuide ApiGen
 
 TARGET=$(MANDIR)/user-guide.pdf
 

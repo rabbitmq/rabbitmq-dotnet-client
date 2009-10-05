@@ -2,146 +2,88 @@
 
 The source tree is laid out as follows:
 
-  - configs - contains NAnt property definition XML files, for individual build and deployment configurations, selectable via inclusion from [code default.build] and [code local.build]
-     - dotnet-1.1.build - configuration for Microsoft .NET v1.1
-     - dotnet-2.0.build - configuration for Microsoft .NET v2.0
-  - default.build - the main NAnt build script
-  - docs - contains both external documentation and the project's own documentation
-     - namespaces.xml - Per-namespace documentation, for feeding into NDocProc
-     - specs - AMQP specification documents and XML files
-	- amqp-xml-doc0-9.pdf
-	- amqp0-9.pdf
-	- amqp0-9.xml
-	- qpid-amqp.0-8.xml
-        - amqp0-8.xml
-     - wikipages - RabbitMQ .NET client library documentation in Pyle Wiki markup format
-  - local.build.example - Sample [code local.build] file; used to select a configuration from the [code configs] directory
-  - src - Source code to the various parts of the system
-      - apigen - Source code for the XML specification parser and code generator
-      - client
-	  - api - C# client public API interfaces and classes
-          - content - C# QPid-compatible JMS message body codecs
-          - events - C# event handler delegates and event classes
-          - exceptions - C# API-visible exception definitions
-	  - impl - C# client internal/private implementation classes
-             - v0_8 - AMQP 0-8 specific code
-             - v0_8qpid - AMQP 0-8 code specific to QPid's M1 implementation
-             - v0_9 - AMQP 0-9 specific code
-          - messagepatterns - Implementation of common patterns in using AMQP; see the chapter on MessagePatterns
-      - examples - simple AMQP client example programs in C#
-      - unit - NUnit unit-tests
-         - nunit - a copy of NUnit compiled for .NET 1.1, unpacked for convenience
-      - util - Utility classes, compiled in to the client assembly
-      - wcf - WCF binding source code, project files, and build products
-         - RabbitMQ.ServiceModel.sln - Visual Studio solution file
-         - RabbitMQ.ServiceModel - WCF binding library
-            - RabbitMQ.ServiceModel.csproj - Visual Studio/MSBuild project file
-	    - RabbitMQ/ServiceModel/*.cs - code for the WCF binding
-         - Test - WCF example programs
-	    - RabbitMQ.ServiceModel.Test.csproj - Visual Studio/MSBuild project file
-
-  - tools - Third-party tools, such as NAnt, NUnit, NDocProc, and Pyle Wiki, as well as utility scripts
+  - [code docs] - Contains the AMQP specification XML files, used to generate code in [code projects/client/Apigen] project
+  - [code lib] - Third-party libraries and programs referenced by the code or used during the build
+  - [code projects] - Source code to the various parts of the system
+      - [code client] - Source code  and project files for building the client
+          - [code Apigen] - Project for the XML specification parser and code generator application
+          - [code ApigenBootstrap] - Project for creating a library out of some parts of RabbitMQ.Client's source code that are used in Apigen
+          - [code RabbitMQ.Client] - The client library project
+          - [code Unit] - Unit tests for the client library
+      - [code wcf] - WCF binding source code and project files
+          - [code RabbitMQ.ServiceModel] - The WCF binding project
+      - [code examples] - Example projects
+          - [code client] - Example code and projects for using the client library
+          - [code wcf] - Example code and projects for using the WCF binding
+  - [code Local.props] - Local customizations for the build process. Copy the contents of [code Local.props.example] in this file, to start with
+  - [code RabbitMQDotNetClient.sln] - The Visual Studio solution file which contains all the projects
 
 ** Build Prerequisites
 
 To compile the RabbitMQ .NET client library, you will need
 
- - a .NET development environment. Environments tested include
-   - Microsoft .NET 1.1 on Windows XP
-   - Microsoft .NET 2.0 on Windows XP
-
- - NAnt v0.85 or compatible (http://nant.sourceforge.net/); see the [code tools] directory
-
-To build the Javadoc-style documentation, you will need
-
- - NDocProc; see the [code tools] directory
+  - a .NET development environment:
+      - Microsoft .NET 2.0 (or later)
+      - Microsoft .NET 3.0 (or later) if you want to build the WCF binding too
+  - Microsoft Visual Studio 2005 or later (optional)
 
 To run the unit tests, you will need
 
- - NUnit 2.4.3; see the [code tools] directory
-
-See BuildingTheWcfBinding for more information about the WCF binding.
+ - NUnit 2.4.3; included in the [code lib] directory
 
 ** Configuring Your Tree
 
-Copy [code local.build.example] to [code local.build], and edit it so that it points to one of the build configuration files in the [code configs/] directory.
+Copy [code Local.props.example] to [code Local.props], and edit it if necessary (the properties in this file have suggestive names). Set [code PropTargetFramework] to [code v1.1], [code v2.0], [code v3.0] or [code v3.5]. If you would like to build under Mono, only [code v1.1] and [code v2.0] are supported; also set [code PropUsingMono] to [code true] in this case.
 
-For instance, a [code local.build] that contains the text
+** Building
 
-@code
-  <project>
-    <property name="config.name" value="dotnet-1.1" />
-  </project>
+*** On Windows, with Visual Studio
 
-will use the [code configs/dotnet-1.1.build] file to control the build configuration.
+Simply open [code RabbitMQDotNetClient.sln] with Visual Studio and build.
 
-** Available Build Targets
+If you are using a version of Visual Studio later than Visual Studio 2005, you will have to convert the solution to make it compatible with your version of Visual Studio. This process is automated and you are presented with a wizard when you first open the solution file.
 
-To run a particular build target, run
+The projects in the RabbitMQ .NET client contain some customizations in order to allow generating source files and running NUnit tests as part of the build process. You might be presented with warnings claiming that the projects might be unsafe. You will have to instruct Visual Studio to open all projects normally.
 
-@code sh
-  NAnt.exe [targetname]
+To skip running the NUnit tests as part of the build, select the [code DebugNoTest] build configuration.
 
-*** clean
+Note: If you change a property in [code Local.props] while the solution is loaded in Visual Studio, you will have to close the solution and reopen it, for the changes to take effect.
 
-Removes the [code build/] directory, which contains all binaries, generated sources and generated documentation.
+*** On Windows, without Visual Studio
 
-*** build (default)
+To build the client library without Visual Studio, first you need to make sure you have the .NET's framework directory in your [code PATH] environment variable. The .NET framework directory can usually be found at [code %WINDIR%\Microsoft.NET\Framework\v2.0.50727] for .NET 2.0 or [code %WINDIR%\Microsoft.NET\Framework\v3.0] for .NET 3.0.
 
-Builds the main client DLL. Runs ApiGen as part of the process, if necessary.
+Open the Command Prompt (Start -> Run -> cmd) or Cygwin (if you have it installed) and change to the client's directory. Now type [code msbuild.exe] and hit return to start building the solution.
 
-*** doc
+Refer to MSBuild's documentation for information on valid command line switches for [code msbuild.exe].
 
-Generates the Javadoc-like HTML code documentation, using NDocProc. The included binary version of NDocProc is compiled for .NET 1.1.
+*** On Linux, using Mono
 
-*** examples
+For building under Mono, please refer to [link http://www.rabbitmq.com/build-dotnet-client.html#building-on-linux].
 
-Generates the example AMQP clients included in the [code src/examples/] directory, like [code SendString.exe] and [code LogTail.exe].
+** Building the WCF binding
 
-*** unit
+Building the WCF binding is enabled by default in [code Local.props] if the target framework is [code v3.0] or later (only on Windows).
 
-Runs the included unit tests. (.NET 1.1 and compatible only.)
+To disable building the WCF binding, set [code PropBuildWcf] to [code false].
 
-*** stamp
-
-Removes the preprocessed generated [code AssemblyInfo.cs], so that on a subsequent build, a fresh one will be generated from [code AssemblyInfo.cs.in] with a fresh build identifier.
+Building the WCF binding under Mono is currently unsupported due to limitations of Mono.
 
 ** Build Products
 
-The build products available after a successful [code nant examples] are:
+The build products available after a successful build are:
 
- - [code build/bin/RabbitMQ.Client.dll] - The final client assembly
- - Example client programs, like [code build/bin/SendString.exe] and [code build/bin/LogTail.exe]
+ - [code projects/client/RabbitMQ.Client/build/bin/RabbitMQ.Client.dll] - The final client assembly
+ - Example client programs, like [code projects/examples/client/SendString/build/bin/SendString.exe] and [code projects/examples/client/LogTail/build/bin/LogTail.exe]
 
-Other files in the [code build/bin/] directory:
+If building the WCF binding is enabled, there will also be:
 
- - [code apigen-bootstrap.dll] - fed into ApiGen
- - [code rabbitmq-dotnet-apigen.exe] - the ApiGen tool itself
- - [code unit-tests.dll] - contains NUnit unit-tests
+ - [code projects/wcf/RabbitMQ.ServiceModel/build/bin/RabbitMQ.ServiceModel.dll] - The WCF binding library
+ - Example programs for the WCF binding, like [code projects/examples/wcf/Test/build/bin/RabbitMQ.ServiceModel.Test.exe]
 
 Other build products:
 
- - [code build/gensrc/*.cs] - Protocol-specific autogenerated code, produced by ApiGen
- - [code build/doc/RabbitMQ.Client.xml] - [code csc]-generated XML documentation excerpt file, used as input to NDocProc
- - [code build/doc/xml/] - XML documentation files as generated by NDocProc
- - [code build/doc/html/] - HTML documentation as generated by NDocProc's stylesheets from the XML files
+ - [code gensrc/RabbitMQ.Client/autogenerated-api-*.cs] - Protocol-specific autogenerated code, produced by Apigen
+ - [code projects/client/RabbitMQ.Client/build/bin/RabbitMQ.Client.xml] - [code csc]-generated XML documentation of the client assembly
+ - [code projects/wcf/RabbitMQ.ServiceModel/build/bin/RabbitMQ.ServiceModel.xml] - [code csc]-generated XML documentation of the WCF binding
 
-** Assembly Versioning
-
-As part of the build process, the source file [code AssemblyInfo.cs.in] is copied to
-[code AssemblyInfo.cs], and the token [code @VERSION@] is replaced with value specified by
-the property [code version.major.minor.release]  in the [code local.build] NAnt script.
-
-The assembly version number is of the form
-
-@code java
-  "1.2.0"
-
-or more generally
-
-@code java
-  "Major.Minor.Release"
-
-that represents major, minor and release client version numbers, respectively.
-
-To force an update to the version number, the [code nant stamp] target deletes [code AssemblyInfo.cs], forcing its regeneration in subsequent builds.
