@@ -53,9 +53,14 @@
     <Exec Command="certmgr -add -c Trust $(SSLCertsDir)/testca/cacert.cer"/>
   </Target>
 
+  <!-- Decide whether we need to set TEMP under mono -->
+  <PropertyGroup>
+    <MonoNunitTempSetting Condition="'$(PropUsingMono)' == 'true' and '$(temp)' == ''">temp=/tmp </MonoNunitTempSetting>
+  </PropertyGroup>
+
   <!-- Running the tests -->
   <Target Name="RunUnitTests" DependsOnTargets="ImportSSL">
-    <Exec Command='$(PropLaunchExe)..\..\..\lib\nunit\nunit-console.exe "build\bin\$(AssemblyName).dll"' WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="true" />
+    <Exec Command='$(MonoNunitTempSetting)$(PropLaunchExe)..\..\..\lib\nunit\nunit-console.exe "build\bin\$(AssemblyName).dll"' WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="true" />
   </Target>
   
   <!-- Clean test result file -->
