@@ -86,7 +86,7 @@ namespace RabbitMQ.Client.Impl
                 m_socket.GetStream();
 
             m_reader = new NetworkBinaryReader(netstream);
-            m_writer = new NetworkBinaryWriter(netstream);
+            m_writer = new NetworkBinaryWriter(new BufferedStream(netstream));
         }
 
         public AmqpTcpEndpoint Endpoint
@@ -118,6 +118,7 @@ namespace RabbitMQ.Client.Impl
                 m_writer.Write((byte)1);
                 m_writer.Write((byte)m_endpoint.Protocol.MajorVersion);
                 m_writer.Write((byte)m_endpoint.Protocol.MinorVersion);
+                m_writer.Flush();
             }
         }
 
@@ -134,6 +135,7 @@ namespace RabbitMQ.Client.Impl
             lock (m_writer)
             {
                 frame.WriteTo(m_writer);
+                m_writer.Flush();
                 //Console.WriteLine("OUTBOUND:");
                 //DebugUtil.DumpProperties(frame, Console.Out, 2);
             }
