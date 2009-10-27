@@ -76,36 +76,34 @@ namespace RabbitMQ.Client.Examples {
                 string serverAddress = args[0];
                 int messageCount = int.Parse(args[1]);
                 
-                using (IConnection conn = new ConnectionFactory().CreateConnection(serverAddress))
+                using (IConnection conn =
+                       new ConnectionFactory().CreateConnection(serverAddress))
                 {
                     Stopwatch sendTimer = new Stopwatch();
-                    Stopwatch sendUnkeyedTimer = new Stopwatch();
                     Stopwatch receiveTimer = new Stopwatch();
                         
-                    using (IModel receiveCh = conn.CreateModel()) {
-                        string q = receiveCh.QueueDeclare();
+                    using (IModel ch = conn.CreateModel()) {
+                        sendTimer.Start();
                         
-                        using (IModel sendCh = conn.CreateModel()) {
-                            sendTimer.Start();
-
-                            for (int i = 0; i < messageCount; ++i) {
-                                sendCh.BasicPublish("", q, null, Message);
-                            }
+                        for (int i = 0; i < messageCount; ++i) {
+                            ch.BasicPublish("", "", null, Message);
                         }
-                        sendTimer.Stop();
+                    }
+                    sendTimer.Stop();
+
+                    using (IModel ch = conn.CreateModel()) {
+                        string q = ch.QueueDeclare();
                         
-                        using (IModel sendCh = conn.CreateModel()) {
-                            sendUnkeyedTimer.Start();
-
-                            for (int i = 0; i < messageCount; ++i) {
-                                sendCh.BasicPublish("", "", null, Message);
-                            }
+                        for (int i = 0; i < messageCount + 1; ++i) {
+                            ch.BasicPublish("", q, null, Message);
                         }
-                        sendUnkeyedTimer.Stop();
+                        //This ensures that all messages have been enqueued
+                        ch.BasicGet(q, true);
 
-                        QueueingBasicConsumer consumer = new QueueingBasicConsumer(receiveCh);
-                        receiveCh.BasicConsume(q, true, null, consumer);
+                        QueueingBasicConsumer consumer =
+                            new QueueingBasicConsumer(ch);
                         receiveTimer.Start();
+                        ch.BasicConsume(q, true, null, consumer);
                         
                         for (int i = 0; i < messageCount; ++i) {
                             consumer.Queue.Dequeue();
@@ -114,9 +112,8 @@ namespace RabbitMQ.Client.Examples {
                     }
 
                     Console.WriteLine("Performance Test Completed");
-                    Console.WriteLine("Send (unkeyed): {0}Hz", ToHertz(sendUnkeyedTimer.ElapsedMilliseconds, messageCount));
-                    Console.WriteLine("Send:           {0}Hz", ToHertz(sendTimer.ElapsedMilliseconds, messageCount));
-                    Console.WriteLine("Receive:        {0}Hz", ToHertz(receiveTimer.ElapsedMilliseconds, messageCount));
+                    Console.WriteLine("Send:    {0}Hz", ToHertz(sendTimer.ElapsedMilliseconds, messageCount));
+                    Console.WriteLine("Receive: {0}Hz", ToHertz(receiveTimer.ElapsedMilliseconds, messageCount));
 
                     return 0;
                 }
@@ -127,8 +124,7 @@ namespace RabbitMQ.Client.Examples {
         }
 
         private static double ToHertz(long milliseconds, int messageCount) {
-            double secsPerMessage = ((double) milliseconds)/((double) messageCount)/1000f;
-            return 1/secsPerMessage;
+            return ((long)messageCount)*1000L/milliseconds;
         }
     }
 }
