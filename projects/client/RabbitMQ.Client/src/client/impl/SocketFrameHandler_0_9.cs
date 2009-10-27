@@ -85,7 +85,7 @@ namespace RabbitMQ.Client.Impl
                 SslHelper.TcpUpgrade(m_socket.GetStream(), endpoint.Ssl) :
                 m_socket.GetStream();
 
-            m_reader = new NetworkBinaryReader(netstream);
+            m_reader = new NetworkBinaryReader(new BufferedStream(netstream));
             m_writer = new NetworkBinaryWriter(new BufferedStream(netstream));
         }
 
