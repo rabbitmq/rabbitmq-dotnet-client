@@ -178,7 +178,7 @@ namespace RabbitMQ.Client
             int index = address.IndexOf(':');
             if (index == -1) {
                 endpoint.HostName = address;
-              } else {
+            } else {
                 string portStr = address.Substring(index + 1).Trim();
                 int portNum = (portStr.Length == 0) ? -1 : int.Parse(portStr);
                 endpoint.HostName = address.Substring(0, index);
