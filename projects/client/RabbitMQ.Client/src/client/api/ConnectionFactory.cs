@@ -270,7 +270,11 @@ namespace RabbitMQ.Client
         ///<exception cref="ArgumentException"/>
         public IConnection CreateConnection(IProtocol version, string hostName)
         {
-            return CreateConnection(new AmqpTcpEndpoint(version, hostName));
+            AmqpTcpEndpoint endpoint = new AmqpTcpEndpoint();
+            endpoint.Protocol = version;
+            endpoint.HostName = hostName;
+            endpoint.Ssl = m_parameters.Ssl;
+            return CreateConnection(endpoint);
         }
 
         ///<summary>Create a connection to the endpoint specified.</summary>
@@ -281,7 +285,12 @@ namespace RabbitMQ.Client
         ///<exception cref="ArgumentException"/>
         public IConnection CreateConnection(IProtocol version, Uri uri)
         {
-            return CreateConnection(new AmqpTcpEndpoint(version, uri));
+            AmqpTcpEndpoint endpoint = new AmqpTcpEndpoint();
+            endpoint.Protocol = version;
+            endpoint.HostName = uri.Host;
+            endpoint.Port = uri.Port;
+            endpoint.Ssl = m_parameters.Ssl;
+            return CreateConnection(endpoint);
         }
 
         ///<summary>Create a connection to the endpoint specified,
@@ -293,7 +302,11 @@ namespace RabbitMQ.Client
         ///</remarks>
         public IConnection CreateConnection(Uri uri)
         {
-            return CreateConnection(new AmqpTcpEndpoint(uri));
+            AmqpTcpEndpoint endpoint = new AmqpTcpEndpoint();
+            endpoint.HostName = uri.Host;
+            endpoint.Port = uri.Port;
+            endpoint.Ssl = m_parameters.Ssl;
+            return CreateConnection(endpoint);
         }
 
         ///<summary>Create a connection to the host (and optional
@@ -302,7 +315,10 @@ namespace RabbitMQ.Client
         ///string is the same as that accepted by
         ///AmqpTcpEndpoint.Parse().</summary>
         public IConnection CreateConnection(string address) {
-            return CreateConnection(AmqpTcpEndpoint.Parse(Protocols.FromEnvironment(), address));
+            AmqpTcpEndpoint endpoint =
+                AmqpTcpEndpoint.Parse(Protocols.FromEnvironment(), address);
+            endpoint.Ssl = m_parameters.Ssl;
+            return CreateConnection(endpoint);
         }
     }
 }

@@ -121,90 +121,12 @@ namespace RabbitMQ.Client
             m_ssl = ssl;
         }
 
-        ///<summary>Construct an AmqpTcpEndpoint with the given
-        ///IProtocol, hostname, and port number. If the port number is
-        ///-1, the default port number for the IProtocol will be
-        ///used.</summary>
-        public AmqpTcpEndpoint(IProtocol protocol, string hostName, int portOrMinusOne) :
-            this(protocol, hostName, portOrMinusOne, new SslOption())
-        {
-        }
-
-        ///<summary>Construct an AmqpTcpEndpoint with the given
-        ///IProtocol and hostname, using the default port for the
-        ///IProtocol.</summary>
-        public AmqpTcpEndpoint(IProtocol protocol, string hostName) :
-            this(protocol, hostName, -1)
-        {
-        }
-
-        ///<summary>Construct an AmqpTcpEndpoint with the given
-        ///IProtocol, "localhost" as the hostname, and using the
-        ///default port for the IProtocol.</summary>
-        public AmqpTcpEndpoint(IProtocol protocol) :
-            this(protocol, "localhost", -1)
-        {
-        }
-
-        ///<summary>Construct an AmqpTcpEndpoint with the given
-        ///hostname and port number, using the IProtocol from
-        ///Protocols.FromEnvironment(). If the port number is
-        ///-1, the default port number for the IProtocol will be
-        ///used.</summary>
-        public AmqpTcpEndpoint(string hostName, int portOrMinusOne) :
-            this(Protocols.FromEnvironment(), hostName, portOrMinusOne)
-        {
-        }
-
-        ///<summary>Construct an AmqpTcpEndpoint with the given
-        ///hostname, using the IProtocol from
-        ///Protocols.FromEnvironment(), and the default port number of
-        ///that IProtocol.</summary>
-        public AmqpTcpEndpoint(string hostName) :
-            this(Protocols.FromEnvironment(), hostName)
-        {
-        }
-
-        ///<summary>Construct an AmqpTcpEndpoint with a hostname of
-        ///"localhost", using the IProtocol from
-        ///Protocols.FromEnvironment(), and the default port number of
-        ///that IProtocol.</summary>
+        ///<summary>Construct an AmqpTcpEndpoint, using IProtocol from
+        ///Protocols.FromEnvironment(), localhost as the hostname, the
+        ///default port number from the IProtocol, and new
+        ///SslOption</summary>
         public AmqpTcpEndpoint() :
-            this(Protocols.FromEnvironment())
-        {
-        }
-
-        ///<summary>Construct an AmqpTcpEndpoint with the given
-        ///IProtocol, Uri and ssl options.</summary>
-        ///<remarks>
-        /// Please see the class overview documentation for
-        /// information about the Uri format in use.
-        ///</remarks>
-        public AmqpTcpEndpoint(IProtocol protocol, Uri uri, SslOption ssl) :
-            this(protocol, uri.Host, uri.Port, ssl)
-        {
-        }
-
-        ///<summary>Construct an AmqpTcpEndpoint with the given
-        ///IProtocol and Uri.</summary>
-        ///<remarks>
-        /// Please see the class overview documentation for
-        /// information about the Uri format in use.
-        ///</remarks>
-        public AmqpTcpEndpoint(IProtocol protocol, Uri uri) :
-            this(protocol, uri.Host, uri.Port)
-        {
-        }
-
-        ///<summary>Construct an AmqpTcpEndpoint with the given
-        ///Uri, using the IProtocol from
-        ///Protocols.FromEnvironment().</summary>
-        ///<remarks>
-        /// Please see the class overview documentation for
-        /// information about the Uri format in use.
-        ///</remarks>
-        public AmqpTcpEndpoint(Uri uri) :
-            this(Protocols.FromEnvironment(), uri)
+            this(Protocols.FromEnvironment(), "localhost", -1, new SslOption())
         {
         }
 
@@ -251,16 +173,18 @@ namespace RabbitMQ.Client
         /// variant specified).
         ///</remarks>
         public static AmqpTcpEndpoint Parse(IProtocol protocol, string address) {
+            AmqpTcpEndpoint endpoint = new AmqpTcpEndpoint();
+            endpoint.Protocol = protocol;
             int index = address.IndexOf(':');
             if (index == -1) {
-                return new AmqpTcpEndpoint(protocol, address, -1);
-            } else {
+                endpoint.HostName = address;
+              } else {
                 string portStr = address.Substring(index + 1).Trim();
                 int portNum = (portStr.Length == 0) ? -1 : int.Parse(portStr);
-                return new AmqpTcpEndpoint(protocol,
-                                           address.Substring(0, index),
-                                           portNum);
+                endpoint.HostName = address.Substring(0, index);
+                endpoint.Port = portNum;
             }
+            return endpoint;
         }
 
         ///<summary>Splits the passed-in string on ",", and passes the
