@@ -578,6 +578,8 @@ namespace RabbitMQ.Client.Impl
 
         public void MainLoop()
         {
+            Thread.GetDomain().DomainUnload += new EventHandler(HandleDomainUnload);
+
             bool shutdownCleanly = false;
             try
             {
@@ -682,7 +684,18 @@ namespace RabbitMQ.Client.Impl
             m_model0.SetCloseReason(m_closeReason);
             m_model0.FinishClose();
         }
-            
+
+        /// <remarks>
+        /// We need to close the socket, otherwise attempting to unload the domain
+        /// could cause a CannotUnloadAppDomainException
+        /// </remarks>
+        public void HandleDomainUnload(object sender, EventArgs ea)
+        {
+            HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library,
+                                                          CommonFraming.Constants.InternalError,
+                                                          "Domain Unload"));
+        }
+
         public bool HardProtocolExceptionHandler(HardProtocolException hpe)
         {
             if (SetCloseReason(hpe.ShutdownReason))
