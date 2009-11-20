@@ -61,7 +61,7 @@ using System.Threading;
 
 namespace RabbitMQ.Util {
     ///<summary>A thread-safe shared queue implementation.</summary>
-    public class SharedQueue {
+    public class SharedQueue : IEnumerable {
         ///<summary>The shared queue.</summary>
         ///<remarks>
         ///Subclasses must ensure appropriate locking discipline when
@@ -220,5 +220,55 @@ namespace RabbitMQ.Util {
 		return true;
             }
 	}
+
+        ///<summary>Implementation of the IEnumerable interface, for
+        ///permitting SharedQueue to be used in foreach
+        ///loops.</summary>
+        IEnumerator IEnumerable.GetEnumerator() {
+            return new SharedQueueEnumerator(this);
+        }
+
     }
+
+    ///<summary>Implementation of the IEnumerator interface, for
+    ///permitting SharedQueue to be used in foreach loops.</summary>
+    public class SharedQueueEnumerator : IEnumerator {
+
+        protected SharedQueue m_queue;
+        protected object m_current;
+
+        ///<summary>Construct an enumerator for the given
+        ///SharedQueue.</summary>
+        public SharedQueueEnumerator(SharedQueue queue) {
+            m_queue = queue;
+        }
+
+        object IEnumerator.Current {
+            get {
+                if (m_current == null) {
+                    throw new InvalidOperationException();
+                }
+                return m_current;
+            }
+        }
+
+        bool IEnumerator.MoveNext() {
+            try {
+                m_current = m_queue.Dequeue();
+                return true;
+            } catch (EndOfStreamException) {
+                m_current = null;
+                return false;
+            }
+        }
+
+        ///<summary>Reset()ting a SharedQueue doesn't make sense, so
+        ///this method always throws
+        ///InvalidOperationException.</summary>
+        void IEnumerator.Reset() {
+            throw new InvalidOperationException("SharedQueue.Reset() does not make sense");
+        }
+
+    }
+
 }

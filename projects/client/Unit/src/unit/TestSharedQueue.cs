@@ -72,6 +72,11 @@ namespace RabbitMQ.Client.Unit
 
         public delegate void Thunk();
 
+        //wrapper to work around C#'s lack of local volatiles
+        public class VolatileInt {
+            public volatile int v = 0;
+        }
+
         public class DelayedEnqueuer
         {
             public SharedQueue m_q;
@@ -342,6 +347,30 @@ namespace RabbitMQ.Client.Unit
             q.Close();
             t.Join();
         }
+
+        [Test]
+        public void TestEnumerator()
+        {
+            SharedQueue q = new SharedQueue();
+            VolatileInt c1 = new VolatileInt();
+            VolatileInt c2 = new VolatileInt();
+            Thread t1 = new Thread(delegate() {
+                    foreach (int v in q) c1.v+=v;
+                });
+            Thread t2 = new Thread(delegate() {
+                    foreach (int v in q) c2.v+=v;
+                });
+            t1.Start();
+            t2.Start();
+            q.Enqueue(1);
+            q.Enqueue(2);
+            q.Enqueue(3);
+            q.Close();
+            t1.Join();
+            t2.Join();
+            Assert.AreEqual(6, c1.v + c2.v);
+        }
+
     }
 
 }
