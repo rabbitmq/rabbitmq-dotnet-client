@@ -67,27 +67,26 @@ using RabbitMQ.Util;
 namespace RabbitMQ.Client.Examples {
     public class DeclareQueue {
         public static int Main(string[] args) {
-            try {
-                int optionIndex = 0;
-                bool durable = false;
-                bool delete = false;
-                IDictionary arguments = null;
-                while (optionIndex < args.Length) {
-                    if (args[optionIndex] == "/durable") { durable = true; }
-                    else if (args[optionIndex] == "/delete") { delete = true; }
-                    else if (args[optionIndex].StartsWith("/arg:")) {
-                        if (arguments == null) { arguments = new Hashtable(); }
-                        string[] pieces = args[optionIndex].Split(new Char[] { ':' });
-                        if (pieces.Length >= 3) {
-                            arguments[pieces[1]] = pieces[2];
-                        }
+            int optionIndex = 0;
+            bool durable = false;
+            bool delete = false;
+            IDictionary arguments = null;
+            while (optionIndex < args.Length) {
+                if (args[optionIndex] == "/durable") { durable = true; }
+                else if (args[optionIndex] == "/delete") { delete = true; }
+                else if (args[optionIndex].StartsWith("/arg:")) {
+                    if (arguments == null) { arguments = new Hashtable(); }
+                    string[] pieces = args[optionIndex].Split(new Char[] { ':' });
+                    if (pieces.Length >= 3) {
+                        arguments[pieces[1]] = pieces[2];
                     }
-                    else { break; }
-                    optionIndex++;
                 }
+                else { break; }
+                optionIndex++;
+            }
 
-                if (((args.Length - optionIndex) < 2) ||
-                    (((args.Length - optionIndex) % 2) != 0))
+            if (((args.Length - optionIndex) < 2) ||
+                (((args.Length - optionIndex) % 2) != 0))
                 {
                     Console.Error.WriteLine("Usage: DeclareQueue [<option> ...] <hostname>[:<portnumber>] <queue> [<exchange> <routingkey>] ...");
                     Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
@@ -95,13 +94,13 @@ namespace RabbitMQ.Client.Examples {
                     Console.Error.WriteLine("  /durable      declare a durable queue");
                     Console.Error.WriteLine("  /delete       delete after declaring");
                     Console.Error.WriteLine("  /arg:KEY:VAL  add longstr entry to arguments table");
-                    return 1;
+                    return 2;
                 }
 
-                string serverAddress = args[optionIndex++];
-                string inputQueueName = args[optionIndex++];
+            string serverAddress = args[optionIndex++];
+            string inputQueueName = args[optionIndex++];
 
-                using (IConnection conn = new ConnectionFactory().CreateConnection(serverAddress))
+            using (IConnection conn = new ConnectionFactory().CreateConnection(serverAddress))
                 {
                     using (IModel ch = conn.CreateModel()) {
 
@@ -124,10 +123,6 @@ namespace RabbitMQ.Client.Examples {
                         return 0;
                     }
                 }
-            } catch (Exception e) {
-                Console.Error.WriteLine(e);
-                return 2;
-            }
         }
     }
 }

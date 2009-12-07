@@ -65,26 +65,21 @@ using RabbitMQ.Util;
 namespace RabbitMQ.Client.Examples {
     public class ShutdownableServer: SimpleRpcServer {
         public static int Main(string[] args) {
-            try {
-                if (args.Length < 1) {
-                    Console.Error.WriteLine("Usage: ShutdownableServer <hostname>[:<portnumber>]");
-                    Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
-                    return 1;
-                }
-
-                using (IConnection conn = new ConnectionFactory().CreateConnection(args[0])) {
-                    using (IModel ch = conn.CreateModel()) {
-                        Subscription sub = new Subscription(ch, "ShutdownableServer");
-                        new ShutdownableServer(sub).MainLoop();
-                        Console.Out.WriteLine("Returned from MainLoop.");
-                    }
-                }
-                Console.Out.WriteLine("Leaving the program.");
-                return 0;
-            } catch (Exception e) {
-                Console.Error.WriteLine(e);
+            if (args.Length < 1) {
+                Console.Error.WriteLine("Usage: ShutdownableServer <hostname>[:<portnumber>]");
+                Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
                 return 2;
             }
+
+            using (IConnection conn = new ConnectionFactory().CreateConnection(args[0])) {
+                using (IModel ch = conn.CreateModel()) {
+                    Subscription sub = new Subscription(ch, "ShutdownableServer");
+                    new ShutdownableServer(sub).MainLoop();
+                    Console.Out.WriteLine("Returned from MainLoop.");
+                }
+            }
+            Console.Out.WriteLine("Leaving the program.");
+            return 0;
         }
 
         public ShutdownableServer(Subscription sub): base(sub) {}

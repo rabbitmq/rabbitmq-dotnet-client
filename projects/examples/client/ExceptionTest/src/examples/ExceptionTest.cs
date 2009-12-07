@@ -70,7 +70,7 @@ namespace RabbitMQ.Client.Examples {
                 if (args.Length < 1) {
                     Console.Error.WriteLine("Usage: ExceptionTest <hostname>[:<portnumber>]");
                     Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
-                    return 1;
+                    return 2;
                 }
 
                 string serverAddress = args[0];
@@ -100,7 +100,7 @@ namespace RabbitMQ.Client.Examples {
             } catch (Exception e) {
                 Console.Error.WriteLine("-=-=-=-=-= MAIN EXCEPTION CATCHER");
                 Console.Error.WriteLine(e);
-                return 2;
+                return 1;
             }
         }
 

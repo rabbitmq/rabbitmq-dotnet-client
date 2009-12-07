@@ -65,38 +65,33 @@ using RabbitMQ.Client.MessagePatterns;
 namespace RabbitMQ.Client.Examples {
     public class AddClient {
         public static int Main(string[] args) {
-            try {
-                if (args.Length < 1) {
-                    Console.Error.WriteLine("Usage: AddClient <hostname>[:<portnumber>] [<number> ...]");
-                    Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
-                    return 1;
-                }
-
-                using (IConnection conn = new ConnectionFactory().CreateConnection(args[0])) {
-                    using (IModel ch = conn.CreateModel()) {
-
-                        object[] addends = new object[args.Length - 1];
-                        for (int i = 0; i < args.Length - 1; i++) {
-                            addends[i] = double.Parse(args[i + 1]);
-                        }
-
-                        SimpleRpcClient client = new SimpleRpcClient(ch, "AddServer");
-			client.TimeoutMilliseconds = 5000;
-			client.TimedOut += new EventHandler(TimedOutHandler);
-			client.Disconnected += new EventHandler(DisconnectedHandler);
-                        object[] reply = client.Call(addends);
-			if (reply == null) {
-			    Console.WriteLine("Timeout or disconnection.");
-			} else {
-			    Console.WriteLine("Reply: {0}", reply[0]);
-			}
-                    }
-                }
-                return 0;
-            } catch (Exception e) {
-                Console.Error.WriteLine(e);
+            if (args.Length < 1) {
+                Console.Error.WriteLine("Usage: AddClient <hostname>[:<portnumber>] [<number> ...]");
+                Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
                 return 2;
             }
+            
+            using (IConnection conn = new ConnectionFactory().CreateConnection(args[0])) {
+                using (IModel ch = conn.CreateModel()) {
+                    
+                    object[] addends = new object[args.Length - 1];
+                    for (int i = 0; i < args.Length - 1; i++) {
+                        addends[i] = double.Parse(args[i + 1]);
+                    }
+
+                    SimpleRpcClient client = new SimpleRpcClient(ch, "AddServer");
+                    client.TimeoutMilliseconds = 5000;
+                    client.TimedOut += new EventHandler(TimedOutHandler);
+                    client.Disconnected += new EventHandler(DisconnectedHandler);
+                    object[] reply = client.Call(addends);
+                    if (reply == null) {
+                        Console.WriteLine("Timeout or disconnection.");
+                    } else {
+                        Console.WriteLine("Reply: {0}", reply[0]);
+                    }
+                }
+            }
+            return 0;
         }
 
 	public static void TimedOutHandler(object sender, EventArgs e) {

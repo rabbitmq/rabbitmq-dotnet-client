@@ -1,3 +1,4 @@
+
 // This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 1.1.
 //
@@ -67,52 +68,47 @@ using RabbitMQ.Util;
 namespace RabbitMQ.Client.Examples {
     public class LowlevelLogTail {
         public static int Main(string[] args) {
-            try {
-                if (args.Length < 4) {
-                    Console.Error.WriteLine("Usage: LowlevelLogTail <hostname>[:<portnumber>] <exchange> <exchangetype> <routingkey>");
-                    Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
-                    Console.Error.WriteLine("If the exchange name is the empty string, will instead declare a queue named");
-                    Console.Error.WriteLine("by the routingkey, and consume from that queue.");
-                    return 1;
-                }
-
-                string serverAddress = args[0];
-                string exchange = args[1];
-                string exchangeType = args[2];
-                string routingKey = args[3];
-            
-                using (IConnection conn = new ConnectionFactory().CreateConnection(serverAddress))
-                {
-                    using (IModel ch = conn.CreateModel())
-                    {
-                        string queueName;
-                        if (exchange == "") {
-                            ch.QueueDeclare(routingKey);
-                            queueName = routingKey;
-                        } else {
-                            ch.ExchangeDeclare(exchange, exchangeType);
-                            queueName = ch.QueueDeclare();
-                            ch.QueueBind(queueName, exchange, routingKey, false, null);
-                        }
-
-                        MyConsumer consumer = new MyConsumer(ch);
-                        ch.BasicConsume(queueName, null, consumer);
-
-                        Console.WriteLine("Consumer tag: " + consumer.ConsumerTag);
-
-                        while (consumer.IsRunning) {
-                            // Dummy main thread. Often, this will be
-                            // a GUI thread or similar.
-                            Thread.Sleep(500);
-                        }
-
-                        return 0;
-                    }
-                }
-            } catch (Exception e) {
-                Console.Error.WriteLine(e);
+            if (args.Length < 4) {
+                Console.Error.WriteLine("Usage: LowlevelLogTail <hostname>[:<portnumber>] <exchange> <exchangetype> <routingkey>");
+                Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
+                Console.Error.WriteLine("If the exchange name is the empty string, will instead declare a queue named");
+                Console.Error.WriteLine("by the routingkey, and consume from that queue.");
                 return 2;
             }
+
+            string serverAddress = args[0];
+            string exchange = args[1];
+            string exchangeType = args[2];
+            string routingKey = args[3];
+            
+            using (IConnection conn = new ConnectionFactory().CreateConnection(serverAddress))
+                {
+                    using (IModel ch = conn.CreateModel())
+                        {
+                            string queueName;
+                            if (exchange == "") {
+                                ch.QueueDeclare(routingKey);
+                                queueName = routingKey;
+                            } else {
+                                ch.ExchangeDeclare(exchange, exchangeType);
+                                queueName = ch.QueueDeclare();
+                                ch.QueueBind(queueName, exchange, routingKey, false, null);
+                            }
+
+                            MyConsumer consumer = new MyConsumer(ch);
+                            ch.BasicConsume(queueName, null, consumer);
+
+                            Console.WriteLine("Consumer tag: " + consumer.ConsumerTag);
+
+                            while (consumer.IsRunning) {
+                                // Dummy main thread. Often, this will be
+                                // a GUI thread or similar.
+                                Thread.Sleep(500);
+                            }
+
+                            return 0;
+                        }
+                }
         }
 
         ///<summary>Subclass of the very low-level DefaultBasicConsumer</summary>
