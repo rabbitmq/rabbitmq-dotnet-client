@@ -77,7 +77,19 @@ namespace RabbitMQ.Client
                 X509Certificate remoteCertificate,
                 string[] acceptableIssuers)
         {
-            return localCertificates[0];
+            if (acceptableIssuers != null && acceptableIssuers.Length > 0 &&
+                localCertificates != null && localCertificates.Count > 0)
+                {
+                    foreach (X509Certificate certificate in localCertificates)
+                        {
+                            if (Array.IndexOf(acceptableIssuers, certificate.Issuer) != -1)
+                                return certificate;
+                        }
+                }
+            if (localCertificates != null && localCertificates.Count > 0)
+                return localCertificates[0];
+
+            return null;
         }
 
         ///<summary>Upgrade a Tcp stream to an Ssl stream using the SSL options
