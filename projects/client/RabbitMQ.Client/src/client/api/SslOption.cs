@@ -56,6 +56,7 @@
 //---------------------------------------------------------------------------
 using System;
 using System.Collections;
+using System.Net.Security;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using RabbitMQ.Client.Impl;
@@ -134,6 +135,15 @@ namespace RabbitMQ.Client
             set { m_serverName = value; }
         }
 
+        private SslPolicyErrors m_acceptablePolicyErrors = SslPolicyErrors.None;
+
+        ///<summary>Retrieve or set the set of ssl policy errors that
+        ///are deemed acceptable</summary>
+        public SslPolicyErrors AcceptablePolicyErrors
+        {
+            get { return m_acceptablePolicyErrors; }
+            set { m_acceptablePolicyErrors = value; }
+        }
 
 
         ///<summary>Construct an SslOption specifying both the server cannonical name
