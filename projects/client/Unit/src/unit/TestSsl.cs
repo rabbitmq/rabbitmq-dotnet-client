@@ -56,30 +56,70 @@
 //---------------------------------------------------------------------------
 using NUnit.Framework;
 using System;
+using System.Net.Security;
 using RabbitMQ.Client;
 
 [TestFixture]
-public class TestSslEndpointVerified: TestSslEndpointUnverified {
+public class TestSsl {
+
+    public void SendReceive(ConnectionFactory cf) {
+        IProtocol proto = Protocols.DefaultProtocol;
+        using (IConnection conn = cf.CreateConnection(proto, "localhost", 5671)) {
+            IModel ch = conn.CreateModel();
+        
+            ch.ExchangeDeclare("Exchange_TestSslEndPoint", ExchangeType.Direct);
+            ch.QueueDeclare("Queue_TestSslEndpoint");
+            ch.QueueBind("Queue_TestSslEndpoint", "Exchange_TestSslEndPoint", "Key_TestSslEndpoint", false, null);
+        
+            string message = "Hello C# SSL Client World";
+            byte[] msgBytes =  System.Text.Encoding.UTF8.GetBytes(message);
+            ch.BasicPublish("Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null, msgBytes);
+
+            bool noAck = false;
+            BasicGetResult result = ch.BasicGet("Queue_TestSslEndpoint", noAck);
+            byte[] body = result.Body;
+            string resultMessage = System.Text.Encoding.UTF8.GetString(body);
+
+            Assert.AreEqual(message, resultMessage);
+        }
+    }
 
     [Test]
-    public override void TestHostWithPort() {
+    public void TestServerVerifiedIgnoringNameMismatch() {
         string sslDir = Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
-        if (null == sslDir) {
-            return;
-        } else {
-            ConnectionFactory cf = new ConnectionFactory();
+        if (null == sslDir) return;
 
-            cf.Parameters.Ssl.ServerName = System.Net.Dns.GetHostName();
-            Assert.IsNotNull(sslDir);
-            cf.Parameters.Ssl.CertPath = sslDir + "/client/keycert.p12";
-            string p12Password = Environment.GetEnvironmentVariable("PASSWORD");
-            Assert.IsNotNull(p12Password);
-            cf.Parameters.Ssl.CertPassphrase = p12Password;
-            cf.Parameters.Ssl.Enabled = true;
+        ConnectionFactory cf = new ConnectionFactory();
+        cf.Parameters.Ssl.ServerName = "*";
+        cf.Parameters.Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNameMismatch;
+        cf.Parameters.Ssl.Enabled = true;
+        SendReceive(cf);
+    }
 
-            IProtocol proto = Protocols.DefaultProtocol;
-            IConnection conn = cf.CreateConnection(proto, "localhost", 5671);
-            SendReceive(conn);
-        }
+    [Test]
+    public void TestServerVerified() {
+        string sslDir = Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
+        if (null == sslDir) return;
+
+        ConnectionFactory cf = new ConnectionFactory();
+        cf.Parameters.Ssl.ServerName = System.Net.Dns.GetHostName();
+        cf.Parameters.Ssl.Enabled = true;
+        SendReceive(cf);
+    }
+
+    [Test]
+    public void TestClientAndServerVerified() {
+        string sslDir = Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
+        if (null == sslDir) return;
+
+        ConnectionFactory cf = new ConnectionFactory();
+        cf.Parameters.Ssl.ServerName = System.Net.Dns.GetHostName();
+        Assert.IsNotNull(sslDir);
+        cf.Parameters.Ssl.CertPath = sslDir + "/client/keycert.p12";
+        string p12Password = Environment.GetEnvironmentVariable("PASSWORD");
+        Assert.IsNotNull(p12Password, "missing PASSWORD env var");
+        cf.Parameters.Ssl.CertPassphrase = p12Password;
+        cf.Parameters.Ssl.Enabled = true;
+        SendReceive(cf);
     }
 }
