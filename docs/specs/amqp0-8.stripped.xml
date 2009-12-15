@@ -312,6 +312,18 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <method name="bind-ok" synchronous="1" index="21">
       <chassis name="client" implement="MUST"/>
     </method>
+    <method name="unbind" synchronous="1" index="50">
+      <chassis name="server" implement="MUST"/>
+      <response name="unbind-ok"/>
+      <field name="ticket" domain="access ticket"/>
+      <field name="queue" domain="queue name"/>
+      <field name="exchange" domain="exchange name"/>
+      <field name="routing key" domain="shortstr"/>
+      <field name="arguments" domain="table"/>
+    </method>
+    <method name="unbind-ok" synchronous="1" index="51">
+      <chassis name="client" implement="MUST"/>
+    </method>
     <method name="purge" synchronous="1" index="30">
       <chassis name="server" implement="MUST"/>
       <response name="purge-ok"/>
