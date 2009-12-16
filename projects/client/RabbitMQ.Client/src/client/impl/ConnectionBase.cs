@@ -89,7 +89,7 @@ namespace RabbitMQ.Client.Impl
         ///(milliseconds)</summary>
         public static int ConnectionCloseTimeout = 10000;
 
-        public ConnectionParameters m_parameters;
+        public AMQPParameters m_parameters;
         public IFrameHandler m_frameHandler;
         public uint m_frameMax = 0;
         public ushort m_heartbeat = 0;
@@ -119,7 +119,7 @@ namespace RabbitMQ.Client.Impl
         
         public IList m_shutdownReport = ArrayList.Synchronized(new ArrayList());
 
-        public ConnectionBase(ConnectionParameters parameters,
+        public ConnectionBase(AMQPParameters parameters,
                               bool insist,
                               IFrameHandler frameHandler)
         {
@@ -214,7 +214,7 @@ namespace RabbitMQ.Client.Impl
             m_heartbeatWrite.Set();
         }
 
-        public ConnectionParameters Parameters
+        public AMQPParameters Parameters
         {
             get
             {

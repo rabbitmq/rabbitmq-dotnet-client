@@ -60,7 +60,7 @@ namespace RabbitMQ.Client
 {
     ///<summary>Supplies values to ConnectionFactory for use in
     ///constructing IConnection instances.</summary>
-    public class ConnectionParameters : ICloneable
+    public class AMQPParameters : ICloneable
     {
         /// <summary>Default user name (value: "guest")</summary>
         public const string DefaultUser = "guest"; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
@@ -93,7 +93,7 @@ namespace RabbitMQ.Client
 
         ///<summary>Construct a fresh instance, with all fields set to
         ///their respective defaults.</summary>
-        public ConnectionParameters() { }
+        public AMQPParameters() { }
 
         /// <summary>Username to use when authenticating to the server</summary>
         public string UserName
@@ -147,13 +147,13 @@ namespace RabbitMQ.Client
         ///<summary>Implement ICloneable.Clone by delegating to our type-safe variant.</summary>
         object ICloneable.Clone()
         {
-            return ((ConnectionParameters)this).Clone();
+            return ((AMQPParameters)this).Clone();
         }
 
-        ///<summary>Returns a fresh ConnectionParameters with the same values as this.</summary>
-        public ConnectionParameters Clone()
+        ///<summary>Returns a fresh AMQPParameters with the same values as this.</summary>
+        public AMQPParameters Clone()
         {
-            ConnectionParameters n = this.MemberwiseClone() as ConnectionParameters;
+            AMQPParameters n = this.MemberwiseClone() as AMQPParameters;
             return n;
         }
     }
