@@ -90,10 +90,26 @@ namespace RabbitMQ.Client
         private uint m_requestedFrameMax = DefaultFrameMax;
         private ushort m_requestedHeartbeat = DefaultHeartbeat;
         private SslOption m_ssl = new SslOption();
+        private IProtocol m_protocol;
 
         ///<summary>Construct a fresh instance, with all fields set to
         ///their respective defaults.</summary>
         public AMQPParameters() { }
+
+        ///<summary>Retrieve or set the IProtocol of this AmqpTcpEndpoint.</summary>
+        public IProtocol Protocol
+        {
+            get { return m_protocol; }
+            set { m_protocol = value; }
+        }
+
+        private string m_hostName;
+        ///<summary>Retrieve or set the hostname of this AmqpTcpEndpoint.</summary>
+        public string HostName
+        {
+            get { return m_hostName; }
+            set { m_hostName = value; }
+        }
 
         /// <summary>Username to use when authenticating to the server</summary>
         public string UserName
