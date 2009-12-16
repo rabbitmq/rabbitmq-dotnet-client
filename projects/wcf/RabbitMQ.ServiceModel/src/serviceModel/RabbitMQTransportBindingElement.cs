@@ -198,7 +198,7 @@ namespace RabbitMQ.ServiceModel
             set { m_brokerProtocol = value; }
         }
 
-        public ConnectionParameters ConnectionParameters
+        public AMQPParameters AMQPParameters
         {
             get { return m_connectionFactory.Parameters; }
         }

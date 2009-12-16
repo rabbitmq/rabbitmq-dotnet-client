@@ -103,9 +103,9 @@ namespace RabbitMQ.ServiceModel
                 this.Broker = rabbind.Broker;
                 this.OneWayOnly = rabbind.OneWayOnly;
                 this.TransactionFlowEnabled = rabbind.TransactionFlow;
-                this.VirtualHost = rabbind.Transport.ConnectionParameters.VirtualHost;
-                this.Username = rabbind.Transport.ConnectionParameters.UserName;
-                this.Password = rabbind.Transport.ConnectionParameters.Password;
+                this.VirtualHost = rabbind.Transport.AMQPParameters.VirtualHost;
+                this.Username = rabbind.Transport.AMQPParameters.UserName;
+                this.Password = rabbind.Transport.AMQPParameters.Password;
             }
         }
 
@@ -127,9 +127,9 @@ namespace RabbitMQ.ServiceModel
             rabbind.BrokerProtocol = this.Protocol;
             rabbind.OneWayOnly = this.OneWayOnly;
             rabbind.TransactionFlow = this.TransactionFlowEnabled;
-            rabbind.Transport.ConnectionParameters.Password = this.Password;
-            rabbind.Transport.ConnectionParameters.UserName = this.Username;
-            rabbind.Transport.ConnectionParameters.VirtualHost = this.VirtualHost;
+            rabbind.Transport.AMQPParameters.Password = this.Password;
+            rabbind.Transport.AMQPParameters.UserName = this.Username;
+            rabbind.Transport.AMQPParameters.VirtualHost = this.VirtualHost;
         }
 
         /// <summary>
@@ -156,7 +156,7 @@ namespace RabbitMQ.ServiceModel
         /// <summary>
         /// Password to use when authenticating with the broker
         /// </summary>
-        [ConfigurationProperty("password", DefaultValue = ConnectionParameters.DefaultPass)]
+        [ConfigurationProperty("password", DefaultValue = AMQPParameters.DefaultPass)]
         public string Password
         {
             get { return ((string)base["password"]); }
@@ -176,7 +176,7 @@ namespace RabbitMQ.ServiceModel
         /// <summary>
         /// The username  to use when authenticating with the broker
         /// </summary>
-        [ConfigurationProperty("username", DefaultValue = ConnectionParameters.DefaultUser)]
+        [ConfigurationProperty("username", DefaultValue = AMQPParameters.DefaultUser)]
         public string Username
         {
             get { return ((string)base["username"]); }
@@ -220,7 +220,7 @@ namespace RabbitMQ.ServiceModel
         /// <summary>
         /// The virtual host to access.
         /// </summary>
-        [ConfigurationProperty("virtualHost", DefaultValue = ConnectionParameters.DefaultVHost)]
+        [ConfigurationProperty("virtualHost", DefaultValue = AMQPParameters.DefaultVHost)]
         public string VirtualHost
         {
             get { return ((string)base["virtualHost"]); }

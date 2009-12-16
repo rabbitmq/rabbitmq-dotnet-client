@@ -75,9 +75,9 @@ namespace RabbitMQ.Client
     ///     ConnectionFactory factory = new ConnectionFactory();
     ///     //
     ///     // The next three lines are optional:
-    ///     factory.Parameters.UserName = ConnectionParameters.DefaultUser;
-    ///     factory.Parameters.Password = ConnectionParameters.DefaultPass;
-    ///     factory.Parameters.VirtualHost = ConnectionParameters.DefaultVHost;
+    ///     factory.Parameters.UserName = AMQPParameters.DefaultUser;
+    ///     factory.Parameters.Password = AMQPParameters.DefaultPass;
+    ///     factory.Parameters.VirtualHost = AMQPParameters.DefaultVHost;
     ///     //
     ///     IProtocol protocol = Protocols.DefaultProtocol;
     ///     IConnection conn = factory.CreateConnection(protocol, hostName, portNumber);
@@ -103,17 +103,8 @@ namespace RabbitMQ.Client
     ///</remarks>
     public class ConnectionFactory
     {
-        private ConnectionParameters m_parameters = new ConnectionParameters();
-        ///<summary>Retrieve the parameters this factory uses to
-        ///construct IConnection instances.</summary>
-        public ConnectionParameters Parameters
-        {
-            get
-            {
-                return m_parameters;
-            }
-        }
-
+        public ConnectionParameters[] ConnectionParameters = { new ConnectionParameters() };
+        
         ///<summary>Constructs a ConnectionFactory with default values
         ///for Parameters.</summary>
         public ConnectionFactory()
@@ -124,10 +115,10 @@ namespace RabbitMQ.Client
             (int maxRedirects,
              IDictionary connectionAttempts,
              IDictionary connectionErrors,
-             ref AmqpTcpEndpoint[] mostRecentKnownHosts,
-             AmqpTcpEndpoint endpoint)
+             ref ConnectionParameters[] mostRecentKnownHosts,
+             ConnectionParameters endpoint)
         {
-            AmqpTcpEndpoint candidate = endpoint;
+            ConnectionParameters candidate = endpoint;
             try {
                 while (true) {
                     int attemptCount =
@@ -138,13 +129,13 @@ namespace RabbitMQ.Client
                     bool insist = attemptCount >= maxRedirects;
 
                     try {
-                        IProtocol p = candidate.Protocol;
-                        IFrameHandler fh = p.CreateFrameHandler(candidate);
+                        IProtocol p = candidate.AMQP.Protocol;
+                        IFrameHandler fh = p.CreateFrameHandler(candidate.TCP);
                         // At this point, we may be able to create
                         // and fully open a successful connection,
                         // in which case we're done, and the
                         // connection should be returned.
-                        return p.CreateConnection(m_parameters, insist, fh);
+                        return p.CreateConnection(candidate.AMQP, insist, fh);
                     } catch (RedirectException re) {
                         if (insist) {
                             // We've been redirected, but we insisted that
@@ -160,9 +151,12 @@ namespace RabbitMQ.Client
                             // mostRecentKnownHosts (in case the chain
                             // runs out), and updating candidate for the
                             // next time round the loop.
-                            connectionErrors[candidate] = re;
-                            mostRecentKnownHosts = re.KnownHosts;
-                            candidate = re.Host;
+                            connectionErrors[candidate] = re;      
+                            mostRecentKnownHosts = new ConnectionParameters[re.KnownHosts.Length];
+                            for(int i = 0; i < re.KnownHosts.Length; i++){
+                              mostRecentKnownHosts[i] = new ConnectionParameters(candidate.AMQP, re.KnownHosts[i]);
+                            }
+                            candidate = new ConnectionParameters(candidate.AMQP, re.Host);
                         }
                     }
                 }
@@ -175,13 +169,14 @@ namespace RabbitMQ.Client
         protected virtual IConnection CreateConnection(int maxRedirects,
                                                        IDictionary connectionAttempts,
                                                        IDictionary connectionErrors,
-                                                       params AmqpTcpEndpoint[] endpoints)
+                                                       ConnectionParameters[] endpoints)
         {
-            foreach (AmqpTcpEndpoint endpoint in endpoints)
+            foreach (ConnectionParameters endpoint in endpoints)
             {
-                AmqpTcpEndpoint[] mostRecentKnownHosts = new AmqpTcpEndpoint[0];
+                ConnectionParameters[] mostRecentKnownHosts = new ConnectionParameters[0];
                 // ^^ holds a list of known-hosts that came back with
-                // a connection.redirect. If, once we reach the end of
+                // a connection.redirect, together with the AMQPParameters
+                // used for that connection attempt. If, once we reach the end of
                 // a chain of redirects, we still haven't managed to
                 // get a usable connection, we recurse on
                 // mostRecentKnownHosts, trying each of those in
@@ -230,15 +225,14 @@ namespace RabbitMQ.Client
         ///endpoint in the list provided. Up to a maximum of
         ///maxRedirects broker-originated redirects are permitted for
         ///each endpoint tried.</summary>
-        public virtual IConnection CreateConnection(int maxRedirects,
-                                                    params AmqpTcpEndpoint[] endpoints)
+        public virtual IConnection CreateConnection(int maxRedirects)
         {
             IDictionary connectionAttempts = new Hashtable();
             IDictionary connectionErrors = new Hashtable();
             IConnection conn = CreateConnection(maxRedirects,
                                                 connectionAttempts,
                                                 connectionErrors,
-                                                endpoints);
+                                                ConnectionParameters);
             if (conn != null) {
                 return conn;
             }
@@ -248,61 +242,9 @@ namespace RabbitMQ.Client
         ///<summary>Create a connection to the first available
         ///endpoint in the list provided. No broker-originated
         ///redirects are permitted.</summary>
-        public virtual IConnection CreateConnection(params AmqpTcpEndpoint[] endpoints)
+        public virtual IConnection CreateConnection()
         {
-            return CreateConnection(0, endpoints);
-        }
-
-        ///<summary>Create a connection to the endpoint specified.</summary>
-        ///<exception cref="ArgumentException"/>
-        public IConnection CreateConnection(IProtocol version,
-                                            string hostName,
-                                            int portNumber)
-        {
-            return CreateConnection(new AmqpTcpEndpoint(version,
-                                                        hostName,
-                                                        portNumber,
-                                                        m_parameters.Ssl));
-        }
-
-        ///<summary>Create a connection to the endpoint specified. The
-        ///port used is the default for the protocol.</summary>
-        ///<exception cref="ArgumentException"/>
-        public IConnection CreateConnection(IProtocol version, string hostName)
-        {
-            return CreateConnection(new AmqpTcpEndpoint(version, hostName));
-        }
-
-        ///<summary>Create a connection to the endpoint specified.</summary>
-        ///<remarks>
-        /// Please see the class overview documentation for
-        /// information about the Uri format in use.
-        ///</remarks>
-        ///<exception cref="ArgumentException"/>
-        public IConnection CreateConnection(IProtocol version, Uri uri)
-        {
-            return CreateConnection(new AmqpTcpEndpoint(version, uri));
-        }
-
-        ///<summary>Create a connection to the endpoint specified,
-        ///with the IProtocol from
-        ///Protocols.FromEnvironment().</summary>
-        ///<remarks>
-        /// Please see the class overview documentation for
-        /// information about the Uri format in use.
-        ///</remarks>
-        public IConnection CreateConnection(Uri uri)
-        {
-            return CreateConnection(new AmqpTcpEndpoint(uri));
-        }
-
-        ///<summary>Create a connection to the host (and optional
-        ///port) specified, with the IProtocol from
-        ///Protocols.FromEnvironment(). The format of the address
-        ///string is the same as that accepted by
-        ///AmqpTcpEndpoint.Parse().</summary>
-        public IConnection CreateConnection(string address) {
-            return CreateConnection(AmqpTcpEndpoint.Parse(Protocols.FromEnvironment(), address));
+            return CreateConnection(0);
         }
     }
 }
