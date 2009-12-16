@@ -69,7 +69,7 @@ namespace RabbitMQ.Client.Framing.Impl.v0_8 {
             return new Model(session);
         }
 
-        public override IConnection CreateConnection(AMQPParameters parameters,
+        public override IConnection CreateConnection(ConnectionParameters parameters,
                                                      bool insist,
                                                      IFrameHandler frameHandler)
         {

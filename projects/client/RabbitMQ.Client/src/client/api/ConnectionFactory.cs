@@ -75,9 +75,9 @@ namespace RabbitMQ.Client
     ///     ConnectionFactory factory = new ConnectionFactory();
     ///     //
     ///     // The next three lines are optional:
-    ///     factory.Parameters.UserName = AMQPParameters.DefaultUser;
-    ///     factory.Parameters.Password = AMQPParameters.DefaultPass;
-    ///     factory.Parameters.VirtualHost = AMQPParameters.DefaultVHost;
+    ///     factory.Parameters.UserName = ConnectionParameters.DefaultUser;
+    ///     factory.Parameters.Password = ConnectionParameters.DefaultPass;
+    ///     factory.Parameters.VirtualHost = ConnectionParameters.DefaultVHost;
     ///     //
     ///     IProtocol protocol = Protocols.DefaultProtocol;
     ///     IConnection conn = factory.CreateConnection(protocol, hostName, portNumber);
@@ -103,10 +103,10 @@ namespace RabbitMQ.Client
     ///</remarks>
     public class ConnectionFactory
     {
-        private AMQPParameters m_parameters = new AMQPParameters();
+        private ConnectionParameters m_parameters = new ConnectionParameters();
         ///<summary>Retrieve the parameters this factory uses to
         ///construct IConnection instances.</summary>
-        public AMQPParameters Parameters
+        public ConnectionParameters Parameters
         {
             get
             {
