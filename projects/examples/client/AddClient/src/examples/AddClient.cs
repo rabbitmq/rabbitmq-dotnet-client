@@ -71,7 +71,7 @@ namespace RabbitMQ.Client.Examples {
                 return 2;
             }
             
-            using (IConnection conn = new ConnectionFactory().CreateConnection(args[0])) {
+            using (IConnection conn = new ConnectionFactory(AmqpTcpEndpoint.Parse(args[0])).CreateConnection()) {
                 using (IModel ch = conn.CreateModel()) {
                     
                     object[] addends = new object[args.Length - 1];

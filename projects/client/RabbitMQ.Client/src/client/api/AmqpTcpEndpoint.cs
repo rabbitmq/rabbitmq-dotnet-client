@@ -81,13 +81,19 @@ namespace RabbitMQ.Client
             set { m_hostName = value; }
         }
 
+
+        public const int DEFAULT_PORT = 5672;
+        public const int DEFAULT_SSL_PORT = 5671;
+
+
+
         private int m_port;
         ///<summary>Retrieve or set the port number of this
         ///AmqpTcpEndpoint. -1 indicates the default value should be used.
         ///</summary>
         public int Port
         {
-            get { return m_port; }
+            get { return m_port == -1 ? (Ssl.Enabled ? DEFAULT_SSL_PORT : DEFAULT_PORT ) : m_port; }
             set { m_port = value; }
         }
 

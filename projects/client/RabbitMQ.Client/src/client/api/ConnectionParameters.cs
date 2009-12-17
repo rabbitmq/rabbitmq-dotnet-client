@@ -73,19 +73,5 @@ namespace RabbitMQ.Client
       public ConnectionParameters() : this(new AMQPParameters(), new AmqpTcpEndpoint()){
       }
 
-      // TODO: This should really be part of the protocol, but it's unlikely to change
-      // and has this value in all versions we support. 
-      public const int DEFAULT_SSL_PORT = 5671;
-
-
-      public int Port{
-        get{
-          if(TCP.Port == -1){
-            return TCP.Ssl.Enabled ? DEFAULT_SSL_PORT : AMQP.Protocol.DefaultPort;
-          } else {
-            return TCP.Port;
-          }
-        }
-      }
     }
 }
