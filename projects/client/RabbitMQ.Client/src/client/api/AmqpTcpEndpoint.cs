@@ -61,8 +61,9 @@ using RabbitMQ.Client.Impl;
 namespace RabbitMQ.Client
 {
     ///<summary>Represents a TCP-addressable AMQP peer, including the
-    ///protocol variant to use, and a host name and port
-    ///number.</summary>
+    /// a host name and port number. Where the default protocol port 
+    /// should be used, this is represented by a port number of -1 
+    /// </summary>
     ///<para>
     /// Some of the constructors take, as a convenience, a System.Uri
     /// instance representing an AMQP server address. The use of Uri
@@ -109,8 +110,7 @@ namespace RabbitMQ.Client
 
         ///<summary>Construct an AmqpTcpEndpoint with the given
         ///hostname, port number and ssl option. If the port 
-        ///number is -1, the default port number for the IProtocol 
-        ///will be used.</summary>
+        ///number is -1 </summary>
         public AmqpTcpEndpoint(string hostName, int portOrMinusOne, SslOption ssl)
         {
             m_hostName = hostName;
@@ -119,17 +119,14 @@ namespace RabbitMQ.Client
         }
 
         ///<summary>Construct an AmqpTcpEndpoint with the given
-        /// hostname, and port number. If the port number is
-        ///-1, the default port number for the IProtocol will be
-        ///used.</summary>
+        /// hostname, and port number. </summary>
         public AmqpTcpEndpoint(string hostName, int portOrMinusOne) :
             this(hostName, portOrMinusOne, new SslOption())
         {
         }
 
         ///<summary>Construct an AmqpTcpEndpoint with the given
-        ///hostname, using the default port for the
-        ///IProtocol.</summary>
+        ///hostname, using the default port </summary>
         public AmqpTcpEndpoint(string hostName) :
             this(hostName, -1)
         {
@@ -143,7 +140,7 @@ namespace RabbitMQ.Client
         }
 
         ///<summary>Construct an AmqpTcpEndpoint with the given
-        ///IProtocol, Uri and ssl options.</summary>
+        /// Uri and ssl options.</summary>
         ///<remarks>
         /// Please see the class overview documentation for
         /// information about the Uri format in use.
@@ -174,8 +171,8 @@ namespace RabbitMQ.Client
             return "amqp://" + HostName + ":" + Port;
         }
 
-        ///<summary>Compares this instance by value (protocol,
-        ///hostname, port) against another instance</summary>
+        ///<summary>Compares this instance by value (hostname, port) 
+        ///against another instance</summary>
         public override bool Equals(object obj)
         {
             AmqpTcpEndpoint other = obj as AmqpTcpEndpoint;
@@ -201,8 +198,7 @@ namespace RabbitMQ.Client
         /// If the address string passed in contains ":", it is split
         /// into a hostname and a port-number part. Otherwise, the
         /// entire string is used as the hostname, and the port-number
-        /// is set to -1 (meaning the default number for the protocol
-        /// variant specified).
+        /// is set to the default.
         ///</remarks>
         public static AmqpTcpEndpoint Parse(string address) {
             int index = address.IndexOf(':');
