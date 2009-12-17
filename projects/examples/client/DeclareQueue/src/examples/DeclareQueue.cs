@@ -100,7 +100,7 @@ namespace RabbitMQ.Client.Examples {
             string serverAddress = args[optionIndex++];
             string inputQueueName = args[optionIndex++];
 
-            using (IConnection conn = new ConnectionFactory().CreateConnection(serverAddress))
+            using (IConnection conn = new ConnectionFactory(AmqpTcpEndpoint.Parse(serverAddress)).CreateConnection())
                 {
                     using (IModel ch = conn.CreateModel()) {
 
