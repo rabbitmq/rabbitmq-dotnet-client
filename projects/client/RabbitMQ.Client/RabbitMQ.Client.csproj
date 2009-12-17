@@ -24,9 +24,9 @@
   <!-- API autogeneration -->
   <PropertyGroup>
     <SpecsDir>..\..\..\docs\specs\</SpecsDir>
-    <AmqpSpec0_9BaseName>amqp0-9.xml</AmqpSpec0_9BaseName>
-    <AmqpSpec0_8qpidBaseName>qpid-amqp.0-8.xml</AmqpSpec0_8qpidBaseName>
-    <AmqpSpec0_8BaseName>amqp0-8.xml</AmqpSpec0_8BaseName>
+    <AmqpSpec0_9BaseName>amqp0-9.stripped.xml</AmqpSpec0_9BaseName>
+    <AmqpSpec0_8qpidBaseName>qpid-amqp.0-8.stripped.xml</AmqpSpec0_8qpidBaseName>
+    <AmqpSpec0_8BaseName>amqp0-8.stripped.xml</AmqpSpec0_8BaseName>
     <AmqpSpec0_9>$(SpecsDir)$(AmqpSpec0_9BaseName)</AmqpSpec0_9>
     <AmqpSpec0_8qpid>$(SpecsDir)$(AmqpSpec0_8qpidBaseName)</AmqpSpec0_8qpid>
     <AmqpSpec0_8>$(SpecsDir)$(AmqpSpec0_8BaseName)</AmqpSpec0_8>
