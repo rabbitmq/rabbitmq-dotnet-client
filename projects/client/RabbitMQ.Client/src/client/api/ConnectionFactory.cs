@@ -72,15 +72,18 @@ namespace RabbitMQ.Client
     /// A simple example of connecting to a broker:
     ///</para>
     ///<example><code>
-    ///     ConnectionFactory factory = new ConnectionFactory();
     ///     //
-    ///     // The next three lines are optional:
-    ///     factory.Parameters.UserName = AMQPParameters.DefaultUser;
-    ///     factory.Parameters.Password = AMQPParameters.DefaultPass;
-    ///     factory.Parameters.VirtualHost = AMQPParameters.DefaultVHost;
     ///     //
     ///     IProtocol protocol = Protocols.DefaultProtocol;
-    ///     IConnection conn = factory.CreateConnection(protocol, hostName, portNumber);
+    ///     ConnectionFactory factory = new ConnectionFactory();
+    ///     // The next five lines are optional:
+    ///     AMQPParameters params = new AMQPParameters();
+    ///     params.UserName = AMQPParameters.DefaultUser;
+    ///     params.Password = AMQPParameters.DefaultPass;
+    ///     params.VirtualHost = AMQPParameters.DefaultVHost;
+    ///     factory.Parameters = new ConnectionParameters[]{ new ConnectionParameters(params) };
+    ///     //
+    ///     IConnection conn = factory.CreateConnection();
     ///     //
     ///     IModel ch = conn.CreateModel();
     ///     //
