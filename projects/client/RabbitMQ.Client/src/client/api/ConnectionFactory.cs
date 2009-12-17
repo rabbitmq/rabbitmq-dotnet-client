@@ -95,14 +95,6 @@ namespace RabbitMQ.Client
     ///<para>
     /// Please see also the API overview and tutorial in the User Guide.
     ///</para>
-    ///<para>
-    /// Some of the static methods described below take, as a
-    /// convenience, a System.Uri instance representing an AMQP server
-    /// address. The use of Uri here is not standardised - Uri is
-    /// simply a convenient container for internet-address-like
-    /// components. In particular, the Uri "Scheme" property is
-    /// ignored: only the "Host" and "Port" properties are extracted.
-    ///</para>
     ///</remarks>
     public class ConnectionFactory
     {
