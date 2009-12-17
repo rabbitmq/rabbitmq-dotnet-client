@@ -194,7 +194,7 @@ namespace RabbitMQ.Client.Impl
         {
             get
             {
-                return Endpoint.Protocol;
+                return Parameters.Protocol;
             }
         }
 
@@ -204,7 +204,7 @@ namespace RabbitMQ.Client.Impl
         {
             get
             {
-                return (AbstractProtocolBase)Endpoint.Protocol;
+                return (AbstractProtocolBase)Parameters.Protocol;
             }
         }
 
@@ -982,7 +982,7 @@ namespace RabbitMQ.Client.Impl
             string knownHosts = m_model0.ConnectionOpen(m_parameters.VirtualHost,
                                                         "", // FIXME: make configurable?
                                                         insist);
-            KnownHosts = AmqpTcpEndpoint.ParseMultiple(Protocol, knownHosts);
+            KnownHosts = AmqpTcpEndpoint.ParseMultiple(knownHosts);
         }
 
         public override string ToString()

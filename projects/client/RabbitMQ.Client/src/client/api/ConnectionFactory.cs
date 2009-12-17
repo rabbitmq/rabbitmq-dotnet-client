@@ -103,13 +103,27 @@ namespace RabbitMQ.Client
     ///</remarks>
     public class ConnectionFactory
     {
-        public ConnectionParameters[] ConnectionParameters = { new ConnectionParameters() };
+        public ConnectionParameters[] ConnectionParameters;
         
         ///<summary>Constructs a ConnectionFactory with default values
         ///for Parameters.</summary>
-        public ConnectionFactory()
+        public ConnectionFactory(params ConnectionParameters[] parameters)
+        {
+          this.ConnectionParameters = parameters;
+        }
+
+        public ConnectionFactory(AMQPParameters amqpParameters, AmqpTcpEndpoint endpoint) : this(new ConnectionParameters(amqpParameters, endpoint)) 
         {
         }
+
+        public ConnectionFactory(AMQPParameters amqpParameters) : this(amqpParameters, new AmqpTcpEndpoint())
+        {
+        }
+
+        public ConnectionFactory(AmqpTcpEndpoint endpoint) : this(new AMQPParameters(), endpoint)
+        {
+        }
+        
 
         protected virtual IConnection FollowRedirectChain
             (int maxRedirects,

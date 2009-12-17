@@ -62,7 +62,8 @@ namespace RabbitMQ.Client.Framing.Impl.v0_8qpid {
     public abstract class ProtocolBase: AbstractProtocolBase {
 
         public override IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint) {
-            return new SocketFrameHandler_0_9(endpoint);
+            //TODO: Query why we are creating a 0.9 frame handler for a 0.8 protocol
+            return new SocketFrameHandler_0_9(this, endpoint);
         }
 
         public override IModel CreateModel(ISession session) {
