@@ -60,18 +60,101 @@ namespace RabbitMQ.Client
 {
     ///<summary>Supplies values to ConnectionFactory for use in
     ///constructing IConnection instances.</summary>
-    public class ConnectionParameters 
+    public class ConnectionParameters : ICloneable
     {
-      public AMQPParameters AMQP;
-      public AmqpTcpEndpoint TCP;
+        /// <summary>Default user name (value: "guest")</summary>
+        public const string DefaultUser = "guest"; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
 
-      public ConnectionParameters(AMQPParameters amqp, AmqpTcpEndpoint tcp){
-        AMQP = amqp;
-        TCP = tcp;
-      }
+        /// <summary>Default password (value: "guest")</summary>
+        public const string DefaultPass = "guest"; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
 
-      public ConnectionParameters() : this(new AMQPParameters(), new AmqpTcpEndpoint()){
-      }
+        /// <summary>Default virtual host (value: "/")</summary>
+        public const string DefaultVHost = "/"; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
 
+        /// <summary> Default value for the desired maximum channel
+        /// number, with zero meaning unlimited (value: 0)</summary>
+        public const ushort DefaultChannelMax = 0; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
+
+        /// <summary>Default value for the desired maximum frame size,
+        /// with zero meaning unlimited (value: 0)</summary>
+        public const uint DefaultFrameMax = 0; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
+
+        /// <summary>Default value for desired heartbeat interval, in
+        /// seconds, with zero meaning none (value: 0)</summary>
+        public const ushort DefaultHeartbeat = 0; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
+
+        private string m_userName = DefaultUser;
+        private string m_password = DefaultPass;
+        private string m_virtualHost = DefaultVHost;
+        private ushort m_requestedChannelMax = DefaultChannelMax;
+        private uint m_requestedFrameMax = DefaultFrameMax;
+        private ushort m_requestedHeartbeat = DefaultHeartbeat;
+        private SslOption m_ssl = new SslOption();
+
+        ///<summary>Construct a fresh instance, with all fields set to
+        ///their respective defaults.</summary>
+        public ConnectionParameters() { }
+
+        /// <summary>Username to use when authenticating to the server</summary>
+        public string UserName
+        {
+            get { return m_userName; }
+            set { m_userName = value; }
+        }
+
+        /// <summary>Password to use when authenticating to the server</summary>
+        public string Password
+        {
+            get { return m_password; }
+            set { m_password = value; }
+        }
+
+        /// <summary>Virtual host to access during this connection</summary>
+        public string VirtualHost
+        {
+            get { return m_virtualHost; }
+            set { m_virtualHost = value; }
+        }
+
+        /// <summary>Maximum channel number to ask for</summary>
+        public ushort RequestedChannelMax
+        {
+            get { return m_requestedChannelMax; }
+            set { m_requestedChannelMax = value; }
+        }
+
+        /// <summary>Frame-max parameter to ask for (in bytes)</summary>
+        public uint RequestedFrameMax
+        {
+            get { return m_requestedFrameMax; }
+            set { m_requestedFrameMax = value; }
+        }
+
+        /// <summary>Heartbeat setting to request (in seconds)</summary>
+        public ushort RequestedHeartbeat
+        {
+            get { return m_requestedHeartbeat; }
+            set { m_requestedHeartbeat = value; }
+        }
+
+        ///<summary>Ssl options setting</summary>
+        public SslOption Ssl
+        {
+            get { return m_ssl; }
+            set { m_ssl = value; }
+        }
+
+        ///<summary>Implement ICloneable.Clone by delegating to our type-safe variant.</summary>
+        object ICloneable.Clone()
+        {
+            return ((ConnectionParameters)this).Clone();
+        }
+
+        ///<summary>Returns a fresh ConnectionParameters with the same values as this.</summary>
+        public ConnectionParameters Clone()
+        {
+            ConnectionParameters n = this.MemberwiseClone() as ConnectionParameters;
+            return n;
+        }
     }
 }

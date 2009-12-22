@@ -76,7 +76,7 @@ namespace RabbitMQ.Client.Examples {
             int messageCount = int.Parse(args[1]);
                 
             using (IConnection conn =
-                   new ConnectionFactory(AmqpTcpEndpoint.Parse(serverAddress)).CreateConnection())
+                   new ConnectionFactory().CreateConnection(serverAddress))
                 {
                     Stopwatch sendTimer = new Stopwatch();
                     Stopwatch receiveTimer = new Stopwatch();

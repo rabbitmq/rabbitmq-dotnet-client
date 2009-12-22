@@ -105,7 +105,7 @@ namespace RabbitMQ.Client
 
         ///<summary>The connection parameters used during construction
         ///of this connection.</summary>
-        AMQPParameters Parameters { get; }
+        ConnectionParameters Parameters { get; }
 
         ///<summary>The maximum channel number this connection
         ///supports (0 if unlimited). Usable channel numbers

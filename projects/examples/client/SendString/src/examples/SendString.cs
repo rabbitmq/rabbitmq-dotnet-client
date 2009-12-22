@@ -74,7 +74,7 @@ namespace RabbitMQ.Client.Examples {
             string routingKey = args[3];
             string message = args[4];
             
-            using (IConnection conn = new ConnectionFactory(AmqpTcpEndpoint.Parse(serverAddress)).CreateConnection())
+            using (IConnection conn = new ConnectionFactory().CreateConnection(serverAddress))
                 {
                     using (IModel ch = conn.CreateModel()) {
                         

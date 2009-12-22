@@ -85,7 +85,7 @@ namespace RabbitMQ.Client.Impl
                                  string host,
                                  string knownHosts)
             : this(ParseHost(protocol, host),
-                   AmqpTcpEndpoint.ParseMultiple(knownHosts))
+                   AmqpTcpEndpoint.ParseMultiple(protocol, knownHosts))
         {}
 
         public RedirectException(AmqpTcpEndpoint host, AmqpTcpEndpoint[] knownHosts)
@@ -108,9 +108,9 @@ namespace RabbitMQ.Client.Impl
         /// array.
         ///</remarks>
         public static AmqpTcpEndpoint ParseHost(IProtocol protocol, string host) {
-            AmqpTcpEndpoint[] addresses = AmqpTcpEndpoint.ParseMultiple(host);
+            AmqpTcpEndpoint[] addresses = AmqpTcpEndpoint.ParseMultiple(protocol, host);
             if (addresses.Length == 0) {
-                return AmqpTcpEndpoint.Parse("");
+                return AmqpTcpEndpoint.Parse(protocol, "");
                 // ^^ effectively, a (kind of useless) default or null result
             } else {
                 return addresses[0];

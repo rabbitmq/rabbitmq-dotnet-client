@@ -66,7 +66,7 @@ namespace RabbitMQ.Client.Impl {
         public abstract int DefaultPort { get; }
 
         public abstract IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint);
-        public abstract IConnection CreateConnection(AMQPParameters parameters,
+        public abstract IConnection CreateConnection(ConnectionParameters parameters,
                                                      bool insist,
                                                      IFrameHandler frameHandler);
         public abstract IModel CreateModel(ISession session);

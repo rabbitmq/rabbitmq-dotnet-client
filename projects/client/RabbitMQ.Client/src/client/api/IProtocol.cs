@@ -74,11 +74,11 @@ namespace RabbitMQ.Client
         int DefaultPort { get; }
 
         ///<summary>Construct a frame handler for a given endpoint.</summary>
-        IFrameHandler CreateFrameHandler(AmqpTcpEndpoint parameters);
+        IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint);
         ///<summary>Construct a connection from a given set of
         ///parameters and a frame handler. The "insist" parameter is
         ///passed on to the AMQP connection.open method.</summary>
-        IConnection CreateConnection(AMQPParameters parameters,
+        IConnection CreateConnection(ConnectionParameters parameters,
                                      bool insist,
                                      IFrameHandler frameHandler);
         ///<summary>Construct a protocol model atop a given session.</summary>

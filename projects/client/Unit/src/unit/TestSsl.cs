@@ -63,7 +63,8 @@ using RabbitMQ.Client;
 public class TestSsl {
 
     public void SendReceive(ConnectionFactory cf) {
-        using (IConnection conn = cf.CreateConnection()) {
+        IProtocol proto = Protocols.DefaultProtocol;
+        using (IConnection conn = cf.CreateConnection(proto, "localhost", 5671)) {
             IModel ch = conn.CreateModel();
         
             ch.ExchangeDeclare("Exchange_TestSslEndPoint", ExchangeType.Direct);
@@ -87,12 +88,11 @@ public class TestSsl {
     public void TestServerVerifiedIgnoringNameMismatch() {
         string sslDir = Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
         if (null == sslDir) return;
-        
-        AmqpTcpEndpoint endpoint = new AmqpTcpEndpoint();
-        endpoint.Ssl.ServerName = "*";
-        endpoint.Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNameMismatch;
-        endpoint.Ssl.Enabled = true;
-        ConnectionFactory cf = new ConnectionFactory(endpoint);
+
+        ConnectionFactory cf = new ConnectionFactory();
+        cf.Parameters.Ssl.ServerName = "*";
+        cf.Parameters.Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNameMismatch;
+        cf.Parameters.Ssl.Enabled = true;
         SendReceive(cf);
     }
 
@@ -101,10 +101,9 @@ public class TestSsl {
         string sslDir = Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
         if (null == sslDir) return;
 
-        AmqpTcpEndpoint endpoint = new AmqpTcpEndpoint();
-        endpoint.Ssl.ServerName = System.Net.Dns.GetHostName();
-        endpoint.Ssl.Enabled = true;
-        ConnectionFactory cf = new ConnectionFactory(endpoint);
+        ConnectionFactory cf = new ConnectionFactory();
+        cf.Parameters.Ssl.ServerName = System.Net.Dns.GetHostName();
+        cf.Parameters.Ssl.Enabled = true;
         SendReceive(cf);
     }
 
@@ -113,14 +112,14 @@ public class TestSsl {
         string sslDir = Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
         if (null == sslDir) return;
 
-        AmqpTcpEndpoint endpoint = new AmqpTcpEndpoint();
-        endpoint.Ssl.ServerName = System.Net.Dns.GetHostName();
-        endpoint.Ssl.CertPath = sslDir + "/client/keycert.p12";
+        ConnectionFactory cf = new ConnectionFactory();
+        cf.Parameters.Ssl.ServerName = System.Net.Dns.GetHostName();
+        Assert.IsNotNull(sslDir);
+        cf.Parameters.Ssl.CertPath = sslDir + "/client/keycert.p12";
         string p12Password = Environment.GetEnvironmentVariable("PASSWORD");
         Assert.IsNotNull(p12Password, "missing PASSWORD env var");
-        endpoint.Ssl.CertPassphrase = p12Password;
-        endpoint.Ssl.Enabled = true;
-        ConnectionFactory cf = new ConnectionFactory(endpoint);
+        cf.Parameters.Ssl.CertPassphrase = p12Password;
+        cf.Parameters.Ssl.Enabled = true;
         SendReceive(cf);
     }
 }

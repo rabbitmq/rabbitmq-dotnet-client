@@ -75,7 +75,7 @@ namespace RabbitMQ.Client.Examples {
 
                 string serverAddress = args[0];
             
-                using (IConnection conn = new ConnectionFactory(AmqpTcpEndpoint.Parse(serverAddress)).CreateConnection())
+                using (IConnection conn = new ConnectionFactory().CreateConnection(serverAddress))
                 {
                     conn.ConnectionShutdown += new ConnectionShutdownEventHandler(First);
                     conn.ConnectionShutdown += new ConnectionShutdownEventHandler(OnConnectionShutdown);

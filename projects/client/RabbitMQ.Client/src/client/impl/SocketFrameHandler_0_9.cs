@@ -69,14 +69,12 @@ namespace RabbitMQ.Client.Impl
         // ^^ System.Net.Sockets.SocketError doesn't exist in .NET 1.1
 
         public AmqpTcpEndpoint m_endpoint;
-        public IProtocol Protocol;
         public TcpClient m_socket;
         public NetworkBinaryReader m_reader;
-        public NetworkBinaryWriter m_writer;        
+        public NetworkBinaryWriter m_writer;
 
-        public SocketFrameHandler_0_9(IProtocol protocol, AmqpTcpEndpoint endpoint)
+        public SocketFrameHandler_0_9(AmqpTcpEndpoint endpoint)
         {
-            Protocol = protocol;
             m_endpoint = endpoint;
             m_socket = new TcpClient();
             m_socket.Connect(endpoint.HostName, endpoint.Port);
@@ -123,8 +121,8 @@ namespace RabbitMQ.Client.Impl
                 m_writer.Write(Encoding.ASCII.GetBytes("AMQP"));
                 m_writer.Write((byte)1);
                 m_writer.Write((byte)1);
-                m_writer.Write((byte)Protocol.MajorVersion);
-                m_writer.Write((byte)Protocol.MinorVersion);
+                m_writer.Write((byte)m_endpoint.Protocol.MajorVersion);
+                m_writer.Write((byte)m_endpoint.Protocol.MinorVersion);
                 m_writer.Flush();
             }
         }
