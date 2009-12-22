@@ -59,7 +59,7 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl.v0_8qpid {
     public class Connection: ConnectionBase {
-        public Connection(ConnectionParameters parameters, bool insist, IFrameHandler frameHandler)
+        public Connection(ConnectionFactory parameters, bool insist, IFrameHandler frameHandler)
             : base(parameters, insist, frameHandler) {}
     }
 }

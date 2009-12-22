@@ -75,9 +75,9 @@ namespace RabbitMQ.Client
     ///     ConnectionFactory factory = new ConnectionFactory();
     ///     //
     ///     // The next three lines are optional:
-    ///     factory.Parameters.UserName = ConnectionParameters.DefaultUser;
-    ///     factory.Parameters.Password = ConnectionParameters.DefaultPass;
-    ///     factory.Parameters.VirtualHost = ConnectionParameters.DefaultVHost;
+    ///     factory.Parameters.UserName = ConnectionFactory.DefaultUser;
+    ///     factory.Parameters.Password = ConnectionFactory.DefaultPass;
+    ///     factory.Parameters.VirtualHost = ConnectionFactory.DefaultVHost;
     ///     //
     ///     IProtocol protocol = Protocols.DefaultProtocol;
     ///     IConnection conn = factory.CreateConnection(protocol, hostName, portNumber);
@@ -103,21 +103,86 @@ namespace RabbitMQ.Client
     ///</remarks>
     public class ConnectionFactory
     {
-        private ConnectionParameters m_parameters = new ConnectionParameters();
-        ///<summary>Retrieve the parameters this factory uses to
-        ///construct IConnection instances.</summary>
-        public ConnectionParameters Parameters
+        /// <summary>Default user name (value: "guest")</summary>
+        public const string DefaultUser = "guest"; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
+
+        /// <summary>Default password (value: "guest")</summary>
+        public const string DefaultPass = "guest"; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
+
+        /// <summary>Default virtual host (value: "/")</summary>
+        public const string DefaultVHost = "/"; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
+
+        /// <summary> Default value for the desired maximum channel
+        /// number, with zero meaning unlimited (value: 0)</summary>
+        public const ushort DefaultChannelMax = 0; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
+
+        /// <summary>Default value for the desired maximum frame size,
+        /// with zero meaning unlimited (value: 0)</summary>
+        public const uint DefaultFrameMax = 0; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
+
+        /// <summary>Default value for desired heartbeat interval, in
+        /// seconds, with zero meaning none (value: 0)</summary>
+        public const ushort DefaultHeartbeat = 0; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
+
+        private string m_userName = DefaultUser;
+        private string m_password = DefaultPass;
+        private string m_virtualHost = DefaultVHost;
+        private ushort m_requestedChannelMax = DefaultChannelMax;
+        private uint m_requestedFrameMax = DefaultFrameMax;
+        private ushort m_requestedHeartbeat = DefaultHeartbeat;
+        private SslOption m_ssl = new SslOption();
+
+        ///<summary>Construct a fresh instance, with all fields set to
+        ///their respective defaults.</summary>
+        public ConnectionFactory() { }
+
+        /// <summary>Username to use when authenticating to the server</summary>
+        public string UserName
         {
-            get
-            {
-                return m_parameters;
-            }
+            get { return m_userName; }
+            set { m_userName = value; }
         }
 
-        ///<summary>Constructs a ConnectionFactory with default values
-        ///for Parameters.</summary>
-        public ConnectionFactory()
+        /// <summary>Password to use when authenticating to the server</summary>
+        public string Password
         {
+            get { return m_password; }
+            set { m_password = value; }
+        }
+
+        /// <summary>Virtual host to access during this connection</summary>
+        public string VirtualHost
+        {
+            get { return m_virtualHost; }
+            set { m_virtualHost = value; }
+        }
+
+        /// <summary>Maximum channel number to ask for</summary>
+        public ushort RequestedChannelMax
+        {
+            get { return m_requestedChannelMax; }
+            set { m_requestedChannelMax = value; }
+        }
+
+        /// <summary>Frame-max parameter to ask for (in bytes)</summary>
+        public uint RequestedFrameMax
+        {
+            get { return m_requestedFrameMax; }
+            set { m_requestedFrameMax = value; }
+        }
+
+        /// <summary>Heartbeat setting to request (in seconds)</summary>
+        public ushort RequestedHeartbeat
+        {
+            get { return m_requestedHeartbeat; }
+            set { m_requestedHeartbeat = value; }
+        }
+
+        ///<summary>Ssl options setting</summary>
+        public SslOption Ssl
+        {
+            get { return m_ssl; }
+            set { m_ssl = value; }
         }
 
         protected virtual IConnection FollowRedirectChain
@@ -144,7 +209,7 @@ namespace RabbitMQ.Client
                         // and fully open a successful connection,
                         // in which case we're done, and the
                         // connection should be returned.
-                        return p.CreateConnection(m_parameters, insist, fh);
+                        return p.CreateConnection(this, insist, fh);
                     } catch (RedirectException re) {
                         if (insist) {
                             // We've been redirected, but we insisted that
@@ -262,7 +327,7 @@ namespace RabbitMQ.Client
             return CreateConnection(new AmqpTcpEndpoint(version,
                                                         hostName,
                                                         portNumber,
-                                                        m_parameters.Ssl));
+                                                        this.Ssl));
         }
 
         ///<summary>Create a connection to the endpoint specified. The
