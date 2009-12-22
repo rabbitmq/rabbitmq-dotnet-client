@@ -89,7 +89,7 @@ namespace RabbitMQ.Client.Impl
         ///(milliseconds)</summary>
         public static int ConnectionCloseTimeout = 10000;
 
-        public ConnectionFactory m_parameters;
+        public ConnectionFactory m_factory;
         public IFrameHandler m_frameHandler;
         public uint m_frameMax = 0;
         public ushort m_heartbeat = 0;
@@ -119,11 +119,11 @@ namespace RabbitMQ.Client.Impl
         
         public IList m_shutdownReport = ArrayList.Synchronized(new ArrayList());
 
-        public ConnectionBase(ConnectionFactory parameters,
+        public ConnectionBase(ConnectionFactory factory,
                               bool insist,
                               IFrameHandler frameHandler)
         {
-            m_parameters = parameters;
+            m_factory = factory;
             m_frameHandler = frameHandler;
 
             m_sessionManager = new SessionManager(this);
@@ -218,7 +218,7 @@ namespace RabbitMQ.Client.Impl
         {
             get
             {
-                return m_parameters;
+                return m_factory;
             }
         }
 
@@ -959,19 +959,19 @@ namespace RabbitMQ.Client.Impl
             ConnectionTuneDetails connectionTune =
                 m_model0.ConnectionStartOk(BuildClientPropertiesTable(),
                                            "PLAIN",
-                                           Encoding.UTF8.GetBytes("\0" + m_parameters.UserName +
-                                                                  "\0" + m_parameters.Password),
+                                           Encoding.UTF8.GetBytes("\0" + m_factory.UserName +
+                                                                  "\0" + m_factory.Password),
                                            "en_US");
 
-            ushort channelMax = (ushort) NegotiatedMaxValue(m_parameters.RequestedChannelMax,
+            ushort channelMax = (ushort) NegotiatedMaxValue(m_factory.RequestedChannelMax,
                                                             connectionTune.m_channelMax);
             ChannelMax = channelMax;
 
-            uint frameMax = NegotiatedMaxValue(m_parameters.RequestedFrameMax,
+            uint frameMax = NegotiatedMaxValue(m_factory.RequestedFrameMax,
                                                connectionTune.m_frameMax);
             FrameMax = frameMax;
 
-            ushort heartbeat = (ushort) NegotiatedMaxValue(m_parameters.RequestedHeartbeat,
+            ushort heartbeat = (ushort) NegotiatedMaxValue(m_factory.RequestedHeartbeat,
                                                            connectionTune.m_heartbeat);
             Heartbeat = heartbeat;
 
@@ -979,7 +979,7 @@ namespace RabbitMQ.Client.Impl
                                       frameMax,
                                       heartbeat);
 
-            string knownHosts = m_model0.ConnectionOpen(m_parameters.VirtualHost,
+            string knownHosts = m_model0.ConnectionOpen(m_factory.VirtualHost,
                                                         "", // FIXME: make configurable?
                                                         insist);
             KnownHosts = AmqpTcpEndpoint.ParseMultiple(Protocol, knownHosts);

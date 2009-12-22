@@ -69,11 +69,11 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9 {
             return new Model(session);
         }
 
-        public override IConnection CreateConnection(ConnectionFactory parameters,
+        public override IConnection CreateConnection(ConnectionFactory factory,
                                                      bool insist,
                                                      IFrameHandler frameHandler)
         {
-            return new Connection(parameters, insist, frameHandler);
+            return new Connection(factory, insist, frameHandler);
         }
 
         public override void CreateConnectionClose(ushort reasonCode,
