@@ -227,7 +227,7 @@ implement. The common interface is in two pieces:
 
 Apigen is linked with these interfaces, and at runtime uses reflection
 to look for the [code IFullModel] interface (see definition of [code
-Apigen.modelType]).
+Apigen.m_modelType]).
 
 The definitions in [code IFullModel], taken together with the class
 and method definitions in the AMQP specification XML, guide the code
@@ -463,9 +463,9 @@ of the [code queue.purge-ok] reply.
 @code java
     public struct ConnectionTuneDetails
     {
-        public ushort channelMax;
-        public uint frameMax;
-        public ushort heartbeat;
+        public ushort m_channelMax;
+        public uint m_frameMax;
+        public ushort m_heartbeat;
     }
 
 The above example extracts the "channel-max", "frame-max" and
@@ -539,7 +539,6 @@ particular implementations to complain if these features are used by
 applications:
 
 @code java
-    [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
     [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
     void QueueUnbind(string queue,
                      string exchange,
@@ -547,11 +546,10 @@ applications:
                      IDictionary arguments);
 
 In the example above, [code queue.unbind] is marked as unsupported by
-both the standard and QPid-specific variants of the 0-8 protocol,
-since it appeared first in the 0-9 protocol specification.
-
-Clients using either of the 0-8 [code IProtocol] implementations will,
-at runtime, receive a thrown [code UnsupportedMethodException].
+the QPid-specific variant of the 0-8 protocol. Clients using the
+QPid-specific 0-8 [code IProtocol] implementation will, at runtime,
+receive a thrown [code UnsupportedMethodException] if they call
+QueueUnbind.
 
 @code java
     [AmqpForceOneWay]

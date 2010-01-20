@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- Warning! This file contains important customizations. Using Visual Studio to edit project's properties might break things. -->
+    
+  <!-- Props file -->
+  <Import Project="$(MSBuildProjectDirectory)\..\..\..\..\..\Local.props" />
+  
+  <!-- Visual Studio generated -->
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{201B37E1-9BFC-4A01-9760-30C5BB19CFE3}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>RabbitMQ.ServiceModel.Examples.ConfigDemo.Client</RootNamespace>
+    <AssemblyName>Client</AssemblyName>
+    <TargetFrameworkVersion>$(PropTargetFramework)</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>build\bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>build\bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.ServiceModel">
+      <RequiredTargetFramework>3.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Client.cs" />
+    <Compile Include="HelloClient.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\wcf\RabbitMQ.ServiceModel\RabbitMQ.ServiceModel.csproj">
+      <Project>{5117232B-EE07-46F8-8AF5-2B636F1DBF56}</Project>
+      <Name>RabbitMQ.ServiceModel</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\WcfServiceLibrary1\RabbitMQ.ServiceModel.Examples.ConfigDemo.WcfServiceLibrary1.csproj">
+      <Project>{034B2E6C-78F4-4205-A73A-5D74E83B5F26}</Project>
+      <Name>RabbitMQ.ServiceModel.Examples.ConfigDemo.WcfServiceLibrary1</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  
+  <!-- Mono compatibility workarounds -->
+  <PropertyGroup Condition=" '$(PropUsingMono)' == 'true'">
+    <_DisabledWarnings>$(NoWarn)</_DisabledWarnings>
+  </PropertyGroup>
+  
+  <!-- Microsoft CSharp targets; replace Build, Rebuild and Clean targets if building WCF is turned off -->
+  <Target Name="Build" Condition="'$(PropBuildWcf)' != 'true'">
+    <Message Text="Not building anything in $(MSBuildProjectName) because PropBuildWcf is false." />
+  </Target>
+  <Target Name="Rebuild" Condition="'$(PropBuildWcf)' != 'true'">
+    <Message Text="Not rebuilding anything in $(MSBuildProjectName) because PropBuildWcf is false." />
+  </Target>
+  <Target Name="Clean" Condition="'$(PropBuildWcf)' != 'true'">
+    <Message Text="Not cleaning anything in $(MSBuildProjectName) because PropBuildWcf is false." />
+  </Target>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" Condition="'$(PropBuildWcf)' == 'true'"/>
+  
+</Project>
+
