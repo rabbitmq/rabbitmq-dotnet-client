@@ -214,14 +214,6 @@ namespace RabbitMQ.Client.Impl
             m_heartbeatWrite.Set();
         }
 
-        public ConnectionFactory Parameters
-        {
-            get
-            {
-                return m_factory;
-            }
-        }
-
         public ushort ChannelMax
         {
             get
