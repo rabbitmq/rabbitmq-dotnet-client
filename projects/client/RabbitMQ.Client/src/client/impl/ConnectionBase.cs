@@ -691,9 +691,7 @@ namespace RabbitMQ.Client.Impl
         /// </remarks>
         public void HandleDomainUnload(object sender, EventArgs ea)
         {
-            HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library,
-                                                          CommonFraming.Constants.InternalError,
-                                                          "Domain Unload"));
+            Abort(CommonFraming.Constants.InternalError, "Domain Unload");
         }
 
         public bool HardProtocolExceptionHandler(HardProtocolException hpe)
