@@ -81,6 +81,10 @@ namespace RabbitMQ.Client.Unit
             Hashtable t2 = new Hashtable();
             t["fieldtable"] = t2;
             t2["test"] = "test";
+            IList array = new ArrayList();
+            array.Add("longstring");
+            array.Add(1234);
+            t["fieldarray"] = array;
             WireFormatting.WriteTable(w, t);
             IDictionary nt = WireFormatting.ReadTable(Reader(Contents(w)));
             Assert.AreEqual(Encoding.UTF8.GetBytes("Hello"), nt["string"]);
@@ -89,6 +93,9 @@ namespace RabbitMQ.Client.Unit
             Assert.AreEqual(0, ((AmqpTimestamp)nt["timestamp"]).UnixTime);
             IDictionary nt2 = (IDictionary)nt["fieldtable"];
             Assert.AreEqual(Encoding.UTF8.GetBytes("test"), nt2["test"]);
+            IList narray = (IList)nt["fieldarray"];
+            Assert.AreEqual(Encoding.UTF8.GetBytes("longstring"), narray[0]);
+            Assert.AreEqual(1234, narray[1]);
         }
 
         [Test]

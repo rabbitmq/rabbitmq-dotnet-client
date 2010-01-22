@@ -71,29 +71,57 @@ namespace RabbitMQ.Client
     public class SslHelper
     {
 
-        static X509Certificate CertificateSelectionCallback(object sender,
-                string targetHost,
-                X509CertificateCollection localCertificates,
-                X509Certificate remoteCertificate,
-                string[] acceptableIssuers)
+        private SslOption m_sslOption;
+
+        private X509Certificate CertificateSelectionCallback(object sender,
+                                                             string targetHost,
+                                                             X509CertificateCollection localCertificates,
+                                                             X509Certificate remoteCertificate,
+                                                             string[] acceptableIssuers)
         {
-            return localCertificates[0];
+            if (acceptableIssuers != null && acceptableIssuers.Length > 0 &&
+                localCertificates != null && localCertificates.Count > 0)
+                {
+                    foreach (X509Certificate certificate in localCertificates)
+                        {
+                            if (Array.IndexOf(acceptableIssuers, certificate.Issuer) != -1)
+                                return certificate;
+                        }
+                }
+            if (localCertificates != null && localCertificates.Count > 0)
+                return localCertificates[0];
+
+            return null;
+        }
+
+        private bool CertificateValidationCallback(object sender,
+                                                   X509Certificate certificate,
+                                                   X509Chain chain,
+                                                   SslPolicyErrors sslPolicyErrors)
+        {
+            return (sslPolicyErrors & ~m_sslOption.AcceptablePolicyErrors) == SslPolicyErrors.None;
         }
 
         ///<summary>Upgrade a Tcp stream to an Ssl stream using the SSL options
         ///provided</summary>
         public static Stream TcpUpgrade(Stream tcpStream, SslOption sslOption)
         {
+            SslHelper helper = new SslHelper(sslOption);
             SslStream sslStream = new SslStream(tcpStream, false,
-                    null,
-                    new LocalCertificateSelectionCallback(CertificateSelectionCallback));
+                                                new RemoteCertificateValidationCallback(helper.CertificateValidationCallback),
+                                                new LocalCertificateSelectionCallback(helper.CertificateSelectionCallback));
             
             sslStream.AuthenticateAsClient(sslOption.ServerName,
-                        sslOption.Certs,
-                        sslOption.Version,
-                        false);
+                                           sslOption.Certs,
+                                           sslOption.Version,
+                                           false);
 
             return sslStream;
+        }
+
+        private SslHelper(SslOption sslOption)
+        {
+            m_sslOption = sslOption;
         }
 
     }

@@ -62,23 +62,22 @@ using RabbitMQ.Client;
 namespace RabbitMQ.Client.Examples {
     public class SendString {
         public static int Main(string[] args) {
-            try {
-                if (args.Length < 5) {
-                    Console.Error.WriteLine("Usage: SendString <hostname>[:<portnumber>] <exchange> <exchangetype> <routingkey> <message>");
-                    Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
-                    return 1;
-                }
-
-                string serverAddress = args[0];
-                string exchange = args[1];
-                string exchangeType = args[2];
-                string routingKey = args[3];
-                string message = args[4];
+            if (args.Length < 5) {
+                Console.Error.WriteLine("Usage: SendString <hostname>[:<portnumber>] <exchange> <exchangetype> <routingkey> <message>");
+                Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
+                return 2;
+            }
             
-                using (IConnection conn = new ConnectionFactory().CreateConnection(serverAddress))
+            string serverAddress = args[0];
+            string exchange = args[1];
+            string exchangeType = args[2];
+            string routingKey = args[3];
+            string message = args[4];
+            
+            using (IConnection conn = new ConnectionFactory().CreateConnection(serverAddress))
                 {
                     using (IModel ch = conn.CreateModel()) {
-
+                        
                         if (exchange != "") {
                             ch.ExchangeDeclare(exchange, exchangeType);
                         }
@@ -89,10 +88,6 @@ namespace RabbitMQ.Client.Examples {
                         return 0;
                     }
                 }
-            } catch (Exception e) {
-                Console.Error.WriteLine(e);
-                return 2;
-            }
         }
     }
 }

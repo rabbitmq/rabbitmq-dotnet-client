@@ -65,21 +65,20 @@ using RabbitMQ.Client.Content;
 namespace RabbitMQ.Client.Examples {
     public class SendMap {
         public static int Main(string[] args) {
-            try {
-                bool persistMode = false;
+            bool persistMode = false;
 
-                int optionIndex = 0;
-                while (optionIndex < args.Length) {
-                    if (args[optionIndex] == "/persist") {
-                        persistMode = true;
-                    } else {
-                        break;
-                    }
-                    optionIndex++;
+            int optionIndex = 0;
+            while (optionIndex < args.Length) {
+                if (args[optionIndex] == "/persist") {
+                    persistMode = true;
+                } else {
+                    break;
                 }
+                optionIndex++;
+            }
 
-                if (((args.Length - optionIndex) < 1) ||
-                    (((args.Length - optionIndex - 1) % 2) == 1))
+            if (((args.Length - optionIndex) < 1) ||
+                (((args.Length - optionIndex - 1) % 2) == 1))
                 {
                     Console.Error.WriteLine("Usage: SendMap [<option> ...] <exchange-uri> [[<key> <value>] ...]");
                     Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
@@ -100,19 +99,19 @@ namespace RabbitMQ.Client.Examples {
                     Console.Error.WriteLine("introduced so that the default exchange can be addressed via URI syntax.");
                     Console.Error.WriteLine("Available options:");
                     Console.Error.WriteLine("  /persist     send message in 'persistent' mode");
-                    return 1;
+                    return 2;
                 }
                 
-                Uri uri = new Uri(args[optionIndex++]);
-                string exchange = uri.Segments[1].TrimEnd(new char[] { '/' });
-                string exchangeType = uri.Query.StartsWith("?type=") ? uri.Query.Substring(6) : null;
-                string routingKey = uri.Segments.Length > 2 ? uri.Segments[2] : "";
+            Uri uri = new Uri(args[optionIndex++]);
+            string exchange = uri.Segments[1].TrimEnd(new char[] { '/' });
+            string exchangeType = uri.Query.StartsWith("?type=") ? uri.Query.Substring(6) : null;
+            string routingKey = uri.Segments.Length > 2 ? uri.Segments[2] : "";
 
-                if (exchange == "amq.default") {
-                    exchange = "";
-                }
+            if (exchange == "amq.default") {
+                exchange = "";
+            }
 
-                using (IConnection conn = new ConnectionFactory().CreateConnection(uri))
+            using (IConnection conn = new ConnectionFactory().CreateConnection(uri))
                 {
                     using (IModel ch = conn.CreateModel()) {
 
@@ -127,7 +126,7 @@ namespace RabbitMQ.Client.Examples {
 
                             if (keyAndDiscriminator.Length < 1) {
                                 Console.Error.WriteLine("Invalid key: '{0}'", keyAndDiscriminator);
-                                return 1;
+                                return 2;
                             }
                             string key = keyAndDiscriminator.Substring(1);
                             char discriminator = keyAndDiscriminator[0];
@@ -143,12 +142,12 @@ namespace RabbitMQ.Client.Examples {
                               default:
                                   Console.Error.WriteLine("Invalid key: '{0}'",
                                                           keyAndDiscriminator);
-                                  return 1;
+                                  return 2;
                             }
 
                             if (valueAndType.Length < 2 || valueAndType[1] != ':') {
                                 Console.Error.WriteLine("Invalid value: '{0}'", valueAndType);
-                                return 1;
+                                return 2;
                             }
                             string valueStr = valueAndType.Substring(2);
                             char typeCode = valueAndType[0];
@@ -178,7 +177,7 @@ namespace RabbitMQ.Client.Examples {
                                   break;
                               default:
                                   Console.Error.WriteLine("Invalid type code: '{0}'", typeCode);
-                                  return 1;
+                                  return 2;
                             }
 
                             target[key] = value;
@@ -193,10 +192,6 @@ namespace RabbitMQ.Client.Examples {
                         return 0;
                     }
                 }
-            } catch (Exception e) {
-                Console.Error.WriteLine(e);
-                return 2;
-            }
         }
     }
 }

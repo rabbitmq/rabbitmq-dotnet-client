@@ -66,18 +66,17 @@ namespace RabbitMQ.Client.Examples {
         private static readonly byte[] Message = new byte[0];
 
         public static int Main(string[] args) {
-            try {
-                if (args.Length < 2) {
-                    Console.Error.WriteLine("Usage: PerfTest <hostname>[:<portnumber>] <number of messages>");
-                    Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
-                    return 1;
-                }
+            if (args.Length < 2) {
+                Console.Error.WriteLine("Usage: PerfTest <hostname>[:<portnumber>] <number of messages>");
+                Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
+                return 2;
+            }
 
-                string serverAddress = args[0];
-                int messageCount = int.Parse(args[1]);
+            string serverAddress = args[0];
+            int messageCount = int.Parse(args[1]);
                 
-                using (IConnection conn =
-                       new ConnectionFactory().CreateConnection(serverAddress))
+            using (IConnection conn =
+                   new ConnectionFactory().CreateConnection(serverAddress))
                 {
                     Stopwatch sendTimer = new Stopwatch();
                     Stopwatch receiveTimer = new Stopwatch();
@@ -117,10 +116,6 @@ namespace RabbitMQ.Client.Examples {
 
                     return 0;
                 }
-            } catch (Exception e) {
-                Console.Error.WriteLine(e);
-                return 2;
-            }
         }
 
         private static double ToHertz(long milliseconds, int messageCount) {

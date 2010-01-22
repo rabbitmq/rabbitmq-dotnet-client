@@ -81,10 +81,23 @@ namespace RabbitMQ.Client.Impl
             // disable Nagle's algorithm, for more consistently low latency 
             m_socket.NoDelay = true;
 
-            Stream netstream = endpoint.Ssl.Enabled ?
-                SslHelper.TcpUpgrade(m_socket.GetStream(), endpoint.Ssl) :
-                m_socket.GetStream();
+            // Normally the client will stick around for a while after close
+            // in case any data is waiting to be sent. This isn't actually 
+            // desirable as we explicitly flush the data and only call Close 
+            // after we receive a CloseOk from the server or when things have
+            // already gone horribly wrong, so aren't interested in sending any 
+            // more data at that point. 
+            m_socket.LingerState = new LingerOption(true, 0);
 
+            Stream netstream = m_socket.GetStream();
+            if (endpoint.Ssl.Enabled) {
+                try {
+                    netstream = SslHelper.TcpUpgrade(netstream, endpoint.Ssl);
+                } catch (Exception) {
+                    Close();
+                    throw;
+                }
+            }
             m_reader = new NetworkBinaryReader(new BufferedStream(netstream));
             m_writer = new NetworkBinaryWriter(new BufferedStream(netstream));
         }

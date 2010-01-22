@@ -65,40 +65,35 @@ using RabbitMQ.Util;
 namespace RabbitMQ.Client.Examples {
     public class SingleGet {
         public static int Main(string[] args) {
-            try {
-                if (args.Length < 2) {
-                    Console.Error.WriteLine("Usage: SingleGet <hostname>[:<portnumber>] <queuename>");
-                    Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
-                    return 1;
-                }
-
-                string serverAddress = args[0];
-                string queueName = args[1];
-            
-                IConnection conn = new ConnectionFactory().CreateConnection(serverAddress);
-                conn.ConnectionShutdown += new ConnectionShutdownEventHandler(LogConnClose);
-
-                using (IModel ch = conn.CreateModel()) {
-                    conn.AutoClose = true;
-
-                    ch.QueueDeclare(queueName);
-                    BasicGetResult result = ch.BasicGet(queueName, false);
-                    if (result == null) {
-                        Console.WriteLine("No message available.");
-                    } else {
-                        ch.BasicAck(result.DeliveryTag, false);
-                        Console.WriteLine("Message:");
-                        DebugUtil.DumpProperties(result, Console.Out, 0);
-                    }
-
-                    return 0;
-                }
-
-                // conn will have been closed here by AutoClose above.
-            } catch (Exception e) {
-                Console.Error.WriteLine(e);
+            if (args.Length < 2) {
+                Console.Error.WriteLine("Usage: SingleGet <hostname>[:<portnumber>] <queuename>");
+                Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
                 return 2;
             }
+
+            string serverAddress = args[0];
+            string queueName = args[1];
+            
+            IConnection conn = new ConnectionFactory().CreateConnection(serverAddress);
+            conn.ConnectionShutdown += new ConnectionShutdownEventHandler(LogConnClose);
+
+            using (IModel ch = conn.CreateModel()) {
+                conn.AutoClose = true;
+
+                ch.QueueDeclare(queueName);
+                BasicGetResult result = ch.BasicGet(queueName, false);
+                if (result == null) {
+                    Console.WriteLine("No message available.");
+                } else {
+                    ch.BasicAck(result.DeliveryTag, false);
+                    Console.WriteLine("Message:");
+                    DebugUtil.DumpProperties(result, Console.Out, 0);
+                }
+
+                return 0;
+            }
+
+            // conn will have been closed here by AutoClose above.
         }
 
         public static void LogConnClose(IConnection conn, ShutdownEventArgs reason) {
