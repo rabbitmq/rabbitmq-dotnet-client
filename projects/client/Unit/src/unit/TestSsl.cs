@@ -63,8 +63,7 @@ using RabbitMQ.Client;
 public class TestSsl {
 
     public void SendReceive(ConnectionFactory cf) {
-        IProtocol proto = Protocols.DefaultProtocol;
-        using (IConnection conn = cf.CreateConnection(proto, "localhost", 5671)) {
+        using (IConnection conn = cf.CreateConnection()) {
             IModel ch = conn.CreateModel();
         
             ch.ExchangeDeclare("Exchange_TestSslEndPoint", ExchangeType.Direct);
