@@ -200,7 +200,7 @@ namespace RabbitMQ.ServiceModel
 
         public ConnectionFactory ConnectionFactory
         {
-            get { return m_connectionFactory.Parameters; }
+            get { return m_connectionFactory; }
         }
 
         //internal ConnectionFactory ConnectionFactory
