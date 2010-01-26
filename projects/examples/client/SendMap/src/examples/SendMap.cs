@@ -111,7 +111,10 @@ namespace RabbitMQ.Client.Examples {
                 exchange = "";
             }
 
-            using (IConnection conn = new ConnectionFactory().CreateConnection(uri))
+            ConnectionFactory cf = new ConnectionFactory();
+            cf.Endpoint = new AmqpTcpEndpoint(uri);
+
+            using (IConnection conn = cf.CreateConnection())
                 {
                     using (IModel ch = conn.CreateModel()) {
 

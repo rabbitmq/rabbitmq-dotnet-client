@@ -74,48 +74,49 @@ namespace RabbitMQ.Client.Examples {
 
             string serverAddress = args[0];
             int messageCount = int.Parse(args[1]);
-                
-            using (IConnection conn =
-                   new ConnectionFactory().CreateConnection(serverAddress))
-                {
-                    Stopwatch sendTimer = new Stopwatch();
-                    Stopwatch receiveTimer = new Stopwatch();
-                        
-                    using (IModel ch = conn.CreateModel()) {
-                        sendTimer.Start();
-                        
-                        for (int i = 0; i < messageCount; ++i) {
-                            ch.BasicPublish("", "", null, Message);
-                        }
+
+            ConnectionFactory cf = new ConnectionFactory();
+            cf.Address = serverAddress;                
+            using (IConnection conn = cf.CreateConnection())
+            {
+                Stopwatch sendTimer = new Stopwatch();
+                Stopwatch receiveTimer = new Stopwatch();
+                    
+                using (IModel ch = conn.CreateModel()) {
+                    sendTimer.Start();
+                    
+                    for (int i = 0; i < messageCount; ++i) {
+                        ch.BasicPublish("", "", null, Message);
                     }
-                    sendTimer.Stop();
-
-                    using (IModel ch = conn.CreateModel()) {
-                        string q = ch.QueueDeclare();
-                        
-                        for (int i = 0; i < messageCount + 1; ++i) {
-                            ch.BasicPublish("", q, null, Message);
-                        }
-                        //This ensures that all messages have been enqueued
-                        ch.BasicGet(q, true);
-
-                        QueueingBasicConsumer consumer =
-                            new QueueingBasicConsumer(ch);
-                        receiveTimer.Start();
-                        ch.BasicConsume(q, true, null, consumer);
-                        
-                        for (int i = 0; i < messageCount; ++i) {
-                            consumer.Queue.Dequeue();
-                        }
-                        receiveTimer.Stop();
-                    }
-
-                    Console.WriteLine("Performance Test Completed");
-                    Console.WriteLine("Send:    {0}Hz", ToHertz(sendTimer.ElapsedMilliseconds, messageCount));
-                    Console.WriteLine("Receive: {0}Hz", ToHertz(receiveTimer.ElapsedMilliseconds, messageCount));
-
-                    return 0;
                 }
+                sendTimer.Stop();
+
+                using (IModel ch = conn.CreateModel()) {
+                    string q = ch.QueueDeclare();
+                    
+                    for (int i = 0; i < messageCount + 1; ++i) {
+                        ch.BasicPublish("", q, null, Message);
+                    }
+                    //This ensures that all messages have been enqueued
+                    ch.BasicGet(q, true);
+
+                    QueueingBasicConsumer consumer =
+                        new QueueingBasicConsumer(ch);
+                    receiveTimer.Start();
+                    ch.BasicConsume(q, true, null, consumer);
+                    
+                    for (int i = 0; i < messageCount; ++i) {
+                        consumer.Queue.Dequeue();
+                    }
+                    receiveTimer.Stop();
+                }
+
+                Console.WriteLine("Performance Test Completed");
+                Console.WriteLine("Send:    {0}Hz", ToHertz(sendTimer.ElapsedMilliseconds, messageCount));
+                Console.WriteLine("Receive: {0}Hz", ToHertz(receiveTimer.ElapsedMilliseconds, messageCount));
+
+                return 0;
+            }
         }
 
         private static double ToHertz(long milliseconds, int messageCount) {

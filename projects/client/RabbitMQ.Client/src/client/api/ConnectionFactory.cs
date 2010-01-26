@@ -157,7 +157,6 @@ namespace RabbitMQ.Client
         ///<summary>The AMQP protocol to be used</summary>
         public IProtocol Protocol = Protocols.FromEnvironment();
 
-
         public AmqpTcpEndpoint Endpoint
         { 
           get
@@ -170,6 +169,23 @@ namespace RabbitMQ.Client
               Port = value.Port;
               HostName = value.HostName;
           }
+        }
+
+        public String Address
+        {
+          get
+          { 
+              String result = HostName;
+              if(Port != AmqpTcpEndpoint.UseDefaultPort)
+              {
+                  result += (":" + Port);
+              }
+              return result;
+          }
+          set
+          {
+              Endpoint = AmqpTcpEndpoint.Parse(Protocol, value);
+          }      
         }
 
         ///<summary>Construct a fresh instance, with all fields set to

@@ -73,8 +73,9 @@ namespace RabbitMQ.Client.Examples {
 
             string serverAddress = args[0];
             string queueName = args[1];
-            
-            IConnection conn = new ConnectionFactory().CreateConnection(serverAddress);
+            ConnectionFactory cf = new ConnectionFactory();
+            cf.Address = serverAddress; 
+            IConnection conn = cf.CreateConnection();
             conn.ConnectionShutdown += new ConnectionShutdownEventHandler(LogConnClose);
 
             using (IModel ch = conn.CreateModel()) {
