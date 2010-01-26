@@ -75,9 +75,12 @@ namespace RabbitMQ.Client
     ///     ConnectionFactory factory = new ConnectionFactory();
     ///     //
     ///     // The next three lines are optional:
-    ///     factory.Parameters.UserName = ConnectionFactory.DefaultUser;
-    ///     factory.Parameters.Password = ConnectionFactory.DefaultPass;
-    ///     factory.Parameters.VirtualHost = ConnectionFactory.DefaultVHost;
+    ///     factory.UserName = ConnectionFactory.DefaultUser;
+    ///     factory.Password = ConnectionFactory.DefaultPass;
+    ///     factory.VirtualHost = ConnectionFactory.DefaultVHost;
+    ///     factory.Protocol = Protocols.DefaultProtocol;
+    ///     factory.HostName = hostName;
+    //      factory.PortNumber = portNumber;
     ///     //
     ///     IProtocol protocol = Protocols.DefaultProtocol;
     ///     IConnection conn = factory.CreateConnection(protocol, hostName, portNumber);
