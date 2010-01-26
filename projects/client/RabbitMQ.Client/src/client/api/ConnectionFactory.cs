@@ -127,66 +127,30 @@ namespace RabbitMQ.Client
         /// seconds, with zero meaning none (value: 0)</summary>
         public const ushort DefaultHeartbeat = 0; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
 
-        private string m_userName = DefaultUser;
-        private string m_password = DefaultPass;
-        private string m_virtualHost = DefaultVHost;
-        private ushort m_requestedChannelMax = DefaultChannelMax;
-        private uint m_requestedFrameMax = DefaultFrameMax;
-        private ushort m_requestedHeartbeat = DefaultHeartbeat;
-        private SslOption m_ssl = new SslOption();
+        /// <summary>Username to use when authenticating to the server</summary>
+        public string UserName = DefaultUser;
+
+        /// <summary>Password to use when authenticating to the server</summary>
+        public string Password = DefaultPass;
+
+        /// <summary>Virtual host to access during this connection</summary>
+        public string VirtualHost = DefaultVHost;
+
+        /// <summary>Maximum channel number to ask for</summary>
+        public ushort RequestedChannelMax = DefaultChannelMax;
+
+        /// <summary>Frame-max parameter to ask for (in bytes)</summary>
+        public uint RequestedFrameMax = DefaultFrameMax;
+
+        /// <summary>Heartbeat setting to request (in seconds)</summary>
+        public ushort RequestedHeartbeat = DefaultHeartbeat;
+
+        ///<summary>Ssl options setting</summary>
+        public SslOption Ssl = new SslOption();
 
         ///<summary>Construct a fresh instance, with all fields set to
         ///their respective defaults.</summary>
         public ConnectionFactory() { }
-
-        /// <summary>Username to use when authenticating to the server</summary>
-        public string UserName
-        {
-            get { return m_userName; }
-            set { m_userName = value; }
-        }
-
-        /// <summary>Password to use when authenticating to the server</summary>
-        public string Password
-        {
-            get { return m_password; }
-            set { m_password = value; }
-        }
-
-        /// <summary>Virtual host to access during this connection</summary>
-        public string VirtualHost
-        {
-            get { return m_virtualHost; }
-            set { m_virtualHost = value; }
-        }
-
-        /// <summary>Maximum channel number to ask for</summary>
-        public ushort RequestedChannelMax
-        {
-            get { return m_requestedChannelMax; }
-            set { m_requestedChannelMax = value; }
-        }
-
-        /// <summary>Frame-max parameter to ask for (in bytes)</summary>
-        public uint RequestedFrameMax
-        {
-            get { return m_requestedFrameMax; }
-            set { m_requestedFrameMax = value; }
-        }
-
-        /// <summary>Heartbeat setting to request (in seconds)</summary>
-        public ushort RequestedHeartbeat
-        {
-            get { return m_requestedHeartbeat; }
-            set { m_requestedHeartbeat = value; }
-        }
-
-        ///<summary>Ssl options setting</summary>
-        public SslOption Ssl
-        {
-            get { return m_ssl; }
-            set { m_ssl = value; }
-        }
 
         protected virtual IConnection FollowRedirectChain
             (int maxRedirects,
