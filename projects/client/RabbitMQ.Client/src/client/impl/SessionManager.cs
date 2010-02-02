@@ -68,24 +68,15 @@ namespace RabbitMQ.Client.Impl
     {
         private readonly Hashtable m_sessionMap = new Hashtable();
         private readonly ConnectionBase m_connection;
-        private ushort m_channelMax = 0;
+        private readonly IntAllocator Ints;
+        public readonly ushort ChannelMax;
         private bool m_autoClose = false;
 
-        public SessionManager(ConnectionBase connection)
+        public SessionManager(ConnectionBase connection, ushort channelMax)
         {
             m_connection = connection;
-        }
-
-        public ushort ChannelMax
-        {
-            get
-            {
-                return m_channelMax;
-            }
-            set
-            {
-                m_channelMax = value;
-            }
+            ChannelMax = (channelMax == 0) ? ushort.MaxValue : channelMax;
+            Ints = new IntAllocator(1, ChannelMax);
         }
 
         public bool AutoClose
@@ -121,7 +112,7 @@ namespace RabbitMQ.Client.Impl
         {
             lock (m_sessionMap)
             {
-                int channelNumber = Allocate();
+                int channelNumber = Ints.Allocate();
                 if (channelNumber == -1)
                 {
                     throw new ChannelAllocationException();
@@ -135,7 +126,7 @@ namespace RabbitMQ.Client.Impl
             ISession session;
             lock (m_sessionMap)
             {
-                if (m_sessionMap.ContainsKey(channelNumber))
+                if (!Ints.Reserve(channelNumber))
                 {
                     throw new ChannelAllocationException(channelNumber);
                 }
@@ -165,30 +156,13 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        ///<summary>Find an unused channel number. Must be called
-        ///while holding m_sessionMap lock!</summary>
-        ///<remarks>
-        /// Returns -1 if no unused channel numbers are available.
-        ///</remarks>
-        public int Allocate()
-        {
-            ushort maxChannels = (m_channelMax == 0) ? ushort.MaxValue : m_channelMax;
-            for (int candidate = 1; candidate <= maxChannels; candidate++)
-            {
-                if (!m_sessionMap.ContainsKey(candidate))
-                {
-                    return candidate;
-                }
-            }
-            return -1;
-        }
-
         public void HandleSessionShutdown(ISession session, ShutdownEventArgs reason)
         {
             //Console.WriteLine("SessionManager removing session "+session);
             lock (m_sessionMap)
             {
                 m_sessionMap.Remove(session.ChannelNumber);
+                Ints.Free(session.ChannelNumber);
                 CheckAutoClose();
             }
         }
