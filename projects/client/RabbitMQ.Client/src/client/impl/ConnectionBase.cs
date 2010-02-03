@@ -98,7 +98,7 @@ namespace RabbitMQ.Client.Impl
         public MainSession m_session0;
         public ModelBase m_model0;
 
-        public readonly SessionManager m_sessionManager;
+        public SessionManager m_sessionManager;
 
         public volatile bool m_running = true;
 
@@ -126,7 +126,7 @@ namespace RabbitMQ.Client.Impl
             m_parameters = parameters;
             m_frameHandler = frameHandler;
 
-            m_sessionManager = new SessionManager(this);
+            m_sessionManager = new SessionManager(this, 0);
             m_session0 = new MainSession(this);
             m_session0.Handler = new MainSession.SessionCloseDelegate(NotifyReceivedCloseOk);
             m_model0 = (ModelBase)Protocol.CreateModel(m_session0);
@@ -227,10 +227,6 @@ namespace RabbitMQ.Client.Impl
             get
             {
                 return m_sessionManager.ChannelMax;
-            }
-            set
-            {
-                m_sessionManager.ChannelMax = value;
             }
         }
 
@@ -976,7 +972,7 @@ namespace RabbitMQ.Client.Impl
 
             ushort channelMax = (ushort) NegotiatedMaxValue(m_parameters.RequestedChannelMax,
                                                             connectionTune.m_channelMax);
-            ChannelMax = channelMax;
+            m_sessionManager = new SessionManager(this, channelMax);
 
             uint frameMax = NegotiatedMaxValue(m_parameters.RequestedFrameMax,
                                                connectionTune.m_frameMax);
