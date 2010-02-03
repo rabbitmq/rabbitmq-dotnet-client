@@ -107,7 +107,7 @@ namespace RabbitMQ.Util
         {
           // The two intervals adjoin. Merge them into one and then
           // merge the tails.
-          x.Start = y.Start;
+          x.End = y.End;
           x.Next = Merge(x.Next, y.Next);
           return x;
         }
