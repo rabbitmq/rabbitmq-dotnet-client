@@ -193,6 +193,7 @@ namespace RabbitMQ.ServiceModel
                 if(value == null) m_hasBroker = false;
                 else 
                 {
+                    m_hasBroker = true;	
                     m_connectionFactory.HostName = value.Host;
                     m_connectionFactory.Port = value.Port;  
                 }
