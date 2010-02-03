@@ -242,6 +242,7 @@ namespace RabbitMQ.Util
           // The ID is in the middle of this interval. 
           // We need to split the interval into two.
           IntervalList rest = new IntervalList(id + 1, current.End);
+          current.End = id - 1;
           rest.Next = current.Next;
           current.Next = rest;
         }
