@@ -118,7 +118,7 @@ namespace RabbitMQ.Util
         return x;
       }
 
-      public static IntervalList FromArray(int[] xs)
+      public static IntervalList FromArray(int[] xs, int length)
       {
         Array.Sort(xs);
 
@@ -126,9 +126,9 @@ namespace RabbitMQ.Util
         IntervalList current = null;
 
         int i = 0;
-        while(i < xs.Length){
+        while(i < length){
           int start = i;
-          while((i < xs.Length - 1) && (xs[i + 1] == xs[i] + 1))
+          while((i < length - 1) && (xs[i + 1] == xs[i] + 1))
             i++;
 
           IntervalList interval = new IntervalList(start, i);
@@ -178,6 +178,16 @@ namespace RabbitMQ.Util
       }
     }
 
+    private void Flush()
+    {
+        if(unsortedCount > 0)
+        {
+            Base = IntervalList.Merge(Base, IntervalList.FromArray(unsorted, unsortedCount));
+            unsortedCount = 0;
+        }
+    }
+
+
     /** 
      * Make the provided integer available for allocation again. This operation 
      * runs in amortized O(sqrt(range size)) time: About every sqrt(range size) 
@@ -189,15 +199,23 @@ namespace RabbitMQ.Util
      */
     public void Free(int id)
     {
-      if(unsortedCount >= unsorted.Length){
-          Base = IntervalList.Merge(Base, IntervalList.FromArray(unsorted));
-          unsortedCount = 0;
+      if(unsortedCount >= unsorted.Length)
+      {
+        Flush();
       }
       unsorted[unsortedCount++] = id;
     }
 
     public bool Reserve(int id)
     {
+      // We always flush before reserving because the only way to determine
+      // if an ID is in the unsorted array is through a linear scan. This leads
+      // us to the potentially expensive situation where there is a large unsorted
+      // array and we reserve several IDs, incurring the cost of the scan each time. 
+      // Flushing makes sure the array is always empty and does no additional work if
+      // reserve is called twice.
+      Flush();
+
       IntervalList current = Base;
 
       while(current != null)
