@@ -135,10 +135,13 @@ namespace RabbitMQ.Client.Impl
 
         public ISession CreateInternal(int channelNumber)
         {
-            ISession session = new Session(m_connection, channelNumber);
-            session.SessionShutdown += new SessionShutdownEventHandler(HandleSessionShutdown);
-            m_sessionMap[channelNumber] = session;
-            return session;
+            lock(m_sessionMap)
+            {
+                ISession session = new Session(m_connection, channelNumber);
+                session.SessionShutdown += new SessionShutdownEventHandler(HandleSessionShutdown);
+                m_sessionMap[channelNumber] = session;
+                return session;
+            }
         }
 
         ///<summary>Replace an active session slot with a new ISession
