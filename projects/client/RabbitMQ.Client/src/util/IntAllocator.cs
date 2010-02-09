@@ -120,7 +120,7 @@ namespace RabbitMQ.Util
 
       public static IntervalList FromArray(int[] xs, int length)
       {
-        Array.Sort(xs);
+        Array.Sort(xs, 0, length);
 
         IntervalList result = null;
         IntervalList current = null;
@@ -131,7 +131,7 @@ namespace RabbitMQ.Util
           while((i < length - 1) && (xs[i + 1] == xs[i] + 1))
             i++;
 
-          IntervalList interval = new IntervalList(start, i);
+          IntervalList interval = new IntervalList(xs[start], xs[i]);
 
           if(result == null)
           {
