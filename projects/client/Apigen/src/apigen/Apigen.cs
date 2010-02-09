@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2009 LShift Ltd., Cohesive Financial
+//   Copyright (C) 2007-2010 LShift Ltd., Cohesive Financial
 //   Technologies LLC., and Rabbit Technologies Ltd.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,11 +43,11 @@
 //   are Copyright (C) 2007-2008 LShift Ltd, Cohesive Financial
 //   Technologies LLC, and Rabbit Technologies Ltd.
 //
-//   Portions created by LShift Ltd are Copyright (C) 2007-2009 LShift
+//   Portions created by LShift Ltd are Copyright (C) 2007-2010 LShift
 //   Ltd. Portions created by Cohesive Financial Technologies LLC are
-//   Copyright (C) 2007-2009 Cohesive Financial Technologies
+//   Copyright (C) 2007-2010 Cohesive Financial Technologies
 //   LLC. Portions created by Rabbit Technologies Ltd are Copyright
-//   (C) 2007-2009 Rabbit Technologies Ltd.
+//   (C) 2007-2010 Rabbit Technologies Ltd.
 //
 //   All Rights Reserved.
 //
@@ -353,7 +353,7 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("// The APL v2.0:");
             EmitLine("//");
             EmitLine("//---------------------------------------------------------------------------");
-            EmitLine("//   Copyright (C) 2007-2009 LShift Ltd., Cohesive Financial");
+            EmitLine("//   Copyright (C) 2007-2010 LShift Ltd., Cohesive Financial");
             EmitLine("//   Technologies LLC., and Rabbit Technologies Ltd.");
             EmitLine("//");
             EmitLine("//   Licensed under the Apache License, Version 2.0 (the \"License\");");
@@ -392,11 +392,11 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("//   are Copyright (C) 2007-2008 LShift Ltd, Cohesive Financial");
             EmitLine("//   Technologies LLC, and Rabbit Technologies Ltd.");
             EmitLine("//");
-            EmitLine("//   Portions created by LShift Ltd are Copyright (C) 2007-2009 LShift");
+            EmitLine("//   Portions created by LShift Ltd are Copyright (C) 2007-2010 LShift");
             EmitLine("//   Ltd. Portions created by Cohesive Financial Technologies LLC are");
-            EmitLine("//   Copyright (C) 2007-2009 Cohesive Financial Technologies");
+            EmitLine("//   Copyright (C) 2007-2010 Cohesive Financial Technologies");
             EmitLine("//   LLC. Portions created by Rabbit Technologies Ltd are Copyright");
-            EmitLine("//   (C) 2007-2009 Rabbit Technologies Ltd.");
+            EmitLine("//   (C) 2007-2010 Rabbit Technologies Ltd.");
             EmitLine("//");
             EmitLine("//   All Rights Reserved.");
             EmitLine("//");
