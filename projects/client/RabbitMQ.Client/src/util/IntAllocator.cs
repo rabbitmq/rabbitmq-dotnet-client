@@ -65,8 +65,8 @@ namespace RabbitMQ.Util
 
 
   /**
-   * A class for allocating integer IDs in a given range. 
-   */ 
+   * A class for allocating integer IDs in a given range.
+   */
   public class IntAllocator{
 
     private IntervalList Base;
@@ -74,13 +74,13 @@ namespace RabbitMQ.Util
     private readonly int[] unsorted;
     private int unsortedCount = 0;
 
-    /** 
+    /**
      * A class representing a list of inclusive intervals
      */
     public class IntervalList{
       public IntervalList(int start, int end){
         this.Start = start;
-        this.End = end;      
+        this.End = end;
       }
 
       public int Start;
@@ -93,13 +93,13 @@ namespace RabbitMQ.Util
       // Invariant: None of the Intervals in the two lists may overlap
       // intervals in this list.
       public static IntervalList Merge(IntervalList x, IntervalList y)
-      { 
+      {
         if(x == null) return y;
         if(y == null) return x;
 
         if(x.End > y.Start) return Merge(y, x);
 
-        Debug.Assert(x.End != y.Start); 
+        Debug.Assert(x.End != y.Start);
 
         // We now have x, y non-null and x.End < y.Start.
 
@@ -138,7 +138,7 @@ namespace RabbitMQ.Util
             result = interval;
             current = interval;
           }
-          else 
+          else
           {
             current.Next = interval;
             current = interval;
@@ -149,7 +149,7 @@ namespace RabbitMQ.Util
       }
     }
 
-    /** 
+    /**
      * Creates an IntAllocator allocating integer IDs within the inclusive range [start, end]
      */
     public IntAllocator(int start, int end)
@@ -163,7 +163,7 @@ namespace RabbitMQ.Util
 
     /**
      * Allocate a fresh integer from the range, or return -1 if no more integers
-     * are available. This operation is guaranteed to run in O(1) 
+     * are available. This operation is guaranteed to run in O(1)
      */
     public int Allocate()
     {
@@ -188,12 +188,12 @@ namespace RabbitMQ.Util
     }
 
 
-    /** 
-     * Make the provided integer available for allocation again. This operation 
-     * runs in amortized O(sqrt(range size)) time: About every sqrt(range size) 
-     * operations  will take O(range_size + number of intervals) to complete and 
+    /**
+     * Make the provided integer available for allocation again. This operation
+     * runs in amortized O(sqrt(range size)) time: About every sqrt(range size)
+     * operations  will take O(range_size + number of intervals) to complete and
      * the rest run in constant time.
-     * 
+     *
      * No error checking is performed, so if you double Free or Free an integer
      * that was not originally Allocated the results are undefined. Sorry.
      */
@@ -211,7 +211,7 @@ namespace RabbitMQ.Util
       // We always flush before reserving because the only way to determine
       // if an ID is in the unsorted array is through a linear scan. This leads
       // us to the potentially expensive situation where there is a large unsorted
-      // array and we reserve several IDs, incurring the cost of the scan each time. 
+      // array and we reserve several IDs, incurring the cost of the scan each time.
       // Flushing makes sure the array is always empty and does no additional work if
       // reserve is called twice.
       Flush();
@@ -228,18 +228,18 @@ namespace RabbitMQ.Util
         else if(current.Start > id)
         {
           return false;
-        } 
+        }
         else if(current.End == id)
         {
           current.End--;
-        } 
+        }
         else if(current.Start == id)
         {
           current.Start++;
-        } 
-        else 
+        }
+        else
         {
-          // The ID is in the middle of this interval. 
+          // The ID is in the middle of this interval.
           // We need to split the interval into two.
           IntervalList rest = new IntervalList(id + 1, current.End);
           current.End = id - 1;
