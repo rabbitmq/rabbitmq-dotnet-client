@@ -120,6 +120,11 @@ namespace RabbitMQ.Client
         ///(0 for disabled), in seconds.</summary>
         ushort Heartbeat { get; }
 
+        ///<summary>A dictionary of the server properties sent by the server
+        ///while establishing the connection. This typically includes
+        ///the product name and version of the server.</summary>
+        IDictionary ServerProperties { get; }
+
         ///<summary>Returns the known hosts that came back from the
         ///broker in the connection.open-ok method at connection
         ///startup time. Null until the connection is completely open

@@ -93,6 +93,7 @@ namespace RabbitMQ.Client.Impl
         public IFrameHandler m_frameHandler;
         public uint m_frameMax = 0;
         public ushort m_heartbeat = 0;
+        public IDictionary m_serverProperties;
         public AmqpTcpEndpoint[] m_knownHosts = null;
 
         public MainSession m_session0;
@@ -255,6 +256,18 @@ namespace RabbitMQ.Client.Impl
                 // because when we hit the timeout socket is
                 // in unusable state
                 m_frameHandler.Timeout = value * 2 * 1000;
+            }
+        }
+
+        public IDictionary ServerProperties
+        {
+            get
+            {
+                return m_serverProperties;
+            }
+            set
+            {
+                m_serverProperties = value;
             }
         }
 
@@ -948,6 +961,8 @@ namespace RabbitMQ.Client.Impl
 
             ConnectionStartDetails connectionStart = (ConnectionStartDetails)
                 connectionStartCell.Value;
+
+            ServerProperties = connectionStart.m_serverProperties;
 
             AmqpVersion serverVersion = new AmqpVersion(connectionStart.m_versionMajor,
                                                         connectionStart.m_versionMinor);
