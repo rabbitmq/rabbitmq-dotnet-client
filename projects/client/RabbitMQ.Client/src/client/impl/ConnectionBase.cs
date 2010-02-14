@@ -917,6 +917,10 @@ namespace RabbitMQ.Client.Impl
                                                         "and Rabbit Technologies Ltd.");
             table["information"] = Encoding.UTF8.GetBytes("Licensed under the MPL.  " +
                                                           "See http://www.rabbitmq.com/");
+
+            foreach(DictionaryEntry de in Parameters.ClientProperties)
+                table[de.Key] = de.Value;
+
             return table;
         }
         

@@ -55,6 +55,7 @@
 //
 //---------------------------------------------------------------------------
 using System;
+using System.Collections;
 
 namespace RabbitMQ.Client
 {
@@ -83,6 +84,10 @@ namespace RabbitMQ.Client
         /// seconds, with zero meaning none (value: 0)</summary>
         public const ushort DefaultHeartbeat = 0; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
 
+        /// <summary>Default extra client properties to be sent to the
+        /// server (value: empty Hashtable)</summary>
+        public static readonly IDictionary DefaultClientProperties = new Hashtable(); // PLEASE KEEP THIS MATCHING THE DOC ABOVE
+
         private string m_userName = DefaultUser;
         private string m_password = DefaultPass;
         private string m_virtualHost = DefaultVHost;
@@ -90,6 +95,7 @@ namespace RabbitMQ.Client
         private uint m_requestedFrameMax = DefaultFrameMax;
         private ushort m_requestedHeartbeat = DefaultHeartbeat;
         private SslOption m_ssl = new SslOption();
+        private IDictionary m_clientProperties = DefaultClientProperties;
 
         ///<summary>Construct a fresh instance, with all fields set to
         ///their respective defaults.</summary>
@@ -142,6 +148,13 @@ namespace RabbitMQ.Client
         {
             get { return m_ssl; }
             set { m_ssl = value; }
+        }
+
+        ///<summary>Extra client properties to be sent to the server</summary>
+        public IDictionary ClientProperties
+        {
+            get { return m_clientProperties; }
+            set { m_clientProperties = value; }
         }
 
         ///<summary>Implement ICloneable.Clone by delegating to our type-safe variant.</summary>
