@@ -103,10 +103,6 @@ namespace RabbitMQ.Client
         ///communicate with its peer.</summary>
         IProtocol Protocol { get; }
 
-        ///<summary>The connection parameters used during construction
-        ///of this connection.</summary>
-        ConnectionParameters Parameters { get; }
-
         ///<summary>The maximum channel number this connection
         ///supports (0 if unlimited). Usable channel numbers
         ///range from 1 to this number, inclusive.</summary>

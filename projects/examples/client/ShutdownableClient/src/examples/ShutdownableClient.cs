@@ -71,7 +71,9 @@ namespace RabbitMQ.Client.Examples {
                 return 2;
             }
 
-            using (IConnection conn = new ConnectionFactory().CreateConnection(args[0])) {
+            ConnectionFactory cf = new ConnectionFactory();
+            cf.Address = args[0];
+            using (IConnection conn = cf.CreateConnection()) {
                 using (IModel ch = conn.CreateModel()) {
                     object[] callArgs = new object[1];
                     if (args.Length > 1) {
