@@ -74,7 +74,7 @@ namespace RabbitMQ.Client
     ///<example><code>
     ///     ConnectionFactory factory = new ConnectionFactory();
     ///     //
-    ///     // The next three lines are optional:
+    ///     // The next six lines are optional:
     ///     factory.UserName = ConnectionFactory.DefaultUser;
     ///     factory.Password = ConnectionFactory.DefaultPass;
     ///     factory.VirtualHost = ConnectionFactory.DefaultVHost;
