@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2009 LShift Ltd., Cohesive Financial
+//   Copyright (C) 2007-2010 LShift Ltd., Cohesive Financial
 //   Technologies LLC., and Rabbit Technologies Ltd.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,11 +43,11 @@
 //   are Copyright (C) 2007-2008 LShift Ltd, Cohesive Financial
 //   Technologies LLC, and Rabbit Technologies Ltd.
 //
-//   Portions created by LShift Ltd are Copyright (C) 2007-2009 LShift
+//   Portions created by LShift Ltd are Copyright (C) 2007-2010 LShift
 //   Ltd. Portions created by Cohesive Financial Technologies LLC are
-//   Copyright (C) 2007-2009 Cohesive Financial Technologies
+//   Copyright (C) 2007-2010 Cohesive Financial Technologies
 //   LLC. Portions created by Rabbit Technologies Ltd are Copyright
-//   (C) 2007-2009 Rabbit Technologies Ltd.
+//   (C) 2007-2010 Rabbit Technologies Ltd.
 //
 //   All Rights Reserved.
 //
@@ -98,7 +98,7 @@ namespace RabbitMQ.Client.Impl
         public MainSession m_session0;
         public ModelBase m_model0;
 
-        public readonly SessionManager m_sessionManager;
+        public SessionManager m_sessionManager;
 
         public volatile bool m_running = true;
 
@@ -126,7 +126,7 @@ namespace RabbitMQ.Client.Impl
             m_factory = factory;
             m_frameHandler = frameHandler;
 
-            m_sessionManager = new SessionManager(this);
+            m_sessionManager = new SessionManager(this, 0);
             m_session0 = new MainSession(this);
             m_session0.Handler = new MainSession.SessionCloseDelegate(NotifyReceivedCloseOk);
             m_model0 = (ModelBase)Protocol.CreateModel(m_session0);
@@ -219,10 +219,6 @@ namespace RabbitMQ.Client.Impl
             get
             {
                 return m_sessionManager.ChannelMax;
-            }
-            set
-            {
-                m_sessionManager.ChannelMax = value;
             }
         }
 
@@ -570,6 +566,8 @@ namespace RabbitMQ.Client.Impl
 
         public void MainLoop()
         {
+            Thread.GetDomain().DomainUnload += new EventHandler(HandleDomainUnload);
+
             bool shutdownCleanly = false;
             try
             {
@@ -674,7 +672,16 @@ namespace RabbitMQ.Client.Impl
             m_model0.SetCloseReason(m_closeReason);
             m_model0.FinishClose();
         }
-            
+
+        /// <remarks>
+        /// We need to close the socket, otherwise attempting to unload the domain
+        /// could cause a CannotUnloadAppDomainException
+        /// </remarks>
+        public void HandleDomainUnload(object sender, EventArgs ea)
+        {
+            Abort(CommonFraming.Constants.InternalError, "Domain Unload");
+        }
+
         public bool HardProtocolExceptionHandler(HardProtocolException hpe)
         {
             if (SetCloseReason(hpe.ShutdownReason))
@@ -957,7 +964,7 @@ namespace RabbitMQ.Client.Impl
 
             ushort channelMax = (ushort) NegotiatedMaxValue(m_factory.RequestedChannelMax,
                                                             connectionTune.m_channelMax);
-            ChannelMax = channelMax;
+            m_sessionManager = new SessionManager(this, channelMax);
 
             uint frameMax = NegotiatedMaxValue(m_factory.RequestedFrameMax,
                                                connectionTune.m_frameMax);

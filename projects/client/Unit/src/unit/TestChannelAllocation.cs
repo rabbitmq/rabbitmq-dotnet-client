@@ -11,7 +11,7 @@
 //   you may not use this file except in compliance with the License.
 //   You may obtain a copy of the License at
 //
-//       http://www.apache.org/licenses/LICENSE-2.0
+//       http://www.Apache.Org/licenses/LICENSE-2.0
 //
 //   Unless required by applicable law or agreed to in writing, software
 //   distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@
 //   The contents of this file are subject to the Mozilla Public License
 //   Version 1.1 (the "License"); you may not use this file except in
 //   compliance with the License. You may obtain a copy of the License at
-//   http://www.rabbitmq.com/mpl.html
+//   http://www.Rabbitmq.Com/mpl.Html
 //
 //   Software distributed under the License is distributed on an "AS IS"
 //   basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
@@ -54,21 +54,80 @@
 //   Contributor(s): ______________________________________.
 //
 //---------------------------------------------------------------------------
-namespace RabbitMQ.ServiceModel.Examples.ConfigDemo.Client
+using NUnit.Framework;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Impl;
+using System.Collections.Generic;
+
+namespace RabbitMQ.Client.Unit
 {
-    using System.ServiceModel;
-    using WcfServiceLibrary1;
 
-    public class HelloClient : ClientBase<IHelloContract>, IHelloContract
+  [TestFixture]
+  public class TestIModelAllocation
+  {
+    public const int CHANNEL_COUNT = 100;
+
+    IConnection C;
+
+    public int ModelNumber(IModel model)
     {
-
-        public HelloClient(string configurationName)
-            : base(configurationName) { }
-
-
-        public string Hello(string name)
-        {
-            return base.Channel.Hello(name);
-        }
+      return ((ModelBase)model).m_session.ChannelNumber;
     }
+  
+    [SetUp] public void Connect()
+    {
+      C = new ConnectionFactory().CreateConnection(Protocols.FromEnvironment(), "localhost", -1);
+    }
+
+    [TearDown] public void Disconnect()
+    {
+      C.Close();
+    }
+
+
+    [Test] public void AllocateInOrder()
+    {
+      for(int i = 1; i <= CHANNEL_COUNT; i++)
+        Assert.AreEqual(i, ModelNumber(C.CreateModel()));
+    }
+
+    [Test] public void AllocateAfterFreeingLast() {
+      IModel ch = C.CreateModel();
+      Assert.AreEqual(1, ModelNumber(ch));
+      ch.Close();
+      ch = C.CreateModel();
+      Assert.AreEqual(1, ModelNumber(ch));
+    }
+
+    public int CompareModels(IModel x, IModel y)
+    {
+      int i = ModelNumber(x);
+      int j = ModelNumber(y);
+      return (i < j) ? -1 : (i == j) ? 0 : 1;
+    }
+
+    [Test] public void AllocateAfterFreeingMany() {
+      List<IModel> channels = new List<IModel>();
+
+      for(int i = 1; i <= CHANNEL_COUNT; i++)
+        channels.Add(C.CreateModel());
+
+      foreach(IModel channel in channels){
+        channel.Close();
+      }
+
+      channels = new List<IModel>();
+
+      for(int j = 1; j <= CHANNEL_COUNT; j++)
+        channels.Add(C.CreateModel());
+
+      // In the current implementation the list should actually
+      // already be sorted, but we don't want to force that behaviour
+      channels.Sort(CompareModels);
+
+      int k = 1;
+      foreach(IModel channel in channels)
+        Assert.AreEqual(k++, ModelNumber(channel));
+    }
+  }
 }
