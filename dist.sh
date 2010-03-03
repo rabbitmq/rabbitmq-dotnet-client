@@ -69,14 +69,23 @@ CYGWIN=nontsec
 ### Overrideable vars
 test "$KEYFILE" || KEYFILE=rabbit-mock.snk
 test "$RABBIT_VSN" || RABBIT_VSN=0.0.0
-test "$MSBUILD" || MSBUILD=msbuild.exe
 test "$WEB_URL" || WEB_URL=http://stage.rabbitmq.com/
 test "$UNOFFICIAL_RELEASE" || UNOFFICIAL_RELEASE=
+test "$MONO_DIST" || MONO_DIST=
 
 ### Other, general vars
 NAME=rabbitmq-dotnet-client
 NAME_VSN=$NAME-$RABBIT_VSN
 RELEASE_DIR=releases/$NAME/v$RABBIT_VSN
+if [ "$MONO_DIST" ] ; then
+    INCLUDE_WCF=true
+    MSBUILD=xbuild
+    DOTNET_PROGRAM_PREPEND="mono"
+else
+    INCLUDE_WCF=true
+    MSBUILD=msbuild.exe
+    DOTNET_PROGRAM_PREPEND=
+fi
 
 
 function main {
@@ -117,7 +126,7 @@ function dist-zips {
     dist-target-framework dotnet-2.0
     ### HTML documentation for the .NET 2.0 library dist
     gendoc-dist \
-        projects/client/RabbitMQ.Client/build/bin/RabbitMQ.Client.xml \
+        build/bin/RabbitMQ.Client.xml \
         $NAME_VSN-client-htmldoc.zip \
         "/suppress:RabbitMQ.Client.Framing.v0_8 \
          /suppress:RabbitMQ.Client.Framing.v0_8qpid \
@@ -127,17 +136,23 @@ function dist-zips {
          /suppress:RabbitMQ.Client.Framing.Impl.v0_9 \
          /suppress:RabbitMQ.Client.Impl \
          /suppress:RabbitMQ.Client.Apigen.Attributes" \
-        $NAME_VSN-tmp-xmldoc.zip
+        $NAME_VSN-tmp-xmldoc.zip \
+        projects/client/RabbitMQ.Client \
+        ../../..
 
     ### .NET 3.0 library (bin), examples (src and bin), WCF bindings library (bin)
-    ### and WCF examples (src) dist
+    ### and WCF examples (src) dist (WCF built only if MONO_DIST is undefined)
     dist-target-framework dotnet-3.0
-    ### HTML documentation for the WCF bindings library dist
-    gendoc-dist \
-        projects/wcf/RabbitMQ.ServiceModel/build/bin/RabbitMQ.ServiceModel.xml \
-        $NAME_VSN-wcf-htmldoc.zip \
-        "" \
-        ""
+    if [ -z "$MONO_DIST" ]; then
+        ### HTML documentation for the WCF bindings library dist
+        gendoc-dist \
+            build/bin/RabbitMQ.ServiceModel.xml \
+            $NAME_VSN-wcf-htmldoc.zip \
+            "" \
+            "" \
+            projects/wcf/RabbitMQ.ServiceModel \
+            ../../..
+    fi
 }
 
 
@@ -187,7 +202,7 @@ function src-dist {
 function dist-target-framework {
     TARGET_FRAMEWORK="$1"
     BUILD_WCF=
-    test "$TARGET_FRAMEWORK" == "dotnet-3.0" && BUILD_WCF="true"
+    test "$TARGET_FRAMEWORK" == "dotnet-3.0" && test -z "$MONO_DIST" && BUILD_WCF="true"
 
     ### Make sure we can use MSBuild.Community.Tasks.dll (it might be from a
     ### remote location)
@@ -235,8 +250,14 @@ function dist-target-framework {
 }
 
 function gen-props {
+    if [ "$MONO_DIST" ]; then
+        USING_MONO="true"
+    else
+        USING_MONO="false"
+    fi
     sed -e "s:@VERSION@:$RABBIT_VSN:g" \
         -e "s:@KEYFILE@:$KEYFILE:g" \
+        -e "s:@USINGMONO@:$USING_MONO:g" \
     < $1 > $2
 }
 
@@ -246,19 +267,25 @@ function gendoc-dist {
     EXTRA_NDOCPROC_ARGS="$3"
     ### If this is an empty string, the intermediate xml output will not be saved in a zip
     ZIP_TMP_XML_DOC_FILENAME="$4"
+    PROJECT_DIR="$5"
+    RELATIVE_DIR="$6"
 
     mkdir -p tmp/gendoc/xml tmp/gendoc/html
 
     ### Make sure we can use ndocproc (it might be from a remote location)
     chmod +x lib/ndocproc-bin/bin/ndocproc.exe
 
+    cd $PROJECT_DIR
+
     ### Generate XMLs with ndocproc    
-    lib/ndocproc-bin/bin/ndocproc.exe \
+    $DOTNET_PROGRAM_PREPEND $RELATIVE_DIR/lib/ndocproc-bin/bin/ndocproc.exe \
     /nosubtypes \
     $EXTRA_NDOCPROC_ARGS \
-    tmp/gendoc/xml \
+    $RELATIVE_DIR/tmp/gendoc/xml \
     $XML_SOURCE_FILE \
-    docs/namespaces.xml
+    $RELATIVE_DIR/docs/namespaces.xml
+    
+    cd $RELATIVE_DIR
 
     ### Zip ndocproc's output
     if [ "$ZIP_TMP_XML_DOC_FILENAME" ]; then
@@ -297,3 +324,4 @@ function genhtml {
 
 
 main $@
+
