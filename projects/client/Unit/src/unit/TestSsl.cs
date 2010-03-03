@@ -63,8 +63,7 @@ using RabbitMQ.Client;
 public class TestSsl {
 
     public void SendReceive(ConnectionFactory cf) {
-        IProtocol proto = Protocols.DefaultProtocol;
-        using (IConnection conn = cf.CreateConnection(proto, "localhost", 5671)) {
+        using (IConnection conn = cf.CreateConnection()) {
             IModel ch = conn.CreateModel();
         
             ch.ExchangeDeclare("Exchange_TestSslEndPoint", ExchangeType.Direct);
@@ -90,9 +89,9 @@ public class TestSsl {
         if (null == sslDir) return;
 
         ConnectionFactory cf = new ConnectionFactory();
-        cf.Parameters.Ssl.ServerName = "*";
-        cf.Parameters.Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNameMismatch;
-        cf.Parameters.Ssl.Enabled = true;
+        cf.Ssl.ServerName = "*";
+        cf.Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNameMismatch;
+        cf.Ssl.Enabled = true;
         SendReceive(cf);
     }
 
@@ -102,8 +101,8 @@ public class TestSsl {
         if (null == sslDir) return;
 
         ConnectionFactory cf = new ConnectionFactory();
-        cf.Parameters.Ssl.ServerName = System.Net.Dns.GetHostName();
-        cf.Parameters.Ssl.Enabled = true;
+        cf.Ssl.ServerName = System.Net.Dns.GetHostName();
+        cf.Ssl.Enabled = true;
         SendReceive(cf);
     }
 
@@ -113,13 +112,13 @@ public class TestSsl {
         if (null == sslDir) return;
 
         ConnectionFactory cf = new ConnectionFactory();
-        cf.Parameters.Ssl.ServerName = System.Net.Dns.GetHostName();
+        cf.Ssl.ServerName = System.Net.Dns.GetHostName();
         Assert.IsNotNull(sslDir);
-        cf.Parameters.Ssl.CertPath = sslDir + "/client/keycert.p12";
+        cf.Ssl.CertPath = sslDir + "/client/keycert.p12";
         string p12Password = Environment.GetEnvironmentVariable("PASSWORD");
         Assert.IsNotNull(p12Password, "missing PASSWORD env var");
-        cf.Parameters.Ssl.CertPassphrase = p12Password;
-        cf.Parameters.Ssl.Enabled = true;
+        cf.Ssl.CertPassphrase = p12Password;
+        cf.Ssl.Enabled = true;
         SendReceive(cf);
     }
 }

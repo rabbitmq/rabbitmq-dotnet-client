@@ -74,8 +74,10 @@ namespace RabbitMQ.Client.Examples {
                 }
 
                 string serverAddress = args[0];
+                ConnectionFactory cf = new ConnectionFactory();
+                cf.Address = serverAddress;
             
-                using (IConnection conn = new ConnectionFactory().CreateConnection(serverAddress))
+                using (IConnection conn = cf.CreateConnection())
                 {
                     conn.ConnectionShutdown += new ConnectionShutdownEventHandler(First);
                     conn.ConnectionShutdown += new ConnectionShutdownEventHandler(OnConnectionShutdown);

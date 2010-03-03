@@ -79,8 +79,11 @@ namespace RabbitMQ.Client.Examples {
             string exchange = args[1];
             string exchangeType = args[2];
             string routingKey = args[3];
-            
-            using (IConnection conn = new ConnectionFactory().CreateConnection(serverAddress))
+
+            ConnectionFactory cf = new ConnectionFactory();
+            cf.Address = serverAddress;           
+ 
+            using (IConnection conn = cf.CreateConnection())
                 {
                     using (IModel ch = conn.CreateModel()) {
                         Subscription sub;
