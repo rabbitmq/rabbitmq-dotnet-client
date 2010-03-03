@@ -93,6 +93,7 @@ namespace RabbitMQ.Client.Impl
         public IFrameHandler m_frameHandler;
         public uint m_frameMax = 0;
         public ushort m_heartbeat = 0;
+        public IDictionary m_clientProperties;
         public AmqpTcpEndpoint[] m_knownHosts = null;
 
         public MainSession m_session0;
@@ -247,6 +248,18 @@ namespace RabbitMQ.Client.Impl
                 // because when we hit the timeout socket is
                 // in unusable state
                 m_frameHandler.Timeout = value * 2 * 1000;
+            }
+        }
+
+        public IDictionary ClientProperties
+        {
+            get
+            {
+                return m_clientProperties;
+            }
+            set
+            {
+                m_clientProperties = value;
             }
         }
 
@@ -896,9 +909,12 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public IDictionary BuildClientPropertiesTable()
+        private static IDictionary BuildClientPropertiesTable(
+                IDictionary extraClientProperties)
         {
-            string version = this.GetType().Assembly.GetName().Version.ToString();
+            System.Reflection.Assembly assembly =
+                    System.Reflection.Assembly.GetAssembly(typeof(ConnectionBase));
+            string version = assembly.GetName().Version.ToString();
             //TODO: Get the rest of this data from the Assembly Attributes
             Hashtable table = new Hashtable();
             table["product"] = Encoding.UTF8.GetBytes("RabbitMQ");
@@ -910,7 +926,7 @@ namespace RabbitMQ.Client.Impl
             table["information"] = Encoding.UTF8.GetBytes("Licensed under the MPL.  " +
                                                           "See http://www.rabbitmq.com/");
 
-            foreach(DictionaryEntry de in Parameters.ClientProperties)
+            foreach(DictionaryEntry de in extraClientProperties)
                 table[de.Key] = de.Value;
 
             return table;
@@ -957,10 +973,12 @@ namespace RabbitMQ.Client.Impl
                                                            serverVersion.Minor);
             }
 
+            ClientProperties = BuildClientPropertiesTable(m_factory.ClientProperties);
+
             // FIXME: check that PLAIN is supported.
             // FIXME: parse out locales properly!
             ConnectionTuneDetails connectionTune =
-                m_model0.ConnectionStartOk(BuildClientPropertiesTable(),
+                m_model0.ConnectionStartOk(ClientProperties,
                                            "PLAIN",
                                            Encoding.UTF8.GetBytes("\0" + m_factory.UserName +
                                                                   "\0" + m_factory.Password),
