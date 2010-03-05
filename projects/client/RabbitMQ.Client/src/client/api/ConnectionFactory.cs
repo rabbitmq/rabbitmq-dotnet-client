@@ -126,10 +126,6 @@ namespace RabbitMQ.Client
         /// seconds, with zero meaning none (value: 0)</summary>
         public const ushort DefaultHeartbeat = 0; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
 
-        /// <summary>Default value for extra client properties to be sent to
-        /// the server (value: empty Hashtable)
-        public static readonly IDictionary DefaultClientProperties = new Hashtable(); // PLEASE KEEP THIS MATCHING THE DOC ABOVE
-
         /// <summary>Username to use when authenticating to the server</summary>
         public string UserName = DefaultUser;
 
@@ -164,6 +160,16 @@ namespace RabbitMQ.Client
 
         ///<summary>The AMQP protocol to be used</summary>
         public IProtocol Protocol = Protocols.FromEnvironment();
+
+        /// <summary>Default value for extra client properties to be sent to
+        /// the server (value: empty Hashtable)</summary>
+        public static IDictionary DefaultClientProperties
+        {
+            get
+            {
+                return new Hashtable(); // PLEASE KEEP THIS MATCHING THE DOC ABOVE
+            }
+        }
 
         public AmqpTcpEndpoint Endpoint
         { 

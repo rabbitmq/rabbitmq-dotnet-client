@@ -116,7 +116,7 @@ namespace RabbitMQ.Client
         ///(0 for disabled), in seconds.</summary>
         ushort Heartbeat { get; }
 
-        ///<summary>The client properties that has been sent to the
+        ///<summary>A copy of the client properties that has been sent to the
         ///server.</summary>
         IDictionary ClientProperties { get; }
 

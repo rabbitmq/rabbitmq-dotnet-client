@@ -255,7 +255,7 @@ namespace RabbitMQ.Client.Impl
         {
             get
             {
-                return m_clientProperties;
+                return new Hashtable(m_clientProperties);
             }
             set
             {
@@ -973,12 +973,12 @@ namespace RabbitMQ.Client.Impl
                                                            serverVersion.Minor);
             }
 
-            ClientProperties = BuildClientPropertiesTable(m_factory.ClientProperties);
+            m_clientProperties = BuildClientPropertiesTable(m_factory.ClientProperties);
 
             // FIXME: check that PLAIN is supported.
             // FIXME: parse out locales properly!
             ConnectionTuneDetails connectionTune =
-                m_model0.ConnectionStartOk(ClientProperties,
+                m_model0.ConnectionStartOk(m_clientProperties,
                                            "PLAIN",
                                            Encoding.UTF8.GetBytes("\0" + m_factory.UserName +
                                                                   "\0" + m_factory.Password),
