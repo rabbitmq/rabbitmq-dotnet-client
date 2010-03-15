@@ -144,9 +144,9 @@ namespace RabbitMQ.Client
         /// <summary>Heartbeat setting to request (in seconds)</summary>
         public ushort RequestedHeartbeat = DefaultHeartbeat;
 
-        /// <summary>Dictionary of extra client properties to be sent to the
+        /// <summary>Dictionary of client properties to be sent to the
         /// server</summary>
-        public IDictionary ClientProperties = DefaultClientProperties;
+        public IDictionary ClientProperties = ConnectionBase.DefaultClientProperties();
 
         ///<summary>Ssl options setting</summary>
         public SslOption Ssl = new SslOption();
@@ -160,16 +160,6 @@ namespace RabbitMQ.Client
 
         ///<summary>The AMQP protocol to be used</summary>
         public IProtocol Protocol = Protocols.FromEnvironment();
-
-        /// <summary>Default value for extra client properties to be sent to
-        /// the server (value: empty Hashtable)</summary>
-        public static IDictionary DefaultClientProperties
-        {
-            get
-            {
-                return new Hashtable(); // PLEASE KEEP THIS MATCHING THE DOC ABOVE
-            }
-        }
 
         public AmqpTcpEndpoint Endpoint
         { 

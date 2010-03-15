@@ -922,8 +922,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        private static IDictionary BuildClientPropertiesTable(
-                IDictionary extraClientProperties)
+        public static IDictionary DefaultClientProperties()
         {
             System.Reflection.Assembly assembly =
                     System.Reflection.Assembly.GetAssembly(typeof(ConnectionBase));
@@ -938,10 +937,6 @@ namespace RabbitMQ.Client.Impl
                                                         "and Rabbit Technologies Ltd.");
             table["information"] = Encoding.UTF8.GetBytes("Licensed under the MPL.  " +
                                                           "See http://www.rabbitmq.com/");
-
-            foreach(DictionaryEntry de in extraClientProperties)
-                table[de.Key] = de.Value;
-
             return table;
         }
         
@@ -988,7 +983,7 @@ namespace RabbitMQ.Client.Impl
                                                            serverVersion.Minor);
             }
 
-            m_clientProperties = BuildClientPropertiesTable(m_factory.ClientProperties);
+            m_clientProperties = new Hashtable(m_factory.ClientProperties);
 
             // FIXME: check that PLAIN is supported.
             // FIXME: parse out locales properly!
