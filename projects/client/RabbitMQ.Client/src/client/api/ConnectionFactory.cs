@@ -80,7 +80,7 @@ namespace RabbitMQ.Client
     ///     factory.VirtualHost = ConnectionFactory.DefaultVHost;
     ///     factory.Protocol = Protocols.FromEnvironment();
     ///     factory.HostName = hostName;
-    //      factory.PortNumber = AmqpTcpEndpoint.UseDefaultPort;
+    ///     factory.PortNumber = AmqpTcpEndpoint.UseDefaultPort;
     ///     //
     ///     IConnection conn = factory.CreateConnection();
     ///     //
@@ -143,6 +143,10 @@ namespace RabbitMQ.Client
 
         /// <summary>Heartbeat setting to request (in seconds)</summary>
         public ushort RequestedHeartbeat = DefaultHeartbeat;
+
+        /// <summary>Dictionary of client properties to be sent to the
+        /// server</summary>
+        public IDictionary ClientProperties = ConnectionBase.DefaultClientProperties();
 
         ///<summary>Ssl options setting</summary>
         public SslOption Ssl = new SslOption();
