@@ -94,6 +94,7 @@ namespace RabbitMQ.Client.Impl
         public uint m_frameMax = 0;
         public ushort m_heartbeat = 0;
         public IDictionary m_clientProperties;
+        public IDictionary m_serverProperties;
         public AmqpTcpEndpoint[] m_knownHosts = null;
 
         public MainSession m_session0;
@@ -260,6 +261,18 @@ namespace RabbitMQ.Client.Impl
             set
             {
                 m_clientProperties = value;
+            }
+        }
+
+        public IDictionary ServerProperties
+        {
+            get
+            {
+                return m_serverProperties;
+            }
+            set
+            {
+                m_serverProperties = value;
             }
         }
 
@@ -960,6 +973,8 @@ namespace RabbitMQ.Client.Impl
 
             ConnectionStartDetails connectionStart = (ConnectionStartDetails)
                 connectionStartCell.Value;
+
+            ServerProperties = connectionStart.m_serverProperties;
 
             AmqpVersion serverVersion = new AmqpVersion(connectionStart.m_versionMajor,
                                                         connectionStart.m_versionMinor);
