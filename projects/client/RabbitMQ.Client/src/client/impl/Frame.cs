@@ -103,7 +103,17 @@ namespace RabbitMQ.Client.Impl
             int type;
             int channel;
 
-            type = reader.ReadByte();
+            try
+            {
+                type = reader.ReadByte();
+            }
+            catch (IOException ioe)
+            {
+                if (ioe.InnerException != null)
+                    throw ioe.InnerException;
+                else
+                    throw;
+            }
 
             if (type == 'A')
             {
@@ -177,11 +187,21 @@ namespace RabbitMQ.Client.Impl
         public void WriteTo(NetworkBinaryWriter writer)
         {
             FinishWriting();
-            writer.Write((byte)m_type);
-            writer.Write((ushort)m_channel);
-            writer.Write((uint)m_payload.Length);
-            writer.Write((byte[])m_payload);
-            writer.Write((byte)CommonFraming.Constants.FrameEnd);
+            try
+            {
+                writer.Write((byte) m_type);
+                writer.Write((ushort) m_channel);
+                writer.Write((uint) m_payload.Length);
+                writer.Write((byte[]) m_payload);
+                writer.Write((byte) CommonFraming.Constants.FrameEnd);
+            }
+            catch(IOException ioe)
+            {
+                if (ioe.InnerException != null)
+                    throw ioe.InnerException;
+                else
+                    throw;
+            }
         }
 
         public NetworkBinaryReader GetReader()

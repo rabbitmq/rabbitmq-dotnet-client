@@ -56,6 +56,7 @@
 //---------------------------------------------------------------------------
 using System;
 using System.IO;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Collections;
@@ -484,9 +485,9 @@ namespace RabbitMQ.Client.Impl
 
         public void StartMainLoop()
         {
-            Thread mainloopThread = new Thread(new ThreadStart(MainLoop));
-            mainloopThread.Name = "AMQP Connection " + Endpoint.ToString();
-            mainloopThread.Start();
+            Thread mainLoopThread = new Thread(new ThreadStart(MainLoop));
+            mainLoopThread.Name = "AMQP Connection " + Endpoint.ToString();
+            mainLoopThread.Start();
         }
         
         public void StartHeartbeatLoops()
@@ -594,6 +595,14 @@ namespace RabbitMQ.Client.Impl
             {
                 shutdownCleanly = HardProtocolExceptionHandler(hpe);
             }
+            catch (SocketException se)
+            {
+                // Possibly due to handshake timeout
+                HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library,
+                                                          0,
+                                                          "Socket exception",
+                                                          se));
+            }
             catch (Exception ex)
             {
                 HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library,
@@ -625,7 +634,7 @@ namespace RabbitMQ.Client.Impl
                 // counter.
                 return;
             }
-
+            
             if (frame.Channel == 0) {
                 // In theory, we could get non-connection.close-ok
                 // frames here while we're quiescing (m_closeReason !=
