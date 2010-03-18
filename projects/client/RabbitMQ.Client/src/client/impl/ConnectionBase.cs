@@ -94,6 +94,8 @@ namespace RabbitMQ.Client.Impl
         public IFrameHandler m_frameHandler;
         public uint m_frameMax = 0;
         public ushort m_heartbeat = 0;
+        public IDictionary m_clientProperties;
+        public IDictionary m_serverProperties;
         public AmqpTcpEndpoint[] m_knownHosts = null;
 
         public MainSession m_session0;
@@ -248,6 +250,30 @@ namespace RabbitMQ.Client.Impl
                 // because when we hit the timeout socket is
                 // in unusable state
                 m_frameHandler.Timeout = value * 2 * 1000;
+            }
+        }
+
+        public IDictionary ClientProperties
+        {
+            get
+            {
+                return new Hashtable(m_clientProperties);
+            }
+            set
+            {
+                m_clientProperties = value;
+            }
+        }
+
+        public IDictionary ServerProperties
+        {
+            get
+            {
+                return m_serverProperties;
+            }
+            set
+            {
+                m_serverProperties = value;
             }
         }
 
@@ -905,9 +931,11 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public IDictionary BuildClientPropertiesTable()
+        public static IDictionary DefaultClientProperties()
         {
-            string version = this.GetType().Assembly.GetName().Version.ToString();
+            System.Reflection.Assembly assembly =
+                    System.Reflection.Assembly.GetAssembly(typeof(ConnectionBase));
+            string version = assembly.GetName().Version.ToString();
             //TODO: Get the rest of this data from the Assembly Attributes
             Hashtable table = new Hashtable();
             table["product"] = Encoding.UTF8.GetBytes("RabbitMQ");
@@ -950,6 +978,8 @@ namespace RabbitMQ.Client.Impl
             ConnectionStartDetails connectionStart = (ConnectionStartDetails)
                 connectionStartCell.Value;
 
+            ServerProperties = connectionStart.m_serverProperties;
+
             AmqpVersion serverVersion = new AmqpVersion(connectionStart.m_versionMajor,
                                                         connectionStart.m_versionMinor);
             if (!serverVersion.Equals(Protocol.Version))
@@ -962,10 +992,12 @@ namespace RabbitMQ.Client.Impl
                                                            serverVersion.Minor);
             }
 
+            m_clientProperties = new Hashtable(m_factory.ClientProperties);
+
             // FIXME: check that PLAIN is supported.
             // FIXME: parse out locales properly!
             ConnectionTuneDetails connectionTune =
-                m_model0.ConnectionStartOk(BuildClientPropertiesTable(),
+                m_model0.ConnectionStartOk(m_clientProperties,
                                            "PLAIN",
                                            Encoding.UTF8.GetBytes("\0" + m_factory.UserName +
                                                                   "\0" + m_factory.Password),
