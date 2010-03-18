@@ -80,7 +80,7 @@ namespace RabbitMQ.Client
     ///     factory.VirtualHost = ConnectionFactory.DefaultVHost;
     ///     factory.Protocol = Protocols.FromEnvironment();
     ///     factory.HostName = hostName;
-    ///     factory.PortNumber = AmqpTcpEndpoint.UseDefaultPort;
+    ///     factory.Port = AmqpTcpEndpoint.UseDefaultPort;
     ///     //
     ///     IConnection conn = factory.CreateConnection();
     ///     //

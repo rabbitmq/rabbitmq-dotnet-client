@@ -77,8 +77,7 @@ namespace RabbitMQ.Client.Examples {
 
             ConnectionFactory cf = new ConnectionFactory();
             cf.Address = serverAddress;                
-            using (IConnection conn = cf.CreateConnection())
-            {
+            using (IConnection conn = cf.CreateConnection()) {
                 Stopwatch sendTimer = new Stopwatch();
                 Stopwatch receiveTimer = new Stopwatch();
                     
