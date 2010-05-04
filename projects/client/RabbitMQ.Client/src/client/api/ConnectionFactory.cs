@@ -88,8 +88,8 @@ namespace RabbitMQ.Client
     ///     //
     ///     // ... use ch's IModel methods ...
     ///     //
-    ///     ch.Close(200, "Closing the channel");
-    ///     conn.Close(200, "Closing the connection");
+    ///     ch.Close(Constants.ReplySuccess, "Closing the channel");
+    ///     conn.Close(Constants.ReplySuccess, "Closing the connection");
     ///</code></example>
     ///<para>
     /// Please see also the API overview and tutorial in the User Guide.

@@ -57,6 +57,7 @@
 using System;
 using System.IO;
 using System.Collections;
+using System.Diagnostics;
 using System.Threading;
 
 using RabbitMQ.Client;
@@ -69,7 +70,6 @@ using RabbitMQ.Util;
 // we support*. Obviously we may need to revisit this if that ever
 // changes.
 using CommonFraming = RabbitMQ.Client.Framing.v0_9;
-using System.Diagnostics;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -808,7 +808,7 @@ namespace RabbitMQ.Client.Impl
         
         public void Close()
         {
-        	Close(200, "Goodbye");
+        	Close(CommonFraming.Constants.ReplySuccess, "Goodbye");
         }
 
 		public void Close(ushort replyCode, string replyText)
@@ -818,7 +818,7 @@ namespace RabbitMQ.Client.Impl
         
         public void Abort() 
         {
-            Abort(200, "Goodbye");
+            Abort(CommonFraming.Constants.ReplySuccess, "Goodbye");
         }
         
         public void Abort(ushort replyCode, string replyText)
