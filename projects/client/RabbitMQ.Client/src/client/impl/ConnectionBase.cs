@@ -136,6 +136,7 @@ namespace RabbitMQ.Client.Impl
             StartMainLoop();
             Open(insist);
             StartHeartbeatLoops();
+            AppDomain.CurrentDomain.DomainUnload += HandleDomainUnload;
         }
 
         public event ConnectionShutdownEventHandler ConnectionShutdown
@@ -592,8 +593,6 @@ namespace RabbitMQ.Client.Impl
 
         public void MainLoop()
         {
-            Thread.GetDomain().DomainUnload += new EventHandler(HandleDomainUnload);
-
             bool shutdownCleanly = false;
             try
             {
@@ -900,6 +899,7 @@ namespace RabbitMQ.Client.Impl
                     }
                 }
             }
+            AppDomain.CurrentDomain.DomainUnload -= HandleDomainUnload;
         }
 
         public void OnCallbackException(CallbackExceptionEventArgs args)
