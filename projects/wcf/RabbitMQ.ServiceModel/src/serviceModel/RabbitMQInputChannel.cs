@@ -69,6 +69,12 @@ namespace RabbitMQ.ServiceModel
     using RabbitMQ.Client;
     using RabbitMQ.Client.Events;
 
+    // We use spec version 0-9 for common constants such as frame types,
+    // error codes, and the frame end byte, since they don't vary *within
+    // the versions we support*. Obviously we may need to revisit this if
+    // that ever changes.
+    using CommonFraming = RabbitMQ.Client.Framing.v0_9;
+
     internal sealed class RabbitMQInputChannel : RabbitMQInputChannelBase
     {
         private RabbitMQTransportBindingElement m_bindingElement;
@@ -109,7 +115,7 @@ namespace RabbitMQ.ServiceModel
             }
             catch (EndOfStreamException)
             {
-                if (m_messageQueue== null || m_messageQueue.ShutdownReason != null && m_messageQueue.ShutdownReason.ReplyCode != 200)
+                if (m_messageQueue== null || m_messageQueue.ShutdownReason != null && m_messageQueue.ShutdownReason.ReplyCode != CommonFraming.Constants.ReplySuccess)
                 {
                     OnFaulted();
                 }
