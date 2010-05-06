@@ -31,4 +31,7 @@ rabbit\.snk$
 ^build/
 
 ~$
+[Rr]e[Ss]harper
+\.user$
+\.orig$
 
