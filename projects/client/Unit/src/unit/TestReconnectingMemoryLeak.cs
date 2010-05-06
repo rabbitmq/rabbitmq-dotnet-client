@@ -88,6 +88,8 @@ namespace RabbitMQ.Client.Unit
                 {
                 }
             }
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
             return GC.GetTotalMemory(false);
         }
     }
