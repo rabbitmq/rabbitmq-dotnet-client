@@ -999,7 +999,7 @@ namespace RabbitMQ.Client.Impl
             }
             catch (OperationInterruptedException e)
             {
-                throw new ConnectionException("Likely authentication failure during connection start", e);
+                throw new PossibleAuthenticationFailureException("Possibly caused by authentication failure", e);
             }
 
             ushort channelMax = (ushort) NegotiatedMaxValue(m_factory.RequestedChannelMax,

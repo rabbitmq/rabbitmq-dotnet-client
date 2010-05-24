@@ -88,8 +88,8 @@ namespace RabbitMQ.Client.Unit
             {                
                 foreach (Object failureReason in bue.ConnectionErrors.Values)
                 {
-                    Assert.IsInstanceOfType(typeof(ConnectionException), failureReason);
-                    Assert.That(((ConnectionException)failureReason).Message.ToLower().Contains("auth"));
+                    Assert.IsInstanceOfType(typeof(PossibleAuthenticationFailureException), failureReason);
+                    Assert.That(((PossibleAuthenticationFailureException)failureReason).Message.ToLower().Contains("auth"));
                 }              
             }
         }

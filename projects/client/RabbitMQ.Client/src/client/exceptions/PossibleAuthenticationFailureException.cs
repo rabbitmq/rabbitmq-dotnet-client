@@ -55,15 +55,14 @@
 //
 //---------------------------------------------------------------------------
 using System;
-using System.Security.Authentication;
 
 namespace RabbitMQ.Client.Exceptions
 {
     /// <summary> Thrown when the likely cause is  an 
     /// authentication failure. </summary>
-    public class ConnectionException : InvalidCredentialException 
+    public class PossibleAuthenticationFailureException : Exception
     {
-        public ConnectionException(String msg, Exception inner) 
+        public PossibleAuthenticationFailureException(String msg, Exception inner) 
             : base(msg, inner)
         {
         }
