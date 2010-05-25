@@ -993,13 +993,15 @@ namespace RabbitMQ.Client.Impl
                 connectionTune = 
                 m_model0.ConnectionStartOk(m_clientProperties,
                                            "PLAIN",
-                                           Encoding.UTF8.GetBytes("\0" + m_factory.UserName +
-                                                                  "\0" + m_factory.Password),
+                                           Encoding.UTF8.GetBytes(
+                                               "\0" + m_factory.UserName +
+                                               "\0" + m_factory.Password),
                                            "en_US");
             }
             catch (OperationInterruptedException e)
             {
-                throw new PossibleAuthenticationFailureException("Possibly caused by authentication failure", e);
+                throw new PossibleAuthenticationFailureException(
+                    "Possibly caused by authentication failure", e);
             }
 
             ushort channelMax = (ushort) NegotiatedMaxValue(m_factory.RequestedChannelMax,
