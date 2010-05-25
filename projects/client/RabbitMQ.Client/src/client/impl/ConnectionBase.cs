@@ -987,12 +987,22 @@ namespace RabbitMQ.Client.Impl
 
             // FIXME: check that PLAIN is supported.
             // FIXME: parse out locales properly!
-            ConnectionTuneDetails connectionTune =
+            ConnectionTuneDetails connectionTune = default(ConnectionTuneDetails);
+            try
+            {
+                connectionTune = 
                 m_model0.ConnectionStartOk(m_clientProperties,
                                            "PLAIN",
-                                           Encoding.UTF8.GetBytes("\0" + m_factory.UserName +
-                                                                  "\0" + m_factory.Password),
+                                           Encoding.UTF8.GetBytes(
+                                               "\0" + m_factory.UserName +
+                                               "\0" + m_factory.Password),
                                            "en_US");
+            }
+            catch (OperationInterruptedException e)
+            {
+                throw new PossibleAuthenticationFailureException(
+                    "Possibly caused by authentication failure", e);
+            }
 
             ushort channelMax = (ushort) NegotiatedMaxValue(m_factory.RequestedChannelMax,
                                                             connectionTune.m_channelMax);
