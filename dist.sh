@@ -76,7 +76,7 @@ test "$MONO_DIST" || MONO_DIST=
 ### Other, general vars
 NAME=rabbitmq-dotnet-client
 NAME_VSN=$NAME-$RABBIT_VSN
-RELEASE_DIR=releases/$NAME/v$RABBIT_VSN
+RELEASE_DIR=release
 if [ "$MONO_DIST" ] ; then
     INCLUDE_WCF=true
     MSBUILD=xbuild
