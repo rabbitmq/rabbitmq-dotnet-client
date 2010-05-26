@@ -811,7 +811,10 @@ namespace RabbitMQ.Client.Apigen {
                         if (method.Name.StartsWith("Handle") ||
                             (Attribute(method, typeof(AmqpAsynchronousHandlerAttribute)) != null))
                         {
-                            asynchronousHandlers.Add(method);
+                            if ((Attribute(method, typeof(AmqpMethodDoNotImplementAttribute)) == null))
+                            {
+                                asynchronousHandlers.Add(method);
+                            }
                         } else {
                             MaybeEmitModelMethod(method);
                         }

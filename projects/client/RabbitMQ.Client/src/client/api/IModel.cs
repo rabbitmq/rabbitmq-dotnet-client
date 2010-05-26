@@ -358,9 +358,11 @@ namespace RabbitMQ.Client
         void TxRollback();
 
         ///<summary>(Spec method) Enable DTX mode for this session.</summary>
+        [AmqpMethodDoNotImplement("RabbitMQ.Client.Framing.v0_9_1")]
         void DtxSelect();
 
         ///<summary>(Spec method)</summary>
+        [AmqpMethodDoNotImplement("RabbitMQ.Client.Framing.v0_9_1")]
         void DtxStart(string dtxIdentifier);
 
         ///<summary>Close this session.</summary>
@@ -668,6 +670,7 @@ namespace RabbitMQ.Client.Impl
         void HandleConnectionOpenOk(string knownHosts);
 
         ///<summary>Handle an incoming Connection.Redirect.</summary>
+        [AmqpMethodDoNotImplement("RabbitMQ.Client.Framing.v0_9_1")]
         void HandleConnectionRedirect(string host,
                                       string knownHosts);
 
