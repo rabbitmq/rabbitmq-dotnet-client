@@ -63,6 +63,12 @@ namespace RabbitMQ.ServiceModel
     using System;
     using System.Text;
 
+    // We use spec version 0-9 for common constants such as frame types,
+    // error codes, and the frame end byte, since they don't vary *within
+    // the versions we support*. Obviously we may need to revisit this if
+    // that ever changes.
+    using CommonFraming = RabbitMQ.Client.Framing.v0_9;
+
     /// <summary>
     /// Properties of the current RabbitMQ Service Model Version
     /// </summary>
@@ -74,7 +80,7 @@ namespace RabbitMQ.ServiceModel
 
         internal static class StatusCodes
         {
-            public const int Ok = 200;
+            public const int Ok = CommonFraming.Constants.ReplySuccess;
         }
 
     }
