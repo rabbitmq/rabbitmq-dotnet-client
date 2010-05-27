@@ -165,6 +165,7 @@ namespace RabbitMQ.Client.Apigen {
         public bool m_versionOverridden = false;
         public int m_majorVersion;
         public int m_minorVersion;
+        public int? m_revision;
         public string m_apiName;
         public bool m_emitComments = false;
 
@@ -281,6 +282,11 @@ namespace RabbitMQ.Client.Apigen {
             if (!m_versionOverridden) {
                 m_majorVersion = GetInt(m_spec, "/amqp/@major");
                 m_minorVersion = GetInt(m_spec, "/amqp/@minor");
+                if (m_spec.SelectSingleNode("/amqp/@revision") != null)
+                {
+                    m_revision = GetInt(m_spec, "/amqp/@revision");
+                }
+
             }
             foreach (XmlNode n in m_spec.SelectNodes("/amqp/constant")) {
                 m_constants.Add(new DictionaryEntry(GetString(n, "@name"), GetInt(n, "@value")));
@@ -416,6 +422,10 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("    public override int MajorVersion { get { return " + m_majorVersion + "; } }");
             EmitLine("    ///<summary>Protocol minor version (= "+m_minorVersion+")</summary>");
             EmitLine("    public override int MinorVersion { get { return " + m_minorVersion + "; } }");
+            EmitLine("    ///<summary>Protocol revision (= " +
+                          (m_revision.HasValue ? m_revision.ToString() : "not specified") + ")</summary>");
+            EmitLine("    public override int? Revision { get { return " +
+                          (m_revision.HasValue ? m_revision.ToString() : "null") + "; } }");
             EmitLine("    ///<summary>Protocol API name (= "+m_apiName+")</summary>");
             EmitLine("    public override string ApiName { get { return \"" + m_apiName + "\"; } }");
             int port = GetInt(m_spec, "/amqp/@port");

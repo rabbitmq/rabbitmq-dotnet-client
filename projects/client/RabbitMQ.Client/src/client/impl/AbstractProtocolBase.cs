@@ -62,6 +62,7 @@ namespace RabbitMQ.Client.Impl {
     public abstract class AbstractProtocolBase: IProtocol {
         public abstract int MajorVersion { get; }
         public abstract int MinorVersion { get; }
+        public abstract int? Revision { get; }
         public abstract string ApiName { get; }
         public abstract int DefaultPort { get; }
 
