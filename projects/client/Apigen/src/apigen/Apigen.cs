@@ -841,7 +841,14 @@ namespace RabbitMQ.Client.Apigen {
 	    string contentClass = factoryAnnotation.m_contentClass;
 	    EmitModelMethodPreamble(method);
 	    EmitLine("    {");
-	    EmitLine("      return new "+MangleClass(contentClass)+"Properties();");
+        if (Attribute(method, typeof(AmqpUnsupportedAttribute)) != null)
+        {
+            EmitLine(String.Format("      return default({0});", method.ReturnType));
+        }
+        else 
+        {
+            EmitLine("      return new " + MangleClass(contentClass) + "Properties();");
+        }       
 	    EmitLine("    }");
 	}
 
@@ -1119,7 +1126,10 @@ namespace RabbitMQ.Client.Apigen {
                     EmitLine("          "+method.Name+"(");
                     int remaining = parameters.Length;
                     foreach (ParameterInfo pi in parameters) {
-                        if (Attribute(pi, typeof(AmqpContentHeaderMappingAttribute)) != null) {
+                        if (Attribute(pi, typeof(AmqpUnsupportedAttribute)) != null) {
+                            // skipping unsupported parameter
+                        }
+                        else if (Attribute(pi, typeof(AmqpContentHeaderMappingAttribute)) != null) {
                             Emit("            ("+pi.ParameterType+") cmd.Header");
                         } else if (Attribute(pi, typeof(AmqpContentBodyMappingAttribute)) != null) {
                             Emit("            cmd.Body");
