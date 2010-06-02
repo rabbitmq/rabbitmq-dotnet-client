@@ -1,7 +1,7 @@
 NAME=rabbitmq-dotnet-client
 NAME_VSN=${NAME}-${RABBIT_VSN}
 
-RELEASE_DIR=releases/${NAME}/v${RABBIT_VSN}
+RELEASE_DIR=release
 
 TMPXMLZIP=${NAME_VSN}-tmp-xmldoc.zip
 
@@ -17,7 +17,7 @@ dist: rabbit-vsn ensure-deliverables ensure-universally-readable
 	rm -f $(RELEASE_DIR)/$(TMPXMLZIP)
 
 ensure-universally-readable:
-	chmod -R a+rX releases
+	chmod -R a+rX release
 
 ensure-deliverables: rabbit-vsn
 	file ${RELEASE_DIR}/${NAME_VSN}.zip

@@ -72,7 +72,7 @@ test "$SKIP_MSIVAL2" || SKIP_MSIVAL2=
 ### Other, general vars
 NAME=rabbitmq-dotnet-client
 NAME_VSN=$NAME-$RABBIT_VSN
-RELEASE_DIR=releases/$NAME/v$RABBIT_VSN
+RELEASE_DIR=release
 
 
 function main {
