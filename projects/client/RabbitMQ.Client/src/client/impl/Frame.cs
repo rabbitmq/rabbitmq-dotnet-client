@@ -56,6 +56,7 @@
 //---------------------------------------------------------------------------
 using System;
 using System.IO;
+using System.Net.Sockets;
 
 using RabbitMQ.Util;
 using RabbitMQ.Client.Exceptions;
@@ -109,8 +110,12 @@ namespace RabbitMQ.Client.Impl
             }
             catch (IOException ioe)
             {
-                if (ioe.InnerException != null)
-                    throw ioe.InnerException;
+                // If it's a WSAETIMEDOUT SocketException, unwrap it.
+                // This might happen when the limit of half-open connections is
+                // reached.
+                SocketException se = (SocketException) ioe.InnerException;
+                if (se != null && se.SocketErrorCode == SocketError.TimedOut)
+                    throw se;
                 else
                     throw;
             }
