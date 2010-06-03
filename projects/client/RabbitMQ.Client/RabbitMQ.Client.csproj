@@ -40,6 +40,9 @@
     <ApiGenExe>..\Apigen\build\bin\rabbitmq-dotnet-apigen.exe</ApiGenExe>
   </PropertyGroup>
   <ItemGroup>
+    <AmqpSpecs Include="$(AmqpSpec0_9_1)">
+      <Link>specs\$(AmqpSpec0_9_1BaseName)</Link>
+    </AmqpSpecs>
     <AmqpSpecs Include="$(AmqpSpec0_9)">
       <Link>specs\$(AmqpSpec0_9BaseName)</Link>
     </AmqpSpecs>

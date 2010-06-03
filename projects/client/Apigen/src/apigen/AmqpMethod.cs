@@ -68,7 +68,12 @@ namespace RabbitMQ.Client.Apigen {
         {
             m_Fields = new ArrayList();
             foreach (XmlNode f in n.SelectNodes("field")) {
-                m_Fields.Add(new AmqpField(f));
+
+                AmqpField field = new AmqpField(f);
+                if (!field.Reserved)
+                {
+                    m_Fields.Add(field);
+                }  
             }
             m_ResponseMethods = new ArrayList();
             foreach (XmlNode r in n.SelectNodes("response")) {

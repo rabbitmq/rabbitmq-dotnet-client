@@ -659,6 +659,7 @@ namespace RabbitMQ.Client.Impl
         void HandleConnectionStart(byte versionMajor,
                                    byte versionMinor,
                                    IDictionary serverProperties,
+                                   [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
                                    byte[] mechanisms,
                                    byte[] locales);
 

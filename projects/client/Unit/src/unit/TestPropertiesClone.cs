@@ -103,6 +103,18 @@ public class TestPropertiesClone
     }
 
     [Test]
+    public void TestBasicPropertiesCloneV0_9_1()
+    {
+        TestBasicPropertiesClone(new RabbitMQ.Client.Framing.v0_9_1.BasicProperties());
+    }
+
+    [Test]
+    public void TestBasicPropertiesNoneCloneV0_9_1()
+    {
+        TestBasicPropertiesNoneClone(new RabbitMQ.Client.Framing.v0_9_1.BasicProperties());
+    }
+
+    [Test]
     public void TestStreamPropertiesCloneV0_8()
     {
         TestStreamPropertiesClone(new RabbitMQ.Client.Framing.v0_8.StreamProperties());
