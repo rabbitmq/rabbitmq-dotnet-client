@@ -74,6 +74,8 @@ namespace RabbitMQ.Client
         string ApiName { get; }
         ///<summary>Retrieve the protocol's default TCP port</summary>
         int DefaultPort { get; }
+        ///<summary>Whether redirect is supported</summary>
+        bool SupportsRedirect { get; }
 
         ///<summary>Construct a frame handler for a given endpoint.</summary>
         IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint);

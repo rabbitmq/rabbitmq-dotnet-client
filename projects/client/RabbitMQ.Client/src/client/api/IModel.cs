@@ -561,7 +561,8 @@ namespace RabbitMQ.Client.Impl
         ///<summary>Used to send a Channel.Open. Called during session
         ///initialisation.</summary>
         [AmqpMethodMapping(null, "channel", "open")]
-        void _Private_ChannelOpen([AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
+        void _Private_ChannelOpen([AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1",
+                                  "reserved1")]
                                   string outOfBand);
 
         ///<summary>Used to send a Channel.CloseOk. Called during
@@ -684,9 +685,9 @@ namespace RabbitMQ.Client.Impl
         [AmqpForceOneWay]
         [AmqpMethodMapping(null, "connection", "open")]
         void _Private_ConnectionOpen(string virtualHost,
-                                     [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
-                                     string capabilities,
-                                     [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
+                                     [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved1")]
+                                     string capabilities,                                    
+                                     [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved2")]
                                      bool insist);
 
         ///<summary>Handle an incoming Connection.OpenOk.</summary>
