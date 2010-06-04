@@ -149,12 +149,12 @@ namespace RabbitMQ.Client
                              string type,
                              bool passive,
                              bool durable,
-                             [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
+                             [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved2")]
                              bool autoDelete,
-                             [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
+                             [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved3")]
                              bool @internal,
                              [AmqpNowaitArgument(null)]
-                             [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
+                             [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "noWait")]
                              bool nowait,
                              IDictionary arguments);
 
@@ -660,7 +660,6 @@ namespace RabbitMQ.Client.Impl
         void HandleConnectionStart(byte versionMajor,
                                    byte versionMinor,
                                    IDictionary serverProperties,
-                                   [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
                                    byte[] mechanisms,
                                    byte[] locales);
 

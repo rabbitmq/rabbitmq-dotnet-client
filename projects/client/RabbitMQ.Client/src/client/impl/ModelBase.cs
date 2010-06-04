@@ -303,7 +303,6 @@ namespace RabbitMQ.Client.Impl
             }
             catch (AlreadyClosedException)
             {
-                int i = 1;
                 // Ignored, since the continuation will be told about
                 // the closure via an OperationInterruptedException because
                 // of the shutdown event propagation.
@@ -412,18 +411,6 @@ namespace RabbitMQ.Client.Impl
                                           byte[] mechanisms,
                                           byte[] locales)
         {
-            HandleConnectionStart(versionMajor,
-                                  versionMinor,
-                                  serverProperties,
-                                  locales);
-            details.m_mechanisms = mechanisms;
-        }
-
-        public void HandleConnectionStart(byte versionMajor,
-                                          byte versionMinor,
-                                          IDictionary serverProperties,
-                                          byte[] locales)
-        {
             if (m_connectionStartCell == null)
             {
                 ShutdownEventArgs reason =
@@ -436,6 +423,7 @@ namespace RabbitMQ.Client.Impl
             details.m_versionMajor = versionMajor;
             details.m_versionMinor = versionMinor;
             details.m_serverProperties = serverProperties;
+            details.m_mechanisms = mechanisms;
             details.m_locales = locales;
             m_connectionStartCell.Value = details;
             m_connectionStartCell = null;
