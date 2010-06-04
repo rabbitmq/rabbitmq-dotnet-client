@@ -113,11 +113,11 @@ namespace RabbitMQ.Client.Impl
                 // If it's a WSAETIMEDOUT SocketException, unwrap it.
                 // This might happen when the limit of half-open connections is
                 // reached.
-                SocketException se = (SocketException) ioe.InnerException;
-                if (se != null && se.SocketErrorCode == SocketError.TimedOut)
-                    throw se;
-                else
-                    throw;
+                if (ioe.InnerException == null ||
+                    !(ioe.InnerException is SocketException) ||
+                    ((SocketException)ioe.InnerException).SocketErrorCode != SocketError.TimedOut)
+                    throw ioe;
+                throw ioe.InnerException;
             }
 
             if (type == 'A')
@@ -192,21 +192,11 @@ namespace RabbitMQ.Client.Impl
         public void WriteTo(NetworkBinaryWriter writer)
         {
             FinishWriting();
-            try
-            {
-                writer.Write((byte) m_type);
-                writer.Write((ushort) m_channel);
-                writer.Write((uint) m_payload.Length);
-                writer.Write((byte[]) m_payload);
-                writer.Write((byte) CommonFraming.Constants.FrameEnd);
-            }
-            catch(IOException ioe)
-            {
-                if (ioe.InnerException != null)
-                    throw ioe.InnerException;
-                else
-                    throw;
-            }
+            writer.Write((byte) m_type);
+            writer.Write((ushort) m_channel);
+            writer.Write((uint) m_payload.Length);
+            writer.Write((byte[]) m_payload);
+            writer.Write((byte) CommonFraming.Constants.FrameEnd);
         }
 
         public NetworkBinaryReader GetReader()
