@@ -142,7 +142,7 @@ namespace RabbitMQ.Client.Impl
                         }
                         NetworkBinaryReader reader = f.GetReader();
                         m_command.m_header = m_protocol.DecodeContentHeaderFrom(reader);
-                        m_remainingBodyBytes = m_command.m_header.ReadFrom(f.Channel, reader);
+                        m_remainingBodyBytes = m_command.m_header.ReadFrom(reader);
                         UpdateContentBodyState();
                         return CompletedCommand();
                     }
