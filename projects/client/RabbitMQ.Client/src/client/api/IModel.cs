@@ -162,7 +162,7 @@ namespace RabbitMQ.Client
         void ExchangeDelete(string exchange,
                             bool ifUnused,
                             [AmqpNowaitArgument(null)]
-                            [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
+                            [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "noWait")]
                             bool nowait);
 
         ///<summary>(Spec method) Declare a queue.</summary>
@@ -536,9 +536,10 @@ namespace RabbitMQ.Client.Impl
                                    [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1",
                                                      "noWait")]
                                    bool nowait,
-                                   [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
                                    [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
                                    [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_8qpid",
+                                                     "arguments")]
+                                   [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1",
                                                      "arguments")]
                                    IDictionary filter);
 
