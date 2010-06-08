@@ -1029,10 +1029,17 @@ namespace RabbitMQ.Client.Impl
                                       frameMax,
                                       heartbeat);
 
-            string knownHosts = m_model0.ConnectionOpen(m_factory.VirtualHost,
-                                                        "", // FIXME: make configurable?
-                                                        insist);
-            KnownHosts = AmqpTcpEndpoint.ParseMultiple(Protocol, knownHosts);
+            if (Protocol.SupportsRedirect)
+            {
+                string knownHosts = m_model0.ConnectionOpen(m_factory.VirtualHost,
+                                                            "", // FIXME: make configurable?
+                                                            insist);
+                KnownHosts = AmqpTcpEndpoint.ParseMultiple(Protocol, knownHosts);
+            }
+            else
+            {
+                m_model0.ConnectionOpen(m_factory.VirtualHost, String.Empty, false);
+            }
         }
 
         public override string ToString()

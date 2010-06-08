@@ -55,23 +55,11 @@
 //
 //---------------------------------------------------------------------------
 using System;
-using System.Collections.Generic;
-using System.Text;
+using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.ServiceModel.Examples.ConfigDemo.Server
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            Console.Title = "SERVER";
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine("SERVER");
-            Console.ForegroundColor = ConsoleColor.Gray;
-            Console.WriteLine();
-
-            Server svr = new Server();
-            svr.Run();
-        }
+namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
+    public class Connection: ConnectionBase {
+        public Connection(ConnectionFactory factory, bool insist, IFrameHandler frameHandler)
+            : base(factory, insist, frameHandler) {}
     }
 }

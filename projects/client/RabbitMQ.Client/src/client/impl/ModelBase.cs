@@ -798,8 +798,8 @@ namespace RabbitMQ.Client.Impl
         public abstract void TxCommit();
         public abstract void TxRollback();
 
-        public abstract void DtxSelect();
-        public abstract void DtxStart(string dtxIdentifier);
+        public virtual void DtxSelect() { }
+        public virtual void DtxStart(string dtxIdentifier) { }
 
         void IDisposable.Dispose()
         {
@@ -936,6 +936,14 @@ namespace RabbitMQ.Client.Impl
         public abstract void _Private_ConnectionOpen(string virtualHost,
                                                      string capabilities,
                                                      bool insist);
+
+        public void HandleConnectionOpenOk()
+        {
+            ConnectionOpenContinuation k = (ConnectionOpenContinuation)m_continuationQueue.Next();
+            k.m_redirect = false;
+            k.m_host = null;
+            k.HandleCommand(null); // release the continuation.
+        }
 
         public void HandleConnectionOpenOk(string knownHosts)
         {

@@ -58,60 +58,53 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Util;
 
-namespace RabbitMQ.Client.Impl {
-    public abstract class AbstractProtocolBase: IProtocol {
-        public abstract int MajorVersion { get; }
-        public abstract int MinorVersion { get; }
-        public abstract int? Revision { get; }
-        public abstract string ApiName { get; }
-        public abstract int DefaultPort { get; }
-        public abstract bool SupportsRedirect { get; }
+namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
+    public abstract class ProtocolBase: AbstractProtocolBase {
 
-        public abstract IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint);
-        public abstract IConnection CreateConnection(ConnectionFactory factory,
+        public override IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint) {
+            return new SocketFrameHandler_0_9(endpoint);
+        }
+
+        public override IModel CreateModel(ISession session) {
+            return new Model(session);
+        }
+
+        public override IConnection CreateConnection(ConnectionFactory factory,
                                                      bool insist,
-                                                     IFrameHandler frameHandler);
-        public abstract IModel CreateModel(ISession session);
+                                                     IFrameHandler frameHandler)
+        {
+            return new Connection(factory, insist, frameHandler);
+        }
 
-        public abstract MethodBase DecodeMethodFrom(NetworkBinaryReader reader);
-        public abstract ContentHeaderBase DecodeContentHeaderFrom(NetworkBinaryReader reader);
-
-        ///<summary>Used when a connection is being quiesced because
-        ///of a HardProtocolException or Application initiated shutdown</summary>
-        public abstract void CreateConnectionClose(ushort reasonCode,
+        public override void CreateConnectionClose(ushort reasonCode,
                                                    string reasonText,
                                                    out Command request,
                                                    out int replyClassId,
-                                                   out int replyMethodId);
-
-        ///<summary>Used when a channel is being quiesced because of a
-        ///SoftProtocolException.</summary>
-        public abstract void CreateChannelClose(ushort reasonCode,
-                                                   string reasonText,
-                                                   out Command request,
-                                                   out int replyClassId,
-                                                   out int replyMethodId);
-                                                   
-        ///<summary>Used in the quiescing session to determine if the command
-        ///is allowed to be sent.</summary>
-        public abstract bool CanSendWhileClosed(Command cmd); 
-
-        public AmqpVersion Version {
-            get {
-                return new AmqpVersion(MajorVersion, MinorVersion);
-            }
+                                                   out int replyMethodId)
+        {
+            request = new Command(new RabbitMQ.Client.Framing.Impl.v0_9_1.ConnectionClose(reasonCode,
+                                                                                          reasonText,
+                                                                                          0, 0));
+            replyClassId = RabbitMQ.Client.Framing.Impl.v0_9_1.ConnectionCloseOk.ClassId;
+            replyMethodId = RabbitMQ.Client.Framing.Impl.v0_9_1.ConnectionCloseOk.MethodId;
         }
 
-	    public override string ToString() {
-	        return Version.ToString();
-	    }
-
-        public override bool Equals(object obj) {
-            return (GetType() == obj.GetType());
+        public override void CreateChannelClose(ushort reasonCode,
+                                                string reasonText,
+                                                out Command request,
+                                                out int replyClassId,
+                                                out int replyMethodId)
+        {
+            request = new Command(new RabbitMQ.Client.Framing.Impl.v0_9_1.ChannelClose(reasonCode,
+                                                                                       reasonText,
+                                                                                       0, 0));
+            replyClassId = RabbitMQ.Client.Framing.Impl.v0_9_1.ChannelCloseOk.ClassId;
+            replyMethodId = RabbitMQ.Client.Framing.Impl.v0_9_1.ChannelCloseOk.MethodId;                                                                                     
         }
-
-        public override int GetHashCode() {
-            return GetType().GetHashCode();
+        
+        public override bool CanSendWhileClosed(Command cmd)
+        {
+            return cmd.m_method is RabbitMQ.Client.Framing.Impl.v0_9_1.ChannelCloseOk;
         }
     }
 }

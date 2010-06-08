@@ -74,7 +74,8 @@ namespace RabbitMQ.Client.Impl
         public abstract string Type { get; set; }
         public abstract string UserId { get; set; }
         public abstract string AppId { get; set; }
-        public abstract string ClusterId { get; set; }
+        public virtual string ClusterId { get; set; }
+        public virtual string Reserved { get; set; }
 
         public abstract void ClearContentType();
         public abstract void ClearContentEncoding();
@@ -89,7 +90,8 @@ namespace RabbitMQ.Client.Impl
         public abstract void ClearType();
         public abstract void ClearUserId();
         public abstract void ClearAppId();
-        public abstract void ClearClusterId();
+        public virtual void ClearClusterId() { }
+        public virtual void ClearReserved() { }
 
         public abstract bool IsContentTypePresent();
         public abstract bool IsContentEncodingPresent();
@@ -104,7 +106,8 @@ namespace RabbitMQ.Client.Impl
         public abstract bool IsTypePresent();
         public abstract bool IsUserIdPresent();
         public abstract bool IsAppIdPresent();
-        public abstract bool IsClusterIdPresent();
+        public virtual bool IsClusterIdPresent() { return false; }
+        public virtual bool IsReservedPresent() { return false; }
 
         public PublicationAddress ReplyToAddress
         {

@@ -111,11 +111,13 @@ namespace RabbitMQ.Client
         ///<summary>Construct a completely empty content header for
         ///use with the File content class.</summary>
         [AmqpContentHeaderFactory("file")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
         IFileProperties CreateFileProperties();
 
         ///<summary>Construct a completely empty content header for
         ///use with the Stream content class.</summary>
         [AmqpContentHeaderFactory("stream")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
         IStreamProperties CreateStreamProperties();
 
         ///<summary>(Spec method) Channel flow control functionality.</summary>
@@ -147,9 +149,12 @@ namespace RabbitMQ.Client
                              string type,
                              bool passive,
                              bool durable,
+                             [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved2")]
                              bool autoDelete,
+                             [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved3")]
                              bool @internal,
                              [AmqpNowaitArgument(null)]
+                             [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "noWait")]
                              bool nowait,
                              IDictionary arguments);
 
@@ -157,6 +162,7 @@ namespace RabbitMQ.Client
         void ExchangeDelete(string exchange,
                             bool ifUnused,
                             [AmqpNowaitArgument(null)]
+                            [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "noWait")]
                             bool nowait);
 
         ///<summary>(Spec method) Declare a queue.</summary>
@@ -197,6 +203,8 @@ namespace RabbitMQ.Client
                             bool exclusive,
                             bool autoDelete,
                             [AmqpNowaitArgument(null)]
+                            [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1",
+                                              "noWait")]
                             bool nowait,
                             IDictionary arguments);
 
@@ -205,6 +213,8 @@ namespace RabbitMQ.Client
                        string exchange,
                        string routingKey,
                        [AmqpNowaitArgument(null)]
+                       [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1",
+                                         "noWait")]
                        bool nowait,
                        IDictionary arguments);
 
@@ -229,6 +239,8 @@ namespace RabbitMQ.Client
         [return: AmqpFieldMapping(null, "messageCount")]
         uint QueuePurge(string queue,
                         [AmqpNowaitArgument(null, "0xFFFFFFFF")]
+                        [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1",
+                                          "noWait")]
                         bool nowait);
 
         ///<summary>(Spec method) Delete a queue.</summary>
@@ -242,6 +254,8 @@ namespace RabbitMQ.Client
                          bool ifUnused,
                          bool ifEmpty,
                          [AmqpNowaitArgument(null, "0xFFFFFFFF")]
+                         [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1",
+                                           "noWait")]
                          bool nowait);
 
         ///<summary>Start a Basic content-class consumer.</summary>
@@ -358,9 +372,11 @@ namespace RabbitMQ.Client
         void TxRollback();
 
         ///<summary>(Spec method) Enable DTX mode for this session.</summary>
+        [AmqpMethodDoNotImplement("RabbitMQ.Client.Framing.v0_9_1")]
         void DtxSelect();
 
         ///<summary>(Spec method)</summary>
+        [AmqpMethodDoNotImplement("RabbitMQ.Client.Framing.v0_9_1")]
         void DtxStart(string dtxIdentifier);
 
         ///<summary>Close this session.</summary>
@@ -517,9 +533,13 @@ namespace RabbitMQ.Client.Impl
                                    bool noLocal,
                                    bool noAck,
                                    bool exclusive,
+                                   [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1",
+                                                     "noWait")]
                                    bool nowait,
                                    [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
                                    [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_8qpid",
+                                                     "arguments")]
+                                   [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1",
                                                      "arguments")]
                                    IDictionary filter);
 
@@ -532,6 +552,8 @@ namespace RabbitMQ.Client.Impl
         [AmqpForceOneWay]
         [AmqpMethodMapping(null, "basic", "cancel")]
         void _Private_BasicCancel(string consumerTag,
+                                  [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1",
+                                                     "noWait")]
                                   bool nowait);
 
         ///<summary>Handle incoming Basic.CancelOk methods.</summary>
@@ -540,7 +562,9 @@ namespace RabbitMQ.Client.Impl
         ///<summary>Used to send a Channel.Open. Called during session
         ///initialisation.</summary>
         [AmqpMethodMapping(null, "channel", "open")]
-        void _Private_ChannelOpen(string outOfBand);
+        void _Private_ChannelOpen([AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1",
+                                  "reserved1")]
+                                  string outOfBand);
 
         ///<summary>Used to send a Channel.CloseOk. Called during
         ///session shutdown.</summary>
@@ -661,13 +685,17 @@ namespace RabbitMQ.Client.Impl
         [AmqpForceOneWay]
         [AmqpMethodMapping(null, "connection", "open")]
         void _Private_ConnectionOpen(string virtualHost,
-                                     string capabilities,
+                                     [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved1")]
+                                     string capabilities,                                    
+                                     [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved2")]
                                      bool insist);
 
         ///<summary>Handle an incoming Connection.OpenOk.</summary>
-        void HandleConnectionOpenOk(string knownHosts);
+        void HandleConnectionOpenOk([AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
+                                    string knownHosts);
 
         ///<summary>Handle an incoming Connection.Redirect.</summary>
+        [AmqpMethodDoNotImplement("RabbitMQ.Client.Framing.v0_9_1")]
         void HandleConnectionRedirect(string host,
                                       string knownHosts);
 

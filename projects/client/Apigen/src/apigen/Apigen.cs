@@ -165,8 +165,10 @@ namespace RabbitMQ.Client.Apigen {
         public bool m_versionOverridden = false;
         public int m_majorVersion;
         public int m_minorVersion;
+        public int? m_revision;
         public string m_apiName;
         public bool m_emitComments = false;
+        public bool m_supportsRedirect;
 
         public Type m_modelType = typeof(RabbitMQ.Client.Impl.IFullModel);
         public ArrayList m_modelTypes = new ArrayList();
@@ -281,6 +283,11 @@ namespace RabbitMQ.Client.Apigen {
             if (!m_versionOverridden) {
                 m_majorVersion = GetInt(m_spec, "/amqp/@major");
                 m_minorVersion = GetInt(m_spec, "/amqp/@minor");
+                if (m_spec.SelectSingleNode("/amqp/@revision") != null)
+                {
+                    m_revision = GetInt(m_spec, "/amqp/@revision");
+                }
+
             }
             foreach (XmlNode n in m_spec.SelectNodes("/amqp/constant")) {
                 m_constants.Add(new DictionaryEntry(GetString(n, "@name"), GetInt(n, "@value")));
@@ -290,7 +297,10 @@ namespace RabbitMQ.Client.Apigen {
             }
             foreach (XmlNode n in m_spec.SelectNodes("/amqp/domain")) {
                 m_domains[GetString(n, "@name")] = GetString(n, "@type");
-            }
+            }            
+            m_supportsRedirect = 
+                m_spec.SelectSingleNode(
+                "/amqp/class[@name='connection']/method[@name='redirect']") != null;        
         }
 
         public void ReflectModel() {
@@ -416,11 +426,18 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("    public override int MajorVersion { get { return " + m_majorVersion + "; } }");
             EmitLine("    ///<summary>Protocol minor version (= "+m_minorVersion+")</summary>");
             EmitLine("    public override int MinorVersion { get { return " + m_minorVersion + "; } }");
+            EmitLine("    ///<summary>Protocol revision (= " +
+                          (m_revision.HasValue ? m_revision.ToString() : "not specified") + ")</summary>");
+            EmitLine("    public override int? Revision { get { return " +
+                          (m_revision.HasValue ? m_revision.ToString() : "null") + "; } }");
             EmitLine("    ///<summary>Protocol API name (= "+m_apiName+")</summary>");
             EmitLine("    public override string ApiName { get { return \"" + m_apiName + "\"; } }");
             int port = GetInt(m_spec, "/amqp/@port");
             EmitLine("    ///<summary>Default TCP port (= "+port+")</summary>");
             EmitLine("    public override int DefaultPort { get { return " + port + "; } }");
+            EmitLine("    ///<summary>Whether redirect is supported</summary>");
+            EmitLine("    public override bool SupportsRedirect { get { return "
+                + m_supportsRedirect.ToString().ToLower() + "; } }");
             EmitLine("");
             EmitMethodArgumentReader();
             EmitLine("");
@@ -811,7 +828,10 @@ namespace RabbitMQ.Client.Apigen {
                         if (method.Name.StartsWith("Handle") ||
                             (Attribute(method, typeof(AmqpAsynchronousHandlerAttribute)) != null))
                         {
-                            asynchronousHandlers.Add(method);
+                            if ((Attribute(method, typeof(AmqpMethodDoNotImplementAttribute)) == null))
+                            {
+                                asynchronousHandlers.Add(method);
+                            }
                         } else {
                             MaybeEmitModelMethod(method);
                         }
@@ -828,7 +848,14 @@ namespace RabbitMQ.Client.Apigen {
 	    string contentClass = factoryAnnotation.m_contentClass;
 	    EmitModelMethodPreamble(method);
 	    EmitLine("    {");
-	    EmitLine("      return new "+MangleClass(contentClass)+"Properties();");
+        if (Attribute(method, typeof(AmqpUnsupportedAttribute)) != null)
+        {
+            EmitLine(String.Format("      return default({0});", method.ReturnType));
+        }
+        else 
+        {
+            EmitLine("      return new " + MangleClass(contentClass) + "Properties();");
+        }       
 	    EmitLine("    }");
 	}
 
@@ -1100,26 +1127,35 @@ namespace RabbitMQ.Client.Apigen {
                 string implClass = MangleMethodClass(amqpClass, amqpMethod);
 
                 EmitLine("        case "+((amqpClass.Index << 16) | amqpMethod.Index)+": {");
-                ParameterInfo[] parameters = method.GetParameters();
+                ParameterInfo[] parameters =  method.GetParameters();
                 if (parameters.Length > 0) {
-		    EmitLine("          "+implClass+" __impl = ("+implClass+") __method;");
+		            EmitLine("          "+implClass+" __impl = ("+implClass+") __method;");
                     EmitLine("          "+method.Name+"(");
                     int remaining = parameters.Length;
                     foreach (ParameterInfo pi in parameters) {
-                        if (Attribute(pi, typeof(AmqpContentHeaderMappingAttribute)) != null) {
-                            Emit("            ("+pi.ParameterType+") cmd.Header");
-                        } else if (Attribute(pi, typeof(AmqpContentBodyMappingAttribute)) != null) {
-                            Emit("            cmd.Body");
-                        } else {
-                            AmqpFieldMappingAttribute fieldMapping =
-                                Attribute(pi, typeof(AmqpFieldMappingAttribute)) as AmqpFieldMappingAttribute;
-                            Emit("            __impl.m_"+(fieldMapping == null
-                                                          ? pi.Name
-                                                          : fieldMapping.m_fieldName));
-                        }
                         remaining--;
-                        if (remaining > 0) {
-                            EmitLine(",");
+                        if (Attribute(pi, typeof(AmqpUnsupportedAttribute)) == null)
+                        {
+                            if (Attribute(pi, typeof(AmqpContentHeaderMappingAttribute)) != null)
+                            {
+                                Emit("            (" + pi.ParameterType + ") cmd.Header");
+                            }
+                            else if (Attribute(pi, typeof(AmqpContentBodyMappingAttribute)) != null)
+                            {
+                                Emit("            cmd.Body");
+                            }
+                            else
+                            {
+                                AmqpFieldMappingAttribute fieldMapping =
+                                    Attribute(pi, typeof(AmqpFieldMappingAttribute)) as AmqpFieldMappingAttribute;
+                                Emit("            __impl.m_" + (fieldMapping == null
+                                                              ? pi.Name
+                                                              : fieldMapping.m_fieldName));
+                            }                            
+                            if (remaining > 0)
+                            {
+                                EmitLine(",");
+                            }
                         }
                     }
                     EmitLine(");");
