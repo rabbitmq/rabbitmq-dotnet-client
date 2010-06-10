@@ -65,7 +65,6 @@ namespace RabbitMQ.Client.Examples {
             if (args.Length < 5) {
                 Console.Error.WriteLine("Usage: SendString <hostname>[:<portnumber>] <exchange> <exchangetype> <routingkey> <message>");
                 Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
-                Console.ReadKey();
                 return 2;
             }
             
@@ -76,7 +75,6 @@ namespace RabbitMQ.Client.Examples {
             string message = args[4];
             
             ConnectionFactory cf = new ConnectionFactory();
-            //cf.Protocol = Protocols.AMQP_0_9_1;
             cf.Address = serverAddress;     
        
             using (IConnection conn = cf.CreateConnection())
@@ -90,8 +88,6 @@ namespace RabbitMQ.Client.Examples {
                                         routingKey,
                                         null,
                                         Encoding.UTF8.GetBytes(message));
-                        Console.WriteLine("published ok");
-                        Console.ReadKey();
                         return 0;
                     }
                 }
