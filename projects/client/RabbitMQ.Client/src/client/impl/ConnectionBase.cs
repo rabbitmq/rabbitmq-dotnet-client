@@ -977,6 +977,12 @@ namespace RabbitMQ.Client.Impl
 
             ConnectionStartDetails connectionStart = (ConnectionStartDetails)
                 connectionStartCell.Value;
+            
+            if (connectionStart == null){
+                throw new ProtocolVersionMismatchException(Protocol.MajorVersion,
+                                                           Protocol.MinorVersion,
+                                                           -1, -1);
+            }
 
             ServerProperties = connectionStart.m_serverProperties;
 

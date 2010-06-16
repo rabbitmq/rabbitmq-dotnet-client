@@ -482,6 +482,10 @@ namespace RabbitMQ.Client.Impl
             {
                 m_session.Close(m_closeReason);
             }
+            if (m_connectionStartCell != null)
+            {
+                m_connectionStartCell.Value = null;
+            }
         }
 
         ///////////////////////////////////////////////////////////////////////////
