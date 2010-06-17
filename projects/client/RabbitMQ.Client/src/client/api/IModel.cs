@@ -338,6 +338,10 @@ namespace RabbitMQ.Client
         ///<summary>(Spec method)</summary>
         void BasicRecover(bool requeue);
 
+        ///<summary>(Spec method)</summary>
+        [Obsolete]
+        void BasicRecoverAsync(bool requeue);
+
         ///<summary>(Spec method) Retrieve an individual message, if
         ///one is available; returns null if the server answers that
         ///no messages are currently available. See also

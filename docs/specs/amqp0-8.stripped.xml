@@ -456,9 +456,16 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <field name="delivery tag" domain="delivery tag"/>
       <field name="requeue" type="bit"/>
     </method>
-    <method name="recover" index="100">
+    <method name="recover-async" index="100" deprecated="1">
+      <chassis name="server" implement="MAY"/>
+      <field name="requeue" domain="bit"/>
+    </method>
+    <method name="recover" index="110">
       <chassis name="server" implement="MUST"/>
-      <field name="requeue" type="bit"/>
+      <field name="requeue" domain="bit"/>
+    </method>
+    <method name="recover-ok" synchronous="1" index="111">
+      <chassis name="client" implement="MUST"/>
     </method>
   </class>
   <class name="file" handler="channel" index="70">
