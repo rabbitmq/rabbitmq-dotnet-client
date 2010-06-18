@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2009 LShift Ltd., Cohesive Financial
+//   Copyright (C) 2007-2010 LShift Ltd., Cohesive Financial
 //   Technologies LLC., and Rabbit Technologies Ltd.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,11 +43,11 @@
 //   are Copyright (C) 2007-2008 LShift Ltd, Cohesive Financial
 //   Technologies LLC, and Rabbit Technologies Ltd.
 //
-//   Portions created by LShift Ltd are Copyright (C) 2007-2009 LShift
+//   Portions created by LShift Ltd are Copyright (C) 2007-2010 LShift
 //   Ltd. Portions created by Cohesive Financial Technologies LLC are
-//   Copyright (C) 2007-2009 Cohesive Financial Technologies
+//   Copyright (C) 2007-2010 Cohesive Financial Technologies
 //   LLC. Portions created by Rabbit Technologies Ltd are Copyright
-//   (C) 2007-2009 Rabbit Technologies Ltd.
+//   (C) 2007-2010 Rabbit Technologies Ltd.
 //
 //   All Rights Reserved.
 //
@@ -74,7 +74,8 @@ namespace RabbitMQ.Client.Impl
         public abstract string Type { get; set; }
         public abstract string UserId { get; set; }
         public abstract string AppId { get; set; }
-        public abstract string ClusterId { get; set; }
+        public virtual string ClusterId { get; set; }
+        public virtual string Reserved { get; set; }
 
         public abstract void ClearContentType();
         public abstract void ClearContentEncoding();
@@ -89,7 +90,8 @@ namespace RabbitMQ.Client.Impl
         public abstract void ClearType();
         public abstract void ClearUserId();
         public abstract void ClearAppId();
-        public abstract void ClearClusterId();
+        public virtual void ClearClusterId() { }
+        public virtual void ClearReserved() { }
 
         public abstract bool IsContentTypePresent();
         public abstract bool IsContentEncodingPresent();
@@ -104,7 +106,8 @@ namespace RabbitMQ.Client.Impl
         public abstract bool IsTypePresent();
         public abstract bool IsUserIdPresent();
         public abstract bool IsAppIdPresent();
-        public abstract bool IsClusterIdPresent();
+        public virtual bool IsClusterIdPresent() { return false; }
+        public virtual bool IsReservedPresent() { return false; }
 
         public PublicationAddress ReplyToAddress
         {

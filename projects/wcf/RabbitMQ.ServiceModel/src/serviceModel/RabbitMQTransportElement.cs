@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2009 LShift Ltd., Cohesive Financial
+//   Copyright (C) 2007-2010 LShift Ltd., Cohesive Financial
 //   Technologies LLC., and Rabbit Technologies Ltd.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,11 +43,11 @@
 //   are Copyright (C) 2007-2008 LShift Ltd, Cohesive Financial
 //   Technologies LLC, and Rabbit Technologies Ltd.
 //
-//   Portions created by LShift Ltd are Copyright (C) 2007-2009 LShift
+//   Portions created by LShift Ltd are Copyright (C) 2007-2010 LShift
 //   Ltd. Portions created by Cohesive Financial Technologies LLC are
-//   Copyright (C) 2007-2009 Cohesive Financial Technologies
+//   Copyright (C) 2007-2010 Cohesive Financial Technologies
 //   LLC. Portions created by Rabbit Technologies Ltd are Copyright
-//   (C) 2007-2009 Rabbit Technologies Ltd.
+//   (C) 2007-2010 Rabbit Technologies Ltd.
 //
 //   All Rights Reserved.
 //
@@ -83,9 +83,9 @@ namespace RabbitMQ.ServiceModel
 
             rabbind.Broker = this.Broker;
             rabbind.BrokerProtocol = this.Protocol;
-            rabbind.ConnectionParameters.Password = this.Password;
-            rabbind.ConnectionParameters.UserName = this.Username;
-            rabbind.ConnectionParameters.VirtualHost = this.VirtualHost;
+            rabbind.ConnectionFactory.Password = this.Password;
+            rabbind.ConnectionFactory.UserName = this.Username;
+            rabbind.ConnectionFactory.VirtualHost = this.VirtualHost;
         }
 
         public override void CopyFrom(ServiceModelExtensionElement from)
@@ -132,9 +132,9 @@ namespace RabbitMQ.ServiceModel
 
             this.Broker = rabbind.Broker;
             this.ProtocolVersion = rabbind.BrokerProtocol.ApiName;
-            this.Password = rabbind.ConnectionParameters.Password;
-            this.Username = rabbind.ConnectionParameters.UserName;
-            this.VirtualHost = rabbind.ConnectionParameters.VirtualHost;
+            this.Password = rabbind.ConnectionFactory.Password;
+            this.Username = rabbind.ConnectionFactory.UserName;
+            this.VirtualHost = rabbind.ConnectionFactory.VirtualHost;
         }
 
         public override System.Type BindingElementType
@@ -155,7 +155,7 @@ namespace RabbitMQ.ServiceModel
         /// <summary>
         /// Password to use when authenticating with the broker
         /// </summary>
-        [ConfigurationProperty("password", DefaultValue = ConnectionParameters.DefaultPass)]
+        [ConfigurationProperty("password", DefaultValue = ConnectionFactory.DefaultPass)]
         public string Password
         {
             get { return ((string)base["password"]); }
@@ -165,7 +165,7 @@ namespace RabbitMQ.ServiceModel
         /// <summary>
         /// The username  to use when authenticating with the broker
         /// </summary>
-        [ConfigurationProperty("username", DefaultValue = ConnectionParameters.DefaultUser)]
+        [ConfigurationProperty("username", DefaultValue = ConnectionFactory.DefaultUser)]
         public string Username
         {
             get { return ((string)base["username"]); }
@@ -208,7 +208,7 @@ namespace RabbitMQ.ServiceModel
         /// <summary>
         /// The virtual host to access.
         /// </summary>
-        [ConfigurationProperty("virtualHost", DefaultValue = ConnectionParameters.DefaultVHost)]
+        [ConfigurationProperty("virtualHost", DefaultValue = ConnectionFactory.DefaultVHost)]
         public string VirtualHost
         {
             get { return ((string)base["virtualHost"]); }

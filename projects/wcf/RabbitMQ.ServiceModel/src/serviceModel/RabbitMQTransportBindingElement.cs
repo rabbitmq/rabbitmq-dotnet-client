@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2009 LShift Ltd., Cohesive Financial
+//   Copyright (C) 2007-2010 LShift Ltd., Cohesive Financial
 //   Technologies LLC., and Rabbit Technologies Ltd.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,11 +43,11 @@
 //   are Copyright (C) 2007-2008 LShift Ltd, Cohesive Financial
 //   Technologies LLC, and Rabbit Technologies Ltd.
 //
-//   Portions created by LShift Ltd are Copyright (C) 2007-2009 LShift
+//   Portions created by LShift Ltd are Copyright (C) 2007-2010 LShift
 //   Ltd. Portions created by Cohesive Financial Technologies LLC are
-//   Copyright (C) 2007-2009 Cohesive Financial Technologies
+//   Copyright (C) 2007-2010 Cohesive Financial Technologies
 //   LLC. Portions created by Rabbit Technologies Ltd are Copyright
-//   (C) 2007-2009 Rabbit Technologies Ltd.
+//   (C) 2007-2010 Rabbit Technologies Ltd.
 //
 //   All Rights Reserved.
 //
@@ -74,26 +74,23 @@ namespace RabbitMQ.ServiceModel
     /// </summary>
     public sealed class RabbitMQTransportBindingElement : TransportBindingElement
     {
-        private Uri m_broker;
-        private IProtocol m_brokerProtocol;
         private ConnectionFactory m_connectionFactory;
         private IConnection m_connection;
+        private bool m_hasBroker = false;
 
         /// <summary>
         /// Creates a new instance of the RabbitMQTransportBindingElement Class using the default protocol.
         /// </summary>
         public RabbitMQTransportBindingElement()
         {
-            m_brokerProtocol = Protocols.DefaultProtocol;
             m_connectionFactory = new ConnectionFactory();
-            m_connection = null;
         }
 
         private RabbitMQTransportBindingElement(RabbitMQTransportBindingElement other)
             : this()
         {
-            m_brokerProtocol = other.m_brokerProtocol;
-            m_broker = other.Broker;
+            Broker = other.Broker;
+            BrokerProtocol = other.BrokerProtocol;
         }
 
         
@@ -130,8 +127,7 @@ namespace RabbitMQ.ServiceModel
         internal void EnsureConnectionAvailable()
         {
             if (m_connection == null) {
-                m_connection = m_connectionFactory.CreateConnection(BrokerProtocol, Broker.Host, Broker.Port);
-                //TODO: configure connection parameters
+                m_connection = m_connectionFactory.CreateConnection();
             }
         }
 
@@ -184,8 +180,24 @@ namespace RabbitMQ.ServiceModel
         [ConfigurationProperty("broker")]
         public Uri Broker
         {
-            get { return m_broker; }
-            set { m_broker = value; }
+            get 
+            { 
+                if(!m_hasBroker) return null;                
+                UriBuilder build = new UriBuilder();
+                build.Host = m_connectionFactory.HostName;
+                build.Port = m_connectionFactory.Port;
+                return build.Uri; 
+            }
+            set 
+            { 
+                if(value == null) m_hasBroker = false;
+                else 
+                {
+                    m_hasBroker = true;	
+                    m_connectionFactory.HostName = value.Host;
+                    m_connectionFactory.Port = value.Port;  
+                }
+            }
         }
 
         /// <summary>
@@ -194,13 +206,13 @@ namespace RabbitMQ.ServiceModel
         /// </summary>
         public IProtocol BrokerProtocol
         {
-            get { return m_brokerProtocol; }
-            set { m_brokerProtocol = value; }
+            get { return m_connectionFactory.Protocol; }
+            set { m_connectionFactory.Protocol = value; }
         }
 
-        public ConnectionParameters ConnectionParameters
+        public ConnectionFactory ConnectionFactory
         {
-            get { return m_connectionFactory.Parameters; }
+            get { return m_connectionFactory; }
         }
 
         //internal ConnectionFactory ConnectionFactory

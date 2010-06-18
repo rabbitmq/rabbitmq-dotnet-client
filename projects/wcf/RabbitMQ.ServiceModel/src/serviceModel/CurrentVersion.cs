@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2009 LShift Ltd., Cohesive Financial
+//   Copyright (C) 2007-2010 LShift Ltd., Cohesive Financial
 //   Technologies LLC., and Rabbit Technologies Ltd.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,11 +43,11 @@
 //   are Copyright (C) 2007-2008 LShift Ltd, Cohesive Financial
 //   Technologies LLC, and Rabbit Technologies Ltd.
 //
-//   Portions created by LShift Ltd are Copyright (C) 2007-2009 LShift
+//   Portions created by LShift Ltd are Copyright (C) 2007-2010 LShift
 //   Ltd. Portions created by Cohesive Financial Technologies LLC are
-//   Copyright (C) 2007-2009 Cohesive Financial Technologies
+//   Copyright (C) 2007-2010 Cohesive Financial Technologies
 //   LLC. Portions created by Rabbit Technologies Ltd are Copyright
-//   (C) 2007-2009 Rabbit Technologies Ltd.
+//   (C) 2007-2010 Rabbit Technologies Ltd.
 //
 //   All Rights Reserved.
 //
@@ -63,6 +63,12 @@ namespace RabbitMQ.ServiceModel
     using System;
     using System.Text;
 
+    // We use spec version 0-9 for common constants such as frame types,
+    // error codes, and the frame end byte, since they don't vary *within
+    // the versions we support*. Obviously we may need to revisit this if
+    // that ever changes.
+    using CommonFraming = RabbitMQ.Client.Framing.v0_9;
+
     /// <summary>
     /// Properties of the current RabbitMQ Service Model Version
     /// </summary>
@@ -74,7 +80,7 @@ namespace RabbitMQ.ServiceModel
 
         internal static class StatusCodes
         {
-            public const int Ok = 200;
+            public const int Ok = CommonFraming.Constants.ReplySuccess;
         }
 
     }

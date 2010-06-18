@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2009 LShift Ltd., Cohesive Financial
+//   Copyright (C) 2007-2010 LShift Ltd., Cohesive Financial
 //   Technologies LLC., and Rabbit Technologies Ltd.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,11 +43,11 @@
 //   are Copyright (C) 2007-2008 LShift Ltd, Cohesive Financial
 //   Technologies LLC, and Rabbit Technologies Ltd.
 //
-//   Portions created by LShift Ltd are Copyright (C) 2007-2009 LShift
+//   Portions created by LShift Ltd are Copyright (C) 2007-2010 LShift
 //   Ltd. Portions created by Cohesive Financial Technologies LLC are
-//   Copyright (C) 2007-2009 Cohesive Financial Technologies
+//   Copyright (C) 2007-2010 Cohesive Financial Technologies
 //   LLC. Portions created by Rabbit Technologies Ltd are Copyright
-//   (C) 2007-2009 Rabbit Technologies Ltd.
+//   (C) 2007-2010 Rabbit Technologies Ltd.
 //
 //   All Rights Reserved.
 //
@@ -62,11 +62,13 @@ namespace RabbitMQ.Client.Impl {
     public abstract class AbstractProtocolBase: IProtocol {
         public abstract int MajorVersion { get; }
         public abstract int MinorVersion { get; }
+        public abstract int? Revision { get; }
         public abstract string ApiName { get; }
         public abstract int DefaultPort { get; }
+        public abstract bool SupportsRedirect { get; }
 
         public abstract IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint);
-        public abstract IConnection CreateConnection(ConnectionParameters parameters,
+        public abstract IConnection CreateConnection(ConnectionFactory factory,
                                                      bool insist,
                                                      IFrameHandler frameHandler);
         public abstract IModel CreateModel(ISession session);
@@ -84,12 +86,25 @@ namespace RabbitMQ.Client.Impl {
 
         ///<summary>Used when a channel is being quiesced because of a
         ///SoftProtocolException.</summary>
-        public abstract void CreateChannelClose(ushort reasonCode,
-                                                   string reasonText,
-                                                   out Command request,
-                                                   out int replyClassId,
-                                                   out int replyMethodId);
-                                                   
+        public abstract Command CreateChannelClose(ushort reasonCode,
+                                                   string reasonText);
+
+        ///<summary>Used while in quiescing mode to detect
+        ///channel.close frames.</summary>
+        public abstract void CreateChannelCloseIdentifiers(out int classId,
+                                                           out int methodId);
+
+        ///<summary>Used when a channel.close is received while in
+        ///quiescing modes.</summary>
+        public abstract Command CreateChannelCloseOk();
+
+
+        ///<summary>Used while in quiescing mode to detect
+        ///channel.close frames.</summary>
+        public abstract void CreateChannelCloseOkIdentifiers(out int classId,
+                                                             out int methodId);
+
+
         ///<summary>Used in the quiescing session to determine if the command
         ///is allowed to be sent.</summary>
         public abstract bool CanSendWhileClosed(Command cmd); 

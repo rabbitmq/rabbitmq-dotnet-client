@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2009 LShift Ltd., Cohesive Financial
+//   Copyright (C) 2007-2010 LShift Ltd., Cohesive Financial
 //   Technologies LLC., and Rabbit Technologies Ltd.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,11 +43,11 @@
 //   are Copyright (C) 2007-2008 LShift Ltd, Cohesive Financial
 //   Technologies LLC, and Rabbit Technologies Ltd.
 //
-//   Portions created by LShift Ltd are Copyright (C) 2007-2009 LShift
+//   Portions created by LShift Ltd are Copyright (C) 2007-2010 LShift
 //   Ltd. Portions created by Cohesive Financial Technologies LLC are
-//   Copyright (C) 2007-2009 Cohesive Financial Technologies
+//   Copyright (C) 2007-2010 Cohesive Financial Technologies
 //   LLC. Portions created by Rabbit Technologies Ltd are Copyright
-//   (C) 2007-2009 Rabbit Technologies Ltd.
+//   (C) 2007-2010 Rabbit Technologies Ltd.
 //
 //   All Rights Reserved.
 //
@@ -66,19 +66,23 @@ namespace RabbitMQ.Client
         int MajorVersion { get; }
         ///<summary>Retrieve the protocol's minor version number</summary>
         int MinorVersion { get; }
+        ///<summary>Retrieve the protocol's revision (if specified)</summary>
+        int? Revision { get; }
         ///<summary>Retrieve the protocol's API name, used for
         ///printing, configuration properties, IDE integration,
         ///Protocols.cs etc.</summary>
         string ApiName { get; }
         ///<summary>Retrieve the protocol's default TCP port</summary>
         int DefaultPort { get; }
+        ///<summary>Whether redirect is supported</summary>
+        bool SupportsRedirect { get; }
 
         ///<summary>Construct a frame handler for a given endpoint.</summary>
         IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint);
         ///<summary>Construct a connection from a given set of
         ///parameters and a frame handler. The "insist" parameter is
         ///passed on to the AMQP connection.open method.</summary>
-        IConnection CreateConnection(ConnectionParameters parameters,
+        IConnection CreateConnection(ConnectionFactory factory,
                                      bool insist,
                                      IFrameHandler frameHandler);
         ///<summary>Construct a protocol model atop a given session.</summary>

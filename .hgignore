@@ -6,7 +6,7 @@ rabbit\.snk$
 ^rabbit\-mock\.snk$
 
 ^scratch$
-^releases/
+^release/
 ^build$
 ^commit$
 ^diff$
@@ -31,4 +31,7 @@ rabbit\.snk$
 ^build/
 
 ~$
+[Rr]e[Ss]harper
+\.user$
+\.orig$
 

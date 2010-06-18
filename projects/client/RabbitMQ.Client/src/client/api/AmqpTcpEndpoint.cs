@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2009 LShift Ltd., Cohesive Financial
+//   Copyright (C) 2007-2010 LShift Ltd., Cohesive Financial
 //   Technologies LLC., and Rabbit Technologies Ltd.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,11 +43,11 @@
 //   are Copyright (C) 2007-2008 LShift Ltd, Cohesive Financial
 //   Technologies LLC, and Rabbit Technologies Ltd.
 //
-//   Portions created by LShift Ltd are Copyright (C) 2007-2009 LShift
+//   Portions created by LShift Ltd are Copyright (C) 2007-2010 LShift
 //   Ltd. Portions created by Cohesive Financial Technologies LLC are
-//   Copyright (C) 2007-2009 Cohesive Financial Technologies
+//   Copyright (C) 2007-2010 Cohesive Financial Technologies
 //   LLC. Portions created by Rabbit Technologies Ltd are Copyright
-//   (C) 2007-2009 Rabbit Technologies Ltd.
+//   (C) 2007-2010 Rabbit Technologies Ltd.
 //
 //   All Rights Reserved.
 //
@@ -73,6 +73,9 @@ namespace RabbitMQ.Client
     ///</para>
     public class AmqpTcpEndpoint
     {
+        ///<summary>Indicates that the default port for the protocol should be used</summary>
+        public const int UseDefaultPort = -1;
+
         private IProtocol m_protocol;
         ///<summary>Retrieve or set the IProtocol of this AmqpTcpEndpoint.</summary>
         public IProtocol Protocol
@@ -95,7 +98,7 @@ namespace RabbitMQ.Client
         ///port number for the IProtocol to be used.</summary>
         public int Port
         {
-            get { return (m_port == -1) ? m_protocol.DefaultPort : m_port; }
+            get { return (m_port == UseDefaultPort) ? m_protocol.DefaultPort : m_port; }
             set { m_port = value; }
         }
 

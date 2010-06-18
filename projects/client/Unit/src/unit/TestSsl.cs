@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2009 LShift Ltd., Cohesive Financial
+//   Copyright (C) 2007-2010 LShift Ltd., Cohesive Financial
 //   Technologies LLC., and Rabbit Technologies Ltd.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,11 +43,11 @@
 //   are Copyright (C) 2007-2008 LShift Ltd, Cohesive Financial
 //   Technologies LLC, and Rabbit Technologies Ltd.
 //
-//   Portions created by LShift Ltd are Copyright (C) 2007-2009 LShift
+//   Portions created by LShift Ltd are Copyright (C) 2007-2010 LShift
 //   Ltd. Portions created by Cohesive Financial Technologies LLC are
-//   Copyright (C) 2007-2009 Cohesive Financial Technologies
+//   Copyright (C) 2007-2010 Cohesive Financial Technologies
 //   LLC. Portions created by Rabbit Technologies Ltd are Copyright
-//   (C) 2007-2009 Rabbit Technologies Ltd.
+//   (C) 2007-2010 Rabbit Technologies Ltd.
 //
 //   All Rights Reserved.
 //
@@ -63,8 +63,7 @@ using RabbitMQ.Client;
 public class TestSsl {
 
     public void SendReceive(ConnectionFactory cf) {
-        IProtocol proto = Protocols.DefaultProtocol;
-        using (IConnection conn = cf.CreateConnection(proto, "localhost", 5671)) {
+        using (IConnection conn = cf.CreateConnection()) {
             IModel ch = conn.CreateModel();
         
             ch.ExchangeDeclare("Exchange_TestSslEndPoint", ExchangeType.Direct);
@@ -90,9 +89,9 @@ public class TestSsl {
         if (null == sslDir) return;
 
         ConnectionFactory cf = new ConnectionFactory();
-        cf.Parameters.Ssl.ServerName = "*";
-        cf.Parameters.Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNameMismatch;
-        cf.Parameters.Ssl.Enabled = true;
+        cf.Ssl.ServerName = "*";
+        cf.Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNameMismatch;
+        cf.Ssl.Enabled = true;
         SendReceive(cf);
     }
 
@@ -102,8 +101,8 @@ public class TestSsl {
         if (null == sslDir) return;
 
         ConnectionFactory cf = new ConnectionFactory();
-        cf.Parameters.Ssl.ServerName = System.Net.Dns.GetHostName();
-        cf.Parameters.Ssl.Enabled = true;
+        cf.Ssl.ServerName = System.Net.Dns.GetHostName();
+        cf.Ssl.Enabled = true;
         SendReceive(cf);
     }
 
@@ -113,13 +112,13 @@ public class TestSsl {
         if (null == sslDir) return;
 
         ConnectionFactory cf = new ConnectionFactory();
-        cf.Parameters.Ssl.ServerName = System.Net.Dns.GetHostName();
+        cf.Ssl.ServerName = System.Net.Dns.GetHostName();
         Assert.IsNotNull(sslDir);
-        cf.Parameters.Ssl.CertPath = sslDir + "/client/keycert.p12";
+        cf.Ssl.CertPath = sslDir + "/client/keycert.p12";
         string p12Password = Environment.GetEnvironmentVariable("PASSWORD");
         Assert.IsNotNull(p12Password, "missing PASSWORD env var");
-        cf.Parameters.Ssl.CertPassphrase = p12Password;
-        cf.Parameters.Ssl.Enabled = true;
+        cf.Ssl.CertPassphrase = p12Password;
+        cf.Ssl.Enabled = true;
         SendReceive(cf);
     }
 }

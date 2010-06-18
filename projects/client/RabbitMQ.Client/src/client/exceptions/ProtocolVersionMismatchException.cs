@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2009 LShift Ltd., Cohesive Financial
+//   Copyright (C) 2007-2010 LShift Ltd., Cohesive Financial
 //   Technologies LLC., and Rabbit Technologies Ltd.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,11 +43,11 @@
 //   are Copyright (C) 2007-2008 LShift Ltd, Cohesive Financial
 //   Technologies LLC, and Rabbit Technologies Ltd.
 //
-//   Portions created by LShift Ltd are Copyright (C) 2007-2009 LShift
+//   Portions created by LShift Ltd are Copyright (C) 2007-2010 LShift
 //   Ltd. Portions created by Cohesive Financial Technologies LLC are
-//   Copyright (C) 2007-2009 Cohesive Financial Technologies
+//   Copyright (C) 2007-2010 Cohesive Financial Technologies
 //   LLC. Portions created by Rabbit Technologies Ltd are Copyright
-//   (C) 2007-2009 Rabbit Technologies Ltd.
+//   (C) 2007-2010 Rabbit Technologies Ltd.
 //
 //   All Rights Reserved.
 //
@@ -75,14 +75,18 @@ namespace RabbitMQ.Client.Exceptions {
         ///<summary>The peer's AMQP specification minor version.</summary>
         public int ServerMinor { get { return m_serverMinor; } }
 
+        private static String positiveOrUnknown(int version){
+            return version >= 0 ? version.ToString() : "unknown";
+        }
+
         ///<summary>Fills the new instance's properties with the values passed in.</summary>
         public ProtocolVersionMismatchException(int clientMajor,
                                                 int clientMinor,
                                                 int serverMajor,
                                                 int serverMinor)
             : base("AMQP server protocol negotiation failure: server version "+
-                   serverMajor + "-" + serverMinor +
-                   ", client version " + clientMajor + "-" + clientMinor)
+                   positiveOrUnknown(serverMajor) + "-" + positiveOrUnknown(serverMinor) +
+                   ", client version " + positiveOrUnknown(clientMajor) + "-" + positiveOrUnknown(clientMinor))
         {
             m_clientMajor = clientMajor;
             m_clientMinor = clientMinor;

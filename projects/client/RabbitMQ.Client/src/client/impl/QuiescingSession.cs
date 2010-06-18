@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2009 LShift Ltd., Cohesive Financial
+//   Copyright (C) 2007-2010 LShift Ltd., Cohesive Financial
 //   Technologies LLC., and Rabbit Technologies Ltd.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,11 +43,11 @@
 //   are Copyright (C) 2007-2008 LShift Ltd, Cohesive Financial
 //   Technologies LLC, and Rabbit Technologies Ltd.
 //
-//   Portions created by LShift Ltd are Copyright (C) 2007-2009 LShift
+//   Portions created by LShift Ltd are Copyright (C) 2007-2010 LShift
 //   Ltd. Portions created by Cohesive Financial Technologies LLC are
-//   Copyright (C) 2007-2009 Cohesive Financial Technologies
+//   Copyright (C) 2007-2010 Cohesive Financial Technologies
 //   LLC. Portions created by Rabbit Technologies Ltd are Copyright
-//   (C) 2007-2009 Rabbit Technologies Ltd.
+//   (C) 2007-2010 Rabbit Technologies Ltd.
 //
 //   All Rights Reserved.
 //
@@ -72,32 +72,40 @@ namespace RabbitMQ.Client.Impl
     public class QuiescingSession: SessionBase
     {
         public ShutdownEventArgs m_reason;
-        public int m_replyClassId;
-        public int m_replyMethodId;
+        public int m_closeClassId;
+        public int m_closeMethodId;
+        public int m_closeOkClassId;
+        public int m_closeOkMethodId;
 
         public QuiescingSession(ConnectionBase connection,
                                 int channelNumber,
-                                ShutdownEventArgs reason,
-                                int replyClassId,
-                                int replyMethodId)
+                                ShutdownEventArgs reason)
             : base(connection, channelNumber)
         {
             m_reason = reason;
-            m_replyClassId = replyClassId;
-            m_replyMethodId = replyMethodId;
+            Connection.Protocol.CreateChannelCloseIdentifiers(out m_closeClassId, out m_closeMethodId);
+            Connection.Protocol.CreateChannelCloseOkIdentifiers(out m_closeOkClassId, out m_closeOkMethodId);
         }
 
         public override void HandleFrame(Frame frame)
         {
             if (frame.Type == CommonFraming.Constants.FrameMethod) {
                 MethodBase method = Connection.Protocol.DecodeMethodFrom(frame.GetReader());
-                if ((method.ProtocolClassId == m_replyClassId)
-                    && (method.ProtocolMethodId == m_replyMethodId))
+                if ((method.ProtocolClassId == m_closeOkClassId)
+                    && (method.ProtocolMethodId == m_closeOkMethodId))
                 {
                     // This is the reply we were looking for. Release
                     // the channel with the reason we were passed in
                     // our constructor.
                     Close(m_reason);
+                    return;
+                }
+                else if ((method.ProtocolClassId == m_closeClassId)
+                         && (method.ProtocolMethodId == m_closeMethodId))
+                {
+                    // We're already shutting down the channel, so
+                    // just send back an ok.
+                    Transmit(Connection.Protocol.CreateChannelCloseOk());
                     return;
                 }
             }
