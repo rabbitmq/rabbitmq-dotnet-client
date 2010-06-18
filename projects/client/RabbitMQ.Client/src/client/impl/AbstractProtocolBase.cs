@@ -86,12 +86,25 @@ namespace RabbitMQ.Client.Impl {
 
         ///<summary>Used when a channel is being quiesced because of a
         ///SoftProtocolException.</summary>
-        public abstract void CreateChannelClose(ushort reasonCode,
-                                                   string reasonText,
-                                                   out Command request,
-                                                   out int replyClassId,
-                                                   out int replyMethodId);
-                                                   
+        public abstract Command CreateChannelClose(ushort reasonCode,
+                                                   string reasonText);
+
+        ///<summary>Used while in quiescing mode to detect
+        ///channel.close frames.</summary>
+        public abstract void CreateChannelCloseIdentifiers(out int classId,
+                                                           out int methodId);
+
+        ///<summary>Used when a channel.close is received while in
+        ///quiescing modes.</summary>
+        public abstract Command CreateChannelCloseOk();
+
+
+        ///<summary>Used while in quiescing mode to detect
+        ///channel.close frames.</summary>
+        public abstract void CreateChannelCloseOkIdentifiers(out int classId,
+                                                             out int methodId);
+
+
         ///<summary>Used in the quiescing session to determine if the command
         ///is allowed to be sent.</summary>
         public abstract bool CanSendWhileClosed(Command cmd); 

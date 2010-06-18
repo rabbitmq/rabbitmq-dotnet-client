@@ -89,22 +89,37 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
             replyMethodId = RabbitMQ.Client.Framing.Impl.v0_9_1.ConnectionCloseOk.MethodId;
         }
 
-        public override void CreateChannelClose(ushort reasonCode,
-                                                string reasonText,
-                                                out Command request,
-                                                out int replyClassId,
-                                                out int replyMethodId)
+        public override Command CreateChannelClose(ushort reasonCode,
+                                                string reasonText)
         {
-            request = new Command(new RabbitMQ.Client.Framing.Impl.v0_9_1.ChannelClose(reasonCode,
-                                                                                       reasonText,
-                                                                                       0, 0));
-            replyClassId = RabbitMQ.Client.Framing.Impl.v0_9_1.ChannelCloseOk.ClassId;
-            replyMethodId = RabbitMQ.Client.Framing.Impl.v0_9_1.ChannelCloseOk.MethodId;                                                                                     
+            return new Command(new RabbitMQ.Client.Framing.Impl.v0_9_1.ChannelClose(reasonCode,
+                                                                                    reasonText,
+                                                                                    0, 0));
         }
-        
+
+        public override void CreateChannelCloseIdentifiers(out int classId,
+                                                           out int methodId)
+        {
+            classId = RabbitMQ.Client.Framing.Impl.v0_9_1.ChannelClose.ClassId;
+            methodId = RabbitMQ.Client.Framing.Impl.v0_9_1.ChannelClose.MethodId;
+        }
+
+        public override Command CreateChannelCloseOk()
+        {
+            return new Command(new RabbitMQ.Client.Framing.Impl.v0_9_1.ChannelCloseOk());
+        }
+
+        public override void CreateChannelCloseOkIdentifiers(out int classId,
+                                                             out int methodId)
+        {
+            classId = RabbitMQ.Client.Framing.Impl.v0_9_1.ChannelCloseOk.ClassId;
+            methodId = RabbitMQ.Client.Framing.Impl.v0_9_1.ChannelCloseOk.MethodId;
+        }
+
         public override bool CanSendWhileClosed(Command cmd)
         {
-            return cmd.m_method is RabbitMQ.Client.Framing.Impl.v0_9_1.ChannelCloseOk;
+            return (cmd.m_method is RabbitMQ.Client.Framing.Impl.v0_9_1.ChannelCloseOk)
+                || (cmd.m_method is RabbitMQ.Client.Framing.Impl.v0_9_1.ChannelClose);
         }
     }
 }
