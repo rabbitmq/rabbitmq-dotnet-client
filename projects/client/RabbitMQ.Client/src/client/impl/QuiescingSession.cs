@@ -65,6 +65,7 @@ using RabbitMQ.Client.Exceptions;
 // the versions we support*. Obviously we may need to revisit this if
 // that ever changes.
 using CommonFraming = RabbitMQ.Client.Framing.v0_9;
+using CommonFramingSpecs = RabbitMQ.Client.Framing.Impl.v0_9;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -72,27 +73,21 @@ namespace RabbitMQ.Client.Impl
     public class QuiescingSession: SessionBase
     {
         public ShutdownEventArgs m_reason;
-        public int m_replyClassId;
-        public int m_replyMethodId;
 
         public QuiescingSession(ConnectionBase connection,
                                 int channelNumber,
-                                ShutdownEventArgs reason,
-                                int replyClassId,
-                                int replyMethodId)
+                                ShutdownEventArgs reason)
             : base(connection, channelNumber)
         {
             m_reason = reason;
-            m_replyClassId = replyClassId;
-            m_replyMethodId = replyMethodId;
         }
 
         public override void HandleFrame(Frame frame)
         {
             if (frame.Type == CommonFraming.Constants.FrameMethod) {
                 MethodBase method = Connection.Protocol.DecodeMethodFrom(frame.GetReader());
-                if ((method.ProtocolClassId == m_replyClassId)
-                    && (method.ProtocolMethodId == m_replyMethodId))
+                if ((method.ProtocolClassId == CommonFramingSpecs.ChannelCloseOk.ClassId)
+                    && (method.ProtocolMethodId == CommonFramingSpecs.ChannelCloseOk.MethodId))
                 {
                     // This is the reply we were looking for. Release
                     // the channel with the reason we were passed in
@@ -100,10 +95,22 @@ namespace RabbitMQ.Client.Impl
                     Close(m_reason);
                     return;
                 }
+                else if ((method.ProtocolClassId == CommonFramingSpecs.ChannelClose.ClassId)
+                         && (method.ProtocolMethodId == CommonFramingSpecs.ChannelClose.MethodId))
+                {
+                    // We're already shutting down the channel, so
+                    // just send back an ok.
+                    Transmit(CreateChannelCloseOk());
+                    return;
+                }
             }
 
             // Either a non-method frame, or not what we were looking
             // for. Ignore it - we're quiescing.
+        }
+
+        protected Command CreateChannelCloseOk() {
+            return new Command(new CommonFramingSpecs.ConnectionCloseOk());
         }
     }
 }
