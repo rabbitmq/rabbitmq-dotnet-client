@@ -819,12 +819,15 @@ namespace RabbitMQ.Client.Impl
         public void QuiesceChannel(SoftProtocolException pe) {
             // First, constuct the QuiescingSession that we'll use
             // during the quiesce process.
+<<<<<<< local
 
             int replyClassId;
             int replyMethodId;
             Protocol.CreateChannelCloseIdentifiers(out replyClassId,
                                                    out replyMethodId);
 
+=======
+>>>>>>> other
             ISession newSession = new QuiescingSession(this,
                                                        pe.Channel,
                                                        pe.ShutdownReason);
