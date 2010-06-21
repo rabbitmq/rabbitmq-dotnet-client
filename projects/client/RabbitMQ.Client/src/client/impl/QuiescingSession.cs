@@ -73,10 +73,6 @@ namespace RabbitMQ.Client.Impl
     public class QuiescingSession: SessionBase
     {
         public ShutdownEventArgs m_reason;
-        protected int m_closeClassId;
-        protected int m_closeMethodId;
-        protected int m_closeOkClassId;
-        protected int m_closeOkMethodId;
 
         public QuiescingSession(ConnectionBase connection,
                                 int channelNumber,
@@ -84,18 +80,14 @@ namespace RabbitMQ.Client.Impl
             : base(connection, channelNumber)
         {
             m_reason = reason;
-            m_closeClassId = CommonFramingSpecs.ChannelClose.ClassId;
-            m_closeMethodId = CommonFramingSpecs.ChannelClose.MethodId;
-            m_closeOkClassId = CommonFramingSpecs.ChannelCloseOk.ClassId;
-            m_closeOkMethodId = CommonFramingSpecs.ChannelCloseOk.MethodId;
         }
 
         public override void HandleFrame(Frame frame)
         {
             if (frame.Type == CommonFraming.Constants.FrameMethod) {
                 MethodBase method = Connection.Protocol.DecodeMethodFrom(frame.GetReader());
-                if ((method.ProtocolClassId == m_closeOkClassId)
-                    && (method.ProtocolMethodId == m_closeOkMethodId))
+                if ((method.ProtocolClassId == CommonFramingSpecs.ChannelCloseOk.ClassId)
+                    && (method.ProtocolMethodId == CommonFramingSpecs.ChannelCloseOk.MethodId))
                 {
                     // This is the reply we were looking for. Release
                     // the channel with the reason we were passed in
@@ -103,8 +95,8 @@ namespace RabbitMQ.Client.Impl
                     Close(m_reason);
                     return;
                 }
-                else if ((method.ProtocolClassId == m_closeClassId)
-                         && (method.ProtocolMethodId == m_closeMethodId))
+                else if ((method.ProtocolClassId == CommonFramingSpecs.ChannelClose.ClassId)
+                         && (method.ProtocolMethodId == CommonFramingSpecs.ChannelClose.MethodId))
                 {
                     // We're already shutting down the channel, so
                     // just send back an ok.
