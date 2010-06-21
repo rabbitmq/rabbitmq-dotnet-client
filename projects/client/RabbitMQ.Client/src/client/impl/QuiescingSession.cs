@@ -65,6 +65,7 @@ using RabbitMQ.Client.Exceptions;
 // the versions we support*. Obviously we may need to revisit this if
 // that ever changes.
 using CommonFraming = RabbitMQ.Client.Framing.v0_9;
+using CommonFramingSpecs = RabbitMQ.Client.Framing.Impl.v0_9;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -72,27 +73,29 @@ namespace RabbitMQ.Client.Impl
     public class QuiescingSession: SessionBase
     {
         public ShutdownEventArgs m_reason;
-        public int m_replyClassId;
-        public int m_replyMethodId;
+        protected int m_closeClassId;
+        protected int m_closeMethodId;
+        protected int m_closeOkClassId;
+        protected int m_closeOkMethodId;
 
         public QuiescingSession(ConnectionBase connection,
                                 int channelNumber,
-                                ShutdownEventArgs reason,
-                                int replyClassId,
-                                int replyMethodId)
+                                ShutdownEventArgs reason)
             : base(connection, channelNumber)
         {
             m_reason = reason;
-            m_replyClassId = replyClassId;
-            m_replyMethodId = replyMethodId;
+            m_closeClassId = CommonFramingSpecs.ChannelClose.ClassId;
+            m_closeMethodId = CommonFramingSpecs.ChannelClose.MethodId;
+            m_closeOkClassId = CommonFramingSpecs.ChannelCloseOk.ClassId;
+            m_closeOkMethodId = CommonFramingSpecs.ChannelCloseOk.MethodId;
         }
 
         public override void HandleFrame(Frame frame)
         {
             if (frame.Type == CommonFraming.Constants.FrameMethod) {
                 MethodBase method = Connection.Protocol.DecodeMethodFrom(frame.GetReader());
-                if ((method.ProtocolClassId == m_replyClassId)
-                    && (method.ProtocolMethodId == m_replyMethodId))
+                if ((method.ProtocolClassId == m_closeOkClassId)
+                    && (method.ProtocolMethodId == m_closeOkMethodId))
                 {
                     // This is the reply we were looking for. Release
                     // the channel with the reason we were passed in
@@ -100,10 +103,22 @@ namespace RabbitMQ.Client.Impl
                     Close(m_reason);
                     return;
                 }
+                else if ((method.ProtocolClassId == m_closeClassId)
+                         && (method.ProtocolMethodId == m_closeMethodId))
+                {
+                    // We're already shutting down the channel, so
+                    // just send back an ok.
+                    Transmit(CreateChannelCloseOk());
+                    return;
+                }
             }
 
             // Either a non-method frame, or not what we were looking
             // for. Ignore it - we're quiescing.
+        }
+
+        protected Command CreateChannelCloseOk() {
+            return new Command(new CommonFramingSpecs.ConnectionCloseOk());
         }
     }
 }
