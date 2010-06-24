@@ -790,8 +790,9 @@ namespace RabbitMQ.Client.Impl
         ///<summary>
         /// Sets the channel named in the SoftProtocolException into
         /// "quiescing mode", where we issue a channel.close and
-        /// ignore everything up to the channel.close-ok reply that
-        /// should eventually arrive.
+        /// ignore everything except for subsequent channel.close
+        /// messages and the channel.close-ok reply that should
+        /// eventually arrive.
         ///</summary>
         ///<remarks>
         ///<para>
@@ -816,23 +817,12 @@ namespace RabbitMQ.Client.Impl
         ///</para>
         ///</remarks>
         public void QuiesceChannel(SoftProtocolException pe) {
-            // First, construct the close request and QuiescingSession
-            // that we'll use during the quiesce process.
-
-            Command request;
-            int replyClassId;
-            int replyMethodId;
-            Protocol.CreateChannelClose(pe.ReplyCode,
-                                        pe.Message,
-                                        out request,
-                                        out replyClassId,
-                                        out replyMethodId);
+            // Construct the QuiescingSession that we'll use during
+            // the quiesce process.
 
             ISession newSession = new QuiescingSession(this,
                                                        pe.Channel,
-                                                       pe.ShutdownReason,
-                                                       replyClassId,
-                                                       replyMethodId);
+                                                       pe.ShutdownReason);
 
             // Here we detach the session from the connection. It's
             // still alive: it just won't receive any further frames
@@ -851,7 +841,7 @@ namespace RabbitMQ.Client.Impl
             // our peer. The peer will respond through the lower
             // layers - specifically, through the QuiescingSession we
             // installed above.
-            newSession.Transmit(request);
+            newSession.Transmit(ChannelCloseWrapper(pe.ReplyCode, pe.Message));
         }
 
         public void HandleMainLoopException(ShutdownEventArgs reason) {
@@ -959,7 +949,19 @@ namespace RabbitMQ.Client.Impl
                                            out replyClassId,
                                            out replyMethodId);
             return request;
-        } 
+        }
+
+        protected Command ChannelCloseWrapper(ushort reasonCode, string reasonText)
+        {
+            Command request;
+            int replyClassId, replyMethodId;
+            Protocol.CreateChannelClose(reasonCode,
+                                        reasonText,
+                                        out request,
+                                        out replyClassId,
+                                        out replyMethodId);
+            return request;
+        }
 
         private static uint NegotiatedMaxValue(uint clientValue, uint serverValue)
         {
