@@ -306,34 +306,6 @@ namespace RabbitMQ.Client
         ///endpoint in the list provided. Up to a maximum of
         ///maxRedirects broker-originated redirects are permitted for
         ///each endpoint tried.</summary>
-        public virtual IConnection CreateConnection(int maxRedirects,
-                                                    params AmqpTcpEndpoint[] endpoints)
-        {
-            IDictionary connectionAttempts = new Hashtable();
-            IDictionary connectionErrors = new Hashtable();
-            IConnection conn = CreateConnection(maxRedirects,
-                                                connectionAttempts,
-                                                connectionErrors,
-                                                endpoints);
-            if (conn != null)
-            {
-                return conn;
-            }
-            throw new BrokerUnreachableException(connectionAttempts, connectionErrors);
-        }
-
-        ///<summary>Create a connection to the first available
-        ///endpoint in the list provided. No broker-originated
-        ///redirects are permitted.</summary>
-        public virtual IConnection CreateConnection(params AmqpTcpEndpoint[] endpoints)
-        {
-            return CreateConnection(0, endpoints);
-        }
-
-        ///<summary>Create a connection to the first available
-        ///endpoint in the list provided. Up to a maximum of
-        ///maxRedirects broker-originated redirects are permitted for
-        ///each endpoint tried.</summary>
         public virtual IConnection CreateConnection(int maxRedirects)
         {
             IDictionary connectionAttempts = new Hashtable();
