@@ -86,7 +86,7 @@ namespace RabbitMQ.Client.Impl
         public static int HandshakeTimeout = 10000;
 
         ///<summary>Timeout used while waiting for a
-        ///connection.close-ok reply to a connection close request
+        ///connection.close-ok reply to a connection.close request
         ///(milliseconds)</summary>
         public static int ConnectionCloseTimeout = 10000;
 
@@ -368,25 +368,25 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        ///<summary>API-side invocation of connection close.</summary>
+        ///<summary>API-side invocation of connection.close.</summary>
         public void Close()
         {
             Close(CommonFraming.Constants.ReplySuccess, "Goodbye", Timeout.Infinite);
         }
         
-        ///<summary>API-side invocation of connection close.</summary>
+        ///<summary>API-side invocation of connection.close.</summary>
         public void Close(ushort reasonCode, string reasonText)
         {
             Close(reasonCode, reasonText, Timeout.Infinite);
         }
         
-        ///<summary>API-side invocation of connection close with timeout.</summary>
+        ///<summary>API-side invocation of connection.close with timeout.</summary>
         public void Close(int timeout)
         {
             Close(CommonFraming.Constants.ReplySuccess, "Goodbye", timeout);
         }
         
-        ///<summary>API-side invocation of connection close with timeout.</summary>
+        ///<summary>API-side invocation of connection.close with timeout.</summary>
         public void Close(ushort reasonCode, string reasonText, int timeout)
         {
             Close(new ShutdownEventArgs(ShutdownInitiator.Application, reasonCode, reasonText), false, timeout);
@@ -460,7 +460,7 @@ namespace RabbitMQ.Client.Impl
 
             try
             {
-                // Try to send connection close
+                // Try to send connection.close
                 // Wait for CloseOk in the MainLoop
                 m_session0.Transmit(ConnectionCloseWrapper(reason.ReplyCode,
                                                           reason.ReplyText));
@@ -637,7 +637,8 @@ namespace RabbitMQ.Client.Impl
             }
             
             // If allowed for clean shutdown
-            // Run limited version of the main loop
+            // Run main loop for a limited amount of time (as defined
+            // by ConnectionCloseTimeout).
             if (shutdownCleanly)
             {
                 ClosingLoop();
@@ -790,8 +791,9 @@ namespace RabbitMQ.Client.Impl
         ///<summary>
         /// Sets the channel named in the SoftProtocolException into
         /// "quiescing mode", where we issue a channel.close and
-        /// ignore everything up to the channel.close-ok reply that
-        /// should eventually arrive.
+        /// ignore everything except for subsequent channel.close
+        /// messages and the channel.close-ok reply that should
+        /// eventually arrive.
         ///</summary>
         ///<remarks>
         ///<para>
@@ -816,23 +818,12 @@ namespace RabbitMQ.Client.Impl
         ///</para>
         ///</remarks>
         public void QuiesceChannel(SoftProtocolException pe) {
-            // First, construct the close request and QuiescingSession
-            // that we'll use during the quiesce process.
-
-            Command request;
-            int replyClassId;
-            int replyMethodId;
-            Protocol.CreateChannelClose(pe.ReplyCode,
-                                        pe.Message,
-                                        out request,
-                                        out replyClassId,
-                                        out replyMethodId);
+            // Construct the QuiescingSession that we'll use during
+            // the quiesce process.
 
             ISession newSession = new QuiescingSession(this,
                                                        pe.Channel,
-                                                       pe.ShutdownReason,
-                                                       replyClassId,
-                                                       replyMethodId);
+                                                       pe.ShutdownReason);
 
             // Here we detach the session from the connection. It's
             // still alive: it just won't receive any further frames
@@ -851,7 +842,7 @@ namespace RabbitMQ.Client.Impl
             // our peer. The peer will respond through the lower
             // layers - specifically, through the QuiescingSession we
             // installed above.
-            newSession.Transmit(request);
+            newSession.Transmit(ChannelCloseWrapper(pe.ReplyCode, pe.Message));
         }
 
         public void HandleMainLoopException(ShutdownEventArgs reason) {
@@ -959,7 +950,19 @@ namespace RabbitMQ.Client.Impl
                                            out replyClassId,
                                            out replyMethodId);
             return request;
-        } 
+        }
+
+        protected Command ChannelCloseWrapper(ushort reasonCode, string reasonText)
+        {
+            Command request;
+            int replyClassId, replyMethodId;
+            Protocol.CreateChannelClose(reasonCode,
+                                        reasonText,
+                                        out request,
+                                        out replyClassId,
+                                        out replyMethodId);
+            return request;
+        }
 
         private static uint NegotiatedMaxValue(uint clientValue, uint serverValue)
         {
