@@ -86,7 +86,7 @@ namespace RabbitMQ.Client.Impl
         public static int HandshakeTimeout = 10000;
 
         ///<summary>Timeout used while waiting for a
-        ///connection.close-ok reply to a connection close request
+        ///connection.close-ok reply to a connection.close request
         ///(milliseconds)</summary>
         public static int ConnectionCloseTimeout = 10000;
 
@@ -368,25 +368,25 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        ///<summary>API-side invocation of connection close.</summary>
+        ///<summary>API-side invocation of connection.close.</summary>
         public void Close()
         {
             Close(CommonFraming.Constants.ReplySuccess, "Goodbye", Timeout.Infinite);
         }
         
-        ///<summary>API-side invocation of connection close.</summary>
+        ///<summary>API-side invocation of connection.close.</summary>
         public void Close(ushort reasonCode, string reasonText)
         {
             Close(reasonCode, reasonText, Timeout.Infinite);
         }
         
-        ///<summary>API-side invocation of connection close with timeout.</summary>
+        ///<summary>API-side invocation of connection.close with timeout.</summary>
         public void Close(int timeout)
         {
             Close(CommonFraming.Constants.ReplySuccess, "Goodbye", timeout);
         }
         
-        ///<summary>API-side invocation of connection close with timeout.</summary>
+        ///<summary>API-side invocation of connection.close with timeout.</summary>
         public void Close(ushort reasonCode, string reasonText, int timeout)
         {
             Close(new ShutdownEventArgs(ShutdownInitiator.Application, reasonCode, reasonText), false, timeout);
@@ -460,7 +460,7 @@ namespace RabbitMQ.Client.Impl
 
             try
             {
-                // Try to send connection close
+                // Try to send connection.close
                 // Wait for CloseOk in the MainLoop
                 m_session0.Transmit(ConnectionCloseWrapper(reason.ReplyCode,
                                                           reason.ReplyText));
@@ -637,7 +637,8 @@ namespace RabbitMQ.Client.Impl
             }
             
             // If allowed for clean shutdown
-            // Run limited version of the main loop
+            // Run main loop for a limited amount of time (as defined
+            // by ConnectionCloseTimeout).
             if (shutdownCleanly)
             {
                 ClosingLoop();
