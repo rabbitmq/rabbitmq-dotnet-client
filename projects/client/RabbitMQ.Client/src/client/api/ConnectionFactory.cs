@@ -196,6 +196,12 @@ namespace RabbitMQ.Client
         ///their respective defaults.</summary>
         public ConnectionFactory() { }
 
+        ///<summary>Construct an instance with given endPoint.</summary>
+        public ConnectionFactory(AmqpTcpEndpoint endPoint)
+        {
+            Endpoint = endPoint;
+        }
+
         protected virtual IConnection FollowRedirectChain
             (int maxRedirects,
              IDictionary connectionAttempts,
