@@ -148,6 +148,8 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public IBasicConsumer DefaultConsumer { get; set; }
+
         public ISession m_session;
 
         public RpcContinuationQueue m_continuationQueue = new RpcContinuationQueue();

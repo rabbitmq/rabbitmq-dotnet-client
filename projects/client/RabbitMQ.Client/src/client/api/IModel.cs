@@ -93,6 +93,30 @@ namespace RabbitMQ.Client
         ///</remarks>
         event CallbackExceptionEventHandler CallbackException;
 
+        ///<summary>Signalled when an unexpected message is delivered
+        ///
+        /// Under certain circumstances it is possible for a channel to receive a
+        /// message delivery which does not match any consumer which is currently
+        /// set up via basicConsume(). This will occur after the following sequence
+        /// of events:
+        ///
+        /// ctag = basicConsume(queue, consumer); // i.e. with explicit acks
+        /// // some deliveries take place but are not acked
+        /// basicCancel(ctag);
+        /// basicRecover(false);
+        ///
+        /// Since requeue is specified to be false in the basicRecover, the spec
+        /// states that the message must be redelivered to "the original recipient"
+        /// - i.e. the same channel / consumer-tag. But the consumer is no longer
+        /// active.
+        ///
+        /// In these circumstances, you can register a default consumer to handle
+        /// such deliveries. If no default consumer is registered the delivery is
+        /// ignored.
+        ///
+        /// Most people will not need to use this.</summary>
+        IBasicConsumer DefaultConsumer { get; set; }
+
         ///<summary>Returns null if the session is still in a state
         ///where it can be used, or the cause of its closure
         ///otherwise.</summary>
