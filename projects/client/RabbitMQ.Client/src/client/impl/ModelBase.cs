@@ -359,8 +359,12 @@ namespace RabbitMQ.Client.Impl
             }
             if (consumer == null)
             {
-                // FIXME: what is an appropriate thing to do here?
-                throw new NotSupportedException("FIXME unsolicited delivery for consumer tag " + consumerTag);
+                if (DefaultConsumer == null) {
+                    return;
+                }
+                else {
+                    consumer = DefaultConsumer;
+                }
             }
 
             try {
