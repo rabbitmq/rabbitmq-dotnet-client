@@ -148,6 +148,8 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public IBasicConsumer DefaultConsumer { get; set; }
+
         public ISession m_session;
 
         public RpcContinuationQueue m_continuationQueue = new RpcContinuationQueue();
@@ -357,8 +359,14 @@ namespace RabbitMQ.Client.Impl
             }
             if (consumer == null)
             {
-                // FIXME: what is an appropriate thing to do here?
-                throw new NotSupportedException("FIXME unsolicited delivery for consumer tag " + consumerTag);
+                if (DefaultConsumer == null) {
+                    throw new InvalidOperationException("Unsolicited delivery -" +
+                            " see IModel.DefaultConsumer to handle this" +
+                            " case.");
+                }
+                else {
+                    consumer = DefaultConsumer;
+                }
             }
 
             try {
