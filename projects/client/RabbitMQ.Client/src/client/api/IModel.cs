@@ -111,8 +111,8 @@ namespace RabbitMQ.Client
         /// active.
         ///
         /// In these circumstances, you can register a default consumer to handle
-        /// such deliveries. If no default consumer is registered the delivery is
-        /// ignored.
+        /// such deliveries. If no default consumer is registered an
+        /// InvalidOperationException will be thrown when such a delivery arrives.
         ///
         /// Most people will not need to use this.</summary>
         IBasicConsumer DefaultConsumer { get; set; }
