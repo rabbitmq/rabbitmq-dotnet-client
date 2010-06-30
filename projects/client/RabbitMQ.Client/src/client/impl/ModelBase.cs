@@ -360,7 +360,9 @@ namespace RabbitMQ.Client.Impl
             if (consumer == null)
             {
                 if (DefaultConsumer == null) {
-                    return;
+                    throw new InvalidOperationException("Unsolicited delivery -" +
+                            " see IModel.DefaultConsumer to handle this" +
+                            " case.");
                 }
                 else {
                     consumer = DefaultConsumer;
