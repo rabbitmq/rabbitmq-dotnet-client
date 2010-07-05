@@ -127,10 +127,13 @@ The following code connects to an AMQP broker:
  factory.Port = AmqpTcpEndpoint.UseDefaultPort;
  IConnection conn = factory.CreateConnection();
 
-The default parameters are:
+All factory properties have default values. The default value for a property will be used if the property remains unassigned prior to creating a connection:
  - username: [code "guest"]
  - password: [code "guest"]
  - virtual-host: [code "/"]
+ - protocol: [code AMQP 0.8]
+ - hostname: [code localhost]
+ - port: [code 5672]
 
 The IConnection interface can then be used to open a channel:
 
