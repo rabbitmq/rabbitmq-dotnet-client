@@ -6,7 +6,7 @@ rabbit\.snk$
 ^rabbit\-mock\.snk$
 
 ^scratch$
-^releases/
+^release/
 ^build$
 ^commit$
 ^diff$

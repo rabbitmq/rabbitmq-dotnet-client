@@ -1,4 +1,4 @@
-// This source code is dual-licensed under the Apache License, version
+﻿// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 1.1.
 //
 // The APL v2.0:
@@ -54,32 +54,67 @@
 //   Contributor(s): ______________________________________.
 //
 //---------------------------------------------------------------------------
+using NUnit.Framework;
+
 using System;
+using System.IO;
+using System.Text;
+using System.Collections;
 
-// We use spec version 0-9 for common constants such as frame types,
-// error codes, and the frame end byte, since they don't vary *within
-// the versions we support*. Obviously we may need to revisit this if
-// that ever changes.
-using CommonFraming = RabbitMQ.Client.Framing.v0_9;
+using RabbitMQ.Client.Impl;
+using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Events;
+using RabbitMQ.Util;
 
-namespace RabbitMQ.Client.Impl {
-    /// <summary>
-    /// Thrown when the connection receives a body that exceeds the permissible maximum.
-    /// FIXME: document the permissible maximum, and how to query and configure it
-    /// </summary>
-    public class BodyTooLongException: SoftProtocolException {
-        private readonly ulong m_requestedLength;
+namespace RabbitMQ.Client.Unit
+{
+    [TestFixture]
+    public class TestRecoverAfterCancel
+    {
+        IConnection Connection;
+        IModel Channel;
+        String Queue;
 
-        public BodyTooLongException(int channelNumber, ulong requestedLength)
-            : base(channelNumber,
-                   string.Format("The body of a message ({0} bytes) was too long.",
-                                 requestedLength))
+        public int ModelNumber(IModel model)
         {
-            m_requestedLength = requestedLength;
+            return ((ModelBase)model).m_session.ChannelNumber;
         }
 
-        public ulong RequestedLength { get { return m_requestedLength; } }
+        [SetUp] public void Connect()
+        {
+            Connection = new ConnectionFactory().CreateConnection();
+            Channel = Connection.CreateModel();
+            Queue = Channel.QueueDeclare();
+        }
 
-        public override ushort ReplyCode { get { return CommonFraming.Constants.ContentTooLarge; } }
+        [TearDown] public void Disconnect()
+        {
+            Channel.Close();
+            Connection.Close();
+        }
+
+        [Test]
+        public void TestRecoverAfterCancel_()
+        {
+            UTF8Encoding enc = new UTF8Encoding();
+            Channel.BasicPublish("", Queue, null, enc.GetBytes("message"));
+            QueueingBasicConsumer Consumer = new QueueingBasicConsumer(Channel);
+            QueueingBasicConsumer DefaultConsumer = new QueueingBasicConsumer(Channel);
+            Channel.DefaultConsumer = DefaultConsumer;
+            String CTag = Channel.BasicConsume(Queue, null, Consumer);
+            BasicDeliverEventArgs Event = (BasicDeliverEventArgs) Consumer.Queue.Dequeue();
+            Channel.BasicCancel(CTag);
+            Channel.BasicRecover(false);
+
+            // The server will now redeliver us the first message again, with the
+            // same ctag, but we're not set up to handle it with a standard
+            // consumer - it should end up with the default one.
+
+            BasicDeliverEventArgs Event2 = (BasicDeliverEventArgs) DefaultConsumer.Queue.Dequeue();
+
+            Assert.AreEqual(Event.Body, Event2.Body);
+            Assert.IsFalse(Event.Redelivered);
+            Assert.IsTrue(Event2.Redelivered);
+        }
     }
 }

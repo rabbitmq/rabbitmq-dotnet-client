@@ -131,7 +131,7 @@ namespace RabbitMQ.Client.Impl
         {
             lock (m_reader)
             {
-                    return Frame.ReadFrom(m_reader);
+                return Frame.ReadFrom(m_reader);
             }
         }
 
