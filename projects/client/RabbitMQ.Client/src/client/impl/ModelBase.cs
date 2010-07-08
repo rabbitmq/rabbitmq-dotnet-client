@@ -822,6 +822,7 @@ namespace RabbitMQ.Client.Impl
                                          bool requeue);
 
         public abstract void BasicRecover(bool requeue);
+        public abstract void BasicRecoverAsync(bool requeue);
 
         public abstract void TxSelect();
         public abstract void TxCommit();
