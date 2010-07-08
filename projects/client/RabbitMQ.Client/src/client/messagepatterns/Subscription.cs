@@ -139,7 +139,7 @@ namespace RabbitMQ.Client.MessagePatterns {
         public Subscription(IModel model, string queueName, bool noAck)
         {
             m_model = model;
-            // FIXME Check if a queue with queueName exists.
+            m_queueName = queueName;
             m_consumer = new QueueingBasicConsumer(m_model);
             m_consumerTag = m_model.BasicConsume(m_queueName, m_noAck, null, m_consumer);
             m_latestEvent = null;
