@@ -81,16 +81,16 @@ namespace RabbitMQ.Client.Examples {
             string routingKey = args[3];
 
             ConnectionFactory cf = new ConnectionFactory();
-            cf.Address = serverAddress;           
- 
+            cf.Address = serverAddress;
+
             using (IConnection conn = cf.CreateConnection())
                 {
                     using (IModel ch = conn.CreateModel()) {
-                        Subscription sub;
-                        if (exchange == "") {
-                            sub = new Subscription(ch, routingKey);
-                        } else {
-                            sub = new Subscription(ch, exchange, exchangeType, routingKey);
+                        ch.QueueDeclare(routingKey);
+                        Subscription sub = new Subscription(ch, routingKey);
+                        if (exchange != "") {
+                            ch.ExchangeDeclare(exchange, exchangeType);
+                            ch.QueueBind(routingKey, exchange, routingKey, false, null);
                         }
 
                         Console.WriteLine("Consumer tag: " + sub.ConsumerTag);
