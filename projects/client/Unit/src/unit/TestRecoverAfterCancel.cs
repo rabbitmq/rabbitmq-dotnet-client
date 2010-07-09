@@ -65,6 +65,7 @@ using RabbitMQ.Client.Impl;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Util;
+using System.Threading;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -74,6 +75,7 @@ namespace RabbitMQ.Client.Unit
         IConnection Connection;
         IModel Channel;
         String Queue;
+        delegate void Recovery(IModel ch);
 
         public int ModelNumber(IModel model)
         {
@@ -96,21 +98,39 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestRecoverAfterCancel_()
         {
+            RecoveryRunner(new Recovery(delegate (IModel ch)
+            {
+                Channel.BasicRecover(false);
+            }));
+        }
+
+        [Test]
+        public void TestRecoverAsyncAfterCancel()
+        {
+            RecoveryRunner(new Recovery(delegate (IModel ch)
+            {
+                Channel.BasicRecoverAsync(false);
+                Thread.Sleep(500);
+            }));
+        }
+
+        private void RecoveryRunner(Recovery recover)
+        {
             UTF8Encoding enc = new UTF8Encoding();
             Channel.BasicPublish("", Queue, null, enc.GetBytes("message"));
             QueueingBasicConsumer Consumer = new QueueingBasicConsumer(Channel);
             QueueingBasicConsumer DefaultConsumer = new QueueingBasicConsumer(Channel);
             Channel.DefaultConsumer = DefaultConsumer;
             String CTag = Channel.BasicConsume(Queue, null, Consumer);
-            BasicDeliverEventArgs Event = (BasicDeliverEventArgs) Consumer.Queue.Dequeue();
+            BasicDeliverEventArgs Event = (BasicDeliverEventArgs)Consumer.Queue.Dequeue();
             Channel.BasicCancel(CTag);
-            Channel.BasicRecover(false);
+            recover(Channel);
 
             // The server will now redeliver us the first message again, with the
             // same ctag, but we're not set up to handle it with a standard
             // consumer - it should end up with the default one.
 
-            BasicDeliverEventArgs Event2 = (BasicDeliverEventArgs) DefaultConsumer.Queue.Dequeue();
+            BasicDeliverEventArgs Event2 = (BasicDeliverEventArgs)DefaultConsumer.Queue.Dequeue();
 
             Assert.AreEqual(Event.Body, Event2.Body);
             Assert.IsFalse(Event.Redelivered);

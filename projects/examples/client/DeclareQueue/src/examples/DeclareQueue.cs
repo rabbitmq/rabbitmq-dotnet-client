@@ -106,9 +106,8 @@ namespace RabbitMQ.Client.Examples {
                 {
                     using (IModel ch = conn.CreateModel()) {
 
-                        string finalName = ch.QueueDeclare(inputQueueName, false,
-                                                           durable, false, false,
-                                                           false, arguments);
+                        string finalName = ch.QueueDeclare(inputQueueName, durable, 
+                                                           false, false, arguments);
                         Console.WriteLine("{0}\t{1}", finalName, durable);
                 
                         while ((optionIndex + 1) < args.Length) {
