@@ -636,7 +636,7 @@ namespace RabbitMQ.Client.Impl
         ///<summary>Used to send a Channel.FlowOk. Confirms that
         ///Channel.Flow from the broker was processed.</summary>
         [AmqpMethodMapping(null, "channel", "flow-ok")]
-        void _Private_ChannelFlowOk();
+        void _Private_ChannelFlowOk(bool active);
         
         ///<summary>Handle incoming Channel.Flow methods. Either
         ///stops or resumes sending the methods that have content.</summary>
