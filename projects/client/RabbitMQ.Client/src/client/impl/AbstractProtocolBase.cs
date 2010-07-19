@@ -65,7 +65,10 @@ namespace RabbitMQ.Client.Impl {
         public abstract int Revision { get; }
         public abstract string ApiName { get; }
         public abstract int DefaultPort { get; }
-        public abstract bool SupportsRedirect { get; }
+        public virtual bool SupportsRedirect 
+        { 
+            get { return true; } 
+        }
 
         public abstract IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint);
         public abstract IConnection CreateConnection(ConnectionFactory factory,

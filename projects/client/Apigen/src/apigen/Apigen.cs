@@ -185,7 +185,6 @@ namespace RabbitMQ.Client.Apigen {
         public int m_revision = 0;
         public string m_apiName;
         public bool m_emitComments = false;
-        public bool m_supportsRedirect;
 
         public Type m_modelType = typeof(RabbitMQ.Client.Impl.IFullModel);
         public ArrayList m_modelTypes = new ArrayList();
@@ -313,10 +312,7 @@ namespace RabbitMQ.Client.Apigen {
             }
             foreach (XmlNode n in m_spec.SelectNodes("/amqp/domain")) {
                 m_domains[GetString(n, "@name")] = GetString(n, "@type");
-            }            
-            m_supportsRedirect = 
-                m_spec.SelectSingleNode(
-                "/amqp/class[@name='connection']/method[@name='redirect']") != null;        
+            }                  
         }
 
         public void ReflectModel() {
@@ -449,9 +445,6 @@ namespace RabbitMQ.Client.Apigen {
             int port = GetInt(m_spec, "/amqp/@port");
             EmitLine("    ///<summary>Default TCP port (= "+port+")</summary>");
             EmitLine("    public override int DefaultPort { get { return " + port + "; } }");
-            EmitLine("    ///<summary>Whether redirect is supported</summary>");
-            EmitLine("    public override bool SupportsRedirect { get { return "
-                + m_supportsRedirect.ToString().ToLower() + "; } }");
             EmitLine("");
             EmitMethodArgumentReader();
             EmitLine("");
