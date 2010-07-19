@@ -70,13 +70,5 @@ namespace RabbitMQ.Client.Apigen {
                 return result;
             }
         }
-
-        public bool Reserved
-        {
-            get
-            {
-                return GetString("@reserved", "") == "1";
-            }
-        }
     }
 }

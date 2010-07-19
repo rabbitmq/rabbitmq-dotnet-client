@@ -67,7 +67,7 @@ namespace RabbitMQ.Client
         ///<summary>Retrieve the protocol's minor version number</summary>
         int MinorVersion { get; }
         ///<summary>Retrieve the protocol's revision (if specified)</summary>
-        int? Revision { get; }
+        int Revision { get; }
         ///<summary>Retrieve the protocol's API name, used for
         ///printing, configuration properties, IDE integration,
         ///Protocols.cs etc.</summary>

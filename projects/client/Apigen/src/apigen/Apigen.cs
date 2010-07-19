@@ -103,15 +103,19 @@ namespace RabbitMQ.Client.Apigen {
             return int.Parse(GetString(n0, path));
         }
 
-        private static string xmlStringMapper(string name)
+        /// <summary>
+        /// Rename all instances of an entire string from the XML spec
+        /// </summary>
+        /// <param name="xmlString">input string from XML spec</param>
+        /// <returns>renamed string</returns>
+        private static string xmlStringMapper(string xmlString)
         {
-            switch (name)
+            switch (xmlString)
             {
                 case "no-wait":
                     return "nowait";
                 default:
-                    return name;
-
+                    return xmlString;
             }
         }
 
@@ -300,7 +304,6 @@ namespace RabbitMQ.Client.Apigen {
                 {
                     m_revision = GetInt(m_spec, "/amqp/@revision");
                 }
-
             }
             foreach (XmlNode n in m_spec.SelectNodes("/amqp/constant")) {
                 m_constants.Add(new DictionaryEntry(GetString(n, "@name"), GetInt(n, "@value")));
@@ -440,7 +443,7 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("    ///<summary>Protocol minor version (= "+m_minorVersion+")</summary>");
             EmitLine("    public override int MinorVersion { get { return " + m_minorVersion + "; } }");
             EmitLine("    ///<summary>Protocol revision (= " + m_revision + ")</summary>");
-            EmitLine("    public override int? Revision { get { return " + m_revision + "; } }");
+            EmitLine("    public override int Revision { get { return " + m_revision + "; } }");
             EmitLine("    ///<summary>Protocol API name (= "+m_apiName+")</summary>");
             EmitLine("    public override string ApiName { get { return \"" + m_apiName + "\"; } }");
             int port = GetInt(m_spec, "/amqp/@port");
