@@ -119,24 +119,21 @@ The following code connects to an AMQP broker:
 
 @code java
  ConnectionFactory factory = new ConnectionFactory();
- IProtocol protocol = Protocols.FromEnvironment();
- IConnection conn = factory.CreateConnection(protocol, hostName, portNumber);
+ factory.UserName = user;
+ factory.Password = pass;
+ factory.VirtualHost = vhost;
+ factory.Protocol = Protocols.FromEnvironment();
+ factory.HostName = hostName;
+ factory.Port = AmqpTcpEndpoint.UseDefaultPort;
+ IConnection conn = factory.CreateConnection();
 
-The default parameters are:
+All factory properties have default values. The default value for a property will be used if the property remains unassigned prior to creating a connection:
  - username: [code "guest"]
  - password: [code "guest"]
  - virtual-host: [code "/"]
-
-For control over the username, password and virtual-host supplied to
-the broker, modify the [code ConnectionFactory]'s [code
-ConnectionParameters] object before calling [code CreateConnection]:
-
-@code java
- ConnectionParameters params = factory.Parameters;
- params.UserName = userName;
- params.Password = password;
- params.VirtualHost = virtualHost;
- IConnection conn = factory.CreateConnection(protocol, hostName, portNumber);
+ - protocol: [code AMQP 0.8]
+ - hostname: [code localhost]
+ - port: [code 5672]
 
 The IConnection interface can then be used to open a channel:
 
