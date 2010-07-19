@@ -971,7 +971,10 @@ namespace RabbitMQ.Client.Impl
                 Math.Min(clientValue, serverValue);
         }
 
-        public void Open(bool insist)
+        /// <summary>
+        /// Connection opening, common to all supported protocol versions
+        /// </summary>
+        protected void OpenCommon()
         {
             BlockingCell connectionStartCell = new BlockingCell();
             m_model0.m_connectionStartCell = connectionStartCell;
@@ -979,7 +982,7 @@ namespace RabbitMQ.Client.Impl
             m_frameHandler.SendHeader();
 
             ConnectionStartDetails connectionStart = (ConnectionStartDetails)
-                connectionStartCell.Value;
+                                                     connectionStartCell.Value;
 
             ServerProperties = connectionStart.m_serverProperties;
 
@@ -1002,13 +1005,13 @@ namespace RabbitMQ.Client.Impl
             ConnectionTuneDetails connectionTune = default(ConnectionTuneDetails);
             try
             {
-                connectionTune = 
-                m_model0.ConnectionStartOk(m_clientProperties,
-                                           "PLAIN",
-                                           Encoding.UTF8.GetBytes(
-                                               "\0" + m_factory.UserName +
-                                               "\0" + m_factory.Password),
-                                           "en_US");
+                connectionTune =
+                    m_model0.ConnectionStartOk(m_clientProperties,
+                                               "PLAIN",
+                                               Encoding.UTF8.GetBytes(
+                                                   "\0" + m_factory.UserName +
+                                                   "\0" + m_factory.Password),
+                                               "en_US");
             }
             catch (OperationInterruptedException e)
             {
@@ -1031,18 +1034,15 @@ namespace RabbitMQ.Client.Impl
             m_model0.ConnectionTuneOk(channelMax,
                                       frameMax,
                                       heartbeat);
+        }
 
-            if (Protocol.SupportsRedirect)
-            {
-                string knownHosts = m_model0.ConnectionOpen(m_factory.VirtualHost,
-                                                            "", // FIXME: make configurable?
-                                                            insist);
-                KnownHosts = AmqpTcpEndpoint.ParseMultiple(Protocol, knownHosts);
-            }
-            else
-            {
-                m_model0.ConnectionOpen(m_factory.VirtualHost, String.Empty, false);
-            }
+        public virtual void Open(bool insist)
+        {
+            OpenCommon();
+            string knownHosts = m_model0.ConnectionOpen(m_factory.VirtualHost,
+                                                        "", // FIXME: make configurable?
+                                                        insist);
+            KnownHosts = AmqpTcpEndpoint.ParseMultiple(Protocol, knownHosts);
         }
 
         public override string ToString()
