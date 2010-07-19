@@ -56,6 +56,7 @@
 //---------------------------------------------------------------------------
 using System;
 using System.Collections;
+using RabbitMQ.Client.Apigen.Attributes;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -74,8 +75,7 @@ namespace RabbitMQ.Client.Impl
         public abstract string Type { get; set; }
         public abstract string UserId { get; set; }
         public abstract string AppId { get; set; }
-        public virtual string ClusterId { get; set; }
-        public virtual string Reserved { get; set; }
+        public abstract string ClusterId { get; set; }
 
         public abstract void ClearContentType();
         public abstract void ClearContentEncoding();
@@ -90,8 +90,7 @@ namespace RabbitMQ.Client.Impl
         public abstract void ClearType();
         public abstract void ClearUserId();
         public abstract void ClearAppId();
-        public virtual void ClearClusterId() { }
-        public virtual void ClearReserved() { }
+        public abstract void ClearClusterId();
 
         public abstract bool IsContentTypePresent();
         public abstract bool IsContentEncodingPresent();
@@ -106,8 +105,7 @@ namespace RabbitMQ.Client.Impl
         public abstract bool IsTypePresent();
         public abstract bool IsUserIdPresent();
         public abstract bool IsAppIdPresent();
-        public virtual bool IsClusterIdPresent() { return false; }
-        public virtual bool IsReservedPresent() { return false; }
+        public abstract bool IsClusterIdPresent();
 
         public PublicationAddress ReplyToAddress
         {
