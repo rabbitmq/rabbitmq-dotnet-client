@@ -82,7 +82,8 @@ namespace RabbitMQ.Client.Apigen {
 
         public static string GetString(XmlNode n0, string path, string d) {
             XmlNode n = n0.SelectSingleNode(path);
-            return (n == null) ? d : n.InnerText;
+            string pathOrDefault = (n == null) ? d : n.InnerText;
+            return xmlStringMapper(pathOrDefault);
         }
 
         public static string GetString(XmlNode n0, string path) {
@@ -100,6 +101,18 @@ namespace RabbitMQ.Client.Apigen {
 
         public static int GetInt(XmlNode n0, string path) {
             return int.Parse(GetString(n0, path));
+        }
+
+        private static string xmlStringMapper(string name)
+        {
+            switch (name)
+            {
+                case "no-wait":
+                    return "nowait";
+                default:
+                    return name;
+
+            }
         }
 
         ///////////////////////////////////////////////////////////////////////////
@@ -165,7 +178,7 @@ namespace RabbitMQ.Client.Apigen {
         public bool m_versionOverridden = false;
         public int m_majorVersion;
         public int m_minorVersion;
-        public int? m_revision;
+        public int m_revision = 0;
         public string m_apiName;
         public bool m_emitComments = false;
         public bool m_supportsRedirect;
@@ -426,10 +439,8 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("    public override int MajorVersion { get { return " + m_majorVersion + "; } }");
             EmitLine("    ///<summary>Protocol minor version (= "+m_minorVersion+")</summary>");
             EmitLine("    public override int MinorVersion { get { return " + m_minorVersion + "; } }");
-            EmitLine("    ///<summary>Protocol revision (= " +
-                          (m_revision.HasValue ? m_revision.ToString() : "not specified") + ")</summary>");
-            EmitLine("    public override int? Revision { get { return " +
-                          (m_revision.HasValue ? m_revision.ToString() : "null") + "; } }");
+            EmitLine("    ///<summary>Protocol revision (= " + m_revision + ")</summary>");
+            EmitLine("    public override int? Revision { get { return " + m_revision + "; } }");
             EmitLine("    ///<summary>Protocol API name (= "+m_apiName+")</summary>");
             EmitLine("    public override string ApiName { get { return \"" + m_apiName + "\"; } }");
             int port = GetInt(m_spec, "/amqp/@port");

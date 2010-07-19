@@ -178,7 +178,6 @@ namespace RabbitMQ.Client
                              [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved3")]
                              bool @internal,
                              [AmqpNowaitArgument(null)]
-                             [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "noWait")]
                              bool nowait,
                              IDictionary arguments);
 
@@ -186,7 +185,6 @@ namespace RabbitMQ.Client
         void ExchangeDelete(string exchange,
                             bool ifUnused,
                             [AmqpNowaitArgument(null)]
-                            [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "noWait")]
                             bool nowait);
 
         ///<summary>(Spec method) Declare a queue.</summary>
@@ -227,8 +225,6 @@ namespace RabbitMQ.Client
                             bool exclusive,
                             bool autoDelete,
                             [AmqpNowaitArgument(null)]
-                            [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1",
-                                              "noWait")]
                             bool nowait,
                             IDictionary arguments);
 
@@ -237,8 +233,6 @@ namespace RabbitMQ.Client
                        string exchange,
                        string routingKey,
                        [AmqpNowaitArgument(null)]
-                       [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1",
-                                         "noWait")]
                        bool nowait,
                        IDictionary arguments);
 
@@ -263,8 +257,6 @@ namespace RabbitMQ.Client
         [return: AmqpFieldMapping(null, "messageCount")]
         uint QueuePurge(string queue,
                         [AmqpNowaitArgument(null, "0xFFFFFFFF")]
-                        [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1",
-                                          "noWait")]
                         bool nowait);
 
         ///<summary>(Spec method) Delete a queue.</summary>
@@ -278,8 +270,6 @@ namespace RabbitMQ.Client
                          bool ifUnused,
                          bool ifEmpty,
                          [AmqpNowaitArgument(null, "0xFFFFFFFF")]
-                         [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1",
-                                           "noWait")]
                          bool nowait);
 
         ///<summary>Start a Basic content-class consumer.</summary>
@@ -557,8 +547,6 @@ namespace RabbitMQ.Client.Impl
                                    bool noLocal,
                                    bool noAck,
                                    bool exclusive,
-                                   [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1",
-                                                     "noWait")]
                                    bool nowait,
                                    [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
                                    [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_8qpid",
@@ -576,8 +564,6 @@ namespace RabbitMQ.Client.Impl
         [AmqpForceOneWay]
         [AmqpMethodMapping(null, "basic", "cancel")]
         void _Private_BasicCancel(string consumerTag,
-                                  [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1",
-                                                     "noWait")]
                                   bool nowait);
 
         ///<summary>Handle incoming Basic.CancelOk methods.</summary>
