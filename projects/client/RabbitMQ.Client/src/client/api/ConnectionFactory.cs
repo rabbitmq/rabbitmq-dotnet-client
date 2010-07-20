@@ -326,10 +326,10 @@ namespace RabbitMQ.Client
         {
             if (Protocol.SupportsRedirect)
             {
-                return CreateConnection(0); 
+                return CreateConnection(0);
             }
             else
-            {               
+            {
                 return Protocol.CreateConnection(this, false, Protocol.CreateFrameHandler(Endpoint));
             }
         }

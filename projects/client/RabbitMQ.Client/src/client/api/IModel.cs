@@ -696,7 +696,7 @@ namespace RabbitMQ.Client.Impl
         [AmqpMethodMapping(null, "connection", "open")]
         void _Private_ConnectionOpen(string virtualHost,
                                      [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved1")]
-                                     string capabilities,                                    
+                                     string capabilities,
                                      [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved2")]
                                      bool insist);
 

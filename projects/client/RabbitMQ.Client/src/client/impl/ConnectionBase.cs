@@ -982,7 +982,7 @@ namespace RabbitMQ.Client.Impl
             m_frameHandler.SendHeader();
 
             ConnectionStartDetails connectionStart = (ConnectionStartDetails)
-                                                     connectionStartCell.Value;
+                connectionStartCell.Value;
 
             ServerProperties = connectionStart.m_serverProperties;
 
@@ -1005,13 +1005,13 @@ namespace RabbitMQ.Client.Impl
             ConnectionTuneDetails connectionTune = default(ConnectionTuneDetails);
             try
             {
-                connectionTune =
-                    m_model0.ConnectionStartOk(m_clientProperties,
-                                               "PLAIN",
-                                               Encoding.UTF8.GetBytes(
-                                                   "\0" + m_factory.UserName +
-                                                   "\0" + m_factory.Password),
-                                               "en_US");
+                connectionTune = 
+                m_model0.ConnectionStartOk(m_clientProperties,
+                                           "PLAIN",
+                                           Encoding.UTF8.GetBytes(
+                                               "\0" + m_factory.UserName +
+                                               "\0" + m_factory.Password),
+                                           "en_US");
             }
             catch (OperationInterruptedException e)
             {
