@@ -402,7 +402,7 @@ namespace RabbitMQ.Client.Impl
             OnBasicReturn(e);
         }
         
-        public abstract void _Private_ChannelFlowOk();
+        public abstract void _Private_ChannelFlowOk(bool active);
         
         public void HandleChannelFlow(bool active)
         {
@@ -410,7 +410,7 @@ namespace RabbitMQ.Client.Impl
                 m_flowControlBlock.Set();
             else
                 m_flowControlBlock.Reset();
-            _Private_ChannelFlowOk();
+            _Private_ChannelFlowOk(active);
         }
 
         public void HandleConnectionStart(byte versionMajor,
