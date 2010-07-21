@@ -806,9 +806,6 @@ namespace RabbitMQ.Client.Impl
         public abstract void TxCommit();
         public abstract void TxRollback();
 
-        public virtual void DtxSelect() { }
-        public virtual void DtxStart(string dtxIdentifier) { }
-
         void IDisposable.Dispose()
         {
             Close();
