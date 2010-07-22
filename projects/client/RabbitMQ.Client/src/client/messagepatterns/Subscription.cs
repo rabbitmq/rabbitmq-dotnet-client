@@ -99,9 +99,7 @@ namespace RabbitMQ.Client.MessagePatterns {
         protected volatile QueueingBasicConsumer m_consumer;
         protected string m_consumerTag;
 
-        ///<summary>Retrieve the queue name we have subscribed to. May
-        ///be a server-generated name, depending on how the
-        ///Subscription was constructed.</summary>
+        ///<summary>Retrieve the queue name we have subscribed to.</summary>
         public string QueueName { get { return m_queueName; } }
         ///<summary>Retrieve the IBasicConsumer that is receiving the
         ///messages from the server for us. Normally, you will not
