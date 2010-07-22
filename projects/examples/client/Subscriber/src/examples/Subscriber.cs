@@ -71,13 +71,17 @@ namespace RabbitMQ.Client.Examples {
             }
 
             string serverAddress = args[0];
-            long msgCount = (args.Length > 1) ? Convert.ToInt64(args[1]) : 10;
+            long msgCount = (args.Length > 1) ? int.Parse(args[1]) : 10;
             ConnectionFactory cf = new ConnectionFactory();
             cf.Address = serverAddress;
             using (IConnection conn = cf.CreateConnection()) {
                 using (IModel ch = conn.CreateModel()) {
                     string queueName = ensureQueue(ch);
 
+                    /* We'll consume msgCount message twice: once
+                       using Subscription.Next() and once using the
+                       IEnumerator interface.  So, we'll send out
+                       2*msgCount messages. */
                     sendMessages(ch, queueName, 2*msgCount);
                     using (Subscription sub = new Subscription(ch, queueName)) {
                         blockingReceiveMessages(sub, msgCount);
@@ -107,6 +111,7 @@ namespace RabbitMQ.Client.Examples {
                                   i, messageText(sub.Next()));
                 Console.WriteLine("Message {0} again: {1} (via Subscription.LatestEvent)",
                                   i, messageText(sub.LatestEvent));
+                sub.Ack();
             }
 
             Console.WriteLine("Done.\n");
@@ -121,6 +126,7 @@ namespace RabbitMQ.Client.Examples {
                                   i, messageText(ev));
                 if (++i == msgCount)
                     break;
+                sub.Ack();
             }
 
             Console.WriteLine("Done.\n");
@@ -134,7 +140,7 @@ namespace RabbitMQ.Client.Examples {
             Console.WriteLine("Creating a queue and binding it to amq.direct");
             string queueName = ch.QueueDeclare();
             ch.QueueBind(queueName, "amq.direct", queueName, false, null);
-            Console.WriteLine("Done.  Created queue {0}.\n", queueName);
+            Console.WriteLine("Done.  Created queue {0} and bound it to amq.direct.\n", queueName);
             return queueName;
         }
     }
