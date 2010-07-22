@@ -55,82 +55,93 @@
 //
 //---------------------------------------------------------------------------
 using System;
-using System.IO;
 using System.Text;
 
 using RabbitMQ.Client;
-using RabbitMQ.Client.Content;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.MessagePatterns;
-using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Examples {
-    public class LogTail {
+    public class Subscriber {
         public static int Main(string[] args) {
-            if (args.Length < 4) {
-                Console.Error.WriteLine("Usage: LogTail <hostname>[:<portnumber>] <exchange> <exchangetype> <routingkey>");
+            if (args.Length < 1) {
+                Console.Error.WriteLine("Usage: Subscriber <hostname>[:<port number>] [<message count>]");
                 Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
-                Console.Error.WriteLine("If the exchange name is the empty string, will instead declare a queue named");
-                Console.Error.WriteLine("by the routingkey, and consume from that queue.");
                 return 2;
             }
 
             string serverAddress = args[0];
-            string exchange = args[1];
-            string exchangeType = args[2];
-            string routingKey = args[3];
-
+            long msgCount = (args.Length > 1) ? int.Parse(args[1]) : 10;
             ConnectionFactory cf = new ConnectionFactory();
             cf.Address = serverAddress;
+            using (IConnection conn = cf.CreateConnection()) {
+                using (IModel ch = conn.CreateModel()) {
+                    string queueName = ensureQueue(ch);
 
-            using (IConnection conn = cf.CreateConnection())
-                {
-                    using (IModel ch = conn.CreateModel()) {
-                        ch.QueueDeclare(routingKey);
-                        Subscription sub = new Subscription(ch, routingKey);
-                        if (exchange != "") {
-                            ch.ExchangeDeclare(exchange, exchangeType);
-                            ch.QueueBind(routingKey, exchange, routingKey, false, null);
-                        }
-
-                        Console.WriteLine("Consumer tag: " + sub.ConsumerTag);
-                        foreach (BasicDeliverEventArgs e in sub) {
-                            sub.Ack(e);
-                            ProcessSingleDelivery(e);
-                            if (Encoding.UTF8.GetString(e.Body) == "quit") {
-                                Console.WriteLine("Quitting!");
-                                break;
-                            }
-                        }
-
-                        return 0;
+                    /* We'll consume msgCount message twice: once
+                       using Subscription.Next() and once using the
+                       IEnumerator interface.  So, we'll send out
+                       2*msgCount messages. */
+                    sendMessages(ch, queueName, 2*msgCount);
+                    using (Subscription sub = new Subscription(ch, queueName)) {
+                        blockingReceiveMessages(sub, msgCount);
+                        enumeratingReceiveMessages(sub, msgCount);
                     }
                 }
+            }
+
+            return 0;
         }
 
-	public static void ProcessSingleDelivery(BasicDeliverEventArgs e) {
-	    Console.WriteLine("Delivery =========================================");
-	    DebugUtil.DumpProperties(e, Console.Out, 0);
-	    Console.WriteLine("----------------------------------------");
+        private static void sendMessages(IModel ch, string queueName, long msgCount) {
+            Console.WriteLine("Sending {0} messages to queue {1} via the amq.direct exchange.", msgCount, queueName);
 
-	    if (e.BasicProperties.ContentType == MapMessageReader.MimeType) {
-		IMapMessageReader r = new MapMessageReader(e.BasicProperties, e.Body);
-		DebugUtil.DumpProperties(r.Body, Console.Out, 0);
-	    } else if (e.BasicProperties.ContentType == StreamMessageReader.MimeType) {
-		IStreamMessageReader r = new StreamMessageReader(e.BasicProperties, e.Body);
-		while (true) {
-		    try {
-			object v = r.ReadObject();
-			Console.WriteLine("("+v.GetType()+") "+v);
-		    } catch (EndOfStreamException) {
-			break;
-		    }
-		}
-	    } else {
-		// No special content-type. Already covered by the DumpProperties above.
-	    }
+            while (msgCount --> 0) {
+                ch.BasicPublish("amq.direct", queueName, null, Encoding.UTF8.GetBytes("Welcome to Caerbannog!"));
+            }
 
-	    Console.WriteLine("==================================================");
-	}
+            Console.WriteLine("Done.\n");
+        }
+
+        private static void blockingReceiveMessages(Subscription sub, long msgCount) {
+            Console.WriteLine("Receiving {0} messages (using a Subscriber)", msgCount);
+
+            for (int i = 0; i < msgCount; ++i) {
+                Console.WriteLine("Message {0}: {1} (via Subscription.Next())",
+                                  i, messageText(sub.Next()));
+                Console.WriteLine("Message {0} again: {1} (via Subscription.LatestEvent)",
+                                  i, messageText(sub.LatestEvent));
+                sub.Ack();
+            }
+
+            Console.WriteLine("Done.\n");
+        }
+
+        private static void enumeratingReceiveMessages(Subscription sub, long msgCount) {
+            Console.WriteLine("Receiving {0} messages (using Subscriber's IEnumerator)", msgCount);
+
+            int i = 0;
+            foreach (BasicDeliverEventArgs ev in sub) {
+                Console.WriteLine("Message {0}: {1}",
+                                  i, messageText(ev));
+                if (++i == msgCount)
+                    break;
+                sub.Ack();
+            }
+
+            Console.WriteLine("Done.\n");
+        }
+
+        private static string messageText(BasicDeliverEventArgs ev) {
+            return Encoding.UTF8.GetString(ev.Body);
+        }
+
+        private static string ensureQueue(IModel ch) {
+            Console.WriteLine("Creating a queue and binding it to amq.direct");
+            string queueName = ch.QueueDeclare();
+            ch.QueueBind(queueName, "amq.direct", queueName, false, null);
+            Console.WriteLine("Done.  Created queue {0} and bound it to amq.direct.\n", queueName);
+            return queueName;
+        }
     }
 }
