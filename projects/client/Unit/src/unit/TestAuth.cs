@@ -98,6 +98,10 @@ namespace RabbitMQ.Client.Unit
                             .Contains("auth"));
                 }              
             }
+            catch (PossibleAuthenticationFailureException e)
+            {                
+                Assert.That(e.Message.ToLower().Contains("auth"));
+            }
         }
     }
 }
