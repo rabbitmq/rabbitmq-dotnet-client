@@ -93,6 +93,8 @@ namespace RabbitMQ.Client
         ///</remarks>
         event CallbackExceptionEventHandler CallbackException;
 
+        event FlowControlEventHandler FlowControl;
+
         ///<summary>Signalled when an unexpected message is delivered
         ///
         /// Under certain circumstances it is possible for a channel to receive a

@@ -82,6 +82,7 @@ namespace RabbitMQ.Client.Impl
         private readonly object m_eventLock = new object();
         private BasicReturnEventHandler m_basicReturn;
         private CallbackExceptionEventHandler m_callbackException;
+        private FlowControlEventHandler m_flowControl;
         
         public ManualResetEvent m_flowControlBlock = new ManualResetEvent(true);
 
@@ -144,6 +145,24 @@ namespace RabbitMQ.Client.Impl
                 lock (m_eventLock)
                 {
                     m_callbackException -= value;
+                }
+            }
+        }
+
+        public event FlowControlEventHandler FlowControl
+        {
+            add
+            {
+                lock (m_eventLock)
+                {
+                    m_flowControl += value;
+                }
+            }
+            remove
+            {
+                lock (m_eventLock)
+                {
+                    m_flowControl -= value;
                 }
             }
         }
@@ -278,7 +297,32 @@ namespace RabbitMQ.Client.Impl
                 }
             }
         }
-        
+
+        public virtual void OnFlowControl(FlowControlEventArgs args)
+        {
+            FlowControlEventHandler handler;
+            lock (m_eventLock)
+            {
+                handler = m_flowControl;
+            }
+            if (handler != null)
+            {
+                foreach (FlowControlEventHandler h in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        h(this, args);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("exception while running flow control event handler");
+                        Console.WriteLine(e + e.StackTrace);
+                        
+                    }
+                }
+            }
+        }
+
         public void Enqueue(IRpcContinuation k)
         {
             bool ok = false;
@@ -411,6 +455,7 @@ namespace RabbitMQ.Client.Impl
             else
                 m_flowControlBlock.Reset();
             _Private_ChannelFlowOk(active);
+            OnFlowControl(new FlowControlEventArgs(active));
         }
 
         public void HandleConnectionStart(byte versionMajor,
