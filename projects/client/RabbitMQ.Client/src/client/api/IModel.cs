@@ -270,7 +270,6 @@ namespace RabbitMQ.Client
         ///deletion.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        [return: AmqpFieldMapping(null, "messageCount")]
         uint QueueDelete(string queue);
 
         ///<summary>Start a Basic content-class consumer.</summary>
