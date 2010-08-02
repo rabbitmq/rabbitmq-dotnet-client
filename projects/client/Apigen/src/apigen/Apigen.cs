@@ -312,7 +312,7 @@ namespace RabbitMQ.Client.Apigen {
             }
             foreach (XmlNode n in m_spec.SelectNodes("/amqp/domain")) {
                 m_domains[GetString(n, "@name")] = GetString(n, "@type");
-            }                  
+            }
         }
 
         public void ReflectModel() {
@@ -859,10 +859,10 @@ namespace RabbitMQ.Client.Apigen {
         {
             EmitLine(String.Format("      return default({0});", method.ReturnType));
         }
-        else 
+        else
         {
             EmitLine("      return new " + MangleClass(contentClass) + "Properties();");
-        }       
+        }
 	    EmitLine("    }");
 	}
 
@@ -1158,7 +1158,7 @@ namespace RabbitMQ.Client.Apigen {
                                 Emit("            __impl.m_" + (fieldMapping == null
                                                               ? pi.Name
                                                               : fieldMapping.m_fieldName));
-                            }                            
+                            }
                             if (remaining > 0)
                             {
                                 EmitLine(",");
