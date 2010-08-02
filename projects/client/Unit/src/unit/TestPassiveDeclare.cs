@@ -54,6 +54,7 @@
 //   Contributor(s): ______________________________________.
 //
 //---------------------------------------------------------------------------
+using System.Collections;
 using NUnit.Framework;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
@@ -93,11 +94,56 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
+        public void TestExchangePassiveDeclareBeforeAndAfterDelete()
+        {
+            string exchangeName = GetType().FullName;
+            ch.ExchangeDeclare(exchangeName, "direct", true);
+            ch.ExchangeDeclarePassive(exchangeName);
+            ch.ExchangeDelete(exchangeName);
+            try
+            {
+                ch.ExchangeDeclarePassive(exchangeName);
+                Assert.Fail("Passive declare of a deleted exchange should fail");
+            }
+            catch (OperationInterruptedException) { }
+        }
+
+        [Test]
         public void TestQueuePassiveDeclare()
         {
             try
             {
                 ch.QueueDeclarePassive("non-existent-queue");
+                Assert.Fail("Passive declare of an unknown queue should fail");
+            }
+            catch (OperationInterruptedException) { }
+        }
+
+        [Test]
+        public void TestServerNamedQueueDeclare()
+        {
+            string queueName = ch.QueueDeclare();
+            Assert.AreEqual(queueName, ch.QueueDeclarePassive(queueName));
+        }
+
+        [Test]
+        public void TestQueueDeclare()
+        {
+            string queueName = GetType().FullName;
+            string queueNameServer = ch.QueueDeclare(
+                queueName, true, true, true, new Hashtable());
+            Assert.AreEqual(queueName, queueNameServer);
+            Assert.AreEqual(queueName, ch.QueueDeclarePassive(queueName));
+        }
+
+        [Test]
+        public void TestQueueDeclareAfterDelete()
+        {
+            try
+            {
+                string queueName = ch.QueueDeclare();
+                Assert.AreEqual(0, ch.QueueDelete(queueName));
+                ch.QueueDeclarePassive(queueName);
                 Assert.Fail("Passive declare of an unknown queue should fail");
             }
             catch (OperationInterruptedException) { }

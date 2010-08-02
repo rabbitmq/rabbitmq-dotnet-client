@@ -533,6 +533,11 @@ namespace RabbitMQ.Client.Impl
                                             bool ifUnused,
                                             bool nowait);
 
+        public void ExchangeDelete(string exchange)
+        {
+            ExchangeDelete(exchange, false, false);
+        }
+
         //TODO: Mark these as virtual, maybe the model has an optimized way
         //      of dealing with missing parameters.
         public string QueueDeclare()
@@ -542,7 +547,7 @@ namespace RabbitMQ.Client.Impl
 
         public string QueueDeclare(string queue)
         {
-            return _Private_QueueDeclare(queue, true, false, false, false, false, null);
+            return _Private_QueueDeclare(queue, false, false, false, false, false, null);
         }
 
         public string QueueDeclarePassive(string queue)
@@ -587,6 +592,11 @@ namespace RabbitMQ.Client.Impl
                                          bool ifUnused,
                                          bool ifEmpty,
                                          bool nowait);
+
+        public uint QueueDelete(string queue)
+        {
+            return QueueDelete(queue, false, false, false);
+        }
 
         public string BasicConsume(string queue,
                                    IDictionary filter,

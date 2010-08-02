@@ -181,6 +181,10 @@ namespace RabbitMQ.Client
                             [AmqpNowaitArgument(null)]
                             bool nowait);
 
+        ///<summary>(Spec method) Delete an exchange.</summary>
+        [AmqpMethodDoNotImplement(null)]
+        void ExchangeDelete(string exchange);
+
         ///<summary>(Spec method) Declare a queue.</summary>
         ///<remarks>
         ///The queue is declared non-passive, non-durable,
@@ -259,6 +263,15 @@ namespace RabbitMQ.Client
                          bool ifEmpty,
                          [AmqpNowaitArgument(null, "0xFFFFFFFF")]
                          bool nowait);
+
+        ///<summary>(Spec method) Delete a queue.</summary>
+        ///<remarks>
+        ///Returns the number of messages purged during queue
+        ///deletion.
+        ///</remarks>
+        [AmqpMethodDoNotImplement(null)]
+        [return: AmqpFieldMapping(null, "messageCount")]
+        uint QueueDelete(string queue);
 
         ///<summary>Start a Basic content-class consumer.</summary>
         ///<remarks>
