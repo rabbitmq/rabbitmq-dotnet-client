@@ -89,11 +89,8 @@ namespace RabbitMQ.Client.Unit
 
         [TearDown] public void Disconnect()
         {
-            try {
-                Channel.Close();
-                Connection.Close();
-            }
-            catch (AlreadyClosedException) {}
+            Channel.Close();
+            Connection.Abort();
         }
 
         [Test]
