@@ -857,7 +857,7 @@ namespace RabbitMQ.Client.Apigen {
 	    EmitLine("    {");
         if (Attribute(method, typeof(AmqpUnsupportedAttribute)) != null)
         {
-            EmitLine(String.Format("      return default({0});", method.ReturnType));
+            EmitLine(String.Format("      throw new UnsupportedMethodException(\"" + method.Name + "\");"));
         }
         else
         {

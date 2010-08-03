@@ -386,11 +386,11 @@ namespace RabbitMQ.Client
         void TxRollback();
 
         ///<summary>(Spec method) Enable DTX mode for this session.</summary>
-        [AmqpMethodDoNotImplement("RabbitMQ.Client.Framing.v0_9_1")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
         void DtxSelect();
 
         ///<summary>(Spec method)</summary>
-        [AmqpMethodDoNotImplement("RabbitMQ.Client.Framing.v0_9_1")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
         void DtxStart(string dtxIdentifier);
 
         ///<summary>Close this session.</summary>
@@ -701,7 +701,7 @@ namespace RabbitMQ.Client.Impl
                                      bool insist);
 
         ///<summary>Handle an incoming Connection.OpenOk.</summary>
-        void HandleConnectionOpenOk([AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
+        void HandleConnectionOpenOk([AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved1")]
                                     string knownHosts);
 
         ///<summary>Handle an incoming Connection.Redirect.</summary>
