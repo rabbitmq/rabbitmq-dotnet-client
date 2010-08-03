@@ -857,7 +857,7 @@ namespace RabbitMQ.Client.Apigen {
 	    EmitLine("    {");
         if (Attribute(method, typeof(AmqpUnsupportedAttribute)) != null)
         {
-            EmitLine(String.Format("      return default({0});", method.ReturnType));
+            EmitLine(String.Format("      throw new UnsupportedMethodException(\"" + method.Name + "\");"));
         }
         else
         {
@@ -1134,35 +1134,26 @@ namespace RabbitMQ.Client.Apigen {
                 string implClass = MangleMethodClass(amqpClass, amqpMethod);
 
                 EmitLine("        case "+((amqpClass.Index << 16) | amqpMethod.Index)+": {");
-                ParameterInfo[] parameters =  method.GetParameters();
+                ParameterInfo[] parameters = method.GetParameters();
                 if (parameters.Length > 0) {
-		            EmitLine("          "+implClass+" __impl = ("+implClass+") __method;");
+		    EmitLine("          "+implClass+" __impl = ("+implClass+") __method;");
                     EmitLine("          "+method.Name+"(");
                     int remaining = parameters.Length;
                     foreach (ParameterInfo pi in parameters) {
+                        if (Attribute(pi, typeof(AmqpContentHeaderMappingAttribute)) != null) {
+                            Emit("            ("+pi.ParameterType+") cmd.Header");
+                        } else if (Attribute(pi, typeof(AmqpContentBodyMappingAttribute)) != null) {
+                            Emit("            cmd.Body");
+                        } else {
+                            AmqpFieldMappingAttribute fieldMapping =
+                                Attribute(pi, typeof(AmqpFieldMappingAttribute)) as AmqpFieldMappingAttribute;
+                            Emit("            __impl.m_"+(fieldMapping == null
+                                                          ? pi.Name
+                                                          : fieldMapping.m_fieldName));
+                        }
                         remaining--;
-                        if (Attribute(pi, typeof(AmqpUnsupportedAttribute)) == null)
-                        {
-                            if (Attribute(pi, typeof(AmqpContentHeaderMappingAttribute)) != null)
-                            {
-                                Emit("            (" + pi.ParameterType + ") cmd.Header");
-                            }
-                            else if (Attribute(pi, typeof(AmqpContentBodyMappingAttribute)) != null)
-                            {
-                                Emit("            cmd.Body");
-                            }
-                            else
-                            {
-                                AmqpFieldMappingAttribute fieldMapping =
-                                    Attribute(pi, typeof(AmqpFieldMappingAttribute)) as AmqpFieldMappingAttribute;
-                                Emit("            __impl.m_" + (fieldMapping == null
-                                                              ? pi.Name
-                                                              : fieldMapping.m_fieldName));
-                            }
-                            if (remaining > 0)
-                            {
-                                EmitLine(",");
-                            }
+                        if (remaining > 0) {
+                            EmitLine(",");
                         }
                     }
                     EmitLine(");");
