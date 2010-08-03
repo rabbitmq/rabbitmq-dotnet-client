@@ -58,26 +58,33 @@ protocol variant. At the time of writing, the library supports:
 
  - [code Protocols.DefaultProtocol]: An alias to one of the other
    protocols. At the time of writing, [b the default protocol is [code
-   AMQP_0_8]].
+   AMQP_0_9_1]].
 
- - [code Protocols.AMQP_0_8]: Standard, unmodified AMQP 0-8 protocol,
-   including [code access.request].
+ - [code Protocols.AMQP_0_8]: Standard AMQP 0-8 protocol, including
+   [code access.request] and [code queue.unbind].
 
  - [code Protocols.AMQP_0_8_QPID]: AMQP 0-8 as extended by QPid's 0-8
    M1 release, without [code access.request] and with extra parameters
    available on certain methods.
 
- - [code Protocols.AMQP_0_9]: Standard, unmodified AMQP 0-9 protocol,
-   including [code access.request], but excluding the [code Message]
+ - [code Protocols.AMQP_0_9]: Standard AMQP 0-9 protocol, including
+   [code access.request], but excluding the [code Message]
    content-class and other areas of the specification marked "work in
    progress".
+
+ - [code Protocols.AMQP_0_9_1]: Standard AMQP 0-9-1 protocol, including
+   [code access.request].
+
+The [code basic.recover-async] method which is defined in AMQP 0-9-1 has
+been backported to all supported protocol versions. The implementation of
+[code basic.recover] is synchronous in all supported protocol versions.
 
 The [code Protocols] class also contains some convenience functions
 for retrieving an IProtocol from a string, from the environment or
 from a .NET XML configuration file. The protocol names permitted are
 the same as the static instance variables on class [code Protocols],
-that is, [code AMQP_0_8], [code AMQP_0_8_QPID], [code AMQP_0_9], and
-[code DefaultProtocol].
+that is, [code AMQP_0_8], [code AMQP_0_8_QPID], [code AMQP_0_9],
+, [code AMQP_0_9_1] and [code DefaultProtocol].
 
 The following code binds [code p] to the [code Protocols.AMQP_0_9]
 instance by looking it up dynamically:
@@ -131,7 +138,7 @@ All factory properties have default values. The default value for a property wil
  - username: [code "guest"]
  - password: [code "guest"]
  - virtual-host: [code "/"]
- - protocol: [code AMQP 0.8]
+ - protocol: [code AMQP 0-9-1]
  - hostname: [code localhost]
  - port: [code 5672]
 
