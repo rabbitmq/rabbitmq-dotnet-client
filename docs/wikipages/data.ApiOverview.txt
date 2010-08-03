@@ -354,10 +354,9 @@ callbacks are invoked in the connection's thread rather than in the
 application's thread.].
 
 Only asynchronous AMQP operations are safe for use within callbacks,
-such as:
-
- - [code IModel.BasicAck]
- - [code IModel.BasicPublish]
+such as [code IModel.BasicAck]. It is not safe to use [code
+IModel.BasicPublish] in callbacks, because channel flow could block
+publication.
 
 For this reason, [code QueueingBasicConsumer] is the safest way of
 subscribing to a queue, because its implementation uses [code
