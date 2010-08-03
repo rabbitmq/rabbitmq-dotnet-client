@@ -338,7 +338,7 @@ namespace RabbitMQ.Client.Apigen {
         public void EmitLine(object o) {
             m_outputFile.WriteLine(o);
         }
-        
+
         public void EmitSpecComment(object o) {
             if (m_emitComments)
                 EmitLine(o);
@@ -885,7 +885,7 @@ namespace RabbitMQ.Client.Apigen {
         {
             amqpClass = null;
             amqpMethod = null;
-            
+
             // First, try autodetecting the class/method via the
             // IModel method name.
 
