@@ -87,7 +87,7 @@ namespace RabbitMQ.Client.Impl
             if (frame.Type == CommonFraming.Constants.FrameMethod) {
                 MethodBase method = Connection.Protocol.DecodeMethodFrom(frame.GetReader());
                 if ((method.ProtocolClassId == CommonFramingSpecs.ChannelCloseOk.ClassId)
-                    && (method.ProtocolMethodId == CommonFramingSpecs.ChannelCloseOk.MethodId))                 
+                    && (method.ProtocolMethodId == CommonFramingSpecs.ChannelCloseOk.MethodId))
                 {
                     // This is the reply we were looking for. Release
                     // the channel with the reason we were passed in
