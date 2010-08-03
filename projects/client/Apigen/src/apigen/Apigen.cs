@@ -855,14 +855,14 @@ namespace RabbitMQ.Client.Apigen {
             string contentClass = factoryAnnotation.m_contentClass;
             EmitModelMethodPreamble(method);
             EmitLine("    {");
-        if (Attribute(method, typeof(AmqpUnsupportedAttribute)) != null)
-        {
-            EmitLine(String.Format("      throw new UnsupportedMethodException(\"" + method.Name + "\");"));
-        }
-        else
-        {
-            EmitLine("      return new " + MangleClass(contentClass) + "Properties();");
-        }
+            if (Attribute(method, typeof(AmqpUnsupportedAttribute)) != null)
+            {
+                EmitLine(String.Format("      throw new UnsupportedMethodException(\"" + method.Name + "\");"));
+            }
+            else
+            {
+                EmitLine("      return new " + MangleClass(contentClass) + "Properties();");
+            }
             EmitLine("    }");
         }
 
