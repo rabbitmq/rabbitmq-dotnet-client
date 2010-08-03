@@ -382,22 +382,22 @@ on class [code RabbitMQ.Client.IModel].
 
 The class [code RabbitMQ.Client.MessagePatterns.Subscription]
 implements most of the boilerplate of receiving messages (including,
-in particular, broadcast events) for you, including queue and exchange
-declaration and queue binding, as well as consumer declaration and
-management. For example,
+in particular, broadcast events) for you, including consumer
+declaration and management, but excluding queue and exchange
+declaration and queue binding. For example,
 
 @code java
   // "IModel ch" in scope.
-  Subscription sub = new Subscription(ch, "price", "topic", "STOCK.IBM.#");
+  Subscription sub = new Subscription(ch, "STOCK.IBM.#");
   foreach (BasicDeliverEventArgs e in sub) {
     // handle the message contained in e ...
     // ... and finally acknowledge it
     sub.Ack(e);
   }
 
-will declare the relevant exchange, declare a temporary queue, bind
-the two together, and start a consumer on the queue using [code
-IModel.BasicConsume].
+will start a consumer on the queue using [code IModel.BasicConsume].
+It is assumed that the queue and any bindings have been previously
+declared.
 
 [code Subscription.Ack()] should be called for each received event,
 whether or not auto-acknowledgement mode is used, because [code
