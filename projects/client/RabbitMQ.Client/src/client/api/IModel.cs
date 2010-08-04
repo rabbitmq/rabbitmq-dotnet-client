@@ -367,6 +367,7 @@ namespace RabbitMQ.Client
         void BasicRecover(bool requeue);
 
         ///<summary>(Spec method)</summary>
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
         void BasicRecoverAsync(bool requeue);
 
         ///<summary>(Spec method) Retrieve an individual message, if

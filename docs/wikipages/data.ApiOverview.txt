@@ -72,8 +72,7 @@ protocol variant. At the time of writing, the library supports:
    content-class and other areas of the specification marked "work in
    progress".
 
- - [code Protocols.AMQP_0_9_1]: Standard AMQP 0-9-1 protocol, including
-   [code access.request].
+ - [code Protocols.AMQP_0_9_1]: Standard AMQP 0-9-1 protocol.
 
 The [code basic.recover-async] method which is defined in AMQP 0-9-1 has
 been backported to all supported protocol versions. The implementation of
