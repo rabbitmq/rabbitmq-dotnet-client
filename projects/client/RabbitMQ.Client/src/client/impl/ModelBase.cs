@@ -490,6 +490,10 @@ namespace RabbitMQ.Client.Impl
             {
                 m_session.Close(m_closeReason);
             }
+            if (m_connectionStartCell != null)
+            {
+                m_connectionStartCell.Value = null;
+            }
         }
 
         ///////////////////////////////////////////////////////////////////////////
@@ -801,6 +805,7 @@ namespace RabbitMQ.Client.Impl
                                          bool requeue);
 
         public abstract void BasicRecover(bool requeue);
+        public abstract void BasicRecoverAsync(bool requeue);
 
         public abstract void TxSelect();
         public abstract void TxCommit();

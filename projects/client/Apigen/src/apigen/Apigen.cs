@@ -82,7 +82,8 @@ namespace RabbitMQ.Client.Apigen {
 
         public static string GetString(XmlNode n0, string path, string d) {
             XmlNode n = n0.SelectSingleNode(path);
-            return (n == null) ? d : n.InnerText;
+            string pathOrDefault = (n == null) ? d : n.InnerText;
+            return xmlStringMapper(pathOrDefault);
         }
 
         public static string GetString(XmlNode n0, string path) {
@@ -100,6 +101,22 @@ namespace RabbitMQ.Client.Apigen {
 
         public static int GetInt(XmlNode n0, string path) {
             return int.Parse(GetString(n0, path));
+        }
+
+        /// <summary>
+        /// Rename all instances of an entire string from the XML spec
+        /// </summary>
+        /// <param name="xmlString">input string from XML spec</param>
+        /// <returns>renamed string</returns>
+        private static string xmlStringMapper(string xmlString)
+        {
+            switch (xmlString)
+            {
+                case "no-wait":
+                    return "nowait";
+                default:
+                    return xmlString;
+            }
         }
 
         ///////////////////////////////////////////////////////////////////////////
@@ -165,6 +182,7 @@ namespace RabbitMQ.Client.Apigen {
         public bool m_versionOverridden = false;
         public int m_majorVersion;
         public int m_minorVersion;
+        public int m_revision = 0;
         public string m_apiName;
         public bool m_emitComments = false;
 
@@ -281,6 +299,10 @@ namespace RabbitMQ.Client.Apigen {
             if (!m_versionOverridden) {
                 m_majorVersion = GetInt(m_spec, "/amqp/@major");
                 m_minorVersion = GetInt(m_spec, "/amqp/@minor");
+                if (m_spec.SelectSingleNode("/amqp/@revision") != null)
+                {
+                    m_revision = GetInt(m_spec, "/amqp/@revision");
+                }
             }
             foreach (XmlNode n in m_spec.SelectNodes("/amqp/constant")) {
                 m_constants.Add(new DictionaryEntry(GetString(n, "@name"), GetInt(n, "@value")));
@@ -416,6 +438,8 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("    public override int MajorVersion { get { return " + m_majorVersion + "; } }");
             EmitLine("    ///<summary>Protocol minor version (= "+m_minorVersion+")</summary>");
             EmitLine("    public override int MinorVersion { get { return " + m_minorVersion + "; } }");
+            EmitLine("    ///<summary>Protocol revision (= " + m_revision + ")</summary>");
+            EmitLine("    public override int Revision { get { return " + m_revision + "; } }");
             EmitLine("    ///<summary>Protocol API name (= "+m_apiName+")</summary>");
             EmitLine("    public override string ApiName { get { return \"" + m_apiName + "\"; } }");
             int port = GetInt(m_spec, "/amqp/@port");
@@ -811,7 +835,10 @@ namespace RabbitMQ.Client.Apigen {
                         if (method.Name.StartsWith("Handle") ||
                             (Attribute(method, typeof(AmqpAsynchronousHandlerAttribute)) != null))
                         {
-                            asynchronousHandlers.Add(method);
+                            if ((Attribute(method, typeof(AmqpMethodDoNotImplementAttribute)) == null))
+                            {
+                                asynchronousHandlers.Add(method);
+                            }
                         } else {
                             MaybeEmitModelMethod(method);
                         }
@@ -828,7 +855,14 @@ namespace RabbitMQ.Client.Apigen {
             string contentClass = factoryAnnotation.m_contentClass;
             EmitModelMethodPreamble(method);
             EmitLine("    {");
-            EmitLine("      return new "+MangleClass(contentClass)+"Properties();");
+            if (Attribute(method, typeof(AmqpUnsupportedAttribute)) != null)
+            {
+                EmitLine(String.Format("      throw new UnsupportedMethodException(\"" + method.Name + "\");"));
+            }
+            else
+            {
+                EmitLine("      return new " + MangleClass(contentClass) + "Properties();");
+            }
             EmitLine("    }");
         }
 

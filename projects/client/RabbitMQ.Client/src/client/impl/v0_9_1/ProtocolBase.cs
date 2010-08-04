@@ -54,64 +54,57 @@
 //   Contributor(s): ______________________________________.
 //
 //---------------------------------------------------------------------------
-using System;
-
 using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Impl;
+using RabbitMQ.Util;
 
-// We use spec version 0-9 for common constants such as frame types,
-// error codes, and the frame end byte, since they don't vary *within
-// the versions we support*. Obviously we may need to revisit this if
-// that ever changes.
-using CommonFraming = RabbitMQ.Client.Framing.v0_9;
-using CommonFramingSpecs = RabbitMQ.Client.Framing.Impl.v0_9;
+namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
+    public abstract class ProtocolBase: AbstractProtocolBase {
 
-namespace RabbitMQ.Client.Impl
-{
-    ///<summary>Small ISession implementation used during channel quiescing.</summary>
-    public class QuiescingSession: SessionBase
-    {
-        public ShutdownEventArgs m_reason;
-
-        public QuiescingSession(ConnectionBase connection,
-                                int channelNumber,
-                                ShutdownEventArgs reason)
-            : base(connection, channelNumber)
-        {
-            m_reason = reason;
+        public override IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint) {
+            return new SocketFrameHandler_0_9(endpoint);
         }
 
-        public override void HandleFrame(Frame frame)
-        {
-            if (frame.Type == CommonFraming.Constants.FrameMethod) {
-                MethodBase method = Connection.Protocol.DecodeMethodFrom(frame.GetReader());
-                if ((method.ProtocolClassId == CommonFramingSpecs.ChannelCloseOk.ClassId)
-                    && (method.ProtocolMethodId == CommonFramingSpecs.ChannelCloseOk.MethodId))
-                {
-                    // This is the reply we were looking for. Release
-                    // the channel with the reason we were passed in
-                    // our constructor.
-                    Close(m_reason);
-                    return;
-                }
-                else if ((method.ProtocolClassId == CommonFramingSpecs.ChannelClose.ClassId)
-                         && (method.ProtocolMethodId == CommonFramingSpecs.ChannelClose.MethodId))
-                {
-                    // We're already shutting down the channel, so
-                    // just send back an ok.
-                    Transmit(CreateChannelCloseOk());
-                    return;
-                }
-
-            }
-
-            // Either a non-method frame, or not what we were looking
-            // for. Ignore it - we're quiescing.
+        public override IModel CreateModel(ISession session) {
+            return new Model(session);
         }
 
-        protected Command CreateChannelCloseOk() {
-            return new Command(new CommonFramingSpecs.ConnectionCloseOk());
+        public override IConnection CreateConnection(ConnectionFactory factory,
+                                                     bool insist,
+                                                     IFrameHandler frameHandler)
+        {
+            return new Connection(factory, insist, frameHandler);
+        }
+
+        public override void CreateConnectionClose(ushort reasonCode,
+                                                   string reasonText,
+                                                   out Command request,
+                                                   out int replyClassId,
+                                                   out int replyMethodId)
+        {
+            request = new Command(new RabbitMQ.Client.Framing.Impl.v0_9_1.ConnectionClose(reasonCode,
+                                                                                          reasonText,
+                                                                                          0, 0));
+            replyClassId = RabbitMQ.Client.Framing.Impl.v0_9_1.ConnectionCloseOk.ClassId;
+            replyMethodId = RabbitMQ.Client.Framing.Impl.v0_9_1.ConnectionCloseOk.MethodId;
+        }
+
+        public override void CreateChannelClose(ushort reasonCode,
+                                                string reasonText,
+                                                out Command request,
+                                                out int replyClassId,
+                                                out int replyMethodId)
+        {
+            request = new Command(new RabbitMQ.Client.Framing.Impl.v0_9_1.ChannelClose(reasonCode,
+                                                                                       reasonText,
+                                                                                       0, 0));
+            replyClassId = RabbitMQ.Client.Framing.Impl.v0_9_1.ChannelCloseOk.ClassId;
+            replyMethodId = RabbitMQ.Client.Framing.Impl.v0_9_1.ChannelCloseOk.MethodId;
+        }
+
+        public override bool CanSendWhileClosed(Command cmd)
+        {
+            return cmd.m_method is RabbitMQ.Client.Framing.Impl.v0_9_1.ChannelCloseOk;
         }
     }
 }
