@@ -454,7 +454,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <field name="delivery tag" domain="delivery tag"/>
       <field name="requeue" type="bit"/>
     </method>
-    <method name="recover" index="100">
+    <method name="recover" synchronous="1" index="100">
       <chassis name="server" implement="MUST"/>
       <field name="requeue" type="bit"/>
       <response name="recover-ok"/>
