@@ -971,10 +971,7 @@ namespace RabbitMQ.Client.Impl
                 Math.Min(clientValue, serverValue);
         }
 
-        /// <summary>
-        /// Connection opening, common to all supported protocol versions
-        /// </summary>
-        protected void OpenCommon()
+        protected void StartAndTune()
         {
             BlockingCell connectionStartCell = new BlockingCell();
             m_model0.m_connectionStartCell = connectionStartCell;
@@ -1038,7 +1035,7 @@ namespace RabbitMQ.Client.Impl
 
         public virtual void Open(bool insist)
         {
-            OpenCommon();
+            StartAndTune();
             string knownHosts = m_model0.ConnectionOpen(m_factory.VirtualHost,
                                                         "", // FIXME: make configurable?
                                                         insist);

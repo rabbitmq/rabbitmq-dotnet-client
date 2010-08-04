@@ -64,7 +64,7 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
 
         public override void Open(bool insist)
         {
-            OpenCommon();
+            StartAndTune();
             m_model0.ConnectionOpen(m_factory.VirtualHost, String.Empty, false);
         }
 
