@@ -347,16 +347,16 @@ library. Such callbacks include:
    IModel] etc.
 
 Application callback handlers [b must not] invoke blocking AMQP
-operations (such as [code IModel.QueueDeclare] or [code
-IModel.BasicCancel]). If they do, the channel will deadlock[footnote
-The underlying implementation reason is that the [code IBasicConsumer]
-callbacks are invoked in the connection's thread rather than in the
-application's thread.].
+operations (such as [code IModel.QueueDeclare], [code
+IModel.BasicCancel] or [code IModel.BasicPublish]). If they do, the
+channel will deadlock[footnote The underlying implementation reason
+is that the [code IBasicConsumer] callbacks are invoked in the connection's
+thread rather than in the application's thread.].
 
-Only asynchronous AMQP operations are safe for use within callbacks,
-such as [code IModel.BasicAck]. It is not safe to use [code
-IModel.BasicPublish] in callbacks, because channel flow could block
-publication.
+Only asynchronous AMQP operations without content are safe for use
+within callbacks, such as [code IModel.BasicAck]. It is not safe to
+use [code IModel.BasicPublish] in callbacks, because channel flow
+could block publication.
 
 For this reason, [code QueueingBasicConsumer] is the safest way of
 subscribing to a queue, because its implementation uses [code
