@@ -13,9 +13,9 @@ NDocProc-generated javadoc-like HTML documentation.
 ** AMQP dialects implemented
 
 The client library implements AMQP specifications version 0-8, 0-8bis
-(0-8 as modified by QPid for their M2 release) and 0-9 (omitting
+(0-8 as modified by QPid for their M2 release), 0-9 (omitting
 sections of the specification marked "work in progress", i.e. the
-[code Message] content-class). The ApiGen tool processes the
+[code Message] content-class) and 0-9-1. The ApiGen tool processes the
 specification XML files in conjunction with certain C# interfaces,
 generating C# code directly, which is compiled into the final
 assembly.

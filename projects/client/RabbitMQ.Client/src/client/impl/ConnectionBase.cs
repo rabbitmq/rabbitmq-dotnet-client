@@ -971,7 +971,7 @@ namespace RabbitMQ.Client.Impl
                 Math.Min(clientValue, serverValue);
         }
 
-        public void Open(bool insist)
+        protected void StartAndTune()
         {
             BlockingCell connectionStartCell = new BlockingCell();
             m_model0.m_connectionStartCell = connectionStartCell;
@@ -1037,18 +1037,15 @@ namespace RabbitMQ.Client.Impl
             m_model0.ConnectionTuneOk(channelMax,
                                       frameMax,
                                       heartbeat);
+        }
 
-            if (Protocol.SupportsRedirect)
-            {
-                string knownHosts = m_model0.ConnectionOpen(m_factory.VirtualHost,
-                                                            "", // FIXME: make configurable?
-                                                            insist);
-                KnownHosts = AmqpTcpEndpoint.ParseMultiple(Protocol, knownHosts);
-            }
-            else
-            {
-                m_model0.ConnectionOpen(m_factory.VirtualHost, String.Empty, false);
-            }
+        public virtual void Open(bool insist)
+        {
+            StartAndTune();
+            string knownHosts = m_model0.ConnectionOpen(m_factory.VirtualHost,
+                                                        "", // FIXME: make configurable?
+                                                        insist);
+            KnownHosts = AmqpTcpEndpoint.ParseMultiple(Protocol, knownHosts);
         }
 
         public override string ToString()

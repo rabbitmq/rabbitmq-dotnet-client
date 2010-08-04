@@ -329,7 +329,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <field name="type" domain="shortstr"/>
     <field name="user-id" domain="shortstr"/>
     <field name="app-id" domain="shortstr"/>
-    <field name="reserved" domain="shortstr"/>
+    <field name="cluster-id" domain="shortstr"/>
     <method name="qos" synchronous="1" index="10">
       <chassis name="server" implement="MUST"/>
       <response name="qos-ok"/>

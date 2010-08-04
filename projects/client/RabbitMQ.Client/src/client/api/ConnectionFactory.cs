@@ -324,14 +324,7 @@ namespace RabbitMQ.Client
         ///No broker-originated redirects are permitted.</summary>
         public virtual IConnection CreateConnection()
         {
-            if (Protocol.SupportsRedirect)
-            {
-                return CreateConnection(0); 
-            }
-            else
-            {               
-                return Protocol.CreateConnection(this, false, Protocol.CreateFrameHandler(Endpoint));
-            }
+            return CreateConnection(0);
         }
     }
 }

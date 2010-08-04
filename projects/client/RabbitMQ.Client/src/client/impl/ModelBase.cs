@@ -148,6 +148,8 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public IBasicConsumer DefaultConsumer { get; set; }
+
         public ISession m_session;
 
         public RpcContinuationQueue m_continuationQueue = new RpcContinuationQueue();
@@ -357,8 +359,14 @@ namespace RabbitMQ.Client.Impl
             }
             if (consumer == null)
             {
-                // FIXME: what is an appropriate thing to do here?
-                throw new NotSupportedException("FIXME unsolicited delivery for consumer tag " + consumerTag);
+                if (DefaultConsumer == null) {
+                    throw new InvalidOperationException("Unsolicited delivery -" +
+                            " see IModel.DefaultConsumer to handle this" +
+                            " case.");
+                }
+                else {
+                    consumer = DefaultConsumer;
+                }
             }
 
             try {
@@ -394,7 +402,7 @@ namespace RabbitMQ.Client.Impl
             OnBasicReturn(e);
         }
         
-        public abstract void _Private_ChannelFlowOk();
+        public abstract void _Private_ChannelFlowOk(bool active);
         
         public void HandleChannelFlow(bool active)
         {
@@ -402,7 +410,7 @@ namespace RabbitMQ.Client.Impl
                 m_flowControlBlock.Set();
             else
                 m_flowControlBlock.Reset();
-            _Private_ChannelFlowOk();
+            _Private_ChannelFlowOk(active);
         }
 
         public void HandleConnectionStart(byte versionMajor,
@@ -802,8 +810,8 @@ namespace RabbitMQ.Client.Impl
         public abstract void TxCommit();
         public abstract void TxRollback();
 
-        public virtual void DtxSelect() { }
-        public virtual void DtxStart(string dtxIdentifier) { }
+        public abstract void DtxSelect();
+        public abstract void DtxStart(string dtxIdentifier);
 
         void IDisposable.Dispose()
         {
@@ -940,14 +948,6 @@ namespace RabbitMQ.Client.Impl
         public abstract void _Private_ConnectionOpen(string virtualHost,
                                                      string capabilities,
                                                      bool insist);
-
-        public void HandleConnectionOpenOk()
-        {
-            ConnectionOpenContinuation k = (ConnectionOpenContinuation)m_continuationQueue.Next();
-            k.m_redirect = false;
-            k.m_host = null;
-            k.HandleCommand(null); // release the continuation.
-        }
 
         public void HandleConnectionOpenOk(string knownHosts)
         {

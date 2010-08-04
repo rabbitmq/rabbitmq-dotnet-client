@@ -61,5 +61,12 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
     public class Connection: ConnectionBase {
         public Connection(ConnectionFactory factory, bool insist, IFrameHandler frameHandler)
             : base(factory, insist, frameHandler) {}
+
+        public override void Open(bool insist)
+        {
+            StartAndTune();
+            m_model0.ConnectionOpen(m_factory.VirtualHost, String.Empty, false);
+        }
+
     }
 }

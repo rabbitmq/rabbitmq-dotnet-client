@@ -77,11 +77,6 @@ namespace RabbitMQ.Client.MessagePatterns {
     /// IEnumerator in, for example, a foreach loop.
     ///</para>
     ///<para>
-    /// See the documentation for Bind() and for the various overloads
-    /// of the constructor for the various styles of binding and
-    /// subscription that are available.
-    ///</para>
-    ///<para>
     /// Note that if the "noAck" option is enabled (which it is by
     /// default), then received deliveries are automatically acked
     /// within the server before they are even transmitted across the
@@ -103,11 +98,8 @@ namespace RabbitMQ.Client.MessagePatterns {
         protected readonly object m_consumerLock = new object();
         protected volatile QueueingBasicConsumer m_consumer;
         protected string m_consumerTag;
-        protected volatile bool m_shouldDelete;
 
-        ///<summary>Retrieve the queue name we have subscribed to. May
-        ///be a server-generated name, depending on how the
-        ///Subscription was constructed.</summary>
+        ///<summary>Retrieve the queue name we have subscribed to.</summary>
         public string QueueName { get { return m_queueName; } }
         ///<summary>Retrieve the IBasicConsumer that is receiving the
         ///messages from the server for us. Normally, you will not
@@ -136,145 +128,42 @@ namespace RabbitMQ.Client.MessagePatterns {
         public BasicDeliverEventArgs LatestEvent { get { return m_latestEvent; } }
 
         ///<summary>Creates a new Subscription in "noAck" mode,
-        ///consuming from a fresh, exclusive, autodelete, anonymous
-        ///queue. The name of the queue can be retrieved using the
-        ///QueueName property of the Subscription. After creating the
-        ///queue, the queue is bound to the named exchange, using
-        ///Bind() with the given routingKey bind parameter.</summary>
-        public Subscription(IModel model, string exchangeName,
-                            string exchangeType, string routingKey)
-            : this(model)
-        {
-            Bind(exchangeName, exchangeType, routingKey);
-        }
-
-        ///<summary>Creates a new Subscription in "noAck" mode,
-        ///consuming from a fresh, exclusive, autodelete, anonymous
-        ///queue. The name of the queue can be retrieved using the
-        ///QueueName property of the Subscription.</summary>
-        public Subscription(IModel model)
-            : this(model, null) {}
-
-        ///<summary>Creates a new Subscription in "noAck" mode,
-        ///consuming from a named queue. If the queueName parameter is
-        ///null or the empty-string, creates a fresh, exclusive,
-        ///autodelete, anonymous queue; otherwise, the queue is
-        ///declared using IModel.QueueDeclare() before
-        ///IModel.BasicConsume() is called. After declaring the queue
-        ///and starting the consumer, the queue is bound to the named
-        ///exchange, using Bind() with the given routingKey bind
-        ///parameter.</summary>
-        public Subscription(IModel model, string queueName, string exchangeName,
-                            string exchangeType, string routingKey)
-            : this(model, queueName)
-        {
-            Bind(exchangeName, exchangeType, routingKey);
-        }
-
-        ///<summary>Creates a new Subscription in "noAck" mode,
-        ///consuming from a named queue. If the queueName parameter is
-        ///null or the empty-string, creates a fresh, exclusive,
-        ///autodelete, anonymous queue; otherwise, the queue is
-        ///declared using IModel.QueueDeclare() before
-        ///IModel.BasicConsume() is called.</summary>
+        ///consuming from a named queue.</summary>
         public Subscription(IModel model, string queueName)
             : this(model, queueName, true) {}
 
         ///<summary>Creates a new Subscription, with full control over
-        ///both "noAck" mode and the name of the queue (which, if null
-        ///or the empty-string, will be a fresh, exclusive,
-        ///autodelete, anonymous queue, as for the other constructor
-        ///overloads). After declaring the queue and starting the
-        ///consumer, the queue is bound to the named exchange, using
-        ///Bind() with the given routingKey bind parameter.</summary>
-        public Subscription(IModel model, string queueName, bool noAck,
-                            string exchangeName, string exchangeType, string routingKey)
-            : this(model, queueName, noAck)
-        {
-            Bind(exchangeName, exchangeType, routingKey);
-        }
-
-        ///<summary>Creates a new Subscription, with full control over
-        ///both "noAck" mode and the name of the queue (which, if null
-        ///or the empty-string, will be a fresh, exclusive,
-        ///autodelete, anonymous queue, as for the other constructor
-        ///overloads).</summary>
+        ///both "noAck" mode and the name of the queue.</summary>
         public Subscription(IModel model, string queueName, bool noAck)
         {
             m_model = model;
-            if (queueName == null || queueName.Equals("")) {
-                m_queueName = m_model.QueueDeclare();
-                m_shouldDelete = true;
-            } else {
-                m_queueName = m_model.QueueDeclare(queueName);
-                m_shouldDelete = false;
-            }
+            m_queueName = queueName;
             m_consumer = new QueueingBasicConsumer(m_model);
             m_consumerTag = m_model.BasicConsume(m_queueName, m_noAck, null, m_consumer);
             m_latestEvent = null;
         }
 
         ///<summary>Closes this Subscription, cancelling the consumer
-        ///record in the server. If an anonymous, exclusive,
-        ///autodelete queue (i.e., one with a server-generated name)
-        ///was created during construction of the Subscription, this
-        ///method also deletes the created queue (which is an
-        ///optimisation: autodelete queues will be deleted when the
-        ///IModel closes in any case).</summary>
+        ///record in the server.</summary>
         public void Close()
         {
             try {
                 bool shouldCancelConsumer = false;
-                bool shouldDelete = false;
 
                 lock (m_consumerLock) {
                     if (m_consumer != null) {
                         shouldCancelConsumer = true;
                         m_consumer = null;
                     }
-
-                    shouldDelete = m_shouldDelete;
-                    // We set m_shouldDelete false before attempting
-                    // the delete, because trying twice is worse than
-                    // trying once and failing.
-                    m_shouldDelete = false;
                 }
 
                 if (shouldCancelConsumer) {
                     m_model.BasicCancel(m_consumerTag);
                     m_consumerTag = null;
                 }
-
-                if (shouldDelete) {
-                    m_model.QueueDelete(m_queueName, false, false, false);
-                }
             } catch (OperationInterruptedException) {
                 // We don't mind, here.
             }
-        }
-
-        ///<summary>Causes the queue to which we have subscribed to be
-        ///bound to an exchange. Uses IModel.ExchangeDeclare and
-        ///IModel.QueueBind to (a) ensure the exchange exists, and (b)
-        ///link the exchange to our queue.</summary>
-        ///<remarks>
-        ///<para>
-        /// This method is called by some of the overloads of the
-        /// Subscription constructor.
-        ///</para>
-        ///<para>
-        /// Calling Bind() multiple times to bind to multiple
-        /// exchanges, or to bind to a single exchange more than once
-        /// with a different routingKey, is perfectly
-        /// acceptable. Calling Bind() twice with exactly the same
-        /// arguments is permitted and idempotent. For details, see
-        /// the AMQP specification.
-        ///</para>
-        ///</remarks>
-        public void Bind(string exchangeName, string exchangeType, string routingKey)
-        {
-            m_model.ExchangeDeclare(exchangeName, exchangeType);
-            m_model.QueueBind(m_queueName, exchangeName, routingKey, false, null);
         }
 
         ///<summary>If LatestEvent is non-null, passes it to

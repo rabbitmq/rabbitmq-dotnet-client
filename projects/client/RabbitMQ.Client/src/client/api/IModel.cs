@@ -93,6 +93,30 @@ namespace RabbitMQ.Client
         ///</remarks>
         event CallbackExceptionEventHandler CallbackException;
 
+        ///<summary>Signalled when an unexpected message is delivered
+        ///
+        /// Under certain circumstances it is possible for a channel to receive a
+        /// message delivery which does not match any consumer which is currently
+        /// set up via basicConsume(). This will occur after the following sequence
+        /// of events:
+        ///
+        /// ctag = basicConsume(queue, consumer); // i.e. with explicit acks
+        /// // some deliveries take place but are not acked
+        /// basicCancel(ctag);
+        /// basicRecover(false);
+        ///
+        /// Since requeue is specified to be false in the basicRecover, the spec
+        /// states that the message must be redelivered to "the original recipient"
+        /// - i.e. the same channel / consumer-tag. But the consumer is no longer
+        /// active.
+        ///
+        /// In these circumstances, you can register a default consumer to handle
+        /// such deliveries. If no default consumer is registered an
+        /// InvalidOperationException will be thrown when such a delivery arrives.
+        ///
+        /// Most people will not need to use this.</summary>
+        IBasicConsumer DefaultConsumer { get; set; }
+
         ///<summary>Returns null if the session is still in a state
         ///where it can be used, or the cause of its closure
         ///otherwise.</summary>
@@ -154,7 +178,6 @@ namespace RabbitMQ.Client
                              [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved3")]
                              bool @internal,
                              [AmqpNowaitArgument(null)]
-                             [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "noWait")]
                              bool nowait,
                              IDictionary arguments);
 
@@ -162,7 +185,6 @@ namespace RabbitMQ.Client
         void ExchangeDelete(string exchange,
                             bool ifUnused,
                             [AmqpNowaitArgument(null)]
-                            [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "noWait")]
                             bool nowait);
 
         ///<summary>(Spec method) Declare a queue.</summary>
@@ -203,8 +225,6 @@ namespace RabbitMQ.Client
                             bool exclusive,
                             bool autoDelete,
                             [AmqpNowaitArgument(null)]
-                            [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1",
-                                              "noWait")]
                             bool nowait,
                             IDictionary arguments);
 
@@ -213,8 +233,6 @@ namespace RabbitMQ.Client
                        string exchange,
                        string routingKey,
                        [AmqpNowaitArgument(null)]
-                       [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1",
-                                         "noWait")]
                        bool nowait,
                        IDictionary arguments);
 
@@ -239,8 +257,6 @@ namespace RabbitMQ.Client
         [return: AmqpFieldMapping(null, "messageCount")]
         uint QueuePurge(string queue,
                         [AmqpNowaitArgument(null, "0xFFFFFFFF")]
-                        [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1",
-                                          "noWait")]
                         bool nowait);
 
         ///<summary>(Spec method) Delete a queue.</summary>
@@ -254,8 +270,6 @@ namespace RabbitMQ.Client
                          bool ifUnused,
                          bool ifEmpty,
                          [AmqpNowaitArgument(null, "0xFFFFFFFF")]
-                         [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1",
-                                           "noWait")]
                          bool nowait);
 
         ///<summary>Start a Basic content-class consumer.</summary>
@@ -372,11 +386,11 @@ namespace RabbitMQ.Client
         void TxRollback();
 
         ///<summary>(Spec method) Enable DTX mode for this session.</summary>
-        [AmqpMethodDoNotImplement("RabbitMQ.Client.Framing.v0_9_1")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
         void DtxSelect();
 
         ///<summary>(Spec method)</summary>
-        [AmqpMethodDoNotImplement("RabbitMQ.Client.Framing.v0_9_1")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
         void DtxStart(string dtxIdentifier);
 
         ///<summary>Close this session.</summary>
@@ -533,8 +547,6 @@ namespace RabbitMQ.Client.Impl
                                    bool noLocal,
                                    bool noAck,
                                    bool exclusive,
-                                   [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1",
-                                                     "noWait")]
                                    bool nowait,
                                    [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
                                    [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_8qpid",
@@ -552,8 +564,6 @@ namespace RabbitMQ.Client.Impl
         [AmqpForceOneWay]
         [AmqpMethodMapping(null, "basic", "cancel")]
         void _Private_BasicCancel(string consumerTag,
-                                  [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1",
-                                                     "noWait")]
                                   bool nowait);
 
         ///<summary>Handle incoming Basic.CancelOk methods.</summary>
@@ -636,7 +646,7 @@ namespace RabbitMQ.Client.Impl
         ///<summary>Used to send a Channel.FlowOk. Confirms that
         ///Channel.Flow from the broker was processed.</summary>
         [AmqpMethodMapping(null, "channel", "flow-ok")]
-        void _Private_ChannelFlowOk();
+        void _Private_ChannelFlowOk(bool active);
         
         ///<summary>Handle incoming Channel.Flow methods. Either
         ///stops or resumes sending the methods that have content.</summary>
@@ -686,12 +696,12 @@ namespace RabbitMQ.Client.Impl
         [AmqpMethodMapping(null, "connection", "open")]
         void _Private_ConnectionOpen(string virtualHost,
                                      [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved1")]
-                                     string capabilities,                                    
+                                     string capabilities,
                                      [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved2")]
                                      bool insist);
 
         ///<summary>Handle an incoming Connection.OpenOk.</summary>
-        void HandleConnectionOpenOk([AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
+        void HandleConnectionOpenOk([AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved1")]
                                     string knownHosts);
 
         ///<summary>Handle an incoming Connection.Redirect.</summary>
@@ -753,7 +763,9 @@ namespace RabbitMQ.Client.Apigen.Attributes
     ///<summary>Causes the API generator to ignore the attributed method.</summary>
     ///
     ///<remarks>Mostly used to declare convenience overloads of
-    ///various AMQP methods in the IModel interface. The API
+    ///various AMQP methods in the IModel interface. Also used
+    ///to omit an autogenerated implementation of a method which
+    ///is not required for one protocol version. The API
     ///autogeneration process should of course not attempt to produce
     ///an implementation of the convenience methods, as they will be
     ///implemented by hand with sensible defaults, delegating to the

@@ -115,7 +115,7 @@ namespace RabbitMQ.Client
         ///(currently AMQP_0_8)</summary>
         public static IProtocol DefaultProtocol
         {
-            get { return AMQP_0_8; }
+            get { return AMQP_0_9_1; }
         }
 
         ///<summary>Low-level method for retrieving a protocol version

@@ -87,20 +87,16 @@ namespace RabbitMQ.Client.MessagePatterns {
     ///	        SimpleRpcClient client =
     ///	            new SimpleRpcClient(ch, queueName);
     ///	        client.TimeoutMilliseconds = 5000; // optional
-    ///	
+    ///
     ///	        /// ... make use of the various Call() overloads
     ///	    }
     ///	}
     ///</code></example>
     ///<para>
-    /// Instances of this class do not themselves declare any
-    /// resources (exchanges, queues or bindings). The Subscription we
-    /// use for receiving RPC replies declares its own resources
-    /// (usually a single queue), but if we are sending to an exchange
-    /// other than one of the AMQP-standard mandated predefined
-    /// exchanges, it is the user's responsibility to ensure that the
-    /// exchange concerned exists (using IModel.ExchangeDeclare)
-    /// before invoking Call() or Cast().
+    /// Instances of this class declare a queue, so it is the user's
+    /// responsibility to ensure that the exchange concerned exists
+    /// (using IModel.ExchangeDeclare) before invoking Call() or
+    /// Cast().
     ///</para>
     ///<para>
     /// This class implements only a few basic RPC message formats -
@@ -235,7 +231,8 @@ namespace RabbitMQ.Client.MessagePatterns {
         protected virtual void EnsureSubscription()
         {
             if (m_subscription == null) {
-                m_subscription = new Subscription(m_model);
+                string queueName = m_model.QueueDeclare();
+                m_subscription = new Subscription(m_model, queueName);
             }
         }
 
