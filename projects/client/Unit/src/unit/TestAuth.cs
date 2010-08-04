@@ -93,9 +93,6 @@ namespace RabbitMQ.Client.Unit
                         failureReason);
                 }              
             }
-            catch (PossibleAuthenticationFailureException)
-            {
-            }
         }
     }
 }

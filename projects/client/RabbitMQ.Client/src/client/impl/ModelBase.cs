@@ -945,14 +945,6 @@ namespace RabbitMQ.Client.Impl
                                                      string capabilities,
                                                      bool insist);
 
-        public void HandleConnectionOpenOk()
-        {
-            ConnectionOpenContinuation k = (ConnectionOpenContinuation)m_continuationQueue.Next();
-            k.m_redirect = false;
-            k.m_host = null;
-            k.HandleCommand(null); // release the continuation.
-        }
-
         public void HandleConnectionOpenOk(string knownHosts)
         {
             ConnectionOpenContinuation k = (ConnectionOpenContinuation)m_continuationQueue.Next();
