@@ -64,7 +64,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("RabbitMQ.ServiceModel.Test")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Rabbit Technologies Ltd.")]
 [assembly: AssemblyProduct("RabbitMQ.ServiceModel.Test")]
 [assembly: AssemblyCopyright("Copyright © 2007-2010 LShift Ltd., Cohesive Financial Technologies LLC., and Rabbit Technologies Ltd.")]
 [assembly: AssemblyTrademark("")]
