@@ -172,6 +172,7 @@ namespace RabbitMQ.Client
               Protocol = value.Protocol;
               Port = value.Port;
               HostName = value.HostName;
+              Ssl = value.Ssl;
           }
         }
 
