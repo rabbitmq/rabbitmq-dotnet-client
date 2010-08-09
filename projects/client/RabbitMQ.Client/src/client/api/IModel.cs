@@ -364,6 +364,7 @@ namespace RabbitMQ.Client
                          bool requeue);
 
         ///<summary>(Spec method)</summary>
+        [AmqpMethodDoNotImplement(null)]
         void BasicRecover(bool requeue);
 
         ///<summary>(Spec method)</summary>
@@ -623,6 +624,10 @@ namespace RabbitMQ.Client.Impl
         /// review".
         ///</remarks>
         void HandleBasicGetEmpty();
+
+        [AmqpForceOneWay]
+        [AmqpMethodMapping(null, "basic", "recover")]
+        void _Private_BasicRecover(bool requeue);
 
         ///<summary>Handle incoming Basic.Deliver methods. Dispatches
         ///to waiting consumers.</summary>

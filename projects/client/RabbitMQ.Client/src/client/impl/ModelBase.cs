@@ -734,6 +734,28 @@ namespace RabbitMQ.Client.Impl
             return k.m_result;
         }
 
+        public abstract void _Private_BasicRecover(bool requeue);
+
+        public void BasicRecover(bool requeue)
+        {
+            SimpleBlockingRpcContinuation k = new SimpleBlockingRpcContinuation();
+
+            Enqueue(k);
+
+            try
+            {
+                _Private_BasicRecover(requeue);
+            }
+            catch (AlreadyClosedException)
+            {
+                // Ignored, since the continuation will be told about
+                // the closure via an OperationInterruptedException because
+                // of the shutdown event propagation.
+            }
+
+            k.GetReply();
+        }
+
         public abstract void BasicQos(uint prefetchSize,
                                       ushort prefetchCount,
                                       bool global);
@@ -804,7 +826,6 @@ namespace RabbitMQ.Client.Impl
         public abstract void BasicReject(ulong deliveryTag,
                                          bool requeue);
 
-        public abstract void BasicRecover(bool requeue);
         public abstract void BasicRecoverAsync(bool requeue);
 
         public abstract void TxSelect();
