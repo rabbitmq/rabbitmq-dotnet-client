@@ -93,6 +93,10 @@ namespace RabbitMQ.Client
         ///</remarks>
         event CallbackExceptionEventHandler CallbackException;
 
+        ///<summary>Signalled when a RecoverOk is received from the
+        ///server. </summary>
+        event BasicRecoverOkEventHandler BasicRecoverOk;
+
         ///<summary>Signalled when an unexpected message is delivered
         ///
         /// Under certain circumstances it is possible for a channel to receive a

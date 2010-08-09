@@ -82,6 +82,7 @@ namespace RabbitMQ.Client.Impl
         private readonly object m_eventLock = new object();
         private BasicReturnEventHandler m_basicReturn;
         private CallbackExceptionEventHandler m_callbackException;
+        private BasicRecoverOkEventHandler m_basicRecoverOk;
         
         public ManualResetEvent m_flowControlBlock = new ManualResetEvent(true);
 
@@ -144,6 +145,24 @@ namespace RabbitMQ.Client.Impl
                 lock (m_eventLock)
                 {
                     m_callbackException -= value;
+                }
+            }
+        }
+
+        public event BasicRecoverOkEventHandler BasicRecoverOk
+        {
+            add
+            {
+                lock (m_eventLock)
+                {
+                    m_basicRecoverOk += value;
+                }
+            }
+            remove
+            {
+                lock (m_eventLock)
+                {
+                    m_basicRecoverOk -= value;
                 }
             }
         }
@@ -274,6 +293,31 @@ namespace RabbitMQ.Client.Impl
                         // Callback-exception-handler. That was the
                         // app's last chance. Swallow the exception.
                         // FIXME: proper logging
+                    }
+                }
+            }
+        }
+
+        public virtual void OnBasicRecoverOk(EventArgs args)
+        {
+            BasicRecoverOkEventHandler handler;
+            lock (m_eventLock)
+            {
+                handler = m_basicRecoverOk;
+            }
+            if (handler != null)
+            {
+                foreach (BasicRecoverOkEventHandler h in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        h(this, args);
+                    }
+                    catch (Exception e)
+                    {
+                        CallbackExceptionEventArgs exnArgs = new CallbackExceptionEventArgs(e);
+                        exnArgs.Detail["context"] = "OnBasicRecoverOk";
+                        OnCallbackException(exnArgs);
                     }
                 }
             }
@@ -754,6 +798,7 @@ namespace RabbitMQ.Client.Impl
             }
 
             k.GetReply();
+            OnBasicRecoverOk(new EventArgs());
         }
 
         public abstract void BasicQos(uint prefetchSize,
