@@ -93,15 +93,15 @@ namespace RabbitMQ.Client
             set { m_hostName = value; }
         }
 
-        private int? m_port;
+        private int m_port;
         ///<summary>Retrieve or set the port number of this
         ///AmqpTcpEndpoint. A port number of -1 causes the default
         ///port number for the IProtocol to be used.</summary>
         public int Port
         {
             get {
-                if (m_port.HasValue)
-                    return m_port.Value;
+                if (m_port != UseDefaultPort)
+                    return m_port;
                 if (m_ssl.Enabled)
                     return DefaultAmqpSslPort;
                 return m_protocol.DefaultPort;
