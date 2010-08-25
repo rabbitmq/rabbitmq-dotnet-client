@@ -81,8 +81,9 @@ namespace RabbitMQ.Client.Impl
 
         private readonly object m_eventLock = new object();
         private BasicReturnEventHandler m_basicReturn;
+        private BasicAckEventHandler m_basicAck;
         private CallbackExceptionEventHandler m_callbackException;
-        
+
         public ManualResetEvent m_flowControlBlock = new ManualResetEvent(true);
 
         public event ModelShutdownEventHandler ModelShutdown
@@ -126,6 +127,24 @@ namespace RabbitMQ.Client.Impl
                 lock (m_eventLock)
                 {
                     m_basicReturn -= value;
+                }
+            }
+        }
+
+        public event BasicAckEventHandler BasicAcks
+        {
+            add
+            {
+                lock (m_eventLock)
+                {
+                    m_basicAck += value;
+                }
+            }
+            remove
+            {
+                lock (m_eventLock)
+                {
+                    m_basicAck -= value;
                 }
             }
         }
@@ -253,6 +272,27 @@ namespace RabbitMQ.Client.Impl
                     } catch (Exception e) {
                         CallbackExceptionEventArgs exnArgs = new CallbackExceptionEventArgs(e);
                         exnArgs.Detail["context"] = "OnBasicReturn";
+                        OnCallbackException(exnArgs);
+                    }
+                }
+            }
+        }
+
+        public virtual void OnBasicAck(BasicAckEventArgs args)
+        {
+            BasicAckEventHandler handler;
+            lock (m_eventLock)
+            {
+                handler = m_basicAck;
+            }
+            if (handler != null)
+            {
+                foreach (BasicAckEventHandler h in handler.GetInvocationList()) {
+                    try {
+                        h(this, args);
+                    } catch (Exception e) {
+                        CallbackExceptionEventArgs exnArgs = new CallbackExceptionEventArgs(e);
+                        exnArgs.Detail["context"] = "OnBasicAck";
                         OnCallbackException(exnArgs);
                     }
                 }
@@ -401,9 +441,18 @@ namespace RabbitMQ.Client.Impl
             e.Body = body;
             OnBasicReturn(e);
         }
-        
+
+        public void HandleBasicAck(ulong deliveryTag,
+                                   bool multiple)
+        {
+            BasicAckEventArgs e = new BasicAckEventArgs();
+            e.DeliveryTag = deliveryTag;
+            e.Multiple = multiple;
+            OnBasicAck(e);
+        }
+
         public abstract void _Private_ChannelFlowOk(bool active);
-        
+
         public void HandleChannelFlow(bool active)
         {
             if (active)
@@ -566,6 +615,8 @@ namespace RabbitMQ.Client.Impl
                                          bool ifUnused,
                                          bool ifEmpty,
                                          bool nowait);
+
+        public abstract void ConfirmSelect(bool multiple, bool nowait);
 
         public string BasicConsume(string queue,
                                    IDictionary filter,

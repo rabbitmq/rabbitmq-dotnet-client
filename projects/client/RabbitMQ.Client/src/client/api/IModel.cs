@@ -83,6 +83,10 @@ namespace RabbitMQ.Client
         ///the broker.</summary>
         event BasicReturnEventHandler BasicReturn;
 
+        ///<summary>Signalled when a Basic.Ack command arrives from
+        ///the broker.</summary>
+        event BasicAckEventHandler BasicAcks;
+
         ///<summary>Signalled when an exception occurs in a callback
         ///invoked by the model.</summary>
         ///<remarks>
@@ -267,6 +271,11 @@ namespace RabbitMQ.Client
                          bool ifEmpty,
                          [AmqpNowaitArgument(null, "0xFFFFFFFF")]
                          bool nowait);
+
+        ///<summary>(Spec method) Enable publisher acknowledgements.</summary>
+        void ConfirmSelect(bool multiple,
+                           [AmqpNowaitArgument(null, "0xFFFFFFFF")]
+                           bool nowait);
 
         ///<summary>Start a Basic content-class consumer.</summary>
         ///<remarks>
@@ -632,7 +641,12 @@ namespace RabbitMQ.Client.Impl
                                IBasicProperties basicProperties,
                                [AmqpContentBodyMapping]
                                byte[] body);
-                               
+
+        ///<summary>Handle incoming Basic.Ack methods. Signals a
+        ///BasicAckEvent.</summary>
+        void HandleBasicAck(ulong deliveryTag,
+                            bool multiple);
+
         ///<summary>Used to send a Channel.FlowOk. Confirms that
         ///Channel.Flow from the broker was processed.</summary>
         [AmqpMethodMapping(null, "channel", "flow-ok")]
