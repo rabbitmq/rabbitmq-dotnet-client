@@ -86,6 +86,8 @@ namespace RabbitMQ.Client.Impl
 
         public ManualResetEvent m_flowControlBlock = new ManualResetEvent(true);
 
+        private ulong? m_pubMsgCount = null;
+
         public event ModelShutdownEventHandler ModelShutdown
         {
             add
@@ -367,6 +369,14 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public ulong? PublishedMessageCount
+        {
+            get
+            {
+                return m_pubMsgCount;
+            }
+        }
+
         public void ModelSend(MethodBase method, ContentHeaderBase header, byte[] body)
         {
             if (method.HasContent) {
@@ -616,7 +626,17 @@ namespace RabbitMQ.Client.Impl
                                          bool ifEmpty,
                                          bool nowait);
 
-        public abstract void ConfirmSelect(bool multiple, bool nowait);
+        public void ConfirmSelect(bool multiple) {
+            ConfirmSelect(multiple, false);
+        }
+
+        public void ConfirmSelect(bool multiple, bool nowait) {
+            m_pubMsgCount = 0;
+            _Private_ConfirmSelect(multiple, nowait);
+        }
+
+        public abstract void _Private_ConfirmSelect(bool multiple,
+                                                    bool nowait);
 
         public string BasicConsume(string queue,
                                    IDictionary filter,
@@ -830,6 +850,8 @@ namespace RabbitMQ.Client.Impl
             {
                 basicProperties = CreateBasicProperties();
             }
+            if (m_pubMsgCount.HasValue)
+                m_pubMsgCount++;
             _Private_BasicPublish(exchange,
                                   routingKey,
                                   mandatory,

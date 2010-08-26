@@ -3694,14 +3694,6 @@ confirm transaction mode
       </doc>
       <chassis name="server" implement="MUST"/>
       <response name="select-ok"/>
-      <field name = "nowait" type = "bit">
-        do not send a reply method
-        <doc>
-          If set, the server will not respond to the method. The client should
-          not wait for a reply method.  If the server could not complete the
-          method it will raise a channel or connection exception.
-        </doc>
-      </field>
       <field name = "multiple" type = "bit">
         acknowledge multiple messages
         <doc>
@@ -3709,6 +3701,14 @@ confirm transaction mode
           treated as "up to and including", so that the server can
           acknowledge multiple messages with a single method.  If set
           to zero, the delivery tag refers to a single message.
+        </doc>
+      </field>
+      <field name = "nowait" type = "bit">
+        do not send a reply method
+        <doc>
+          If set, the server will not respond to the method. The client should
+          not wait for a reply method.  If the server could not complete the
+          method it will raise a channel or connection exception.
         </doc>
       </field>
     </method>

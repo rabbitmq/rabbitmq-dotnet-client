@@ -131,6 +131,10 @@ namespace RabbitMQ.Client
         ///== null.</summary>
         bool IsOpen { get; }
 
+        ///<summary>Returns the number of messages published since the
+        ///channel was put in confirm mode.</summary>
+        ulong? PublishedMessageCount { get; }
+
         ///<summary>Construct a completely empty content header for
         ///use with the Basic content class.</summary>
         [AmqpContentHeaderFactory("basic")]
@@ -272,10 +276,15 @@ namespace RabbitMQ.Client
                          [AmqpNowaitArgument(null, "0xFFFFFFFF")]
                          bool nowait);
 
+        ///<summary>Enable publisher acknowledgements.</summary>
+        [AmqpMethodDoNotImplement(null)]
+            [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
+        void ConfirmSelect(bool multiple);
+
         ///<summary>(Spec method) Enable publisher acknowledgements.</summary>
-        void ConfirmSelect(bool multiple,
-                           [AmqpNowaitArgument(null, "0xFFFFFFFF")]
-                           bool nowait);
+        [AmqpMethodDoNotImplement(null)]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
+        void ConfirmSelect(bool multiple, bool nowait);
 
         ///<summary>Start a Basic content-class consumer.</summary>
         ///<remarks>
@@ -555,6 +564,15 @@ namespace RabbitMQ.Client.Impl
                                    [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_8qpid",
                                                      "arguments")]
                                    IDictionary filter);
+
+        ///<summary>Used to send a Confirm.Select method. The public
+        ///confirm API calls this while also managing internal
+        ///datastructures.</summary>
+        [AmqpMethodMapping(null, "confirm", "select")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
+        void _Private_ConfirmSelect(bool multiple,
+                                    bool nowait);
+
 
         ///<summary>Handle incoming Basic.ConsumeOk methods.</summary>
         void HandleBasicConsumeOk(string consumerTag);
