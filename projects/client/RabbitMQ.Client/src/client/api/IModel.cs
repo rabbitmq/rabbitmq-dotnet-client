@@ -278,13 +278,8 @@ namespace RabbitMQ.Client
 
         ///<summary>Enable publisher acknowledgements.</summary>
         [AmqpMethodDoNotImplement(null)]
-            [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        void ConfirmSelect(bool multiple);
-
-        ///<summary>(Spec method) Enable publisher acknowledgements.</summary>
-        [AmqpMethodDoNotImplement(null)]
         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        void ConfirmSelect(bool multiple, bool nowait);
+        void ConfirmSelect(bool multiple);
 
         ///<summary>Start a Basic content-class consumer.</summary>
         ///<remarks>
@@ -568,9 +563,10 @@ namespace RabbitMQ.Client.Impl
         ///<summary>Used to send a Confirm.Select method. The public
         ///confirm API calls this while also managing internal
         ///datastructures.</summary>
-        [AmqpMethodMapping(null, "confirm", "select")]
         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
+        [AmqpMethodMapping(null, "confirm", "select")]
         void _Private_ConfirmSelect(bool multiple,
+                                    [AmqpNowaitArgument(null)]
                                     bool nowait);
 
 

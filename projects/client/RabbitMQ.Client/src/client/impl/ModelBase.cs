@@ -627,12 +627,8 @@ namespace RabbitMQ.Client.Impl
                                          bool nowait);
 
         public void ConfirmSelect(bool multiple) {
-            ConfirmSelect(multiple, false);
-        }
-
-        public void ConfirmSelect(bool multiple, bool nowait) {
             m_pubMsgCount = 0;
-            _Private_ConfirmSelect(multiple, nowait);
+            _Private_ConfirmSelect(multiple, false);
         }
 
         public abstract void _Private_ConfirmSelect(bool multiple,
