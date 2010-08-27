@@ -1066,6 +1066,8 @@ namespace RabbitMQ.Client.Apigen {
                 EmitLine("        ModelSend(__req,"+contentHeaderExpr+","+contentBodyExpr+");");
                 if (method.ReturnType != typeof(void)) {
                     EmitLine("        return "+nowaitExpression+";");
+                } else {
+                    EmitLine("        return;");
                 }
                 EmitLine("      }");
             }
