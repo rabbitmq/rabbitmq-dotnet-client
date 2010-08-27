@@ -60,3 +60,5 @@ doc: rabbit-vsn ensure-prerequisites ensure-release-dir ensure-docs
 	  rm -rf ${NAME_VSN}-wcf-htmldoc && \
 	  unzip ${NAME_VSN}-wcf-htmldoc.zip -d ${NAME_VSN}-wcf-htmldoc
 
+clean:
+	rm -rf $(RELEASE_DIR)/*
