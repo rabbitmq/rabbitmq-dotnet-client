@@ -29,7 +29,7 @@ To compile the RabbitMQ .NET client library, you will need
 
 To run the unit tests, you will need
 
- - NUnit 2.4.3; included in the [code lib] directory
+ - NUnit 2.5 or later; included in the [code lib] directory
 
 ** Configuring Your Tree
 

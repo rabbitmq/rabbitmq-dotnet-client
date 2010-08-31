@@ -75,14 +75,18 @@ namespace RabbitMQ.Client.Exceptions {
         ///<summary>The peer's AMQP specification minor version.</summary>
         public int ServerMinor { get { return m_serverMinor; } }
 
+        private static String positiveOrUnknown(int version){
+            return version >= 0 ? version.ToString() : "unknown";
+        }
+
         ///<summary>Fills the new instance's properties with the values passed in.</summary>
         public ProtocolVersionMismatchException(int clientMajor,
                                                 int clientMinor,
                                                 int serverMajor,
                                                 int serverMinor)
             : base("AMQP server protocol negotiation failure: server version "+
-                   serverMajor + "-" + serverMinor +
-                   ", client version " + clientMajor + "-" + clientMinor)
+                   positiveOrUnknown(serverMajor) + "-" + positiveOrUnknown(serverMinor) +
+                   ", client version " + positiveOrUnknown(clientMajor) + "-" + positiveOrUnknown(clientMinor))
         {
             m_clientMajor = clientMajor;
             m_clientMinor = clientMinor;

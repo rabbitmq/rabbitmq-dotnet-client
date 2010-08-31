@@ -131,9 +131,11 @@ function dist-zips {
         "/suppress:RabbitMQ.Client.Framing.v0_8 \
          /suppress:RabbitMQ.Client.Framing.v0_8qpid \
          /suppress:RabbitMQ.Client.Framing.v0_9 \
+         /suppress:RabbitMQ.Client.Framing.v0_9_1 \
          /suppress:RabbitMQ.Client.Framing.Impl.v0_8 \
          /suppress:RabbitMQ.Client.Framing.Impl.v0_8qpid \
          /suppress:RabbitMQ.Client.Framing.Impl.v0_9 \
+         /suppress:RabbitMQ.Client.Framing.Impl.v0_9_1 \
          /suppress:RabbitMQ.Client.Impl \
          /suppress:RabbitMQ.Client.Apigen.Attributes" \
         $NAME_VSN-tmp-xmldoc.zip \

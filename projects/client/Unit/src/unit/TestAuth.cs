@@ -91,11 +91,6 @@ namespace RabbitMQ.Client.Unit
                     Assert.IsInstanceOfType(
                         typeof(PossibleAuthenticationFailureException), 
                         failureReason);
-                    Assert.That(
-                        ((PossibleAuthenticationFailureException)failureReason)
-                            .Message
-                            .ToLower()
-                            .Contains("auth"));
                 }              
             }
         }
