@@ -281,6 +281,12 @@ namespace RabbitMQ.Client
         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
         void ConfirmSelect(bool multiple);
 
+        ///<summary>Enable publisher acknowledgements.</summary>
+        [AmqpMethodDoNotImplement(null)]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
+        void ConfirmSelect(bool multiple, bool nowait);
+
+
         ///<summary>Start a Basic content-class consumer.</summary>
         ///<remarks>
         ///The consumer is started with noAck=false (i.e. BasicAck is required),
