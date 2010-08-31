@@ -1064,10 +1064,10 @@ namespace RabbitMQ.Client.Apigen {
             if (nowaitParameter != null) {
                 EmitLine("      if ("+nowaitParameter.Name+") {");
                 EmitLine("        ModelSend(__req,"+contentHeaderExpr+","+contentBodyExpr+");");
-                if (method.ReturnType != typeof(void)) {
-                    EmitLine("        return "+nowaitExpression+";");
-                } else {
+                if (method.ReturnType == typeof(void)) {
                     EmitLine("        return;");
+                } else {
+                    EmitLine("        return "+nowaitExpression+";");
                 }
                 EmitLine("      }");
             }
