@@ -95,7 +95,12 @@ namespace RabbitMQ.Client
 
         ///<summary>All messages received before this fires that haven't been
         ///ack'ed will be redelivered. All messages received afterwards won't
-        ///be.</summary>
+        ///be.
+        ///
+        ///Handlers for this event are invoked by the connection thread.
+        ///It is sometimes useful to allow that thread to know that a recover-ok
+        ///has been received, rather than the thread that invoked BasicRecover().
+        ///</summary>
         event BasicRecoverOkEventHandler BasicRecoverOk;
 
         ///<summary>Signalled when an unexpected message is delivered
