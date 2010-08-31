@@ -93,8 +93,9 @@ namespace RabbitMQ.Client
         ///</remarks>
         event CallbackExceptionEventHandler CallbackException;
 
-        ///<summary>Signalled when a RecoverOk is received from the
-        ///server. </summary>
+        ///<summary>All messages received before this fires that haven't been
+        ///ack'ed will be redelivered. All messages received afterwards won't
+        ///be.</summary>
         event BasicRecoverOkEventHandler BasicRecoverOk;
 
         ///<summary>Signalled when an unexpected message is delivered
@@ -630,10 +631,7 @@ namespace RabbitMQ.Client.Impl
         void HandleBasicGetEmpty();
 
         ///<summary>Handle incoming Basic.RecoverOk methods
-        ///received in reply to Basic.Recover . All messages
-        ///received before this is invoked that haven't been
-        ///ack'ed will be redelivered. All messages received
-        ///afterwards won't be.
+        ///received in reply to Basic.Recover.
         ///</summary>
         void HandleBasicRecoverOk();
 

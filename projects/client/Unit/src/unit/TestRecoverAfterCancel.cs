@@ -59,6 +59,7 @@ using NUnit.Framework;
 using System;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Collections;
 
 using RabbitMQ.Client.Impl;
@@ -122,6 +123,7 @@ namespace RabbitMQ.Client.Unit
             int callbackCount = 0;
             Channel.BasicRecoverOk += (sender, eventArgs) => callbackCount++;
             Channel.BasicRecover(false);
+            Thread.Sleep(100);
             Assert.AreEqual(1, callbackCount);
         }
 
