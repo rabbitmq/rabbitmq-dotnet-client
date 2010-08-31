@@ -972,8 +972,8 @@ namespace RabbitMQ.Client.Impl
         public void HandleBasicRecoverOk()
         {
             SimpleBlockingRpcContinuation k = (SimpleBlockingRpcContinuation)m_continuationQueue.Next();
-            k.HandleCommand(null);
             OnBasicRecoverOk(new EventArgs());
+            k.HandleCommand(null);
         }
 
         public abstract ConnectionTuneDetails ConnectionStartOk(IDictionary clientProperties,
