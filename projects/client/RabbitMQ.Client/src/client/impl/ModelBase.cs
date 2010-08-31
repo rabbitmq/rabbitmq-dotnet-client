@@ -798,7 +798,6 @@ namespace RabbitMQ.Client.Impl
             }
 
             k.GetReply();
-            OnBasicRecoverOk(new EventArgs());
         }
 
         public abstract void BasicQos(uint prefetchSize,
@@ -968,6 +967,13 @@ namespace RabbitMQ.Client.Impl
             BasicGetRpcContinuation k = (BasicGetRpcContinuation)m_continuationQueue.Next();
             k.m_result = null;
             k.HandleCommand(null); // release the continuation.
+        }
+
+        public void HandleBasicRecoverOk()
+        {
+            SimpleBlockingRpcContinuation k = (SimpleBlockingRpcContinuation)m_continuationQueue.Next();
+            k.HandleCommand(null);
+            OnBasicRecoverOk(new EventArgs());
         }
 
         public abstract ConnectionTuneDetails ConnectionStartOk(IDictionary clientProperties,

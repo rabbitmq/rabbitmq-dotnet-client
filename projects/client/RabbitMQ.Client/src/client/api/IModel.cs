@@ -629,6 +629,14 @@ namespace RabbitMQ.Client.Impl
         ///</remarks>
         void HandleBasicGetEmpty();
 
+        ///<summary>Handle incoming Basic.RecoverOk methods
+        ///received in reply to Basic.Recover . All messages
+        ///received before this is invoked that haven't been
+        ///ack'ed will be redelivered. All messages received
+        ///afterwards won't be.
+        ///</summary>
+        void HandleBasicRecoverOk();
+
         [AmqpForceOneWay]
         [AmqpMethodMapping(null, "basic", "recover")]
         void _Private_BasicRecover(bool requeue);
