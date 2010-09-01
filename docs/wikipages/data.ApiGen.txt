@@ -337,10 +337,9 @@ parameter concerned:
     void _Private_BasicConsume(...,
                                bool exclusive,
                                bool nowait,
-                                 [AmqpFieldMapping(
-                                   "RabbitMQ.Client.Framing.v0_8qpid",
-                                                   "arguments")]
-                               IDictionary filter);
+                               [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9",
+                                                 "filter")]
+                               IDictionary arguments);
 
 The parameter to the attribute specifies the specification version to
 which the attribute should apply, or null if it should apply to any
@@ -562,14 +561,14 @@ QueueUnbind.
                                bool exclusive,
                                bool nowait,
                                [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-                               [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_8qpid",
-                                                 "arguments")]
-                               IDictionary filter);
+                               [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9",
+                                                 "filter")]
+                               IDictionary arguments);
 
-In the example above, the "filter" parameter is unsupported in
-standard 0-8, and in QPid-specific 0-8 it is named "arguments" instead
-of "filter". In all other implementations (currently only 0-9), it is
-assumed to be supported and named "filter".
+In the example above, the "arguments" parameter is unsupported in
+standard 0-8, and in 0-9 t is named "filter" instead of
+"arguments". In all other implementations, it is assumed to be
+supported and named "arguments".
 
 The parameter to the attribute specifies the specification version to
 which the attribute should apply, or null if it should apply to any
