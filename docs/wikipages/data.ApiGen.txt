@@ -532,10 +532,10 @@ asynchronous event handler.
 
 *** Overriding behaviour for particular specification versions
 
-In some versions of the specification, a particular field or method
-may not be supported. Methods and parameters can be marked to cause
-particular implementations to complain if these features are used by
-applications:
+In some versions of the specification, a particular field, method or
+content header may not be supported. Methods and parameters can be
+marked to cause particular implementations to complain if these
+features are used by applications:
 
 @code java
     [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
