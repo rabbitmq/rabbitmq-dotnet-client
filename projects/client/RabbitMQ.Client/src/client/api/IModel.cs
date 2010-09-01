@@ -93,6 +93,16 @@ namespace RabbitMQ.Client
         ///</remarks>
         event CallbackExceptionEventHandler CallbackException;
 
+        ///<summary>All messages received before this fires that haven't been
+        ///ack'ed will be redelivered. All messages received afterwards won't
+        ///be.
+        ///
+        ///Handlers for this event are invoked by the connection thread.
+        ///It is sometimes useful to allow that thread to know that a recover-ok
+        ///has been received, rather than the thread that invoked BasicRecover().
+        ///</summary>
+        event BasicRecoverOkEventHandler BasicRecoverOk;
+
         ///<summary>Signalled when an unexpected message is delivered
         ///
         /// Under certain circumstances it is possible for a channel to receive a
@@ -364,6 +374,7 @@ namespace RabbitMQ.Client
                          bool requeue);
 
         ///<summary>(Spec method)</summary>
+        [AmqpMethodDoNotImplement(null)]
         void BasicRecover(bool requeue);
 
         ///<summary>(Spec method)</summary>
@@ -621,6 +632,15 @@ namespace RabbitMQ.Client.Impl
         /// review".
         ///</remarks>
         void HandleBasicGetEmpty();
+
+        ///<summary>Handle incoming Basic.RecoverOk methods
+        ///received in reply to Basic.Recover.
+        ///</summary>
+        void HandleBasicRecoverOk();
+
+        [AmqpForceOneWay]
+        [AmqpMethodMapping(null, "basic", "recover")]
+        void _Private_BasicRecover(bool requeue);
 
         ///<summary>Handle incoming Basic.Deliver methods. Dispatches
         ///to waiting consumers.</summary>
