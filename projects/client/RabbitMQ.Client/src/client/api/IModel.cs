@@ -280,7 +280,7 @@ namespace RabbitMQ.Client
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
         string BasicConsume(string queue,
-                            IDictionary filter,
+                            IDictionary arguments,
                             IBasicConsumer consumer);
 
         ///<summary>Start a Basic content-class consumer.</summary>
@@ -292,7 +292,7 @@ namespace RabbitMQ.Client
         [AmqpMethodDoNotImplement(null)]
         string BasicConsume(string queue,
                             bool noAck,
-                            IDictionary filter,
+                            IDictionary arguments,
                             IBasicConsumer consumer);
 
         ///<summary>Start a Basic content-class consumer.</summary>
@@ -304,7 +304,7 @@ namespace RabbitMQ.Client
         string BasicConsume(string queue,
                             bool noAck,
                             string consumerTag,
-                            IDictionary filter,
+                            IDictionary arguments,
                             IBasicConsumer consumer);
 
         ///<summary>Start a Basic content-class consumer.</summary>
@@ -314,7 +314,7 @@ namespace RabbitMQ.Client
                             string consumerTag,
                             bool noLocal,
                             bool exclusive,
-                            IDictionary filter,
+                            IDictionary arguments,
                             IBasicConsumer consumer);
 
         ///<summary>Delete a Basic content-class consumer.</summary>
@@ -553,11 +553,9 @@ namespace RabbitMQ.Client.Impl
                                    bool exclusive,
                                    bool nowait,
                                    [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-                                   [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_8qpid",
-                                                     "arguments")]
-                                   [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1",
-                                                     "arguments")]
-                                   IDictionary filter);
+                                   [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9",
+                                                     "filter")]
+                                   IDictionary arguments);
 
         ///<summary>Handle incoming Basic.ConsumeOk methods.</summary>
         void HandleBasicConsumeOk(string consumerTag);
