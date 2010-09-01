@@ -572,27 +572,27 @@ namespace RabbitMQ.Client.Impl
                                          bool nowait);
 
         public string BasicConsume(string queue,
-                                   IDictionary filter,
+                                   IDictionary arguments,
                                    IBasicConsumer consumer)
         {
-            return BasicConsume(queue, false, filter, consumer);
+            return BasicConsume(queue, false, arguments, consumer);
         }
 
         public string BasicConsume(string queue,
                                    bool noAck,
-                                   IDictionary filter,
+                                   IDictionary arguments,
                                    IBasicConsumer consumer)
         {
-            return BasicConsume(queue, noAck, "", filter, consumer);
+            return BasicConsume(queue, noAck, "", arguments, consumer);
         }
 
         public string BasicConsume(string queue,
                                    bool noAck,
                                    string consumerTag,
-                                   IDictionary filter,
+                                   IDictionary arguments,
                                    IBasicConsumer consumer)
         {
-            return BasicConsume(queue, noAck, consumerTag, false, false, filter, consumer);
+            return BasicConsume(queue, noAck, consumerTag, false, false, arguments, consumer);
         }
 
         public class BasicConsumerRpcContinuation : SimpleBlockingRpcContinuation
@@ -607,7 +607,7 @@ namespace RabbitMQ.Client.Impl
                                    string consumerTag,
                                    bool noLocal,
                                    bool exclusive,
-                                   IDictionary filter,
+                                   IDictionary arguments,
                                    IBasicConsumer consumer)
         {
             ModelShutdown += new ModelShutdownEventHandler(consumer.HandleModelShutdown);
@@ -621,7 +621,7 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 _Private_BasicConsume(queue, consumerTag, noLocal, noAck, exclusive,
-                    /*nowait:*/ false, filter);
+                    /*nowait:*/ false, arguments);
             }
             catch (AlreadyClosedException)
             {
@@ -744,7 +744,7 @@ namespace RabbitMQ.Client.Impl
                                                    bool noAck,
                                                    bool exclusive,
                                                    bool nowait,
-                                                   IDictionary filter);
+                                                   IDictionary arguments);
 
         public abstract void _Private_BasicCancel(string consumerTag,
                                                   bool nowait);
