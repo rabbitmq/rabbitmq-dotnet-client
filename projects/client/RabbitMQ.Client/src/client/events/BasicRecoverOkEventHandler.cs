@@ -54,76 +54,11 @@
 //   Contributor(s): ______________________________________.
 //
 //---------------------------------------------------------------------------
-using NUnit.Framework;
-
 using System;
-using System.IO;
-using System.Text;
-using System.Collections;
 
-using RabbitMQ.Client.Impl;
-using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Client.Events;
-using RabbitMQ.Util;
-
-namespace RabbitMQ.Client.Unit
+namespace RabbitMQ.Client.Events
 {
-    [TestFixture]
-    public class TestRecoverAfterCancel
-    {
-        IConnection Connection;
-        IModel Channel;
-        String Queue;
-
-        public int ModelNumber(IModel model)
-        {
-            return ((ModelBase)model).m_session.ChannelNumber;
-        }
-
-        [SetUp] public void Connect()
-        {
-            Connection = new ConnectionFactory().CreateConnection();
-            Channel = Connection.CreateModel();
-            Queue = Channel.QueueDeclare();
-        }
-
-        [TearDown] public void Disconnect()
-        {
-            Connection.Abort();
-        }
-
-        [Test]
-        public void TestRecoverAfterCancel_()
-        {
-            UTF8Encoding enc = new UTF8Encoding();
-            Channel.BasicPublish("", Queue, null, enc.GetBytes("message"));
-            QueueingBasicConsumer Consumer = new QueueingBasicConsumer(Channel);
-            QueueingBasicConsumer DefaultConsumer = new QueueingBasicConsumer(Channel);
-            Channel.DefaultConsumer = DefaultConsumer;
-            String CTag = Channel.BasicConsume(Queue, null, Consumer);
-            BasicDeliverEventArgs Event = (BasicDeliverEventArgs) Consumer.Queue.Dequeue();
-            Channel.BasicCancel(CTag);
-            Channel.BasicRecover(false);
-
-            // The server will now redeliver us the first message again, with the
-            // same ctag, but we're not set up to handle it with a standard
-            // consumer - it should end up with the default one.
-
-            BasicDeliverEventArgs Event2 = (BasicDeliverEventArgs) DefaultConsumer.Queue.Dequeue();
-
-            Assert.AreEqual(Event.Body, Event2.Body);
-            Assert.IsFalse(Event.Redelivered);
-            Assert.IsTrue(Event2.Redelivered);
-        }
-
-        [Test]
-        public void TestRecoverCallback()
-        {
-            int callbackCount = 0;
-            Channel.BasicRecoverOk += (sender, eventArgs) => callbackCount++;
-            Channel.BasicRecover(false);
-            Assert.AreEqual(1, callbackCount);
-        }
-
-    }
+    ///<summary>Delegate used to process Basic.RecoverOk events.</summary>
+    public delegate void BasicRecoverOkEventHandler(IModel model, EventArgs args);
 }
+
