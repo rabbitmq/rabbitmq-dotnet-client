@@ -85,6 +85,7 @@ namespace RabbitMQ.Client.Impl
         private BasicRecoverOkEventHandler m_basicRecoverOk;
         
         public ManualResetEvent m_flowControlBlock = new ManualResetEvent(true);
+        private Object flowSendLock = new object();
 
         public event ModelShutdownEventHandler ModelShutdown
         {
@@ -373,10 +374,18 @@ namespace RabbitMQ.Client.Impl
 
         public void ModelSend(MethodBase method, ContentHeaderBase header, byte[] body)
         {
-            if (method.HasContent) {
-                m_flowControlBlock.WaitOne();
+            if (method.HasContent)
+            {
+                lock (flowSendLock)
+                {
+                    m_flowControlBlock.WaitOne();
+                    m_session.Transmit(new Command(method, header, body));
+                }
             }
-            m_session.Transmit(new Command(method, header, body));
+            else
+            {
+                m_session.Transmit(new Command(method, header, body));
+            }
         }
         
         public MethodBase ModelRpc(MethodBase method, ContentHeaderBase header, byte[] body)
@@ -451,10 +460,16 @@ namespace RabbitMQ.Client.Impl
         public void HandleChannelFlow(bool active)
         {
             if (active)
+            {
                 m_flowControlBlock.Set();
+                _Private_ChannelFlowOk(active);
+            }
             else
-                m_flowControlBlock.Reset();
-            _Private_ChannelFlowOk(active);
+                lock (flowSendLock)
+                {
+                    m_flowControlBlock.Reset();
+                    _Private_ChannelFlowOk(active);
+                }
         }
 
         public void HandleConnectionStart(byte versionMajor,
