@@ -334,8 +334,9 @@ namespace RabbitMQ.Client.Impl
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine("exception while running flow control event handler");
-                        Console.WriteLine(e + e.StackTrace);
+                        CallbackExceptionEventArgs exnArgs = new CallbackExceptionEventArgs(e);
+                        exnArgs.Detail["context"] = "OnFlowControl";
+                        OnCallbackException(exnArgs);
                     }
                 }
             }
