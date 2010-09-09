@@ -184,8 +184,8 @@ namespace RabbitMQ.Client.Impl
                     m_basicRecoverOk -= value;
                 }
             }
-        }        
-        
+        }
+
         public IBasicConsumer DefaultConsumer { get; set; }
 
         public ISession m_session;
@@ -336,12 +336,11 @@ namespace RabbitMQ.Client.Impl
                     {
                         Console.WriteLine("exception while running flow control event handler");
                         Console.WriteLine(e + e.StackTrace);
-                        
                     }
                 }
             }
         }
-        
+
         public virtual void OnBasicRecoverOk(EventArgs args)
         {
             BasicRecoverOkEventHandler handler;
@@ -365,8 +364,8 @@ namespace RabbitMQ.Client.Impl
                     }
                 }
             }
-        }        
-
+        }
+        
         public void Enqueue(IRpcContinuation k)
         {
             bool ok = false;
