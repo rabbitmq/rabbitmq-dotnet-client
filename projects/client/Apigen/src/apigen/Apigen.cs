@@ -82,7 +82,8 @@ namespace RabbitMQ.Client.Apigen {
 
         public static string GetString(XmlNode n0, string path, string d) {
             XmlNode n = n0.SelectSingleNode(path);
-            return (n == null) ? d : n.InnerText;
+            string pathOrDefault = (n == null) ? d : n.InnerText;
+            return xmlStringMapper(pathOrDefault);
         }
 
         public static string GetString(XmlNode n0, string path) {
@@ -100,6 +101,22 @@ namespace RabbitMQ.Client.Apigen {
 
         public static int GetInt(XmlNode n0, string path) {
             return int.Parse(GetString(n0, path));
+        }
+
+        /// <summary>
+        /// Rename all instances of an entire string from the XML spec
+        /// </summary>
+        /// <param name="xmlString">input string from XML spec</param>
+        /// <returns>renamed string</returns>
+        private static string xmlStringMapper(string xmlString)
+        {
+            switch (xmlString)
+            {
+                case "no-wait":
+                    return "nowait";
+                default:
+                    return xmlString;
+            }
         }
 
         ///////////////////////////////////////////////////////////////////////////
@@ -165,6 +182,7 @@ namespace RabbitMQ.Client.Apigen {
         public bool m_versionOverridden = false;
         public int m_majorVersion;
         public int m_minorVersion;
+        public int m_revision = 0;
         public string m_apiName;
         public bool m_emitComments = false;
 
@@ -178,7 +196,7 @@ namespace RabbitMQ.Client.Apigen {
         public static Hashtable m_primitiveTypeFlagMap;
         static Apigen() {
             m_primitiveTypeMap = new Hashtable();
-	    m_primitiveTypeFlagMap = new Hashtable();
+            m_primitiveTypeFlagMap = new Hashtable();
             InitPrimitiveType("octet", "byte", false);
             InitPrimitiveType("shortstr", "string", true);
             InitPrimitiveType("longstr", "byte[]", true);
@@ -191,11 +209,11 @@ namespace RabbitMQ.Client.Apigen {
             InitPrimitiveType("content", "byte[]", true);
         }
 
-	public static void InitPrimitiveType(string amqpType, string dotnetType, bool isReference)
-	{
-	    m_primitiveTypeMap[amqpType] = dotnetType;
-	    m_primitiveTypeFlagMap[amqpType] = isReference;
-	}
+        public static void InitPrimitiveType(string amqpType, string dotnetType, bool isReference)
+        {
+            m_primitiveTypeMap[amqpType] = dotnetType;
+            m_primitiveTypeFlagMap[amqpType] = isReference;
+        }
 
         public void HandleOption(string opt) {
             if (opt.StartsWith("/n:")) {
@@ -266,7 +284,7 @@ namespace RabbitMQ.Client.Apigen {
         public void Generate() {
             LoadSpec();
             ParseSpec();
-	        ReflectModel();
+            ReflectModel();
             GenerateOutput();
         }
 
@@ -281,6 +299,10 @@ namespace RabbitMQ.Client.Apigen {
             if (!m_versionOverridden) {
                 m_majorVersion = GetInt(m_spec, "/amqp/@major");
                 m_minorVersion = GetInt(m_spec, "/amqp/@minor");
+                if (m_spec.SelectSingleNode("/amqp/@revision") != null)
+                {
+                    m_revision = GetInt(m_spec, "/amqp/@revision");
+                }
             }
             foreach (XmlNode n in m_spec.SelectNodes("/amqp/constant")) {
                 m_constants.Add(new DictionaryEntry(GetString(n, "@name"), GetInt(n, "@value")));
@@ -338,7 +360,7 @@ namespace RabbitMQ.Client.Apigen {
         public void EmitLine(object o) {
             m_outputFile.WriteLine(o);
         }
-        
+
         public void EmitSpecComment(object o) {
             if (m_emitComments)
                 EmitLine(o);
@@ -416,6 +438,8 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("    public override int MajorVersion { get { return " + m_majorVersion + "; } }");
             EmitLine("    ///<summary>Protocol minor version (= "+m_minorVersion+")</summary>");
             EmitLine("    public override int MinorVersion { get { return " + m_minorVersion + "; } }");
+            EmitLine("    ///<summary>Protocol revision (= " + m_revision + ")</summary>");
+            EmitLine("    public override int Revision { get { return " + m_revision + "; } }");
             EmitLine("    ///<summary>Protocol API name (= "+m_apiName+")</summary>");
             EmitLine("    public override string ApiName { get { return \"" + m_apiName + "\"; } }");
             int port = GetInt(m_spec, "/amqp/@port");
@@ -474,13 +498,13 @@ namespace RabbitMQ.Client.Apigen {
             return false;
         }
 
-	public bool IsBoolean(AmqpField f) {
-	    return ResolveDomain(f.Domain) == "bit";
-	}
+        public bool IsBoolean(AmqpField f) {
+            return ResolveDomain(f.Domain) == "bit";
+        }
 
-	public bool IsReferenceType(AmqpField f) {
-	    return (bool) m_primitiveTypeFlagMap[ResolveDomain(f.Domain)];
-	}
+        public bool IsReferenceType(AmqpField f) {
+            return (bool) m_primitiveTypeFlagMap[ResolveDomain(f.Domain)];
+        }
 
     public bool IsAmqpClass(Type t)
     {
@@ -493,12 +517,12 @@ namespace RabbitMQ.Client.Apigen {
     }
 
         public void EmitClassProperties(AmqpClass c) {
-	    bool hasCommonApi = HasFactoryMethod(c);
-	    string propertiesBaseClass =
-		hasCommonApi
-		? "RabbitMQ.Client.Impl."+MangleClass(c.Name)+"Properties"
-		: "RabbitMQ.Client.Impl.ContentHeaderBase";
-	    string maybeOverride = hasCommonApi ? "override " : "";
+            bool hasCommonApi = HasFactoryMethod(c);
+            string propertiesBaseClass =
+                hasCommonApi
+                ? "RabbitMQ.Client.Impl."+MangleClass(c.Name)+"Properties"
+                : "RabbitMQ.Client.Impl.ContentHeaderBase";
+            string maybeOverride = hasCommonApi ? "override " : "";
 
             EmitAutogeneratedSummary("  ",
                                      "AMQP specification content header properties for "+
@@ -512,9 +536,9 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("");
             foreach (AmqpField f in c.m_Fields)
             {
-		if (!IsBoolean(f)) {
-		    EmitLine("    private bool m_"+MangleMethod(f.Name)+"_present = false;");
-		}
+                if (!IsBoolean(f)) {
+                    EmitLine("    private bool m_"+MangleMethod(f.Name)+"_present = false;");
+                }
             }
             EmitLine("");
             foreach (AmqpField f in c.m_Fields)
@@ -525,9 +549,9 @@ namespace RabbitMQ.Client.Apigen {
                 EmitLine("        return m_"+MangleMethod(f.Name)+";");
                 EmitLine("      }");
                 EmitLine("      set {");
-		if (!IsBoolean(f)) {
-		    EmitLine("        m_"+MangleMethod(f.Name)+"_present = true;");
-		}
+                if (!IsBoolean(f)) {
+                    EmitLine("        m_"+MangleMethod(f.Name)+"_present = true;");
+                }
                 EmitLine("        m_"+MangleMethod(f.Name)+" = value;");
                 EmitLine("      }");
                 EmitLine("    }");
@@ -535,9 +559,9 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("");
             foreach (AmqpField f in c.m_Fields)
             {
-		if (!IsBoolean(f)) {
-		    EmitLine("    public "+maybeOverride+"void Clear"+MangleClass(f.Name)+"() { m_"+MangleMethod(f.Name)+"_present = false; }");
-		}
+                if (!IsBoolean(f)) {
+                    EmitLine("    public "+maybeOverride+"void Clear"+MangleClass(f.Name)+"() { m_"+MangleMethod(f.Name)+"_present = false; }");
+                }
             }
 
             EmitLine("");
@@ -555,36 +579,36 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("    public override void ReadPropertiesFrom(RabbitMQ.Client.Impl.ContentHeaderPropertyReader reader) {");
             foreach (AmqpField f in c.m_Fields)
             {
-		if (IsBoolean(f)) {
-		    EmitLine("      m_"+MangleMethod(f.Name)+" = reader.ReadBit();");
-		} else {
-		    EmitLine("      m_"+MangleMethod(f.Name)+"_present = reader.ReadPresence();");
-		}
+                if (IsBoolean(f)) {
+                    EmitLine("      m_"+MangleMethod(f.Name)+" = reader.ReadBit();");
+                } else {
+                    EmitLine("      m_"+MangleMethod(f.Name)+"_present = reader.ReadPresence();");
+                }
             }
-	    EmitLine("      reader.FinishPresence();");
+            EmitLine("      reader.FinishPresence();");
         foreach (AmqpField f in c.m_Fields)
         {
-		if (!IsBoolean(f)) {
-		    EmitLine("      if (m_"+MangleMethod(f.Name)+"_present) { m_"+MangleMethod(f.Name)+" = reader.Read"+MangleClass(ResolveDomain(f.Domain))+"(); }");
-		}
+                if (!IsBoolean(f)) {
+                    EmitLine("      if (m_"+MangleMethod(f.Name)+"_present) { m_"+MangleMethod(f.Name)+" = reader.Read"+MangleClass(ResolveDomain(f.Domain))+"(); }");
+                }
             }
             EmitLine("    }");
             EmitLine("");
             EmitLine("    public override void WritePropertiesTo(RabbitMQ.Client.Impl.ContentHeaderPropertyWriter writer) {");
             foreach (AmqpField f in c.m_Fields)
             {
-		if (IsBoolean(f)) {
-		    EmitLine("      writer.WriteBit(m_"+MangleMethod(f.Name)+");");
-		} else {
-		    EmitLine("      writer.WritePresence(m_"+MangleMethod(f.Name)+"_present);");
-		}
+                if (IsBoolean(f)) {
+                    EmitLine("      writer.WriteBit(m_"+MangleMethod(f.Name)+");");
+                } else {
+                    EmitLine("      writer.WritePresence(m_"+MangleMethod(f.Name)+"_present);");
+                }
             }
-	    EmitLine("      writer.FinishPresence();");
+            EmitLine("      writer.FinishPresence();");
         foreach (AmqpField f in c.m_Fields)
         {
-		if (!IsBoolean(f)) {
-		    EmitLine("      if (m_"+MangleMethod(f.Name)+"_present) { writer.Write"+MangleClass(ResolveDomain(f.Domain))+"(m_"+MangleMethod(f.Name)+"); }");
-		}
+                if (!IsBoolean(f)) {
+                    EmitLine("      if (m_"+MangleMethod(f.Name)+"_present) { writer.Write"+MangleClass(ResolveDomain(f.Domain))+"(m_"+MangleMethod(f.Name)+"); }");
+                }
             }
             EmitLine("    }");
             EmitLine("");
@@ -595,16 +619,16 @@ namespace RabbitMQ.Client.Apigen {
                 foreach (AmqpField f in c.m_Fields)
                 {
                     Emit("      sb.Append(\""+f.Name+"=\");");
-		    if (IsBoolean(f)) {
-			Emit(" sb.Append(m_"+MangleMethod(f.Name)+");");
-		    } else {
-			string x = MangleMethod(f.Name);
-			if (IsReferenceType(f)) {
-			    Emit(" sb.Append(m_"+x+"_present ? (m_"+x+" == null ? \"(null)\" : m_"+x+".ToString()) : \"_\");");
-			} else {
-			    Emit(" sb.Append(m_"+x+"_present ? m_"+x+".ToString() : \"_\");");
-			}
-		    }
+                    if (IsBoolean(f)) {
+                        Emit(" sb.Append(m_"+MangleMethod(f.Name)+");");
+                    } else {
+                        string x = MangleMethod(f.Name);
+                        if (IsReferenceType(f)) {
+                            Emit(" sb.Append(m_"+x+"_present ? (m_"+x+" == null ? \"(null)\" : m_"+x+".ToString()) : \"_\");");
+                        } else {
+                            Emit(" sb.Append(m_"+x+"_present ? m_"+x+".ToString() : \"_\");");
+                        }
+                    }
                     remaining--;
                     if (remaining > 0) {
                         EmitLine(" sb.Append(\", \");");
@@ -811,7 +835,10 @@ namespace RabbitMQ.Client.Apigen {
                         if (method.Name.StartsWith("Handle") ||
                             (Attribute(method, typeof(AmqpAsynchronousHandlerAttribute)) != null))
                         {
-                            asynchronousHandlers.Add(method);
+                            if ((Attribute(method, typeof(AmqpMethodDoNotImplementAttribute)) == null))
+                            {
+                                asynchronousHandlers.Add(method);
+                            }
                         } else {
                             MaybeEmitModelMethod(method);
                         }
@@ -822,15 +849,22 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("  }");
         }
 
-	public void EmitContentHeaderFactory(MethodInfo method) {
-	    AmqpContentHeaderFactoryAttribute factoryAnnotation = (AmqpContentHeaderFactoryAttribute)
-		Attribute(method, typeof(AmqpContentHeaderFactoryAttribute));
-	    string contentClass = factoryAnnotation.m_contentClass;
-	    EmitModelMethodPreamble(method);
-	    EmitLine("    {");
-	    EmitLine("      return new "+MangleClass(contentClass)+"Properties();");
-	    EmitLine("    }");
-	}
+        public void EmitContentHeaderFactory(MethodInfo method) {
+            AmqpContentHeaderFactoryAttribute factoryAnnotation = (AmqpContentHeaderFactoryAttribute)
+                Attribute(method, typeof(AmqpContentHeaderFactoryAttribute));
+            string contentClass = factoryAnnotation.m_contentClass;
+            EmitModelMethodPreamble(method);
+            EmitLine("    {");
+            if (Attribute(method, typeof(AmqpUnsupportedAttribute)) != null)
+            {
+                EmitLine(String.Format("      throw new UnsupportedMethodException(\"" + method.Name + "\");"));
+            }
+            else
+            {
+                EmitLine("      return new " + MangleClass(contentClass) + "Properties();");
+            }
+            EmitLine("    }");
+        }
 
         public void MaybeEmitModelMethod(MethodInfo method) {
             if (method.IsSpecialName) {
@@ -838,8 +872,8 @@ namespace RabbitMQ.Client.Apigen {
                 // It shouldn't be autogenerated.
             } else if (Attribute(method, typeof(AmqpMethodDoNotImplementAttribute)) != null) {
                 // Skip this method, by request (AmqpMethodDoNotImplement)
-	    } else if (Attribute(method, typeof(AmqpContentHeaderFactoryAttribute)) != null) {
-		EmitContentHeaderFactory(method);
+            } else if (Attribute(method, typeof(AmqpContentHeaderFactoryAttribute)) != null) {
+                EmitContentHeaderFactory(method);
             } else if (Attribute(method, typeof(AmqpUnsupportedAttribute)) != null) {
                 EmitModelMethodPreamble(method);
                 EmitLine("    {");
@@ -885,7 +919,7 @@ namespace RabbitMQ.Client.Apigen {
         {
             amqpClass = null;
             amqpMethod = null;
-            
+
             // First, try autodetecting the class/method via the
             // IModel method name.
 
@@ -1030,7 +1064,9 @@ namespace RabbitMQ.Client.Apigen {
             if (nowaitParameter != null) {
                 EmitLine("      if ("+nowaitParameter.Name+") {");
                 EmitLine("        ModelSend(__req,"+contentHeaderExpr+","+contentBodyExpr+");");
-                if (method.ReturnType != typeof(void)) {
+                if (method.ReturnType == typeof(void)) {
+                    EmitLine("        return;");
+                } else {
                     EmitLine("        return "+nowaitExpression+";");
                 }
                 EmitLine("      }");
@@ -1102,7 +1138,7 @@ namespace RabbitMQ.Client.Apigen {
                 EmitLine("        case "+((amqpClass.Index << 16) | amqpMethod.Index)+": {");
                 ParameterInfo[] parameters = method.GetParameters();
                 if (parameters.Length > 0) {
-		    EmitLine("          "+implClass+" __impl = ("+implClass+") __method;");
+                    EmitLine("          "+implClass+" __impl = ("+implClass+") __method;");
                     EmitLine("          "+method.Name+"(");
                     int remaining = parameters.Length;
                     foreach (ParameterInfo pi in parameters) {

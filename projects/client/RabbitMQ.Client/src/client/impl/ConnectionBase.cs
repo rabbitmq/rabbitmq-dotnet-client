@@ -787,7 +787,7 @@ namespace RabbitMQ.Client.Impl
             TerminateMainloop();
             m_closed = true;
         }
-        
+
         ///<summary>
         /// Sets the channel named in the SoftProtocolException into
         /// "quiescing mode", where we issue a channel.close and
@@ -971,7 +971,7 @@ namespace RabbitMQ.Client.Impl
                 Math.Min(clientValue, serverValue);
         }
 
-        public void Open(bool insist)
+        protected void StartAndTune()
         {
             BlockingCell connectionStartCell = new BlockingCell();
             m_model0.m_connectionStartCell = connectionStartCell;
@@ -980,6 +980,12 @@ namespace RabbitMQ.Client.Impl
 
             ConnectionStartDetails connectionStart = (ConnectionStartDetails)
                 connectionStartCell.Value;
+            
+            if (connectionStart == null){
+                throw new ProtocolVersionMismatchException(Protocol.MajorVersion,
+                                                           Protocol.MinorVersion,
+                                                           -1, -1);
+            }
 
             ServerProperties = connectionStart.m_serverProperties;
 
@@ -1031,7 +1037,11 @@ namespace RabbitMQ.Client.Impl
             m_model0.ConnectionTuneOk(channelMax,
                                       frameMax,
                                       heartbeat);
+        }
 
+        public virtual void Open(bool insist)
+        {
+            StartAndTune();
             string knownHosts = m_model0.ConnectionOpen(m_factory.VirtualHost,
                                                         "", // FIXME: make configurable?
                                                         insist);

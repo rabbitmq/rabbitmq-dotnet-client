@@ -165,13 +165,14 @@ namespace RabbitMQ.Client
         { 
           get
           { 
-              return new AmqpTcpEndpoint(Protocol, HostName, Port); 
+              return new AmqpTcpEndpoint(Protocol, HostName, Port, Ssl); 
           }
           set
           {
               Protocol = value.Protocol;
               Port = value.Port;
               HostName = value.HostName;
+              Ssl = value.Ssl;
           }
         }
 

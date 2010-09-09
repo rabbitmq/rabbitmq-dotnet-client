@@ -95,6 +95,16 @@ namespace RabbitMQ.Client
 
         event FlowControlEventHandler FlowControl;
 
+        ///<summary>All messages received before this fires that haven't been
+        ///ack'ed will be redelivered. All messages received afterwards won't
+        ///be.
+        ///
+        ///Handlers for this event are invoked by the connection thread.
+        ///It is sometimes useful to allow that thread to know that a recover-ok
+        ///has been received, rather than the thread that invoked BasicRecover().
+        ///</summary>
+        event BasicRecoverOkEventHandler BasicRecoverOk;
+
         ///<summary>Signalled when an unexpected message is delivered
         ///
         /// Under certain circumstances it is possible for a channel to receive a
@@ -137,11 +147,13 @@ namespace RabbitMQ.Client
         ///<summary>Construct a completely empty content header for
         ///use with the File content class.</summary>
         [AmqpContentHeaderFactory("file")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
         IFileProperties CreateFileProperties();
 
         ///<summary>Construct a completely empty content header for
         ///use with the Stream content class.</summary>
         [AmqpContentHeaderFactory("stream")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
         IStreamProperties CreateStreamProperties();
 
         ///<summary>(Spec method) Channel flow control functionality.</summary>
@@ -173,7 +185,9 @@ namespace RabbitMQ.Client
                              string type,
                              bool passive,
                              bool durable,
+                             [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved2")]
                              bool autoDelete,
+                             [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved3")]
                              bool @internal,
                              [AmqpNowaitArgument(null)]
                              bool nowait,
@@ -278,7 +292,7 @@ namespace RabbitMQ.Client
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
         string BasicConsume(string queue,
-                            IDictionary filter,
+                            IDictionary arguments,
                             IBasicConsumer consumer);
 
         ///<summary>Start a Basic content-class consumer.</summary>
@@ -290,7 +304,7 @@ namespace RabbitMQ.Client
         [AmqpMethodDoNotImplement(null)]
         string BasicConsume(string queue,
                             bool noAck,
-                            IDictionary filter,
+                            IDictionary arguments,
                             IBasicConsumer consumer);
 
         ///<summary>Start a Basic content-class consumer.</summary>
@@ -302,7 +316,7 @@ namespace RabbitMQ.Client
         string BasicConsume(string queue,
                             bool noAck,
                             string consumerTag,
-                            IDictionary filter,
+                            IDictionary arguments,
                             IBasicConsumer consumer);
 
         ///<summary>Start a Basic content-class consumer.</summary>
@@ -312,7 +326,7 @@ namespace RabbitMQ.Client
                             string consumerTag,
                             bool noLocal,
                             bool exclusive,
-                            IDictionary filter,
+                            IDictionary arguments,
                             IBasicConsumer consumer);
 
         ///<summary>Delete a Basic content-class consumer.</summary>
@@ -362,7 +376,12 @@ namespace RabbitMQ.Client
                          bool requeue);
 
         ///<summary>(Spec method)</summary>
+        [AmqpMethodDoNotImplement(null)]
         void BasicRecover(bool requeue);
+
+        ///<summary>(Spec method)</summary>
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
+        void BasicRecoverAsync(bool requeue);
 
         ///<summary>(Spec method) Retrieve an individual message, if
         ///one is available; returns null if the server answers that
@@ -384,9 +403,11 @@ namespace RabbitMQ.Client
         void TxRollback();
 
         ///<summary>(Spec method) Enable DTX mode for this session.</summary>
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
         void DtxSelect();
 
         ///<summary>(Spec method)</summary>
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
         void DtxStart(string dtxIdentifier);
 
         ///<summary>Close this session.</summary>
@@ -545,9 +566,9 @@ namespace RabbitMQ.Client.Impl
                                    bool exclusive,
                                    bool nowait,
                                    [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-                                   [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_8qpid",
-                                                     "arguments")]
-                                   IDictionary filter);
+                                   [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9",
+                                                     "filter")]
+                                   IDictionary arguments);
 
         ///<summary>Handle incoming Basic.ConsumeOk methods.</summary>
         void HandleBasicConsumeOk(string consumerTag);
@@ -566,7 +587,9 @@ namespace RabbitMQ.Client.Impl
         ///<summary>Used to send a Channel.Open. Called during session
         ///initialisation.</summary>
         [AmqpMethodMapping(null, "channel", "open")]
-        void _Private_ChannelOpen(string outOfBand);
+        void _Private_ChannelOpen([AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1",
+                                  "reserved1")]
+                                  string outOfBand);
 
         ///<summary>Used to send a Channel.CloseOk. Called during
         ///session shutdown.</summary>
@@ -611,6 +634,15 @@ namespace RabbitMQ.Client.Impl
         /// review".
         ///</remarks>
         void HandleBasicGetEmpty();
+
+        ///<summary>Handle incoming Basic.RecoverOk methods
+        ///received in reply to Basic.Recover.
+        ///</summary>
+        void HandleBasicRecoverOk();
+
+        [AmqpForceOneWay]
+        [AmqpMethodMapping(null, "basic", "recover")]
+        void _Private_BasicRecover(bool requeue);
 
         ///<summary>Handle incoming Basic.Deliver methods. Dispatches
         ///to waiting consumers.</summary>
@@ -687,13 +719,17 @@ namespace RabbitMQ.Client.Impl
         [AmqpForceOneWay]
         [AmqpMethodMapping(null, "connection", "open")]
         void _Private_ConnectionOpen(string virtualHost,
+                                     [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved1")]
                                      string capabilities,
+                                     [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved2")]
                                      bool insist);
 
         ///<summary>Handle an incoming Connection.OpenOk.</summary>
-        void HandleConnectionOpenOk(string knownHosts);
+        void HandleConnectionOpenOk([AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved1")]
+                                    string knownHosts);
 
         ///<summary>Handle an incoming Connection.Redirect.</summary>
+        [AmqpMethodDoNotImplement("RabbitMQ.Client.Framing.v0_9_1")]
         void HandleConnectionRedirect(string host,
                                       string knownHosts);
 
@@ -751,7 +787,9 @@ namespace RabbitMQ.Client.Apigen.Attributes
     ///<summary>Causes the API generator to ignore the attributed method.</summary>
     ///
     ///<remarks>Mostly used to declare convenience overloads of
-    ///various AMQP methods in the IModel interface. The API
+    ///various AMQP methods in the IModel interface. Also used
+    ///to omit an autogenerated implementation of a method which
+    ///is not required for one protocol version. The API
     ///autogeneration process should of course not attempt to produce
     ///an implementation of the convenience methods, as they will be
     ///implemented by hand with sensible defaults, delegating to the

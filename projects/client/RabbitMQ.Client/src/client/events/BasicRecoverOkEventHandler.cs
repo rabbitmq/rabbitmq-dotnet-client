@@ -1,4 +1,4 @@
-// This source code is dual-licensed under the Apache License, version
+﻿// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 1.1.
 //
 // The APL v2.0:
@@ -56,62 +56,9 @@
 //---------------------------------------------------------------------------
 using System;
 
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Exceptions;
-
-// We use spec version 0-9 for common constants such as frame types,
-// error codes, and the frame end byte, since they don't vary *within
-// the versions we support*. Obviously we may need to revisit this if
-// that ever changes.
-using CommonFraming = RabbitMQ.Client.Framing.v0_9;
-using CommonFramingSpecs = RabbitMQ.Client.Framing.Impl.v0_9;
-
-namespace RabbitMQ.Client.Impl
+namespace RabbitMQ.Client.Events
 {
-    ///<summary>Small ISession implementation used during channel quiescing.</summary>
-    public class QuiescingSession: SessionBase
-    {
-        public ShutdownEventArgs m_reason;
-
-        public QuiescingSession(ConnectionBase connection,
-                                int channelNumber,
-                                ShutdownEventArgs reason)
-            : base(connection, channelNumber)
-        {
-            m_reason = reason;
-        }
-
-        public override void HandleFrame(Frame frame)
-        {
-            if (frame.Type == CommonFraming.Constants.FrameMethod) {
-                MethodBase method = Connection.Protocol.DecodeMethodFrom(frame.GetReader());
-                if ((method.ProtocolClassId == CommonFramingSpecs.ChannelCloseOk.ClassId)
-                    && (method.ProtocolMethodId == CommonFramingSpecs.ChannelCloseOk.MethodId))
-                {
-                    // This is the reply we were looking for. Release
-                    // the channel with the reason we were passed in
-                    // our constructor.
-                    Close(m_reason);
-                    return;
-                }
-                else if ((method.ProtocolClassId == CommonFramingSpecs.ChannelClose.ClassId)
-                         && (method.ProtocolMethodId == CommonFramingSpecs.ChannelClose.MethodId))
-                {
-                    // We're already shutting down the channel, so
-                    // just send back an ok.
-                    Transmit(CreateChannelCloseOk());
-                    return;
-                }
-
-            }
-
-            // Either a non-method frame, or not what we were looking
-            // for. Ignore it - we're quiescing.
-        }
-
-        protected Command CreateChannelCloseOk() {
-            return new Command(new CommonFramingSpecs.ConnectionCloseOk());
-        }
-    }
+    ///<summary>Delegate used to process Basic.RecoverOk events.</summary>
+    public delegate void BasicRecoverOkEventHandler(IModel model, EventArgs args);
 }
+

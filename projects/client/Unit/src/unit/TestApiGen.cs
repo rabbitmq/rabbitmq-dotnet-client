@@ -1,4 +1,4 @@
-// This source code is dual-licensed under the Apache License, version
+﻿// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 1.1.
 //
 // The APL v2.0:
@@ -54,64 +54,52 @@
 //   Contributor(s): ______________________________________.
 //
 //---------------------------------------------------------------------------
+using NUnit.Framework;
+using System.IO;
+using System.Threading;
+
+using RabbitMQ.Client.Impl;
+using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Events;
+using RabbitMQ.Util;
 using System;
 
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Exceptions;
 
-// We use spec version 0-9 for common constants such as frame types,
-// error codes, and the frame end byte, since they don't vary *within
-// the versions we support*. Obviously we may need to revisit this if
-// that ever changes.
-using CommonFraming = RabbitMQ.Client.Framing.v0_9;
-using CommonFramingSpecs = RabbitMQ.Client.Framing.Impl.v0_9;
-
-namespace RabbitMQ.Client.Impl
+namespace RabbitMQ.Client.Unit
 {
-    ///<summary>Small ISession implementation used during channel quiescing.</summary>
-    public class QuiescingSession: SessionBase
+    [TestFixture]
+    public class TestApiGen
     {
-        public ShutdownEventArgs m_reason;
+        IConnection Connection;
+        IModel Channel;
+        String exchangeName = "nowait-test-exchange";
 
-        public QuiescingSession(ConnectionBase connection,
-                                int channelNumber,
-                                ShutdownEventArgs reason)
-            : base(connection, channelNumber)
+        [SetUp] public void Connect()
         {
-            m_reason = reason;
+            Connection = new ConnectionFactory().CreateConnection();
+            Channel = Connection.CreateModel();
         }
 
-        public override void HandleFrame(Frame frame)
+        [TearDown] public void Disconnect()
         {
-            if (frame.Type == CommonFraming.Constants.FrameMethod) {
-                MethodBase method = Connection.Protocol.DecodeMethodFrom(frame.GetReader());
-                if ((method.ProtocolClassId == CommonFramingSpecs.ChannelCloseOk.ClassId)
-                    && (method.ProtocolMethodId == CommonFramingSpecs.ChannelCloseOk.MethodId))
-                {
-                    // This is the reply we were looking for. Release
-                    // the channel with the reason we were passed in
-                    // our constructor.
-                    Close(m_reason);
-                    return;
-                }
-                else if ((method.ProtocolClassId == CommonFramingSpecs.ChannelClose.ClassId)
-                         && (method.ProtocolMethodId == CommonFramingSpecs.ChannelClose.MethodId))
-                {
-                    // We're already shutting down the channel, so
-                    // just send back an ok.
-                    Transmit(CreateChannelCloseOk());
-                    return;
-                }
-
-            }
-
-            // Either a non-method frame, or not what we were looking
-            // for. Ignore it - we're quiescing.
+            try {
+                Channel.ExchangeDelete(exchangeName, false, false);
+            } catch (OperationInterruptedException) {}
+            Connection.Abort();
         }
 
-        protected Command CreateChannelCloseOk() {
-            return new Command(new CommonFramingSpecs.ConnectionCloseOk());
+        [Test, Timeout(1000)]
+        public void TestExchangeDeclareNoWait()
+        {
+            Channel.ExchangeDeclare(exchangeName, "direct", 
+                                    false, false, true, false, true, null);
+        }
+
+        [Test]
+        public void TestExchangeDeleteNoWait()
+        {
+            Channel.ExchangeDeclare(exchangeName, "direct");
+            Channel.ExchangeDelete(exchangeName, false, true);
         }
     }
 }

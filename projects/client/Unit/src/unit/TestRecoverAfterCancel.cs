@@ -89,8 +89,7 @@ namespace RabbitMQ.Client.Unit
 
         [TearDown] public void Disconnect()
         {
-            Channel.Close();
-            Connection.Close();
+            Connection.Abort();
         }
 
         [Test]
@@ -116,5 +115,15 @@ namespace RabbitMQ.Client.Unit
             Assert.IsFalse(Event.Redelivered);
             Assert.IsTrue(Event2.Redelivered);
         }
+
+        [Test]
+        public void TestRecoverCallback()
+        {
+            int callbackCount = 0;
+            Channel.BasicRecoverOk += (sender, eventArgs) => callbackCount++;
+            Channel.BasicRecover(false);
+            Assert.AreEqual(1, callbackCount);
+        }
+
     }
 }
