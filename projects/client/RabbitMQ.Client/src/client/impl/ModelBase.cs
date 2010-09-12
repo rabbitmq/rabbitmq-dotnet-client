@@ -571,6 +571,18 @@ namespace RabbitMQ.Client.Impl
                                             bool ifUnused,
                                             bool nowait);
 
+        public abstract void ExchangeBind(string destination,
+                                          string source,
+                                          string routingKey,
+                                          bool nowait,
+                                          IDictionary arguments);
+
+        public abstract void ExchangeUnbind(string destination,
+                                            string source,
+                                            string routingKey,
+                                            bool nowait,
+                                            IDictionary arguments);
+
         //TODO: Mark these as virtual, maybe the model has an optimized way
         //      of dealing with missing parameters.
         public string QueueDeclare()
