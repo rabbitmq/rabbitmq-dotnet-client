@@ -85,7 +85,7 @@ namespace RabbitMQ.Client.Impl
         private BasicRecoverOkEventHandler m_basicRecoverOk;
         
         public ManualResetEvent m_flowControlBlock = new ManualResetEvent(true);
-        private Object m_flowSendLock = new object();
+        private readonly object m_flowSendLock = new object();
 
         public event ModelShutdownEventHandler ModelShutdown
         {
