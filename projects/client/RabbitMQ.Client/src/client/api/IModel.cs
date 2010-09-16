@@ -93,6 +93,8 @@ namespace RabbitMQ.Client
         ///</remarks>
         event CallbackExceptionEventHandler CallbackException;
 
+        event FlowControlEventHandler FlowControl;
+
         ///<summary>All messages received before this fires that haven't been
         ///ack'ed will be redelivered. All messages received afterwards won't
         ///be.
