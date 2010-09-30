@@ -106,11 +106,16 @@ namespace RabbitMQ.Client
             get { return new RabbitMQ.Client.Framing.v0_9.Protocol(); }
         }
 
+        public static IProtocol AMQP_0_9_1
+        {
+            get { return new RabbitMQ.Client.Framing.v0_9_1.Protocol(); }
+        }
+
         ///<summary>Retrieve the current default protocol variant
         ///(currently AMQP_0_8)</summary>
         public static IProtocol DefaultProtocol
         {
-            get { return AMQP_0_8; }
+            get { return AMQP_0_9_1; }
         }
 
         ///<summary>Low-level method for retrieving a protocol version

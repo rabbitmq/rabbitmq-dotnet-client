@@ -103,10 +103,6 @@ namespace RabbitMQ.Client
         ///communicate with its peer.</summary>
         IProtocol Protocol { get; }
 
-        ///<summary>The connection parameters used during construction
-        ///of this connection.</summary>
-        ConnectionParameters Parameters { get; }
-
         ///<summary>The maximum channel number this connection
         ///supports (0 if unlimited). Usable channel numbers
         ///range from 1 to this number, inclusive.</summary>
@@ -119,6 +115,15 @@ namespace RabbitMQ.Client
         ///<summary>The current heartbeat setting for this connection
         ///(0 for disabled), in seconds.</summary>
         ushort Heartbeat { get; }
+
+        ///<summary>A copy of the client properties that has been sent to the
+        ///server.</summary>
+        IDictionary ClientProperties { get; }
+
+        ///<summary>A dictionary of the server properties sent by the server
+        ///while establishing the connection. This typically includes
+        ///the product name and version of the server.</summary>
+        IDictionary ServerProperties { get; }
 
         ///<summary>Returns the known hosts that came back from the
         ///broker in the connection.open-ok method at connection

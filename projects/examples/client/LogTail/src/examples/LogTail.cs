@@ -79,15 +79,18 @@ namespace RabbitMQ.Client.Examples {
             string exchange = args[1];
             string exchangeType = args[2];
             string routingKey = args[3];
-            
-            using (IConnection conn = new ConnectionFactory().CreateConnection(serverAddress))
+
+            ConnectionFactory cf = new ConnectionFactory();
+            cf.Address = serverAddress;
+
+            using (IConnection conn = cf.CreateConnection())
                 {
                     using (IModel ch = conn.CreateModel()) {
-                        Subscription sub;
-                        if (exchange == "") {
-                            sub = new Subscription(ch, routingKey);
-                        } else {
-                            sub = new Subscription(ch, exchange, exchangeType, routingKey);
+                        ch.QueueDeclare(routingKey);
+                        Subscription sub = new Subscription(ch, routingKey);
+                        if (exchange != "") {
+                            ch.ExchangeDeclare(exchange, exchangeType);
+                            ch.QueueBind(routingKey, exchange, routingKey, false, null);
                         }
 
                         Console.WriteLine("Consumer tag: " + sub.ConsumerTag);

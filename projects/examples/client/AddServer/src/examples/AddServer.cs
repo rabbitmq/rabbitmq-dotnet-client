@@ -72,7 +72,9 @@ namespace RabbitMQ.Client.Examples {
                 return 2;
             }
 
-            using (IConnection conn = new ConnectionFactory().CreateConnection(args[0])) {
+            ConnectionFactory cf = new ConnectionFactory();
+            cf.Address = args[0];
+            using (IConnection conn = cf.CreateConnection()) {
                 using (IModel ch = conn.CreateModel()) {
                     Subscription sub = new Subscription(ch, "AddServer");
                     new AddServer(sub).MainLoop();

@@ -62,33 +62,18 @@ namespace RabbitMQ.Client.Impl
 {
     public abstract class ContentHeaderBase : IContentHeader
     {
-        public static uint MaximumPermittedReceivableBodySize = 32 * 1048576; // FIXME: configurable
-
         public abstract int ProtocolClassId { get; }
         public abstract string ProtocolClassName { get; }
         public abstract void ReadPropertiesFrom(ContentHeaderPropertyReader reader);
         public abstract void WritePropertiesTo(ContentHeaderPropertyWriter writer);
         public abstract void AppendPropertyDebugStringTo(System.Text.StringBuilder sb);
 
-        ///<summary>Fill this instance from the given byte buffer
-        ///stream. Throws BodyTooLongException, which is the reason
-        ///for the channelNumber parameter.</summary>
-        ///<remarks>
-        ///<para>
-        /// It might be better to do the body length check in our
-        /// caller, currently CommandAssembler, which would avoid
-        /// passing in the otherwise unrequired channelNumber
-        /// parameter.
-        ///</para>
-        ///</remarks>
-        public ulong ReadFrom(int channelNumber, NetworkBinaryReader reader)
+        ///<summary>Fill this instance from the given byte buffer stream.
+        ///</summary>
+        public ulong ReadFrom(NetworkBinaryReader reader)
         {
             reader.ReadUInt16(); // weight - not currently used
             ulong bodySize = reader.ReadUInt64();
-            if (bodySize > MaximumPermittedReceivableBodySize)
-            {
-                throw new BodyTooLongException(channelNumber, bodySize);
-            }
             ReadPropertiesFrom(new ContentHeaderPropertyReader(reader));
             return bodySize;
         }

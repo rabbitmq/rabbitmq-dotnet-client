@@ -76,7 +76,7 @@ namespace RabbitMQ.Client.Unit
   
     [SetUp] public void Connect()
     {
-      C = new ConnectionFactory().CreateConnection(Protocols.FromEnvironment(), "localhost", -1);
+      C = new ConnectionFactory().CreateConnection();
     }
 
     [TearDown] public void Disconnect()

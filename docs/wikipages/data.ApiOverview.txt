@@ -58,26 +58,28 @@ protocol variant. At the time of writing, the library supports:
 
  - [code Protocols.DefaultProtocol]: An alias to one of the other
    protocols. At the time of writing, [b the default protocol is [code
-   AMQP_0_8]].
+   AMQP_0_9_1]].
 
- - [code Protocols.AMQP_0_8]: Standard, unmodified AMQP 0-8 protocol,
-   including [code access.request].
+ - [code Protocols.AMQP_0_8]: Standard AMQP 0-8 protocol, including
+   [code access.request], [code basic.recover-async] and [code queue.unbind].
 
  - [code Protocols.AMQP_0_8_QPID]: AMQP 0-8 as extended by QPid's 0-8
    M1 release, without [code access.request] and with extra parameters
    available on certain methods.
 
- - [code Protocols.AMQP_0_9]: Standard, unmodified AMQP 0-9 protocol,
-   including [code access.request], but excluding the [code Message]
-   content-class and other areas of the specification marked "work in
-   progress".
+ - [code Protocols.AMQP_0_9]: Standard AMQP 0-9 protocol, including
+   [code access.request] and [code basic.recover-async], but excluding
+   the [code Message] content-class and other areas of the specification
+   marked "work in progress".
+
+ - [code Protocols.AMQP_0_9_1]: Standard AMQP 0-9-1 protocol.
 
 The [code Protocols] class also contains some convenience functions
 for retrieving an IProtocol from a string, from the environment or
 from a .NET XML configuration file. The protocol names permitted are
 the same as the static instance variables on class [code Protocols],
-that is, [code AMQP_0_8], [code AMQP_0_8_QPID], [code AMQP_0_9], and
-[code DefaultProtocol].
+that is, [code AMQP_0_8], [code AMQP_0_8_QPID], [code AMQP_0_9],
+[code AMQP_0_9_1] and [code DefaultProtocol].
 
 The following code binds [code p] to the [code Protocols.AMQP_0_9]
 instance by looking it up dynamically:
@@ -119,24 +121,21 @@ The following code connects to an AMQP broker:
 
 @code java
  ConnectionFactory factory = new ConnectionFactory();
- IProtocol protocol = Protocols.FromEnvironment();
- IConnection conn = factory.CreateConnection(protocol, hostName, portNumber);
+ factory.UserName = user;
+ factory.Password = pass;
+ factory.VirtualHost = vhost;
+ factory.Protocol = Protocols.FromEnvironment();
+ factory.HostName = hostName;
+ factory.Port = AmqpTcpEndpoint.UseDefaultPort;
+ IConnection conn = factory.CreateConnection();
 
-The default parameters are:
+All factory properties have default values. The default value for a property will be used if the property remains unassigned prior to creating a connection:
  - username: [code "guest"]
  - password: [code "guest"]
  - virtual-host: [code "/"]
-
-For control over the username, password and virtual-host supplied to
-the broker, modify the [code ConnectionFactory]'s [code
-ConnectionParameters] object before calling [code CreateConnection]:
-
-@code java
- ConnectionParameters params = factory.Parameters;
- params.UserName = userName;
- params.Password = password;
- params.VirtualHost = virtualHost;
- IConnection conn = factory.CreateConnection(protocol, hostName, portNumber);
+ - protocol: [code AMQP 0-9-1]
+ - hostname: [code localhost]
+ - port: [code 5672]
 
 The IConnection interface can then be used to open a channel:
 
@@ -350,17 +349,16 @@ library. Such callbacks include:
    IModel] etc.
 
 Application callback handlers [b must not] invoke blocking AMQP
-operations (such as [code IModel.QueueDeclare] or [code
-IModel.BasicCancel]). If they do, the channel will deadlock[footnote
-The underlying implementation reason is that the [code IBasicConsumer]
-callbacks are invoked in the connection's thread rather than in the
-application's thread.].
+operations (such as [code IModel.QueueDeclare], [code
+IModel.BasicCancel] or [code IModel.BasicPublish]). If they do, the
+channel will deadlock[footnote The underlying implementation reason
+is that the [code IBasicConsumer] callbacks are invoked in the connection's
+thread rather than in the application's thread.].
 
-Only asynchronous AMQP operations are safe for use within callbacks,
-such as:
-
- - [code IModel.BasicAck]
- - [code IModel.BasicPublish]
+Only asynchronous AMQP operations without content are safe for use
+within callbacks, such as [code IModel.BasicAck]. It is not safe to
+use [code IModel.BasicPublish] in callbacks, because channel flow
+could block publication.
 
 For this reason, [code QueueingBasicConsumer] is the safest way of
 subscribing to a queue, because its implementation uses [code

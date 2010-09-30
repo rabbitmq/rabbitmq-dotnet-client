@@ -1,4 +1,4 @@
-// This source code is dual-licensed under the Apache License, version
+﻿// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 1.1.
 //
 // The APL v2.0:
@@ -54,32 +54,52 @@
 //   Contributor(s): ______________________________________.
 //
 //---------------------------------------------------------------------------
+using NUnit.Framework;
+using System.IO;
+using System.Threading;
+
+using RabbitMQ.Client.Impl;
+using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Events;
+using RabbitMQ.Util;
 using System;
 
-// We use spec version 0-9 for common constants such as frame types,
-// error codes, and the frame end byte, since they don't vary *within
-// the versions we support*. Obviously we may need to revisit this if
-// that ever changes.
-using CommonFraming = RabbitMQ.Client.Framing.v0_9;
 
-namespace RabbitMQ.Client.Impl {
-    /// <summary>
-    /// Thrown when the connection receives a body that exceeds the permissible maximum.
-    /// FIXME: document the permissible maximum, and how to query and configure it
-    /// </summary>
-    public class BodyTooLongException: SoftProtocolException {
-        private readonly ulong m_requestedLength;
+namespace RabbitMQ.Client.Unit
+{
+    [TestFixture]
+    public class TestApiGen
+    {
+        IConnection Connection;
+        IModel Channel;
+        String exchangeName = "nowait-test-exchange";
 
-        public BodyTooLongException(int channelNumber, ulong requestedLength)
-            : base(channelNumber,
-                   string.Format("The body of a message ({0} bytes) was too long.",
-                                 requestedLength))
+        [SetUp] public void Connect()
         {
-            m_requestedLength = requestedLength;
+            Connection = new ConnectionFactory().CreateConnection();
+            Channel = Connection.CreateModel();
         }
 
-        public ulong RequestedLength { get { return m_requestedLength; } }
+        [TearDown] public void Disconnect()
+        {
+            try {
+                Channel.ExchangeDelete(exchangeName, false, false);
+            } catch (OperationInterruptedException) {}
+            Connection.Abort();
+        }
 
-        public override ushort ReplyCode { get { return CommonFraming.Constants.ContentTooLarge; } }
+        [Test, Timeout(1000)]
+        public void TestExchangeDeclareNoWait()
+        {
+            Channel.ExchangeDeclare(exchangeName, "direct", 
+                                    false, false, true, false, true, null);
+        }
+
+        [Test]
+        public void TestExchangeDeleteNoWait()
+        {
+            Channel.ExchangeDeclare(exchangeName, "direct");
+            Channel.ExchangeDelete(exchangeName, false, true);
+        }
     }
 }

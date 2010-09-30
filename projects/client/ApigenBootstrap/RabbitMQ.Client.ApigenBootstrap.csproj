@@ -72,6 +72,9 @@
     <Compile Include="..\RabbitMQ.Client\src\client\api\ShutdownInitiator.cs">
       <Link>src\client\api\ShutdownInitiator.cs</Link>
     </Compile>
+    <Compile Include="..\RabbitMQ.Client\src\client\events\BasicRecoverOkEventHandler.cs">
+      <Link>src\client\events\BasicRecoverOkEventHandler.cs</Link>
+    </Compile>
     <Compile Include="..\RabbitMQ.Client\src\client\events\BasicReturnEventArgs.cs">
       <Link>src\client\events\BasicReturnEventArgs.cs</Link>
     </Compile>
@@ -86,6 +89,9 @@
     </Compile>
     <Compile Include="..\RabbitMQ.Client\src\client\events\ModelShutdownEventHandler.cs">
       <Link>src\client\events\ModelShutdownEventHandler.cs</Link>
+    </Compile>
+    <Compile Include="..\RabbitMQ.Client\src\client\events\FlowControlEventHandler.cs">
+      <Link>src\client\events\FlowControlEventHandler.cs</Link>
     </Compile>
     <Compile Include="properties\AssemblyInfo.cs" />
   </ItemGroup>

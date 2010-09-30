@@ -70,8 +70,11 @@ namespace RabbitMQ.Client.Examples {
                 Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
                 return 2;
             }
-            
-            using (IConnection conn = new ConnectionFactory().CreateConnection(args[0])) {
+
+            ConnectionFactory cf = new ConnectionFactory();
+            cf.Address = args[0];           
+ 
+            using (IConnection conn = cf.CreateConnection()) {
                 using (IModel ch = conn.CreateModel()) {
                     
                     object[] addends = new object[args.Length - 1];

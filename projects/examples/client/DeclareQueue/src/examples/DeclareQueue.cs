@@ -99,8 +99,10 @@ namespace RabbitMQ.Client.Examples {
 
             string serverAddress = args[optionIndex++];
             string inputQueueName = args[optionIndex++];
+            ConnectionFactory cf = new ConnectionFactory();
+            cf.Address = serverAddress;
 
-            using (IConnection conn = new ConnectionFactory().CreateConnection(serverAddress))
+            using (IConnection conn = cf.CreateConnection())
                 {
                     using (IModel ch = conn.CreateModel()) {
 

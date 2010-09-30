@@ -56,6 +56,7 @@
 //---------------------------------------------------------------------------
 using System;
 using System.IO;
+using System.Net.Sockets;
 
 using RabbitMQ.Util;
 using RabbitMQ.Client.Exceptions;
@@ -103,7 +104,21 @@ namespace RabbitMQ.Client.Impl
             int type;
             int channel;
 
-            type = reader.ReadByte();
+            try
+            {
+                type = reader.ReadByte();
+            }
+            catch (IOException ioe)
+            {
+                // If it's a WSAETIMEDOUT SocketException, unwrap it.
+                // This might happen when the limit of half-open connections is
+                // reached.
+                if (ioe.InnerException == null ||
+                    !(ioe.InnerException is SocketException) ||
+                    ((SocketException)ioe.InnerException).SocketErrorCode != SocketError.TimedOut)
+                    throw ioe;
+                throw ioe.InnerException;
+            }
 
             if (type == 'A')
             {
@@ -177,11 +192,11 @@ namespace RabbitMQ.Client.Impl
         public void WriteTo(NetworkBinaryWriter writer)
         {
             FinishWriting();
-            writer.Write((byte)m_type);
-            writer.Write((ushort)m_channel);
-            writer.Write((uint)m_payload.Length);
-            writer.Write((byte[])m_payload);
-            writer.Write((byte)CommonFraming.Constants.FrameEnd);
+            writer.Write((byte) m_type);
+            writer.Write((ushort) m_channel);
+            writer.Write((uint) m_payload.Length);
+            writer.Write((byte[]) m_payload);
+            writer.Write((byte) CommonFraming.Constants.FrameEnd);
         }
 
         public NetworkBinaryReader GetReader()

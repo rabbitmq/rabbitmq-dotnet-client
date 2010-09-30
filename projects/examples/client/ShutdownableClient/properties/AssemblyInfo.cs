@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("ShutdownableClient")]
 [assembly: AssemblyDescription("ShutdownableClientExample")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("LShift Ltd.")]
+[assembly: AssemblyCompany("Rabbit Technologies Ltd.")]
 [assembly: AssemblyProduct("RabbitMQ.Client")]
 [assembly: AssemblyCopyright("Copyright © 2007-2010 LShift Ltd., Cohesive Financial Technologies LLC., and Rabbit Technologies Ltd.")]
 [assembly: AssemblyTrademark("")]

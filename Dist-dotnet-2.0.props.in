@@ -2,7 +2,10 @@
 <Project ToolsVersion="3.5" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <PropTargetFramework>v2.0</PropTargetFramework>
+    <PropUsingMono>@USINGMONO@</PropUsingMono>
+    <PropLaunchExe Condition="'$(PropUsingMono)' == 'true'">mono </PropLaunchExe>
     <PropAssemblyVersion>@VERSION@</PropAssemblyVersion>
     <PropKeyfile>$(MSBuildProjectDirectory)\..\..\..\@KEYFILE@</PropKeyfile>
   </PropertyGroup>
 </Project>
+
