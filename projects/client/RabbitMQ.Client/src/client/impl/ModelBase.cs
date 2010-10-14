@@ -82,9 +82,11 @@ namespace RabbitMQ.Client.Impl
         private readonly object m_eventLock = new object();
         private BasicReturnEventHandler m_basicReturn;
         private CallbackExceptionEventHandler m_callbackException;
+        private FlowControlEventHandler m_flowControl;
         private BasicRecoverOkEventHandler m_basicRecoverOk;
         
         public ManualResetEvent m_flowControlBlock = new ManualResetEvent(true);
+        private readonly object m_flowSendLock = new object();
 
         public event ModelShutdownEventHandler ModelShutdown
         {
@@ -145,6 +147,24 @@ namespace RabbitMQ.Client.Impl
                 lock (m_eventLock)
                 {
                     m_callbackException -= value;
+                }
+            }
+        }
+
+        public event FlowControlEventHandler FlowControl
+        {
+            add
+            {
+                lock (m_eventLock)
+                {
+                    m_flowControl += value;
+                }
+            }
+            remove
+            {
+                lock (m_eventLock)
+                {
+                    m_flowControl -= value;
                 }
             }
         }
@@ -298,6 +318,31 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public virtual void OnFlowControl(FlowControlEventArgs args)
+        {
+            FlowControlEventHandler handler;
+            lock (m_eventLock)
+            {
+                handler = m_flowControl;
+            }
+            if (handler != null)
+            {
+                foreach (FlowControlEventHandler h in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        h(this, args);
+                    }
+                    catch (Exception e)
+                    {
+                        CallbackExceptionEventArgs exnArgs = new CallbackExceptionEventArgs(e);
+                        exnArgs.Detail["context"] = "OnFlowControl";
+                        OnCallbackException(exnArgs);
+                    }
+                }
+            }
+        }
+
         public virtual void OnBasicRecoverOk(EventArgs args)
         {
             BasicRecoverOkEventHandler handler;
@@ -373,10 +418,18 @@ namespace RabbitMQ.Client.Impl
 
         public void ModelSend(MethodBase method, ContentHeaderBase header, byte[] body)
         {
-            if (method.HasContent) {
-                m_flowControlBlock.WaitOne();
+            if (method.HasContent)
+            {
+                lock (m_flowSendLock)
+                {
+                    m_flowControlBlock.WaitOne();
+                    m_session.Transmit(new Command(method, header, body));
+                }
             }
-            m_session.Transmit(new Command(method, header, body));
+            else
+            {
+                m_session.Transmit(new Command(method, header, body));
+            }
         }
         
         public MethodBase ModelRpc(MethodBase method, ContentHeaderBase header, byte[] body)
@@ -451,10 +504,19 @@ namespace RabbitMQ.Client.Impl
         public void HandleChannelFlow(bool active)
         {
             if (active)
+            {
                 m_flowControlBlock.Set();
+                _Private_ChannelFlowOk(active);
+            }
             else
-                m_flowControlBlock.Reset();
-            _Private_ChannelFlowOk(active);
+            {
+                lock (m_flowSendLock)
+                {
+                    m_flowControlBlock.Reset();
+                    _Private_ChannelFlowOk(active);
+                }
+            }
+            OnFlowControl(new FlowControlEventArgs(active));
         }
 
         public void HandleConnectionStart(byte versionMajor,

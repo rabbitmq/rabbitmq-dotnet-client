@@ -90,6 +90,9 @@
     <Compile Include="..\RabbitMQ.Client\src\client\events\ModelShutdownEventHandler.cs">
       <Link>src\client\events\ModelShutdownEventHandler.cs</Link>
     </Compile>
+    <Compile Include="..\RabbitMQ.Client\src\client\events\FlowControlEventHandler.cs">
+      <Link>src\client\events\FlowControlEventHandler.cs</Link>
+    </Compile>
     <Compile Include="properties\AssemblyInfo.cs" />
   </ItemGroup>
   
