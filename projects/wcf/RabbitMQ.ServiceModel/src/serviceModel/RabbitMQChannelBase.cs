@@ -192,6 +192,10 @@ namespace RabbitMQ.ServiceModel
             get { return m_context; }
         }
 
+        protected String Exchange
+        {
+            get { return "amq.direct"; }
+        }
 
         public event EventHandler Closed;
 

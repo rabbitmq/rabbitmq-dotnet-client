@@ -103,7 +103,7 @@ namespace RabbitMQ.ServiceModel
                     body.Length,
                     message.Headers.Action.Remove(0, message.Headers.Action.LastIndexOf('/')));
 #endif
-                m_model.BasicPublish(base.RemoteAddress.Uri.Host,
+                m_model.BasicPublish(Exchange,
                                    base.RemoteAddress.Uri.PathAndQuery,
                                    null,
                                    body);
