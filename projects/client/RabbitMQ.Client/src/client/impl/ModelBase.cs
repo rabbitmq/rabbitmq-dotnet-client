@@ -1050,11 +1050,6 @@ namespace RabbitMQ.Client.Impl
             k.HandleCommand(null);
         }
 
-        public abstract ConnectionTuneDetails ConnectionStartOk(IDictionary clientProperties,
-                                                                string mechanism,
-                                                                byte[] response,
-                                                                string locale);
-
         public abstract void ConnectionTuneOk(ushort channelMax,
                                               uint frameMax,
                                               ushort heartbeat);

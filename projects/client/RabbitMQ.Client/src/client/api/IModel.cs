@@ -720,15 +720,6 @@ namespace RabbitMQ.Client.Impl
                                    byte[] mechanisms,
                                    byte[] locales);
 
-        ///<summary>Sends a Connection.StartOk, and waits for a
-        ///Connection.Tune. Used during connection
-        ///initialisation.</summary>
-        [return: AmqpMethodMapping(null, "connection", "tune")]
-        ConnectionTuneDetails ConnectionStartOk(IDictionary clientProperties,
-                                                string mechanism,
-                                                byte[] response,
-                                                string locale);
-
         ///<summary>Sends a Connection.TuneOk. Used during connection
         ///initialisation.</summary>
         void ConnectionTuneOk(ushort channelMax,

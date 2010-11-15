@@ -126,6 +126,10 @@ namespace RabbitMQ.Client
         /// seconds, with zero meaning none (value: 0)</summary>
         public const ushort DefaultHeartbeat = 0; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
 
+        ///<summary> Default SASL auth mechanisms to use.</summary>
+        public static AuthMechanismFactory[] DefaultAuthMechanisms =
+            new AuthMechanismFactory[] { new PlainMechanismFactory() };
+
         /// <summary>Username to use when authenticating to the server</summary>
         public string UserName = DefaultUser;
 
@@ -157,6 +161,9 @@ namespace RabbitMQ.Client
         ///<summary>The port to connect on. AmqpTcpEndpoint.UseDefaultPort indicates the 
         /// default for the protocol should be used.</summary>
         public int Port = AmqpTcpEndpoint.UseDefaultPort;
+
+        ///<summary> SASL auth mechanisms to use.</summary>
+        public AuthMechanismFactory[] AuthMechanisms = DefaultAuthMechanisms;
 
         ///<summary>The AMQP protocol to be used</summary>
         public IProtocol Protocol = Protocols.FromEnvironment();
@@ -326,6 +333,20 @@ namespace RabbitMQ.Client
         public virtual IConnection CreateConnection()
         {
             return CreateConnection(0);
+        }
+
+        ///<summary>Given a list of mechanism names supported by the
+        ///server, select a preferred mechanism, or null if we have
+        ///none in common.</summary>
+        public AuthMechanismFactory AuthMechanismFactory(string[] mechs) {
+            // Our list is in order of preference, the server one is not.
+            foreach (AuthMechanismFactory f in AuthMechanisms) {
+                if (((IList)mechs).Contains(f.Name)) {
+                    return f;
+                }
+            }
+
+            return null;
         }
     }
 }
