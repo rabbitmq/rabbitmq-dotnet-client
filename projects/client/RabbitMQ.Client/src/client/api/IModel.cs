@@ -720,6 +720,31 @@ namespace RabbitMQ.Client.Impl
                                    byte[] mechanisms,
                                    byte[] locales);
 
+        ///<summary>Used to send a Connection.StartOk. This is
+        ///special, like Basic.Get.</summary>
+        [AmqpForceOneWay]
+        [AmqpMethodMapping(null, "connection", "start-ok")]
+        void _Private_ConnectionStartOk(IDictionary clientProperties,
+                                        string mechanism,
+                                        byte[] response,
+                                        string locale);
+
+        ///<summary>Handle incoming Connection.Secure
+        ///methods.</summary>
+        void HandleConnectionSecure(byte[] challenge);
+
+        ///<summary>Used to send a Connection.SecureOk. Again, this is
+        ///special, like Basic.Get.</summary>
+        [AmqpForceOneWay]
+        [AmqpMethodMapping(null, "connection", "secure-ok")]
+        void _Private_ConnectionSecureOk(byte[] response);
+
+        ///<summary>Handle incoming Connection.Tune
+        ///methods.</summary>
+        void HandleConnectionTune(ushort channelMax,
+                                  uint frameMax,
+                                  ushort heartbeat);
+
         ///<summary>Sends a Connection.TuneOk. Used during connection
         ///initialisation.</summary>
         void ConnectionTuneOk(ushort channelMax,
@@ -777,6 +802,12 @@ namespace RabbitMQ.Client.Impl
         public uint m_frameMax;
         ///<summary>The peer's suggested heartbeat parameter.</summary>
         public ushort m_heartbeat;
+    }
+
+    public class ConnectionSecureOrTune
+    {
+        public ConnectionTuneDetails m_tuneDetails;
+        public byte[] m_challenge;
     }
 }
 

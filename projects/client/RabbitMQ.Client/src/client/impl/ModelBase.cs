@@ -1050,6 +1050,77 @@ namespace RabbitMQ.Client.Impl
             k.HandleCommand(null);
         }
 
+        public class ConnectionStartRpcContinuation : SimpleBlockingRpcContinuation
+        {
+            public ConnectionSecureOrTune m_result;
+            public ConnectionStartRpcContinuation() { }
+        }
+
+        public ConnectionSecureOrTune ConnectionStartOk(IDictionary clientProperties,
+                                                        string mechanism,
+                                                        byte[] response,
+                                                        string locale)
+        {
+            ConnectionStartRpcContinuation k = new ConnectionStartRpcContinuation();
+            Enqueue(k);
+            try
+            {
+                _Private_ConnectionStartOk(clientProperties, mechanism,
+                                           response, locale);
+            }
+            catch (AlreadyClosedException)
+            {
+                // Ignored, see BasicGet
+            }
+            k.GetReply();
+            return k.m_result;
+        }
+
+        public abstract void _Private_ConnectionStartOk(IDictionary clientProperties,
+                                                        string mechanism,
+                                                        byte[] response,
+                                                        string locale);
+
+        public void HandleConnectionSecure(byte[] challenge)
+        {
+            ConnectionStartRpcContinuation k = (ConnectionStartRpcContinuation)m_continuationQueue.Next();
+            k.m_result = new ConnectionSecureOrTune();
+            k.m_result.m_challenge = challenge;
+            k.HandleCommand(null); // release the continuation.
+        }
+
+        public ConnectionSecureOrTune ConnectionSecureOk(byte[] response)
+        {
+            ConnectionStartRpcContinuation k = new ConnectionStartRpcContinuation();
+            Enqueue(k);
+            try
+            {
+                _Private_ConnectionSecureOk(response);
+            }
+            catch (AlreadyClosedException)
+            {
+                // Ignored, see BasicGet
+            }
+            k.GetReply();
+            return k.m_result;
+        }
+
+        public abstract void _Private_ConnectionSecureOk(byte[] response);
+
+        ///<summary>Handle incoming Connection.Tune
+        ///methods.</summary>
+        public void HandleConnectionTune(ushort channelMax,
+                                         uint frameMax,
+                                         ushort heartbeat)
+        {
+            ConnectionStartRpcContinuation k = (ConnectionStartRpcContinuation)m_continuationQueue.Next();
+            k.m_result = new ConnectionSecureOrTune();
+            k.m_result.m_tuneDetails.m_channelMax = channelMax;
+            k.m_result.m_tuneDetails.m_frameMax = frameMax;
+            k.m_result.m_tuneDetails.m_heartbeat = heartbeat;
+            k.HandleCommand(null); // release the continuation.
+        }
+
         public abstract void ConnectionTuneOk(ushort channelMax,
                                               uint frameMax,
                                               ushort heartbeat);
@@ -1073,9 +1144,7 @@ namespace RabbitMQ.Client.Impl
             }
             catch (AlreadyClosedException)
             {
-                // Ignored, since the continuation will be told about
-                // the closure via an OperationInterruptedException because
-                // of the shutdown event propagation.
+                // Ignored, see BasicGet
             }
             k.GetReply();
             if (k.m_redirect) {

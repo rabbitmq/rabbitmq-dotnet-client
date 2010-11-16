@@ -71,13 +71,6 @@ using RabbitMQ.Util;
 // the versions we support*. Obviously we may need to revisit this if
 // that ever changes.
 using CommonFraming = RabbitMQ.Client.Framing.v0_9;
-// TODO this actually won't work
-using CommonFramingImpl = RabbitMQ.Client.Framing.Impl.v0_9_1;
-
-using ConnectionStartOk = CommonFramingImpl.ConnectionStartOk;
-using ConnectionTune = CommonFramingImpl.ConnectionTune;
-using ConnectionSecure = CommonFramingImpl.ConnectionSecure;
-using ConnectionSecureOk = CommonFramingImpl.ConnectionSecureOk;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -1025,31 +1018,22 @@ namespace RabbitMQ.Client.Impl
                 byte[] challenge = null;
                 do {
                     byte[] response = mechanism.handleChallenge(challenge, m_factory);
-                    RabbitMQ.Client.Impl.MethodBase req = null;
+                    ConnectionSecureOrTune res;
                     if (challenge == null) {
-                        ConnectionStartOk startOk = new ConnectionStartOk();
-                        startOk.m_clientProperties = m_clientProperties;
-                        startOk.m_mechanism = mechanismFactory.Name;
-                        startOk.m_response = response;
-                        startOk.m_locale = "en_US";
-                        req = startOk as RabbitMQ.Client.Impl.MethodBase;
+                        res = m_model0.ConnectionStartOk(m_clientProperties,
+                                                         mechanismFactory.Name,
+                                                         response,
+                                                         "en_US");
                     }
                     else {
-                        ConnectionSecureOk secureOk = new ConnectionSecureOk();
-                        secureOk.m_response = response;
-                        req = secureOk as RabbitMQ.Client.Impl.MethodBase;
+                        res = m_model0.ConnectionSecureOk(response);
                     }
 
-                    MethodBase resp =  m_model0.ModelRpc(req, null, null);
-                    if (resp is ConnectionTune) {
-                        ConnectionTune tune = resp as ConnectionTune;
-                        connectionTune.m_channelMax = tune.m_channelMax;
-                        connectionTune.m_frameMax = tune.m_frameMax;
-                        connectionTune.m_heartbeat = tune.m_heartbeat;
+                    if (res.m_challenge == null) {
+                        connectionTune = res.m_tuneDetails;
                         tuned = true;
                     } else {
-                        ConnectionSecure secure = resp as ConnectionSecure;
-                        challenge = secure.m_challenge;
+                        challenge = res.m_challenge;
                     }
                 } while (!tuned);
             }
