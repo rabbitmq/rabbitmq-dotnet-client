@@ -84,11 +84,12 @@ namespace RabbitMQ.Client.Unit
         {
             Connection = new ConnectionFactory().CreateConnection();
             Channel = Connection.CreateModel();
-            Queue = Channel.QueueDeclare();
+            Queue = Channel.QueueDeclare("recover_test");
         }
 
         [TearDown] public void Disconnect()
         {
+            Channel.QueueDelete(Queue, false, false, false);
             Connection.Abort();
         }
 
@@ -98,18 +99,15 @@ namespace RabbitMQ.Client.Unit
             UTF8Encoding enc = new UTF8Encoding();
             Channel.BasicPublish("", Queue, null, enc.GetBytes("message"));
             QueueingBasicConsumer Consumer = new QueueingBasicConsumer(Channel);
-            QueueingBasicConsumer DefaultConsumer = new QueueingBasicConsumer(Channel);
-            Channel.DefaultConsumer = DefaultConsumer;
+
             String CTag = Channel.BasicConsume(Queue, null, Consumer);
             BasicDeliverEventArgs Event = (BasicDeliverEventArgs) Consumer.Queue.Dequeue();
             Channel.BasicCancel(CTag);
-            Channel.BasicRecover(false);
+            Channel.BasicRecover(true);
 
-            // The server will now redeliver us the first message again, with the
-            // same ctag, but we're not set up to handle it with a standard
-            // consumer - it should end up with the default one.
-
-            BasicDeliverEventArgs Event2 = (BasicDeliverEventArgs) DefaultConsumer.Queue.Dequeue();
+            QueueingBasicConsumer Consumer2 = new QueueingBasicConsumer(Channel);
+            Channel.BasicConsume(Queue, null, Consumer2);
+            BasicDeliverEventArgs Event2 = (BasicDeliverEventArgs)Consumer2.Queue.Dequeue();
 
             Assert.AreEqual(Event.Body, Event2.Body);
             Assert.IsFalse(Event.Redelivered);
@@ -121,7 +119,7 @@ namespace RabbitMQ.Client.Unit
         {
             int callbackCount = 0;
             Channel.BasicRecoverOk += (sender, eventArgs) => callbackCount++;
-            Channel.BasicRecover(false);
+            Channel.BasicRecover(true);
             Assert.AreEqual(1, callbackCount);
         }
 
