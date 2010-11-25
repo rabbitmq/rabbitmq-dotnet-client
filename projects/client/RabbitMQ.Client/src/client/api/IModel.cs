@@ -199,6 +199,28 @@ namespace RabbitMQ.Client
                             [AmqpNowaitArgument(null)]
                             bool nowait);
 
+        ///<summary>(Spec method) Bind an exchange to an exchange.</summary>
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8"),
+         AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid"),
+         AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
+        void ExchangeBind(string destination,
+                          string source,
+                          string routingKey,
+                          [AmqpNowaitArgument(null)]
+                          bool nowait,
+                          IDictionary arguments);
+
+        ///<summary>(Spec method) Unbind an exchange from an exchange.</summary>
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8"),
+         AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid"),
+         AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
+        void ExchangeUnbind(string destination,
+                            string source,
+                            string routingKey,
+                            [AmqpNowaitArgument(null)]
+                            bool nowait,
+                            IDictionary arguments);
+
         ///<summary>(Spec method) Declare a queue.</summary>
         ///<remarks>
         ///The queue is declared non-passive, non-durable,

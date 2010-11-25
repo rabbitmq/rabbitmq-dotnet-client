@@ -61,7 +61,7 @@ namespace RabbitMQ.Client.Impl
         AmqpTcpEndpoint Endpoint { get; }
 
         ///<summary>Socket read timeout, in milliseconds. Zero signals "infinity".</summary>
-        int Timeout { get; set; }
+        int Timeout { set; }
 
         void SendHeader();
 
