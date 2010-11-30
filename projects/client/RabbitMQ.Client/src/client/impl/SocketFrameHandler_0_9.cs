@@ -104,13 +104,12 @@ namespace RabbitMQ.Client.Impl
 
         public int Timeout
         {
-            get
-            {
-                return m_socket.ReceiveTimeout;
-            }
             set
             {
-                m_socket.ReceiveTimeout = value;
+                if (m_socket.Connected)
+                {
+                    m_socket.ReceiveTimeout = value;
+                }
             }
         }
 

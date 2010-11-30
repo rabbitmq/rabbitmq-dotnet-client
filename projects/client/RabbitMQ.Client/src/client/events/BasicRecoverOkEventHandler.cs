@@ -1,4 +1,4 @@
-// This source code is dual-licensed under the Apache License, version
+﻿// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 1.1.
 //
 // The APL v2.0:
@@ -54,24 +54,11 @@
 //   Contributor(s): ______________________________________.
 //
 //---------------------------------------------------------------------------
-namespace RabbitMQ.Client.Impl
+using System;
+
+namespace RabbitMQ.Client.Events
 {
-    public interface IFrameHandler
-    {
-        AmqpTcpEndpoint Endpoint { get; }
-
-        ///<summary>Socket read timeout, in milliseconds. Zero signals "infinity".</summary>
-        int Timeout { set; }
-
-        void SendHeader();
-
-        ///<summary>Read a frame from the underlying
-        ///transport. Returns null if the read operation timed out
-        ///(see Timeout property).</summary>
-        Frame ReadFrame();
-
-        void WriteFrame(Frame frame);
-
-        void Close();
-    }
+    ///<summary>Delegate used to process Basic.RecoverOk events.</summary>
+    public delegate void BasicRecoverOkEventHandler(IModel model, EventArgs args);
 }
+

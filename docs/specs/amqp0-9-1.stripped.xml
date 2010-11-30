@@ -239,6 +239,32 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <method name="delete-ok" synchronous="1" index="21">
       <chassis name="client" implement="MUST"/>
     </method>
+    <method name="bind" synchronous="1" index="30">
+      <chassis name="server" implement="MUST"/>
+      <response name="bind-ok"/>
+      <field name="reserved-1" type="short" reserved="1"/>
+      <field name="destination" domain="exchange-name"/>
+      <field name="source" domain="exchange-name"/>
+      <field name="routing-key" domain="shortstr"/>
+      <field name="no-wait" domain="no-wait"/>
+      <field name="arguments" domain="table"/>
+    </method>
+    <method name="bind-ok" synchronous="1" index="31">
+      <chassis name="client" implement="MUST"/>
+    </method>
+    <method name="unbind" synchronous="1" index="40">
+      <chassis name="server" implement="MUST"/>
+      <response name="unbind-ok"/>
+      <field name="reserved-1" type="short" reserved="1"/>
+      <field name="destination" domain="exchange-name"/>
+      <field name="source" domain="exchange-name"/>
+      <field name="routing-key" domain="shortstr"/>
+      <field name="no-wait" domain="no-wait"/>
+      <field name="arguments" domain="table"/>
+    </method>
+    <method name="unbind-ok" synchronous="1" index="41">
+      <chassis name="client" implement="MUST"/>
+    </method>
   </class>
   <class name="queue" handler="channel" index="50">
     <chassis name="server" implement="MUST"/>

@@ -97,6 +97,18 @@ namespace RabbitMQ.Client
         ///</remarks>
         event CallbackExceptionEventHandler CallbackException;
 
+        event FlowControlEventHandler FlowControl;
+
+        ///<summary>All messages received before this fires that haven't been
+        ///ack'ed will be redelivered. All messages received afterwards won't
+        ///be.
+        ///
+        ///Handlers for this event are invoked by the connection thread.
+        ///It is sometimes useful to allow that thread to know that a recover-ok
+        ///has been received, rather than the thread that invoked BasicRecover().
+        ///</summary>
+        event BasicRecoverOkEventHandler BasicRecoverOk;
+
         ///<summary>Signalled when an unexpected message is delivered
         ///
         /// Under certain circumstances it is possible for a channel to receive a
@@ -194,6 +206,28 @@ namespace RabbitMQ.Client
                             bool ifUnused,
                             [AmqpNowaitArgument(null)]
                             bool nowait);
+
+        ///<summary>(Spec method) Bind an exchange to an exchange.</summary>
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8"),
+         AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid"),
+         AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
+        void ExchangeBind(string destination,
+                          string source,
+                          string routingKey,
+                          [AmqpNowaitArgument(null)]
+                          bool nowait,
+                          IDictionary arguments);
+
+        ///<summary>(Spec method) Unbind an exchange from an exchange.</summary>
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8"),
+         AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid"),
+         AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
+        void ExchangeUnbind(string destination,
+                            string source,
+                            string routingKey,
+                            [AmqpNowaitArgument(null)]
+                            bool nowait,
+                            IDictionary arguments);
 
         ///<summary>(Spec method) Declare a queue.</summary>
         ///<remarks>
@@ -299,7 +333,7 @@ namespace RabbitMQ.Client
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
         string BasicConsume(string queue,
-                            IDictionary filter,
+                            IDictionary arguments,
                             IBasicConsumer consumer);
 
         ///<summary>Start a Basic content-class consumer.</summary>
@@ -311,7 +345,7 @@ namespace RabbitMQ.Client
         [AmqpMethodDoNotImplement(null)]
         string BasicConsume(string queue,
                             bool noAck,
-                            IDictionary filter,
+                            IDictionary arguments,
                             IBasicConsumer consumer);
 
         ///<summary>Start a Basic content-class consumer.</summary>
@@ -323,7 +357,7 @@ namespace RabbitMQ.Client
         string BasicConsume(string queue,
                             bool noAck,
                             string consumerTag,
-                            IDictionary filter,
+                            IDictionary arguments,
                             IBasicConsumer consumer);
 
         ///<summary>Start a Basic content-class consumer.</summary>
@@ -333,7 +367,7 @@ namespace RabbitMQ.Client
                             string consumerTag,
                             bool noLocal,
                             bool exclusive,
-                            IDictionary filter,
+                            IDictionary arguments,
                             IBasicConsumer consumer);
 
         ///<summary>Delete a Basic content-class consumer.</summary>
@@ -383,6 +417,7 @@ namespace RabbitMQ.Client
                          bool requeue);
 
         ///<summary>(Spec method)</summary>
+        [AmqpMethodDoNotImplement(null)]
         void BasicRecover(bool requeue);
 
         ///<summary>(Spec method)</summary>
@@ -572,11 +607,9 @@ namespace RabbitMQ.Client.Impl
                                    bool exclusive,
                                    bool nowait,
                                    [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-                                   [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_8qpid",
-                                                     "arguments")]
-                                   [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1",
-                                                     "arguments")]
-                                   IDictionary filter);
+                                   [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9",
+                                                     "filter")]
+                                   IDictionary arguments);
 
         ///<summary>Used to send a Confirm.Select method. The public
         ///confirm API calls this while also managing internal
@@ -652,6 +685,15 @@ namespace RabbitMQ.Client.Impl
         /// review".
         ///</remarks>
         void HandleBasicGetEmpty();
+
+        ///<summary>Handle incoming Basic.RecoverOk methods
+        ///received in reply to Basic.Recover.
+        ///</summary>
+        void HandleBasicRecoverOk();
+
+        [AmqpForceOneWay]
+        [AmqpMethodMapping(null, "basic", "recover")]
+        void _Private_BasicRecover(bool requeue);
 
         ///<summary>Handle incoming Basic.Deliver methods. Dispatches
         ///to waiting consumers.</summary>

@@ -1,4 +1,4 @@
-// This source code is dual-licensed under the Apache License, version
+﻿// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 1.1.
 //
 // The APL v2.0:
@@ -54,24 +54,26 @@
 //   Contributor(s): ______________________________________.
 //
 //---------------------------------------------------------------------------
-namespace RabbitMQ.Client.Impl
+
+using System;
+
+namespace RabbitMQ.Client.Events
 {
-    public interface IFrameHandler
+
+    ///<summary>Delegate used to process flow control events.</summary>
+    public delegate void FlowControlEventHandler(IModel sender, FlowControlEventArgs args);
+
+    ///<summary>Event relating to flow control</summary>
+    public class FlowControlEventArgs : EventArgs
     {
-        AmqpTcpEndpoint Endpoint { get; }
+        private readonly bool m_active;
 
-        ///<summary>Socket read timeout, in milliseconds. Zero signals "infinity".</summary>
-        int Timeout { set; }
+        public FlowControlEventArgs(bool active)
+        {
+            m_active = active;
+        }
 
-        void SendHeader();
-
-        ///<summary>Read a frame from the underlying
-        ///transport. Returns null if the read operation timed out
-        ///(see Timeout property).</summary>
-        Frame ReadFrame();
-
-        void WriteFrame(Frame frame);
-
-        void Close();
+        ///<summary>Access the flow control setting</summary>
+        public bool Active { get { return m_active; } }
     }
 }
