@@ -3694,13 +3694,12 @@ confirm transaction mode
       </doc>
       <chassis name="server" implement="MUST"/>
       <response name="select-ok"/>
-      <field name = "multiple" type = "bit">
+      <field name = "batch-duration" type = "longlong">
         acknowledge multiple messages
         <doc>
-          If set to 1, the delivery tag in the returned acks is
-          treated as "up to and including", so that the server can
-          acknowledge multiple messages with a single method.  If set
-          to zero, the delivery tag refers to a single message.
+          The number of milliseconds the broker waits trying to
+          coalesce multiple confirms together.  If 0, the broker
+          passes confirms to the publisher immediately.
         </doc>
       </field>
       <field name = "nowait" type = "bit">

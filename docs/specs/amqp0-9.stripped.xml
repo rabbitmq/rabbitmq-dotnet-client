@@ -720,7 +720,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <method name="select" synchronous="1" index="10">
       <chassis name="server" implement="MUST"/>
       <response name="select-ok"/>
-      <field name = "multiple" type = "bit">
+      <field name = "batch-duration" type = "longlong">
       </field>
       <field name = "nowait" type = "bit">
       </field>

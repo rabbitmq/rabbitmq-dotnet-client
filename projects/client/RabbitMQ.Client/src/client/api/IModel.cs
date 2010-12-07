@@ -317,12 +317,12 @@ namespace RabbitMQ.Client
         ///<summary>Enable publisher acknowledgements.</summary>
         [AmqpMethodDoNotImplement(null)]
         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        void ConfirmSelect(bool multiple);
+        void ConfirmSelect(ulong batchDuration);
 
         ///<summary>Enable publisher acknowledgements.</summary>
         [AmqpMethodDoNotImplement(null)]
         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        void ConfirmSelect(bool multiple, bool nowait);
+        void ConfirmSelect(ulong batchDuration, bool nowait);
 
 
         ///<summary>Start a Basic content-class consumer.</summary>
@@ -616,7 +616,7 @@ namespace RabbitMQ.Client.Impl
         ///datastructures.</summary>
         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
         [AmqpMethodMapping(null, "confirm", "select")]
-        void _Private_ConfirmSelect(bool multiple,
+        void _Private_ConfirmSelect(ulong batchDuration,
                                     [AmqpNowaitArgument(null)]
                                     bool nowait);
 

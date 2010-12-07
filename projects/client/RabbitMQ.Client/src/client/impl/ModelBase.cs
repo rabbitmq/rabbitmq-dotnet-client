@@ -748,17 +748,17 @@ namespace RabbitMQ.Client.Impl
                                          bool ifEmpty,
                                          bool nowait);
 
-        public void ConfirmSelect(bool multiple) {
-            ConfirmSelect(multiple, false);
+        public void ConfirmSelect(ulong batchDuration) {
+            ConfirmSelect(batchDuration, false);
         }
 
-        public void ConfirmSelect(bool multiple, bool nowait) {
+        public void ConfirmSelect(ulong batchDuration, bool nowait) {
             m_pubMsgCount = 0;
-            _Private_ConfirmSelect(multiple, nowait);
+            _Private_ConfirmSelect(batchDuration, nowait);
         }
 
 
-        public abstract void _Private_ConfirmSelect(bool multiple,
+        public abstract void _Private_ConfirmSelect(ulong batchDuration,
                                                     bool nowait);
 
         public string BasicConsume(string queue,
