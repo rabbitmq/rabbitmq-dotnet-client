@@ -83,6 +83,10 @@ namespace RabbitMQ.Client
         ///the broker.</summary>
         event BasicReturnEventHandler BasicReturn;
 
+        ///<summary>Signalled when a Basic.Ack command arrives from
+        ///the broker.</summary>
+        event BasicAckEventHandler BasicAcks;
+
         ///<summary>Signalled when an exception occurs in a callback
         ///invoked by the model.</summary>
         ///<remarks>
@@ -138,6 +142,10 @@ namespace RabbitMQ.Client
         ///where it can be used. Identical to checking if CloseReason
         ///== null.</summary>
         bool IsOpen { get; }
+
+        ///<summary>Returns the number of messages published since the
+        ///channel was put in confirm mode.</summary>
+        ulong? PublishedMessageCount { get; }
 
         ///<summary>Construct a completely empty content header for
         ///use with the Basic content class.</summary>
@@ -305,6 +313,17 @@ namespace RabbitMQ.Client
                          bool ifEmpty,
                          [AmqpNowaitArgument(null, "0xFFFFFFFF")]
                          bool nowait);
+
+        ///<summary>Enable publisher acknowledgements.</summary>
+        [AmqpMethodDoNotImplement(null)]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
+        void ConfirmSelect(bool multiple);
+
+        ///<summary>Enable publisher acknowledgements.</summary>
+        [AmqpMethodDoNotImplement(null)]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
+        void ConfirmSelect(bool multiple, bool nowait);
+
 
         ///<summary>Start a Basic content-class consumer.</summary>
         ///<remarks>
@@ -592,6 +611,16 @@ namespace RabbitMQ.Client.Impl
                                                      "filter")]
                                    IDictionary arguments);
 
+        ///<summary>Used to send a Confirm.Select method. The public
+        ///confirm API calls this while also managing internal
+        ///datastructures.</summary>
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
+        [AmqpMethodMapping(null, "confirm", "select")]
+        void _Private_ConfirmSelect(bool multiple,
+                                    [AmqpNowaitArgument(null)]
+                                    bool nowait);
+
+
         ///<summary>Handle incoming Basic.ConsumeOk methods.</summary>
         void HandleBasicConsumeOk(string consumerTag);
 
@@ -688,7 +717,12 @@ namespace RabbitMQ.Client.Impl
                                IBasicProperties basicProperties,
                                [AmqpContentBodyMapping]
                                byte[] body);
-                               
+
+        ///<summary>Handle incoming Basic.Ack methods. Signals a
+        ///BasicAckEvent.</summary>
+        void HandleBasicAck(ulong deliveryTag,
+                            bool multiple);
+
         ///<summary>Used to send a Channel.FlowOk. Confirms that
         ///Channel.Flow from the broker was processed.</summary>
         [AmqpMethodMapping(null, "channel", "flow-ok")]

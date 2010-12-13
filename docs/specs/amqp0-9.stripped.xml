@@ -478,6 +478,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     </method>
     <method name="ack" index="80">
       <chassis name="server" implement="MUST"/>
+      <chassis name="client" implement="MUST"/>
       <field name="delivery-tag" domain="delivery-tag"/>
       <field name="multiple" domain="bit"/>
     </method>
@@ -712,6 +713,19 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       </field>
     </method>
     <method name="start-ok" synchronous="1" index="21">
+      <chassis name="client" implement="MUST"/>
+    </method>
+  </class>
+  <class name="confirm" handler="channel" index="85">
+    <method name="select" synchronous="1" index="10">
+      <chassis name="server" implement="MUST"/>
+      <response name="select-ok"/>
+      <field name = "multiple" type = "bit">
+      </field>
+      <field name = "nowait" type = "bit">
+      </field>
+    </method>
+    <method name="select-ok" synchronous="1" index="11">
       <chassis name="client" implement="MUST"/>
     </method>
   </class>
