@@ -1008,11 +1008,12 @@ namespace RabbitMQ.Client.Impl
             bool tuned = false;
             try
             {
-                string[] mechanisms = Encoding.UTF8.GetString(connectionStart.m_mechanisms).Split(' ');
+                string mechanismsString = Encoding.UTF8.GetString(connectionStart.m_mechanisms);
+                string[] mechanisms = mechanismsString.Split(' ');
                 AuthMechanismFactory mechanismFactory = m_factory.AuthMechanismFactory(mechanisms);
                 if (mechanismFactory == null) {
                     throw new IOException("No compatible authentication mechanism found - " +
-                                          "server offered [" + connectionStart.m_mechanisms + "]");
+                                          "server offered [" + mechanismsString + "]");
                 }
                 AuthMechanism mechanism = mechanismFactory.GetInstance();
                 byte[] challenge = null;
