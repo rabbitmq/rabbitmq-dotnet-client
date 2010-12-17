@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2003/01/wi">
     <Module Id='DotNetClientModule' Guid='97DB49A3-B75E-4AE1-B01A-DFC8E335F866' Language='1033' Codepage='1252' Version='@VERSION@'>
-        <Package Id='????????-????-????-????-????????????' Description='RabbitMQ .NET Client @VERSION@' Manufacturer='LShift Ltd.' InstallerVersion='150' Languages='1033' Compressed='yes' SummaryCodepage='1252' />
+        <Package Id='????????-????-????-????-????????????' Description='RabbitMQ .NET Client @VERSION@' Manufacturer='Rabbit Technologies Ltd.' InstallerVersion='150' Languages='1033' Compressed='yes' SummaryCodepage='1252' />
 
         <Directory Id='TARGETDIR' Name='SourceDir'>
             <!-- Note that RabbitMQ.Client.dll has to appear twice
@@ -18,6 +18,7 @@
                 <Component Id='ClientLibraryBin' Guid='83A1DE00-CCB6-42C2-BD14-FBAEDDBC50E8'>
                     <CreateFolder />
                     <File Id='RabbitMQClientDllBin' Name='RMQClnt.dll' LongName='RabbitMQ.Client.dll' Vital='yes' KeyPath='yes' Source='..\tmp\unzip\rabbitmq-dotnet-client-@VERSION@-dotnet-2.0\bin\RabbitMQ.Client.dll' />
+                    <File Id='RabbitMQClientDllXml' Name='RMQClnt.xml' LongName='RabbitMQ.Client.xml' Vital='yes' Source='..\tmp\unzip\rabbitmq-dotnet-client-@VERSION@-dotnet-2.0\bin\RabbitMQ.Client.xml' />
                     <Registry Id='RabbitMQAssemblyFolderReg' Action='createKeyAndRemoveKeyOnUninstall' Key='SOFTWARE\Microsoft\.NETFramework\AssemblyFolders\RabbitMQ' Root='HKLM'>
                         <Registry Id='RabbitMQAssemblyFolderRegVal' Action='write' Type='string' Value='[BinFolder]' />
                     </Registry>
