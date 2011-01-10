@@ -84,7 +84,7 @@ namespace RabbitMQ.Client.Unit
         {
             Connection = new ConnectionFactory().CreateConnection();
             Channel = Connection.CreateModel();
-            Queue = Channel.QueueDeclare("recover_test");
+            Queue = Channel.QueueDeclare("");
         }
 
         [TearDown] public void Disconnect()
