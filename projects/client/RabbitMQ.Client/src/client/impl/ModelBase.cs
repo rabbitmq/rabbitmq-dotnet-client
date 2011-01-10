@@ -748,18 +748,17 @@ namespace RabbitMQ.Client.Impl
                                          bool ifEmpty,
                                          bool nowait);
 
-        public void ConfirmSelect(bool multiple) {
-            ConfirmSelect(multiple, false);
+        public void ConfirmSelect() {
+            ConfirmSelect(false);
         }
 
-        public void ConfirmSelect(bool multiple, bool nowait) {
+        public void ConfirmSelect(bool nowait) {
             m_pubMsgCount = 0;
-            _Private_ConfirmSelect(multiple, nowait);
+            _Private_ConfirmSelect(nowait);
         }
 
 
-        public abstract void _Private_ConfirmSelect(bool multiple,
-                                                    bool nowait);
+        public abstract void _Private_ConfirmSelect(bool nowait);
 
         public string BasicConsume(string queue,
                                    IDictionary arguments,
