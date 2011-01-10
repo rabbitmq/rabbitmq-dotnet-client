@@ -2570,9 +2570,15 @@
 
     <method name = "ack" index = "80" label = "acknowledge one or more messages">
       <doc>
-        This method acknowledges one or more messages delivered via the Deliver or Get-Ok
-        methods. The client can ask to confirm a single message or a set of messages up to
-        and including a specific message.
+        On the server side, this method acknowledges one or more
+        messages delivered via the Deliver or Get-Ok methods; the
+        client can ask to confirm a single message or a set of
+        messages up to and including a specific message.
+
+        On the client side, this method acknowledges one or more
+        messages published to a channel in confirm mode; the client
+        may receive an acknowledgement for a single message or for a
+        set of message up to and including a specific message.
       </doc>
 
       <chassis name = "server" implement = "MUST" />
@@ -2582,7 +2588,7 @@
       <field name = "multiple" domain = "bit" label = "acknowledge multiple messages">
         <doc>
           If set to 1, the delivery tag is treated as "up to and including", so that the
-          client can acknowledge multiple messages with a single method. If set to zero,
+          peer can acknowledge multiple messages with a single method. If set to zero,
           the delivery tag refers to a single message. If the multiple field is 1, and the
           delivery tag is zero, tells the server to acknowledge all outstanding messages.
         </doc>
@@ -2849,7 +2855,76 @@
 
   <!-- ==  CONFIRM  ========================================================== -->
 
-  <class name="confirm" handler="channel" index="85">
+  <class name = "confirm" handler = "channel" index = "85" label = "work with confirms">
+    <doc>
+      The Confirm class allows publishers to put the channel in
+      confirm mode and be notified when messages have been handled by
+      the broker.  The intention is that all messages published on a
+      channel in confirm mode will be acknowledged at some point.  By
+      acknowledging a message the broker assumes responsibility for it
+      and indicates that it has done something it deems reasonable
+      with it.
+
+      Unroutable mandatory or immediate messages are acknowledged
+      right after the Basic.Return method.  Transient messages are
+      acknowledged as soon as they arrive on all the queues they were
+      routed to.  Persistent messages are acknowledged when all queues
+      have either delivered the message and received an
+      acknowledgement (if required), or persisted the message.
+
+      Published messages are assigned ascending sequence numbers
+      (starting at 0, when the Confirm.Select method is used); these
+      sequence numbers are later used to identify messages in
+      Basic.Ack methods.
+    </doc>
+
+    <rule name = "all messages acknowledged">
+      <doc>
+        The server MUST acknowledge all messages received after the
+        channel was put into confirm mode.
+      </doc>
+    </rule>
+
+    <rule name = "wait for all queues">
+      <doc>
+        The server MUST acknowledge a message only after it was
+        properly handled by all the queues it was delivered to.
+      </doc>
+    </rule>
+
+    <rule name = "unroutable messages">
+      <doc>
+        The server MUST acknowledge an unroutable mandatory or
+        immediate message only after it sends the Basic.Return.
+      </doc>
+    </rule>
+
+    <rule name = "forget confirmed messages">
+      <doc>
+        The server MUST NOT reference any messages it has already
+        confirmed.  Thus, clients can safely forget about confirmed
+        messages.
+      </doc>
+    </rule>
+
+    <rule name = "time guarantees">
+      <doc>
+        No guarantees are made as to how soon a message is
+        acknowledged.  Applications SHOULD NOT make assumptions about
+        this.
+      </doc>
+    </rule>
+
+    <doc type = "grammar">
+      confirm            = C:SELECT S:SELECT-OK
+                         / S:ACK
+    </doc>
+
+    <chassis name = "server" implement = "SHOULD" />
+    <chassis name = "client" implement = "MAY" />
+
+    <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
     <method name="select" synchronous="1" index="10">
       select confirm mode (i.e. enable publisher acknowledgements)
       <doc>
@@ -2868,6 +2943,7 @@
         </doc>
       </field>
     </method>
+
     <method name="select-ok" synchronous="1" index="11">
       acknowledge confirm mode
       <doc>
