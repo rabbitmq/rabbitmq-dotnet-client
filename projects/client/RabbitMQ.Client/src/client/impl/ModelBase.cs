@@ -669,28 +669,43 @@ namespace RabbitMQ.Client.Impl
 
         public abstract void ChannelFlow(bool active);
 
+        public void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, IDictionary arguments)
+        {
+            _Private_ExchangeDeclare(exchange, type, false, durable, autoDelete, false, false, arguments);
+        }
+
         public void ExchangeDeclare(string exchange, string type, bool durable)
         {
-            ExchangeDeclare(exchange, type, false, durable, false, false, false, null);
+            ExchangeDeclare(exchange, type, durable, false, null);
         }
 
         public void ExchangeDeclare(string exchange, string type)
         {
-            ExchangeDeclare(exchange, type, false, false, false, false, false, null);
+            ExchangeDeclare(exchange, type, false);
         }
 
-        public abstract void ExchangeDeclare(string exchange,
-                                             string type,
-                                             bool passive,
-                                             bool durable,
-                                             bool autoDelete,
-                                             bool @internal,
-                                             bool nowait,
-                                             IDictionary arguments);
+        public void ExchangeDeclarePassive(string exchange)
+        {
+            _Private_ExchangeDeclare(exchange, "", true, false, false, false, false, null);
+        }
+
+        public abstract void _Private_ExchangeDeclare(string exchange,
+                                                      string type,
+                                                      bool passive,
+                                                      bool durable,
+                                                      bool autoDelete,
+                                                      bool @internal,
+                                                      bool nowait,
+                                                      IDictionary arguments);
 
         public abstract void ExchangeDelete(string exchange,
                                             bool ifUnused,
                                             bool nowait);
+
+        public void ExchangeDelete(string exchange)
+        {
+            ExchangeDelete(exchange, false, false);
+        }
 
         public abstract void ExchangeBind(string destination,
                                           string source,
@@ -708,26 +723,37 @@ namespace RabbitMQ.Client.Impl
         //      of dealing with missing parameters.
         public string QueueDeclare()
         {
-            return QueueDeclare("", false, false, true, true, false, null);
+            return _Private_QueueDeclare("", false, false, true, true, false, null);
         }
 
         public string QueueDeclare(string queue)
         {
-            return QueueDeclare(queue, false);
+            return _Private_QueueDeclare(queue, false, false, false, false, false, null);
+        }
+
+        public string QueueDeclarePassive(string queue)
+        {
+            return _Private_QueueDeclare(queue, true, false, false, false, false, null);
         }
 
         public string QueueDeclare(string queue, bool durable)
         {
-            return QueueDeclare(queue, false, durable, false, false, false, null);
+            return _Private_QueueDeclare(queue, false, durable, false, false, false, null);
         }
 
-        public abstract string QueueDeclare(string queue,
-                                            bool passive,
-                                            bool durable,
-                                            bool exclusive,
-                                            bool autoDelete,
-                                            bool nowait,
-                                            IDictionary arguments);
+        public string QueueDeclare(string queue, bool durable, bool exclusive,
+                                   bool autoDelete, IDictionary arguments)
+        {
+            return _Private_QueueDeclare(queue, false, durable, exclusive, autoDelete, false, arguments);
+        }
+
+        public abstract string _Private_QueueDeclare(string queue,
+                                     bool passive,
+                                     bool durable,
+                                     bool exclusive,
+                                     bool autoDelete,
+                                     bool nowait,
+                                     IDictionary arguments);
 
         public abstract void QueueBind(string queue,
                                        string exchange,
@@ -747,6 +773,11 @@ namespace RabbitMQ.Client.Impl
                                          bool ifUnused,
                                          bool ifEmpty,
                                          bool nowait);
+
+        public uint QueueDelete(string queue)
+        {
+            return QueueDelete(queue, false, false, false);
+        }
 
         public void ConfirmSelect(bool multiple) {
             ConfirmSelect(multiple, false);

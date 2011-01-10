@@ -189,23 +189,21 @@ namespace RabbitMQ.Client
         void ExchangeDeclare(string exchange, string type);
 
         ///<summary>(Spec method) Declare an exchange.</summary>
-        void ExchangeDeclare(string exchange,
-                             string type,
-                             bool passive,
-                             bool durable,
-                             [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved2")]
-                             bool autoDelete,
-                             [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved3")]
-                             bool @internal,
-                             [AmqpNowaitArgument(null)]
-                             bool nowait,
-                             IDictionary arguments);
+        ///<remarks>
+        /// The exchange is declared passive.
+        /// </remarks>
+        [AmqpMethodDoNotImplement(null)]
+        void ExchangeDeclarePassive(string exchange);
 
         ///<summary>(Spec method) Delete an exchange.</summary>
         void ExchangeDelete(string exchange,
                             bool ifUnused,
                             [AmqpNowaitArgument(null)]
                             bool nowait);
+
+        ///<summary>(Spec method) Delete an exchange.</summary>
+        [AmqpMethodDoNotImplement(null)]
+        void ExchangeDelete(string exchange);
 
         ///<summary>(Spec method) Bind an exchange to an exchange.</summary>
         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8"),
@@ -247,6 +245,9 @@ namespace RabbitMQ.Client
         [AmqpMethodDoNotImplement(null)]
         string QueueDeclare(string queue);
 
+        [AmqpMethodDoNotImplement(null)]
+        string QueueDeclarePassive(string queue);
+
         ///<summary>(Spec method) Declare a queue.</summary>
         ///<remarks>
         ///The queue is declared non-passive, non-exclusive, and
@@ -257,18 +258,9 @@ namespace RabbitMQ.Client
                             bool durable);
 
         ///<summary>(Spec method) Declare a queue.</summary>
-        ///<remarks>
-        ///Returns the name of the queue that was declared.
-        ///</remarks>
-        [return: AmqpFieldMapping(null, "queue")]
-        string QueueDeclare(string queue,
-                            bool passive,
-                            bool durable,
-                            bool exclusive,
-                            bool autoDelete,
-                            [AmqpNowaitArgument(null)]
-                            bool nowait,
-                            IDictionary arguments);
+        [AmqpMethodDoNotImplement(null)]
+        string QueueDeclare(string queue, bool durable, bool exclusive,
+                    bool autoDelete, IDictionary arguments);
 
         ///<summary>(Spec method) Bind a queue to an exchange.</summary>
         void QueueBind(string queue,
@@ -313,6 +305,14 @@ namespace RabbitMQ.Client
                          bool ifEmpty,
                          [AmqpNowaitArgument(null, "0xFFFFFFFF")]
                          bool nowait);
+
+        ///<summary>(Spec method) Delete a queue.</summary>
+        ///<remarks>
+        ///Returns the number of messages purged during queue
+        ///deletion.
+        ///</remarks>
+        [AmqpMethodDoNotImplement(null)]
+        uint QueueDelete(string queue);
 
         ///<summary>Enable publisher acknowledgements.</summary>
         [AmqpMethodDoNotImplement(null)]
@@ -582,6 +582,35 @@ namespace RabbitMQ.Client.Impl
     ///<see cref="RabbitMQ.Client.Framing.Impl.v0_9.Model"/>
     public interface IFullModel : RabbitMQ.Client.IModel
     {
+        ///<summary>Used to send a Exchange.Declare method. Called by the
+        ///public declare method.
+        ///</summary>
+        [AmqpMethodMapping(null, "exchange", "declare")]
+        void _Private_ExchangeDeclare(string exchange,
+                             string type,
+                             bool passive,
+                             bool durable,
+                             [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved2")]
+                             bool autoDelete,
+                             [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved3")]
+                             bool @internal,
+                             [AmqpNowaitArgument(null)]
+                             bool nowait,
+                             IDictionary arguments);
+
+        ///<summary>Used to send a Queue.Declare method. Called by the
+        ///public declare method.</summary>
+        [AmqpMethodMapping(null, "queue", "declare")]
+        [return: AmqpFieldMapping(null, "queue")]
+        string _Private_QueueDeclare(string queue,
+                                     bool passive,
+                                     bool durable,
+                                     bool exclusive,
+                                     bool autoDelete,
+                                     [AmqpNowaitArgument(null)]
+                                     bool nowait,
+                                     IDictionary arguments);
+
         ///<summary>Used to send a Basic.Publish method. Called by the
         ///public publish method after potential null-reference issues
         ///have been rectified.</summary>
