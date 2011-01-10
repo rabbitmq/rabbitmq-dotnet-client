@@ -89,10 +89,10 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test, Timeout(1000)]
-        public void TestExchangeDeclareNoWait()
+        public void TestExchangeDeclare()
         {
             Channel.ExchangeDeclare(exchangeName, "direct", 
-                                    false, false, true, false, true, null);
+                                    false, false, null);
         }
 
         [Test]

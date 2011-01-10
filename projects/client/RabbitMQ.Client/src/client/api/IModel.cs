@@ -177,7 +177,11 @@ namespace RabbitMQ.Client
         ///exercised.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        void ExchangeDeclare(string exchange, string type, bool durable);
+        void ExchangeDeclare(string exchange, 
+                             string type,
+                             bool durable,
+                             bool autoDelete,
+                             IDictionary arguments);
 
         ///<summary>(Spec method) Declare an exchange.</summary>
         ///<remarks>
