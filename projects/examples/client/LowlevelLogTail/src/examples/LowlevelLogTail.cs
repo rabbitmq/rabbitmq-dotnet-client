@@ -89,7 +89,7 @@ namespace RabbitMQ.Client.Examples {
                         {
                             string queueName;
                             if (exchange == "") {
-                                ch.QueueDeclare(routingKey);
+                                ch.QueueDeclare(routingKey, false, true, true, null);
                                 queueName = routingKey;
                             } else {
                                 ch.ExchangeDeclare(exchange, exchangeType);

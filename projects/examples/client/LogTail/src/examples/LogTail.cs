@@ -86,7 +86,7 @@ namespace RabbitMQ.Client.Examples {
             using (IConnection conn = cf.CreateConnection())
                 {
                     using (IModel ch = conn.CreateModel()) {
-                        ch.QueueDeclare(routingKey);
+                        ch.QueueDeclare(routingKey, false, true, true, null);
                         Subscription sub = new Subscription(ch, routingKey);
                         if (exchange != "") {
                             ch.ExchangeDeclare(exchange, exchangeType);

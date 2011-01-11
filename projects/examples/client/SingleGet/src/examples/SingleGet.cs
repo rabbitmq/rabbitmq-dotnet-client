@@ -81,7 +81,7 @@ namespace RabbitMQ.Client.Examples {
             using (IModel ch = conn.CreateModel()) {
                 conn.AutoClose = true;
 
-                ch.QueueDeclare(queueName);
+                ch.QueueDeclare(queueName, false, true, true, null);
                 BasicGetResult result = ch.BasicGet(queueName, false);
                 if (result == null) {
                     Console.WriteLine("No message available.");

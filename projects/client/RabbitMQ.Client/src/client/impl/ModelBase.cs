@@ -723,22 +723,12 @@ namespace RabbitMQ.Client.Impl
         //      of dealing with missing parameters.
         public string QueueDeclare()
         {
-            return _Private_QueueDeclare("", false, false, true, true, false, null);
-        }
-
-        public string QueueDeclare(string queue)
-        {
-            return _Private_QueueDeclare(queue, false, false, false, false, false, null);
+            return QueueDeclare("", false, true, true, null);
         }
 
         public string QueueDeclarePassive(string queue)
         {
             return _Private_QueueDeclare(queue, true, false, false, false, false, null);
-        }
-
-        public string QueueDeclare(string queue, bool durable)
-        {
-            return _Private_QueueDeclare(queue, false, durable, false, false, false, null);
         }
 
         public string QueueDeclare(string queue, bool durable, bool exclusive,

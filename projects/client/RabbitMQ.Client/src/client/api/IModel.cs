@@ -172,16 +172,24 @@ namespace RabbitMQ.Client
 
         ///<summary>(Spec method) Declare an exchange.</summary>
         ///<remarks>
+        ///The exchange is declared non-passive and non-internal.
+        ///The "nowait" option is not exercised.
+        ///</remarks>
+        [AmqpMethodDoNotImplement(null)]
+        void ExchangeDeclare(string exchange,
+                             string type,
+                             bool durable,
+                             bool autoDelete,
+                             IDictionary arguments);
+
+        ///<summary>(Spec method) Declare an exchange.</summary>
+        ///<remarks>
         ///The exchange is declared non-passive, non-autodelete, and
         ///non-internal, with no arguments. The "nowait" option is not
         ///exercised.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        void ExchangeDeclare(string exchange, 
-                             string type,
-                             bool durable,
-                             bool autoDelete,
-                             IDictionary arguments);
+        void ExchangeDeclare(string exchange, string type, bool durable);
 
         ///<summary>(Spec method) Declare an exchange.</summary>
         ///<remarks>
@@ -241,25 +249,14 @@ namespace RabbitMQ.Client
         [AmqpMethodDoNotImplement(null)]
         string QueueDeclare();
 
-        ///<summary>(Spec method) Declare a queue.</summary>
+        ///<summary>Declare a queue passively.</summary>
         ///<remarks>
-        ///The queue is declared non-passive, non-durable,
+        ///The queue is declared passive, non-durable,
         ///non-exclusive, and non-autodelete, with no arguments.
+        ///The queue is declared passively; i.e. only check if it exists.
         ///</remarks>
-        [AmqpMethodDoNotImplement(null)]
-        string QueueDeclare(string queue);
-
         [AmqpMethodDoNotImplement(null)]
         string QueueDeclarePassive(string queue);
-
-        ///<summary>(Spec method) Declare a queue.</summary>
-        ///<remarks>
-        ///The queue is declared non-passive, non-exclusive, and
-        ///non-autodelete, with no arguments.
-        ///</remarks>
-        [AmqpMethodDoNotImplement(null)]
-        string QueueDeclare(string queue,
-                            bool durable);
 
         ///<summary>(Spec method) Declare a queue.</summary>
         [AmqpMethodDoNotImplement(null)]
