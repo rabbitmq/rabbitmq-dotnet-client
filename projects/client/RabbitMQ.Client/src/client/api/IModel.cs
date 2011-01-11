@@ -321,12 +321,16 @@ namespace RabbitMQ.Client
         ///<summary>Enable publisher acknowledgements.</summary>
         [AmqpMethodDoNotImplement(null)]
         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        void ConfirmSelect(bool multiple);
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
+        void ConfirmSelect();
 
         ///<summary>Enable publisher acknowledgements.</summary>
         [AmqpMethodDoNotImplement(null)]
         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        void ConfirmSelect(bool multiple, bool nowait);
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
+        void ConfirmSelect(bool nowait);
 
 
         ///<summary>Start a Basic content-class consumer.</summary>
@@ -648,9 +652,10 @@ namespace RabbitMQ.Client.Impl
         ///confirm API calls this while also managing internal
         ///datastructures.</summary>
         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
         [AmqpMethodMapping(null, "confirm", "select")]
-        void _Private_ConfirmSelect(bool multiple,
-                                    [AmqpNowaitArgument(null)]
+        void _Private_ConfirmSelect([AmqpNowaitArgument(null)]
                                     bool nowait);
 
 
