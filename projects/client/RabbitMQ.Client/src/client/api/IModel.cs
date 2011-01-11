@@ -143,8 +143,8 @@ namespace RabbitMQ.Client
         ///== null.</summary>
         bool IsOpen { get; }
 
-        ///<summary>Returns the sequence number of the next message to be published that requires confirmation. 0 if we are not in confirm mode.
-        ///</summary>
+        ///<summary>When in confirm mode, return the sequence number
+        ///of the next message to be published.</summary>
         ulong NextPublishSeqNo { get; }
 
         ///<summary>Construct a completely empty content header for
