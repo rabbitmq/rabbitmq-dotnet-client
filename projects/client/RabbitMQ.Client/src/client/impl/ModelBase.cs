@@ -89,7 +89,7 @@ namespace RabbitMQ.Client.Impl
         public ManualResetEvent m_flowControlBlock = new ManualResetEvent(true);
         private readonly object m_flowSendLock = new object();
 
-        private ulong? m_pubMsgCount = null;
+        private ulong m_nextPubSeqNo;
 
         public event ModelShutdownEventHandler ModelShutdown
         {
@@ -458,11 +458,11 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public ulong? PublishedMessageCount
+        public ulong NextPublishSeqNo
         {
             get
             {
-                return m_pubMsgCount;
+                return m_nextPubSeqNo;
             }
         }
 
@@ -753,7 +753,7 @@ namespace RabbitMQ.Client.Impl
         }
 
         public void ConfirmSelect(bool nowait) {
-            m_pubMsgCount = 0;
+            m_nextPubSeqNo = 1;
             _Private_ConfirmSelect(nowait);
         }
 
@@ -994,8 +994,7 @@ namespace RabbitMQ.Client.Impl
             {
                 basicProperties = CreateBasicProperties();
             }
-            if (m_pubMsgCount.HasValue)
-                m_pubMsgCount++;
+            if (m_nextPubSeqNo > 0) m_nextPubSeqNo++;
             _Private_BasicPublish(exchange,
                                   routingKey,
                                   mandatory,
