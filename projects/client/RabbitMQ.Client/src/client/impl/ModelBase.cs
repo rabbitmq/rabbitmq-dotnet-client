@@ -738,12 +738,12 @@ namespace RabbitMQ.Client.Impl
         }
 
         public abstract string _Private_QueueDeclare(string queue,
-                                     bool passive,
-                                     bool durable,
-                                     bool exclusive,
-                                     bool autoDelete,
-                                     bool nowait,
-                                     IDictionary arguments);
+                                                     bool passive,
+                                                     bool durable,
+                                                     bool exclusive,
+                                                     bool autoDelete,
+                                                     bool nowait,
+                                                     IDictionary arguments);
 
         public abstract void QueueBind(string queue,
                                        string exchange,
