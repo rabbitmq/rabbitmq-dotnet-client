@@ -1037,6 +1037,10 @@ namespace RabbitMQ.Client.Impl
         public abstract void BasicReject(ulong deliveryTag,
                                          bool requeue);
 
+        public abstract void BasicNack(ulong deliveryTag,
+                                       bool multiple,
+                                       bool requeue);
+
         public abstract void BasicRecoverAsync(bool requeue);
 
         public abstract void TxSelect();
