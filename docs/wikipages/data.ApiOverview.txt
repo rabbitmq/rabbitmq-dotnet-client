@@ -185,7 +185,7 @@ exchange and a queue, then binds them together.
 
 @code java
  channel.ExchangeDeclare(exchangeName, ExchangeType.Direct);
- channel.QueueDeclare(queueName);
+ channel.QueueDeclare(queueName, false, false, false, null);
  channel.QueueBind(queueName, exchangeName, routingKey, false, null);
 
 This will actively declare the following objects:
@@ -193,17 +193,14 @@ This will actively declare the following objects:
  # a non-durable, non-autodelete exchange of "direct" type
  # a non-durable, non-exclusive, non-autodelete queue
 
-both of which can be customised by using additional parameters. Here
-neither of them have any special arguments.
-
+The exchange can be customised by using additional parameters.
 The above code then binds the queue to the exchange with the given
 routing key.
 
-Note that these Channel API methods are overloaded. These convenient
-short forms of ExchangeDeclare and QueueDeclare use sensible
-defaults. There are also longer forms with more parameters, to let you
-override these defaults as necessary, giving full control where
-needed.
+Note that many Channel API methods are overloaded. The convenient
+short form of ExchangeDeclare uses sensible defaults. There are
+also longer forms with more parameters, to let you override these
+defaults as necessary, giving full control where needed.
 
 This "short version, long version" pattern is used throughout the API.
 
