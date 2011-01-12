@@ -2733,6 +2733,91 @@
       </doc>
       <chassis name = "client" implement = "MUST" />
     </method>
+
+    <method name = "nack" index = "120" label = "reject one or more incoming messages">
+      <doc>
+        This method allows a client to reject one or more incoming messages. It can be
+        used to interrupt and cancel large incoming messages, or return untreatable
+        messages to their original queue.
+      </doc>
+
+      <rule name = "01">
+        <doc>
+          The server SHOULD be capable of accepting and processing the Nack method while
+          sending message content with a Deliver or Get-Ok method. I.e. the server should
+          read and process incoming methods while sending output frames. To cancel a
+          partially-send content, the server sends a content body frame of size 1 (i.e.
+          with no data except the frame-end octet).
+        </doc>
+      </rule>
+
+      <rule name = "02">
+        <doc>
+          The server SHOULD interpret this method as meaning that the client is unable to
+          process the message at this time.
+        </doc>
+        <doc type = "scenario">
+          TODO.
+        </doc>
+      </rule>
+
+      <rule name = "03">
+        <doc>
+          The client MUST NOT use this method as a means of selecting messages to process.
+        </doc>
+        <doc type = "scenario">
+          TODO.
+        </doc>
+      </rule>
+
+      <chassis name = "server" implement = "MUST" />
+
+      <field name = "delivery-tag" domain = "delivery-tag" />
+
+      <field name = "multiple" domain = "bit" label = "reject multiple messages">
+        <doc>
+          If set to 1, the delivery tag is treated as "up to and
+          including", so that multiple messages can be rejected
+          with a single method. If set to zero, the delivery tag
+          refers to a single message. If the multiple field is 1, and
+          the delivery tag is zero, this indicates rejection of
+          all outstanding messages.
+        </doc>
+        <rule name = "exists" on-failure = "precondition-failed">
+          <doc>
+            A message MUST not be rejected more than once.  The
+            receiving peer MUST validate that a non-zero delivery-tag
+            refers to an unacknowledged, delivered message, and
+            raise a channel exception if this is not the case.
+          </doc>
+          <doc type = "scenario">
+            TODO.
+          </doc>
+        </rule>
+      </field>
+
+      <field name = "requeue" domain = "bit" label = "requeue the message">
+        <doc>
+          If requeue is true, the server will attempt to requeue the message.  If requeue
+          is false or the requeue  attempt fails the messages are discarded or dead-lettered.
+        </doc>
+
+        <rule name = "01">
+          <doc>
+            The server MUST NOT deliver the message to the same client within the
+            context of the current channel. The recommended strategy is to attempt to
+            deliver the message to an alternative consumer, and if that is not possible,
+            to move the message to a dead-letter queue. The server MAY use more
+            sophisticated tracking to hold the message on the queue and redeliver it to
+            the same client at a later stage.
+          </doc>
+          <doc type = "scenario">
+            TODO.
+          </doc>
+        </rule>
+      </field>
+    </method>
+
   </class>
 
   <!-- ==  TX  =============================================================== -->
