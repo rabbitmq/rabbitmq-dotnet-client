@@ -2877,7 +2877,7 @@
       persisted it if required).
 
       Published messages are assigned ascending sequence numbers,
-      starting at 0 when the Confirm.Select method is used. The server
+      starting at 1 with the first Confirm.Select method. The server
       confirms messages by sending Basic.Ack methods referring to these
       sequence numbers.
     </doc>

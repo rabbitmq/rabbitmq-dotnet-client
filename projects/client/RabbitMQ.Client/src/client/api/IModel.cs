@@ -143,9 +143,9 @@ namespace RabbitMQ.Client
         ///== null.</summary>
         bool IsOpen { get; }
 
-        ///<summary>Returns the number of messages published since the
-        ///channel was put in confirm mode.</summary>
-        ulong? PublishedMessageCount { get; }
+        ///<summary>When in confirm mode, return the sequence number
+        ///of the next message to be published.</summary>
+        ulong NextPublishSeqNo { get; }
 
         ///<summary>Construct a completely empty content header for
         ///use with the Basic content class.</summary>
