@@ -1970,6 +1970,7 @@
                           / S:DELIVER content
                           / C:GET ( S:GET-OK content / S:GET-EMPTY )
                           / C:ACK
+                          / S:ACK
                           / C:REJECT
                           / C:RECOVER-ASYNC
                           / C:RECOVER S:RECOVER-OK
