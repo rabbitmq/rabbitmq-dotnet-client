@@ -698,26 +698,48 @@ namespace RabbitMQ.Client.Impl
                                                       bool nowait,
                                                       IDictionary arguments);
 
-        public abstract void ExchangeDelete(string exchange,
-                                            bool ifUnused,
-                                            bool nowait);
+        public void ExchangeDelete(string exchange,
+                                   bool ifUnused)
+        {
+            _Private_ExchangeDelete(exchange, ifUnused, false);
+        }
 
         public void ExchangeDelete(string exchange)
         {
-            ExchangeDelete(exchange, false, false);
+            ExchangeDelete(exchange, false);
         }
 
-        public abstract void ExchangeBind(string destination,
-                                          string source,
-                                          string routingKey,
-                                          bool nowait,
-                                          IDictionary arguments);
+        public abstract void _Private_ExchangeDelete(string exchange,
+                                                     bool ifUnused,
+                                                     bool nowait);
 
-        public abstract void ExchangeUnbind(string destination,
-                                            string source,
-                                            string routingKey,
-                                            bool nowait,
-                                            IDictionary arguments);
+        public void ExchangeBind(string destination,
+                                 string source,
+                                 string routingKey,
+                                 IDictionary arguments)
+        {
+            _Private_ExchangeBind(destination, source, routingKey, false, arguments);
+        }
+
+        public abstract void _Private_ExchangeBind(string destination,
+                                                   string source,
+                                                   string routingKey,
+                                                   bool nowait,
+                                                   IDictionary arguments);
+
+        public void ExchangeUnbind(string destination,
+                                   string source,
+                                   string routingKey,
+                                   IDictionary arguments)
+        {
+            _Private_ExchangeUnbind(destination, source, routingKey, false, arguments);
+        }
+
+        public abstract void _Private_ExchangeUnbind(string destination,
+                                                     string source,
+                                                     string routingKey,
+                                                     bool nowait,
+                                                     IDictionary arguments);
 
         //TODO: Mark these as virtual, maybe the model has an optimized way
         //      of dealing with missing parameters.
@@ -745,39 +767,55 @@ namespace RabbitMQ.Client.Impl
                                                      bool nowait,
                                                      IDictionary arguments);
 
-        public abstract void QueueBind(string queue,
-                                       string exchange,
-                                       string routingKey,
-                                       bool nowait,
-                                       IDictionary arguments);
+        public void QueueBind(string queue,
+                              string exchange,
+                              string routingKey,
+                              IDictionary arguments)
+        {
+            _Private_QueueBind(queue, exchange, routingKey, false, arguments);
+        }
+
+        public abstract void _Private_QueueBind(string queue,
+                                                string exchange,
+                                                string routingKey,
+                                                bool nowait,
+                                                IDictionary arguments);
 
         public abstract void QueueUnbind(string queue,
                                          string exchange,
                                          string routingKey,
                                          IDictionary arguments);
 
-        public abstract uint QueuePurge(string queue,
-                                        bool nowait);
+        public uint QueuePurge(string queue)
+        {
+            return _Private_QueuePurge(queue, false);
+        }
 
-        public abstract uint QueueDelete(string queue,
-                                         bool ifUnused,
-                                         bool ifEmpty,
-                                         bool nowait);
+        public abstract uint _Private_QueuePurge(string queue,
+                                                 bool nowait);
+
+
+        public uint QueueDelete(string queue,
+                                bool ifUnused,
+                                bool ifEmpty)
+        {
+            return _Private_QueueDelete(queue, ifUnused, ifEmpty, false);
+        }
 
         public uint QueueDelete(string queue)
         {
-            return QueueDelete(queue, false, false, false);
+            return QueueDelete(queue, false, false);
         }
+
+        public abstract uint _Private_QueueDelete(string queue,
+                                                  bool ifUnused,
+                                                  bool ifEmpty,
+                                                  bool nowait);
 
         public void ConfirmSelect() {
-            ConfirmSelect(false);
-        }
-
-        public void ConfirmSelect(bool nowait) {
             m_nextPubSeqNo = 1;
-            _Private_ConfirmSelect(nowait);
+            _Private_ConfirmSelect(false);
         }
-
 
         public abstract void _Private_ConfirmSelect(bool nowait);
 

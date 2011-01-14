@@ -90,7 +90,7 @@ namespace RabbitMQ.Client.Examples {
                         Subscription sub = new Subscription(ch, routingKey);
                         if (exchange != "") {
                             ch.ExchangeDeclare(exchange, exchangeType);
-                            ch.QueueBind(routingKey, exchange, routingKey, false, null);
+                            ch.QueueBind(routingKey, exchange, routingKey, null);
                         }
 
                         Console.WriteLine("Consumer tag: " + sub.ConsumerTag);

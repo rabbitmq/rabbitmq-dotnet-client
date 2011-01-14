@@ -68,7 +68,7 @@ public class TestSsl {
         
             ch.ExchangeDeclare("Exchange_TestSslEndPoint", ExchangeType.Direct);
             String qName = ch.QueueDeclare();
-            ch.QueueBind(qName, "Exchange_TestSslEndPoint", "Key_TestSslEndpoint", false, null);
+            ch.QueueBind(qName, "Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null);
         
             string message = "Hello C# SSL Client World";
             byte[] msgBytes =  System.Text.Encoding.UTF8.GetBytes(message);
