@@ -420,7 +420,7 @@ namespace RabbitMQ.Client
         ///<summary>(Spec method) Reject a delivered message.</summary>
         void BasicReject(ulong deliveryTag,
                          bool requeue);
-                         
+
          ///<summary>Reject one or more delivered message(s).</summary>
          [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
          [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
