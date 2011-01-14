@@ -1971,6 +1971,7 @@
                           / C:GET ( S:GET-OK content / S:GET-EMPTY )
                           / C:ACK
                           / C:REJECT
+                          / C:NACK
                           / C:RECOVER-ASYNC
                           / C:RECOVER S:RECOVER-OK
     </doc>
