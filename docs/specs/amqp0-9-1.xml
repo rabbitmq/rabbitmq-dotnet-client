@@ -1337,11 +1337,8 @@
 
     <method name = "bind" synchronous = "1" index = "30"
             label = "bind exchange to an exchange">
-      <doc>
-        This method binds an exchange to an exchange. Either exchange
-        may be of any valid type and may already or subsequently be
-        bound to other exchanges or queues.
-      </doc>
+
+      <doc>This method binds an exchange to an exchange.</doc>
 
       <rule name = "duplicates">
         <doc>
@@ -1371,12 +1368,13 @@
           A server MUST not deliver the same message more than once to
           a destination exchange, even if the topology of exchanges
           and bindings results in multiple (even infinite) routes to
-          the exchange.
+          that exchange.
         </doc>
         <doc type = "scenario">
           A client declares an exchange and binds it using multiple
           bindings to the amq.topic exchange. The client then
-          publishes a message that matches all the bindings.
+          publishes a message to the amq.topic exchange that matches
+          all the bindings.
         </doc>
       </rule>
 
@@ -1389,36 +1387,11 @@
 
       <field name = "destination" domain = "exchange-name"
              label = "name of the destination exchange to bind to">
-        <doc>Specifies the name of the destination exchange to bind to.</doc>
+        <doc>Specifies the name of the destination exchange to bind.</doc>
         <rule name = "exchange-existence" on-failure = "not-found">
           <doc>
-            A client MUST NOT be allowed to bind to a non-existent
+            A client MUST NOT be allowed to bind a non-existent
             destination exchange.
-          </doc>
-          <doc type = "scenario">
-            A client attempts to bind an exchange to an undeclared
-            exchange.
-          </doc>
-        </rule>
-        <rule name = "default-exchange">
-          <doc>
-            The server MUST accept a blank exchange name to mean the
-            default exchange.
-          </doc>
-          <doc type = "scenario">
-            The client declares an exchange and binds it to a blank
-            exchange name.
-          </doc>
-        </rule>
-      </field>
-
-      <field name = "source" domain = "exchange-name"
-             label = "name of the source exchange to bind to">
-        <doc>Specifies the name of the source exchange to bind to.</doc>
-        <rule name = "exchange-existence" on-failure = "not-found">
-          <doc>
-            A client MUST NOT be allowed to bind to a non-existent
-            source exchange.
           </doc>
           <doc type = "scenario">
             A client attempts to bind an undeclared exchange to an
@@ -1433,6 +1406,31 @@
           <doc type = "scenario">
             The client declares an exchange and binds a blank exchange
             name to it.
+          </doc>
+        </rule>
+      </field>
+
+      <field name = "source" domain = "exchange-name"
+             label = "name of the source exchange to bind to">
+        <doc>Specifies the name of the source exchange to bind.</doc>
+        <rule name = "exchange-existence" on-failure = "not-found">
+          <doc>
+            A client MUST NOT be allowed to bind a non-existent source
+            exchange.
+          </doc>
+          <doc type = "scenario">
+            A client attempts to bind an exchange to an undeclared
+            exchange.
+          </doc>
+        </rule>
+        <rule name = "default-exchange">
+          <doc>
+            The server MUST accept a blank exchange name to mean the
+            default exchange.
+          </doc>
+          <doc type = "scenario">
+            The client declares an exchange and binds it to a blank
+            exchange name.
           </doc>
         </rule>
       </field>
@@ -1480,32 +1478,7 @@
       <field name = "reserved-1" type = "short" reserved = "1"/>
 
       <field name = "destination" domain = "exchange-name">
-        <doc>Specifies the name of the destination exchange to unbind from.</doc>
-        <rule name = "must-exist" on-failure = "not-found">
-          <doc>
-            The client MUST NOT attempt to unbind an exchange from an
-            exchange that does not exist.
-          </doc>
-          <doc type = "scenario">
-            The client attempts to unbind an exchange from a
-            non-existent exchange.
-          </doc>
-        </rule>
-        <rule name = "default-exchange">
-          <doc>
-            The server MUST accept a blank exchange name to mean the
-            default exchange.
-          </doc>
-          <doc type = "scenario">
-            The client declares an exchange, binds it to a blank
-            exchange name, and then unbinds it from a blank exchange
-            name.
-          </doc>
-        </rule>
-      </field>
-
-      <field name = "source" domain = "exchange-name">
-        <doc>Specifies the name of the source exchange to unbind from.</doc>
+        <doc>Specifies the name of the destination exchange to unbind.</doc>
         <rule name = "must-exist" on-failure = "not-found">
           <doc>
             The client MUST NOT attempt to unbind an exchange that
@@ -1523,7 +1496,33 @@
           </doc>
           <doc type = "scenario">
             The client declares an exchange, binds a blank exchange
-            name to it, and then unbinds a black exchange from it.
+            name to it, and then unbinds a blank exchange name from
+            it.
+          </doc>
+        </rule>
+      </field>
+
+      <field name = "source" domain = "exchange-name">
+        <doc>Specifies the name of the source exchange to unbind.</doc>
+        <rule name = "must-exist" on-failure = "not-found">
+          <doc>
+            The client MUST NOT attempt to unbind an exchange from an
+            exchange that does not exist.
+          </doc>
+          <doc type = "scenario">
+            The client attempts to unbind an exchange from a
+            non-existent exchange.
+          </doc>
+        </rule>
+        <rule name = "default-exchange">
+          <doc>
+            The server MUST accept a blank exchange name to mean the
+            default exchange.
+          </doc>
+          <doc type = "scenario">
+            The client declares an exchange, binds an exchange to a
+            blank exchange name, and then unbinds an exchange from a
+            black exchange name.
           </doc>
         </rule>
       </field>
