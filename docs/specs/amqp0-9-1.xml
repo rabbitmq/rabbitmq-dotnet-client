@@ -1970,7 +1970,9 @@
                           / S:DELIVER content
                           / C:GET ( S:GET-OK content / S:GET-EMPTY )
                           / C:ACK
+                          / S:ACK
                           / C:REJECT
+                          / C:NACK
                           / C:RECOVER-ASYNC
                           / C:RECOVER S:RECOVER-OK
     </doc>
@@ -2570,28 +2572,38 @@
 
     <method name = "ack" index = "80" label = "acknowledge one or more messages">
       <doc>
-        This method acknowledges one or more messages delivered via the Deliver or Get-Ok
-        methods. The client can ask to confirm a single message or a set of messages up to
-        and including a specific message.
+        When sent by the client, this method acknowledges one or more
+        messages delivered via the Deliver or Get-Ok methods.
+
+        When sent by server, this method acknowledges one or more
+        messages published with the Publish method on a channel in
+        confirm mode.
+
+        The acknowledgement can be for a single message or a set of
+        messages up to and including a specific message.
       </doc>
 
       <chassis name = "server" implement = "MUST" />
-      <chassis name="client" implement="MUST"/>
+      <chassis name ="client" implement = "MUST"/>
 
       <field name = "delivery-tag" domain = "delivery-tag" />
       <field name = "multiple" domain = "bit" label = "acknowledge multiple messages">
         <doc>
-          If set to 1, the delivery tag is treated as "up to and including", so that the
-          client can acknowledge multiple messages with a single method. If set to zero,
-          the delivery tag refers to a single message. If the multiple field is 1, and the
-          delivery tag is zero, tells the server to acknowledge all outstanding messages.
+          If set to 1, the delivery tag is treated as "up to and
+          including", so that multiple messages can be acknowledged
+          with a single method. If set to zero, the delivery tag
+          refers to a single message. If the multiple field is 1, and
+          the delivery tag is zero, this indicates acknowledgement of
+          all outstanding messages.
         </doc>
         <rule name = "exists" on-failure = "precondition-failed">
           <doc>
-            The server MUST validate that a non-zero delivery-tag refers to a delivered
-            message, and raise a channel exception if this is not the case.  On a transacted
-            channel, this check MUST be done immediately and not delayed until a Tx.Commit.
-            Specifically, a client MUST not acknowledge the same message more than once.
+            A message MUST not be acknowledged more than once.  The
+            receiving peer MUST validate that a non-zero delivery-tag
+            refers to a delivered message, and raise a channel
+            exception if this is not the case. On a transacted
+            channel, this check MUST be done immediately and not
+            delayed until a Tx.Commit.
           </doc>
           <doc type = "scenario">
             TODO.
@@ -2723,6 +2735,91 @@
       </doc>
       <chassis name = "client" implement = "MUST" />
     </method>
+
+    <method name = "nack" index = "120" label = "reject one or more incoming messages">
+      <doc>
+        This method allows a client to reject one or more incoming messages. It can be
+        used to interrupt and cancel large incoming messages, or return untreatable
+        messages to their original queue.
+      </doc>
+
+      <rule name = "01">
+        <doc>
+          The server SHOULD be capable of accepting and processing the Nack method while
+          sending message content with a Deliver or Get-Ok method. I.e. the server should
+          read and process incoming methods while sending output frames. To cancel a
+          partially-send content, the server sends a content body frame of size 1 (i.e.
+          with no data except the frame-end octet).
+        </doc>
+      </rule>
+
+      <rule name = "02">
+        <doc>
+          The server SHOULD interpret this method as meaning that the client is unable to
+          process the message at this time.
+        </doc>
+        <doc type = "scenario">
+          TODO.
+        </doc>
+      </rule>
+
+      <rule name = "03">
+        <doc>
+          The client MUST NOT use this method as a means of selecting messages to process.
+        </doc>
+        <doc type = "scenario">
+          TODO.
+        </doc>
+      </rule>
+
+      <chassis name = "server" implement = "MUST" />
+
+      <field name = "delivery-tag" domain = "delivery-tag" />
+
+      <field name = "multiple" domain = "bit" label = "reject multiple messages">
+        <doc>
+          If set to 1, the delivery tag is treated as "up to and
+          including", so that multiple messages can be rejected
+          with a single method. If set to zero, the delivery tag
+          refers to a single message. If the multiple field is 1, and
+          the delivery tag is zero, this indicates rejection of
+          all outstanding messages.
+        </doc>
+        <rule name = "exists" on-failure = "precondition-failed">
+          <doc>
+            A message MUST not be rejected more than once.  The
+            receiving peer MUST validate that a non-zero delivery-tag
+            refers to an unacknowledged, delivered message, and
+            raise a channel exception if this is not the case.
+          </doc>
+          <doc type = "scenario">
+            TODO.
+          </doc>
+        </rule>
+      </field>
+
+      <field name = "requeue" domain = "bit" label = "requeue the message">
+        <doc>
+          If requeue is true, the server will attempt to requeue the message.  If requeue
+          is false or the requeue  attempt fails the messages are discarded or dead-lettered.
+        </doc>
+
+        <rule name = "01">
+          <doc>
+            The server MUST NOT deliver the message to the same client within the
+            context of the current channel. The recommended strategy is to attempt to
+            deliver the message to an alternative consumer, and if that is not possible,
+            to move the message to a dead-letter queue. The server MAY use more
+            sophisticated tracking to hold the message on the queue and redeliver it to
+            the same client at a later stage.
+          </doc>
+          <doc type = "scenario">
+            TODO.
+          </doc>
+        </rule>
+      </field>
+    </method>
+
   </class>
 
   <!-- ==  TX  =============================================================== -->
@@ -2849,7 +2946,67 @@
 
   <!-- ==  CONFIRM  ========================================================== -->
 
-  <class name="confirm" handler="channel" index="85">
+  <class name = "confirm" handler = "channel" index = "85" label = "work with confirms">
+    <doc>
+      The Confirm class allows publishers to put the channel in
+      confirm mode and susequently be notified when messages have been
+      handled by the broker.  The intention is that all messages
+      published on a channel in confirm mode will be acknowledged at
+      some point.  By acknowledging a message the broker assumes
+      responsibility for it and indicates that it has done something
+      it deems reasonable with it.
+
+      Unroutable mandatory or immediate messages are acknowledged
+      right after the Basic.Return method. Messages are acknowledged
+      when all queues to which the message has been routed
+      have either delivered the message and received an
+      acknowledgement (if required), or enqueued the message (and
+      persisted it if required).
+
+      Published messages are assigned ascending sequence numbers,
+      starting at 1 with the first Confirm.Select method. The server
+      confirms messages by sending Basic.Ack methods referring to these
+      sequence numbers.
+    </doc>
+
+    <rule name = "all messages acknowledged">
+      <doc>
+        The server MUST acknowledge all messages received after the
+        channel was put into confirm mode.
+      </doc>
+    </rule>
+
+    <rule name = "all queues">
+      <doc>
+        The server MUST acknowledge a message only after it was
+        properly handled by all the queues it was delivered to.
+      </doc>
+    </rule>
+
+    <rule name = "unroutable messages">
+      <doc>
+        The server MUST acknowledge an unroutable mandatory or
+        immediate message only after it sends the Basic.Return.
+      </doc>
+    </rule>
+
+    <rule name = "time guarantees">
+      <doc>
+        No guarantees are made as to how soon a message is
+        acknowledged.  Applications SHOULD NOT make assumptions about
+        this.
+      </doc>
+    </rule>
+
+    <doc type = "grammar">
+      confirm            = C:SELECT S:SELECT-OK
+    </doc>
+
+    <chassis name = "server" implement = "SHOULD" />
+    <chassis name = "client" implement = "MAY" />
+
+    <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
     <method name="select" synchronous="1" index="10">
       select confirm mode (i.e. enable publisher acknowledgements)
       <doc>
@@ -2859,15 +3016,6 @@
       </doc>
       <chassis name="server" implement="MUST"/>
       <response name="select-ok"/>
-      <field name = "multiple" type = "bit">
-        acknowledge multiple messages
-        <doc>
-          If set to 1, the delivery tag in the returned acks is
-          treated as "up to and including", so that the server can
-          acknowledge multiple messages with a single method.  If set
-          to zero, the delivery tag refers to a single message.
-        </doc>
-      </field>
       <field name = "nowait" type = "bit">
         do not send a reply method
         <doc>
@@ -2877,6 +3025,7 @@
         </doc>
       </field>
     </method>
+
     <method name="select-ok" synchronous="1" index="11">
       acknowledge confirm mode
       <doc>

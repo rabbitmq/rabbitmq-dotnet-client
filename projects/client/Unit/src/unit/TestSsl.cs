@@ -67,8 +67,8 @@ public class TestSsl {
             IModel ch = conn.CreateModel();
         
             ch.ExchangeDeclare("Exchange_TestSslEndPoint", ExchangeType.Direct);
-            ch.QueueDeclare("Queue_TestSslEndpoint");
-            ch.QueueBind("Queue_TestSslEndpoint", "Exchange_TestSslEndPoint", "Key_TestSslEndpoint", false, null);
+            String qName = ch.QueueDeclare();
+            ch.QueueBind(qName, "Exchange_TestSslEndPoint", "Key_TestSslEndpoint", false, null);
         
             string message = "Hello C# SSL Client World";
             byte[] msgBytes =  System.Text.Encoding.UTF8.GetBytes(message);

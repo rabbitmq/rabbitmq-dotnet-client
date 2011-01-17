@@ -458,6 +458,12 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <method name="recover-ok" synchronous="1" index="111">
       <chassis name="client" implement="MUST"/>
     </method>
+    <method name="nack" index="120">
+      <chassis name="server" implement="MUST"/>
+      <field name="delivery-tag" domain="delivery-tag"/>
+      <field name="multiple" domain="bit"/>
+      <field name="requeue" domain="bit"/>
+    </method>
   </class>
   <class name="tx" handler="channel" index="90">
     <chassis name="server" implement="SHOULD"/>
@@ -488,8 +494,6 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <method name="select" synchronous="1" index="10">
       <chassis name="server" implement="MUST"/>
       <response name="select-ok"/>
-      <field name = "multiple" type = "bit">
-      </field>
       <field name = "nowait" type = "bit">
       </field>
     </method>

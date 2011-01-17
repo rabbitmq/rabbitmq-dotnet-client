@@ -3684,43 +3684,6 @@ confirm transaction mode
       <chassis name="client" implement="MUST"/>
     </method>
   </class>
-  <class name="confirm" handler="channel" index="85">
-    <method name="select" synchronous="1" index="10">
-      select confirm mode (i.e. enable publisher acknowledgements)
-      <doc>
-        This method sets the channel to use publisher acknowledgements.
-        The client can only use this method on a non-transactional
-        channel.
-      </doc>
-      <chassis name="server" implement="MUST"/>
-      <response name="select-ok"/>
-      <field name = "multiple" type = "bit">
-        acknowledge multiple messages
-        <doc>
-          If set to 1, the delivery tag in the returned acks is
-          treated as "up to and including", so that the server can
-          acknowledge multiple messages with a single method.  If set
-          to zero, the delivery tag refers to a single message.
-        </doc>
-      </field>
-      <field name = "nowait" type = "bit">
-        do not send a reply method
-        <doc>
-          If set, the server will not respond to the method. The client should
-          not wait for a reply method.  If the server could not complete the
-          method it will raise a channel or connection exception.
-        </doc>
-      </field>
-    </method>
-    <method name="select-ok" synchronous="1" index="11">
-      acknowledge confirm mode
-      <doc>
-        This method confirms to the client that the channel was successfully
-        set to use publisher acknowledgements.
-      </doc>
-      <chassis name="client" implement="MUST"/>
-    </method>
-  </class>
   <class name="tunnel" handler="tunnel" index="110">
     <!--
 ======================================================

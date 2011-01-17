@@ -143,9 +143,9 @@ namespace RabbitMQ.Client
         ///== null.</summary>
         bool IsOpen { get; }
 
-        ///<summary>Returns the number of messages published since the
-        ///channel was put in confirm mode.</summary>
-        ulong? PublishedMessageCount { get; }
+        ///<summary>When in confirm mode, return the sequence number
+        ///of the next message to be published.</summary>
+        ulong NextPublishSeqNo { get; }
 
         ///<summary>Construct a completely empty content header for
         ///use with the Basic content class.</summary>
@@ -172,6 +172,18 @@ namespace RabbitMQ.Client
 
         ///<summary>(Spec method) Declare an exchange.</summary>
         ///<remarks>
+        ///The exchange is declared non-passive and non-internal.
+        ///The "nowait" option is not exercised.
+        ///</remarks>
+        [AmqpMethodDoNotImplement(null)]
+        void ExchangeDeclare(string exchange,
+                             string type,
+                             bool durable,
+                             bool autoDelete,
+                             IDictionary arguments);
+
+        ///<summary>(Spec method) Declare an exchange.</summary>
+        ///<remarks>
         ///The exchange is declared non-passive, non-autodelete, and
         ///non-internal, with no arguments. The "nowait" option is not
         ///exercised.
@@ -189,23 +201,21 @@ namespace RabbitMQ.Client
         void ExchangeDeclare(string exchange, string type);
 
         ///<summary>(Spec method) Declare an exchange.</summary>
-        void ExchangeDeclare(string exchange,
-                             string type,
-                             bool passive,
-                             bool durable,
-                             [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved2")]
-                             bool autoDelete,
-                             [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved3")]
-                             bool @internal,
-                             [AmqpNowaitArgument(null)]
-                             bool nowait,
-                             IDictionary arguments);
+        ///<remarks>
+        /// The exchange is declared passive.
+        /// </remarks>
+        [AmqpMethodDoNotImplement(null)]
+        void ExchangeDeclarePassive(string exchange);
 
         ///<summary>(Spec method) Delete an exchange.</summary>
         void ExchangeDelete(string exchange,
                             bool ifUnused,
                             [AmqpNowaitArgument(null)]
                             bool nowait);
+
+        ///<summary>(Spec method) Delete an exchange.</summary>
+        [AmqpMethodDoNotImplement(null)]
+        void ExchangeDelete(string exchange);
 
         ///<summary>(Spec method) Bind an exchange to an exchange.</summary>
         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8"),
@@ -239,36 +249,19 @@ namespace RabbitMQ.Client
         [AmqpMethodDoNotImplement(null)]
         string QueueDeclare();
 
-        ///<summary>(Spec method) Declare a queue.</summary>
+        ///<summary>Declare a queue passively.</summary>
         ///<remarks>
-        ///The queue is declared non-passive, non-durable,
+        ///The queue is declared passive, non-durable,
         ///non-exclusive, and non-autodelete, with no arguments.
+        ///The queue is declared passively; i.e. only check if it exists.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        string QueueDeclare(string queue);
+        string QueueDeclarePassive(string queue);
 
         ///<summary>(Spec method) Declare a queue.</summary>
-        ///<remarks>
-        ///The queue is declared non-passive, non-exclusive, and
-        ///non-autodelete, with no arguments.
-        ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        string QueueDeclare(string queue,
-                            bool durable);
-
-        ///<summary>(Spec method) Declare a queue.</summary>
-        ///<remarks>
-        ///Returns the name of the queue that was declared.
-        ///</remarks>
-        [return: AmqpFieldMapping(null, "queue")]
-        string QueueDeclare(string queue,
-                            bool passive,
-                            bool durable,
-                            bool exclusive,
-                            bool autoDelete,
-                            [AmqpNowaitArgument(null)]
-                            bool nowait,
-                            IDictionary arguments);
+        string QueueDeclare(string queue, bool durable, bool exclusive,
+                    bool autoDelete, IDictionary arguments);
 
         ///<summary>(Spec method) Bind a queue to an exchange.</summary>
         void QueueBind(string queue,
@@ -314,15 +307,27 @@ namespace RabbitMQ.Client
                          [AmqpNowaitArgument(null, "0xFFFFFFFF")]
                          bool nowait);
 
-        ///<summary>Enable publisher acknowledgements.</summary>
+        ///<summary>(Spec method) Delete a queue.</summary>
+        ///<remarks>
+        ///Returns the number of messages purged during queue
+        ///deletion.
+        ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        void ConfirmSelect(bool multiple);
+        uint QueueDelete(string queue);
 
         ///<summary>Enable publisher acknowledgements.</summary>
         [AmqpMethodDoNotImplement(null)]
         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        void ConfirmSelect(bool multiple, bool nowait);
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
+        void ConfirmSelect();
+
+        ///<summary>Enable publisher acknowledgements.</summary>
+        [AmqpMethodDoNotImplement(null)]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
+        void ConfirmSelect(bool nowait);
 
 
         ///<summary>Start a Basic content-class consumer.</summary>
@@ -415,6 +420,14 @@ namespace RabbitMQ.Client
         ///<summary>(Spec method) Reject a delivered message.</summary>
         void BasicReject(ulong deliveryTag,
                          bool requeue);
+
+         ///<summary>Reject one or more delivered message(s).</summary>
+         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
+         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
+         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
+         void BasicNack(ulong deliveryTag,
+                        bool multiple,
+                        bool requeue);
 
         ///<summary>(Spec method)</summary>
         [AmqpMethodDoNotImplement(null)]
@@ -582,6 +595,35 @@ namespace RabbitMQ.Client.Impl
     ///<see cref="RabbitMQ.Client.Framing.Impl.v0_9.Model"/>
     public interface IFullModel : RabbitMQ.Client.IModel
     {
+        ///<summary>Used to send a Exchange.Declare method. Called by the
+        ///public declare method.
+        ///</summary>
+        [AmqpMethodMapping(null, "exchange", "declare")]
+        void _Private_ExchangeDeclare(string exchange,
+                             string type,
+                             bool passive,
+                             bool durable,
+                             [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved2")]
+                             bool autoDelete,
+                             [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved3")]
+                             bool @internal,
+                             [AmqpNowaitArgument(null)]
+                             bool nowait,
+                             IDictionary arguments);
+
+        ///<summary>Used to send a Queue.Declare method. Called by the
+        ///public declare method.</summary>
+        [AmqpMethodMapping(null, "queue", "declare")]
+        [return: AmqpFieldMapping(null, "queue")]
+        string _Private_QueueDeclare(string queue,
+                                     bool passive,
+                                     bool durable,
+                                     bool exclusive,
+                                     bool autoDelete,
+                                     [AmqpNowaitArgument(null)]
+                                     bool nowait,
+                                     IDictionary arguments);
+
         ///<summary>Used to send a Basic.Publish method. Called by the
         ///public publish method after potential null-reference issues
         ///have been rectified.</summary>
@@ -615,9 +657,10 @@ namespace RabbitMQ.Client.Impl
         ///confirm API calls this while also managing internal
         ///datastructures.</summary>
         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
         [AmqpMethodMapping(null, "confirm", "select")]
-        void _Private_ConfirmSelect(bool multiple,
-                                    [AmqpNowaitArgument(null)]
+        void _Private_ConfirmSelect([AmqpNowaitArgument(null)]
                                     bool nowait);
 
 

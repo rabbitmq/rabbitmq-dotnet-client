@@ -421,7 +421,7 @@ application wanted to retrieve all prices regarding IBM on queue
 @code java
   // "IModel ch" in scope.
   ch.ExchangeDeclare("prices", "topic");
-  ch.QueueDeclare("MyApplicationQueue");
+  ch.QueueDeclare("MyApplicationQueue", false, true, true, null);
   ch.QueueBind("MyApplicationQueue", "prices",
                "STOCK.IBM.#", false, null);
 

@@ -89,7 +89,7 @@ namespace RabbitMQ.Client.Impl
         public ManualResetEvent m_flowControlBlock = new ManualResetEvent(true);
         private readonly object m_flowSendLock = new object();
 
-        private ulong? m_pubMsgCount = null;
+        private ulong m_nextPubSeqNo;
 
         public event ModelShutdownEventHandler ModelShutdown
         {
@@ -458,11 +458,11 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public ulong? PublishedMessageCount
+        public ulong NextPublishSeqNo
         {
             get
             {
-                return m_pubMsgCount;
+                return m_nextPubSeqNo;
             }
         }
 
@@ -669,28 +669,43 @@ namespace RabbitMQ.Client.Impl
 
         public abstract void ChannelFlow(bool active);
 
+        public void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, IDictionary arguments)
+        {
+            _Private_ExchangeDeclare(exchange, type, false, durable, autoDelete, false, false, arguments);
+        }
+
         public void ExchangeDeclare(string exchange, string type, bool durable)
         {
-            ExchangeDeclare(exchange, type, false, durable, false, false, false, null);
+            ExchangeDeclare(exchange, type, durable, false, null);
         }
 
         public void ExchangeDeclare(string exchange, string type)
         {
-            ExchangeDeclare(exchange, type, false, false, false, false, false, null);
+            ExchangeDeclare(exchange, type, false);
         }
 
-        public abstract void ExchangeDeclare(string exchange,
-                                             string type,
-                                             bool passive,
-                                             bool durable,
-                                             bool autoDelete,
-                                             bool @internal,
-                                             bool nowait,
-                                             IDictionary arguments);
+        public void ExchangeDeclarePassive(string exchange)
+        {
+            _Private_ExchangeDeclare(exchange, "", true, false, false, false, false, null);
+        }
+
+        public abstract void _Private_ExchangeDeclare(string exchange,
+                                                      string type,
+                                                      bool passive,
+                                                      bool durable,
+                                                      bool autoDelete,
+                                                      bool @internal,
+                                                      bool nowait,
+                                                      IDictionary arguments);
 
         public abstract void ExchangeDelete(string exchange,
                                             bool ifUnused,
                                             bool nowait);
+
+        public void ExchangeDelete(string exchange)
+        {
+            ExchangeDelete(exchange, false, false);
+        }
 
         public abstract void ExchangeBind(string destination,
                                           string source,
@@ -708,26 +723,27 @@ namespace RabbitMQ.Client.Impl
         //      of dealing with missing parameters.
         public string QueueDeclare()
         {
-            return QueueDeclare("", false, false, true, true, false, null);
+            return QueueDeclare("", false, true, true, null);
         }
 
-        public string QueueDeclare(string queue)
+        public string QueueDeclarePassive(string queue)
         {
-            return QueueDeclare(queue, false);
+            return _Private_QueueDeclare(queue, true, false, false, false, false, null);
         }
 
-        public string QueueDeclare(string queue, bool durable)
+        public string QueueDeclare(string queue, bool durable, bool exclusive,
+                                   bool autoDelete, IDictionary arguments)
         {
-            return QueueDeclare(queue, false, durable, false, false, false, null);
+            return _Private_QueueDeclare(queue, false, durable, exclusive, autoDelete, false, arguments);
         }
 
-        public abstract string QueueDeclare(string queue,
-                                            bool passive,
-                                            bool durable,
-                                            bool exclusive,
-                                            bool autoDelete,
-                                            bool nowait,
-                                            IDictionary arguments);
+        public abstract string _Private_QueueDeclare(string queue,
+                                                     bool passive,
+                                                     bool durable,
+                                                     bool exclusive,
+                                                     bool autoDelete,
+                                                     bool nowait,
+                                                     IDictionary arguments);
 
         public abstract void QueueBind(string queue,
                                        string exchange,
@@ -748,18 +764,22 @@ namespace RabbitMQ.Client.Impl
                                          bool ifEmpty,
                                          bool nowait);
 
-        public void ConfirmSelect(bool multiple) {
-            ConfirmSelect(multiple, false);
+        public uint QueueDelete(string queue)
+        {
+            return QueueDelete(queue, false, false, false);
         }
 
-        public void ConfirmSelect(bool multiple, bool nowait) {
-            m_pubMsgCount = 0;
-            _Private_ConfirmSelect(multiple, nowait);
+        public void ConfirmSelect() {
+            ConfirmSelect(false);
+        }
+
+        public void ConfirmSelect(bool nowait) {
+            m_nextPubSeqNo = 1;
+            _Private_ConfirmSelect(nowait);
         }
 
 
-        public abstract void _Private_ConfirmSelect(bool multiple,
-                                                    bool nowait);
+        public abstract void _Private_ConfirmSelect(bool nowait);
 
         public string BasicConsume(string queue,
                                    IDictionary arguments,
@@ -995,8 +1015,7 @@ namespace RabbitMQ.Client.Impl
             {
                 basicProperties = CreateBasicProperties();
             }
-            if (m_pubMsgCount.HasValue)
-                m_pubMsgCount++;
+            if (m_nextPubSeqNo > 0) m_nextPubSeqNo++;
             _Private_BasicPublish(exchange,
                                   routingKey,
                                   mandatory,
@@ -1017,6 +1036,10 @@ namespace RabbitMQ.Client.Impl
 
         public abstract void BasicReject(ulong deliveryTag,
                                          bool requeue);
+
+        public abstract void BasicNack(ulong deliveryTag,
+                                       bool multiple,
+                                       bool requeue);
 
         public abstract void BasicRecoverAsync(bool requeue);
 
