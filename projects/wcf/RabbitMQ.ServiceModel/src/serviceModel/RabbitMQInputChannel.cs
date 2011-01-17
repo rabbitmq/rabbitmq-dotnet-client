@@ -173,7 +173,7 @@ namespace RabbitMQ.ServiceModel
 
             //Listen to the queue
             m_messageQueue = new QueueingBasicConsumer(m_model);
-            m_model.BasicConsume(queue, null, m_messageQueue);
+            m_model.BasicConsume(queue, false, m_messageQueue);
 
 #if VERBOSE
             DebugHelper.Stop(" ## In.Channel.Open {{\n\tAddress={1}, \n\tTime={0}ms}}.", LocalAddress.Uri.PathAndQuery);

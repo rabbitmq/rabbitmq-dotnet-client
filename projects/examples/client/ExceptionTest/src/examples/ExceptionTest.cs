@@ -93,7 +93,7 @@ namespace RabbitMQ.Client.Examples {
                         string queueName = ch.QueueDeclare();
 
                         ThrowingConsumer consumer = new ThrowingConsumer(ch);
-                        string consumerTag = ch.BasicConsume(queueName, null, consumer);
+                        string consumerTag = ch.BasicConsume(queueName, false, consumer);
                         ch.BasicPublish("", queueName, null, Encoding.UTF8.GetBytes("test"));
                         ch.BasicCancel(consumerTag);
                         return 0;

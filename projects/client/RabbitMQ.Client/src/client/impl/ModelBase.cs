@@ -715,6 +715,13 @@ namespace RabbitMQ.Client.Impl
 
         public void ExchangeBind(string destination,
                                  string source,
+                                 string routingKey)
+        {
+            ExchangeBind(destination, source, routingKey, null);
+        }
+
+        public void ExchangeBind(string destination,
+                                 string source,
                                  string routingKey,
                                  IDictionary arguments)
         {
@@ -733,6 +740,13 @@ namespace RabbitMQ.Client.Impl
                                    IDictionary arguments)
         {
             _Private_ExchangeUnbind(destination, source, routingKey, false, arguments);
+        }
+
+        public void ExchangeUnbind(string destination,
+                                   string source,
+                                   string routingKey)
+        {
+            ExchangeUnbind(destination, source, routingKey, null);
         }
 
         public abstract void _Private_ExchangeUnbind(string destination,
@@ -773,6 +787,13 @@ namespace RabbitMQ.Client.Impl
                               IDictionary arguments)
         {
             _Private_QueueBind(queue, exchange, routingKey, false, arguments);
+        }
+
+        public void QueueBind(string queue,
+                              string exchange,
+                              string routingKey)
+        {
+            QueueBind(queue, exchange, routingKey, null);
         }
 
         public abstract void _Private_QueueBind(string queue,
@@ -820,18 +841,18 @@ namespace RabbitMQ.Client.Impl
         public abstract void _Private_ConfirmSelect(bool nowait);
 
         public string BasicConsume(string queue,
-                                   IDictionary arguments,
+                                   bool noAck,
                                    IBasicConsumer consumer)
         {
-            return BasicConsume(queue, false, arguments, consumer);
+            return BasicConsume(queue, noAck, "", consumer);
         }
 
         public string BasicConsume(string queue,
                                    bool noAck,
-                                   IDictionary arguments,
+                                   string consumerTag,
                                    IBasicConsumer consumer)
         {
-            return BasicConsume(queue, noAck, "", arguments, consumer);
+            return BasicConsume(queue, noAck, consumerTag, null, consumer);
         }
 
         public string BasicConsume(string queue,

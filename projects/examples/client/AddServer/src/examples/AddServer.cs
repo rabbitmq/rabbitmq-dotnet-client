@@ -76,6 +76,7 @@ namespace RabbitMQ.Client.Examples {
             cf.Address = args[0];
             using (IConnection conn = cf.CreateConnection()) {
                 using (IModel ch = conn.CreateModel()) {
+                    ch.QueueDeclare("AddServer", false, false, false, null);
                     Subscription sub = new Subscription(ch, "AddServer");
                     new AddServer(sub).MainLoop();
                 }

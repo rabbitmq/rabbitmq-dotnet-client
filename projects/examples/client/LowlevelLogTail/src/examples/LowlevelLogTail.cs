@@ -98,7 +98,7 @@ namespace RabbitMQ.Client.Examples {
                             }
 
                             MyConsumer consumer = new MyConsumer(ch);
-                            ch.BasicConsume(queueName, null, consumer);
+                            ch.BasicConsume(queueName, false, consumer);
 
                             Console.WriteLine("Consumer tag: " + consumer.ConsumerTag);
 

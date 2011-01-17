@@ -225,12 +225,24 @@ namespace RabbitMQ.Client
                           string routingKey,
                           IDictionary arguments);
 
+        ///<summary>(Extension method) Bind an exchange to an exchange.</summary>
+        [AmqpMethodDoNotImplement(null)]
+        void ExchangeBind(string destination,
+                          string source,
+                          string routingKey);
+
         ///<summary>(Extension method) Unbind an exchange from an exchange.</summary>
         [AmqpMethodDoNotImplement(null)]
         void ExchangeUnbind(string destination,
                             string source,
                             string routingKey,
                             IDictionary arguments);
+
+        ///<summary>(Extension method) Unbind an exchange from an exchange.</summary>
+        [AmqpMethodDoNotImplement(null)]
+        void ExchangeUnbind(string destination,
+                            string source,
+                            string routingKey);
 
         ///<summary>(Spec method) Declare a queue.</summary>
         ///<remarks>
@@ -262,6 +274,12 @@ namespace RabbitMQ.Client
                        string exchange,
                        string routingKey,
                        IDictionary arguments);
+
+        ///<summary>(Spec method) Bind a queue to an exchange.</summary>
+        [AmqpMethodDoNotImplement(null)]
+        void QueueBind(string queue,
+                       string exchange,
+                       string routingKey);
 
         ///<summary>(Spec method) Unbind a queue from an exchange.</summary>
         ///<remarks>
@@ -317,7 +335,7 @@ namespace RabbitMQ.Client
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
         string BasicConsume(string queue,
-                            IDictionary arguments,
+                            bool noAck,
                             IBasicConsumer consumer);
 
         ///<summary>Start a Basic content-class consumer.</summary>
@@ -329,7 +347,7 @@ namespace RabbitMQ.Client
         [AmqpMethodDoNotImplement(null)]
         string BasicConsume(string queue,
                             bool noAck,
-                            IDictionary arguments,
+                            string consumerTag,
                             IBasicConsumer consumer);
 
         ///<summary>Start a Basic content-class consumer.</summary>
