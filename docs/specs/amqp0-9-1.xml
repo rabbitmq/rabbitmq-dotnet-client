@@ -1071,6 +1071,8 @@
     <doc type = "grammar">
       exchange            = C:DECLARE  S:DECLARE-OK
                           / C:DELETE   S:DELETE-OK
+                          / C:BIND     S:BIND-OK
+                          / C:UNBIND   S:UNBIND-OK
     </doc>
 
     <chassis name = "server" implement = "MUST" />
@@ -1330,6 +1332,221 @@
       <doc>This method confirms the deletion of an exchange.</doc>
       <chassis name = "client" implement = "MUST" />
     </method>
+
+    <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+    <method name = "bind" synchronous = "1" index = "30"
+            label = "bind exchange to an exchange">
+      <doc>
+        This method binds an exchange to an exchange. Either exchange
+        may be of any valid type and may already or subsequently be
+        bound to other exchanges or queues.
+      </doc>
+
+      <rule name = "duplicates">
+        <doc>
+          A server MUST allow and ignore duplicate bindings - that is,
+          two or more bind methods for a specific exchanges, with
+          identical arguments - without treating these as an error.
+        </doc>
+        <doc type = "scenario">
+          A client binds an exchange to an exchange. The client then
+          repeats the bind (with identical arguments).
+        </doc>
+      </rule>
+
+      <rule name = "cyclical">
+        <doc>
+          A server MUST allow cycles of exchange bindings to be
+          created including allowing an exchange to be bound to
+          itself.
+        </doc>
+        <doc type = "scenario">
+          A client declares an exchange and binds it to itself.
+        </doc>
+      </rule>
+
+      <rule name = "unique">
+        <doc>
+          A server MUST not deliver the same message more than once to
+          a destination exchange, even if the topology of exchanges
+          and bindings results in multiple (even infinite) routes to
+          the exchange.
+        </doc>
+        <doc type = "scenario">
+          A client declares an exchange and binds it using multiple
+          bindings to the amq.topic exchange. The client then
+          publishes a message that matches all the bindings.
+        </doc>
+      </rule>
+
+      <chassis name = "server" implement = "MUST"/>
+
+      <response name = "bind-ok"/>
+
+      <!-- Deprecated: "ticket", must be zero -->
+      <field name = "reserved-1" type = "short" reserved = "1"/>
+
+      <field name = "destination" domain = "exchange-name"
+             label = "name of the destination exchange to bind to">
+        <doc>Specifies the name of the destination exchange to bind to.</doc>
+        <rule name = "exchange-existence" on-failure = "not-found">
+          <doc>
+            A client MUST NOT be allowed to bind to a non-existent
+            destination exchange.
+          </doc>
+          <doc type = "scenario">
+            A client attempts to bind an exchange to an undeclared
+            exchange.
+          </doc>
+        </rule>
+        <rule name = "default-exchange">
+          <doc>
+            The server MUST accept a blank exchange name to mean the
+            default exchange.
+          </doc>
+          <doc type = "scenario">
+            The client declares an exchange and binds it to a blank
+            exchange name.
+          </doc>
+        </rule>
+      </field>
+
+      <field name = "source" domain = "exchange-name"
+             label = "name of the source exchange to bind to">
+        <doc>Specifies the name of the source exchange to bind to.</doc>
+        <rule name = "exchange-existence" on-failure = "not-found">
+          <doc>
+            A client MUST NOT be allowed to bind to a non-existent
+            source exchange.
+          </doc>
+          <doc type = "scenario">
+            A client attempts to bind an undeclared exchange to an
+            exchange.
+          </doc>
+        </rule>
+        <rule name = "default-exchange">
+          <doc>
+            The server MUST accept a blank exchange name to mean the
+            default exchange.
+          </doc>
+          <doc type = "scenario">
+            The client declares an exchange and binds a blank exchange
+            name to it.
+          </doc>
+        </rule>
+      </field>
+
+      <field name = "routing-key" domain = "shortstr"
+             label = "message routing key">
+        <doc>
+          Specifies the routing key for the binding. The routing key
+          is used for routing messages depending on the exchange
+          configuration. Not all exchanges use a routing key - refer
+          to the specific exchange documentation.
+        </doc>
+      </field>
+
+      <field name = "no-wait" domain = "no-wait"/>
+
+      <field name = "arguments" domain = "table"
+             label = "arguments for binding">
+        <doc>
+          A set of arguments for the binding. The syntax and semantics
+          of these arguments depends on the exchange class.
+        </doc>
+      </field>
+    </method>
+
+    <method name="bind-ok" synchronous="1" index="31"
+            label = "confirm bind successful">
+      <doc>This method confirms that the bind was successful.</doc>
+
+      <chassis name="client" implement="MUST"/>
+    </method>
+
+    <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+    <method name = "unbind" synchronous = "1" index = "40"
+            label = "unbind an exchange from an exchange">
+      <doc>This method unbinds an exchange from an exchange.</doc>
+      <rule name = "01">
+        <doc>If a unbind fails, the server MUST raise a connection exception.</doc>
+      </rule>
+      <chassis name = "server" implement = "MUST"/>
+      <response name = "unbind-ok"/>
+
+      <!-- Deprecated: "ticket", must be zero -->
+      <field name = "reserved-1" type = "short" reserved = "1"/>
+
+      <field name = "destination" domain = "exchange-name">
+        <doc>Specifies the name of the destination exchange to unbind from.</doc>
+        <rule name = "must-exist" on-failure = "not-found">
+          <doc>
+            The client MUST NOT attempt to unbind an exchange from an
+            exchange that does not exist.
+          </doc>
+          <doc type = "scenario">
+            The client attempts to unbind an exchange from a
+            non-existent exchange.
+          </doc>
+        </rule>
+        <rule name = "default-exchange">
+          <doc>
+            The server MUST accept a blank exchange name to mean the
+            default exchange.
+          </doc>
+          <doc type = "scenario">
+            The client declares an exchange, binds it to a blank
+            exchange name, and then unbinds it from a blank exchange
+            name.
+          </doc>
+        </rule>
+      </field>
+
+      <field name = "source" domain = "exchange-name">
+        <doc>Specifies the name of the source exchange to unbind from.</doc>
+        <rule name = "must-exist" on-failure = "not-found">
+          <doc>
+            The client MUST NOT attempt to unbind an exchange that
+            does not exist from an exchange.
+          </doc>
+          <doc type = "scenario">
+            The client attempts to unbind a non-existent exchange from
+            an exchange.
+          </doc>
+        </rule>
+        <rule name = "default-exchange">
+          <doc>
+            The server MUST accept a blank exchange name to mean the
+            default exchange.
+          </doc>
+          <doc type = "scenario">
+            The client declares an exchange, binds a blank exchange
+            name to it, and then unbinds a black exchange from it.
+          </doc>
+        </rule>
+      </field>
+
+      <field name = "routing-key" domain = "shortstr"
+             label = "routing key of binding">
+        <doc>Specifies the routing key of the binding to unbind.</doc>
+      </field>
+
+      <field name = "no-wait" domain = "no-wait"/>
+
+      <field name = "arguments" domain = "table"
+             label = "arguments of binding">
+        <doc>Specifies the arguments of the binding to unbind.</doc>
+      </field>
+    </method>
+
+    <method name = "unbind-ok" synchronous = "1" index = "41"
+            label = "confirm unbind successful">
+      <doc>This method confirms that the unbind was successful.</doc>
+      <chassis name = "client" implement = "MUST"/>
+    </method>
+
   </class>
 
   <!-- ==  QUEUE  ============================================================ -->
