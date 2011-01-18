@@ -139,7 +139,7 @@ namespace RabbitMQ.Client.Examples {
         private static string ensureQueue(IModel ch) {
             Console.WriteLine("Creating a queue and binding it to amq.direct");
             string queueName = ch.QueueDeclare();
-            ch.QueueBind(queueName, "amq.direct", queueName, false, null);
+            ch.QueueBind(queueName, "amq.direct", queueName, null);
             Console.WriteLine("Done.  Created queue {0} and bound it to amq.direct.\n", queueName);
             return queueName;
         }

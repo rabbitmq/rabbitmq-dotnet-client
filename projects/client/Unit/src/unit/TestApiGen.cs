@@ -83,7 +83,7 @@ namespace RabbitMQ.Client.Unit
         [TearDown] public void Disconnect()
         {
             try {
-                Channel.ExchangeDelete(exchangeName, false, false);
+                Channel.ExchangeDelete(exchangeName);
             } catch (OperationInterruptedException) {}
             Connection.Abort();
         }
@@ -93,13 +93,6 @@ namespace RabbitMQ.Client.Unit
         {
             Channel.ExchangeDeclare(exchangeName, "direct", 
                                     false, false, null);
-        }
-
-        [Test]
-        public void TestExchangeDeleteNoWait()
-        {
-            Channel.ExchangeDeclare(exchangeName, "direct");
-            Channel.ExchangeDelete(exchangeName, false, true);
         }
     }
 }

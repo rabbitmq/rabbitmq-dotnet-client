@@ -359,10 +359,10 @@ of the interaction style of the command. The [code AmqpNowaitArgument]
 attribute should be used for this purpose:
 
 @code java
-    void ExchangeDelete(string exchange,
-                        bool ifUnused,
-                          [AmqpNowaitArgument(null)]
-                        bool nowait);
+    void _Private_ExchangeDelete(string exchange,
+                                 bool ifUnused,
+                                 [AmqpNowaitArgument(null)]
+                                 bool nowait);
 
 When [code AmqpNowaitArgument] decorates a particular parameter, if
 that parameter is true at runtime, the generated code will send the

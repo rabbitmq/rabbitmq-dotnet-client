@@ -208,36 +208,41 @@ namespace RabbitMQ.Client
         void ExchangeDeclarePassive(string exchange);
 
         ///<summary>(Spec method) Delete an exchange.</summary>
-        void ExchangeDelete(string exchange,
-                            bool ifUnused,
-                            [AmqpNowaitArgument(null)]
-                            bool nowait);
+        [AmqpMethodDoNotImplement(null)]
+        void ExchangeDelete(string exchange, bool ifUnused);
 
         ///<summary>(Spec method) Delete an exchange.</summary>
+        ///<remarks>
+        /// The exchange is deleted regardless of any queue bindings.
+        ///</remarks>
         [AmqpMethodDoNotImplement(null)]
         void ExchangeDelete(string exchange);
 
-        ///<summary>(Spec method) Bind an exchange to an exchange.</summary>
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8"),
-         AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid"),
-         AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
+        ///<summary>(Extension method) Bind an exchange to an exchange.</summary>
+        [AmqpMethodDoNotImplement(null)]
         void ExchangeBind(string destination,
                           string source,
                           string routingKey,
-                          [AmqpNowaitArgument(null)]
-                          bool nowait,
                           IDictionary arguments);
 
-        ///<summary>(Spec method) Unbind an exchange from an exchange.</summary>
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8"),
-         AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid"),
-         AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
+        ///<summary>(Extension method) Bind an exchange to an exchange.</summary>
+        [AmqpMethodDoNotImplement(null)]
+        void ExchangeBind(string destination,
+                          string source,
+                          string routingKey);
+
+        ///<summary>(Extension method) Unbind an exchange from an exchange.</summary>
+        [AmqpMethodDoNotImplement(null)]
         void ExchangeUnbind(string destination,
                             string source,
                             string routingKey,
-                            [AmqpNowaitArgument(null)]
-                            bool nowait,
                             IDictionary arguments);
+
+        ///<summary>(Extension method) Unbind an exchange from an exchange.</summary>
+        [AmqpMethodDoNotImplement(null)]
+        void ExchangeUnbind(string destination,
+                            string source,
+                            string routingKey);
 
         ///<summary>(Spec method) Declare a queue.</summary>
         ///<remarks>
@@ -264,12 +269,17 @@ namespace RabbitMQ.Client
                     bool autoDelete, IDictionary arguments);
 
         ///<summary>(Spec method) Bind a queue to an exchange.</summary>
+        [AmqpMethodDoNotImplement(null)]
         void QueueBind(string queue,
                        string exchange,
                        string routingKey,
-                       [AmqpNowaitArgument(null)]
-                       bool nowait,
                        IDictionary arguments);
+
+        ///<summary>(Spec method) Bind a queue to an exchange.</summary>
+        [AmqpMethodDoNotImplement(null)]
+        void QueueBind(string queue,
+                       string exchange,
+                       string routingKey);
 
         ///<summary>(Spec method) Unbind a queue from an exchange.</summary>
         ///<remarks>
@@ -286,26 +296,21 @@ namespace RabbitMQ.Client
 
         ///<summary>(Spec method) Purge a queue of messages.</summary>
         ///<remarks>
-        ///Returns the number of messages purged. If nowait is
-        ///specified, returns <code>uint.MaxValue</code>.
+        ///Returns the number of messages purged.
         ///</remarks>
-        [return: AmqpFieldMapping(null, "messageCount")]
-        uint QueuePurge(string queue,
-                        [AmqpNowaitArgument(null, "0xFFFFFFFF")]
-                        bool nowait);
+        [AmqpMethodDoNotImplement(null)]
+        uint QueuePurge(string queue);
 
         ///<summary>(Spec method) Delete a queue.</summary>
         ///<remarks>
         ///Returns the number of messages purged during queue
-        ///deletion. If nowait is specified, returns
+        ///deletion.
         ///<code>uint.MaxValue</code>.
         ///</remarks>
-        [return: AmqpFieldMapping(null, "messageCount")]
+        [AmqpMethodDoNotImplement(null)]
         uint QueueDelete(string queue,
                          bool ifUnused,
-                         bool ifEmpty,
-                         [AmqpNowaitArgument(null, "0xFFFFFFFF")]
-                         bool nowait);
+                         bool ifEmpty);
 
         ///<summary>(Spec method) Delete a queue.</summary>
         ///<remarks>
@@ -322,14 +327,6 @@ namespace RabbitMQ.Client
         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
         void ConfirmSelect();
 
-        ///<summary>Enable publisher acknowledgements.</summary>
-        [AmqpMethodDoNotImplement(null)]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
-        void ConfirmSelect(bool nowait);
-
-
         ///<summary>Start a Basic content-class consumer.</summary>
         ///<remarks>
         ///The consumer is started with noAck=false (i.e. BasicAck is required),
@@ -338,7 +335,7 @@ namespace RabbitMQ.Client
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
         string BasicConsume(string queue,
-                            IDictionary arguments,
+                            bool noAck,
                             IBasicConsumer consumer);
 
         ///<summary>Start a Basic content-class consumer.</summary>
@@ -350,7 +347,7 @@ namespace RabbitMQ.Client
         [AmqpMethodDoNotImplement(null)]
         string BasicConsume(string queue,
                             bool noAck,
-                            IDictionary arguments,
+                            string consumerTag,
                             IBasicConsumer consumer);
 
         ///<summary>Start a Basic content-class consumer.</summary>
@@ -611,6 +608,43 @@ namespace RabbitMQ.Client.Impl
                              bool nowait,
                              IDictionary arguments);
 
+        ///<summary>Used to send a Exchange.Delete method. Called by the
+        ///public delete method.
+        ///</summary>
+        [AmqpMethodMapping(null, "exchange", "delete")]
+        void _Private_ExchangeDelete(string exchange,
+                                     bool ifUnused,
+                                     [AmqpNowaitArgument(null)]
+                                     bool nowait);
+
+        ///<summary>Used to send a Exchange.Bind method. Called by the
+        ///public bind method.
+        ///</summary>
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8"),
+         AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid"),
+         AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
+        [AmqpMethodMapping(null, "exchange", "bind")]
+        void _Private_ExchangeBind(string destination,
+                                   string source,
+                                   string routingKey,
+                                   [AmqpNowaitArgument(null)]
+                                   bool nowait,
+                                   IDictionary arguments);
+
+        ///<summary>Used to send a Exchange.Unbind method. Called by the
+        ///public unbind method.
+        ///</summary>
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8"),
+         AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid"),
+         AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
+        [AmqpMethodMapping(null, "exchange", "unbind")]
+        void _Private_ExchangeUnbind(string destination,
+                                     string source,
+                                     string routingKey,
+                                     [AmqpNowaitArgument(null)]
+                                     bool nowait,
+                                     IDictionary arguments);
+
         ///<summary>Used to send a Queue.Declare method. Called by the
         ///public declare method.</summary>
         [AmqpMethodMapping(null, "queue", "declare")]
@@ -623,6 +657,35 @@ namespace RabbitMQ.Client.Impl
                                      [AmqpNowaitArgument(null)]
                                      bool nowait,
                                      IDictionary arguments);
+
+        ///<summary>Used to send a Queue.Bind method. Called by the
+        ///public bind method.</summary>
+        [AmqpMethodMapping(null, "queue", "bind")]
+        void _Private_QueueBind(string queue,
+                                string exchange,
+                                string routingKey,
+                                [AmqpNowaitArgument(null)]
+                                bool nowait,
+                                IDictionary arguments);
+
+        ///<summary>Used to send a Queue.Purge method. Called by the
+        ///public purge method.</summary>
+        [return: AmqpFieldMapping(null, "messageCount")]
+        [AmqpMethodMapping(null, "queue", "purge")]
+        uint _Private_QueuePurge(string queue,
+                                 [AmqpNowaitArgument(null, "0xFFFFFFFF")]
+                                 bool nowait);
+
+
+        ///<summary>Used to send a Queue.Delete method. Called by the
+        ///public delete method.</summary>
+        [AmqpMethodMapping(null, "queue", "delete")]
+        [return: AmqpFieldMapping(null, "messageCount")]
+        uint _Private_QueueDelete(string queue,
+                                  bool ifUnused,
+                                  bool ifEmpty,
+                                  [AmqpNowaitArgument(null, "0xFFFFFFFF")]
+                                  bool nowait);
 
         ///<summary>Used to send a Basic.Publish method. Called by the
         ///public publish method after potential null-reference issues

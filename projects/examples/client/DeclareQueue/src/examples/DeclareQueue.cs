@@ -113,12 +113,12 @@ namespace RabbitMQ.Client.Examples {
                         while ((optionIndex + 1) < args.Length) {
                             string exchange = args[optionIndex++];
                             string routingKey = args[optionIndex++];
-                            ch.QueueBind(finalName, exchange, routingKey, false, null);
+                            ch.QueueBind(finalName, exchange, routingKey, null);
                             Console.WriteLine("{0}\t{1}\t{2}", finalName, exchange, routingKey);
                         }
 
                         if (delete) {
-                            ch.QueueDelete(finalName, false, false, false);
+                            ch.QueueDelete(finalName);
                         }
 
                         return 0;

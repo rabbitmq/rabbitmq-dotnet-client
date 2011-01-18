@@ -99,13 +99,13 @@ namespace RabbitMQ.Client.Unit
             Channel.BasicPublish("", Queue, null, enc.GetBytes("message"));
             QueueingBasicConsumer Consumer = new QueueingBasicConsumer(Channel);
 
-            String CTag = Channel.BasicConsume(Queue, null, Consumer);
+            String CTag = Channel.BasicConsume(Queue, false, Consumer);
             BasicDeliverEventArgs Event = (BasicDeliverEventArgs) Consumer.Queue.Dequeue();
             Channel.BasicCancel(CTag);
             Channel.BasicRecover(true);
 
             QueueingBasicConsumer Consumer2 = new QueueingBasicConsumer(Channel);
-            Channel.BasicConsume(Queue, null, Consumer2);
+            Channel.BasicConsume(Queue, false, Consumer2);
             BasicDeliverEventArgs Event2 = (BasicDeliverEventArgs)Consumer2.Queue.Dequeue();
 
             Assert.AreEqual(Event.Body, Event2.Body);

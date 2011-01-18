@@ -186,7 +186,7 @@ exchange and a queue, then binds them together.
 @code java
  channel.ExchangeDeclare(exchangeName, ExchangeType.Direct);
  channel.QueueDeclare(queueName, false, false, false, null);
- channel.QueueBind(queueName, exchangeName, routingKey, false, null);
+ channel.QueueBind(queueName, exchangeName, routingKey, null);
 
 This will actively declare the following objects:
 

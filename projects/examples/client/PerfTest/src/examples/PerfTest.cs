@@ -84,7 +84,7 @@ namespace RabbitMQ.Client.Examples {
                     
                 using (IModel ch = conn.CreateModel()) {
                     sendTimer.Start();
-                    
+
                     for (int i = 0; i < messageCount; ++i) {
                         ch.BasicPublish("", "", null, Message);
                     }
@@ -103,7 +103,7 @@ namespace RabbitMQ.Client.Examples {
                     QueueingBasicConsumer consumer =
                         new QueueingBasicConsumer(ch);
                     receiveTimer.Start();
-                    ch.BasicConsume(q, true, null, consumer);
+                    ch.BasicConsume(q, true, consumer);
                     
                     for (int i = 0; i < messageCount; ++i) {
                         consumer.Queue.Dequeue();

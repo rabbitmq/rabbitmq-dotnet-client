@@ -94,11 +94,11 @@ namespace RabbitMQ.Client.Examples {
                             } else {
                                 ch.ExchangeDeclare(exchange, exchangeType);
                                 queueName = ch.QueueDeclare();
-                                ch.QueueBind(queueName, exchange, routingKey, false, null);
+                                ch.QueueBind(queueName, exchange, routingKey, null);
                             }
 
                             MyConsumer consumer = new MyConsumer(ch);
-                            ch.BasicConsume(queueName, null, consumer);
+                            ch.BasicConsume(queueName, false, consumer);
 
                             Console.WriteLine("Consumer tag: " + consumer.ConsumerTag);
 
