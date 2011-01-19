@@ -916,9 +916,7 @@ namespace RabbitMQ.Client.Impl
             table["product"] = Encoding.UTF8.GetBytes("RabbitMQ");
             table["version"] = Encoding.UTF8.GetBytes(version);
             table["platform"] = Encoding.UTF8.GetBytes(".NET");
-            table["copyright"] = Encoding.UTF8.GetBytes("Copyright (C) 2007-2008 LShift Ltd., " +
-                                                        "Cohesive Financial Technologies LLC., " +
-                                                        "and Rabbit Technologies Ltd.");
+            table["copyright"] = Encoding.UTF8.GetBytes("Copyright (C) 2007-2011 VMware, Inc.");
             table["information"] = Encoding.UTF8.GetBytes("Licensed under the MPL.  " +
                                                           "See http://www.rabbitmq.com/");
             return table;
