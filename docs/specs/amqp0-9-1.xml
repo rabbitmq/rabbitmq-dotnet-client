@@ -1,8 +1,11 @@
 <?xml version = "1.0"?>
 
 <!--
-     WARNING: Modified from the official 0-9 specification XML by
-     the addition of confirm.select and confirm.select-ok.
+     WARNING: Modified from the official 0-9-1 specification XML by
+     the addition of:
+     confirm.select and confirm.select-ok,
+     exchange.bind and exchange.bind-ok,
+     exchange.unbind and exchange.unbind-ok
 -->
 
 <!--
