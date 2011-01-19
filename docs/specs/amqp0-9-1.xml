@@ -5,7 +5,9 @@
      the addition of:
      confirm.select and confirm.select-ok,
      exchange.bind and exchange.bind-ok,
-     exchange.unbind and exchange.unbind-ok
+     exchange.unbind and exchange.unbind-ok,
+     basic.nack
+     and the ability for the Server to send basic.ack to the client.
 -->
 
 <!--
