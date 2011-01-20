@@ -213,6 +213,7 @@ function dist-target-framework {
     $MSBUILD RabbitMQDotNetClient.sln /t:Build /property:Configuration="Release"
     
     ### Copy bin files to be zipped to tmp/dist/
+    cp projects/client/RabbitMQ.Client/build/bin/RabbitMQ.Client.xml tmp/dist/bin/
     cp projects/client/RabbitMQ.Client/build/bin/RabbitMQ.Client.dll tmp/dist/bin/
     for example in $(ls projects/examples/client); do
         cp projects/examples/client/$example/build/bin/$example.exe tmp/dist/bin/

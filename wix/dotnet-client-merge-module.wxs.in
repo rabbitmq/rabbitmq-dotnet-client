@@ -18,6 +18,7 @@
                 <Component Id='ClientLibraryBin' Guid='83A1DE00-CCB6-42C2-BD14-FBAEDDBC50E8'>
                     <CreateFolder />
                     <File Id='RabbitMQClientDllBin' Name='RMQClnt.dll' LongName='RabbitMQ.Client.dll' Vital='yes' KeyPath='yes' Source='..\tmp\unzip\rabbitmq-dotnet-client-@VERSION@-dotnet-2.0\bin\RabbitMQ.Client.dll' />
+                    <File Id='RabbitMQClientDllXml' Name='RMQClnt.xml' LongName='RabbitMQ.Client.xml' Vital='yes' Source='..\tmp\unzip\rabbitmq-dotnet-client-@VERSION@-dotnet-2.0\bin\RabbitMQ.Client.xml' />
                     <Registry Id='RabbitMQAssemblyFolderReg' Action='createKeyAndRemoveKeyOnUninstall' Key='SOFTWARE\Microsoft\.NETFramework\AssemblyFolders\RabbitMQ' Root='HKLM'>
                         <Registry Id='RabbitMQAssemblyFolderRegVal' Action='write' Type='string' Value='[BinFolder]' />
                     </Registry>
