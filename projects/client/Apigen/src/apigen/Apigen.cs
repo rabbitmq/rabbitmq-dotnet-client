@@ -4,8 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2010 LShift Ltd., Cohesive Financial
-//   Technologies LLC., and Rabbit Technologies Ltd.
+//   Copyright (C) 2007-2011 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -23,37 +22,22 @@
 // The MPL v1.1:
 //
 //---------------------------------------------------------------------------
-//   The contents of this file are subject to the Mozilla Public License
-//   Version 1.1 (the "License"); you may not use this file except in
-//   compliance with the License. You may obtain a copy of the License at
-//   http://www.rabbitmq.com/mpl.html
+//  The contents of this file are subject to the Mozilla Public License
+//  Version 1.1 (the "License"); you may not use this file except in
+//  compliance with the License. You may obtain a copy of the License
+//  at http://www.mozilla.org/MPL/
 //
-//   Software distributed under the License is distributed on an "AS IS"
-//   basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
-//   License for the specific language governing rights and limitations
-//   under the License.
+//  Software distributed under the License is distributed on an "AS IS"
+//  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
+//  the License for the specific language governing rights and
+//  limitations under the License.
 //
-//   The Original Code is The RabbitMQ .NET Client.
+//  The Original Code is RabbitMQ.
 //
-//   The Initial Developers of the Original Code are LShift Ltd,
-//   Cohesive Financial Technologies LLC, and Rabbit Technologies Ltd.
-//
-//   Portions created before 22-Nov-2008 00:00:00 GMT by LShift Ltd,
-//   Cohesive Financial Technologies LLC, or Rabbit Technologies Ltd
-//   are Copyright (C) 2007-2008 LShift Ltd, Cohesive Financial
-//   Technologies LLC, and Rabbit Technologies Ltd.
-//
-//   Portions created by LShift Ltd are Copyright (C) 2007-2010 LShift
-//   Ltd. Portions created by Cohesive Financial Technologies LLC are
-//   Copyright (C) 2007-2010 Cohesive Financial Technologies
-//   LLC. Portions created by Rabbit Technologies Ltd are Copyright
-//   (C) 2007-2010 Rabbit Technologies Ltd.
-//
-//   All Rights Reserved.
-//
-//   Contributor(s): ______________________________________.
-//
+//  The Initial Developer of the Original Code is VMware, Inc.
+//  Copyright (c) 2007-2011 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
+
 using System;
 using System.Collections;
 using System.IO;
@@ -375,8 +359,7 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("// The APL v2.0:");
             EmitLine("//");
             EmitLine("//---------------------------------------------------------------------------");
-            EmitLine("//   Copyright (C) 2007-2010 LShift Ltd., Cohesive Financial");
-            EmitLine("//   Technologies LLC., and Rabbit Technologies Ltd.");
+            EmitLine("//   Copyright (C) 2007-2011 VMware, Inc.");
             EmitLine("//");
             EmitLine("//   Licensed under the Apache License, Version 2.0 (the \"License\");");
             EmitLine("//   you may not use this file except in compliance with the License.");
@@ -404,26 +387,10 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("//   License for the specific language governing rights and limitations");
             EmitLine("//   under the License.");
             EmitLine("//");
-            EmitLine("//   The Original Code is The RabbitMQ .NET Client.");
+            EmitLine("//   The Original Code is RabbitMQ.");
             EmitLine("//");
-            EmitLine("//   The Initial Developers of the Original Code are LShift Ltd,");
-            EmitLine("//   Cohesive Financial Technologies LLC, and Rabbit Technologies Ltd.");
-            EmitLine("//");
-            EmitLine("//   Portions created before 22-Nov-2008 00:00:00 GMT by LShift Ltd,");
-            EmitLine("//   Cohesive Financial Technologies LLC, or Rabbit Technologies Ltd");
-            EmitLine("//   are Copyright (C) 2007-2008 LShift Ltd, Cohesive Financial");
-            EmitLine("//   Technologies LLC, and Rabbit Technologies Ltd.");
-            EmitLine("//");
-            EmitLine("//   Portions created by LShift Ltd are Copyright (C) 2007-2010 LShift");
-            EmitLine("//   Ltd. Portions created by Cohesive Financial Technologies LLC are");
-            EmitLine("//   Copyright (C) 2007-2010 Cohesive Financial Technologies");
-            EmitLine("//   LLC. Portions created by Rabbit Technologies Ltd are Copyright");
-            EmitLine("//   (C) 2007-2010 Rabbit Technologies Ltd.");
-            EmitLine("//");
-            EmitLine("//   All Rights Reserved.");
-            EmitLine("//");
-            EmitLine("//   Contributor(s): ______________________________________.");
-            EmitLine("//");
+            EmitLine("//   The Initial Developer of the Original Code is VMware, Inc.");
+            EmitLine("//   Copyright (c) 2007-2011 VMware, Inc.  All rights reserved.");
             EmitLine("//---------------------------------------------------------------------------");
             EmitLine("");
             EmitLine("using RabbitMQ.Client;");
