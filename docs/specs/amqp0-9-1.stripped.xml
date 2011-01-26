@@ -460,6 +460,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     </method>
     <method name="nack" index="120">
       <chassis name="server" implement="MUST"/>
+      <chassis name="client" implement="MUST"/>
       <field name="delivery-tag" domain="delivery-tag"/>
       <field name="multiple" domain="bit"/>
       <field name="requeue" domain="bit"/>

@@ -7,7 +7,7 @@
      exchange.bind and exchange.bind-ok,
      exchange.unbind and exchange.unbind-ok,
      basic.nack
-     and the ability for the Server to send basic.ack to the client.
+     and the ability for the Server to send basic.ack and basic.nack to the client.
 -->
 
 <!--
@@ -2194,6 +2194,7 @@
                           / S:ACK
                           / C:REJECT
                           / C:NACK
+                          / S:NACK
                           / C:RECOVER-ASYNC
                           / C:RECOVER S:RECOVER-OK
     </doc>
@@ -2962,6 +2963,10 @@
         This method allows a client to reject one or more incoming messages. It can be
         used to interrupt and cancel large incoming messages, or return untreatable
         messages to their original queue.
+
+        This method is also used by the server to inform publishers on channels in
+        confirm mode of unhandled messages.  If a publisher receives this method, it
+        probably needs to republish the offending messages.
       </doc>
 
       <rule name = "01">
@@ -2993,7 +2998,18 @@
         </doc>
       </rule>
 
+      <rule name = "04">
+        <doc>
+          A client publishing messages to a channel in confirm mode SHOULD be capable of accepting
+          and somehow handling the Nack method.
+        </doc>
+        <doc type = "scenario">
+          TODO
+        </doc>
+      </rule>
+
       <chassis name = "server" implement = "MUST" />
+      <chassis name = "client" implement = "MUST" />
 
       <field name = "delivery-tag" domain = "delivery-tag" />
 
@@ -3023,6 +3039,7 @@
         <doc>
           If requeue is true, the server will attempt to requeue the message.  If requeue
           is false or the requeue  attempt fails the messages are discarded or dead-lettered.
+          Clients receiving the Nack methods should ignore this flag.
         </doc>
 
         <rule name = "01">

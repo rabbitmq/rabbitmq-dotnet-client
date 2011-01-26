@@ -801,8 +801,8 @@ namespace RabbitMQ.Client.Apigen {
                         method.DeclaringType.Namespace.StartsWith("RabbitMQ.Client")) {
                         if (method.Name.StartsWith("Handle") ||
                             (Attribute(method, typeof(AmqpAsynchronousHandlerAttribute)) != null))
-                        {
-                            if ((Attribute(method, typeof(AmqpMethodDoNotImplementAttribute)) == null))
+                            {
+                            if ((Attribute(method, typeof(AmqpMethodDoNotImplementAttribute)) == null) && Attribute(method, typeof(AmqpUnsupportedAttribute)) == null)
                             {
                                 asynchronousHandlers.Add(method);
                             }

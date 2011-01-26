@@ -87,6 +87,12 @@
     <Compile Include="..\RabbitMQ.Client\src\client\events\BasicAckEventHandler.cs">
       <Link>src\client\events\BasicAckEventHandler.cs</Link>
     </Compile>
+    <Compile Include="..\RabbitMQ.Client\src\client\events\BasicNackEventArgs.cs">
+      <Link>src\client\events\BasicNackEventArgs.cs</Link>
+    </Compile>
+    <Compile Include="..\RabbitMQ.Client\src\client\events\BasicNackEventHandler.cs">
+      <Link>src\client\events\BasicNackEventHandler.cs</Link>
+    </Compile>
     <Compile Include="..\RabbitMQ.Client\src\client\events\CallbackExceptionEventArgs.cs">
       <Link>src\client\events\CallbackExceptionEventArgs.cs</Link>
     </Compile>

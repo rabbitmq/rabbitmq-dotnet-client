@@ -66,6 +66,7 @@ namespace RabbitMQ.Client.Impl
         private readonly object m_eventLock = new object();
         private BasicReturnEventHandler m_basicReturn;
         private BasicAckEventHandler m_basicAck;
+        private BasicNackEventHandler m_basicNack;
         private CallbackExceptionEventHandler m_callbackException;
         private FlowControlEventHandler m_flowControl;
         private BasicRecoverOkEventHandler m_basicRecoverOk;
@@ -134,6 +135,24 @@ namespace RabbitMQ.Client.Impl
                 lock (m_eventLock)
                 {
                     m_basicAck -= value;
+                }
+            }
+        }
+
+        public event BasicNackEventHandler BasicNacks
+        {
+            add
+            {
+                lock (m_eventLock)
+                {
+                    m_basicNack += value;
+                }
+            }
+            remove
+            {
+                lock (m_eventLock)
+                {
+                    m_basicNack -= value;
                 }
             }
         }
@@ -318,6 +337,27 @@ namespace RabbitMQ.Client.Impl
                     } catch (Exception e) {
                         CallbackExceptionEventArgs exnArgs = new CallbackExceptionEventArgs(e);
                         exnArgs.Detail["context"] = "OnBasicAck";
+                        OnCallbackException(exnArgs);
+                    }
+                }
+            }
+        }
+
+        public virtual void OnBasicNack(BasicNackEventArgs args)
+        {
+            BasicNackEventHandler handler;
+            lock (m_eventLock)
+            {
+                handler = m_basicNack;
+            }
+            if (handler != null)
+            {
+                foreach (BasicNackEventHandler h in handler.GetInvocationList()) {
+                    try {
+                        h(this, args);
+                    } catch (Exception e) {
+                        CallbackExceptionEventArgs exnArgs = new CallbackExceptionEventArgs(e);
+                        exnArgs.Detail["context"] = "OnBasicNack";
                         OnCallbackException(exnArgs);
                     }
                 }
@@ -540,6 +580,17 @@ namespace RabbitMQ.Client.Impl
             e.DeliveryTag = deliveryTag;
             e.Multiple = multiple;
             OnBasicAck(e);
+        }
+
+        public void HandleBasicNack(ulong deliveryTag,
+                                    bool multiple,
+                                    bool requeue)
+        {
+            BasicNackEventArgs e = new BasicNackEventArgs();
+            e.DeliveryTag = deliveryTag;
+            e.Multiple = multiple;
+            e.Requeue = requeue;
+            OnBasicNack(e);
         }
 
         public abstract void _Private_ChannelFlowOk(bool active);

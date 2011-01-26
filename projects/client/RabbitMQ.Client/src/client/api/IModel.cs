@@ -71,6 +71,10 @@ namespace RabbitMQ.Client
         ///the broker.</summary>
         event BasicAckEventHandler BasicAcks;
 
+        ///<summary>Signalled when a Basic.Nack command arrives from
+        ///the broker.</summary>
+        event BasicNackEventHandler BasicNacks;
+
         ///<summary>Signalled when an exception occurs in a callback
         ///invoked by the model.</summary>
         ///<remarks>
@@ -812,6 +816,15 @@ namespace RabbitMQ.Client.Impl
         ///BasicAckEvent.</summary>
         void HandleBasicAck(ulong deliveryTag,
                             bool multiple);
+
+        ///<summary>Handle incoming Basic.Nack methods. Signals a
+        ///BasicNackEvent.</summary>
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
+        void HandleBasicNack(ulong deliveryTag,
+                             bool multiple,
+                             bool requeue);
 
         ///<summary>Used to send a Channel.FlowOk. Confirms that
         ///Channel.Flow from the broker was processed.</summary>
