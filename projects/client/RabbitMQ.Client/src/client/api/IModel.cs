@@ -814,6 +814,9 @@ namespace RabbitMQ.Client.Impl
 
         ///<summary>Handle incoming Basic.Ack methods. Signals a
         ///BasicAckEvent.</summary>
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
         void HandleBasicAck(ulong deliveryTag,
                             bool multiple);
 
