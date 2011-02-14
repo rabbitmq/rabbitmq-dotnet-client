@@ -42,8 +42,16 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Util;
 
+using System.Collections;
+
 namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
     public abstract class ProtocolBase: AbstractProtocolBase {
+
+        public ProtocolBase() {
+            Capabilities["publisher_confirms"] = true;
+            Capabilities["exchange_exchange_bindings"] = true;
+            Capabilities["basic.nack"] = true;
+        }
 
         public override IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint) {
             return new SocketFrameHandler_0_9(endpoint);
