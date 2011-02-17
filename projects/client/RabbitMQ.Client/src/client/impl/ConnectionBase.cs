@@ -984,6 +984,7 @@ namespace RabbitMQ.Client.Impl
             }
 
             m_clientProperties = new Hashtable(m_factory.ClientProperties);
+            m_clientProperties["capabilities"] = Protocol.Capabilities;
 
             // FIXME: parse out locales properly!
             ConnectionTuneDetails connectionTune = default(ConnectionTuneDetails);

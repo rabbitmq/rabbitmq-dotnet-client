@@ -42,6 +42,8 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Util;
 
+using System.Collections;
+
 namespace RabbitMQ.Client.Impl {
     public abstract class AbstractProtocolBase: IProtocol {
         public abstract int MajorVersion { get; }
@@ -49,6 +51,8 @@ namespace RabbitMQ.Client.Impl {
         public abstract int Revision { get; }
         public abstract string ApiName { get; }
         public abstract int DefaultPort { get; }
+
+        public IDictionary Capabilities = new Hashtable();
 
         public abstract IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint);
         public abstract IConnection CreateConnection(ConnectionFactory factory,
@@ -74,10 +78,10 @@ namespace RabbitMQ.Client.Impl {
                                                    out Command request,
                                                    out int replyClassId,
                                                    out int replyMethodId);
-                                                   
+
         ///<summary>Used in the quiescing session to determine if the command
         ///is allowed to be sent.</summary>
-        public abstract bool CanSendWhileClosed(Command cmd); 
+        public abstract bool CanSendWhileClosed(Command cmd);
 
         public AmqpVersion Version {
             get {
@@ -85,9 +89,9 @@ namespace RabbitMQ.Client.Impl {
             }
         }
 
-	    public override string ToString() {
-	        return Version.ToString();
-	    }
+        public override string ToString() {
+            return Version.ToString();
+        }
 
         public override bool Equals(object obj) {
             return (GetType() == obj.GetType());
