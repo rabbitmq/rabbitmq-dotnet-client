@@ -384,12 +384,14 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     </method>
     <method name="cancel" synchronous="1" index="30">
       <chassis name="server" implement="MUST"/>
+      <chassis name="client" implement="SHOULD"/>
       <response name="cancel-ok"/>
       <field name="consumer-tag" domain="consumer-tag"/>
       <field name="no-wait" domain="no-wait"/>
     </method>
     <method name="cancel-ok" synchronous="1" index="31">
       <chassis name="client" implement="MUST"/>
+      <chassis name="server" implement="MAY"/>
       <field name="consumer-tag" domain="consumer-tag"/>
     </method>
     <method name="publish" content="1" index="40">

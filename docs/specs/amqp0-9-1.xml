@@ -7,7 +7,8 @@
      exchange.bind and exchange.bind-ok,
      exchange.unbind and exchange.unbind-ok,
      basic.nack
-     and the ability for the Server to send basic.ack and basic.nack to the client.
+     and the ability for the Server to send basic.ack, basic.nack and
+      basic.cancel to the client.
 -->
 
 <!--
@@ -154,9 +155,8 @@
 <amqp major = "0" minor = "9" revision = "1"
     port = "5672" comment = "AMQ Protocol version 0-9-1">
   <!--
-      ======================================================
-      ==       CONSTANTS
-      ======================================================
+      ====================================================== ==
+      CONSTANTS ======================================================
   -->
   <!-- Frame types -->
   <constant name = "frame-method"     value = "1" />
@@ -2533,6 +2533,13 @@
         messages, but it does mean the server will not send any more messages for
         that consumer. The client may receive an arbitrary number of messages in
         between sending the cancel method and receiving the cancel-ok reply.
+
+        It is also sent from the server to the client in the event of
+        the consumer being unexpectedly cancelled (i.e. cancelled for
+        any reason other than the server receiving the corresponding
+        basic.cancel from the client). This allows clients to be
+        notified of the loss of consumers due to events such as queue
+        deletion.
       </doc>
 
       <rule name = "01">
@@ -2546,6 +2553,7 @@
       </rule>
 
       <chassis name = "server" implement = "MUST" />
+      <chassis name = "client" implement = "SHOULD" />
       <response name = "cancel-ok" />
 
       <field name = "consumer-tag" domain = "consumer-tag" />
@@ -2557,6 +2565,7 @@
         This method confirms that the cancellation was completed.
       </doc>
       <chassis name = "client" implement = "MUST" />
+      <chassis name = "server" implement = "MAY" />
       <field name = "consumer-tag" domain = "consumer-tag" />
     </method>
 

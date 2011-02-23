@@ -51,6 +51,7 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
             Capabilities["publisher_confirms"] = true;
             Capabilities["exchange_exchange_bindings"] = true;
             Capabilities["basic.nack"] = true;
+            Capabilities["consumer_cancel_notify"] = true;
         }
 
         public override IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint) {

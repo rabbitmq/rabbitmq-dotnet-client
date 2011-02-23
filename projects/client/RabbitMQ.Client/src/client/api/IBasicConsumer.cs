@@ -69,6 +69,14 @@ namespace RabbitMQ.Client
         ///<summary>Called upon successful deregistration of the
         ///consumer from the broker.</summary>
         void HandleBasicCancelOk(string consumerTag);
+        
+        /// <summary>
+        /// Called when the consumer is cancelled for reasons other than by a
+        /// basicCancel: e.g. the queue has been deleted (either by this channel or
+        /// by any other channel). See handleCancelOk for notification of consumer
+        /// cancellation due to basicCancel.
+        /// </summary>
+        void HandleBasicCancel(string consumerTag);
 
         ///<summary>Called when the model shuts down.</summary>
         void HandleModelShutdown(IModel model, ShutdownEventArgs reason);
