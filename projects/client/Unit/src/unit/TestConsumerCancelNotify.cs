@@ -50,18 +50,15 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Util;
 
-namespace RabbitMQ.Client.Unit
-{
+namespace RabbitMQ.Client.Unit {
     [TestFixture]
-    public class TestConsumerCancelNotify
-    {
+    public class TestConsumerCancelNotify {
 
         Object lockObject = new Object();
         bool notified = false;
         
         [Test]
-        public void TestConsumerCancelNotification()
-        {
+        public void TestConsumerCancelNotification() {
             string queue = "queue_consumer_notify";
             ConnectionFactory connFactory = new ConnectionFactory();
             IConnection conn = connFactory.CreateConnection();
@@ -71,10 +68,8 @@ namespace RabbitMQ.Client.Unit
             chan.BasicConsume(queue, false, consumer);
             
             chan.QueueDelete(queue);
-            lock (lockObject)
-            {
-                if (!notified)
-                {
+            lock (lockObject) {
+                if (!notified) {
                     Monitor.Wait(lockObject);
                 }
                 Assert.IsTrue(notified);
@@ -85,15 +80,12 @@ namespace RabbitMQ.Client.Unit
         {
             TestConsumerCancelNotify testClass;
             
-            public CancelNotificationConsumer(IModel model, TestConsumerCancelNotify tc) : base(model)
-            {
+            public CancelNotificationConsumer(IModel model, TestConsumerCancelNotify tc) : base(model) {
                 this.testClass = tc;
             }
             
-            public override void HandleBasicCancel(string consumerTag)
-            {
-                lock (testClass.lockObject)
-                {
+            public override void HandleBasicCancel(string consumerTag) {
+                lock (testClass.lockObject) {
                     testClass.notified = true;
                     Monitor.PulseAll(testClass.lockObject);
                 }
