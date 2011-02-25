@@ -1,5 +1,0 @@
-owner: 
-timestamp: Wed, 14 Nov 2007 16:55:16 GMT
-author: 
-editgroup: 
-viewgroup: 
