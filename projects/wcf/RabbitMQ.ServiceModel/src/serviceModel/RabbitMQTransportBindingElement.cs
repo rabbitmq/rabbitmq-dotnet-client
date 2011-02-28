@@ -72,6 +72,10 @@ namespace RabbitMQ.ServiceModel
         {
             Broker = other.Broker;
             BrokerProtocol = other.BrokerProtocol;
+
+            m_connectionFactory.UserName = other.ConnectionFactory.UserName;
+            m_connectionFactory.Password = other.ConnectionFactory.Password;
+            m_connectionFactory.VirtualHost = other.ConnectionFactory.VirtualHost;
         }
 
         
