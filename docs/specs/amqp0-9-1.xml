@@ -2535,12 +2535,16 @@
         that consumer. The client may receive an arbitrary number of messages in
         between sending the cancel method and receiving the cancel-ok reply.
 
-        It is also sent from the server to the client in the event of
-        the consumer being unexpectedly cancelled (i.e. cancelled for
-        any reason other than the server receiving the corresponding
-        basic.cancel from the client). This allows clients to be
-        notified of the loss of consumers due to events such as queue
-        deletion.
+        It may also be sent from the server to the client in the event
+        of the consumer being unexpectedly cancelled (i.e. cancelled
+        for any reason other than the server receiving the
+        corresponding basic.cancel from the client). This allows
+        clients to be notified of the loss of consumers due to events
+        such as queue deletion. Note that as it is not a MUST for
+        clients to accept this method from the client, it is advisable
+        for the broker to be able to identify those clients that are
+        capable of accepting the method, through some means of
+        capability negotiation.
       </doc>
 
       <rule name = "01">
