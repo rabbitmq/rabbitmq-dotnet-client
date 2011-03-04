@@ -56,7 +56,7 @@ namespace RabbitMQ.Client.Unit {
 
         Object lockObject = new Object();
         bool notified = false;
-        
+
         [Test]
         public void TestConsumerCancelNotification() {
             string queue = "queue_consumer_notify";
@@ -66,7 +66,7 @@ namespace RabbitMQ.Client.Unit {
             chan.QueueDeclare(queue, false, true, false, null);
             IBasicConsumer consumer = new CancelNotificationConsumer(chan, this);
             chan.BasicConsume(queue, false, consumer);
-            
+
             chan.QueueDelete(queue);
             lock (lockObject) {
                 if (!notified) {
@@ -75,15 +75,15 @@ namespace RabbitMQ.Client.Unit {
                 Assert.IsTrue(notified);
             }
         }
-        
+
         public class CancelNotificationConsumer : QueueingBasicConsumer
         {
             TestConsumerCancelNotify testClass;
-            
+
             public CancelNotificationConsumer(IModel model, TestConsumerCancelNotify tc) : base(model) {
                 this.testClass = tc;
             }
-            
+
             public override void HandleBasicCancel(string consumerTag) {
                 lock (testClass.lockObject) {
                     testClass.notified = true;
