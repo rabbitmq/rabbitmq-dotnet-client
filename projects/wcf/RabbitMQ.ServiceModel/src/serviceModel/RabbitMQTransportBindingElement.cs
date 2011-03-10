@@ -57,7 +57,6 @@ namespace RabbitMQ.ServiceModel
     {
         private ConnectionFactory m_connectionFactory;
         private IConnection m_connection;
-        private bool m_hasBroker = false;
 
         /// <summary>
         /// Creates a new instance of the RabbitMQTransportBindingElement Class using the default protocol.
@@ -72,12 +71,8 @@ namespace RabbitMQ.ServiceModel
         {
             Broker = other.Broker;
             BrokerProtocol = other.BrokerProtocol;
-
-            m_connectionFactory.UserName = other.ConnectionFactory.UserName;
-            m_connectionFactory.Password = other.ConnectionFactory.Password;
-            m_connectionFactory.VirtualHost = other.ConnectionFactory.VirtualHost;
+            m_connectionFactory = (ConnectionFactory) other.Broker;
         }
-
         
         public override IChannelFactory<TChannel> BuildChannelFactory<TChannel>(BindingContext context)
         {
@@ -159,29 +154,18 @@ namespace RabbitMQ.ServiceModel
         }
 
 
+        private Uri m_broker;
         /// <summary>
         /// Specifies the address of the RabbitMQ Server
         /// </summary>
         [ConfigurationProperty("broker")]
         public Uri Broker
         {
-            get 
-            { 
-                if(!m_hasBroker) return null;                
-                UriBuilder build = new UriBuilder();
-                build.Host = m_connectionFactory.HostName;
-                build.Port = m_connectionFactory.Port;
-                return build.Uri; 
-            }
+            get { return m_broker; }
             set 
             { 
-                if(value == null) m_hasBroker = false;
-                else 
-                {
-                    m_hasBroker = true;	
-                    m_connectionFactory.HostName = value.Host;
-                    m_connectionFactory.Port = value.Port;  
-                }
+                m_broker = value;
+                m_connectionFactory = (ConnectionFactory) value;
             }
         }
 
