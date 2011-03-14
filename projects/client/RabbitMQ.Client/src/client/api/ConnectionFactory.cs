@@ -332,24 +332,5 @@ namespace RabbitMQ.Client
 
             return null;
         }
-
-        public static explicit operator ConnectionFactory(Uri uri)
-        {
-            ConnectionFactory connFactory = new ConnectionFactory();
-            if (uri.UserInfo.Length > 0)
-            {
-                String[] userInfo = uri.UserInfo.Split(":".ToCharArray());
-                connFactory.UserName = Uri.UnescapeDataString(userInfo[0]);
-                if (userInfo.Length > 1)
-                {
-                    connFactory.Password = Uri.UnescapeDataString(userInfo[1]);
-                }
-            }
-            connFactory.VirtualHost = Uri.UnescapeDataString(uri.AbsolutePath.Remove(0, 1));
-            connFactory.Port = uri.Port;
-            connFactory.HostName = uri.Host;
-            return connFactory;
-        }
-
     }
 }
