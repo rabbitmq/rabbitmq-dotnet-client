@@ -54,7 +54,8 @@ namespace RabbitMQ.ServiceModel
     /// </summary>
     public sealed class RabbitMQBinding : Binding
     {
-        private Uri m_broker;
+        private String m_host;
+        private int m_port;
         private IProtocol m_brokerProtocol;
         private CompositeDuplexBindingElement m_compositeDuplex;
         private MessageEncodingBindingElement m_encoding;
@@ -79,19 +80,21 @@ namespace RabbitMQ.ServiceModel
         /// Uri.
         /// </summary>
         /// <param name="broker">The address of the broker to connect to</param>
-        public RabbitMQBinding(Uri broker)
-            : this(broker, Protocols.DefaultProtocol)
+        public RabbitMQBinding(String hostname, int port)
+            : this(hostname, port, Protocols.DefaultProtocol)
         { }
 
         /// <summary>
         /// Uses the broker and protocol specified
         /// </summary>
-        /// <param name="broker">The address of the broker to connect to</param>
+        /// <param name="hostname">The hostname of the broker to connect to</param>
+        /// <param name="port">The port of the broker to connect to</param> 
         /// <param name="protocol">The protocol version to use</param>
-        public RabbitMQBinding(Uri broker, IProtocol protocol)
+        public RabbitMQBinding(String hostname, int port, IProtocol protocol)
             : this(protocol)
         {
-            this.Broker = broker;
+            this.HostName = hostname;
+            this.Port = port;
         }
 
         /// <summary>
@@ -109,26 +112,10 @@ namespace RabbitMQ.ServiceModel
             this.TransactionFlow = true;
         }
 
-        /// <summary>
-        /// Uses the default protocol and the broker whose address is specified.
-        /// </summary>
-        /// <param name="brokerUri">The address of the broker to connect to</param>
-        public RabbitMQBinding(string brokerUri)
-            : this(new Uri(brokerUri))
-        { }
-
-        /// <summary>
-        /// Uses the broker and protocol specified
-        /// </summary>
-        /// <param name="brokerUri">The address of the broker to connect to</param>
-        /// <param name="protocol">The protocol version to use</param>
-        public RabbitMQBinding(string brokerUri, IProtocol protocol)
-            : this(new Uri(brokerUri), protocol)
-        { }
-
         public override BindingElementCollection CreateBindingElements()
         {
-            m_transport.Broker = this.Broker;
+            m_transport.HostName = this.HostName;
+            m_transport.Port = this.Port;
             m_transport.BrokerProtocol = this.BrokerProtocol;
             BindingElementCollection elements = new BindingElementCollection();
 
@@ -173,13 +160,23 @@ namespace RabbitMQ.ServiceModel
         }
 
         /// <summary>
-        /// Specifies the broker that the binding should connect to.
+        /// Specifies the hostname of the RabbitMQ Server
         /// </summary>
-        [ConfigurationProperty("broker")]
-        public Uri Broker
+        [ConfigurationProperty("hostname")]
+        public String HostName
         {
-            get { return m_broker; }
-            set { m_broker = value; }
+            get { return m_host; }
+            set { m_host = value; }
+        }
+
+        /// <summary>
+        /// Specifies the RabbitMQ Server port
+        /// </summary>
+        [ConfigurationProperty("port")]
+        public int Port
+        {
+            get { return m_port; }
+            set { m_port = value; }
         }
 
         /// <summary>

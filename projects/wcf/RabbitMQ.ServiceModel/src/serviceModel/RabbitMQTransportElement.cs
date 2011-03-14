@@ -65,7 +65,8 @@ namespace RabbitMQ.ServiceModel
                         bindingElement.GetType().AssemblyQualifiedName));
             }
 
-            rabbind.Broker = this.Broker;
+            rabbind.HostName = this.HostName;
+            rabbind.Port = this.Port;
             rabbind.BrokerProtocol = this.Protocol;
             rabbind.ConnectionFactory.Password = this.Password;
             rabbind.ConnectionFactory.UserName = this.Username;
@@ -78,7 +79,8 @@ namespace RabbitMQ.ServiceModel
             RabbitMQTransportElement element = from as RabbitMQTransportElement;
             if (element != null)
             {
-                this.Broker = element.Broker;
+                this.HostName = element.HostName;
+                this.Port = element.Port;
                 this.ProtocolVersion = element.ProtocolVersion;
                 this.Password = element.Password;
                 this.Username = element.Username;
@@ -114,7 +116,8 @@ namespace RabbitMQ.ServiceModel
                         bindingElement.GetType().AssemblyQualifiedName));
             }
 
-            this.Broker = rabbind.Broker;
+            this.HostName = rabbind.HostName;
+            this.Port = rabbind.Port;
             this.ProtocolVersion = rabbind.BrokerProtocol.ApiName;
             this.Password = rabbind.ConnectionFactory.Password;
             this.Username = rabbind.ConnectionFactory.UserName;
@@ -127,13 +130,23 @@ namespace RabbitMQ.ServiceModel
         }
 
         /// <summary>
-        /// Specifies the broker that the binding should connect to.
+        /// Specifies the hostname of the broker that the binding should connect to.
         /// </summary>
-        [ConfigurationProperty("broker", IsRequired = true)]
-        public Uri Broker
+        [ConfigurationProperty("hostname", IsRequired = true)]
+        public String HostName
         {
-            get { return ((Uri)base["broker"]); }
-            set { base["broker"] = value; }
+            get { return ((String)base["hostname"]); }
+            set { base["hostname"] = value; }
+        }
+
+        /// <summary>
+        /// Specifies the port of the broker that the binding should connect to.
+        /// </summary>
+        [ConfigurationProperty("port", DefaultValue = AmqpTcpEndpoint.UseDefaultPort)]
+        public int Port
+        {
+            get { return ((int)base["port"]); }
+            set { base["port"] = value; }
         }
 
         /// <summary>

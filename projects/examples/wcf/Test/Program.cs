@@ -53,8 +53,9 @@ namespace RabbitMQ.ServiceModel.Test
     {
         public static Binding GetBinding() {
             //return new WSHttpBinding();
-
-            return new RabbitMQBinding(System.Configuration.ConfigurationManager.AppSettings["manual-test-broker-uri"],
+            
+            return new RabbitMQBinding(System.Configuration.ConfigurationManager.AppSettings["manual-test-broker-hostname"],
+                                       int.Parse(System.Configuration.ConfigurationManager.AppSettings["manual-test-broker-port"]),
                                        RabbitMQ.Client.Protocols.FromConfiguration("manual-test-broker-protocol"));
         }
 

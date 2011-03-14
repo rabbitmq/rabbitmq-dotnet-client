@@ -57,34 +57,42 @@ namespace RabbitMQ.ServiceModel
     {
         private ConnectionFactory m_connectionFactory;
         private IConnection m_connection;
-        private bool m_hasBroker = false;
+        private IProtocol m_protocol;
+        private String m_host;
+        private int m_port;
+        private String m_username;
+        private String m_password;
+        private String m_vhost;
 
         /// <summary>
         /// Creates a new instance of the RabbitMQTransportBindingElement Class using the default protocol.
         /// </summary>
         public RabbitMQTransportBindingElement()
         {
-            m_connectionFactory = new ConnectionFactory();
         }
 
         private RabbitMQTransportBindingElement(RabbitMQTransportBindingElement other)
             : this()
         {
-            Broker = other.Broker;
+            HostName = other.HostName;
+            Port = other.Port;
             BrokerProtocol = other.BrokerProtocol;
+            Username = other.Username;
+            Password = other.Password;
+            VirtualHost = other.VirtualHost;
         }
 
         
         public override IChannelFactory<TChannel> BuildChannelFactory<TChannel>(BindingContext context)
         {
-            if (Broker == null)
+            if (HostName == null)
                 throw new InvalidOperationException("No broker was specified.");
             return (IChannelFactory<TChannel>)(object)new RabbitMQChannelFactory<TChannel>(context);
         }
 
         public override IChannelListener<TChannel> BuildChannelListener<TChannel>(BindingContext context)
         {
-            if (Broker == null)
+            if (HostName == null)
                 throw new InvalidOperationException("No broker was specified.");
 
             return (IChannelListener<TChannel>)((object)new RabbitMQChannelListener<TChannel>(context));
@@ -108,7 +116,7 @@ namespace RabbitMQ.ServiceModel
         internal void EnsureConnectionAvailable()
         {
             if (m_connection == null) {
-                m_connection = m_connectionFactory.CreateConnection();
+                m_connection = ConnectionFactory.CreateConnection();
             }
         }
 
@@ -154,30 +162,70 @@ namespace RabbitMQ.ServiceModel
             get { return CurrentVersion.Scheme; }
         }
 
-
         /// <summary>
-        /// Specifies the address of the RabbitMQ Server
+        /// Specifies the hostname of the RabbitMQ Server
         /// </summary>
-        [ConfigurationProperty("broker")]
-        public Uri Broker
+        [ConfigurationProperty("hostname")]
+        public String HostName
         {
-            get 
-            { 
-                if(!m_hasBroker) return null;                
-                UriBuilder build = new UriBuilder();
-                build.Host = m_connectionFactory.HostName;
-                build.Port = m_connectionFactory.Port;
-                return build.Uri; 
-            }
+            get{ return m_host; }
             set 
             { 
-                if(value == null) m_hasBroker = false;
-                else 
-                {
-                    m_hasBroker = true;	
-                    m_connectionFactory.HostName = value.Host;
-                    m_connectionFactory.Port = value.Port;  
-                }
+                m_host = value;
+                m_connectionFactory = null;
+            }
+        }
+
+        /// <summary>
+        /// Specifies the RabbitMQ Server port
+        /// </summary>
+        [ConfigurationProperty("port")]
+        public int Port
+        {
+            get { return m_port; }
+            set 
+            { 
+                m_port = value;
+                m_connectionFactory = null;
+            }
+        }
+
+        /// <summary>
+        /// The username  to use when authenticating with the broker
+        /// </summary>
+        internal String Username
+        {
+            get { return m_username; }
+            set 
+            { 
+                m_username = value;
+                m_connectionFactory = null;
+            }
+        }
+
+        /// <summary>
+        /// Password to use when authenticating with the broker
+        /// </summary>
+        internal String Password
+        {
+            get { return m_password; }
+            set
+            {
+                m_password = value;
+                m_connectionFactory = null;
+            }
+        }
+
+        /// <summary>
+        /// Specifies the broker virtual host
+        /// </summary>
+        internal String VirtualHost
+        {
+            get { return m_vhost; }
+            set
+            {
+                m_vhost = value;
+                m_connectionFactory = null;
             }
         }
 
@@ -187,18 +235,50 @@ namespace RabbitMQ.ServiceModel
         /// </summary>
         public IProtocol BrokerProtocol
         {
-            get { return m_connectionFactory.Protocol; }
-            set { m_connectionFactory.Protocol = value; }
+            get { return m_protocol; }
+            set
+            {
+                m_protocol = value;
+                m_connectionFactory = null;
+            }
         }
 
-        public ConnectionFactory ConnectionFactory
+        internal ConnectionFactory ConnectionFactory
         {
-            get { return m_connectionFactory; }
+            get
+            {
+                if (m_connectionFactory != null)
+                {
+                    return m_connectionFactory;
+                }
+                ConnectionFactory connFactory = new ConnectionFactory();
+                if (HostName != null)
+                {
+                    connFactory.HostName = HostName;
+                }
+                if (Port != null)
+                {
+                    connFactory.Port = Port;
+                }
+                if (BrokerProtocol != null)
+                {
+                    connFactory.Protocol = BrokerProtocol;
+                }
+                if (Username != null)
+                {
+                    connFactory.UserName = Username;
+                }
+                if (Password != null)
+                {
+                    connFactory.Password = Password;
+                }
+                if (VirtualHost != null)
+                {
+                    connFactory.VirtualHost = VirtualHost;
+                }
+                m_connectionFactory = connFactory;
+                return connFactory;
+            }
         }
-
-        //internal ConnectionFactory ConnectionFactory
-        //{
-        //    get { return m_connectionFactory; }
-        //}
     }
 }

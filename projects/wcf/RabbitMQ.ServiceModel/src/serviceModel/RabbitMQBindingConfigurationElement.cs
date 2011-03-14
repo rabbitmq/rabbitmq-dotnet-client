@@ -81,7 +81,8 @@ namespace RabbitMQ.ServiceModel
             RabbitMQBinding rabbind = binding as RabbitMQBinding;
             if (rabbind != null)
             {
-                this.Broker = rabbind.Broker;
+                this.HostName = rabbind.HostName;
+                this.Port = rabbind.Port;
                 this.OneWayOnly = rabbind.OneWayOnly;
                 this.TransactionFlowEnabled = rabbind.TransactionFlow;
                 this.VirtualHost = rabbind.Transport.ConnectionFactory.VirtualHost;
@@ -104,7 +105,8 @@ namespace RabbitMQ.ServiceModel
                         binding.GetType().AssemblyQualifiedName));
             }
 
-            rabbind.Broker = this.Broker;
+            rabbind.HostName = this.HostName;
+            rabbind.Port = this.Port;
             rabbind.BrokerProtocol = this.Protocol;
             rabbind.OneWayOnly = this.OneWayOnly;
             rabbind.TransactionFlow = this.TransactionFlowEnabled;
@@ -114,13 +116,23 @@ namespace RabbitMQ.ServiceModel
         }
 
         /// <summary>
-        /// Specifies the broker that the binding should connect to.
+        /// Specifies the hostname of the broker that the binding should connect to.
         /// </summary>
-        [ConfigurationProperty("broker", IsRequired=true)]
-        public Uri Broker
+        [ConfigurationProperty("hostname", IsRequired = true)]
+        public String HostName
         {
-            get { return ((Uri)base["broker"]); }
-            set { base["broker"] = value; }
+            get { return ((String)base["hostname"]); }
+            set { base["hostname"] = value; }
+        }
+
+        /// <summary>
+        /// Specifies the port of the broker that the binding should connect to.
+        /// </summary>
+        [ConfigurationProperty("port", DefaultValue = AmqpTcpEndpoint.UseDefaultPort)]
+        public int Port
+        {
+            get { return ((int)base["port"]); }
+            set { base["port"] = value; }
         }
         
         /// <summary>
