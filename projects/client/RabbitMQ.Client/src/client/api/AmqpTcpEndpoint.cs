@@ -40,6 +40,7 @@
 
 using System;
 using System.Collections;
+using System.Text.RegularExpressions;
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
@@ -243,9 +244,24 @@ namespace RabbitMQ.Client
         /// entire string is used as the hostname, and the port-number
         /// is set to -1 (meaning the default number for the protocol
         /// variant specified).
+        /// Hostnames provided as IPv6 must appear in square brackets ([]).
         ///</remarks>
         public static AmqpTcpEndpoint Parse(IProtocol protocol, string address) {
-            int index = address.IndexOf(':');
+            Match match = Regex.Match(address, @"^\s*\[([%:0-9A-Fa-f]+)\](:(.*))?\s*$");
+            if (match.Success)
+            {
+                GroupCollection groups = match.Groups;
+                int portNum = -1;
+                if (groups[2].Success)
+                {
+                    string portStr = groups[3].Value;
+                    portNum = (portStr.Length == 0) ? -1 : int.Parse(portStr);
+                }
+                return new AmqpTcpEndpoint(protocol,
+                                           match.Groups[1].Value,
+                                           portNum);
+            }
+            int index = address.LastIndexOf(':');
             if (index == -1) {
                 return new AmqpTcpEndpoint(protocol, address, -1);
             } else {
