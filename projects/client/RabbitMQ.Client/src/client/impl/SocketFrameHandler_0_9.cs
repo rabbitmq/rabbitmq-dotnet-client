@@ -60,8 +60,24 @@ namespace RabbitMQ.Client.Impl
         public SocketFrameHandler_0_9(AmqpTcpEndpoint endpoint)
         {
             m_endpoint = endpoint;
-            m_socket = new TcpClient();
-            m_socket.Connect(endpoint.HostName, endpoint.Port);
+            m_socket = null;
+            if (Socket.OSSupportsIPv6)
+            {
+                try
+                {
+                    m_socket = new TcpClient(AddressFamily.InterNetworkV6);
+                    m_socket.Connect(endpoint.HostName, endpoint.Port);
+                }
+                catch(SocketException)
+                {
+                    m_socket = null;
+                }
+            }
+            if (m_socket == null)
+            {
+                m_socket = new TcpClient(AddressFamily.InterNetwork);
+                m_socket.Connect(endpoint.HostName, endpoint.Port);
+            }
             // disable Nagle's algorithm, for more consistently low latency 
             m_socket.NoDelay = true;
 

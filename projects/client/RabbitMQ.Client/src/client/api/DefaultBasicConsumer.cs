@@ -131,6 +131,12 @@ namespace RabbitMQ.Client
             OnCancel();
         }
 
+        ///<summary>Default implementation - calls OnCancel().</summary>
+        public virtual void HandleBasicCancel(string consumerTag)
+        {
+            OnCancel();
+        }
+
         ///<summary>Default implementation - sets ShutdownReason and
         ///calls OnCancel().</summary>
         public virtual void HandleModelShutdown(IModel model, ShutdownEventArgs reason)

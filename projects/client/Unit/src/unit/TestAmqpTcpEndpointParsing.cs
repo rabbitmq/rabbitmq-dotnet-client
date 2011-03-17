@@ -145,5 +145,23 @@ namespace RabbitMQ.Client.Unit
             Assert.AreEqual("other", es[1].HostName);
             Assert.AreEqual(2345, es[1].Port);
         }
+
+        [Test]
+        public void TestIpv6WithPort()
+        {
+            AmqpTcpEndpoint e = AmqpTcpEndpoint.Parse(Protocols.DefaultProtocol, "[::1]:1234");
+            Assert.AreEqual(Protocols.DefaultProtocol, e.Protocol);
+            Assert.AreEqual("::1", e.HostName);
+            Assert.AreEqual(1234, e.Port);
+        }
+
+        [Test]
+        public void TestIpv6WithoutPort()
+        {
+            AmqpTcpEndpoint e = AmqpTcpEndpoint.Parse(Protocols.DefaultProtocol, "[::1]");
+            Assert.AreEqual(Protocols.DefaultProtocol, e.Protocol);
+            Assert.AreEqual("::1", e.HostName);
+            Assert.AreEqual(Protocols.DefaultProtocol.DefaultPort, e.Port);
+        }
     }
 }

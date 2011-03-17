@@ -556,6 +556,29 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public void HandleBasicCancel(string consumerTag, bool nowait)
+        {
+            IBasicConsumer consumer;
+            lock (m_consumers)
+            {
+                consumer = (IBasicConsumer)m_consumers[consumerTag];
+                m_consumers.Remove(consumerTag);
+            }
+            if (consumer == null)
+            {
+                consumer = DefaultConsumer;
+            }
+
+            try {
+                consumer.HandleBasicCancel(consumerTag);
+            } catch (Exception e) {
+                CallbackExceptionEventArgs args = new CallbackExceptionEventArgs(e);
+                args.Detail["consumer"] = consumer;
+                args.Detail["context"] = "HandleBasicCancel";
+                OnCallbackException(args);
+            }
+        }
+
         public void HandleBasicReturn(ushort replyCode,
                                       string replyText,
                                       string exchange,

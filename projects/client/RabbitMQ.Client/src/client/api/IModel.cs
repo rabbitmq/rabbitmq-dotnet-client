@@ -801,6 +801,8 @@ namespace RabbitMQ.Client.Impl
                                 [AmqpContentBodyMapping]
                                 byte[] body);
 
+        void HandleBasicCancel(string consumerTag, bool nowait);
+
         ///<summary>Handle incoming Basic.Return methods. Signals a
         ///BasicReturnEvent.</summary>
         void HandleBasicReturn(ushort replyCode,
