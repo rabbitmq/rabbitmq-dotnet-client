@@ -98,7 +98,7 @@
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   
   <!-- Custom AfterBuild -->
-  <Target Name="AfterBuild" DependsOnTargets="RunUnitTests" />
+  <!--Target Name="AfterBuild" DependsOnTargets="RunUnitTests" /-->
   
   <!-- Custom BeforeClean -->  
   <Target Name="BeforeClean" DependsOnTargets="CleanTestResults" />

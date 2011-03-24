@@ -58,6 +58,7 @@ namespace RabbitMQ.Client.Unit
         IConnection Connection;
         IModel Channel;
         String Queue;
+        int callbackCount;
 
         public int ModelNumber(IModel model)
         {
@@ -100,10 +101,15 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestRecoverCallback()
         {
-            int callbackCount = 0;
-            Channel.BasicRecoverOk += (sender, eventArgs) => callbackCount++;
+            callbackCount = 0;
+            Channel.BasicRecoverOk += IncrCallback;
             Channel.BasicRecover(true);
             Assert.AreEqual(1, callbackCount);
+        }
+
+        void IncrCallback(IModel model, EventArgs args)
+        {
+            callbackCount++;
         }
 
     }

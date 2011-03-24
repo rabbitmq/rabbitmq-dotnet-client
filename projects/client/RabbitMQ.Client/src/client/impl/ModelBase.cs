@@ -70,6 +70,7 @@ namespace RabbitMQ.Client.Impl
         private CallbackExceptionEventHandler m_callbackException;
         private FlowControlEventHandler m_flowControl;
         private BasicRecoverOkEventHandler m_basicRecoverOk;
+        private IBasicConsumer m_defaultConsumer;
 
         public ManualResetEvent m_flowControlBlock = new ManualResetEvent(true);
         private readonly object m_flowSendLock = new object();
@@ -211,7 +212,17 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public IBasicConsumer DefaultConsumer { get; set; }
+        public IBasicConsumer DefaultConsumer
+        {
+            get
+            {
+                return m_defaultConsumer;
+            }
+            set
+            {
+                m_defaultConsumer = value;
+            }
+        }
 
         public ISession m_session;
 
