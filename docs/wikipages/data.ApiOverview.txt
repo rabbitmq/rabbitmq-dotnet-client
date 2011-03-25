@@ -270,7 +270,7 @@ deliveries from the [code SharedQueue] instance contained therein:
 
 @code java
  QueueingBasicConsumer consumer = new QueueingBasicConsumer(channel);
- channel.BasicConsume(queueName, null, consumer);
+ String consumerTag = channel.BasicConsume(queueName, false, consumer);
  while (true) {
      try {
          RabbitMQ.Client.Events.BasicDeliverEventArgs e =
