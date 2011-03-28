@@ -49,7 +49,7 @@ set -x
 CYGWIN=nontsec
 
 ### Overrideable vars
-test "$RABBIT_VSN" || RABBIT_VSN=0.0.0
+test "$RABBIT_VSN" || RABBIT_VSN=0.0.0.0
 test "$SKIP_MSIVAL2" || SKIP_MSIVAL2=
 
 ### Other, general vars
