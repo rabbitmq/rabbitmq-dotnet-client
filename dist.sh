@@ -69,6 +69,10 @@ else
     DOTNET_PROGRAM_PREPEND=
 fi
 
+RELEASE_PATTERN=^[0-9]+\.[0-9]+\.[0-9]+$
+if [[ $RABBIT_VSN =~ $RELEASE_PATTERN ]] ; then
+    RABBIT_VSN=$RABBIT_VSN.0
+fi
 
 function main {
     ### Remove everything in the release dir and create the dir again

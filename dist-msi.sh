@@ -57,6 +57,10 @@ NAME=rabbitmq-dotnet-client
 NAME_VSN=$NAME-$RABBIT_VSN
 RELEASE_DIR=release
 
+RELEASE_PATTERN=^[0-9]+\.[0-9]+\.[0-9]+$
+if [[ $RABBIT_VSN =~ $RELEASE_PATTERN ]] ; then
+    RABBIT_VSN=$RABBIT_VSN.0
+fi
 
 function main {
     get-sources
