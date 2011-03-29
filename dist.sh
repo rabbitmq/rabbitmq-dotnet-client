@@ -48,6 +48,8 @@ set -x
 ### Disable sharing files by default (it causes things not to work properly)
 CYGWIN=nontsec
 
+. dist-lib.sh
+
 ### Overrideable vars
 test "$KEYFILE" || KEYFILE=rabbit-mock.snk
 test "$RABBIT_VSN" || RABBIT_VSN=0.0.0.0
@@ -69,10 +71,7 @@ else
     DOTNET_PROGRAM_PREPEND=
 fi
 
-RELEASE_PATTERN=^[0-9]+\.[0-9]+\.[0-9]+$
-if [[ $RABBIT_VSN =~ $RELEASE_PATTERN ]] ; then
-    RABBIT_VSN=$RABBIT_VSN.0
-fi
+assembly-version $RABBIT_VSN
 
 function main {
     ### Remove everything in the release dir and create the dir again
@@ -151,15 +150,6 @@ function cp-license-to {
 }
 
 
-function safe-rm-deep-dir {
-    ### Workaround for the path-too-long bug in cygwin
-    if [ -e "$1" ]; then
-        mv -f $1 /tmp/del
-        rm -rf /tmp/del
-    fi
-}
-
-
 function src-dist {
     ### Copy files to be zipped to tmp/srcdist/
     mkdir -p tmp/srcdist/docs/specs tmp/srcdist/lib
@@ -181,7 +171,7 @@ function src-dist {
     cd tmp/srcdist
     zip -r ../../$RELEASE_DIR/$NAME_VSN.zip . -x \*.snk \*.resharper \*.csproj.user
     cd ../..
-    
+
     ### Remove tmp/srcdist
     rm -rf tmp/srcdist
 }
@@ -215,7 +205,7 @@ function dist-target-framework {
 
     ### Build
     $MSBUILD RabbitMQDotNetClient.sln /t:Build /property:Configuration="Release"
-    
+
     ### Copy bin files to be zipped to tmp/dist/
     cp projects/client/RabbitMQ.Client/build/bin/RabbitMQ.Client.xml tmp/dist/bin/
     cp projects/client/RabbitMQ.Client/build/bin/RabbitMQ.Client.dll tmp/dist/bin/
@@ -224,7 +214,7 @@ function dist-target-framework {
     done
     test "$BUILD_WCF" && cp projects/wcf/RabbitMQ.ServiceModel/build/bin/RabbitMQ.ServiceModel.dll tmp/dist/bin/
     cp-license-to tmp/dist/
-    
+
     ### Zip tmp/dist
     cd tmp/dist
     zip -r ../../$RELEASE_DIR/$NAME_VSN-$TARGET_FRAMEWORK.zip .
@@ -232,7 +222,7 @@ function dist-target-framework {
 
     ### Remove tmp/dist
     rm -rf tmp/dist
-    
+
     ### Restore Local.props
     rm -f ./Local.props
     test "$LOCAL_PROPS_EXISTS" && mv ./Local.props.user ./Local.props || true
@@ -244,7 +234,7 @@ function gen-props {
     else
         USING_MONO="false"
     fi
-    sed -e "s:@VERSION@:$RABBIT_VSN:g" \
+    sed -e "s:@VERSION@:$ASSEMBLY_VSN:g" \
         -e "s:@KEYFILE@:$KEYFILE:g" \
         -e "s:@USINGMONO@:$USING_MONO:g" \
     < $1 > $2
@@ -266,14 +256,14 @@ function gendoc-dist {
 
     cd $PROJECT_DIR
 
-    ### Generate XMLs with ndocproc    
+    ### Generate XMLs with ndocproc
     $DOTNET_PROGRAM_PREPEND $RELATIVE_DIR/lib/ndocproc-bin/bin/ndocproc.exe \
     /nosubtypes \
     $EXTRA_NDOCPROC_ARGS \
     $RELATIVE_DIR/tmp/gendoc/xml \
     $XML_SOURCE_FILE \
     $RELATIVE_DIR/docs/namespaces.xml
-    
+
     cd $RELATIVE_DIR
 
     ### Zip ndocproc's output
@@ -282,17 +272,17 @@ function gendoc-dist {
         zip -r ../../../$RELEASE_DIR/$ZIP_TMP_XML_DOC_FILENAME .
         cd ../../..
     fi
-    
+
     ### Transform to html, using xsltproc
     genhtml index index
     genhtml namespace- namespace
     genhtml type- type
-    
+
     ### Remove generated XMLs and copy remaining files to be added to the .zip
     rm -rf tmp/gendoc/xml
     cp  lib/ndocproc-bin/xsl/style.css tmp/gendoc/html/
     cp-license-to tmp/gendoc/
-    
+
     ### Zip tmp/gendoc
     cd tmp/gendoc
     zip -r ../../$RELEASE_DIR/$ZIP_DESTINATION_FILENAME .
