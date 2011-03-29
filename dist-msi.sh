@@ -48,6 +48,8 @@ set -x
 ### Disable sharing files by default (it causes things not to work properly)
 CYGWIN=nontsec
 
+. dist-lib.sh
+
 ### Overrideable vars
 test "$RABBIT_VSN" || RABBIT_VSN=0.0.0.0
 test "$SKIP_MSIVAL2" || SKIP_MSIVAL2=
@@ -57,6 +59,7 @@ NAME=rabbitmq-dotnet-client
 NAME_VSN=$NAME-$RABBIT_VSN
 RELEASE_DIR=release
 
+assembly-version $RABBIT_VSN
 
 function main {
     get-sources
@@ -80,7 +83,7 @@ function build-msm-msi {
     candle -out ../tmp/wix/rabbitmq-dotnet-client-msm.wixobj dotnet-client-merge-module.wxs
     light -out ../tmp/wix/rabbitmq-dotnet-client.msm ../tmp/wix/rabbitmq-dotnet-client-msm.wixobj
     test "$SKIP_MSIVAL2" || MsiVal2.exe ../tmp/wix/rabbitmq-dotnet-client.msm ../lib/wix/mergemod.cub -f
-    
+
     gen-wxs dotnet-client-product.wxs
     candle -out ../tmp/wix/rabbitmq-dotnet-client-msi.wixobj dotnet-client-product.wxs
     light -out ../tmp/wix/rabbitmq-dotnet-client.msi \
@@ -112,7 +115,7 @@ function gen-wxs {
     set +x
     f=$1
     local IFS=''
-    sed -e "s:@VERSION@:$RABBIT_VSN:g" <${f}.in | while read -r l ; do
+    sed -e "s:@VERSION@:$ASSEMBLY_VSN:g" <${f}.in | while read -r l ; do
         if [ -z "$l" -o -n "${l##@FILES *}" ] ; then
             echo "$l"
         else
@@ -182,15 +185,6 @@ function gen-license-rtf {
         > wix/License.rtf
 
     rm -f tmp/LICENSE.out tmp/LICENSE-APACHE2.out tmp/LICENSE-MPL_RabbitMQ.out
-}
-
-
-function safe-rm-deep-dir {
-    ### Workaround for the path-too-long bug in cygwin
-    if [ -e "$1" ]; then
-        mv -f $1 /tmp/del
-        rm -rf /tmp/del
-    fi
 }
 
 
