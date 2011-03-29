@@ -115,7 +115,7 @@ function gen-wxs {
     set +x
     f=$1
     local IFS=''
-    sed -e "s:@VERSION@:$RABBIT_VSN:g" <${f}.in | while read -r l ; do
+    sed -e "s:@VERSION@:$ASSEMBLY_VSN:g" <${f}.in | while read -r l ; do
         if [ -z "$l" -o -n "${l##@FILES *}" ] ; then
             echo "$l"
         else
