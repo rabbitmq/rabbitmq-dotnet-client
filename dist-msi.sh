@@ -59,8 +59,6 @@ NAME=rabbitmq-dotnet-client
 NAME_VSN=$NAME-$RABBIT_VSN
 RELEASE_DIR=release
 
-assembly-version $RABBIT_VSN
-
 function main {
     get-sources
     gen-license-rtf
@@ -115,7 +113,7 @@ function gen-wxs {
     set +x
     f=$1
     local IFS=''
-    sed -e "s:@VERSION@:$ASSEMBLY_VSN:g" <${f}.in | while read -r l ; do
+    sed -e "s:@VERSION@:$RABBIT_VSN:g" <${f}.in | while read -r l ; do
         if [ -z "$l" -o -n "${l##@FILES *}" ] ; then
             echo "$l"
         else
