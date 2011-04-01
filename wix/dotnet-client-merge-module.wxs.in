@@ -2,6 +2,9 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2003/01/wi">
     <Module Id='DotNetClientModule' Guid='97DB49A3-B75E-4AE1-B01A-DFC8E335F866' Language='1033' Codepage='1252' Version='@VERSION@'>
         <Package Id='????????-????-????-????-????????????' Description='RabbitMQ .NET Client @VERSION@' Manufacturer='VMware, Inc.' InstallerVersion='150' Languages='1033' Compressed='yes' SummaryCodepage='1252' />
+        <!-- VERSION is the RabbitMQ release version. This might differ
+             from the RabbitMQ.Client.dll version (which always has 4
+             components). -->
 
         <Directory Id='TARGETDIR' Name='SourceDir'>
             <!-- Note that RabbitMQ.Client.dll has to appear twice
