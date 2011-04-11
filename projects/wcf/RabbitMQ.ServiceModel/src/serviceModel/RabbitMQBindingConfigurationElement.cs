@@ -193,6 +193,9 @@ namespace RabbitMQ.ServiceModel
             }
         }
 
+        /// <summary>
+        /// Specifies the maximum encoded message size
+        /// </summary>
         [ConfigurationProperty("maxmessagesize", DefaultValue = 8192L)]
         public long MaxMessageSize
         {
