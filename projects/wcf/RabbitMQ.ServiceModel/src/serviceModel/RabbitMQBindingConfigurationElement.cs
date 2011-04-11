@@ -83,6 +83,7 @@ namespace RabbitMQ.ServiceModel
             {
                 this.HostName = rabbind.HostName;
                 this.Port = rabbind.Port;
+                this.MaxMessageSize = rabbind.MaxMessageSize;
                 this.OneWayOnly = rabbind.OneWayOnly;
                 this.TransactionFlowEnabled = rabbind.TransactionFlow;
                 this.VirtualHost = rabbind.Transport.ConnectionFactory.VirtualHost;
@@ -113,6 +114,7 @@ namespace RabbitMQ.ServiceModel
             rabbind.Transport.ConnectionFactory.Password = this.Password;
             rabbind.Transport.ConnectionFactory.UserName = this.Username;
             rabbind.Transport.ConnectionFactory.VirtualHost = this.VirtualHost;
+            rabbind.Transport.MaxReceivedMessageSize = this.MaxMessageSize;
         }
 
         /// <summary>
@@ -189,6 +191,13 @@ namespace RabbitMQ.ServiceModel
                 base["protocolversion"] = value;
                 GetProtocol();
             }
+        }
+
+        [ConfigurationProperty("maxmessagesize", DefaultValue = 8192L)]
+        public long MaxMessageSize
+        {
+            get { return (long)base["maxmessagesize"]; }
+            set { base["maxmessagesize"] = value; }
         }
 
         private IProtocol GetProtocol() {
