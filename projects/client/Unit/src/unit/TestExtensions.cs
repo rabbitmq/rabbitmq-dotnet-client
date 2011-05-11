@@ -50,6 +50,10 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestExchangeBinding()
         {
+            AutoResetEvent excl = new AutoResetEvent(false);
+            Model.ConfirmSelect();
+            Model.BasicAcks += delegate { excl.Set(); };
+
             Model.ExchangeDeclare("src", ExchangeType.Direct, false, false, null);
             Model.ExchangeDeclare("dest", ExchangeType.Direct, false, false, null);
             String queue = Model.QueueDeclare();
@@ -58,12 +62,12 @@ namespace RabbitMQ.Client.Unit
             Model.QueueBind(queue, "dest", String.Empty);
 
             Model.BasicPublish("src", String.Empty, null, new byte[] { });
-            Thread.Sleep(100);
+            excl.WaitOne();
             Assert.IsNotNull(Model.BasicGet(queue, true));
 
             Model.ExchangeUnbind("dest", "src", String.Empty);
             Model.BasicPublish("src", String.Empty, null, new byte[] { });
-            Thread.Sleep(100);
+            excl.WaitOne();
             Assert.IsNull(Model.BasicGet(queue, true));
 
             Model.ExchangeDelete("src");
