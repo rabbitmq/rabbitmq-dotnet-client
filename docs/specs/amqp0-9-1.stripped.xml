@@ -262,7 +262,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <field name="no-wait" domain="no-wait"/>
       <field name="arguments" domain="table"/>
     </method>
-    <method name="unbind-ok" synchronous="1" index="41">
+    <method name="unbind-ok" synchronous="1" index="51">
       <chassis name="client" implement="MUST"/>
     </method>
   </class>

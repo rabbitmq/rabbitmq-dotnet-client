@@ -1546,7 +1546,7 @@
       </field>
     </method>
 
-    <method name = "unbind-ok" synchronous = "1" index = "41"
+    <method name = "unbind-ok" synchronous = "1" index = "51"
             label = "confirm unbind successful">
       <doc>This method confirms that the unbind was successful.</doc>
       <chassis name = "client" implement = "MUST"/>
