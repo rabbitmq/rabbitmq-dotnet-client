@@ -100,6 +100,7 @@ namespace RabbitMQ.ServiceModel.Test
                     Util.WriteLine(ConsoleColor.Magenta, "\t{0}\n\t{1}", e.GetType().Name, e.Message);
                     Util.WriteLine(ConsoleColor.Green, e.StackTrace);
                     failed++;
+                    Environment.ExitCode = -1;
                 }
             }
             TimeSpan duration = DateTime.Now.Subtract(started);
