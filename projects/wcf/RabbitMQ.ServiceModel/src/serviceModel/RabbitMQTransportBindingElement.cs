@@ -256,7 +256,7 @@ namespace RabbitMQ.ServiceModel
                 {
                     connFactory.HostName = HostName;
                 }
-                if (Port != null)
+                if (Port != AmqpTcpEndpoint.UseDefaultPort)
                 {
                     connFactory.Port = Port;
                 }
