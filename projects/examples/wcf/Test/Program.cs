@@ -100,6 +100,7 @@ namespace RabbitMQ.ServiceModel.Test
                     Util.WriteLine(ConsoleColor.Magenta, "\t{0}\n\t{1}", e.GetType().Name, e.Message);
                     Util.WriteLine(ConsoleColor.Green, e.StackTrace);
                     failed++;
+                    Environment.ExitCode = -1;
                 }
             }
             TimeSpan duration = DateTime.Now.Subtract(started);
@@ -140,7 +141,7 @@ namespace RabbitMQ.ServiceModel.Test
 
         static void WriteWholeLine()
         {
-            int i = Console.WindowWidth;
+            int i = ConsoleWidth();
             while (i > 1)
             {
                 Console.Write(" ");
@@ -157,7 +158,7 @@ namespace RabbitMQ.ServiceModel.Test
         static void WriteWholeLine(string o)
         {
             Console.Write(o);
-            int i = Console.WindowWidth;
+            int i = ConsoleWidth();
             while (i > o.Length+1)
             {
                 Console.Write(" ");
@@ -165,6 +166,11 @@ namespace RabbitMQ.ServiceModel.Test
             }
             Console.Write("\n");
             
+        }
+
+        static int ConsoleWidth()
+        {
+            return Environment.GetEnvironmentVariable("TERM") == null ? Console.WindowWidth : 80;
         }
     }
 }
