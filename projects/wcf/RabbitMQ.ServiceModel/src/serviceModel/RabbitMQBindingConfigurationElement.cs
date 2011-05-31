@@ -110,9 +110,9 @@ namespace RabbitMQ.ServiceModel
             rabbind.BrokerProtocol = this.Protocol;
             rabbind.OneWayOnly = this.OneWayOnly;
             rabbind.TransactionFlow = this.TransactionFlowEnabled;
-            rabbind.Transport.ConnectionFactory.Password = this.Password;
-            rabbind.Transport.ConnectionFactory.UserName = this.Username;
-            rabbind.Transport.ConnectionFactory.VirtualHost = this.VirtualHost;
+            rabbind.Transport.Password = this.Password;
+            rabbind.Transport.Username = this.Username;
+            rabbind.Transport.VirtualHost = this.VirtualHost;
         }
 
         /// <summary>

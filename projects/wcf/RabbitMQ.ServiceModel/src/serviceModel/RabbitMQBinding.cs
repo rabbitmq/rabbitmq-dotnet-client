@@ -98,6 +98,24 @@ namespace RabbitMQ.ServiceModel
         }
 
         /// <summary>
+        /// Uses the broker, login and protocol specified
+        /// </summary>
+        /// <param name="hostname">The hostname of the broker to connect to</param>
+        /// <param name="port">The port of the broker to connect to</param>
+        /// <param name="username">The broker username to connect with</param>
+        /// <param name="password">The broker password to connect with</param>
+        /// <param name="protocol">The protocol version to use</param>
+        public RabbitMQBinding(String hostname, int port, 
+                               String username, String password, IProtocol protocol)
+            : this(protocol)
+        {
+            this.HostName = hostname;
+            this.Port = port;
+            this.Transport.Username = username;
+            this.Transport.Password = password;
+        }
+
+        /// <summary>
         /// Uses the specified protocol. The broker must be set before use.
         /// </summary>
         /// <param name="protocol">The protocol version to use</param>
