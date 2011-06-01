@@ -45,7 +45,7 @@ namespace RabbitMQ.Client
 {
     ///<summary>Common AMQP Basic content-class headers interface,
     ///spanning the union of the functionality offered by versions
-    ///0-8, 0-8qpid and 0-9 (without WIP) of AMQP.</summary>
+    ///0-8, 0-8qpid, 0-9 and 0-9-1 of AMQP.</summary>
     ///<remarks>
     ///<para>
     ///The specification code generator provides

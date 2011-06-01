@@ -46,8 +46,8 @@ using RabbitMQ.Client.Events;
 namespace RabbitMQ.Client
 {
     ///<summary>Common AMQP model, spanning the union of the
-    ///functionality offered by versions 0-8, 0-8qpid, and 0-9
-    ///(without WIP) of AMQP.</summary>
+    ///functionality offered by versions 0-8, 0-8qpid, 0-9 and
+    ///0-9-1 of AMQP.</summary>
     ///<remarks>
     /// Extends the IDisposable interface, so that the "using"
     /// statement can be used to scope the lifetime of a channel when
