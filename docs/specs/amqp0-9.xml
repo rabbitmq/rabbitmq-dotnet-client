@@ -1,8 +1,9 @@
 <?xml version = "1.0"?>
-
 <!--
      WARNING: Modified from the official 0-9 specification XML by
      the addition of confirm.select and confirm.select-ok.
+
+     Modifications are copyright (c) 2007-2011 VMWare, Inc. All rights reserved.
 -->
 
 <!--

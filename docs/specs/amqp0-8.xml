@@ -1,7 +1,10 @@
 <?xml version="1.0"?>
 <!-- WARNING: Modified from the official 0-8 specification XML by
      the addition of queue.unbind, queue.unbind-ok,
-     confirm.select and confirm.select-ok -->
+     confirm.select and confirm.select-ok 
+
+     Modifications are copyright (c) 2007-2011 VMWare, Inc. All rights reserved.
+-->
 <!--
 Copyright Notice
 ================
