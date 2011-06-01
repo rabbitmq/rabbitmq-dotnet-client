@@ -80,7 +80,7 @@ namespace RabbitMQ.ServiceModel
         /// Protocols.DefaultProtocol.
         /// </summary>
         /// <param name="hostname">The hostname of the broker to connect to</param>
-        /// <param name="port">The port of the broker to connect to</param>         
+        /// <param name="port">The port of the broker to connect to</param>
         public RabbitMQBinding(String hostname, int port)
             : this(hostname, port, Protocols.DefaultProtocol)
         { }
