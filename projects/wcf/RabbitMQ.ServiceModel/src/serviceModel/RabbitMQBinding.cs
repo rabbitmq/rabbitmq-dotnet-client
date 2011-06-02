@@ -76,10 +76,11 @@ namespace RabbitMQ.ServiceModel
         { }
 
         /// <summary>
-        /// Uses the default protocol and the broker specified by the given
-        /// Uri.
+        /// Uses the broker specified by the given hostname and port with
+        /// Protocols.DefaultProtocol.
         /// </summary>
-        /// <param name="broker">The address of the broker to connect to</param>
+        /// <param name="hostname">The hostname of the broker to connect to</param>
+        /// <param name="port">The port of the broker to connect to</param>
         public RabbitMQBinding(String hostname, int port)
             : this(hostname, port, Protocols.DefaultProtocol)
         { }
