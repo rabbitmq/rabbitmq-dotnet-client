@@ -118,7 +118,7 @@ namespace RabbitMQ.ServiceModel
             this.Port = port;
             this.Transport.Username = username;
             this.Transport.Password = password;
-            this.Transport.VirtualHost;
+            this.Transport.VirtualHost = virtualhost;
             this.MaxMessageSize = maxMessageSize;
 
         }
