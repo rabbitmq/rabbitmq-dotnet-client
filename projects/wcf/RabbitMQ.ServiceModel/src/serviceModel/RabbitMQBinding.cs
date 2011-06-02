@@ -56,9 +56,10 @@ namespace RabbitMQ.ServiceModel
     {
         private String m_host;
         private int m_port;
+        private long m_maxMessageSize;
         private IProtocol m_brokerProtocol;
         private CompositeDuplexBindingElement m_compositeDuplex;
-        private MessageEncodingBindingElement m_encoding;
+        private TextMessageEncodingBindingElement m_encoding;
         private bool m_isInitialized;
         private bool m_oneWayOnly;
         private ReliableSessionBindingElement m_session;
@@ -67,8 +68,8 @@ namespace RabbitMQ.ServiceModel
         private RabbitMQTransportBindingElement m_transport;
 
         /// <summary>
-        /// Creates a new instance of the RabbitMQBinding class initialized 
-        /// to use the Protocols.DefaultProtocol. The broker must be set 
+        /// Creates a new instance of the RabbitMQBinding class initialized
+        /// to use the Protocols.DefaultProtocol. The broker must be set
         /// before use.
         /// </summary>
         public RabbitMQBinding()
@@ -79,7 +80,8 @@ namespace RabbitMQ.ServiceModel
         /// Uses the default protocol and the broker specified by the given
         /// Uri.
         /// </summary>
-        /// <param name="broker">The address of the broker to connect to</param>
+        /// <param name="hostname">The hostname of the broker to connect to</param>
+        /// <param name="port">The port of the broker to connect to</param>
         public RabbitMQBinding(String hostname, int port)
             : this(hostname, port, Protocols.DefaultProtocol)
         { }
@@ -88,7 +90,7 @@ namespace RabbitMQ.ServiceModel
         /// Uses the broker and protocol specified
         /// </summary>
         /// <param name="hostname">The hostname of the broker to connect to</param>
-        /// <param name="port">The port of the broker to connect to</param> 
+        /// <param name="port">The port of the broker to connect to</param>
         /// <param name="protocol">The protocol version to use</param>
         public RabbitMQBinding(String hostname, int port, IProtocol protocol)
             : this(protocol)
@@ -104,15 +106,21 @@ namespace RabbitMQ.ServiceModel
         /// <param name="port">The port of the broker to connect to</param>
         /// <param name="username">The broker username to connect with</param>
         /// <param name="password">The broker password to connect with</param>
+        /// <param name="virtualhost">The broker virtual host</param>
+        /// <param name="maxMessageSize">The largest allowable encoded message size</param>
         /// <param name="protocol">The protocol version to use</param>
-        public RabbitMQBinding(String hostname, int port, 
-                               String username, String password, IProtocol protocol)
+        public RabbitMQBinding(String hostname, int port,                               
+                               String username, String password,  String virtualhost,
+                               long maxMessageSize, IProtocol protocol)
             : this(protocol)
         {
             this.HostName = hostname;
             this.Port = port;
             this.Transport.Username = username;
             this.Transport.Password = password;
+            this.Transport.VirtualHost;
+            this.MaxMessageSize = maxMessageSize;
+
         }
 
         /// <summary>
@@ -135,6 +143,7 @@ namespace RabbitMQ.ServiceModel
             m_transport.HostName = this.HostName;
             m_transport.Port = this.Port;
             m_transport.BrokerProtocol = this.BrokerProtocol;
+            m_transport.MaxReceivedMessageSize = this.MaxMessageSize;
             BindingElementCollection elements = new BindingElementCollection();
 
             if (m_transactionsEnabled)
@@ -163,12 +172,12 @@ namespace RabbitMQ.ServiceModel
                     m_session = new ReliableSessionBindingElement();
                     m_compositeDuplex = new CompositeDuplexBindingElement();
                     m_transactionFlow = new TransactionFlowBindingElement();
-
+                    m_maxMessageSize = 8192L;
                     m_isInitialized = true;
                 }
             }
         }
-        
+
         /// <summary>
         /// Gets the scheme used by the binding, soap.amqp
         /// </summary>
@@ -198,6 +207,16 @@ namespace RabbitMQ.ServiceModel
         }
 
         /// <summary>
+        /// Specifies the maximum encoded message size
+        /// </summary>
+        [ConfigurationProperty("maxmessagesize")]
+        public long MaxMessageSize
+        {
+            get { return m_maxMessageSize; }
+            set { m_maxMessageSize = value; }
+        }
+
+        /// <summary>
         /// Specifies the version of the AMQP protocol that should be used to communicate with the broker
         /// </summary>
         public IProtocol BrokerProtocol
@@ -223,7 +242,7 @@ namespace RabbitMQ.ServiceModel
         }
 
         /// <summary>
-        /// Determines whether or not the TransactionFlowBindingElement will 
+        /// Determines whether or not the TransactionFlowBindingElement will
         /// be added to the channel stack
         /// </summary>
         public bool TransactionFlow
