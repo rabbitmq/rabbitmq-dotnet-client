@@ -212,6 +212,15 @@ namespace RabbitMQ.ServiceModel
             set { base["virtualHost"] = value; }
         }
 
+        /// <summary>
+        /// The largest receivable encoded message
+        /// </summary>
+        public new long MaxReceivedMessageSize
+        {
+            get { return MaxReceivedMessageSize; }
+            set { MaxReceivedMessageSize = value; }
+        }
+
         protected override ConfigurationPropertyCollection Properties
         {
             get

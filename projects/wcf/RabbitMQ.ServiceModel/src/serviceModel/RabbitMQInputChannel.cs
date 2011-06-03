@@ -67,7 +67,8 @@ namespace RabbitMQ.ServiceModel
             : base(context, address)
         {
             m_bindingElement = context.Binding.Elements.Find<RabbitMQTransportBindingElement>();
-            MessageEncodingBindingElement encoderElem = context.BindingParameters.Find<MessageEncodingBindingElement>();
+            TextMessageEncodingBindingElement encoderElem = context.BindingParameters.Find<TextMessageEncodingBindingElement>();
+            encoderElem.ReaderQuotas.MaxStringContentLength = (int)m_bindingElement.MaxReceivedMessageSize;
             if (encoderElem != null) {
                 m_encoder = encoderElem.CreateMessageEncoderFactory().Encoder;
             }
