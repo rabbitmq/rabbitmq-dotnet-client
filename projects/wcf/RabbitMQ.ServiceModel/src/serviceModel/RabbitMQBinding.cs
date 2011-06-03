@@ -67,6 +67,8 @@ namespace RabbitMQ.ServiceModel
         private bool m_transactionsEnabled;
         private RabbitMQTransportBindingElement m_transport;
 
+        public static readonly long DefaultMaxMessageSize = 8192L;
+
         /// <summary>
         /// Creates a new instance of the RabbitMQBinding class initialized
         /// to use the Protocols.DefaultProtocol. The broker must be set
@@ -143,7 +145,10 @@ namespace RabbitMQ.ServiceModel
             m_transport.HostName = this.HostName;
             m_transport.Port = this.Port;
             m_transport.BrokerProtocol = this.BrokerProtocol;
-            m_transport.MaxReceivedMessageSize = this.MaxMessageSize;
+            if (MaxMessageSize != DefaultMaxMessageSize)
+            {
+                m_transport.MaxReceivedMessageSize = MaxMessageSize;
+            }
             BindingElementCollection elements = new BindingElementCollection();
 
             if (m_transactionsEnabled)
@@ -172,7 +177,7 @@ namespace RabbitMQ.ServiceModel
                     m_session = new ReliableSessionBindingElement();
                     m_compositeDuplex = new CompositeDuplexBindingElement();
                     m_transactionFlow = new TransactionFlowBindingElement();
-                    m_maxMessageSize = 8192L;
+                    m_maxMessageSize = DefaultMaxMessageSize;
                     m_isInitialized = true;
                 }
             }
