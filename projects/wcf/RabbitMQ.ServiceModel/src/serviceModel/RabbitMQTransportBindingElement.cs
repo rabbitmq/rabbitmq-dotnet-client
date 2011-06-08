@@ -70,10 +70,10 @@ namespace RabbitMQ.ServiceModel
         /// </summary>
         public RabbitMQTransportBindingElement()
         {
+            MaxReceivedMessageSize = RabbitMQBinding.DefaultMaxMessageSize;
         }
 
         private RabbitMQTransportBindingElement(RabbitMQTransportBindingElement other)
-            : this()
         {
             HostName = other.HostName;
             Port = other.Port;
