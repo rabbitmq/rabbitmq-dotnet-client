@@ -101,7 +101,7 @@ namespace RabbitMQ.Client
         ///<summary> creating application id </summary>
         string AppId { get; set; }
 
-        ///<summary> intra-cluster routing identifier 
+        ///<summary> intra-cluster routing identifier
         /// (cluster id is deprecated in AMQP 0-9-1)
         ///</summary>
         string ClusterId { get; set; }
@@ -189,7 +189,7 @@ namespace RabbitMQ.Client
         ///<summary> Returns true iff the AppId property is present. </summary>
         bool IsAppIdPresent();
 
-        ///<summary> Returns true iff the ClusterId property is present. 
+        ///<summary> Returns true iff the ClusterId property is present.
         /// (cluster id is deprecated in AMQP 0-9-1)
         ///</summary>
         bool IsClusterIdPresent();
