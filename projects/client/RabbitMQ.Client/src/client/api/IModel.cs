@@ -141,13 +141,15 @@ namespace RabbitMQ.Client
         IBasicProperties CreateBasicProperties();
 
         ///<summary>Construct a completely empty content header for
-        ///use with the File content class.</summary>
+        ///use with the File content class.
+        /// (unsupported in AMQP 0-9-1)</summary>
         [AmqpContentHeaderFactory("file")]
         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
         IFileProperties CreateFileProperties();
 
         ///<summary>Construct a completely empty content header for
-        ///use with the Stream content class.</summary>
+        ///use with the Stream content class.
+        /// (unsupported in AMQP 0-9-1)</summary>
         [AmqpContentHeaderFactory("stream")]
         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
         IStreamProperties CreateStreamProperties();
@@ -441,11 +443,12 @@ namespace RabbitMQ.Client
         ///transaction.</summary>
         void TxRollback();
 
-        ///<summary>(Spec method) Enable DTX mode for this session.</summary>
+        ///<summary>(Spec method) Enable DTX mode for this session.
+        /// (unsupported in AMQP 0-9-1)</summary>
         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
         void DtxSelect();
 
-        ///<summary>(Spec method)</summary>
+        ///<summary>(Spec method, unsupported in AMQP 0-9-1)</summary>
         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
         void DtxStart(string dtxIdentifier);
 
@@ -908,7 +911,9 @@ namespace RabbitMQ.Client.Impl
         void HandleConnectionOpenOk([AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved1")]
                                     string knownHosts);
 
-        ///<summary>Handle an incoming Connection.Redirect.</summary>
+        ///<summary>Handle an incoming Connection.Redirect.
+        /// (not available in AMQP 0-9-1)
+        ///</summary>
         [AmqpMethodDoNotImplement("RabbitMQ.Client.Framing.v0_9_1")]
         void HandleConnectionRedirect(string host,
                                       string knownHosts);

@@ -101,7 +101,9 @@ namespace RabbitMQ.Client
         ///<summary> creating application id </summary>
         string AppId { get; set; }
 
-        ///<summary> intra-cluster routing identifier </summary>
+        ///<summary> intra-cluster routing identifier 
+        /// (cluster id is deprecated in AMQP 0-9-1)
+        ///</summary>
         string ClusterId { get; set; }
 
         ///<summary> Clear the ContentType property. </summary>
@@ -143,7 +145,9 @@ namespace RabbitMQ.Client
         ///<summary> Clear the AppId property. </summary>
         void ClearAppId();
 
-        ///<summary> Clear the ClusterId property. </summary>
+        ///<summary> Clear the ClusterId property.
+        /// (cluster id is deprecated in AMQP 0-9-1)
+        ///</summary>
         void ClearClusterId();
 
         ///<summary> Returns true iff the ContentType property is present. </summary>
@@ -185,7 +189,9 @@ namespace RabbitMQ.Client
         ///<summary> Returns true iff the AppId property is present. </summary>
         bool IsAppIdPresent();
 
-        ///<summary> Returns true iff the ClusterId property is present. </summary>
+        ///<summary> Returns true iff the ClusterId property is present. 
+        /// (cluster id is deprecated in AMQP 0-9-1)
+        ///</summary>
         bool IsClusterIdPresent();
 
         ///<summary>Convenience property; parses ReplyTo property
