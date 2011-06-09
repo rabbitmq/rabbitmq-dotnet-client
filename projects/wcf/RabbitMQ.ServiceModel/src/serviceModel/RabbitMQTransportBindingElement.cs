@@ -60,6 +60,7 @@ namespace RabbitMQ.ServiceModel
         private IProtocol m_protocol;
         private String m_host;
         private int m_port;
+        private long m_maxReceivedMessageSize;
         private String m_username;
         private String m_password;
         private String m_vhost;
@@ -69,10 +70,10 @@ namespace RabbitMQ.ServiceModel
         /// </summary>
         public RabbitMQTransportBindingElement()
         {
+            MaxReceivedMessageSize = RabbitMQBinding.DefaultMaxMessageSize;
         }
 
         private RabbitMQTransportBindingElement(RabbitMQTransportBindingElement other)
-            : this()
         {
             HostName = other.HostName;
             Port = other.Port;
@@ -80,6 +81,7 @@ namespace RabbitMQ.ServiceModel
             Username = other.Username;
             Password = other.Password;
             VirtualHost = other.VirtualHost;
+            MaxReceivedMessageSize = other.MaxReceivedMessageSize;
         }
 
         
@@ -188,6 +190,15 @@ namespace RabbitMQ.ServiceModel
                 m_port = value;
                 m_connectionFactory = null;
             }
+        }
+
+        /// <summary>
+        /// The largest receivable encoded message
+        /// </summary>
+        public override long MaxReceivedMessageSize
+        {
+            get { return m_maxReceivedMessageSize; }
+            set { m_maxReceivedMessageSize = value; }
         }
 
         /// <summary>
