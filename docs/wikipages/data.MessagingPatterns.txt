@@ -139,11 +139,10 @@ for the message and the client may consider the message [i handled].
 Note that the broker may also [i negatively acknowledge] a message by
 sending back a [code Basic.Nack].  In this case, if a message is
 rejected via the [code IModel.BasicNacks] event handler, the client
-should assume that the message was lost or otherwise undeliverable.
-
-Note that unroutable messages - mandatory or immediate messages
-published to non-existing queues or queues without consumers - are
-both [code Basic.Return'ed] and [code Basic.Ack'ed].
+should assume that the message was lost or otherwise
+undeliverable. Also, note that unroutable messages - mandatory or
+immediate messages published to non-existing queues or queues without
+consumers - are both [code Basic.Return'ed] and [code Basic.Ack'ed].
 
 **** Receiving replies
 
