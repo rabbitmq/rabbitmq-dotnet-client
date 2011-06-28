@@ -120,14 +120,14 @@ transactions are active is underspecified in both versions 0-8 and 0-9
 of the AMQP specification, and different server implementations behave
 in different ways.
 
-Finally, the fact that a message was flagged "mandatory", and
+Additionally, the fact that a message was flagged "mandatory", and
 successfully enqueued on one or more queues, is no guarantee of its
 eventual receipt: most trivially, the queue could be deleted before
 the message is processed, but other situations, like the use of the
 [code noAck] flag by a message consumer, can also make the guarantees
 provided by "mandatory" and "immediate" conditional.
 
-Alternatively, one could use Publisher Confirms.  Setting an channel
+Alternatively, one could use Publisher Confirms.  Setting a channel
 into [i confirm mode] by calling [code IModel.ConfirmSelect] causes
 the broker to send a [code Basic.Ack] after each message is processed
 by delivering to a ready consumer or by persisting to disk.
@@ -516,7 +516,7 @@ Publisher Confirms
 
 - ensure (ahead of time) that the target queue is durable,
 
-- select Confirm mode using [code IModel.ConfirmSelect],
+- select [code Confirm] mode using [code IModel.ConfirmSelect],
 
 - publish the message with "mandatory" flag set and [code
   DeliveryMode] set equal to 2,
@@ -537,6 +537,10 @@ Note that for unroutable messages are not considered failures and are
 both [code Basic.Return'ed] and [code Basic.Ack'ed].  So, if the
 "mandatory" or "immediate" are used, the client must also listen for
 returns by setting the [code IModel.BasicReturn] handler.
+
+Also note that the [code Tx] and [code Confirm] modes are mutually
+exclusive on any one channel, so it is not possible to mix the two
+methods described above.
 
 Responsibility can also be placed with an external database, even
 further along the chain - see the section on interaction with external
