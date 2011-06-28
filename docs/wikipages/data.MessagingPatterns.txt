@@ -120,12 +120,29 @@ transactions are active is underspecified in both versions 0-8 and 0-9
 of the AMQP specification, and different server implementations behave
 in different ways.
 
-Finally, the fact that a message was flagged "mandatory", and
+Additionally, the fact that a message was flagged "mandatory", and
 successfully enqueued on one or more queues, is no guarantee of its
 eventual receipt: most trivially, the queue could be deleted before
 the message is processed, but other situations, like the use of the
 [code noAck] flag by a message consumer, can also make the guarantees
 provided by "mandatory" and "immediate" conditional.
+
+Alternatively, one could use Publisher Confirms.  Setting a channel
+into [i confirm mode] by calling [code IModel.ConfirmSelect] causes
+the broker to send a [code Basic.Ack] after each message is processed
+by delivering to a ready consumer or by persisting to disk.
+
+Once a successfully processed message has been confirmed via the [code
+IModel.BasicAcks] event handler, the broker has assumed responsibility
+for the message and the client may consider the message [i handled].
+
+Note that the broker may also [i negatively acknowledge] a message by
+sending back a [code Basic.Nack].  In this case, if a message is
+rejected via the [code IModel.BasicNacks] event handler, the client
+should assume that the message was lost or otherwise
+undeliverable. Also, note that unroutable messages - mandatory or
+immediate messages published to non-existing queues or queues without
+consumers - are both [code Basic.Return'ed] and [code Basic.Ack'ed].
 
 **** Receiving replies
 
@@ -471,9 +488,10 @@ two AMQP clients involved: the publisher, and the consumer.
 Responsibility can be partially transferred to the broker by using
 durable queues, durable exchanges, persistent-mode delivered messages
 (with [code DeliveryMode] set equal to 2), and [code Tx]-class
-transactions.
+transactions or Publisher Confirms.
 
-To transfer responsibility for delivery of a message to a broker
+To transfer responsibility for delivery of a message to a broker using
+[code Tx]
 
  - ensure (ahead of time) that the target queue exists and is durable,
 
@@ -492,6 +510,37 @@ application retrieves and acknowledges the message.
 A commit is not required after every message: batching of publications
 may be done, depending on the precise delivery guarantees the
 publishing application requires.
+
+To transfer responsibility for delivery of a message to a broker using
+Publisher Confirms
+
+- ensure (ahead of time) that the target queue is durable,
+
+- select [code Confirm] mode using [code IModel.ConfirmSelect],
+
+- publish the message with "mandatory" flag set and [code
+  DeliveryMode] set equal to 2,
+
+- listen for acknowledgements and negative acknowledgments by setting
+  the [code IModel.BasicAcks] and [code BasicNacks] event handlers.
+
+Once a broker acknowledges a message via the [code BasicAcks] handler,
+it has taken responsibility for keeping the message on disk and on the
+target queue until some other application retrieves and acknowledges
+the message.
+
+If a broker rejects a message via the [code BasicNacks] handler, the
+publisher may assume that the message was lost or otherwise
+undeliverable.
+
+Note that for unroutable messages are not considered failures and are
+both [code Basic.Return'ed] and [code Basic.Ack'ed].  So, if the
+"mandatory" or "immediate" are used, the client must also listen for
+returns by setting the [code IModel.BasicReturn] handler.
+
+Also note that the [code Tx] and [code Confirm] modes are mutually
+exclusive on any one channel, so it is not possible to mix the two
+methods described above.
 
 Responsibility can also be placed with an external database, even
 further along the chain - see the section on interaction with external
@@ -543,6 +592,13 @@ broker, but the whole transaction is only partially received on the
 consuming side before some kind of failure occurs. In these
 situations, there will be partial duplication of a transaction: some
 of the messages in the transaction will be delivered more than once.
+
+Alternatively, rather than implement the round-trip logic manually, a
+client may use Publisher Confirms.  By enabling Confirm mode on a
+channel, a client is requesting that the broker acknowledge or
+negatively acknowledge all messages sent on the channel from that
+point on.  See the instructions from Responsibility Transfer on how to
+use confirms.
 
 Deciding on a message-resend policy can be difficult. Some simple
 resend strategies are:
