@@ -513,10 +513,6 @@ both [code Basic.Return'ed] and [code Basic.Ack'ed].  So, if the
 "mandatory" or "immediate" are used, the client must also listen for
 returns by setting the [code IModel.BasicReturn] handler.
 
-Also note that the [code Tx] and [code Confirm] modes are mutually
-exclusive on any one channel, so it is not possible to mix the two
-methods described above.
-
 Responsibility can also be placed with an external database, even
 further along the chain - see the section on interaction with external
 resources below.
