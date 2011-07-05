@@ -99,8 +99,8 @@ following code contains a race condition:
     // RACE CONDITION
     if (model.IsOpen) {
       // The following method call depends on the model being in open state.
-      // The state may change between the IsOpen call and the TxCommit call!
-      model.TxCommit();
+      // The state may change between the IsOpen call and the BasicQos call!
+      model.BasicQos(0, 1, false);
     }
   }
 
@@ -113,7 +113,7 @@ an invalid state:
   public void BetterMethod(IModel model) {
     try {
       ...
-      model.TxCommit();
+      model.BasicQos(0, 1, false);
     } catch (OperationInterruptedException ope) {
       // Handle one of the many possible reasons why the commit or any
       // other operation before it couldn't be handled
