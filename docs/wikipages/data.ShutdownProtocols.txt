@@ -115,7 +115,7 @@ an invalid state:
       ...
       model.BasicQos(0, 1, false);
     } catch (OperationInterruptedException ope) {
-      // Handle one of the many possible reasons why the commit or any
+      // Handle one of the many possible reasons why the BasicQos or any
       // other operation before it couldn't be handled
     } catch (IOException ioe) {
       // Check why socket was closed
