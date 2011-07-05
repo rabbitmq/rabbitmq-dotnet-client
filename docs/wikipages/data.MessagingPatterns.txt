@@ -487,32 +487,7 @@ two AMQP clients involved: the publisher, and the consumer.
 
 Responsibility can be partially transferred to the broker by using
 durable queues, durable exchanges, persistent-mode delivered messages
-(with [code DeliveryMode] set equal to 2), and [code Tx]-class
-transactions or Publisher Confirms.
-
-To transfer responsibility for delivery of a message to a broker using
-[code Tx]
-
- - ensure (ahead of time) that the target queue exists and is durable,
-
- - select [code Tx] mode using [code IModel.TxSelect],
-
- - publish the message with the "mandatory" flag set and [code
-   DeliveryMode] set equal to 2, and
-
- - commit the [code Tx] transaction using [code IModel.TxCommit].
-
-Once a broker replies with [code CommitOk] (i.e. the [code TxCommit()]
-call returns to the caller), it has taken responsibility for keeping
-the message on disk and on the target queue until some other
-application retrieves and acknowledges the message.
-
-A commit is not required after every message: batching of publications
-may be done, depending on the precise delivery guarantees the
-publishing application requires.
-
-To transfer responsibility for delivery of a message to a broker using
-Publisher Confirms
+(with [code DeliveryMode] set equal to 2), and Publisher Confirms:
 
 - ensure (ahead of time) that the target queue is durable,
 
@@ -579,19 +554,11 @@ To implement at-least-once delivery:
 
 To reduce the need for resends of a message when publishing using an
 at-least-once QoS level, it can sometimes be appropriate to use [code
-Tx]-class transactions, as described above in the section on
-responsibility transfer. Of course, if the [code CommitOk] message
-from the server is lost, then a resend will have to be done, since the
-sending client doesn't know whether the server actually saw the
-message or not unless the [code CommitOk] arrives.
-
-Once of the important failure-modes when using at-least-once mode in
-conjunction with [code Tx]-class transactions is the loss of atomicity
-that can arise when a completed transaction is published to the
-broker, but the whole transaction is only partially received on the
-consuming side before some kind of failure occurs. In these
-situations, there will be partial duplication of a transaction: some
-of the messages in the transaction will be delivered more than once.
+Confirm]-class, as described above in the section on responsibility
+transfer. Of course, if a confirmation from the broker is lost, then a
+resend will have to be done, since the sending client doesn't know
+whether the server actually saw the message or not unless the
+[Basic.Nack] arrives.
 
 Alternatively, rather than implement the round-trip logic manually, a
 client may use Publisher Confirms.  By enabling Confirm mode on a
@@ -760,7 +727,3 @@ step. For example:
    server. In cases where there is no reply to a request, the
    acknowledgement is still useful to ensure that requests are not
    lost.
-
- - Finally, if [code Tx]-class transactions are in use, the work cycle
-   can be closed off by invoking [code IModel.TxCommit], and the next
-   request can be tackled.
