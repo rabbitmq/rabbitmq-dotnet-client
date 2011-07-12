@@ -554,7 +554,7 @@ Confirm]-class, as described above in the section on responsibility
 transfer. Of course, if a confirmation from the broker is lost, then a
 resend will have to be done, since the sending client doesn't know
 whether the server actually saw the message or not unless the
-[Basic.Nack] arrives.
+[code Basic.Nack] arrives.
 
 Alternatively, rather than implement the round-trip logic manually, a
 client may use Publisher Confirms.  By enabling Confirm mode on a
