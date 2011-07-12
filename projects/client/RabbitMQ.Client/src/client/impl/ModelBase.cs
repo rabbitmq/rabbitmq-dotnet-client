@@ -312,6 +312,8 @@ namespace RabbitMQ.Client.Impl
                     }
                 }
             }
+            lock (m_unconfirmedSet.SyncRoot)
+                Monitor.Pulse(m_unconfirmedSet.SyncRoot);
             m_flowControlBlock.Set();
         }
 
@@ -935,6 +937,9 @@ namespace RabbitMQ.Client.Impl
         {
             lock (m_unconfirmedSet.SyncRoot) {
                 while (true) {
+                    if (CloseReason != null)
+                        throw new OperationInterruptedException(CloseReason);
+
                     if (m_unconfirmedSet.Count == 0) {
                         bool aux = m_onlyAcksReceived;
                         m_onlyAcksReceived = true;
@@ -942,6 +947,17 @@ namespace RabbitMQ.Client.Impl
                     }
                     Monitor.Wait(m_unconfirmedSet.SyncRoot);
                 }
+            }
+        }
+
+        public void WaitForConfirmsOrDie()
+        {
+            if (!WaitForConfirms()) {
+                Close(new ShutdownEventArgs(ShutdownInitiator.Application,
+                                            CommonFraming.Constants.ReplySuccess,
+                                            "Goodbye", new IOException("nack received")),
+                      false);
+                throw new OperationInterruptedException(CloseReason);
             }
         }
 
@@ -1229,7 +1245,7 @@ namespace RabbitMQ.Client.Impl
         	Close(CommonFraming.Constants.ReplySuccess, "Goodbye");
         }
 
-		public void Close(ushort replyCode, string replyText)
+        public void Close(ushort replyCode, string replyText)
         {
         	Close(replyCode, replyText, false);
         }
@@ -1246,15 +1262,20 @@ namespace RabbitMQ.Client.Impl
 
         public void Close(ushort replyCode, string replyText, bool abort)
         {
+            Close(new ShutdownEventArgs(ShutdownInitiator.Application,
+                                        replyCode, replyText),
+                  abort);
+        }
+
+        public void Close(ShutdownEventArgs reason, bool abort)
+        {
             ShutdownContinuation k = new ShutdownContinuation();
             ModelShutdown += new ModelShutdownEventHandler(k.OnShutdown);
 
             try {
-                if (SetCloseReason(new ShutdownEventArgs(ShutdownInitiator.Application,
-                                     replyCode,
-                                     replyText)))
+                if (SetCloseReason(reason))
                 {
-                    _Private_ChannelClose(replyCode, replyText, 0, 0);
+                    _Private_ChannelClose(reason.ReplyCode, reason.ReplyText, 0, 0);
                 }
                 k.Wait();
             } catch (AlreadyClosedException ace) {

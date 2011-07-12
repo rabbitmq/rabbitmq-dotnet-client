@@ -331,6 +331,17 @@ namespace RabbitMQ.Client
         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
         bool WaitForConfirms();
 
+        //<summary>Wait until all published messages have been confirmed.
+        //<remarks>
+        //Waits until all messages published since the last call have
+        //been ack'd by the broker.  If a nack is received, throws an
+        //OperationInterrupedException exception immediately.
+        //</remarks>
+        [AmqpMethodDoNotImplement(null)]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
+        void WaitForConfirmsOrDie();
 
         ///<summary>Start a Basic content-class consumer.</summary>
         ///<remarks>
