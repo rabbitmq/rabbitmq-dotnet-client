@@ -76,6 +76,9 @@ namespace RabbitMQ.Client.Impl
         private readonly object m_flowSendLock = new object();
 
         private ulong m_nextPubSeqNo;
+        private SortedList m_unconfirmedSet =
+            SortedList.Synchronized(new SortedList());
+        private bool m_onlyAcksReceived = true;
 
         public event ModelShutdownEventHandler ModelShutdown
         {
@@ -352,6 +355,8 @@ namespace RabbitMQ.Client.Impl
                     }
                 }
             }
+
+            handleAckNack(args.DeliveryTag, args.Multiple, false);
         }
 
         public virtual void OnBasicNack(BasicNackEventArgs args)
@@ -372,6 +377,24 @@ namespace RabbitMQ.Client.Impl
                         OnCallbackException(exnArgs);
                     }
                 }
+            }
+
+            handleAckNack(args.DeliveryTag, args.Multiple, true);
+        }
+
+        protected virtual void handleAckNack(ulong deliveryTag, bool multiple, bool isNack)
+        {
+            if (multiple) {
+                for (ulong i = (ulong)m_unconfirmedSet.GetKey(0); i <= deliveryTag; i++) {
+                    m_unconfirmedSet.Remove(i);
+                }
+            } else {
+                m_unconfirmedSet.Remove(deliveryTag);
+            }
+            lock (m_unconfirmedSet.SyncRoot) {
+                m_onlyAcksReceived = m_onlyAcksReceived && !isNack;
+                if (m_unconfirmedSet.Count == 0)
+                    Monitor.Pulse(m_unconfirmedSet.SyncRoot);
             }
         }
 
@@ -902,9 +925,24 @@ namespace RabbitMQ.Client.Impl
                                                   bool ifEmpty,
                                                   bool nowait);
 
-        public void ConfirmSelect() {
+        public void ConfirmSelect()
+        {
             m_nextPubSeqNo = 1;
             _Private_ConfirmSelect(false);
+        }
+
+        public bool WaitForConfirms()
+        {
+            lock (m_unconfirmedSet.SyncRoot) {
+                while (true) {
+                    if (m_unconfirmedSet.Count == 0) {
+                        bool aux = m_onlyAcksReceived;
+                        m_onlyAcksReceived = true;
+                        return aux;
+                    }
+                    Monitor.Wait(m_unconfirmedSet.SyncRoot);
+                }
+            }
         }
 
         public abstract void _Private_ConfirmSelect(bool nowait);
@@ -1143,7 +1181,10 @@ namespace RabbitMQ.Client.Impl
             {
                 basicProperties = CreateBasicProperties();
             }
-            if (m_nextPubSeqNo > 0) m_nextPubSeqNo++;
+            if (m_nextPubSeqNo > 0) {
+                m_unconfirmedSet.Add(m_nextPubSeqNo, null);
+                m_nextPubSeqNo++;
+            }
             _Private_BasicPublish(exchange,
                                   routingKey,
                                   mandatory,

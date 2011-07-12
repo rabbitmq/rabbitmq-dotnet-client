@@ -317,6 +317,21 @@ namespace RabbitMQ.Client
         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
         void ConfirmSelect();
 
+        //<summary>Wait until all published messages have been confirmed.
+        //<remarks>
+        //Waits until all messages published since the last call have
+        //been either ack'd or nack'd by the broker.  Returns whether
+        //all the messages were ack'd (and none were nack'd). Note,
+        //when called on a non-Confirm channel, returns true
+        //immediately.
+        //</remarks>
+        [AmqpMethodDoNotImplement(null)]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
+        bool WaitForConfirms();
+
+
         ///<summary>Start a Basic content-class consumer.</summary>
         ///<remarks>
         ///The consumer is started with noAck=false (i.e. BasicAck is required),
