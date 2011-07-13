@@ -955,7 +955,7 @@ namespace RabbitMQ.Client.Impl
             if (!WaitForConfirms()) {
                 Close(new ShutdownEventArgs(ShutdownInitiator.Application,
                                             CommonFraming.Constants.ReplySuccess,
-                                            "Goodbye", new IOException("nack received")),
+                                            "Nacks Received", new IOException("nack received")),
                       false);
                 throw new OperationInterruptedException(CloseReason);
             }
