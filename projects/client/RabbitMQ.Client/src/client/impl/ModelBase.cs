@@ -938,7 +938,7 @@ namespace RabbitMQ.Client.Impl
             lock (m_unconfirmedSet.SyncRoot) {
                 while (true) {
                     if (CloseReason != null)
-                        throw new OperationInterruptedException(CloseReason);
+                        throw new AlreadyClosedException(CloseReason);
 
                     if (m_unconfirmedSet.Count == 0) {
                         bool aux = m_onlyAcksReceived;
@@ -957,7 +957,7 @@ namespace RabbitMQ.Client.Impl
                                             CommonFraming.Constants.ReplySuccess,
                                             "Nacks Received", new IOException("nack received")),
                       false);
-                throw new OperationInterruptedException(CloseReason);
+                throw new IOException("Nacks Received");
             }
         }
 
