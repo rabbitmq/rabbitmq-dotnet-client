@@ -12,9 +12,8 @@ DB2PDF_OPTIONS=\
 	-V %generate-article-toc% \
 	-V %generate-article-titlepage-on-separate-page%
 
-all:
+all: delete-unpacked-pyle unpack-pyle start-pyle
 	OK=true && \
-	make prepare-pyle && \
 	{ make targets || OK=false; } && \
 	cat pyle.log && \
 	make delete-unpacked-pyle && \
@@ -27,8 +26,6 @@ bundle:
 	cp $(TARGET) bundle/.
 	cp ./api-guide.pdf bundle/.
 	cp "RabbitMQ Service Model.pdf" bundle/.
-
-prepare-pyle: delete-unpacked-pyle unpack-pyle start-pyle
 
 targets: $(TARGET)
 
