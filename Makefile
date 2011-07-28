@@ -46,8 +46,8 @@ ensure-docs: rabbit-vsn
 doc: rabbit-vsn ensure-prerequisites ensure-release-dir ensure-docs
 	rm -rf build/tmpdoc build/doc
 	mkdir -p build/tmpdoc/html build/tmpdoc/xml
-	unzip -j ${RELEASE_DIR}/${NAME_VSN}-client-htmldoc.zip -d build/tmpdoc/html
-	unzip -j ${RELEASE_DIR}/${NAME_VSN}-tmp-xmldoc.zip -d build/tmpdoc/xml
+	unzip -q -j ${RELEASE_DIR}/${NAME_VSN}-client-htmldoc.zip -d build/tmpdoc/html
+	unzip -q -j ${RELEASE_DIR}/${NAME_VSN}-tmp-xmldoc.zip -d build/tmpdoc/xml
 	cd docs && ./api-guide.sh && \
 	  mv api-guide.pdf ../${RELEASE_DIR}/${NAME_VSN}-api-guide.pdf
 	$(MAKE) -C docs
@@ -56,9 +56,9 @@ doc: rabbit-vsn ensure-prerequisites ensure-release-dir ensure-docs
 	  ${RELEASE_DIR}/${NAME_VSN}-wcf-service-model.pdf
 	cd ${RELEASE_DIR} && \
 	  rm -rf ${NAME_VSN}-htmldoc && \
-	  unzip ${NAME_VSN}-client-htmldoc.zip -d ${NAME_VSN}-client-htmldoc && \
+	  unzip -q ${NAME_VSN}-client-htmldoc.zip -d ${NAME_VSN}-client-htmldoc && \
 	  rm -rf ${NAME_VSN}-wcf-htmldoc && \
-	  unzip ${NAME_VSN}-wcf-htmldoc.zip -d ${NAME_VSN}-wcf-htmldoc
+	  unzip -q ${NAME_VSN}-wcf-htmldoc.zip -d ${NAME_VSN}-wcf-htmldoc
 
 clean:
 	rm -rf $(RELEASE_DIR)/*

@@ -46,7 +46,7 @@ $(MANDIR)/%.pdf: %-skeleton.xml
 	mv $(TMPDIR)/$*.pdf $(MANDIR)
 
 unpack-pyle:
-	unzip ../tools/pyle2-snapshot-20080107.zip
+	unzip -q ../tools/pyle2-snapshot-20080107.zip
 	cp pyle2-config.py pyle2-snapshot-20080107/Config.py
 
 delete-unpacked-pyle: stop-pyle
