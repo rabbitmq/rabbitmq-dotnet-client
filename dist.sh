@@ -197,14 +197,14 @@ function dist-target-framework {
     mkdir -p tmp/dist/bin tmp/dist/projects/examples
 
     ### Clean
-    $MSBUILD RabbitMQDotNetClient.sln /t:Clean /property:Configuration="Release"
+    $MSBUILD /verbosity:quiet RabbitMQDotNetClient.sln /t:Clean /property:Configuration="Release"
 
     ### Copy examples code to be zipped to tmp/dist/
     cp -r projects/examples/client tmp/dist/projects/examples/
     test "$BUILD_WCF" && cp -r projects/examples/wcf tmp/dist/projects/examples/
 
     ### Build
-    $MSBUILD RabbitMQDotNetClient.sln /t:Build /property:Configuration="Release"
+    $MSBUILD /verbosity:quiet RabbitMQDotNetClient.sln /t:Build /property:Configuration="Release"
 
     ### Copy bin files to be zipped to tmp/dist/
     cp projects/client/RabbitMQ.Client/build/bin/RabbitMQ.Client.xml tmp/dist/bin/
