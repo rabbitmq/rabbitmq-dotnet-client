@@ -617,7 +617,6 @@ namespace RabbitMQ.Client.Impl
                              string type,
                              bool passive,
                              bool durable,
-                             [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved2")]
                              bool autoDelete,
                              [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved3")]
                              bool @internal,
