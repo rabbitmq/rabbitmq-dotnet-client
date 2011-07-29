@@ -218,7 +218,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <field name="type" domain="shortstr"/>
       <field name="passive" domain="bit"/>
       <field name="durable" domain="bit"/>
-      <field name="reserved-2" type="bit" reserved="1"/>
+      <field name="auto-delete" domain="bit"/>
       <field name="reserved-3" type="bit" reserved="1"/>
       <field name="no-wait" domain="no-wait"/>
       <field name="arguments" domain="table"/>

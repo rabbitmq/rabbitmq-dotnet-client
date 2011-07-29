@@ -6,9 +6,10 @@
      confirm.select and confirm.select-ok,
      exchange.bind and exchange.bind-ok,
      exchange.unbind and exchange.unbind-ok,
-     basic.nack
-     and the ability for the Server to send basic.ack, basic.nack and
-      basic.cancel to the client.
+     basic.nack,
+     the ability for the Server to send basic.ack, basic.nack and
+      basic.cancel to the client, and
+     the un-deprecation of exchange.declare{auto-delete}
 -->
 
 <!--
@@ -1267,7 +1268,29 @@
         </rule>
       </field>
 
-      <!-- Deprecated: "auto-delete", must be zero -->
+      <field name = "auto-delete" domain = "bit" label = "auto-delete when unused">
+        <doc>
+          If set, the exchange is deleted when all queues have
+          finished using it.
+        </doc>
+        <rule name = "amq_exchange_02" implement = "SHOULD">
+          <doc>
+            The server SHOULD allow for a reasonable delay between the
+            point when it determines that an exchange is not being
+            used (or no longer used), and the point when it deletes
+            the exchange.  At the least it must allow a client to
+            create an exchange and then bind a queue to it, with a
+            small but non-zero delay between these two actions.
+          </doc>
+        </rule>
+        <rule name = "amq_exchange_25" implement = "MUST">
+          <doc>
+            The server MUST ignore the auto-delete field if the
+            exchange already exists.
+          </doc>
+        </rule>
+      </field>
+
       <field name = "reserved-2" type = "bit" reserved = "1" />
       <!-- Deprecated: "internal", must be zero -->
       <field name = "reserved-3" type = "bit" reserved = "1" />
