@@ -9,7 +9,7 @@
      basic.nack,
      the ability for the Server to send basic.ack, basic.nack and
       basic.cancel to the client, and
-     the un-deprecation of exchange.declare{auto-delete}
+     the un-deprecation of exchange.declare{auto-delete} and exchange.declare{internal}
 -->
 
 <!--
@@ -1291,9 +1291,15 @@
         </rule>
       </field>
 
-      <field name = "reserved-2" type = "bit" reserved = "1" />
-      <!-- Deprecated: "internal", must be zero -->
-      <field name = "reserved-3" type = "bit" reserved = "1" />
+      <field name = "internal" domain = "bit" label = "create internal exchange">
+        <doc>
+          If set, the exchange may not be used directly by publishers,
+          but only when bound to other exchanges. Internal exchanges
+          are used to construct wiring that is not visible to
+          applications.
+        </doc>
+      </field>
+
       <field name = "no-wait" domain = "no-wait" />
 
       <field name = "arguments" domain = "table" label = "arguments for declaration">

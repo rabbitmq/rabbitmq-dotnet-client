@@ -219,7 +219,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <field name="passive" domain="bit"/>
       <field name="durable" domain="bit"/>
       <field name="auto-delete" domain="bit"/>
-      <field name="reserved-3" type="bit" reserved="1"/>
+      <field name="internal" domain="bit"/>
       <field name="no-wait" domain="no-wait"/>
       <field name="arguments" domain="table"/>
     </method>
