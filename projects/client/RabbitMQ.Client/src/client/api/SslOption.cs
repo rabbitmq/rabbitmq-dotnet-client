@@ -93,19 +93,27 @@ namespace RabbitMQ.Client
             set { m_certPass = value; }
         }
 
+        private X509CertificateCollection m_certs;
 
-        ///<summary>Convenience read-only property to retrieve an X509CertificateCollection
-        ///containing the client certificate</summary>
+        ///<summary>Retrieve or set the X509CertificateCollection
+        ///containing the client certificate. If no collection is set,
+        ///the client will attempt to load one from the specified
+        ///CertPath.</summary>
         public X509CertificateCollection Certs
         {
-            get { 
-                if(m_certPath == "") {
+            get {
+                if (m_certs != null) {
+                    return m_certs;
+                } else if (m_certPath == "") {
                     return null;
                 } else {
                     X509CertificateCollection c = new X509CertificateCollection();
                     c.Add(new X509Certificate2(m_certPath, m_certPass));
                     return c;
                 }
+            }
+            set {
+                m_certs = value;
             }
         }
 
