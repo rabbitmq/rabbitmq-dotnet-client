@@ -9,7 +9,7 @@
      basic.nack,
      the ability for the Server to send basic.ack, basic.nack and
       basic.cancel to the client, and
-     the un-deprecation of exchange.declare{auto-delete} and exchange.declare{internal}
+     the un-deprecation of exchange.declare{auto-delete, internal}, connection.open{capabilities,insist} and connection.open_ok{known-hosts}
 -->
 
 <!--
@@ -341,6 +341,21 @@
     </doc>
     <assert check = "length" value = "127" />
     <assert check = "regexp" value = "^[a-zA-Z0-9-_.:]*$" />
+  </domain>
+
+  <domain name = "known hosts" type = "shortstr" label = "list of known hosts">
+    <doc>
+      Specifies the list of equivalent or alternative hosts that the
+      server knows about, which will normally include the current
+      server itself.  Clients can cache this information and use it
+      when reconnecting to a server after a failure.
+    </doc>
+    <rule>
+      <doc>
+        The server MAY leave this field empty if it knows of no other
+        hosts than itself.
+      </doc>
+    </rule>
   </domain>
 
   <domain name = "method-id" type = "short" />
@@ -826,10 +841,29 @@
           </doc>
         </rule>
       </field>
-      <!-- Deprecated: "capabilities", must be zero -->
-      <field name = "reserved-1" type = "shortstr" reserved = "1" />
-      <!-- Deprecated: "insist", must be zero -->
-      <field name = "reserved-2" type = "bit" reserved = "1" />
+      <field name = "capabilities" domain = "shortstr" label = "required capabilities">
+        <doc>
+          The client may specify a number of capability names,
+          delimited by spaces.  The server can use this string to how
+          to process the client's connection request.
+        </doc>
+      </field>
+      <field name = "insist" type = "bit" label = "insist on connecting to server">
+        <doc>
+          In a configuration with multiple load-sharing servers, the
+          server may respond to a Connection.Open method with a
+          Connection.Redirect.  The insist option tells the server
+          that the client is insisting on a connection to the
+          specified server.
+        </doc>
+        <rule>
+          <doc>
+            When the client uses the insist option, the server SHOULD
+            accept the client connection unless it is technically
+            unable to do so.
+          </doc>
+        </rule>
+      </field>
     </method>
 
     <method name = "open-ok" synchronous = "1" index = "41" label = "signal that connection is ready">
@@ -837,8 +871,7 @@
         This method signals to the client that the connection is ready for use.
       </doc>
       <chassis name = "client" implement = "MUST" />
-      <!-- Deprecated: "known-hosts", must be zero -->
-      <field name = "reserved-1" type = "shortstr" reserved = "1" />
+      <field name = "known hosts" domain = "known hosts"/>
     </method>
 
     <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->

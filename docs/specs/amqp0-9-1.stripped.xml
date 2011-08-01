@@ -87,6 +87,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   <domain name="longstr" type="longstr"/>
   <domain name="timestamp" type="timestamp"/>
   <domain name="table" type="table"/>
+  <domain name="known hosts" type="shortstr" />
   <class name="connection" handler="connection" index="10">
     <chassis name="server" implement="MUST"/>
     <chassis name="client" implement="MUST"/>
@@ -147,12 +148,12 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <chassis name="server" implement="MUST"/>
       <response name="open-ok"/>
       <field name="virtual-host" domain="path"/>
-      <field name="capabilities" type="shortstr" reserved="1"/>
-      <field name="insist" type="bit" reserved="1"/>
+      <field name="capabilities" type="shortstr"/>
+      <field name="insist" type="bit"/>
     </method>
     <method name="open-ok" synchronous="1" index="41">
       <chassis name="client" implement="MUST"/>
-      <field name="reserved-1" type="shortstr" reserved="1"/>
+      <field name="known hosts" type="known hosts"/>
     </method>
     <method name="close" synchronous="1" index="50">
       <chassis name="client" implement="MUST"/>

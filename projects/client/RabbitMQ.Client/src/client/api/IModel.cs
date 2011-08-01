@@ -930,8 +930,7 @@ namespace RabbitMQ.Client.Impl
                                      bool insist);
 
         ///<summary>Handle an incoming Connection.OpenOk.</summary>
-        void HandleConnectionOpenOk([AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved1")]
-                                    string knownHosts);
+        void HandleConnectionOpenOk(string knownHosts);
 
         ///<summary>Handle an incoming Connection.Redirect.
         /// (not available in AMQP 0-9-1)
