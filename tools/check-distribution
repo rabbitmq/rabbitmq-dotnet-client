@@ -194,8 +194,8 @@ mv $NET11ZIP $NET11ZIP.asc $NET20ZIP $NET20ZIP.asc $UPLOAD_ROOT/releases/binary
 mv $SRCZIP $SRCZIP.asc $UPLOAD_ROOT/releases/source
 mv *.pdf $COREDOCZIP $COREDOCZIP.asc $WCFDOCZIP $WCFDOCZIP.asc $UPLOAD_ROOT/releases/doc/rabbitmq-dotnet-$RELEASE_TAG
 cd $UPLOAD_ROOT/releases/doc/rabbitmq-dotnet-$RELEASE_TAG
-unzip $COREDOCZIP
-unzip $WCFDOCZIP
+unzip -q $COREDOCZIP
+unzip -q $WCFDOCZIP
 cd /tmp
 rm $TMPDIRNAME/installfiles
 rmdir $TMPDIRNAME
