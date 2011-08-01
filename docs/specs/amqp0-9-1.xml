@@ -1273,7 +1273,7 @@
           If set, the exchange is deleted when all queues have
           finished using it.
         </doc>
-        <rule name = "amq_exchange_02" implement = "SHOULD">
+        <rule name = "amq_exchange_02">
           <doc>
             The server SHOULD allow for a reasonable delay between the
             point when it determines that an exchange is not being
@@ -1283,7 +1283,7 @@
             small but non-zero delay between these two actions.
           </doc>
         </rule>
-        <rule name = "amq_exchange_25" implement = "MUST">
+        <rule name = "amq_exchange_25">
           <doc>
             The server MUST ignore the auto-delete field if the
             exchange already exists.
