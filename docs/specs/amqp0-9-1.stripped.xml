@@ -147,8 +147,8 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <chassis name="server" implement="MUST"/>
       <response name="open-ok"/>
       <field name="virtual-host" domain="path"/>
-      <field name="reserved-1" type="shortstr" reserved="1"/>
-      <field name="reserved-2" type="bit" reserved="1"/>
+      <field name="capabilities" type="shortstr" reserved="1"/>
+      <field name="insist" type="bit" reserved="1"/>
     </method>
     <method name="open-ok" synchronous="1" index="41">
       <chassis name="client" implement="MUST"/>

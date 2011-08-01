@@ -926,9 +926,7 @@ namespace RabbitMQ.Client.Impl
         [AmqpForceOneWay]
         [AmqpMethodMapping(null, "connection", "open")]
         void _Private_ConnectionOpen(string virtualHost,
-                                     [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved1")]
                                      string capabilities,
-                                     [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved2")]
                                      bool insist);
 
         ///<summary>Handle an incoming Connection.OpenOk.</summary>
