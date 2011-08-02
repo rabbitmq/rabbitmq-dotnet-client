@@ -1,5 +1,0 @@
-owner: 
-timestamp: Fri, 04 Jan 2008 15:48:05 GMT
-author: 
-editgroup: 
-viewgroup: 
