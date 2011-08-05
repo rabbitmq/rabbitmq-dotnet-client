@@ -66,6 +66,9 @@
     <Compile Include="..\RabbitMQ.Client\src\client\api\PublicationAddress.cs">
       <Link>src\client\api\PublicationAddress.cs</Link>
     </Compile>
+    <Compile Include="..\RabbitMQ.Client\src\client\api\QueueDeclareResult.cs">
+      <Link>src\client\api\QueueDeclareResult.cs</Link>
+    </Compile>
     <Compile Include="..\RabbitMQ.Client\src\client\api\ShutdownEventArgs.cs">
       <Link>src\client\api\ShutdownEventArgs.cs</Link>
     </Compile>

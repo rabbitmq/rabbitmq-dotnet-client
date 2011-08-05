@@ -258,6 +258,11 @@ namespace RabbitMQ.Client
         string QueueDeclare(string queue, bool durable, bool exclusive,
                     bool autoDelete, IDictionary arguments);
 
+        ///<summary>(Spec method) Declare a queue.</summary>
+        [AmqpMethodDoNotImplement(null)]
+        QueueDeclareResult QueueDeclareFull(string queue, bool passive, bool durable, bool exclusive,
+                                            bool autoDelete, bool nowait, IDictionary arguments);
+
         ///<summary>(Spec method) Bind a queue to an exchange.</summary>
         [AmqpMethodDoNotImplement(null)]
         void QueueBind(string queue,
@@ -663,15 +668,21 @@ namespace RabbitMQ.Client.Impl
         ///<summary>Used to send a Queue.Declare method. Called by the
         ///public declare method.</summary>
         [AmqpMethodMapping(null, "queue", "declare")]
-        [return: AmqpFieldMapping(null, "queue")]
-        string _Private_QueueDeclare(string queue,
-                                     bool passive,
-                                     bool durable,
-                                     bool exclusive,
-                                     bool autoDelete,
-                                     [AmqpNowaitArgument(null)]
-                                     bool nowait,
-                                     IDictionary arguments);
+        [AmqpForceOneWay]
+        void _Private_QueueDeclare(string queue,
+                                   bool passive,
+                                   bool durable,
+                                   bool exclusive,
+                                   bool autoDelete,
+                                   [AmqpNowaitArgument(null)]
+                                   bool nowait,
+                                   IDictionary arguments);
+
+        ///<summary>Handle incoming Queue.DeclareOk methods. Routes the
+        ///information to a waiting Queue.DeclareOk continuation.</summary>
+        void HandleQueueDeclareOk(string queue,
+                                  uint messageCount,
+                                  uint consumerCount);
 
         ///<summary>Used to send a Queue.Bind method. Called by the
         ///public bind method.</summary>

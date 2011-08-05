@@ -858,22 +858,46 @@ namespace RabbitMQ.Client.Impl
 
         public string QueueDeclarePassive(string queue)
         {
-            return _Private_QueueDeclare(queue, true, false, false, false, false, null);
+            return QueueDeclareFull(queue, true, false, false, false, false, null).Queue;
         }
 
         public string QueueDeclare(string queue, bool durable, bool exclusive,
                                    bool autoDelete, IDictionary arguments)
         {
-            return _Private_QueueDeclare(queue, false, durable, exclusive, autoDelete, false, arguments);
+            return QueueDeclareFull(queue, false, durable, exclusive, autoDelete, false, arguments).Queue;
         }
 
-        public abstract string _Private_QueueDeclare(string queue,
-                                                     bool passive,
-                                                     bool durable,
-                                                     bool exclusive,
-                                                     bool autoDelete,
-                                                     bool nowait,
-                                                     IDictionary arguments);
+        public class QueueDeclareRpcContinuation : SimpleBlockingRpcContinuation
+        {
+            public QueueDeclareResult m_result;
+            public QueueDeclareRpcContinuation() { }
+        }
+        public QueueDeclareResult QueueDeclareFull(string queue, bool passive, bool durable, bool exclusive,
+                                                   bool autoDelete, bool nowait, IDictionary arguments)
+        {
+            QueueDeclareRpcContinuation k = new QueueDeclareRpcContinuation();
+            Enqueue(k);
+            try
+            {
+                _Private_QueueDeclare(queue, false, durable, exclusive, autoDelete, false, arguments);
+            }
+            catch (AlreadyClosedException)
+            {
+                // Ignored, since the continuation will be told about
+                // the closure via an OperationInterruptedException because
+                // of the shutdown event propagation.
+            }
+            k.GetReply();
+            return k.m_result;
+        }
+
+        public abstract void _Private_QueueDeclare(string queue,
+                                                   bool passive,
+                                                   bool durable,
+                                                   bool exclusive,
+                                                   bool autoDelete,
+                                                   bool nowait,
+                                                   IDictionary arguments);
 
         public void QueueBind(string queue,
                               string exchange,
@@ -1472,6 +1496,17 @@ namespace RabbitMQ.Client.Impl
                                                       ushort methodId);
 
         public abstract void _Private_ConnectionCloseOk();
+
+        public void HandleQueueDeclareOk(string queue, 
+                                         uint messageCount, 
+                                         uint consumerCount)
+        {
+            QueueDeclareRpcContinuation k = (QueueDeclareRpcContinuation)m_continuationQueue.Next();
+            k.m_result = new QueueDeclareResult(queue,
+                                                messageCount,
+                                                consumerCount);
+            k.HandleCommand(null); // release the continuation.
+        }
 
         public override string ToString() {
             return m_session.ToString();
