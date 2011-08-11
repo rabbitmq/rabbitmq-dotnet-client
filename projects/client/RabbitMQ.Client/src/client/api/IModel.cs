@@ -242,7 +242,7 @@ namespace RabbitMQ.Client
         ///name is the return value of this method.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        string QueueDeclare();
+        QueueDeclareOk QueueDeclare();
 
         ///<summary>Declare a queue passively.</summary>
         ///<remarks>
@@ -251,17 +251,12 @@ namespace RabbitMQ.Client
         ///The queue is declared passively; i.e. only check if it exists.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        string QueueDeclarePassive(string queue);
+        QueueDeclareOk QueueDeclarePassive(string queue);
 
         ///<summary>(Spec method) Declare a queue.</summary>
         [AmqpMethodDoNotImplement(null)]
-        string QueueDeclare(string queue, bool durable, bool exclusive,
+        QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive,
                     bool autoDelete, IDictionary arguments);
-
-        ///<summary>(Spec method) Declare a queue.</summary>
-        [AmqpMethodDoNotImplement(null)]
-        QueueDeclareResult QueueDeclareFull(string queue, bool passive, bool durable, bool exclusive,
-                                            bool autoDelete, bool nowait, IDictionary arguments);
 
         ///<summary>(Spec method) Bind a queue to an exchange.</summary>
         [AmqpMethodDoNotImplement(null)]
