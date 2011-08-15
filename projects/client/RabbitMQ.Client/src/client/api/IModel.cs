@@ -242,7 +242,7 @@ namespace RabbitMQ.Client
         ///name is the return value of this method.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        string QueueDeclare();
+        QueueDeclareOk QueueDeclare();
 
         ///<summary>Declare a queue passively.</summary>
         ///<remarks>
@@ -251,11 +251,11 @@ namespace RabbitMQ.Client
         ///The queue is declared passively; i.e. only check if it exists.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        string QueueDeclarePassive(string queue);
+        QueueDeclareOk QueueDeclarePassive(string queue);
 
         ///<summary>(Spec method) Declare a queue.</summary>
         [AmqpMethodDoNotImplement(null)]
-        string QueueDeclare(string queue, bool durable, bool exclusive,
+        QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive,
                     bool autoDelete, IDictionary arguments);
 
         ///<summary>(Spec method) Bind a queue to an exchange.</summary>
@@ -663,15 +663,21 @@ namespace RabbitMQ.Client.Impl
         ///<summary>Used to send a Queue.Declare method. Called by the
         ///public declare method.</summary>
         [AmqpMethodMapping(null, "queue", "declare")]
-        [return: AmqpFieldMapping(null, "queue")]
-        string _Private_QueueDeclare(string queue,
-                                     bool passive,
-                                     bool durable,
-                                     bool exclusive,
-                                     bool autoDelete,
-                                     [AmqpNowaitArgument(null)]
-                                     bool nowait,
-                                     IDictionary arguments);
+        [AmqpForceOneWay]
+        void _Private_QueueDeclare(string queue,
+                                   bool passive,
+                                   bool durable,
+                                   bool exclusive,
+                                   bool autoDelete,
+                                   [AmqpNowaitArgument(null)]
+                                   bool nowait,
+                                   IDictionary arguments);
+
+        ///<summary>Handle incoming Queue.DeclareOk methods. Routes the
+        ///information to a waiting Queue.DeclareOk continuation.</summary>
+        void HandleQueueDeclareOk(string queue,
+                                  uint messageCount,
+                                  uint consumerCount);
 
         ///<summary>Used to send a Queue.Bind method. Called by the
         ///public bind method.</summary>

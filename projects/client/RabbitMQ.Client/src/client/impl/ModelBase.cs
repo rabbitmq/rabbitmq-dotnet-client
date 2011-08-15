@@ -851,29 +851,54 @@ namespace RabbitMQ.Client.Impl
 
         //TODO: Mark these as virtual, maybe the model has an optimized way
         //      of dealing with missing parameters.
-        public string QueueDeclare()
+        public QueueDeclareOk QueueDeclare()
         {
             return QueueDeclare("", false, true, true, null);
         }
 
-        public string QueueDeclarePassive(string queue)
+        public QueueDeclareOk QueueDeclarePassive(string queue)
         {
-            return _Private_QueueDeclare(queue, true, false, false, false, false, null);
+            return QueueDeclare(queue, true, false, false, false, null);
         }
 
-        public string QueueDeclare(string queue, bool durable, bool exclusive,
+        public QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive,
                                    bool autoDelete, IDictionary arguments)
         {
-            return _Private_QueueDeclare(queue, false, durable, exclusive, autoDelete, false, arguments);
+            return QueueDeclare(queue, false, durable, exclusive, autoDelete, arguments);
         }
 
-        public abstract string _Private_QueueDeclare(string queue,
-                                                     bool passive,
-                                                     bool durable,
-                                                     bool exclusive,
-                                                     bool autoDelete,
-                                                     bool nowait,
-                                                     IDictionary arguments);
+        public class QueueDeclareRpcContinuation : SimpleBlockingRpcContinuation
+        {
+            public QueueDeclareOk m_result;
+            public QueueDeclareRpcContinuation() { }
+        }
+
+        private QueueDeclareOk QueueDeclare(string queue, bool passive, bool durable, bool exclusive,
+                                                   bool autoDelete, IDictionary arguments)
+        {
+            QueueDeclareRpcContinuation k = new QueueDeclareRpcContinuation();
+            Enqueue(k);
+            try
+            {
+                _Private_QueueDeclare(queue, passive, durable, exclusive, autoDelete, false, arguments);
+            }
+            catch (AlreadyClosedException)
+            {
+                // Ignored, since the continuation will be told about
+                // the closure via an OperationInterruptedException because
+                // of the shutdown event propagation.
+            }
+            k.GetReply();
+            return k.m_result;
+        }
+
+        public abstract void _Private_QueueDeclare(string queue,
+                                                   bool passive,
+                                                   bool durable,
+                                                   bool exclusive,
+                                                   bool autoDelete,
+                                                   bool nowait,
+                                                   IDictionary arguments);
 
         public void QueueBind(string queue,
                               string exchange,
@@ -1472,6 +1497,17 @@ namespace RabbitMQ.Client.Impl
                                                       ushort methodId);
 
         public abstract void _Private_ConnectionCloseOk();
+
+        public void HandleQueueDeclareOk(string queue,
+                                         uint messageCount,
+                                         uint consumerCount)
+        {
+            QueueDeclareRpcContinuation k = (QueueDeclareRpcContinuation)m_continuationQueue.Next();
+            k.m_result = new QueueDeclareOk(queue,
+                                            messageCount,
+                                            consumerCount);
+            k.HandleCommand(null); // release the continuation.
+        }
 
         public override string ToString() {
             return m_session.ToString();
