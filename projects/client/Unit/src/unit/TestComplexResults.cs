@@ -54,9 +54,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestQueueDeclareOk()
         {
-            AutoResetEvent excl = new AutoResetEvent(false);
             Model.ConfirmSelect();
-            Model.BasicAcks += delegate { excl.Set(); };
             QueueDeclareOk result;
 
             result = QueueDeclare();
@@ -64,7 +62,7 @@ namespace RabbitMQ.Client.Unit
             Assert.AreEqual(0, result.ConsumerCount);
             Assert.AreEqual(QueueName, result.QueueName);
             Model.BasicPublish("", result.QueueName, null, new byte[] { });
-            excl.WaitOne();
+            Model.WaitForConfirms();
 
             result = QueueDeclare();
             Assert.AreEqual(1, result.MessageCount);
