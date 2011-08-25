@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading;
 using NUnit.Framework;
 using RabbitMQ.Client.Exceptions;
 
@@ -53,6 +54,9 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestQueueDeclareOk()
         {
+            AutoResetEvent excl = new AutoResetEvent(false);
+            Model.ConfirmSelect();
+            Model.BasicAcks += delegate { excl.Set(); };
             QueueDeclareOk result;
 
             result = QueueDeclare();
@@ -60,6 +64,7 @@ namespace RabbitMQ.Client.Unit
             Assert.AreEqual(0, result.ConsumerCount);
             Assert.AreEqual(QueueName, result.QueueName);
             Model.BasicPublish("", result.QueueName, null, new byte[] { });
+            excl.WaitOne();
 
             result = QueueDeclare();
             Assert.AreEqual(1, result.MessageCount);
