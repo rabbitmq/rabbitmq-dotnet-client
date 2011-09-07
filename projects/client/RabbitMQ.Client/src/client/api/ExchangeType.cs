@@ -43,12 +43,13 @@ using System.Collections;
 namespace RabbitMQ.Client
 {
     ///<summary>
-    /// Convenience class providing compile-time names for various exchange types.
+    /// Convenience class providing compile-time names for standard exchange types.
     ///</summary>
     ///<remarks>
     /// Use the static members of this class as values for the
     /// "exchangeType" arguments for IModel methods such as
-    /// ExchangeDeclare.
+    /// ExchangeDeclare. The broker may be extended with additional
+    /// exchange types that do not appear in this class.
     ///</remarks>
     public class ExchangeType
     {
@@ -58,17 +59,20 @@ namespace RabbitMQ.Client
         public const string Direct = "direct";
         ///<summary>Exchange type used for AMQP topic exchanges.</summary>
         public const string Topic = "topic";
+        ///<summary>Exchange type used for AMQP headers exchanges.</summary>
+        public const string Headers = "headers";
 
         ///<summary>Private constructor - this class has no instances</summary>
         private ExchangeType() {}
 
-        ///<summary>Retrieve a collection containing all defined exchange types.</summary>
+        ///<summary>Retrieve a collection containing all standard exchange types.</summary>
         public static ICollection All()
         {
             return new string[] {
                 Fanout,
                 Direct,
-                Topic
+                Topic,
+                Headers
             };
         }
     }
