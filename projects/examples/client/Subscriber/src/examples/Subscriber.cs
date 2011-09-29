@@ -57,7 +57,7 @@ namespace RabbitMQ.Client.Examples {
             string serverAddress = args[0];
             long msgCount = (args.Length > 1) ? int.Parse(args[1]) : 10;
             ConnectionFactory cf = new ConnectionFactory();
-            cf.Address = serverAddress;
+            cf.Uri = serverAddress;
             using (IConnection conn = cf.CreateConnection()) {
                 using (IModel ch = conn.CreateModel()) {
                     string queueName = ensureQueue(ch);

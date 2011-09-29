@@ -60,7 +60,7 @@ namespace RabbitMQ.Client.Examples {
             int messageCount = int.Parse(args[1]);
 
             ConnectionFactory cf = new ConnectionFactory();
-            cf.Address = serverAddress;                
+            cf.Uri = serverAddress;
             using (IConnection conn = cf.CreateConnection())
             {
                 Stopwatch sendTimer = new Stopwatch();

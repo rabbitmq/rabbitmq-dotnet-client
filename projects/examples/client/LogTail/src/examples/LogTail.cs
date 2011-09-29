@@ -65,7 +65,7 @@ namespace RabbitMQ.Client.Examples {
             string routingKey = args[3];
 
             ConnectionFactory cf = new ConnectionFactory();
-            cf.Address = serverAddress;
+            cf.Uri = serverAddress;
 
             using (IConnection conn = cf.CreateConnection())
                 {

@@ -167,21 +167,48 @@ namespace RabbitMQ.Client
           }
         }
 
-        public String Address
+        public String Uri
         {
-          get
-          { 
-              String result = HostName;
-              if(Port != AmqpTcpEndpoint.UseDefaultPort)
-              {
-                  result += (":" + Port);
-              }
-              return result;
-          }
           set
           {
-              Endpoint = AmqpTcpEndpoint.Parse(Protocol, value);
-          }      
+              Endpoint = new AmqpTcpEndpoint();
+
+              Uri uri = new Uri(value, UriKind.Absolute);
+
+              if ("amqp".CompareTo(uri.Scheme) != 0) {
+                  throw new ArgumentException("Wrong scheme in AMQP URI: " +
+                                              value);
+              }
+              string host = uri.Host;
+              if (!String.IsNullOrEmpty(host)) {
+                  HostName = host;
+              }
+
+              int port = uri.Port;
+              if (port != -1) {
+                  Port = port;
+              }
+
+              string userInfo = uri.UserInfo;
+              if (!String.IsNullOrEmpty(userInfo)) {
+                  string[] userPass = userInfo.Split(':');
+                  if (userPass.Length > 2) {
+                      throw new ArgumentException("Bad user info in AMQP URI: " + value);
+                  }
+                  UserName = UriDecode(userPass[0]);
+                  if (userPass.Length == 2) {
+                      Password = UriDecode(userPass[1]);
+                  }
+              }
+
+              /* C# automatically changes URIs into a canonical form
+                 that has at least the path segment "/". */
+              if (uri.Segments.Length > 2) {
+                  throw new ArgumentException("Multiple segments in path of AMQP URI: " + String.Join(", ", uri.Segments));
+              } else if (uri.Segments.Length == 2) {
+                  VirtualHost = UriDecode(uri.Segments[1]);
+              }
+          }
         }
 
         ///<summary>Construct a fresh instance, with all fields set to
@@ -331,6 +358,11 @@ namespace RabbitMQ.Client
             }
 
             return null;
+        }
+
+        //<summary>Unescape a string, protecting '+'.</summary>
+        private string UriDecode(string uri) {
+            return Uri.UnescapeDataString(uri.Replace("+", "%2B"));
         }
     }
 }

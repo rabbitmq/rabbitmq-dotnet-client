@@ -58,7 +58,7 @@ namespace RabbitMQ.Client.Examples {
             string serverAddress = args[0];
             string queueName = args[1];
             ConnectionFactory cf = new ConnectionFactory();
-            cf.Address = serverAddress; 
+            cf.Uri = serverAddress;
             IConnection conn = cf.CreateConnection();
             conn.ConnectionShutdown += new ConnectionShutdownEventHandler(LogConnClose);
 
