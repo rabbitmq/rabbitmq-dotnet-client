@@ -76,17 +76,23 @@ namespace RabbitMQ.Client
     ///     conn.Close(Constants.ReplySuccess, "Closing the connection");
     ///</code></example>
     ///<para>
+    ///The same example, written more compactly with AMQP URIs:
+    ///</para>
+    ///<example><code>
+    ///     ConnectionFactory factory = new ConnectionFactory();
+    ///     factory.Uri = "amqp://guest:guest@localhost:5672/";
+    ///     IConnection conn = factory.CreateConnection();
+    ///     ...
+    ///</code></example>
+    ///<para>
     /// Please see also the API overview and tutorial in the User Guide.
     ///</para>
     ///<para>
-    /// Some of the static methods described below take, as a
-    /// convenience, a System.Uri instance representing an AMQP server
-    /// address. The use of Uri here is not standardised - Uri is
-    /// simply a convenient container for internet-address-like
-    /// components. In particular, the Uri "Scheme" property is
-    /// ignored: only the "Host" and "Port" properties are extracted.
-    ///</para>
-    ///</remarks>
+    ///Note that the Uri property takes a string representation of an
+    ///AMQP URI.  Omitted URI parts will take default values.  The
+    ///only deviation from the spec is that URIs of the form
+    ///"amqp://foo/" (note the trailling slash) are used to represent
+    ///the default virtual host.</para></remarks>
     public class ConnectionFactory
     {
         /// <summary>Default user name (value: "guest")</summary>

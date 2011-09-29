@@ -117,7 +117,7 @@ of the shell environment variable scanned.)
 
 ** Connecting to a broker
 
-The following code connects to an AMQP broker:
+The following two code snippets connect to an AMQP broker:
 
 @code java
  ConnectionFactory factory = new ConnectionFactory();
@@ -127,6 +127,11 @@ The following code connects to an AMQP broker:
  factory.Protocol = Protocols.FromEnvironment();
  factory.HostName = hostName;
  factory.Port = AmqpTcpEndpoint.UseDefaultPort;
+ IConnection conn = factory.CreateConnection();
+
+@code java
+ ConnectionFactory factory = new ConnectionFactory();
+ factory.Uri = "amqp://user:pass@hostName:port/vhost";
  IConnection conn = factory.CreateConnection();
 
 All factory properties have default values. The default value for a property will be used if the property remains unassigned prior to creating a connection:
