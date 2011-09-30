@@ -69,11 +69,6 @@ namespace RabbitMQ.Client.Impl
         ///complete (milliseconds)</summary>
         public static int HandshakeTimeout = 10000;
 
-        ///<summary>Timeout used while waiting for a
-        ///connection.close-ok reply to a connection.close request
-        ///(milliseconds)</summary>
-        public static int ConnectionCloseTimeout = 10000;
-
         public ConnectionFactory m_factory;
         public IFrameHandler m_frameHandler;
         public uint m_frameMax = 0;
@@ -619,15 +614,14 @@ namespace RabbitMQ.Client.Impl
                                                           "Unexpected Exception",
                                                           ex));
             }
-            
-            // If allowed for clean shutdown
-            // Run main loop for a limited amount of time (as defined
-            // by ConnectionCloseTimeout).
+
+            // If allowed for clean shutdown, run main loop until the
+            // connection closes.
             if (shutdownCleanly)
             {
                 ClosingLoop();
             }
-            
+
             FinishClose();
 
             m_appContinuation.Set();
@@ -731,16 +725,10 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
-                m_frameHandler.Timeout = ConnectionCloseTimeout;
-                DateTime startTimeout = DateTime.Now;
+                m_frameHandler.Timeout = 0;
                 // Wait for response/socket closure or timeout
                 while (!m_closed)
                 {
-                    if ((DateTime.Now - startTimeout).TotalMilliseconds >= ConnectionCloseTimeout)
-                    {
-                        LogCloseError("Timeout, when waiting for server's response on close", null);
-                        break;
-                    }
                     MainLoopIteration();
                 }
             }
