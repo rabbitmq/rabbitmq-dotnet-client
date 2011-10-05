@@ -449,7 +449,18 @@ namespace RabbitMQ.Client.Impl
                 m_session0.Transmit(ConnectionCloseWrapper(reason.ReplyCode,
                                                           reason.ReplyText));
             }
-            catch (IOException ioe) {
+            catch (AlreadyClosedException ace)
+            {
+                if (abort) {
+                    if (!m_appContinuation.WaitOne(BlockingCell.validatedTimeout(timeout), true))
+                        m_frameHandler.Close();
+                    return;
+                } else {
+                    throw ace;
+                }
+            }
+            catch (IOException ioe)
+            {
                 if (m_model0.CloseReason == null)
                 {
                     if (!abort)
