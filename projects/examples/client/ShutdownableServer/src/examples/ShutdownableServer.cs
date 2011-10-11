@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.Examples {
     public class ShutdownableServer: SimpleRpcServer {
         public static int Main(string[] args) {
             if (args.Length < 1) {
-                Console.Error.WriteLine("Usage: ShutdownableServer <hostname>[:<portnumber>]");
+                Console.Error.WriteLine("Usage: ShutdownableServer <uri>");
                 Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
                 return 2;
             }

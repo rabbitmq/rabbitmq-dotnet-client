@@ -52,7 +52,7 @@ namespace RabbitMQ.Client.Examples {
     public class LowlevelLogTail {
         public static int Main(string[] args) {
             if (args.Length < 4) {
-                Console.Error.WriteLine("Usage: LowlevelLogTail <hostname>[:<portnumber>] <exchange> <exchangetype> <routingkey>");
+                Console.Error.WriteLine("Usage: LowlevelLogTail <uri> <exchange> <exchangetype> <routingkey>");
                 Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
                 Console.Error.WriteLine("If the exchange name is the empty string, will instead declare a queue named");
                 Console.Error.WriteLine("by the routingkey, and consume from that queue.");

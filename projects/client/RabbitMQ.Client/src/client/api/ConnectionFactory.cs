@@ -41,6 +41,7 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Net.Security;
 using System.Net.Sockets;
 using System.Collections;
 
@@ -181,7 +182,13 @@ namespace RabbitMQ.Client
 
               Uri uri = new Uri(value, UriKind.Absolute);
 
-              if ("amqp".CompareTo(uri.Scheme) != 0) {
+              if ("amqp".CompareTo(uri.Scheme.ToLower()) == 0) {
+                  // nothing special to do
+              } else if ("amqps".CompareTo(uri.Scheme.ToLower()) == 0) {
+                  Ssl.Enabled = true;
+                  Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNameMismatch;
+                  Port = AmqpTcpEndpoint.DefaultAmqpSslPort;
+              } else {
                   throw new ArgumentException("Wrong scheme in AMQP URI: " +
                                               value);
               }
@@ -189,6 +196,7 @@ namespace RabbitMQ.Client
               if (!String.IsNullOrEmpty(host)) {
                   HostName = host;
               }
+              Ssl.ServerName = HostName;
 
               int port = uri.Port;
               if (port != -1) {

@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.Examples {
     public class SingleGet {
         public static int Main(string[] args) {
             if (args.Length < 2) {
-                Console.Error.WriteLine("Usage: SingleGet <hostname>[:<portnumber>] <queuename>");
+                Console.Error.WriteLine("Usage: SingleGet <uri> <queuename>");
                 Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
                 return 2;
             }

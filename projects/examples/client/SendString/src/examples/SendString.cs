@@ -47,7 +47,7 @@ namespace RabbitMQ.Client.Examples {
     public class SendString {
         public static int Main(string[] args) {
             if (args.Length < 5) {
-                Console.Error.WriteLine("Usage: SendString <hostname>[:<portnumber>] <exchange> <exchangetype> <routingkey> <message>");
+                Console.Error.WriteLine("Usage: SendString <uri> <exchange> <exchangetype> <routingkey> <message>");
                 Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
                 return 2;
             }

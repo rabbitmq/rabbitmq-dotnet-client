@@ -49,7 +49,7 @@ namespace RabbitMQ.Client.Examples {
     public class Subscriber {
         public static int Main(string[] args) {
             if (args.Length < 1) {
-                Console.Error.WriteLine("Usage: Subscriber <hostname>[:<port number>] [<message count>]");
+                Console.Error.WriteLine("Usage: Subscriber <uri> [<message count>]");
                 Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
                 return 2;
             }

@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.Examples {
     public class AddServer: SimpleRpcServer {
         public static int Main(string[] args) {
             if (args.Length < 1) {
-                Console.Error.WriteLine("Usage: AddServer <hostname>[:<portnumber>]");
+                Console.Error.WriteLine("Usage: AddServer <uri>");
                 Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
                 return 2;
             }

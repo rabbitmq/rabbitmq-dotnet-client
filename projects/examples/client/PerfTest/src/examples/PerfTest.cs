@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.Examples {
 
         public static int Main(string[] args) {
             if (args.Length < 2) {
-                Console.Error.WriteLine("Usage: PerfTest <hostname>[:<portnumber>] <number of messages>");
+                Console.Error.WriteLine("Usage: PerfTest <uri> <number of messages>");
                 Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
                 return 2;
             }

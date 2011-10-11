@@ -52,7 +52,7 @@ namespace RabbitMQ.Client.Examples {
         public static int Main(string[] args) {
             try {
                 if (args.Length < 1) {
-                    Console.Error.WriteLine("Usage: ExceptionTest <hostname>[:<portnumber>]");
+                    Console.Error.WriteLine("Usage: ExceptionTest <uri>");
                     Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
                     return 2;
                 }

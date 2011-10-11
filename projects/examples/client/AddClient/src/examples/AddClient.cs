@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.Examples {
     public class AddClient {
         public static int Main(string[] args) {
             if (args.Length < 1) {
-                Console.Error.WriteLine("Usage: AddClient <hostname>[:<portnumber>] [<number> ...]");
+                Console.Error.WriteLine("Usage: AddClient <uri> [<number> ...]");
                 Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
                 return 2;
             }
