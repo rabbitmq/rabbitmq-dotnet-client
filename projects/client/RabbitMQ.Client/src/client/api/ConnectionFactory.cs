@@ -174,55 +174,14 @@ namespace RabbitMQ.Client
           }
         }
 
+        public Uri uri
+        {
+          set { SetUri(value); }
+        }
+
         public String Uri
         {
-          set
-          {
-              Endpoint = new AmqpTcpEndpoint();
-
-              Uri uri = new Uri(value, UriKind.Absolute);
-
-              if ("amqp".CompareTo(uri.Scheme.ToLower()) == 0) {
-                  // nothing special to do
-              } else if ("amqps".CompareTo(uri.Scheme.ToLower()) == 0) {
-                  Ssl.Enabled = true;
-                  Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNameMismatch;
-                  Port = AmqpTcpEndpoint.DefaultAmqpSslPort;
-              } else {
-                  throw new ArgumentException("Wrong scheme in AMQP URI: " +
-                                              value);
-              }
-              string host = uri.Host;
-              if (!String.IsNullOrEmpty(host)) {
-                  HostName = host;
-              }
-              Ssl.ServerName = HostName;
-
-              int port = uri.Port;
-              if (port != -1) {
-                  Port = port;
-              }
-
-              string userInfo = uri.UserInfo;
-              if (!String.IsNullOrEmpty(userInfo)) {
-                  string[] userPass = userInfo.Split(':');
-                  if (userPass.Length > 2) {
-                      throw new ArgumentException("Bad user info in AMQP URI: " + value);
-                  }
-                  UserName = UriDecode(userPass[0]);
-                  if (userPass.Length == 2) {
-                      Password = UriDecode(userPass[1]);
-                  }
-              }
-
-              /* C# automatically changes URIs into a canonical form
-                 that has at least the path segment "/". */
-              if (uri.Segments.Length > 2) {
-                  throw new ArgumentException("Multiple segments in path of AMQP URI: " + String.Join(", ", uri.Segments));
-              } else if (uri.Segments.Length == 2) {
-                  VirtualHost = UriDecode(uri.Segments[1]);
-              }
-          }
+          set { SetUri(new Uri(value, UriKind.Absolute)); }
         }
 
         ///<summary>Construct a fresh instance, with all fields set to
@@ -372,6 +331,57 @@ namespace RabbitMQ.Client
             }
 
             return null;
+        }
+
+
+        private void SetUri(Uri uri)
+        {
+            Endpoint = new AmqpTcpEndpoint();
+
+            if ("amqp".CompareTo(uri.Scheme.ToLower()) == 0) {
+                // nothing special to do
+            } else if ("amqps".CompareTo(uri.Scheme.ToLower()) == 0) {
+                Ssl.Enabled = true;
+                Ssl.AcceptablePolicyErrors =
+                    SslPolicyErrors.RemoteCertificateNameMismatch;
+                Port = AmqpTcpEndpoint.DefaultAmqpSslPort;
+            } else {
+                throw new ArgumentException("Wrong scheme in AMQP URI: " +
+                                            uri.Scheme);
+            }
+            string host = uri.Host;
+            if (!String.IsNullOrEmpty(host)) {
+                HostName = host;
+            }
+            Ssl.ServerName = HostName;
+
+            int port = uri.Port;
+            if (port != -1) {
+                Port = port;
+            }
+
+            string userInfo = uri.UserInfo;
+            if (!String.IsNullOrEmpty(userInfo)) {
+                string[] userPass = userInfo.Split(':');
+                if (userPass.Length > 2) {
+                    throw new ArgumentException("Bad user info in AMQP " +
+                                                "URI: " + userInfo);
+                }
+                UserName = UriDecode(userPass[0]);
+                if (userPass.Length == 2) {
+                    Password = UriDecode(userPass[1]);
+                }
+            }
+
+            /* C# automatically changes URIs into a canonical form
+               that has at least the path segment "/". */
+            if (uri.Segments.Length > 2) {
+                throw new ArgumentException("Multiple segments in " +
+                                            "path of AMQP URI: " +
+                                            String.Join(", ", uri.Segments));
+            } else if (uri.Segments.Length == 2) {
+                VirtualHost = UriDecode(uri.Segments[1]);
+            }
         }
 
         //<summary>Unescape a string, protecting '+'.</summary>
