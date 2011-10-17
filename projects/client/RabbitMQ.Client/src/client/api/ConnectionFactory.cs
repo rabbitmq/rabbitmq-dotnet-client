@@ -81,7 +81,7 @@ namespace RabbitMQ.Client
     ///</para>
     ///<example><code>
     ///     ConnectionFactory factory = new ConnectionFactory();
-    ///     factory.Uri = "amqp://";
+    ///     factory.Uri = "amqp://localhost";
     ///     IConnection conn = factory.CreateConnection();
     ///     ...
     ///</code></example>
@@ -91,9 +91,10 @@ namespace RabbitMQ.Client
     ///<para>
     ///Note that the Uri property takes a string representation of an
     ///AMQP URI.  Omitted URI parts will take default values.  The
-    ///only deviation from the spec is that URIs of the form
-    ///"amqp://foo/" (note the trailling slash) are used to represent
-    ///the default virtual host.</para></remarks>
+    ///only deviations from the spec are that URIs of the form
+    ///"amqp://foo/" (note the trailling slash) also represent the
+    ///default virtual host and that the hostname must be specified.
+    ///</para></remarks>
     public class ConnectionFactory
     {
         /// <summary>Default user name (value: "guest")</summary>

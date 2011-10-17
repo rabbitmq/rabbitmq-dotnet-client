@@ -55,16 +55,16 @@ namespace RabbitMQ.Client.Unit
                          "user", "pass", "host", 10000, "vhost");
             ParseSuccess("amqp://user%61:%61pass@host:10000/v%2fhost",
                          "usera", "apass", "host", 10000, "v/host");
-            ParseSuccess("amqp://", "guest", "guest", "localhost", 5672, "/");
-            ParseSuccess("amqp://:@/", "", "", "localhost", 5672, "/");
-            ParseSuccess("amqp://user@",
+            ParseSuccess("amqp://localhost", "guest", "guest", "localhost", 5672, "/");
+            ParseSuccess("amqp://:@localhost/", "", "", "localhost", 5672, "/");
+            ParseSuccess("amqp://user@localhost",
                          "user", "guest", "localhost", 5672, "/");
-            ParseSuccess("amqp://user:pass@",
+            ParseSuccess("amqp://user:pass@localhost",
                          "user", "pass", "localhost", 5672, "/");
             ParseSuccess("amqp://host", "guest", "guest", "host", 5672, "/");
-            ParseSuccess("amqp://:10000",
+            ParseSuccess("amqp://localhost:10000",
                          "guest", "guest", "localhost", 10000, "/");
-            ParseSuccess("amqp:///vhost",
+            ParseSuccess("amqp://localhost/vhost",
                          "guest", "guest", "localhost", 5672, "vhost");
             ParseSuccess("amqp://host/", "guest", "guest", "host", 5672, "/");
             ParseSuccess("amqp://host/%2f",
@@ -85,7 +85,7 @@ namespace RabbitMQ.Client.Unit
                          "guest", "guest", "host", 5672, "blah");
             ParseSuccess("amqp://host:100/blah",
                          "guest", "guest", "host", 100, "blah");
-            ParseSuccess("amqp://:100/blah",
+            ParseSuccess("amqp://localhost:100/blah",
                          "guest", "guest", "localhost", 100, "blah");
             ParseSuccess("amqp://[::1]/blah",
                          "guest", "guest",
@@ -100,7 +100,7 @@ namespace RabbitMQ.Client.Unit
                          "user", "pass", "host", 5672, "/");
             ParseSuccess("amqp://user:pass@host:100",
                          "user", "pass", "host", 100, "/");
-            ParseSuccess("amqp://user:pass@:100",
+            ParseSuccess("amqp://user:pass@localhost:100",
                          "user", "pass", "localhost", 100, "/");
             ParseSuccess("amqp://user:pass@[::1]",
                          "user", "pass",
