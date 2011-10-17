@@ -81,7 +81,7 @@ namespace RabbitMQ.Client
     ///</para>
     ///<example><code>
     ///     ConnectionFactory factory = new ConnectionFactory();
-    ///     factory.Uri = "amqp://guest:guest@localhost:5672/";
+    ///     factory.Uri = "amqp://";
     ///     IConnection conn = factory.CreateConnection();
     ///     ...
     ///</code></example>
@@ -386,7 +386,7 @@ namespace RabbitMQ.Client
 
         //<summary>Unescape a string, protecting '+'.</summary>
         private string UriDecode(string uri) {
-            return Uri.UnescapeDataString(uri.Replace("+", "%2B"));
+            return System.Uri.UnescapeDataString(uri.Replace("+", "%2B"));
         }
     }
 }
