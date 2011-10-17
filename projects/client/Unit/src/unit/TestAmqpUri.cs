@@ -53,7 +53,7 @@ namespace RabbitMQ.Client.Unit
             /* From the spec */
             ParseSuccess("amqp://user:pass@host:10000/vhost",
                          "user", "pass", "host", 10000, "vhost");
-            ParseSuccess("amqp://user%61:%61pass@host:10000/v%2fhost",
+            ParseSuccess("aMQps://user%61:%61pass@host:10000/v%2fhost",
                          "usera", "apass", "host", 10000, "v/host");
             ParseSuccess("amqp://localhost", "guest", "guest", "localhost", 5672, "/");
             ParseSuccess("amqp://:@localhost/", "", "", "localhost", 5672, "/");
