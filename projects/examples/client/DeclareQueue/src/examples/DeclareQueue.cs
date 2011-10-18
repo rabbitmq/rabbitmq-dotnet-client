@@ -74,6 +74,8 @@ namespace RabbitMQ.Client.Examples {
                 {
                     Console.Error.WriteLine("Usage: DeclareQueue [<option> ...] <uri> <queue> [<exchange> <routingkey>] ...");
                     Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
+                    Console.Error.WriteLine("Parameters:");
+                    Console.Error.WriteLine("  <uri> = \"amqp://user:pass@host:port/vhost\"");
                     Console.Error.WriteLine("Available options:");
                     Console.Error.WriteLine("  /durable      declare a durable queue");
                     Console.Error.WriteLine("  /delete       delete after declaring");

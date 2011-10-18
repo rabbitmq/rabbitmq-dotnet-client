@@ -140,13 +140,12 @@ namespace RabbitMQ.Client.Unit
 
         private void ParseFail(string uri)
         {
-            try {
-                ConnectionFactory cf = new ConnectionFactory();
-                cf.Uri = uri;
-                Assert.Fail("URI parse didn't fail: '" + uri + "'");
-            } catch (Exception) {
-                // whoosh!
-            }
+            Assert.Throws(
+              Is.InstanceOf<Exception>(),
+              delegate {
+                  ConnectionFactory cf = new ConnectionFactory();
+                  cf.Uri = uri;
+              });
         }
     }
 }

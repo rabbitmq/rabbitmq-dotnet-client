@@ -91,10 +91,10 @@ namespace RabbitMQ.Client
     ///<para>
     ///Note that the Uri property takes a string representation of an
     ///AMQP URI.  Omitted URI parts will take default values.  The
-    ///only deviations from the spec are that URIs of the form
+    ///host part of the URI cannot be omitted and URIs of the form
     ///"amqp://foo/" (note the trailling slash) also represent the
-    ///default virtual host and that the hostname must be specified.
-    ///</para></remarks>
+    ///default virtual host.  The latter issue means that virtual
+    ///hosts with an empty name are not addressable. </para></remarks>
     public class ConnectionFactory
     {
         /// <summary>Default user name (value: "guest")</summary>

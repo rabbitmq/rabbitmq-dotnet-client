@@ -49,6 +49,8 @@ namespace RabbitMQ.Client.Examples {
             if (args.Length < 5) {
                 Console.Error.WriteLine("Usage: SendString <uri> <exchange> <exchangetype> <routingkey> <message>");
                 Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
+                Console.Error.WriteLine("Parameters:");
+                Console.Error.WriteLine("  <uri> = \"amqp://user:pass@host:port/vhost\"");
                 return 2;
             }
             

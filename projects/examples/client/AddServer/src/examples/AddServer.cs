@@ -53,6 +53,8 @@ namespace RabbitMQ.Client.Examples {
             if (args.Length < 1) {
                 Console.Error.WriteLine("Usage: AddServer <uri>");
                 Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
+                Console.Error.WriteLine("Parameters:");
+                Console.Error.WriteLine("  <uri> = \"amqp://user:pass@host:port/vhost\"");
                 return 2;
             }
 

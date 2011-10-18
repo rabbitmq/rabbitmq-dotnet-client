@@ -54,6 +54,8 @@ namespace RabbitMQ.Client.Examples {
             if (args.Length < 4) {
                 Console.Error.WriteLine("Usage: LowlevelLogTail <uri> <exchange> <exchangetype> <routingkey>");
                 Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
+                Console.Error.WriteLine("Parameters:");
+                Console.Error.WriteLine("  <uri> = \"amqp://user:pass@host:port/vhost\"");
                 Console.Error.WriteLine("If the exchange name is the empty string, will instead declare a queue named");
                 Console.Error.WriteLine("by the routingkey, and consume from that queue.");
                 return 2;
