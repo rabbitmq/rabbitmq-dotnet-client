@@ -49,15 +49,17 @@ namespace RabbitMQ.Client.Examples {
     public class Subscriber {
         public static int Main(string[] args) {
             if (args.Length < 1) {
-                Console.Error.WriteLine("Usage: Subscriber <hostname>[:<port number>] [<message count>]");
+                Console.Error.WriteLine("Usage: Subscriber <uri> [<message count>]");
                 Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
+                Console.Error.WriteLine("Parameters:");
+                Console.Error.WriteLine("  <uri> = \"amqp://user:pass@host:port/vhost\"");
                 return 2;
             }
 
             string serverAddress = args[0];
             long msgCount = (args.Length > 1) ? int.Parse(args[1]) : 10;
             ConnectionFactory cf = new ConnectionFactory();
-            cf.Address = serverAddress;
+            cf.Uri = serverAddress;
             using (IConnection conn = cf.CreateConnection()) {
                 using (IModel ch = conn.CreateModel()) {
                     string queueName = ensureQueue(ch);

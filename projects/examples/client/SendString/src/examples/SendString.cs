@@ -47,8 +47,10 @@ namespace RabbitMQ.Client.Examples {
     public class SendString {
         public static int Main(string[] args) {
             if (args.Length < 5) {
-                Console.Error.WriteLine("Usage: SendString <hostname>[:<portnumber>] <exchange> <exchangetype> <routingkey> <message>");
+                Console.Error.WriteLine("Usage: SendString <uri> <exchange> <exchangetype> <routingkey> <message>");
                 Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
+                Console.Error.WriteLine("Parameters:");
+                Console.Error.WriteLine("  <uri> = \"amqp://user:pass@host:port/vhost\"");
                 return 2;
             }
             
@@ -57,10 +59,10 @@ namespace RabbitMQ.Client.Examples {
             string exchangeType = args[2];
             string routingKey = args[3];
             string message = args[4];
-            
+
             ConnectionFactory cf = new ConnectionFactory();
-            cf.Address = serverAddress;     
-       
+            cf.Uri = serverAddress;
+
             using (IConnection conn = cf.CreateConnection())
                 {
                     using (IModel ch = conn.CreateModel()) {

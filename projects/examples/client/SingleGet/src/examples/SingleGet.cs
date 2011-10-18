@@ -50,15 +50,17 @@ namespace RabbitMQ.Client.Examples {
     public class SingleGet {
         public static int Main(string[] args) {
             if (args.Length < 2) {
-                Console.Error.WriteLine("Usage: SingleGet <hostname>[:<portnumber>] <queuename>");
+                Console.Error.WriteLine("Usage: SingleGet <uri> <queuename>");
                 Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
+                Console.Error.WriteLine("Parameters:");
+                Console.Error.WriteLine("  <uri> = \"amqp://user:pass@host:port/vhost\"");
                 return 2;
             }
 
             string serverAddress = args[0];
             string queueName = args[1];
             ConnectionFactory cf = new ConnectionFactory();
-            cf.Address = serverAddress; 
+            cf.Uri = serverAddress;
             IConnection conn = cf.CreateConnection();
             conn.ConnectionShutdown += new ConnectionShutdownEventHandler(LogConnClose);
 
