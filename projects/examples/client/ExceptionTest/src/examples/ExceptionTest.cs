@@ -52,15 +52,17 @@ namespace RabbitMQ.Client.Examples {
         public static int Main(string[] args) {
             try {
                 if (args.Length < 1) {
-                    Console.Error.WriteLine("Usage: ExceptionTest <hostname>[:<portnumber>]");
+                    Console.Error.WriteLine("Usage: ExceptionTest <uri>");
                     Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
+                    Console.Error.WriteLine("Parameters:");
+                    Console.Error.WriteLine("  <uri> = \"amqp://user:pass@host:port/vhost\"");
                     return 2;
                 }
 
                 string serverAddress = args[0];
                 ConnectionFactory cf = new ConnectionFactory();
-                cf.Address = serverAddress;
-            
+                cf.Uri = serverAddress;
+
                 using (IConnection conn = cf.CreateConnection())
                 {
                     conn.ConnectionShutdown += new ConnectionShutdownEventHandler(First);

@@ -51,8 +51,10 @@ namespace RabbitMQ.Client.Examples {
 
         public static int Main(string[] args) {
             if (args.Length < 2) {
-                Console.Error.WriteLine("Usage: PerfTest <hostname>[:<portnumber>] <number of messages>");
+                Console.Error.WriteLine("Usage: PerfTest <uri> <number of messages>");
                 Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
+                Console.Error.WriteLine("Parameters:");
+                Console.Error.WriteLine("  <uri> = \"amqp://user:pass@host:port/vhost\"");
                 return 2;
             }
 
@@ -60,7 +62,7 @@ namespace RabbitMQ.Client.Examples {
             int messageCount = int.Parse(args[1]);
 
             ConnectionFactory cf = new ConnectionFactory();
-            cf.Address = serverAddress;                
+            cf.Uri = serverAddress;
             using (IConnection conn = cf.CreateConnection())
             {
                 Stopwatch sendTimer = new Stopwatch();

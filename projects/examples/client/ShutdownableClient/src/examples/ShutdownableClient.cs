@@ -50,13 +50,15 @@ namespace RabbitMQ.Client.Examples {
     public class ShutdownableClient {
         public static int Main(string[] args) {
             if (args.Length < 1) {
-                Console.Error.WriteLine("Usage: ShutdownableClient <hostname>[:<portnumber>] [<secondsdelay>]");
+                Console.Error.WriteLine("Usage: ShutdownableClient <uri> [<secondsdelay>]");
                 Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
+                Console.Error.WriteLine("Parameters:");
+                Console.Error.WriteLine("  <uri> = \"amqp://user:pass@host:port/vhost\"");
                 return 2;
             }
 
             ConnectionFactory cf = new ConnectionFactory();
-            cf.Address = args[0];
+            cf.Uri = args[0];
             using (IConnection conn = cf.CreateConnection()) {
                 using (IModel ch = conn.CreateModel()) {
                     object[] callArgs = new object[1];
