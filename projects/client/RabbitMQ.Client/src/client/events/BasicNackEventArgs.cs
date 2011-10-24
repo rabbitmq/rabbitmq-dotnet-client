@@ -70,7 +70,8 @@ namespace RabbitMQ.Client.Events
             set { m_multiple = value; }
         }
 
-        //<summary>Clients should ignore this field.</summary>
+        ///<summary>Ignore</summary>
+        ///<remarks>Clients should ignore this field.</remarks>
         public bool Requeue
         {
             get { return m_requeue; }
