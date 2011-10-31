@@ -160,6 +160,7 @@ namespace RabbitMQ.Client
         ///<summary>The AMQP protocol to be used</summary>
         public IProtocol Protocol = Protocols.FromEnvironment();
 
+        ///<summary>The AMQP connection target</summary>
         public AmqpTcpEndpoint Endpoint
         { 
           get
@@ -175,11 +176,13 @@ namespace RabbitMQ.Client
           }
         }
 
+        ///<summary>Set connection parameters using the amqp or amqps scheme</summary>
         public Uri uri
         {
           set { SetUri(value); }
         }
 
+        ///<summary>Set connection parameters using the amqp or amqps scheme</summary>
         public String Uri
         {
           set { SetUri(new Uri(value, UriKind.Absolute)); }
