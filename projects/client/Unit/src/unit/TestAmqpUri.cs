@@ -116,7 +116,6 @@ namespace RabbitMQ.Client.Unit
             ParseFail("amqp://foo:bar:baz");
             ParseFail("amqp://foo[::1]");
             ParseFail("amqp://foo:[::1]");
-            ParseFail("amqp://[::1]foo");
             ParseFail("amqp://foo:1000xyz");
             ParseFail("amqp://foo:1000000");
             ParseFail("amqp://foo/bar/baz");
