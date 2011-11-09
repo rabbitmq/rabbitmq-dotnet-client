@@ -26,7 +26,6 @@ The core API interfaces and classes are
 
 Other useful interfaces and classes include:
 
- - [code ConnectionParameters]: configures a [code ConnectionFactory]
  - [code QueueingBasicConsumer]: receives messages delivered from the server
  - [code Protocols]: support class for choosing an AMQP protocol variant
 
