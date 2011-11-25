@@ -41,9 +41,9 @@
 
 namespace RabbitMQ.Client
 {
-    /// A pluggable authentication mechanism.
+    ///<summary>A pluggable authentication mechanism.</summary>
     public interface AuthMechanism {
-        /// Handle one round of challenge-response
+        ///<summary>Handle one round of challenge-response</summary>
         byte[] handleChallenge(byte[] challenge, ConnectionFactory factory);
     }
 }

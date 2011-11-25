@@ -34,7 +34,7 @@ ensure-deliverables: rabbit-vsn
 	file ${RELEASE_DIR}/${NAME_VSN}.msm
 
 ensure-prerequisites: rabbit-vsn
-	dpkg -L htmldoc plotutils transfig graphviz docbook-utils > /dev/null
+	[ -f "/etc/debian_version" ] && dpkg -L htmldoc plotutils transfig graphviz docbook-utils || true > /dev/null
 
 ensure-release-dir: rabbit-vsn
 	touch ${RELEASE_DIR}/

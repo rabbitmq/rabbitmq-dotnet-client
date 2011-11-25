@@ -41,6 +41,7 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Net.Security;
 using System.Net.Sockets;
 using System.Collections;
 
@@ -76,17 +77,24 @@ namespace RabbitMQ.Client
     ///     conn.Close(Constants.ReplySuccess, "Closing the connection");
     ///</code></example>
     ///<para>
+    ///The same example, written more compactly with AMQP URIs:
+    ///</para>
+    ///<example><code>
+    ///     ConnectionFactory factory = new ConnectionFactory();
+    ///     factory.Uri = "amqp://localhost";
+    ///     IConnection conn = factory.CreateConnection();
+    ///     ...
+    ///</code></example>
+    ///<para>
     /// Please see also the API overview and tutorial in the User Guide.
     ///</para>
     ///<para>
-    /// Some of the static methods described below take, as a
-    /// convenience, a System.Uri instance representing an AMQP server
-    /// address. The use of Uri here is not standardised - Uri is
-    /// simply a convenient container for internet-address-like
-    /// components. In particular, the Uri "Scheme" property is
-    /// ignored: only the "Host" and "Port" properties are extracted.
-    ///</para>
-    ///</remarks>
+    ///Note that the Uri property takes a string representation of an
+    ///AMQP URI.  Omitted URI parts will take default values.  The
+    ///host part of the URI cannot be omitted and URIs of the form
+    ///"amqp://foo/" (note the trailling slash) also represent the
+    ///default virtual host.  The latter issue means that virtual
+    ///hosts with an empty name are not addressable. </para></remarks>
     public class ConnectionFactory
     {
         /// <summary>Default user name (value: "guest")</summary>
@@ -152,6 +160,7 @@ namespace RabbitMQ.Client
         ///<summary>The AMQP protocol to be used</summary>
         public IProtocol Protocol = Protocols.FromEnvironment();
 
+        ///<summary>The AMQP connection target</summary>
         public AmqpTcpEndpoint Endpoint
         { 
           get
@@ -167,21 +176,16 @@ namespace RabbitMQ.Client
           }
         }
 
-        public String Address
+        ///<summary>Set connection parameters using the amqp or amqps scheme</summary>
+        public Uri uri
         {
-          get
-          { 
-              String result = HostName;
-              if(Port != AmqpTcpEndpoint.UseDefaultPort)
-              {
-                  result += (":" + Port);
-              }
-              return result;
-          }
-          set
-          {
-              Endpoint = AmqpTcpEndpoint.Parse(Protocol, value);
-          }      
+          set { SetUri(value); }
+        }
+
+        ///<summary>Set connection parameters using the amqp or amqps scheme</summary>
+        public String Uri
+        {
+          set { SetUri(new Uri(value, UriKind.Absolute)); }
         }
 
         ///<summary>Construct a fresh instance, with all fields set to
@@ -331,6 +335,62 @@ namespace RabbitMQ.Client
             }
 
             return null;
+        }
+
+
+        private void SetUri(Uri uri)
+        {
+            Endpoint = new AmqpTcpEndpoint();
+
+            if ("amqp".CompareTo(uri.Scheme.ToLower()) == 0) {
+                // nothing special to do
+            } else if ("amqps".CompareTo(uri.Scheme.ToLower()) == 0) {
+                Ssl.Enabled = true;
+                Ssl.AcceptablePolicyErrors =
+                    SslPolicyErrors.RemoteCertificateNameMismatch;
+                Port = AmqpTcpEndpoint.DefaultAmqpSslPort;
+            } else {
+                throw new ArgumentException("Wrong scheme in AMQP URI: " +
+                                            uri.Scheme);
+            }
+            string host = uri.Host;
+            if (!String.IsNullOrEmpty(host)) {
+                HostName = host;
+            }
+            Ssl.ServerName = HostName;
+
+            int port = uri.Port;
+            if (port != -1) {
+                Port = port;
+            }
+
+            string userInfo = uri.UserInfo;
+            if (!String.IsNullOrEmpty(userInfo)) {
+                string[] userPass = userInfo.Split(':');
+                if (userPass.Length > 2) {
+                    throw new ArgumentException("Bad user info in AMQP " +
+                                                "URI: " + userInfo);
+                }
+                UserName = UriDecode(userPass[0]);
+                if (userPass.Length == 2) {
+                    Password = UriDecode(userPass[1]);
+                }
+            }
+
+            /* C# automatically changes URIs into a canonical form
+               that has at least the path segment "/". */
+            if (uri.Segments.Length > 2) {
+                throw new ArgumentException("Multiple segments in " +
+                                            "path of AMQP URI: " +
+                                            String.Join(", ", uri.Segments));
+            } else if (uri.Segments.Length == 2) {
+                VirtualHost = UriDecode(uri.Segments[1]);
+            }
+        }
+
+        //<summary>Unescape a string, protecting '+'.</summary>
+        private string UriDecode(string uri) {
+            return System.Uri.UnescapeDataString(uri.Replace("+", "%2B"));
         }
     }
 }

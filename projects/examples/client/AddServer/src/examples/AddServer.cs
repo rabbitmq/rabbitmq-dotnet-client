@@ -51,13 +51,15 @@ namespace RabbitMQ.Client.Examples {
     public class AddServer: SimpleRpcServer {
         public static int Main(string[] args) {
             if (args.Length < 1) {
-                Console.Error.WriteLine("Usage: AddServer <hostname>[:<portnumber>]");
+                Console.Error.WriteLine("Usage: AddServer <uri>");
                 Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
+                Console.Error.WriteLine("Parameters:");
+                Console.Error.WriteLine("  <uri> = \"amqp://user:pass@host:port/vhost\"");
                 return 2;
             }
 
             ConnectionFactory cf = new ConnectionFactory();
-            cf.Address = args[0];
+            cf.Uri = args[0];
             using (IConnection conn = cf.CreateConnection()) {
                 using (IModel ch = conn.CreateModel()) {
                     ch.QueueDeclare("AddServer", false, false, false, null);

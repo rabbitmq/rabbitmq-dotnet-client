@@ -72,8 +72,10 @@ namespace RabbitMQ.Client.Examples {
             if (((args.Length - optionIndex) < 2) ||
                 (((args.Length - optionIndex) % 2) != 0))
                 {
-                    Console.Error.WriteLine("Usage: DeclareQueue [<option> ...] <hostname>[:<portnumber>] <queue> [<exchange> <routingkey>] ...");
+                    Console.Error.WriteLine("Usage: DeclareQueue [<option> ...] <uri> <queue> [<exchange> <routingkey>] ...");
                     Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
+                    Console.Error.WriteLine("Parameters:");
+                    Console.Error.WriteLine("  <uri> = \"amqp://user:pass@host:port/vhost\"");
                     Console.Error.WriteLine("Available options:");
                     Console.Error.WriteLine("  /durable      declare a durable queue");
                     Console.Error.WriteLine("  /delete       delete after declaring");
@@ -84,7 +86,7 @@ namespace RabbitMQ.Client.Examples {
             string serverAddress = args[optionIndex++];
             string inputQueueName = args[optionIndex++];
             ConnectionFactory cf = new ConnectionFactory();
-            cf.Address = serverAddress;
+            cf.Uri = serverAddress;
 
             using (IConnection conn = cf.CreateConnection())
                 {

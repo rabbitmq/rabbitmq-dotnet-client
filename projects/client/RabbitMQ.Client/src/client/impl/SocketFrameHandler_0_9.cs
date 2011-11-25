@@ -49,8 +49,11 @@ namespace RabbitMQ.Client.Impl
 {
     public class SocketFrameHandler_0_9 : IFrameHandler
     {
-        public const int WSAEWOULDBLOCK = 10035; 
+        public const int WSAEWOULDBLOCK = 10035;
         // ^^ System.Net.Sockets.SocketError doesn't exist in .NET 1.1
+
+        // Timeout in seconds to wait for a clean socket close.
+        public const int SOCKET_CLOSING_TIMEOUT = 1;
 
         public AmqpTcpEndpoint m_endpoint;
         public TcpClient m_socket;
@@ -147,6 +150,7 @@ namespace RabbitMQ.Client.Impl
 
         public void Close()
         {
+            m_socket.LingerState = new LingerOption(true, SOCKET_CLOSING_TIMEOUT);
             m_socket.Close();
         }
     }

@@ -26,7 +26,6 @@ The core API interfaces and classes are
 
 Other useful interfaces and classes include:
 
- - [code ConnectionParameters]: configures a [code ConnectionFactory]
  - [code QueueingBasicConsumer]: receives messages delivered from the server
  - [code Protocols]: support class for choosing an AMQP protocol variant
 
@@ -117,7 +116,7 @@ of the shell environment variable scanned.)
 
 ** Connecting to a broker
 
-The following code connects to an AMQP broker:
+The following two code snippets connect to an AMQP broker:
 
 @code java
  ConnectionFactory factory = new ConnectionFactory();
@@ -128,6 +127,16 @@ The following code connects to an AMQP broker:
  factory.HostName = hostName;
  factory.Port = AmqpTcpEndpoint.UseDefaultPort;
  IConnection conn = factory.CreateConnection();
+
+@code java
+ ConnectionFactory factory = new ConnectionFactory();
+ factory.Uri = "amqp://user:pass@hostName:port/vhost";
+ IConnection conn = factory.CreateConnection();
+
+Since the .NET client uses a stricter interpretation of the AMQP URI
+spec than the other clients, care must be taken when using URIs.  In
+particular, the host part must not be omitted and virtual hosts with
+empty names are not addressable.
 
 All factory properties have default values. The default value for a property will be used if the property remains unassigned prior to creating a connection:
  - username: [code "guest"]
