@@ -40,15 +40,35 @@
 
 namespace RabbitMQ.Client
 {
-    public class QueueDeclareOk {
-        public string QueueName { get; private set; }
-        public uint MessageCount { get; private set; }
-        public uint ConsumerCount { get; private set; }
+    public class QueueDeclareOk
+    {
 
-        public QueueDeclareOk(string queueName, uint messageCount, uint consumerCount) {
-            this.QueueName = queueName;
-            this.MessageCount = messageCount;
-            this.ConsumerCount = consumerCount;
+        private string m_queueName;
+        public string QueueName
+        {
+            get { return m_queueName; }
+            private set { m_queueName = value; }
+        }
+
+        private uint m_messageCount;
+        public uint MessageCount
+        {
+            get { return m_messageCount; }
+            private set { m_messageCount = value; }
+        }
+
+        private uint m_consumerCount;
+        public uint ConsumerCount
+        {
+            get { return m_consumerCount; }
+            private set { m_consumerCount = value; }
+        }
+
+        public QueueDeclareOk(string queueName, uint messageCount, uint consumerCount)
+        {
+            QueueName = queueName;
+            MessageCount = messageCount;
+            ConsumerCount = consumerCount;
         }
 
         public static implicit operator string(QueueDeclareOk declareOk)
