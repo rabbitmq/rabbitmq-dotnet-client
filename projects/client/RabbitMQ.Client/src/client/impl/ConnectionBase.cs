@@ -425,38 +425,42 @@ namespace RabbitMQ.Client.Impl
         public void Close(ShutdownEventArgs reason, bool abort, int timeout)
         {
             if (!SetCloseReason(reason))
-                if (abort)
-                {
-                    if (!m_appContinuation.WaitOne(BlockingCell.validatedTimeout(timeout), true))
-                        m_frameHandler.Close();
-                    return;
-                } else {
-                    throw new AlreadyClosedException(m_closeReason);
-                }
-                                           
-            OnShutdown();
-            m_session0.SetSessionClosing(false);
-
-            try
             {
-                // Try to send connection.close
-                // Wait for CloseOk in the MainLoop
-                m_session0.Transmit(ConnectionCloseWrapper(reason.ReplyCode,
-                                                          reason.ReplyText));
+               if (!abort)
+                    throw new AlreadyClosedException(m_closeReason);
             }
-            catch (IOException ioe) {
-                if (m_model0.CloseReason == null)
+            else
+            {
+                OnShutdown();
+                m_session0.SetSessionClosing(false);
+
+                try
+                {
+                    // Try to send connection.close
+                    // Wait for CloseOk in the MainLoop
+                    m_session0.Transmit(ConnectionCloseWrapper(reason.ReplyCode,
+                                                              reason.ReplyText));
+                }
+                catch (AlreadyClosedException ace)
                 {
                     if (!abort)
-                        throw ioe;
-                    else
-                        LogCloseError("Couldn't close connection cleanly. " 
-                                      + "Socket closed unexpectedly", ioe);
+                        throw ace;
                 }
-            }
-            finally
-            {
-                TerminateMainloop();
+                catch (IOException ioe)
+                {
+                    if (m_model0.CloseReason == null)
+                    {
+                        if (!abort)
+                            throw ioe;
+                        else
+                            LogCloseError("Couldn't close connection cleanly. "
+                                          + "Socket closed unexpectedly", ioe);
+                    }
+                }
+                finally
+                {
+                    TerminateMainloop();
+                }
             }
             if (!m_appContinuation.WaitOne(BlockingCell.validatedTimeout(timeout),true))
                 m_frameHandler.Close();
