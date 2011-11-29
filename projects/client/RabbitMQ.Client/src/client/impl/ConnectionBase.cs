@@ -424,12 +424,13 @@ namespace RabbitMQ.Client.Impl
         ///</remarks>
         public void Close(ShutdownEventArgs reason, bool abort, int timeout)
         {
-            bool reasonSet = SetCloseReason(reason);
-            if (!reasonSet && !abort)
-                throw new AlreadyClosedException(m_closeReason);
-
-            if (reasonSet)
-            {                               
+            if (!SetCloseReason(reason))
+            {
+               if (!abort)
+                    throw new AlreadyClosedException(m_closeReason);
+            }
+            else
+            {
                 OnShutdown();
                 m_session0.SetSessionClosing(false);
 
@@ -452,7 +453,7 @@ namespace RabbitMQ.Client.Impl
                         if (!abort)
                             throw ioe;
                         else
-                            LogCloseError("Couldn't close connection cleanly. " 
+                            LogCloseError("Couldn't close connection cleanly. "
                                           + "Socket closed unexpectedly", ioe);
                     }
                 }
