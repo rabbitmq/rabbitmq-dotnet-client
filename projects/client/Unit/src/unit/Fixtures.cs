@@ -63,4 +63,10 @@ namespace RabbitMQ.Client.Unit
             Conn.Close();
         }
     }
+
+    public class TimingFixture
+    {
+        public static readonly int TimingInterval = 200;
+        public static readonly int SafetyMargin = 50;
+    }
 }

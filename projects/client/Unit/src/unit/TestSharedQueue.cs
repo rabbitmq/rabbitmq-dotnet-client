@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.Unit
 {
 
     [TestFixture]
-    public class TestSharedQueue
+    public class TestSharedQueue : TimingFixture
     {
 
         public delegate void Thunk();
@@ -153,11 +153,11 @@ namespace RabbitMQ.Client.Unit
         {
             SharedQueue q = new SharedQueue();
             ResetTimer();
-            EnqueueAfter(50, q, 1);
+            EnqueueAfter(TimingInterval, q, 1);
             Assert.AreEqual(0, q.DequeueNoWait(0));
-            Assert.Greater(45, ElapsedMs());
+            Assert.Greater(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.AreEqual(1, q.Dequeue());
-            Assert.Greater(ElapsedMs(), 45);
+            Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
         }
 
         [Test]
@@ -168,8 +168,8 @@ namespace RabbitMQ.Client.Unit
 
             ResetTimer();
             object v;
-            bool r = q.Dequeue(250, out v);
-            Assert.Greater(50, ElapsedMs());
+            bool r = q.Dequeue(TimingInterval, out v);
+            Assert.Greater(SafetyMargin, ElapsedMs());
             Assert.IsTrue(r);
             Assert.AreEqual(123, v);
         }
@@ -181,8 +181,8 @@ namespace RabbitMQ.Client.Unit
 
             ResetTimer();
             object v;
-            bool r = q.Dequeue(250, out v);
-            Assert.Greater(ElapsedMs(), 200);
+            bool r = q.Dequeue(TimingInterval, out v);
+            Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.IsTrue(!r);
             Assert.AreEqual(null, v);
         }
@@ -195,7 +195,7 @@ namespace RabbitMQ.Client.Unit
             ResetTimer();
             object v;
             bool r = q.Dequeue(-10000, out v);
-            Assert.Greater(50, ElapsedMs());
+            Assert.Greater(SafetyMargin, ElapsedMs());
             Assert.IsTrue(!r);
             Assert.AreEqual(null, v);
         }
@@ -204,12 +204,12 @@ namespace RabbitMQ.Client.Unit
         public void TestTimeoutInfinite()
         {
             SharedQueue q = new SharedQueue();
-            EnqueueAfter(250, q, 123);
+            EnqueueAfter(TimingInterval, q, 123);
 
             ResetTimer();
             object v;
             bool r = q.Dequeue(Timeout.Infinite, out v);
-            Assert.Greater(ElapsedMs(), 200);
+            Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.IsTrue(r);
             Assert.AreEqual(123, v);
         }
@@ -218,12 +218,12 @@ namespace RabbitMQ.Client.Unit
         public void TestBgShort()
         {
             SharedQueue q = new SharedQueue();
-            EnqueueAfter(50, q, 123);
+            EnqueueAfter(TimingInterval, q, 123);
 
             ResetTimer();
             object v;
-            bool r = q.Dequeue(100, out v);
-            Assert.Greater(ElapsedMs(), 40);
+            bool r = q.Dequeue(TimingInterval * 2, out v);
+            Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.IsTrue(r);
             Assert.AreEqual(123, v);
         }
@@ -232,12 +232,12 @@ namespace RabbitMQ.Client.Unit
         public void TestBgLong()
         {
             SharedQueue q = new SharedQueue();
-            EnqueueAfter(150, q, 123);
+            EnqueueAfter(TimingInterval * 2, q, 123);
 
             ResetTimer();
             object v;
-            bool r = q.Dequeue(100, out v);
-            Assert.Greater(110, ElapsedMs());
+            bool r = q.Dequeue(TimingInterval, out v);
+            Assert.Greater(TimingInterval + SafetyMargin, ElapsedMs());
             Assert.IsTrue(!r);
             Assert.AreEqual(null, v);
         }
@@ -246,22 +246,22 @@ namespace RabbitMQ.Client.Unit
         public void TestDoubleBg()
         {
             SharedQueue q = new SharedQueue();
-            EnqueueAfter(100, q, 123);
-            EnqueueAfter(200, q, 234);
+            EnqueueAfter(TimingInterval, q, 123);
+            EnqueueAfter(TimingInterval * 2, q, 234);
 
             ResetTimer();
             object v;
             bool r;
 
-            r = q.Dequeue(200, out v);
-            Assert.Greater(ElapsedMs(), 80);
-            Assert.Greater(120, ElapsedMs());
+            r = q.Dequeue(TimingInterval * 2, out v);
+            Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
+            Assert.Greater(TimingInterval + SafetyMargin, ElapsedMs());
             Assert.IsTrue(r);
             Assert.AreEqual(123, v);
 
-            r = q.Dequeue(200, out v);
-            Assert.Greater(ElapsedMs(), 180);
-            Assert.Greater(220, ElapsedMs());
+            r = q.Dequeue(TimingInterval * 2, out v);
+            Assert.Less(TimingInterval * 2 - SafetyMargin, ElapsedMs());
+            Assert.Greater(TimingInterval * 2 + SafetyMargin, ElapsedMs());
             Assert.IsTrue(r);
             Assert.AreEqual(234, v);
         }
@@ -270,21 +270,21 @@ namespace RabbitMQ.Client.Unit
         public void TestDoublePoll()
         {
             SharedQueue q = new SharedQueue();
-            EnqueueAfter(100, q, 123);
+            EnqueueAfter(TimingInterval * 2, q, 123);
 
             ResetTimer();
             object v;
             bool r;
 
-            r = q.Dequeue(50, out v);
-            Assert.Greater(ElapsedMs(), 30);
-            Assert.Greater(70, ElapsedMs());
+            r = q.Dequeue(TimingInterval, out v);
+            Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
+            Assert.Greater(TimingInterval + SafetyMargin, ElapsedMs());
             Assert.IsTrue(!r);
             Assert.AreEqual(null, v);
 
-            r = q.Dequeue(100, out v);
-            Assert.Greater(ElapsedMs(), 80);
-            Assert.Greater(120, ElapsedMs());
+            r = q.Dequeue(TimingInterval * 2, out v);
+            Assert.Less(TimingInterval * 2 - SafetyMargin, ElapsedMs());
+            Assert.Greater(TimingInterval * 2 + SafetyMargin, ElapsedMs());
             Assert.IsTrue(r);
             Assert.AreEqual(123, v);
         }
@@ -327,7 +327,7 @@ namespace RabbitMQ.Client.Unit
             Thread t =
             new Thread(new ThreadStart(de.BackgroundEofExpectingDequeue));
             t.Start();
-            Thread.Sleep(10);
+            Thread.Sleep(SafetyMargin);
             q.Close();
             t.Join();
         }

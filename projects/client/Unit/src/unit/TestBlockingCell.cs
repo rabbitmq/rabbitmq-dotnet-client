@@ -50,7 +50,7 @@ using RabbitMQ.Util;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestBlockingCell
+    public class TestBlockingCell : TimingFixture
     {
         public class DelayedSetter
         {
@@ -101,8 +101,8 @@ namespace RabbitMQ.Client.Unit
 
             ResetTimer();
             object v;
-            bool r = k.GetValue(250, out v);
-            Assert.Greater(50, ElapsedMs());
+            bool r = k.GetValue(TimingInterval, out v);
+            Assert.Greater(SafetyMargin, ElapsedMs());
             Assert.IsTrue(r);
             Assert.AreEqual(123, v);
         }
@@ -114,8 +114,8 @@ namespace RabbitMQ.Client.Unit
 
             ResetTimer();
             object v;
-            bool r = k.GetValue(250, out v);
-            Assert.Greater(ElapsedMs(), 200);
+            bool r = k.GetValue(TimingInterval, out v);
+            Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.IsTrue(!r);
             Assert.AreEqual(null, v);
         }
@@ -128,7 +128,7 @@ namespace RabbitMQ.Client.Unit
             ResetTimer();
             object v;
             bool r = k.GetValue(-10000, out v);
-            Assert.Greater(50, ElapsedMs());
+            Assert.Greater(SafetyMargin, ElapsedMs());
             Assert.IsTrue(!r);
             Assert.AreEqual(null, v);
         }
@@ -137,12 +137,12 @@ namespace RabbitMQ.Client.Unit
         public void TestTimeoutInfinite()
         {
             BlockingCell k = new BlockingCell();
-            SetAfter(250, k, 123);
+            SetAfter(TimingInterval, k, 123);
 
             ResetTimer();
             object v;
             bool r = k.GetValue(Timeout.Infinite, out v);
-            Assert.Greater(ElapsedMs(), 200);
+            Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.IsTrue(r);
             Assert.AreEqual(123, v);
         }
@@ -151,12 +151,12 @@ namespace RabbitMQ.Client.Unit
         public void TestBgShort()
         {
             BlockingCell k = new BlockingCell();
-            SetAfter(50, k, 123);
+            SetAfter(TimingInterval, k, 123);
 
             ResetTimer();
             object v;
-            bool r = k.GetValue(100, out v);
-            Assert.Greater(ElapsedMs(), 40);
+            bool r = k.GetValue(TimingInterval * 2, out v);
+            Assert.Less( TimingInterval - SafetyMargin, ElapsedMs());
             Assert.IsTrue(r);
             Assert.AreEqual(123, v);
         }
@@ -165,12 +165,12 @@ namespace RabbitMQ.Client.Unit
         public void TestBgLong()
         {
             BlockingCell k = new BlockingCell();
-            SetAfter(150, k, 123);
+            SetAfter(TimingInterval * 2, k, 123);
 
             ResetTimer();
             object v;
-            bool r = k.GetValue(100, out v);
-            Assert.Greater(110, ElapsedMs());
+            bool r = k.GetValue(TimingInterval, out v);
+            Assert.Greater(TimingInterval + SafetyMargin, ElapsedMs());
             Assert.IsTrue(!r);
             Assert.AreEqual(null, v);
         }
