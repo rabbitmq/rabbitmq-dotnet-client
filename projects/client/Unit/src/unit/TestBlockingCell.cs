@@ -156,7 +156,7 @@ namespace RabbitMQ.Client.Unit
             ResetTimer();
             object v;
             bool r = k.GetValue(TimingInterval * 2, out v);
-            Assert.Less( TimingInterval - SafetyMargin, ElapsedMs());
+            Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.IsTrue(r);
             Assert.AreEqual(123, v);
         }
