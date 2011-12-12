@@ -150,8 +150,16 @@ namespace RabbitMQ.Client.Impl
 
         public void Close()
         {
-            m_socket.LingerState = new LingerOption(true, SOCKET_CLOSING_TIMEOUT);
-            m_socket.Close();
+            try
+            {
+                m_socket.LingerState = new LingerOption(true, SOCKET_CLOSING_TIMEOUT);
+                m_socket.Close();
+            }
+            catch (ObjectDisposedException)
+            {
+                // Ignore the exception if the socket is already closed/disposed
+                return;
+            }
         }
     }
 }
