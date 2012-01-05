@@ -69,13 +69,13 @@ namespace RabbitMQ.Client.Unit
                 Assert.Fail("Exception caused by authentication failure expected");
             }
             catch (BrokerUnreachableException bue)
-            {                
+            {
                 foreach (Object failureReason in bue.ConnectionErrors.Values)
                 {
                     Assert.IsInstanceOfType(
-                        typeof(PossibleAuthenticationFailureException), 
+                        typeof(PossibleAuthenticationFailureException),
                         failureReason);
-                }              
+                }
             }
         }
     }
