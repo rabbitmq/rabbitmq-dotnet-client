@@ -334,9 +334,9 @@ namespace RabbitMQ.Client
 
         ///<summary>Wait until all published messages have been confirmed.
         ///</summary>
-        ///<returns>true if no nacks were received within the timeout, 
+        ///<returns>true if no nacks were received within the timeout,
         ///otherwise false</returns>
-        ///<param name="timeout">How long to wait (at most) before returning 
+        ///<param name="timeout">How long to wait (at most) before returning
         ///whether or not any nacks were returned</param>
         ///<param name="timedOut">True if the method returned because
         ///the timeout elapsed, not because all messages were ack'd
@@ -371,8 +371,8 @@ namespace RabbitMQ.Client
         ///</summary>
         ///<remarks>
         ///Waits until all messages published since the last call have
-        ///been ack'd by the broker.  If a nack is received or the timeout 
-        ///elapses, throws an OperationInterrupedException exception 
+        ///been ack'd by the broker.  If a nack is received or the timeout
+        ///elapses, throws an OperationInterrupedException exception
         ///immediately.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]

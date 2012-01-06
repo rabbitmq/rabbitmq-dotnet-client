@@ -960,8 +960,8 @@ namespace RabbitMQ.Client.Impl
 
         public bool WaitForConfirms(TimeSpan timeout, out bool timedOut)
         {
-            var isWaitInfinite = (timeout.TotalMilliseconds == Timeout.Infinite);
-            var stopwatch = Stopwatch.StartNew();
+            bool isWaitInfinite = (timeout.TotalMilliseconds == Timeout.Infinite);
+            Stopwatch stopwatch = Stopwatch.StartNew();
             lock (m_unconfirmedSet.SyncRoot)
             {
                 while (true)
@@ -980,7 +980,7 @@ namespace RabbitMQ.Client.Impl
                         Monitor.Wait(m_unconfirmedSet.SyncRoot);
                     else
                     {
-                        var elapsed = stopwatch.Elapsed;
+                        TimeSpan elapsed = stopwatch.Elapsed;
                         if(elapsed > timeout || !Monitor.Wait(
                             m_unconfirmedSet.SyncRoot, timeout - elapsed))
                         {
@@ -1017,7 +1017,7 @@ namespace RabbitMQ.Client.Impl
             if (timedOut) {
                 Close(new ShutdownEventArgs(ShutdownInitiator.Application,
                                             CommonFraming.Constants.ReplySuccess,
-                                            "Timed out waiting for acks", 
+                                            "Timed out waiting for acks",
                                             new IOException("timed out waiting for acks")),
                       false);
                 throw new IOException("Timed out waiting for acks");
