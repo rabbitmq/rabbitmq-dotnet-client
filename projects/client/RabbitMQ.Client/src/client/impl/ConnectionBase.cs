@@ -535,6 +535,7 @@ namespace RabbitMQ.Client.Impl
             }
             
             TerminateMainloop();
+            FinishClose();
         }
         
         public void HeartbeatReadLoop()
@@ -562,6 +563,7 @@ namespace RabbitMQ.Client.Impl
             }
             
             TerminateMainloop();
+            FinishClose();
         }
         
         public void NotifyHeartbeatThread()
@@ -675,7 +677,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
         
-        // Only call at the end of the Mainloop
+        // Only call at the end of the Mainloop or HeartbeatLoop
         public void FinishClose()
         {
             // Notify hearbeat loops that they can leave
@@ -966,6 +968,7 @@ namespace RabbitMQ.Client.Impl
             if (!serverVersion.Equals(Protocol.Version))
             {
                 TerminateMainloop();
+                FinishClose();
                 throw new ProtocolVersionMismatchException(Protocol.MajorVersion,
                                                            Protocol.MinorVersion,
                                                            serverVersion.Major,
