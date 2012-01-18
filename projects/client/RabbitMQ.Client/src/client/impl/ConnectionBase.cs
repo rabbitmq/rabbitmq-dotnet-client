@@ -550,9 +550,10 @@ namespace RabbitMQ.Client.Impl
                 // Has to miss two full heartbeats to force socket close
                 if (m_missedHeartbeats > 1)
                 {
-                    EndOfStreamException eose = new EndOfStreamException(
-                                         "Heartbeat missing with heartbeat == " +
-                                         m_heartbeat + " seconds");
+                    String description = "Heartbeat missing with heartbeat == " +
+                                          m_heartbeat + " seconds";
+                    EndOfStreamException eose = new EndOfStreamException(description);
+                    m_shutdownReport.Add(new ShutdownReportEntry(description, eose));
                     HandleMainLoopException(new ShutdownEventArgs(
                                                           ShutdownInitiator.Library,
                                                           0,
