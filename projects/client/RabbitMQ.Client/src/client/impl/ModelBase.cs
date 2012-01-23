@@ -958,31 +958,69 @@ namespace RabbitMQ.Client.Impl
             _Private_ConfirmSelect(false);
         }
 
-        public bool WaitForConfirms()
+        public bool WaitForConfirms(TimeSpan timeout, out bool timedOut)
         {
-            lock (m_unconfirmedSet.SyncRoot) {
-                while (true) {
+            var isWaitInfinite = (timeout.TotalMilliseconds == Timeout.Infinite);
+            var stopwatch = Stopwatch.StartNew();
+            lock (m_unconfirmedSet.SyncRoot)
+            {
+                while (true)
+                {
                     if (CloseReason != null)
                         throw new AlreadyClosedException(CloseReason);
 
-                    if (m_unconfirmedSet.Count == 0) {
+                    if (m_unconfirmedSet.Count == 0)
+                    {
                         bool aux = m_onlyAcksReceived;
                         m_onlyAcksReceived = true;
+                        timedOut = false;
                         return aux;
                     }
-                    Monitor.Wait(m_unconfirmedSet.SyncRoot);
+                    if (isWaitInfinite)
+                        Monitor.Wait(m_unconfirmedSet.SyncRoot);
+                    else
+                    {
+                        var elapsed = stopwatch.Elapsed;
+                        if(elapsed > timeout || !Monitor.Wait(
+                            m_unconfirmedSet.SyncRoot, timeout - elapsed))
+                        {
+                            timedOut = true;
+                            return true;
+                        }
+                    }
                 }
             }
         }
 
+        public bool WaitForConfirms()
+        {
+            bool timedOut;
+            return WaitForConfirms(TimeSpan.FromMilliseconds(Timeout.Infinite), out timedOut);
+        }
+
         public void WaitForConfirmsOrDie()
         {
-            if (!WaitForConfirms()) {
+            WaitForConfirmsOrDie(TimeSpan.FromMilliseconds(Timeout.Infinite));
+        }
+
+        public void WaitForConfirmsOrDie(TimeSpan timeout)
+        {
+            bool timedOut;
+            bool onlyAcksReceived = WaitForConfirms(timeout, out timedOut);
+            if (!onlyAcksReceived) {
                 Close(new ShutdownEventArgs(ShutdownInitiator.Application,
                                             CommonFraming.Constants.ReplySuccess,
                                             "Nacks Received", new IOException("nack received")),
                       false);
                 throw new IOException("Nacks Received");
+            }
+            if (timedOut) {
+                Close(new ShutdownEventArgs(ShutdownInitiator.Application,
+                                            CommonFraming.Constants.ReplySuccess,
+                                            "Timed out waiting for acks", 
+                                            new IOException("timed out waiting for acks")),
+                      false);
+                throw new IOException("Timed out waiting for acks");
             }
         }
 
