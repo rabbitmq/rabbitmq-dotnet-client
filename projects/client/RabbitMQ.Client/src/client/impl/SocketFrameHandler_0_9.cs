@@ -59,6 +59,8 @@ namespace RabbitMQ.Client.Impl
         public TcpClient m_socket;
         public NetworkBinaryReader m_reader;
         public NetworkBinaryWriter m_writer;
+        private bool m_closed = false;
+        private Object m_semaphore = new object();
 
         public SocketFrameHandler_0_9(AmqpTcpEndpoint endpoint)
         {
@@ -150,8 +152,15 @@ namespace RabbitMQ.Client.Impl
 
         public void Close()
         {
-            m_socket.LingerState = new LingerOption(true, SOCKET_CLOSING_TIMEOUT);
-            m_socket.Close();
+            lock (m_semaphore)
+            {
+                if (!m_closed)
+                {
+                    m_socket.LingerState = new LingerOption(true, SOCKET_CLOSING_TIMEOUT);
+                    m_socket.Close();
+                    m_closed = true;
+                }
+            }
         }
     }
 }
