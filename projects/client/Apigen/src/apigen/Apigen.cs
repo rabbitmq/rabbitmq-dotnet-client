@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2011 VMware, Inc.
+//   Copyright (C) 2007-2012 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is VMware, Inc.
-//  Copyright (c) 2007-2011 VMware, Inc.  All rights reserved.
+//  Copyright (c) 2007-2012 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
@@ -359,7 +359,7 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("// The APL v2.0:");
             EmitLine("//");
             EmitLine("//---------------------------------------------------------------------------");
-            EmitLine("//   Copyright (C) 2007-2011 VMware, Inc.");
+            EmitLine("//   Copyright (C) 2007-2012 VMware, Inc.");
             EmitLine("//");
             EmitLine("//   Licensed under the Apache License, Version 2.0 (the \"License\");");
             EmitLine("//   you may not use this file except in compliance with the License.");
@@ -390,7 +390,7 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("//   The Original Code is RabbitMQ.");
             EmitLine("//");
             EmitLine("//   The Initial Developer of the Original Code is VMware, Inc.");
-            EmitLine("//   Copyright (c) 2007-2011 VMware, Inc.  All rights reserved.");
+            EmitLine("//   Copyright (c) 2007-2012 VMware, Inc.  All rights reserved.");
             EmitLine("//---------------------------------------------------------------------------");
             EmitLine("");
             EmitLine("using RabbitMQ.Client;");
