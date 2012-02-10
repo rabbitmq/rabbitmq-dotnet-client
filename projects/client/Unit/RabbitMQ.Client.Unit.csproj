@@ -59,7 +59,7 @@
   </PropertyGroup>
 
   <!-- Running the tests -->
-  <Target Name="RunUnitTests" DependsOnTargets="ImportSSL">
+  <Target Name="RunUnitTests" DependsOnTargets="Build;ImportSSL">
     <Exec Command='$(MonoNunitTempSetting)$(PropLaunchExe)..\..\..\lib\nunit\nunit-console.exe "build\bin\$(AssemblyName).dll"' WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="false" />
   </Target>
   
@@ -97,10 +97,7 @@
   <!-- Microsoft CSharp targets -->
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   
-  <!-- Custom AfterBuild -->
-  <Target Name="AfterBuild" DependsOnTargets="RunUnitTests" />
-  
-  <!-- Custom BeforeClean -->  
+  <!-- Custom BeforeClean -->
   <Target Name="BeforeClean" DependsOnTargets="CleanTestResults" />
   
 </Project>
