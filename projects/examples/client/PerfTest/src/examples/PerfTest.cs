@@ -47,11 +47,11 @@ using RabbitMQ.Client.MessagePatterns;
 
 namespace RabbitMQ.Client.Examples {
     public class PerfTest {
-        private static readonly byte[] Message = new byte[0];
+        private static byte[] Message;
 
         public static int Main(string[] args) {
-            if (args.Length < 2) {
-                Console.Error.WriteLine("Usage: PerfTest <uri> <number of messages>");
+            if (args.Length < 3) {
+                Console.Error.WriteLine("Usage: PerfTest <uri> <number of messages> <size of messages>");
                 Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
                 Console.Error.WriteLine("Parameters:");
                 Console.Error.WriteLine("  <uri> = \"amqp://user:pass@host:port/vhost\"");
@@ -60,6 +60,8 @@ namespace RabbitMQ.Client.Examples {
 
             string serverAddress = args[0];
             int messageCount = int.Parse(args[1]);
+            int messageSize = int.Parse(args[2]);
+            Message = new byte[messageSize];
 
             ConnectionFactory cf = new ConnectionFactory();
             cf.Uri = serverAddress;
