@@ -106,7 +106,7 @@ namespace RabbitMQ.Client.Impl
                 throw ioe.InnerException;
             }
 
-            if (type == 'A')
+            if (firstFrame && type == 'A')
             {
                 // Probably an AMQP protocol header, otherwise meaningless
                 ProcessProtocolHeader(reader);
@@ -114,14 +114,13 @@ namespace RabbitMQ.Client.Impl
 
             channel = reader.ReadUInt16();
             int payloadSize = reader.ReadInt32(); // FIXME - throw exn on unreasonable value
-            if (firstFrame)
+            if (firstFrame &&  (type != 1 || channel != 0 || payloadSize > CommonFraming.Constants.FrameMinSize))
             {
-                if (type != 1 || channel != 0 || payloadSize > CommonFraming.Constants.FrameMinSize)
-                    throw new MalformedFrameException("Invalid AMQP response from server");
+                throw new MalformedFrameException("Invalid protocol header from server");
             }
             if (type < 1 || type > LargestValidFrameType)
             {
-                throw new MalformedFrameException("Invalid AMQP frame type received from server");
+                throw new MalformedFrameException("Invalid AMQP frame type received from server: " + type);
             }
             byte[] payload = reader.ReadBytes(payloadSize);
             if (payload.Length != payloadSize)
