@@ -119,7 +119,7 @@ namespace RabbitMQ.Client.Impl
                 if (type != 1 || channel != 0 || payloadSize > CommonFraming.Constants.FrameMinSize)
                     throw new MalformedFrameException("Invalid AMQP response from server");
             }
-            if (type > LargestValidFrameType)
+            if (type < 1 || type > LargestValidFrameType)
             {
                 throw new MalformedFrameException("Invalid AMQP frame type received from server");
             }
