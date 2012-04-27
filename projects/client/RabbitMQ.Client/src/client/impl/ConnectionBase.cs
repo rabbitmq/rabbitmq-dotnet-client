@@ -579,12 +579,14 @@ namespace RabbitMQ.Client.Impl
         public void MainLoop()
         {
             bool shutdownCleanly = false;
+            bool firstIteration = true;
             try
             {
                 while (m_running)
                 {
                     try {
-                        MainLoopIteration();
+                        MainLoopIteration(firstIteration);
+                        firstIteration = false;
                     } catch (SoftProtocolException spe) {
                         QuiesceChannel(spe);
                     }
@@ -632,9 +634,9 @@ namespace RabbitMQ.Client.Impl
             m_appContinuation.Set();
         }
         
-        public void MainLoopIteration()
+        public void MainLoopIteration(bool firstIteration)
         {
-            Frame frame = m_frameHandler.ReadFrame();
+            Frame frame = m_frameHandler.ReadFrame(firstIteration);
 
             NotifyHeartbeatThread();
             // We have received an actual frame.
@@ -734,7 +736,7 @@ namespace RabbitMQ.Client.Impl
                 // Wait for response/socket closure or timeout
                 while (!m_closed)
                 {
-                    MainLoopIteration();
+                    MainLoopIteration(false);
                 }
             }
             catch (ObjectDisposedException ode)

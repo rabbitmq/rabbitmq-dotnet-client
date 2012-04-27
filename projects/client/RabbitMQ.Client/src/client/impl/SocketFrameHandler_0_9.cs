@@ -131,11 +131,11 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public Frame ReadFrame()
+        public Frame ReadFrame(bool firstFrame)
         {
             lock (m_reader)
             {
-                return Frame.ReadFrom(m_reader);
+                return Frame.ReadFrom(m_reader, firstFrame);
             }
         }
 

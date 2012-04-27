@@ -63,6 +63,9 @@ namespace RabbitMQ.Client.Impl
         public int Channel { get { return m_channel; } }
         public byte[] Payload { get { return m_payload; } }
 
+        public static readonly int StartFrameMaxLimit = 4096;
+        public static readonly int LargestValidFrameType = 8;
+
         public MemoryStream m_accumulator;
 
         public Frame() { }
@@ -83,7 +86,7 @@ namespace RabbitMQ.Client.Impl
             m_accumulator = null;
         }
         
-        public static Frame ReadFrom(NetworkBinaryReader reader)
+        public static Frame ReadFrom(NetworkBinaryReader reader, bool firstFrame)
         {
             int type;
             int channel;
@@ -112,6 +115,15 @@ namespace RabbitMQ.Client.Impl
 
             channel = reader.ReadUInt16();
             int payloadSize = reader.ReadInt32(); // FIXME - throw exn on unreasonable value
+            if (firstFrame)
+            {
+                if (type != 1 || channel != 0 || payloadSize > StartFrameMaxLimit)
+                    throw new MalformedFrameException("Invalid AMQP response from server");
+            }
+            if (type > LargestValidFrameType)
+            {
+                throw new MalformedFrameException("Invalid AMQP frame type received from server");
+            }
             byte[] payload = reader.ReadBytes(payloadSize);
             if (payload.Length != payloadSize)
             {
