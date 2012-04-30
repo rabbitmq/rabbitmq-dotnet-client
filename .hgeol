@@ -1,0 +1,3 @@
+[patterns]
+**.txt = LF
+**.cs = LF
