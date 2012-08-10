@@ -74,10 +74,12 @@ namespace RabbitMQ.Client.Exceptions {
 
         ///<summary>Construct a BrokerUnreachableException. Expects
         ///maps as per the description of the ConnectionAttempts and
-        ///ConnectionErrors properties.</summary>
+        ///ConnectionErrors properties. The inner exception is associated
+        ///with only one connection attempt.</summary>
         public BrokerUnreachableException(IDictionary connectionAttempts,
-                                          IDictionary connectionErrors)
-            : base("None of the specified endpoints were reachable")
+                                          IDictionary connectionErrors,
+                                          Exception Inner)
+            : base("None of the specified endpoints were reachable", Inner)
         {
             m_connectionAttempts = connectionAttempts;
             m_connectionErrors = connectionErrors;
