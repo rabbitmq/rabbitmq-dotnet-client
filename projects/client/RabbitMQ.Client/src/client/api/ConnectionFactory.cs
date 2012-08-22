@@ -314,7 +314,8 @@ namespace RabbitMQ.Client
             if (conn != null) {
                 return conn;
             }
-            throw new BrokerUnreachableException(connectionAttempts, connectionErrors);
+            Exception Inner = connectionErrors[Endpoint] as Exception;
+            throw new BrokerUnreachableException(connectionAttempts, connectionErrors, Inner);
         }
 
         ///<summary>Create a connection to the specified endpoint
