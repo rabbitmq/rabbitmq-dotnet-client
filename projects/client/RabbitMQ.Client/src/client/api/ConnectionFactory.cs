@@ -150,8 +150,9 @@ namespace RabbitMQ.Client
         ///<summary>The host to connect to</summary>
         public String HostName = "localhost";
 
-        ///<summary>The port to connect on. AmqpTcpEndpoint.UseDefaultPort indicates the 
-        /// default for the protocol should be used.</summary>
+        ///<summary>The port to connect on.
+        /// AmqpTcpEndpoint.UseDefaultPort indicates the default for
+        /// the protocol should be used.</summary>
         public int Port = AmqpTcpEndpoint.UseDefaultPort;
 
         ///<summary> SASL auth mechanisms to use.</summary>
@@ -162,10 +163,10 @@ namespace RabbitMQ.Client
 
         ///<summary>The AMQP connection target</summary>
         public AmqpTcpEndpoint Endpoint
-        { 
+        {
           get
-          { 
-              return new AmqpTcpEndpoint(Protocol, HostName, Port, Ssl); 
+          {
+              return new AmqpTcpEndpoint(Protocol, HostName, Port, Ssl);
           }
           set
           {
