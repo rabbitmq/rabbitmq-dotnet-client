@@ -454,8 +454,22 @@ namespace RabbitMQ.Client
                           IBasicProperties basicProperties,
                           byte[] body);
 
+        ///<summary>(Spec method) Convenience overload of BasicPublish.</summary>
+        ///<remarks>
+        ///The publication occurs with immediate=false.
+        ///</remarks>
+        [AmqpMethodDoNotImplement(null)]
+        void BasicPublish(string exchange,
+                          string routingKey,
+                          bool mandatory,
+                          IBasicProperties basicProperties,
+                          byte[] body);
+
         ///<summary>(Spec method) Publish a message using the Basic
         ///content-class.</summary>
+        ///<remarks>
+        ///Note that the RabbitMQ server does not support the 'immediate' flag.
+        ///</remarks>
         [AmqpMethodDoNotImplement(null)]
         void BasicPublish(string exchange,
                           string routingKey,

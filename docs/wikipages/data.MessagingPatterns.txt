@@ -107,12 +107,12 @@ Since published messages are returned to clients via AMQP's [code
 basic.return] method, and [code basic.return] is an asynchronous
 negative-acknowledgement event, the [i absence] of a [code
 basic.return] for a particular message cannot be taken as a
-confirmation of delivery: the use of "mandatory" and "immediate" only
-provides a way of raising the bar, rather than eliminating failure
-entirely.
+confirmation of delivery: the use of delivery flags only provides a
+way of raising the bar, rather than eliminating failure entirely.
 
-When using "mandatory" or "immediate", it's important to be aware that
-different AMQP servers implement the flags in different ways,
+When using delivery flags it is important to be aware that different
+AMQP servers implement the flags in different ways. For example, the
+RabbitMQ server does not support the "immediate" flag. Furthermore,
 depending on the degree of internal asynchrony and distribution that
 those servers exhibit. In particular, the interpretation of
 "mandatory" and "immediate" in situations where [code Tx]-class

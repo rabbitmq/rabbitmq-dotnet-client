@@ -1244,6 +1244,19 @@ namespace RabbitMQ.Client.Impl
             BasicPublish(exchange,
                          routingKey,
                          false,
+                         basicProperties,
+                         body);
+        }
+
+        public void BasicPublish(string exchange,
+                                 string routingKey,
+                                 bool mandatory,
+                                 IBasicProperties basicProperties,
+                                 byte[] body)
+        {
+            BasicPublish(exchange,
+                         routingKey,
+                         mandatory,
                          false,
                          basicProperties,
                          body);

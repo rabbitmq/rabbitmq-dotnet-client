@@ -223,8 +223,7 @@ follows:
  channel.BasicPublish(exchangeName, routingKey, null, messageBodyBytes);
 
 For fine control, you can use overloaded variants to specify the
-mandatory and immediate flags, or send messages with basic-class
-header properties:
+mandatory flag, or send messages with basic-class header properties:
 
 @code java
  byte[] messageBodyBytes = System.Text.Encoding.UTF8.GetBytes("Hello, world!");
