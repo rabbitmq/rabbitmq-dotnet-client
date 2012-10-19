@@ -40,6 +40,8 @@
 
 using RabbitMQ.Client.Impl;
 
+using System.Net.Sockets;
+
 namespace RabbitMQ.Client
 {
     ///<summary>Object describing various overarching parameters
@@ -60,7 +62,7 @@ namespace RabbitMQ.Client
         int DefaultPort { get; }
 
         ///<summary>Construct a frame handler for a given endpoint.</summary>
-        IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint);
+        IFrameHandler CreateFrameHandler(TcpClient socket, AmqpTcpEndpoint endpoint, int timeout);
         ///<summary>Construct a connection from a given set of
         ///parameters and a frame handler. The "insist" parameter is
         ///passed on to the AMQP connection.open method.</summary>
