@@ -43,6 +43,7 @@ using RabbitMQ.Client.Impl;
 using RabbitMQ.Util;
 
 using System.Collections;
+using System.Net.Sockets;
 
 namespace RabbitMQ.Client.Impl {
     public abstract class AbstractProtocolBase: IProtocol {
@@ -54,7 +55,7 @@ namespace RabbitMQ.Client.Impl {
 
         public IDictionary Capabilities = new Hashtable();
 
-        public abstract IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint);
+        public abstract IFrameHandler CreateFrameHandler(TcpClient socket, AmqpTcpEndpoint endpoint, int timeout);
         public abstract IConnection CreateConnection(ConnectionFactory factory,
                                                      bool insist,
                                                      IFrameHandler frameHandler);

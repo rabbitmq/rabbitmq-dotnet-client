@@ -42,11 +42,16 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Util;
 
+using System.Net.Sockets;
+
 namespace RabbitMQ.Client.Framing.Impl.v0_8qpid {
     public abstract class ProtocolBase: AbstractProtocolBase {
 
-        public override IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint) {
-            return new SocketFrameHandler_0_9(endpoint);
+        public override IFrameHandler CreateFrameHandler(TcpClient socket,
+                                                         AmqpTcpEndpoint endpoint,
+                                                         int timeout)
+        {
+            return new SocketFrameHandler_0_9(socket, endpoint, timeout);
         }
 
         public override IModel CreateModel(ISession session) {

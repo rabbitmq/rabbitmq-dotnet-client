@@ -56,28 +56,28 @@ namespace RabbitMQ.Client.Impl {
     public class Command {
         private static readonly byte[] m_emptyByteArray = new byte[0];
 
-        // EmptyFrameSize, 8 = 1 + 2 + 4 + 1
+        // EmptyContentBodyFrameSize, 8 = 1 + 2 + 4 + 1
         // - 1 byte of frame type
         // - 2 bytes of channel number
         // - 4 bytes of frame payload length
         // - 1 byte of payload trailer FrameEnd byte
-        public const int EmptyFrameSize = 8;
+        public const int EmptyContentBodyFrameSize = 8;
 
         static Command() {
-            CheckEmptyFrameSize();
+            CheckEmptyContentBodyFrameSize();
         }
 
-        public static void CheckEmptyFrameSize() {
+        public static void CheckEmptyContentBodyFrameSize() {
             Frame f = new Frame(CommonFraming.Constants.FrameBody, 0, m_emptyByteArray);
             MemoryStream stream = new MemoryStream();
             NetworkBinaryWriter writer = new NetworkBinaryWriter(stream);
             f.WriteTo(writer);
             long actualLength = stream.Length;
 
-            if (EmptyFrameSize != actualLength) {
-                string message =
-                    string.Format("EmptyFrameSize is incorrect - defined as {0} where the computed value is in fact {1}.",
-                                  EmptyFrameSize,
+            if (EmptyContentBodyFrameSize != actualLength) {
+                string message = 
+                    string.Format("EmptyContentBodyFrameSize is incorrect - defined as {0} where the computed value is in fact {1}.",
+                                  EmptyContentBodyFrameSize,
                                   actualLength);
                 throw new ProtocolViolationException(message);
             }
@@ -159,7 +159,7 @@ namespace RabbitMQ.Client.Impl {
                 int frameMax = (int) Math.Min(int.MaxValue, connection.FrameMax);
                 int bodyPayloadMax = (frameMax == 0)
                     ? body.Length
-                    : frameMax - EmptyFrameSize;
+                    : frameMax - EmptyContentBodyFrameSize;
                 for (int offset = 0; offset < body.Length; offset += bodyPayloadMax) {
                     int remaining = body.Length - offset;
 
