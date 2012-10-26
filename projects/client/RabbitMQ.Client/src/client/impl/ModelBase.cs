@@ -1132,7 +1132,8 @@ namespace RabbitMQ.Client.Impl
 
             k.GetReply();
 
-            ModelShutdown -= new ModelShutdownEventHandler(k.m_consumer.HandleModelShutdown);
+            // k.m_consumer is never set, resulting in a NullReferenceException in all invocations of ModelBase.BasicCancel
+            // ModelShutdown -= new ModelShutdownEventHandler(k.m_consumer.HandleModelShutdown);
         }
 
         public void HandleBasicCancelOk(string consumerTag)
