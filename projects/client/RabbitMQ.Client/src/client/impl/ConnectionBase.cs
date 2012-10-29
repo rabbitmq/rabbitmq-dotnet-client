@@ -578,58 +578,63 @@ namespace RabbitMQ.Client.Impl
 
         public void MainLoop()
         {
-            bool shutdownCleanly = false;
             try
             {
-                while (m_running)
+                bool shutdownCleanly = false;
+                try
                 {
-                    try {
-                        MainLoopIteration();
-                    } catch (SoftProtocolException spe) {
-                        QuiesceChannel(spe);
+                    while (m_running)
+                    {
+                        try {
+                            MainLoopIteration();
+                        } catch (SoftProtocolException spe) {
+                            QuiesceChannel(spe);
+                        }
                     }
+                    shutdownCleanly = true;
                 }
-                shutdownCleanly = true;
-            }
-            catch (EndOfStreamException eose)
-            {
-                // Possible heartbeat exception
-                HandleMainLoopException(new ShutdownEventArgs(
-                                                          ShutdownInitiator.Library,
-                                                          0,
-                                                          "End of stream",
-                                                          eose));
-            }
-            catch (HardProtocolException hpe)
-            {
-                shutdownCleanly = HardProtocolExceptionHandler(hpe);
-            }
-            catch (SocketException se)
-            {
-                // Possibly due to handshake timeout
-                HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library,
-                                                          0,
-                                                          "Socket exception",
-                                                          se));
-            }
-            catch (Exception ex)
-            {
-                HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library,
-                                                          CommonFraming.Constants.InternalError,
-                                                          "Unexpected Exception",
-                                                          ex));
-            }
+                catch (EndOfStreamException eose)
+                {
+                    // Possible heartbeat exception
+                    HandleMainLoopException(new ShutdownEventArgs(
+                                                              ShutdownInitiator.Library,
+                                                              0,
+                                                              "End of stream",
+                                                              eose));
+                }
+                catch (HardProtocolException hpe)
+                {
+                    shutdownCleanly = HardProtocolExceptionHandler(hpe);
+                }
+                catch (SocketException se)
+                {
+                    // Possibly due to handshake timeout
+                    HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library,
+                                                              0,
+                                                              "Socket exception",
+                                                              se));
+                }
+                catch (Exception ex)
+                {
+                    HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library,
+                                                              CommonFraming.Constants.InternalError,
+                                                              "Unexpected Exception",
+                                                              ex));
+                }
 
-            // If allowed for clean shutdown, run main loop until the
-            // connection closes.
-            if (shutdownCleanly)
-            {
-                ClosingLoop();
+                // If allowed for clean shutdown, run main loop until the
+                // connection closes.
+                if (shutdownCleanly)
+                {
+                    ClosingLoop();
+                }
+
+                FinishClose();
             }
-
-            FinishClose();
-
-            m_appContinuation.Set();
+            finally
+            {
+                m_appContinuation.Set();
+            }
         }
         
         public void MainLoopIteration()
