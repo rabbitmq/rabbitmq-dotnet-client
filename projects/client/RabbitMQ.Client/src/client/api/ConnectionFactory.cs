@@ -196,6 +196,10 @@ namespace RabbitMQ.Client
           set { SetUri(new Uri(value, UriKind.Absolute)); }
         }
 
+        public delegate TcpClient ObtainSocket(AddressFamily addressFamily);
+
+        public ObtainSocket SocketFactory = DefaultSocketFactory;
+
         ///<summary>Construct a fresh instance, with all fields set to
         ///their respective defaults.</summary>
         public ConnectionFactory() { }
@@ -219,40 +223,9 @@ namespace RabbitMQ.Client
 
                     try {
                         IProtocol p = candidate.Protocol;
-                        TcpClient socket = null;
-                        IFrameHandler fh = null;
-                        if (Socket.OSSupportsIPv6)
-                        {
-                            try
-                            {
-                                socket = new TcpClient(AddressFamily.InterNetworkV6);
-                                ConfigureSocket(socket);
-                                fh = p.CreateFrameHandler(socket, candidate, RequestedConnectionTimeout);
-                            }
-                            // Don't attempt to use an IPv4 socket, as timeout was exceeded
-                            catch (TimeoutException)
-                            {
-                                throw;
-                            }
-                            // Socket error, do try an IPv4 socket.
-                            catch (SocketException)
-                            {
-                                socket = null;
-                                fh = null;
-                            }
-                            // IPv4 address was used for endpoint hostname, try IPv4 socket
-                            catch (ArgumentException)
-                            {
-                                socket = null;
-                                fh = null;
-                            }
-                        }
-                        if (socket == null)
-                        {
-                            socket = new TcpClient(AddressFamily.InterNetwork);
-                            ConfigureSocket(socket);
-                            fh = p.CreateFrameHandler(socket, candidate, RequestedConnectionTimeout);
-                        }
+                        IFrameHandler fh = p.CreateFrameHandler(candidate,
+                                                                SocketFactory,
+                                                                RequestedConnectionTimeout);
 
                         // At this point, we may be able to create
                         // and fully open a successful connection,
@@ -380,20 +353,11 @@ namespace RabbitMQ.Client
             return null;
         }
 
-        /// <summary>
-        /// Provides a hook to insert custom configuration of the sockets
-        /// used to connect to an AMQP server before they connect.
-        ///
-        /// The default behaviour of this method is to disable Nagle's
-        /// algorithm to get more consistently low latency.  However it
-        /// may be overridden freely and there is no requirement to retain
-        /// this behaviour.
-        /// </summary>
-        /// <param name="socket">The socket that is to be used for the Connection</param>
-        protected virtual void ConfigureSocket(TcpClient socket)
+        public static TcpClient DefaultSocketFactory(AddressFamily addressFamily)
         {
-            // disable Nagle's algorithm, for more consistently low latency
-            socket.NoDelay = true;
+            TcpClient tcpClient = new TcpClient(addressFamily);
+            tcpClient.NoDelay = true;
+            return tcpClient;
         }
 
         private void SetUri(Uri uri)

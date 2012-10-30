@@ -43,7 +43,6 @@ using RabbitMQ.Client.Impl;
 using RabbitMQ.Util;
 
 using System.Collections;
-using System.Net.Sockets;
 
 namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
     public abstract class ProtocolBase: AbstractProtocolBase {
@@ -55,11 +54,11 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
             Capabilities["consumer_cancel_notify"] = true;
         }
 
-        public override IFrameHandler CreateFrameHandler(TcpClient socket,
-                                                         AmqpTcpEndpoint endpoint,
+        public override IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint,
+                                                         ConnectionFactory.ObtainSocket socketFactory,
                                                          int timeout)
         {
-            return new SocketFrameHandler_0_9(socket, endpoint, timeout);
+            return new SocketFrameHandler_0_9(endpoint, socketFactory, timeout);
         }
 
         public override IModel CreateModel(ISession session) {

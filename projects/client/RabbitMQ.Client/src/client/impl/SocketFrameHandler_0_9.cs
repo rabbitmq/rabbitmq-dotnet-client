@@ -62,11 +62,29 @@ namespace RabbitMQ.Client.Impl
         private bool m_closed = false;
         private Object m_semaphore = new object();
 
-        public SocketFrameHandler_0_9(TcpClient socket, AmqpTcpEndpoint endpoint, int timeout)
+        public SocketFrameHandler_0_9(AmqpTcpEndpoint endpoint,
+                                      ConnectionFactory.ObtainSocket socketFactory,
+                                      int timeout)
         {
             m_endpoint = endpoint;
-            m_socket = socket;
-            Connect(m_socket, timeout);
+            m_socket = null;
+            if (Socket.OSSupportsIPv6)
+            {
+                try
+                {
+                    m_socket = socketFactory(AddressFamily.InterNetworkV6);
+                    Connect(m_socket, endpoint, timeout);
+                }
+                catch (ArgumentException)
+                {
+                    m_socket = null;
+                }
+            }
+            if (m_socket == null)
+            {
+                m_socket = socketFactory(AddressFamily.InterNetwork);
+                Connect(m_socket, endpoint, timeout);
+            }
 
             Stream netstream = m_socket.GetStream();
             if (endpoint.Ssl.Enabled)
@@ -85,18 +103,18 @@ namespace RabbitMQ.Client.Impl
             m_writer = new NetworkBinaryWriter(new BufferedStream(netstream));
         }
 
-        private void Connect(TcpClient socket, int timeout)
+        private void Connect(TcpClient socket, AmqpTcpEndpoint endpoint, int timeout)
         {
             IAsyncResult ar = null;
             try
             {
-                ar = socket.BeginConnect(m_endpoint.HostName, m_endpoint.Port, null, null);
+                ar = socket.BeginConnect(endpoint.HostName, endpoint.Port, null, null);
                 if (!ar.AsyncWaitHandle.WaitOne(timeout, false))
                 {
-                    m_socket.Close();
+                    socket.Close();
                     throw new TimeoutException();
                 }
-                m_socket.EndConnect(ar);
+                socket.EndConnect(ar);
             }
             finally
             {
