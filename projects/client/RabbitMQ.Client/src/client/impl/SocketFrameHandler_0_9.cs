@@ -112,7 +112,7 @@ namespace RabbitMQ.Client.Impl
                 if (!ar.AsyncWaitHandle.WaitOne(timeout, false))
                 {
                     socket.Close();
-                    throw new TimeoutException();
+                    throw new TimeoutException("Connection to " + endpoint + " timed out");
                 }
                 socket.EndConnect(ar);
             }
