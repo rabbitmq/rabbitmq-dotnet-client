@@ -62,41 +62,47 @@ namespace RabbitMQ.Client.Impl
         private bool m_closed = false;
         private Object m_semaphore = new object();
 
-        public SocketFrameHandler_0_9(AmqpTcpEndpoint endpoint)
+        public SocketFrameHandler_0_9(TcpClient socket, AmqpTcpEndpoint endpoint, int timeout)
         {
             m_endpoint = endpoint;
-            m_socket = null;
-            if (Socket.OSSupportsIPv6)
+            m_socket = socket;
+            Connect(m_socket, timeout);
+
+            Stream netstream = m_socket.GetStream();
+            if (endpoint.Ssl.Enabled)
             {
                 try
                 {
-                    m_socket = new TcpClient(AddressFamily.InterNetworkV6);
-                    m_socket.Connect(endpoint.HostName, endpoint.Port);
-                }
-                catch(SocketException)
-                {
-                    m_socket = null;
-                }
-            }
-            if (m_socket == null)
-            {
-                m_socket = new TcpClient(AddressFamily.InterNetwork);
-                m_socket.Connect(endpoint.HostName, endpoint.Port);
-            }
-            // disable Nagle's algorithm, for more consistently low latency 
-            m_socket.NoDelay = true;
-
-            Stream netstream = m_socket.GetStream();
-            if (endpoint.Ssl.Enabled) {
-                try {
                     netstream = SslHelper.TcpUpgrade(netstream, endpoint.Ssl);
-                } catch (Exception) {
+                }
+                catch (Exception)
+                {
                     Close();
                     throw;
                 }
             }
             m_reader = new NetworkBinaryReader(new BufferedStream(netstream));
             m_writer = new NetworkBinaryWriter(new BufferedStream(netstream));
+        }
+
+        private void Connect(TcpClient socket, int timeout)
+        {
+            IAsyncResult ar = null;
+            try
+            {
+                ar = socket.BeginConnect(m_endpoint.HostName, m_endpoint.Port, null, null);
+                if (!ar.AsyncWaitHandle.WaitOne(timeout, false))
+                {
+                    m_socket.Close();
+                    throw new TimeoutException();
+                }
+                m_socket.EndConnect(ar);
+            }
+            finally
+            {
+                if (ar != null)
+                    ar.AsyncWaitHandle.Close();
+            }
         }
 
         public AmqpTcpEndpoint Endpoint

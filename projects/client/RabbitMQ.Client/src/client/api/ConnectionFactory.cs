@@ -118,6 +118,10 @@ namespace RabbitMQ.Client
         /// seconds, with zero meaning none (value: 0)</summary>
         public const ushort DefaultHeartbeat = 0; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
 
+        /// <summary> Default value for connection attempt timeout,
+        /// in milliseconds</summary>
+        public const int DefaultConnectionTimeout = 30 * 1000;
+
         ///<summary> Default SASL auth mechanisms to use.</summary>
         public static AuthMechanismFactory[] DefaultAuthMechanisms =
             new AuthMechanismFactory[] { new PlainMechanismFactory() };
@@ -139,6 +143,9 @@ namespace RabbitMQ.Client
 
         /// <summary>Heartbeat setting to request (in seconds)</summary>
         public ushort RequestedHeartbeat = DefaultHeartbeat;
+
+        /// <summary>Timeout setting for connection attempts (in milliseconds)</summary>
+        public int RequestedConnectionTimeout = DefaultConnectionTimeout;
 
         /// <summary>Dictionary of client properties to be sent to the
         /// server</summary>
@@ -212,7 +219,41 @@ namespace RabbitMQ.Client
 
                     try {
                         IProtocol p = candidate.Protocol;
-                        IFrameHandler fh = p.CreateFrameHandler(candidate);
+                        TcpClient socket = null;
+                        IFrameHandler fh = null;
+                        if (Socket.OSSupportsIPv6)
+                        {
+                            try
+                            {
+                                socket = new TcpClient(AddressFamily.InterNetworkV6);
+                                ConfigureSocket(socket);
+                                fh = p.CreateFrameHandler(socket, candidate, RequestedConnectionTimeout);
+                            }
+                            // Don't attempt to use an IPv4 socket, as timeout was exceeded
+                            catch (TimeoutException)
+                            {
+                                throw;
+                            }
+                            // Socket error, do try an IPv4 socket.
+                            catch (SocketException)
+                            {
+                                socket = null;
+                                fh = null;
+                            }
+                            // IPv4 address was used for endpoint hostname, try IPv4 socket
+                            catch (ArgumentException)
+                            {
+                                socket = null;
+                                fh = null;
+                            }
+                        }
+                        if (socket == null)
+                        {
+                            socket = new TcpClient(AddressFamily.InterNetwork);
+                            ConfigureSocket(socket);
+                            fh = p.CreateFrameHandler(socket, candidate, RequestedConnectionTimeout);
+                        }
+
                         // At this point, we may be able to create
                         // and fully open a successful connection,
                         // in which case we're done, and the
@@ -339,6 +380,21 @@ namespace RabbitMQ.Client
             return null;
         }
 
+        /// <summary>
+        /// Provides a hook to insert custom configuration of the sockets
+        /// used to connect to an AMQP server before they connect.
+        ///
+        /// The default behaviour of this method is to disable Nagle's
+        /// algorithm to get more consistently low latency.  However it
+        /// may be overridden freely and there is no requirement to retain
+        /// this behaviour.
+        /// </summary>
+        /// <param name="socket">The socket that is to be used for the Connection</param>
+        protected virtual void ConfigureSocket(TcpClient socket)
+        {
+            // disable Nagle's algorithm, for more consistently low latency
+            socket.NoDelay = true;
+        }
 
         private void SetUri(Uri uri)
         {
