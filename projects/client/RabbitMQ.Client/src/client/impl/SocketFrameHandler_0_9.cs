@@ -75,7 +75,7 @@ namespace RabbitMQ.Client.Impl
                     m_socket = socketFactory(AddressFamily.InterNetworkV6);
                     Connect(m_socket, endpoint, timeout);
                 }
-                catch (ArgumentException)
+                catch (ArgumentException) // could not connect using IPv6
                 {
                     m_socket = null;
                 }
