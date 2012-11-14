@@ -198,6 +198,7 @@ namespace RabbitMQ.Client
 
         public delegate TcpClient ObtainSocket(AddressFamily addressFamily);
 
+        ///<summary>Set custom socket options by providing a SocketFactory</summary>
         public ObtainSocket SocketFactory = DefaultSocketFactory;
 
         ///<summary>Construct a fresh instance, with all fields set to
