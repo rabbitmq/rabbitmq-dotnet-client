@@ -45,8 +45,11 @@ using RabbitMQ.Util;
 namespace RabbitMQ.Client.Framing.Impl.v0_8qpid {
     public abstract class ProtocolBase: AbstractProtocolBase {
 
-        public override IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint) {
-            return new SocketFrameHandler_0_9(endpoint);
+        public override IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint,
+                                                         ConnectionFactory.ObtainSocket socketFactory,
+                                                         int timeout)
+        {
+            return new SocketFrameHandler_0_9(endpoint, socketFactory, timeout);
         }
 
         public override IModel CreateModel(ISession session) {
@@ -81,11 +84,11 @@ namespace RabbitMQ.Client.Framing.Impl.v0_8qpid {
         {
             request = new Command(new RabbitMQ.Client.Framing.Impl.v0_8qpid.ChannelClose(reasonCode,
                                                                                      reasonText,
-                                                                                     0, 0)); 
+                                                                                     0, 0));
             replyClassId = RabbitMQ.Client.Framing.Impl.v0_8qpid.ChannelCloseOk.ClassId;
-            replyMethodId = RabbitMQ.Client.Framing.Impl.v0_8qpid.ChannelCloseOk.MethodId;                                                                                     
+            replyMethodId = RabbitMQ.Client.Framing.Impl.v0_8qpid.ChannelCloseOk.MethodId;
         }
-        
+
         public override bool CanSendWhileClosed(Command cmd)
         {
             return cmd.m_method is RabbitMQ.Client.Framing.Impl.v0_8qpid.ChannelCloseOk;

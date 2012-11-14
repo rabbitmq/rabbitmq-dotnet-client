@@ -118,6 +118,10 @@ namespace RabbitMQ.Client
         /// seconds, with zero meaning none (value: 0)</summary>
         public const ushort DefaultHeartbeat = 0; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
 
+        /// <summary> Default value for connection attempt timeout,
+        /// in milliseconds</summary>
+        public const int DefaultConnectionTimeout = 30 * 1000;
+
         ///<summary> Default SASL auth mechanisms to use.</summary>
         public static AuthMechanismFactory[] DefaultAuthMechanisms =
             new AuthMechanismFactory[] { new PlainMechanismFactory() };
@@ -139,6 +143,9 @@ namespace RabbitMQ.Client
 
         /// <summary>Heartbeat setting to request (in seconds)</summary>
         public ushort RequestedHeartbeat = DefaultHeartbeat;
+
+        /// <summary>Timeout setting for connection attempts (in milliseconds)</summary>
+        public int RequestedConnectionTimeout = DefaultConnectionTimeout;
 
         /// <summary>Dictionary of client properties to be sent to the
         /// server</summary>
@@ -189,6 +196,11 @@ namespace RabbitMQ.Client
           set { SetUri(new Uri(value, UriKind.Absolute)); }
         }
 
+        public delegate TcpClient ObtainSocket(AddressFamily addressFamily);
+
+        ///<summary>Set custom socket options by providing a SocketFactory</summary>
+        public ObtainSocket SocketFactory = DefaultSocketFactory;
+
         ///<summary>Construct a fresh instance, with all fields set to
         ///their respective defaults.</summary>
         public ConnectionFactory() { }
@@ -212,7 +224,10 @@ namespace RabbitMQ.Client
 
                     try {
                         IProtocol p = candidate.Protocol;
-                        IFrameHandler fh = p.CreateFrameHandler(candidate);
+                        IFrameHandler fh = p.CreateFrameHandler(candidate,
+                                                                SocketFactory,
+                                                                RequestedConnectionTimeout);
+
                         // At this point, we may be able to create
                         // and fully open a successful connection,
                         // in which case we're done, and the
@@ -339,6 +354,12 @@ namespace RabbitMQ.Client
             return null;
         }
 
+        public static TcpClient DefaultSocketFactory(AddressFamily addressFamily)
+        {
+            TcpClient tcpClient = new TcpClient(addressFamily);
+            tcpClient.NoDelay = true;
+            return tcpClient;
+        }
 
         private void SetUri(Uri uri)
         {

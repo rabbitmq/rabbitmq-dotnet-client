@@ -54,7 +54,9 @@ namespace RabbitMQ.Client.Impl {
 
         public IDictionary Capabilities = new Hashtable();
 
-        public abstract IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint);
+        public abstract IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint,
+                                                         ConnectionFactory.ObtainSocket socketFactory,
+                                                         int timeout);
         public abstract IConnection CreateConnection(ConnectionFactory factory,
                                                      bool insist,
                                                      IFrameHandler frameHandler);

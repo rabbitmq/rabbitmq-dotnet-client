@@ -60,7 +60,9 @@ namespace RabbitMQ.Client
         int DefaultPort { get; }
 
         ///<summary>Construct a frame handler for a given endpoint.</summary>
-        IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint);
+        IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint,
+                                         ConnectionFactory.ObtainSocket socketFactory,
+                                         int timeout);
         ///<summary>Construct a connection from a given set of
         ///parameters and a frame handler. The "insist" parameter is
         ///passed on to the AMQP connection.open method.</summary>

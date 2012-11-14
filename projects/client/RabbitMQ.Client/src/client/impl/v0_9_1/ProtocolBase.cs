@@ -54,8 +54,11 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
             Capabilities["consumer_cancel_notify"] = true;
         }
 
-        public override IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint) {
-            return new SocketFrameHandler_0_9(endpoint);
+        public override IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint,
+                                                         ConnectionFactory.ObtainSocket socketFactory,
+                                                         int timeout)
+        {
+            return new SocketFrameHandler_0_9(endpoint, socketFactory, timeout);
         }
 
         public override IModel CreateModel(ISession session) {

@@ -62,7 +62,9 @@ namespace RabbitMQ.Client.Impl
         private bool m_closed = false;
         private Object m_semaphore = new object();
 
-        public SocketFrameHandler_0_9(AmqpTcpEndpoint endpoint)
+        public SocketFrameHandler_0_9(AmqpTcpEndpoint endpoint,
+                                      ConnectionFactory.ObtainSocket socketFactory,
+                                      int timeout)
         {
             m_endpoint = endpoint;
             m_socket = null;
@@ -70,33 +72,55 @@ namespace RabbitMQ.Client.Impl
             {
                 try
                 {
-                    m_socket = new TcpClient(AddressFamily.InterNetworkV6);
-                    m_socket.Connect(endpoint.HostName, endpoint.Port);
+                    m_socket = socketFactory(AddressFamily.InterNetworkV6);
+                    Connect(m_socket, endpoint, timeout);
                 }
-                catch(SocketException)
+                catch (ArgumentException) // could not connect using IPv6
                 {
                     m_socket = null;
                 }
             }
             if (m_socket == null)
             {
-                m_socket = new TcpClient(AddressFamily.InterNetwork);
-                m_socket.Connect(endpoint.HostName, endpoint.Port);
+                m_socket = socketFactory(AddressFamily.InterNetwork);
+                Connect(m_socket, endpoint, timeout);
             }
-            // disable Nagle's algorithm, for more consistently low latency 
-            m_socket.NoDelay = true;
 
             Stream netstream = m_socket.GetStream();
-            if (endpoint.Ssl.Enabled) {
-                try {
+            if (endpoint.Ssl.Enabled)
+            {
+                try
+                {
                     netstream = SslHelper.TcpUpgrade(netstream, endpoint.Ssl);
-                } catch (Exception) {
+                }
+                catch (Exception)
+                {
                     Close();
                     throw;
                 }
             }
             m_reader = new NetworkBinaryReader(new BufferedStream(netstream));
             m_writer = new NetworkBinaryWriter(new BufferedStream(netstream));
+        }
+
+        private void Connect(TcpClient socket, AmqpTcpEndpoint endpoint, int timeout)
+        {
+            IAsyncResult ar = null;
+            try
+            {
+                ar = socket.BeginConnect(endpoint.HostName, endpoint.Port, null, null);
+                if (!ar.AsyncWaitHandle.WaitOne(timeout, false))
+                {
+                    socket.Close();
+                    throw new TimeoutException("Connection to " + endpoint + " timed out");
+                }
+                socket.EndConnect(ar);
+            }
+            finally
+            {
+                if (ar != null)
+                    ar.AsyncWaitHandle.Close();
+            }
         }
 
         public AmqpTcpEndpoint Endpoint
