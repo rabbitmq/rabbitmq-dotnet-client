@@ -44,6 +44,7 @@ using System.Net.Sockets;
 using System.Text;
 
 using RabbitMQ.Util;
+using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -75,7 +76,7 @@ namespace RabbitMQ.Client.Impl
                     m_socket = socketFactory(AddressFamily.InterNetworkV6);
                     Connect(m_socket, endpoint, timeout);
                 }
-                catch (ArgumentException) // could not connect using IPv6
+                catch (ConnectFailureException) // could not connect using IPv6
                 {
                     m_socket = null;
                 }
@@ -115,6 +116,14 @@ namespace RabbitMQ.Client.Impl
                     throw new TimeoutException("Connection to " + endpoint + " timed out");
                 }
                 socket.EndConnect(ar);
+            }
+            catch (TimeoutException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                throw new ConnectFailureException("Connection failed", e);
             }
             finally
             {
