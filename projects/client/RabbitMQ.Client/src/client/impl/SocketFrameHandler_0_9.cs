@@ -117,11 +117,11 @@ namespace RabbitMQ.Client.Impl
                 }
                 socket.EndConnect(ar);
             }
-            catch (TimeoutException)
+            catch (ArgumentException e)
             {
-                throw;
+                throw new ConnectFailureException("Connection failed", e);
             }
-            catch (Exception e)
+            catch (SocketException e)
             {
                 throw new ConnectFailureException("Connection failed", e);
             }
