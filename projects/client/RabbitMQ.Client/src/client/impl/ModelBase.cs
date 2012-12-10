@@ -75,6 +75,7 @@ namespace RabbitMQ.Client.Impl
         public ManualResetEvent m_flowControlBlock = new ManualResetEvent(true);
         private readonly object m_flowSendLock = new object();
 
+        private object m_nextPubSeqNoLock = new object();
         private ulong m_nextPubSeqNo;
         private SortedList m_unconfirmedSet =
             SortedList.Synchronized(new SortedList());
@@ -1261,8 +1262,11 @@ namespace RabbitMQ.Client.Impl
                 basicProperties = CreateBasicProperties();
             }
             if (m_nextPubSeqNo > 0) {
-                m_unconfirmedSet.Add(m_nextPubSeqNo, null);
-                m_nextPubSeqNo++;
+                lock (m_nextPubSeqNoLock)
+                {
+                    m_unconfirmedSet.Add(m_nextPubSeqNo, null);
+                    m_nextPubSeqNo++;
+                }
             }
             _Private_BasicPublish(exchange,
                                   routingKey,
