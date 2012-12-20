@@ -73,9 +73,16 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
+        public void TestConfirmBeforeWait()
+        {
+            Assert.Throws(
+                typeof (InvalidOperationException),
+                delegate { Model.WaitForConfirms(); });
+        }
+
+        [Test]
         public void TestConfirmBarrier()
         {
-            Assert.That(Model.WaitForConfirms(), Is.Not.False);
             Model.ConfirmSelect();
             for (int i = 0; i < 10; i++)
                 Model.BasicPublish("", String.Empty, null, new byte[] { });
