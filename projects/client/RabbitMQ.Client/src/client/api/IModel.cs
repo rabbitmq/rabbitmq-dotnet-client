@@ -323,8 +323,7 @@ namespace RabbitMQ.Client
         ///Waits until all messages published since the last call have
         ///been either ack'd or nack'd by the broker.  Returns whether
         ///all the messages were ack'd (and none were nack'd). Note,
-        ///when called on a non-Confirm channel, returns true
-        ///immediately.
+        ///throws an exception when called on a non-Confirm channel.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
@@ -345,8 +344,7 @@ namespace RabbitMQ.Client
         ///Waits until all messages published since the last call have
         ///been either ack'd or nack'd by the broker.  Returns whether
         ///all the messages were ack'd (and none were nack'd). Note,
-        ///when called on a non-Confirm channel, returns true
-        ///immediately.
+        ///throws an exception when called on a non-Confirm channel.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
