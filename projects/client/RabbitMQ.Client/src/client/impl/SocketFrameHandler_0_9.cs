@@ -156,10 +156,20 @@ namespace RabbitMQ.Client.Impl
             lock (m_writer)
             {
                 m_writer.Write(Encoding.ASCII.GetBytes("AMQP"));
-                m_writer.Write((byte)1);
-                m_writer.Write((byte)1);
-                m_writer.Write((byte)m_endpoint.Protocol.MajorVersion);
-                m_writer.Write((byte)m_endpoint.Protocol.MinorVersion);
+                if (m_endpoint.Protocol.Revision != 0)
+                    {
+                        m_writer.Write((byte)0);
+                        m_writer.Write((byte)m_endpoint.Protocol.MajorVersion);
+                        m_writer.Write((byte)m_endpoint.Protocol.MinorVersion);
+                        m_writer.Write((byte)m_endpoint.Protocol.Revision);
+                    }
+                else
+                    {
+                        m_writer.Write((byte)1);
+                        m_writer.Write((byte)1);
+                        m_writer.Write((byte)m_endpoint.Protocol.MajorVersion);
+                        m_writer.Write((byte)m_endpoint.Protocol.MinorVersion);
+                    }
                 m_writer.Flush();
             }
         }
