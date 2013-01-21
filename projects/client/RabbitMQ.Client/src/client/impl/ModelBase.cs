@@ -960,6 +960,9 @@ namespace RabbitMQ.Client.Impl
 
         public bool WaitForConfirms(TimeSpan timeout, out bool timedOut)
         {
+            if (m_nextPubSeqNo == 0UL) {
+                throw new InvalidOperationException("Confirms not selected");
+            }
             bool isWaitInfinite = (timeout.TotalMilliseconds == Timeout.Infinite);
             Stopwatch stopwatch = Stopwatch.StartNew();
             lock (m_unconfirmedSet.SyncRoot)
