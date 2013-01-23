@@ -11,6 +11,7 @@
       <year>2010</year>
       <year>2011</year>
       <year>2012</year>
+      <year>2013</year>
       <holder> VMware, Inc.</holder>
     </copyright>
     <legalnotice>
@@ -23,7 +24,7 @@
       </para>
       <blockquote>
         <para>
-          Copyright (C) 2007-2012 VMware, Inc.
+          Copyright (C) 2007-2013 VMware, Inc.
         </para>
         <para>
           Licensed under the Apache License, Version 2.0 (the "License");
@@ -62,7 +63,7 @@
         </para>
         <para>
           The Initial Developer of the Original Code is VMware, Inc.
-          Copyright (c) 2007-2012 VMware, Inc.  All Rights Reserved.
+          Copyright (c) 2007-2013 VMware, Inc.  All Rights Reserved.
         </para>
       </blockquote>
 
