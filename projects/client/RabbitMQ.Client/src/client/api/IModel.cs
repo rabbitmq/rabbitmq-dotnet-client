@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2012 VMware, Inc.
+//   Copyright (C) 2007-2013 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is VMware, Inc.
-//  Copyright (c) 2007-2012 VMware, Inc.  All rights reserved.
+//  Copyright (c) 2007-2013 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
@@ -323,8 +323,7 @@ namespace RabbitMQ.Client
         ///Waits until all messages published since the last call have
         ///been either ack'd or nack'd by the broker.  Returns whether
         ///all the messages were ack'd (and none were nack'd). Note,
-        ///when called on a non-Confirm channel, returns true
-        ///immediately.
+        ///throws an exception when called on a non-Confirm channel.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
@@ -345,8 +344,7 @@ namespace RabbitMQ.Client
         ///Waits until all messages published since the last call have
         ///been either ack'd or nack'd by the broker.  Returns whether
         ///all the messages were ack'd (and none were nack'd). Note,
-        ///when called on a non-Confirm channel, returns true
-        ///immediately.
+        ///throws an exception when called on a non-Confirm channel.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]

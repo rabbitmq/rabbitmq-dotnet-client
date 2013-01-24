@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2012 VMware, Inc.
+//   Copyright (C) 2007-2013 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is VMware, Inc.
-//  Copyright (c) 2007-2012 VMware, Inc.  All rights reserved.
+//  Copyright (c) 2007-2013 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
@@ -73,9 +73,16 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
+        public void TestConfirmBeforeWait()
+        {
+            Assert.Throws(
+                typeof (InvalidOperationException),
+                delegate { Model.WaitForConfirms(); });
+        }
+
+        [Test]
         public void TestConfirmBarrier()
         {
-            Assert.That(Model.WaitForConfirms(), Is.Not.False);
             Model.ConfirmSelect();
             for (int i = 0; i < 10; i++)
                 Model.BasicPublish("", String.Empty, null, new byte[] { });

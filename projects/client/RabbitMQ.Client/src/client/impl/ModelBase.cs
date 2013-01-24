@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2012 VMware, Inc.
+//   Copyright (C) 2007-2013 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is VMware, Inc.
-//  Copyright (c) 2007-2012 VMware, Inc.  All rights reserved.
+//  Copyright (c) 2007-2013 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
@@ -960,6 +960,9 @@ namespace RabbitMQ.Client.Impl
 
         public bool WaitForConfirms(TimeSpan timeout, out bool timedOut)
         {
+            if (m_nextPubSeqNo == 0UL) {
+                throw new InvalidOperationException("Confirms not selected");
+            }
             bool isWaitInfinite = (timeout.TotalMilliseconds == Timeout.Infinite);
             Stopwatch stopwatch = Stopwatch.StartNew();
             lock (m_unconfirmedSet.SyncRoot)
