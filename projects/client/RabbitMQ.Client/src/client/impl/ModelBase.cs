@@ -735,10 +735,10 @@ namespace RabbitMQ.Client.Impl
                              classId,
                              methodId));
 
-            m_session.Close(m_closeReason, false);
             try {
                 _Private_ChannelCloseOk();
             } finally {
+                m_session.Close(m_closeReason, false);
                 m_session.Notify();
             }
         }
