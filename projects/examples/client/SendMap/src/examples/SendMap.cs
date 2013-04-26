@@ -40,6 +40,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Net;
 using System.Text;
 
@@ -118,7 +119,7 @@ namespace RabbitMQ.Client.Examples {
                             string key = keyAndDiscriminator.Substring(1);
                             char discriminator = keyAndDiscriminator[0];
 
-                            IDictionary target;
+                            IDictionary<string, object> target;
                             switch (discriminator) {
                               case '-':
                                   target = b.Headers;

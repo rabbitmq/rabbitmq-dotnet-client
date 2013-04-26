@@ -59,12 +59,12 @@ namespace RabbitMQ.Client.Unit
         public void TestStandardTypes()
         {
             NetworkBinaryWriter w = Writer();
-            Dictionary<string, object> t = new Dictionary<string, object>();
+            IDictionary<string, object> t = new Dictionary<string, object>();
             t["string"] = "Hello";
             t["int"] = 1234;
             t["decimal"] = 12.34m;
             t["timestamp"] = new AmqpTimestamp(0);
-            Dictionary<string, object> t2 = new Dictionary<string, object>();
+            IDictionary<string, object> t2 = new Dictionary<string, object>();
             t["fieldtable"] = t2;
             t2["test"] = "test";
             IList array = new List<object>();
@@ -72,7 +72,7 @@ namespace RabbitMQ.Client.Unit
             array.Add(1234);
             t["fieldarray"] = array;
             WireFormatting.WriteTable(w, t);
-            IDictionary nt = WireFormatting.ReadTable(Reader(Contents(w)));
+            IDictionary nt = (IDictionary)WireFormatting.ReadTable(Reader(Contents(w)));
             Assert.AreEqual(Encoding.UTF8.GetBytes("Hello"), nt["string"]);
             Assert.AreEqual(1234, nt["int"]);
             Assert.AreEqual(12.34m, nt["decimal"]);
@@ -88,7 +88,7 @@ namespace RabbitMQ.Client.Unit
         public void TestTableEncoding_S()
         {
             NetworkBinaryWriter w = Writer();
-            Dictionary<string, object> t = new Dictionary<string, object>();
+            IDictionary<string, object> t = new Dictionary<string, object>();
             t["a"] = "bc";
             WireFormatting.WriteTable(w, t);
             Check(w, new byte[] {
@@ -103,7 +103,7 @@ namespace RabbitMQ.Client.Unit
         public void TestTableEncoding_x()
         {
             NetworkBinaryWriter w = Writer();
-            Dictionary<string, object> t = new Dictionary<string, object>();
+            IDictionary<string, object> t = new Dictionary<string, object>();
             t["a"] = new BinaryTableValue(new byte[] { 0xaa, 0x55 });
             WireFormatting.WriteTable(w, t);
             Check(w, new byte[] {
@@ -118,7 +118,7 @@ namespace RabbitMQ.Client.Unit
         public void TestQpidJmsTypes()
         {
             NetworkBinaryWriter w = Writer();
-            Dictionary<string, object> t = new Dictionary<string, object>();
+            IDictionary<string, object> t = new Dictionary<string, object>();
             t["b"] = (byte)123;
             t["d"] = (double)123;
             t["f"] = (float)123;
@@ -129,7 +129,7 @@ namespace RabbitMQ.Client.Unit
             t["x"] = new BinaryTableValue(xbytes);
             t["V"] = null;
             WireFormatting.WriteTable(w, t);
-            IDictionary nt = WireFormatting.ReadTable(Reader(Contents(w)));
+            IDictionary nt = (IDictionary)WireFormatting.ReadTable(Reader(Contents(w)));
             Assert.AreEqual(typeof(byte), nt["b"].GetType()); Assert.AreEqual((byte)123, nt["b"]);
             Assert.AreEqual(typeof(double), nt["d"].GetType()); Assert.AreEqual((double)123, nt["d"]);
             Assert.AreEqual(typeof(float), nt["f"].GetType()); Assert.AreEqual((float)123, nt["f"]);

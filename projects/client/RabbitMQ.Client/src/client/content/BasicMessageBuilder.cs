@@ -101,7 +101,7 @@ namespace RabbitMQ.Client.Content {
 	}
 
         ///<summary>Implement IMessageBuilder.Headers</summary>
-	public IDictionary Headers {
+	public IDictionary<string, object> Headers {
 	    get {
 		if (Properties.Headers == null) {
 		    Properties.Headers = new Dictionary<string, object>();

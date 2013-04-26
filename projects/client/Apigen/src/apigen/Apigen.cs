@@ -193,7 +193,7 @@ namespace RabbitMQ.Client.Apigen {
             InitPrimitiveType("long", "uint", false);
             InitPrimitiveType("longlong", "ulong", false);
             InitPrimitiveType("bit", "bool", false);
-            InitPrimitiveType("table", "System.Collections.IDictionary", true);
+            InitPrimitiveType("table", "System.Collections.Generic.IDictionary<string, object>", true);
             InitPrimitiveType("timestamp", "AmqpTimestamp", false);
             InitPrimitiveType("content", "byte[]", true);
         }

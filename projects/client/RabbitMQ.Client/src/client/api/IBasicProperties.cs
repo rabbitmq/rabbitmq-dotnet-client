@@ -40,6 +40,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace RabbitMQ.Client
 {
@@ -69,7 +70,7 @@ namespace RabbitMQ.Client
         string ContentEncoding { get; set; }
 
         ///<summary> message header field table. Is of type <seealso cref="IDictionary{string,object}"/>.</summary>
-        IDictionary Headers { get; set; }
+        IDictionary<string, object> Headers { get; set; }
 
         ///<summary> non-persistent (1) or persistent (2) </summary>
         byte DeliveryMode { get; set; }

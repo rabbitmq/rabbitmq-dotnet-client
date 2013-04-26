@@ -70,7 +70,7 @@ namespace RabbitMQ.Client.Unit
             array.Add(1234);
             t["fieldarray"] = array;
             WireFormatting.WriteTable(w, t);
-            IDictionary nt = WireFormatting.ReadTable(Reader(Contents(w)));
+            IDictionary nt = (IDictionary)WireFormatting.ReadTable(Reader(Contents(w)));
             Assert.AreEqual(Encoding.UTF8.GetBytes("Hello"), nt["string"]);
             Assert.AreEqual(1234, nt["int"]);
             Assert.AreEqual(12.34m, nt["decimal"]);
@@ -127,7 +127,7 @@ namespace RabbitMQ.Client.Unit
             t["x"] = new BinaryTableValue(xbytes);
             t["V"] = null;
             WireFormatting.WriteTable(w, t);
-            IDictionary nt = WireFormatting.ReadTable(Reader(Contents(w)));
+            IDictionary nt = (IDictionary)WireFormatting.ReadTable(Reader(Contents(w)));
             Assert.AreEqual(typeof(byte), nt["b"].GetType()); Assert.AreEqual((byte)123, nt["b"]);
             Assert.AreEqual(typeof(double), nt["d"].GetType()); Assert.AreEqual((double)123, nt["d"]);
             Assert.AreEqual(typeof(float), nt["f"].GetType()); Assert.AreEqual((float)123, nt["f"]);

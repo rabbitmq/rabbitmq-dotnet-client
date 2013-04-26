@@ -116,7 +116,7 @@ namespace RabbitMQ.Client.Impl
         /// x and V types and the AMQP 0-9-1 A type.
         ///</remarks>
         /// <returns>A <seealso cref="Dictionary{string, object}"/>.</returns>
-        public static IDictionary ReadTable(NetworkBinaryReader reader)
+        public static IDictionary<string, object> ReadTable(NetworkBinaryReader reader)
         {
             Dictionary<string, object> table = new Dictionary<string, object>();
             long tableLength = reader.ReadUInt32();
@@ -300,7 +300,6 @@ namespace RabbitMQ.Client.Impl
         /// and F, as well as the QPid-0-8 specific b, d, f, l, s, t
         /// x and V types and the AMQP 0-9-1 A type.
         ///</para>
-        ///<param name="val">Type of <seealso cref="IDictionary{string, object}"/>.</param>
         ///</remarks>
         public static void WriteTable(NetworkBinaryWriter writer, IDictionary val)
         {
@@ -315,6 +314,48 @@ namespace RabbitMQ.Client.Impl
                 writer.Write((uint)0); // length of table - will be backpatched
 
                 foreach (DictionaryEntry entry in val)
+                {
+                    WriteShortstr(writer, (string)entry.Key);
+                    object value = entry.Value;
+                    WriteFieldValue(writer, value);
+                }
+
+                // Now, backpatch the table length.
+                long savedPosition = backingStream.Position;
+                long tableLength = savedPosition - patchPosition - 4; // offset for length word
+                backingStream.Seek(patchPosition, SeekOrigin.Begin);
+                writer.Write((uint)tableLength);
+                backingStream.Seek(savedPosition, SeekOrigin.Begin);
+            }
+        }
+
+        ///<summary>Writes an AMQP "table" to the writer.</summary>
+        ///<remarks>
+        ///<para>
+        /// In this method, we assume that the stream that backs our
+        /// NetworkBinaryWriter is a positionable stream - which it is
+        /// currently (see Frame.m_accumulator, Frame.GetWriter and
+        /// Command.Transmit).
+        ///</para>
+        ///<para>
+        /// Supports the AMQP 0-8/0-9 standard entry types S, I, D, T
+        /// and F, as well as the QPid-0-8 specific b, d, f, l, s, t
+        /// x and V types and the AMQP 0-9-1 A type.
+        ///</para>
+        ///</remarks>
+        public static void WriteTable(NetworkBinaryWriter writer, IDictionary<string, object> val)
+        {
+            if (val == null)
+            {
+                writer.Write((uint)0);
+            }
+            else
+            {
+                Stream backingStream = writer.BaseStream;
+                long patchPosition = backingStream.Position;
+                writer.Write((uint)0); // length of table - will be backpatched
+
+                foreach (KeyValuePair<string, object> entry in val)
                 {
                     WriteShortstr(writer, (string)entry.Key);
                     object value = entry.Value;

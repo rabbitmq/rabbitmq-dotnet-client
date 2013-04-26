@@ -42,6 +42,7 @@ using System;
 using System.IO;
 using System.Text;
 using System.Collections;
+using System.Collections.Generic;
 
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
@@ -118,7 +119,7 @@ namespace RabbitMQ.Client.Impl
             return result;
         }
 
-        public IDictionary ReadTable()
+        public IDictionary<string, object> ReadTable()
         {
             ClearBits();
             return WireFormatting.ReadTable(m_reader);

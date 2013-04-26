@@ -85,7 +85,7 @@ namespace RabbitMQ.Client.Content
         }
 
         ///<summary>Implement IMessageReader.Headers</summary>
-        public IDictionary Headers
+        public IDictionary<string, object> Headers
         {
             get
             {

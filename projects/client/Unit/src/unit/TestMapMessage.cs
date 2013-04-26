@@ -61,7 +61,7 @@ namespace RabbitMQ.Client.Unit
             t["double"] = 1.234;
             t["string"] = "hello";
             MapWireFormatting.WriteMap(w, t);
-            IDictionary t2 = MapWireFormatting.ReadMap(Reader(Contents(w)));
+            IDictionary<string, object> t2 = MapWireFormatting.ReadMap(Reader(Contents(w)));
             Assert.AreEqual(2, t2.Count);
             Assert.AreEqual(1.234, t2["double"]);
             Assert.AreEqual("hello", t2["string"]);

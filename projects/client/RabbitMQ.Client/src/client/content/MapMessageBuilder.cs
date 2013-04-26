@@ -52,10 +52,10 @@ namespace RabbitMQ.Client.Content {
         ///<summary>MIME type associated with QPid MapMessages.</summary>
         public readonly static string MimeType = "jms/map-message";
 
-	protected IDictionary m_table = new Dictionary<string, object>();
+	protected IDictionary<string, object> m_table = new Dictionary<string, object>();
 
 	///<summary>Implement IMapMessageBuilder.Body</summary>
-	public IDictionary Body {
+	public IDictionary<string, object> Body {
 	    get {
 		return m_table;
 	    }

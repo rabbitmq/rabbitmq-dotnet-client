@@ -102,13 +102,13 @@ namespace RabbitMQ.Client
         ushort Heartbeat { get; }
 
         ///<summary>A copy of the client properties that has been sent to the
-        ///server.  Is type <seealso cref="IDictionary{string, object}"/>.</summary>
-        IDictionary ClientProperties { get; }
+        ///server.</summary>
+        IDictionary<string, object> ClientProperties { get; }
 
         ///<summary>A dictionary of the server properties sent by the server
         ///while establishing the connection. This typically includes
         ///the product name and version of the server.</summary>
-        IDictionary ServerProperties { get; }
+        IDictionary<string, object> ServerProperties { get; }
 
         ///<summary>Returns the known hosts that came back from the
         ///broker in the connection.open-ok method at connection

@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Content {
     ///encoding.</summary>
     ///<exception cref="ProtocolViolationException"/>
     public class MapWireFormatting {
-        public static IDictionary ReadMap(NetworkBinaryReader reader) {
+        public static IDictionary<string, object> ReadMap(NetworkBinaryReader reader) {
             int entryCount = BytesWireFormatting.ReadInt32(reader);
             if (entryCount < 0) {
                 string message = string.Format("Invalid (negative) entryCount: {0}", entryCount);
@@ -72,11 +72,11 @@ namespace RabbitMQ.Client.Content {
         }
 
         /// <param name="table">Type is <seealso cref="IDictionary{string, object}"/>.</param>
-        public static void WriteMap(NetworkBinaryWriter writer, IDictionary table) {
+        public static void WriteMap(NetworkBinaryWriter writer, IDictionary<string, object> table) {
             int entryCount = table.Count;
             BytesWireFormatting.WriteInt32(writer, entryCount);
 
-            foreach (DictionaryEntry entry in table) {
+            foreach (KeyValuePair<string, object> entry in table) {
                 StreamWireFormatting.WriteUntypedString(writer, (string) entry.Key);
                 StreamWireFormatting.WriteObject(writer, entry.Value);
             }

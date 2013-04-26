@@ -55,7 +55,7 @@ namespace RabbitMQ.Client.Examples {
             int optionIndex = 0;
             bool durable = false;
             bool delete = false;
-            IDictionary arguments = null;
+            IDictionary<string, object> arguments = null;
             while (optionIndex < args.Length) {
                 if (args[optionIndex] == "/durable") { durable = true; }
                 else if (args[optionIndex] == "/delete") { delete = true; }

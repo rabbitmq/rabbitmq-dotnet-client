@@ -41,6 +41,7 @@
 using System;
 using System.IO;
 using System.Collections;
+using System.Collections.Generic;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
@@ -125,7 +126,7 @@ namespace RabbitMQ.Client.Impl
             WireFormatting.WriteLonglong(m_writer, val);
         }
 
-        public void WriteTable(IDictionary val)
+        public void WriteTable(IDictionary<string, object> val)
         {
             WireFormatting.WriteTable(m_writer, val);
         }

@@ -48,7 +48,7 @@ namespace RabbitMQ.Client.Impl
     {
         public abstract string ContentType { get; set; }
         public abstract string ContentEncoding { get; set; }
-        public abstract IDictionary Headers { get; set; }
+        public abstract IDictionary<string, object> Headers { get; set; }
         public abstract byte Priority { get; set; }
         public abstract string ReplyTo { get; set; }
         public abstract string MessageId { get; set; }
@@ -82,7 +82,7 @@ namespace RabbitMQ.Client.Impl
             if (IsHeadersPresent())
             {
                 clone.Headers = new Dictionary<string, object>();
-                foreach (DictionaryEntry entry in Headers)
+                foreach (KeyValuePair<string, object> entry in Headers)
                     clone.Headers[entry.Key] = entry.Value;
             }
 

@@ -74,8 +74,8 @@ namespace RabbitMQ.Client.Impl
         public IFrameHandler m_frameHandler;
         public uint m_frameMax = 0;
         public ushort m_heartbeat = 0;
-        public IDictionary m_clientProperties;
-        public IDictionary m_serverProperties;
+        public IDictionary<string, object> m_clientProperties;
+        public IDictionary<string, object> m_serverProperties;
         public AmqpTcpEndpoint[] m_knownHosts = null;
 
         public MainSession m_session0;
@@ -234,7 +234,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public IDictionary ClientProperties
+        public IDictionary<string, object> ClientProperties
         {
             get
             {
@@ -246,7 +246,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public IDictionary ServerProperties
+        public IDictionary<string, object> ServerProperties
         {
             get
             {
