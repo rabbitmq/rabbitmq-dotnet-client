@@ -39,6 +39,8 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.CodeDom;
+using System.CodeDom.Compiler;
 using System.Collections;
 using System.IO;
 using System.Reflection;
@@ -178,6 +180,9 @@ namespace RabbitMQ.Client.Apigen {
 
         public static Hashtable m_primitiveTypeMap;
         public static Hashtable m_primitiveTypeFlagMap;
+
+        private CodeDomProvider m_csharpProvider;
+
         static Apigen() {
             m_primitiveTypeMap = new Hashtable();
             m_primitiveTypeFlagMap = new Hashtable();
@@ -239,6 +244,7 @@ namespace RabbitMQ.Client.Apigen {
             }
             m_inputXmlFilename = (string) args[0];
             m_outputFilename = (string) args[1];
+            this.m_csharpProvider = CodeDomProvider.CreateProvider("C#");
         }
 
         ///////////////////////////////////////////////////////////////////////////
@@ -852,11 +858,17 @@ namespace RabbitMQ.Client.Apigen {
         }
 
         public string SanitisedFullName(Type t) {
-            if (t == typeof(void)) {
-                return "void";
-            } else {
-                return t.FullName;
+            CodeTypeReference typeReference = new CodeTypeReference(t);
+            CodeVariableDeclarationStatement variableDeclaration = new CodeVariableDeclarationStatement(typeReference, "dummy");
+            StringBuilder sb = new StringBuilder();
+            using (StringWriter writer = new StringWriter(sb))
+            {
+                this.m_csharpProvider.GenerateCodeFromStatement(variableDeclaration, writer, new CodeGeneratorOptions());
             }
+
+            sb.Replace(" dummy;", null);
+
+            return sb.ToString().Trim(' ', '\t', '\r', '\n');
         }
 
         public void EmitModelMethodPreamble(MethodInfo method) {
