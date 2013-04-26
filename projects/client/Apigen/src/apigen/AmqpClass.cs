@@ -39,22 +39,22 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Xml;
 
 namespace RabbitMQ.Client.Apigen {
     public class AmqpClass: AmqpEntity {
-        public ArrayList m_Methods;
-        public ArrayList m_Fields;
+        public List<AmqpMethod> m_Methods;
+        public List<AmqpField> m_Fields;
 
         public AmqpClass(XmlNode n)
             : base(n)
         {
-            m_Methods = new ArrayList();
+            m_Methods = new List<AmqpMethod>();
             foreach (XmlNode m in n.SelectNodes("method")) {
                 m_Methods.Add(new AmqpMethod(m));
             }
-            m_Fields = new ArrayList();
+            m_Fields = new List<AmqpField>();
             foreach (XmlNode f in n.SelectNodes("field")) {
                 m_Fields.Add(new AmqpField(f));
             }
