@@ -41,6 +41,7 @@
 using System;
 using System.IO;
 using System.Collections;
+using System.Collections.Generic;
 
 using RabbitMQ.Util;
 
@@ -88,7 +89,7 @@ namespace RabbitMQ.Client.Impl {
         public MethodBase m_method;
         public ContentHeaderBase m_header;
         public byte[] m_body0;
-        public ArrayList m_bodyN;
+        public List<byte[]> m_bodyN;
 
         public MethodBase Method { get { return m_method; } }
         public ContentHeaderBase Header { get { return m_header; } }
@@ -131,7 +132,7 @@ namespace RabbitMQ.Client.Impl {
                 m_body0 = fragment;
             } else {
                 if (m_bodyN == null) {
-                    m_bodyN = new ArrayList();
+                    m_bodyN = new List<byte[]>();
                 }
                 m_bodyN.Add(fragment);
             }

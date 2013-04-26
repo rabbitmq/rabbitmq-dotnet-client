@@ -58,7 +58,7 @@ namespace RabbitMQ.Client.Content {
 	string GetDefaultContentType();
 
 	///<summary>Retrieves the dictionary that will be used to
-	///construct the message header table.</summary>
+	///construct the message header table.  Is of type <seealso cref="IDictionary{string, object}"/>.</summary>
 	IDictionary Headers { get; }
 
 	///<summary>Retrieve the Stream being used to construct the message body.</summary>

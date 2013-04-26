@@ -43,6 +43,7 @@ using NUnit.Framework;
 using System;
 using System.IO;
 using System.Collections;
+using System.Collections.Generic;
 
 using RabbitMQ.Util;
 using RabbitMQ.Client.Content;
@@ -56,7 +57,7 @@ namespace RabbitMQ.Client.Unit
         public void TestRoundTrip()
         {
             NetworkBinaryWriter w = Writer();
-            Hashtable t = new Hashtable();
+            Dictionary<string, object> t = new Dictionary<string, object>();
             t["double"] = 1.234;
             t["string"] = "hello";
             MapWireFormatting.WriteMap(w, t);
@@ -70,7 +71,7 @@ namespace RabbitMQ.Client.Unit
         public void TestEncoding()
         {
             NetworkBinaryWriter w = Writer();
-            Hashtable t = new Hashtable();
+            Dictionary<string, object> t = new Dictionary<string, object>();
             t["double"] = 1.234;
             t["string"] = "hello";
             MapWireFormatting.WriteMap(w, t);

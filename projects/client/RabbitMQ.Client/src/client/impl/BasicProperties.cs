@@ -40,6 +40,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -47,7 +48,7 @@ namespace RabbitMQ.Client.Impl
     {
         public abstract string ContentType { get; set; }
         public abstract string ContentEncoding { get; set; }
-        public abstract IDictionary Headers { get; set; }
+        public abstract IDictionary Headers { get; set; } // Dictionary<string, object>
         public abstract byte DeliveryMode { get; set; }
         public abstract byte Priority { get; set; }
         public abstract string CorrelationId { get; set; }
@@ -115,7 +116,7 @@ namespace RabbitMQ.Client.Impl
             BasicProperties clone = MemberwiseClone() as BasicProperties;
             if (IsHeadersPresent())
             {
-                clone.Headers = new Hashtable();
+                clone.Headers = new Dictionary<string, object>();
                 foreach (DictionaryEntry entry in Headers)
                     clone.Headers[entry.Key] = entry.Value;
             }

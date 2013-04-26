@@ -41,6 +41,7 @@
 using System;
 using System.IO;
 using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 
@@ -76,8 +77,8 @@ namespace RabbitMQ.Client.Impl
         private readonly object m_flowSendLock = new object();
 
         private ulong m_nextPubSeqNo;
-        private SortedList m_unconfirmedSet =
-            SortedList.Synchronized(new SortedList());
+        private SynchronizedSortedList<ulong, object> m_unconfirmedSet =
+            new SynchronizedSortedList<ulong, object>(new SortedList<ulong, object>());
         private bool m_onlyAcksReceived = true;
 
         public event ModelShutdownEventHandler ModelShutdown
@@ -235,7 +236,7 @@ namespace RabbitMQ.Client.Impl
         ///sequence. See <see cref="ConnectionBase.Open"/> </summary>
         public BlockingCell m_connectionStartCell = null;
 
-        public readonly IDictionary m_consumers = new Hashtable();
+        public readonly IDictionary<string, IBasicConsumer> m_consumers = new Dictionary<string, IBasicConsumer>();
 
         public ModelBase(ISession session)
         {

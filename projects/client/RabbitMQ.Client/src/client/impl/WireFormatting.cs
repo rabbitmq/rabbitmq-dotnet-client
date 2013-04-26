@@ -42,6 +42,7 @@ using System;
 using System.IO;
 using System.Text;
 using System.Collections;
+using System.Collections.Generic;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
@@ -114,9 +115,10 @@ namespace RabbitMQ.Client.Impl
         /// and F, as well as the QPid-0-8 specific b, d, f, l, s, t,
         /// x and V types and the AMQP 0-9-1 A type.
         ///</remarks>
+        /// <returns>A <seealso cref="Dictionary{string, object}"/>.</returns>
         public static IDictionary ReadTable(NetworkBinaryReader reader)
         {
-            Hashtable table = new Hashtable();
+            Dictionary<string, object> table = new Dictionary<string, object>();
             long tableLength = reader.ReadUInt32();
 
             Stream backingStream = reader.BaseStream;
@@ -137,7 +139,7 @@ namespace RabbitMQ.Client.Impl
 
         public static IList ReadArray(NetworkBinaryReader reader)
         {
-            IList array = new ArrayList();
+            IList array = new List<object>();
             long arrayLength = reader.ReadUInt32();
             Stream backingStream = reader.BaseStream;
             long startPosition = backingStream.Position;
@@ -298,6 +300,7 @@ namespace RabbitMQ.Client.Impl
         /// and F, as well as the QPid-0-8 specific b, d, f, l, s, t
         /// x and V types and the AMQP 0-9-1 A type.
         ///</para>
+        ///<param name="val">Type of <seealso cref="IDictionary{string, object}"/>.</param>
         ///</remarks>
         public static void WriteTable(NetworkBinaryWriter writer, IDictionary val)
         {

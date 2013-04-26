@@ -40,6 +40,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -80,7 +81,7 @@ namespace RabbitMQ.Client.Impl
             FileProperties clone = MemberwiseClone() as FileProperties;
             if (IsHeadersPresent())
             {
-                clone.Headers = new Hashtable();
+                clone.Headers = new Dictionary<string, object>();
                 foreach (DictionaryEntry entry in Headers)
                     clone.Headers[entry.Key] = entry.Value;
             }

@@ -41,6 +41,7 @@
 using System;
 using System.IO;
 using System.Collections;
+using System.Collections.Generic;
 
 using RabbitMQ.Client;
 using RabbitMQ.Util;
@@ -103,7 +104,7 @@ namespace RabbitMQ.Client.Content {
 	public IDictionary Headers {
 	    get {
 		if (Properties.Headers == null) {
-		    Properties.Headers = new Hashtable();
+		    Properties.Headers = new Dictionary<string, object>();
 		}
 		return Properties.Headers;
 	    }

@@ -38,7 +38,7 @@
 //  Copyright (c) 2007-2013 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Collections;
+using System.Collections.Generic;
 
 namespace RabbitMQ.Client
 {
@@ -66,7 +66,7 @@ namespace RabbitMQ.Client
         private ExchangeType() {}
 
         ///<summary>Retrieve a collection containing all standard exchange types.</summary>
-        public static ICollection All()
+        public static ICollection<string> All()
         {
             return new string[] {
                 Fanout,

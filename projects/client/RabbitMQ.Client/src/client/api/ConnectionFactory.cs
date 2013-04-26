@@ -43,7 +43,7 @@ using System.IO;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
-using System.Collections;
+using System.Collections.Generic;
 
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Client.Exceptions;
@@ -149,7 +149,7 @@ namespace RabbitMQ.Client
 
         /// <summary>Dictionary of client properties to be sent to the
         /// server</summary>
-        public IDictionary ClientProperties = ConnectionBase.DefaultClientProperties();
+        public IDictionary<string, object> ClientProperties = ConnectionBase.DefaultClientProperties();
 
         ///<summary>Ssl options setting</summary>
         public SslOption Ssl = new SslOption();
@@ -207,8 +207,8 @@ namespace RabbitMQ.Client
 
         protected virtual IConnection FollowRedirectChain
             (int maxRedirects,
-             IDictionary connectionAttempts,
-             IDictionary connectionErrors,
+             IDictionary<AmqpTcpEndpoint, int> connectionAttempts,
+             IDictionary<AmqpTcpEndpoint, Exception> connectionErrors,
              ref AmqpTcpEndpoint[] mostRecentKnownHosts,
              AmqpTcpEndpoint endpoint)
         {
@@ -216,7 +216,7 @@ namespace RabbitMQ.Client
             try {
                 while (true) {
                     int attemptCount =
-                        connectionAttempts.Contains(candidate)
+                        connectionAttempts.ContainsKey(candidate)
                         ? (int) connectionAttempts[candidate]
                         : 0;
                     connectionAttempts[candidate] = attemptCount + 1;
@@ -261,8 +261,8 @@ namespace RabbitMQ.Client
         }
 
         protected virtual IConnection CreateConnection(int maxRedirects,
-                                                       IDictionary connectionAttempts,
-                                                       IDictionary connectionErrors,
+                                                       IDictionary<AmqpTcpEndpoint, int> connectionAttempts,
+                                                       IDictionary<AmqpTcpEndpoint, Exception> connectionErrors,
                                                        params AmqpTcpEndpoint[] endpoints)
         {
             foreach (AmqpTcpEndpoint endpoint in endpoints)
@@ -320,8 +320,8 @@ namespace RabbitMQ.Client
         ///each endpoint tried.</summary>
         public virtual IConnection CreateConnection(int maxRedirects)
         {
-            IDictionary connectionAttempts = new Hashtable();
-            IDictionary connectionErrors = new Hashtable();
+            Dictionary<AmqpTcpEndpoint, int> connectionAttempts = new Dictionary<AmqpTcpEndpoint, int>();
+            Dictionary<AmqpTcpEndpoint, Exception> connectionErrors = new Dictionary<AmqpTcpEndpoint, Exception>();
             IConnection conn = CreateConnection(maxRedirects,
                                                 connectionAttempts,
                                                 connectionErrors,
@@ -346,7 +346,7 @@ namespace RabbitMQ.Client
         public AuthMechanismFactory AuthMechanismFactory(string[] mechs) {
             // Our list is in order of preference, the server one is not.
             foreach (AuthMechanismFactory f in AuthMechanisms) {
-                if (((IList)mechs).Contains(f.Name)) {
+                if (((IList<string>)mechs).Contains(f.Name)) {
                     return f;
                 }
             }

@@ -40,6 +40,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -59,7 +60,7 @@ namespace RabbitMQ.Client.Examples {
                 if (args[optionIndex] == "/durable") { durable = true; }
                 else if (args[optionIndex] == "/delete") { delete = true; }
                 else if (args[optionIndex].StartsWith("/arg:")) {
-                    if (arguments == null) { arguments = new Hashtable(); }
+                    if (arguments == null) { arguments = new Dictionary<string, object>(); }
                     string[] pieces = args[optionIndex].Split(new Char[] { ':' });
                     if (pieces.Length >= 3) {
                         arguments[pieces[1]] = pieces[2];

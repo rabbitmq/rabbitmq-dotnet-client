@@ -43,6 +43,7 @@ using System.Net;
 using System.Text;
 using System.IO;
 using System.Collections;
+using System.Collections.Generic;
 
 using RabbitMQ.Client;
 using RabbitMQ.Util;
@@ -60,7 +61,7 @@ namespace RabbitMQ.Client.Content {
                 throw new ProtocolViolationException(message);
             }
 
-            Hashtable table = new Hashtable(entryCount);
+            Dictionary<string, object> table = new Dictionary<string, object>(entryCount);
             for (int entryIndex = 0; entryIndex < entryCount; entryIndex++) {
                 string key = StreamWireFormatting.ReadUntypedString(reader);
                 object value = StreamWireFormatting.ReadObject(reader);
@@ -70,6 +71,7 @@ namespace RabbitMQ.Client.Content {
             return table;
         }
 
+        /// <param name="table">Type is <seealso cref="IDictionary{string, object}"/>.</param>
         public static void WriteMap(NetworkBinaryWriter writer, IDictionary table) {
             int entryCount = table.Count;
             BytesWireFormatting.WriteInt32(writer, entryCount);

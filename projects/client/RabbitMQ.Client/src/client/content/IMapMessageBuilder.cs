@@ -46,7 +46,7 @@ namespace RabbitMQ.Client.Content {
     ///with QPid's "MapMessage" wire encoding.</summary>
     public interface IMapMessageBuilder: IMessageBuilder {
 	///<summary>Retrieves the dictionary that will be written into
-	///the body of the message.</summary>
+	///the body of the message.  Is type <seealso cref="IDictionary{string, object}"/></summary>
 	IDictionary Body { get; }
     }
 }

@@ -130,6 +130,7 @@ namespace RabbitMQ.Client.Impl
             return WireFormatting.ReadLonglong(m_reader);
         }
 
+        /// <returns>A type of <seealso cref="Dictionary{string, object}"/>.</returns>
         public IDictionary ReadTable()
         {
             return WireFormatting.ReadTable(m_reader);

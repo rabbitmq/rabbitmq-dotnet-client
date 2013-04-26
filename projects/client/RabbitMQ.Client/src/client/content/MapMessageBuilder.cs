@@ -41,6 +41,7 @@
 using System;
 using System.IO;
 using System.Collections;
+using System.Collections.Generic;
 
 using RabbitMQ.Client;
 
@@ -51,7 +52,7 @@ namespace RabbitMQ.Client.Content {
         ///<summary>MIME type associated with QPid MapMessages.</summary>
         public readonly static string MimeType = "jms/map-message";
 
-	protected IDictionary m_table = new Hashtable();
+	protected IDictionary m_table = new Dictionary<string, object>();
 
 	///<summary>Implement IMapMessageBuilder.Body</summary>
 	public IDictionary Body {

@@ -40,6 +40,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client
@@ -101,7 +102,7 @@ namespace RabbitMQ.Client
         ushort Heartbeat { get; }
 
         ///<summary>A copy of the client properties that has been sent to the
-        ///server.</summary>
+        ///server.  Is type <seealso cref="IDictionary{string, object}"/>.</summary>
         IDictionary ClientProperties { get; }
 
         ///<summary>A dictionary of the server properties sent by the server
@@ -278,6 +279,6 @@ namespace RabbitMQ.Client
         ///<summary>Returns the list of ShutdownReportEntry objects that
         ///contain information about any errors reported while closing the
         ///connection in the order they appeared</summary>
-        IList ShutdownReport { get; }
+        IList<ShutdownReportEntry> ShutdownReport { get; }
     }
 }

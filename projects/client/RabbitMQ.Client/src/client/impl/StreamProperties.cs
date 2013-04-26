@@ -40,6 +40,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -68,7 +69,7 @@ namespace RabbitMQ.Client.Impl
             StreamProperties clone = MemberwiseClone() as StreamProperties;
             if (IsHeadersPresent())
             {
-                clone.Headers = new Hashtable();
+                clone.Headers = new Dictionary<string, object>();
                 foreach (DictionaryEntry entry in Headers)
                     clone.Headers[entry.Key] = entry.Value;
             }

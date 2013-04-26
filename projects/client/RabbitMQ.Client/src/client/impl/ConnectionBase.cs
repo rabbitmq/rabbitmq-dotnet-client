@@ -44,6 +44,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Collections;
+using System.Collections.Generic;
 
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -98,8 +99,8 @@ namespace RabbitMQ.Client.Impl
         public Guid m_id = Guid.NewGuid();
 
         public int m_missedHeartbeats = 0;
-        
-        public IList m_shutdownReport = ArrayList.Synchronized(new ArrayList());
+
+        public IList<ShutdownReportEntry> m_shutdownReport = new SynchronizedList<ShutdownReportEntry>(new List<ShutdownReportEntry>());
 
         public ConnectionBase(ConnectionFactory factory,
                               bool insist,
@@ -237,7 +238,7 @@ namespace RabbitMQ.Client.Impl
         {
             get
             {
-                return new Hashtable(m_clientProperties);
+                return new Dictionary<string, object>((Dictionary<string, object>)m_clientProperties);
             }
             set
             {
@@ -325,7 +326,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
         
-        public IList ShutdownReport
+        public IList<ShutdownReportEntry> ShutdownReport
         {
             get
             {
@@ -904,13 +905,13 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public static IDictionary DefaultClientProperties()
+        public static IDictionary<string, object> DefaultClientProperties()
         {
             System.Reflection.Assembly assembly =
                     System.Reflection.Assembly.GetAssembly(typeof(ConnectionBase));
             string version = assembly.GetName().Version.ToString();
             //TODO: Get the rest of this data from the Assembly Attributes
-            Hashtable table = new Hashtable();
+            Dictionary<string, object> table = new Dictionary<string, object>();
             table["product"] = Encoding.UTF8.GetBytes("RabbitMQ");
             table["version"] = Encoding.UTF8.GetBytes(version);
             table["platform"] = Encoding.UTF8.GetBytes(".NET");
@@ -981,7 +982,7 @@ namespace RabbitMQ.Client.Impl
                                                            serverVersion.Minor);
             }
 
-            m_clientProperties = new Hashtable(m_factory.ClientProperties);
+            m_clientProperties = new Dictionary<string, object>(m_factory.ClientProperties);
             m_clientProperties["capabilities"] = Protocol.Capabilities;
 
             // FIXME: parse out locales properly!
