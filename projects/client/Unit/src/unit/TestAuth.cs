@@ -72,8 +72,7 @@ namespace RabbitMQ.Client.Unit
             {
                 foreach (Object failureReason in bue.ConnectionErrors.Values)
                 {
-                    Assert.IsInstanceOfType(
-                        typeof(PossibleAuthenticationFailureException),
+                    Assert.IsInstanceOf<PossibleAuthenticationFailureException>(
                         failureReason);
                 }
             }
