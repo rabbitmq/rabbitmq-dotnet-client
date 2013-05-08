@@ -315,7 +315,7 @@ namespace RabbitMQ.Client.Impl
 
                 foreach (DictionaryEntry entry in val)
                 {
-                    WriteShortstr(writer, (string)entry.Key);
+                    WriteShortstr(writer, entry.Key.ToString());
                     object value = entry.Value;
                     WriteFieldValue(writer, value);
                 }
