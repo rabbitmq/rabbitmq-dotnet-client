@@ -131,8 +131,8 @@ namespace RabbitMQ.Client.Unit
             Assert.AreEqual(typeof(byte), nt["b"].GetType()); Assert.AreEqual((byte)123, nt["b"]);
             Assert.AreEqual(typeof(double), nt["d"].GetType()); Assert.AreEqual((double)123, nt["d"]);
             Assert.AreEqual(typeof(float), nt["f"].GetType()); Assert.AreEqual((float)123, nt["f"]);
-            Assert.AreEqual(typeof(long), nt["l"].GetType()); Assert.AreEqual((long)123, nt["b"]);
-            Assert.AreEqual(typeof(short), nt["s"].GetType()); Assert.AreEqual((short)123, nt["b"]);
+            Assert.AreEqual(typeof(long), nt["l"].GetType()); Assert.AreEqual((long)123, nt["l"]);
+            Assert.AreEqual(typeof(short), nt["s"].GetType()); Assert.AreEqual((short)123, nt["s"]);
             Assert.AreEqual(true, nt["t"]);
             Assert.AreEqual(xbytes, ((BinaryTableValue)nt["x"]).Bytes);
             Assert.AreEqual(null, nt["V"]);
