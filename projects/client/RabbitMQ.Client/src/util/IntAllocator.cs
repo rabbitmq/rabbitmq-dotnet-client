@@ -155,7 +155,7 @@ namespace RabbitMQ.Util
         return unsorted[--unsortedCount];
       } else if (Base != null) {
         int result = Base.Start++;
-        if(Base.Start == Base.End) Base = Base.Next;
+        if(Base.Start > Base.End) Base = Base.Next;
         return result;
       } else {
         return -1;
