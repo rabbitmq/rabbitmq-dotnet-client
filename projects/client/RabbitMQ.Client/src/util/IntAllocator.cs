@@ -62,7 +62,7 @@ namespace RabbitMQ.Util
      * A class representing a list of inclusive intervals
      */
     public class IntervalList{
-      public IntervalList(int start, int end){
+      public IntervalList(int start, int end) {
         this.Start = start;
         this.End = end;
       }
@@ -154,8 +154,9 @@ namespace RabbitMQ.Util
       if(unsortedCount > 0){
         return unsorted[--unsortedCount];
       } else if (Base != null) {
-        int result = Base.Start++;
-        if(Base.Start == Base.End) Base = Base.Next;
+        int result = Base.Start;
+        if (Base.Start == Base.End) Base = Base.Next;
+        else Base.Start++;
         return result;
       } else {
         return -1;
