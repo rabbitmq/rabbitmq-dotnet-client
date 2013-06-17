@@ -137,12 +137,26 @@ namespace RabbitMQ.Client
             set { m_acceptablePolicyErrors = value; }
         }
 
+        /// <summary>
+        /// An optional client specified SSL certificate validation callback.  If this is not specified,
+        /// the default callback will be used in conjunction with the AcceptablePolicyErrors property to 
+        /// determine if the remote server certificate is valid.
+        /// </summary>
+        public RemoteCertificateValidationCallback CertificateValidationCallback { get; set; }
+
+        /// <summary>
+        /// An optional client specified SSL certificate selection callback.  If this is not specified,
+        /// the first valid certificate found will be used.
+        /// </summary>
+        public LocalCertificateSelectionCallback CertificateSelectionCallback { get; set; }
 
         ///<summary>Construct an SslOption specifying both the server cannonical name
-        ///and the client's certificate path.
+        /// and the client's certificate path.
         ///</summary>
         public SslOption(string serverName, string certPath, bool enabled)
         {
+            CertificateSelectionCallback = null;
+            CertificateValidationCallback = null;
             m_serverName= serverName;
             m_certPath = certPath;
             m_enabled = enabled;

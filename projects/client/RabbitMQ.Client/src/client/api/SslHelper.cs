@@ -91,9 +91,15 @@ namespace RabbitMQ.Client
         public static Stream TcpUpgrade(Stream tcpStream, SslOption sslOption)
         {
             SslHelper helper = new SslHelper(sslOption);
-            SslStream sslStream = new SslStream(tcpStream, false,
-                                                new RemoteCertificateValidationCallback(helper.CertificateValidationCallback),
-                                                new LocalCertificateSelectionCallback(helper.CertificateSelectionCallback));
+            
+			// Use the client specified remote certificate validation callback if it is not null
+            RemoteCertificateValidationCallback remoteCertValidator = sslOption.CertificateValidationCallback ?? new RemoteCertificateValidationCallback(
+                                                                                                               helper.CertificateValidationCallback);
+            // Use the client specified local certificate selector callback if it is not null
+            LocalCertificateSelectionCallback localCertSelector = sslOption.CertificateSelectionCallback ?? new LocalCertificateSelectionCallback(
+                                                                                                               helper.CertificateSelectionCallback);
+
+            SslStream sslStream = new SslStream(tcpStream, false, remoteCertValidator, localCertSelector);
             
             sslStream.AuthenticateAsClient(sslOption.ServerName,
                                            sslOption.Certs,
