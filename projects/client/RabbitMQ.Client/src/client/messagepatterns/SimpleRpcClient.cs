@@ -64,17 +64,17 @@ namespace RabbitMQ.Client.MessagePatterns {
     /// requests and receive the corresponding replies.
     ///</para>
     ///<example><code>
-    ///	string queueName = "ServiceRequestQueue"; // See also Subscription ctors
-    ///	using (IConnection conn = new ConnectionFactory()
-    ///	                                .CreateConnection(serverAddress)) {
-    ///	    using (IModel ch = conn.CreateModel()) {
-    ///	        SimpleRpcClient client =
-    ///	            new SimpleRpcClient(ch, queueName);
-    ///	        client.TimeoutMilliseconds = 5000; // optional
+    /// string queueName = "ServiceRequestQueue"; // See also Subscription ctors
+    /// using (IConnection conn = new ConnectionFactory()
+    ///                                 .CreateConnection(serverAddress)) {
+    ///     using (IModel ch = conn.CreateModel()) {
+    ///         SimpleRpcClient client =
+    ///             new SimpleRpcClient(ch, queueName);
+    ///         client.TimeoutMilliseconds = 5000; // optional
     ///
-    ///	        /// ... make use of the various Call() overloads
-    ///	    }
-    ///	}
+    ///         /// ... make use of the various Call() overloads
+    ///     }
+    /// }
     ///</code></example>
     ///<para>
     /// Instances of this class declare a queue, so it is the user's
@@ -91,23 +91,23 @@ namespace RabbitMQ.Client.MessagePatterns {
     ///</remarks>
     ///<see cref="SimpleRpcServer"/>
     public class SimpleRpcClient: IDisposable {
-	///<summary>This event is fired whenever Call() decides that a
-	///timeout has occurred while waiting for a reply from the
-	///service.</summary>
-	///<remarks>
+        ///<summary>This event is fired whenever Call() decides that a
+        ///timeout has occurred while waiting for a reply from the
+        ///service.</summary>
+        ///<remarks>
         /// See also OnTimedOut().
-	///</remarks>
-	public event EventHandler TimedOut;
+        ///</remarks>
+        public event EventHandler TimedOut;
 
-	///<summary>This event is fired whenever Call() detects the
-	///disconnection of the underlying Subscription while waiting
-	///for a reply from the service.</summary>
-	///<remarks>
+        ///<summary>This event is fired whenever Call() detects the
+        ///disconnection of the underlying Subscription while waiting
+        ///for a reply from the service.</summary>
+        ///<remarks>
         /// See also OnDisconnected(). Note that the sending of a
         /// request may result in OperationInterruptedException before
         /// the request is even sent.
-	///</remarks>
-	public event EventHandler Disconnected;
+        ///</remarks>
+        public event EventHandler Disconnected;
 
         protected IModel m_model;
         protected Subscription m_subscription;
@@ -145,9 +145,9 @@ namespace RabbitMQ.Client.MessagePatterns {
             set { m_address = value; }
         }
 
-	///<summary>Retrieve or modify the timeout (in milliseconds)
-	///that will be used for the next Call().</summary>
-	///<remarks>
+        ///<summary>Retrieve or modify the timeout (in milliseconds)
+        ///that will be used for the next Call().</summary>
+        ///<remarks>
         ///<para>
         /// This property defaults to
         /// System.Threading.Timeout.Infinite (i.e. -1). If it is set
@@ -158,11 +158,11 @@ namespace RabbitMQ.Client.MessagePatterns {
         ///<para>
         /// See also TimedOut event and OnTimedOut().
         ///</para>
-	///</remarks>
-	public int TimeoutMilliseconds {
-	    get { return m_timeout; }
-	    set { m_timeout = value; }
-	}
+        ///</remarks>
+        public int TimeoutMilliseconds {
+            get { return m_timeout; }
+            set { m_timeout = value; }
+        }
 
         ///<summary>Construct an instance with no configured
         ///Address. The Address property must be set before Call() or
@@ -191,7 +191,7 @@ namespace RabbitMQ.Client.MessagePatterns {
             m_model = model;
             m_address = address;
             m_subscription = null;
-	    m_timeout = Timeout.Infinite;
+            m_timeout = Timeout.Infinite;
         }
 
         ///<summary>Close the reply subscription associated with this instance, if any.</summary>
@@ -382,15 +382,15 @@ namespace RabbitMQ.Client.MessagePatterns {
         protected virtual BasicDeliverEventArgs RetrieveReply(string correlationId)
         {
             BasicDeliverEventArgs reply;
-	    if (!m_subscription.Next(m_timeout, out reply)) {
-		OnTimedOut();
-		return null;
-	    }
+            if (!m_subscription.Next(m_timeout, out reply)) {
+                OnTimedOut();
+                return null;
+            }
 
-	    if (reply == null) {
-		OnDisconnected();
-		return null;
-	    }
+            if (reply == null) {
+                OnDisconnected();
+                return null;
+            }
 
             if (reply.BasicProperties.CorrelationId != correlationId) {
                 throw new ProtocolViolationException
@@ -413,28 +413,28 @@ namespace RabbitMQ.Client.MessagePatterns {
                                  body);
         }
 
-	///<summary>Signals that the configured timeout fired while
-	///waiting for an RPC reply.</summary>
-	///<remarks>
+        ///<summary>Signals that the configured timeout fired while
+        ///waiting for an RPC reply.</summary>
+        ///<remarks>
         /// Fires the TimedOut event.
-	///</remarks>
-	public virtual void OnTimedOut()
-	{
-	    if (TimedOut != null)
-		TimedOut(this, null);
-	}
+        ///</remarks>
+        public virtual void OnTimedOut()
+        {
+            if (TimedOut != null)
+                TimedOut(this, null);
+        }
 
-	///<summary>Signals that the Subscription we use for receiving
-	///our RPC replies was disconnected while we were
-	///waiting.</summary>
-	///<remarks>
+        ///<summary>Signals that the Subscription we use for receiving
+        ///our RPC replies was disconnected while we were
+        ///waiting.</summary>
+        ///<remarks>
         /// Fires the Disconnected event.
-	///</remarks>
-	public virtual void OnDisconnected()
-	{
-	    if (Disconnected != null)
-		Disconnected(this, null);
-	}
+        ///</remarks>
+        public virtual void OnDisconnected()
+        {
+            if (Disconnected != null)
+                Disconnected(this, null);
+        }
 
         ///<summary>Implement the IDisposable interface, permitting
         ///SimpleRpcClient instances to be used in using

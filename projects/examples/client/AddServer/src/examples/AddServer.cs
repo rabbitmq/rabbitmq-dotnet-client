@@ -94,8 +94,8 @@ namespace RabbitMQ.Client.Examples {
         {
             Console.Out.WriteLine("AddServer received a {0} one-way message.",
                                   isRedelivered ? "redelivered" : "new");
-	    DebugUtil.DumpProperties(requestProperties, Console.Out, 0);
-	    DebugUtil.DumpProperties(body, Console.Out, 0);
+            DebugUtil.DumpProperties(requestProperties, Console.Out, 0);
+            DebugUtil.DumpProperties(body, Console.Out, 0);
         }
     }
 }

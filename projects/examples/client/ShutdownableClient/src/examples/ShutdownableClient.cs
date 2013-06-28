@@ -83,12 +83,12 @@ namespace RabbitMQ.Client.Examples {
             return 0;
         }
 
-	public static void TimedOutHandler(object sender, EventArgs e) {
-	    Console.WriteLine("Timed out.");
-	}
+        public static void TimedOutHandler(object sender, EventArgs e) {
+            Console.WriteLine("Timed out.");
+        }
 
-	public static void DisconnectedHandler(object sender, EventArgs e) {
-	    Console.WriteLine("Disconnected.");
-	}
+        public static void DisconnectedHandler(object sender, EventArgs e) {
+            Console.WriteLine("Disconnected.");
+        }
     }
 }

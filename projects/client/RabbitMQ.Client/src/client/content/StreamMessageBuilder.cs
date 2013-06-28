@@ -68,67 +68,67 @@ namespace RabbitMQ.Client.Content {
         ///<summary>Writes a bool value into the message body being assembled.</summary>
         public IStreamMessageBuilder WriteBool(bool value) {
             StreamWireFormatting.WriteBool(Writer, value);
-	    return this;
+            return this;
         }
 
         ///<summary>Writes an int value into the message body being assembled.</summary>
         public IStreamMessageBuilder WriteInt32(int value) {
             StreamWireFormatting.WriteInt32(Writer, value);
-	    return this;
+            return this;
         }
 
         ///<summary>Writes a short value into the message body being assembled.</summary>
         public IStreamMessageBuilder WriteInt16(short value) {
             StreamWireFormatting.WriteInt16(Writer, value);
-	    return this;
+            return this;
         }
 
         ///<summary>Writes a byte value into the message body being assembled.</summary>
         public IStreamMessageBuilder WriteByte(byte value) {
             StreamWireFormatting.WriteByte(Writer, value);
-	    return this;
+            return this;
         }
 
         ///<summary>Writes a char value into the message body being assembled.</summary>
         public IStreamMessageBuilder WriteChar(char value) {
             StreamWireFormatting.WriteChar(Writer, value);
-	    return this;
+            return this;
         }
 
         ///<summary>Writes a long value into the message body being assembled.</summary>
         public IStreamMessageBuilder WriteInt64(long value) {
             StreamWireFormatting.WriteInt64(Writer, value);
-	    return this;
+            return this;
         }
 
         ///<summary>Writes a float value into the message body being assembled.</summary>
         public IStreamMessageBuilder WriteSingle(float value) {
             StreamWireFormatting.WriteSingle(Writer, value);
-	    return this;
+            return this;
         }
 
         ///<summary>Writes a double value into the message body being assembled.</summary>
         public IStreamMessageBuilder WriteDouble(double value) {
             StreamWireFormatting.WriteDouble(Writer, value);
-	    return this;
+            return this;
         }
 
         ///<summary>Writes a section of a byte array into the message body being assembled.</summary>
         public IStreamMessageBuilder WriteBytes(byte[] source, int offset, int count) {
             StreamWireFormatting.WriteBytes(Writer, source, offset, count);
-	    return this;
+            return this;
         }
 
         ///<summary>Writes a byte array into the message body being assembled.</summary>
         public IStreamMessageBuilder WriteBytes(byte[] source) {
             StreamWireFormatting.WriteBytes(Writer, source);
-	    return this;
+            return this;
         }
 
         ///<summary>Writes a string value into the message body being assembled.</summary>
         public IStreamMessageBuilder WriteString(string value) {
             StreamWireFormatting.WriteString(Writer, value);
-	    return this;
+            return this;
         }
 
         ///<summary>Writes an object value into the message body being assembled.</summary>
@@ -138,7 +138,7 @@ namespace RabbitMQ.Client.Content {
         ///</remarks>
         public IStreamMessageBuilder WriteObject(object value) {
             StreamWireFormatting.WriteObject(Writer, value);
-	    return this;
+            return this;
         }
 
         ///<summary>Writes objects using WriteObject(), one after the

@@ -95,27 +95,27 @@ namespace RabbitMQ.Client.Content {
 
         ///<summary>Retrieve the IBasicProperties associated with this instance.</summary>
         public IBasicProperties Properties {
-	    get {
-		return m_properties;
-	    }
-	}
+            get {
+                return m_properties;
+            }
+        }
 
         ///<summary>Implement IMessageBuilder.Headers</summary>
-	public IDictionary<string, object> Headers {
-	    get {
-		if (Properties.Headers == null) {
-		    Properties.Headers = new Dictionary<string, object>();
-		}
-		return Properties.Headers;
-	    }
-	}
+        public IDictionary<string, object> Headers {
+            get {
+                if (Properties.Headers == null) {
+                    Properties.Headers = new Dictionary<string, object>();
+                }
+                return Properties.Headers;
+            }
+        }
 
         ///<summary>Implement IMessageBuilder.BodyStream</summary>
         public Stream BodyStream {
-	    get {
-		return m_accumulator;
-	    }
-	}
+            get {
+                return m_accumulator;
+            }
+        }
 
         ///<summary>Implement
         ///IMessageBuilder.GetDefaultContentType(). Returns null;
@@ -124,31 +124,31 @@ namespace RabbitMQ.Client.Content {
             return null;
         }
 
-	///<summary>Implement IMessageBuilder.RawWrite</summary>
-	public IMessageBuilder RawWrite(byte b) {
-	    BodyStream.WriteByte(b);
-	    return this;
-	}
+        ///<summary>Implement IMessageBuilder.RawWrite</summary>
+        public IMessageBuilder RawWrite(byte b) {
+            BodyStream.WriteByte(b);
+            return this;
+        }
 
-	///<summary>Implement IMessageBuilder.RawWrite</summary>
-	public IMessageBuilder RawWrite(byte[] bytes) {
-	    return RawWrite(bytes, 0, bytes.Length);
-	}
+        ///<summary>Implement IMessageBuilder.RawWrite</summary>
+        public IMessageBuilder RawWrite(byte[] bytes) {
+            return RawWrite(bytes, 0, bytes.Length);
+        }
 
-	///<summary>Implement IMessageBuilder.RawWrite</summary>
-	public IMessageBuilder RawWrite(byte[] bytes, int offset, int length) {
-	    BodyStream.Write(bytes, offset, length);
-	    return this;
-	}
+        ///<summary>Implement IMessageBuilder.RawWrite</summary>
+        public IMessageBuilder RawWrite(byte[] bytes, int offset, int length) {
+            BodyStream.Write(bytes, offset, length);
+            return this;
+        }
 
-	///<summary>Implement IMessageBuilder.GetContentHeader</summary>
-	public virtual IContentHeader GetContentHeader() {
-	    return m_properties;
-	}
+        ///<summary>Implement IMessageBuilder.GetContentHeader</summary>
+        public virtual IContentHeader GetContentHeader() {
+            return m_properties;
+        }
 
-	///<summary>Implement IMessageBuilder.GetContentBody</summary>
-	public virtual byte[] GetContentBody() {
-	    return m_accumulator.ToArray();
-	}
+        ///<summary>Implement IMessageBuilder.GetContentBody</summary>
+        public virtual byte[] GetContentBody() {
+            return m_accumulator.ToArray();
+        }
     }
 }

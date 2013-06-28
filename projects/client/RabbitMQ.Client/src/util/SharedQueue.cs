@@ -154,29 +154,29 @@ namespace RabbitMQ.Util {
         ///timeout</summary>
         ///<remarks>
         ///<para>
-	/// If one or more items are present on the queue at the time
-	/// the call is made, the call will return
-	/// immediately. Otherwise, the calling thread blocks until
-	/// either an item appears on the queue, or
-	/// millisecondsTimeout milliseconds have elapsed.
+        /// If one or more items are present on the queue at the time
+        /// the call is made, the call will return
+        /// immediately. Otherwise, the calling thread blocks until
+        /// either an item appears on the queue, or
+        /// millisecondsTimeout milliseconds have elapsed.
         ///</para>
         ///<para>
-	/// Returns true in the case that an item was available before
-	/// the timeout, in which case the out parameter "result" is
-	/// set to the item itself.
+        /// Returns true in the case that an item was available before
+        /// the timeout, in which case the out parameter "result" is
+        /// set to the item itself.
         ///</para>
         ///<para>
-	/// If no items were available before the timeout, returns
-	/// false, and sets "result" to null.
+        /// If no items were available before the timeout, returns
+        /// false, and sets "result" to null.
         ///</para>
         ///<para>
-	/// A timeout of -1 (i.e. System.Threading.Timeout.Infinite)
-	/// will be interpreted as a command to wait for an
-	/// indefinitely long period of time for an item to become
-	/// available. Usage of such a timeout is equivalent to
-	/// calling Dequeue() with no arguments. See also the MSDN
-	/// documentation for
-	/// System.Threading.Monitor.Wait(object,int).
+        /// A timeout of -1 (i.e. System.Threading.Timeout.Infinite)
+        /// will be interpreted as a command to wait for an
+        /// indefinitely long period of time for an item to become
+        /// available. Usage of such a timeout is equivalent to
+        /// calling Dequeue() with no arguments. See also the MSDN
+        /// documentation for
+        /// System.Threading.Monitor.Wait(object,int).
         ///</para>
         ///<para>
         /// If no items are present and the queue is in a closed
@@ -185,30 +185,30 @@ namespace RabbitMQ.Util {
         /// method will throw EndOfStreamException.
         ///</para>
         ///</remarks>
-	public bool Dequeue(int millisecondsTimeout, out T result) {
-	    if (millisecondsTimeout == Timeout.Infinite) {
-		result = Dequeue();
-		return true;
-	    }
+        public bool Dequeue(int millisecondsTimeout, out T result) {
+            if (millisecondsTimeout == Timeout.Infinite) {
+                result = Dequeue();
+                return true;
+            }
 
-	    DateTime startTime = DateTime.Now;
-	    lock (m_queue) {
+            DateTime startTime = DateTime.Now;
+            lock (m_queue) {
                 while (m_queue.Count == 0) {
                     EnsureIsOpen();
-		    int elapsedTime = (int) ((DateTime.Now - startTime).TotalMilliseconds);
-		    int remainingTime = millisecondsTimeout - elapsedTime;
-		    if (remainingTime <= 0) {
-			result = default(T);
-			return false;
-		    }
+                    int elapsedTime = (int) ((DateTime.Now - startTime).TotalMilliseconds);
+                    int remainingTime = millisecondsTimeout - elapsedTime;
+                    if (remainingTime <= 0) {
+                        result = default(T);
+                        return false;
+                    }
 
                     Monitor.Wait(m_queue, remainingTime);
                 }
 
                 result = m_queue.Dequeue();
-		return true;
+                return true;
             }
-	}
+        }
 
         ///<summary>Implementation of the IEnumerable interface, for
         ///permitting SharedQueue to be used in foreach

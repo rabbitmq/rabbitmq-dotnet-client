@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.Content {
     public class BytesMessageReader: BasicMessageReader, IBytesMessageReader {
         ///<summary>MIME type associated with QPid BytesMessages.</summary>
         public readonly static string MimeType = BytesMessageBuilder.MimeType;
-	// ^ repeated here for convenience
+        // ^ repeated here for convenience
 
         ///<summary>Construct an instance for reading. See superclass.</summary>
         public BytesMessageReader(IBasicProperties properties, byte[] payload)

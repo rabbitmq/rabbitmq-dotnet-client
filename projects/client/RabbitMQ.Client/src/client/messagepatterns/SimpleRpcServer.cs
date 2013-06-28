@@ -61,14 +61,14 @@ namespace RabbitMQ.Client.MessagePatterns {
     /// SimpleRpcServer subclass with the Subscription.
     ///</para>
     ///<example><code>
-    ///	string queueName = "ServiceRequestQueue"; // See also Subscription ctors
-    ///	using (IConnection conn = new ConnectionFactory()
-    ///	                                .CreateConnection(serverAddress)) {
-    ///	    using (IModel ch = conn.CreateModel()) {
-    ///	        Subscription sub = new Subscription(ch, queueName);
-    ///	        new MySimpleRpcServerSubclass(sub).MainLoop();
-    ///	    }
-    ///	}
+    /// string queueName = "ServiceRequestQueue"; // See also Subscription ctors
+    /// using (IConnection conn = new ConnectionFactory()
+    ///                                 .CreateConnection(serverAddress)) {
+    ///     using (IModel ch = conn.CreateModel()) {
+    ///         Subscription sub = new Subscription(ch, queueName);
+    ///         new MySimpleRpcServerSubclass(sub).MainLoop();
+    ///     }
+    /// }
     ///</code></example>
     ///<para>
     /// Note that this class itself does not declare any resources
@@ -126,13 +126,13 @@ namespace RabbitMQ.Client.MessagePatterns {
         ///<summary>Create, but do not start, an instance that will
         ///receive requests via the given Subscription.</summary>
         ///<remarks>
-	///<para>
-	/// The instance is initially in non-transactional mode. See
-	/// SetTransactional().
-	///</para>
-	///<para>
-	/// Call MainLoop() to start the request-processing loop.
-	///</para>
+        ///<para>
+        /// The instance is initially in non-transactional mode. See
+        /// SetTransactional().
+        ///</para>
+        ///<para>
+        /// Call MainLoop() to start the request-processing loop.
+        ///</para>
         ///</remarks>
         public SimpleRpcServer(Subscription subscription)
         {
@@ -143,46 +143,46 @@ namespace RabbitMQ.Client.MessagePatterns {
         ///<summary>Shut down the server, causing MainLoop() to return
         ///to its caller.</summary>
         ///<remarks>
-	/// Acts by calling Close() on the server's Subscription object.
+        /// Acts by calling Close() on the server's Subscription object.
         ///</remarks>
         public void Close()
         {
             m_subscription.Close();
         }
 
-	///<summary>Enables transactional mode.</summary>
-	///<remarks>
-	///<para>
-	/// Once enabled, transactional mode is not only enabled for
-	/// all users of the underlying IModel instance, but cannot be
-	/// disabled without shutting down the entire IModel (which
-	/// involves shutting down all the services depending on it,
-	/// and should not be undertaken lightly).
-	///</para>
-	///<para>
-	/// This method calls IModel.TxSelect, every time it is
-	/// called. (TxSelect is idempotent, so this is harmless.)
-	///</para>
-	///</remarks>
-	public void SetTransactional() {
-	    m_subscription.Model.TxSelect();
-	    m_transactional = true;
+        ///<summary>Enables transactional mode.</summary>
+        ///<remarks>
+        ///<para>
+        /// Once enabled, transactional mode is not only enabled for
+        /// all users of the underlying IModel instance, but cannot be
+        /// disabled without shutting down the entire IModel (which
+        /// involves shutting down all the services depending on it,
+        /// and should not be undertaken lightly).
+        ///</para>
+        ///<para>
+        /// This method calls IModel.TxSelect, every time it is
+        /// called. (TxSelect is idempotent, so this is harmless.)
+        ///</para>
+        ///</remarks>
+        public void SetTransactional() {
+            m_subscription.Model.TxSelect();
+            m_transactional = true;
         }
 
         ///<summary>Enters the main loop of the RPC service.</summary>
         ///<remarks>
-	///<para>
-	/// Retrieves requests repeatedly from the service's
-	/// subscription. Each request is passed to
-	/// ProcessRequest. Once ProcessRequest returns, the request
-	/// is acknowledged via Subscription.Ack(). If transactional
-	/// mode is enabled, TxCommit is then called. Finally, the
-	/// loop begins again.
-	///</para>
-	///<para>
-	/// Runs until the subscription ends, which happens either as
-	/// a result of disconnection, or of a call to Close().
-	///</para>
+        ///<para>
+        /// Retrieves requests repeatedly from the service's
+        /// subscription. Each request is passed to
+        /// ProcessRequest. Once ProcessRequest returns, the request
+        /// is acknowledged via Subscription.Ack(). If transactional
+        /// mode is enabled, TxCommit is then called. Finally, the
+        /// loop begins again.
+        ///</para>
+        ///<para>
+        /// Runs until the subscription ends, which happens either as
+        /// a result of disconnection, or of a call to Close().
+        ///</para>
         ///</remarks>
         public void MainLoop()
         {
@@ -198,29 +198,29 @@ namespace RabbitMQ.Client.MessagePatterns {
         ///<summary>Process a single request received from our
         ///subscription.</summary>
         ///<remarks>
-	///<para>
-	/// If the request's properties contain a non-null, non-empty
-	/// CorrelationId string (see IBasicProperties), it is assumed
-	/// to be a two-way call, requiring a response. The ReplyTo
-	/// header property is used as the reply address (via
-	/// PublicationAddress.Parse, unless that fails, in which case it
-	/// is treated as a simple queue name), and the request is
-	/// passed to HandleCall().
-	///</para>
-	///<para>
-	/// If the CorrelationId is absent or empty, the request is
-	/// treated as one-way asynchronous event, and is passed to
-	/// HandleCast().
-	///</para>
-	///<para>
-	/// Usually, overriding HandleCall(), HandleCast(), or one of
-	/// their delegates is sufficient to implement a service, but
-	/// in some cases overriding ProcessRequest() is
-	/// required. Overriding ProcessRequest() gives the
-	/// opportunity to implement schemes for detecting interaction
-	/// patterns other than simple request/response or one-way
-	/// communication.
-	///</para>
+        ///<para>
+        /// If the request's properties contain a non-null, non-empty
+        /// CorrelationId string (see IBasicProperties), it is assumed
+        /// to be a two-way call, requiring a response. The ReplyTo
+        /// header property is used as the reply address (via
+        /// PublicationAddress.Parse, unless that fails, in which case it
+        /// is treated as a simple queue name), and the request is
+        /// passed to HandleCall().
+        ///</para>
+        ///<para>
+        /// If the CorrelationId is absent or empty, the request is
+        /// treated as one-way asynchronous event, and is passed to
+        /// HandleCast().
+        ///</para>
+        ///<para>
+        /// Usually, overriding HandleCall(), HandleCast(), or one of
+        /// their delegates is sufficient to implement a service, but
+        /// in some cases overriding ProcessRequest() is
+        /// required. Overriding ProcessRequest() gives the
+        /// opportunity to implement schemes for detecting interaction
+        /// patterns other than simple request/response or one-way
+        /// communication.
+        ///</para>
         ///</remarks>
         public virtual void ProcessRequest(BasicDeliverEventArgs evt)
         {

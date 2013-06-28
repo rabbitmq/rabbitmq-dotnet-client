@@ -52,14 +52,14 @@ namespace RabbitMQ.Client.Content {
         ///<summary>MIME type associated with QPid MapMessages.</summary>
         public readonly static string MimeType = "jms/map-message";
 
-	protected IDictionary<string, object> m_table = new Dictionary<string, object>();
+        protected IDictionary<string, object> m_table = new Dictionary<string, object>();
 
-	///<summary>Implement IMapMessageBuilder.Body</summary>
-	public IDictionary<string, object> Body {
-	    get {
-		return m_table;
-	    }
-	}
+        ///<summary>Implement IMapMessageBuilder.Body</summary>
+        public IDictionary<string, object> Body {
+            get {
+                return m_table;
+            }
+        }
 
         ///<summary>Construct an instance for writing. See superclass.</summary>
         public MapMessageBuilder(IModel model)
@@ -76,17 +76,17 @@ namespace RabbitMQ.Client.Content {
             return MimeType;
         }
 
-	///<summary>Override superclass method to write Body out into
-	///the message BodyStream before retrieving the final byte
-	///array.</summary>
-	///<remarks>
-	/// Calling this message clears Body to null. Subsequent calls
-	/// will fault.
-	///</remarks>
-	public override byte[] GetContentBody() {
+        ///<summary>Override superclass method to write Body out into
+        ///the message BodyStream before retrieving the final byte
+        ///array.</summary>
+        ///<remarks>
+        /// Calling this message clears Body to null. Subsequent calls
+        /// will fault.
+        ///</remarks>
+        public override byte[] GetContentBody() {
             MapWireFormatting.WriteMap(Writer, m_table);
-	    m_table = null;
-	    return base.GetContentBody();
-	}
+            m_table = null;
+            return base.GetContentBody();
+        }
     }
 }

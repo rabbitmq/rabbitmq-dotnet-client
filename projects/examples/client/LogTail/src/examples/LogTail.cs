@@ -94,29 +94,29 @@ namespace RabbitMQ.Client.Examples {
                 }
         }
 
-	public static void ProcessSingleDelivery(BasicDeliverEventArgs e) {
-	    Console.WriteLine("Delivery =========================================");
-	    DebugUtil.DumpProperties(e, Console.Out, 0);
-	    Console.WriteLine("----------------------------------------");
+        public static void ProcessSingleDelivery(BasicDeliverEventArgs e) {
+            Console.WriteLine("Delivery =========================================");
+            DebugUtil.DumpProperties(e, Console.Out, 0);
+            Console.WriteLine("----------------------------------------");
 
-	    if (e.BasicProperties.ContentType == MapMessageReader.MimeType) {
-		IMapMessageReader r = new MapMessageReader(e.BasicProperties, e.Body);
-		DebugUtil.DumpProperties(r.Body, Console.Out, 0);
-	    } else if (e.BasicProperties.ContentType == StreamMessageReader.MimeType) {
-		IStreamMessageReader r = new StreamMessageReader(e.BasicProperties, e.Body);
-		while (true) {
-		    try {
-			object v = r.ReadObject();
-			Console.WriteLine("("+v.GetType()+") "+v);
-		    } catch (EndOfStreamException) {
-			break;
-		    }
-		}
-	    } else {
-		// No special content-type. Already covered by the DumpProperties above.
-	    }
+            if (e.BasicProperties.ContentType == MapMessageReader.MimeType) {
+                IMapMessageReader r = new MapMessageReader(e.BasicProperties, e.Body);
+                DebugUtil.DumpProperties(r.Body, Console.Out, 0);
+            } else if (e.BasicProperties.ContentType == StreamMessageReader.MimeType) {
+                IStreamMessageReader r = new StreamMessageReader(e.BasicProperties, e.Body);
+                while (true) {
+                    try {
+                        object v = r.ReadObject();
+                        Console.WriteLine("("+v.GetType()+") "+v);
+                    } catch (EndOfStreamException) {
+                        break;
+                    }
+                }
+            } else {
+                // No special content-type. Already covered by the DumpProperties above.
+            }
 
-	    Console.WriteLine("==================================================");
-	}
+            Console.WriteLine("==================================================");
+        }
     }
 }

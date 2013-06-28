@@ -137,8 +137,8 @@ namespace RabbitMQ.Client.Unit
                 new RabbitMQ.Client.Framing.v0_8.BasicProperties();
             prop.WriteTo(m_w.BaseWriter, 0x123456789ABCDEF0UL);
             Check(m_w, new byte[] { 0x00, 0x00, // weight
-			          0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0, // body len
-			          0x00, 0x00}); // props flags
+                                  0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0, // body len
+                                  0x00, 0x00}); // props flags
         }
 
         [Test]
@@ -149,12 +149,12 @@ namespace RabbitMQ.Client.Unit
             prop.ContentType = "text/plain";
             prop.WriteTo(m_w.BaseWriter, 0x123456789ABCDEF0UL);
             Check(m_w, new byte[] { 0x00, 0x00, // weight
-			          0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0, // body len
-			          0x80, 0x00, // props flags
-			          0x0A, // shortstr len
-			          0x74, 0x65, 0x78, 0x74,
-			          0x2F, 0x70, 0x6C, 0x61,
-			          0x69, 0x6E });
+                                  0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0, // body len
+                                  0x80, 0x00, // props flags
+                                  0x0A, // shortstr len
+                                  0x74, 0x65, 0x78, 0x74,
+                                  0x2F, 0x70, 0x6C, 0x61,
+                                  0x69, 0x6E });
         }
     }
 }
