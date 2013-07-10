@@ -1017,6 +1017,20 @@ namespace RabbitMQ.Client.Impl
                                    string replyText,
                                    ushort classId,
                                    ushort methodId);
+
+        ///<summary>Handle an incoming Connection.Blocked.</summary>
+        [AmqpMethodMapping(null, "connection", "blocked")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
+        void HandleConnectionBlocked(string reason);
+
+        ///<summary>Handle an incominga Connection.Unblocked.</summary>
+        [AmqpMethodMapping(null, "connection", "unblocked")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
+        void HandleConnectionUnblocked();
     }
 
     ///<summary>Essential information from an incoming Connection.Tune
