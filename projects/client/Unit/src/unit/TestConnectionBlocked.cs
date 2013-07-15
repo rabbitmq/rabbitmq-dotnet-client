@@ -54,7 +54,7 @@ using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Unit {
     [TestFixture]
-    public class TestConnectionBlocked {
+    public class TestConnectionBlocked : IntegrationFixture {
 
         Object lockObject = new Object();
         UTF8Encoding enc = new UTF8Encoding();
@@ -63,18 +63,20 @@ namespace RabbitMQ.Client.Unit {
         [Test]
         public void TestConnectionBlockedNotification()
         {
-	    ConnectionFactory cf = new ConnectionFactory();
-	    IConnection conn = cf.CreateConnection();
-
-	    conn.ConnectionBlocked   += new ConnectionBlockedEventHandler(HandleBlocked);
-	    conn.ConnectionUnblocked += new ConnectionUnblockedEventHandler(HandleUnblocked);
+	    Conn.ConnectionBlocked   += new ConnectionBlockedEventHandler(HandleBlocked);
+	    Conn.ConnectionUnblocked += new ConnectionUnblockedEventHandler(HandleUnblocked);
 
 	    Block();
-	    Publish(conn);
-	    Monitor.Wait(TimeSpan.FromSeconds(10));
-
-	    Assert.IsTrue(notified);
+	    Publish(Conn);
+	    lock (lockObject) {
+	        if(!notified) {
+	            Monitor.Wait(lockObject, TimeSpan.FromSeconds(10));
+	        }
+                Assert.IsTrue(notified);
+	    }
         }
+
+
 
         public void HandleBlocked(IConnection sender, ConnectionBlockedEventArgs args)
         {
@@ -104,7 +106,7 @@ namespace RabbitMQ.Client.Unit {
 	    if(IsRunningOnMono()) {
 	        ExecCommand("../rabbitmq-server/scripts/rabbitmqctl " + command);
 	    } else {
-		ExecCommand("..\\rabbitmq-server\\scripts\\rabbitmqctl " + command);
+		ExecCommand("..\\rabbitmq-server\\scripts\\rabbitmqctl.bat " + command);
 	    }
 	}
 
@@ -142,6 +144,11 @@ namespace RabbitMQ.Client.Unit {
         {
 	    IModel ch = conn.CreateModel();
 	    ch.BasicPublish("", "amq.fanout", null, enc.GetBytes("message"));
+        }
+
+        protected override void ReleaseResources()
+        {
+	    Unblock();
         }
     }
 }
