@@ -101,32 +101,31 @@ namespace RabbitMQ.Client.Unit {
 	    ExecRabbitMQCtl("set_vm_memory_high_watermark 0.4");
         }
 
-        protected void ExecRabbitMQCtl(string command)
+        protected void ExecRabbitMQCtl(string args)
         {
 	    if(IsRunningOnMono()) {
-	        ExecCommand("../rabbitmq-server/scripts/rabbitmqctl " + command);
+	        ExecCommand("../../../../../../rabbitmq-server/scripts/rabbitmqctl", args);
 	    } else {
-		ExecCommand("..\\rabbitmq-server\\scripts\\rabbitmqctl.bat " + command);
+	        ExecCommand("..\\..\\..\\..\\..\\..\\rabbitmq-server\\scripts\\rabbitmqctl.bat", args);
 	    }
 	}
 
-        protected void ExecCommand(string command)
+        protected void ExecCommand(string ctl, string args)
         {
 	    Process proc = new Process();
-	    proc.StartInfo.CreateNoWindow = true;
+	    proc.StartInfo.CreateNoWindow  = true;
+	    proc.StartInfo.UseShellExecute = false;
 
-	    string sh;
-	    string args;
+	    string cmd;
 	    if(IsRunningOnMono()) {
-	        sh   = "/bin/sh";
-		args = "-c " + command;
+	        cmd  = ctl;
 	    } else {
-	        sh   = "C:\\winnt\\system32\\cmd.exe";
-		args = "/y /c " + command;
+	        cmd  = "C:\\winnt\\system32\\cmd.exe";
+		args = "/y /c " + ctl + " " + args;
 	    }
 
 	    try {
-	      proc.StartInfo.FileName = sh;
+	      proc.StartInfo.FileName = cmd;
 	      proc.StartInfo.Arguments = args;
 
 	      proc.Start();
