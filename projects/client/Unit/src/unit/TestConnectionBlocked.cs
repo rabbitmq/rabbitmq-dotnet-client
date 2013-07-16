@@ -63,14 +63,16 @@ namespace RabbitMQ.Client.Unit {
         [Test]
         public void TestConnectionBlockedNotification()
         {
-	    Conn.ConnectionBlocked   += new ConnectionBlockedEventHandler(HandleBlocked);
-	    Conn.ConnectionUnblocked += new ConnectionUnblockedEventHandler(HandleUnblocked);
+	    Conn.ConnectionBlocked   += HandleBlocked;
+	    Conn.ConnectionUnblocked += HandleUnblocked;
 
 	    Block();
+	    // give rabbitmqctl some time to do its job
+	    Thread.Sleep(800);
 	    Publish(Conn);
 	    lock (lockObject) {
 	        if(!notified) {
-	            Monitor.Wait(lockObject, TimeSpan.FromSeconds(10));
+	            Monitor.Wait(lockObject, TimeSpan.FromSeconds(8));
 	        }
                 Assert.IsTrue(notified);
 	    }
