@@ -87,7 +87,7 @@ namespace RabbitMQ.Client.Impl
             m_bitCount++;
             return result;
         }
-        
+
         public void FinishPresence()
         {
             if (ContinuationBitSet)
@@ -110,7 +110,7 @@ namespace RabbitMQ.Client.Impl
         {
             return WireFormatting.ReadShortstr(m_reader);
         }
-        
+
         public byte[] ReadLongstr()
         {
             return WireFormatting.ReadLongstr(m_reader);
@@ -131,7 +131,7 @@ namespace RabbitMQ.Client.Impl
             return WireFormatting.ReadLonglong(m_reader);
         }
 
-        /// <returns>A type of <seealso cref="Dictionary{string, object}"/>.</returns>
+        /// <returns>A type of <seealso cref="T:System.Collections.Generic.IDictionary{string, object}"/>.</returns>
         public IDictionary<string, object> ReadTable()
         {
             return WireFormatting.ReadTable(m_reader);

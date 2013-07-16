@@ -52,7 +52,7 @@ namespace RabbitMQ.Client.Content {
     ///</remarks>
     public interface IMessageReader {
         ///<summary>Retrieves the content header properties of the
-        ///message being read.  Is of type <seealso cref="IDictionary{string, object}"/></summary>
+        ///message being read.  Is of type <see cref="T:System.Collections.Generic.IDictionary{String, Object}" /></summary>
         IDictionary<string, object> Headers { get; }
 
         ///<summary>Retrieve the message body, as a byte array.</summary>

@@ -69,7 +69,7 @@ namespace RabbitMQ.Client
         ///<summary> MIME content encoding </summary>
         string ContentEncoding { get; set; }
 
-        ///<summary> message header field table. Is of type <seealso cref="IDictionary{string,object}"/>.</summary>
+        ///<summary> message header field table. Is of type <see cref="T:System.Collections.Generic.IDictionary{String,Object}" />.</summary>
         IDictionary<string, object> Headers { get; set; }
 
         ///<summary> non-persistent (1) or persistent (2) </summary>

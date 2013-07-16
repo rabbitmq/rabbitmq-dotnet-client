@@ -115,7 +115,7 @@ namespace RabbitMQ.Client.Impl
         /// and F, as well as the QPid-0-8 specific b, d, f, l, s, t,
         /// x and V types and the AMQP 0-9-1 A type.
         ///</remarks>
-        /// <returns>A <seealso cref="Dictionary{string, object}"/>.</returns>
+        /// <returns>A <seealso cref="T:System.Collections.Generic.IDictionary{string, object}"/>.</returns>
         public static IDictionary<string, object> ReadTable(NetworkBinaryReader reader)
         {
             Dictionary<string, object> table = new Dictionary<string, object>();
@@ -127,7 +127,7 @@ namespace RabbitMQ.Client.Impl
             {
                 string key = ReadShortstr(reader);
                 object value = ReadFieldValue(reader);
-                
+
                 if (!table.ContainsKey(key))
                 {
                     table[key] = value;
@@ -207,7 +207,7 @@ namespace RabbitMQ.Client.Impl
                 }
             return value;
         }
-      
+
         public static AmqpTimestamp ReadTimestamp(NetworkBinaryReader reader)
         {
             ulong stamp = ReadLonglong(reader);
@@ -476,7 +476,7 @@ namespace RabbitMQ.Client.Impl
                                                   value);
             }
         }
-        
+
         public static void WriteTimestamp(NetworkBinaryWriter writer, AmqpTimestamp val)
         {
             // 0-9 is afaict silent on the signedness of the timestamp.
