@@ -899,8 +899,13 @@ namespace RabbitMQ.Client.Impl
 
         public void HandleConnectionBlocked(string reason)
         {
-	    ConnectionBlockedEventHandler handler;
 	    ConnectionBlockedEventArgs args = new ConnectionBlockedEventArgs(reason);
+	    OnConnectionBlocked(args);
+        }
+
+        public void OnConnectionBlocked(ConnectionBlockedEventArgs args)
+        {
+	    ConnectionBlockedEventHandler handler;
 	    lock (m_eventLock)
 	    {
 	        handler = m_connectionBlocked;
@@ -919,26 +924,32 @@ namespace RabbitMQ.Client.Impl
 	    }
         }
 
+
         public void HandleConnectionUnblocked()
         {
-	    ConnectionUnblockedEventHandler handler;
-	    lock (m_eventLock)
-	    {
-	        handler = m_connectionUnblocked;
-	    }
-	    if (handler != null)
-	    {
-	        foreach (ConnectionUnblockedEventHandler h in handler.GetInvocationList()) {
-		    try {
-                        h(this);
-                    } catch (Exception e) {
-                        CallbackExceptionEventArgs args = new CallbackExceptionEventArgs(e);
-                        args.Detail["context"] = "OnConnectionUnblocked";
-                        OnCallbackException(args);
-                    }
-		}
-	    }
+	    OnConnectionUnblocked();
         }
+
+        public void OnConnectionUnblocked()
+        {
+    	      ConnectionUnblockedEventHandler handler;
+	      lock (m_eventLock)
+	      {
+	          handler = m_connectionUnblocked;
+	      }
+	      if (handler != null)
+	      {
+	          foreach (ConnectionUnblockedEventHandler h in handler.GetInvocationList()) {
+		      try {
+                          h(this);
+                      } catch (Exception e) {
+                          CallbackExceptionEventArgs args = new CallbackExceptionEventArgs(e);
+                          args.Detail["context"] = "OnConnectionUnblocked";
+                          OnCallbackException(args);
+                      }
+		  }
+	      }
+	}
 
         ///<summary>Broadcasts notification of the final shutdown of the connection.</summary>
         public void OnShutdown()
