@@ -38,7 +38,6 @@
 //  Copyright (c) 2007-2013 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Collections;
 using System.Threading;
 
 namespace RabbitMQ.Util {

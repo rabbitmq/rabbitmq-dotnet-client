@@ -42,7 +42,6 @@ using System;
 using System.IO;
 using System.Text;
 using System.Reflection;
-using System.Collections;
 
 namespace RabbitMQ.Util {
     ///<summary>Miscellaneous debugging and development utilities.</summary>
