@@ -76,6 +76,9 @@ namespace RabbitMQ.Client.Impl
         private readonly object m_flowSendLock = new object();
 
         private ulong m_nextPubSeqNo;
+        // Values of this dictionary are ignored.
+        // .NET contains no stock synchronized collections or sorted set implementation
+        // prior to 4.0.
         private SynchronizedSortedList<ulong, object> m_unconfirmedSet =
             new SynchronizedSortedList<ulong, object>(new SortedList<ulong, object>());
         private bool m_onlyAcksReceived = true;
