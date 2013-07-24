@@ -338,12 +338,12 @@ namespace RabbitMQ.Client.Impl
             Abort();
             if (ShutdownReport.Count > 0)
             {
-                foreach (ShutdownReportEntry entry in ShutdownReport)
-                {
-                    if (entry.Exception != null)
-                        throw entry.Exception;
-                }
-                throw new OperationInterruptedException(null);
+            	foreach (ShutdownReportEntry entry in ShutdownReport)
+            	{
+            	    if (entry.Exception != null)
+            	        throw entry.Exception;
+            	}
+            	throw new OperationInterruptedException(null);
             }
         }
 

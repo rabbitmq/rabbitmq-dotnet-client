@@ -50,24 +50,24 @@ namespace RabbitMQ.Client.Content {
     public class MapMessageReader: BasicMessageReader, IMapMessageReader {
         ///<summary>MIME type associated with QPid MapMessages.</summary>
         public readonly static string MimeType = MapMessageBuilder.MimeType;
-        // ^ repeated here for convenience
+	// ^ repeated here for convenience
 
         ///<summary>Construct an instance for reading. See superclass.</summary>
         public MapMessageReader(IBasicProperties properties, byte[] payload)
             : base(properties, payload)
         {}
 
-        protected IDictionary<string, object> m_table = null;
+	protected IDictionary<string, object> m_table = null;
 
-        ///<summary>Implement IMapMessageReader.Body</summary>
+	///<summary>Implement IMapMessageReader.Body</summary>
         ///<exception cref="System.Net.ProtocolViolationException"/>
-        public IDictionary<string, object> Body {
-            get {
-                if (m_table == null) {
-                    m_table = MapWireFormatting.ReadMap(Reader);
-                }
-                return m_table;
-            }
+	public IDictionary<string, object> Body {
+	    get {
+		if (m_table == null) {
+		    m_table = MapWireFormatting.ReadMap(Reader);
+		}
+		return m_table;
+	    }
         }
     }
 }

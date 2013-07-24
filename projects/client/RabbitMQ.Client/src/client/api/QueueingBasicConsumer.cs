@@ -68,24 +68,24 @@ namespace RabbitMQ.Client
     /// The following is a simple example of the usage of this class:
     ///</para>
     ///<example><code>
-    /// IModel channel = ...;
-    /// QueueingBasicConsumer consumer = new QueueingBasicConsumer(channel);
-    /// channel.BasicConsume(queueName, null, consumer);
-    /// 
-    /// // At this point, messages will be being asynchronously delivered,
-    /// // and will be queueing up in consumer.Queue.
-    /// 
-    /// while (true) {
-    ///     try {
-    ///         BasicDeliverEventArgs e = (BasicDeliverEventArgs) consumer.Queue.Dequeue();
-    ///         // ... handle the delivery ...
-    ///         channel.BasicAck(e.DeliveryTag, false);
-    ///     } catch (EndOfStreamException ex) {
-    ///         // The consumer was cancelled, the model closed, or the
-    ///         // connection went away.
-    ///         break;
-    ///     }
-    /// }
+    ///	IModel channel = ...;
+    ///	QueueingBasicConsumer consumer = new QueueingBasicConsumer(channel);
+    ///	channel.BasicConsume(queueName, null, consumer);
+    ///	
+    ///	// At this point, messages will be being asynchronously delivered,
+    ///	// and will be queueing up in consumer.Queue.
+    ///	
+    ///	while (true) {
+    ///	    try {
+    ///	        BasicDeliverEventArgs e = (BasicDeliverEventArgs) consumer.Queue.Dequeue();
+    ///	        // ... handle the delivery ...
+    ///	        channel.BasicAck(e.DeliveryTag, false);
+    ///	    } catch (EndOfStreamException ex) {
+    ///	        // The consumer was cancelled, the model closed, or the
+    ///	        // connection went away.
+    ///	        break;
+    ///	    }
+    ///	}
     ///</code></example>
     ///</remarks>
     public class QueueingBasicConsumer : DefaultBasicConsumer

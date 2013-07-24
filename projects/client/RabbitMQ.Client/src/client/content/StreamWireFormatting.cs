@@ -59,7 +59,7 @@ namespace RabbitMQ.Client.Content {
         Single = 0x08,
         Double = 0x09,
         String = 0x0A,
-        Null = 0x0B
+	Null = 0x0B
     };
 
     ///<summary>Internal support class for use in reading and writing
@@ -198,8 +198,8 @@ namespace RabbitMQ.Client.Content {
         public static object ReadObject(NetworkBinaryReader reader) {
             int typeTag = reader.ReadByte();
             switch (typeTag) {
-              case -1:
-                  throw new EndOfStreamException("End of StreamMessage reached");
+	      case -1:
+		  throw new EndOfStreamException("End of StreamMessage reached");
 
               case (int) StreamWireFormattingTag.Bool: {
                   byte value = reader.ReadByte();
@@ -340,8 +340,8 @@ namespace RabbitMQ.Client.Content {
             else if (value is float) { WriteSingle(writer, (float) value); }
             else if (value is double) { WriteDouble(writer, (double) value); }
             else if (value is byte[]) { WriteBytes(writer, (byte[]) value); }
-            else if (value is BinaryTableValue) { WriteBytes(writer,
-                                                             ((BinaryTableValue) value).Bytes); }
+	    else if (value is BinaryTableValue) { WriteBytes(writer,
+							     ((BinaryTableValue) value).Bytes); }
             else if (value is string) { WriteString(writer, (string) value); }
             else {
                 string message = string.Format("Invalid object in StreamMessage.WriteObject: {0}",

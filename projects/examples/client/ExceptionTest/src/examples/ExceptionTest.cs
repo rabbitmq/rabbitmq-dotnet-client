@@ -122,7 +122,7 @@ namespace RabbitMQ.Client.Examples {
             Console.WriteLine("Message: " + args.Exception.Message);
             Console.WriteLine("Detail:");
             DebugUtil.DumpProperties(args.Detail, Console.Out, 2);
-            Console.WriteLine("----------------------------------------");
+	    Console.WriteLine("----------------------------------------");
         }
     }
 
