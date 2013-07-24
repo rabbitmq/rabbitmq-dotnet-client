@@ -148,7 +148,7 @@ namespace RabbitMQ.Client
         /// not exist, a ConfigurationErrorsException will be thrown.
         ///</para>
         ///</remarks>
-        ///<exception cref="T:System.Configuration.ConfigurationErrorsException"/>
+        ///<exception cref="System.Configuration.ConfigurationErrorsException"/>
         public static IProtocol SafeLookup(string name)
         {
             if (name != null)
@@ -179,7 +179,7 @@ namespace RabbitMQ.Client
         ///Protocols.DefaultProtocol is used. If the protocol variant
         ///named is not found, ConfigurationErrorsException is thrown.
         ///</remarks>
-        ///<exception cref="T:System.Configuration.ConfigurationErrorsException"/>
+        ///<exception cref="System.Configuration.ConfigurationErrorsException"/>
         public static IProtocol FromEnvironmentVariable()
         {
             return SafeLookup(ReadEnvironmentVariable());
@@ -192,7 +192,7 @@ namespace RabbitMQ.Client
         ///Protocols.DefaultProtocol is used. If the protocol variant
         ///named is not found, ConfigurationErrorsException is thrown.
         ///</remarks>
-        ///<exception cref="T:System.Configuration.ConfigurationErrorsException"/>
+        ///<exception cref="System.Configuration.ConfigurationErrorsException"/>
         public static IProtocol FromConfiguration(string appSettingsKey)
         {
             string name = ConfigurationManager.AppSettings[appSettingsKey];
@@ -208,7 +208,7 @@ namespace RabbitMQ.Client
         ///<summary>Tries FromConfiguration() first, followed by
         ///FromEnvironmentVariable() if no setting was found in the
         ///App.config.</summary>
-        ///<exception cref="T:System.Configuration.ConfigurationErrorsException"/>
+        ///<exception cref="System.Configuration.ConfigurationErrorsException"/>
         public static IProtocol FromEnvironment(string appSettingsKey)
         {
             string name = ConfigurationManager.AppSettings[appSettingsKey];

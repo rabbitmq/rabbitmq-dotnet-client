@@ -70,8 +70,8 @@ namespace RabbitMQ.Client.Content {
             return table;
         }
 
-        /// <param name="writer">Type is <seealso cref="T:RabbitMQ.Util.NetworkBinaryWriter"/>.</param>
-        /// <param name="table">Type is <seealso cref="T:System.Collections.Generic.IDictionary{string, object}"/>.</param>
+        /// <param name="writer">Type is <seealso cref="RabbitMQ.Util.NetworkBinaryWriter"/>.</param>
+        /// <param name="table">Type is <seealso cref="System.Collections.Generic.IDictionary{TKey,TValue}"/>.</param>
         public static void WriteMap(NetworkBinaryWriter writer, IDictionary<string, object> table) {
             int entryCount = table.Count;
             BytesWireFormatting.WriteInt32(writer, entryCount);

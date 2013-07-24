@@ -115,7 +115,7 @@ namespace RabbitMQ.Client.Impl
         /// and F, as well as the QPid-0-8 specific b, d, f, l, s, t,
         /// x and V types and the AMQP 0-9-1 A type.
         ///</remarks>
-        /// <returns>A <seealso cref="T:System.Collections.Generic.IDictionary{string, object}"/>.</returns>
+        /// <returns>A <seealso cref="System.Collections.Generic.IDictionary{TKey,TValue}"/>.</returns>
         public static IDictionary<string, object> ReadTable(NetworkBinaryReader reader)
         {
             Dictionary<string, object> table = new Dictionary<string, object>();
