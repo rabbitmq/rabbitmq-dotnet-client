@@ -1285,7 +1285,10 @@ namespace RabbitMQ.Client.Impl
             if (m_nextPubSeqNo > 0) {
 	        lock(m_unconfirmedSet.SyncRoot)
 		{
-		    m_unconfirmedSet.Add(m_nextPubSeqNo);
+		    if(!m_unconfirmedSet.Contains(m_nextPubSeqNo))
+		    {
+		        m_unconfirmedSet.Add(m_nextPubSeqNo);
+		    }
                     m_nextPubSeqNo++;
 		}
             }
