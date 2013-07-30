@@ -76,11 +76,8 @@ namespace RabbitMQ.Client.Impl
         private readonly object m_flowSendLock = new object();
 
         private ulong m_nextPubSeqNo;
-        // Values of this dictionary are ignored.
-        // .NET contains no stock synchronized collections or sorted set implementation
-        // prior to 4.0.
-        private SynchronizedSortedList<ulong, object> m_unconfirmedSet =
-            new SynchronizedSortedList<ulong, object>(new SortedList<ulong, object>());
+        private SynchronizedCollection<ulong> m_unconfirmedSet =
+            new SynchronizedCollection<ulong>();
         private bool m_onlyAcksReceived = true;
 
         public event ModelShutdownEventHandler ModelShutdown
@@ -390,11 +387,17 @@ namespace RabbitMQ.Client.Impl
         protected virtual void handleAckNack(ulong deliveryTag, bool multiple, bool isNack)
         {
             if (multiple) {
-                for (ulong i = (ulong)m_unconfirmedSet.GetKey(0); i <= deliveryTag; i++) {
-                    m_unconfirmedSet.Remove(i);
-                }
+	        lock(m_unconfirmedSet.SyncRoot)
+		{
+		    for (ulong i = (ulong)m_unconfirmedSet[0]; i <= deliveryTag; i++) {
+		        // removes potential duplicates
+		        while(m_unconfirmedSet.Remove(i))
+			  {}
+                    }
+		}
             } else {
-                m_unconfirmedSet.Remove(deliveryTag);
+	        while(m_unconfirmedSet.Remove(deliveryTag))
+		  {}
             }
             lock (m_unconfirmedSet.SyncRoot) {
                 m_onlyAcksReceived = m_onlyAcksReceived && !isNack;
@@ -1280,8 +1283,11 @@ namespace RabbitMQ.Client.Impl
                 basicProperties = CreateBasicProperties();
             }
             if (m_nextPubSeqNo > 0) {
-                m_unconfirmedSet.Add(m_nextPubSeqNo, null);
-                m_nextPubSeqNo++;
+	        lock(m_unconfirmedSet.SyncRoot)
+		{
+		    m_unconfirmedSet.Add(m_nextPubSeqNo);
+                    m_nextPubSeqNo++;
+		}
             }
             _Private_BasicPublish(exchange,
                                   routingKey,
