@@ -85,7 +85,7 @@ namespace RabbitMQ.Util {
                 }
             }
         }
-        
+
         ///<summary>Retrieve the cell's value, waiting for the given
         ///timeout if no value is immediately available.</summary>
         ///<remarks>
@@ -115,7 +115,7 @@ namespace RabbitMQ.Util {
         public bool GetValue(int millisecondsTimeout, out object result)
         {
 
-            
+
             lock (this) {
                 if (!m_valueSet) {
                     Monitor.Wait(this, validatedTimeout(millisecondsTimeout));
@@ -128,7 +128,7 @@ namespace RabbitMQ.Util {
                 return true;
             }
         }
-        
+
         ///<summary>Return valid timeout value</summary>
         ///<remarks>If value of the parameter is less then zero, return 0
         ///to mean infinity</remarks>

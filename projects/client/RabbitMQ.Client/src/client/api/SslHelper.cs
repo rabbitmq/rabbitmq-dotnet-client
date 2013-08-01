@@ -94,7 +94,7 @@ namespace RabbitMQ.Client
             SslStream sslStream = new SslStream(tcpStream, false,
                                                 new RemoteCertificateValidationCallback(helper.CertificateValidationCallback),
                                                 new LocalCertificateSelectionCallback(helper.CertificateSelectionCallback));
-            
+
             sslStream.AuthenticateAsClient(sslOption.ServerName,
                                            sslOption.Certs,
                                            sslOption.Version,

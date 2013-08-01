@@ -42,7 +42,7 @@
 namespace RabbitMQ.ServiceModel.Test.DuplexTest
 {
     using System.Runtime.Serialization;
-    
+
     public enum PizzaBase
     {
         [EnumMember]

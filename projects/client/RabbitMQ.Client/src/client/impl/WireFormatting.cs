@@ -125,7 +125,7 @@ namespace RabbitMQ.Client.Impl
             {
                 string key = ReadShortstr(reader);
                 object value = ReadFieldValue(reader);
-                
+
                 if (!table.ContainsKey(key))
                 {
                     table[key] = value;
@@ -205,7 +205,7 @@ namespace RabbitMQ.Client.Impl
                 }
             return value;
         }
-      
+
         public static AmqpTimestamp ReadTimestamp(NetworkBinaryReader reader)
         {
             ulong stamp = ReadLonglong(reader);
@@ -432,7 +432,7 @@ namespace RabbitMQ.Client.Impl
                                                   value);
             }
         }
-        
+
         public static void WriteTimestamp(NetworkBinaryWriter writer, AmqpTimestamp val)
         {
             // 0-9 is afaict silent on the signedness of the timestamp.

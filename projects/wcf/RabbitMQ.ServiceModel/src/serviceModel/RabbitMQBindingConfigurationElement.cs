@@ -53,7 +53,7 @@ namespace RabbitMQ.ServiceModel
     /// </summary>
     /// <remarks>
     /// This configuration element should be imported into the client
-    /// and server configuration files to provide declarative configuration 
+    /// and server configuration files to provide declarative configuration
     /// of a AMQP bound service.
     /// </remarks>
     public sealed class RabbitMQBindingConfigurationElement : StandardBindingElement
@@ -66,7 +66,7 @@ namespace RabbitMQ.ServiceModel
         public RabbitMQBindingConfigurationElement(string configurationName)
             : base(configurationName) {
         }
-     
+
         /// <summary>
         /// Creates a new instance of the RabbitMQBindingConfigurationElement Class.
         /// </summary>
@@ -101,8 +101,8 @@ namespace RabbitMQ.ServiceModel
             if (rabbind == null)
             {
                 throw new ArgumentException(
-                    string.Format("Invalid type for binding. Expected {0}, Passed: {1}", 
-                        typeof(RabbitMQBinding).AssemblyQualifiedName, 
+                    string.Format("Invalid type for binding. Expected {0}, Passed: {1}",
+                        typeof(RabbitMQBinding).AssemblyQualifiedName,
                         binding.GetType().AssemblyQualifiedName));
             }
 
@@ -136,7 +136,7 @@ namespace RabbitMQ.ServiceModel
             get { return ((int)base["port"]); }
             set { base["port"] = value; }
         }
-        
+
         /// <summary>
         /// Specifies whether or not the CompositeDuplex and ReliableSession
         /// binding elements are added to the channel stack.

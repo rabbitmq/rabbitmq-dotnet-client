@@ -82,7 +82,7 @@ namespace RabbitMQ.Client.Impl
             m_payload = payload;
             m_accumulator = null;
         }
-        
+
         public static Frame ReadFrom(NetworkBinaryReader reader)
         {
             int type;

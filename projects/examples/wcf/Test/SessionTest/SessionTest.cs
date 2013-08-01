@@ -107,7 +107,7 @@ namespace RabbitMQ.ServiceModel.Test.SessionTest
                 throw new Exception("Incorrect Total");
 
             Util.WriteLine(ConsoleColor.Magenta, "  Total: {0}", total);
-            
+
             try
             {
                 StopClient(cart);

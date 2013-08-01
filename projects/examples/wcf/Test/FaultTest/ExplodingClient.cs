@@ -43,7 +43,7 @@ namespace RabbitMQ.ServiceModel.Test.FaultTest
 {
     using System.ServiceModel;
     using System.ServiceModel.Channels;
-    
+
     public class ExplodingClient : ClientBase<IExplode>, IExplode
     {
         public ExplodingClient(Binding binding, EndpointAddress remoteAddress)

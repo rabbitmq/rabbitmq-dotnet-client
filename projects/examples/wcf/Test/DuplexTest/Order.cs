@@ -40,7 +40,7 @@
 
 
 namespace RabbitMQ.ServiceModel.Test.DuplexTest
-{    
+{
     using System;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
@@ -65,14 +65,14 @@ namespace RabbitMQ.ServiceModel.Test.DuplexTest
             get { return m_id; }
             set { m_id = value; }
         }
-        
+
         [DataMember]
         public List<Pizza> Items
         {
             get { return m_items; }
             set { m_items = value; }
         }
-        
+
         [DataMember]
         public DateTime Ordered
         {

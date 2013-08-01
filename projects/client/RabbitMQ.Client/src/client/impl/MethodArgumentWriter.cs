@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Impl
         private bool m_needBitFlush;
         private byte m_bitAccumulator;
         private int m_bitMask;
-        
+       
         public MethodArgumentWriter(NetworkBinaryWriter writer)
         {
             m_writer = writer;

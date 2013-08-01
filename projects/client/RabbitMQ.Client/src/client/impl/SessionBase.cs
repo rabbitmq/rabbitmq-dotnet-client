@@ -168,7 +168,7 @@ namespace RabbitMQ.Client.Impl
         {
             Close(reason, true);
         }
-        
+
         public void Close(ShutdownEventArgs reason, bool notify)
         {
             lock (m_shutdownLock)
@@ -181,7 +181,7 @@ namespace RabbitMQ.Client.Impl
             if (notify)
                 OnSessionShutdown(m_closeReason);
         }
-        
+
         public void Notify()
         {
             // Ensure that we notify only when session is already closed
@@ -189,7 +189,7 @@ namespace RabbitMQ.Client.Impl
             lock (m_shutdownLock)
             {
         	    if (m_closeReason == null)
-                    throw new Exception("Internal Error in Session.Close");   	
+                    throw new Exception("Internal Error in Session.Close");
             }
             OnSessionShutdown(m_closeReason);
         }

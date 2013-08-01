@@ -57,7 +57,7 @@ namespace RabbitMQ.Client.Unit
     {
       return ((ModelBase)model).m_session.ChannelNumber;
     }
-  
+
     [SetUp] public void Connect()
     {
       C = new ConnectionFactory().CreateConnection();

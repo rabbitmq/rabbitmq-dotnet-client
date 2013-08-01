@@ -69,7 +69,7 @@ namespace RabbitMQ.Client.Examples {
             {
                 Stopwatch sendTimer = new Stopwatch();
                 Stopwatch receiveTimer = new Stopwatch();
-                    
+
                 using (IModel ch = conn.CreateModel()) {
                     sendTimer.Start();
 
@@ -81,7 +81,7 @@ namespace RabbitMQ.Client.Examples {
 
                 using (IModel ch = conn.CreateModel()) {
                     string q = ch.QueueDeclare();
-                    
+
                     for (int i = 0; i < messageCount + 1; ++i) {
                         ch.BasicPublish("", q, null, Message);
                     }
@@ -92,7 +92,7 @@ namespace RabbitMQ.Client.Examples {
                         new QueueingBasicConsumer(ch);
                     receiveTimer.Start();
                     ch.BasicConsume(q, true, consumer);
-                    
+
                     for (int i = 0; i < messageCount; ++i) {
                         consumer.Queue.Dequeue();
                     }

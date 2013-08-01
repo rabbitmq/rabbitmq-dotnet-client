@@ -85,7 +85,7 @@ namespace RabbitMQ.Client.Examples {
                     Console.Error.WriteLine("  /persist     send message in 'persistent' mode");
                     return 2;
                 }
-                
+
             Uri uri = new Uri(args[optionIndex++]);
             string exchange = uri.Segments[1].TrimEnd(new char[] { '/' });
             string exchangeType = uri.Query.StartsWith("?type=") ? uri.Query.Substring(6) : null;

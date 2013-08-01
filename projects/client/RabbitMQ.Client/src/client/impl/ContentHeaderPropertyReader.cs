@@ -86,7 +86,7 @@ namespace RabbitMQ.Client.Impl
             m_bitCount++;
             return result;
         }
-        
+
         public void FinishPresence()
         {
             if (ContinuationBitSet)
@@ -109,7 +109,7 @@ namespace RabbitMQ.Client.Impl
         {
             return WireFormatting.ReadShortstr(m_reader);
         }
-        
+
         public byte[] ReadLongstr()
         {
             return WireFormatting.ReadLongstr(m_reader);

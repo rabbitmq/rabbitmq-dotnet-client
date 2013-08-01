@@ -94,7 +94,7 @@ namespace RabbitMQ.Util {
                 Monitor.Pulse(m_queue);
             }
         }
-    
+
         ///<summary>Retrieve the first item from the queue, or block if none available</summary>
         ///<remarks>
         ///Callers of Dequeue() will block if no items are available

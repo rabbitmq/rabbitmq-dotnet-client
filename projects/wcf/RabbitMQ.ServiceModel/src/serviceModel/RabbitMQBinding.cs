@@ -111,7 +111,7 @@ namespace RabbitMQ.ServiceModel
         /// <param name="virtualhost">The broker virtual host</param>
         /// <param name="maxMessageSize">The largest allowable encoded message size</param>
         /// <param name="protocol">The protocol version to use</param>
-        public RabbitMQBinding(String hostname, int port,                               
+        public RabbitMQBinding(String hostname, int port,
                                String username, String password,  String virtualhost,
                                long maxMessageSize, IProtocol protocol)
             : this(protocol)
