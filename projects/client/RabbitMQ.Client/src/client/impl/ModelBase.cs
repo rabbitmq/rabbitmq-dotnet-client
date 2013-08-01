@@ -724,6 +724,20 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public void HandleConnectionBlocked(string reason)
+        {
+	    ConnectionBase cb = ((ConnectionBase)m_session.Connection);
+
+	    cb.HandleConnectionBlocked(reason);
+	}
+
+        public void HandleConnectionUnblocked()
+        {
+	    ConnectionBase cb = ((ConnectionBase)m_session.Connection);
+
+	    cb.HandleConnectionUnblocked();
+	}
+
         public void HandleChannelClose(ushort replyCode,
                                        string replyText,
                                        ushort classId,

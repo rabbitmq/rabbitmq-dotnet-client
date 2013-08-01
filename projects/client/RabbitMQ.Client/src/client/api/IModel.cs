@@ -537,7 +537,7 @@ namespace RabbitMQ.Client
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
         void Close();
-        
+
         ///<summary>Close this session.</summary>
         ///<remarks>
         ///The method behaves in the same way as Close(), with the only
@@ -552,7 +552,7 @@ namespace RabbitMQ.Client
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
         void Close(ushort replyCode, string replyText);
-        
+
         ///<summary>Abort this session.</summary>
         ///<remarks>
         ///If the session is already closed (or closing), then this
@@ -564,7 +564,7 @@ namespace RabbitMQ.Client
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
         void Abort();
-        
+
         ///<summary>Abort this session.</summary>
         ///<remarks>
         ///The method behaves in the same way as Abort(), with the only
@@ -918,7 +918,7 @@ namespace RabbitMQ.Client.Impl
         ///Channel.Flow from the broker was processed.</summary>
         [AmqpMethodMapping(null, "channel", "flow-ok")]
         void _Private_ChannelFlowOk(bool active);
-        
+
         ///<summary>Handle incoming Channel.Flow methods. Either
         ///stops or resumes sending the methods that have content.</summary>
         void HandleChannelFlow(bool active);
@@ -1017,6 +1017,20 @@ namespace RabbitMQ.Client.Impl
                                    string replyText,
                                    ushort classId,
                                    ushort methodId);
+
+        ///<summary>Handle an incoming Connection.Blocked.</summary>
+        [AmqpMethodMapping(null, "connection", "blocked")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
+        void HandleConnectionBlocked(string reason);
+
+        ///<summary>Handle an incominga Connection.Unblocked.</summary>
+        [AmqpMethodMapping(null, "connection", "unblocked")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
+        void HandleConnectionUnblocked();
     }
 
     ///<summary>Essential information from an incoming Connection.Tune

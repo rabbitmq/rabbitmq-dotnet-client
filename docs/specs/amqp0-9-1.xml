@@ -7,6 +7,7 @@
      exchange.bind and exchange.bind-ok,
      exchange.unbind and exchange.unbind-ok,
      basic.nack,
+     connection.blocked and connection.unblocked,
      the ability for the Server to send basic.ack, basic.nack and
       basic.cancel to the client, and
      the un-deprecation of exchange.declare{auto-delete} and exchange.declare{internal}
@@ -890,6 +891,31 @@
           handshake method SHOULD log the error.
         </doc>
       </rule>
+      <chassis name = "client" implement = "MUST" />
+      <chassis name = "server" implement = "MUST" />
+    </method>
+
+    <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+    <method name = "blocked" index = "60" label = "indicates a connection is blocked">
+      <doc>Notifies client that the connection is blocked</doc>
+
+      <field name = "reason" domain = "shortstr">
+	<doc>
+	  Provides an explanation why the connection was blocked.
+	</doc>
+      </field>
+
+      <chassis name = "client" implement = "MUST" />
+      <chassis name = "server" implement = "MUST" />
+    </method>
+  </class>
+
+    <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+    <method name = "unblocked" index = "61" label = "indicates a connection is unblocked">
+      <doc>Notifies client that the connection is unblocked</doc>
+
       <chassis name = "client" implement = "MUST" />
       <chassis name = "server" implement = "MUST" />
     </method>
