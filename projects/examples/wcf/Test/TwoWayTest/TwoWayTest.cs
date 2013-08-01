@@ -58,7 +58,7 @@ namespace RabbitMQ.ServiceModel.Test.TwoWayTest
             m_service = new ServiceHost(typeof(Calculator), new Uri("soap.amqp:///"));
             m_service.AddServiceEndpoint(typeof(ICalculator), binding, "Calculator");
             m_service.Open();
-           
+
             Thread.Sleep(500);
             Util.WriteLine(ConsoleColor.Green, "[DONE]");
         }
