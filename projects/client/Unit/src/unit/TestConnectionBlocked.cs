@@ -63,93 +63,93 @@ namespace RabbitMQ.Client.Unit {
         [Test]
         public void TestConnectionBlockedNotification()
         {
-	    Conn.ConnectionBlocked   += HandleBlocked;
-	    Conn.ConnectionUnblocked += HandleUnblocked;
+            Conn.ConnectionBlocked   += HandleBlocked;
+            Conn.ConnectionUnblocked += HandleUnblocked;
 
-	    Block();
-	    // give rabbitmqctl some time to do its job
-	    Thread.Sleep(800);
-	    Publish(Conn);
-	    lock (lockObject) {
-	        if(!notified) {
-	            Monitor.Wait(lockObject, TimeSpan.FromSeconds(8));
-	        }
+            Block();
+            // give rabbitmqctl some time to do its job
+            Thread.Sleep(800);
+            Publish(Conn);
+            lock (lockObject) {
+                if(!notified) {
+                    Monitor.Wait(lockObject, TimeSpan.FromSeconds(8));
+                }
                 Assert.IsTrue(notified);
-	    }
+            }
         }
 
 
 
         public void HandleBlocked(IConnection sender, ConnectionBlockedEventArgs args)
         {
-	    Unblock();
+            Unblock();
         }
 
 
         public void HandleUnblocked(IConnection sender)
         {
-	    notified = true;
-	    Monitor.PulseAll(lockObject);
+            notified = true;
+            Monitor.PulseAll(lockObject);
         }
 
 
         protected void Block()
         {
-	    ExecRabbitMQCtl("set_vm_memory_high_watermark 0.000000001");
+            ExecRabbitMQCtl("set_vm_memory_high_watermark 0.000000001");
         }
 
         protected void Unblock()
         {
-	    ExecRabbitMQCtl("set_vm_memory_high_watermark 0.4");
+            ExecRabbitMQCtl("set_vm_memory_high_watermark 0.4");
         }
 
         protected void ExecRabbitMQCtl(string args)
         {
-	    if(IsRunningOnMono()) {
-	        ExecCommand("../../../../../../rabbitmq-server/scripts/rabbitmqctl", args);
-	    } else {
-	        ExecCommand("..\\..\\..\\..\\..\\..\\rabbitmq-server\\scripts\\rabbitmqctl.bat", args);
-	    }
-	}
+            if(IsRunningOnMono()) {
+                ExecCommand("../../../../../../rabbitmq-server/scripts/rabbitmqctl", args);
+            } else {
+                ExecCommand("..\\..\\..\\..\\..\\..\\rabbitmq-server\\scripts\\rabbitmqctl.bat", args);
+            }
+        }
 
         protected void ExecCommand(string ctl, string args)
         {
-	    Process proc = new Process();
-	    proc.StartInfo.CreateNoWindow  = true;
-	    proc.StartInfo.UseShellExecute = false;
+            Process proc = new Process();
+            proc.StartInfo.CreateNoWindow  = true;
+            proc.StartInfo.UseShellExecute = false;
 
-	    string cmd;
-	    if(IsRunningOnMono()) {
-	        cmd  = ctl;
-	    } else {
-	        cmd  = "C:\\winnt\\system32\\cmd.exe";
-		args = "/y /c " + ctl + " " + args;
-	    }
+            string cmd;
+            if(IsRunningOnMono()) {
+                cmd  = ctl;
+            } else {
+                cmd  = "C:\\winnt\\system32\\cmd.exe";
+                args = "/y /c " + ctl + " " + args;
+            }
 
-	    try {
-	      proc.StartInfo.FileName = cmd;
-	      proc.StartInfo.Arguments = args;
+            try {
+              proc.StartInfo.FileName = cmd;
+              proc.StartInfo.Arguments = args;
 
-	      proc.Start();
-	    } catch (Exception e) {
-	        Console.WriteLine("Failed to run subprocess with args " + args + " : " + e.Message);
-	    }
-	}
+              proc.Start();
+            } catch (Exception e) {
+                Console.WriteLine("Failed to run subprocess with args " + args + " : " + e.Message);
+            }
+        }
 
         public static bool IsRunningOnMono()
         {
-	    return Type.GetType("Mono.Runtime") != null;
-	}
+            return Type.GetType("Mono.Runtime") != null;
+        }
 
         protected void Publish(IConnection conn)
         {
-	    IModel ch = conn.CreateModel();
-	    ch.BasicPublish("", "amq.fanout", null, enc.GetBytes("message"));
+            IModel ch = conn.CreateModel();
+            ch.BasicPublish("", "amq.fanout", null, enc.GetBytes("message"));
         }
 
         protected override void ReleaseResources()
         {
-	    Unblock();
+            Unblock();
         }
     }
 }

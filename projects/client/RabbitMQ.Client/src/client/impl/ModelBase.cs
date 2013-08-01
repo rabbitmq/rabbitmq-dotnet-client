@@ -726,17 +726,17 @@ namespace RabbitMQ.Client.Impl
 
         public void HandleConnectionBlocked(string reason)
         {
-	    ConnectionBase cb = ((ConnectionBase)m_session.Connection);
+            ConnectionBase cb = ((ConnectionBase)m_session.Connection);
 
-	    cb.HandleConnectionBlocked(reason);
-	}
+            cb.HandleConnectionBlocked(reason);
+        }
 
         public void HandleConnectionUnblocked()
         {
-	    ConnectionBase cb = ((ConnectionBase)m_session.Connection);
+            ConnectionBase cb = ((ConnectionBase)m_session.Connection);
 
-	    cb.HandleConnectionUnblocked();
-	}
+            cb.HandleConnectionUnblocked();
+        }
 
         public void HandleChannelClose(ushort replyCode,
                                        string replyText,
@@ -1335,12 +1335,12 @@ namespace RabbitMQ.Client.Impl
 
         public void Close()
         {
-        	Close(CommonFraming.Constants.ReplySuccess, "Goodbye");
+                Close(CommonFraming.Constants.ReplySuccess, "Goodbye");
         }
 
         public void Close(ushort replyCode, string replyText)
         {
-        	Close(replyCode, replyText, false);
+                Close(replyCode, replyText, false);
         }
 
         public void Abort()
@@ -1372,11 +1372,11 @@ namespace RabbitMQ.Client.Impl
                 }
                 k.Wait();
             } catch (AlreadyClosedException ace) {
-            	if (!abort)
-            		throw ace;
+                if (!abort)
+                        throw ace;
             } catch (IOException ioe) {
-            	if (!abort)
-            		throw ioe;
+                if (!abort)
+                        throw ioe;
             }
         }
 

@@ -901,9 +901,9 @@
       <doc>Notifies client that the connection is blocked</doc>
 
       <field name = "reason" domain = "shortstr">
-	<doc>
-	  Provides an explanation why the connection was blocked.
-	</doc>
+        <doc>
+          Provides an explanation why the connection was blocked.
+        </doc>
       </field>
 
       <chassis name = "client" implement = "MUST" />

@@ -62,12 +62,12 @@ namespace RabbitMQ.Client.Unit
             Model.Close();
             Conn.Close();
 
-	    ReleaseResources();
+            ReleaseResources();
         }
 
         protected virtual void ReleaseResources()
         {
-	    // no-op
+            // no-op
         }
     }
 
