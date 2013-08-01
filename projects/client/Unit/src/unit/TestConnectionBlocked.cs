@@ -122,7 +122,7 @@ namespace RabbitMQ.Client.Unit {
             if(IsRunningOnMono()) {
                 cmd  = ctl;
             } else {
-                cmd  = "C:\\winnt\\system32\\cmd.exe";
+                cmd  = "cmd.exe";
                 args = "/y /c " + ctl + " " + args;
             }
 
