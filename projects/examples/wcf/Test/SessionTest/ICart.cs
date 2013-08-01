@@ -43,7 +43,7 @@ namespace RabbitMQ.ServiceModel.Test.SessionTest
 {
     using System;
     using System.ServiceModel;
-   
+
     [ServiceContract(SessionMode= SessionMode.Required)]
     public interface ICart
     {
@@ -53,7 +53,7 @@ namespace RabbitMQ.ServiceModel.Test.SessionTest
         [OperationContract]
         double GetTotal();
 
-       
+
         Guid Id { [OperationContract]get; }
     }
 }

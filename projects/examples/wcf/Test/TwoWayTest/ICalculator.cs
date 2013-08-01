@@ -49,7 +49,7 @@ namespace RabbitMQ.ServiceModel.Test.TwoWayTest
     {
         [OperationContract]
         int Add(int x, int y);
-       
+
         [OperationContract]
         int Subtract(int x, int y);
     }
