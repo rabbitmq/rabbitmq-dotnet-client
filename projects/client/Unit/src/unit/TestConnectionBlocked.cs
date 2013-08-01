@@ -133,6 +133,7 @@ namespace RabbitMQ.Client.Unit {
               proc.Start();
             } catch (Exception e) {
                 Console.WriteLine("Failed to run subprocess with args " + args + " : " + e.Message);
+		throw e;
             }
         }
 
