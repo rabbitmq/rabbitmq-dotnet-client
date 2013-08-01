@@ -66,7 +66,7 @@ namespace RabbitMQ.ServiceModel
         {
             return new RabbitMQOutputChannel(m_context, m_model, address);
         }
-        
+
         protected override IAsyncResult OnBeginOpen(TimeSpan timeout, AsyncCallback callback, object state)
         {
             return m_openMethod.BeginInvoke(timeout, callback, state);
@@ -93,7 +93,7 @@ namespace RabbitMQ.ServiceModel
 #if VERBOSE
             DebugHelper.Start();
 #endif
-            
+
             if (m_model != null) {
                 m_bindingElement.Close(m_model, timeout);
                 m_model = null;

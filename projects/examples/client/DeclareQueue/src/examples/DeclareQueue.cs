@@ -95,7 +95,7 @@ namespace RabbitMQ.Client.Examples {
                         string finalName = ch.QueueDeclare(inputQueueName, durable,
                                                            false, false, arguments);
                         Console.WriteLine("{0}\t{1}", finalName, durable);
-                
+
                         while ((optionIndex + 1) < args.Length) {
                             string exchange = args[optionIndex++];
                             string routingKey = args[optionIndex++];

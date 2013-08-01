@@ -49,11 +49,11 @@ public class TestSsl {
     public void SendReceive(ConnectionFactory cf) {
         using (IConnection conn = cf.CreateConnection()) {
             IModel ch = conn.CreateModel();
-        
+
             ch.ExchangeDeclare("Exchange_TestSslEndPoint", ExchangeType.Direct);
             String qName = ch.QueueDeclare();
             ch.QueueBind(qName, "Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null);
-        
+
             string message = "Hello C# SSL Client World";
             byte[] msgBytes =  System.Text.Encoding.UTF8.GetBytes(message);
             ch.BasicPublish("Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null, msgBytes);

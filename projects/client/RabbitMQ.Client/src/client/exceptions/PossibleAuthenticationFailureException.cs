@@ -42,11 +42,11 @@ using System;
 
 namespace RabbitMQ.Client.Exceptions
 {
-    /// <summary> Thrown when the likely cause is  an 
+    /// <summary> Thrown when the likely cause is  an
     /// authentication failure. </summary>
     public class PossibleAuthenticationFailureException : Exception
     {
-        public PossibleAuthenticationFailureException(String msg, Exception inner) 
+        public PossibleAuthenticationFailureException(String msg, Exception inner)
             : base(msg, inner)
         {
         }

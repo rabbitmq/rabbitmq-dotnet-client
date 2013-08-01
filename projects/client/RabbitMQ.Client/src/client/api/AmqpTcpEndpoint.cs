@@ -105,8 +105,8 @@ namespace RabbitMQ.Client
         }
 
         ///<summary>Construct an AmqpTcpEndpoint with the given
-        ///IProtocol, hostname, port number and ssl option. If the port 
-        ///number is -1, the default port number for the IProtocol 
+        ///IProtocol, hostname, port number and ssl option. If the port
+        ///number is -1, the default port number for the IProtocol
         ///will be used.</summary>
         public AmqpTcpEndpoint(IProtocol protocol, string hostName, int portOrMinusOne, SslOption ssl)
         {

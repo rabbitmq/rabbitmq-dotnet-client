@@ -56,10 +56,10 @@ namespace RabbitMQ.ServiceModel.Examples.ConfigDemo.Client
             Console.WriteLine();
             Thread.Sleep(500);
 
-            
+           
             Client cli = new Client();
             cli.Run();
-            
+           
             Console.WriteLine();
             Console.Write("Press Enter to Exit...");
             Console.ReadLine();
