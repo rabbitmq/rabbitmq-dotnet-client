@@ -90,6 +90,9 @@ namespace RabbitMQ.Client.Impl
         public volatile ShutdownEventArgs m_closeReason = null;
         public CallbackExceptionEventHandler m_callbackException;
 
+        public ConnectionBlockedEventHandler m_connectionBlocked;
+        public ConnectionUnblockedEventHandler m_connectionUnblocked;
+
         public ManualResetEvent m_appContinuation = new ManualResetEvent(false);
         public AutoResetEvent m_heartbeatRead = new AutoResetEvent(false);
         public AutoResetEvent m_heartbeatWrite = new AutoResetEvent(false);
@@ -142,6 +145,42 @@ namespace RabbitMQ.Client.Impl
                 lock (m_eventLock)
                 {
                     m_connectionShutdown -= value;
+                }
+            }
+        }
+
+        public event ConnectionBlockedEventHandler ConnectionBlocked
+        {
+            add
+            {
+                lock (m_eventLock)
+                {
+                    m_connectionBlocked += value;
+                }
+            }
+            remove
+            {
+                lock (m_eventLock)
+                {
+                    m_connectionBlocked -= value;
+                }
+            }
+        }
+
+        public event ConnectionUnblockedEventHandler ConnectionUnblocked
+        {
+            add
+            {
+                lock (m_eventLock)
+                {
+                    m_connectionUnblocked += value;
+                }
+            }
+            remove
+            {
+                lock (m_eventLock)
+                {
+                    m_connectionUnblocked -= value;
                 }
             }
         }
@@ -338,12 +377,12 @@ namespace RabbitMQ.Client.Impl
             Abort();
             if (ShutdownReport.Count > 0)
             {
-            	foreach (ShutdownReportEntry entry in ShutdownReport)
-            	{
-            	    if (entry.Exception != null)
-            	        throw entry.Exception;
-            	}
-            	throw new OperationInterruptedException(null);
+                foreach (ShutdownReportEntry entry in ShutdownReport)
+                {
+                    if (entry.Exception != null)
+                        throw entry.Exception;
+                }
+                throw new OperationInterruptedException(null);
             }
         }
 
@@ -856,6 +895,60 @@ namespace RabbitMQ.Client.Impl
                     Console.Error.WriteLine(entry.ToString());
                 }
             }
+        }
+
+        public void HandleConnectionBlocked(string reason)
+        {
+            ConnectionBlockedEventArgs args = new ConnectionBlockedEventArgs(reason);
+            OnConnectionBlocked(args);
+        }
+
+        public void OnConnectionBlocked(ConnectionBlockedEventArgs args)
+        {
+            ConnectionBlockedEventHandler handler;
+            lock (m_eventLock)
+            {
+                handler = m_connectionBlocked;
+            }
+            if (handler != null)
+            {
+                foreach (ConnectionBlockedEventHandler h in handler.GetInvocationList()) {
+                    try {
+                        h(this, args);
+                    } catch (Exception e) {
+                        CallbackExceptionEventArgs cee_args = new CallbackExceptionEventArgs(e);
+                        cee_args.Detail["context"] = "OnConnectionBlocked";
+                        OnCallbackException(cee_args);
+                    }
+                }
+            }
+        }
+
+
+        public void HandleConnectionUnblocked()
+        {
+            OnConnectionUnblocked();
+        }
+
+        public void OnConnectionUnblocked()
+        {
+              ConnectionUnblockedEventHandler handler;
+              lock (m_eventLock)
+              {
+                  handler = m_connectionUnblocked;
+              }
+              if (handler != null)
+              {
+                  foreach (ConnectionUnblockedEventHandler h in handler.GetInvocationList()) {
+                      try {
+                          h(this);
+                      } catch (Exception e) {
+                          CallbackExceptionEventArgs args = new CallbackExceptionEventArgs(e);
+                          args.Detail["context"] = "OnConnectionUnblocked";
+                          OnCallbackException(args);
+                      }
+                  }
+              }
         }
 
         ///<summary>Broadcasts notification of the final shutdown of the connection.</summary>

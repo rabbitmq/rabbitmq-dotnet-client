@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2013 GoPivotal, Inc.
+//   Copyright (C) 2007-2013 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -34,46 +34,30 @@
 //
 //  The Original Code is RabbitMQ.
 //
-//  The Initial Developer of the Original Code is GoPivotal, Inc.
-//  Copyright (c) 2007-2013 GoPivotal, Inc.  All rights reserved.
+//  The Initial Developer of the Original Code is VMware, Inc.
+//  Copyright (c) 2007-2013 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
 
-namespace RabbitMQ.Client.Unit
+using System;
+
+namespace RabbitMQ.Client.Events
 {
 
-    public class IntegrationFixture
+    ///<summary>Delegate used to process connection blocked events.</summary>
+    public delegate void ConnectionBlockedEventHandler(IConnection sender, ConnectionBlockedEventArgs args);
+
+    ///<summary>Event relating to connection being blocked</summary>
+    public class ConnectionBlockedEventArgs : EventArgs
     {
-        protected IConnection Conn;
-        protected IModel Model;
+        private readonly string m_reason;
 
-        [SetUp]
-        public void Init()
+        public ConnectionBlockedEventArgs(string reason)
         {
-            ConnectionFactory connFactory = new ConnectionFactory();
-            Conn = connFactory.CreateConnection();
-            Model = Conn.CreateModel();
+            m_reason = reason;
         }
 
-        [TearDown]
-        public void Dispose()
-        {
-            Model.Close();
-            Conn.Close();
-
-            ReleaseResources();
-        }
-
-        protected virtual void ReleaseResources()
-        {
-            // no-op
-        }
-    }
-
-    public class TimingFixture
-    {
-        public static readonly int TimingInterval = 200;
-        public static readonly int SafetyMargin = 50;
+        ///<summary>Access the reason why connection is blocked</summary>
+        public string Reason { get { return m_reason; } }
     }
 }
