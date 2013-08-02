@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2013 VMware, Inc.
+//   Copyright (C) 2007-2013 GoPivotal, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -34,8 +34,8 @@
 //
 //  The Original Code is RabbitMQ.
 //
-//  The Initial Developer of the Original Code is VMware, Inc.
-//  Copyright (c) 2007-2013 VMware, Inc.  All rights reserved.
+//  The Initial Developer of the Original Code is GoPivotal, Inc.
+//  Copyright (c) 2007-2013 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using NUnit.Framework;
@@ -49,11 +49,11 @@ public class TestSsl {
     public void SendReceive(ConnectionFactory cf) {
         using (IConnection conn = cf.CreateConnection()) {
             IModel ch = conn.CreateModel();
-        
+
             ch.ExchangeDeclare("Exchange_TestSslEndPoint", ExchangeType.Direct);
             String qName = ch.QueueDeclare();
             ch.QueueBind(qName, "Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null);
-        
+
             string message = "Hello C# SSL Client World";
             byte[] msgBytes =  System.Text.Encoding.UTF8.GetBytes(message);
             ch.BasicPublish("Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null, msgBytes);

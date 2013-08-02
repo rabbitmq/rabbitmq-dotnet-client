@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2013 VMware, Inc.
+//   Copyright (C) 2007-2013 GoPivotal, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -34,8 +34,8 @@
 //
 //  The Original Code is RabbitMQ.
 //
-//  The Initial Developer of the Original Code is VMware, Inc.
-//  Copyright (c) 2007-2013 VMware, Inc.  All rights reserved.
+//  The Initial Developer of the Original Code is GoPivotal, Inc.
+//  Copyright (c) 2007-2013 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 
@@ -65,7 +65,7 @@ namespace RabbitMQ.ServiceModel
         protected override IInputChannel OnAcceptChannel(TimeSpan timeout)
         {
             // Since only one connection to a broker is required (even for communication
-            // with multiple exchanges 
+            // with multiple exchanges
             if (m_channel != null)
                 return null;
 
@@ -73,7 +73,7 @@ namespace RabbitMQ.ServiceModel
             m_channel.Closed += new EventHandler(ListenChannelClosed);
             return m_channel;
         }
-        
+
         protected override bool OnWaitForChannel(TimeSpan timeout)
         {
             return false;
@@ -84,7 +84,7 @@ namespace RabbitMQ.ServiceModel
 
 #if VERBOSE
             DebugHelper.Start();
-#endif            
+#endif
             m_model = m_bindingElement.Open(timeout);
 #if VERBOSE
             DebugHelper.Stop(" ## In.Open {{Time={0}ms}}.");
@@ -95,7 +95,7 @@ namespace RabbitMQ.ServiceModel
         {
 #if VERBOSE
             DebugHelper.Start();
-#endif  
+#endif
             if (m_channel != null)
             {
                 m_channel.Close();

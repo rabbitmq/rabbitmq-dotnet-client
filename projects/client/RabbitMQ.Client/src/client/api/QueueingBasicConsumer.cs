@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2013 VMware, Inc.
+//   Copyright (C) 2007-2013 GoPivotal, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -34,8 +34,8 @@
 //
 //  The Original Code is RabbitMQ.
 //
-//  The Initial Developer of the Original Code is VMware, Inc.
-//  Copyright (c) 2007-2013 VMware, Inc.  All rights reserved.
+//  The Initial Developer of the Original Code is GoPivotal, Inc.
+//  Copyright (c) 2007-2013 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
@@ -68,24 +68,24 @@ namespace RabbitMQ.Client
     /// The following is a simple example of the usage of this class:
     ///</para>
     ///<example><code>
-    ///	IModel channel = ...;
-    ///	QueueingBasicConsumer consumer = new QueueingBasicConsumer(channel);
-    ///	channel.BasicConsume(queueName, null, consumer);
-    ///	
-    ///	// At this point, messages will be being asynchronously delivered,
-    ///	// and will be queueing up in consumer.Queue.
-    ///	
-    ///	while (true) {
-    ///	    try {
-    ///	        BasicDeliverEventArgs e = (BasicDeliverEventArgs) consumer.Queue.Dequeue();
-    ///	        // ... handle the delivery ...
-    ///	        channel.BasicAck(e.DeliveryTag, false);
-    ///	    } catch (EndOfStreamException ex) {
-    ///	        // The consumer was cancelled, the model closed, or the
-    ///	        // connection went away.
-    ///	        break;
-    ///	    }
-    ///	}
+    /// IModel channel = ...;
+    /// QueueingBasicConsumer consumer = new QueueingBasicConsumer(channel);
+    /// channel.BasicConsume(queueName, null, consumer);
+    ///
+    /// // At this point, messages will be being asynchronously delivered,
+    /// // and will be queueing up in consumer.Queue.
+    ///
+    /// while (true) {
+    ///     try {
+    ///         BasicDeliverEventArgs e = (BasicDeliverEventArgs) consumer.Queue.Dequeue();
+    ///         // ... handle the delivery ...
+    ///         channel.BasicAck(e.DeliveryTag, false);
+    ///     } catch (EndOfStreamException ex) {
+    ///         // The consumer was cancelled, the model closed, or the
+    ///         // connection went away.
+    ///         break;
+    ///     }
+    /// }
     ///</code></example>
     ///</remarks>
     public class QueueingBasicConsumer : DefaultBasicConsumer

@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2013 VMware, Inc.
+//   Copyright (C) 2007-2013 GoPivotal, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -34,8 +34,8 @@
 //
 //  The Original Code is RabbitMQ.
 //
-//  The Initial Developer of the Original Code is VMware, Inc.
-//  Copyright (c) 2007-2013 VMware, Inc.  All rights reserved.
+//  The Initial Developer of the Original Code is GoPivotal, Inc.
+//  Copyright (c) 2007-2013 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 
@@ -49,7 +49,7 @@ namespace RabbitMQ.ServiceModel.Test.TwoWayTest
 
     public class TwoWayTest : IServiceTest<ICalculator>
     {
-        ServiceHost m_service; 
+        ServiceHost m_service;
         ChannelFactory<ICalculator> m_fac;
 
         public void StartService(Binding binding)
@@ -58,7 +58,7 @@ namespace RabbitMQ.ServiceModel.Test.TwoWayTest
             m_service = new ServiceHost(typeof(Calculator), new Uri("soap.amqp:///"));
             m_service.AddServiceEndpoint(typeof(ICalculator), binding, "Calculator");
             m_service.Open();
-            
+
             Thread.Sleep(500);
             Util.WriteLine(ConsoleColor.Green, "[DONE]");
         }

@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2013 VMware, Inc.
+//   Copyright (C) 2007-2013 GoPivotal, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -34,8 +34,8 @@
 //
 //  The Original Code is RabbitMQ.
 //
-//  The Initial Developer of the Original Code is VMware, Inc.
-//  Copyright (c) 2007-2013 VMware, Inc.  All rights reserved.
+//  The Initial Developer of the Original Code is GoPivotal, Inc.
+//  Copyright (c) 2007-2013 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
@@ -168,7 +168,7 @@ namespace RabbitMQ.Client.Impl
         {
             Close(reason, true);
         }
-        
+
         public void Close(ShutdownEventArgs reason, bool notify)
         {
             lock (m_shutdownLock)
@@ -181,7 +181,7 @@ namespace RabbitMQ.Client.Impl
             if (notify)
                 OnSessionShutdown(m_closeReason);
         }
-        
+
         public void Notify()
         {
             // Ensure that we notify only when session is already closed
@@ -189,7 +189,7 @@ namespace RabbitMQ.Client.Impl
             lock (m_shutdownLock)
             {
         	    if (m_closeReason == null)
-                    throw new Exception("Internal Error in Session.Close");   	
+                    throw new Exception("Internal Error in Session.Close");
             }
             OnSessionShutdown(m_closeReason);
         }

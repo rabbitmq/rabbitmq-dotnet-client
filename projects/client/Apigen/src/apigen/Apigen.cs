@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2013 VMware, Inc.
+//   Copyright (C) 2007-2013 GoPivotal, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -34,8 +34,8 @@
 //
 //  The Original Code is RabbitMQ.
 //
-//  The Initial Developer of the Original Code is VMware, Inc.
-//  Copyright (c) 2007-2013 VMware, Inc.  All rights reserved.
+//  The Initial Developer of the Original Code is GoPivotal, Inc.
+//  Copyright (c) 2007-2013 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
@@ -365,7 +365,7 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("// The APL v2.0:");
             EmitLine("//");
             EmitLine("//---------------------------------------------------------------------------");
-            EmitLine("//   Copyright (C) 2007-2013 VMware, Inc.");
+            EmitLine("//   Copyright (C) 2007-2013 GoPivotal, Inc.");
             EmitLine("//");
             EmitLine("//   Licensed under the Apache License, Version 2.0 (the \"License\");");
             EmitLine("//   you may not use this file except in compliance with the License.");
@@ -395,8 +395,8 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("//");
             EmitLine("//   The Original Code is RabbitMQ.");
             EmitLine("//");
-            EmitLine("//   The Initial Developer of the Original Code is VMware, Inc.");
-            EmitLine("//   Copyright (c) 2007-2013 VMware, Inc.  All rights reserved.");
+            EmitLine("//   The Initial Developer of the Original Code is GoPivotal, Inc.");
+            EmitLine("//   Copyright (c) 2007-2013 GoPivotal, Inc.  All rights reserved.");
             EmitLine("//---------------------------------------------------------------------------");
             EmitLine("");
             EmitLine("using RabbitMQ.Client;");

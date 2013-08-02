@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2013 VMware, Inc.
+//   Copyright (C) 2007-2013 GoPivotal, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -34,8 +34,8 @@
 //
 //  The Original Code is RabbitMQ.
 //
-//  The Initial Developer of the Original Code is VMware, Inc.
-//  Copyright (c) 2007-2013 VMware, Inc.  All rights reserved.
+//  The Initial Developer of the Original Code is GoPivotal, Inc.
+//  Copyright (c) 2007-2013 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 
@@ -49,20 +49,20 @@ namespace RabbitMQ.Client
     {
         public string m_description;
         public Exception m_ex;
-        
+
         public ShutdownReportEntry(string description, Exception ex)
         {
             m_description = description;
             m_ex = ex;
         }
-        
+
         ///<summary>Description provided in the error</summary>
         public string Description { get { return m_description; } }
-        
+
         ///<summary>Exception object that occured during shutdown, or null
         ///if unspecified</summary>
         public Exception Exception { get { return m_ex; } }
-        
+
         public override string ToString()
         {
             string output = "Message: " + Description;

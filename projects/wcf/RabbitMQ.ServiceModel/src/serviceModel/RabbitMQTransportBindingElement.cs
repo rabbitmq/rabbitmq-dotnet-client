@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2013 VMware, Inc.
+//   Copyright (C) 2007-2013 GoPivotal, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -34,8 +34,8 @@
 //
 //  The Original Code is RabbitMQ.
 //
-//  The Initial Developer of the Original Code is VMware, Inc.
-//  Copyright (c) 2007-2013 VMware, Inc.  All rights reserved.
+//  The Initial Developer of the Original Code is GoPivotal, Inc.
+//  Copyright (c) 2007-2013 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 
@@ -84,7 +84,7 @@ namespace RabbitMQ.ServiceModel
             MaxReceivedMessageSize = other.MaxReceivedMessageSize;
         }
 
-        
+
         public override IChannelFactory<TChannel> BuildChannelFactory<TChannel>(BindingContext context)
         {
             if (HostName == null)
@@ -171,8 +171,8 @@ namespace RabbitMQ.ServiceModel
         public String HostName
         {
             get{ return m_host; }
-            set 
-            { 
+            set
+            {
                 m_host = value;
                 m_connectionFactory = null;
             }
@@ -185,8 +185,8 @@ namespace RabbitMQ.ServiceModel
         public int Port
         {
             get { return m_port; }
-            set 
-            { 
+            set
+            {
                 m_port = value;
                 m_connectionFactory = null;
             }
@@ -207,8 +207,8 @@ namespace RabbitMQ.ServiceModel
         internal String Username
         {
             get { return m_username; }
-            set 
-            { 
+            set
+            {
                 m_username = value;
                 m_connectionFactory = null;
             }
@@ -241,7 +241,7 @@ namespace RabbitMQ.ServiceModel
         }
 
         /// <summary>
-        /// Specifies the version of the AMQP protocol that should be used to 
+        /// Specifies the version of the AMQP protocol that should be used to
         /// communicate with the broker
         /// </summary>
         public IProtocol BrokerProtocol

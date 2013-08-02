@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2013 VMware, Inc.
+//   Copyright (C) 2007-2013 GoPivotal, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -34,8 +34,8 @@
 //
 //  The Original Code is RabbitMQ.
 //
-//  The Initial Developer of the Original Code is VMware, Inc.
-//  Copyright (c) 2007-2013 VMware, Inc.  All rights reserved.
+//  The Initial Developer of the Original Code is GoPivotal, Inc.
+//  Copyright (c) 2007-2013 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
@@ -69,7 +69,7 @@ namespace RabbitMQ.Client.Examples {
             {
                 Stopwatch sendTimer = new Stopwatch();
                 Stopwatch receiveTimer = new Stopwatch();
-                    
+
                 using (IModel ch = conn.CreateModel()) {
                     sendTimer.Start();
 
@@ -81,7 +81,7 @@ namespace RabbitMQ.Client.Examples {
 
                 using (IModel ch = conn.CreateModel()) {
                     string q = ch.QueueDeclare();
-                    
+
                     for (int i = 0; i < messageCount + 1; ++i) {
                         ch.BasicPublish("", q, null, Message);
                     }
@@ -92,7 +92,7 @@ namespace RabbitMQ.Client.Examples {
                         new QueueingBasicConsumer(ch);
                     receiveTimer.Start();
                     ch.BasicConsume(q, true, consumer);
-                    
+
                     for (int i = 0; i < messageCount; ++i) {
                         consumer.Queue.Dequeue();
                     }

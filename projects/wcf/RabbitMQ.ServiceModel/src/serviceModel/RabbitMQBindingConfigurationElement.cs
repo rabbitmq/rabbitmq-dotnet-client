@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2013 VMware, Inc.
+//   Copyright (C) 2007-2013 GoPivotal, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -34,8 +34,8 @@
 //
 //  The Original Code is RabbitMQ.
 //
-//  The Initial Developer of the Original Code is VMware, Inc.
-//  Copyright (c) 2007-2013 VMware, Inc.  All rights reserved.
+//  The Initial Developer of the Original Code is GoPivotal, Inc.
+//  Copyright (c) 2007-2013 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 
@@ -53,7 +53,7 @@ namespace RabbitMQ.ServiceModel
     /// </summary>
     /// <remarks>
     /// This configuration element should be imported into the client
-    /// and server configuration files to provide declarative configuration 
+    /// and server configuration files to provide declarative configuration
     /// of a AMQP bound service.
     /// </remarks>
     public sealed class RabbitMQBindingConfigurationElement : StandardBindingElement
@@ -66,7 +66,7 @@ namespace RabbitMQ.ServiceModel
         public RabbitMQBindingConfigurationElement(string configurationName)
             : base(configurationName) {
         }
-     
+
         /// <summary>
         /// Creates a new instance of the RabbitMQBindingConfigurationElement Class.
         /// </summary>
@@ -101,8 +101,8 @@ namespace RabbitMQ.ServiceModel
             if (rabbind == null)
             {
                 throw new ArgumentException(
-                    string.Format("Invalid type for binding. Expected {0}, Passed: {1}", 
-                        typeof(RabbitMQBinding).AssemblyQualifiedName, 
+                    string.Format("Invalid type for binding. Expected {0}, Passed: {1}",
+                        typeof(RabbitMQBinding).AssemblyQualifiedName,
                         binding.GetType().AssemblyQualifiedName));
             }
 
@@ -136,7 +136,7 @@ namespace RabbitMQ.ServiceModel
             get { return ((int)base["port"]); }
             set { base["port"] = value; }
         }
-        
+
         /// <summary>
         /// Specifies whether or not the CompositeDuplex and ReliableSession
         /// binding elements are added to the channel stack.

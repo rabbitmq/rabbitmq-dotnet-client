@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2013 VMware, Inc.
+//   Copyright (C) 2007-2013 GoPivotal, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -34,8 +34,8 @@
 //
 //  The Original Code is RabbitMQ.
 //
-//  The Initial Developer of the Original Code is VMware, Inc.
-//  Copyright (c) 2007-2013 VMware, Inc.  All rights reserved.
+//  The Initial Developer of the Original Code is GoPivotal, Inc.
+//  Copyright (c) 2007-2013 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
@@ -60,9 +60,9 @@ namespace RabbitMQ.Client.Impl
         public int m_closeMethodId;
         public int m_closeOkClassId;
         public int m_closeOkMethodId;
-        
+
         public bool m_closeServerInitiated;
-        
+
         private readonly object m_closingLock = new object();
         public delegate void SessionCloseDelegate();
         public SessionCloseDelegate m_handler;
@@ -78,7 +78,7 @@ namespace RabbitMQ.Client.Impl
             m_closeClassId = request.Method.ProtocolClassId;
             m_closeMethodId = request.Method.ProtocolMethodId;
         }
-        
+
         ///<summary> Set channel 0 as quiescing </summary>
         ///<remarks>
         /// Method should be idempotent. Cannot use base.Close
@@ -96,7 +96,7 @@ namespace RabbitMQ.Client.Impl
                 }
             }
         }
-        
+
         public SessionCloseDelegate Handler
         {
             get { return m_handler; }
@@ -105,7 +105,7 @@ namespace RabbitMQ.Client.Impl
 
         public override void HandleFrame(Frame frame)
         {
-        
+
             lock(m_closingLock)
             {
                 if (!m_closing)
@@ -113,8 +113,8 @@ namespace RabbitMQ.Client.Impl
                     base.HandleFrame(frame);
                     return;
                 }
-            } 
-            
+            }
+
             if (!m_closeServerInitiated
                 && (frame.Type == CommonFraming.Constants.FrameMethod))
             {
@@ -125,7 +125,7 @@ namespace RabbitMQ.Client.Impl
                     base.HandleFrame(frame);
                     return;
                 }
-                
+
                 if ((method.ProtocolClassId == m_closeOkClassId)
                     && (method.ProtocolMethodId == m_closeOkMethodId))
                 {
@@ -139,8 +139,8 @@ namespace RabbitMQ.Client.Impl
             // Either a non-method frame, or not what we were looking
             // for. Ignore it - we're quiescing.
         }
-        
-        
+
+
         public override void Transmit(Command cmd)
         {
             lock(m_closingLock)
@@ -151,7 +151,7 @@ namespace RabbitMQ.Client.Impl
                     return;
                 }
             }
-             
+
             // Allow always for sending close ok
             // Or if application initiated, allow also for sending close
             MethodBase method = cmd.m_method;

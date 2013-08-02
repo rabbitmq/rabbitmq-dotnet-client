@@ -12,7 +12,7 @@
       <year>2011</year>
       <year>2012</year>
       <year>2013</year>
-      <holder> VMware, Inc.</holder>
+      <holder> GoPivotal, Inc.</holder>
     </copyright>
     <legalnotice>
       <para>
@@ -24,7 +24,7 @@
       </para>
       <blockquote>
         <para>
-          Copyright (C) 2007-2013 VMware, Inc.
+          Copyright (C) 2007-2013 GoPivotal, Inc.
         </para>
         <para>
           Licensed under the Apache License, Version 2.0 (the "License");
@@ -62,8 +62,8 @@
           The Original Code is RabbitMQ.
         </para>
         <para>
-          The Initial Developer of the Original Code is VMware, Inc.
-          Copyright (c) 2007-2013 VMware, Inc.  All Rights Reserved.
+          The Initial Developer of the Original Code is GoPivotal, Inc.
+          Copyright (c) 2007-2013 GoPivotal, Inc.  All Rights Reserved.
         </para>
       </blockquote>
 

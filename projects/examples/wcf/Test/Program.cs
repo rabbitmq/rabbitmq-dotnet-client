@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2013 VMware, Inc.
+//   Copyright (C) 2007-2013 GoPivotal, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -34,8 +34,8 @@
 //
 //  The Original Code is RabbitMQ.
 //
-//  The Initial Developer of the Original Code is VMware, Inc.
-//  Copyright (c) 2007-2013 VMware, Inc.  All rights reserved.
+//  The Initial Developer of the Original Code is GoPivotal, Inc.
+//  Copyright (c) 2007-2013 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
@@ -53,7 +53,7 @@ namespace RabbitMQ.ServiceModel.Test
     {
         public static Binding GetBinding() {
             //return new WSHttpBinding();
-            
+
             return new RabbitMQBinding(System.Configuration.ConfigurationManager.AppSettings["manual-test-broker-hostname"],
                                        int.Parse(System.Configuration.ConfigurationManager.AppSettings["manual-test-broker-port"]),
                                        RabbitMQ.Client.Protocols.FromConfiguration("manual-test-broker-protocol"));
@@ -78,7 +78,7 @@ namespace RabbitMQ.ServiceModel.Test
             tests.Add(new DuplexTest.DuplexTest());
             tests.Add(new FaultTest.FaultTest());
             Banner();
-            
+
             DateTime started = DateTime.Now;
             foreach (ITestCase test in tests)
             {
@@ -104,7 +104,7 @@ namespace RabbitMQ.ServiceModel.Test
                 }
             }
             TimeSpan duration = DateTime.Now.Subtract(started);
-            
+
             Console.WriteLine();
             ConsoleColor tb = Console.BackgroundColor;
             Console.BackgroundColor = ConsoleColor.White;
@@ -115,7 +115,7 @@ namespace RabbitMQ.ServiceModel.Test
             WriteWholeLine("  Test Pass Took {0}h {1}m {2}s", duration.Hours, duration.Minutes, duration.Seconds);
             WriteWholeLine();
             Console.BackgroundColor = tb;
-            Console.ForegroundColor = ConsoleColor.Gray;       
+            Console.ForegroundColor = ConsoleColor.Gray;
         }
 
         private static void Banner()
@@ -165,7 +165,7 @@ namespace RabbitMQ.ServiceModel.Test
                 i--;
             }
             Console.Write("\n");
-            
+
         }
 
         static int ConsoleWidth()
