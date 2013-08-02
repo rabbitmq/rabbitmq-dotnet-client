@@ -7,7 +7,7 @@
     [Serializable]
     internal class SynchronizedList<T> : IList<T>
     {
-        private readonly List<T> list;
+        private readonly IList<T> list;
         private readonly object root;
 
         public int Count
@@ -41,7 +41,7 @@
             }
         }
 
-        internal SynchronizedList(List<T> list)
+        internal SynchronizedList(IList<T> list)
         {
             this.list = list;
             this.root = ((ICollection)list).SyncRoot;

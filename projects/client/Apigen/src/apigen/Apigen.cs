@@ -120,8 +120,8 @@ namespace RabbitMQ.Client.Apigen {
             return MangleClass(name);
         }
 
-        public static List<string> IdentifierParts(string name) {
-            List<string> result = new List<string>();
+        public static IList<string> IdentifierParts(string name) {
+            IList<string> result = new List<string>();
             foreach (String s1 in name.Split(new Char[] { '-' })) {
                 foreach (String s2 in s1.Split(new Char[] { ' ' })) {
                     result.Add(s2);
@@ -173,9 +173,9 @@ namespace RabbitMQ.Client.Apigen {
         public bool m_emitComments = false;
 
         public Type m_modelType = typeof(RabbitMQ.Client.Impl.IFullModel);
-        public List<Type> m_modelTypes = new List<Type>();
-        public List<KeyValuePair<string, int>> m_constants = new List<KeyValuePair<string, int>>();
-        public List<AmqpClass> m_classes = new List<AmqpClass>();
+        public IList<Type> m_modelTypes = new List<Type>();
+        public IList<KeyValuePair<string, int>> m_constants = new List<KeyValuePair<string, int>>();
+        public IList<AmqpClass> m_classes = new List<AmqpClass>();
         public Dictionary<string, string> m_domains = new Dictionary<string, string>();
 
         public static Dictionary<string, string> m_primitiveTypeMap;
@@ -232,7 +232,7 @@ namespace RabbitMQ.Client.Apigen {
             Environment.Exit(1);
         }
 
-        public Apigen(List<string> args) {
+        public Apigen(IList<string> args) {
             while (args.Count > 0 && ((string) args[0]).StartsWith("/")) {
                 HandleOption((string) args[0]);
                 args.RemoveAt(0);
@@ -800,7 +800,7 @@ namespace RabbitMQ.Client.Apigen {
         public void EmitModelImplementation() {
             EmitLine("  public class Model: RabbitMQ.Client.Impl.ModelBase {");
             EmitLine("    public Model(RabbitMQ.Client.Impl.ISession session): base(session) {}");
-            List<MethodInfo> asynchronousHandlers = new List<MethodInfo>();
+            IList<MethodInfo> asynchronousHandlers = new List<MethodInfo>();
             foreach (Type t in m_modelTypes) {
                 foreach (MethodInfo method in t.GetMethods()) {
                     if (method.DeclaringType.Namespace != null &&
@@ -1098,7 +1098,7 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("    }");
         }
 
-        public void EmitAsynchronousHandlers(List<MethodInfo> asynchronousHandlers) {
+        public void EmitAsynchronousHandlers(IList<MethodInfo> asynchronousHandlers) {
             EmitLine("    public override bool DispatchAsynchronous(RabbitMQ.Client.Impl.Command cmd) {");
             EmitLine("      RabbitMQ.Client.Impl.MethodBase __method = (RabbitMQ.Client.Impl.MethodBase) cmd.Method;");
             EmitLine("      switch ((__method.ProtocolClassId << 16) | __method.ProtocolMethodId) {");

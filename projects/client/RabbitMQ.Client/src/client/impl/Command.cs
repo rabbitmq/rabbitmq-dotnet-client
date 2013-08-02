@@ -88,7 +88,7 @@ namespace RabbitMQ.Client.Impl {
         public MethodBase m_method;
         public ContentHeaderBase m_header;
         public byte[] m_body0;
-        public List<byte[]> m_bodyN;
+        public IList<byte[]> m_bodyN;
 
         public MethodBase Method { get { return m_method; } }
         public ContentHeaderBase Header { get { return m_header; } }

@@ -44,8 +44,8 @@ using System.Xml;
 
 namespace RabbitMQ.Client.Apigen {
     public class AmqpMethod: AmqpEntity {
-        public List<AmqpField> m_Fields;
-        public List<string> m_ResponseMethods;
+        public IList<AmqpField> m_Fields;
+        public IList<string> m_ResponseMethods;
 
         public AmqpMethod(XmlNode n)
             : base(n)
