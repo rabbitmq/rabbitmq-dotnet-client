@@ -858,15 +858,12 @@ namespace RabbitMQ.Client.Apigen {
         }
 
         public string SanitisedFullName(Type t) {
-            CodeTypeReference typeReference = new CodeTypeReference(t);
-            CodeVariableDeclarationStatement variableDeclaration = new CodeVariableDeclarationStatement(typeReference, "dummy");
+            CodeTypeReferenceExpression tre = new CodeTypeReferenceExpression(t.FullName);
             StringBuilder sb = new StringBuilder();
             using (StringWriter writer = new StringWriter(sb))
             {
-                this.m_csharpProvider.GenerateCodeFromStatement(variableDeclaration, writer, new CodeGeneratorOptions());
+                this.m_csharpProvider.GenerateCodeFromExpression(tre, writer, new CodeGeneratorOptions());
             }
-
-            sb.Replace(" dummy;", null);
 
             return sb.ToString().Trim(' ', '\t', '\r', '\n');
         }
