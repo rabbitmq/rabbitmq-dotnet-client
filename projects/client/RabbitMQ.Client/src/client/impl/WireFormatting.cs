@@ -118,7 +118,7 @@ namespace RabbitMQ.Client.Impl
         /// <returns>A <seealso cref="System.Collections.Generic.IDictionary{TKey,TValue}"/>.</returns>
         public static IDictionary<string, object> ReadTable(NetworkBinaryReader reader)
         {
-            Dictionary<string, object> table = new Dictionary<string, object>();
+            IDictionary<string, object> table = new Dictionary<string, object>();
             long tableLength = reader.ReadUInt32();
 
             Stream backingStream = reader.BaseStream;

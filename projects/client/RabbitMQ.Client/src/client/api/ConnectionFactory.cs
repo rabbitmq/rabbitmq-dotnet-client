@@ -320,7 +320,7 @@ namespace RabbitMQ.Client
         ///each endpoint tried.</summary>
         public virtual IConnection CreateConnection(int maxRedirects)
         {
-            Dictionary<AmqpTcpEndpoint, int> connectionAttempts = new Dictionary<AmqpTcpEndpoint, int>();
+            IDictionary<AmqpTcpEndpoint, int> connectionAttempts = new Dictionary<AmqpTcpEndpoint, int>();
             Dictionary<AmqpTcpEndpoint, Exception> connectionErrors = new Dictionary<AmqpTcpEndpoint, Exception>();
             IConnection conn = CreateConnection(maxRedirects,
                                                 connectionAttempts,

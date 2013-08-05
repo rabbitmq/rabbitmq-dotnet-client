@@ -60,7 +60,7 @@ namespace RabbitMQ.Client.Content {
                 throw new ProtocolViolationException(message);
             }
 
-            Dictionary<string, object> table = new Dictionary<string, object>(entryCount);
+            IDictionary<string, object> table = new Dictionary<string, object>(entryCount);
             for (int entryIndex = 0; entryIndex < entryCount; entryIndex++) {
                 string key = StreamWireFormatting.ReadUntypedString(reader);
                 object value = StreamWireFormatting.ReadObject(reader);

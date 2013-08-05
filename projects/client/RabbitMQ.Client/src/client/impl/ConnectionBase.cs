@@ -910,7 +910,7 @@ namespace RabbitMQ.Client.Impl
                     System.Reflection.Assembly.GetAssembly(typeof(ConnectionBase));
             string version = assembly.GetName().Version.ToString();
             //TODO: Get the rest of this data from the Assembly Attributes
-            Dictionary<string, object> table = new Dictionary<string, object>();
+            IDictionary<string, object> table = new Dictionary<string, object>();
             table["product"] = Encoding.UTF8.GetBytes("RabbitMQ");
             table["version"] = Encoding.UTF8.GetBytes(version);
             table["platform"] = Encoding.UTF8.GetBytes(".NET");
