@@ -237,7 +237,7 @@ namespace RabbitMQ.Client.Impl
         {
             get
             {
-                return new Dictionary<string, object>((Dictionary<string, object>)m_clientProperties);
+                return m_clientProperties;
             }
             set
             {
