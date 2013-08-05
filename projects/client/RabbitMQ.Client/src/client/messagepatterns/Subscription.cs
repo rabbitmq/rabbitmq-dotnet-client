@@ -284,7 +284,7 @@ namespace RabbitMQ.Client.MessagePatterns {
                         result = null;
                         return false;
                     }
-                    m_latestEvent = (BasicDeliverEventArgs) qValue;
+                    m_latestEvent = qValue;
                 }
             } catch (EndOfStreamException) {
                 m_latestEvent = null;
