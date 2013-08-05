@@ -59,7 +59,7 @@ namespace RabbitMQ.Client.Exceptions {
     public class BrokerUnreachableException: IOException
     {
         private IDictionary<AmqpTcpEndpoint, int> m_connectionAttempts;
-        private Dictionary<AmqpTcpEndpoint, Exception> m_connectionErrors;
+        private IDictionary<AmqpTcpEndpoint, Exception> m_connectionErrors;
 
         ///<summary>A map from AmqpTcpEndpoint to int, counting the
         ///number of attempts that were made against each
@@ -72,14 +72,14 @@ namespace RabbitMQ.Client.Exceptions {
         public IDictionary<AmqpTcpEndpoint, Exception> ConnectionErrors { get { return m_connectionErrors; } }
 
         ///<summary>same as ConnectionErrors property</summary>
-        public override IDictionary Data { get { return m_connectionErrors; } }
+        public override IDictionary Data { get { return new Dictionary<AmqpTcpEndpoint, Exception>(m_connectionErrors); } }
 
         ///<summary>Construct a BrokerUnreachableException. Expects
         ///maps as per the description of the ConnectionAttempts and
         ///ConnectionErrors properties. The inner exception is associated
         ///with only one connection attempt.</summary>
         public BrokerUnreachableException(IDictionary<AmqpTcpEndpoint, int> connectionAttempts,
-                                          Dictionary<AmqpTcpEndpoint, Exception> connectionErrors,
+                                          IDictionary<AmqpTcpEndpoint, Exception> connectionErrors,
                                           Exception Inner)
             : base("None of the specified endpoints were reachable", Inner)
         {
