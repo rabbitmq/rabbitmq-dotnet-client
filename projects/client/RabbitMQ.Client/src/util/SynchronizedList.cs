@@ -45,7 +45,7 @@
         {
             this.list = list;
             // ICollection provides SyncRoot
-            this.root = ((ICollection)list.SyncRoot;
+            this.root = ((ICollection)list).SyncRoot;
         }
 
         public void Add(T item)
