@@ -23,7 +23,7 @@
         {
             get
             {
-                return ((IList<T>)this.list).IsReadOnly;
+                return this.list.IsReadOnly;
             }
         }
 
