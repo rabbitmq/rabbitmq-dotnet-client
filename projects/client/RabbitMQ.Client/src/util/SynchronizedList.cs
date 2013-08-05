@@ -44,7 +44,8 @@
         internal SynchronizedList(IList<T> list)
         {
             this.list = list;
-            this.root = ((ICollection)list).SyncRoot;
+            // ICollection provides SyncRoot
+            this.root = ((ICollection)list.SyncRoot;
         }
 
         public void Add(T item)
