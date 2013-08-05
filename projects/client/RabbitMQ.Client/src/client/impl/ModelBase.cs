@@ -386,20 +386,18 @@ namespace RabbitMQ.Client.Impl
 
         protected virtual void handleAckNack(ulong deliveryTag, bool multiple, bool isNack)
         {
-            if (multiple) {
-	        lock(m_unconfirmedSet.SyncRoot)
-		{
+            lock(m_unconfirmedSet.SyncRoot)
+            {
+                if (multiple) {
 		    for (ulong i = (ulong)m_unconfirmedSet[0]; i <= deliveryTag; i++) {
 		        // removes potential duplicates
 		        while(m_unconfirmedSet.Remove(i))
 			  {}
                     }
-		}
-            } else {
-	        while(m_unconfirmedSet.Remove(deliveryTag))
-		  {}
-            }
-            lock (m_unconfirmedSet.SyncRoot) {
+                } else {
+                    while(m_unconfirmedSet.Remove(deliveryTag))
+		        {}
+                }
                 m_onlyAcksReceived = m_onlyAcksReceived && !isNack;
                 if (m_unconfirmedSet.Count == 0)
                     Monitor.Pulse(m_unconfirmedSet.SyncRoot);
