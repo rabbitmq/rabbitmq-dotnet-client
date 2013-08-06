@@ -72,14 +72,14 @@ namespace RabbitMQ.Client.Unit
             array.Add(1234);
             t["fieldarray"] = array;
             WireFormatting.WriteTable(w, t);
-            IDictionary nt = (IDictionary)WireFormatting.ReadTable(Reader(Contents(w)));
+            IDictionary<string, object> nt = WireFormatting.ReadTable(Reader(Contents(w)));
             Assert.AreEqual(Encoding.UTF8.GetBytes("Hello"), nt["string"]);
             Assert.AreEqual(1234, nt["int"]);
             Assert.AreEqual(12.34m, nt["decimal"]);
             Assert.AreEqual(0, ((AmqpTimestamp)nt["timestamp"]).UnixTime);
-            IDictionary nt2 = (IDictionary)nt["fieldtable"];
+            IDictionary<string, object> nt2 = (IDictionary<string, object>)nt["fieldtable"];
             Assert.AreEqual(Encoding.UTF8.GetBytes("test"), nt2["test"]);
-            IList narray = (IList)nt["fieldarray"];
+            IList<object> narray = (IList<object>)nt["fieldarray"];
             Assert.AreEqual(Encoding.UTF8.GetBytes("longstring"), narray[0]);
             Assert.AreEqual(1234, narray[1]);
         }
