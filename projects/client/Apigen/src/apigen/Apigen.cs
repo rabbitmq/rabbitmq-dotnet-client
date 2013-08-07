@@ -178,8 +178,8 @@ namespace RabbitMQ.Client.Apigen {
         public IList<AmqpClass> m_classes = new List<AmqpClass>();
         public IDictionary<string, string> m_domains = new Dictionary<string, string>();
 
-        public static Dictionary<string, string> m_primitiveTypeMap;
-        public static Dictionary<string, bool> m_primitiveTypeFlagMap;
+        public static IDictionary<string, string> m_primitiveTypeMap;
+        public static IDictionary<string, bool> m_primitiveTypeFlagMap;
 
         private CodeDomProvider m_csharpProvider;
 
