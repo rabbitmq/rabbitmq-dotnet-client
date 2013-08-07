@@ -57,7 +57,7 @@ namespace RabbitMQ.Client.Unit
     {
 
         [Test]
-        public void TestSingleDisposeInvocation()
+        public void TestSingleDisposeInvocationOnConnection()
         {
             ConnectionFactory connFactory = new ConnectionFactory();
             IConnection conn = connFactory.CreateConnection();
@@ -67,7 +67,7 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestDoubleDisposeInvocation()
+        public void TestMultipleDisposeInvocationOnConnection()
         {
             ConnectionFactory connFactory = new ConnectionFactory();
             IConnection conn = connFactory.CreateConnection();
@@ -76,6 +76,34 @@ namespace RabbitMQ.Client.Unit
             conn.Dispose();
             Assert.IsFalse(conn.IsOpen);
         }
+
+        [Test]
+        public void TestSingleDisposeInvocationOnChannel()
+        {
+            ConnectionFactory connFactory = new ConnectionFactory();
+            IConnection conn = connFactory.CreateConnection();
+            IModel ch = conn.CreateModel();
+
+            ch.Dispose();
+            Assert.IsFalse(ch.IsOpen);
+
+            conn.Close();
+        }
+
+        [Test]
+        public void TestMultipleDisposeInvocationOnChannel()
+        {
+            ConnectionFactory connFactory = new ConnectionFactory();
+            IConnection conn = connFactory.CreateConnection();
+            IModel ch = conn.CreateModel();
+
+            ch.Dispose();
+            ch.Dispose();
+            Assert.IsFalse(ch.IsOpen);
+
+            conn.Close();
+        }
+
     }
 }
 
