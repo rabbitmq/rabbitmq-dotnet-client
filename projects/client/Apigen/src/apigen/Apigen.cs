@@ -176,7 +176,7 @@ namespace RabbitMQ.Client.Apigen {
         public IList<Type> m_modelTypes = new List<Type>();
         public IList<KeyValuePair<string, int>> m_constants = new List<KeyValuePair<string, int>>();
         public IList<AmqpClass> m_classes = new List<AmqpClass>();
-        public Dictionary<string, string> m_domains = new Dictionary<string, string>();
+        public IDictionary<string, string> m_domains = new Dictionary<string, string>();
 
         public static Dictionary<string, string> m_primitiveTypeMap;
         public static Dictionary<string, bool> m_primitiveTypeFlagMap;
