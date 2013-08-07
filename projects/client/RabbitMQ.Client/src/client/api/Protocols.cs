@@ -136,7 +136,7 @@ namespace RabbitMQ.Client
         ///<para>
         /// If the argument is null, Protocols.DefaultProtocol is
         /// used. If the protocol variant named is not found,
-        /// ConfigurationException is thrown.
+        /// ConfigurationErrorsException is thrown.
         ///</para>
         ///<para>
         /// In many cases, FromEnvironment() will be a more
@@ -145,10 +145,10 @@ namespace RabbitMQ.Client
         /// answer to the question "does a suitable IProtocol property
         /// with this name exist, and if so, what is its value?", with
         /// the additional guarantee that if a suitable property does
-        /// not exist, a ConfigurationException will be thrown.
+        /// not exist, a ConfigurationErrorsException will be thrown.
         ///</para>
         ///</remarks>
-        ///<exception cref="ConfigurationException"/>
+        ///<exception cref="System.Configuration.ConfigurationErrorsException"/>
         public static IProtocol SafeLookup(string name)
         {
             if (name != null)
@@ -160,7 +160,7 @@ namespace RabbitMQ.Client
                 }
                 else
                 {
-                    throw new ConfigurationException("Unsupported protocol variant name: " + name);
+                    throw new ConfigurationErrorsException("Unsupported protocol variant name: " + name);
                 }
             }
             return DefaultProtocol;
@@ -177,9 +177,9 @@ namespace RabbitMQ.Client
         ///<remarks>
         ///If the environment variable is unset,
         ///Protocols.DefaultProtocol is used. If the protocol variant
-        ///named is not found, ConfigurationException is thrown.
+        ///named is not found, ConfigurationErrorsException is thrown.
         ///</remarks>
-        ///<exception cref="ConfigurationException"/>
+        ///<exception cref="System.Configuration.ConfigurationErrorsException"/>
         public static IProtocol FromEnvironmentVariable()
         {
             return SafeLookup(ReadEnvironmentVariable());
@@ -190,15 +190,12 @@ namespace RabbitMQ.Client
         ///<remarks>
         ///If the appSettings key is missing,
         ///Protocols.DefaultProtocol is used. If the protocol variant
-        ///named is not found, ConfigurationException is thrown.
+        ///named is not found, ConfigurationErrorsException is thrown.
         ///</remarks>
-        ///<exception cref="ConfigurationException"/>
+        ///<exception cref="System.Configuration.ConfigurationErrorsException"/>
         public static IProtocol FromConfiguration(string appSettingsKey)
         {
-            // FIXME: ConfigurationSettings.AppSettings is
-            // obsolete. Use ConfigurationManager.AppSettings once we
-            // decide that supporting .NET 1.1 is no longer required.
-            string name = ConfigurationSettings.AppSettings[appSettingsKey];
+            string name = ConfigurationManager.AppSettings[appSettingsKey];
             return SafeLookup(name);
         }
 
@@ -211,13 +208,10 @@ namespace RabbitMQ.Client
         ///<summary>Tries FromConfiguration() first, followed by
         ///FromEnvironmentVariable() if no setting was found in the
         ///App.config.</summary>
-        ///<exception cref="ConfigurationException"/>
+        ///<exception cref="System.Configuration.ConfigurationErrorsException"/>
         public static IProtocol FromEnvironment(string appSettingsKey)
         {
-            // FIXME: ConfigurationSettings.AppSettings is
-            // obsolete. Use ConfigurationManager.AppSettings once we
-            // decide that supporting .NET 1.1 is no longer required.
-            string name = ConfigurationSettings.AppSettings[appSettingsKey];
+            string name = ConfigurationManager.AppSettings[appSettingsKey];
             if (name == null) {
                 name = ReadEnvironmentVariable();
             }

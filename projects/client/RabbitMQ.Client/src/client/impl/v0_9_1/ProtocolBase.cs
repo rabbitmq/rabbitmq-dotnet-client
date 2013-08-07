@@ -42,8 +42,6 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Util;
 
-using System.Collections;
-
 namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
     public abstract class ProtocolBase: AbstractProtocolBase {
 

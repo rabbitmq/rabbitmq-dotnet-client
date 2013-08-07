@@ -40,7 +40,7 @@
 
 using System;
 using System.IO;
-using System.Collections;
+using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Content {
     ///<summary>Interface for analyzing application messages.</summary>
@@ -51,8 +51,8 @@ namespace RabbitMQ.Client.Content {
     ///</remarks>
     public interface IMessageReader {
 	///<summary>Retrieves the content header properties of the
-	///message being read.</summary>
-	IDictionary Headers { get; }
+	///message being read.  Is of type <seealso cref="System.Collections.Generic.IDictionary{TKey,TValue}"/></summary>
+	IDictionary<string, object> Headers { get; }
 
 	///<summary>Retrieve the message body, as a byte array.</summary>
 	byte[] BodyBytes { get; }

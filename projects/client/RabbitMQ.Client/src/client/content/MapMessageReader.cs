@@ -40,7 +40,7 @@
 
 using System;
 using System.IO;
-using System.Collections;
+using System.Collections.Generic;
 
 using RabbitMQ.Client;
 
@@ -57,11 +57,11 @@ namespace RabbitMQ.Client.Content {
             : base(properties, payload)
         {}
 
-	protected IDictionary m_table = null;
+	protected IDictionary<string, object> m_table = null;
 
 	///<summary>Implement IMapMessageReader.Body</summary>
         ///<exception cref="System.Net.ProtocolViolationException"/>
-	public IDictionary Body {
+	public IDictionary<string, object> Body {
 	    get {
 		if (m_table == null) {
 		    m_table = MapWireFormatting.ReadMap(Reader);

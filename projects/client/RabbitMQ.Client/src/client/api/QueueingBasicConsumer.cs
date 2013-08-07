@@ -90,7 +90,7 @@ namespace RabbitMQ.Client
     ///</remarks>
     public class QueueingBasicConsumer : DefaultBasicConsumer
     {
-        protected SharedQueue m_queue;
+        protected SharedQueue<BasicDeliverEventArgs> m_queue;
 
         ///<summary>Creates a fresh QueueingBasicConsumer,
         ///initialising the Model property to null and the Queue
@@ -100,19 +100,19 @@ namespace RabbitMQ.Client
         ///<summary>Creates a fresh QueueingBasicConsumer, with Model
         ///set to the argument, and Queue set to a fresh
         ///SharedQueue.</summary>
-        public QueueingBasicConsumer(IModel model) : this(model, new SharedQueue()) { }
+        public QueueingBasicConsumer(IModel model) : this(model, new SharedQueue<BasicDeliverEventArgs>()) { }
 
         ///<summary>Creates a fresh QueueingBasicConsumer,
         ///initialising the Model and Queue properties to the given
         ///values.</summary>
-        public QueueingBasicConsumer(IModel model, SharedQueue queue)
+        public QueueingBasicConsumer(IModel model, SharedQueue<BasicDeliverEventArgs> queue)
             : base(model)
         {
             m_queue = queue;
         }
 
         ///<summary>Retrieves the SharedQueue that messages arrive on.</summary>
-        public SharedQueue Queue
+        public SharedQueue<BasicDeliverEventArgs> Queue
         {
             get { return m_queue; }
         }

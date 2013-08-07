@@ -39,7 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
@@ -130,7 +130,8 @@ namespace RabbitMQ.Client.Impl
             return WireFormatting.ReadLonglong(m_reader);
         }
 
-        public IDictionary ReadTable()
+        /// <returns>A type of <seealso cref="System.Collections.Generic.IDictionary{TKey,TValue}"/>.</returns>
+        public IDictionary<string, object> ReadTable()
         {
             return WireFormatting.ReadTable(m_reader);
         }

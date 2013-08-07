@@ -49,7 +49,7 @@ namespace RabbitMQ.ServiceModel.Test.DuplexTest
     public class Order
     {
         private Guid m_id;
-        private List<Pizza> m_items;
+        private IList<Pizza> m_items;
         private DateTime m_ordered;
 
         public Order()
@@ -67,7 +67,7 @@ namespace RabbitMQ.ServiceModel.Test.DuplexTest
         }
 
         [DataMember]
-        public List<Pizza> Items
+        public IList<Pizza> Items
         {
             get { return m_items; }
             set { m_items = value; }
