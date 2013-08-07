@@ -279,12 +279,12 @@ namespace RabbitMQ.Client.MessagePatterns {
                     // Closed!
                     m_latestEvent = null;
                 } else {
-                    object qValue;
+                    BasicDeliverEventArgs qValue;
                     if (!consumer.Queue.Dequeue(millisecondsTimeout, out qValue)) {
                         result = null;
                         return false;
                     }
-                    m_latestEvent = (BasicDeliverEventArgs) qValue;
+                    m_latestEvent = qValue;
                 }
             } catch (EndOfStreamException) {
                 m_latestEvent = null;

@@ -41,18 +41,23 @@
 using System;
 using System.IO;
 using System.Collections;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace RabbitMQ.Util {
     ///<summary>A thread-safe shared queue implementation.</summary>
-    public class SharedQueue : IEnumerable {
+    public class SharedQueue : SharedQueue<object>
+    {}
+
+    ///<summary>A thread-safe shared queue implementation.</summary>
+    public class SharedQueue<T> : IEnumerable<T> {
         ///<summary>The shared queue.</summary>
         ///<remarks>
         ///Subclasses must ensure appropriate locking discipline when
         ///accessing this field. See the implementation of Enqueue,
         ///Dequeue.
         ///</remarks>
-        protected Queue m_queue = new Queue();
+        protected Queue<T> m_queue = new Queue<T>();
 
         ///<summary>Flag holding our current status.</summary>
         protected bool m_isOpen = true;
@@ -87,7 +92,7 @@ namespace RabbitMQ.Util {
         ///will be passed to it. If the queue is closed on entry to
         ///this method, EndOfStreamException will be thrown.
         ///</remarks>
-        public void Enqueue(object o) {
+        public void Enqueue(T o) {
             lock (m_queue) {
                 EnsureIsOpen();
                 m_queue.Enqueue(o);
@@ -102,7 +107,7 @@ namespace RabbitMQ.Util {
         ///closed. In the latter case this method will throw
         ///EndOfStreamException.
         ///</remarks>
-        public object Dequeue() {
+        public T Dequeue() {
             lock (m_queue) {
                 while (m_queue.Count == 0) {
                     EnsureIsOpen();
@@ -133,7 +138,7 @@ namespace RabbitMQ.Util {
         /// method will throw EndOfStreamException.
         ///</para>
         ///</remarks>
-        public object DequeueNoWait(object defaultValue) {
+        public T DequeueNoWait(T defaultValue) {
             lock (m_queue) {
                 if (m_queue.Count == 0) {
                     EnsureIsOpen();
@@ -180,7 +185,7 @@ namespace RabbitMQ.Util {
         /// method will throw EndOfStreamException.
         ///</para>
         ///</remarks>
-	public bool Dequeue(int millisecondsTimeout, out object result) {
+	public bool Dequeue(int millisecondsTimeout, out T result) {
 	    if (millisecondsTimeout == Timeout.Infinite) {
 		result = Dequeue();
 		return true;
@@ -193,7 +198,7 @@ namespace RabbitMQ.Util {
 		    int elapsedTime = (int) ((DateTime.Now - startTime).TotalMilliseconds);
 		    int remainingTime = millisecondsTimeout - elapsedTime;
 		    if (remainingTime <= 0) {
-			result = null;
+			result = default(T);
 			return false;
 		    }
 
@@ -209,22 +214,31 @@ namespace RabbitMQ.Util {
         ///permitting SharedQueue to be used in foreach
         ///loops.</summary>
         IEnumerator IEnumerable.GetEnumerator() {
-            return new SharedQueueEnumerator(this);
+            return new SharedQueueEnumerator<T>(this);
+        }
+
+        ///<summary>Implementation of the IEnumerable interface, for
+        ///permitting SharedQueue to be used in foreach
+        ///loops.</summary>
+        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        {
+            return new SharedQueueEnumerator<T>(this);
         }
 
     }
 
     ///<summary>Implementation of the IEnumerator interface, for
     ///permitting SharedQueue to be used in foreach loops.</summary>
-    public class SharedQueueEnumerator : IEnumerator {
+    public struct SharedQueueEnumerator<T> : IEnumerator<T> {
 
-        protected SharedQueue m_queue;
-        protected object m_current;
+        private SharedQueue<T> m_queue;
+        private T m_current;
 
         ///<summary>Construct an enumerator for the given
         ///SharedQueue.</summary>
-        public SharedQueueEnumerator(SharedQueue queue) {
+        public SharedQueueEnumerator(SharedQueue<T> queue) {
             m_queue = queue;
+            m_current = default(T);
         }
 
         object IEnumerator.Current {
@@ -236,12 +250,24 @@ namespace RabbitMQ.Util {
             }
         }
 
+        T IEnumerator<T>.Current
+        {
+            get
+            {
+                if (m_current == null)
+                {
+                    throw new InvalidOperationException();
+                }
+                return m_current;
+            }
+        }
+
         bool IEnumerator.MoveNext() {
             try {
                 m_current = m_queue.Dequeue();
                 return true;
             } catch (EndOfStreamException) {
-                m_current = null;
+                m_current = default(T);
                 return false;
             }
         }
@@ -253,6 +279,9 @@ namespace RabbitMQ.Util {
             throw new InvalidOperationException("SharedQueue.Reset() does not make sense");
         }
 
+        public void Dispose()
+        {
+        }
     }
 
 }

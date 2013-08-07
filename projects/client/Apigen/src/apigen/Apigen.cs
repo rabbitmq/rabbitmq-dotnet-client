@@ -39,7 +39,9 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections;
+using System.CodeDom;
+using System.CodeDom.Compiler;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -53,7 +55,7 @@ namespace RabbitMQ.Client.Apigen {
         // Entry point
 
         public static void Main(string[] args) {
-            Apigen instance = new Apigen(new ArrayList(args));
+            Apigen instance = new Apigen(new List<string>(args));
             instance.Generate();
         }
 
@@ -118,8 +120,8 @@ namespace RabbitMQ.Client.Apigen {
             return MangleClass(name);
         }
 
-        public static ArrayList IdentifierParts(string name) {
-            ArrayList result = new ArrayList();
+        public static IList<string> IdentifierParts(string name) {
+            IList<string> result = new List<string>();
             foreach (String s1 in name.Split(new Char[] { '-' })) {
                 foreach (String s2 in s1.Split(new Char[] { ' ' })) {
                     result.Add(s2);
@@ -171,16 +173,19 @@ namespace RabbitMQ.Client.Apigen {
         public bool m_emitComments = false;
 
         public Type m_modelType = typeof(RabbitMQ.Client.Impl.IFullModel);
-        public ArrayList m_modelTypes = new ArrayList();
-        public ArrayList m_constants = new ArrayList();
-        public ArrayList m_classes = new ArrayList();
-        public Hashtable m_domains = new Hashtable();
+        public IList<Type> m_modelTypes = new List<Type>();
+        public IList<KeyValuePair<string, int>> m_constants = new List<KeyValuePair<string, int>>();
+        public IList<AmqpClass> m_classes = new List<AmqpClass>();
+        public IDictionary<string, string> m_domains = new Dictionary<string, string>();
 
-        public static Hashtable m_primitiveTypeMap;
-        public static Hashtable m_primitiveTypeFlagMap;
+        public static IDictionary<string, string> m_primitiveTypeMap;
+        public static IDictionary<string, bool> m_primitiveTypeFlagMap;
+
+        private CodeDomProvider m_csharpProvider;
+
         static Apigen() {
-            m_primitiveTypeMap = new Hashtable();
-            m_primitiveTypeFlagMap = new Hashtable();
+            m_primitiveTypeMap = new Dictionary<string, string>();
+            m_primitiveTypeFlagMap = new Dictionary<string, bool>();
             InitPrimitiveType("octet", "byte", false);
             InitPrimitiveType("shortstr", "string", true);
             InitPrimitiveType("longstr", "byte[]", true);
@@ -188,7 +193,7 @@ namespace RabbitMQ.Client.Apigen {
             InitPrimitiveType("long", "uint", false);
             InitPrimitiveType("longlong", "ulong", false);
             InitPrimitiveType("bit", "bool", false);
-            InitPrimitiveType("table", "System.Collections.IDictionary", true);
+            InitPrimitiveType("table", "System.Collections.Generic.IDictionary<string, object>", true);
             InitPrimitiveType("timestamp", "AmqpTimestamp", false);
             InitPrimitiveType("content", "byte[]", true);
         }
@@ -227,7 +232,7 @@ namespace RabbitMQ.Client.Apigen {
             Environment.Exit(1);
         }
 
-        public Apigen(ArrayList args) {
+        public Apigen(IList<string> args) {
             while (args.Count > 0 && ((string) args[0]).StartsWith("/")) {
                 HandleOption((string) args[0]);
                 args.RemoveAt(0);
@@ -239,6 +244,7 @@ namespace RabbitMQ.Client.Apigen {
             }
             m_inputXmlFilename = (string) args[0];
             m_outputFilename = (string) args[1];
+            this.m_csharpProvider = CodeDomProvider.CreateProvider("C#");
         }
 
         ///////////////////////////////////////////////////////////////////////////
@@ -289,7 +295,7 @@ namespace RabbitMQ.Client.Apigen {
                 }
             }
             foreach (XmlNode n in m_spec.SelectNodes("/amqp/constant")) {
-                m_constants.Add(new DictionaryEntry(GetString(n, "@name"), GetInt(n, "@value")));
+                m_constants.Add(new KeyValuePair<string, int>(GetString(n, "@name"), GetInt(n, "@value")));
             }
             foreach (XmlNode n in m_spec.SelectNodes("/amqp/class")) {
                 m_classes.Add(new AmqpClass(n));
@@ -311,7 +317,7 @@ namespace RabbitMQ.Client.Apigen {
         }
 
         public string ResolveDomain(string d) {
-            while (m_domains[d] != null) {
+            while (m_domains.ContainsKey(d)) {
                 string newD = (string) m_domains[d];
                 if (d.Equals(newD))
                     break;
@@ -418,7 +424,7 @@ namespace RabbitMQ.Client.Apigen {
             EmitContentHeaderReader();
             EmitLine("  }");
             EmitLine("  public class Constants {");
-            foreach (DictionaryEntry de in m_constants) {
+            foreach (KeyValuePair<string, int> de in m_constants) {
                 EmitLine("    ///<summary>(= "+de.Value+")</summary>");
                 EmitLine("    public const int "+MangleConstant((string) de.Key)+" = "+de.Value+";");
             }
@@ -771,7 +777,7 @@ namespace RabbitMQ.Client.Apigen {
             return Attribute(p.GetCustomAttributes(t, false), t);
         }
 
-        public Attribute Attribute(IEnumerable attributes, Type t) {
+        public Attribute Attribute(IEnumerable<object> attributes, Type t) {
             if (t.IsSubclassOf(typeof(AmqpApigenAttribute))) {
                 AmqpApigenAttribute result = null;
                 foreach (AmqpApigenAttribute candidate in attributes) {
@@ -794,7 +800,7 @@ namespace RabbitMQ.Client.Apigen {
         public void EmitModelImplementation() {
             EmitLine("  public class Model: RabbitMQ.Client.Impl.ModelBase {");
             EmitLine("    public Model(RabbitMQ.Client.Impl.ISession session): base(session) {}");
-            ArrayList asynchronousHandlers = new ArrayList();
+            IList<MethodInfo> asynchronousHandlers = new List<MethodInfo>();
             foreach (Type t in m_modelTypes) {
                 foreach (MethodInfo method in t.GetMethods()) {
                     if (method.DeclaringType.Namespace != null &&
@@ -852,11 +858,14 @@ namespace RabbitMQ.Client.Apigen {
         }
 
         public string SanitisedFullName(Type t) {
-            if (t == typeof(void)) {
-                return "void";
-            } else {
-                return t.FullName;
+            CodeTypeReferenceExpression tre = new CodeTypeReferenceExpression(t.FullName);
+            StringBuilder sb = new StringBuilder();
+            using (StringWriter writer = new StringWriter(sb))
+            {
+                this.m_csharpProvider.GenerateCodeFromExpression(tre, writer, new CodeGeneratorOptions());
             }
+
+            return sb.ToString().Trim(' ', '\t', '\r', '\n');
         }
 
         public void EmitModelMethodPreamble(MethodInfo method) {
@@ -1086,7 +1095,7 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("    }");
         }
 
-        public void EmitAsynchronousHandlers(ArrayList asynchronousHandlers) {
+        public void EmitAsynchronousHandlers(IList<MethodInfo> asynchronousHandlers) {
             EmitLine("    public override bool DispatchAsynchronous(RabbitMQ.Client.Impl.Command cmd) {");
             EmitLine("      RabbitMQ.Client.Impl.MethodBase __method = (RabbitMQ.Client.Impl.MethodBase) cmd.Method;");
             EmitLine("      switch ((__method.ProtocolClassId << 16) | __method.ProtocolMethodId) {");

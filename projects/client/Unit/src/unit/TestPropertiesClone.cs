@@ -38,6 +38,8 @@
 //  Copyright (c) 2007-2013 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System.Collections.Generic;
+
 using NUnit.Framework;
 
 using System;
@@ -175,7 +177,7 @@ public class TestPropertiesClone
         // Set initial values
         bp.ContentType = "foo_1";
         bp.ContentEncoding = "foo_2";
-        bp.Headers = new Hashtable();
+        bp.Headers = new Dictionary<string, object>();
         bp.Headers.Add("foo_3", "foo_4");
         bp.Headers.Add("foo_5", "foo_6");
         bp.DeliveryMode = 12;
@@ -216,9 +218,9 @@ public class TestPropertiesClone
         Assert.AreEqual("foo_1", bpClone.ContentType);
         Assert.AreEqual("foo_2", bpClone.ContentEncoding);
         Assert.AreEqual(2, bpClone.Headers.Count);
-        Assert.AreEqual(true, bpClone.Headers.Contains("foo_3"));
+        Assert.AreEqual(true, bpClone.Headers.ContainsKey("foo_3"));
         Assert.AreEqual("foo_4", bpClone.Headers["foo_3"]);
-        Assert.AreEqual(true, bpClone.Headers.Contains("foo_5"));
+        Assert.AreEqual(true, bpClone.Headers.ContainsKey("foo_5"));
         Assert.AreEqual("foo_6", bpClone.Headers["foo_5"]);
         Assert.AreEqual(12, bpClone.DeliveryMode);
         Assert.AreEqual(12, bpClone.Priority);
@@ -241,7 +243,7 @@ public class TestPropertiesClone
         // Set members in source object
         bp.ContentType = "foo_1";
         bp.ContentEncoding = "foo_2";
-        bp.Headers = new Hashtable();
+        bp.Headers = new Dictionary<string, object>();
         bp.Headers.Add("foo_3", "foo_4");
         bp.Headers.Add("foo_5", "foo_6");
         bp.DeliveryMode = 12;
@@ -278,7 +280,7 @@ public class TestPropertiesClone
         // Set members in source object
         sp.ContentType = "foo_1";
         sp.ContentEncoding = "foo_2";
-        sp.Headers = new Hashtable();
+        sp.Headers = new Dictionary<string, object>();
         sp.Headers.Add("foo_3", "foo_4");
         sp.Headers.Add("foo_5", "foo_6");
         sp.Priority = 12;
@@ -301,9 +303,9 @@ public class TestPropertiesClone
         Assert.AreEqual("foo_1", spClone.ContentType);
         Assert.AreEqual("foo_2", spClone.ContentEncoding);
         Assert.AreEqual(2, spClone.Headers.Count);
-        Assert.AreEqual(true, spClone.Headers.Contains("foo_3"));
+        Assert.AreEqual(true, spClone.Headers.ContainsKey("foo_3"));
         Assert.AreEqual("foo_4", spClone.Headers["foo_3"]);
-        Assert.AreEqual(true, spClone.Headers.Contains("foo_5"));
+        Assert.AreEqual(true, spClone.Headers.ContainsKey("foo_5"));
         Assert.AreEqual("foo_6", spClone.Headers["foo_5"]);
         Assert.AreEqual(12, spClone.Priority);
         Assert.AreEqual(new AmqpTimestamp(123), spClone.Timestamp);
@@ -317,7 +319,7 @@ public class TestPropertiesClone
         // Set members in source object
         sp.ContentType = "foo_1";
         sp.ContentEncoding = "foo_2";
-        sp.Headers = new Hashtable();
+        sp.Headers = new Dictionary<string, object>();
         sp.Headers.Add("foo_3", "foo_4");
         sp.Headers.Add("foo_5", "foo_6");
         sp.Priority = 12;
@@ -336,7 +338,7 @@ public class TestPropertiesClone
         // Set members in source object
         fp.ContentType = "foo_1";
         fp.ContentEncoding = "foo_2";
-        fp.Headers = new Hashtable();
+        fp.Headers = new Dictionary<string, object>();
         fp.Headers.Add("foo_3", "foo_4");
         fp.Headers.Add("foo_5", "foo_6");
         fp.Priority = 12;
@@ -352,7 +354,7 @@ public class TestPropertiesClone
         // Change values in source object
         fp.ContentType = "foo_11";
         fp.ContentEncoding = "foo_12";
-        fp.Headers = new Hashtable();
+        fp.Headers = new Dictionary<string, object>();
         fp.Headers.Add("foo_13", "foo_14");
         fp.Headers.Add("foo_15", "foo_16");
         fp.Priority = 34;
@@ -366,9 +368,9 @@ public class TestPropertiesClone
         Assert.AreEqual("foo_1", fpClone.ContentType);
         Assert.AreEqual("foo_2", fpClone.ContentEncoding);
         Assert.AreEqual(2, fpClone.Headers.Count);
-        Assert.AreEqual(true, fpClone.Headers.Contains("foo_3"));
+        Assert.AreEqual(true, fpClone.Headers.ContainsKey("foo_3"));
         Assert.AreEqual("foo_4", fpClone.Headers["foo_3"]);
-        Assert.AreEqual(true, fpClone.Headers.Contains("foo_5"));
+        Assert.AreEqual(true, fpClone.Headers.ContainsKey("foo_5"));
         Assert.AreEqual("foo_6", fpClone.Headers["foo_5"]);
         Assert.AreEqual(12, fpClone.Priority);
         Assert.AreEqual("foo_7", fpClone.ReplyTo);
@@ -386,7 +388,7 @@ public class TestPropertiesClone
         // Set values in source object
         fp.ContentType = "foo_11";
         fp.ContentEncoding = "foo_12";
-        fp.Headers = new Hashtable();
+        fp.Headers = new Dictionary<string, object>();
         fp.Headers.Add("foo_13", "foo_14");
         fp.Headers.Add("foo_15", "foo_16");
         fp.Priority = 34;

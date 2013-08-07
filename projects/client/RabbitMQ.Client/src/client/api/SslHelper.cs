@@ -39,7 +39,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections;
 using System.IO;
 using System.Net.Security;
 using System.Security.Authentication;

@@ -40,7 +40,7 @@
 
 using System;
 using System.IO;
-using System.Collections;
+using System.Collections.Generic;
 
 using RabbitMQ.Client;
 
@@ -117,7 +117,7 @@ namespace RabbitMQ.Client.Content {
         ///<summary>Reads objects from the message body until the
         ///end-of-stream is reached.</summary>
         public object[] ReadObjects() {
-            ArrayList result = new ArrayList();
+            List<object> result = new List<object>();
             while (true) {
                 try {
                     object val = ReadObject();

@@ -39,10 +39,10 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections;
 using System.IO;
 using System.Text;
 using System.Reflection;
-using System.Collections;
 
 namespace RabbitMQ.Util {
     ///<summary>Miscellaneous debugging and development utilities.</summary>
@@ -112,7 +112,7 @@ namespace RabbitMQ.Util {
                 Type t = value.GetType();
                 writer.WriteLine(t.FullName);
 		foreach (DictionaryEntry entry in ((IDictionary) value)) {
-		    DumpKeyValue((string) entry.Key, entry.Value, writer, indent);
+		    DumpKeyValue(entry.Key.ToString(), entry.Value, writer, indent);
 		}
             } else if (value is IEnumerable) {
                 writer.WriteLine("IEnumerable");

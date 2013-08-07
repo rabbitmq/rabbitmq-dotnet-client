@@ -39,7 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Content {
     ///<summary>Interface for constructing messages binary-compatible
@@ -47,6 +47,6 @@ namespace RabbitMQ.Client.Content {
     public interface IMapMessageBuilder: IMessageBuilder {
 	///<summary>Retrieves the dictionary that will be written into
 	///the body of the message.</summary>
-	IDictionary Body { get; }
+	IDictionary<string, object> Body { get; }
     }
 }

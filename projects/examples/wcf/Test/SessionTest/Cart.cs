@@ -55,9 +55,9 @@ namespace RabbitMQ.ServiceModel.Test.SessionTest
         }
 
         private Guid m_id;
-        private List<CartItem> m_items;
+        private IList<CartItem> m_items;
 
-        private List<CartItem> Items {
+        private IList<CartItem> Items {
             get { return m_items; }
             set { m_items = value; }
         }
