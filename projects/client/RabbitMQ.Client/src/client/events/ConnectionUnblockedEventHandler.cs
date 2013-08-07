@@ -38,42 +38,12 @@
 //  Copyright (c) 2007-2013 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
 
-namespace RabbitMQ.Client.Unit
+using System;
+
+namespace RabbitMQ.Client.Events
 {
 
-    public class IntegrationFixture
-    {
-        protected IConnection Conn;
-        protected IModel Model;
-
-        [SetUp]
-        public void Init()
-        {
-            ConnectionFactory connFactory = new ConnectionFactory();
-            Conn = connFactory.CreateConnection();
-            Model = Conn.CreateModel();
-        }
-
-        [TearDown]
-        public void Dispose()
-        {
-            Model.Close();
-            Conn.Close();
-
-            ReleaseResources();
-        }
-
-        protected virtual void ReleaseResources()
-        {
-            // no-op
-        }
-    }
-
-    public class TimingFixture
-    {
-        public static readonly int TimingInterval = 200;
-        public static readonly int SafetyMargin = 50;
-    }
+    ///<summary>Delegate used to process connection unblocked events.</summary>
+    public delegate void ConnectionUnblockedEventHandler(IConnection sender);
 }

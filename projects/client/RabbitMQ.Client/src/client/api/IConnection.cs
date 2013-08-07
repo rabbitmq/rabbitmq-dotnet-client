@@ -79,6 +79,9 @@ namespace RabbitMQ.Client
         ///</remarks>
         event CallbackExceptionEventHandler CallbackException;
 
+        event ConnectionBlockedEventHandler ConnectionBlocked;
+        event ConnectionUnblockedEventHandler ConnectionUnblocked;
+
         ///<summary>Retrieve the endpoint this connection is connected
         ///to.</summary>
         AmqpTcpEndpoint Endpoint { get; }
@@ -279,5 +282,12 @@ namespace RabbitMQ.Client
         ///contain information about any errors reported while closing the
         ///connection in the order they appeared</summary>
         IList<ShutdownReportEntry> ShutdownReport { get; }
+
+
+        ///<summary>Handle incoming Connection.Blocked methods.</summary>
+        void HandleConnectionBlocked(string reason);
+
+        ///<summary>Handle incoming Connection.Unblocked methods.</summary>
+        void HandleConnectionUnblocked();
     }
 }
