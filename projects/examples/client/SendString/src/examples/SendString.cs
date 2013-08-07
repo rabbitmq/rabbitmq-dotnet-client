@@ -53,7 +53,7 @@ namespace RabbitMQ.Client.Examples {
                 Console.Error.WriteLine("  <uri> = \"amqp://user:pass@host:port/vhost\"");
                 return 2;
             }
-            
+
             string serverAddress = args[0];
             string exchange = args[1];
             string exchangeType = args[2];
@@ -66,7 +66,7 @@ namespace RabbitMQ.Client.Examples {
             using (IConnection conn = cf.CreateConnection())
                 {
                     using (IModel ch = conn.CreateModel()) {
-                        
+
                         if (exchange != "") {
                             ch.ExchangeDeclare(exchange, exchangeType);
                         }

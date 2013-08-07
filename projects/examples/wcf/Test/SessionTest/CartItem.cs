@@ -42,7 +42,7 @@
 namespace RabbitMQ.ServiceModel.Test.SessionTest
 {
     using System.Runtime.Serialization;
- 
+
     [DataContract]
     public sealed class CartItem
     {
@@ -54,7 +54,7 @@ namespace RabbitMQ.ServiceModel.Test.SessionTest
             get { return m_price; }
             set { m_price = value; }
         }
-        
+
         [DataMember]
         public string Name {
             get { return m_name; }

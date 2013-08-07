@@ -39,30 +39,11 @@
 //---------------------------------------------------------------------------
 
 
-namespace RabbitMQ.ServiceModel
+using System;
+
+namespace RabbitMQ.Client.Events
 {
-    using System;
-    using System.Text;
 
-    // We use spec version 0-9 for common constants such as frame types,
-    // error codes, and the frame end byte, since they don't vary *within
-    // the versions we support*. Obviously we may need to revisit this if
-    // that ever changes.
-    using CommonFraming = RabbitMQ.Client.Framing.v0_9;
-
-    /// <summary>
-    /// Properties of the current RabbitMQ Service Model Version
-    /// </summary>
-    public static class CurrentVersion
-    {
-        internal const String Scheme = "soap.amqp";
-
-        internal static Encoding DefaultEncoding { get { return Encoding.UTF8; } }
-
-        internal static class StatusCodes
-        {
-            public const int Ok = CommonFraming.Constants.ReplySuccess;
-        }
-
-    }
+    ///<summary>Delegate used to process connection unblocked events.</summary>
+    public delegate void ConnectionUnblockedEventHandler(IConnection sender);
 }

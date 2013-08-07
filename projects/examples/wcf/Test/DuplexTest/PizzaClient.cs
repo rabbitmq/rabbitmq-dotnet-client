@@ -43,7 +43,7 @@ namespace RabbitMQ.ServiceModel.Test.DuplexTest
 {
     using System.ServiceModel;
     using System.ServiceModel.Channels;
-    
+
     public class PizzaClient : DuplexClientBase<IPizzaService>, IPizzaService
     {
         public PizzaClient(InstanceContext context, Binding binding, EndpointAddress remoteAddress)

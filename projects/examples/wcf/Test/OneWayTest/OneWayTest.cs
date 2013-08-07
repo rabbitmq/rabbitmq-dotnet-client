@@ -86,7 +86,7 @@ namespace RabbitMQ.ServiceModel.Test.OneWayTest
             m_host = new ServiceHost(typeof(LogService), new Uri("soap.amqp:///"));
             ((RabbitMQBinding)binding).OneWayOnly = true;
             //host = new ServiceHost(typeof(LogService), new Uri("http://localhost/"));
-            
+
             m_host.AddServiceEndpoint(typeof(ILogServiceContract), binding, "LogService");
             m_host.Open();
             m_serviceStarted = true;

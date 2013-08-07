@@ -84,7 +84,7 @@ namespace RabbitMQ.ServiceModel
             MaxReceivedMessageSize = other.MaxReceivedMessageSize;
         }
 
-        
+
         public override IChannelFactory<TChannel> BuildChannelFactory<TChannel>(BindingContext context)
         {
             if (HostName == null)
@@ -171,8 +171,8 @@ namespace RabbitMQ.ServiceModel
         public String HostName
         {
             get{ return m_host; }
-            set 
-            { 
+            set
+            {
                 m_host = value;
                 m_connectionFactory = null;
             }
@@ -185,8 +185,8 @@ namespace RabbitMQ.ServiceModel
         public int Port
         {
             get { return m_port; }
-            set 
-            { 
+            set
+            {
                 m_port = value;
                 m_connectionFactory = null;
             }
@@ -207,8 +207,8 @@ namespace RabbitMQ.ServiceModel
         internal String Username
         {
             get { return m_username; }
-            set 
-            { 
+            set
+            {
                 m_username = value;
                 m_connectionFactory = null;
             }
@@ -241,7 +241,7 @@ namespace RabbitMQ.ServiceModel
         }
 
         /// <summary>
-        /// Specifies the version of the AMQP protocol that should be used to 
+        /// Specifies the version of the AMQP protocol that should be used to
         /// communicate with the broker
         /// </summary>
         public IProtocol BrokerProtocol

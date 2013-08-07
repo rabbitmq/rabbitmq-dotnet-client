@@ -64,7 +64,7 @@ namespace RabbitMQ.ServiceModel
             m_openMethod = new CommunicationOperation(OnOpen);
             m_waitForChannelMethod = new CommunicationOperation<bool>(OnWaitForChannel);
             m_acceptChannelMethod = new CommunicationOperation<TChannel>(OnAcceptChannel);
-            
+
             if (context.ListenUriMode == ListenUriMode.Explicit && context.ListenUriBaseAddress != null)
             {
                 m_listenUri = new Uri(context.ListenUriBaseAddress, context.ListenUriRelativeAddress);
@@ -100,7 +100,7 @@ namespace RabbitMQ.ServiceModel
         {
             return m_waitForChannelMethod.EndInvoke(result);
         }
-        
+
         protected override IAsyncResult OnBeginClose(TimeSpan timeout, AsyncCallback callback, object state)
         {
             return m_closeMethod.BeginInvoke(timeout, callback, state);
@@ -120,8 +120,8 @@ namespace RabbitMQ.ServiceModel
         {
             m_openMethod.EndInvoke(result);
         }
-            
-        
+
+
         public override Uri Uri
         {
             get { return m_listenUri; }

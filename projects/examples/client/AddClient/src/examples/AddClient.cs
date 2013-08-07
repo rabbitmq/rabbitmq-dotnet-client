@@ -62,7 +62,7 @@ namespace RabbitMQ.Client.Examples {
 
             using (IConnection conn = cf.CreateConnection()) {
                 using (IModel ch = conn.CreateModel()) {
-                    
+
                     object[] addends = new object[args.Length - 1];
                     for (int i = 0; i < args.Length - 1; i++) {
                         addends[i] = double.Parse(args[i + 1]);

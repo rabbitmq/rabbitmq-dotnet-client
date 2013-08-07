@@ -69,14 +69,14 @@ namespace RabbitMQ.ServiceModel.Test.OneWayTest
             get { return m_level; }
             set { m_level = value; }
         }
-        
+
         [DataMember]
         public String Message
         {
             get { return m_message; }
             set { m_message = value; }
         }
-        
+
         [DataMember]
         public DateTime TimeStamp
         {

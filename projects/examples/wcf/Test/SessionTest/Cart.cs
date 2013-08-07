@@ -41,7 +41,7 @@
 
 namespace RabbitMQ.ServiceModel.Test.SessionTest
 {
-    using System; 
+    using System;
     using System.Collections.Generic;
     using System.ServiceModel;
 
@@ -53,7 +53,7 @@ namespace RabbitMQ.ServiceModel.Test.SessionTest
             Items = new List<CartItem>();
             m_id = Guid.NewGuid();
         }
-        
+
         private Guid m_id;
         private List<CartItem> m_items;
 
@@ -66,7 +66,7 @@ namespace RabbitMQ.ServiceModel.Test.SessionTest
         {
             Items.Add(item);
         }
-        
+
         public double GetTotal()
         {
             double total = 0;

@@ -112,7 +112,7 @@ namespace RabbitMQ.ServiceModel
             return Receive(base.Context.Binding.ReceiveTimeout);
         }
 
-        
+
         public EndpointAddress LocalAddress
         {
             get { return m_localAddress; }

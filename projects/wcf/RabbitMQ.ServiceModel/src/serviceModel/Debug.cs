@@ -84,7 +84,7 @@ namespace RabbitMQ.ServiceModel
         private static bool enabled;
         public static bool Enabled {
             get { return enabled; }
-            set { enabled = value; }  
+            set { enabled = value; }
         }
     }
 }
