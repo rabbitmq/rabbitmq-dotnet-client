@@ -74,6 +74,7 @@ namespace RabbitMQ.Client.Unit
 
             conn.Dispose();
             conn.Dispose();
+            Assert.IsFalse(conn.IsOpen);
         }
     }
 }
