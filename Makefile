@@ -10,7 +10,7 @@ rabbit-vsn:
 	@echo "RABBIT_VSN is not set"
 	@false
 else
-rabbit-vsn: 
+rabbit-vsn:
 endif
 
 dist: rabbit-vsn ensure-deliverables ensure-universally-readable
