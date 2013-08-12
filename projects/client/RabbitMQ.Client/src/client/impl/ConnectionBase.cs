@@ -386,15 +386,18 @@ namespace RabbitMQ.Client.Impl
 
         void IDisposable.Dispose()
         {
-            Abort();
-            if (ShutdownReport.Count > 0)
+            if (!HasCloseReason())
             {
-                foreach (ShutdownReportEntry entry in ShutdownReport)
+                Abort();
+                if (ShutdownReport.Count > 0)
                 {
-                    if (entry.Exception != null)
-                        throw entry.Exception;
+                    foreach (ShutdownReportEntry entry in ShutdownReport)
+                    {
+                        if (entry.Exception != null)
+                            throw entry.Exception;
+                    }
+                    throw new OperationInterruptedException(null);
                 }
-                throw new OperationInterruptedException(null);
             }
         }
 
