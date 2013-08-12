@@ -441,16 +441,16 @@ namespace RabbitMQ.Client.Impl
             Abort(Timeout.Infinite);
         }
 
-        ///<summary>API-side invocation of connection abort.</summary>
-        public void Abort(ushort reasonCode, string reasonText)
-        {
-            Abort(reasonCode, reasonText, Timeout.Infinite);
-        }
-
         ///<summary>API-side invocation of connection abort with timeout.</summary>
         public void Abort(int timeout)
         {
             Abort(CommonFraming.Constants.ReplySuccess, "Connection close forced", timeout);
+        }
+
+        ///<summary>API-side invocation of connection abort.</summary>
+        public void Abort(ushort reasonCode, string reasonText)
+        {
+            Abort(reasonCode, reasonText, Timeout.Infinite);
         }
 
         ///<summary>API-side invocation of connection abort with timeout.</summary>
