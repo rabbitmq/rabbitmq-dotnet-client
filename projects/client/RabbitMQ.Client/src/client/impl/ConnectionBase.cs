@@ -401,6 +401,11 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        protected void Finalize()
+        {
+            // TODO
+        }
+
         ///<summary>API-side invocation of connection.close.</summary>
         public void Close()
         {
