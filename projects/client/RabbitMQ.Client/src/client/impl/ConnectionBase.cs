@@ -462,7 +462,7 @@ namespace RabbitMQ.Client.Impl
         public void Abort(ushort reasonCode, string reasonText,
                           ShutdownInitiator initiator, int timeout)
         {
-            Close( new ShutdownEventArgs(initiator, reasonCode, reasonText),
+            Close(new ShutdownEventArgs(initiator, reasonCode, reasonText),
                   true, timeout);
         }
 
