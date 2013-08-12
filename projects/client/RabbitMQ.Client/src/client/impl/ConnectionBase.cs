@@ -85,6 +85,7 @@ namespace RabbitMQ.Client.Impl
         public volatile bool m_running = true;
 
         public readonly object m_eventLock = new object();
+        public readonly object m_closureLock = new object();
         public ConnectionShutdownEventHandler m_connectionShutdown;
 
         public volatile ShutdownEventArgs m_closeReason = null;
@@ -314,7 +315,10 @@ namespace RabbitMQ.Client.Impl
         {
             get
             {
-                return CloseReason == null;
+                lock(m_closureLock)
+                {
+                    return CloseReason == null;
+                }
             }
         }
 
@@ -350,7 +354,7 @@ namespace RabbitMQ.Client.Impl
 
         public bool SetCloseReason(ShutdownEventArgs reason)
         {
-            lock (m_eventLock)
+            lock (m_closureLock)
             {
                 if (m_closeReason == null)
                 {
@@ -361,6 +365,14 @@ namespace RabbitMQ.Client.Impl
                 {
                     return false;
                 }
+            }
+        }
+
+        protected bool HasCloseReason()
+        {
+            lock (m_closureLock)
+            {
+                return (m_closeReason == null);
             }
         }
 
