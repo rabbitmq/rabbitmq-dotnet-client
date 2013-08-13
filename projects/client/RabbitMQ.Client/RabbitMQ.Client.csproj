@@ -110,7 +110,7 @@
     <ErrorReport>none</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>build\bin\RabbitMQ.Client.xml</DocumentationFile>
-    <NoWarn>1591</NoWarn>
+    <NoWarn>1591,2002</NoWarn>
     <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <RegisterForComInterop>false</RegisterForComInterop>
@@ -123,7 +123,7 @@
     <ErrorReport>none</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>build\bin\RabbitMQ.Client.xml</DocumentationFile>
-    <NoWarn>1591</NoWarn>
+    <NoWarn>1591,2002</NoWarn>
     <DebugSymbols>true</DebugSymbols>
     <RegisterForComInterop>false</RegisterForComInterop>
     <SignAssembly Condition="'$(PropKeyfile)' != ''">true</SignAssembly>
