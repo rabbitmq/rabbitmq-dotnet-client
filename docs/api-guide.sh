@@ -8,7 +8,7 @@ NAMESPACES=$(cd $HTMLPATH; ls namespace-*.html | sed -e 's/namespace-\(.*\)\.htm
 FILES="./api-title-page.html $HTMLPATH/index.html"
 for n in $NAMESPACES
 do
-    FILES="$FILES $HTMLPATH/namespace-$n.html $(cd $XMLPATH; cat namespace-$n.xml | grep '<type name' | sed -e 's:.*name="\([^"]*\)".*:'$HTMLPATH'/type-\1.html:')"
+    FILES="$FILES $HTMLPATH/namespace-$n.html $(cd $XMLPATH; xmlstarlet sel -t -v "/namespace/typedoc/type/@name" namespace-$n.xml | sed -e 's:^\(.*\)$:'$HTMLPATH'/type-\1.html:')"
 done
 
 htmldoc -t pdf --bodyfont serif --book --fontsize 9.0 --color $FILES > api-guide.pdf
