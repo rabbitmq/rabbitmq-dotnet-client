@@ -367,10 +367,7 @@ namespace RabbitMQ.Client.Impl
 
         protected bool HasCloseReason()
         {
-            lock (m_closureLock)
-            {
-                return (m_closeReason == null);
-            }
+            return (m_closeReason != null);
         }
 
         public IList ShutdownReport
