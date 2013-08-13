@@ -62,3 +62,12 @@ doc: rabbit-vsn ensure-prerequisites ensure-release-dir ensure-docs
 
 clean:
 	rm -rf $(RELEASE_DIR)/*
+
+compile:
+	xbuild
+
+recompile: clean compile
+
+test:
+	xbuild && \
+	xbuild /t:RunUnitTests projects/client/Unit/RabbitMQ.Client.Unit.csproj
