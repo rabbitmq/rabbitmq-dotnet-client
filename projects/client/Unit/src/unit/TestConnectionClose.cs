@@ -57,7 +57,7 @@ namespace RabbitMQ.Client.Unit
     {
 
         [Test]
-        public void TestSingleCloseInvocationOnConnection()
+        public void TestConnectionCloseWithSingleInvocation()
         {
             ConnectionFactory connFactory = new ConnectionFactory();
             IConnection conn = connFactory.CreateConnection();
@@ -67,7 +67,7 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestMultipleCloseInvocationOnConnection()
+        public void TestConnectionCloseWithMultipleInvocations()
         {
             ConnectionFactory connFactory = new ConnectionFactory();
             IConnection conn = connFactory.CreateConnection();
@@ -94,6 +94,32 @@ namespace RabbitMQ.Client.Unit
                           {
                               conn.Close(200, "Goodbye", 500);
                           });
+            Assert.IsFalse(conn.IsOpen);
+        }
+
+
+        [Test]
+        public void TestConnectionAbortWithSingleInvocation()
+        {
+            ConnectionFactory connFactory = new ConnectionFactory();
+            IConnection conn = connFactory.CreateConnection();
+
+            conn.Abort();
+            Assert.IsFalse(conn.IsOpen);
+        }
+
+        [Test]
+        public void TestConnectionAbortWithMultipleInvocations()
+        {
+            ConnectionFactory connFactory = new ConnectionFactory();
+            IConnection conn = connFactory.CreateConnection();
+
+            conn.Abort();
+            Assert.IsFalse(conn.IsOpen);
+            conn.Abort();
+            conn.Abort(200, "Goodbye");
+            conn.Abort(500);
+            conn.Abort(200, "Goodbye", 500);
             Assert.IsFalse(conn.IsOpen);
         }
     }
