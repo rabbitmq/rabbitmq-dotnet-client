@@ -71,3 +71,8 @@ recompile: clean compile
 test:
 	xbuild && \
 	xbuild /t:RunUnitTests projects/client/Unit/RabbitMQ.Client.Unit.csproj
+
+# use TEST to specify which test case to run, e.g.
+# make test-one TEST=RabbitMQ.Client.Unit.TestIDisposable
+test-one:
+	nunit-console projects/client/Unit/build/bin/unit-tests.dll -run:$(TEST)
