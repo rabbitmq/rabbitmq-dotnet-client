@@ -4,6 +4,7 @@ syntax: regexp
 ^local.dist$
 rabbit\.snk$
 ^rabbit\-mock\.snk$
+^TestResult\.xml$
 
 ^scratch$
 ^release/
