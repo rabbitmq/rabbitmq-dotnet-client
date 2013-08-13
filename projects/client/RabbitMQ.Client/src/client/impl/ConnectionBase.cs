@@ -315,10 +315,7 @@ namespace RabbitMQ.Client.Impl
         {
             get
             {
-                lock(m_closureLock)
-                {
-                    return CloseReason == null;
-                }
+                return m_closeReason == null;
             }
         }
 
