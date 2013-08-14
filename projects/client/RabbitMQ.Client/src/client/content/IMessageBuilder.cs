@@ -40,7 +40,7 @@
 
 using System;
 using System.IO;
-using System.Collections;
+using System.Collections.Generic;
 
 using RabbitMQ.Client;
 
@@ -57,9 +57,9 @@ namespace RabbitMQ.Client.Content {
         ///relevant.</summary>
 	string GetDefaultContentType();
 
-	///<summary>Retrieves the dictionary that will be used to
-	///construct the message header table.</summary>
-	IDictionary Headers { get; }
+        ///<summary>Retrieves the dictionary that will be used to
+        ///construct the message header table. It is of type <see cref="System.Collections.Generic.IDictionary{TKey,TValue}" /></summary>
+        IDictionary<string, object> Headers { get; }
 
 	///<summary>Retrieve the Stream being used to construct the message body.</summary>
 	Stream BodyStream { get; }

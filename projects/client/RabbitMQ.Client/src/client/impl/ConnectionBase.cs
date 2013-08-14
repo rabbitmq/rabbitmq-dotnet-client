@@ -43,7 +43,7 @@ using System.IO;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using System.Collections;
+using System.Collections.Generic;
 
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -73,8 +73,8 @@ namespace RabbitMQ.Client.Impl
         public IFrameHandler m_frameHandler;
         public uint m_frameMax = 0;
         public ushort m_heartbeat = 0;
-        public IDictionary m_clientProperties;
-        public IDictionary m_serverProperties;
+        public IDictionary<string, object> m_clientProperties;
+        public IDictionary<string, object> m_serverProperties;
         public AmqpTcpEndpoint[] m_knownHosts = null;
 
         public MainSession m_session0;
@@ -102,7 +102,7 @@ namespace RabbitMQ.Client.Impl
 
         public int m_missedHeartbeats = 0;
 
-        public IList m_shutdownReport = ArrayList.Synchronized(new ArrayList());
+        public IList<ShutdownReportEntry> m_shutdownReport = new SynchronizedList<ShutdownReportEntry>(new List<ShutdownReportEntry>());
 
         public ConnectionBase(ConnectionFactory factory,
                               bool insist,
@@ -272,11 +272,11 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public IDictionary ClientProperties
+        public IDictionary<string, object> ClientProperties
         {
             get
             {
-                return new Hashtable(m_clientProperties);
+                return m_clientProperties;
             }
             set
             {
@@ -284,7 +284,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public IDictionary ServerProperties
+        public IDictionary<string, object> ServerProperties
         {
             get
             {
@@ -364,7 +364,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public IList ShutdownReport
+        public IList<ShutdownReportEntry> ShutdownReport
         {
             get
             {
@@ -997,13 +997,13 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public static IDictionary DefaultClientProperties()
+        public static IDictionary<string, object> DefaultClientProperties()
         {
             System.Reflection.Assembly assembly =
                     System.Reflection.Assembly.GetAssembly(typeof(ConnectionBase));
             string version = assembly.GetName().Version.ToString();
             //TODO: Get the rest of this data from the Assembly Attributes
-            Hashtable table = new Hashtable();
+            IDictionary<string, object> table = new Dictionary<string, object>();
             table["product"] = Encoding.UTF8.GetBytes("RabbitMQ");
             table["version"] = Encoding.UTF8.GetBytes(version);
             table["platform"] = Encoding.UTF8.GetBytes(".NET");
@@ -1074,7 +1074,7 @@ namespace RabbitMQ.Client.Impl
                                                            serverVersion.Minor);
             }
 
-            m_clientProperties = new Hashtable(m_factory.ClientProperties);
+            m_clientProperties = new Dictionary<string, object>(m_factory.ClientProperties);
             m_clientProperties["capabilities"] = Protocol.Capabilities;
 
             // FIXME: parse out locales properly!

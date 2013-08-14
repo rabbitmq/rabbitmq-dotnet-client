@@ -71,7 +71,7 @@ namespace RabbitMQ.ServiceModel.Test
 #endif
 
             int passed = 0, failed = 0;
-            List<ITestCase> tests = new List<ITestCase>();
+            IList<ITestCase> tests = new List<ITestCase>();
             tests.Add(new OneWayTest.OneWayTest());
             tests.Add(new TwoWayTest.TwoWayTest());
             tests.Add(new SessionTest.SessionTest());

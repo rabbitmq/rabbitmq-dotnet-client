@@ -38,7 +38,7 @@
 //  Copyright (c) 2007-2013 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Collections;
+using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -46,7 +46,7 @@ namespace RabbitMQ.Client.Impl
     {
         public byte m_versionMajor;
         public byte m_versionMinor;
-        public IDictionary m_serverProperties;
+        public IDictionary<string, object> m_serverProperties;
         public byte[] m_mechanisms;
         public byte[] m_locales;
     }

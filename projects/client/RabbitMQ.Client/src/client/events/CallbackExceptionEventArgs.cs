@@ -39,7 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Events
 {
@@ -65,19 +65,19 @@ namespace RabbitMQ.Client.Events
     ///</remarks>
     public class CallbackExceptionEventArgs: EventArgs
     {
-        private IDictionary m_detail;
+        private IDictionary<string, object> m_detail;
         private Exception m_exception;
 
         ///<summary>Wrap an exception thrown by a callback.</summary>
         public CallbackExceptionEventArgs(Exception exception)
         {
-            m_detail = new Hashtable();
+            m_detail = new Dictionary<string, object>();
             m_exception = exception;
         }
 
         ///<summary>Access helpful information about the context in
         ///which the wrapped exception was thrown.</summary>
-        public IDictionary Detail { get { return m_detail; } }
+        public IDictionary<string, object> Detail { get { return m_detail; } }
 
         ///<summary>Access the wrapped exception.</summary>
         public Exception Exception { get { return m_exception; } }

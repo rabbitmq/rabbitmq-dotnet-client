@@ -42,7 +42,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Util;
 
-using System.Collections;
+using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl {
     public abstract class AbstractProtocolBase: IProtocol {
@@ -52,7 +52,7 @@ namespace RabbitMQ.Client.Impl {
         public abstract string ApiName { get; }
         public abstract int DefaultPort { get; }
 
-        public IDictionary Capabilities = new Hashtable();
+        public IDictionary<string, bool> Capabilities = new Dictionary<string, bool>();
 
         public abstract IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint,
                                                          ConnectionFactory.ObtainSocket socketFactory,

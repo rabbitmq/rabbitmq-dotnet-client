@@ -39,7 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 namespace RabbitMQ.Client
 {
@@ -68,8 +68,8 @@ namespace RabbitMQ.Client
         ///<summary> MIME content encoding </summary>
         string ContentEncoding { get; set; }
 
-        ///<summary> message header field table </summary>
-        IDictionary Headers { get; set; }
+        ///<summary> message header field table. Is of type <see cref="System.Collections.Generic.IDictionary{TKey,TValue}" />.</summary>
+        IDictionary<string, object> Headers { get; set; }
 
         ///<summary> non-persistent (1) or persistent (2) </summary>
         byte DeliveryMode { get; set; }

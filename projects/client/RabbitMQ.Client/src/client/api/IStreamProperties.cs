@@ -39,7 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 namespace RabbitMQ.Client
 {
@@ -69,7 +69,7 @@ namespace RabbitMQ.Client
         string ContentEncoding { get; set; }
 
         ///<summary> message header field table </summary>
-        IDictionary Headers { get; set; }
+        IDictionary<string, object> Headers { get; set; }
 
         ///<summary> message priority, 0 to 9 </summary>
         byte Priority { get; set; }

@@ -38,10 +38,12 @@
 //  Copyright (c) 2007-2013 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+
 using NUnit.Framework;
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -51,33 +53,33 @@ using RabbitMQ.Client.Impl;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestFieldTableFormatting : WireFormattingFixture
+    public class TestFieldTableFormattingGeneric : WireFormattingFixture
     {
         [Test]
         public void TestStandardTypes()
         {
             NetworkBinaryWriter w = Writer();
-            Hashtable t = new Hashtable();
+            IDictionary<string, object> t = new Dictionary<string, object>();
             t["string"] = "Hello";
             t["int"] = 1234;
             t["decimal"] = 12.34m;
             t["timestamp"] = new AmqpTimestamp(0);
-            Hashtable t2 = new Hashtable();
+            IDictionary<string, object> t2 = new Dictionary<string, object>();
             t["fieldtable"] = t2;
             t2["test"] = "test";
-            IList array = new ArrayList();
+            IList array = new List<object>();
             array.Add("longstring");
             array.Add(1234);
             t["fieldarray"] = array;
             WireFormatting.WriteTable(w, t);
-            IDictionary nt = (IDictionary)WireFormatting.ReadTable(Reader(Contents(w)));
+            IDictionary<string, object> nt = WireFormatting.ReadTable(Reader(Contents(w)));
             Assert.AreEqual(Encoding.UTF8.GetBytes("Hello"), nt["string"]);
             Assert.AreEqual(1234, nt["int"]);
             Assert.AreEqual(12.34m, nt["decimal"]);
             Assert.AreEqual(0, ((AmqpTimestamp)nt["timestamp"]).UnixTime);
-            IDictionary nt2 = (IDictionary)nt["fieldtable"];
+            IDictionary<string, object> nt2 = (IDictionary<string, object>)nt["fieldtable"];
             Assert.AreEqual(Encoding.UTF8.GetBytes("test"), nt2["test"]);
-            IList narray = (IList)nt["fieldarray"];
+            IList<object> narray = (IList<object>)nt["fieldarray"];
             Assert.AreEqual(Encoding.UTF8.GetBytes("longstring"), narray[0]);
             Assert.AreEqual(1234, narray[1]);
         }
@@ -86,7 +88,7 @@ namespace RabbitMQ.Client.Unit
         public void TestTableEncoding_S()
         {
             NetworkBinaryWriter w = Writer();
-            Hashtable t = new Hashtable();
+            IDictionary<string, object> t = new Dictionary<string, object>();
             t["a"] = "bc";
             WireFormatting.WriteTable(w, t);
             Check(w, new byte[] {
@@ -101,7 +103,7 @@ namespace RabbitMQ.Client.Unit
         public void TestTableEncoding_x()
         {
             NetworkBinaryWriter w = Writer();
-            Hashtable t = new Hashtable();
+            IDictionary<string, object> t = new Dictionary<string, object>();
             t["a"] = new BinaryTableValue(new byte[] { 0xaa, 0x55 });
             WireFormatting.WriteTable(w, t);
             Check(w, new byte[] {
@@ -116,7 +118,7 @@ namespace RabbitMQ.Client.Unit
         public void TestQpidJmsTypes()
         {
             NetworkBinaryWriter w = Writer();
-            Hashtable t = new Hashtable();
+            IDictionary<string, object> t = new Dictionary<string, object>();
             t["b"] = (byte)123;
             t["d"] = (double)123;
             t["f"] = (float)123;

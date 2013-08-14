@@ -39,7 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client
@@ -105,12 +105,12 @@ namespace RabbitMQ.Client
 
         ///<summary>A copy of the client properties that has been sent to the
         ///server.</summary>
-        IDictionary ClientProperties { get; }
+        IDictionary<string, object> ClientProperties { get; }
 
         ///<summary>A dictionary of the server properties sent by the server
         ///while establishing the connection. This typically includes
         ///the product name and version of the server.</summary>
-        IDictionary ServerProperties { get; }
+        IDictionary<string, object> ServerProperties { get; }
 
         ///<summary>Returns the known hosts that came back from the
         ///broker in the connection.open-ok method at connection
@@ -281,7 +281,7 @@ namespace RabbitMQ.Client
         ///<summary>Returns the list of ShutdownReportEntry objects that
         ///contain information about any errors reported while closing the
         ///connection in the order they appeared</summary>
-        IList ShutdownReport { get; }
+        IList<ShutdownReportEntry> ShutdownReport { get; }
 
 
         ///<summary>Handle incoming Connection.Blocked methods.</summary>
