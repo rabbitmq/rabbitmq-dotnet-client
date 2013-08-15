@@ -41,15 +41,10 @@
 using NUnit.Framework;
 
 using System;
-using System.IO;
 using System.Text;
-using System.Collections;
 using System.Threading;
 using System.Diagnostics;
 
-using RabbitMQ.Client;
-using RabbitMQ.Client.Impl;
-using RabbitMQ.Util;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Unit {
@@ -74,7 +69,11 @@ namespace RabbitMQ.Client.Unit {
                 if(!notified) {
                     Monitor.Wait(lockObject, TimeSpan.FromSeconds(8));
                 }
-                Assert.IsTrue(notified);
+            }
+            if (!notified)
+            {
+                Unblock();
+                Assert.Fail("Unblock notification not received.");
             }
         }
 
@@ -88,8 +87,11 @@ namespace RabbitMQ.Client.Unit {
 
         public void HandleUnblocked(IConnection sender)
         {
-            notified = true;
-            Monitor.PulseAll(lockObject);
+            lock (lockObject)
+            {
+                notified = true;
+                Monitor.PulseAll(lockObject);
+            }
         }
 
 
@@ -123,18 +125,33 @@ namespace RabbitMQ.Client.Unit {
                 cmd  = ctl;
             } else {
                 cmd  = "cmd.exe";
-                args = "/y /c " + ctl + " " + args;
+                args = "/c " + ctl + " -n rabbit@" + (Environment.GetEnvironmentVariable("COMPUTERNAME")).ToLower() + " " + args;
             }
 
             try {
               proc.StartInfo.FileName = cmd;
               proc.StartInfo.Arguments = args;
+              proc.StartInfo.RedirectStandardError = true;
+              proc.StartInfo.RedirectStandardOutput = true;
 
               proc.Start();
+              String stderr = proc.StandardError.ReadToEnd();
+              String stdout = proc.StandardOutput.ReadToEnd();
+              proc.WaitForExit();
+              if (stderr.Length > 0)
+              {
+                  ReportExecFailure(cmd, args, stderr + "\n" + stdout);
+              }
+
             } catch (Exception e) {
-                Console.WriteLine("Failed to run subprocess with args " + args + " : " + e.Message);
+                ReportExecFailure(cmd, args, e.Message);
                 throw e;
             }
+        }
+
+        protected void ReportExecFailure(String cmd, String args, String msg)
+        {
+            Console.WriteLine("Failure while running " + cmd + " " + args + ":\n" + msg);
         }
 
         public static bool IsRunningOnMono()
