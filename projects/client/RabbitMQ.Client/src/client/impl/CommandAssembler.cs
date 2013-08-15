@@ -40,7 +40,6 @@
 
 using System;
 using System.IO;
-using System.Collections;
 
 using RabbitMQ.Util;
 
@@ -101,7 +100,7 @@ namespace RabbitMQ.Client.Impl
                 ? AssemblyState.ExpectingContentBody
                 : AssemblyState.Complete;
         }
-        
+
         public Command HandleFrame(Frame f)
         {
             switch (m_state)
@@ -153,7 +152,7 @@ namespace RabbitMQ.Client.Impl
                 default:
                     Trace.Fail(string.Format(
                         "Received frame in invalid state {0}; {1}",
-                        m_state, 
+                        m_state,
                         f));
                     return null;
             }

@@ -68,7 +68,7 @@ namespace RabbitMQ.Client.Exceptions {
                                                 int clientMinor,
                                                 int serverMajor,
                                                 int serverMinor)
-            : base("AMQP server protocol negotiation failure: server version "+
+            : base("AMQP server protocol negotiation failure: server version " +
                    positiveOrUnknown(serverMajor) + "-" + positiveOrUnknown(serverMinor) +
                    ", client version " + positiveOrUnknown(clientMajor) + "-" + positiveOrUnknown(clientMinor))
         {

@@ -39,7 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using RabbitMQ.Client.Apigen.Attributes;
 using RabbitMQ.Client.Events;
 
@@ -170,7 +170,7 @@ namespace RabbitMQ.Client
                              string type,
                              bool durable,
                              bool autoDelete,
-                             IDictionary arguments);
+                             IDictionary<string, object> arguments);
 
         ///<summary>(Spec method) Declare an exchange.</summary>
         ///<remarks>
@@ -213,7 +213,7 @@ namespace RabbitMQ.Client
         void ExchangeBind(string destination,
                           string source,
                           string routingKey,
-                          IDictionary arguments);
+                          IDictionary<string, object> arguments);
 
         ///<summary>(Extension method) Bind an exchange to an exchange.</summary>
         [AmqpMethodDoNotImplement(null)]
@@ -226,7 +226,7 @@ namespace RabbitMQ.Client
         void ExchangeUnbind(string destination,
                             string source,
                             string routingKey,
-                            IDictionary arguments);
+                            IDictionary<string, object> arguments);
 
         ///<summary>(Extension method) Unbind an exchange from an exchange.</summary>
         [AmqpMethodDoNotImplement(null)]
@@ -256,14 +256,14 @@ namespace RabbitMQ.Client
         ///<summary>(Spec method) Declare a queue.</summary>
         [AmqpMethodDoNotImplement(null)]
         QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive,
-                    bool autoDelete, IDictionary arguments);
+                    bool autoDelete, IDictionary<string, object> arguments);
 
         ///<summary>(Spec method) Bind a queue to an exchange.</summary>
         [AmqpMethodDoNotImplement(null)]
         void QueueBind(string queue,
                        string exchange,
                        string routingKey,
-                       IDictionary arguments);
+                       IDictionary<string, object> arguments);
 
         ///<summary>(Spec method) Bind a queue to an exchange.</summary>
         [AmqpMethodDoNotImplement(null)]
@@ -282,7 +282,7 @@ namespace RabbitMQ.Client
         void QueueUnbind(string queue,
                          string exchange,
                          string routingKey,
-                         IDictionary arguments);
+                         IDictionary<string, object> arguments);
 
         ///<summary>(Spec method) Purge a queue of messages.</summary>
         ///<remarks>
@@ -411,7 +411,7 @@ namespace RabbitMQ.Client
         string BasicConsume(string queue,
                             bool noAck,
                             string consumerTag,
-                            IDictionary arguments,
+                            IDictionary<string, object> arguments,
                             IBasicConsumer consumer);
 
         ///<summary>Start a Basic content-class consumer.</summary>
@@ -421,7 +421,7 @@ namespace RabbitMQ.Client
                             string consumerTag,
                             bool noLocal,
                             bool exclusive,
-                            IDictionary arguments,
+                            IDictionary<string, object> arguments,
                             IBasicConsumer consumer);
 
         ///<summary>Delete a Basic content-class consumer.</summary>
@@ -537,7 +537,7 @@ namespace RabbitMQ.Client
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
         void Close();
-        
+
         ///<summary>Close this session.</summary>
         ///<remarks>
         ///The method behaves in the same way as Close(), with the only
@@ -552,7 +552,7 @@ namespace RabbitMQ.Client
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
         void Close(ushort replyCode, string replyText);
-        
+
         ///<summary>Abort this session.</summary>
         ///<remarks>
         ///If the session is already closed (or closing), then this
@@ -564,7 +564,7 @@ namespace RabbitMQ.Client
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
         void Abort();
-        
+
         ///<summary>Abort this session.</summary>
         ///<remarks>
         ///The method behaves in the same way as Abort(), with the only
@@ -671,7 +671,7 @@ namespace RabbitMQ.Client.Impl
                              bool @internal,
                              [AmqpNowaitArgument(null)]
                              bool nowait,
-                             IDictionary arguments);
+                             IDictionary<string, object> arguments);
 
         ///<summary>Used to send a Exchange.Delete method. Called by the
         ///public delete method.
@@ -694,7 +694,7 @@ namespace RabbitMQ.Client.Impl
                                    string routingKey,
                                    [AmqpNowaitArgument(null)]
                                    bool nowait,
-                                   IDictionary arguments);
+                                   IDictionary<string, object> arguments);
 
         ///<summary>Used to send a Exchange.Unbind method. Called by the
         ///public unbind method.
@@ -708,7 +708,7 @@ namespace RabbitMQ.Client.Impl
                                      string routingKey,
                                      [AmqpNowaitArgument(null)]
                                      bool nowait,
-                                     IDictionary arguments);
+                                     IDictionary<string, object> arguments);
 
         ///<summary>Used to send a Queue.Declare method. Called by the
         ///public declare method.</summary>
@@ -721,7 +721,7 @@ namespace RabbitMQ.Client.Impl
                                    bool autoDelete,
                                    [AmqpNowaitArgument(null)]
                                    bool nowait,
-                                   IDictionary arguments);
+                                   IDictionary<string, object> arguments);
 
         ///<summary>Handle incoming Queue.DeclareOk methods. Routes the
         ///information to a waiting Queue.DeclareOk continuation.</summary>
@@ -737,7 +737,7 @@ namespace RabbitMQ.Client.Impl
                                 string routingKey,
                                 [AmqpNowaitArgument(null)]
                                 bool nowait,
-                                IDictionary arguments);
+                                IDictionary<string, object> arguments);
 
         ///<summary>Used to send a Queue.Purge method. Called by the
         ///public purge method.</summary>
@@ -785,7 +785,7 @@ namespace RabbitMQ.Client.Impl
                                    [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
                                    [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9",
                                                      "filter")]
-                                   IDictionary arguments);
+                                   IDictionary<string, object> arguments);
 
         ///<summary>Used to send a Confirm.Select method. The public
         ///confirm API calls this while also managing internal
@@ -918,7 +918,7 @@ namespace RabbitMQ.Client.Impl
         ///Channel.Flow from the broker was processed.</summary>
         [AmqpMethodMapping(null, "channel", "flow-ok")]
         void _Private_ChannelFlowOk(bool active);
-        
+
         ///<summary>Handle incoming Channel.Flow methods. Either
         ///stops or resumes sending the methods that have content.</summary>
         void HandleChannelFlow(bool active);
@@ -941,7 +941,7 @@ namespace RabbitMQ.Client.Impl
         ///connection initialisation.</summary>
         void HandleConnectionStart(byte versionMajor,
                                    byte versionMinor,
-                                   IDictionary serverProperties,
+                                   IDictionary<string, object> serverProperties,
                                    byte[] mechanisms,
                                    byte[] locales);
 
@@ -949,7 +949,7 @@ namespace RabbitMQ.Client.Impl
         ///special, like Basic.Get.</summary>
         [AmqpForceOneWay]
         [AmqpMethodMapping(null, "connection", "start-ok")]
-        void _Private_ConnectionStartOk(IDictionary clientProperties,
+        void _Private_ConnectionStartOk(IDictionary<string, object> clientProperties,
                                         string mechanism,
                                         byte[] response,
                                         string locale);
@@ -1017,6 +1017,20 @@ namespace RabbitMQ.Client.Impl
                                    string replyText,
                                    ushort classId,
                                    ushort methodId);
+
+        ///<summary>Handle an incoming Connection.Blocked.</summary>
+        [AmqpMethodMapping(null, "connection", "blocked")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
+        void HandleConnectionBlocked(string reason);
+
+        ///<summary>Handle an incominga Connection.Unblocked.</summary>
+        [AmqpMethodMapping(null, "connection", "unblocked")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
+        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
+        void HandleConnectionUnblocked();
     }
 
     ///<summary>Essential information from an incoming Connection.Tune

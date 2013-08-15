@@ -38,48 +38,26 @@
 //  Copyright (c) 2007-2013 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+
 using System;
-using System.IO;
-using System.Collections.Generic;
 
-using RabbitMQ.Client;
+namespace RabbitMQ.Client.Events
+{
 
-namespace RabbitMQ.Client.Content {
-    ///<summary>Interface for constructing application messages.</summary>
-    ///<remarks>
-    /// Subinterfaces provide specialized data-writing methods. This
-    /// base interface deals with the lowest common denominator:
-    /// bytes, with no special encodings for higher-level objects.
-    ///</remarks>
-    public interface IMessageBuilder {
-        ///<summary>Returns the default MIME content type for messages
-        ///this instance constructs, or null if none is available or
-        ///relevant.</summary>
-	string GetDefaultContentType();
+    ///<summary>Delegate used to process connection blocked events.</summary>
+    public delegate void ConnectionBlockedEventHandler(IConnection sender, ConnectionBlockedEventArgs args);
 
-        ///<summary>Retrieves the dictionary that will be used to
-        ///construct the message header table. It is of type <see cref="System.Collections.Generic.IDictionary{TKey,TValue}" /></summary>
-        IDictionary<string, object> Headers { get; }
+    ///<summary>Event relating to connection being blocked</summary>
+    public class ConnectionBlockedEventArgs : EventArgs
+    {
+        private readonly string m_reason;
 
-	///<summary>Retrieve the Stream being used to construct the message body.</summary>
-	Stream BodyStream { get; }
+        public ConnectionBlockedEventArgs(string reason)
+        {
+            m_reason = reason;
+        }
 
-	///<summary>Write a single byte into the message body, without
-	///encoding or interpretation.</summary>
-	IMessageBuilder RawWrite(byte b);
-
-	///<summary>Write a byte array into the message body, without
-	///encoding or interpretation.</summary>
-	IMessageBuilder RawWrite(byte[] bytes);
-
-	///<summary>Write a section of a byte array into the message
-	///body, without encoding or interpretation.</summary>
-	IMessageBuilder RawWrite(byte[] bytes, int offset, int length);
-
-	///<summary>Finish and retrieve the content header for transmission.</summary>
-	IContentHeader GetContentHeader();
-
-	///<summary>Finish and retrieve the content body for transmission.</summary>
-	byte[] GetContentBody();
+        ///<summary>Access the reason why connection is blocked</summary>
+        public string Reason { get { return m_reason; } }
     }
 }

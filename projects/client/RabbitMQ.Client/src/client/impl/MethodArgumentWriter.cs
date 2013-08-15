@@ -42,6 +42,7 @@ using System;
 using System.IO;
 using System.Text;
 using System.Collections;
+using System.Collections.Generic;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
@@ -54,7 +55,7 @@ namespace RabbitMQ.Client.Impl
         private bool m_needBitFlush;
         private byte m_bitAccumulator;
         private int m_bitMask;
-        
+
         public MethodArgumentWriter(NetworkBinaryWriter writer)
         {
             m_writer = writer;
@@ -143,6 +144,12 @@ namespace RabbitMQ.Client.Impl
         }
 
         public void WriteTable(IDictionary val)
+        {
+            BitFlush();
+            WireFormatting.WriteTable(m_writer, val);
+        }
+
+        public void WriteTable(IDictionary<string, object> val)
         {
             BitFlush();
             WireFormatting.WriteTable(m_writer, val);

@@ -65,7 +65,7 @@ namespace RabbitMQ.ServiceModel
         protected override IInputChannel OnAcceptChannel(TimeSpan timeout)
         {
             // Since only one connection to a broker is required (even for communication
-            // with multiple exchanges 
+            // with multiple exchanges
             if (m_channel != null)
                 return null;
 
@@ -73,7 +73,7 @@ namespace RabbitMQ.ServiceModel
             m_channel.Closed += new EventHandler(ListenChannelClosed);
             return m_channel;
         }
-        
+
         protected override bool OnWaitForChannel(TimeSpan timeout)
         {
             return false;
@@ -84,7 +84,7 @@ namespace RabbitMQ.ServiceModel
 
 #if VERBOSE
             DebugHelper.Start();
-#endif            
+#endif
             m_model = m_bindingElement.Open(timeout);
 #if VERBOSE
             DebugHelper.Stop(" ## In.Open {{Time={0}ms}}.");
@@ -95,7 +95,7 @@ namespace RabbitMQ.ServiceModel
         {
 #if VERBOSE
             DebugHelper.Start();
-#endif  
+#endif
             if (m_channel != null)
             {
                 m_channel.Close();

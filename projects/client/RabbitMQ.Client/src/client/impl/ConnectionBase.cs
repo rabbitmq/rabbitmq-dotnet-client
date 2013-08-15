@@ -43,7 +43,7 @@ using System.IO;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using System.Collections;
+using System.Collections.Generic;
 
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -73,8 +73,8 @@ namespace RabbitMQ.Client.Impl
         public IFrameHandler m_frameHandler;
         public uint m_frameMax = 0;
         public ushort m_heartbeat = 0;
-        public IDictionary m_clientProperties;
-        public IDictionary m_serverProperties;
+        public IDictionary<string, object> m_clientProperties;
+        public IDictionary<string, object> m_serverProperties;
         public AmqpTcpEndpoint[] m_knownHosts = null;
 
         public MainSession m_session0;
@@ -86,10 +86,13 @@ namespace RabbitMQ.Client.Impl
 
         public readonly object m_eventLock = new object();
         public ConnectionShutdownEventHandler m_connectionShutdown;
-        
+
         public volatile ShutdownEventArgs m_closeReason = null;
         public CallbackExceptionEventHandler m_callbackException;
-        
+
+        public ConnectionBlockedEventHandler m_connectionBlocked;
+        public ConnectionUnblockedEventHandler m_connectionUnblocked;
+
         public ManualResetEvent m_appContinuation = new ManualResetEvent(false);
         public AutoResetEvent m_heartbeatRead = new AutoResetEvent(false);
         public AutoResetEvent m_heartbeatWrite = new AutoResetEvent(false);
@@ -98,8 +101,8 @@ namespace RabbitMQ.Client.Impl
         public Guid m_id = Guid.NewGuid();
 
         public int m_missedHeartbeats = 0;
-        
-        public IList m_shutdownReport = ArrayList.Synchronized(new ArrayList());
+
+        public IList<ShutdownReportEntry> m_shutdownReport = new SynchronizedList<ShutdownReportEntry>(new List<ShutdownReportEntry>());
 
         public ConnectionBase(ConnectionFactory factory,
                               bool insist,
@@ -142,6 +145,42 @@ namespace RabbitMQ.Client.Impl
                 lock (m_eventLock)
                 {
                     m_connectionShutdown -= value;
+                }
+            }
+        }
+
+        public event ConnectionBlockedEventHandler ConnectionBlocked
+        {
+            add
+            {
+                lock (m_eventLock)
+                {
+                    m_connectionBlocked += value;
+                }
+            }
+            remove
+            {
+                lock (m_eventLock)
+                {
+                    m_connectionBlocked -= value;
+                }
+            }
+        }
+
+        public event ConnectionUnblockedEventHandler ConnectionUnblocked
+        {
+            add
+            {
+                lock (m_eventLock)
+                {
+                    m_connectionUnblocked += value;
+                }
+            }
+            remove
+            {
+                lock (m_eventLock)
+                {
+                    m_connectionUnblocked -= value;
                 }
             }
         }
@@ -233,11 +272,11 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public IDictionary ClientProperties
+        public IDictionary<string, object> ClientProperties
         {
             get
             {
-                return new Hashtable(m_clientProperties);
+                return m_clientProperties;
             }
             set
             {
@@ -245,7 +284,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public IDictionary ServerProperties
+        public IDictionary<string, object> ServerProperties
         {
             get
             {
@@ -303,7 +342,7 @@ namespace RabbitMQ.Client.Impl
         {
             return m_sessionManager.Create();
         }
-        
+
         public ISession CreateSession(int channelNumber)
         {
             return m_sessionManager.Create(channelNumber);
@@ -324,8 +363,8 @@ namespace RabbitMQ.Client.Impl
                 }
             }
         }
-        
-        public IList ShutdownReport
+
+        public IList<ShutdownReportEntry> ShutdownReport
         {
             get
             {
@@ -338,12 +377,12 @@ namespace RabbitMQ.Client.Impl
             Abort();
             if (ShutdownReport.Count > 0)
             {
-            	foreach (ShutdownReportEntry entry in ShutdownReport)
-            	{
-            	    if (entry.Exception != null)
-            	        throw entry.Exception;
-            	}
-            	throw new OperationInterruptedException(null);
+                foreach (ShutdownReportEntry entry in ShutdownReport)
+                {
+                    if (entry.Exception != null)
+                        throw entry.Exception;
+                }
+                throw new OperationInterruptedException(null);
             }
         }
 
@@ -352,19 +391,19 @@ namespace RabbitMQ.Client.Impl
         {
             Close(CommonFraming.Constants.ReplySuccess, "Goodbye", Timeout.Infinite);
         }
-        
+
         ///<summary>API-side invocation of connection.close.</summary>
         public void Close(ushort reasonCode, string reasonText)
         {
             Close(reasonCode, reasonText, Timeout.Infinite);
         }
-        
+
         ///<summary>API-side invocation of connection.close with timeout.</summary>
         public void Close(int timeout)
         {
             Close(CommonFraming.Constants.ReplySuccess, "Goodbye", timeout);
         }
-        
+
         ///<summary>API-side invocation of connection.close with timeout.</summary>
         public void Close(ushort reasonCode, string reasonText, int timeout)
         {
@@ -374,8 +413,8 @@ namespace RabbitMQ.Client.Impl
         public void Close(ShutdownEventArgs reason)
         {
             Close(reason, false, Timeout.Infinite);
-        }        
-        
+        }
+
         ///<summary>API-side invocation of connection abort.</summary>
         public void Abort()
         {
@@ -387,26 +426,26 @@ namespace RabbitMQ.Client.Impl
         {
             Abort(reasonCode, reasonText, Timeout.Infinite);
         }
-        
+
         ///<summary>API-side invocation of connection abort with timeout.</summary>
         public void Abort(int timeout)
         {
             Abort(CommonFraming.Constants.ReplySuccess, "Connection close forced", timeout);
         }
-        
+
         ///<summary>API-side invocation of connection abort with timeout.</summary>
         public void Abort(ushort reasonCode, string reasonText, int timeout)
         {
             Abort(reasonCode, reasonText, ShutdownInitiator.Application, timeout);
         }
-        
+
         public void Abort(ushort reasonCode, string reasonText,
                           ShutdownInitiator initiator, int timeout)
         {
             Close( new ShutdownEventArgs(initiator, reasonCode, reasonText),
                   true, timeout);
         }
-        
+
         ///<summary>Try to close connection in a graceful way</summary>
         ///<remarks>
         ///<para>
@@ -414,7 +453,7 @@ namespace RabbitMQ.Client.Impl
         ///as well as the information about what initiated the close
         ///</para>
         ///<para>
-        ///Abort flag, if true, signals to close the ongoing connection immediately 
+        ///Abort flag, if true, signals to close the ongoing connection immediately
         ///and do not report any errors if it was already closed.
         ///</para>
         ///<para>
@@ -479,7 +518,7 @@ namespace RabbitMQ.Client.Impl
                     throw new AlreadyClosedException(m_closeReason);
                 // We are quiescing, but still allow for server-close
             }
-            
+
             OnShutdown();
             m_session0.SetSessionClosing(true);
             TerminateMainloop();
@@ -499,7 +538,7 @@ namespace RabbitMQ.Client.Impl
             mainLoopThread.Name = "AMQP Connection " + Endpoint.ToString();
             mainLoopThread.Start();
         }
-        
+
         public void StartHeartbeatLoops()
         {
             if (Heartbeat != 0) {
@@ -507,14 +546,14 @@ namespace RabbitMQ.Client.Impl
                 StartHeartbeatLoop(new ThreadStart(HeartbeatWriteLoop), "Outbound");
             }
         }
-        
+
         public void StartHeartbeatLoop(ThreadStart loop, string name)
         {
             Thread heartbeatLoop = new Thread(loop);
             heartbeatLoop.Name = "AMQP Heartbeat " + name + " for Connection " + Endpoint.ToString();
             heartbeatLoop.Start();
         }
-        
+
         public void HeartbeatWriteLoop()
         {
             try
@@ -533,11 +572,11 @@ namespace RabbitMQ.Client.Impl
                                                 "End of stream",
                                                 e));
             }
-            
+
             TerminateMainloop();
             FinishClose();
         }
-        
+
         public void HeartbeatReadLoop()
         {
             while (!m_closed)
@@ -546,7 +585,7 @@ namespace RabbitMQ.Client.Impl
                     m_missedHeartbeats++;
                 else
                     m_missedHeartbeats = 0;
-                    
+
                 // Has to miss two full heartbeats to force socket close
                 if (m_missedHeartbeats > 1)
                 {
@@ -562,11 +601,11 @@ namespace RabbitMQ.Client.Impl
                     break;
                 }
             }
-            
+
             TerminateMainloop();
             FinishClose();
         }
-        
+
         public void NotifyHeartbeatThread()
         {
             if (m_heartbeat == 0) {
@@ -636,7 +675,7 @@ namespace RabbitMQ.Client.Impl
                 m_appContinuation.Set();
             }
         }
-        
+
         public void MainLoopIteration()
         {
             Frame frame = m_frameHandler.ReadFrame();
@@ -648,7 +687,7 @@ namespace RabbitMQ.Client.Impl
                 // counter.
                 return;
             }
-            
+
             if (frame.Channel == 0) {
                 // In theory, we could get non-connection.close-ok
                 // frames here while we're quiescing (m_closeReason !=
@@ -682,7 +721,7 @@ namespace RabbitMQ.Client.Impl
                 }
             }
         }
-        
+
         // Only call at the end of the Mainloop or HeartbeatLoop
         public void FinishClose()
         {
@@ -691,7 +730,7 @@ namespace RabbitMQ.Client.Impl
             m_heartbeatRead.Set();
             m_heartbeatWrite.Set();
 
-            m_frameHandler.Close();                
+            m_frameHandler.Close();
             m_model0.SetCloseReason(m_closeReason);
             m_model0.FinishClose();
         }
@@ -724,10 +763,10 @@ namespace RabbitMQ.Client.Impl
             } else
                 LogCloseError("Hard Protocol Exception occured "
                               + "while closing the connection", hpe);
-                
-            return false;            
+
+            return false;
         }
-        
+
         ///<remarks>
         /// Loop only used while quiescing. Use only to cleanly close connection
         ///</remarks>
@@ -763,7 +802,7 @@ namespace RabbitMQ.Client.Impl
                 LogCloseError("Unexpected exception while closing: ", e);
             }
         }
-        
+
         public void NotifyReceivedCloseOk()
         {
             TerminateMainloop();
@@ -834,16 +873,16 @@ namespace RabbitMQ.Client.Impl
                                + reason.ToString(), null);
                 return;
             }
-            
+
             OnShutdown();
             LogCloseError("Unexpected connection closure: " + reason.ToString(), null);
         }
-        
+
         public void LogCloseError(String error, Exception ex)
         {
             m_shutdownReport.Add(new ShutdownReportEntry(error, ex));
         }
-        
+
         public void PrettyPrintShutdownReport()
         {
             if (ShutdownReport.Count == 0)
@@ -856,6 +895,60 @@ namespace RabbitMQ.Client.Impl
                     Console.Error.WriteLine(entry.ToString());
                 }
             }
+        }
+
+        public void HandleConnectionBlocked(string reason)
+        {
+            ConnectionBlockedEventArgs args = new ConnectionBlockedEventArgs(reason);
+            OnConnectionBlocked(args);
+        }
+
+        public void OnConnectionBlocked(ConnectionBlockedEventArgs args)
+        {
+            ConnectionBlockedEventHandler handler;
+            lock (m_eventLock)
+            {
+                handler = m_connectionBlocked;
+            }
+            if (handler != null)
+            {
+                foreach (ConnectionBlockedEventHandler h in handler.GetInvocationList()) {
+                    try {
+                        h(this, args);
+                    } catch (Exception e) {
+                        CallbackExceptionEventArgs cee_args = new CallbackExceptionEventArgs(e);
+                        cee_args.Detail["context"] = "OnConnectionBlocked";
+                        OnCallbackException(cee_args);
+                    }
+                }
+            }
+        }
+
+
+        public void HandleConnectionUnblocked()
+        {
+            OnConnectionUnblocked();
+        }
+
+        public void OnConnectionUnblocked()
+        {
+              ConnectionUnblockedEventHandler handler;
+              lock (m_eventLock)
+              {
+                  handler = m_connectionUnblocked;
+              }
+              if (handler != null)
+              {
+                  foreach (ConnectionUnblockedEventHandler h in handler.GetInvocationList()) {
+                      try {
+                          h(this);
+                      } catch (Exception e) {
+                          CallbackExceptionEventArgs args = new CallbackExceptionEventArgs(e);
+                          args.Detail["context"] = "OnConnectionUnblocked";
+                          OnCallbackException(args);
+                      }
+                  }
+              }
         }
 
         ///<summary>Broadcasts notification of the final shutdown of the connection.</summary>
@@ -904,13 +997,13 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public static IDictionary DefaultClientProperties()
+        public static IDictionary<string, object> DefaultClientProperties()
         {
             System.Reflection.Assembly assembly =
                     System.Reflection.Assembly.GetAssembly(typeof(ConnectionBase));
             string version = assembly.GetName().Version.ToString();
             //TODO: Get the rest of this data from the Assembly Attributes
-            Hashtable table = new Hashtable();
+            IDictionary<string, object> table = new Dictionary<string, object>();
             table["product"] = Encoding.UTF8.GetBytes("RabbitMQ");
             table["version"] = Encoding.UTF8.GetBytes(version);
             table["platform"] = Encoding.UTF8.GetBytes(".NET");
@@ -919,7 +1012,7 @@ namespace RabbitMQ.Client.Impl
                                                           "See http://www.rabbitmq.com/");
             return table;
         }
-        
+
         public Command ConnectionCloseWrapper(ushort reasonCode, string reasonText)
         {
             Command request;
@@ -960,7 +1053,7 @@ namespace RabbitMQ.Client.Impl
 
             ConnectionStartDetails connectionStart = (ConnectionStartDetails)
                 connectionStartCell.Value;
-            
+
             if (connectionStart == null){
                 throw new ProtocolVersionMismatchException(Protocol.MajorVersion,
                                                            Protocol.MinorVersion,
@@ -981,7 +1074,7 @@ namespace RabbitMQ.Client.Impl
                                                            serverVersion.Minor);
             }
 
-            m_clientProperties = new Hashtable(m_factory.ClientProperties);
+            m_clientProperties = new Dictionary<string, object>(m_factory.ClientProperties);
             m_clientProperties["capabilities"] = Protocol.Capabilities;
 
             // FIXME: parse out locales properly!

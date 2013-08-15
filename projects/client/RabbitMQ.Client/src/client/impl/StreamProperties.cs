@@ -39,7 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -47,7 +47,7 @@ namespace RabbitMQ.Client.Impl
     {
         public abstract string ContentType { get; set; }
         public abstract string ContentEncoding { get; set; }
-        public abstract IDictionary Headers { get; set; }
+        public abstract IDictionary<string, object> Headers { get; set; }
         public abstract byte Priority { get; set; }
         public abstract AmqpTimestamp Timestamp { get; set; }
 
@@ -68,8 +68,8 @@ namespace RabbitMQ.Client.Impl
             StreamProperties clone = MemberwiseClone() as StreamProperties;
             if (IsHeadersPresent())
             {
-                clone.Headers = new Hashtable();
-                foreach (DictionaryEntry entry in Headers)
+                clone.Headers = new Dictionary<string, object>();
+                foreach (KeyValuePair<string, object> entry in Headers)
                     clone.Headers[entry.Key] = entry.Value;
             }
 

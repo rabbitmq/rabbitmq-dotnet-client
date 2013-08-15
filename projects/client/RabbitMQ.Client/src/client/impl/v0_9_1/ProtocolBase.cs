@@ -42,8 +42,6 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Util;
 
-using System.Collections;
-
 namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
     public abstract class ProtocolBase: AbstractProtocolBase {
 
@@ -52,6 +50,7 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
             Capabilities["exchange_exchange_bindings"] = true;
             Capabilities["basic.nack"] = true;
             Capabilities["consumer_cancel_notify"] = true;
+            Capabilities["connection.blocked"] = true;
         }
 
         public override IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint,

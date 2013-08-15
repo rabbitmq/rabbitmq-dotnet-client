@@ -40,6 +40,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Net;
 using System.Text;
 
@@ -85,7 +86,7 @@ namespace RabbitMQ.Client.Examples {
                     Console.Error.WriteLine("  /persist     send message in 'persistent' mode");
                     return 2;
                 }
-                
+
             Uri uri = new Uri(args[optionIndex++]);
             string exchange = uri.Segments[1].TrimEnd(new char[] { '/' });
             string exchangeType = uri.Query.StartsWith("?type=") ? uri.Query.Substring(6) : null;
@@ -118,7 +119,7 @@ namespace RabbitMQ.Client.Examples {
                             string key = keyAndDiscriminator.Substring(1);
                             char discriminator = keyAndDiscriminator[0];
 
-                            IDictionary target;
+                            IDictionary<string, object> target;
                             switch (discriminator) {
                               case '-':
                                   target = b.Headers;

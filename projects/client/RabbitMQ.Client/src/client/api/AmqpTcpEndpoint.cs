@@ -39,7 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using RabbitMQ.Client.Impl;
 
@@ -105,8 +105,8 @@ namespace RabbitMQ.Client
         }
 
         ///<summary>Construct an AmqpTcpEndpoint with the given
-        ///IProtocol, hostname, port number and ssl option. If the port 
-        ///number is -1, the default port number for the IProtocol 
+        ///IProtocol, hostname, port number and ssl option. If the port
+        ///number is -1, the default port number for the IProtocol
         ///will be used.</summary>
         public AmqpTcpEndpoint(IProtocol protocol, string hostName, int portOrMinusOne, SslOption ssl)
         {
@@ -283,14 +283,14 @@ namespace RabbitMQ.Client
         ///</remarks>
         public static AmqpTcpEndpoint[] ParseMultiple(IProtocol protocol, string addresses) {
             string[] partsArr = addresses.Split(new char[] { ',' });
-            ArrayList results = new ArrayList();
+            List<AmqpTcpEndpoint> results = new List<AmqpTcpEndpoint>();
             foreach (string partRaw in partsArr) {
                 string part = partRaw.Trim();
                 if (part.Length > 0) {
                     results.Add(Parse(protocol, part));
                 }
             }
-            return (AmqpTcpEndpoint[]) results.ToArray(typeof(AmqpTcpEndpoint));
+            return results.ToArray();
         }
     }
 }

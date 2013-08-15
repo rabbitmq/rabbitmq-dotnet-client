@@ -10,7 +10,7 @@ rabbit-vsn:
 	@echo "RABBIT_VSN is not set"
 	@false
 else
-rabbit-vsn: 
+rabbit-vsn:
 endif
 
 dist: rabbit-vsn ensure-deliverables ensure-universally-readable
@@ -34,7 +34,7 @@ ensure-deliverables: rabbit-vsn
 	file ${RELEASE_DIR}/${NAME_VSN}.msm
 
 ensure-prerequisites: rabbit-vsn
-	[ -f "/etc/debian_version" ] && dpkg -L htmldoc plotutils transfig graphviz docbook-utils || true > /dev/null
+	[ -f "/etc/debian_version" ] && dpkg -L htmldoc plotutils transfig graphviz docbook-utils xmlstarlet || true > /dev/null
 
 ensure-release-dir: rabbit-vsn
 	touch ${RELEASE_DIR}/

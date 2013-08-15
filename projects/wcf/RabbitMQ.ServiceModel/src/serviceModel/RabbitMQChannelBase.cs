@@ -46,7 +46,7 @@ namespace RabbitMQ.ServiceModel
     using System.ServiceModel.Channels;
 
     internal abstract class RabbitMQChannelBase : IChannel
-    {   
+    {
         private CommunicationOperation m_closeMethod;
         private BindingContext m_context;
         private CommunicationOperation m_openMethod;
@@ -90,7 +90,7 @@ namespace RabbitMQ.ServiceModel
         }
 
         #region Async Methods
-        
+
         public virtual IAsyncResult BeginClose(TimeSpan timeout, AsyncCallback callback, object state)
         {
             return m_closeMethod.BeginInvoke(timeout, callback, state);
@@ -110,7 +110,7 @@ namespace RabbitMQ.ServiceModel
         {
             return m_openMethod.BeginInvoke(m_context.Binding.OpenTimeout, callback, state);
         }
-        
+
         public virtual void EndClose(IAsyncResult result)
         {
             m_closeMethod.EndInvoke(result);
@@ -120,11 +120,11 @@ namespace RabbitMQ.ServiceModel
         {
             m_openMethod.EndInvoke(result);
         }
-        
+
         #endregion
 
         #region Event Raising Methods
-        
+
         protected void OnOpening()
         {
             m_state = CommunicationState.Opening;

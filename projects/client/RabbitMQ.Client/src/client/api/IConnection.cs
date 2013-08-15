@@ -39,7 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client
@@ -79,6 +79,9 @@ namespace RabbitMQ.Client
         ///</remarks>
         event CallbackExceptionEventHandler CallbackException;
 
+        event ConnectionBlockedEventHandler ConnectionBlocked;
+        event ConnectionUnblockedEventHandler ConnectionUnblocked;
+
         ///<summary>Retrieve the endpoint this connection is connected
         ///to.</summary>
         AmqpTcpEndpoint Endpoint { get; }
@@ -102,12 +105,12 @@ namespace RabbitMQ.Client
 
         ///<summary>A copy of the client properties that has been sent to the
         ///server.</summary>
-        IDictionary ClientProperties { get; }
+        IDictionary<string, object> ClientProperties { get; }
 
         ///<summary>A dictionary of the server properties sent by the server
         ///while establishing the connection. This typically includes
         ///the product name and version of the server.</summary>
-        IDictionary ServerProperties { get; }
+        IDictionary<string, object> ServerProperties { get; }
 
         ///<summary>Returns the known hosts that came back from the
         ///broker in the connection.open-ok method at connection
@@ -164,12 +167,12 @@ namespace RabbitMQ.Client
         ///It can also throw IOException when socket was closed unexpectedly.
         ///</remarks>
         void Close();
-        
+
         ///<summary>Close this connection and all its channels.</summary>
         ///<remarks>
         ///The method behaves in the same way as Close(), with the only
         ///difference that the connection is closed with the given connection
-        ///close code and message. 
+        ///close code and message.
         ///<para>
         ///The close code (See under "Reply Codes" in the AMQP specification)
         ///</para>
@@ -178,7 +181,7 @@ namespace RabbitMQ.Client
         ///</para>
         ///</remarks>
         void Close(ushort reasonCode, string reasonText);
-        
+
         ///<summary>Close this connection and all its channels
         ///and wait with a timeout for all the in-progress close operations
         ///to complete.
@@ -186,7 +189,7 @@ namespace RabbitMQ.Client
         ///<remarks>
         ///Note that all active channels, sessions, and models will be
         ///closed if this method is called. It will wait for the in-progress
-        ///close operation to complete with a timeout. If the connection is 
+        ///close operation to complete with a timeout. If the connection is
         ///already closed (or closing), then this method will throw
         ///AlreadyClosedException.
         ///It can also throw IOException when socket was closed unexpectedly.
@@ -198,7 +201,7 @@ namespace RabbitMQ.Client
         ///</para>
         ///</remarks>
         void Close(int timeout);
-        
+
         ///<summary>Close this connection and all its channels
         ///and wait with a timeout for all the in-progress close operations
         ///to complete.
@@ -215,7 +218,7 @@ namespace RabbitMQ.Client
         ///</para>
         ///</remarks>
         void Close(ushort reasonCode, string reasonText, int timeout);
-        
+
         ///<summary>Abort this connection and all its channels.</summary>
         ///<remarks>
         ///Note that all active channels, sessions, and models will be
@@ -226,7 +229,7 @@ namespace RabbitMQ.Client
         ///to complete.
         ///</remarks>
         void Abort();
-        
+
         ///<summary>Abort this connection and all its channels.</summary>
         ///<remarks>
         ///The method behaves in the same way as Abort(), with the only
@@ -240,7 +243,7 @@ namespace RabbitMQ.Client
         ///</para>
         ///</remarks>
         void Abort(ushort reasonCode, string reasonText);
-        
+
         ///<summary>
         ///Abort this connection and all its channels and wait with a
         ///timeout for all the in-progress close operations to complete.
@@ -257,7 +260,7 @@ namespace RabbitMQ.Client
         ///</para>
         ///</remarks>
         void Abort(int timeout);
-        
+
         ///<summary>
         ///Abort this connection and all its channels and wait with a
         ///timeout for all the in-progress close operations to complete.
@@ -274,10 +277,17 @@ namespace RabbitMQ.Client
         ///</para>
         ///</remarks>
         void Abort(ushort reasonCode, string reasonText, int timeout);
-        
+
         ///<summary>Returns the list of ShutdownReportEntry objects that
         ///contain information about any errors reported while closing the
         ///connection in the order they appeared</summary>
-        IList ShutdownReport { get; }
+        IList<ShutdownReportEntry> ShutdownReport { get; }
+
+
+        ///<summary>Handle incoming Connection.Blocked methods.</summary>
+        void HandleConnectionBlocked(string reason);
+
+        ///<summary>Handle incoming Connection.Unblocked methods.</summary>
+        void HandleConnectionUnblocked();
     }
 }

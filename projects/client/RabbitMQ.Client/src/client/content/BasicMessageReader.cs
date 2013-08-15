@@ -40,7 +40,7 @@
 
 using System;
 using System.IO;
-using System.Collections;
+using System.Collections.Generic;
 
 using RabbitMQ.Client;
 using RabbitMQ.Util;
@@ -84,13 +84,13 @@ namespace RabbitMQ.Client.Content
         }
 
         ///<summary>Implement IMessageReader.Headers</summary>
-        public IDictionary Headers
+        public IDictionary<string, object> Headers
         {
             get
             {
                 if (Properties.Headers == null)
                 {
-                    Properties.Headers = new Hashtable();
+                    Properties.Headers = new Dictionary<string, object>();
                 }
                 return Properties.Headers;
             }

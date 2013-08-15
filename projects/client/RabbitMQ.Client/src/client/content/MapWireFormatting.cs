@@ -42,7 +42,7 @@ using System;
 using System.Net;
 using System.Text;
 using System.IO;
-using System.Collections;
+using System.Collections.Generic;
 
 using RabbitMQ.Client;
 using RabbitMQ.Util;
@@ -53,14 +53,14 @@ namespace RabbitMQ.Client.Content {
     ///encoding.</summary>
     ///<exception cref="ProtocolViolationException"/>
     public class MapWireFormatting {
-        public static IDictionary ReadMap(NetworkBinaryReader reader) {
+        public static IDictionary<string, object> ReadMap(NetworkBinaryReader reader) {
             int entryCount = BytesWireFormatting.ReadInt32(reader);
             if (entryCount < 0) {
                 string message = string.Format("Invalid (negative) entryCount: {0}", entryCount);
                 throw new ProtocolViolationException(message);
             }
 
-            Hashtable table = new Hashtable(entryCount);
+            IDictionary<string, object> table = new Dictionary<string, object>(entryCount);
             for (int entryIndex = 0; entryIndex < entryCount; entryIndex++) {
                 string key = StreamWireFormatting.ReadUntypedString(reader);
                 object value = StreamWireFormatting.ReadObject(reader);
@@ -70,11 +70,13 @@ namespace RabbitMQ.Client.Content {
             return table;
         }
 
-        public static void WriteMap(NetworkBinaryWriter writer, IDictionary table) {
+        /// <param name="writer">Type is <seealso cref="RabbitMQ.Util.NetworkBinaryWriter"/>.</param>
+        /// <param name="table">Type is <seealso cref="System.Collections.Generic.IDictionary{TKey,TValue}"/>.</param>
+        public static void WriteMap(NetworkBinaryWriter writer, IDictionary<string, object> table) {
             int entryCount = table.Count;
             BytesWireFormatting.WriteInt32(writer, entryCount);
 
-            foreach (DictionaryEntry entry in table) {
+            foreach (KeyValuePair<string, object> entry in table) {
                 StreamWireFormatting.WriteUntypedString(writer, (string) entry.Key);
                 StreamWireFormatting.WriteObject(writer, entry.Value);
             }

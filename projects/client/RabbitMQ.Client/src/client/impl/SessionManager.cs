@@ -39,8 +39,8 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
-using System.Collections;
 
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
@@ -56,7 +56,7 @@ namespace RabbitMQ.Client.Impl
 {
     public class SessionManager
     {
-        private readonly Hashtable m_sessionMap = new Hashtable();
+        private readonly IDictionary<int, ISession> m_sessionMap = new Dictionary<int, ISession>();
         private readonly ConnectionBase m_connection;
         private readonly IntAllocator Ints;
         public readonly ushort ChannelMax;
