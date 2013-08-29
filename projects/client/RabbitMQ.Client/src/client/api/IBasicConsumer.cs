@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client
 {
@@ -92,5 +93,10 @@ namespace RabbitMQ.Client
                                 string routingKey,
                                 IBasicProperties properties,
                                 byte[] body);
+
+
+
+        ///<summary>Signalled when the consumer gets cancelled.</summary>
+        event ConsumerCancelledEventHandler ConsumerCancelled;
     }
 }

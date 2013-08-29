@@ -39,6 +39,8 @@
 //---------------------------------------------------------------------------
 
 using System;
+using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
 {
@@ -60,6 +62,8 @@ namespace RabbitMQ.Client
         private string m_consumerTag = null;
         private bool m_running = false;
         private ShutdownEventArgs m_shutdownReason = null;
+        public readonly object m_eventLock = new object();
+        public ConsumerCancelledEventHandler m_consumerCancelled;
 
         ///<summary>Retrieve the IModel instance this consumer is
         ///registered with.</summary>
@@ -113,6 +117,18 @@ namespace RabbitMQ.Client
         public virtual void OnCancel()
         {
             m_running = false;
+            ConsumerCancelledEventHandler handler;
+            lock (m_eventLock)
+            {
+                handler = m_consumerCancelled;
+            }
+            if (handler != null)
+            {
+                foreach (ConsumerCancelledEventHandler h in handler.GetInvocationList())
+                {
+                    h(this, new ConsumerEventArgs(m_consumerTag));
+                }
+            }
         }
 
 
@@ -143,6 +159,24 @@ namespace RabbitMQ.Client
         {
             m_shutdownReason = reason;
             OnCancel();
+        }
+
+        public event ConsumerCancelledEventHandler ConsumerCancelled
+        {
+            add
+            {
+                lock (m_eventLock)
+                {
+                    m_consumerCancelled += value;
+                }
+            }
+            remove
+            {
+                lock (m_eventLock)
+                {
+                    m_consumerCancelled -= value;
+                }
+            }
         }
 
         ///<summary>Default implementation - override in subclasses.</summary>
