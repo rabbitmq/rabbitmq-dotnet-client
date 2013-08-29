@@ -75,5 +75,6 @@ namespace RabbitMQ.Client.Unit
     {
         public static readonly int TimingInterval = 200;
         public static readonly int SafetyMargin = 50;
+        public static readonly int TestTimeout = 5000;
     }
 }

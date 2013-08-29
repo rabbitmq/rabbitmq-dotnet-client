@@ -41,52 +41,79 @@
 using NUnit.Framework;
 
 using System;
-using System.IO;
-using System.Text;
-using System.Collections;
 using System.Threading;
 
-using RabbitMQ.Client;
-using RabbitMQ.Client.Impl;
-using RabbitMQ.Util;
+using RabbitMQ.Client.Events;
+
 
 namespace RabbitMQ.Client.Unit {
     [TestFixture]
-    public class TestConsumerCancelNotify {
+    public class TestConsumerCancelNotify : IntegrationFixture {
 
-        Object lockObject = new Object();
-        bool notified = false;
+        protected readonly Object lockObject = new Object();
+        protected bool notifiedCallback;
+        protected bool notifiedEvent;
 
         [Test]
-        public void TestConsumerCancelNotification() {
-            string queue = "queue_consumer_notify";
-            ConnectionFactory connFactory = new ConnectionFactory();
-            IConnection conn = connFactory.CreateConnection();
-            IModel chan = conn.CreateModel();
-            chan.QueueDeclare(queue, false, true, false, null);
-            IBasicConsumer consumer = new CancelNotificationConsumer(chan, this);
-            chan.BasicConsume(queue, false, consumer);
+        public void TestConsumerCancelNotification()
+        {
+            TestConsumerCancel("queue_consumer_cancel_notify", false, ref notifiedCallback);
+        }
 
-            chan.QueueDelete(queue);
-            lock (lockObject) {
-                if (!notified) {
-                    Monitor.Wait(lockObject);
+        [Test]
+        public void TestConsumerCancelEvent()
+        {
+            TestConsumerCancel("queue_consumer_cancel_event", true, ref notifiedEvent);
+        }
+
+        public void TestConsumerCancel(string queue, bool EventMode, ref bool notified)
+        {
+            Model.QueueDeclare(queue, false, true, false, null);
+            IBasicConsumer consumer = new CancelNotificationConsumer(Model, this, EventMode);
+            Model.BasicConsume(queue, false, consumer);
+
+            Model.QueueDelete(queue);
+            lock (lockObject)
+            {
+                if (!notified)
+                {
+                    Monitor.Wait(lockObject, TimingFixture.TestTimeout);
                 }
                 Assert.IsTrue(notified);
             }
         }
 
-        public class CancelNotificationConsumer : QueueingBasicConsumer
+        private class CancelNotificationConsumer : DefaultBasicConsumer
         {
             TestConsumerCancelNotify testClass;
+            private bool EventMode;
 
-            public CancelNotificationConsumer(IModel model, TestConsumerCancelNotify tc) : base(model) {
+            public CancelNotificationConsumer(IModel model, TestConsumerCancelNotify tc, bool EventMode) : base(model) {
                 this.testClass = tc;
+                this.EventMode = EventMode;
+                if (EventMode)
+                {
+                    ConsumerCancelled += Cancelled;
+                }
             }
 
             public override void HandleBasicCancel(string consumerTag) {
-                lock (testClass.lockObject) {
-                    testClass.notified = true;
+                if (!EventMode)
+                {
+                    lock (testClass.lockObject)
+                    {
+                        testClass.notifiedCallback = true;
+                        Monitor.PulseAll(testClass.lockObject);
+                    }
+                }
+                base.HandleBasicCancel(consumerTag);
+            }
+
+            private void Cancelled(object sender, ConsumerEventArgs arg)
+            {
+                lock (testClass.lockObject)
+                {
+                    testClass.notifiedEvent = true;
                     Monitor.PulseAll(testClass.lockObject);
                 }
             }
