@@ -72,7 +72,7 @@ namespace RabbitMQ.Client.Unit
             Connection.Abort();
         }
 
-        [Test, Timeout(1000)]
+        [Test, Timeout(5000)]
         public void TestExchangeDeclare()
         {
             Channel.ExchangeDeclare(exchangeName, "direct",
