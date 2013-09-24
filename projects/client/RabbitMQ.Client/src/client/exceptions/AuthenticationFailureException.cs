@@ -35,48 +35,20 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is GoPivotal, Inc.
-//  Copyright (c) 2007-2013 GoPivotal, Inc.  All rights reserved.
+//  Copyright (c) 2013-2013 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
-
 using System;
-using System.IO;
-using System.Text;
-using System.Collections;
 
-using RabbitMQ.Client;
-using RabbitMQ.Client.Impl;
-using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Util;
-
-namespace RabbitMQ.Client.Unit
+namespace RabbitMQ.Client.Exceptions
 {
-    [TestFixture]
-    public class TestAuth
+    /// <summary> Thrown when the cause is  an
+    /// authentication failure. </summary>
+    public class AuthenticationFailureException : Exception
     {
-
-        [Test]
-        public void TestAuthFailure()
+        public AuthenticationFailureException(String msg)
+            : base(msg)
         {
-            ConnectionFactory connFactory = new ConnectionFactory();
-            connFactory.UserName = "guest";
-            connFactory.Password = "incorrect-password";
-
-            try
-            {
-                connFactory.CreateConnection();
-                Assert.Fail("Exception caused by authentication failure expected");
-            }
-            catch (BrokerUnreachableException bue)
-            {
-                foreach (Object failureReason in bue.ConnectionErrors.Values)
-                {
-                    Assert.IsInstanceOf<AuthenticationFailureException>(
-                        failureReason);
-                }
-            }
         }
     }
 }
-
