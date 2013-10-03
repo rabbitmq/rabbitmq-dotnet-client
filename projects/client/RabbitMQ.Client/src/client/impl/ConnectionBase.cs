@@ -1114,6 +1114,10 @@ namespace RabbitMQ.Client.Impl
             }
             catch (OperationInterruptedException e)
             {
+                if (e.ShutdownReason != null && e.ShutdownReason.ReplyCode == CommonFraming.Constants.AccessRefused)
+                {
+                    throw new AuthenticationFailureException(e.ShutdownReason.ReplyText);
+                }
                 throw new PossibleAuthenticationFailureException(
                     "Possibly caused by authentication failure", e);
             }

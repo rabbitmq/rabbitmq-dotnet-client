@@ -35,21 +35,18 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is GoPivotal, Inc.
-//  Copyright (c) 2007-2013 GoPivotal, Inc.  All rights reserved.
+//  Copyright (c) 2013-2013 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
 
 namespace RabbitMQ.Client.Exceptions
 {
-    /// <summary> Thrown when the likely cause is  an
+    /// <summary> Thrown when the cause is  an
     /// authentication failure. </summary>
-    public class PossibleAuthenticationFailureException : Exception
+    public class AuthenticationFailureException : PossibleAuthenticationFailureException
     {
-        public PossibleAuthenticationFailureException(String msg, Exception inner) : base(msg, inner)
-        {
-        }
-        public PossibleAuthenticationFailureException(String msg) : base(msg)
+        public AuthenticationFailureException(String msg) : base(msg)
         {
         }
     }
