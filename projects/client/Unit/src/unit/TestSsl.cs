@@ -59,7 +59,7 @@ public class TestSsl {
             ch.BasicPublish("Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null, msgBytes);
 
             bool noAck = false;
-            BasicGetResult result = ch.BasicGet("Queue_TestSslEndpoint", noAck);
+            BasicGetResult result = ch.BasicGet(qName, noAck);
             byte[] body = result.Body;
             string resultMessage = System.Text.Encoding.UTF8.GetString(body);
 
