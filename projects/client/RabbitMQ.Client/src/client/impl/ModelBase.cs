@@ -779,8 +779,6 @@ namespace RabbitMQ.Client.Impl
         public abstract IFileProperties CreateFileProperties();
         public abstract IStreamProperties CreateStreamProperties();
 
-        public abstract void ChannelFlow(bool active);
-
         public void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
         {
             _Private_ExchangeDeclare(exchange, type, false, durable, autoDelete, false, false, arguments);

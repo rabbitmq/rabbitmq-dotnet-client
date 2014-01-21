@@ -154,12 +154,6 @@ namespace RabbitMQ.Client
         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
         IStreamProperties CreateStreamProperties();
 
-        ///<summary>(Spec method) Channel flow control functionality.</summary>
-        ///<remarks>
-        ///</remarks>
-        [return: AmqpFieldMapping(null, "active")]
-        void ChannelFlow(bool active);
-
         ///<summary>(Spec method) Declare an exchange.</summary>
         ///<remarks>
         ///The exchange is declared non-passive and non-internal.
