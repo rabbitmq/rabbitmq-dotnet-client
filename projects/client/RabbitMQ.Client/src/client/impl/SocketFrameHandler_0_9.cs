@@ -92,7 +92,7 @@ namespace RabbitMQ.Client.Impl
             {
                 try
                 {
-                    netstream = SslHelper.TcpUpgrade(netstream, endpoint.Ssl);
+                    netstream = SslHelper.TcpUpgrade(netstream, endpoint.Ssl, timeout);
                 }
                 catch (Exception)
                 {
