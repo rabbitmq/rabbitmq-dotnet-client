@@ -75,7 +75,7 @@ namespace RabbitMQ.Client.Impl
         public ManualResetEvent m_flowControlBlock = new ManualResetEvent(true);
         private readonly object m_flowSendLock = new object();
 
-        private ulong m_nextPubSeqNo;
+        private ulong m_nextPubSeqNo = 0;
         private SynchronizedCollection<ulong> m_unconfirmedSet =
             new SynchronizedCollection<ulong>();
         private bool m_onlyAcksReceived = true;
@@ -972,7 +972,10 @@ namespace RabbitMQ.Client.Impl
 
         public void ConfirmSelect()
         {
-            m_nextPubSeqNo = 1;
+            if (m_nextPubSeqNo == 0UL)
+            {
+                m_nextPubSeqNo = 1;
+            }
             _Private_ConfirmSelect(false);
         }
 
