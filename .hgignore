@@ -25,7 +25,7 @@ rabbit\.snk$
 ^\_UpgradeReport\_Files/
 ^gensrc/
 ^projects/.*/.*\.csproj\.user$
-^projects/client/Unit/TestResult\.xml$
+TestResult\.xml$
 
 ^docs/pyle\.log$
 ^build/
