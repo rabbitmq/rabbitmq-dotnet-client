@@ -177,7 +177,7 @@ namespace RabbitMQ.Client.Impl
                       value = ReadArray(reader);
                       break;
                   case 'b':
-                      value = ReadOctet(reader);
+                      value = reader.ReadSByte();
                       break;
                   case 'd':
                       value = reader.ReadDouble();
@@ -435,10 +435,10 @@ namespace RabbitMQ.Client.Impl
                 WriteOctet(writer, (byte)'A');
                 WriteArray(writer, (IList)value);
             }
-            else if (value is byte)
+            else if (value is sbyte)
             {
                 WriteOctet(writer, (byte)'b');
-                WriteOctet(writer, (byte)value);
+                writer.Write((sbyte)value);
             }
             else if (value is double)
             {
