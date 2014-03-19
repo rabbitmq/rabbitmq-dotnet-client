@@ -117,7 +117,7 @@ namespace RabbitMQ.Client.Unit
         {
             NetworkBinaryWriter w = Writer();
             Hashtable t = new Hashtable();
-            t["b"] = (byte)123;
+            t["b"] = (sbyte)-128;
             t["d"] = (double)123;
             t["f"] = (float)123;
             t["l"] = (long)123;
@@ -128,7 +128,7 @@ namespace RabbitMQ.Client.Unit
             t["V"] = null;
             WireFormatting.WriteTable(w, t);
             IDictionary nt = (IDictionary)WireFormatting.ReadTable(Reader(Contents(w)));
-            Assert.AreEqual(typeof(byte), nt["b"].GetType()); Assert.AreEqual((byte)123, nt["b"]);
+            Assert.AreEqual(typeof(sbyte), nt["b"].GetType()); Assert.AreEqual((sbyte)-128, nt["b"]);
             Assert.AreEqual(typeof(double), nt["d"].GetType()); Assert.AreEqual((double)123, nt["d"]);
             Assert.AreEqual(typeof(float), nt["f"].GetType()); Assert.AreEqual((float)123, nt["f"]);
             Assert.AreEqual(typeof(long), nt["l"].GetType()); Assert.AreEqual((long)123, nt["l"]);
