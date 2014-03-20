@@ -67,6 +67,7 @@ namespace RabbitMQ.Client.Unit
             } catch (AlreadyClosedException e)
             {
                 Assert.That(e, Is.TypeOf(typeof(AlreadyClosedException)));
+                Assert.IsTrue(e.Message.StartsWith("Already closed"));
             }
         }
     }

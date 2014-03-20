@@ -49,6 +49,6 @@ namespace RabbitMQ.Client.Exceptions {
         ///<summary>Construct an instance containing the given
         ///shutdown reason.</summary>
         public AlreadyClosedException(ShutdownEventArgs reason)
-            : base(reason) { }
+            : base(reason, "Already closed") { }
     }
 }
