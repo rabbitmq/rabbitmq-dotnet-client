@@ -1404,7 +1404,9 @@ namespace RabbitMQ.Client.Impl
             }
             catch (AlreadyClosedException)
             {
-                // Ignored, see BasicGet
+                // let continuation throw OperationInterruptedException,
+                // which is a much more suitable exception before connection
+                // negotiation finishes
             }
             k.GetReply();
             return k.m_result;
@@ -1433,7 +1435,9 @@ namespace RabbitMQ.Client.Impl
             }
             catch (AlreadyClosedException)
             {
-                // Ignored, see BasicGet
+                // let continuation throw OperationInterruptedException,
+                // which is a much more suitable exception before connection
+                // negotiation finishes
             }
             k.GetReply();
             return k.m_result;
@@ -1478,7 +1482,9 @@ namespace RabbitMQ.Client.Impl
             }
             catch (AlreadyClosedException)
             {
-                // Ignored, see BasicGet
+                // let continuation throw OperationInterruptedException,
+                // which is a much more suitable exception before connection
+                // negotiation finishes
             }
             k.GetReply();
             if (k.m_redirect) {
