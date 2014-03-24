@@ -1397,8 +1397,15 @@ namespace RabbitMQ.Client.Impl
         {
             ConnectionStartRpcContinuation k = new ConnectionStartRpcContinuation();
             Enqueue(k);
-            _Private_ConnectionStartOk(clientProperties, mechanism,
+            try
+            {
+                _Private_ConnectionStartOk(clientProperties, mechanism,
                                            response, locale);
+            }
+            catch (AlreadyClosedException)
+            {
+                // Ignored, see BasicGet
+            }
             k.GetReply();
             return k.m_result;
         }
@@ -1420,7 +1427,14 @@ namespace RabbitMQ.Client.Impl
         {
             ConnectionStartRpcContinuation k = new ConnectionStartRpcContinuation();
             Enqueue(k);
-            _Private_ConnectionSecureOk(response);
+            try
+            {
+                _Private_ConnectionSecureOk(response);
+            }
+            catch (AlreadyClosedException)
+            {
+                // Ignored, see BasicGet
+            }
             k.GetReply();
             return k.m_result;
         }
@@ -1459,7 +1473,13 @@ namespace RabbitMQ.Client.Impl
         {
             ConnectionOpenContinuation k = new ConnectionOpenContinuation();
             Enqueue(k);
-            _Private_ConnectionOpen(virtualHost, capabilities, insist);
+            try {
+                _Private_ConnectionOpen(virtualHost, capabilities, insist);
+            }
+            catch (AlreadyClosedException)
+            {
+                // Ignored, see BasicGet
+            }
             k.GetReply();
             if (k.m_redirect) {
                 throw new RedirectException(m_session.Connection.Protocol,
