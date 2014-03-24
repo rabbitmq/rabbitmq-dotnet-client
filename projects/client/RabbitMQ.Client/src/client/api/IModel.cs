@@ -126,10 +126,14 @@ namespace RabbitMQ.Client
         ///otherwise.</summary>
         ShutdownEventArgs CloseReason { get; }
 
-        ///<summary>Returns true if the session is still in a state
+        ///<summary>Returns true if the model is still in a state
         ///where it can be used. Identical to checking if CloseReason
         ///== null.</summary>
         bool IsOpen { get; }
+
+        ///<summary>Returns true if the model is no longer in a state
+        ///where it can be used.</summary>
+        bool IsClosed { get; }
 
         ///<summary>When in confirm mode, return the sequence number
         ///of the next message to be published.</summary>

@@ -522,6 +522,15 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public bool IsClosed
+        {
+            get
+            {
+                return !IsOpen;
+            }
+        }
+
+
         public ulong NextPublishSeqNo
         {
             get
