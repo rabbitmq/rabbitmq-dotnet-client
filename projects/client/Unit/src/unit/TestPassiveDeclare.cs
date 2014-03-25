@@ -68,5 +68,30 @@ namespace RabbitMQ.Client.Unit {
                               Model.QueueDeclarePassive(Guid.NewGuid().ToString());
                           });
         }
+
+        [Test]
+        public void TestPassiveExchangeDeclareWhenExchangeExists()
+        {
+            string e = "an.exchange" + Guid.NewGuid().ToString();
+            try
+            {
+                Model.ExchangeDeclare(e, "fanout", false);
+                Model.ExchangeDeclarePassive(e);
+            } finally
+            {
+                Model.ExchangeDelete(e);
+            }
+            
+        }
+
+        [Test]
+        public void TestPassiveExchangeDeclareWhenExchangeDoesNotExist()
+        {
+            Assert.Throws(Is.InstanceOf<OperationInterruptedException>(),
+                          delegate
+                          {
+                              Model.ExchangeDeclarePassive(Guid.NewGuid().ToString());
+                          });
+        }
     }
 }
