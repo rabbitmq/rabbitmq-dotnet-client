@@ -162,7 +162,7 @@ namespace RabbitMQ.Client.Unit {
         protected void Publish(IConnection conn)
         {
             IModel ch = conn.CreateModel();
-            ch.BasicPublish("", "amq.fanout", null, enc.GetBytes("message"));
+            ch.BasicPublish("amq.fanout", "", null, enc.GetBytes("message"));
         }
 
         protected override void ReleaseResources()
