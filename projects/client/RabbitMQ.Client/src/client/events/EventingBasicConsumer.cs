@@ -51,6 +51,11 @@ namespace RabbitMQ.Client.Events
     ///</remarks>
     public class EventingBasicConsumer : DefaultBasicConsumer
     {
+
+        ///<summary>Constructor which sets the Model property to the
+        ///given value.</summary>
+        public EventingBasicConsumer(IModel model) : base(model) {}
+
         ///<summary>Fires the Unregistered event.</summary>
         public override void HandleBasicCancelOk(string consumerTag)
         {
