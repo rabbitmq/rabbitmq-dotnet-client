@@ -87,5 +87,59 @@ namespace RabbitMQ.Client.Unit {
             Assert.IsNotNull(unregisteredSender);
             Assert.AreEqual(ec, unregisteredSender);
         }
+
+        [Test]
+        public void TestEventingConsumerDeliveryEvents()
+        {
+            string q = Model.QueueDeclare();
+            object o = new Object ();
+
+            bool receivedInvoked = false;
+            object receivedSender = null;
+
+            EventingBasicConsumer ec = new EventingBasicConsumer(Model);
+            ec.Received += (s, args) =>
+            {
+                receivedInvoked = true;
+                receivedSender = s;
+
+                Monitor.PulseAll(o);
+            };
+
+            Model.BasicConsume(q, true, ec);
+            Model.BasicPublish("", q, null, enc.GetBytes("msg"));
+
+            WaitOn(o);
+            Assert.IsTrue(receivedInvoked);
+            Assert.IsNotNull(receivedSender);
+            Assert.AreEqual(ec, receivedSender);
+
+            bool shutdownInvoked = false;
+            object shutdownSender = null;
+
+            ec.Shutdown += (s, args) =>
+            {
+                shutdownInvoked = true;
+                shutdownSender = s;
+
+                Monitor.PulseAll(o);
+            };
+
+            Model.Close();
+            WaitOn(o);
+
+            Assert.IsTrue(shutdownInvoked);
+            Assert.IsNotNull(shutdownSender);
+            Assert.AreEqual(ec, shutdownSender);
+        }
+
+
+        protected void WaitOn(object o)
+        {
+            lock(o)
+            {
+                Monitor.Wait(o, TimeSpan.FromSeconds(4));
+            }
+        }
     }
 }
