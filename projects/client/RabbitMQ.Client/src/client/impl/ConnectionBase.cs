@@ -1055,9 +1055,7 @@ namespace RabbitMQ.Client.Impl
                 connectionStartCell.Value;
 
             if (connectionStart == null){
-                throw new ProtocolVersionMismatchException(Protocol.MajorVersion,
-                                                           Protocol.MinorVersion,
-                                                           -1, -1);
+                throw new IOException("connection.start was never received, likely due to a network timeout");
             }
 
             ServerProperties = connectionStart.m_serverProperties;
