@@ -38,17 +38,37 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using NUnit.Framework;
 using System;
+using RabbitMQ.Client.Exceptions;
 
-namespace RabbitMQ.Client.Exceptions {
-    /// <summary>Thrown when the application tries to make use of a
-    /// session or connection that has already been shut
-    /// down.</summary>
-    public class AlreadyClosedException: OperationInterruptedException
+namespace RabbitMQ.Client.Unit
+{
+    [TestFixture]
+    public class TestExceptionMessages : IntegrationFixture
     {
-        ///<summary>Construct an instance containing the given
-        ///shutdown reason.</summary>
-        public AlreadyClosedException(ShutdownEventArgs reason)
-            : base(reason, "Already closed") { }
+        [Test]
+        public void TestAlreadyClosedExceptionMessage()
+        {
+            var uuid = System.Guid.NewGuid().ToString();
+            try
+            {
+                Model.QueueDeclarePassive(uuid);
+            } catch (Exception e)
+            {
+                Assert.That(e, Is.TypeOf(typeof(OperationInterruptedException)));
+            }
+
+            Assert.IsFalse(Model.IsOpen);
+
+            try
+            {
+                Model.QueueDeclarePassive(uuid);
+            } catch (AlreadyClosedException e)
+            {
+                Assert.That(e, Is.TypeOf(typeof(AlreadyClosedException)));
+                Assert.IsTrue(e.Message.StartsWith("Already closed"));
+            }
+        }
     }
 }
