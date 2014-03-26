@@ -97,5 +97,30 @@ namespace RabbitMQ.Client.Unit {
             Assert.IsTrue(shutdownFired);
             AssertPreconditionFailed(shutdownArgs);
         }
+
+        [Test]
+        public void TestDoubleNack()
+        {
+            object o = new Object();
+            bool shutdownFired = false;
+            ShutdownEventArgs shutdownArgs = null;
+            Model.ModelShutdown += (s, args) =>
+            {
+                shutdownFired = true;
+                shutdownArgs = args;
+                Monitor.PulseAll(o);
+            };
+            string q = Model.QueueDeclare();
+            Model.BasicPublish("", q, null, enc.GetBytes("hello"));
+
+            BasicGetResult res = Model.BasicGet(q, false);
+            Assert.AreEqual(res.DeliveryTag, 1);
+            Model.BasicNack(res.DeliveryTag, false, true);
+            Model.BasicNack(res.DeliveryTag, false, true);
+
+            WaitOn(o);
+            Assert.IsTrue(shutdownFired);
+            AssertPreconditionFailed(shutdownArgs);
+        }
     }
 }
