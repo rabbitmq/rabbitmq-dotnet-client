@@ -41,6 +41,7 @@
 using NUnit.Framework;
 
 using System;
+using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Unit {
     [TestFixture]
@@ -75,6 +76,17 @@ namespace RabbitMQ.Client.Unit {
             WithEmptyQueue((m, q) => {
                 BasicGetResult res = m.BasicGet(q, false);
                 Assert.IsNull(res);
+            });
+        }
+
+        [Test]
+        public void TestBasicGetWithClosedChannel()
+        {
+            WithNonEmptyQueue((_, q) => {
+                WithClosedModel((cm) => {
+                    Assert.Throws(Is.InstanceOf<AlreadyClosedException>(),
+                                 delegate { cm.BasicGet(q, true); });
+                });
             });
         }
     }

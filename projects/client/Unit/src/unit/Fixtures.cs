@@ -96,6 +96,14 @@ namespace RabbitMQ.Client.Unit
             try { fn(m); } finally { m.Abort(); }
         }
 
+        protected void WithClosedModel(ModelOp fn)
+        {
+            IModel m = Conn.CreateModel();
+            m.Close();
+
+            fn(m);
+        }
+
         //
         // Exchanges
         //
