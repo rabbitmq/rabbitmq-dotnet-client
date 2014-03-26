@@ -142,6 +142,19 @@ namespace RabbitMQ.Client.Unit
             WithTemporaryModel((m) => m.BasicPublish("", q, null, enc.GetBytes(body)));
         }
 
+        protected void WithNonEmptyQueue(QueueOp fn)
+        {
+            WithNonEmptyQueue(fn, "msg");
+        }
+
+        protected void WithNonEmptyQueue(QueueOp fn, string msg)
+        {
+            WithTemporaryQueue((m, q) => {
+                EnsureNotEmpty(q, msg);
+                fn(m, q);
+            });
+        }
+
         //
         // Shutdown
         //
