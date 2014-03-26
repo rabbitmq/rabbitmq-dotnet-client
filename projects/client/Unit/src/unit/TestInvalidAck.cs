@@ -51,6 +51,8 @@ namespace RabbitMQ.Client.Unit {
     [TestFixture]
     public class TestInvalidAck : IntegrationFixture {
 
+        UTF8Encoding enc = new UTF8Encoding();
+
         [Test]
         public void TestAckWithUnknownConsumerTagAndMultipleFalse()
         {
@@ -62,6 +64,31 @@ namespace RabbitMQ.Client.Unit {
                 Monitor.PulseAll(o);
             };
             Model.BasicAck(123456, false);
+
+            lock(o)
+            {
+                Monitor.Wait(o, TimeSpan.FromSeconds(4));
+            }
+            Assert.IsTrue(shutdownFired);
+        }
+
+        [Test]
+        public void TestDoubleAck()
+        {
+            object o = new Object();
+            bool shutdownFired = false;
+            Model.ModelShutdown += (s, args) =>
+            {
+                shutdownFired = true;
+                Monitor.PulseAll(o);
+            };
+            string q = Model.QueueDeclare();
+            Model.BasicPublish("", q, null, enc.GetBytes("hello"));
+
+            BasicGetResult res = Model.BasicGet(q, false);
+            Assert.AreEqual(res.DeliveryTag, 1);
+            Model.BasicAck(res.DeliveryTag, false);
+            Model.BasicAck(res.DeliveryTag, false);
 
             lock(o)
             {
