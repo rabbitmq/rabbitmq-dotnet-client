@@ -79,13 +79,6 @@ namespace RabbitMQ.Client.Unit
             Assert.AreEqual(QueueName, result.QueueName);
         }
 
-        [Test]
-        public void TestQueueDeclarePassive()
-        {
-            Assert.Throws(Is.TypeOf<OperationInterruptedException>(),
-                          delegate { Model.QueueDeclarePassive(QueueName); });
-        }
-
         private QueueDeclareOk QueueDeclare()
         {
             return Model.QueueDeclare(QueueName, false, true, true, null);
