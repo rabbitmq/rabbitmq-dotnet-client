@@ -85,8 +85,7 @@ namespace RabbitMQ.Client.Unit {
                 shutdownArgs = args;
                 Monitor.PulseAll(o);
             };
-            string q = Model.QueueDeclare();
-            Model.BasicPublish("", q, null, enc.GetBytes("hello"));
+            string q = PrepareNonEmptyQueue(Model);
 
             BasicGetResult res = Model.BasicGet(q, false);
             Assert.AreEqual(res.DeliveryTag, 1);
@@ -110,8 +109,7 @@ namespace RabbitMQ.Client.Unit {
                 shutdownArgs = args;
                 Monitor.PulseAll(o);
             };
-            string q = Model.QueueDeclare();
-            Model.BasicPublish("", q, null, enc.GetBytes("hello"));
+            string q = PrepareNonEmptyQueue(Model);
 
             BasicGetResult res = Model.BasicGet(q, false);
             Assert.AreEqual(res.DeliveryTag, 1);
@@ -121,6 +119,14 @@ namespace RabbitMQ.Client.Unit {
             WaitOn(o);
             Assert.IsTrue(shutdownFired);
             AssertPreconditionFailed(shutdownArgs);
+        }
+
+        protected string PrepareNonEmptyQueue(IModel m)
+        {
+            string q = m.QueueDeclare();
+            m.BasicPublish("", q, null, enc.GetBytes("hello"));
+
+            return q;
         }
     }
 }
