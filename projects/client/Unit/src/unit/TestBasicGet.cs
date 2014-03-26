@@ -59,6 +59,17 @@ namespace RabbitMQ.Client.Unit {
         }
 
         [Test]
+        public void TestBasicGetWithNonEmptyResponseAndAutoAckMode()
+        {
+            const string msg = "for basic.get";
+            WithNonEmptyQueue((m, q) => {
+                BasicGetResult res = m.BasicGet(q, true);
+                Assert.AreEqual(msg, enc.GetString(res.Body));
+                AssertMessageCount(q, 0);
+            }, msg);
+        }
+
+        [Test]
         public void TestBasicGetWithEmptyResponse()
         {
             WithEmptyQueue((m, q) => {
