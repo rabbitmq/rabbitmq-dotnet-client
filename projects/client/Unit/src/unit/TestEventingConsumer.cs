@@ -76,7 +76,7 @@ namespace RabbitMQ.Client.Unit {
                 unregisteredSender = s;
             };
 
-            string tag = Model.BasicConsume(q, true, ec);
+            string tag = Model.BasicConsume(q, false, ec);
 
             Assert.IsTrue(registeredInvoked);
             Assert.IsNotNull(registeredSender);
