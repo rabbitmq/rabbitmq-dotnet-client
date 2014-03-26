@@ -55,8 +55,7 @@ namespace RabbitMQ.Client.Unit {
         [Test]
         public void TestPassiveQueueDeclareWhenQueueExists()
         {
-            string q = Model.QueueDeclare();
-            Model.QueueDeclarePassive(q);
+            WithTemporaryQueue((m, q) => m.QueueDeclarePassive(q));
         }
 
         [Test]

@@ -42,6 +42,7 @@ using NUnit.Framework;
 
 using System;
 using System.Threading;
+using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.v0_9_1;
 
 namespace RabbitMQ.Client.Unit
@@ -79,6 +80,7 @@ namespace RabbitMQ.Client.Unit
         //
 
         protected delegate void ModelOp(IModel m);
+        protected delegate void QueueOp(IModel m, string q);
 
         //
         // Channels
@@ -113,6 +115,24 @@ namespace RabbitMQ.Client.Unit
         protected string GenerateQueueName()
         {
             return "queue" + Guid.NewGuid().ToString();
+        }
+
+        protected void WithTemporaryQueue(QueueOp fn)
+        {
+            WithTemporaryQueue(Model, fn);
+        }
+
+        protected void WithTemporaryQueue(IModel m, QueueOp fn)
+        {
+            string q = GenerateQueueName();
+            try
+            {
+                m.QueueDeclare(q, false, true, false, null);
+                fn(m, q);
+            } finally
+            {
+                WithTemporaryModel((tm) => tm.QueueDelete(q));
+            }
         }
 
         //
