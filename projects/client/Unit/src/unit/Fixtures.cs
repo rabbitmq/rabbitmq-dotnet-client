@@ -90,13 +90,7 @@ namespace RabbitMQ.Client.Unit
         {
             IModel m = Conn.CreateModel();
 
-            try
-            {
-                fn(m);
-            } finally
-            {
-                m.Abort();
-            }
+            try { fn(m); } finally { m.Abort(); }
         }
 
         //
