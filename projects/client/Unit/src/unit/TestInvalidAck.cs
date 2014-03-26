@@ -51,8 +51,6 @@ namespace RabbitMQ.Client.Unit {
     [TestFixture]
     public class TestInvalidAck : IntegrationFixture {
 
-        UTF8Encoding enc = new UTF8Encoding();
-
         [Test]
         public void TestAckWithUnknownConsumerTagAndMultipleFalse()
         {

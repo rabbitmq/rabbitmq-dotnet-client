@@ -41,6 +41,7 @@
 using NUnit.Framework;
 
 using System;
+using System.Text;
 using System.Threading;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.v0_9_1;
@@ -52,6 +53,8 @@ namespace RabbitMQ.Client.Unit
     {
         protected IConnection Conn;
         protected IModel Model;
+
+        protected Encoding enc = new UTF8Encoding();
 
         [SetUp]
         public void Init()
@@ -127,6 +130,16 @@ namespace RabbitMQ.Client.Unit
             {
                 WithTemporaryModel((tm) => tm.QueueDelete(q));
             }
+        }
+
+        protected void EnsureNotEmpty(string q)
+        {
+            EnsureNotEmpty(q, "msg");
+        }
+
+        protected void EnsureNotEmpty(string q, string body)
+        {
+            WithTemporaryModel((m) => m.BasicPublish("", q, null, enc.GetBytes(body)));
         }
 
         //
