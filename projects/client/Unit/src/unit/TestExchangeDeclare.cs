@@ -56,7 +56,7 @@ namespace RabbitMQ.Client.Unit {
             Model.ExchangeDeclare(e, "fanout", false, false, null);
             VerifyEquivalent(Model, e, "fanout", false, false, null);
 
-            Conn.CreateModel().ExchangeDelete(e);
+            WithTemporaryModel((m) => m.ExchangeDelete(e));
         }
 
         [Test]
@@ -66,7 +66,7 @@ namespace RabbitMQ.Client.Unit {
             Model.ExchangeDeclare(e, "fanout", false, false, null);
             VerifyNonEquivalent(Model, e, "fanout", true, true, null);
 
-            Conn.CreateModel().ExchangeDelete(e);
+            WithTemporaryModel((m) => m.ExchangeDelete(e));
         }
 
         protected void VerifyEquivalent(IModel m, string name, string type, bool durable,

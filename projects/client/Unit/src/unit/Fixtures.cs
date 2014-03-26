@@ -74,10 +74,50 @@ namespace RabbitMQ.Client.Unit
             // no-op
         }
 
+        //
+        // Delegates
+        //
+
+        protected delegate void ModelOp(IModel m);
+
+        //
+        // Channels
+        //
+
+        protected void WithTemporaryModel(ModelOp fn)
+        {
+            IModel m = Conn.CreateModel();
+
+            try
+            {
+                fn(m);
+            } finally
+            {
+                m.Abort();
+            }
+        }
+
+        //
+        // Exchanges
+        //
+
         protected string GenerateExchangeName()
         {
             return "exchange" + Guid.NewGuid().ToString();
         }
+
+        //
+        // Queues
+        //
+
+        protected string GenerateQueueName()
+        {
+            return "queue" + Guid.NewGuid().ToString();
+        }
+
+        //
+        // Shutdown
+        //
 
         protected void AssertShutdownError(ShutdownEventArgs args, int code)
         {
@@ -88,6 +128,10 @@ namespace RabbitMQ.Client.Unit
         {
             AssertShutdownError(args, Constants.PreconditionFailed);
         }
+
+        //
+        // Concurrency
+        //
 
         protected void WaitOn(object o)
         {
