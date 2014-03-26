@@ -41,67 +41,53 @@
 using NUnit.Framework;
 
 using System;
-using System.Threading;
-using RabbitMQ.Client.Framing.v0_9_1;
+using System.Collections.Generic;
 
-namespace RabbitMQ.Client.Unit
-{
+using RabbitMQ.Client.Exceptions;
 
-    public class IntegrationFixture
-    {
-        protected IConnection Conn;
-        protected IModel Model;
+namespace RabbitMQ.Client.Unit {
+    [TestFixture]
+    public class TestExchangeDeclare : IntegrationFixture {
 
-        [SetUp]
-        public void Init()
+        [Test]
+        public void TestDoubleExchangeDeclareWithEquivalentArgs()
         {
-            ConnectionFactory connFactory = new ConnectionFactory();
-            Conn = connFactory.CreateConnection();
-            Model = Conn.CreateModel();
+            string e = GenerateExchangeName();
+            Model.ExchangeDeclare(e, "fanout", false, false, null);
+            VerifyEquivalent(Model, e, "fanout", false, false, null);
+
+            Conn.CreateModel().ExchangeDelete(e);
         }
 
-        [TearDown]
-        public void Dispose()
+        [Test]
+        public void TestDoubleExchangeDeclareWithNonEquivalentArgs()
         {
-            Model.Close();
-            Conn.Close();
+            string e = GenerateExchangeName();
+            Model.ExchangeDeclare(e, "fanout", false, false, null);
+            VerifyNonEquivalent(Model, e, "fanout", true, true, null);
 
-            ReleaseResources();
+            Conn.CreateModel().ExchangeDelete(e);
         }
 
-        protected virtual void ReleaseResources()
+        protected void VerifyEquivalent(IModel m, string name, string type, bool durable,
+                                        bool autoDelete, IDictionary<string, object> args)
         {
-            // no-op
+            m.ExchangeDeclarePassive(name);
+            m.ExchangeDeclare(name, type, durable, autoDelete, args);
         }
 
-        protected string GenerateExchangeName()
+        protected void VerifyNonEquivalent(IModel m, string name, string type, bool durable,
+                                        bool autoDelete, IDictionary<string, object> args)
         {
-            return "exchange" + Guid.NewGuid().ToString();
-        }
-
-        protected void AssertShutdownError(ShutdownEventArgs args, int code)
-        {
-            Assert.AreEqual(args.ReplyCode, code);
-        }
-
-        protected void AssertPreconditionFailed(ShutdownEventArgs args)
-        {
-            AssertShutdownError(args, Constants.PreconditionFailed);
-        }
-
-        protected void WaitOn(object o)
-        {
-            lock(o)
+            m.ExchangeDeclarePassive(name);
+            try
             {
-                Monitor.Wait(o, TimeSpan.FromSeconds(4));
+                m.ExchangeDeclare(name, type, durable, autoDelete, args);
+                Assert.Fail("Expected exchange.declare to throw");
+            } catch (OperationInterruptedException eoi)
+            {
+                AssertPreconditionFailed(eoi.ShutdownReason);
             }
         }
-    }
-
-    public class TimingFixture
-    {
-        public static readonly int TimingInterval = 200;
-        public static readonly int SafetyMargin = 50;
-        public static readonly int TestTimeout = 5000;
     }
 }
