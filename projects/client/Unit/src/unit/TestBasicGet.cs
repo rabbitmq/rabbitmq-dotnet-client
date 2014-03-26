@@ -57,5 +57,14 @@ namespace RabbitMQ.Client.Unit {
                 m.BasicAck(res.DeliveryTag, false);
             }, msg);
         }
+
+        [Test]
+        public void TestBasicGetWithEmptyResponse()
+        {
+            WithEmptyQueue((m, q) => {
+                BasicGetResult res = m.BasicGet(q, false);
+                Assert.IsNull(res);
+            });
+        }
     }
 }

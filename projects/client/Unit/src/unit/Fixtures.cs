@@ -155,6 +155,14 @@ namespace RabbitMQ.Client.Unit
             });
         }
 
+        protected void WithEmptyQueue(QueueOp fn)
+        {
+            WithTemporaryQueue((m, q) => {
+                m.QueuePurge(q);
+                fn(m, q);
+            });
+        }
+
         //
         // Shutdown
         //
