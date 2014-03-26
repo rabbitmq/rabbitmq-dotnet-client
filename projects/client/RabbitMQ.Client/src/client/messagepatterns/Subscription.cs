@@ -212,7 +212,7 @@ namespace RabbitMQ.Client.MessagePatterns {
                 // from under us by the operation of Close() from
                 // another thread.
                 QueueingBasicConsumer consumer = m_consumer;
-                if (consumer == null) {
+                if (consumer == null || m_model.IsClosed) {
                     // Closed!
                     m_latestEvent = null;
                 } else {
@@ -275,9 +275,11 @@ namespace RabbitMQ.Client.MessagePatterns {
                 // from under us by the operation of Close() from
                 // another thread.
                 QueueingBasicConsumer consumer = m_consumer;
-                if (consumer == null) {
+                if (consumer == null || m_model.IsClosed) {
                     // Closed!
                     m_latestEvent = null;
+                    result = null;
+                    return false;
                 } else {
                     BasicDeliverEventArgs qValue;
                     if (!consumer.Queue.Dequeue(millisecondsTimeout, out qValue)) {
