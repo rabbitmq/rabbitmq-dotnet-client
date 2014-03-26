@@ -61,7 +61,7 @@ namespace RabbitMQ.Client.Unit
             Assert.AreEqual(0, result.MessageCount);
             Assert.AreEqual(0, result.ConsumerCount);
             Assert.AreEqual(QueueName, result.QueueName);
-            Model.BasicPublish("", result.QueueName, null, new byte[] { });
+            EnsureNotEmpty(result.QueueName);
             Model.WaitForConfirms();
 
             result = QueueDeclare();
