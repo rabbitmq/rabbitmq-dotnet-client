@@ -45,6 +45,7 @@ using System.Text;
 using System.Threading;
 using System.Diagnostics;
 
+using RabbitMQ.Client.Framing.v0_9_1;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Unit {
@@ -58,18 +59,18 @@ namespace RabbitMQ.Client.Unit {
         {
             object o = new Object();
             bool shutdownFired = false;
+            ShutdownEventArgs shutdownArgs = null;
             Model.ModelShutdown += (s, args) =>
             {
                 shutdownFired = true;
+                shutdownArgs = args;
                 Monitor.PulseAll(o);
             };
-            Model.BasicAck(123456, false);
 
-            lock(o)
-            {
-                Monitor.Wait(o, TimeSpan.FromSeconds(4));
-            }
+            Model.BasicAck(123456, false);
+            WaitOn(o);
             Assert.IsTrue(shutdownFired);
+            AssertPreconditionFailed(shutdownArgs);
         }
 
         [Test]
@@ -77,9 +78,11 @@ namespace RabbitMQ.Client.Unit {
         {
             object o = new Object();
             bool shutdownFired = false;
+            ShutdownEventArgs shutdownArgs = null;
             Model.ModelShutdown += (s, args) =>
             {
                 shutdownFired = true;
+                shutdownArgs = args;
                 Monitor.PulseAll(o);
             };
             string q = Model.QueueDeclare();
@@ -90,11 +93,9 @@ namespace RabbitMQ.Client.Unit {
             Model.BasicAck(res.DeliveryTag, false);
             Model.BasicAck(res.DeliveryTag, false);
 
-            lock(o)
-            {
-                Monitor.Wait(o, TimeSpan.FromSeconds(4));
-            }
+            WaitOn(o);
             Assert.IsTrue(shutdownFired);
+            AssertPreconditionFailed(shutdownArgs);
         }
     }
 }

@@ -40,6 +40,10 @@
 
 using NUnit.Framework;
 
+using System;
+using System.Threading;
+using RabbitMQ.Client.Framing.v0_9_1;
+
 namespace RabbitMQ.Client.Unit
 {
 
@@ -68,6 +72,24 @@ namespace RabbitMQ.Client.Unit
         protected virtual void ReleaseResources()
         {
             // no-op
+        }
+
+        protected void AssertShutdownError(ShutdownEventArgs args, int code)
+        {
+            Assert.AreEqual(args.ReplyCode, code);
+        }
+
+        protected void AssertPreconditionFailed(ShutdownEventArgs args)
+        {
+            AssertShutdownError(args, Constants.PreconditionFailed);
+        }
+
+        protected void WaitOn(object o)
+        {
+            lock(o)
+            {
+                Monitor.Wait(o, TimeSpan.FromSeconds(4));
+            }
         }
     }
 
