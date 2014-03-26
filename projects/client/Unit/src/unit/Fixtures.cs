@@ -113,6 +113,11 @@ namespace RabbitMQ.Client.Unit
             return "exchange" + Guid.NewGuid().ToString();
         }
 
+        protected byte[] RandomMessageBody()
+        {
+            return enc.GetBytes(Guid.NewGuid().ToString());
+        }
+
         //
         // Queues
         //
