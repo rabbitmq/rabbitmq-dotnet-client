@@ -46,7 +46,7 @@ using RabbitMQ.Client.Exceptions;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestComplexResults : IntegrationFixture
+    public class TestQueueDeclareOkPayload : IntegrationFixture
     {
 
         private readonly String QueueName = "declare-ok-test-queue";
