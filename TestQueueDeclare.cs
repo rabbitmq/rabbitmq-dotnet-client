@@ -53,7 +53,7 @@ namespace RabbitMQ.Client.Unit {
         public void TestDoubleQueueDeclareWithEquivalentArgs()
         {
             string q = GenerateQueueName();
-            Model.QueueDeclare(q, "fanout", false, false, null);
+            Model.QueueDeclare(q, false, false, false, null);
             VerifyEquivalent(Model, q, false, false, false, null);
 
             WithTemporaryModel((m) => m.QueueDelete(q));
