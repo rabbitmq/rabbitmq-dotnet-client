@@ -45,7 +45,6 @@ using System.Text;
 using System.Threading;
 using System.Diagnostics;
 
-using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Unit {
