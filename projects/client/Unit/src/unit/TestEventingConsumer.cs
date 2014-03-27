@@ -60,20 +60,24 @@ namespace RabbitMQ.Client.Unit {
 
             bool registeredInvoked = false;
             object registeredSender = null;
+            ConsumerEventArgs registeredArgs = null;
             bool unregisteredInvoked = false;
             object unregisteredSender = null;
+            ConsumerEventArgs unregisteredArgs = null;
 
             EventingBasicConsumer ec = new EventingBasicConsumer(Model);
             ec.Registered += (s, args) =>
             {
                 registeredInvoked = true;
                 registeredSender = s;
+                registeredArgs = args;
             };
 
             ec.Unregistered += (s, args) =>
             {
                 unregisteredInvoked = true;
                 unregisteredSender = s;
+                unregisteredArgs = args;
             };
 
             string tag = Model.BasicConsume(q, false, ec);
@@ -81,11 +85,13 @@ namespace RabbitMQ.Client.Unit {
             Assert.IsTrue(registeredInvoked);
             Assert.IsNotNull(registeredSender);
             Assert.AreEqual(ec, registeredSender);
+            Assert.AreEqual(Model, registeredArgs.Model);
 
             Model.BasicCancel(tag);
             Assert.IsTrue(unregisteredInvoked);
             Assert.IsNotNull(unregisteredSender);
             Assert.AreEqual(ec, unregisteredSender);
+            Assert.AreEqual(Model, unregisteredArgs.Model);
         }
 
         [Test]
@@ -96,12 +102,14 @@ namespace RabbitMQ.Client.Unit {
 
             bool receivedInvoked = false;
             object receivedSender = null;
+            BasicDeliverEventArgs receivedArgs = null;
 
             EventingBasicConsumer ec = new EventingBasicConsumer(Model);
             ec.Received += (s, args) =>
             {
                 receivedInvoked = true;
                 receivedSender = s;
+                receivedArgs = args;
 
                 Monitor.PulseAll(o);
             };
@@ -113,6 +121,7 @@ namespace RabbitMQ.Client.Unit {
             Assert.IsTrue(receivedInvoked);
             Assert.IsNotNull(receivedSender);
             Assert.AreEqual(ec, receivedSender);
+            Assert.AreEqual(Model, receivedArgs.Model);
 
             bool shutdownInvoked = false;
             object shutdownSender = null;

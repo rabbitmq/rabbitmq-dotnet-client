@@ -62,7 +62,7 @@ namespace RabbitMQ.Client.Events
             base.HandleBasicCancelOk(consumerTag);
 
             if (Unregistered != null) {
-                Unregistered(this, new ConsumerEventArgs(consumerTag));
+                Unregistered(this, new ConsumerEventArgs(m_model, consumerTag));
             }
         }
 
@@ -72,7 +72,7 @@ namespace RabbitMQ.Client.Events
             base.HandleBasicConsumeOk(consumerTag);
 
             if (Registered != null) {
-                Registered(this, new ConsumerEventArgs(consumerTag));
+                Registered(this, new ConsumerEventArgs(m_model, consumerTag));
             }
         }
 
@@ -93,7 +93,8 @@ namespace RabbitMQ.Client.Events
                                     properties,
                                     body);
             if (Received != null) {
-                Received(this, new BasicDeliverEventArgs(consumerTag,
+                Received(this, new BasicDeliverEventArgs(m_model,
+                                                         consumerTag,
                                                          deliveryTag,
                                                          redelivered,
                                                          exchange,

@@ -46,6 +46,7 @@ namespace RabbitMQ.Client.Events
     ///from an AMQP broker within the Basic content-class.</summary>
     public class BasicDeliverEventArgs : EventArgs
     {
+        private IModel m_model;
         private string m_consumerTag;
         private ulong m_deliveryTag;
         private bool m_redelivered;
@@ -59,7 +60,8 @@ namespace RabbitMQ.Client.Events
 
         ///<summary>Constructor that fills the event's properties from
         ///its arguments.</summary>
-        public BasicDeliverEventArgs(string consumerTag,
+        public BasicDeliverEventArgs(IModel model,
+                                     string consumerTag,
                                      ulong deliveryTag,
                                      bool redelivered,
                                      string exchange,
@@ -67,6 +69,7 @@ namespace RabbitMQ.Client.Events
                                      IBasicProperties properties,
                                      byte[] body)
         {
+            m_model       = model;
             m_consumerTag = consumerTag;
             m_deliveryTag = deliveryTag;
             m_redelivered = redelivered;
@@ -74,6 +77,14 @@ namespace RabbitMQ.Client.Events
             m_routingKey = routingKey;
             m_basicProperties = properties;
             m_body = body;
+        }
+
+        ///<summary>The model of the consumer that the message
+        ///was delivered to.</summary>
+        public IModel Model
+        {
+            get { return m_model; }
+            set { m_model = value; }
         }
 
         ///<summary>The consumer tag of the consumer that the message

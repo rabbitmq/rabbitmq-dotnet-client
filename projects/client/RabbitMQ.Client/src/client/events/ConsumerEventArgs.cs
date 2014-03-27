@@ -47,13 +47,19 @@ namespace RabbitMQ.Client.Events
     public class ConsumerEventArgs: EventArgs
     {
         private readonly string m_consumerTag;
+        private readonly IModel m_model;
 
         ///<summary>Construct an event containing the consumer-tag of
         ///the consumer the event relates to.</summary>
-        public ConsumerEventArgs(string consumerTag)
+        public ConsumerEventArgs(IModel model, string consumerTag)
         {
+            m_model = model;
             m_consumerTag = consumerTag;
         }
+
+        ///<summary>Access the model of the consumer the event
+        ///relates to.</summary>
+        public IModel Model { get { return m_model; } }
 
         ///<summary>Access the consumer-tag of the consumer the event
         ///relates to.</summary>
