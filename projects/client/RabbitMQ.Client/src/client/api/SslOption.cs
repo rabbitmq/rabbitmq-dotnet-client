@@ -35,7 +35,7 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is GoPivotal, Inc.
-//  Copyright (c) 2007-2013 GoPivotal, Inc.  All rights reserved.
+//  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
@@ -136,6 +136,18 @@ namespace RabbitMQ.Client
             set { m_acceptablePolicyErrors = value; }
         }
 
+        /// <summary>
+        /// An optional client specified SSL certificate validation callback.  If this is not specified,
+        /// the default callback will be used in conjunction with the AcceptablePolicyErrors property to 
+        /// determine if the remote server certificate is valid.
+        /// </summary>
+        public RemoteCertificateValidationCallback CertificateValidationCallback { get; set; }
+
+        /// <summary>
+        /// An optional client specified SSL certificate selection callback.  If this is not specified,
+        /// the first valid certificate found will be used.
+        /// </summary>
+        public LocalCertificateSelectionCallback CertificateSelectionCallback { get; set; }
 
         ///<summary>Construct an SslOption specifying both the server cannonical name
         ///and the client's certificate path.
@@ -145,6 +157,8 @@ namespace RabbitMQ.Client
             m_serverName= serverName;
             m_certPath = certPath;
             m_enabled = enabled;
+            CertificateValidationCallback = null;
+            CertificateSelectionCallback  = null;
         }
 
         ///<summary>Construct an SslOption with just the server cannonical name.

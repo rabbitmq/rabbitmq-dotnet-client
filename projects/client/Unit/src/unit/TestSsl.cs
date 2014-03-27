@@ -35,7 +35,7 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is GoPivotal, Inc.
-//  Copyright (c) 2007-2013 GoPivotal, Inc.  All rights reserved.
+//  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using NUnit.Framework;
@@ -59,7 +59,7 @@ public class TestSsl {
             ch.BasicPublish("Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null, msgBytes);
 
             bool noAck = false;
-            BasicGetResult result = ch.BasicGet("Queue_TestSslEndpoint", noAck);
+            BasicGetResult result = ch.BasicGet(qName, noAck);
             byte[] body = result.Body;
             string resultMessage = System.Text.Encoding.UTF8.GetString(body);
 

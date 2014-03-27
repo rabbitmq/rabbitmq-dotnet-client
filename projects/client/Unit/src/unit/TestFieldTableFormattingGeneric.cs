@@ -35,7 +35,7 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is GoPivotal, Inc.
-//  Copyright (c) 2007-2013 GoPivotal, Inc.  All rights reserved.
+//  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 
@@ -119,7 +119,7 @@ namespace RabbitMQ.Client.Unit
         {
             NetworkBinaryWriter w = Writer();
             IDictionary<string, object> t = new Dictionary<string, object>();
-            t["b"] = (byte)123;
+            t["b"] = (sbyte)-128;
             t["d"] = (double)123;
             t["f"] = (float)123;
             t["l"] = (long)123;
@@ -130,7 +130,7 @@ namespace RabbitMQ.Client.Unit
             t["V"] = null;
             WireFormatting.WriteTable(w, t);
             IDictionary nt = (IDictionary)WireFormatting.ReadTable(Reader(Contents(w)));
-            Assert.AreEqual(typeof(byte), nt["b"].GetType()); Assert.AreEqual((byte)123, nt["b"]);
+            Assert.AreEqual(typeof(sbyte), nt["b"].GetType()); Assert.AreEqual((sbyte)-128, nt["b"]);
             Assert.AreEqual(typeof(double), nt["d"].GetType()); Assert.AreEqual((double)123, nt["d"]);
             Assert.AreEqual(typeof(float), nt["f"].GetType()); Assert.AreEqual((float)123, nt["f"]);
             Assert.AreEqual(typeof(long), nt["l"].GetType()); Assert.AreEqual((long)123, nt["l"]);

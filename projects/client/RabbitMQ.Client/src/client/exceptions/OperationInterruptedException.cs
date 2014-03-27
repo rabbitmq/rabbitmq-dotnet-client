@@ -35,7 +35,7 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is GoPivotal, Inc.
-//  Copyright (c) 2007-2013 GoPivotal, Inc.  All rights reserved.
+//  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
@@ -77,6 +77,16 @@ namespace RabbitMQ.Client.Exceptions
             : base(reason == null ? "The AMQP operation was interrupted" :
                    string.Format("The AMQP operation was interrupted: {0}",
                                  reason))
+        {
+            m_shutdownReason = reason;
+        }
+
+        ///<summary>Construct an OperationInterruptedException with
+        ///the passed-in explanation and prefix, if any.</summary>
+        public OperationInterruptedException(ShutdownEventArgs reason, String prefix)
+        : base(reason == null ? (prefix + ": The AMQP operation was interrupted") :
+                   string.Format("{0}: The AMQP operation was interrupted: {1}",
+                                 prefix, reason))
         {
             m_shutdownReason = reason;
         }

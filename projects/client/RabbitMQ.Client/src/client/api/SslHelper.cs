@@ -35,7 +35,7 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is GoPivotal, Inc.
-//  Copyright (c) 2007-2013 GoPivotal, Inc.  All rights reserved.
+//  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
@@ -90,9 +90,15 @@ namespace RabbitMQ.Client
         public static Stream TcpUpgrade(Stream tcpStream, SslOption sslOption, int timeout)
         {
             SslHelper helper = new SslHelper(sslOption);
+
+            RemoteCertificateValidationCallback remoteCertValidator =
+              sslOption.CertificateValidationCallback ?? new RemoteCertificateValidationCallback(helper.CertificateValidationCallback);
+            LocalCertificateSelectionCallback localCertSelector =
+              sslOption.CertificateSelectionCallback ?? new LocalCertificateSelectionCallback(helper.CertificateSelectionCallback);
+
             SslStream sslStream = new SslStream(tcpStream, false,
-                                                new RemoteCertificateValidationCallback(helper.CertificateValidationCallback),
-                                                new LocalCertificateSelectionCallback(helper.CertificateSelectionCallback));
+                                                remoteCertValidator,
+                                                localCertSelector);
 
             sslStream.AuthenticateAsClient(sslOption.ServerName,
                                            sslOption.Certs,

@@ -35,7 +35,7 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is GoPivotal, Inc.
-//  Copyright (c) 2007-2013 GoPivotal, Inc.  All rights reserved.
+//  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
@@ -49,6 +49,6 @@ namespace RabbitMQ.Client.Exceptions {
         ///<summary>Construct an instance containing the given
         ///shutdown reason.</summary>
         public AlreadyClosedException(ShutdownEventArgs reason)
-            : base(reason) { }
+            : base(reason, "Already closed") { }
     }
 }

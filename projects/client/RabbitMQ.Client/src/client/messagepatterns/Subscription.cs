@@ -35,7 +35,7 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is GoPivotal, Inc.
-//  Copyright (c) 2007-2013 GoPivotal, Inc.  All rights reserved.
+//  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
@@ -212,7 +212,7 @@ namespace RabbitMQ.Client.MessagePatterns {
                 // from under us by the operation of Close() from
                 // another thread.
                 QueueingBasicConsumer consumer = m_consumer;
-                if (consumer == null) {
+                if (consumer == null || m_model.IsClosed) {
                     // Closed!
                     m_latestEvent = null;
                 } else {
@@ -275,9 +275,11 @@ namespace RabbitMQ.Client.MessagePatterns {
                 // from under us by the operation of Close() from
                 // another thread.
                 QueueingBasicConsumer consumer = m_consumer;
-                if (consumer == null) {
+                if (consumer == null || m_model.IsClosed) {
                     // Closed!
                     m_latestEvent = null;
+                    result = null;
+                    return false;
                 } else {
                     BasicDeliverEventArgs qValue;
                     if (!consumer.Queue.Dequeue(millisecondsTimeout, out qValue)) {

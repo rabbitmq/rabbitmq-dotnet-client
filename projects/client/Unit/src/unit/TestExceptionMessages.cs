@@ -38,18 +38,37 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using NUnit.Framework;
 using System;
-using System.Collections.Generic;
-using System.Runtime.Serialization;
-using System.ServiceModel;
-using System.Text;
+using RabbitMQ.Client.Exceptions;
 
-namespace RabbitMQ.ServiceModel.Examples.ConfigDemo.WcfServiceLibrary1
+namespace RabbitMQ.Client.Unit
 {
-    [ServiceContract]
-    public interface IHelloContract
+    [TestFixture]
+    public class TestExceptionMessages : IntegrationFixture
     {
-        [OperationContract]
-        string Hello(string name);
+        [Test]
+        public void TestAlreadyClosedExceptionMessage()
+        {
+            var uuid = System.Guid.NewGuid().ToString();
+            try
+            {
+                Model.QueueDeclarePassive(uuid);
+            } catch (Exception e)
+            {
+                Assert.That(e, Is.TypeOf(typeof(OperationInterruptedException)));
+            }
+
+            Assert.IsFalse(Model.IsOpen);
+
+            try
+            {
+                Model.QueueDeclarePassive(uuid);
+            } catch (AlreadyClosedException e)
+            {
+                Assert.That(e, Is.TypeOf(typeof(AlreadyClosedException)));
+                Assert.IsTrue(e.Message.StartsWith("Already closed"));
+            }
+        }
     }
 }

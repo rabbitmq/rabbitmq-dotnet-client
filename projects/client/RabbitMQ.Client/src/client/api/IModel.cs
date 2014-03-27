@@ -35,7 +35,7 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is GoPivotal, Inc.
-//  Copyright (c) 2007-2013 GoPivotal, Inc.  All rights reserved.
+//  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
@@ -126,10 +126,14 @@ namespace RabbitMQ.Client
         ///otherwise.</summary>
         ShutdownEventArgs CloseReason { get; }
 
-        ///<summary>Returns true if the session is still in a state
+        ///<summary>Returns true if the model is still in a state
         ///where it can be used. Identical to checking if CloseReason
         ///== null.</summary>
         bool IsOpen { get; }
+
+        ///<summary>Returns true if the model is no longer in a state
+        ///where it can be used.</summary>
+        bool IsClosed { get; }
 
         ///<summary>When in confirm mode, return the sequence number
         ///of the next message to be published.</summary>
@@ -153,12 +157,6 @@ namespace RabbitMQ.Client
         [AmqpContentHeaderFactory("stream")]
         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
         IStreamProperties CreateStreamProperties();
-
-        ///<summary>(Spec method) Channel flow control functionality.</summary>
-        ///<remarks>
-        ///</remarks>
-        [return: AmqpFieldMapping(null, "active")]
-        void ChannelFlow(bool active);
 
         ///<summary>(Spec method) Declare an exchange.</summary>
         ///<remarks>

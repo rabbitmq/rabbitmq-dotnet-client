@@ -35,7 +35,7 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is GoPivotal, Inc.
-//  Copyright (c) 2007-2013 GoPivotal, Inc.  All rights reserved.
+//  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
@@ -670,7 +670,15 @@ namespace RabbitMQ.Client.Impl
                 // connection closes.
                 if (shutdownCleanly)
                 {
-                    ClosingLoop();
+                    try
+                    {
+                        ClosingLoop();
+                    } catch (SocketException se)
+                    {
+                        // means that socket was closed when frame handler
+                        // attempted to use it. Since we are shutting down,
+                        // ignore it.
+                    }
                 }
 
                 FinishClose();
@@ -1060,9 +1068,7 @@ namespace RabbitMQ.Client.Impl
                 connectionStartCell.Value;
 
             if (connectionStart == null){
-                throw new ProtocolVersionMismatchException(Protocol.MajorVersion,
-                                                           Protocol.MinorVersion,
-                                                           -1, -1);
+                throw new IOException("connection.start was never received, likely due to a network timeout");
             }
 
             ServerProperties = connectionStart.m_serverProperties;
