@@ -81,11 +81,13 @@ namespace RabbitMQ.Client.Unit {
             Assert.IsTrue(registeredInvoked);
             Assert.IsNotNull(registeredSender);
             Assert.AreEqual(ec, registeredSender);
+            Assert.AreEqual(Model, ((EventingBasicConsumer)registeredSender).Model);
 
             Model.BasicCancel(tag);
             Assert.IsTrue(unregisteredInvoked);
             Assert.IsNotNull(unregisteredSender);
             Assert.AreEqual(ec, unregisteredSender);
+            Assert.AreEqual(Model, ((EventingBasicConsumer)unregisteredSender).Model);
         }
 
         [Test]
@@ -113,6 +115,7 @@ namespace RabbitMQ.Client.Unit {
             Assert.IsTrue(receivedInvoked);
             Assert.IsNotNull(receivedSender);
             Assert.AreEqual(ec, receivedSender);
+            Assert.AreEqual(Model, ((EventingBasicConsumer)receivedSender).Model);
 
             bool shutdownInvoked = false;
             object shutdownSender = null;
@@ -131,6 +134,7 @@ namespace RabbitMQ.Client.Unit {
             Assert.IsTrue(shutdownInvoked);
             Assert.IsNotNull(shutdownSender);
             Assert.AreEqual(ec, shutdownSender);
+            Assert.AreEqual(Model, ((EventingBasicConsumer)shutdownSender).Model);
         }
 
 
