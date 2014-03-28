@@ -58,7 +58,7 @@ namespace RabbitMQ.Client
     ///</remarks>
     public class DefaultBasicConsumer : IBasicConsumer
     {
-        protected IModel m_model = null;
+        private IModel m_model = null;
         private string m_consumerTag = null;
         private bool m_running = false;
         private ShutdownEventArgs m_shutdownReason = null;
@@ -126,7 +126,7 @@ namespace RabbitMQ.Client
             {
                 foreach (ConsumerCancelledEventHandler h in handler.GetInvocationList())
                 {
-                    h(this, new ConsumerEventArgs(m_model, m_consumerTag));
+                    h(this, new ConsumerEventArgs(m_consumerTag));
                 }
             }
         }
