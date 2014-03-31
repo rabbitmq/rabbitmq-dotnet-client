@@ -50,15 +50,15 @@ namespace RabbitMQ.Client.Unit {
     [TestFixture]
     public class TestConsumerExceptions : IntegrationFixture {
 
-        protected delegate void FailingOp(IModel m, string q, IBasicConsumer c);
+        protected delegate void FailingOp(IModel model, string queue, IBasicConsumer consumer, string consumerTag);
 
-        private FailingOp NoOp = (m, q, c) => {};
+        private FailingOp NoOp = (m, q, c, ct) => {};
 
         [Test]
         public void TestDeliveryExceptionHandling()
         {
             IBasicConsumer consumer = new ConsumerFailingOnDelivery(Model);
-            TestExceptionHandlingWith(consumer, (m, q, c) => {
+            TestExceptionHandlingWith(consumer, (m, q, c, ct) => {
                 Model.BasicPublish("", q, null, enc.GetBytes("msg"));
             });
         }
@@ -67,7 +67,7 @@ namespace RabbitMQ.Client.Unit {
         public void TestCancelNotificationExceptionHandling()
         {
             IBasicConsumer consumer = new ConsumerFailingOnCancel(Model);
-                TestExceptionHandlingWith(consumer, (m, q, c) => {
+            TestExceptionHandlingWith(consumer, (m, q, c, ct) => {
                 Model.QueueDelete(q);
             });
         }
@@ -76,7 +76,7 @@ namespace RabbitMQ.Client.Unit {
         public void TestConsumerShutdownExceptionHandling()
         {
             IBasicConsumer consumer = new ConsumerFailingOnShutdown(Model);
-                TestExceptionHandlingWith(consumer, (m, q, c) => {
+            TestExceptionHandlingWith(consumer, (m, q, c, ct) => {
                 Model.Close();
             });
         }
@@ -86,6 +86,13 @@ namespace RabbitMQ.Client.Unit {
         {
             IBasicConsumer consumer = new ConsumerFailingOnConsumeOk(Model);
                 TestExceptionHandlingWith(consumer, NoOp);
+        }
+
+        [Test]
+        public void TestConsumerCancelOkExceptionHandling()
+        {
+            IBasicConsumer consumer = new ConsumerFailingOnCancelOk(Model);
+            TestExceptionHandlingWith(consumer, (m, q, c, ct) => { m.BasicCancel(ct); });
         }
 
         private class ConsumerFailingOnDelivery : DefaultBasicConsumer
@@ -130,6 +137,15 @@ namespace RabbitMQ.Client.Unit {
             }
         }
 
+        private class ConsumerFailingOnCancelOk : DefaultBasicConsumer
+        {
+            public ConsumerFailingOnCancelOk(IModel model) : base(model) {}
+
+            public override void HandleBasicCancelOk(string consumerTag) {
+                throw new SystemException("oops");
+            }
+        }
+
         protected void TestExceptionHandlingWith(IBasicConsumer consumer, FailingOp fn)
         {
             Object o = new Object();
@@ -142,8 +158,8 @@ namespace RabbitMQ.Client.Unit {
                 Monitor.PulseAll(o);
             };
 
-            Model.BasicConsume(q, true, consumer);
-            fn(Model, q, consumer);
+            string tag = Model.BasicConsume(q, true, consumer);
+            fn(Model, q, consumer, tag);
             WaitOn(o);
 
             Assert.IsTrue(notified);
