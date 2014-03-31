@@ -38,17 +38,42 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
+using NUnit.Framework;
 
-namespace RabbitMQ.Client.Exceptions {
-    /// <summary>Thrown when the application tries to make use of a
-    /// session or connection that has already been shut
-    /// down.</summary>
-    public class AlreadyClosedException: OperationInterruptedException
-    {
-        ///<summary>Construct an instance containing the given
-        ///shutdown reason.</summary>
-        public AlreadyClosedException(ShutdownEventArgs reason)
-            : base(reason, "Already closed") { }
+using System;
+using System.Text;
+using System.Threading;
+using System.Diagnostics;
+
+using RabbitMQ.Client.Events;
+using RabbitMQ.Client.MessagePatterns;
+
+namespace RabbitMQ.Client.Unit {
+    [TestFixture]
+    public class TestMessagePatternsSubscription : IntegrationFixture {
+        UTF8Encoding enc = new UTF8Encoding();
+
+        [Test]
+        public void TestChannelClosureIsObservableOnSubscription()
+        {
+            string q = Model.QueueDeclare();
+            Subscription sub = new Subscription(Model, q, true);
+
+            BasicDeliverEventArgs r1;
+            Assert.IsFalse(sub.Next(100, out r1));
+
+            Model.BasicPublish("", q, null, enc.GetBytes("a message"));
+            Model.BasicPublish("", q, null, enc.GetBytes("a message"));
+
+            BasicDeliverEventArgs r2;
+            Assert.IsTrue(sub.Next(1000, out r2));
+            Assert.IsNotNull(sub.Next());
+
+            Model.Close();
+            Assert.IsNull(sub.Next());
+
+            BasicDeliverEventArgs r3;
+            Assert.IsFalse(sub.Next(100, out r3));
+        }
     }
 }

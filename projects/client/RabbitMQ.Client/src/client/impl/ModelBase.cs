@@ -494,16 +494,7 @@ namespace RabbitMQ.Client.Impl
         public void TransmitAndEnqueue(Command cmd, IRpcContinuation k)
         {
             Enqueue(k);
-            try
-            {
-                m_session.Transmit(cmd);
-            }
-            catch (AlreadyClosedException)
-            {
-                // Ignored, since the continuation will be told about
-                // the closure via an OperationInterruptedException because
-                // of the shutdown event propagation.
-            }
+            m_session.Transmit(cmd);
         }
 
         public ShutdownEventArgs CloseReason
@@ -521,6 +512,15 @@ namespace RabbitMQ.Client.Impl
                 return CloseReason == null;
             }
         }
+
+        public bool IsClosed
+        {
+            get
+            {
+                return !IsOpen;
+            }
+        }
+
 
         public ulong NextPublishSeqNo
         {
@@ -894,16 +894,7 @@ namespace RabbitMQ.Client.Impl
         {
             QueueDeclareRpcContinuation k = new QueueDeclareRpcContinuation();
             Enqueue(k);
-            try
-            {
-                _Private_QueueDeclare(queue, passive, durable, exclusive, autoDelete, false, arguments);
-            }
-            catch (AlreadyClosedException)
-            {
-                // Ignored, since the continuation will be told about
-                // the closure via an OperationInterruptedException because
-                // of the shutdown event propagation.
-            }
+            _Private_QueueDeclare(queue, passive, durable, exclusive, autoDelete, false, arguments);
             k.GetReply();
             return k.m_result;
         }
@@ -988,7 +979,7 @@ namespace RabbitMQ.Client.Impl
             {
                 while (true)
                 {
-                    if (CloseReason != null)
+                    if (!IsOpen)
                         throw new AlreadyClosedException(CloseReason);
 
                     if (m_unconfirmedSet.Count == 0)
@@ -1095,17 +1086,8 @@ namespace RabbitMQ.Client.Impl
             Enqueue(k);
             // Non-nowait. We have an unconventional means of getting
             // the RPC response, but a response is still expected.
-            try
-            {
-                _Private_BasicConsume(queue, consumerTag, noLocal, noAck, exclusive,
+            _Private_BasicConsume(queue, consumerTag, noLocal, noAck, exclusive,
                     /*nowait:*/ false, arguments);
-            }
-            catch (AlreadyClosedException)
-            {
-                // Ignored, since the continuation will be told about
-                // the closure via an OperationInterruptedException because
-                // of the shutdown event propagation.
-            }
             k.GetReply();
             string actualConsumerTag = k.m_consumerTag;
 
@@ -1141,17 +1123,7 @@ namespace RabbitMQ.Client.Impl
 
             Enqueue(k);
 
-            try
-            {
-                _Private_BasicCancel(consumerTag, false);
-            }
-            catch (AlreadyClosedException)
-            {
-                // Ignored, since the continuation will be told about
-                // the closure via an OperationInterruptedException because
-                // of the shutdown event propagation.
-            }
-
+            _Private_BasicCancel(consumerTag, false);
             k.GetReply();
 
             ModelShutdown -= new ModelShutdownEventHandler(k.m_consumer.HandleModelShutdown);
@@ -1197,16 +1169,7 @@ namespace RabbitMQ.Client.Impl
         {
             BasicGetRpcContinuation k = new BasicGetRpcContinuation();
             Enqueue(k);
-            try
-            {
-                _Private_BasicGet(queue, noAck);
-            }
-            catch (AlreadyClosedException)
-            {
-                // Ignored, since the continuation will be told about
-                // the closure via an OperationInterruptedException because
-                // of the shutdown event propagation.
-            }
+            _Private_BasicGet(queue, noAck);
             k.GetReply();
             return k.m_result;
         }
@@ -1218,18 +1181,7 @@ namespace RabbitMQ.Client.Impl
             SimpleBlockingRpcContinuation k = new SimpleBlockingRpcContinuation();
 
             Enqueue(k);
-
-            try
-            {
-                _Private_BasicRecover(requeue);
-            }
-            catch (AlreadyClosedException)
-            {
-                // Ignored, since the continuation will be told about
-                // the closure via an OperationInterruptedException because
-                // of the shutdown event propagation.
-            }
-
+            _Private_BasicRecover(requeue);
             k.GetReply();
         }
 
@@ -1461,7 +1413,9 @@ namespace RabbitMQ.Client.Impl
             }
             catch (AlreadyClosedException)
             {
-                // Ignored, see BasicGet
+                // let continuation throw OperationInterruptedException,
+                // which is a much more suitable exception before connection
+                // negotiation finishes
             }
             k.GetReply();
             return k.m_result;
@@ -1490,7 +1444,9 @@ namespace RabbitMQ.Client.Impl
             }
             catch (AlreadyClosedException)
             {
-                // Ignored, see BasicGet
+                // let continuation throw OperationInterruptedException,
+                // which is a much more suitable exception before connection
+                // negotiation finishes
             }
             k.GetReply();
             return k.m_result;
@@ -1535,7 +1491,9 @@ namespace RabbitMQ.Client.Impl
             }
             catch (AlreadyClosedException)
             {
-                // Ignored, see BasicGet
+                // let continuation throw OperationInterruptedException,
+                // which is a much more suitable exception before connection
+                // negotiation finishes
             }
             k.GetReply();
             if (k.m_redirect) {
