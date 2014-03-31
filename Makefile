@@ -17,7 +17,7 @@ dist: rabbit-vsn ensure-deliverables ensure-universally-readable
 	rm -f $(RELEASE_DIR)/$(TMPXMLZIP)
 
 test-xbuild-units:
-	xbuild /nologo /t:RunUnitTests projects/client/Unit/RabbitMQ.Client.Unit.csproj | grep -v CS2002
+	xbuild /nologo /t:RunUnitTests projects/client/Unit/RabbitMQ.Client.Unit.csproj
 
 test-xbuild: test-xbuild-units
 
