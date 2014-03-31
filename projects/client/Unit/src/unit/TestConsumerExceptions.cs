@@ -84,6 +84,36 @@ namespace RabbitMQ.Client.Unit {
                 throw new SystemException("oops");
             }
         }
+
+
+        [Test]
+        public void TestCancelNotificationExceptionHandling()
+        {
+            Object o = new Object();
+            bool notified = false;
+            string q = Model.QueueDeclare();
+            IBasicConsumer consumer = new ConsumerFailingOnCancel(Model);
+
+            Model.CallbackException += (m, evt) => {
+                notified = true;
+                Monitor.PulseAll(o);
+            };
+
+            Model.BasicConsume(q, true, consumer);
+            Model.QueueDelete(q);
+            WaitOn(o);
+
+            Assert.IsTrue(notified);
+        }
+
+        private class ConsumerFailingOnCancel : DefaultBasicConsumer
+        {
+            public ConsumerFailingOnCancel(IModel model) : base(model) {}
+
+            public override void HandleBasicCancel(string consumerTag) {
+                throw new SystemException("oops");
+            }
+        }
     }
 }
 
