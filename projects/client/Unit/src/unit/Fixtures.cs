@@ -38,6 +38,8 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+#pragma warning disable 2002
+
 using NUnit.Framework;
 
 using System;
