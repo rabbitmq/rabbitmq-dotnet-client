@@ -53,21 +53,19 @@ namespace RabbitMQ.Client.Unit {
         [Test]
         public void TestDeliveryExceptionHandling()
         {
-            Object o = new Object();
-            bool notified = false;
-            string q = Model.QueueDeclare();
             IBasicConsumer consumer = new ConsumerFailingOnDelivery(Model);
+            TestExceptionHandlingWith(consumer, (m, q, c) => {
+                Model.BasicPublish("", q, null, enc.GetBytes("msg"));
+            });
+        }
 
-            Model.CallbackException += (m, evt) => {
-                notified = true;
-                Monitor.PulseAll(o);
-            };
-
-            Model.BasicConsume(q, true, consumer);
-            Model.BasicPublish("", q, null, enc.GetBytes("msg"));
-            WaitOn(o);
-
-            Assert.IsTrue(notified);
+        [Test]
+        public void TestCancelNotificationExceptionHandling()
+        {
+            IBasicConsumer consumer = new ConsumerFailingOnCancel(Model);
+                TestExceptionHandlingWith(consumer, (m, q, c) => {
+                Model.QueueDelete(q);
+            });
         }
 
         private class ConsumerFailingOnDelivery : DefaultBasicConsumer
@@ -85,27 +83,6 @@ namespace RabbitMQ.Client.Unit {
             }
         }
 
-
-        [Test]
-        public void TestCancelNotificationExceptionHandling()
-        {
-            Object o = new Object();
-            bool notified = false;
-            string q = Model.QueueDeclare();
-            IBasicConsumer consumer = new ConsumerFailingOnCancel(Model);
-
-            Model.CallbackException += (m, evt) => {
-                notified = true;
-                Monitor.PulseAll(o);
-            };
-
-            Model.BasicConsume(q, true, consumer);
-            Model.QueueDelete(q);
-            WaitOn(o);
-
-            Assert.IsTrue(notified);
-        }
-
         private class ConsumerFailingOnCancel : DefaultBasicConsumer
         {
             public ConsumerFailingOnCancel(IModel model) : base(model) {}
@@ -114,6 +91,26 @@ namespace RabbitMQ.Client.Unit {
                 throw new SystemException("oops");
             }
         }
+
+        protected delegate void FailingOp(IModel m, string q, IBasicConsumer c);
+
+        protected void TestExceptionHandlingWith(IBasicConsumer consumer, FailingOp fn)
+        {
+            Object o = new Object();
+            bool notified = false;
+            string q = Model.QueueDeclare();
+
+
+            Model.CallbackException += (m, evt) => {
+                notified = true;
+                Monitor.PulseAll(o);
+            };
+
+            Model.BasicConsume(q, true, consumer);
+            fn(Model, q, consumer);
+            WaitOn(o);
+
+            Assert.IsTrue(notified);
+        }
     }
 }
-
