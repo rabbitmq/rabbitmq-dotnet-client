@@ -208,7 +208,7 @@ namespace RabbitMQ.Client.Unit
         {
             lock(o)
             {
-                Monitor.Wait(o, TimeSpan.FromSeconds(4));
+                Monitor.Wait(o, TimingFixture.TestTimeout);
             }
         }
     }

@@ -65,13 +65,7 @@ namespace RabbitMQ.Client.Unit {
 
             Model.BasicConsume(q, true, consumer);
             Model.BasicPublish("", q, null, enc.GetBytes("msg"));
-            lock(o)
-            {
-                if(!notified)
-                {
-                    Monitor.Wait(o, TimingFixture.TestTimeout);
-                }
-            }
+            WaitOn(o);
 
             Assert.IsTrue(notified);
         }
