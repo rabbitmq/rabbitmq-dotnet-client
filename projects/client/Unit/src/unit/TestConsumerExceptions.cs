@@ -52,6 +52,8 @@ namespace RabbitMQ.Client.Unit {
 
         protected delegate void FailingOp(IModel m, string q, IBasicConsumer c);
 
+        private FailingOp NoOp = (m, q, c) => {};
+
         [Test]
         public void TestDeliveryExceptionHandling()
         {
@@ -79,6 +81,12 @@ namespace RabbitMQ.Client.Unit {
             });
         }
 
+        [Test]
+        public void TestConsumerConsumeOkExceptionHandling()
+        {
+            IBasicConsumer consumer = new ConsumerFailingOnConsumeOk(Model);
+                TestExceptionHandlingWith(consumer, NoOp);
+        }
 
         private class ConsumerFailingOnDelivery : DefaultBasicConsumer
         {
@@ -109,6 +117,15 @@ namespace RabbitMQ.Client.Unit {
             public ConsumerFailingOnShutdown(IModel model) : base(model) {}
 
             public override void HandleModelShutdown(IModel m, ShutdownEventArgs reason) {
+                throw new SystemException("oops");
+            }
+        }
+
+        private class ConsumerFailingOnConsumeOk : DefaultBasicConsumer
+        {
+            public ConsumerFailingOnConsumeOk(IModel model) : base(model) {}
+
+            public override void HandleBasicConsumeOk(string consumerTag) {
                 throw new SystemException("oops");
             }
         }
