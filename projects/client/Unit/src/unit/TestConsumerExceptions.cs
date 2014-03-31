@@ -59,7 +59,7 @@ namespace RabbitMQ.Client.Unit {
         {
             IBasicConsumer consumer = new ConsumerFailingOnDelivery(Model);
             TestExceptionHandlingWith(consumer, (m, q, c, ct) => {
-                Model.BasicPublish("", q, null, enc.GetBytes("msg"));
+                m.BasicPublish("", q, null, enc.GetBytes("msg"));
             });
         }
 
@@ -68,7 +68,7 @@ namespace RabbitMQ.Client.Unit {
         {
             IBasicConsumer consumer = new ConsumerFailingOnCancel(Model);
             TestExceptionHandlingWith(consumer, (m, q, c, ct) => {
-                Model.QueueDelete(q);
+                m.QueueDelete(q);
             });
         }
 
@@ -77,7 +77,7 @@ namespace RabbitMQ.Client.Unit {
         {
             IBasicConsumer consumer = new ConsumerFailingOnShutdown(Model);
             TestExceptionHandlingWith(consumer, (m, q, c, ct) => {
-                Model.Close();
+                m.Close();
             });
         }
 
