@@ -50,6 +50,8 @@ namespace RabbitMQ.Client.Unit {
     [TestFixture]
     public class TestConsumerExceptions : IntegrationFixture {
 
+        protected delegate void FailingOp(IModel m, string q, IBasicConsumer c);
+
         [Test]
         public void TestDeliveryExceptionHandling()
         {
@@ -67,6 +69,16 @@ namespace RabbitMQ.Client.Unit {
                 Model.QueueDelete(q);
             });
         }
+
+        [Test]
+        public void TestConsumerShutdownExceptionHandling()
+        {
+            IBasicConsumer consumer = new ConsumerFailingOnShutdown(Model);
+                TestExceptionHandlingWith(consumer, (m, q, c) => {
+                Model.Close();
+            });
+        }
+
 
         private class ConsumerFailingOnDelivery : DefaultBasicConsumer
         {
@@ -92,7 +104,14 @@ namespace RabbitMQ.Client.Unit {
             }
         }
 
-        protected delegate void FailingOp(IModel m, string q, IBasicConsumer c);
+        private class ConsumerFailingOnShutdown : DefaultBasicConsumer
+        {
+            public ConsumerFailingOnShutdown(IModel model) : base(model) {}
+
+            public override void HandleModelShutdown(IModel m, ShutdownEventArgs reason) {
+                throw new SystemException("oops");
+            }
+        }
 
         protected void TestExceptionHandlingWith(IBasicConsumer consumer, FailingOp fn)
         {
