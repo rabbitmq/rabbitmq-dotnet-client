@@ -670,15 +670,7 @@ namespace RabbitMQ.Client.Impl
                 // connection closes.
                 if (shutdownCleanly)
                 {
-                    try
-                    {
-                        ClosingLoop();
-                    } catch (SocketException se)
-                    {
-                        // means that socket was closed when frame handler
-                        // attempted to use it. Since we are shutting down,
-                        // ignore it.
-                    }
+                    ClosingLoop();
                 }
 
                 FinishClose();
