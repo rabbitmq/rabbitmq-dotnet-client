@@ -188,6 +188,17 @@ namespace RabbitMQ.Client.MessagePatterns {
         }
 
         ///<summary>If LatestEvent is non-null, passes it to
+        ///Nack(BasicDeliverEventArgs, false, requeue). Causes LatestEvent to become
+        ///null.</summary>
+        public void Nack(bool requeue)
+        {
+            if (m_latestEvent != null) {
+                Nack(m_latestEvent, false, requeue);
+            }
+        }
+
+
+        ///<summary>If LatestEvent is non-null, passes it to
         ///Nack(BasicDeliverEventArgs, multiple, requeue). Causes LatestEvent to become
         ///null.</summary>
         public void Nack(bool multiple, bool requeue)
