@@ -41,34 +41,53 @@
 using NUnit.Framework;
 
 using System;
-using System.Text;
+using System.Collections.Generic;
+
+using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Unit {
     [TestFixture]
-    public class TestConfirmSelect : IntegrationFixture {
+    public class TestQueueDeclare : IntegrationFixture {
 
         [Test]
-        public void TestConfirmSelectIdempotency()
+        public void TestDoubleQueueDeclareWithEquivalentArgs()
         {
-            Model.ConfirmSelect();
-            Assert.AreEqual(1, Model.NextPublishSeqNo);
-            Publish();
-            Assert.AreEqual(2, Model.NextPublishSeqNo);
-            Publish();
-            Assert.AreEqual(3, Model.NextPublishSeqNo);
+            string q = GenerateQueueName();
+            Model.QueueDeclare(q, false, false, false, null);
+            VerifyEquivalent(Model, q, false, false, false, null);
 
-            Model.ConfirmSelect();
-            Publish();
-            Assert.AreEqual(4, Model.NextPublishSeqNo);
-            Publish();
-            Assert.AreEqual(5, Model.NextPublishSeqNo);
-            Publish();
-            Assert.AreEqual(6, Model.NextPublishSeqNo);
+            WithTemporaryModel((m) => m.QueueDelete(q));
         }
 
-        protected void Publish()
+        [Test]
+        public void TestDoubleQueueDeclareWithNonEquivalentArgs()
         {
-            Model.BasicPublish("", "amq.fanout", null, enc.GetBytes("message"));
+            string q = GenerateQueueName();
+            Model.QueueDeclare(q, false, false, false, null);
+            VerifyNonEquivalent(Model, q, true, true, true, null);
+
+            WithTemporaryModel((m) => m.QueueDelete(q));
+        }
+
+        protected void VerifyEquivalent(IModel m, string name, bool durable, bool exclusive,
+                                        bool autoDelete, IDictionary<string, object> args)
+        {
+            m.QueueDeclarePassive(name);
+            m.QueueDeclare(name, durable, exclusive, autoDelete, args);
+        }
+
+        protected void VerifyNonEquivalent(IModel m, string name, bool durable, bool exclusive,
+                                        bool autoDelete, IDictionary<string, object> args)
+        {
+            m.QueueDeclarePassive(name);
+            try
+            {
+                m.QueueDeclare(name, durable, exclusive, autoDelete, args);
+                Assert.Fail("Expected queue.declare to throw");
+            } catch (OperationInterruptedException eoi)
+            {
+                AssertPreconditionFailed(eoi.ShutdownReason);
+            }
         }
     }
 }

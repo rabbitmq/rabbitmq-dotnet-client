@@ -42,33 +42,34 @@ using NUnit.Framework;
 
 using System;
 using System.Text;
+using System.Threading;
+using System.Diagnostics;
+
+using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Unit {
     [TestFixture]
-    public class TestConfirmSelect : IntegrationFixture {
-
+    public class TestUserIDHeader : IntegrationFixture {
         [Test]
-        public void TestConfirmSelectIdempotency()
+        public void TestInvalidUserID()
         {
-            Model.ConfirmSelect();
-            Assert.AreEqual(1, Model.NextPublishSeqNo);
-            Publish();
-            Assert.AreEqual(2, Model.NextPublishSeqNo);
-            Publish();
-            Assert.AreEqual(3, Model.NextPublishSeqNo);
+            object o = new Object();
+            bool shutdownFired = false;
+            ShutdownEventArgs shutdownArgs = null;
+            Model.ModelShutdown += (s, args) =>
+            {
+                shutdownFired = true;
+                shutdownArgs = args;
+                Monitor.PulseAll(o);
+            };
 
-            Model.ConfirmSelect();
-            Publish();
-            Assert.AreEqual(4, Model.NextPublishSeqNo);
-            Publish();
-            Assert.AreEqual(5, Model.NextPublishSeqNo);
-            Publish();
-            Assert.AreEqual(6, Model.NextPublishSeqNo);
-        }
+            IBasicProperties props = Model.CreateBasicProperties();
+            props.UserId = Guid.NewGuid().ToString();
+            Model.BasicPublish("", "", props, RandomMessageBody());
 
-        protected void Publish()
-        {
-            Model.BasicPublish("", "amq.fanout", null, enc.GetBytes("message"));
+            WaitOn(o);
+            Assert.IsTrue(shutdownFired);
+            AssertPreconditionFailed(shutdownArgs);
         }
     }
 }

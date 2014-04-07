@@ -38,37 +38,50 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
-
 using System;
-using System.Text;
+using System.Threading;
+using NUnit.Framework;
+using RabbitMQ.Client.Exceptions;
 
-namespace RabbitMQ.Client.Unit {
+namespace RabbitMQ.Client.Unit
+{
     [TestFixture]
-    public class TestConfirmSelect : IntegrationFixture {
+    public class TestQueueDeclareOkPayload : IntegrationFixture
+    {
+
+        private readonly String QueueName = "declare-ok-test-queue";
 
         [Test]
-        public void TestConfirmSelectIdempotency()
+        public void TestQueueDeclareOk()
         {
             Model.ConfirmSelect();
-            Assert.AreEqual(1, Model.NextPublishSeqNo);
-            Publish();
-            Assert.AreEqual(2, Model.NextPublishSeqNo);
-            Publish();
-            Assert.AreEqual(3, Model.NextPublishSeqNo);
+            QueueDeclareOk result;
 
-            Model.ConfirmSelect();
-            Publish();
-            Assert.AreEqual(4, Model.NextPublishSeqNo);
-            Publish();
-            Assert.AreEqual(5, Model.NextPublishSeqNo);
-            Publish();
-            Assert.AreEqual(6, Model.NextPublishSeqNo);
+            result = QueueDeclare();
+            Assert.AreEqual(0, result.MessageCount);
+            Assert.AreEqual(0, result.ConsumerCount);
+            Assert.AreEqual(QueueName, result.QueueName);
+            EnsureNotEmpty(result.QueueName);
+            Model.WaitForConfirms();
+
+            result = QueueDeclare();
+            Assert.AreEqual(1, result.MessageCount);
+            Assert.AreEqual(0, result.ConsumerCount);
+            Assert.AreEqual(QueueName, result.QueueName);
+
+            QueueingBasicConsumer consumer = new QueueingBasicConsumer(Model);
+            Model.BasicConsume(QueueName, true, consumer);
+            consumer.Queue.Dequeue();
+
+            result = QueueDeclare();
+            Assert.AreEqual(0, result.MessageCount);
+            Assert.AreEqual(1, result.ConsumerCount);
+            Assert.AreEqual(QueueName, result.QueueName);
         }
 
-        protected void Publish()
+        private QueueDeclareOk QueueDeclare()
         {
-            Model.BasicPublish("", "amq.fanout", null, enc.GetBytes("message"));
+            return Model.QueueDeclare(QueueName, false, true, true, null);
         }
     }
 }

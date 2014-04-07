@@ -41,34 +41,53 @@
 using NUnit.Framework;
 
 using System;
-using System.Text;
+using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Unit {
     [TestFixture]
-    public class TestConfirmSelect : IntegrationFixture {
+    public class TestBasicGet : IntegrationFixture {
 
         [Test]
-        public void TestConfirmSelectIdempotency()
+        public void TestBasicGetWithNonEmptyResponse()
         {
-            Model.ConfirmSelect();
-            Assert.AreEqual(1, Model.NextPublishSeqNo);
-            Publish();
-            Assert.AreEqual(2, Model.NextPublishSeqNo);
-            Publish();
-            Assert.AreEqual(3, Model.NextPublishSeqNo);
-
-            Model.ConfirmSelect();
-            Publish();
-            Assert.AreEqual(4, Model.NextPublishSeqNo);
-            Publish();
-            Assert.AreEqual(5, Model.NextPublishSeqNo);
-            Publish();
-            Assert.AreEqual(6, Model.NextPublishSeqNo);
+            const string msg = "for basic.get";
+            WithNonEmptyQueue((m, q) => {
+                BasicGetResult res = m.BasicGet(q, false);
+                Assert.AreEqual(1, res.DeliveryTag);
+                Assert.AreEqual(msg, enc.GetString(res.Body));
+                m.BasicAck(res.DeliveryTag, false);
+            }, msg);
         }
 
-        protected void Publish()
+        [Test]
+        public void TestBasicGetWithNonEmptyResponseAndAutoAckMode()
         {
-            Model.BasicPublish("", "amq.fanout", null, enc.GetBytes("message"));
+            const string msg = "for basic.get";
+            WithNonEmptyQueue((m, q) => {
+                BasicGetResult res = m.BasicGet(q, true);
+                Assert.AreEqual(msg, enc.GetString(res.Body));
+                AssertMessageCount(q, 0);
+            }, msg);
+        }
+
+        [Test]
+        public void TestBasicGetWithEmptyResponse()
+        {
+            WithEmptyQueue((m, q) => {
+                BasicGetResult res = m.BasicGet(q, false);
+                Assert.IsNull(res);
+            });
+        }
+
+        [Test]
+        public void TestBasicGetWithClosedChannel()
+        {
+            WithNonEmptyQueue((_, q) => {
+                WithClosedModel((cm) => {
+                    Assert.Throws(Is.InstanceOf<AlreadyClosedException>(),
+                                 delegate { cm.BasicGet(q, true); });
+                });
+            });
         }
     }
 }

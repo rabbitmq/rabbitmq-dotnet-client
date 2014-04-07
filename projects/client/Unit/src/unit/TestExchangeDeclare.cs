@@ -41,34 +41,53 @@
 using NUnit.Framework;
 
 using System;
-using System.Text;
+using System.Collections.Generic;
+
+using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Unit {
     [TestFixture]
-    public class TestConfirmSelect : IntegrationFixture {
+    public class TestExchangeDeclare : IntegrationFixture {
 
         [Test]
-        public void TestConfirmSelectIdempotency()
+        public void TestDoubleExchangeDeclareWithEquivalentArgs()
         {
-            Model.ConfirmSelect();
-            Assert.AreEqual(1, Model.NextPublishSeqNo);
-            Publish();
-            Assert.AreEqual(2, Model.NextPublishSeqNo);
-            Publish();
-            Assert.AreEqual(3, Model.NextPublishSeqNo);
+            string e = GenerateExchangeName();
+            Model.ExchangeDeclare(e, "fanout", false, false, null);
+            VerifyEquivalent(Model, e, "fanout", false, false, null);
 
-            Model.ConfirmSelect();
-            Publish();
-            Assert.AreEqual(4, Model.NextPublishSeqNo);
-            Publish();
-            Assert.AreEqual(5, Model.NextPublishSeqNo);
-            Publish();
-            Assert.AreEqual(6, Model.NextPublishSeqNo);
+            WithTemporaryModel((m) => m.ExchangeDelete(e));
         }
 
-        protected void Publish()
+        [Test]
+        public void TestDoubleExchangeDeclareWithNonEquivalentArgs()
         {
-            Model.BasicPublish("", "amq.fanout", null, enc.GetBytes("message"));
+            string e = GenerateExchangeName();
+            Model.ExchangeDeclare(e, "fanout", false, false, null);
+            VerifyNonEquivalent(Model, e, "fanout", true, true, null);
+
+            WithTemporaryModel((m) => m.ExchangeDelete(e));
+        }
+
+        protected void VerifyEquivalent(IModel m, string name, string type, bool durable,
+                                        bool autoDelete, IDictionary<string, object> args)
+        {
+            m.ExchangeDeclarePassive(name);
+            m.ExchangeDeclare(name, type, durable, autoDelete, args);
+        }
+
+        protected void VerifyNonEquivalent(IModel m, string name, string type, bool durable,
+                                        bool autoDelete, IDictionary<string, object> args)
+        {
+            m.ExchangeDeclarePassive(name);
+            try
+            {
+                m.ExchangeDeclare(name, type, durable, autoDelete, args);
+                Assert.Fail("Expected exchange.declare to throw");
+            } catch (OperationInterruptedException eoi)
+            {
+                AssertPreconditionFailed(eoi.ShutdownReason);
+            }
         }
     }
 }

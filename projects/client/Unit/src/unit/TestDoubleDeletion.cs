@@ -42,33 +42,34 @@ using NUnit.Framework;
 
 using System;
 using System.Text;
+using System.Threading;
+using System.Diagnostics;
+
+using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Unit {
     [TestFixture]
-    public class TestConfirmSelect : IntegrationFixture {
+    public class TestDoubleDeletion : IntegrationFixture {
+
+        protected const string Q = "DoubleDeletionQueue";
+        protected const string X = "DoubleDeletionExchange";
 
         [Test]
-        public void TestConfirmSelectIdempotency()
+        public void TestDoubleDeletionOfQueues()
         {
-            Model.ConfirmSelect();
-            Assert.AreEqual(1, Model.NextPublishSeqNo);
-            Publish();
-            Assert.AreEqual(2, Model.NextPublishSeqNo);
-            Publish();
-            Assert.AreEqual(3, Model.NextPublishSeqNo);
-
-            Model.ConfirmSelect();
-            Publish();
-            Assert.AreEqual(4, Model.NextPublishSeqNo);
-            Publish();
-            Assert.AreEqual(5, Model.NextPublishSeqNo);
-            Publish();
-            Assert.AreEqual(6, Model.NextPublishSeqNo);
+            Model.QueueDelete(Q);
+            Model.QueueDelete(Q, false, false);
+            Model.QueueDelete(Q);
+            Model.QueueDelete(Q);
         }
 
-        protected void Publish()
+        [Test]
+        public void TestDoubleDeletionOfExchanges()
         {
-            Model.BasicPublish("", "amq.fanout", null, enc.GetBytes("message"));
+            Model.ExchangeDelete(X);
+            Model.ExchangeDelete(X, false);
+            Model.ExchangeDelete(X);
+            Model.ExchangeDelete(X);
         }
     }
 }

@@ -52,7 +52,6 @@ namespace RabbitMQ.Client.Unit {
     public class TestConnectionBlocked : IntegrationFixture {
 
         Object lockObject = new Object();
-        UTF8Encoding enc = new UTF8Encoding();
         bool notified = false;
 
         [Test]

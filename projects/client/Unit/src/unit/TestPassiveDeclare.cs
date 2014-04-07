@@ -38,57 +38,58 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-using System.Threading;
 using NUnit.Framework;
+
+using System;
+using System.Text;
+using System.Threading;
+using System.Diagnostics;
+
 using RabbitMQ.Client.Exceptions;
 
-namespace RabbitMQ.Client.Unit
-{
+namespace RabbitMQ.Client.Unit {
     [TestFixture]
-    public class TestComplexResults : IntegrationFixture
-    {
-
-        private readonly String QueueName = "declare-ok-test-queue";
+    public class TestPassiveDeclare : IntegrationFixture {
 
         [Test]
-        public void TestQueueDeclareOk()
+        public void TestPassiveQueueDeclareWhenQueueExists()
         {
-            Model.ConfirmSelect();
-            QueueDeclareOk result;
-
-            result = QueueDeclare();
-            Assert.AreEqual(0, result.MessageCount);
-            Assert.AreEqual(0, result.ConsumerCount);
-            Assert.AreEqual(QueueName, result.QueueName);
-            Model.BasicPublish("", result.QueueName, null, new byte[] { });
-            Model.WaitForConfirms();
-
-            result = QueueDeclare();
-            Assert.AreEqual(1, result.MessageCount);
-            Assert.AreEqual(0, result.ConsumerCount);
-            Assert.AreEqual(QueueName, result.QueueName);
-
-            QueueingBasicConsumer consumer = new QueueingBasicConsumer(Model);
-            Model.BasicConsume(QueueName, true, consumer);
-            consumer.Queue.Dequeue();
-
-            result = QueueDeclare();
-            Assert.AreEqual(0, result.MessageCount);
-            Assert.AreEqual(1, result.ConsumerCount);
-            Assert.AreEqual(QueueName, result.QueueName);
+            WithTemporaryQueue((m, q) => m.QueueDeclarePassive(q));
         }
 
         [Test]
-        public void TestQueueDeclarePassive()
+        public void TestPassiveQueueDeclareWhenQueueDoesNotExist()
         {
-            Assert.Throws(Is.TypeOf<OperationInterruptedException>(),
-                          delegate { Model.QueueDeclarePassive(QueueName); });
+            Assert.Throws(Is.InstanceOf<OperationInterruptedException>(),
+                          delegate
+                          {
+                              Model.QueueDeclarePassive(Guid.NewGuid().ToString());
+                          });
         }
 
-        private QueueDeclareOk QueueDeclare()
+        [Test]
+        public void TestPassiveExchangeDeclareWhenExchangeExists()
         {
-            return Model.QueueDeclare(QueueName, false, true, true, null);
+            string e = "an.exchange" + Guid.NewGuid().ToString();
+            try
+            {
+                Model.ExchangeDeclare(e, "fanout", false);
+                Model.ExchangeDeclarePassive(e);
+            } finally
+            {
+                Model.ExchangeDelete(e);
+            }
+            
+        }
+
+        [Test]
+        public void TestPassiveExchangeDeclareWhenExchangeDoesNotExist()
+        {
+            Assert.Throws(Is.InstanceOf<OperationInterruptedException>(),
+                          delegate
+                          {
+                              Model.ExchangeDeclarePassive(Guid.NewGuid().ToString());
+                          });
         }
     }
 }

@@ -16,6 +16,11 @@ endif
 dist: rabbit-vsn ensure-deliverables ensure-universally-readable
 	rm -f $(RELEASE_DIR)/$(TMPXMLZIP)
 
+test-xbuild-units:
+	xbuild /nologo /t:RunUnitTests projects/client/Unit/RabbitMQ.Client.Unit.csproj
+
+test-xbuild: test-xbuild-units
+
 ensure-universally-readable:
 	chmod -R a+rX release
 
