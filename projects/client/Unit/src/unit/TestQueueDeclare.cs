@@ -67,7 +67,8 @@ namespace RabbitMQ.Client.Unit {
             {
                 m.QueueDeclare(name, durable, exclusive, autoDelete, args);
                 Assert.Fail("Expected queue.declare to throw");
-            } catch (OperationInterruptedException eoi)
+            }
+            catch (OperationInterruptedException eoi)
             {
                 AssertPreconditionFailed(eoi.ShutdownReason);
             }

@@ -142,7 +142,9 @@ namespace RabbitMQ.Client.Unit {
                   ReportExecFailure(cmd, args, stderr + "\n" + stdout);
               }
 
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 ReportExecFailure(cmd, args, e.Message);
                 throw e;
             }

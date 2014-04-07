@@ -67,7 +67,8 @@ namespace RabbitMQ.Client.Unit {
             {
                 m.ExchangeDeclare(name, type, durable, autoDelete, args);
                 Assert.Fail("Expected exchange.declare to throw");
-            } catch (OperationInterruptedException eoi)
+            }
+            catch (OperationInterruptedException eoi)
             {
                 AssertPreconditionFailed(eoi.ShutdownReason);
             }

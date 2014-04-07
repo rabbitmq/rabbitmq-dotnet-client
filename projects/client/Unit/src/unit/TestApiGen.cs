@@ -68,7 +68,9 @@ namespace RabbitMQ.Client.Unit
         {
             try {
                 Channel.ExchangeDelete(exchangeName);
-            } catch (OperationInterruptedException) {}
+            }
+            catch (OperationInterruptedException)
+            {}
             Connection.Abort();
         }
 
