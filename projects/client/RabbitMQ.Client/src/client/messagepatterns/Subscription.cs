@@ -128,6 +128,19 @@ namespace RabbitMQ.Client.MessagePatterns {
             m_latestEvent = null;
         }
 
+
+        ///<summary>Creates a new Subscription, with full control over
+        ///both "noAck" mode, the name of the queue, and the consumer tag.</summary>
+        public Subscription(IModel model, string queueName, bool noAck, string consumerTag)
+        {
+            m_model = model;
+            m_queueName = queueName;
+            m_noAck = noAck;
+            m_consumer = new QueueingBasicConsumer(m_model);
+            m_consumerTag = m_model.BasicConsume(m_queueName, m_noAck, consumerTag, m_consumer);
+            m_latestEvent = null;
+        }
+
         ///<summary>Closes this Subscription, cancelling the consumer
         ///record in the server.</summary>
         public void Close()
