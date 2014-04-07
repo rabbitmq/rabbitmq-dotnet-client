@@ -233,9 +233,7 @@ namespace RabbitMQ.Client
                         // in which case we're done, and the
                         // connection should be returned.
                         return p.CreateConnection(this, insist, fh);
-                    }
-                    catch (RedirectException re)
-                    {
+                    } catch (RedirectException re) {
                         if (insist) {
                             // We've been redirected, but we insisted that
                             // we shouldn't be redirected! Well-behaved
@@ -256,9 +254,7 @@ namespace RabbitMQ.Client
                         }
                     }
                 }
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 connectionErrors[candidate] = e;
                 return null;
             }

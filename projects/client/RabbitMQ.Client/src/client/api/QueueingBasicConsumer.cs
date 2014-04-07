@@ -80,9 +80,7 @@ namespace RabbitMQ.Client
     ///         BasicDeliverEventArgs e = (BasicDeliverEventArgs) consumer.Queue.Dequeue();
     ///         // ... handle the delivery ...
     ///         channel.BasicAck(e.DeliveryTag, false);
-    ///     }
-    ///     catch (EndOfStreamException ex)
-    ///     {
+    ///     } catch (EndOfStreamException ex) {
     ///         // The consumer was cancelled, the model closed, or the
     ///         // connection went away.
     ///         break;

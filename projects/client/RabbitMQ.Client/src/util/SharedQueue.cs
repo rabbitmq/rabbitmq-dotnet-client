@@ -266,9 +266,7 @@ namespace RabbitMQ.Util {
             try {
                 m_current = m_queue.Dequeue();
                 return true;
-            }
-            catch (EndOfStreamException)
-            {
+            } catch (EndOfStreamException) {
                 m_current = default(T);
                 return false;
             }
