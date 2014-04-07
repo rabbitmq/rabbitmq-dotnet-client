@@ -52,12 +52,6 @@ namespace RabbitMQ.Client.Unit {
     public class TestPassiveDeclare : IntegrationFixture {
 
         [Test]
-        public void TestPassiveQueueDeclareWhenQueueExists()
-        {
-            WithTemporaryQueue((m, q) => m.QueueDeclarePassive(q));
-        }
-
-        [Test]
         public void TestPassiveQueueDeclareWhenQueueDoesNotExist()
         {
             Assert.Throws(Is.InstanceOf<OperationInterruptedException>(),
@@ -65,21 +59,6 @@ namespace RabbitMQ.Client.Unit {
                           {
                               Model.QueueDeclarePassive(Guid.NewGuid().ToString());
                           });
-        }
-
-        [Test]
-        public void TestPassiveExchangeDeclareWhenExchangeExists()
-        {
-            string e = "an.exchange" + Guid.NewGuid().ToString();
-            try
-            {
-                Model.ExchangeDeclare(e, "fanout", false);
-                Model.ExchangeDeclarePassive(e);
-            } finally
-            {
-                Model.ExchangeDelete(e);
-            }
-            
         }
 
         [Test]

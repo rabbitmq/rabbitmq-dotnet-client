@@ -50,16 +50,6 @@ namespace RabbitMQ.Client.Unit {
     public class TestExchangeDeclare : IntegrationFixture {
 
         [Test]
-        public void TestDoubleExchangeDeclareWithEquivalentArgs()
-        {
-            string e = GenerateExchangeName();
-            Model.ExchangeDeclare(e, "fanout", false, false, null);
-            VerifyEquivalent(Model, e, "fanout", false, false, null);
-
-            WithTemporaryModel((m) => m.ExchangeDelete(e));
-        }
-
-        [Test]
         public void TestDoubleExchangeDeclareWithNonEquivalentArgs()
         {
             string e = GenerateExchangeName();
@@ -67,13 +57,6 @@ namespace RabbitMQ.Client.Unit {
             VerifyNonEquivalent(Model, e, "fanout", true, true, null);
 
             WithTemporaryModel((m) => m.ExchangeDelete(e));
-        }
-
-        protected void VerifyEquivalent(IModel m, string name, string type, bool durable,
-                                        bool autoDelete, IDictionary<string, object> args)
-        {
-            m.ExchangeDeclarePassive(name);
-            m.ExchangeDeclare(name, type, durable, autoDelete, args);
         }
 
         protected void VerifyNonEquivalent(IModel m, string name, string type, bool durable,

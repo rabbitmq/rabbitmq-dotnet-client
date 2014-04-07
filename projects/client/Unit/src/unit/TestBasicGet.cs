@@ -46,19 +46,6 @@ using RabbitMQ.Client.Exceptions;
 namespace RabbitMQ.Client.Unit {
     [TestFixture]
     public class TestBasicGet : IntegrationFixture {
-
-        [Test]
-        public void TestBasicGetWithNonEmptyResponse()
-        {
-            const string msg = "for basic.get";
-            WithNonEmptyQueue((m, q) => {
-                BasicGetResult res = m.BasicGet(q, false);
-                Assert.AreEqual(1, res.DeliveryTag);
-                Assert.AreEqual(msg, enc.GetString(res.Body));
-                m.BasicAck(res.DeliveryTag, false);
-            }, msg);
-        }
-
         [Test]
         public void TestBasicGetWithNonEmptyResponseAndAutoAckMode()
         {
