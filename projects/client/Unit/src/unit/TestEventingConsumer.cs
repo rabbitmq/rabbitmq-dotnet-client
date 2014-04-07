@@ -134,14 +134,5 @@ namespace RabbitMQ.Client.Unit {
             Assert.AreEqual(ec, shutdownSender);
             Assert.AreEqual(Model, ((EventingBasicConsumer)shutdownSender).Model);
         }
-
-
-        protected void WaitOn(object o)
-        {
-            lock(o)
-            {
-                Monitor.Wait(o, TimeSpan.FromSeconds(4));
-            }
-        }
     }
 }
