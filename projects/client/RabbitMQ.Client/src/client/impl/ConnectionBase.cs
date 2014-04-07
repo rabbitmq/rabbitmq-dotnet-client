@@ -572,7 +572,9 @@ namespace RabbitMQ.Client.Impl
                         WriteFrame(m_heartbeatFrame);
                     }
                 }
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 HandleMainLoopException(new ShutdownEventArgs(
                                                 ShutdownInitiator.Library,
                                                 0,
@@ -633,7 +635,9 @@ namespace RabbitMQ.Client.Impl
                     {
                         try {
                             MainLoopIteration();
-                        } catch (SoftProtocolException spe) {
+                        }
+                        catch (SoftProtocolException spe)
+                        {
                             QuiesceChannel(spe);
                         }
                     }
@@ -676,7 +680,8 @@ namespace RabbitMQ.Client.Impl
                     {
                         ClosingLoop();
                     #pragma warning disable 0168
-                    } catch (SocketException se)
+                    }
+                    catch (SocketException se)
                     {
                         // means that socket was closed when frame handler
                         // attempted to use it. Since we are shutting down,
@@ -773,7 +778,9 @@ namespace RabbitMQ.Client.Impl
                                            hpe.ShutdownReason.ReplyCode,
                                            hpe.ShutdownReason.ReplyText));
                     return true;
-                } catch (IOException ioe) {
+                }
+                catch (IOException ioe)
+                {
                     LogCloseError("Broker closed socket unexpectedly", ioe);
                 }
 
@@ -932,7 +939,9 @@ namespace RabbitMQ.Client.Impl
                 foreach (ConnectionBlockedEventHandler h in handler.GetInvocationList()) {
                     try {
                         h(this, args);
-                    } catch (Exception e) {
+                    }
+                    catch (Exception e)
+                    {
                         CallbackExceptionEventArgs cee_args = new CallbackExceptionEventArgs(e);
                         cee_args.Detail["context"] = "OnConnectionBlocked";
                         OnCallbackException(cee_args);
@@ -959,7 +968,9 @@ namespace RabbitMQ.Client.Impl
                   foreach (ConnectionUnblockedEventHandler h in handler.GetInvocationList()) {
                       try {
                           h(this);
-                      } catch (Exception e) {
+                      }
+                      catch (Exception e)
+                      {
                           CallbackExceptionEventArgs args = new CallbackExceptionEventArgs(e);
                           args.Detail["context"] = "OnConnectionUnblocked";
                           OnCallbackException(args);
@@ -984,7 +995,9 @@ namespace RabbitMQ.Client.Impl
                 foreach (ConnectionShutdownEventHandler h in handler.GetInvocationList()) {
                     try {
                         h(this, reason);
-                    } catch (Exception e) {
+                    }
+                    catch (Exception e)
+                    {
                         CallbackExceptionEventArgs args = new CallbackExceptionEventArgs(e);
                         args.Detail["context"] = "OnShutdown";
                         OnCallbackException(args);
@@ -1004,7 +1017,9 @@ namespace RabbitMQ.Client.Impl
                 foreach (CallbackExceptionEventHandler h in handler.GetInvocationList()) {
                     try {
                         h(this, args);
-                    } catch {
+                    }
+                    catch
+                    {
                         // Exception in
                         // Callback-exception-handler. That was the
                         // app's last chance. Swallow the exception.

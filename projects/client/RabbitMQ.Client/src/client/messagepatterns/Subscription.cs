@@ -146,7 +146,9 @@ namespace RabbitMQ.Client.MessagePatterns {
                     m_model.BasicCancel(m_consumerTag);
                     m_consumerTag = null;
                 }
-            } catch (OperationInterruptedException) {
+            }
+            catch (OperationInterruptedException)
+            {
                 // We don't mind, here.
             }
         }
@@ -218,7 +220,9 @@ namespace RabbitMQ.Client.MessagePatterns {
                 } else {
                     m_latestEvent = (BasicDeliverEventArgs) consumer.Queue.Dequeue();
                 }
-            } catch (EndOfStreamException) {
+            }
+            catch (EndOfStreamException)
+            {
                 m_latestEvent = null;
             }
             return m_latestEvent;
@@ -288,7 +292,9 @@ namespace RabbitMQ.Client.MessagePatterns {
                     }
                     m_latestEvent = qValue;
                 }
-            } catch (EndOfStreamException) {
+            }
+            catch (EndOfStreamException)
+            {
                 m_latestEvent = null;
             }
             result = m_latestEvent;

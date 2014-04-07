@@ -122,7 +122,9 @@ namespace RabbitMQ.Client.Content {
                 try {
                     object val = ReadObject();
                     result.Add(val);
-                } catch (EndOfStreamException) {
+                }
+                catch (EndOfStreamException)
+                {
                     break;
                 }
             }

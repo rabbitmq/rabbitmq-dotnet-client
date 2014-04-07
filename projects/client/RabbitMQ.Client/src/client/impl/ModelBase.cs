@@ -305,7 +305,9 @@ namespace RabbitMQ.Client.Impl
                 foreach (ModelShutdownEventHandler h in handler.GetInvocationList()) {
                     try {
                         h(this, reason);
-                    } catch (Exception e) {
+                    }
+                    catch (Exception e)
+                    {
                         CallbackExceptionEventArgs args = new CallbackExceptionEventArgs(e);
                         args.Detail["context"] = "OnModelShutdown";
                         OnCallbackException(args);
@@ -329,7 +331,9 @@ namespace RabbitMQ.Client.Impl
                 foreach (BasicReturnEventHandler h in handler.GetInvocationList()) {
                     try {
                         h(this, args);
-                    } catch (Exception e) {
+                    }
+                    catch (Exception e)
+                    {
                         CallbackExceptionEventArgs exnArgs = new CallbackExceptionEventArgs(e);
                         exnArgs.Detail["context"] = "OnBasicReturn";
                         OnCallbackException(exnArgs);
@@ -350,7 +354,9 @@ namespace RabbitMQ.Client.Impl
                 foreach (BasicAckEventHandler h in handler.GetInvocationList()) {
                     try {
                         h(this, args);
-                    } catch (Exception e) {
+                    }
+                    catch (Exception e)
+                    {
                         CallbackExceptionEventArgs exnArgs = new CallbackExceptionEventArgs(e);
                         exnArgs.Detail["context"] = "OnBasicAck";
                         OnCallbackException(exnArgs);
@@ -373,7 +379,9 @@ namespace RabbitMQ.Client.Impl
                 foreach (BasicNackEventHandler h in handler.GetInvocationList()) {
                     try {
                         h(this, args);
-                    } catch (Exception e) {
+                    }
+                    catch (Exception e)
+                    {
                         CallbackExceptionEventArgs exnArgs = new CallbackExceptionEventArgs(e);
                         exnArgs.Detail["context"] = "OnBasicNack";
                         OnCallbackException(exnArgs);
@@ -414,7 +422,9 @@ namespace RabbitMQ.Client.Impl
                 foreach (CallbackExceptionEventHandler h in handler.GetInvocationList()) {
                     try {
                         h(this, args);
-                    } catch {
+                    }
+                    catch
+                    {
                         // Exception in
                         // Callback-exception-handler. That was the
                         // app's last chance. Swallow the exception.
@@ -588,7 +598,9 @@ namespace RabbitMQ.Client.Impl
                                             routingKey,
                                             basicProperties,
                                             body);
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 CallbackExceptionEventArgs args = new CallbackExceptionEventArgs(e);
                 args.Detail["consumer"] = consumer;
                 args.Detail["context"] = "HandleBasicDeliver";
@@ -611,7 +623,9 @@ namespace RabbitMQ.Client.Impl
 
             try {
                 consumer.HandleBasicCancel(consumerTag);
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 CallbackExceptionEventArgs args = new CallbackExceptionEventArgs(e);
                 args.Detail["consumer"] = consumer;
                 args.Detail["context"] = "HandleBasicCancel";
@@ -1105,7 +1119,9 @@ namespace RabbitMQ.Client.Impl
             }
             try {
                 k.m_consumer.HandleBasicConsumeOk(consumerTag);
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 // FIXME: should we propagate the exception to the
                 // caller of BasicConsume?
                 CallbackExceptionEventArgs args = new CallbackExceptionEventArgs(e);
@@ -1147,7 +1163,9 @@ namespace RabbitMQ.Client.Impl
             }
             try {
                 k.m_consumer.HandleBasicCancelOk(consumerTag);
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 // FIXME: should we propagate the exception to the
                 // caller of BasicCancel?
                 CallbackExceptionEventArgs args = new CallbackExceptionEventArgs(e);
@@ -1334,10 +1352,14 @@ namespace RabbitMQ.Client.Impl
                     _Private_ChannelClose(reason.ReplyCode, reason.ReplyText, 0, 0);
                 }
                 k.Wait();
-            } catch (AlreadyClosedException ace) {
+            }
+            catch (AlreadyClosedException ace)
+            {
                 if (!abort)
                         throw ace;
-            } catch (IOException ioe) {
+            }
+            catch (IOException ioe)
+            {
                 if (!abort)
                         throw ioe;
             }

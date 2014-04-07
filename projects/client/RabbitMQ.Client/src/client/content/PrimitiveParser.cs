@@ -63,7 +63,9 @@ namespace RabbitMQ.Client.Content {
         public static bool ParseBool(string value) {
             try {
                 return bool.Parse(value);
-            } catch {
+            }
+            catch
+            {
                 InvalidConversion("bool", value);
                 return false;
             }
@@ -74,7 +76,9 @@ namespace RabbitMQ.Client.Content {
         public static int ParseInt(string value) {
             try {
                 return int.Parse(value);
-            } catch {
+            }
+            catch
+            {
                 InvalidConversion("int", value);
                 return 0;
             }
@@ -85,7 +89,9 @@ namespace RabbitMQ.Client.Content {
         public static short ParseShort(string value) {
             try {
                 return short.Parse(value);
-            } catch {
+            }
+            catch
+            {
                 InvalidConversion("short", value);
                 return 0;
             }
@@ -96,7 +102,9 @@ namespace RabbitMQ.Client.Content {
         public static byte ParseByte(string value) {
             try {
                 return byte.Parse(value);
-            } catch {
+            }
+            catch
+            {
                 InvalidConversion("byte", value);
                 return 0;
             }
@@ -107,7 +115,9 @@ namespace RabbitMQ.Client.Content {
         public static long ParseLong(string value) {
             try {
                 return long.Parse(value);
-            } catch {
+            }
+            catch
+            {
                 InvalidConversion("long", value);
                 return 0;
             }
@@ -118,7 +128,9 @@ namespace RabbitMQ.Client.Content {
         public static float ParseFloat(string value) {
             try {
                 return float.Parse(value);
-            } catch {
+            }
+            catch
+            {
                 InvalidConversion("float", value);
                 return 0;
             }
@@ -129,7 +141,9 @@ namespace RabbitMQ.Client.Content {
         public static double ParseDouble(string value) {
             try {
                 return double.Parse(value);
-            } catch {
+            }
+            catch
+            {
                 InvalidConversion("double", value);
                 return 0;
             }
