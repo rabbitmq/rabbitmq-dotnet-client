@@ -162,15 +162,13 @@ namespace RabbitMQ.Client.MessagePatterns {
         }
 
         ///<summary>If we are not in "noAck" mode, calls
-        ///IModel.BasicAck with the delivery-tag from the passed in
-        ///event; otherwise, sends nothing to the server. In both
-        ///cases, if the passed-in event is the same as LatestEvent
-        ///(by pointer comparison), sets LatestEvent to
-        ///null.</summary>
+        ///IModel.BasicAck with the delivery-tag from <paramref name="evt"/>;
+        ///otherwise, sends nothing to the server. if <paramref name="evt"/> is the same as LatestEvent
+        ///by pointer comparison, sets LatestEvent to null.
+        ///</summary>
         ///<remarks>
-        /// Make sure that this method is only called with events that
-        /// originated from this Subscription - other usage will have
-        /// unpredictable results.
+        ///Passing an event that did not originate with this Subscription's
+        /// channel, will lead to unpredictable behaviour
         ///</remarks>
         public void Ack(BasicDeliverEventArgs evt)
         {
@@ -209,15 +207,13 @@ namespace RabbitMQ.Client.MessagePatterns {
         }
 
         ///<summary>If we are not in "noAck" mode, calls
-        ///IModel.BasicNack with the delivery-tag from the passed in
-        ///event; otherwise, sends nothing to the server. In both
-        ///cases, if the passed-in event is the same as LatestEvent
-        ///(by pointer comparison), sets LatestEvent to
-        ///null.</summary>
+        ///IModel.BasicNack with the delivery-tag from <paramref name="evt"/>;
+        ///otherwise, sends nothing to the server. if <paramref name="evt"/> is the same as LatestEvent
+        ///by pointer comparison, sets LatestEvent to null.
+        ///</summary>
         ///<remarks>
-        /// Make sure that this method is only called with events that
-        /// originated from this Subscription - other usage will have
-        /// unpredictable results.
+        ///Passing an event that did not originate with this Subscription's
+        /// channel, will lead to unpredictable behaviour
         ///</remarks>
         public void Nack(BasicDeliverEventArgs evt,
                          bool multiple,
