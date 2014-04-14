@@ -43,8 +43,8 @@ using NUnit.Framework;
 using System;
 using System.Text;
 using System.Threading;
-using System.Diagnostics;
 
+using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.MessagePatterns;
 
@@ -104,6 +104,101 @@ namespace RabbitMQ.Client.Unit {
             sub.Nack(false, false);
             QueueDeclareOk ok = Model.QueueDeclarePassive(q);
             Assert.AreEqual(0, ok.MessageCount);
+        }
+
+        private abstract class SubscriptionDrainer
+        {
+            protected Subscription m_subscription;
+
+            public SubscriptionDrainer(Subscription sub)
+            {
+                m_subscription = sub;
+            }
+
+            public void Drain()
+            {
+                bool shouldStop = false;
+                #pragma warning disable 0168
+                try
+                {
+                    while(!shouldStop)
+                    {
+                        BasicDeliverEventArgs ea = m_subscription.Next();
+                        if(ea != null)
+                        {
+                            Assert.That(ea, Is.TypeOf(typeof(BasicDeliverEventArgs)));
+                            PostProcess();
+                        } else
+                          {
+                              shouldStop = true;
+                          }
+                    }
+                } catch (AlreadyClosedException ace)
+                {
+                    shouldStop = true;
+                }
+                #pragma warning restore
+            }
+
+            protected abstract void PostProcess();
+        }
+
+        private class AckingDrainer : SubscriptionDrainer
+        {
+            public AckingDrainer(Subscription sub) : base(sub) {}
+
+            override protected void PostProcess()
+            {
+                m_subscription.Ack();
+            }
+        }
+
+        private class NackingDrainer : SubscriptionDrainer
+        {
+            public NackingDrainer(Subscription sub) : base(sub) {}
+
+            override protected void PostProcess()
+            {
+                m_subscription.Nack(false, false);
+            }
+        }
+
+        [Test]
+        public void TestConcurrentIterationAndAck()
+        {
+            string q = Model.QueueDeclare();
+            Subscription sub = new Subscription(Model, q, false);
+
+            PreparedQueue(q);
+            for (int i = 0; i < 10; i++)
+            {
+                SubscriptionDrainer drainer = new AckingDrainer(sub);
+                Thread t = new Thread(drainer.Drain);
+                t.Start();
+            }
+        }
+
+        [Test]
+        public void TestConcurrentIterationAndNack()
+        {
+            string q = Model.QueueDeclare();
+            Subscription sub = new Subscription(Model, q, false);
+
+            PreparedQueue(q);
+            for (int i = 0; i < 10; i++)
+            {
+                SubscriptionDrainer drainer = new NackingDrainer(sub);
+                Thread t = new Thread(drainer.Drain);
+                t.Start();
+            }
+        }
+
+        private void PreparedQueue(string q)
+        {
+            for (int i = 0; i < 1024; i++)
+            {
+                Model.BasicPublish("", q, null, enc.GetBytes("a message"));
+            }
         }
     }
 }
