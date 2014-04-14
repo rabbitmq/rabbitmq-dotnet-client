@@ -175,15 +175,13 @@ namespace RabbitMQ.Client.MessagePatterns {
         }
 
         ///<summary>If we are not in "noAck" mode, calls
-        ///IModel.BasicAck with the delivery-tag from the passed in
-        ///event; otherwise, sends nothing to the server. In both
-        ///cases, if the passed-in event is the same as LatestEvent
-        ///(by pointer comparison), sets LatestEvent to
-        ///null.</summary>
+        ///IModel.BasicAck with the delivery-tag from <paramref name="evt"/>;
+        ///otherwise, sends nothing to the server. if <paramref name="evt"/> is the same as LatestEvent
+        ///by pointer comparison, sets LatestEvent to null.
+        ///</summary>
         ///<remarks>
-        /// Make sure that this method is only called with events that
-        /// originated from this Subscription - other usage will have
-        /// unpredictable results.
+        ///Passing an event that did not originate with this Subscription's
+        /// channel, will lead to unpredictable behaviour
         ///</remarks>
         public void Ack(BasicDeliverEventArgs evt)
         {
@@ -193,6 +191,53 @@ namespace RabbitMQ.Client.MessagePatterns {
 
             if (!m_noAck) {
                 m_model.BasicAck(evt.DeliveryTag, false);
+            }
+
+            if (evt == m_latestEvent) {
+                m_latestEvent = null;
+            }
+        }
+
+        ///<summary>If LatestEvent is non-null, passes it to
+        ///Nack(BasicDeliverEventArgs, false, requeue). Causes LatestEvent to become
+        ///null.</summary>
+        public void Nack(bool requeue)
+        {
+            if (m_latestEvent != null) {
+                Nack(m_latestEvent, false, requeue);
+            }
+        }
+
+
+        ///<summary>If LatestEvent is non-null, passes it to
+        ///Nack(BasicDeliverEventArgs, multiple, requeue). Causes LatestEvent to become
+        ///null.</summary>
+        public void Nack(bool multiple, bool requeue)
+        {
+            if (m_latestEvent != null) {
+                Nack(m_latestEvent, multiple, requeue);
+            }
+        }
+
+        ///<summary>If we are not in "noAck" mode, calls
+        ///IModel.BasicNack with the delivery-tag from <paramref name="evt"/>;
+        ///otherwise, sends nothing to the server. if <paramref name="evt"/> is the same as LatestEvent
+        ///by pointer comparison, sets LatestEvent to null.
+        ///</summary>
+        ///<remarks>
+        ///Passing an event that did not originate with this Subscription's
+        /// channel, will lead to unpredictable behaviour
+        ///</remarks>
+        public void Nack(BasicDeliverEventArgs evt,
+                         bool multiple,
+                         bool requeue)
+        {
+            if (evt == null) {
+                return;
+            }
+
+            if (!m_noAck) {
+                m_model.BasicNack(evt.DeliveryTag, multiple, requeue);
             }
 
             if (evt == m_latestEvent) {

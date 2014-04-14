@@ -75,5 +75,35 @@ namespace RabbitMQ.Client.Unit {
             BasicDeliverEventArgs r3;
             Assert.IsFalse(sub.Next(100, out r3));
         }
+
+        [Test]
+        public void TestSubscriptionAck()
+        {
+            Model.BasicQos(0, 1, false);
+            string q = Model.QueueDeclare();
+            Subscription sub = new Subscription(Model, q, false);
+
+            Model.BasicPublish("", q, null, enc.GetBytes("a message"));
+            BasicDeliverEventArgs res = sub.Next();
+            Assert.IsNotNull(res);
+            sub.Ack();
+            QueueDeclareOk ok = Model.QueueDeclarePassive(q);
+            Assert.AreEqual(0, ok.MessageCount);
+        }
+
+        [Test]
+        public void TestSubscriptionNack()
+        {
+            Model.BasicQos(0, 1, false);
+            string q = Model.QueueDeclare();
+            Subscription sub = new Subscription(Model, q, false);
+
+            Model.BasicPublish("", q, null, enc.GetBytes("a message"));
+            BasicDeliverEventArgs res = sub.Next();
+            Assert.IsNotNull(res);
+            sub.Nack(false, false);
+            QueueDeclareOk ok = Model.QueueDeclarePassive(q);
+            Assert.AreEqual(0, ok.MessageCount);
+        }
     }
 }
