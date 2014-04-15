@@ -42,12 +42,46 @@ using NUnit.Framework;
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Unit {
     [TestFixture]
     public class TestExchangeDeclare : IntegrationFixture {
+
+        [Test]
+        public void TestConcurrentQueueDeclare()
+        {
+            string x = GenerateExchangeName();
+
+            List<Thread> ts = new List<Thread>();
+            System.NotSupportedException nse = null;
+            for(int i = 0; i < 16; i++)
+            {
+                Thread t = new Thread(() =>
+                        {
+                            try
+                            {
+                                Model.ExchangeDeclare(x, "fanout", false, false, null);
+                            } catch (System.NotSupportedException e)
+                            {
+                                nse = e;
+                            }
+                        });
+                ts.Add(t);
+                t.Start();
+            }
+
+            foreach (Thread t in ts)
+            {
+                t.Join();
+            }
+
+            Assert.IsNotNull(nse);
+            Model.ExchangeDelete(x);
+        }
+
 
         [Test]
         public void TestDoubleExchangeDeclareWithNonEquivalentArgs()
