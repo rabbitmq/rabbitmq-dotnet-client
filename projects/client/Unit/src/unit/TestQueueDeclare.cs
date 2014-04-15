@@ -42,6 +42,7 @@ using NUnit.Framework;
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 using RabbitMQ.Client.Exceptions;
 
@@ -59,8 +60,42 @@ namespace RabbitMQ.Client.Unit {
             WithTemporaryModel((m) => m.QueueDelete(q));
         }
 
+        [Test]
+        public void TestConcurrentQueueDeclare()
+        {
+            string q = GenerateQueueName();
+
+            List<Thread> ts = new List<Thread>();
+            System.NotSupportedException nse = null;
+            for(int i = 0; i < 16; i++)
+            {
+                Thread t = new Thread(() =>
+                        {
+                            try
+                            {
+                                Model.QueueDeclare(q, false, false, false, null);
+                            } catch (System.NotSupportedException e)
+                            {
+                                nse = e;
+                            }
+                        });
+                ts.Add(t);
+                t.Start();
+            }
+
+            foreach (Thread t in ts)
+            {
+                t.Join();
+            }
+
+            Assert.IsNotNull(nse);
+
+            Model.QueueDelete(q);
+            Model.ExchangeDelete(x);
+        }
+
         protected void VerifyNonEquivalent(IModel m, string name, bool durable, bool exclusive,
-                                        bool autoDelete, IDictionary<string, object> args)
+                                           bool autoDelete, IDictionary<string, object> args)
         {
             m.QueueDeclarePassive(name);
             try
