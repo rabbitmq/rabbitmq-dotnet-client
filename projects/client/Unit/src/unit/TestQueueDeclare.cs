@@ -51,16 +51,6 @@ namespace RabbitMQ.Client.Unit {
     public class TestQueueDeclare : IntegrationFixture {
 
         [Test]
-        public void TestDoubleQueueDeclareWithNonEquivalentArgs()
-        {
-            string q = GenerateQueueName();
-            Model.QueueDeclare(q, false, false, false, null);
-            VerifyNonEquivalent(Model, q, true, true, true, null);
-
-            WithTemporaryModel((m) => m.QueueDelete(q));
-        }
-
-        [Test]
         public void TestConcurrentQueueDeclare()
         {
             string q = GenerateQueueName();
@@ -89,23 +79,8 @@ namespace RabbitMQ.Client.Unit {
             }
 
             Assert.IsNotNull(nse);
-
             Model.QueueDelete(q);
-        }
-
-        protected void VerifyNonEquivalent(IModel m, string name, bool durable, bool exclusive,
-                                           bool autoDelete, IDictionary<string, object> args)
-        {
-            m.QueueDeclarePassive(name);
-            try
-            {
-                m.QueueDeclare(name, durable, exclusive, autoDelete, args);
-                Assert.Fail("Expected queue.declare to throw");
-            }
-            catch (OperationInterruptedException eoi)
-            {
-                AssertPreconditionFailed(eoi.ShutdownReason);
-            }
         }
     }
 }
+p
