@@ -83,4 +83,3 @@ namespace RabbitMQ.Client.Unit {
         }
     }
 }
-p
