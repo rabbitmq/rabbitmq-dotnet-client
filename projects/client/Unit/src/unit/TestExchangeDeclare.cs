@@ -57,7 +57,7 @@ namespace RabbitMQ.Client.Unit {
 
             List<Thread> ts = new List<Thread>();
             System.NotSupportedException nse = null;
-            for(int i = 0; i < 16; i++)
+            for(int i = 0; i < 256; i++)
             {
                 Thread t = new Thread(() =>
                         {
