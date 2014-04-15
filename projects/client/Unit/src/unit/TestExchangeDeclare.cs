@@ -81,31 +81,5 @@ namespace RabbitMQ.Client.Unit {
             Assert.IsNotNull(nse);
             Model.ExchangeDelete(x);
         }
-
-
-        [Test]
-        public void TestDoubleExchangeDeclareWithNonEquivalentArgs()
-        {
-            string e = GenerateExchangeName();
-            Model.ExchangeDeclare(e, "fanout", false, false, null);
-            VerifyNonEquivalent(Model, e, "fanout", true, true, null);
-
-            WithTemporaryModel((m) => m.ExchangeDelete(e));
-        }
-
-        protected void VerifyNonEquivalent(IModel m, string name, string type, bool durable,
-                                        bool autoDelete, IDictionary<string, object> args)
-        {
-            m.ExchangeDeclarePassive(name);
-            try
-            {
-                m.ExchangeDeclare(name, type, durable, autoDelete, args);
-                Assert.Fail("Expected exchange.declare to throw");
-            }
-            catch (OperationInterruptedException eoi)
-            {
-                AssertPreconditionFailed(eoi.ShutdownReason);
-            }
-        }
     }
 }
