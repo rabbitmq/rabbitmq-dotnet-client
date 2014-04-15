@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2014 GoPivotal, Inc.
+//   Copyright (C) 2007-2013 GoPivotal, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -39,46 +39,35 @@
 //---------------------------------------------------------------------------
 
 using NUnit.Framework;
-using System.IO;
-using System.Threading;
 
-using RabbitMQ.Client.Impl;
-using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Client.Events;
-using RabbitMQ.Util;
 using System;
+using System.Text;
+using System.Threading;
+using System.Diagnostics;
 
+using RabbitMQ.Client.Events;
 
-namespace RabbitMQ.Client.Unit
-{
+namespace RabbitMQ.Client.Unit {
     [TestFixture]
-    public class TestApiGen
-    {
-        IConnection Connection;
-        IModel Channel;
-        String exchangeName = "nowait-test-exchange";
+    public class TestInvalidAck : IntegrationFixture {
 
-        [SetUp] public void Connect()
+        [Test]
+        public void TestAckWithUnknownConsumerTagAndMultipleFalse()
         {
-            Connection = new ConnectionFactory().CreateConnection();
-            Channel = Connection.CreateModel();
-        }
+            object o = new Object();
+            bool shutdownFired = false;
+            ShutdownEventArgs shutdownArgs = null;
+            Model.ModelShutdown += (s, args) =>
+            {
+                shutdownFired = true;
+                shutdownArgs = args;
+                Monitor.PulseAll(o);
+            };
 
-        [TearDown] public void Disconnect()
-        {
-            try {
-                Channel.ExchangeDelete(exchangeName);
-            }
-            catch (OperationInterruptedException)
-            {}
-            Connection.Abort();
-        }
-
-        [Test, Timeout(5000)]
-        public void TestExchangeDeclare()
-        {
-            Channel.ExchangeDeclare(exchangeName, "direct",
-                                    false, false, null);
+            Model.BasicAck(123456, false);
+            WaitOn(o);
+            Assert.IsTrue(shutdownFired);
+            AssertPreconditionFailed(shutdownArgs);
         }
     }
 }

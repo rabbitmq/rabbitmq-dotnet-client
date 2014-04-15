@@ -54,7 +54,8 @@ namespace RabbitMQ.Client.Unit
             try
             {
                 Model.QueueDeclarePassive(uuid);
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 Assert.That(e, Is.TypeOf(typeof(OperationInterruptedException)));
             }
@@ -64,7 +65,8 @@ namespace RabbitMQ.Client.Unit
             try
             {
                 Model.QueueDeclarePassive(uuid);
-            } catch (AlreadyClosedException e)
+            }
+            catch (AlreadyClosedException e)
             {
                 Assert.That(e, Is.TypeOf(typeof(AlreadyClosedException)));
                 Assert.IsTrue(e.Message.StartsWith("Already closed"));

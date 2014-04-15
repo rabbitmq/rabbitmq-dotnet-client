@@ -485,11 +485,13 @@ namespace RabbitMQ.Client.Impl
                     if (!abort)
                         throw ace;
                 }
+                #pragma warning disable 0168
                 catch (NotSupportedException nse)
                 {
                     // buffered stream had unread data in it and Flush()
                     // was called, ignore to not confuse the user
                 }
+                #pragma warning restore 0168
                 catch (IOException ioe)
                 {
                     if (m_model0.CloseReason == null)
@@ -670,7 +672,17 @@ namespace RabbitMQ.Client.Impl
                 // connection closes.
                 if (shutdownCleanly)
                 {
-                    ClosingLoop();
+                    try
+                    {
+                        ClosingLoop();
+                    #pragma warning disable 0168
+                    } catch (SocketException se)
+                    {
+                        // means that socket was closed when frame handler
+                        // attempted to use it. Since we are shutting down,
+                        // ignore it.
+                    }
+                    #pragma warning restore 0168
                 }
 
                 FinishClose();

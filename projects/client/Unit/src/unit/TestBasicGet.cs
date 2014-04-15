@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2014 GoPivotal, Inc.
+//   Copyright (C) 2007-2013 GoPivotal, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -38,57 +38,43 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-using System.Threading;
 using NUnit.Framework;
+
+using System;
 using RabbitMQ.Client.Exceptions;
 
-namespace RabbitMQ.Client.Unit
-{
+namespace RabbitMQ.Client.Unit {
     [TestFixture]
-    public class TestComplexResults : IntegrationFixture
-    {
-
-        private readonly String QueueName = "declare-ok-test-queue";
-
+    public class TestBasicGet : IntegrationFixture {
         [Test]
-        public void TestQueueDeclareOk()
+        public void TestBasicGetWithNonEmptyResponseAndAutoAckMode()
         {
-            Model.ConfirmSelect();
-            QueueDeclareOk result;
-
-            result = QueueDeclare();
-            Assert.AreEqual(0, result.MessageCount);
-            Assert.AreEqual(0, result.ConsumerCount);
-            Assert.AreEqual(QueueName, result.QueueName);
-            Model.BasicPublish("", result.QueueName, null, new byte[] { });
-            Model.WaitForConfirms();
-
-            result = QueueDeclare();
-            Assert.AreEqual(1, result.MessageCount);
-            Assert.AreEqual(0, result.ConsumerCount);
-            Assert.AreEqual(QueueName, result.QueueName);
-
-            QueueingBasicConsumer consumer = new QueueingBasicConsumer(Model);
-            Model.BasicConsume(QueueName, true, consumer);
-            consumer.Queue.Dequeue();
-
-            result = QueueDeclare();
-            Assert.AreEqual(0, result.MessageCount);
-            Assert.AreEqual(1, result.ConsumerCount);
-            Assert.AreEqual(QueueName, result.QueueName);
+            const string msg = "for basic.get";
+            WithNonEmptyQueue((m, q) => {
+                BasicGetResult res = m.BasicGet(q, true);
+                Assert.AreEqual(msg, enc.GetString(res.Body));
+                AssertMessageCount(q, 0);
+            }, msg);
         }
 
         [Test]
-        public void TestQueueDeclarePassive()
+        public void TestBasicGetWithEmptyResponse()
         {
-            Assert.Throws(Is.TypeOf<OperationInterruptedException>(),
-                          delegate { Model.QueueDeclarePassive(QueueName); });
+            WithEmptyQueue((m, q) => {
+                BasicGetResult res = m.BasicGet(q, false);
+                Assert.IsNull(res);
+            });
         }
 
-        private QueueDeclareOk QueueDeclare()
+        [Test]
+        public void TestBasicGetWithClosedChannel()
         {
-            return Model.QueueDeclare(QueueName, false, true, true, null);
+            WithNonEmptyQueue((_, q) => {
+                WithClosedModel((cm) => {
+                    Assert.Throws(Is.InstanceOf<AlreadyClosedException>(),
+                                 delegate { cm.BasicGet(q, true); });
+                });
+            });
         }
     }
 }

@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2014 GoPivotal, Inc.
+//   Copyright (C) 2007-2013 GoPivotal, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -39,46 +39,39 @@
 //---------------------------------------------------------------------------
 
 using NUnit.Framework;
-using System.IO;
-using System.Threading;
 
-using RabbitMQ.Client.Impl;
-using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Client.Events;
-using RabbitMQ.Util;
 using System;
+using System.Collections.Generic;
 
+using RabbitMQ.Client.Exceptions;
 
-namespace RabbitMQ.Client.Unit
-{
+namespace RabbitMQ.Client.Unit {
     [TestFixture]
-    public class TestApiGen
-    {
-        IConnection Connection;
-        IModel Channel;
-        String exchangeName = "nowait-test-exchange";
+    public class TestExchangeDeclare : IntegrationFixture {
 
-        [SetUp] public void Connect()
+        [Test]
+        public void TestDoubleExchangeDeclareWithNonEquivalentArgs()
         {
-            Connection = new ConnectionFactory().CreateConnection();
-            Channel = Connection.CreateModel();
+            string e = GenerateExchangeName();
+            Model.ExchangeDeclare(e, "fanout", false, false, null);
+            VerifyNonEquivalent(Model, e, "fanout", true, true, null);
+
+            WithTemporaryModel((m) => m.ExchangeDelete(e));
         }
 
-        [TearDown] public void Disconnect()
+        protected void VerifyNonEquivalent(IModel m, string name, string type, bool durable,
+                                        bool autoDelete, IDictionary<string, object> args)
         {
-            try {
-                Channel.ExchangeDelete(exchangeName);
+            m.ExchangeDeclarePassive(name);
+            try
+            {
+                m.ExchangeDeclare(name, type, durable, autoDelete, args);
+                Assert.Fail("Expected exchange.declare to throw");
             }
-            catch (OperationInterruptedException)
-            {}
-            Connection.Abort();
-        }
-
-        [Test, Timeout(5000)]
-        public void TestExchangeDeclare()
-        {
-            Channel.ExchangeDeclare(exchangeName, "direct",
-                                    false, false, null);
+            catch (OperationInterruptedException eoi)
+            {
+                AssertPreconditionFailed(eoi.ShutdownReason);
+            }
         }
     }
 }

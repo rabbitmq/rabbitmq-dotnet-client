@@ -73,14 +73,8 @@ namespace RabbitMQ.Client.Unit {
             Model.BasicConsume(queue, false, consumer);
 
             Model.QueueDelete(queue);
-            lock (lockObject)
-            {
-                if (!notified)
-                {
-                    Monitor.Wait(lockObject, TimingFixture.TestTimeout);
-                }
-                Assert.IsTrue(notified);
-            }
+            WaitOn(lockObject);
+            Assert.IsTrue(notified);
         }
 
         private class CancelNotificationConsumer : DefaultBasicConsumer
