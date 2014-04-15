@@ -91,7 +91,6 @@ namespace RabbitMQ.Client.Unit {
             Assert.IsNotNull(nse);
 
             Model.QueueDelete(q);
-            Model.ExchangeDelete(x);
         }
 
         protected void VerifyNonEquivalent(IModel m, string name, bool durable, bool exclusive,
