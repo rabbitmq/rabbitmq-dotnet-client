@@ -106,13 +106,15 @@ namespace RabbitMQ.Client.Unit {
             Assert.AreEqual(0, ok.MessageCount);
         }
 
-        private abstract class SubscriptionDrainer
+        private class SubscriptionDrainer
         {
             protected Subscription m_subscription;
+            protected bool m_ack;
 
-            public SubscriptionDrainer(Subscription sub)
+            public SubscriptionDrainer(Subscription sub, bool ack)
             {
                 m_subscription = sub;
+                m_ack = ack;
             }
 
             public void Drain()
@@ -140,26 +142,15 @@ namespace RabbitMQ.Client.Unit {
                 #pragma warning restore
             }
 
-            protected abstract void PostProcess();
-        }
-
-        private class AckingDrainer : SubscriptionDrainer
-        {
-            public AckingDrainer(Subscription sub) : base(sub) {}
-
-            override protected void PostProcess()
+            protected void PostProcess()
             {
-                m_subscription.Ack();
-            }
-        }
-
-        private class NackingDrainer : SubscriptionDrainer
-        {
-            public NackingDrainer(Subscription sub) : base(sub) {}
-
-            override protected void PostProcess()
-            {
-                m_subscription.Nack(false, false);
+                if(m_ack)
+                {
+                    m_subscription.Ack();
+                } else
+                {
+                    m_subscription.Nack(false, false);
+                }
             }
         }
 
@@ -172,7 +163,7 @@ namespace RabbitMQ.Client.Unit {
             PreparedQueue(q);
             for (int i = 0; i < 10; i++)
             {
-                SubscriptionDrainer drainer = new AckingDrainer(sub);
+                SubscriptionDrainer drainer = new SubscriptionDrainer(sub, true);
                 Thread t = new Thread(drainer.Drain);
                 t.Start();
             }
@@ -187,7 +178,7 @@ namespace RabbitMQ.Client.Unit {
             PreparedQueue(q);
             for (int i = 0; i < 10; i++)
             {
-                SubscriptionDrainer drainer = new NackingDrainer(sub);
+                SubscriptionDrainer drainer = new SubscriptionDrainer(sub, false);
                 Thread t = new Thread(drainer.Drain);
                 t.Start();
             }
