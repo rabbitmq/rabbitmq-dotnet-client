@@ -235,12 +235,12 @@ namespace RabbitMQ.Client.MessagePatterns {
                          bool multiple,
                          bool requeue)
         {
+            if (evt == null) {
+                return;
+            }
+
             lock(m_eventLock)
             {
-                if (evt == null) {
-                    return;
-                }
-
                 if (!m_noAck) {
                     m_model.BasicNack(evt.DeliveryTag, multiple, requeue);
                 }
