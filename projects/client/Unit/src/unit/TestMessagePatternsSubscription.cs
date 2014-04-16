@@ -108,7 +108,7 @@ namespace RabbitMQ.Client.Unit {
             Assert.AreEqual(0, ok.MessageCount);
         }
 
-        private class SubscriptionDrainer
+        protected class SubscriptionDrainer
         {
             protected Subscription m_subscription;
             protected bool m_ack;
@@ -132,7 +132,7 @@ namespace RabbitMQ.Client.Unit {
                 #pragma warning disable 0168
                 try
                 {
-                    while(!shouldStop)
+                    for(int i = 0; i < 1000; i++)
                     {
                         BasicDeliverEventArgs ea = m_subscription.Next();
                         if(ea != null)
@@ -140,15 +140,17 @@ namespace RabbitMQ.Client.Unit {
                             Assert.That(ea, Is.TypeOf(typeof(BasicDeliverEventArgs)));
                             PostProcess();
                         } else
-                          {
-                              shouldStop = true;
-                          }
+                        {
+                            break;
+                        }
                     }
                 } catch (AlreadyClosedException ace)
                 {
-                    shouldStop = true;
+                    // expected
                 }
                 #pragma warning restore
+
+                m_subscription.Close();
             }
 
             protected void PostProcess()
@@ -166,24 +168,16 @@ namespace RabbitMQ.Client.Unit {
         [Test]
         public void TestConcurrentIterationAndAck()
         {
-            IDictionary<string, object> args = new Dictionary<string, object>
-            {
-                {"x-message-ttl", 5000}
-            };
-            string q = Model.QueueDeclare("", false, true, false, args);
-            Subscription sub = new Subscription(Model, q, false);
-
-            PreparedQueue(q);
-            for (int i = 0; i < 10; i++)
-            {
-                SubscriptionDrainer drainer = new SubscriptionDrainer(sub, true);
-                Thread t = new Thread(drainer.Drain);
-                t.Start();
-            }
+            TestConcurrentIterationWithDrainer(true);
         }
 
         [Test]
         public void TestConcurrentIterationAndNack()
+        {
+            TestConcurrentIterationWithDrainer(false);
+        }
+
+        protected void TestConcurrentIterationWithDrainer(bool ack)
         {
             IDictionary<string, object> args = new Dictionary<string, object>
             {
@@ -193,11 +187,19 @@ namespace RabbitMQ.Client.Unit {
             Subscription sub = new Subscription(Model, q, false);
 
             PreparedQueue(q);
+
+            List<Thread> ts = new List<Thread>();
             for (int i = 0; i < 10; i++)
             {
-                SubscriptionDrainer drainer = new SubscriptionDrainer(sub, false);
+                SubscriptionDrainer drainer = new SubscriptionDrainer(sub, ack);
                 Thread t = new Thread(drainer.Drain);
+                ts.Add(t);
                 t.Start();
+            }
+
+            foreach(Thread t in ts)
+            {
+                t.Join();
             }
         }
 
