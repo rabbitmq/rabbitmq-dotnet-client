@@ -81,21 +81,17 @@ namespace RabbitMQ.Client.Unit {
         [Test]
         public void TestSubscriptionAck()
         {
-            Model.BasicQos(0, 1, false);
-            string q = Model.QueueDeclare();
-            Subscription sub = new Subscription(Model, q, false);
-
-            Model.BasicPublish("", q, null, enc.GetBytes("a message"));
-            BasicDeliverEventArgs res = sub.Next();
-            Assert.IsNotNull(res);
-            sub.Ack();
-            QueueDeclareOk ok = Model.QueueDeclarePassive(q);
-            Assert.AreEqual(0, ok.MessageCount);
+            TestSubscriptionAction((s) => s.Ack());
         }
 
         [Test]
         public void TestSubscriptionNack()
         {
+            TestSubscriptionAction((s) => s.Nack(false, false));
+        }
+
+        private void TestSubscriptionAction(SubscriptionAction action)
+        {
             Model.BasicQos(0, 1, false);
             string q = Model.QueueDeclare();
             Subscription sub = new Subscription(Model, q, false);
@@ -103,20 +99,22 @@ namespace RabbitMQ.Client.Unit {
             Model.BasicPublish("", q, null, enc.GetBytes("a message"));
             BasicDeliverEventArgs res = sub.Next();
             Assert.IsNotNull(res);
-            sub.Nack(false, false);
+            action(sub);
             QueueDeclareOk ok = Model.QueueDeclarePassive(q);
             Assert.AreEqual(0, ok.MessageCount);
         }
 
+        protected delegate void SubscriptionAction(Subscription s);
+
         protected class SubscriptionDrainer
         {
             protected Subscription m_subscription;
-            protected bool m_ack;
+            private SubscriptionAction PostProcess { get; set; }
 
-            public SubscriptionDrainer(Subscription sub, bool ack)
+            public SubscriptionDrainer(Subscription sub, SubscriptionAction op)
             {
                 m_subscription = sub;
-                m_ack = ack;
+                PostProcess = op;
             }
 
             public void Drain()
@@ -130,7 +128,7 @@ namespace RabbitMQ.Client.Unit {
                         if(ea != null)
                         {
                             Assert.That(ea, Is.TypeOf(typeof(BasicDeliverEventArgs)));
-                            PostProcess();
+                            this.PostProcess(m_subscription);
                         } else
                         {
                             break;
@@ -146,32 +144,21 @@ namespace RabbitMQ.Client.Unit {
                 #pragma warning restore
 
             }
-
-            protected void PostProcess()
-            {
-                if(m_ack)
-                {
-                    m_subscription.Ack();
-                } else
-                {
-                    m_subscription.Nack(false, false);
-                }
-            }
         }
 
         [Test]
         public void TestConcurrentIterationAndAck()
         {
-            TestConcurrentIterationWithDrainer(true);
+            TestConcurrentIterationWithDrainer((s) => s.Ack());
         }
 
         [Test]
         public void TestConcurrentIterationAndNack()
         {
-            TestConcurrentIterationWithDrainer(false);
+            TestConcurrentIterationWithDrainer((s) => s.Nack(false, false));
         }
 
-        protected void TestConcurrentIterationWithDrainer(bool ack)
+        protected void TestConcurrentIterationWithDrainer(SubscriptionAction act)
         {
             IDictionary<string, object> args = new Dictionary<string, object>
             {
@@ -185,7 +172,7 @@ namespace RabbitMQ.Client.Unit {
             List<Thread> ts = new List<Thread>();
             for (int i = 0; i < 50; i++)
             {
-                SubscriptionDrainer drainer = new SubscriptionDrainer(sub, ack);
+                SubscriptionDrainer drainer = new SubscriptionDrainer(sub, act);
                 Thread t = new Thread(drainer.Drain);
                 ts.Add(t);
                 t.Start();
