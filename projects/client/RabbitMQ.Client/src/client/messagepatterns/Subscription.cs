@@ -189,12 +189,12 @@ namespace RabbitMQ.Client.MessagePatterns {
         ///</remarks>
         public void Ack(BasicDeliverEventArgs evt)
         {
+            if (evt == null) {
+                return;
+            }
+
             lock(m_eventLock)
             {
-                if (evt == null) {
-                    return;
-                }
-
                 if (!m_noAck) {
                     m_model.BasicAck(evt.DeliveryTag, false);
                 }
