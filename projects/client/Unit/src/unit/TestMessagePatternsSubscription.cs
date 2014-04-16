@@ -50,9 +50,11 @@ using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.MessagePatterns;
 
-namespace RabbitMQ.Client.Unit {
+namespace RabbitMQ.Client.Unit
+{
     [TestFixture]
-    public class TestMessagePatternsSubscription : IntegrationFixture {
+    public class TestMessagePatternsSubscription : IntegrationFixture
+    {
         UTF8Encoding enc = new UTF8Encoding();
 
         [Test]
@@ -88,6 +90,44 @@ namespace RabbitMQ.Client.Unit {
         public void TestSubscriptionNack()
         {
             TestSubscriptionAction((s) => s.Nack(false, false));
+        }
+
+        [Test]
+        public void TestConcurrentIterationAndAck()
+        {
+            TestConcurrentIterationWithDrainer((s) => s.Ack());
+        }
+
+        [Test]
+        public void TestConcurrentIterationAndNack()
+        {
+            TestConcurrentIterationWithDrainer((s) => s.Nack(false, false));
+        }
+
+        protected void TestConcurrentIterationWithDrainer(SubscriptionAction act)
+        {
+            IDictionary<string, object> args = new Dictionary<string, object>
+            {
+                {"x-message-ttl", 5000}
+            };
+            string q = Model.QueueDeclare("", false, true, false, args);
+            Subscription sub = new Subscription(Model, q, false);
+
+            PreparedQueue(q);
+
+            List<Thread> ts = new List<Thread>();
+            for (int i = 0; i < 50; i++)
+            {
+                SubscriptionDrainer drainer = new SubscriptionDrainer(sub, act);
+                Thread t = new Thread(drainer.Drain);
+                ts.Add(t);
+                t.Start();
+            }
+
+            foreach(Thread t in ts)
+            {
+                t.Join();
+            }
         }
 
         private void TestSubscriptionAction(SubscriptionAction action)
@@ -129,58 +169,23 @@ namespace RabbitMQ.Client.Unit {
                         {
                             Assert.That(ea, Is.TypeOf(typeof(BasicDeliverEventArgs)));
                             this.PostProcess(m_subscription);
-                        } else
+                        }
+                        else
                         {
                             break;
                         }
                     }
-                } catch (AlreadyClosedException ace)
+                }
+                catch (AlreadyClosedException ace)
                 {
                     // expected
-                } finally
+                }
+                finally
                 {
                     m_subscription.Close();
                 }
                 #pragma warning restore
 
-            }
-        }
-
-        [Test]
-        public void TestConcurrentIterationAndAck()
-        {
-            TestConcurrentIterationWithDrainer((s) => s.Ack());
-        }
-
-        [Test]
-        public void TestConcurrentIterationAndNack()
-        {
-            TestConcurrentIterationWithDrainer((s) => s.Nack(false, false));
-        }
-
-        protected void TestConcurrentIterationWithDrainer(SubscriptionAction act)
-        {
-            IDictionary<string, object> args = new Dictionary<string, object>
-            {
-                {"x-message-ttl", 5000}
-            };
-            string q = Model.QueueDeclare("", false, true, false, args);
-            Subscription sub = new Subscription(Model, q, false);
-
-            PreparedQueue(q);
-
-            List<Thread> ts = new List<Thread>();
-            for (int i = 0; i < 50; i++)
-            {
-                SubscriptionDrainer drainer = new SubscriptionDrainer(sub, act);
-                Thread t = new Thread(drainer.Drain);
-                ts.Add(t);
-                t.Start();
-            }
-
-            foreach(Thread t in ts)
-            {
-                t.Join();
             }
         }
 
