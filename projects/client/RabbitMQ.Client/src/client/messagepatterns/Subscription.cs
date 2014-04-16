@@ -210,12 +210,7 @@ namespace RabbitMQ.Client.MessagePatterns {
         ///null.</summary>
         public void Nack(bool requeue)
         {
-            lock(m_eventLock)
-            {
-                if (m_latestEvent != null) {
-                    Nack(m_latestEvent, false, requeue);
-                }
-            }
+            Nack(m_latestEvent, false, requeue);
         }
 
 
@@ -224,12 +219,7 @@ namespace RabbitMQ.Client.MessagePatterns {
         ///null.</summary>
         public void Nack(bool multiple, bool requeue)
         {
-            lock(m_eventLock)
-            {
-                if (m_latestEvent != null) {
-                    Nack(m_latestEvent, multiple, requeue);
-                }
-            }
+            Nack(m_latestEvent, multiple, requeue);
         }
 
         ///<summary>If we are not in "noAck" mode, calls
