@@ -170,12 +170,7 @@ namespace RabbitMQ.Client.MessagePatterns {
         ///null.</summary>
         public void Ack()
         {
-            lock(m_eventLock)
-            {
-                if (m_latestEvent != null) {
-                    Ack(m_latestEvent);
-                }
-            }
+            Ack(m_latestEvent);
         }
 
         ///<summary>If we are not in "noAck" mode, calls
