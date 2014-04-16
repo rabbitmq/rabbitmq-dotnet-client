@@ -192,15 +192,12 @@ namespace RabbitMQ.Client.MessagePatterns {
                 return;
             }
 
-            lock(m_eventLock)
-            {
-                if (!m_noAck && m_model.IsOpen) {
-                    m_model.BasicAck(evt.DeliveryTag, false);
-                }
+            if (!m_noAck && m_model.IsOpen) {
+                m_model.BasicAck(evt.DeliveryTag, false);
+            }
 
-                if (evt == m_latestEvent) {
-                    m_latestEvent = null;
-                }
+            if (evt == m_latestEvent) {
+                MutateLatestEvent(null);
             }
         }
 
@@ -238,15 +235,12 @@ namespace RabbitMQ.Client.MessagePatterns {
                 return;
             }
 
-            lock(m_eventLock)
-            {
-                if (!m_noAck && m_model.IsOpen) {
-                    m_model.BasicNack(evt.DeliveryTag, multiple, requeue);
-                }
+            if (!m_noAck && m_model.IsOpen) {
+                m_model.BasicNack(evt.DeliveryTag, multiple, requeue);
+            }
 
-                if (evt == m_latestEvent) {
-                    m_latestEvent = null;
-                }
+            if (evt == m_latestEvent) {
+                MutateLatestEvent(null);
             }
         }
 
@@ -270,24 +264,21 @@ namespace RabbitMQ.Client.MessagePatterns {
         ///</remarks>
         public BasicDeliverEventArgs Next()
         {
-            lock(m_eventLock)
-            {
-                try {
-                    // Alias the pointer as otherwise it may change out
-                    // from under us by the operation of Close() from
-                    // another thread.
-                    QueueingBasicConsumer consumer = m_consumer;
-                    if (consumer == null || m_model.IsClosed) {
-                        // Closed!
-                        m_latestEvent = null;
-                    } else {
-                        m_latestEvent = (BasicDeliverEventArgs) consumer.Queue.Dequeue();
-                    }
-                } catch (EndOfStreamException) {
-                    m_latestEvent = null;
+            // Alias the pointer as otherwise it may change out
+            // from under us by the operation of Close() from
+            // another thread.
+            QueueingBasicConsumer consumer = m_consumer;
+            try {
+                if (consumer == null || m_model.IsClosed) {
+                    MutateLatestEvent(null);
+                } else {
+                    BasicDeliverEventArgs bdea = (BasicDeliverEventArgs) consumer.Queue.Dequeue();
+                    MutateLatestEvent(bdea);
                 }
-                return m_latestEvent;
+            } catch (EndOfStreamException) {
+                MutateLatestEvent(null);
             }
+            return m_latestEvent;
         }
 
         ///<summary>Retrieves the next incoming delivery in our
@@ -336,32 +327,28 @@ namespace RabbitMQ.Client.MessagePatterns {
         ///</remarks>
         public bool Next(int millisecondsTimeout, out BasicDeliverEventArgs result)
         {
-            lock(m_eventLock)
-            {
-                try {
-                    // Alias the pointer as otherwise it may change out
-                    // from under us by the operation of Close() from
-                    // another thread.
-                    QueueingBasicConsumer consumer = m_consumer;
-                    if (consumer == null || m_model.IsClosed) {
-                        // Closed!
-                        m_latestEvent = null;
+            try {
+                // Alias the pointer as otherwise it may change out
+                // from under us by the operation of Close() from
+                // another thread.
+                QueueingBasicConsumer consumer = m_consumer;
+                if (consumer == null || m_model.IsClosed) {
+                    MutateLatestEvent(null);
+                    result = null;
+                    return false;
+                } else {
+                    BasicDeliverEventArgs qValue;
+                    if (!consumer.Queue.Dequeue(millisecondsTimeout, out qValue)) {
                         result = null;
                         return false;
-                    } else {
-                        BasicDeliverEventArgs qValue;
-                        if (!consumer.Queue.Dequeue(millisecondsTimeout, out qValue)) {
-                            result = null;
-                            return false;
-                        }
-                        m_latestEvent = qValue;
                     }
-                } catch (EndOfStreamException) {
-                    m_latestEvent = null;
+                    MutateLatestEvent(qValue);
                 }
-                result = m_latestEvent;
-                return true;
+            } catch (EndOfStreamException) {
+                MutateLatestEvent(null);
             }
+            result = m_latestEvent;
+            return true;
         }
 
         ///<summary>Implementation of the IEnumerable interface, for
@@ -387,14 +374,10 @@ namespace RabbitMQ.Client.MessagePatterns {
         ///</remarks>
         object IEnumerator.Current {
             get {
-                lock(m_eventLock)
-                {
-
-                    if (m_latestEvent == null) {
-                        throw new InvalidOperationException();
-                    }
-                    return m_latestEvent;
+                if (m_latestEvent == null) {
+                    throw new InvalidOperationException();
                 }
+                return m_latestEvent;
             }
         }
 
@@ -428,6 +411,14 @@ namespace RabbitMQ.Client.MessagePatterns {
         void IDisposable.Dispose()
         {
             Close();
+        }
+
+        protected void MutateLatestEvent(BasicDeliverEventArgs value)
+        {
+            lock(m_eventLock)
+            {
+                m_latestEvent = value;
+            }
         }
     }
 }
