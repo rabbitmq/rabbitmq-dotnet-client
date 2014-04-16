@@ -124,7 +124,7 @@ namespace RabbitMQ.Client.Unit {
                 #pragma warning disable 0168
                 try
                 {
-                    for(int i = 0; i < 1000; i++)
+                    for(int i = 0; i < 100; i++)
                     {
                         BasicDeliverEventArgs ea = m_subscription.Next();
                         if(ea != null)
@@ -139,10 +139,12 @@ namespace RabbitMQ.Client.Unit {
                 } catch (AlreadyClosedException ace)
                 {
                     // expected
+                } finally
+                {
+                    m_subscription.Close();
                 }
                 #pragma warning restore
 
-                m_subscription.Close();
             }
 
             protected void PostProcess()
@@ -181,7 +183,7 @@ namespace RabbitMQ.Client.Unit {
             PreparedQueue(q);
 
             List<Thread> ts = new List<Thread>();
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 50; i++)
             {
                 SubscriptionDrainer drainer = new SubscriptionDrainer(sub, ack);
                 Thread t = new Thread(drainer.Drain);
