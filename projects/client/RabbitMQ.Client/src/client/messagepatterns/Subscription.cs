@@ -157,7 +157,11 @@ namespace RabbitMQ.Client.MessagePatterns {
                 }
 
                 if (shouldCancelConsumer) {
-                    m_model.BasicCancel(m_consumerTag);
+                    if(m_model.IsOpen)
+                    {
+                        m_model.BasicCancel(m_consumerTag);
+                    }
+                    
                     m_consumerTag = null;
                 }
             } catch (OperationInterruptedException) {
@@ -190,7 +194,7 @@ namespace RabbitMQ.Client.MessagePatterns {
 
             lock(m_eventLock)
             {
-                if (!m_noAck) {
+                if (!m_noAck && m_model.IsOpen) {
                     m_model.BasicAck(evt.DeliveryTag, false);
                 }
 
@@ -236,7 +240,7 @@ namespace RabbitMQ.Client.MessagePatterns {
 
             lock(m_eventLock)
             {
-                if (!m_noAck) {
+                if (!m_noAck && m_model.IsOpen) {
                     m_model.BasicNack(evt.DeliveryTag, multiple, requeue);
                 }
 
