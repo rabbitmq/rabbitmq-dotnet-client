@@ -43,6 +43,8 @@ using NUnit.Framework;
 using System;
 using System.Text;
 using System.Threading;
+using System.Collections.Generic;
+using System.Timers;
 
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Events;
@@ -110,16 +112,23 @@ namespace RabbitMQ.Client.Unit {
         {
             protected Subscription m_subscription;
             protected bool m_ack;
+            protected System.Timers.Timer m_timer;
+            protected volatile bool shouldStop = false;
 
             public SubscriptionDrainer(Subscription sub, bool ack)
             {
                 m_subscription = sub;
                 m_ack = ack;
+                m_timer = new System.Timers.Timer(5000);
+                m_timer.Elapsed += delegate (object o, ElapsedEventArgs args)
+                {
+                    shouldStop = true;
+                };
+                m_timer.Enabled = true;
             }
 
             public void Drain()
             {
-                bool shouldStop = false;
                 #pragma warning disable 0168
                 try
                 {
@@ -157,7 +166,11 @@ namespace RabbitMQ.Client.Unit {
         [Test]
         public void TestConcurrentIterationAndAck()
         {
-            string q = Model.QueueDeclare();
+            IDictionary<string, object> args = new Dictionary<string, object>
+            {
+                {"x-message-ttl", 5000}
+            };
+            string q = Model.QueueDeclare("", false, true, false, args);
             Subscription sub = new Subscription(Model, q, false);
 
             PreparedQueue(q);
@@ -172,7 +185,11 @@ namespace RabbitMQ.Client.Unit {
         [Test]
         public void TestConcurrentIterationAndNack()
         {
-            string q = Model.QueueDeclare();
+            IDictionary<string, object> args = new Dictionary<string, object>
+            {
+                {"x-message-ttl", 5000}
+            };
+            string q = Model.QueueDeclare("", false, true, false, args);
             Subscription sub = new Subscription(Model, q, false);
 
             PreparedQueue(q);
