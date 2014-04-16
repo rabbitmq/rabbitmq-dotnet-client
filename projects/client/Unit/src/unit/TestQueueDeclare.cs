@@ -54,6 +54,7 @@ namespace RabbitMQ.Client.Unit {
         public void TestConcurrentQueueDeclare()
         {
             string q = GenerateQueueName();
+            Random rnd = new Random();
 
             List<Thread> ts = new List<Thread>();
             System.NotSupportedException nse = null;
@@ -63,6 +64,9 @@ namespace RabbitMQ.Client.Unit {
                         {
                             try
                             {
+                                // sleep for a random amount of time to increase the chances
+                                // of thread interleaving. MK.
+                                Thread.Sleep(rnd.Next(5, 500));
                                 Model.QueueDeclare(q, false, false, false, null);
                             } catch (System.NotSupportedException e)
                             {
