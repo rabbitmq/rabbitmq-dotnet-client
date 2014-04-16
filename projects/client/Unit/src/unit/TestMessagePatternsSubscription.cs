@@ -43,14 +43,18 @@ using NUnit.Framework;
 using System;
 using System.Text;
 using System.Threading;
-using System.Diagnostics;
+using System.Collections.Generic;
+using System.Timers;
 
+using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.MessagePatterns;
 
-namespace RabbitMQ.Client.Unit {
+namespace RabbitMQ.Client.Unit
+{
     [TestFixture]
-    public class TestMessagePatternsSubscription : IntegrationFixture {
+    public class TestMessagePatternsSubscription : IntegrationFixture
+    {
         UTF8Encoding enc = new UTF8Encoding();
 
         [Test]
@@ -74,6 +78,123 @@ namespace RabbitMQ.Client.Unit {
 
             BasicDeliverEventArgs r3;
             Assert.IsFalse(sub.Next(100, out r3));
+        }
+
+        [Test]
+        public void TestSubscriptionAck()
+        {
+            TestSubscriptionAction((s) => s.Ack());
+        }
+
+        [Test]
+        public void TestSubscriptionNack()
+        {
+            TestSubscriptionAction((s) => s.Nack(false, false));
+        }
+
+        [Test]
+        public void TestConcurrentIterationAndAck()
+        {
+            TestConcurrentIterationWithDrainer((s) => s.Ack());
+        }
+
+        [Test]
+        public void TestConcurrentIterationAndNack()
+        {
+            TestConcurrentIterationWithDrainer((s) => s.Nack(false, false));
+        }
+
+        protected void TestConcurrentIterationWithDrainer(SubscriptionAction act)
+        {
+            IDictionary<string, object> args = new Dictionary<string, object>
+            {
+                {"x-message-ttl", 5000}
+            };
+            string q = Model.QueueDeclare("", false, true, false, args);
+            Subscription sub = new Subscription(Model, q, false);
+
+            PreparedQueue(q);
+
+            List<Thread> ts = new List<Thread>();
+            for (int i = 0; i < 50; i++)
+            {
+                SubscriptionDrainer drainer = new SubscriptionDrainer(sub, act);
+                Thread t = new Thread(drainer.Drain);
+                ts.Add(t);
+                t.Start();
+            }
+
+            foreach(Thread t in ts)
+            {
+                t.Join();
+            }
+        }
+
+        private void TestSubscriptionAction(SubscriptionAction action)
+        {
+            Model.BasicQos(0, 1, false);
+            string q = Model.QueueDeclare();
+            Subscription sub = new Subscription(Model, q, false);
+
+            Model.BasicPublish("", q, null, enc.GetBytes("a message"));
+            BasicDeliverEventArgs res = sub.Next();
+            Assert.IsNotNull(res);
+            action(sub);
+            QueueDeclareOk ok = Model.QueueDeclarePassive(q);
+            Assert.AreEqual(0, ok.MessageCount);
+        }
+
+        protected delegate void SubscriptionAction(Subscription s);
+
+        protected class SubscriptionDrainer
+        {
+            protected Subscription m_subscription;
+            private SubscriptionAction PostProcess { get; set; }
+
+            public SubscriptionDrainer(Subscription sub, SubscriptionAction op)
+            {
+                m_subscription = sub;
+                PostProcess = op;
+            }
+
+            public void Drain()
+            {
+                #pragma warning disable 0168
+                try
+                {
+                    for(int i = 0; i < 100; i++)
+                    {
+                        BasicDeliverEventArgs ea = m_subscription.Next();
+                        if(ea != null)
+                        {
+                            Assert.That(ea, Is.TypeOf(typeof(BasicDeliverEventArgs)));
+                            this.PostProcess(m_subscription);
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                }
+                catch (AlreadyClosedException ace)
+                {
+                    // expected
+                }
+                finally
+                {
+                    m_subscription.Close();
+                }
+                #pragma warning restore
+
+            }
+        }
+
+        private void PreparedQueue(string q)
+        {
+            for (int i = 0; i < 1024; i++)
+            {
+                Model.BasicPublish("", q, null, enc.GetBytes("a message"));
+            }
         }
     }
 }
