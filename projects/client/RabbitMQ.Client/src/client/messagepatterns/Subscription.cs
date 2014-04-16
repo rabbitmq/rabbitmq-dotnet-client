@@ -420,10 +420,7 @@ namespace RabbitMQ.Client.MessagePatterns {
         ///</remarks>
         bool IEnumerator.MoveNext()
         {
-            lock(m_eventLock)
-            {
-                return Next() != null;
-            }
+            return Next() != null;
         }
 
         ///<summary>Dummy implementation of the IEnumerator interface,
