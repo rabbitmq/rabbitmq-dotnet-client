@@ -48,7 +48,7 @@ using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Impl
 {
-    public class SocketFrameHandler_0_9 : IFrameHandler
+    public class SocketFrameHandler : IFrameHandler
     {
         public const int WSAEWOULDBLOCK = 10035;
         // ^^ System.Net.Sockets.SocketError doesn't exist in .NET 1.1
@@ -63,7 +63,7 @@ namespace RabbitMQ.Client.Impl
         private bool m_closed = false;
         private Object m_semaphore = new object();
 
-        public SocketFrameHandler_0_9(AmqpTcpEndpoint endpoint,
+        public SocketFrameHandler(AmqpTcpEndpoint endpoint,
                                       ConnectionFactory.ObtainSocket socketFactory,
                                       int timeout)
         {
