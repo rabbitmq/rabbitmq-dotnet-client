@@ -55,8 +55,6 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestMessagePatternsSubscription : IntegrationFixture
     {
-        UTF8Encoding enc = new UTF8Encoding();
-
         [Test]
         public void TestChannelClosureIsObservableOnSubscription()
         {
