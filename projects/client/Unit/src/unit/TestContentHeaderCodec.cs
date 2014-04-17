@@ -133,8 +133,8 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestBodyLength()
         {
-            RabbitMQ.Client.Framing.v0_8.BasicProperties prop =
-                new RabbitMQ.Client.Framing.v0_8.BasicProperties();
+            RabbitMQ.Client.Framing.v0_9_1.BasicProperties prop =
+                new RabbitMQ.Client.Framing.v0_9_1.BasicProperties();
             prop.WriteTo(m_w.BaseWriter, 0x123456789ABCDEF0UL);
             Check(m_w, new byte[] { 0x00, 0x00, // weight
 			          0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0, // body len
@@ -144,8 +144,8 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestSimpleProperties()
         {
-            RabbitMQ.Client.Framing.v0_8.BasicProperties prop =
-                new RabbitMQ.Client.Framing.v0_8.BasicProperties();
+            RabbitMQ.Client.Framing.v0_9_1.BasicProperties prop =
+                new RabbitMQ.Client.Framing.v0_9_1.BasicProperties();
             prop.ContentType = "text/plain";
             prop.WriteTo(m_w.BaseWriter, 0x123456789ABCDEF0UL);
             Check(m_w, new byte[] { 0x00, 0x00, // weight

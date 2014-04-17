@@ -74,8 +74,7 @@ The available options are:
    RabbitMQ.Client.Framing.Impl.foo]. If this parameter is not
    supplied, a default will be constructed from the version (either
    the [code /v:] command-line option, or the version specified in the
-   spec XML): if the version is N-M, for instance 0-8, then the effect
-   is as if [code /n:vN_M] was supplied (e.g. [code /n:v0_8]).
+   spec XML).
 
  - [code v:<majorversion>-<minorversion>] - Overrides the version
    numbers found in the spec XML file. Used as part of the namespaces
@@ -529,47 +528,3 @@ the reply to an earlier RPC-style request.
 Note that [code AmqpContentHeaderMapping] and [code
 AmqpContentBodyMapping] are permitted on the arguments of an
 asynchronous event handler.
-
-*** Overriding behaviour for particular specification versions
-
-In some versions of the specification, a particular field, method or
-content header may not be supported. Methods and parameters can be
-marked to cause particular implementations to complain if these
-features are used by applications:
-
-@code java
-    [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-    void QueueUnbind(string queue,
-                     string exchange,
-                     string routingKey,
-                     IDictionary arguments);
-
-In the example above, [code queue.unbind] is marked as unsupported by
-the QPid-specific variant of the 0-8 protocol. Clients using the
-QPid-specific 0-8 [code IProtocol] implementation will, at runtime,
-receive a thrown [code UnsupportedMethodException] if they call
-QueueUnbind.
-
-@code java
-    [AmqpForceOneWay]
-    [AmqpMethodMapping(null, "basic", "consume")]
-    void _Private_BasicConsume(ushort ticket,
-                               string queue,
-                               string consumerTag,
-                               bool noLocal,
-                               bool noAck,
-                               bool exclusive,
-                               bool nowait,
-                               [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-                               [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9",
-                                                 "filter")]
-                               IDictionary arguments);
-
-In the example above, the "arguments" parameter is unsupported in
-standard 0-8, and in 0-9 t is named "filter" instead of
-"arguments". In all other implementations, it is assumed to be
-supported and named "arguments".
-
-The parameter to the attribute specifies the specification version to
-which the attribute should apply, or null if it should apply to any
-and all specification versions.

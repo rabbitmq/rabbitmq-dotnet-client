@@ -11,36 +11,6 @@
 	from the AMQP XML specification files.
       </summary>
     </member>
-    <member name="N:RabbitMQ.Client.Framing.Impl.v0_8">
-      <summary>
-	Internal. Implementation code specific to AMQP version 0-8.
-      </summary>
-    </member>
-    <member name="N:RabbitMQ.Client.Framing.Impl.v0_8qpid">
-      <summary>
-	Internal. Implementation code specific to AMQP version 0-8, as modified by QPid.
-      </summary>
-    </member>
-    <member name="N:RabbitMQ.Client.Framing.Impl.v0_9">
-      <summary>
-	Internal. Implementation code specific to AMQP version 0-9.
-      </summary>
-    </member>
-    <member name="N:RabbitMQ.Client.Framing.v0_8">
-      <summary>
-	Semi-public. Interfaces specific to AMQP version 0-8.
-      </summary>
-    </member>
-    <member name="N:RabbitMQ.Client.Framing.v0_8qpid">
-      <summary>
-	Semi-public. Interfaces specific to AMQP version 0-8, as modified by QPid.
-      </summary>
-    </member>
-    <member name="N:RabbitMQ.Client.Framing.v0_9">
-      <summary>
-	Semi-public. Interfaces specific to AMQP version 0-9.
-      </summary>
-    </member>
     <member name="N:RabbitMQ.Client.Impl">
       <summary>
 	Internal. AMQP client library implementation code. These

@@ -72,24 +72,6 @@ namespace RabbitMQ.Client
         ///time of writing, "AMQP_PROTOCOL".</summary>
         public readonly static string EnvironmentVariable = "AMQP_PROTOCOL";
 
-        ///<summary>Protocol version 0-8 as standardised.</summary>
-        public static IProtocol AMQP_0_8
-        {
-            get { return new RabbitMQ.Client.Framing.v0_8.Protocol(); }
-        }
-        ///<summary>Protocol version 0-8, as modified by QPid.</summary>
-        public static IProtocol AMQP_0_8_QPID
-        {
-            get { return new RabbitMQ.Client.Framing.v0_8qpid.Protocol(); }
-        }
-        ///<summary>Protocol version 0-9 as standardised (omitting
-        ///sections marked "WIP", "work in progress", including in
-        ///particular the Message class of operations).</summary>
-        public static IProtocol AMQP_0_9
-        {
-            get { return new RabbitMQ.Client.Framing.v0_9.Protocol(); }
-        }
-
         ///<summary>Protocol version 0-9-1 as modified by VMWare.</summary>
         public static IProtocol AMQP_0_9_1
         {
