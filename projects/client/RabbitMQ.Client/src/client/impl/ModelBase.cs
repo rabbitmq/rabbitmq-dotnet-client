@@ -53,7 +53,7 @@ using RabbitMQ.Util;
 // and the frame end byte, since they don't vary *within the versions
 // we support*. Obviously we may need to revisit this if that ever
 // changes.
-using CommonFraming = RabbitMQ.Client.Framing.v0_9;
+using CommonFraming = RabbitMQ.Client.Framing.v0_9_1;
 
 namespace RabbitMQ.Client.Impl
 {
