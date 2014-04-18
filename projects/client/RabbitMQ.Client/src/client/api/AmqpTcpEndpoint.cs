@@ -142,30 +142,29 @@ namespace RabbitMQ.Client
         }
 
         ///<summary>Construct an AmqpTcpEndpoint with the given
-        ///hostname and port number, using the IProtocol from
-        ///Protocols.FromEnvironment(). If the port number is
+        ///hostname and port number, using Protocols.DefaultProtocol. If the port number is
         ///-1, the default port number for the IProtocol will be
         ///used.</summary>
         public AmqpTcpEndpoint(string hostName, int portOrMinusOne) :
-            this(Protocols.FromEnvironment(), hostName, portOrMinusOne)
+            this(Protocols.DefaultProtocol, hostName, portOrMinusOne)
         {
         }
 
         ///<summary>Construct an AmqpTcpEndpoint with the given
         ///hostname, using the IProtocol from
-        ///Protocols.FromEnvironment(), and the default port number of
+        ///Protocols.DefaultProtocol, and the default port number of
         ///that IProtocol.</summary>
         public AmqpTcpEndpoint(string hostName) :
-            this(Protocols.FromEnvironment(), hostName)
+            this(Protocols.DefaultProtocol, hostName)
         {
         }
 
         ///<summary>Construct an AmqpTcpEndpoint with a hostname of
         ///"localhost", using the IProtocol from
-        ///Protocols.FromEnvironment(), and the default port number of
+        ///Protocols.DefaultProtocol, and the default port number of
         ///that IProtocol.</summary>
         public AmqpTcpEndpoint() :
-            this(Protocols.FromEnvironment())
+            this(Protocols.DefaultProtocol)
         {
         }
 
@@ -193,13 +192,13 @@ namespace RabbitMQ.Client
 
         ///<summary>Construct an AmqpTcpEndpoint with the given
         ///Uri, using the IProtocol from
-        ///Protocols.FromEnvironment().</summary>
+        ///Protocols.DefaultProtocol.</summary>
         ///<remarks>
         /// Please see the class overview documentation for
         /// information about the Uri format in use.
         ///</remarks>
         public AmqpTcpEndpoint(Uri uri) :
-            this(Protocols.FromEnvironment(), uri)
+            this(Protocols.DefaultProtocol, uri)
         {
         }
 

@@ -63,7 +63,6 @@ namespace RabbitMQ.Client
     ///     factory.UserName = ConnectionFactory.DefaultUser;
     ///     factory.Password = ConnectionFactory.DefaultPass;
     ///     factory.VirtualHost = ConnectionFactory.DefaultVHost;
-    ///     factory.Protocol = Protocols.FromEnvironment();
     ///     factory.HostName = hostName;
     ///     factory.Port     = AmqpTcpEndpoint.UseDefaultPort;
     ///     //
@@ -165,8 +164,8 @@ namespace RabbitMQ.Client
         ///<summary> SASL auth mechanisms to use.</summary>
         public AuthMechanismFactory[] AuthMechanisms = DefaultAuthMechanisms;
 
-        ///<summary>The AMQP protocol to be used</summary>
-        public IProtocol Protocol = Protocols.FromEnvironment();
+        ///<summary>The AMQP protocol to be used. Currently 0-9-1.</summary>
+        public IProtocol Protocol = Protocols.DefaultProtocol;
 
         ///<summary>The AMQP connection target</summary>
         public AmqpTcpEndpoint Endpoint
