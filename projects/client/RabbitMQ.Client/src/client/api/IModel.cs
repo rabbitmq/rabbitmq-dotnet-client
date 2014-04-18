@@ -654,7 +654,7 @@ namespace RabbitMQ.Client.Impl
     ///autogeneration process.</remarks>
     ///
     ///<see cref="RabbitMQ.Client.Impl.ModelBase"/>
-    ///<see cref="RabbitMQ.Client.Framing.Impl.v0_9.Model"/>
+    ///<see cref="RabbitMQ.Client.Framing.Impl.v0_9_1.Model"/>
     public interface IFullModel : RabbitMQ.Client.IModel
     {
         ///<summary>Used to send a Exchange.Declare method. Called by the
