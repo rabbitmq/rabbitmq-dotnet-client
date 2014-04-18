@@ -52,43 +52,7 @@ using RabbitMQ.Client.Impl;
 [TestFixture]
 public class TestPropertiesClone
 {
-    [Test]
-    public void TestBasicPropertiesCloneV0_8()
-    {
-        TestBasicPropertiesClone(new RabbitMQ.Client.Framing.v0_8.BasicProperties());
-    }
-
-    [Test]
-    public void TestBasicPropertiesNoneCloneV0_8()
-    {
-        TestBasicPropertiesNoneClone(new RabbitMQ.Client.Framing.v0_8.BasicProperties());
-    }
-
-    [Test]
-    public void TestBasicPropertiesCloneV0_8qpid()
-    {
-        TestBasicPropertiesClone(new RabbitMQ.Client.Framing.v0_8qpid.BasicProperties());
-    }
-
-    [Test]
-    public void TestBasicPropertiesNoneCloneV0_8qpid()
-    {
-        TestBasicPropertiesNoneClone(new RabbitMQ.Client.Framing.v0_8qpid.BasicProperties());
-    }
-
-    [Test]
-    public void TestBasicPropertiesCloneV0_9()
-    {
-        TestBasicPropertiesClone(new RabbitMQ.Client.Framing.v0_9.BasicProperties());
-    }
-
-    [Test]
-    public void TestBasicPropertiesNoneCloneV0_9()
-    {
-        TestBasicPropertiesNoneClone(new RabbitMQ.Client.Framing.v0_9.BasicProperties());
-    }
-
-    [Test]
+     [Test]
     public void TestBasicPropertiesCloneV0_9_1()
     {
         TestBasicPropertiesClone(new RabbitMQ.Client.Framing.v0_9_1.BasicProperties());
@@ -98,78 +62,6 @@ public class TestPropertiesClone
     public void TestBasicPropertiesNoneCloneV0_9_1()
     {
         TestBasicPropertiesNoneClone(new RabbitMQ.Client.Framing.v0_9_1.BasicProperties());
-    }
-
-    [Test]
-    public void TestStreamPropertiesCloneV0_8()
-    {
-        TestStreamPropertiesClone(new RabbitMQ.Client.Framing.v0_8.StreamProperties());
-    }
-
-    [Test]
-    public void TestStreamPropertiesNoneCloneV0_8()
-    {
-        TestStreamPropertiesNoneClone(new RabbitMQ.Client.Framing.v0_8.StreamProperties());
-    }
-
-    [Test]
-    public void TestStreamPropertiesCloneV0_8qpid()
-    {
-        TestStreamPropertiesClone(new RabbitMQ.Client.Framing.v0_8qpid.StreamProperties());
-    }
-
-    [Test]
-    public void TestStreamPropertiesNoneCloneV0_8qpid()
-    {
-        TestStreamPropertiesNoneClone(new RabbitMQ.Client.Framing.v0_8qpid.StreamProperties());
-    }
-
-    [Test]
-    public void TestStreamPropertiesCloneV0_9()
-    {
-        TestStreamPropertiesClone(new RabbitMQ.Client.Framing.v0_9.StreamProperties());
-    }
-
-    [Test]
-    public void TestStreamPropertiesNoneCloneV0_9()
-    {
-        TestStreamPropertiesNoneClone(new RabbitMQ.Client.Framing.v0_9.StreamProperties());
-    }
-
-    [Test]
-    public void TestFilePropertiesCloneV0_8()
-    {
-        TestFilePropertiesClone(new RabbitMQ.Client.Framing.v0_8.FileProperties());
-    }
-
-    [Test]
-    public void TestFilePropertiesNoneCloneV0_8()
-    {
-        TestFilePropertiesNoneClone(new RabbitMQ.Client.Framing.v0_8.FileProperties());
-    }
-
-    [Test]
-    public void TestFilePropertiesCloneV0_8qpid()
-    {
-        TestFilePropertiesClone(new RabbitMQ.Client.Framing.v0_8qpid.FileProperties());
-    }
-
-    [Test]
-    public void TestFilePropertiesNoneCloneV0_8qpid()
-    {
-        TestFilePropertiesNoneClone(new RabbitMQ.Client.Framing.v0_8qpid.FileProperties());
-    }
-
-    [Test]
-    public void TestFilePropertiesCloneV0_9()
-    {
-        TestFilePropertiesClone(new RabbitMQ.Client.Framing.v0_9.FileProperties());
-    }
-
-    [Test]
-    public void TestFilePropertiesNoneCloneV0_9()
-    {
-        TestFilePropertiesNoneClone(new RabbitMQ.Client.Framing.v0_9.FileProperties());
     }
 
     private void TestBasicPropertiesClone(BasicProperties bp)
