@@ -276,7 +276,6 @@ namespace RabbitMQ.Client
         ///a 0-8 broker that has been enhanced with the unofficial
         ///addition of a queue.unbind method.
         ///</remarks>
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
         void QueueUnbind(string queue,
                          string exchange,
                          string routingKey,
@@ -310,9 +309,6 @@ namespace RabbitMQ.Client
 
         ///<summary>Enable publisher acknowledgements.</summary>
         [AmqpMethodDoNotImplement(null)]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
         void ConfirmSelect();
 
         ///<summary>Wait until all published messages have been confirmed.
@@ -324,9 +320,6 @@ namespace RabbitMQ.Client
         ///throws an exception when called on a non-Confirm channel.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
         bool WaitForConfirms();
 
         ///<summary>Wait until all published messages have been confirmed.
@@ -345,9 +338,6 @@ namespace RabbitMQ.Client
         ///throws an exception when called on a non-Confirm channel.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
         bool WaitForConfirms(TimeSpan timeout, out bool timedOut);
 
         ///<summary>Wait until all published messages have been confirmed.
@@ -358,9 +348,6 @@ namespace RabbitMQ.Client
         ///OperationInterrupedException exception immediately.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
         void WaitForConfirmsOrDie();
 
         ///<summary>Wait until all published messages have been confirmed.
@@ -372,9 +359,6 @@ namespace RabbitMQ.Client
         ///immediately.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
         void WaitForConfirmsOrDie(TimeSpan timeout);
 
         ///<summary>Start a Basic content-class consumer.</summary>
@@ -483,9 +467,6 @@ namespace RabbitMQ.Client
                          bool requeue);
 
          ///<summary>Reject one or more delivered message(s).</summary>
-         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
          void BasicNack(ulong deliveryTag,
                         bool multiple,
                         bool requeue);
@@ -495,7 +476,6 @@ namespace RabbitMQ.Client
         void BasicRecover(bool requeue);
 
         ///<summary>(Spec method)</summary>
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
         void BasicRecoverAsync(bool requeue);
 
         ///<summary>(Spec method) Retrieve an individual message, if
