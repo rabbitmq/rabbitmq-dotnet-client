@@ -51,7 +51,7 @@ namespace RabbitMQ.Client
         // We'd make this class static, but for MS's .NET 1.1 compilers
         private Protocols() {}
 
-        ///<summary>Protocol version 0-9-1 as modified by VMWare.</summary>
+        ///<summary>Protocol version 0-9-1 as modified by Pivotal.</summary>
         public static IProtocol AMQP_0_9_1
         {
             get { return new RabbitMQ.Client.Framing.v0_9_1.Protocol(); }
