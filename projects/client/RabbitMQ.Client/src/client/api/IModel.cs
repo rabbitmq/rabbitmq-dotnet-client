@@ -751,6 +751,8 @@ namespace RabbitMQ.Client.Impl
                                    bool noAck,
                                    bool exclusive,
                                    bool nowait,
+                                   [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9",
+                                                     "filter")]
                                    IDictionary<string, object> arguments);
 
         ///<summary>Used to send a Confirm.Select method. The public

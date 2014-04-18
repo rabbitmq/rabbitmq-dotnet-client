@@ -58,7 +58,7 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
                                                          ConnectionFactory.ObtainSocket socketFactory,
                                                          int timeout)
         {
-            return new SocketFrameHandler(endpoint, socketFactory, timeout);
+            return new SocketFrameHandler_0_9(endpoint, socketFactory, timeout);
         }
 
         public override IModel CreateModel(ISession session) {
