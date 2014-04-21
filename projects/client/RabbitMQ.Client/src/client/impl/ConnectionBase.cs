@@ -55,6 +55,7 @@ using RabbitMQ.Util;
 // the versions we support*. Obviously we may need to revisit this if
 // that ever changes.
 using CommonFraming = RabbitMQ.Client.Framing.v0_9_1;
+using RabbitMQ.Client.Framing.Impl.v0_9_1;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -222,11 +223,11 @@ namespace RabbitMQ.Client.Impl
 
         ///<summary>Another overload of a Protocol property, useful
         ///for exposing a tighter type.</summary>
-        public AbstractProtocolBase Protocol
+        public ProtocolBase Protocol
         {
             get
             {
-                return (AbstractProtocolBase)Endpoint.Protocol;
+                return (ProtocolBase)Endpoint.Protocol;
             }
         }
 
@@ -1160,7 +1161,7 @@ namespace RabbitMQ.Client.Impl
             string knownHosts = m_model0.ConnectionOpen(m_factory.VirtualHost,
                                                         "", // FIXME: make configurable?
                                                         insist);
-            KnownHosts = AmqpTcpEndpoint.ParseMultiple(Protocol, knownHosts);
+            KnownHosts = AmqpTcpEndpoint.ParseMultiple((IProtocol)Protocol, knownHosts);
         }
 
         public override string ToString()
