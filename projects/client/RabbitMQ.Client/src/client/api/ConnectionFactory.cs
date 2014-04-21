@@ -214,7 +214,8 @@ namespace RabbitMQ.Client
             IConnection conn = null;
             try
             {
-                IFrameHandler fh = Endpoint.Protocol.CreateFrameHandler(Endpoint,
+                IProtocol p = Endpoint.Protocol;
+                IFrameHandler fh = p.CreateFrameHandler(Endpoint,
                                                                         SocketFactory,
                                                                         RequestedConnectionTimeout);
                 conn = p.CreateConnection(this, false, fh);
