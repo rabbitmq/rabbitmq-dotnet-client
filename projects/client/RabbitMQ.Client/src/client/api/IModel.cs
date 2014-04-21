@@ -497,15 +497,6 @@ namespace RabbitMQ.Client
         ///transaction.</summary>
         void TxRollback();
 
-        ///<summary>(Spec method) Enable DTX mode for this session.
-        /// (unsupported in AMQP 0-9-1)</summary>
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
-        void DtxSelect();
-
-        ///<summary>(Spec method, unsupported in AMQP 0-9-1)</summary>
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
-        void DtxStart(string dtxIdentifier);
-
         ///<summary>Close this session.</summary>
         ///<remarks>
         ///If the session is already closed (or closing), then this
