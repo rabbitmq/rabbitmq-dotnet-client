@@ -1493,13 +1493,8 @@ namespace RabbitMQ.Client.Impl
                 // negotiation finishes
             }
             k.GetReply();
-            if (k.m_redirect) {
-                throw new RedirectException(m_session.Connection.Protocol,
-                                            k.m_host,
-                                            k.m_knownHosts);
-            } else {
-                return k.m_knownHosts;
-            }
+
+            return k.m_knownHosts;
         }
 
         public abstract void _Private_ConnectionOpen(string virtualHost,
@@ -1511,16 +1506,6 @@ namespace RabbitMQ.Client.Impl
             ConnectionOpenContinuation k = (ConnectionOpenContinuation)m_continuationQueue.Next();
             k.m_redirect = false;
             k.m_host = null;
-            k.m_knownHosts = knownHosts;
-            k.HandleCommand(null); // release the continuation.
-        }
-
-        public void HandleConnectionRedirect(string host,
-                                             string knownHosts)
-        {
-            ConnectionOpenContinuation k = (ConnectionOpenContinuation)m_continuationQueue.Next();
-            k.m_redirect = true;
-            k.m_host = host;
             k.m_knownHosts = knownHosts;
             k.HandleCommand(null); // release the continuation.
         }
