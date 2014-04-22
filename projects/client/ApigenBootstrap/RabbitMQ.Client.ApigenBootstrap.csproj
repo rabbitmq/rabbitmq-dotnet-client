@@ -108,6 +108,9 @@
     <Compile Include="..\RabbitMQ.Client\src\client\events\ConsumerEventArgs.cs">
       <Link>src\client\events\ConsumerEventArgs.cs</Link>
     </Compile>
+    <Compile Include="..\RabbitMQ.Client\src\client\impl\IFullModel.cs">
+      <Link>src\client\impl\IFullModel.cs</Link>
+    </Compile>
     <Compile Include="properties\AssemblyInfo.cs" />
   </ItemGroup>
   
