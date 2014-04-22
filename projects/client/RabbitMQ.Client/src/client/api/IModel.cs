@@ -144,20 +144,6 @@ namespace RabbitMQ.Client
         [AmqpContentHeaderFactory("basic")]
         IBasicProperties CreateBasicProperties();
 
-        ///<summary>Construct a completely empty content header for
-        ///use with the File content class.
-        /// (unsupported in AMQP 0-9-1)</summary>
-        [AmqpContentHeaderFactory("file")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
-        IFileProperties CreateFileProperties();
-
-        ///<summary>Construct a completely empty content header for
-        ///use with the Stream content class.
-        /// (unsupported in AMQP 0-9-1)</summary>
-        [AmqpContentHeaderFactory("stream")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
-        IStreamProperties CreateStreamProperties();
-
         ///<summary>(Spec method) Declare an exchange.</summary>
         ///<remarks>
         ///The exchange is declared non-passive and non-internal.
