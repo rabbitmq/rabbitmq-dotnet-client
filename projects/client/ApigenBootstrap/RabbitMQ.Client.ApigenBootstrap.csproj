@@ -54,14 +54,8 @@
     <Compile Include="..\RabbitMQ.Client\src\client\api\IContentHeader.cs">
       <Link>src\client\api\IContentHeader.cs</Link>
     </Compile>
-    <Compile Include="..\RabbitMQ.Client\src\client\api\IFileProperties.cs">
-      <Link>src\client\api\IFileProperties.cs</Link>
-    </Compile>
     <Compile Include="..\RabbitMQ.Client\src\client\api\IModel.cs">
       <Link>src\client\api\IModel.cs</Link>
-    </Compile>
-    <Compile Include="..\RabbitMQ.Client\src\client\api\IStreamProperties.cs">
-      <Link>src\client\api\IStreamProperties.cs</Link>
     </Compile>
     <Compile Include="..\RabbitMQ.Client\src\client\api\PublicationAddress.cs">
       <Link>src\client\api\PublicationAddress.cs</Link>
