@@ -776,8 +776,6 @@ namespace RabbitMQ.Client.Impl
         ///////////////////////////////////////////////////////////////////////////
 
         public abstract IBasicProperties CreateBasicProperties();
-        public abstract IFileProperties CreateFileProperties();
-        public abstract IStreamProperties CreateStreamProperties();
 
         public void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
         {
