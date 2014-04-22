@@ -60,6 +60,9 @@
     <Compile Include="..\RabbitMQ.Client\src\client\api\PublicationAddress.cs">
       <Link>src\client\api\PublicationAddress.cs</Link>
     </Compile>
+    <Compile Include="..\RabbitMQ.Client\src\client\api\BasicGetResult.cs">
+      <Link>src\client\api\BasicGetResult.cs</Link>
+    </Compile>
     <Compile Include="..\RabbitMQ.Client\src\client\api\QueueDeclareOk.cs">
       <Link>src\client\api\QueueDeclareOk.cs</Link>
     </Compile>
