@@ -1491,7 +1491,6 @@ namespace RabbitMQ.Client.Impl
                 // negotiation finishes
             }
             k.GetReply();
-
             return k.m_knownHosts;
         }
 

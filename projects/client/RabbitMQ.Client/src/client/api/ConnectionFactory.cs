@@ -172,11 +172,10 @@ namespace RabbitMQ.Client
         {
           get
           {
-              return new AmqpTcpEndpoint(Protocol, HostName, Port, Ssl);
+              return new AmqpTcpEndpoint(HostName, Port, Ssl);
           }
           set
           {
-              Protocol = value.Protocol;
               Port = value.Port;
               HostName = value.HostName;
               Ssl = value.Ssl;
@@ -214,7 +213,7 @@ namespace RabbitMQ.Client
             IConnection conn = null;
             try
             {
-                IProtocol p = Endpoint.Protocol;
+                IProtocol p = Protocols.DefaultProtocol;
                 IFrameHandler fh = p.CreateFrameHandler(Endpoint,
                                                                         SocketFactory,
                                                                         RequestedConnectionTimeout);
