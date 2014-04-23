@@ -1160,7 +1160,7 @@ namespace RabbitMQ.Client.Impl
             string knownHosts = m_model0.ConnectionOpen(m_factory.VirtualHost,
                                                         "", // FIXME: make configurable?
                                                         insist);
-            KnownHosts = AmqpTcpEndpoint.ParseMultiple(Protocol, knownHosts);
+            KnownHosts = AmqpTcpEndpoint.ParseMultiple(knownHosts);
         }
 
         public override string ToString()
