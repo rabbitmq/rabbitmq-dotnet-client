@@ -144,10 +144,19 @@ namespace RabbitMQ.Client.Impl
         {
             set
             {
-                if (m_socket.Connected)
+                try
                 {
-                    m_socket.ReceiveTimeout = value;
+                    if (m_socket.Connected)
+                    {
+                        m_socket.ReceiveTimeout = value;
+                    }
                 }
+                #pragma warning disable 0168
+                catch (SocketException _)
+                {
+                    // means that the socket is already closed
+                }
+                #pragma warning restore 0168
             }
         }
 
