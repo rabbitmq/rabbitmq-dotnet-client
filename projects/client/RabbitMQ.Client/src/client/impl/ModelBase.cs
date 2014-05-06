@@ -53,7 +53,7 @@ using RabbitMQ.Util;
 // and the frame end byte, since they don't vary *within the versions
 // we support*. Obviously we may need to revisit this if that ever
 // changes.
-using CommonFraming = RabbitMQ.Client.Framing.v0_9;
+using CommonFraming = RabbitMQ.Client.Framing.v0_9_1;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -776,8 +776,6 @@ namespace RabbitMQ.Client.Impl
         ///////////////////////////////////////////////////////////////////////////
 
         public abstract IBasicProperties CreateBasicProperties();
-        public abstract IFileProperties CreateFileProperties();
-        public abstract IStreamProperties CreateStreamProperties();
 
         public void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
         {
@@ -1288,9 +1286,6 @@ namespace RabbitMQ.Client.Impl
         public abstract void TxCommit();
         public abstract void TxRollback();
 
-        public abstract void DtxSelect();
-        public abstract void DtxStart(string dtxIdentifier);
-
         void IDisposable.Dispose()
         {
             Close();
@@ -1496,13 +1491,7 @@ namespace RabbitMQ.Client.Impl
                 // negotiation finishes
             }
             k.GetReply();
-            if (k.m_redirect) {
-                throw new RedirectException(m_session.Connection.Protocol,
-                                            k.m_host,
-                                            k.m_knownHosts);
-            } else {
-                return k.m_knownHosts;
-            }
+            return k.m_knownHosts;
         }
 
         public abstract void _Private_ConnectionOpen(string virtualHost,

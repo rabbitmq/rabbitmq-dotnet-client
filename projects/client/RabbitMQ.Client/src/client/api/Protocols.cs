@@ -44,53 +44,14 @@ using System.Configuration;
 
 namespace RabbitMQ.Client
 {
-    ///<summary>Concrete, predefined IProtocol instances ready for use
-    ///with ConnectionFactory.</summary>
-    ///<remarks>
-    ///<para>
-    /// Applications will in the common case use the FromEnvironment()
-    /// method to search a fallback-chain of configuration sources for
-    /// the IProtocol instance to use. However, in some cases, the
-    /// default fallback-chain is not appropriate; in these cases,
-    /// other methods such as FromConfiguration(string) or
-    /// SafeLookup(string) may suffice.
-    ///</para>
-    ///</remarks>
+    ///<summary>Provides access to the supported IProtocol implementations</summary>
     public class Protocols
     {
         // Hide the constructor - no instances of Protocols needed.
         // We'd make this class static, but for MS's .NET 1.1 compilers
         private Protocols() {}
 
-        ///<summary>The default App.config appSettings key used by
-        ///FromConfiguration and FromEnvironment. At the time of
-        ///writing, "AMQP_PROTOCOL".</summary>
-        public readonly static string DefaultAppSettingsKey = "AMQP_PROTOCOL";
-
-        ///<summary>The environment variable read by
-        ///FromEnvironmentVariable() and FromEnvironment(). At the
-        ///time of writing, "AMQP_PROTOCOL".</summary>
-        public readonly static string EnvironmentVariable = "AMQP_PROTOCOL";
-
-        ///<summary>Protocol version 0-8 as standardised.</summary>
-        public static IProtocol AMQP_0_8
-        {
-            get { return new RabbitMQ.Client.Framing.v0_8.Protocol(); }
-        }
-        ///<summary>Protocol version 0-8, as modified by QPid.</summary>
-        public static IProtocol AMQP_0_8_QPID
-        {
-            get { return new RabbitMQ.Client.Framing.v0_8qpid.Protocol(); }
-        }
-        ///<summary>Protocol version 0-9 as standardised (omitting
-        ///sections marked "WIP", "work in progress", including in
-        ///particular the Message class of operations).</summary>
-        public static IProtocol AMQP_0_9
-        {
-            get { return new RabbitMQ.Client.Framing.v0_9.Protocol(); }
-        }
-
-        ///<summary>Protocol version 0-9-1 as modified by VMWare.</summary>
+        ///<summary>Protocol version 0-9-1 as modified by Pivotal.</summary>
         public static IProtocol AMQP_0_9_1
         {
             get { return new RabbitMQ.Client.Framing.v0_9_1.Protocol(); }
@@ -101,127 +62,6 @@ namespace RabbitMQ.Client
         public static IProtocol DefaultProtocol
         {
             get { return AMQP_0_9_1; }
-        }
-
-        ///<summary>Low-level method for retrieving a protocol version
-        ///by name (of one of the static properties on this
-        ///class)</summary>
-        ///<remarks>
-        ///<para>
-        /// Returns null if no suitable property could be found.
-        ///</para>
-        ///<para>
-        /// In many cases, FromEnvironment() will be a more
-        /// appropriate method for applications to call; this method
-        /// is provided for cases where the caller wishes to know the
-        /// answer to the question "does a suitable IProtocol property
-        /// with this name exist, and if so, what is its value?"
-        ///</para>
-        ///</remarks>
-        public static IProtocol Lookup(string name)
-        {
-            PropertyInfo pi = typeof(Protocols).GetProperty(name,
-                                                            BindingFlags.Public |
-                                                            BindingFlags.Static);
-            if (pi == null)
-            {
-                return null;
-            }
-            return pi.GetValue(null, new object[0]) as IProtocol;
-        }
-
-        ///<summary>Retrieve a protocol version by name (of one of the
-        ///static properties on this class)</summary>
-        ///<remarks>
-        ///<para>
-        /// If the argument is null, Protocols.DefaultProtocol is
-        /// used. If the protocol variant named is not found,
-        /// ConfigurationErrorsException is thrown.
-        ///</para>
-        ///<para>
-        /// In many cases, FromEnvironment() will be a more
-        /// appropriate method for applications to call; this method
-        /// is provided for cases where the caller wishes to know the
-        /// answer to the question "does a suitable IProtocol property
-        /// with this name exist, and if so, what is its value?", with
-        /// the additional guarantee that if a suitable property does
-        /// not exist, a ConfigurationErrorsException will be thrown.
-        ///</para>
-        ///</remarks>
-        ///<exception cref="System.Configuration.ConfigurationErrorsException"/>
-        public static IProtocol SafeLookup(string name)
-        {
-            if (name != null)
-            {
-                IProtocol p = Lookup(name);
-                if (p != null)
-                {
-                    return p;
-                }
-                else
-                {
-                    throw new ConfigurationErrorsException("Unsupported protocol variant name: " + name);
-                }
-            }
-            return DefaultProtocol;
-        }
-
-        private static string ReadEnvironmentVariable()
-        {
-            return Environment.GetEnvironmentVariable(EnvironmentVariable);
-        }
-
-        ///<summary>Uses the process environment variable
-        ///<code>EnvironmentVariable</code> to retrieve an IProtocol
-        ///instance.</summary>
-        ///<remarks>
-        ///If the environment variable is unset,
-        ///Protocols.DefaultProtocol is used. If the protocol variant
-        ///named is not found, ConfigurationErrorsException is thrown.
-        ///</remarks>
-        ///<exception cref="System.Configuration.ConfigurationErrorsException"/>
-        public static IProtocol FromEnvironmentVariable()
-        {
-            return SafeLookup(ReadEnvironmentVariable());
-        }
-
-        ///<summary>Uses App.config's appSettings section to retrieve
-        ///an IProtocol instance.</summary>
-        ///<remarks>
-        ///If the appSettings key is missing,
-        ///Protocols.DefaultProtocol is used. If the protocol variant
-        ///named is not found, ConfigurationErrorsException is thrown.
-        ///</remarks>
-        ///<exception cref="System.Configuration.ConfigurationErrorsException"/>
-        public static IProtocol FromConfiguration(string appSettingsKey)
-        {
-            string name = ConfigurationManager.AppSettings[appSettingsKey];
-            return SafeLookup(name);
-        }
-
-        ///<summary>Returns FromConfiguration(DefaultAppSettingsKey).</summary>
-        public static IProtocol FromConfiguration()
-        {
-            return FromConfiguration(DefaultAppSettingsKey);
-        }
-
-        ///<summary>Tries FromConfiguration() first, followed by
-        ///FromEnvironmentVariable() if no setting was found in the
-        ///App.config.</summary>
-        ///<exception cref="System.Configuration.ConfigurationErrorsException"/>
-        public static IProtocol FromEnvironment(string appSettingsKey)
-        {
-            string name = ConfigurationManager.AppSettings[appSettingsKey];
-            if (name == null) {
-                name = ReadEnvironmentVariable();
-            }
-            return SafeLookup(name);
-        }
-
-        ///<summary>Returns FromEnvironment(DefaultAppSettingsKey).</summary>
-        public static IProtocol FromEnvironment()
-        {
-            return FromEnvironment(DefaultAppSettingsKey);
         }
     }
 }

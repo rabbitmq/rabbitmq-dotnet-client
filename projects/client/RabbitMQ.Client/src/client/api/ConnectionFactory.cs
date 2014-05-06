@@ -63,7 +63,6 @@ namespace RabbitMQ.Client
     ///     factory.UserName = ConnectionFactory.DefaultUser;
     ///     factory.Password = ConnectionFactory.DefaultPass;
     ///     factory.VirtualHost = ConnectionFactory.DefaultVHost;
-    ///     factory.Protocol = Protocols.FromEnvironment();
     ///     factory.HostName = hostName;
     ///     factory.Port     = AmqpTcpEndpoint.UseDefaultPort;
     ///     //
@@ -165,19 +164,18 @@ namespace RabbitMQ.Client
         ///<summary> SASL auth mechanisms to use.</summary>
         public AuthMechanismFactory[] AuthMechanisms = DefaultAuthMechanisms;
 
-        ///<summary>The AMQP protocol to be used</summary>
-        public IProtocol Protocol = Protocols.FromEnvironment();
+        ///<summary>The AMQP protocol to be used. Currently 0-9-1.</summary>
+        public IProtocol Protocol = Protocols.DefaultProtocol;
 
         ///<summary>The AMQP connection target</summary>
         public AmqpTcpEndpoint Endpoint
         {
           get
           {
-              return new AmqpTcpEndpoint(Protocol, HostName, Port, Ssl);
+              return new AmqpTcpEndpoint(HostName, Port, Ssl);
           }
           set
           {
-              Protocol = value.Protocol;
               Port = value.Port;
               HostName = value.HostName;
               Ssl = value.Ssl;
@@ -222,37 +220,16 @@ namespace RabbitMQ.Client
                     connectionAttempts[candidate] = attemptCount + 1;
                     bool insist = attemptCount >= maxRedirects;
 
-                    try {
-                        IProtocol p = candidate.Protocol;
-                        IFrameHandler fh = p.CreateFrameHandler(candidate,
-                                                                SocketFactory,
-                                                                RequestedConnectionTimeout);
+                    IProtocol p = Protocol;
+                    IFrameHandler fh = p.CreateFrameHandler(candidate,
+                                                            SocketFactory,
+                                                            RequestedConnectionTimeout);
 
-                        // At this point, we may be able to create
-                        // and fully open a successful connection,
-                        // in which case we're done, and the
-                        // connection should be returned.
-                        return p.CreateConnection(this, insist, fh);
-                    } catch (RedirectException re) {
-                        if (insist) {
-                            // We've been redirected, but we insisted that
-                            // we shouldn't be redirected! Well-behaved
-                            // brokers should never do this.
-                            string message = string.Format("Server {0} ignored 'insist' flag, redirecting us to {1}",
-                                                           candidate,
-                                                           re.Host);
-                            throw new ProtocolViolationException(message);
-                        } else {
-                            // We've been redirected. Follow this new link
-                            // in the chain, by setting
-                            // mostRecentKnownHosts (in case the chain
-                            // runs out), and updating candidate for the
-                            // next time round the loop.
-                            connectionErrors[candidate] = re;
-                            mostRecentKnownHosts = re.KnownHosts;
-                            candidate = re.Host;
-                        }
-                    }
+                    // At this point, we may be able to create
+                    // and fully open a successful connection,
+                    // in which case we're done, and the
+                    // connection should be returned.
+                    return p.CreateConnection(this, insist, fh);
                 }
             } catch (Exception e) {
                 connectionErrors[candidate] = e;

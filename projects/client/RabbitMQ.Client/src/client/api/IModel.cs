@@ -144,20 +144,6 @@ namespace RabbitMQ.Client
         [AmqpContentHeaderFactory("basic")]
         IBasicProperties CreateBasicProperties();
 
-        ///<summary>Construct a completely empty content header for
-        ///use with the File content class.
-        /// (unsupported in AMQP 0-9-1)</summary>
-        [AmqpContentHeaderFactory("file")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
-        IFileProperties CreateFileProperties();
-
-        ///<summary>Construct a completely empty content header for
-        ///use with the Stream content class.
-        /// (unsupported in AMQP 0-9-1)</summary>
-        [AmqpContentHeaderFactory("stream")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
-        IStreamProperties CreateStreamProperties();
-
         ///<summary>(Spec method) Declare an exchange.</summary>
         ///<remarks>
         ///The exchange is declared non-passive and non-internal.
@@ -276,7 +262,6 @@ namespace RabbitMQ.Client
         ///a 0-8 broker that has been enhanced with the unofficial
         ///addition of a queue.unbind method.
         ///</remarks>
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
         void QueueUnbind(string queue,
                          string exchange,
                          string routingKey,
@@ -310,9 +295,6 @@ namespace RabbitMQ.Client
 
         ///<summary>Enable publisher acknowledgements.</summary>
         [AmqpMethodDoNotImplement(null)]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
         void ConfirmSelect();
 
         ///<summary>Wait until all published messages have been confirmed.
@@ -324,9 +306,6 @@ namespace RabbitMQ.Client
         ///throws an exception when called on a non-Confirm channel.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
         bool WaitForConfirms();
 
         ///<summary>Wait until all published messages have been confirmed.
@@ -345,9 +324,6 @@ namespace RabbitMQ.Client
         ///throws an exception when called on a non-Confirm channel.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
         bool WaitForConfirms(TimeSpan timeout, out bool timedOut);
 
         ///<summary>Wait until all published messages have been confirmed.
@@ -358,9 +334,6 @@ namespace RabbitMQ.Client
         ///OperationInterrupedException exception immediately.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
         void WaitForConfirmsOrDie();
 
         ///<summary>Wait until all published messages have been confirmed.
@@ -372,9 +345,6 @@ namespace RabbitMQ.Client
         ///immediately.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
         void WaitForConfirmsOrDie(TimeSpan timeout);
 
         ///<summary>Start a Basic content-class consumer.</summary>
@@ -483,9 +453,6 @@ namespace RabbitMQ.Client
                          bool requeue);
 
          ///<summary>Reject one or more delivered message(s).</summary>
-         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
          void BasicNack(ulong deliveryTag,
                         bool multiple,
                         bool requeue);
@@ -495,7 +462,6 @@ namespace RabbitMQ.Client
         void BasicRecover(bool requeue);
 
         ///<summary>(Spec method)</summary>
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
         void BasicRecoverAsync(bool requeue);
 
         ///<summary>(Spec method) Retrieve an individual message, if
@@ -516,15 +482,6 @@ namespace RabbitMQ.Client
         ///<summary>(Spec method) Roll back this session's active TX
         ///transaction.</summary>
         void TxRollback();
-
-        ///<summary>(Spec method) Enable DTX mode for this session.
-        /// (unsupported in AMQP 0-9-1)</summary>
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
-        void DtxSelect();
-
-        ///<summary>(Spec method, unsupported in AMQP 0-9-1)</summary>
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
-        void DtxStart(string dtxIdentifier);
 
         ///<summary>Close this session.</summary>
         ///<remarks>
@@ -654,7 +611,7 @@ namespace RabbitMQ.Client.Impl
     ///autogeneration process.</remarks>
     ///
     ///<see cref="RabbitMQ.Client.Impl.ModelBase"/>
-    ///<see cref="RabbitMQ.Client.Framing.Impl.v0_9.Model"/>
+    ///<see cref="RabbitMQ.Client.Framing.Impl.v0_9_1.Model"/>
     public interface IFullModel : RabbitMQ.Client.IModel
     {
         ///<summary>Used to send a Exchange.Declare method. Called by the
@@ -683,9 +640,6 @@ namespace RabbitMQ.Client.Impl
         ///<summary>Used to send a Exchange.Bind method. Called by the
         ///public bind method.
         ///</summary>
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8"),
-         AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid"),
-         AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
         [AmqpMethodMapping(null, "exchange", "bind")]
         void _Private_ExchangeBind(string destination,
                                    string source,
@@ -697,9 +651,6 @@ namespace RabbitMQ.Client.Impl
         ///<summary>Used to send a Exchange.Unbind method. Called by the
         ///public unbind method.
         ///</summary>
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8"),
-         AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid"),
-         AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
         [AmqpMethodMapping(null, "exchange", "unbind")]
         void _Private_ExchangeUnbind(string destination,
                                      string source,
@@ -780,17 +731,11 @@ namespace RabbitMQ.Client.Impl
                                    bool noAck,
                                    bool exclusive,
                                    bool nowait,
-                                   [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-                                   [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9",
-                                                     "filter")]
                                    IDictionary<string, object> arguments);
 
         ///<summary>Used to send a Confirm.Select method. The public
         ///confirm API calls this while also managing internal
         ///datastructures.</summary>
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
         [AmqpMethodMapping(null, "confirm", "select")]
         void _Private_ConfirmSelect([AmqpNowaitArgument(null)]
                                     bool nowait);
@@ -897,17 +842,11 @@ namespace RabbitMQ.Client.Impl
 
         ///<summary>Handle incoming Basic.Ack methods. Signals a
         ///BasicAckEvent.</summary>
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
         void HandleBasicAck(ulong deliveryTag,
                             bool multiple);
 
         ///<summary>Handle incoming Basic.Nack methods. Signals a
         ///BasicNackEvent.</summary>
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
         void HandleBasicNack(ulong deliveryTag,
                              bool multiple,
                              bool requeue);
@@ -1018,16 +957,9 @@ namespace RabbitMQ.Client.Impl
 
         ///<summary>Handle an incoming Connection.Blocked.</summary>
         [AmqpMethodMapping(null, "connection", "blocked")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
         void HandleConnectionBlocked(string reason);
 
         ///<summary>Handle an incominga Connection.Unblocked.</summary>
-        [AmqpMethodMapping(null, "connection", "unblocked")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
         void HandleConnectionUnblocked();
     }
 

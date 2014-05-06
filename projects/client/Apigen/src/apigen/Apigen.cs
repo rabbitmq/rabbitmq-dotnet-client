@@ -165,7 +165,6 @@ namespace RabbitMQ.Client.Apigen {
         public XmlDocument m_spec = null;
         public TextWriter m_outputFile = null;
 
-        public bool m_versionOverridden = false;
         public int m_majorVersion;
         public int m_minorVersion;
         public int m_revision = 0;
@@ -209,11 +208,6 @@ namespace RabbitMQ.Client.Apigen {
                 m_framingSubnamespace = opt.Substring(3);
             } else if (opt.StartsWith("/apiName:")) {
                 m_apiName = opt.Substring(9);
-            } else if (opt.StartsWith("/v:")) {
-                string[] parts = opt.Substring(3).Split(new char[] { '-' });
-                m_versionOverridden = true;
-                m_majorVersion = int.Parse(parts[0]);
-                m_minorVersion = int.Parse(parts[1]);
             } else if (opt == "/c") {
                 m_emitComments = true;
             } else {
@@ -227,7 +221,6 @@ namespace RabbitMQ.Client.Apigen {
             Console.Error.WriteLine("  Options include:");
             Console.Error.WriteLine("    /apiName:<identifier>");
             Console.Error.WriteLine("    /n:<name.space.prefix>");
-            Console.Error.WriteLine("    /v:<majorversion>-<minorversion>");
             Console.Error.WriteLine("  The apiName option is required.");
             Environment.Exit(1);
         }
@@ -285,15 +278,11 @@ namespace RabbitMQ.Client.Apigen {
         }
 
         public void ParseSpec() {
-            Console.WriteLine("* Parsing spec");
-            if (!m_versionOverridden) {
-                m_majorVersion = GetInt(m_spec, "/amqp/@major");
-                m_minorVersion = GetInt(m_spec, "/amqp/@minor");
-                if (m_spec.SelectSingleNode("/amqp/@revision") != null)
-                {
-                    m_revision = GetInt(m_spec, "/amqp/@revision");
-                }
-            }
+            m_majorVersion = GetInt(m_spec, "/amqp/@major");
+            m_minorVersion = GetInt(m_spec, "/amqp/@minor");
+            m_revision = GetInt(m_spec, "/amqp/@revision");
+
+            Console.WriteLine("* Parsing spec for version {0}.{1}.{2}", m_majorVersion, m_minorVersion, m_revision);
             foreach (XmlNode n in m_spec.SelectNodes("/amqp/constant")) {
                 m_constants.Add(new KeyValuePair<string, int>(GetString(n, "@name"), GetInt(n, "@value")));
             }

@@ -204,12 +204,7 @@ namespace RabbitMQ.ServiceModel
         }
 
         private IProtocol GetProtocol() {
-            IProtocol result = Protocols.Lookup(this.ProtocolVersion);
-            if (result == null) {
-                throw new ConfigurationErrorsException(string.Format("'{0}' is not a valid AMQP protocol name",
-                                                                     this.ProtocolVersion));
-            }
-            return result;
+            return Protocols.DefaultProtocol;
         }
 
         /// <summary>

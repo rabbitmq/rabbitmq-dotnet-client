@@ -2,6 +2,7 @@ NAME=rabbitmq-dotnet-client
 NAME_VSN=${NAME}-${RABBIT_VSN}
 
 RELEASE_DIR=release
+GENSRC_DIR=gensrc
 
 TMPXMLZIP=${NAME_VSN}-tmp-xmldoc.zip
 
@@ -20,6 +21,8 @@ test-xbuild-units:
 	xbuild /nologo /t:RunUnitTests projects/client/Unit/RabbitMQ.Client.Unit.csproj | grep -v "warning CS2002"
 
 test-xbuild: test-xbuild-units
+
+retest-xbuild: clean test-xbuild
 
 ensure-universally-readable:
 	chmod -R a+rX release
@@ -66,4 +69,4 @@ doc: rabbit-vsn ensure-prerequisites ensure-release-dir ensure-docs
 	  unzip -q ${NAME_VSN}-wcf-htmldoc.zip -d ${NAME_VSN}-wcf-htmldoc
 
 clean:
-	rm -rf $(RELEASE_DIR)/*
+	rm -rf $(GENSRC_DIR) $(RELEASE_DIR)/*
