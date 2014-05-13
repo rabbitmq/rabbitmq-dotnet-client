@@ -203,36 +203,24 @@ namespace RabbitMQ.Client
         ///their respective defaults.</summary>
         public ConnectionFactory() { }
 
-        ///<summary>Create a connection to the specified endpoint
-        ///No broker-originated redirects are permitted.</summary>
+        ///<summary>Create a connection to the specified endpoint.</summary>
         public virtual IConnection CreateConnection()
         {
-            IDictionary<AmqpTcpEndpoint, int> attempts = new Dictionary<AmqpTcpEndpoint, int>();
-            Dictionary<AmqpTcpEndpoint, Exception> errors = new Dictionary<AmqpTcpEndpoint, Exception>();
-
             IConnection conn = null;
             try
             {
                 IProtocol p = Protocols.DefaultProtocol;
                 IFrameHandler fh = p.CreateFrameHandler(Endpoint,
-                                                                        SocketFactory,
-                                                                        RequestedConnectionTimeout);
+                                                        SocketFactory,
+                                                        RequestedConnectionTimeout);
                 conn = p.CreateConnection(this, false, fh);
-                attempts[Endpoint] = 1;
             } catch (Exception e)
             {
 
-                errors[Endpoint] = e;
+                throw new BrokerUnreachableException(e);
             }
 
-            if(conn != null)
-            {
-                return conn;
-            } else
-            {
-                Exception cause = errors[Endpoint] as Exception;
-                throw new BrokerUnreachableException(attempts, errors, cause);
-            }
+            return conn;
         }
 
         ///<summary>Given a list of mechanism names supported by the
