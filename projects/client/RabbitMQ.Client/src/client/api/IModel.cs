@@ -928,13 +928,6 @@ namespace RabbitMQ.Client.Impl
         void HandleConnectionOpenOk([AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved1")]
                                     string knownHosts);
 
-        ///<summary>Handle an incoming Connection.Redirect.
-        /// (not available in AMQP 0-9-1)
-        ///</summary>
-        [AmqpMethodDoNotImplement("RabbitMQ.Client.Framing.v0_9_1")]
-        void HandleConnectionRedirect(string host,
-                                      string knownHosts);
-
         ///<summary>Used to send a Connection.Close. Called during
         ///connection shutdown.</summary>
         [AmqpMethodMapping(null, "connection", "close")]
