@@ -79,7 +79,6 @@ namespace RabbitMQ.Client.MessagePatterns {
         protected string m_queueName;
         protected bool m_noAck;
 
-        protected readonly object m_consumerLock = new object();
         protected readonly object m_eventLock = new object();
         protected volatile QueueingBasicConsumer m_consumer;
         protected string m_consumerTag;
@@ -149,11 +148,9 @@ namespace RabbitMQ.Client.MessagePatterns {
             try {
                 bool shouldCancelConsumer = false;
 
-                lock (m_consumerLock) {
-                    if (m_consumer != null) {
-                        shouldCancelConsumer = true;
-                        m_consumer = null;
-                    }
+                if (m_consumer != null) {
+                    shouldCancelConsumer = true;
+                    m_consumer = null;
                 }
 
                 if (shouldCancelConsumer) {
