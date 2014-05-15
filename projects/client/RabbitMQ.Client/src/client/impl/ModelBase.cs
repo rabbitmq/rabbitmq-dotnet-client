@@ -1507,16 +1507,6 @@ namespace RabbitMQ.Client.Impl
             k.HandleCommand(null); // release the continuation.
         }
 
-        public void HandleConnectionRedirect(string host,
-                                             string knownHosts)
-        {
-            ConnectionOpenContinuation k = (ConnectionOpenContinuation)m_continuationQueue.Next();
-            k.m_redirect = true;
-            k.m_host = host;
-            k.m_knownHosts = knownHosts;
-            k.HandleCommand(null); // release the continuation.
-        }
-
         public abstract void _Private_ConnectionClose(ushort replyCode,
                                                       string replyText,
                                                       ushort classId,

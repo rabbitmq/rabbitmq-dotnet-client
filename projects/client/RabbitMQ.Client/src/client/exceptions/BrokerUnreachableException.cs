@@ -48,61 +48,11 @@ namespace RabbitMQ.Client.Exceptions {
 
     ///<summary>Thrown when no connection could be opened during a
     ///ConnectionFactory.CreateConnection attempt.</summary>
-    ///<remarks>
-    /// CreateConnection (optionally) handles redirections, so even a
-    /// single-endpoint connection attempt may end up attempting to
-    /// connect to multiple TCP endpoints. This exception contains
-    /// information on how many times each endpoint was tried, and the
-    /// outcome of the most recent attempt against each endpoint. See
-    /// the ConnectionAttempts and ConnectionErrors properties.
-    ///</remarks>
     public class BrokerUnreachableException: IOException
     {
-        private IDictionary<AmqpTcpEndpoint, int> m_connectionAttempts;
-        private IDictionary<AmqpTcpEndpoint, Exception> m_connectionErrors;
-
-        ///<summary>A map from AmqpTcpEndpoint to int, counting the
-        ///number of attempts that were made against each
-        ///endpoint.</summary>
-        public IDictionary<AmqpTcpEndpoint, int> ConnectionAttempts { get { return m_connectionAttempts; } }
-
-        ///<summary>A map from AmqpTcpEndpoint to Exception, recording
-        ///the outcome of the most recent connection attempt against
-        ///each endpoint.</summary>
-        public IDictionary<AmqpTcpEndpoint, Exception> ConnectionErrors { get { return m_connectionErrors; } }
-
-        ///<summary>same as ConnectionErrors property</summary>
-        public override IDictionary Data { get { return new Dictionary<AmqpTcpEndpoint, Exception>(m_connectionErrors); } }
-
-        ///<summary>Construct a BrokerUnreachableException. Expects
-        ///maps as per the description of the ConnectionAttempts and
-        ///ConnectionErrors properties. The inner exception is associated
+        ///<summary>Construct a BrokerUnreachableException. The inner exception is associated
         ///with only one connection attempt.</summary>
-        public BrokerUnreachableException(IDictionary<AmqpTcpEndpoint, int> connectionAttempts,
-                                          IDictionary<AmqpTcpEndpoint, Exception> connectionErrors,
-                                          Exception Inner)
-            : base("None of the specified endpoints were reachable", Inner)
-        {
-            m_connectionAttempts = connectionAttempts;
-            m_connectionErrors = connectionErrors;
-        }
-
-        ///<summary>Provide a full description of the various
-        ///connection attempts that were made, as well as the usual
-        ///Exception stack trace.</summary>
-        public override string ToString() {
-            StringBuilder sb = new StringBuilder(base.Message);
-            sb.Append("\nEndpoints attempted:\n");
-            foreach (KeyValuePair<AmqpTcpEndpoint, int> entry in m_connectionAttempts) {
-                sb.Append("------------------------------------------------\n");
-                sb.Append("endpoint=").Append(entry.Key);
-                sb.Append(", attempts=").Append(entry.Value).Append("\n");
-                sb.Append(m_connectionErrors[entry.Key] as Exception);
-            }
-            sb.Append("\n================================================\n");
-            sb.Append("Stack trace:\n");
-            sb.Append(base.StackTrace);
-            return sb.ToString();
-        }
+        public BrokerUnreachableException(Exception Inner)
+            : base("None of the specified endpoints were reachable", Inner) {}
     }
 }
