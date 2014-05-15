@@ -153,6 +153,11 @@ namespace RabbitMQ.Client
         ///<summary>Ssl options setting</summary>
         public SslOption Ssl = new SslOption();
 
+        /// <summary>
+        /// Set to true to enable automatic connection recovery.
+        /// </summary>
+        public bool AutomaticRecoveryEnabled = false;
+
         ///<summary>The host to connect to</summary>
         public String HostName = "localhost";
 
