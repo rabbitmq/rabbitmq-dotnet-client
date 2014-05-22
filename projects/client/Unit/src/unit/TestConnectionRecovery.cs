@@ -49,70 +49,11 @@ using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Unit {
     [TestFixture]
-    public class TestConnectionBlocked : IntegrationFixture {
-
-        Object lockObject = new Object();
-        bool notified = false;
-
+    public class TestConnectionRecovery : IntegrationFixture {
         [Test]
-        public void TestConnectionBlockedNotification()
+        public void TestBasicConnectionRecovery()
         {
-            Conn.ConnectionBlocked   += HandleBlocked;
-            Conn.ConnectionUnblocked += HandleUnblocked;
-
-            Block();
-            // give rabbitmqctl some time to do its job
-            Thread.Sleep(800);
-            Publish(Conn);
-            lock (lockObject) {
-                if(!notified) {
-                    Monitor.Wait(lockObject, TimeSpan.FromSeconds(8));
-                }
-            }
-            if (!notified)
-            {
-                Unblock();
-                Assert.Fail("Unblock notification not received.");
-            }
-        }
-
-
-
-        public void HandleBlocked(IConnection sender, ConnectionBlockedEventArgs args)
-        {
-            Unblock();
-        }
-
-
-        public void HandleUnblocked(IConnection sender)
-        {
-            lock (lockObject)
-            {
-                notified = true;
-                Monitor.PulseAll(lockObject);
-            }
-        }
-
-
-        protected void Block()
-        {
-            ExecRabbitMQCtl("set_vm_memory_high_watermark 0.000000001");
-        }
-
-        protected void Unblock()
-        {
-            ExecRabbitMQCtl("set_vm_memory_high_watermark 0.4");
-        }
-
-        protected void Publish(IConnection conn)
-        {
-            IModel ch = conn.CreateModel();
-            ch.BasicPublish("amq.fanout", "", null, enc.GetBytes("message"));
-        }
-
-        protected override void ReleaseResources()
-        {
-            Unblock();
+            
         }
     }
 }

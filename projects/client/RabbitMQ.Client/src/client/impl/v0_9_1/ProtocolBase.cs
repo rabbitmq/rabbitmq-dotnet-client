@@ -84,6 +84,13 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
             return new Connection(factory, insist, frameHandler);
         }
 
+        public IConnection CreateConnection(ConnectionFactory factory,
+                                            IFrameHandler frameHandler,
+                                            bool automaticRecoveryEnabled)
+        {
+            return new AutorecoveringConnection(factory, frameHandler);
+        }
+
         public void CreateConnectionClose(ushort reasonCode,
                                                    string reasonText,
                                                    out Command request,

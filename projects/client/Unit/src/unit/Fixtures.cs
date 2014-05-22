@@ -211,6 +211,99 @@ namespace RabbitMQ.Client.Unit
                 Monitor.Wait(o, TimingFixture.TestTimeout);
             }
         }
+
+        //
+        // Shelling Out
+        //
+
+        protected void ExecRabbitMQCtl(string args)
+        {
+            if(IsRunningOnMono()) {
+                ExecCommand("../../../../../../rabbitmq-server/scripts/rabbitmqctl", args);
+            } else {
+                ExecCommand("..\\..\\..\\..\\..\\..\\rabbitmq-server\\scripts\\rabbitmqctl.bat", args);
+            }
+        }
+
+        protected Process ExecCommand(string ctl, string args)
+        {
+            Process proc = new Process();
+            proc.StartInfo.CreateNoWindow  = true;
+            proc.StartInfo.UseShellExecute = false;
+
+            string cmd;
+            if(IsRunningOnMono()) {
+                cmd  = ctl;
+            } else {
+                cmd  = "cmd.exe";
+                args = "/c " + ctl + " -n rabbit@" + (Environment.GetEnvironmentVariable("COMPUTERNAME")).ToLower() + " " + args;
+            }
+
+            try {
+              proc.StartInfo.FileName = cmd;
+              proc.StartInfo.Arguments = args;
+              proc.StartInfo.RedirectStandardError = true;
+              proc.StartInfo.RedirectStandardOutput = true;
+
+              proc.Start();
+              String stderr = proc.StandardError.ReadToEnd();
+              proc.WaitForExit();
+              if (stderr.Length > 0)
+              {
+                  String stdout = proc.StandardOutput.ReadToEnd();
+                  ReportExecFailure(cmd, args, stderr + "\n" + stdout);
+              }
+
+              return proc;
+            }
+            catch (Exception e)
+            {
+                ReportExecFailure(cmd, args, e.Message);
+                throw e;
+            }
+        }
+
+        protected void ReportExecFailure(String cmd, String args, String msg)
+        {
+            Console.WriteLine("Failure while running " + cmd + " " + args + ":\n" + msg);
+        }
+
+        public static bool IsRunningOnMono()
+        {
+            return Type.GetType("Mono.Runtime") != null;
+        }
+
+        //
+        // Connection Closure
+        //
+
+        private class ConnectionInfo
+        {
+            private string Pid
+            {
+                get;
+            }
+
+            private uint PeerPort
+            {
+                get;
+            }
+
+            public ConnectionInfo(string pid, uint peerPort)
+            {
+                Pid = pid;
+                PeerPort = peerPort;
+            }
+        }
+
+        protected List<ConnectionInfo> ListConnections()
+        {
+            Process proc = ExecCommand("list_connections -q pid peer_port");
+            String stdout = proc.StandardOutput.ReadToEnd();
+
+            string[] splitOn = {Environment.NewLine};
+            string[] lines   = stdout.Split(splitOn, StringSplitOptions.RemoveEmptyEntries);
+        }
     }
 
     public class TimingFixture
