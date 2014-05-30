@@ -16,7 +16,7 @@
     <AppDesignerFolder>properties</AppDesignerFolder>
     <RootNamespace>RabbitMQ.Client</RootNamespace>
     <AssemblyName>apigen-bootstrap</AssemblyName>
-    <TargetFrameworkVersion>$(PropTargetFramework)</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v3.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">

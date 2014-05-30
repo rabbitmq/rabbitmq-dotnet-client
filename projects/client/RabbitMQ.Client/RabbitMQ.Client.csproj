@@ -75,7 +75,7 @@
     <AppDesignerFolder>properties</AppDesignerFolder>
     <RootNamespace>RabbitMQ.Client</RootNamespace>
     <AssemblyName>RabbitMQ.Client</AssemblyName>
-    <TargetFrameworkVersion>$(PropTargetFramework)</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v3.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
