@@ -89,7 +89,7 @@ namespace RabbitMQ.Client.Unit {
         [Test]
         public void TestQueueDeclareNowait()
         {
-            string q = GenerateQueueName ();
+            string q = GenerateQueueName();
             Model.QueueDeclareNowait(q, false, true, false, null);
             Model.QueueDeclarePassive(q);
         }
