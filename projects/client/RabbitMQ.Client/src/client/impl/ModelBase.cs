@@ -797,6 +797,15 @@ namespace RabbitMQ.Client.Impl
             _Private_ExchangeDeclare(exchange, "", true, false, false, false, false, null);
         }
 
+		public void ExchangeDeclareNowait(string exchange,
+									string type,
+									bool durable,
+									bool autoDelete,
+									IDictionary<string, object> arguments)
+		{
+			_Private_ExchangeDeclare(exchange, type, false, durable, autoDelete, false, true, arguments);
+		}
+
         public abstract void _Private_ExchangeDeclare(string exchange,
                                                       string type,
                                                       bool passive,
@@ -874,6 +883,12 @@ namespace RabbitMQ.Client.Impl
         {
             return QueueDeclare(queue, true, false, false, false, null);
         }
+
+		public void QueueDeclareNowait(string queue, bool durable, bool exclusive,
+			bool autoDelete, IDictionary<string, object> arguments)
+		{
+			_Private_QueueDeclare(queue, false, durable, exclusive, autoDelete, true, arguments);
+		}
 
         public QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive,
                                    bool autoDelete, IDictionary<string, object> arguments)
