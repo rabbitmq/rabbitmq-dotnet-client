@@ -181,6 +181,16 @@ namespace RabbitMQ.Client
         [AmqpMethodDoNotImplement(null)]
         void ExchangeDeclarePassive(string exchange);
 
+		/// <summary>
+		/// Same as ExchangeDeclare but sets nowait to true and returns void (as there
+		/// will be no response from the server).
+		/// </summary>
+		void ExchangeDeclareNowait(string exchange,
+								   string type,
+								   bool durable,
+								   bool autoDelete,
+								   IDictionary<string, object> arguments);
+
         ///<summary>(Spec method) Delete an exchange.</summary>
         [AmqpMethodDoNotImplement(null)]
         void ExchangeDelete(string exchange, bool ifUnused);
@@ -241,6 +251,12 @@ namespace RabbitMQ.Client
         [AmqpMethodDoNotImplement(null)]
         QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive,
                     bool autoDelete, IDictionary<string, object> arguments);
+		/// <summary>
+		/// Same as QueueDeclare but sets nowait to true and returns void (as there
+		/// will be no response from the server).
+		/// </summary>
+		void QueueDeclareNowait(string queue, bool durable, bool exclusive,
+		            bool autoDelete, IDictionary<string, object> arguments);
 
         ///<summary>(Spec method) Bind a queue to an exchange.</summary>
         [AmqpMethodDoNotImplement(null)]
