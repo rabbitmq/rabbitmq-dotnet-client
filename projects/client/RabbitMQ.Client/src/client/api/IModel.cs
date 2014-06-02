@@ -272,6 +272,13 @@ namespace RabbitMQ.Client
                        string exchange,
                        string routingKey);
 
+        ///<summary>Same as QueueBind but sets nowait parameter to true and returns void (as there
+        ///will be no response from the server).</summary>
+        void QueueBindNowait(string queue,
+                             string exchange,
+                             string routingKey,
+                             IDictionary<string, object> arguments);
+
         ///<summary>(Spec method) Unbind a queue from an exchange.</summary>
         ///<remarks>
         ///Note: This operation is only supported when communicating

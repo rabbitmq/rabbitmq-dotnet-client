@@ -935,6 +935,14 @@ namespace RabbitMQ.Client.Impl
             QueueBind(queue, exchange, routingKey, null);
         }
 
+        public void QueueBindNowait(string queue,
+                                    string exchange,
+                                    string routingKey,
+                                    IDictionary<string, object> arguments)
+        {
+            _Private_QueueBind(queue, exchange, routingKey, true, arguments);
+        }
+
         public abstract void _Private_QueueBind(string queue,
                                                 string exchange,
                                                 string routingKey,
