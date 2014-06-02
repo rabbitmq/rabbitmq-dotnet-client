@@ -86,18 +86,17 @@ namespace RabbitMQ.Client.Unit {
             Model.ExchangeDelete(x);
         }
 
-		[Test]
-		public void TestExchangeDeclareNowait()
-		{
-			string x = GenerateExchangeName ();
-			try
-			{
-				Model.ExchangeDeclareNowait(x, "fanout", false, true, null);
-				Model.ExchangeDeclarePassive(x);
-			} finally {
-				Model.ExchangeDelete(x);
-			}
-
-		}
+        [Test]
+        public void TestExchangeDeclareNowait()
+        {
+            string x = GenerateExchangeName ();
+            try
+            {
+                Model.ExchangeDeclareNowait(x, "fanout", false, true, null);
+                Model.ExchangeDeclarePassive(x);
+            } finally {
+                Model.ExchangeDelete(x);
+            }
+        }
     }
 }

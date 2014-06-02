@@ -86,12 +86,12 @@ namespace RabbitMQ.Client.Unit {
             Model.QueueDelete(q);
         }
 
-		[Test]
-		public void TestQueueDeclareNowait()
-		{
-			string q = GenerateQueueName ();
-			Model.QueueDeclareNowait(q, false, true, false, null);
-			Model.QueueDeclarePassive(q);
-		}
+        [Test]
+        public void TestQueueDeclareNowait()
+        {
+            string q = GenerateQueueName ();
+            Model.QueueDeclareNowait(q, false, true, false, null);
+            Model.QueueDeclarePassive(q);
+        }
     }
 }
