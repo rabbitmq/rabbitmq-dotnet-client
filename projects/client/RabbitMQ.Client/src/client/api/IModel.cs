@@ -309,6 +309,15 @@ namespace RabbitMQ.Client
                          bool ifUnused,
                          bool ifEmpty);
 
+        ///<summary>
+        ///Same as QueueDelete but sets nowait parameter to true
+        ///and returns void (as there will be no response from the server)
+        ///</summary>
+        void QueueDeleteNowait(string queue,
+                               bool ifUnused,
+                               bool ifEmpty);
+
+
         ///<summary>(Spec method) Delete a queue.</summary>
         ///<remarks>
         ///Returns the number of messages purged during queue

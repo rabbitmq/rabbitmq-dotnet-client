@@ -975,6 +975,13 @@ namespace RabbitMQ.Client.Impl
             return QueueDelete(queue, false, false);
         }
 
+        public void QueueDeleteNowait(string queue,
+                                      bool ifUnused,
+                                      bool ifEmpty)
+        {
+            _Private_QueueDelete(queue, ifUnused, ifEmpty, true);
+        }
+
         public abstract uint _Private_QueueDelete(string queue,
                                                   bool ifUnused,
                                                   bool ifEmpty,

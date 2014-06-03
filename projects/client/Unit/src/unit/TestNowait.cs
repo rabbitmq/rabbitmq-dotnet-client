@@ -42,48 +42,39 @@ using NUnit.Framework;
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
 
 using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Unit {
     [TestFixture]
-    public class TestQueueDeclare : IntegrationFixture {
-
+    public class TestNowait : IntegrationFixture {
         [Test]
-        public void TestConcurrentQueueDeclare()
+        public void TestQueueDeclareNowait()
         {
             string q = GenerateQueueName();
-            Random rnd = new Random();
+            Model.QueueDeclareNowait(q, false, true, false, null);
+            Model.QueueDeclarePassive(q);
+        }
 
-            List<Thread> ts = new List<Thread>();
-            System.NotSupportedException nse = null;
-            for(int i = 0; i < 256; i++)
+        [Test]
+        public void TestQueueDeleteNowait()
+        {
+            string q = GenerateQueueName();
+            Model.QueueDeclareNowait(q, false, true, false, null);
+            Model.QueueDeleteNowait(q, false, false);
+        }
+
+        [Test]
+        public void TestExchangeDeclareNowait()
+        {
+            string x = GenerateExchangeName ();
+            try
             {
-                Thread t = new Thread(() =>
-                        {
-                            try
-                            {
-                                // sleep for a random amount of time to increase the chances
-                                // of thread interleaving. MK.
-                                Thread.Sleep(rnd.Next(5, 500));
-                                Model.QueueDeclare(q, false, false, false, null);
-                            } catch (System.NotSupportedException e)
-                            {
-                                nse = e;
-                            }
-                        });
-                ts.Add(t);
-                t.Start();
+                Model.ExchangeDeclareNowait(x, "fanout", false, true, null);
+                Model.ExchangeDeclarePassive(x);
+            } finally {
+                Model.ExchangeDelete(x);
             }
-
-            foreach (Thread t in ts)
-            {
-                t.Join();
-            }
-
-            Assert.IsNotNull(nse);
-            Model.QueueDelete(q);
         }
     }
 }
