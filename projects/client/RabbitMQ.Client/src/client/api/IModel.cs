@@ -185,7 +185,7 @@ namespace RabbitMQ.Client
         /// Same as ExchangeDeclare but sets nowait to true and returns void (as there
         /// will be no response from the server).
         /// </summary>
-        void ExchangeDeclareNowait(string exchange,
+        void ExchangeDeclareNoWait(string exchange,
                                    string type,
                                    bool durable,
                                    bool autoDelete,
@@ -205,7 +205,7 @@ namespace RabbitMQ.Client
         ///<summary>
         ///Like ExchangeDelete but sets nowait to true.
         ///</summary>
-        void ExchangeDeleteNowait(string exchange, bool ifUnused);
+        void ExchangeDeleteNoWait(string exchange, bool ifUnused);
 
         ///<summary>(Extension method) Bind an exchange to an exchange.</summary>
         [AmqpMethodDoNotImplement(null)]
@@ -223,7 +223,7 @@ namespace RabbitMQ.Client
         ///<summary>
         ///Like ExchangeBind but sets nowait to true.
         ///</summary>
-        void ExchangeBindNowait(string destination,
+        void ExchangeBindNoWait(string destination,
                                 string source,
                                 string routingKey,
                                 IDictionary<string, object> arguments);
@@ -269,7 +269,7 @@ namespace RabbitMQ.Client
         /// Same as QueueDeclare but sets nowait to true and returns void (as there
         /// will be no response from the server).
         /// </summary>
-        void QueueDeclareNowait(string queue, bool durable, bool exclusive,
+        void QueueDeclareNoWait(string queue, bool durable, bool exclusive,
                                 bool autoDelete, IDictionary<string, object> arguments);
 
         ///<summary>(Spec method) Bind a queue to an exchange.</summary>
@@ -286,7 +286,7 @@ namespace RabbitMQ.Client
                        string routingKey);
 
         ///<summary>Same as QueueBind but sets nowait parameter to true.</summary>
-        void QueueBindNowait(string queue,
+        void QueueBindNoWait(string queue,
                              string exchange,
                              string routingKey,
                              IDictionary<string, object> arguments);
@@ -325,7 +325,7 @@ namespace RabbitMQ.Client
         ///Same as QueueDelete but sets nowait parameter to true
         ///and returns void (as there will be no response from the server)
         ///</summary>
-        void QueueDeleteNowait(string queue,
+        void QueueDeleteNoWait(string queue,
                                bool ifUnused,
                                bool ifEmpty);
 

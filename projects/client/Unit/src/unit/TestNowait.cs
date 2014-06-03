@@ -47,38 +47,38 @@ using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Unit {
     [TestFixture]
-    public class TestNowait : IntegrationFixture {
+    public class TestNoWait : IntegrationFixture {
         [Test]
-        public void TestQueueDeclareNowait()
+        public void TestQueueDeclareNoWait()
         {
             string q = GenerateQueueName();
-            Model.QueueDeclareNowait(q, false, true, false, null);
+            Model.QueueDeclareNoWait(q, false, true, false, null);
             Model.QueueDeclarePassive(q);
         }
 
         [Test]
-        public void TestQueueBindNowait()
+        public void TestQueueBindNoWait()
         {
             string q = GenerateQueueName();
-            Model.QueueDeclareNowait(q, false, true, false, null);
-            Model.QueueBindNowait(q, "amq.fanout", "", null);
+            Model.QueueDeclareNoWait(q, false, true, false, null);
+            Model.QueueBindNoWait(q, "amq.fanout", "", null);
         }
 
         [Test]
-        public void TestQueueDeleteNowait()
+        public void TestQueueDeleteNoWait()
         {
             string q = GenerateQueueName();
-            Model.QueueDeclareNowait(q, false, true, false, null);
-            Model.QueueDeleteNowait(q, false, false);
+            Model.QueueDeclareNoWait(q, false, true, false, null);
+            Model.QueueDeleteNoWait(q, false, false);
         }
 
         [Test]
-        public void TestExchangeDeclareNowait()
+        public void TestExchangeDeclareNoWait()
         {
             string x = GenerateExchangeName();
             try
             {
-                Model.ExchangeDeclareNowait(x, "fanout", false, true, null);
+                Model.ExchangeDeclareNoWait(x, "fanout", false, true, null);
                 Model.ExchangeDeclarePassive(x);
             } finally {
                 Model.ExchangeDelete(x);
@@ -86,24 +86,24 @@ namespace RabbitMQ.Client.Unit {
         }
 
         [Test]
-        public void TestExchangeBindNowait()
+        public void TestExchangeBindNoWait()
         {
             string x = GenerateExchangeName();
             try
             {
-                Model.ExchangeDeclareNowait(x, "fanout", false, true, null);
-                Model.ExchangeBindNowait(x, "amq.fanout", "", null);
+                Model.ExchangeDeclareNoWait(x, "fanout", false, true, null);
+                Model.ExchangeBindNoWait(x, "amq.fanout", "", null);
             } finally {
                 Model.ExchangeDelete(x);
             }
         }
 
         [Test]
-        public void TestExchangeDeleteNowait()
+        public void TestExchangeDeleteNoWait()
         {
             string x = GenerateExchangeName();
-            Model.ExchangeDeclareNowait(x, "fanout", false, true, null);
-            Model.ExchangeDeleteNowait(x, false);
+            Model.ExchangeDeclareNoWait(x, "fanout", false, true, null);
+            Model.ExchangeDeleteNoWait(x, false);
         }
     }
 }
