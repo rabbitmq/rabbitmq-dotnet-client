@@ -202,6 +202,12 @@ namespace RabbitMQ.Client
         [AmqpMethodDoNotImplement(null)]
         void ExchangeDelete(string exchange);
 
+        ///<summary>
+        ///Like ExchangeDelete but sets nowait to true and returns void (as there
+        ///will be no response from the server).
+        ///</summary>
+        void ExchangeDeleteNowait(string exchange, bool ifUnused);
+
         ///<summary>(Extension method) Bind an exchange to an exchange.</summary>
         [AmqpMethodDoNotImplement(null)]
         void ExchangeBind(string destination,

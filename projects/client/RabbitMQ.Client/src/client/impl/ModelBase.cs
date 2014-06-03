@@ -826,6 +826,12 @@ namespace RabbitMQ.Client.Impl
             ExchangeDelete(exchange, false);
         }
 
+        public void ExchangeDeleteNowait(string exchange,
+                                         bool ifUnused)
+        {
+            _Private_ExchangeDelete(exchange, ifUnused, false);
+        }
+
         public abstract void _Private_ExchangeDelete(string exchange,
                                                      bool ifUnused,
                                                      bool nowait);

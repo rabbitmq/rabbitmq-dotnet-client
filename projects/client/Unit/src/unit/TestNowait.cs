@@ -67,7 +67,7 @@ namespace RabbitMQ.Client.Unit {
         [Test]
         public void TestExchangeDeclareNowait()
         {
-            string x = GenerateExchangeName ();
+            string x = GenerateExchangeName();
             try
             {
                 Model.ExchangeDeclareNowait(x, "fanout", false, true, null);
@@ -75,6 +75,14 @@ namespace RabbitMQ.Client.Unit {
             } finally {
                 Model.ExchangeDelete(x);
             }
+        }
+
+        [Test]
+        public void TestExchangeDeleteNowait()
+        {
+            string x = GenerateExchangeName();
+            Model.ExchangeDeclareNowait(x, "fanout", false, true, null);
+            Model.ExchangeDeleteNowait(x, false);
         }
     }
 }
