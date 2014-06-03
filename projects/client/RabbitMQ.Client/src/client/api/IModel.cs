@@ -285,8 +285,7 @@ namespace RabbitMQ.Client
                        string exchange,
                        string routingKey);
 
-        ///<summary>Same as QueueBind but sets nowait parameter to true and returns void (as there
-        ///will be no response from the server).</summary>
+        ///<summary>Same as QueueBind but sets nowait parameter to true.</summary>
         void QueueBindNowait(string queue,
                              string exchange,
                              string routingKey,
