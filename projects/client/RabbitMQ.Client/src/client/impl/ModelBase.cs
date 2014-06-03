@@ -851,6 +851,14 @@ namespace RabbitMQ.Client.Impl
             _Private_ExchangeBind(destination, source, routingKey, false, arguments);
         }
 
+        public void ExchangeBindNowait(string destination,
+                                       string source,
+                                       string routingKey,
+                                       IDictionary<string, object> arguments)
+        {
+            _Private_ExchangeBind(destination, source, routingKey, true, arguments);
+        }
+
         public abstract void _Private_ExchangeBind(string destination,
                                                    string source,
                                                    string routingKey,
