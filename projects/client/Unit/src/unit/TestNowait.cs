@@ -57,6 +57,14 @@ namespace RabbitMQ.Client.Unit {
         }
 
         [Test]
+        public void TestQueueBindNowait()
+        {
+            string q = GenerateQueueName();
+            Model.QueueDeclareNowait(q, false, true, false, null);
+            Model.QueueBindNowait(q, "amq.fanout", "", null);
+        }
+
+        [Test]
         public void TestQueueDeleteNowait()
         {
             string q = GenerateQueueName();
