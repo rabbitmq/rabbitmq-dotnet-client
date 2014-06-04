@@ -81,7 +81,6 @@ namespace RabbitMQ.ServiceModel
             {
                 this.HostName = element.HostName;
                 this.Port = element.Port;
-                this.ProtocolVersion = element.ProtocolVersion;
                 this.Password = element.Password;
                 this.Username = element.Username;
                 this.VirtualHost = element.VirtualHost;
@@ -118,7 +117,6 @@ namespace RabbitMQ.ServiceModel
 
             this.HostName = rabbind.HostName;
             this.Port = rabbind.Port;
-            this.ProtocolVersion = rabbind.BrokerProtocol.ApiName;
             this.Password = rabbind.ConnectionFactory.Password;
             this.Username = rabbind.ConnectionFactory.UserName;
             this.VirtualHost = rabbind.ConnectionFactory.VirtualHost;
@@ -169,32 +167,9 @@ namespace RabbitMQ.ServiceModel
             set { base["username"] = value; }
         }
 
-        /// <summary>
-        /// Specifies the protocol version to use when communicating with the broker
-        /// </summary>
-        [ConfigurationProperty("protocolversion", DefaultValue = "DefaultProtocol")]
-        public string ProtocolVersion
-        {
-            get
-            {
-                return ((string)base["protocolversion"]);
-            }
-            set
-            {
-                base["protocolversion"] = value;
-                GetProtocol();
-            }
-        }
-
         private IProtocol GetProtocol()
         {
-            IProtocol result = Protocols.Lookup(this.ProtocolVersion);
-            if (result == null)
-            {
-                throw new ConfigurationErrorsException(string.Format("'{0}' is not a valid AMQP protocol name",
-                                                                     this.ProtocolVersion));
-            }
-            return result;
+            return Protocols.DefaultProtocol;
         }
 
         /// <summary>
