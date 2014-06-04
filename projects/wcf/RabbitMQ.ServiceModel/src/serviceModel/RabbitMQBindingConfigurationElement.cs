@@ -179,21 +179,6 @@ namespace RabbitMQ.ServiceModel
         }
 
         /// <summary>
-        /// Specifies the protocol version to use when communicating with the broker
-        /// </summary>
-        [ConfigurationProperty("protocolversion", DefaultValue = "DefaultProtocol")]
-        public string ProtocolVersion
-        {
-            get {
-                return ((string)base["protocolversion"]);
-            }
-            set {
-                base["protocolversion"] = value;
-                GetProtocol();
-            }
-        }
-
-        /// <summary>
         /// Specifies the maximum encoded message size
         /// </summary>
         [ConfigurationProperty("maxmessagesize", DefaultValue = 8192L)]
