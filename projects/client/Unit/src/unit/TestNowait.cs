@@ -99,6 +99,20 @@ namespace RabbitMQ.Client.Unit {
         }
 
         [Test]
+        public void TestExchangeUnbindNoWait()
+        {
+            string x = GenerateExchangeName();
+            try
+            {
+                Model.ExchangeDeclare(x, "fanout", false, true, null);
+                Model.ExchangeBind(x, "amq.fanout", "", null);
+                Model.ExchangeUnbindNoWait(x, "amq.fanout", "", null);
+            } finally {
+                Model.ExchangeDelete(x);
+            }
+        }
+
+        [Test]
         public void TestExchangeDeleteNoWait()
         {
             string x = GenerateExchangeName();

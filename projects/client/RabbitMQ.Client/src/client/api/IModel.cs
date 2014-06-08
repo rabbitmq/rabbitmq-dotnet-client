@@ -241,6 +241,13 @@ namespace RabbitMQ.Client
                             string source,
                             string routingKey);
 
+        ///<summary>Like ExchangeUnbind but sets nowait to true.</summary>
+        [AmqpMethodDoNotImplement(null)]
+        void ExchangeUnbindNoWait(string destination,
+                                  string source,
+                                  string routingKey,
+                                  IDictionary<string, object> arguments);
+
         ///<summary>(Spec method) Declare a queue.</summary>
         ///<remarks>
         ///The queue is declared non-passive, non-durable,
