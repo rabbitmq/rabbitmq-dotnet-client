@@ -880,6 +880,14 @@ namespace RabbitMQ.Client.Impl
             ExchangeUnbind(destination, source, routingKey, null);
         }
 
+        public void ExchangeUnbindNoWait(string destination,
+                                         string source,
+                                         string routingKey,
+                                         IDictionary<string, object> arguments)
+        {
+            _Private_ExchangeUnbind(destination, source, routingKey, true, arguments);
+        }
+
         public abstract void _Private_ExchangeUnbind(string destination,
                                                      string source,
                                                      string routingKey,
