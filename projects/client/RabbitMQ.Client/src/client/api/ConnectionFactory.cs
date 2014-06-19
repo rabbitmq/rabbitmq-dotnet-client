@@ -146,6 +146,9 @@ namespace RabbitMQ.Client
         /// <summary>Timeout setting for connection attempts (in milliseconds)</summary>
         public int RequestedConnectionTimeout = DefaultConnectionTimeout;
 
+        /// <summary>
+        /// When set to true, background threads will be used for I/O and heartbeats.
+        /// </summary>
         public bool UseBackgroundThreadsForIO = false;
 
         /// <summary>Dictionary of client properties to be sent to the
