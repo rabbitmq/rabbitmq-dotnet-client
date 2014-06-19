@@ -117,9 +117,9 @@ namespace RabbitMQ.Client.Impl
             m_session0.Handler = new MainSession.SessionCloseDelegate(NotifyReceivedCloseOk);
             m_model0 = (ModelBase)Protocol.CreateModel(m_session0);
 
-            StartMainLoop();
+            StartMainLoop(factory.UseBackgroundThreadsForIO);
             Open(insist);
-            StartHeartbeatLoops();
+            StartHeartbeatLoops(factory.UseBackgroundThreadsForIO);
             AppDomain.CurrentDomain.DomainUnload += HandleDomainUnload;
         }
 
@@ -540,25 +540,27 @@ namespace RabbitMQ.Client.Impl
             m_running = false;
         }
 
-        public void StartMainLoop()
+        public void StartMainLoop(bool useBackgroundThread)
         {
             Thread mainLoopThread = new Thread(new ThreadStart(MainLoop));
             mainLoopThread.Name = "AMQP Connection " + Endpoint.ToString();
+            mainLoopThread.IsBackground = useBackgroundThread;
             mainLoopThread.Start();
         }
 
-        public void StartHeartbeatLoops()
+        public void StartHeartbeatLoops(bool useBackgroundThread)
         {
             if (Heartbeat != 0) {
-                StartHeartbeatLoop(new ThreadStart(HeartbeatReadLoop), "Inbound");
-                StartHeartbeatLoop(new ThreadStart(HeartbeatWriteLoop), "Outbound");
+                StartHeartbeatLoop(new ThreadStart(HeartbeatReadLoop), "Inbound", useBackgroundThread);
+                StartHeartbeatLoop(new ThreadStart(HeartbeatWriteLoop), "Outbound", useBackgroundThread);
             }
         }
 
-        public void StartHeartbeatLoop(ThreadStart loop, string name)
+        public void StartHeartbeatLoop(ThreadStart loop, string name, bool useBackgroundThread)
         {
             Thread heartbeatLoop = new Thread(loop);
             heartbeatLoop.Name = "AMQP Heartbeat " + name + " for Connection " + Endpoint.ToString();
+            heartbeatLoop.IsBackground = useBackgroundThread;
             heartbeatLoop.Start();
         }
 

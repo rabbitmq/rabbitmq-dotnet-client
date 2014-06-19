@@ -146,6 +146,8 @@ namespace RabbitMQ.Client
         /// <summary>Timeout setting for connection attempts (in milliseconds)</summary>
         public int RequestedConnectionTimeout = DefaultConnectionTimeout;
 
+        public bool UseBackgroundThreadsForIO = false;
+
         /// <summary>Dictionary of client properties to be sent to the
         /// server</summary>
         public IDictionary<string, object> ClientProperties = ConnectionBase.DefaultClientProperties();

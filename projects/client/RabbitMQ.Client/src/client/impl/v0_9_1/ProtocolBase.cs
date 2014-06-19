@@ -78,17 +78,17 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
         }
 
         public IConnection CreateConnection(ConnectionFactory factory,
-                                                     bool insist,
-                                                     IFrameHandler frameHandler)
+                                            bool insist,
+                                            IFrameHandler frameHandler)
         {
             return new Connection(factory, insist, frameHandler);
         }
 
         public void CreateConnectionClose(ushort reasonCode,
-                                                   string reasonText,
-                                                   out Command request,
-                                                   out int replyClassId,
-                                                   out int replyMethodId)
+                                          string reasonText,
+                                          out Command request,
+                                          out int replyClassId,
+                                          out int replyMethodId)
         {
             request = new Command(new RabbitMQ.Client.Framing.Impl.v0_9_1.ConnectionClose(reasonCode,
                                                                                           reasonText,
