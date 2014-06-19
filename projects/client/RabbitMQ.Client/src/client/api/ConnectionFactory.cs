@@ -65,6 +65,7 @@ namespace RabbitMQ.Client
     ///     factory.VirtualHost = ConnectionFactory.DefaultVHost;
     ///     factory.HostName = hostName;
     ///     factory.Port     = AmqpTcpEndpoint.UseDefaultPort;
+    ///     factory.IsBackground = false;
     ///     //
     ///     IConnection conn = factory.CreateConnection();
     ///     //
@@ -160,6 +161,9 @@ namespace RabbitMQ.Client
         /// AmqpTcpEndpoint.UseDefaultPort indicates the default for
         /// the protocol should be used.</summary>
         public int Port = AmqpTcpEndpoint.UseDefaultPort;
+
+        /// <summary>Will connection threads be created as background threads</summary>
+        public bool IsBackground = false;
 
         ///<summary> SASL auth mechanisms to use.</summary>
         public AuthMechanismFactory[] AuthMechanisms = DefaultAuthMechanisms;
