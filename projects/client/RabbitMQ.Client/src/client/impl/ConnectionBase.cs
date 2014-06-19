@@ -544,6 +544,7 @@ namespace RabbitMQ.Client.Impl
         {
             Thread mainLoopThread = new Thread(new ThreadStart(MainLoop));
             mainLoopThread.Name = "AMQP Connection " + Endpoint.ToString();
+            mainLoopThread.IsBackground = true;
             mainLoopThread.Start();
         }
 
@@ -559,6 +560,7 @@ namespace RabbitMQ.Client.Impl
         {
             Thread heartbeatLoop = new Thread(loop);
             heartbeatLoop.Name = "AMQP Heartbeat " + name + " for Connection " + Endpoint.ToString();
+            heartbeatLoop.IsBackground = true;
             heartbeatLoop.Start();
         }
 
