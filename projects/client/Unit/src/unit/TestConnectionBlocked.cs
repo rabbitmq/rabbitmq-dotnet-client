@@ -52,7 +52,6 @@ namespace RabbitMQ.Client.Unit {
     public class TestConnectionBlocked : IntegrationFixture {
 
         Object lockObject = new Object();
-        UTF8Encoding enc = new UTF8Encoding();
         bool notified = false;
 
         [Test]
@@ -143,7 +142,9 @@ namespace RabbitMQ.Client.Unit {
                   ReportExecFailure(cmd, args, stderr + "\n" + stdout);
               }
 
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 ReportExecFailure(cmd, args, e.Message);
                 throw e;
             }

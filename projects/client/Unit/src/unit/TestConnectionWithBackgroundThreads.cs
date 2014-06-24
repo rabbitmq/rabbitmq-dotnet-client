@@ -38,23 +38,40 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using NUnit.Framework;
+
 using System;
-using System.Net;
+using System.IO;
+using System.Text;
+using System.Collections;
 
-// We use spec version 0-9 for common constants such as frame types,
-// error codes, and the frame end byte, since they don't vary *within
-// the versions we support*. Obviously we may need to revisit this if
-// that ever changes.
-using CommonFraming = RabbitMQ.Client.Framing.v0_9_1;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Impl;
+using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Util;
 
-namespace RabbitMQ.Client.Impl
+namespace RabbitMQ.Client.Unit
 {
-    /// <summary> Thrown when our peer sends a frame that contains
-    /// illegal values for one or more fields. </summary>
-    public class SyntaxError : HardProtocolException
+    [TestFixture]
+    public class TestConnectionWithBackgroundThreads
     {
-        public SyntaxError(string message) : base(message) { }
 
-        public override ushort ReplyCode { get { return CommonFraming.Constants.SyntaxError; } }
+        [Test]
+        public void TestWithBackgroundThreadsEnabled()
+        {
+            ConnectionFactory connFactory = new ConnectionFactory();
+            connFactory.UseBackgroundThreadsForIO = true;
+
+            IConnection conn = connFactory.CreateConnection();
+            IModel ch = conn.CreateModel();
+
+            // sanity check
+            string q = ch.QueueDeclare();
+            ch.QueueDelete(q);
+
+            ch.Close();
+            conn.Close();
+        }
     }
 }
+

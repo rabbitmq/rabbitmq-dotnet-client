@@ -144,20 +144,6 @@ namespace RabbitMQ.Client
         [AmqpContentHeaderFactory("basic")]
         IBasicProperties CreateBasicProperties();
 
-        ///<summary>Construct a completely empty content header for
-        ///use with the File content class.
-        /// (unsupported in AMQP 0-9-1)</summary>
-        [AmqpContentHeaderFactory("file")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
-        IFileProperties CreateFileProperties();
-
-        ///<summary>Construct a completely empty content header for
-        ///use with the Stream content class.
-        /// (unsupported in AMQP 0-9-1)</summary>
-        [AmqpContentHeaderFactory("stream")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
-        IStreamProperties CreateStreamProperties();
-
         ///<summary>(Spec method) Declare an exchange.</summary>
         ///<remarks>
         ///The exchange is declared non-passive and non-internal.
@@ -195,6 +181,16 @@ namespace RabbitMQ.Client
         [AmqpMethodDoNotImplement(null)]
         void ExchangeDeclarePassive(string exchange);
 
+        /// <summary>
+        /// Same as ExchangeDeclare but sets nowait to true and returns void (as there
+        /// will be no response from the server).
+        /// </summary>
+        void ExchangeDeclareNoWait(string exchange,
+                                   string type,
+                                   bool durable,
+                                   bool autoDelete,
+                                   IDictionary<string, object> arguments);
+
         ///<summary>(Spec method) Delete an exchange.</summary>
         [AmqpMethodDoNotImplement(null)]
         void ExchangeDelete(string exchange, bool ifUnused);
@@ -205,6 +201,11 @@ namespace RabbitMQ.Client
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
         void ExchangeDelete(string exchange);
+
+        ///<summary>
+        ///Like ExchangeDelete but sets nowait to true.
+        ///</summary>
+        void ExchangeDeleteNoWait(string exchange, bool ifUnused);
 
         ///<summary>(Extension method) Bind an exchange to an exchange.</summary>
         [AmqpMethodDoNotImplement(null)]
@@ -219,6 +220,14 @@ namespace RabbitMQ.Client
                           string source,
                           string routingKey);
 
+        ///<summary>
+        ///Like ExchangeBind but sets nowait to true.
+        ///</summary>
+        void ExchangeBindNoWait(string destination,
+                                string source,
+                                string routingKey,
+                                IDictionary<string, object> arguments);
+
         ///<summary>(Extension method) Unbind an exchange from an exchange.</summary>
         [AmqpMethodDoNotImplement(null)]
         void ExchangeUnbind(string destination,
@@ -231,6 +240,13 @@ namespace RabbitMQ.Client
         void ExchangeUnbind(string destination,
                             string source,
                             string routingKey);
+
+        ///<summary>Like ExchangeUnbind but sets nowait to true.</summary>
+        [AmqpMethodDoNotImplement(null)]
+        void ExchangeUnbindNoWait(string destination,
+                                  string source,
+                                  string routingKey,
+                                  IDictionary<string, object> arguments);
 
         ///<summary>(Spec method) Declare a queue.</summary>
         ///<remarks>
@@ -256,6 +272,13 @@ namespace RabbitMQ.Client
         QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive,
                     bool autoDelete, IDictionary<string, object> arguments);
 
+        /// <summary>
+        /// Same as QueueDeclare but sets nowait to true and returns void (as there
+        /// will be no response from the server).
+        /// </summary>
+        void QueueDeclareNoWait(string queue, bool durable, bool exclusive,
+                                bool autoDelete, IDictionary<string, object> arguments);
+
         ///<summary>(Spec method) Bind a queue to an exchange.</summary>
         [AmqpMethodDoNotImplement(null)]
         void QueueBind(string queue,
@@ -269,6 +292,12 @@ namespace RabbitMQ.Client
                        string exchange,
                        string routingKey);
 
+        ///<summary>Same as QueueBind but sets nowait parameter to true.</summary>
+        void QueueBindNoWait(string queue,
+                             string exchange,
+                             string routingKey,
+                             IDictionary<string, object> arguments);
+
         ///<summary>(Spec method) Unbind a queue from an exchange.</summary>
         ///<remarks>
         ///Note: This operation is only supported when communicating
@@ -276,7 +305,6 @@ namespace RabbitMQ.Client
         ///a 0-8 broker that has been enhanced with the unofficial
         ///addition of a queue.unbind method.
         ///</remarks>
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
         void QueueUnbind(string queue,
                          string exchange,
                          string routingKey,
@@ -300,6 +328,15 @@ namespace RabbitMQ.Client
                          bool ifUnused,
                          bool ifEmpty);
 
+        ///<summary>
+        ///Same as QueueDelete but sets nowait parameter to true
+        ///and returns void (as there will be no response from the server)
+        ///</summary>
+        void QueueDeleteNoWait(string queue,
+                               bool ifUnused,
+                               bool ifEmpty);
+
+
         ///<summary>(Spec method) Delete a queue.</summary>
         ///<remarks>
         ///Returns the number of messages purged during queue
@@ -310,9 +347,6 @@ namespace RabbitMQ.Client
 
         ///<summary>Enable publisher acknowledgements.</summary>
         [AmqpMethodDoNotImplement(null)]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
         void ConfirmSelect();
 
         ///<summary>Wait until all published messages have been confirmed.
@@ -324,9 +358,6 @@ namespace RabbitMQ.Client
         ///throws an exception when called on a non-Confirm channel.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
         bool WaitForConfirms();
 
         ///<summary>Wait until all published messages have been confirmed.
@@ -345,9 +376,6 @@ namespace RabbitMQ.Client
         ///throws an exception when called on a non-Confirm channel.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
         bool WaitForConfirms(TimeSpan timeout, out bool timedOut);
 
         ///<summary>Wait until all published messages have been confirmed.
@@ -358,9 +386,6 @@ namespace RabbitMQ.Client
         ///OperationInterrupedException exception immediately.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
         void WaitForConfirmsOrDie();
 
         ///<summary>Wait until all published messages have been confirmed.
@@ -372,9 +397,6 @@ namespace RabbitMQ.Client
         ///immediately.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
         void WaitForConfirmsOrDie(TimeSpan timeout);
 
         ///<summary>Start a Basic content-class consumer.</summary>
@@ -483,9 +505,6 @@ namespace RabbitMQ.Client
                          bool requeue);
 
          ///<summary>Reject one or more delivered message(s).</summary>
-         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-         [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
          void BasicNack(ulong deliveryTag,
                         bool multiple,
                         bool requeue);
@@ -495,7 +514,6 @@ namespace RabbitMQ.Client
         void BasicRecover(bool requeue);
 
         ///<summary>(Spec method)</summary>
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
         void BasicRecoverAsync(bool requeue);
 
         ///<summary>(Spec method) Retrieve an individual message, if
@@ -516,15 +534,6 @@ namespace RabbitMQ.Client
         ///<summary>(Spec method) Roll back this session's active TX
         ///transaction.</summary>
         void TxRollback();
-
-        ///<summary>(Spec method) Enable DTX mode for this session.
-        /// (unsupported in AMQP 0-9-1)</summary>
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
-        void DtxSelect();
-
-        ///<summary>(Spec method, unsupported in AMQP 0-9-1)</summary>
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9_1")]
-        void DtxStart(string dtxIdentifier);
 
         ///<summary>Close this session.</summary>
         ///<remarks>
@@ -577,626 +586,5 @@ namespace RabbitMQ.Client
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
         void Abort(ushort replyCode, string replyText);
-    }
-
-    ///<summary>Represents Basic.GetOk responses from the server.</summary>
-    ///<remarks>
-    /// Basic.Get either returns an instance of this class, or null if
-    /// a Basic.GetEmpty was received.
-    ///</remarks>
-    public class BasicGetResult
-    {
-        private ulong m_deliveryTag;
-        private bool m_redelivered;
-        private string m_exchange;
-        private string m_routingKey;
-        private uint m_messageCount;
-        private IBasicProperties m_basicProperties;
-        private byte[] m_body;
-
-        ///<summary>Sets the new instance's properties from the
-        ///arguments passed in.</summary>
-        public BasicGetResult(ulong deliveryTag,
-                              bool redelivered,
-                              string exchange,
-                              string routingKey,
-                              uint messageCount,
-                              IBasicProperties basicProperties,
-                              byte[] body)
-        {
-            m_deliveryTag = deliveryTag;
-            m_redelivered = redelivered;
-            m_exchange = exchange;
-            m_routingKey = routingKey;
-            m_messageCount = messageCount;
-            m_basicProperties = basicProperties;
-            m_body = body;
-        }
-
-        ///<summary>Retrieve the delivery tag for this message. See also IModel.BasicAck.</summary>
-        public ulong DeliveryTag { get { return m_deliveryTag; } }
-        ///<summary>Retrieve the redelivered flag for this message.</summary>
-        public bool Redelivered { get { return m_redelivered; } }
-        ///<summary>Retrieve the exchange this message was published to.</summary>
-        public string Exchange { get { return m_exchange; } }
-        ///<summary>Retrieve the routing key with which this message was published.</summary>
-        public string RoutingKey { get { return m_routingKey; } }
-
-        ///<summary>Retrieve the number of messages pending on the
-        ///queue, excluding the message being delivered.</summary>
-        ///<remarks>
-        /// Note that this figure is indicative, not reliable, and can
-        /// change arbitrarily as messages are added to the queue and
-        /// removed by other clients.
-        ///</remarks>
-        public uint MessageCount { get { return m_messageCount; } }
-
-        ///<summary>Retrieves the Basic-class content header properties for this message.</summary>
-        public IBasicProperties BasicProperties { get { return m_basicProperties; } }
-        ///<summary>Retrieves the body of this message.</summary>
-        public byte[] Body { get { return m_body; } }
-    }
-}
-
-namespace RabbitMQ.Client.Impl
-{
-    ///<summary>Not part of the public API. Extension of IModel to
-    ///include utilities and connection-setup routines needed by the
-    ///implementation side.</summary>
-    ///
-    ///<remarks>This interface is used by the API autogeneration
-    ///process. The AMQP XML specifications are read by the spec
-    ///compilation tool, and after the basic method interface and
-    ///implementation classes are generated, this interface is
-    ///scanned, and a spec-version-specific implementation is
-    ///autogenerated. Annotations are used on certain methods, return
-    ///types, and parameters, to customise the details of the
-    ///autogeneration process.</remarks>
-    ///
-    ///<see cref="RabbitMQ.Client.Impl.ModelBase"/>
-    ///<see cref="RabbitMQ.Client.Framing.Impl.v0_9.Model"/>
-    public interface IFullModel : RabbitMQ.Client.IModel
-    {
-        ///<summary>Used to send a Exchange.Declare method. Called by the
-        ///public declare method.
-        ///</summary>
-        [AmqpMethodMapping(null, "exchange", "declare")]
-        void _Private_ExchangeDeclare(string exchange,
-                             string type,
-                             bool passive,
-                             bool durable,
-                             bool autoDelete,
-                             bool @internal,
-                             [AmqpNowaitArgument(null)]
-                             bool nowait,
-                             IDictionary<string, object> arguments);
-
-        ///<summary>Used to send a Exchange.Delete method. Called by the
-        ///public delete method.
-        ///</summary>
-        [AmqpMethodMapping(null, "exchange", "delete")]
-        void _Private_ExchangeDelete(string exchange,
-                                     bool ifUnused,
-                                     [AmqpNowaitArgument(null)]
-                                     bool nowait);
-
-        ///<summary>Used to send a Exchange.Bind method. Called by the
-        ///public bind method.
-        ///</summary>
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8"),
-         AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid"),
-         AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
-        [AmqpMethodMapping(null, "exchange", "bind")]
-        void _Private_ExchangeBind(string destination,
-                                   string source,
-                                   string routingKey,
-                                   [AmqpNowaitArgument(null)]
-                                   bool nowait,
-                                   IDictionary<string, object> arguments);
-
-        ///<summary>Used to send a Exchange.Unbind method. Called by the
-        ///public unbind method.
-        ///</summary>
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8"),
-         AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid"),
-         AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
-        [AmqpMethodMapping(null, "exchange", "unbind")]
-        void _Private_ExchangeUnbind(string destination,
-                                     string source,
-                                     string routingKey,
-                                     [AmqpNowaitArgument(null)]
-                                     bool nowait,
-                                     IDictionary<string, object> arguments);
-
-        ///<summary>Used to send a Queue.Declare method. Called by the
-        ///public declare method.</summary>
-        [AmqpMethodMapping(null, "queue", "declare")]
-        [AmqpForceOneWay]
-        void _Private_QueueDeclare(string queue,
-                                   bool passive,
-                                   bool durable,
-                                   bool exclusive,
-                                   bool autoDelete,
-                                   [AmqpNowaitArgument(null)]
-                                   bool nowait,
-                                   IDictionary<string, object> arguments);
-
-        ///<summary>Handle incoming Queue.DeclareOk methods. Routes the
-        ///information to a waiting Queue.DeclareOk continuation.</summary>
-        void HandleQueueDeclareOk(string queue,
-                                  uint messageCount,
-                                  uint consumerCount);
-
-        ///<summary>Used to send a Queue.Bind method. Called by the
-        ///public bind method.</summary>
-        [AmqpMethodMapping(null, "queue", "bind")]
-        void _Private_QueueBind(string queue,
-                                string exchange,
-                                string routingKey,
-                                [AmqpNowaitArgument(null)]
-                                bool nowait,
-                                IDictionary<string, object> arguments);
-
-        ///<summary>Used to send a Queue.Purge method. Called by the
-        ///public purge method.</summary>
-        [return: AmqpFieldMapping(null, "messageCount")]
-        [AmqpMethodMapping(null, "queue", "purge")]
-        uint _Private_QueuePurge(string queue,
-                                 [AmqpNowaitArgument(null, "0xFFFFFFFF")]
-                                 bool nowait);
-
-
-        ///<summary>Used to send a Queue.Delete method. Called by the
-        ///public delete method.</summary>
-        [AmqpMethodMapping(null, "queue", "delete")]
-        [return: AmqpFieldMapping(null, "messageCount")]
-        uint _Private_QueueDelete(string queue,
-                                  bool ifUnused,
-                                  bool ifEmpty,
-                                  [AmqpNowaitArgument(null, "0xFFFFFFFF")]
-                                  bool nowait);
-
-        ///<summary>Used to send a Basic.Publish method. Called by the
-        ///public publish method after potential null-reference issues
-        ///have been rectified.</summary>
-        [AmqpMethodMapping(null, "basic", "publish")]
-        void _Private_BasicPublish(string exchange,
-                                   string routingKey,
-                                   bool mandatory,
-                                   bool immediate,
-                                   [AmqpContentHeaderMapping]
-                                   IBasicProperties basicProperties,
-                                   [AmqpContentBodyMapping]
-                                   byte[] body);
-
-        ///<summary>Used to send a Basic.Consume method. The public
-        ///consume API calls this while also managing internal
-        ///datastructures.</summary>
-        [AmqpForceOneWay]
-        [AmqpMethodMapping(null, "basic", "consume")]
-        void _Private_BasicConsume(string queue,
-                                   string consumerTag,
-                                   bool noLocal,
-                                   bool noAck,
-                                   bool exclusive,
-                                   bool nowait,
-                                   [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-                                   [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9",
-                                                     "filter")]
-                                   IDictionary<string, object> arguments);
-
-        ///<summary>Used to send a Confirm.Select method. The public
-        ///confirm API calls this while also managing internal
-        ///datastructures.</summary>
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
-        [AmqpMethodMapping(null, "confirm", "select")]
-        void _Private_ConfirmSelect([AmqpNowaitArgument(null)]
-                                    bool nowait);
-
-
-        ///<summary>Handle incoming Basic.ConsumeOk methods.</summary>
-        void HandleBasicConsumeOk(string consumerTag);
-
-        ///<summary>Used to send a Basic.Cancel method. The public
-        ///consume API calls this while also managing internal
-        ///datastructures.</summary>
-        [AmqpForceOneWay]
-        [AmqpMethodMapping(null, "basic", "cancel")]
-        void _Private_BasicCancel(string consumerTag,
-                                  bool nowait);
-
-        ///<summary>Handle incoming Basic.CancelOk methods.</summary>
-        void HandleBasicCancelOk(string consumerTag);
-
-        ///<summary>Used to send a Channel.Open. Called during session
-        ///initialisation.</summary>
-        [AmqpMethodMapping(null, "channel", "open")]
-        void _Private_ChannelOpen([AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1",
-                                  "reserved1")]
-                                  string outOfBand);
-
-        ///<summary>Used to send a Channel.CloseOk. Called during
-        ///session shutdown.</summary>
-        [AmqpMethodMapping(null, "channel", "close-ok")]
-        void _Private_ChannelCloseOk();
-
-        ///<summary>Used to send a Channel.Close. Called during
-        ///session shutdown.</summary>
-        [AmqpForceOneWay]
-        [AmqpMethodMapping(null, "channel", "close")]
-        void _Private_ChannelClose(ushort replyCode,
-                                   string replyText,
-                                   ushort classId,
-                                   ushort methodId);
-
-        ///<summary>Used to send a Basic.Get. Basic.Get is a special
-        ///case, since it can result in a Basic.GetOk or a
-        ///Basic.GetEmpty, so this level of manual control is
-        ///required.</summary>
-        [AmqpForceOneWay]
-        [AmqpMethodMapping(null, "basic", "get")]
-        void _Private_BasicGet(string queue,
-                               bool noAck);
-
-        ///<summary>Handle incoming Basic.GetOk methods. Routes the
-        ///information to a waiting Basic.Get continuation.</summary>
-        void HandleBasicGetOk(ulong deliveryTag,
-                              bool redelivered,
-                              string exchange,
-                              string routingKey,
-                              uint messageCount,
-                              [AmqpContentHeaderMapping]
-                              IBasicProperties basicProperties,
-                              [AmqpContentBodyMapping]
-                              byte[] body);
-
-        ///<summary>Handle incoming Basic.GetEmpty methods. Routes the
-        ///information to a waiting Basic.Get continuation.</summary>
-        ///<remarks>
-        /// Note that the clusterId field is ignored, as in the
-        /// specification it notes that it is "deprecated pending
-        /// review".
-        ///</remarks>
-        void HandleBasicGetEmpty();
-
-        ///<summary>Handle incoming Basic.RecoverOk methods
-        ///received in reply to Basic.Recover.
-        ///</summary>
-        void HandleBasicRecoverOk();
-
-        [AmqpForceOneWay]
-        [AmqpMethodMapping(null, "basic", "recover")]
-        void _Private_BasicRecover(bool requeue);
-
-        ///<summary>Handle incoming Basic.Deliver methods. Dispatches
-        ///to waiting consumers.</summary>
-        void HandleBasicDeliver(string consumerTag,
-                                ulong deliveryTag,
-                                bool redelivered,
-                                string exchange,
-                                string routingKey,
-                                [AmqpContentHeaderMapping]
-                                IBasicProperties basicProperties,
-                                [AmqpContentBodyMapping]
-                                byte[] body);
-
-        void HandleBasicCancel(string consumerTag, bool nowait);
-
-        ///<summary>Handle incoming Basic.Return methods. Signals a
-        ///BasicReturnEvent.</summary>
-        void HandleBasicReturn(ushort replyCode,
-                               string replyText,
-                               string exchange,
-                               string routingKey,
-                               [AmqpContentHeaderMapping]
-                               IBasicProperties basicProperties,
-                               [AmqpContentBodyMapping]
-                               byte[] body);
-
-        ///<summary>Handle incoming Basic.Ack methods. Signals a
-        ///BasicAckEvent.</summary>
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
-        void HandleBasicAck(ulong deliveryTag,
-                            bool multiple);
-
-        ///<summary>Handle incoming Basic.Nack methods. Signals a
-        ///BasicNackEvent.</summary>
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
-        void HandleBasicNack(ulong deliveryTag,
-                             bool multiple,
-                             bool requeue);
-
-        ///<summary>Used to send a Channel.FlowOk. Confirms that
-        ///Channel.Flow from the broker was processed.</summary>
-        [AmqpMethodMapping(null, "channel", "flow-ok")]
-        void _Private_ChannelFlowOk(bool active);
-
-        ///<summary>Handle incoming Channel.Flow methods. Either
-        ///stops or resumes sending the methods that have content.</summary>
-        void HandleChannelFlow(bool active);
-
-        ///<summary>Handle an incoming Channel.Close. Shuts down the
-        ///session and model.</summary>
-        void HandleChannelClose(ushort replyCode,
-                                string replyText,
-                                ushort classId,
-                                ushort methodId);
-
-        ///<summary>Handle an incoming Channel.CloseOk.</summary>
-        void HandleChannelCloseOk();
-
-        ///////////////////////////////////////////////////////////////////////////
-        // Connection-related methods, for use in channel 0 during
-        // connection startup/shutdown.
-
-        ///<summary>Handle an incoming Connection.Start. Used during
-        ///connection initialisation.</summary>
-        void HandleConnectionStart(byte versionMajor,
-                                   byte versionMinor,
-                                   IDictionary<string, object> serverProperties,
-                                   byte[] mechanisms,
-                                   byte[] locales);
-
-        ///<summary>Used to send a Connection.StartOk. This is
-        ///special, like Basic.Get.</summary>
-        [AmqpForceOneWay]
-        [AmqpMethodMapping(null, "connection", "start-ok")]
-        void _Private_ConnectionStartOk(IDictionary<string, object> clientProperties,
-                                        string mechanism,
-                                        byte[] response,
-                                        string locale);
-
-        ///<summary>Handle incoming Connection.Secure
-        ///methods.</summary>
-        void HandleConnectionSecure(byte[] challenge);
-
-        ///<summary>Used to send a Connection.SecureOk. Again, this is
-        ///special, like Basic.Get.</summary>
-        [AmqpForceOneWay]
-        [AmqpMethodMapping(null, "connection", "secure-ok")]
-        void _Private_ConnectionSecureOk(byte[] response);
-
-        ///<summary>Handle incoming Connection.Tune
-        ///methods.</summary>
-        void HandleConnectionTune(ushort channelMax,
-                                  uint frameMax,
-                                  ushort heartbeat);
-
-        ///<summary>Sends a Connection.TuneOk. Used during connection
-        ///initialisation.</summary>
-        void ConnectionTuneOk(ushort channelMax,
-                              uint frameMax,
-                              ushort heartbeat);
-
-
-        ///<summary>Used to send a Connection.Open. Called during
-        ///connection startup.</summary>
-        [AmqpForceOneWay]
-        [AmqpMethodMapping(null, "connection", "open")]
-        void _Private_ConnectionOpen(string virtualHost,
-                                     [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved1")]
-                                     string capabilities,
-                                     [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved2")]
-                                     bool insist);
-
-        ///<summary>Handle an incoming Connection.OpenOk.</summary>
-        void HandleConnectionOpenOk([AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved1")]
-                                    string knownHosts);
-
-        ///<summary>Handle an incoming Connection.Redirect.
-        /// (not available in AMQP 0-9-1)
-        ///</summary>
-        [AmqpMethodDoNotImplement("RabbitMQ.Client.Framing.v0_9_1")]
-        void HandleConnectionRedirect(string host,
-                                      string knownHosts);
-
-        ///<summary>Used to send a Connection.Close. Called during
-        ///connection shutdown.</summary>
-        [AmqpMethodMapping(null, "connection", "close")]
-        void _Private_ConnectionClose(ushort replyCode,
-                                      string replyText,
-                                      ushort classId,
-                                      ushort methodId);
-
-        ///<summary>Used to send a Connection.CloseOk. Called during
-        ///connection shutdown.</summary>
-        [AmqpMethodMapping(null, "connection", "close-ok")]
-        void _Private_ConnectionCloseOk();
-
-        ///<summary>Handle an incoming Connection.Close. Shuts down the
-        ///connection and all sessions and models.</summary>
-        void HandleConnectionClose(ushort replyCode,
-                                   string replyText,
-                                   ushort classId,
-                                   ushort methodId);
-
-        ///<summary>Handle an incoming Connection.Blocked.</summary>
-        [AmqpMethodMapping(null, "connection", "blocked")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
-        void HandleConnectionBlocked(string reason);
-
-        ///<summary>Handle an incominga Connection.Unblocked.</summary>
-        [AmqpMethodMapping(null, "connection", "unblocked")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8qpid")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_8")]
-        [AmqpUnsupported("RabbitMQ.Client.Framing.v0_9")]
-        void HandleConnectionUnblocked();
-    }
-
-    ///<summary>Essential information from an incoming Connection.Tune
-    ///method.</summary>
-    public struct ConnectionTuneDetails
-    {
-        ///<summary>The peer's suggested channel-max parameter.</summary>
-        public ushort m_channelMax;
-        ///<summary>The peer's suggested frame-max parameter.</summary>
-        public uint m_frameMax;
-        ///<summary>The peer's suggested heartbeat parameter.</summary>
-        public ushort m_heartbeat;
-    }
-
-    public class ConnectionSecureOrTune
-    {
-        public ConnectionTuneDetails m_tuneDetails;
-        public byte[] m_challenge;
-    }
-}
-
-namespace RabbitMQ.Client.Apigen.Attributes
-{
-    ///<summary>Base class for attributes for controlling the API
-    ///autogeneration process.</summary>
-    public abstract class AmqpApigenAttribute : Attribute
-    {
-        ///<summary>The specification namespace (i.e. version) that
-        ///this attribute applies to, or null for all specification
-        ///versions.</summary>
-        public string m_namespaceName;
-
-        public AmqpApigenAttribute(string namespaceName)
-        {
-            m_namespaceName = namespaceName;
-        }
-    }
-
-    ///<summary>Causes the API generator to ignore the attributed method.</summary>
-    ///
-    ///<remarks>Mostly used to declare convenience overloads of
-    ///various AMQP methods in the IModel interface. Also used
-    ///to omit an autogenerated implementation of a method which
-    ///is not required for one protocol version. The API
-    ///autogeneration process should of course not attempt to produce
-    ///an implementation of the convenience methods, as they will be
-    ///implemented by hand with sensible defaults, delegating to the
-    ///autogenerated variant of the method concerned.</remarks>
-    [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
-    public class AmqpMethodDoNotImplementAttribute : AmqpApigenAttribute
-    {
-        public AmqpMethodDoNotImplementAttribute(string namespaceName)
-            : base(namespaceName) { }
-    }
-
-    ///<summary>Causes the API generator to generate asynchronous
-    ///receive code for the attributed method.</summary>
-    [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
-    public class AmqpAsynchronousHandlerAttribute : AmqpApigenAttribute
-    {
-        public AmqpAsynchronousHandlerAttribute(string namespaceName)
-            : base(namespaceName) { }
-    }
-
-    ///<summary>Causes the API generator to generate
-    ///exception-throwing code for, instead of simply ignoring, the
-    ///attributed method.</summary>
-    ///
-    ///<see cref="AmqpMethodDoNotImplementAttribute"/>
-    [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
-    public class AmqpUnsupportedAttribute : AmqpApigenAttribute
-    {
-        public AmqpUnsupportedAttribute(string namespaceName)
-            : base(namespaceName) { }
-    }
-
-    ///<summary>Informs the API generator which AMQP method field to
-    ///use for either a parameter in a request, or for a simple result
-    ///in a reply.</summary>
-    [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
-    public class AmqpFieldMappingAttribute : AmqpApigenAttribute
-    {
-        public string m_fieldName;
-
-        public AmqpFieldMappingAttribute(string namespaceName,
-                                string fieldName)
-            : base(namespaceName)
-        {
-            m_fieldName = fieldName;
-        }
-    }
-
-    ///<summary>Informs the API generator which AMQP method to use for
-    ///either a request (if applied to an IModel method) or a reply
-    ///(if applied to an IModel method result).</summary>
-    [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
-    public class AmqpMethodMappingAttribute : AmqpApigenAttribute
-    {
-        public string m_className;
-        public string m_methodName;
-
-        public AmqpMethodMappingAttribute(string namespaceName,
-                                 string className,
-                                 string methodName)
-            : base(namespaceName)
-        {
-            m_className = className;
-            m_methodName = methodName;
-        }
-    }
-
-    ///<summary>This attribute, if placed on a parameter in an IModel
-    ///method, causes it to be interpreted as a "nowait" parameter for
-    ///the purposes of autogenerated RPC reply continuation management
-    ///and control.</summary>
-    [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
-    public class AmqpNowaitArgumentAttribute : AmqpApigenAttribute
-    {
-        public string m_replacementExpression;
-
-        public AmqpNowaitArgumentAttribute(string namespaceName)
-            : this(namespaceName, null) { }
-
-        public AmqpNowaitArgumentAttribute(string namespaceName,
-                                  string replacementExpression)
-            : base(namespaceName)
-        {
-            m_replacementExpression = replacementExpression;
-        }
-    }
-
-    ///<summary>This attribute, if placed on a method in IModel,
-    ///causes the method to be interpreted as a factory method
-    ///producing a protocol-specific implementation of a common
-    ///content header interface.</summary>
-    public class AmqpContentHeaderFactoryAttribute : Attribute
-    {
-        public string m_contentClass;
-
-        public AmqpContentHeaderFactoryAttribute(string contentClass)
-        {
-            m_contentClass = contentClass;
-        }
-    }
-
-    ///<summary>This attribute, if placed on a parameter in a
-    ///content-carrying IModel method, causes it to be sent as part of
-    ///the content header frame.</summary>
-    public class AmqpContentHeaderMappingAttribute : Attribute
-    {
-        public AmqpContentHeaderMappingAttribute() { }
-    }
-
-    ///<summary>This attribute, if placed on a parameter in a
-    ///content-carrying IModel method, causes it to be sent as part of
-    ///the content body frame.</summary>
-    public class AmqpContentBodyMappingAttribute : Attribute
-    {
-        public AmqpContentBodyMappingAttribute() { }
-    }
-
-    ///<summary>This attribute, placed on an IModel method, causes
-    ///what would normally be an RPC, sent with ModelRpc, to be sent
-    ///as if it were oneway, with ModelSend. The assumption that this
-    ///is for a custom continuation (e.g. for BasicConsume/BasicCancel
-    ///etc.)</summary>
-    public class AmqpForceOneWayAttribute : Attribute
-    {
-        public AmqpForceOneWayAttribute() { }
     }
 }

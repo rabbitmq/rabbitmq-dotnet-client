@@ -49,8 +49,8 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestHostWithPort()
         {
-            AmqpTcpEndpoint e = AmqpTcpEndpoint.Parse(Protocols.DefaultProtocol, "host:1234");
-            Assert.AreEqual(Protocols.DefaultProtocol, e.Protocol);
+            AmqpTcpEndpoint e = AmqpTcpEndpoint.Parse("host:1234");
+
             Assert.AreEqual("host", e.HostName);
             Assert.AreEqual(1234, e.Port);
         }
@@ -58,8 +58,8 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestHostWithoutPort()
         {
-            AmqpTcpEndpoint e = AmqpTcpEndpoint.Parse(Protocols.DefaultProtocol, "host");
-            Assert.AreEqual(Protocols.DefaultProtocol, e.Protocol);
+            AmqpTcpEndpoint e = AmqpTcpEndpoint.Parse("host");
+
             Assert.AreEqual("host", e.HostName);
             Assert.AreEqual(Protocols.DefaultProtocol.DefaultPort, e.Port);
         }
@@ -67,8 +67,8 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestEmptyHostWithPort()
         {
-            AmqpTcpEndpoint e = AmqpTcpEndpoint.Parse(Protocols.DefaultProtocol, ":1234");
-            Assert.AreEqual(Protocols.DefaultProtocol, e.Protocol);
+            AmqpTcpEndpoint e = AmqpTcpEndpoint.Parse(":1234");
+
             Assert.AreEqual("", e.HostName);
             Assert.AreEqual(1234, e.Port);
         }
@@ -76,8 +76,8 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestEmptyHostWithoutPort()
         {
-            AmqpTcpEndpoint e = AmqpTcpEndpoint.Parse(Protocols.DefaultProtocol, ":");
-            Assert.AreEqual(Protocols.DefaultProtocol, e.Protocol);
+            AmqpTcpEndpoint e = AmqpTcpEndpoint.Parse(":");
+
             Assert.AreEqual("", e.HostName);
             Assert.AreEqual(Protocols.DefaultProtocol.DefaultPort, e.Port);
         }
@@ -85,8 +85,8 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestCompletelyEmptyString()
         {
-            AmqpTcpEndpoint e = AmqpTcpEndpoint.Parse(Protocols.DefaultProtocol, "");
-            Assert.AreEqual(Protocols.DefaultProtocol, e.Protocol);
+            AmqpTcpEndpoint e = AmqpTcpEndpoint.Parse("");
+
             Assert.AreEqual("", e.HostName);
             Assert.AreEqual(Protocols.DefaultProtocol.DefaultPort, e.Port);
         }
@@ -96,7 +96,7 @@ namespace RabbitMQ.Client.Unit
         {
             try
             {
-                AmqpTcpEndpoint.Parse(Protocols.DefaultProtocol, "host:port");
+                AmqpTcpEndpoint.Parse("host:port");
                 Assert.Fail("Expected FormatException");
             }
             catch (FormatException)
@@ -108,15 +108,14 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestMultipleNone()
         {
-            AmqpTcpEndpoint[] es = AmqpTcpEndpoint.ParseMultiple(Protocols.DefaultProtocol, "  ");
+            AmqpTcpEndpoint[] es = AmqpTcpEndpoint.ParseMultiple("  ");
             Assert.AreEqual(0, es.Length);
         }
 
         [Test]
         public void TestMultipleOne()
         {
-            AmqpTcpEndpoint[] es = AmqpTcpEndpoint.ParseMultiple(Protocols.DefaultProtocol,
-                                                                 " host:1234 ");
+            AmqpTcpEndpoint[] es = AmqpTcpEndpoint.ParseMultiple(" host:1234 ");
             Assert.AreEqual(1, es.Length);
             Assert.AreEqual("host", es[0].HostName);
             Assert.AreEqual(1234, es[0].Port);
@@ -125,8 +124,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestMultipleTwo()
         {
-            AmqpTcpEndpoint[] es = AmqpTcpEndpoint.ParseMultiple(Protocols.DefaultProtocol,
-                                                                 " host:1234, other:2345 ");
+            AmqpTcpEndpoint[] es = AmqpTcpEndpoint.ParseMultiple(" host:1234, other:2345 ");
             Assert.AreEqual(2, es.Length);
             Assert.AreEqual("host", es[0].HostName);
             Assert.AreEqual(1234, es[0].Port);
@@ -137,8 +135,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestMultipleTwoMultipleCommas()
         {
-            AmqpTcpEndpoint[] es = AmqpTcpEndpoint.ParseMultiple(Protocols.DefaultProtocol,
-                                                                 ", host:1234,, ,,, other:2345,, ");
+            AmqpTcpEndpoint[] es = AmqpTcpEndpoint.ParseMultiple(", host:1234,, ,,, other:2345,, ");
             Assert.AreEqual(2, es.Length);
             Assert.AreEqual("host", es[0].HostName);
             Assert.AreEqual(1234, es[0].Port);
@@ -149,8 +146,8 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestIpv6WithPort()
         {
-            AmqpTcpEndpoint e = AmqpTcpEndpoint.Parse(Protocols.DefaultProtocol, "[::1]:1234");
-            Assert.AreEqual(Protocols.DefaultProtocol, e.Protocol);
+            AmqpTcpEndpoint e = AmqpTcpEndpoint.Parse("[::1]:1234");
+
             Assert.AreEqual("::1", e.HostName);
             Assert.AreEqual(1234, e.Port);
         }
@@ -158,8 +155,8 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestIpv6WithoutPort()
         {
-            AmqpTcpEndpoint e = AmqpTcpEndpoint.Parse(Protocols.DefaultProtocol, "[::1]");
-            Assert.AreEqual(Protocols.DefaultProtocol, e.Protocol);
+            AmqpTcpEndpoint e = AmqpTcpEndpoint.Parse("[::1]");
+
             Assert.AreEqual("::1", e.HostName);
             Assert.AreEqual(Protocols.DefaultProtocol.DefaultPort, e.Port);
         }

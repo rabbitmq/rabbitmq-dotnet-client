@@ -56,7 +56,7 @@ namespace RabbitMQ.ServiceModel.Test
 
             return new RabbitMQBinding(System.Configuration.ConfigurationManager.AppSettings["manual-test-broker-hostname"],
                                        int.Parse(System.Configuration.ConfigurationManager.AppSettings["manual-test-broker-port"]),
-                                       RabbitMQ.Client.Protocols.FromConfiguration("manual-test-broker-protocol"));
+                                       RabbitMQ.Client.Protocols.DefaultProtocol);
         }
 
         static void Main(string[] args)

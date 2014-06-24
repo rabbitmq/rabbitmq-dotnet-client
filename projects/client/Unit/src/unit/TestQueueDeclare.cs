@@ -38,12 +38,52 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-using RabbitMQ.Client.Impl;
+using NUnit.Framework;
 
-namespace RabbitMQ.Client.Framing.Impl.v0_8qpid {
-    public class Connection: ConnectionBase {
-        public Connection(ConnectionFactory factory , bool insist, IFrameHandler frameHandler)
-            : base(factory, insist, frameHandler) {}
+using System;
+using System.Collections.Generic;
+using System.Threading;
+
+using RabbitMQ.Client.Exceptions;
+
+namespace RabbitMQ.Client.Unit {
+    [TestFixture]
+    public class TestQueueDeclare : IntegrationFixture {
+
+        [Test]
+        public void TestConcurrentQueueDeclare()
+        {
+            string q = GenerateQueueName();
+            Random rnd = new Random();
+
+            List<Thread> ts = new List<Thread>();
+            System.NotSupportedException nse = null;
+            for(int i = 0; i < 256; i++)
+            {
+                Thread t = new Thread(() =>
+                        {
+                            try
+                            {
+                                // sleep for a random amount of time to increase the chances
+                                // of thread interleaving. MK.
+                                Thread.Sleep(rnd.Next(5, 500));
+                                Model.QueueDeclare(q, false, false, false, null);
+                            } catch (System.NotSupportedException e)
+                            {
+                                nse = e;
+                            }
+                        });
+                ts.Add(t);
+                t.Start();
+            }
+
+            foreach (Thread t in ts)
+            {
+                t.Join();
+            }
+
+            Assert.IsNotNull(nse);
+            Model.QueueDelete(q);
+        }
     }
 }

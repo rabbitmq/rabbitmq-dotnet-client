@@ -38,12 +38,37 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-using RabbitMQ.Client.Impl;
+using NUnit.Framework;
 
-namespace RabbitMQ.Client.Framing.Impl.v0_8 {
-    public class Connection: ConnectionBase {
-        public Connection(ConnectionFactory factory, bool insist, IFrameHandler frameHandler)
-            : base(factory, insist, frameHandler) {}
+using System;
+using System.Text;
+using System.Threading;
+using System.Diagnostics;
+
+using RabbitMQ.Client.Exceptions;
+
+namespace RabbitMQ.Client.Unit {
+    [TestFixture]
+    public class TestPassiveDeclare : IntegrationFixture {
+
+        [Test]
+        public void TestPassiveQueueDeclareWhenQueueDoesNotExist()
+        {
+            Assert.Throws(Is.InstanceOf<OperationInterruptedException>(),
+                          delegate
+                          {
+                              Model.QueueDeclarePassive(Guid.NewGuid().ToString());
+                          });
+        }
+
+        [Test]
+        public void TestPassiveExchangeDeclareWhenExchangeDoesNotExist()
+        {
+            Assert.Throws(Is.InstanceOf<OperationInterruptedException>(),
+                          delegate
+                          {
+                              Model.ExchangeDeclarePassive(Guid.NewGuid().ToString());
+                          });
+        }
     }
 }

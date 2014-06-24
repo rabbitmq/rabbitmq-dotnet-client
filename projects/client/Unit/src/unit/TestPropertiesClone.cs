@@ -52,43 +52,7 @@ using RabbitMQ.Client.Impl;
 [TestFixture]
 public class TestPropertiesClone
 {
-    [Test]
-    public void TestBasicPropertiesCloneV0_8()
-    {
-        TestBasicPropertiesClone(new RabbitMQ.Client.Framing.v0_8.BasicProperties());
-    }
-
-    [Test]
-    public void TestBasicPropertiesNoneCloneV0_8()
-    {
-        TestBasicPropertiesNoneClone(new RabbitMQ.Client.Framing.v0_8.BasicProperties());
-    }
-
-    [Test]
-    public void TestBasicPropertiesCloneV0_8qpid()
-    {
-        TestBasicPropertiesClone(new RabbitMQ.Client.Framing.v0_8qpid.BasicProperties());
-    }
-
-    [Test]
-    public void TestBasicPropertiesNoneCloneV0_8qpid()
-    {
-        TestBasicPropertiesNoneClone(new RabbitMQ.Client.Framing.v0_8qpid.BasicProperties());
-    }
-
-    [Test]
-    public void TestBasicPropertiesCloneV0_9()
-    {
-        TestBasicPropertiesClone(new RabbitMQ.Client.Framing.v0_9.BasicProperties());
-    }
-
-    [Test]
-    public void TestBasicPropertiesNoneCloneV0_9()
-    {
-        TestBasicPropertiesNoneClone(new RabbitMQ.Client.Framing.v0_9.BasicProperties());
-    }
-
-    [Test]
+     [Test]
     public void TestBasicPropertiesCloneV0_9_1()
     {
         TestBasicPropertiesClone(new RabbitMQ.Client.Framing.v0_9_1.BasicProperties());
@@ -98,78 +62,6 @@ public class TestPropertiesClone
     public void TestBasicPropertiesNoneCloneV0_9_1()
     {
         TestBasicPropertiesNoneClone(new RabbitMQ.Client.Framing.v0_9_1.BasicProperties());
-    }
-
-    [Test]
-    public void TestStreamPropertiesCloneV0_8()
-    {
-        TestStreamPropertiesClone(new RabbitMQ.Client.Framing.v0_8.StreamProperties());
-    }
-
-    [Test]
-    public void TestStreamPropertiesNoneCloneV0_8()
-    {
-        TestStreamPropertiesNoneClone(new RabbitMQ.Client.Framing.v0_8.StreamProperties());
-    }
-
-    [Test]
-    public void TestStreamPropertiesCloneV0_8qpid()
-    {
-        TestStreamPropertiesClone(new RabbitMQ.Client.Framing.v0_8qpid.StreamProperties());
-    }
-
-    [Test]
-    public void TestStreamPropertiesNoneCloneV0_8qpid()
-    {
-        TestStreamPropertiesNoneClone(new RabbitMQ.Client.Framing.v0_8qpid.StreamProperties());
-    }
-
-    [Test]
-    public void TestStreamPropertiesCloneV0_9()
-    {
-        TestStreamPropertiesClone(new RabbitMQ.Client.Framing.v0_9.StreamProperties());
-    }
-
-    [Test]
-    public void TestStreamPropertiesNoneCloneV0_9()
-    {
-        TestStreamPropertiesNoneClone(new RabbitMQ.Client.Framing.v0_9.StreamProperties());
-    }
-
-    [Test]
-    public void TestFilePropertiesCloneV0_8()
-    {
-        TestFilePropertiesClone(new RabbitMQ.Client.Framing.v0_8.FileProperties());
-    }
-
-    [Test]
-    public void TestFilePropertiesNoneCloneV0_8()
-    {
-        TestFilePropertiesNoneClone(new RabbitMQ.Client.Framing.v0_8.FileProperties());
-    }
-
-    [Test]
-    public void TestFilePropertiesCloneV0_8qpid()
-    {
-        TestFilePropertiesClone(new RabbitMQ.Client.Framing.v0_8qpid.FileProperties());
-    }
-
-    [Test]
-    public void TestFilePropertiesNoneCloneV0_8qpid()
-    {
-        TestFilePropertiesNoneClone(new RabbitMQ.Client.Framing.v0_8qpid.FileProperties());
-    }
-
-    [Test]
-    public void TestFilePropertiesCloneV0_9()
-    {
-        TestFilePropertiesClone(new RabbitMQ.Client.Framing.v0_9.FileProperties());
-    }
-
-    [Test]
-    public void TestFilePropertiesNoneCloneV0_9()
-    {
-        TestFilePropertiesNoneClone(new RabbitMQ.Client.Framing.v0_9.FileProperties());
     }
 
     private void TestBasicPropertiesClone(BasicProperties bp)
@@ -331,82 +223,5 @@ public class TestPropertiesClone
         Assert.AreEqual(false, spClone.IsHeadersPresent());
         Assert.AreEqual(false, spClone.IsPriorityPresent());
         Assert.AreEqual(false, spClone.IsTimestampPresent());
-    }
-
-    private void TestFilePropertiesClone(FileProperties fp)
-    {
-        // Set members in source object
-        fp.ContentType = "foo_1";
-        fp.ContentEncoding = "foo_2";
-        fp.Headers = new Dictionary<string, object>();
-        fp.Headers.Add("foo_3", "foo_4");
-        fp.Headers.Add("foo_5", "foo_6");
-        fp.Priority = 12;
-        fp.ReplyTo = "foo_7";
-        fp.MessageId = "foo_8";
-        fp.Filename = "foo_9";
-        fp.Timestamp = new AmqpTimestamp(123);
-        fp.ClusterId = "foo_10";
-
-        // Clone
-        FileProperties fpClone = fp.Clone() as FileProperties;
-
-        // Change values in source object
-        fp.ContentType = "foo_11";
-        fp.ContentEncoding = "foo_12";
-        fp.Headers = new Dictionary<string, object>();
-        fp.Headers.Add("foo_13", "foo_14");
-        fp.Headers.Add("foo_15", "foo_16");
-        fp.Priority = 34;
-        fp.ReplyTo = "foo_17";
-        fp.MessageId = "foo_18";
-        fp.Filename = "foo_19";
-        fp.Timestamp = new AmqpTimestamp(234);
-        fp.ClusterId = "foo_20";
-
-        // Make sure values have not changed in clone
-        Assert.AreEqual("foo_1", fpClone.ContentType);
-        Assert.AreEqual("foo_2", fpClone.ContentEncoding);
-        Assert.AreEqual(2, fpClone.Headers.Count);
-        Assert.AreEqual(true, fpClone.Headers.ContainsKey("foo_3"));
-        Assert.AreEqual("foo_4", fpClone.Headers["foo_3"]);
-        Assert.AreEqual(true, fpClone.Headers.ContainsKey("foo_5"));
-        Assert.AreEqual("foo_6", fpClone.Headers["foo_5"]);
-        Assert.AreEqual(12, fpClone.Priority);
-        Assert.AreEqual("foo_7", fpClone.ReplyTo);
-        Assert.AreEqual("foo_8", fpClone.MessageId);
-        Assert.AreEqual("foo_9", fpClone.Filename);
-        Assert.AreEqual(new AmqpTimestamp(123), fpClone.Timestamp);
-        Assert.AreEqual("foo_10", fpClone.ClusterId);
-    }
-
-    private void TestFilePropertiesNoneClone(FileProperties fp)
-    {
-        // Do not set any members and clone
-        FileProperties fpClone = fp.Clone() as FileProperties;
-
-        // Set values in source object
-        fp.ContentType = "foo_11";
-        fp.ContentEncoding = "foo_12";
-        fp.Headers = new Dictionary<string, object>();
-        fp.Headers.Add("foo_13", "foo_14");
-        fp.Headers.Add("foo_15", "foo_16");
-        fp.Priority = 34;
-        fp.ReplyTo = "foo_17";
-        fp.MessageId = "foo_18";
-        fp.Filename = "foo_19";
-        fp.Timestamp = new AmqpTimestamp(234);
-        fp.ClusterId = "foo_20";
-
-        // Check that no member is present in clone
-        Assert.AreEqual(false, fpClone.IsContentTypePresent());
-        Assert.AreEqual(false, fpClone.IsContentEncodingPresent());
-        Assert.AreEqual(false, fpClone.IsHeadersPresent());
-        Assert.AreEqual(false, fpClone.IsPriorityPresent());
-        Assert.AreEqual(false, fpClone.IsReplyToPresent());
-        Assert.AreEqual(false, fpClone.IsMessageIdPresent());
-        Assert.AreEqual(false, fpClone.IsFilenamePresent());
-        Assert.AreEqual(false, fpClone.IsTimestampPresent());
-        Assert.AreEqual(false, fpClone.IsClusterIdPresent());
     }
 }

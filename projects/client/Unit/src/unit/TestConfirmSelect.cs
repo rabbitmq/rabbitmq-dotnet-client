@@ -46,7 +46,6 @@ using System.Text;
 namespace RabbitMQ.Client.Unit {
     [TestFixture]
     public class TestConfirmSelect : IntegrationFixture {
-        protected UTF8Encoding enc = new UTF8Encoding();
 
         [Test]
         public void TestConfirmSelectIdempotency()

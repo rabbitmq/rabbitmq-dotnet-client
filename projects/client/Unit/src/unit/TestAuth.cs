@@ -70,11 +70,7 @@ namespace RabbitMQ.Client.Unit
             }
             catch (BrokerUnreachableException bue)
             {
-                foreach (Object failureReason in bue.ConnectionErrors.Values)
-                {
-                    Assert.IsInstanceOf<AuthenticationFailureException>(
-                        failureReason);
-                }
+                Assert.IsInstanceOf<AuthenticationFailureException>(bue.InnerException);
             }
         }
     }

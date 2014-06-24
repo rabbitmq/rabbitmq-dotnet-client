@@ -38,12 +38,36 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-using RabbitMQ.Client.Impl;
+using NUnit.Framework;
 
-namespace RabbitMQ.Client.Framing.Impl.v0_9 {
-    public class Connection: ConnectionBase {
-        public Connection(ConnectionFactory factory, bool insist, IFrameHandler frameHandler)
-            : base(factory, insist, frameHandler) {}
+using System;
+using System.Text;
+using System.Threading;
+using System.Diagnostics;
+
+using RabbitMQ.Client.Events;
+
+namespace RabbitMQ.Client.Unit {
+    [TestFixture]
+    public class TestInvalidAck : IntegrationFixture {
+
+        [Test]
+        public void TestAckWithUnknownConsumerTagAndMultipleFalse()
+        {
+            object o = new Object();
+            bool shutdownFired = false;
+            ShutdownEventArgs shutdownArgs = null;
+            Model.ModelShutdown += (s, args) =>
+            {
+                shutdownFired = true;
+                shutdownArgs = args;
+                Monitor.PulseAll(o);
+            };
+
+            Model.BasicAck(123456, false);
+            WaitOn(o);
+            Assert.IsTrue(shutdownFired);
+            AssertPreconditionFailed(shutdownArgs);
+        }
     }
 }

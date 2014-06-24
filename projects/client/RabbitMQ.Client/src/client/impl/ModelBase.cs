@@ -53,7 +53,7 @@ using RabbitMQ.Util;
 // and the frame end byte, since they don't vary *within the versions
 // we support*. Obviously we may need to revisit this if that ever
 // changes.
-using CommonFraming = RabbitMQ.Client.Framing.v0_9;
+using CommonFraming = RabbitMQ.Client.Framing.v0_9_1;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -389,14 +389,14 @@ namespace RabbitMQ.Client.Impl
             lock(m_unconfirmedSet.SyncRoot)
             {
                 if (multiple) {
-		    for (ulong i = (ulong)m_unconfirmedSet[0]; i <= deliveryTag; i++) {
-		        // removes potential duplicates
-		        while(m_unconfirmedSet.Remove(i))
-			  {}
+                    for (ulong i = (ulong)m_unconfirmedSet[0]; i <= deliveryTag; i++) {
+                        // removes potential duplicates
+                        while(m_unconfirmedSet.Remove(i))
+                        {}
                     }
                 } else {
                     while(m_unconfirmedSet.Remove(deliveryTag))
-		        {}
+                    {}
                 }
                 m_onlyAcksReceived = m_onlyAcksReceived && !isNack;
                 if (m_unconfirmedSet.Count == 0)
@@ -572,8 +572,8 @@ namespace RabbitMQ.Client.Impl
             {
                 if (DefaultConsumer == null) {
                     throw new InvalidOperationException("Unsolicited delivery -" +
-                            " see IModel.DefaultConsumer to handle this" +
-                            " case.");
+                                                        " see IModel.DefaultConsumer to handle this" +
+                                                        " case.");
                 }
                 else {
                     consumer = DefaultConsumer;
@@ -686,8 +686,8 @@ namespace RabbitMQ.Client.Impl
             {
                 ShutdownEventArgs reason =
                     new ShutdownEventArgs(ShutdownInitiator.Library,
-                              CommonFraming.Constants.CommandInvalid,
-                              "Unexpected Connection.Start");
+                                          CommonFraming.Constants.CommandInvalid,
+                                          "Unexpected Connection.Start");
                 ((ConnectionBase)m_session.Connection).Close(reason);
             }
             ConnectionStartDetails details = new ConnectionStartDetails();
@@ -706,25 +706,25 @@ namespace RabbitMQ.Client.Impl
                                           ushort methodId)
         {
             ShutdownEventArgs reason = new ShutdownEventArgs(ShutdownInitiator.Peer,
-                                 replyCode,
-                                 replyText,
-                                 classId,
-                                 methodId);
+                                                             replyCode,
+                                                             replyText,
+                                                             classId,
+                                                             methodId);
             try
             {
                 ((ConnectionBase)m_session.Connection).InternalClose(reason);
                 _Private_ConnectionCloseOk();
-                 SetCloseReason((m_session.Connection).CloseReason);
+                SetCloseReason((m_session.Connection).CloseReason);
             }
             catch (IOException)
             {
-               // Ignored. We're only trying to be polite by sending
-               // the close-ok, after all.
+                // Ignored. We're only trying to be polite by sending
+                // the close-ok, after all.
             }
             catch (AlreadyClosedException)
             {
-               // Ignored. We're only trying to be polite by sending
-               // the close-ok, after all.
+                // Ignored. We're only trying to be polite by sending
+                // the close-ok, after all.
             }
         }
 
@@ -748,10 +748,10 @@ namespace RabbitMQ.Client.Impl
                                        ushort methodId)
         {
             SetCloseReason(new ShutdownEventArgs(ShutdownInitiator.Peer,
-                             replyCode,
-                             replyText,
-                             classId,
-                             methodId));
+                                                 replyCode,
+                                                 replyText,
+                                                 classId,
+                                                 methodId));
 
             m_session.Close(m_closeReason, false);
             try {
@@ -776,8 +776,6 @@ namespace RabbitMQ.Client.Impl
         ///////////////////////////////////////////////////////////////////////////
 
         public abstract IBasicProperties CreateBasicProperties();
-        public abstract IFileProperties CreateFileProperties();
-        public abstract IStreamProperties CreateStreamProperties();
 
         public void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
         {
@@ -797,6 +795,15 @@ namespace RabbitMQ.Client.Impl
         public void ExchangeDeclarePassive(string exchange)
         {
             _Private_ExchangeDeclare(exchange, "", true, false, false, false, false, null);
+        }
+
+        public void ExchangeDeclareNoWait(string exchange,
+                                          string type,
+                                          bool durable,
+                                          bool autoDelete,
+                                          IDictionary<string, object> arguments)
+        {
+            _Private_ExchangeDeclare(exchange, type, false, durable, autoDelete, false, true, arguments);
         }
 
         public abstract void _Private_ExchangeDeclare(string exchange,
@@ -819,6 +826,12 @@ namespace RabbitMQ.Client.Impl
             ExchangeDelete(exchange, false);
         }
 
+        public void ExchangeDeleteNoWait(string exchange,
+                                         bool ifUnused)
+        {
+            _Private_ExchangeDelete(exchange, ifUnused, false);
+        }
+
         public abstract void _Private_ExchangeDelete(string exchange,
                                                      bool ifUnused,
                                                      bool nowait);
@@ -836,6 +849,14 @@ namespace RabbitMQ.Client.Impl
                                  IDictionary<string, object> arguments)
         {
             _Private_ExchangeBind(destination, source, routingKey, false, arguments);
+        }
+
+        public void ExchangeBindNoWait(string destination,
+                                       string source,
+                                       string routingKey,
+                                       IDictionary<string, object> arguments)
+        {
+            _Private_ExchangeBind(destination, source, routingKey, true, arguments);
         }
 
         public abstract void _Private_ExchangeBind(string destination,
@@ -859,6 +880,14 @@ namespace RabbitMQ.Client.Impl
             ExchangeUnbind(destination, source, routingKey, null);
         }
 
+        public void ExchangeUnbindNoWait(string destination,
+                                         string source,
+                                         string routingKey,
+                                         IDictionary<string, object> arguments)
+        {
+            _Private_ExchangeUnbind(destination, source, routingKey, true, arguments);
+        }
+
         public abstract void _Private_ExchangeUnbind(string destination,
                                                      string source,
                                                      string routingKey,
@@ -877,8 +906,14 @@ namespace RabbitMQ.Client.Impl
             return QueueDeclare(queue, true, false, false, false, null);
         }
 
+        public void QueueDeclareNoWait(string queue, bool durable, bool exclusive,
+                                       bool autoDelete, IDictionary<string, object> arguments)
+        {
+            _Private_QueueDeclare(queue, false, durable, exclusive, autoDelete, true, arguments);
+        }
+
         public QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive,
-                                   bool autoDelete, IDictionary<string, object> arguments)
+                                           bool autoDelete, IDictionary<string, object> arguments)
         {
             return QueueDeclare(queue, false, durable, exclusive, autoDelete, arguments);
         }
@@ -890,7 +925,7 @@ namespace RabbitMQ.Client.Impl
         }
 
         private QueueDeclareOk QueueDeclare(string queue, bool passive, bool durable, bool exclusive,
-                                                   bool autoDelete, IDictionary<string, object> arguments)
+                                            bool autoDelete, IDictionary<string, object> arguments)
         {
             QueueDeclareRpcContinuation k = new QueueDeclareRpcContinuation();
             Enqueue(k);
@@ -920,6 +955,14 @@ namespace RabbitMQ.Client.Impl
                               string routingKey)
         {
             QueueBind(queue, exchange, routingKey, null);
+        }
+
+        public void QueueBindNoWait(string queue,
+                                    string exchange,
+                                    string routingKey,
+                                    IDictionary<string, object> arguments)
+        {
+            _Private_QueueBind(queue, exchange, routingKey, true, arguments);
         }
 
         public abstract void _Private_QueueBind(string queue,
@@ -952,6 +995,13 @@ namespace RabbitMQ.Client.Impl
         public uint QueueDelete(string queue)
         {
             return QueueDelete(queue, false, false);
+        }
+
+        public void QueueDeleteNoWait(string queue,
+                                      bool ifUnused,
+                                      bool ifEmpty)
+        {
+            _Private_QueueDelete(queue, ifUnused, ifEmpty, true);
         }
 
         public abstract uint _Private_QueueDelete(string queue,
@@ -995,7 +1045,7 @@ namespace RabbitMQ.Client.Impl
                     {
                         TimeSpan elapsed = stopwatch.Elapsed;
                         if(elapsed > timeout || !Monitor.Wait(
-                            m_unconfirmedSet.SyncRoot, timeout - elapsed))
+                                                              m_unconfirmedSet.SyncRoot, timeout - elapsed))
                         {
                             timedOut = true;
                             return true;
@@ -1087,7 +1137,7 @@ namespace RabbitMQ.Client.Impl
             // Non-nowait. We have an unconventional means of getting
             // the RPC response, but a response is still expected.
             _Private_BasicConsume(queue, consumerTag, noLocal, noAck, exclusive,
-                    /*nowait:*/ false, arguments);
+                                  /*nowait:*/ false, arguments);
             k.GetReply();
             string actualConsumerTag = k.m_consumerTag;
 
@@ -1135,10 +1185,10 @@ namespace RabbitMQ.Client.Impl
                 (BasicConsumerRpcContinuation)m_continuationQueue.Next();
 
             Trace.Assert(k.m_consumerTag == consumerTag, string.Format(
-                "Consumer tag mismatch during cancel: {0} != {1}",
-                k.m_consumerTag,
-                consumerTag
-                ));
+                                                                       "Consumer tag mismatch during cancel: {0} != {1}",
+                                                                       k.m_consumerTag,
+                                                                       consumerTag
+                                                                       ));
 
             lock (m_consumers)
             {
@@ -1248,14 +1298,14 @@ namespace RabbitMQ.Client.Impl
                 basicProperties = CreateBasicProperties();
             }
             if (m_nextPubSeqNo > 0) {
-	        lock(m_unconfirmedSet.SyncRoot)
-		{
-		    if(!m_unconfirmedSet.Contains(m_nextPubSeqNo))
-		    {
-		        m_unconfirmedSet.Add(m_nextPubSeqNo);
-		    }
+                lock(m_unconfirmedSet.SyncRoot)
+                {
+                    if(!m_unconfirmedSet.Contains(m_nextPubSeqNo))
+                    {
+                        m_unconfirmedSet.Add(m_nextPubSeqNo);
+                    }
                     m_nextPubSeqNo++;
-		}
+                }
             }
             _Private_BasicPublish(exchange,
                                   routingKey,
@@ -1288,9 +1338,6 @@ namespace RabbitMQ.Client.Impl
         public abstract void TxCommit();
         public abstract void TxRollback();
 
-        public abstract void DtxSelect();
-        public abstract void DtxStart(string dtxIdentifier);
-
         void IDisposable.Dispose()
         {
             Close();
@@ -1298,12 +1345,12 @@ namespace RabbitMQ.Client.Impl
 
         public void Close()
         {
-                Close(CommonFraming.Constants.ReplySuccess, "Goodbye");
+            Close(CommonFraming.Constants.ReplySuccess, "Goodbye");
         }
 
         public void Close(ushort replyCode, string replyText)
         {
-                Close(replyCode, replyText, false);
+            Close(replyCode, replyText, false);
         }
 
         public void Abort()
@@ -1336,10 +1383,10 @@ namespace RabbitMQ.Client.Impl
                 k.Wait();
             } catch (AlreadyClosedException ace) {
                 if (!abort)
-                        throw ace;
+                    throw ace;
             } catch (IOException ioe) {
                 if (!abort)
-                        throw ioe;
+                    throw ioe;
             }
         }
 
@@ -1496,13 +1543,7 @@ namespace RabbitMQ.Client.Impl
                 // negotiation finishes
             }
             k.GetReply();
-            if (k.m_redirect) {
-                throw new RedirectException(m_session.Connection.Protocol,
-                                            k.m_host,
-                                            k.m_knownHosts);
-            } else {
-                return k.m_knownHosts;
-            }
+            return k.m_knownHosts;
         }
 
         public abstract void _Private_ConnectionOpen(string virtualHost,
@@ -1514,16 +1555,6 @@ namespace RabbitMQ.Client.Impl
             ConnectionOpenContinuation k = (ConnectionOpenContinuation)m_continuationQueue.Next();
             k.m_redirect = false;
             k.m_host = null;
-            k.m_knownHosts = knownHosts;
-            k.HandleCommand(null); // release the continuation.
-        }
-
-        public void HandleConnectionRedirect(string host,
-                                             string knownHosts)
-        {
-            ConnectionOpenContinuation k = (ConnectionOpenContinuation)m_continuationQueue.Next();
-            k.m_redirect = true;
-            k.m_host = host;
             k.m_knownHosts = knownHosts;
             k.HandleCommand(null); // release the continuation.
         }

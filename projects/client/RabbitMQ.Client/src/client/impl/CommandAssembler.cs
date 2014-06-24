@@ -47,8 +47,9 @@ using RabbitMQ.Util;
 // and the frame end byte, since they don't vary *within the versions
 // we support*. Obviously we may need to revisit this if that ever
 // changes.
-using CommonFraming = RabbitMQ.Client.Framing.v0_9;
+using CommonFraming = RabbitMQ.Client.Framing.v0_9_1;
 using System.Diagnostics;
+using RabbitMQ.Client.Framing.Impl.v0_9_1;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -62,12 +63,12 @@ namespace RabbitMQ.Client.Impl
 
     public class CommandAssembler
     {
-        public AbstractProtocolBase m_protocol;
+        public ProtocolBase m_protocol;
         public AssemblyState m_state;
         public Command m_command;
         public ulong m_remainingBodyBytes;
 
-        public CommandAssembler(AbstractProtocolBase protocol)
+        public CommandAssembler(ProtocolBase protocol)
         {
             m_protocol = protocol;
             Reset();

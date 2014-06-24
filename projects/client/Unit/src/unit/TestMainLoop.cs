@@ -38,57 +38,57 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using NUnit.Framework;
+
 using System;
 using System.Threading;
-using NUnit.Framework;
+
+using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 
-namespace RabbitMQ.Client.Unit
-{
+namespace RabbitMQ.Client.Unit {
     [TestFixture]
-    public class TestComplexResults : IntegrationFixture
-    {
+    public class TestMainLoop : IntegrationFixture {
 
-        private readonly String QueueName = "declare-ok-test-queue";
-
-        [Test]
-        public void TestQueueDeclareOk()
+        private class FaultyConsumer : DefaultBasicConsumer
         {
-            Model.ConfirmSelect();
-            QueueDeclareOk result;
+            public FaultyConsumer(IModel model) : base(model) {}
 
-            result = QueueDeclare();
-            Assert.AreEqual(0, result.MessageCount);
-            Assert.AreEqual(0, result.ConsumerCount);
-            Assert.AreEqual(QueueName, result.QueueName);
-            Model.BasicPublish("", result.QueueName, null, new byte[] { });
-            Model.WaitForConfirms();
-
-            result = QueueDeclare();
-            Assert.AreEqual(1, result.MessageCount);
-            Assert.AreEqual(0, result.ConsumerCount);
-            Assert.AreEqual(QueueName, result.QueueName);
-
-            QueueingBasicConsumer consumer = new QueueingBasicConsumer(Model);
-            Model.BasicConsume(QueueName, true, consumer);
-            consumer.Queue.Dequeue();
-
-            result = QueueDeclare();
-            Assert.AreEqual(0, result.MessageCount);
-            Assert.AreEqual(1, result.ConsumerCount);
-            Assert.AreEqual(QueueName, result.QueueName);
+            public override void HandleBasicDeliver(string consumerTag,
+                                               ulong deliveryTag,
+                                               bool redelivered,
+                                               string exchange,
+                                               string routingKey,
+                                               IBasicProperties properties,
+                                               byte[] body)
+            {
+                throw new SystemException("I am a bad consumer");
+            }
         }
 
         [Test]
-        public void TestQueueDeclarePassive()
+        public void TestCloseWithFaultyConsumer()
         {
-            Assert.Throws(Is.TypeOf<OperationInterruptedException>(),
-                          delegate { Model.QueueDeclarePassive(QueueName); });
-        }
+            ConnectionFactory connFactory = new ConnectionFactory();
+            IConnection c = connFactory.CreateConnection();
+            IModel m = Conn.CreateModel();
+            object o = new object();
+            string q = GenerateQueueName();
+            m.QueueDeclare(q, false, false, false, null);
 
-        private QueueDeclareOk QueueDeclare()
-        {
-            return Model.QueueDeclare(QueueName, false, true, true, null);
+            CallbackExceptionEventArgs ea = null;
+            m.CallbackException += (_, evt) => {
+                ea = evt;
+                c.Close();
+                Monitor.PulseAll(o);
+            };
+            m.BasicConsume(q, true, new FaultyConsumer(Model));
+            m.BasicPublish("", q, null, enc.GetBytes("message"));
+            WaitOn(o);
+
+            Assert.IsNotNull(ea);
+            Assert.AreEqual(c.IsOpen, false);
+            Assert.AreEqual(c.CloseReason.ReplyCode, 200);
         }
     }
 }

@@ -179,21 +179,6 @@ namespace RabbitMQ.ServiceModel
         }
 
         /// <summary>
-        /// Specifies the protocol version to use when communicating with the broker
-        /// </summary>
-        [ConfigurationProperty("protocolversion", DefaultValue = "DefaultProtocol")]
-        public string ProtocolVersion
-        {
-            get {
-                return ((string)base["protocolversion"]);
-            }
-            set {
-                base["protocolversion"] = value;
-                GetProtocol();
-            }
-        }
-
-        /// <summary>
         /// Specifies the maximum encoded message size
         /// </summary>
         [ConfigurationProperty("maxmessagesize", DefaultValue = 8192L)]
@@ -204,12 +189,7 @@ namespace RabbitMQ.ServiceModel
         }
 
         private IProtocol GetProtocol() {
-            IProtocol result = Protocols.Lookup(this.ProtocolVersion);
-            if (result == null) {
-                throw new ConfigurationErrorsException(string.Format("'{0}' is not a valid AMQP protocol name",
-                                                                     this.ProtocolVersion));
-            }
-            return result;
+            return Protocols.DefaultProtocol;
         }
 
         /// <summary>

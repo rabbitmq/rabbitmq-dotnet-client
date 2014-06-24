@@ -48,7 +48,7 @@ using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Impl
 {
-    public class SocketFrameHandler_0_9 : IFrameHandler
+    public class SocketFrameHandler : IFrameHandler
     {
         public const int WSAEWOULDBLOCK = 10035;
         // ^^ System.Net.Sockets.SocketError doesn't exist in .NET 1.1
@@ -63,9 +63,9 @@ namespace RabbitMQ.Client.Impl
         private bool m_closed = false;
         private Object m_semaphore = new object();
 
-        public SocketFrameHandler_0_9(AmqpTcpEndpoint endpoint,
-                                      ConnectionFactory.ObtainSocket socketFactory,
-                                      int timeout)
+        public SocketFrameHandler(AmqpTcpEndpoint endpoint,
+                                  ConnectionFactory.ObtainSocket socketFactory,
+                                  int timeout)
         {
             m_endpoint = endpoint;
             m_socket = null;
@@ -144,10 +144,19 @@ namespace RabbitMQ.Client.Impl
         {
             set
             {
-                if (m_socket.Connected)
+                try
                 {
-                    m_socket.ReceiveTimeout = value;
+                    if (m_socket.Connected)
+                    {
+                        m_socket.ReceiveTimeout = value;
+                    }
                 }
+                #pragma warning disable 0168
+                catch (SocketException _)
+                {
+                    // means that the socket is already closed
+                }
+                #pragma warning restore 0168
             }
         }
 
@@ -157,19 +166,19 @@ namespace RabbitMQ.Client.Impl
             {
                 m_writer.Write(Encoding.ASCII.GetBytes("AMQP"));
                 if (m_endpoint.Protocol.Revision != 0)
-                    {
-                        m_writer.Write((byte)0);
-                        m_writer.Write((byte)m_endpoint.Protocol.MajorVersion);
-                        m_writer.Write((byte)m_endpoint.Protocol.MinorVersion);
-                        m_writer.Write((byte)m_endpoint.Protocol.Revision);
-                    }
+                {
+                    m_writer.Write((byte)0);
+                    m_writer.Write((byte)m_endpoint.Protocol.MajorVersion);
+                    m_writer.Write((byte)m_endpoint.Protocol.MinorVersion);
+                    m_writer.Write((byte)m_endpoint.Protocol.Revision);
+                }
                 else
-                    {
-                        m_writer.Write((byte)1);
-                        m_writer.Write((byte)1);
-                        m_writer.Write((byte)m_endpoint.Protocol.MajorVersion);
-                        m_writer.Write((byte)m_endpoint.Protocol.MinorVersion);
-                    }
+                {
+                    m_writer.Write((byte)1);
+                    m_writer.Write((byte)1);
+                    m_writer.Write((byte)m_endpoint.Protocol.MajorVersion);
+                    m_writer.Write((byte)m_endpoint.Protocol.MinorVersion);
+                }
                 m_writer.Flush();
             }
         }

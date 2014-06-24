@@ -54,7 +54,8 @@ using RabbitMQ.Util;
 // error codes, and the frame end byte, since they don't vary *within
 // the versions we support*. Obviously we may need to revisit this if
 // that ever changes.
-using CommonFraming = RabbitMQ.Client.Framing.v0_9;
+using CommonFraming = RabbitMQ.Client.Framing.v0_9_1;
+using RabbitMQ.Client.Framing.Impl.v0_9_1;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -116,9 +117,9 @@ namespace RabbitMQ.Client.Impl
             m_session0.Handler = new MainSession.SessionCloseDelegate(NotifyReceivedCloseOk);
             m_model0 = (ModelBase)Protocol.CreateModel(m_session0);
 
-            StartMainLoop();
+            StartMainLoop(factory.UseBackgroundThreadsForIO);
             Open(insist);
-            StartHeartbeatLoops();
+            StartHeartbeatLoops(factory.UseBackgroundThreadsForIO);
             AppDomain.CurrentDomain.DomainUnload += HandleDomainUnload;
         }
 
@@ -222,11 +223,11 @@ namespace RabbitMQ.Client.Impl
 
         ///<summary>Another overload of a Protocol property, useful
         ///for exposing a tighter type.</summary>
-        public AbstractProtocolBase Protocol
+        public ProtocolBase Protocol
         {
             get
             {
-                return (AbstractProtocolBase)Endpoint.Protocol;
+                return (ProtocolBase)Endpoint.Protocol;
             }
         }
 
@@ -485,11 +486,13 @@ namespace RabbitMQ.Client.Impl
                     if (!abort)
                         throw ace;
                 }
+                #pragma warning disable 0168
                 catch (NotSupportedException nse)
                 {
                     // buffered stream had unread data in it and Flush()
                     // was called, ignore to not confuse the user
                 }
+                #pragma warning restore 0168
                 catch (IOException ioe)
                 {
                     if (m_model0.CloseReason == null)
@@ -537,25 +540,27 @@ namespace RabbitMQ.Client.Impl
             m_running = false;
         }
 
-        public void StartMainLoop()
+        public void StartMainLoop(bool useBackgroundThread)
         {
             Thread mainLoopThread = new Thread(new ThreadStart(MainLoop));
             mainLoopThread.Name = "AMQP Connection " + Endpoint.ToString();
+            mainLoopThread.IsBackground = useBackgroundThread;
             mainLoopThread.Start();
         }
 
-        public void StartHeartbeatLoops()
+        public void StartHeartbeatLoops(bool useBackgroundThread)
         {
             if (Heartbeat != 0) {
-                StartHeartbeatLoop(new ThreadStart(HeartbeatReadLoop), "Inbound");
-                StartHeartbeatLoop(new ThreadStart(HeartbeatWriteLoop), "Outbound");
+                StartHeartbeatLoop(new ThreadStart(HeartbeatReadLoop), "Inbound", useBackgroundThread);
+                StartHeartbeatLoop(new ThreadStart(HeartbeatWriteLoop), "Outbound", useBackgroundThread);
             }
         }
 
-        public void StartHeartbeatLoop(ThreadStart loop, string name)
+        public void StartHeartbeatLoop(ThreadStart loop, string name, bool useBackgroundThread)
         {
             Thread heartbeatLoop = new Thread(loop);
             heartbeatLoop.Name = "AMQP Heartbeat " + name + " for Connection " + Endpoint.ToString();
+            heartbeatLoop.IsBackground = useBackgroundThread;
             heartbeatLoop.Start();
         }
 
@@ -670,7 +675,17 @@ namespace RabbitMQ.Client.Impl
                 // connection closes.
                 if (shutdownCleanly)
                 {
-                    ClosingLoop();
+                    try
+                    {
+                        ClosingLoop();
+                    #pragma warning disable 0168
+                    } catch (SocketException se)
+                    {
+                        // means that socket was closed when frame handler
+                        // attempted to use it. Since we are shutting down,
+                        // ignore it.
+                    }
+                    #pragma warning restore 0168
                 }
 
                 FinishClose();
@@ -1148,7 +1163,7 @@ namespace RabbitMQ.Client.Impl
             string knownHosts = m_model0.ConnectionOpen(m_factory.VirtualHost,
                                                         "", // FIXME: make configurable?
                                                         insist);
-            KnownHosts = AmqpTcpEndpoint.ParseMultiple(Protocol, knownHosts);
+            KnownHosts = AmqpTcpEndpoint.ParseMultiple(knownHosts);
         }
 
         public override string ToString()

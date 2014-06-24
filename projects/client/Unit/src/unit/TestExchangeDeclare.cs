@@ -38,23 +38,52 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using NUnit.Framework;
+
 using System;
-using System.Net;
+using System.Collections.Generic;
+using System.Threading;
 
-// We use spec version 0-9 for common constants such as frame types,
-// error codes, and the frame end byte, since they don't vary *within
-// the versions we support*. Obviously we may need to revisit this if
-// that ever changes.
-using CommonFraming = RabbitMQ.Client.Framing.v0_9_1;
+using RabbitMQ.Client.Exceptions;
 
-namespace RabbitMQ.Client.Impl
-{
-    /// <summary> Thrown when our peer sends a frame that contains
-    /// illegal values for one or more fields. </summary>
-    public class SyntaxError : HardProtocolException
-    {
-        public SyntaxError(string message) : base(message) { }
+namespace RabbitMQ.Client.Unit {
+    [TestFixture]
+    public class TestExchangeDeclare : IntegrationFixture {
 
-        public override ushort ReplyCode { get { return CommonFraming.Constants.SyntaxError; } }
+        [Test]
+        public void TestConcurrentQueueDeclare()
+        {
+            string x = GenerateExchangeName();
+            Random rnd = new Random();
+
+            List<Thread> ts = new List<Thread>();
+            System.NotSupportedException nse = null;
+            for(int i = 0; i < 256; i++)
+            {
+                Thread t = new Thread(() =>
+                        {
+                            try
+                            {
+                                // sleep for a random amount of time to increase the chances
+                                // of thread interleaving. MK.
+                                Thread.Sleep(rnd.Next(5, 500));
+                                Model.ExchangeDeclare(x, "fanout", false, false, null);
+                            } catch (System.NotSupportedException e)
+                            {
+                                nse = e;
+                            }
+                        });
+                ts.Add(t);
+                t.Start();
+            }
+
+            foreach (Thread t in ts)
+            {
+                t.Join();
+            }
+
+            Assert.IsNotNull(nse);
+            Model.ExchangeDelete(x);
+        }
     }
 }

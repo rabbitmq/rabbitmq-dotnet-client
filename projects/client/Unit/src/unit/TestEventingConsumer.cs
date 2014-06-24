@@ -51,8 +51,6 @@ namespace RabbitMQ.Client.Unit {
     [TestFixture]
     public class TestEventingConsumer : IntegrationFixture {
 
-        UTF8Encoding enc = new UTF8Encoding();
-
         [Test]
         public void TestEventingConsumerRegistrationEvents()
         {
@@ -135,15 +133,6 @@ namespace RabbitMQ.Client.Unit {
             Assert.IsNotNull(shutdownSender);
             Assert.AreEqual(ec, shutdownSender);
             Assert.AreEqual(Model, ((EventingBasicConsumer)shutdownSender).Model);
-        }
-
-
-        protected void WaitOn(object o)
-        {
-            lock(o)
-            {
-                Monitor.Wait(o, TimeSpan.FromSeconds(4));
-            }
         }
     }
 }

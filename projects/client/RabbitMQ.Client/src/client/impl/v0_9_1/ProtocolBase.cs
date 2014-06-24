@@ -41,9 +41,18 @@
 using RabbitMQ.Client;
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Util;
+using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
-    public abstract class ProtocolBase: AbstractProtocolBase {
+    public abstract class ProtocolBase : IProtocol {
+
+        public abstract int MajorVersion { get; }
+        public abstract int MinorVersion { get; }
+        public abstract int Revision { get; }
+        public abstract string ApiName { get; }
+        public abstract int DefaultPort { get; }
+
+        public IDictionary<string, bool> Capabilities = new Dictionary<string, bool>();
 
         public ProtocolBase() {
             Capabilities["publisher_confirms"] = true;
@@ -54,29 +63,32 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
             Capabilities["authentication_failure_close"] = true;
         }
 
-        public override IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint,
+        public abstract MethodBase DecodeMethodFrom(NetworkBinaryReader reader);
+        public abstract ContentHeaderBase DecodeContentHeaderFrom(NetworkBinaryReader reader);
+
+        public IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint,
                                                          ConnectionFactory.ObtainSocket socketFactory,
                                                          int timeout)
         {
-            return new SocketFrameHandler_0_9(endpoint, socketFactory, timeout);
+            return new SocketFrameHandler(endpoint, socketFactory, timeout);
         }
 
-        public override IModel CreateModel(ISession session) {
+        public IModel CreateModel(ISession session) {
             return new Model(session);
         }
 
-        public override IConnection CreateConnection(ConnectionFactory factory,
-                                                     bool insist,
-                                                     IFrameHandler frameHandler)
+        public IConnection CreateConnection(ConnectionFactory factory,
+                                            bool insist,
+                                            IFrameHandler frameHandler)
         {
             return new Connection(factory, insist, frameHandler);
         }
 
-        public override void CreateConnectionClose(ushort reasonCode,
-                                                   string reasonText,
-                                                   out Command request,
-                                                   out int replyClassId,
-                                                   out int replyMethodId)
+        public void CreateConnectionClose(ushort reasonCode,
+                                          string reasonText,
+                                          out Command request,
+                                          out int replyClassId,
+                                          out int replyMethodId)
         {
             request = new Command(new RabbitMQ.Client.Framing.Impl.v0_9_1.ConnectionClose(reasonCode,
                                                                                           reasonText,
@@ -85,7 +97,7 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
             replyMethodId = RabbitMQ.Client.Framing.Impl.v0_9_1.ConnectionCloseOk.MethodId;
         }
 
-        public override void CreateChannelClose(ushort reasonCode,
+        public void CreateChannelClose(ushort reasonCode,
                                                 string reasonText,
                                                 out Command request,
                                                 out int replyClassId,
@@ -98,9 +110,27 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
             replyMethodId = RabbitMQ.Client.Framing.Impl.v0_9_1.ChannelCloseOk.MethodId;
         }
 
-        public override bool CanSendWhileClosed(Command cmd)
+        public bool CanSendWhileClosed(Command cmd)
         {
             return cmd.m_method is RabbitMQ.Client.Framing.Impl.v0_9_1.ChannelCloseOk;
+        }
+
+        public AmqpVersion Version {
+            get {
+                return new AmqpVersion(MajorVersion, MinorVersion);
+            }
+        }
+
+        public override string ToString() {
+            return Version.ToString();
+        }
+
+        public override bool Equals(object obj) {
+            return (GetType() == obj.GetType());
+        }
+
+        public override int GetHashCode() {
+            return GetType().GetHashCode();
         }
     }
 }

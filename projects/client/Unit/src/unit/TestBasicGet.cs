@@ -38,23 +38,43 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using NUnit.Framework;
+
 using System;
-using System.Net;
+using RabbitMQ.Client.Exceptions;
 
-// We use spec version 0-9 for common constants such as frame types,
-// error codes, and the frame end byte, since they don't vary *within
-// the versions we support*. Obviously we may need to revisit this if
-// that ever changes.
-using CommonFraming = RabbitMQ.Client.Framing.v0_9_1;
+namespace RabbitMQ.Client.Unit {
+    [TestFixture]
+    public class TestBasicGet : IntegrationFixture {
+        [Test]
+        public void TestBasicGetWithNonEmptyResponseAndAutoAckMode()
+        {
+            const string msg = "for basic.get";
+            WithNonEmptyQueue((m, q) => {
+                BasicGetResult res = m.BasicGet(q, true);
+                Assert.AreEqual(msg, enc.GetString(res.Body));
+                AssertMessageCount(q, 0);
+            }, msg);
+        }
 
-namespace RabbitMQ.Client.Impl
-{
-    /// <summary> Thrown when our peer sends a frame that contains
-    /// illegal values for one or more fields. </summary>
-    public class SyntaxError : HardProtocolException
-    {
-        public SyntaxError(string message) : base(message) { }
+        [Test]
+        public void TestBasicGetWithEmptyResponse()
+        {
+            WithEmptyQueue((m, q) => {
+                BasicGetResult res = m.BasicGet(q, false);
+                Assert.IsNull(res);
+            });
+        }
 
-        public override ushort ReplyCode { get { return CommonFraming.Constants.SyntaxError; } }
+        [Test]
+        public void TestBasicGetWithClosedChannel()
+        {
+            WithNonEmptyQueue((_, q) => {
+                WithClosedModel((cm) => {
+                    Assert.Throws(Is.InstanceOf<AlreadyClosedException>(),
+                                 delegate { cm.BasicGet(q, true); });
+                });
+            });
+        }
     }
 }

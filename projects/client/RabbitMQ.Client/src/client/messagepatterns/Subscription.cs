@@ -79,7 +79,7 @@ namespace RabbitMQ.Client.MessagePatterns {
         protected string m_queueName;
         protected bool m_noAck;
 
-        protected readonly object m_consumerLock = new object();
+        protected readonly object m_eventLock = new object();
         protected volatile QueueingBasicConsumer m_consumer;
         protected string m_consumerTag;
 
@@ -128,6 +128,19 @@ namespace RabbitMQ.Client.MessagePatterns {
             m_latestEvent = null;
         }
 
+
+        ///<summary>Creates a new Subscription, with full control over
+        ///both "noAck" mode, the name of the queue, and the consumer tag.</summary>
+        public Subscription(IModel model, string queueName, bool noAck, string consumerTag)
+        {
+            m_model = model;
+            m_queueName = queueName;
+            m_noAck = noAck;
+            m_consumer = new QueueingBasicConsumer(m_model);
+            m_consumerTag = m_model.BasicConsume(m_queueName, m_noAck, consumerTag, m_consumer);
+            m_latestEvent = null;
+        }
+
         ///<summary>Closes this Subscription, cancelling the consumer
         ///record in the server.</summary>
         public void Close()
@@ -135,15 +148,17 @@ namespace RabbitMQ.Client.MessagePatterns {
             try {
                 bool shouldCancelConsumer = false;
 
-                lock (m_consumerLock) {
-                    if (m_consumer != null) {
-                        shouldCancelConsumer = true;
-                        m_consumer = null;
-                    }
+                if (m_consumer != null) {
+                    shouldCancelConsumer = true;
+                    m_consumer = null;
                 }
 
                 if (shouldCancelConsumer) {
-                    m_model.BasicCancel(m_consumerTag);
+                    if(m_model.IsOpen)
+                    {
+                        m_model.BasicCancel(m_consumerTag);
+                    }
+                    
                     m_consumerTag = null;
                 }
             } catch (OperationInterruptedException) {
@@ -156,21 +171,17 @@ namespace RabbitMQ.Client.MessagePatterns {
         ///null.</summary>
         public void Ack()
         {
-            if (m_latestEvent != null) {
-                Ack(m_latestEvent);
-            }
+            Ack(m_latestEvent);
         }
 
         ///<summary>If we are not in "noAck" mode, calls
-        ///IModel.BasicAck with the delivery-tag from the passed in
-        ///event; otherwise, sends nothing to the server. In both
-        ///cases, if the passed-in event is the same as LatestEvent
-        ///(by pointer comparison), sets LatestEvent to
-        ///null.</summary>
+        ///IModel.BasicAck with the delivery-tag from <paramref name="evt"/>;
+        ///otherwise, sends nothing to the server. if <paramref name="evt"/> is the same as LatestEvent
+        ///by pointer comparison, sets LatestEvent to null.
+        ///</summary>
         ///<remarks>
-        /// Make sure that this method is only called with events that
-        /// originated from this Subscription - other usage will have
-        /// unpredictable results.
+        ///Passing an event that did not originate with this Subscription's
+        /// channel, will lead to unpredictable behaviour
         ///</remarks>
         public void Ack(BasicDeliverEventArgs evt)
         {
@@ -178,12 +189,55 @@ namespace RabbitMQ.Client.MessagePatterns {
                 return;
             }
 
-            if (!m_noAck) {
+            if (!m_noAck && m_model.IsOpen) {
                 m_model.BasicAck(evt.DeliveryTag, false);
             }
 
             if (evt == m_latestEvent) {
-                m_latestEvent = null;
+                MutateLatestEvent(null);
+            }
+        }
+
+        ///<summary>If LatestEvent is non-null, passes it to
+        ///Nack(BasicDeliverEventArgs, false, requeue). Causes LatestEvent to become
+        ///null.</summary>
+        public void Nack(bool requeue)
+        {
+            Nack(m_latestEvent, false, requeue);
+        }
+
+
+        ///<summary>If LatestEvent is non-null, passes it to
+        ///Nack(BasicDeliverEventArgs, multiple, requeue). Causes LatestEvent to become
+        ///null.</summary>
+        public void Nack(bool multiple, bool requeue)
+        {
+            Nack(m_latestEvent, multiple, requeue);
+        }
+
+        ///<summary>If we are not in "noAck" mode, calls
+        ///IModel.BasicNack with the delivery-tag from <paramref name="evt"/>;
+        ///otherwise, sends nothing to the server. if <paramref name="evt"/> is the same as LatestEvent
+        ///by pointer comparison, sets LatestEvent to null.
+        ///</summary>
+        ///<remarks>
+        ///Passing an event that did not originate with this Subscription's
+        /// channel, will lead to unpredictable behaviour
+        ///</remarks>
+        public void Nack(BasicDeliverEventArgs evt,
+                         bool multiple,
+                         bool requeue)
+        {
+            if (evt == null) {
+                return;
+            }
+
+            if (!m_noAck && m_model.IsOpen) {
+                m_model.BasicNack(evt.DeliveryTag, multiple, requeue);
+            }
+
+            if (evt == m_latestEvent) {
+                MutateLatestEvent(null);
             }
         }
 
@@ -207,19 +261,19 @@ namespace RabbitMQ.Client.MessagePatterns {
         ///</remarks>
         public BasicDeliverEventArgs Next()
         {
+            // Alias the pointer as otherwise it may change out
+            // from under us by the operation of Close() from
+            // another thread.
+            QueueingBasicConsumer consumer = m_consumer;
             try {
-                // Alias the pointer as otherwise it may change out
-                // from under us by the operation of Close() from
-                // another thread.
-                QueueingBasicConsumer consumer = m_consumer;
                 if (consumer == null || m_model.IsClosed) {
-                    // Closed!
-                    m_latestEvent = null;
+                    MutateLatestEvent(null);
                 } else {
-                    m_latestEvent = (BasicDeliverEventArgs) consumer.Queue.Dequeue();
+                    BasicDeliverEventArgs bdea = (BasicDeliverEventArgs) consumer.Queue.Dequeue();
+                    MutateLatestEvent(bdea);
                 }
             } catch (EndOfStreamException) {
-                m_latestEvent = null;
+                MutateLatestEvent(null);
             }
             return m_latestEvent;
         }
@@ -276,8 +330,7 @@ namespace RabbitMQ.Client.MessagePatterns {
                 // another thread.
                 QueueingBasicConsumer consumer = m_consumer;
                 if (consumer == null || m_model.IsClosed) {
-                    // Closed!
-                    m_latestEvent = null;
+                    MutateLatestEvent(null);
                     result = null;
                     return false;
                 } else {
@@ -286,10 +339,10 @@ namespace RabbitMQ.Client.MessagePatterns {
                         result = null;
                         return false;
                     }
-                    m_latestEvent = qValue;
+                    MutateLatestEvent(qValue);
                 }
             } catch (EndOfStreamException) {
-                m_latestEvent = null;
+                MutateLatestEvent(null);
             }
             result = m_latestEvent;
             return true;
@@ -355,6 +408,14 @@ namespace RabbitMQ.Client.MessagePatterns {
         void IDisposable.Dispose()
         {
             Close();
+        }
+
+        protected void MutateLatestEvent(BasicDeliverEventArgs value)
+        {
+            lock(m_eventLock)
+            {
+                m_latestEvent = value;
+            }
         }
     }
 }
