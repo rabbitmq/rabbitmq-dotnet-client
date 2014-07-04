@@ -80,6 +80,12 @@ namespace RabbitMQ.Client.Impl
                 {
                     m_socket = null;
                 }
+                // Mono might raise a SocketException when using IPv4 addresses on
+                // an OS that supports IPv6
+                catch (SocketException)
+                {
+                    m_socket = null;
+                }
             }
             if (m_socket == null)
             {
