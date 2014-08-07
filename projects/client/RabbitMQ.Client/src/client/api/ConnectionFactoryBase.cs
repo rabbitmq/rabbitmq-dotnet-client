@@ -38,19 +38,22 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-using RabbitMQ.Client.Impl;
+using System.Net.Sockets;
 
-namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
-    public class Connection: ConnectionBase {
-        public Connection(IConnectionFactory factory, bool insist, IFrameHandler frameHandler)
-            : base(factory, insist, frameHandler) {}
+namespace RabbitMQ.Client
+{
+    public class ConnectionFactoryBase
+    {
+        public delegate TcpClient ObtainSocket(AddressFamily addressFamily);
 
-        public override void Open(bool insist)
+        ///<summary>Set custom socket options by providing a SocketFactory</summary>
+        public ObtainSocket SocketFactory = DefaultSocketFactory;        
+
+        public static TcpClient DefaultSocketFactory(AddressFamily addressFamily)
         {
-            StartAndTune();
-            m_model0.ConnectionOpen(m_factory.VirtualHost, String.Empty, false);
+            TcpClient tcpClient = new TcpClient(addressFamily);
+            tcpClient.NoDelay = true;
+            return tcpClient;
         }
-
     }
 }

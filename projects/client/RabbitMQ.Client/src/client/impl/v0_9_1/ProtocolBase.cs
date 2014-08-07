@@ -67,8 +67,8 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
         public abstract ContentHeaderBase DecodeContentHeaderFrom(NetworkBinaryReader reader);
 
         public IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint,
-                                                         ConnectionFactory.ObtainSocket socketFactory,
-                                                         int timeout)
+                                                ConnectionFactoryBase.ObtainSocket socketFactory,
+                                                int timeout)
         {
             return new SocketFrameHandler(endpoint, socketFactory, timeout);
         }
@@ -77,7 +77,7 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
             return new Model(session);
         }
 
-        public IConnection CreateConnection(ConnectionFactory factory,
+        public IConnection CreateConnection(IConnectionFactory factory,
                                             bool insist,
                                             IFrameHandler frameHandler)
         {

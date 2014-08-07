@@ -39,18 +39,30 @@
 //---------------------------------------------------------------------------
 
 using System;
-using RabbitMQ.Client.Impl;
+using System.Collections.Generic;
 
-namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
-    public class Connection: ConnectionBase {
-        public Connection(IConnectionFactory factory, bool insist, IFrameHandler frameHandler)
-            : base(factory, insist, frameHandler) {}
+namespace RabbitMQ.Client
+{
+    public interface IConnectionFactory
+    {
+        IConnection CreateConnection();
 
-        public override void Open(bool insist)
-        {
-            StartAndTune();
-            m_model0.ConnectionOpen(m_factory.VirtualHost, String.Empty, false);
-        }
+        string UserName { get; set; }
 
+        string Password { get; set; }
+
+        string VirtualHost { get; set; }
+
+        ushort RequestedChannelMax { get; set; }
+
+        uint RequestedFrameMax { get; set; }
+
+        ushort RequestedHeartbeat { get; set; }
+
+        bool UseBackgroundThreadsForIO { get; set; }
+
+        IDictionary<String, object> ClientProperties { get; set; }
+
+        AuthMechanismFactory AuthMechanismFactory(string[] mechs);
     }
 }

@@ -44,7 +44,7 @@ using System.Text;
 namespace RabbitMQ.Client
 {
     public class ExternalMechanism : AuthMechanism {
-        public byte[] handleChallenge(byte[] challenge, ConnectionFactory factory) {
+        public byte[] handleChallenge(byte[] challenge, IConnectionFactory factory) {
 
             return new byte[0];
         }

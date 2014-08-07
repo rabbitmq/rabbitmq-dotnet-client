@@ -70,7 +70,7 @@ namespace RabbitMQ.Client.Impl
         ///complete (milliseconds)</summary>
         public static int HandshakeTimeout = 10000;
 
-        public ConnectionFactory m_factory;
+        public IConnectionFactory m_factory;
         public IFrameHandler m_frameHandler;
         public uint m_frameMax = 0;
         public ushort m_heartbeat = 0;
@@ -105,7 +105,7 @@ namespace RabbitMQ.Client.Impl
 
         public IList<ShutdownReportEntry> m_shutdownReport = new SynchronizedList<ShutdownReportEntry>(new List<ShutdownReportEntry>());
 
-        public ConnectionBase(ConnectionFactory factory,
+        public ConnectionBase(IConnectionFactory factory,
                               bool insist,
                               IFrameHandler frameHandler)
         {

@@ -57,7 +57,7 @@ namespace RabbitMQ.Client
     /// A simple example of connecting to a broker:
     ///</para>
     ///<example><code>
-    ///     ConnectionFactory factory = new ConnectionFactory();
+    ///     IConnectionFactory factory = new ConnectionFactory();
     ///     //
     ///     // The next six lines are optional:
     ///     factory.UserName = ConnectionFactory.DefaultUser;
@@ -94,7 +94,7 @@ namespace RabbitMQ.Client
     ///"amqp://foo/" (note the trailling slash) also represent the
     ///default virtual host.  The latter issue means that virtual
     ///hosts with an empty name are not addressable. </para></remarks>
-    public class ConnectionFactory
+    public class ConnectionFactory : ConnectionFactoryBase, IConnectionFactory
     {
         /// <summary>Default user name (value: "guest")</summary>
         public const string DefaultUser = "guest"; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
@@ -125,35 +125,76 @@ namespace RabbitMQ.Client
         public static AuthMechanismFactory[] DefaultAuthMechanisms =
             new AuthMechanismFactory[] { new PlainMechanismFactory() };
 
+        private string m_username = DefaultUser;
         /// <summary>Username to use when authenticating to the server</summary>
-        public string UserName = DefaultUser;
+        public string UserName
+        {
+            get { return m_username;  }
+            set { m_username = value; }
+        }
 
+        private string m_password = DefaultPass;
         /// <summary>Password to use when authenticating to the server</summary>
-        public string Password = DefaultPass;
+        public string Password
+        {
+            get { return m_password; }
+            set { m_password = value; }
+        }
 
+        private string m_vhost = DefaultVHost;
         /// <summary>Virtual host to access during this connection</summary>
-        public string VirtualHost = DefaultVHost;
+        public string VirtualHost
+        {
+            get { return m_vhost; }
+            set { m_vhost = value; }
+        }
 
+        private ushort m_requestedChannelMax = DefaultChannelMax;
         /// <summary>Maximum channel number to ask for</summary>
-        public ushort RequestedChannelMax = DefaultChannelMax;
+        public ushort RequestedChannelMax
+        {
+            get { return m_requestedChannelMax; }
+            set { m_requestedChannelMax = value; }
+        }
 
+        private uint m_requestedFrameMax = DefaultFrameMax;
         /// <summary>Frame-max parameter to ask for (in bytes)</summary>
-        public uint RequestedFrameMax = DefaultFrameMax;
+        public uint RequestedFrameMax
+        {
+            get { return m_requestedFrameMax; }
+            set { m_requestedFrameMax = value; }
+        }
 
+        private ushort m_requestedHeartbeat = DefaultHeartbeat;
         /// <summary>Heartbeat setting to request (in seconds)</summary>
-        public ushort RequestedHeartbeat = DefaultHeartbeat;
+        public ushort RequestedHeartbeat
+        {
+            get { return m_requestedHeartbeat; }
+            set { m_requestedHeartbeat = value; }
+        }
 
         /// <summary>Timeout setting for connection attempts (in milliseconds)</summary>
         public int RequestedConnectionTimeout = DefaultConnectionTimeout;
 
+        private bool m_useBackgroundThreadsForIO = false;
         /// <summary>
         /// When set to true, background threads will be used for I/O and heartbeats.
         /// </summary>
-        public bool UseBackgroundThreadsForIO = false;
+        public bool UseBackgroundThreadsForIO
+        {
+            get { return m_useBackgroundThreadsForIO; }
+            set { m_useBackgroundThreadsForIO = value; }
+        }
 
+        private IDictionary<string, object> m_clientProperties =
+            ConnectionBase.DefaultClientProperties();
         /// <summary>Dictionary of client properties to be sent to the
         /// server</summary>
-        public IDictionary<string, object> ClientProperties = ConnectionBase.DefaultClientProperties();
+        public IDictionary<string, object> ClientProperties
+        {
+            get { return m_clientProperties; }
+            set { m_clientProperties = value; }
+        }
 
         ///<summary>Ssl options setting</summary>
         public SslOption Ssl = new SslOption();
@@ -199,11 +240,6 @@ namespace RabbitMQ.Client
           set { SetUri(new Uri(value, UriKind.Absolute)); }
         }
 
-        public delegate TcpClient ObtainSocket(AddressFamily addressFamily);
-
-        ///<summary>Set custom socket options by providing a SocketFactory</summary>
-        public ObtainSocket SocketFactory = DefaultSocketFactory;
-
         ///<summary>Construct a fresh instance, with all fields set to
         ///their respective defaults.</summary>
         public ConnectionFactory() { }
@@ -242,12 +278,6 @@ namespace RabbitMQ.Client
             return null;
         }
 
-        public static TcpClient DefaultSocketFactory(AddressFamily addressFamily)
-        {
-            TcpClient tcpClient = new TcpClient(addressFamily);
-            tcpClient.NoDelay = true;
-            return tcpClient;
-        }
 
         private void SetUri(Uri uri)
         {

@@ -61,12 +61,12 @@ namespace RabbitMQ.Client
 
         ///<summary>Construct a frame handler for a given endpoint.</summary>
         IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint,
-                                         ConnectionFactory.ObtainSocket socketFactory,
+                                         ConnectionFactoryBase.ObtainSocket socketFactory,
                                          int timeout);
         ///<summary>Construct a connection from a given set of
         ///parameters and a frame handler. The "insist" parameter is
         ///passed on to the AMQP connection.open method.</summary>
-        IConnection CreateConnection(ConnectionFactory factory,
+        IConnection CreateConnection(IConnectionFactory factory,
                                      bool insist,
                                      IFrameHandler frameHandler);
         ///<summary>Construct a protocol model atop a given session.</summary>

@@ -64,7 +64,7 @@ namespace RabbitMQ.Client.Impl
         private Object m_semaphore = new object();
 
         public SocketFrameHandler(AmqpTcpEndpoint endpoint,
-                                  ConnectionFactory.ObtainSocket socketFactory,
+                                  ConnectionFactoryBase.ObtainSocket socketFactory,
                                   int timeout)
         {
             m_endpoint = endpoint;
