@@ -87,7 +87,7 @@ namespace RabbitMQ.Client
 
         ///<summary>Upgrade a Tcp stream to an Ssl stream using the SSL options
         ///provided</summary>
-        public static Stream TcpUpgrade(Stream tcpStream, SslOption sslOption, int timeout)
+        public static Stream TcpUpgrade(Stream tcpStream, SslOption sslOption)
         {
             SslHelper helper = new SslHelper(sslOption);
 
@@ -104,8 +104,6 @@ namespace RabbitMQ.Client
                                            sslOption.Certs,
                                            sslOption.Version,
                                            false);
-            sslStream.ReadTimeout  = timeout;
-            sslStream.WriteTimeout = timeout;
 
             return sslStream;
         }
