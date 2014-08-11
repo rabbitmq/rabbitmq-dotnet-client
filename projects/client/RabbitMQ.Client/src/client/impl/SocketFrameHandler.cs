@@ -96,7 +96,7 @@ namespace RabbitMQ.Client.Impl
             Stream netstream = m_socket.GetStream();
             netstream.ReadTimeout = timeout;
             netstream.WriteTimeout = timeout;
-            
+
             if (endpoint.Ssl.Enabled)
             {
                 try
