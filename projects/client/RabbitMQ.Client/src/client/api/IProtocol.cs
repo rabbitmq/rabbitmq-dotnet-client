@@ -64,11 +64,19 @@ namespace RabbitMQ.Client
                                          ConnectionFactoryBase.ObtainSocket socketFactory,
                                          int timeout);
         ///<summary>Construct a connection from a given set of
-        ///parameters and a frame handler. The "insist" parameter is
-        ///passed on to the AMQP connection.open method.</summary>
+        ///parameters, a frame handler, and no automatic recovery.
+        ///The "insist" parameter is passed on to the AMQP connection.open method.
+        ///</summary>
         IConnection CreateConnection(IConnectionFactory factory,
                                      bool insist,
                                      IFrameHandler frameHandler);
+
+        ///<summary>Construct a connection from a given set of
+        ///parameters, a frame handler, and automatic recovery settings.</summary>
+        IConnection CreateConnection(ConnectionFactory factory,
+                                     IFrameHandler frameHandler,
+                                     bool automaticRecoveryEnabled);
+
         ///<summary>Construct a protocol model atop a given session.</summary>
         IModel CreateModel(ISession session);
     }
