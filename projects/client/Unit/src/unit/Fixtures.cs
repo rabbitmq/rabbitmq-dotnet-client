@@ -218,12 +218,12 @@ namespace RabbitMQ.Client.Unit
         // Shelling Out
         //
 
-        protected void ExecRabbitMQCtl(string args)
+        protected Process ExecRabbitMQCtl(string args)
         {
             if(IsRunningOnMono()) {
-                ExecCommand("../../../../../../rabbitmq-server/scripts/rabbitmqctl", args);
+                return ExecCommand("../../../../../../rabbitmq-server/scripts/rabbitmqctl", args);
             } else {
-                ExecCommand("..\\..\\..\\..\\..\\..\\rabbitmq-server\\scripts\\rabbitmqctl.bat", args);
+                return ExecCommand("..\\..\\..\\..\\..\\..\\rabbitmq-server\\scripts\\rabbitmqctl.bat", args);
             }
         }
 
@@ -279,16 +279,16 @@ namespace RabbitMQ.Client.Unit
         // Connection Closure
         //
 
-        private class ConnectionInfo
+        public class ConnectionInfo
         {
             private string Pid
             {
-                get;
+                get; set;
             }
 
             private uint PeerPort
             {
-                get;
+                get; set;
             }
 
             public ConnectionInfo(string pid, uint peerPort)
@@ -296,15 +296,26 @@ namespace RabbitMQ.Client.Unit
                 Pid = pid;
                 PeerPort = peerPort;
             }
+
+            public override string ToString()
+            {
+                return "pid = " + Pid + ", peer port: " + PeerPort.ToString();
+            }
         }
 
         protected List<ConnectionInfo> ListConnections()
         {
-            Process proc = ExecCommand("list_connections -q pid peer_port");
+            Process proc  = ExecRabbitMQCtl("list_connections -q pid peer_port");
             String stdout = proc.StandardOutput.ReadToEnd();
 
             string[] splitOn = {Environment.NewLine};
             string[] lines   = stdout.Split(splitOn, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (string line in lines)
+            {
+            }
+
+            return new List<ConnectionInfo>();
         }
     }
 
