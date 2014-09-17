@@ -336,13 +336,13 @@ namespace RabbitMQ.Client.Unit
         protected void CloseConnection(IConnection conn)
         {
             var ci = ListConnections().First(x => conn.LocalPort == x.PeerPort);
-            CloseConnection(ci.PeerPort);
+            CloseConnection(ci.Pid);
         }
 
-        protected void CloseConnection(uint pid)
+        protected void CloseConnection(string pid)
         {
             ExecRabbitMQCtl("close_connection '" +
-                            pid.ToString() +
+                            pid +
                             "' 'Closed via rabbitmqctl'");
         }
     }
