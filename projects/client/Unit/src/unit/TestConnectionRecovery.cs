@@ -50,6 +50,15 @@ using RabbitMQ.Client.Events;
 namespace RabbitMQ.Client.Unit {
     [TestFixture]
     public class TestConnectionRecovery : IntegrationFixture {
+        [SetUp]
+        public void Init()
+        {
+            ConnectionFactory connFactory = new ConnectionFactory();
+            connFactory.AutomaticRecoveryEnabled = true;
+            Conn = connFactory.CreateConnection();
+            Model = Conn.CreateModel();
+        }
+
         [Test]
         public void TestBasicConnectionRecovery()
         {
