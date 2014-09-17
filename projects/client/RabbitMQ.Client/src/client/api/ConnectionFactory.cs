@@ -46,6 +46,7 @@ using System.Net.Sockets;
 using System.Collections.Generic;
 
 using RabbitMQ.Client.Impl;
+using RabbitMQ.Client.Framing.Impl.v0_9_1;
 using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client
@@ -259,7 +260,13 @@ namespace RabbitMQ.Client
                 IFrameHandler fh = p.CreateFrameHandler(Endpoint,
                                                         SocketFactory,
                                                         RequestedConnectionTimeout);
-                conn = p.CreateConnection(this, false, fh);
+                if(this.AutomaticRecoveryEnabled)
+                {
+                    return new AutorecoveringConnection(this, fh);
+                } else
+                {
+                    return p.CreateConnection(this, false, fh);
+                }
             } catch (Exception e)
             {
 
