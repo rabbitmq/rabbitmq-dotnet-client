@@ -88,7 +88,10 @@ namespace RabbitMQ.Client.Unit {
             object latch = new object();
             conn.ConnectionShutdown += (c, args) =>
             {
-                Monitor.PulseAll(latch);
+                lock (latch)
+                {
+                    Monitor.PulseAll(latch);
+                }
             };
 
             return latch;
@@ -99,7 +102,10 @@ namespace RabbitMQ.Client.Unit {
             object latch = new object();
             conn.Recovery += (c) =>
             {
-                Monitor.PulseAll(latch);
+                lock (latch)
+                {
+                    Monitor.PulseAll(latch);
+                }
             };
 
             return latch;
@@ -107,7 +113,10 @@ namespace RabbitMQ.Client.Unit {
 
         protected void Wait(object latch)
         {
-            Monitor.Wait(latch, TimeSpan.FromSeconds(8));
+            lock (latch)
+            {
+                Monitor.Wait(latch, TimeSpan.FromSeconds(8));
+            }
         }
             
     }
