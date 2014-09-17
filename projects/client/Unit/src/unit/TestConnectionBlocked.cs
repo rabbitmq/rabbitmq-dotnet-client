@@ -93,17 +93,6 @@ namespace RabbitMQ.Client.Unit {
             }
         }
 
-
-        protected void Block()
-        {
-            ExecRabbitMQCtl("set_vm_memory_high_watermark 0.000000001");
-        }
-
-        protected void Unblock()
-        {
-            ExecRabbitMQCtl("set_vm_memory_high_watermark 0.4");
-        }
-
         protected void Publish(IConnection conn)
         {
             IModel ch = conn.CreateModel();

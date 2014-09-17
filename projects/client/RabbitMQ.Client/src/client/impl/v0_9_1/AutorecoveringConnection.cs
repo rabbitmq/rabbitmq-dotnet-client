@@ -40,6 +40,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
 
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Client.Events;
@@ -47,7 +48,7 @@ using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Framing.Impl.v0_9_1
 {
-    public class AutorecoveringConnection : IConnection
+    public class AutorecoveringConnection : IConnection, NetworkConnection, IRecoverable
     {
         protected Connection m_delegate;
 
@@ -115,11 +116,49 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1
             }
         }
 
+        public event RecoveryEventHandler Recovery
+        {
+            add
+            {
+                m_delegate.Recovery += value;
+            }
+            remove
+            {
+                m_delegate.Recovery -= value;
+            }
+        }
+
+
         public AmqpTcpEndpoint Endpoint
         {
             get
             {
                 return m_delegate.Endpoint;
+            }
+        }
+
+        public EndPoint LocalEndPoint
+        {
+            get { return m_delegate.LocalEndPoint; }
+        }
+
+        public EndPoint RemoteEndPoint
+        {
+            get { return m_delegate.RemoteEndPoint; }
+        }
+
+        public int LocalPort
+        {
+            get
+            {
+                return m_delegate.LocalPort;
+            }
+        }
+        public int RemotePort
+        {
+            get
+            {
+                return m_delegate.RemotePort;
             }
         }
 

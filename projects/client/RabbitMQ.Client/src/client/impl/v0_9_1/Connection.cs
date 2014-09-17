@@ -40,9 +40,10 @@
 
 using System;
 using RabbitMQ.Client.Impl;
+using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
-    public class Connection: ConnectionBase {
+    public class Connection : ConnectionBase, IRecoverable {
         public Connection(IConnectionFactory factory, bool insist, IFrameHandler frameHandler)
             : base(factory, insist, frameHandler) {}
 

@@ -40,6 +40,7 @@
 
 using System;
 using System.IO;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
@@ -221,6 +222,31 @@ namespace RabbitMQ.Client.Impl
                     m_socket.Close();
                     m_closed = true;
                 }
+            }
+        }
+
+        public EndPoint LocalEndPoint
+        {
+            get { return m_socket.Client.LocalEndPoint; }
+        }
+
+        public EndPoint RemoteEndPoint
+        {
+            get { return m_socket.Client.RemoteEndPoint; }
+        }
+
+        public int LocalPort
+        {
+            get
+            {
+                return ((System.Net.IPEndPoint)this.LocalEndPoint).Port;
+            }
+        }
+        public int RemotePort
+        {
+            get
+            {
+                return ((System.Net.IPEndPoint)this.LocalEndPoint).Port;
             }
         }
     }

@@ -38,68 +38,19 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
+using System.Net;
 
-using System;
-using System.Text;
-using System.Threading;
+namespace RabbitMQ.Client
+{
+    /// <summary>
+    /// Common interface for network (TCP/IP) connection classes.
+    /// </summary>
+    public interface NetworkConnection
+    {
+        EndPoint LocalEndPoint  { get; }
+        EndPoint RemoteEndPoint { get; }
 
-using RabbitMQ.Client.Framing.Impl.v0_9_1;
-using RabbitMQ.Client.Events;
-
-namespace RabbitMQ.Client.Unit {
-    [TestFixture]
-    public class TestConnectionRecovery : IntegrationFixture {
-        [Test]
-        public void TestBasicConnectionRecovery()
-        {
-            Assert.IsTrue(Conn.IsOpen);
-            CloseAndWaitForRecovery();
-            Assert.IsTrue(Conn.IsOpen);
-        }
-
-        //
-        // Implementation
-        // 
-
-        protected void CloseAndWaitForRecovery()
-        {
-            CloseAndWaitForRecovery((AutorecoveringConnection)this.Conn);
-        }
-
-        protected void CloseAndWaitForRecovery(AutorecoveringConnection conn)
-        {
-            object latch = PrepareForRecovery(conn);
-            CloseConnection(conn);
-            Wait(latch);
-        }
-
-        protected object PrepareForShutdown(AutorecoveringConnection conn)
-        {
-            object latch = new object();
-            conn.ConnectionShutdown += (c, args) =>
-            {
-                Monitor.PulseAll(latch);
-            };
-
-            return latch;
-        }
-
-        protected object PrepareForRecovery(AutorecoveringConnection conn)
-        {
-            object latch = new object();
-            conn.Recovery += (c) =>
-            {
-                Monitor.PulseAll(latch);
-            };
-
-            return latch;
-        }
-
-        protected void Wait(object latch)
-        {
-            Monitor.Wait(latch, TimeSpan.FromSeconds(8));
-        }
-            
+        int LocalPort  { get; }
+        int RemotePort { get; }
     }
 }

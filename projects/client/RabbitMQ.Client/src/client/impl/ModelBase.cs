@@ -57,7 +57,7 @@ using CommonFraming = RabbitMQ.Client.Framing.v0_9_1;
 
 namespace RabbitMQ.Client.Impl
 {
-    public abstract class ModelBase : IFullModel
+    public abstract class ModelBase : IFullModel, IRecoverable
     {
         private readonly object m_shutdownLock = new object();
         private ModelShutdownEventHandler m_modelShutdown;
@@ -79,6 +79,8 @@ namespace RabbitMQ.Client.Impl
         private SynchronizedCollection<ulong> m_unconfirmedSet =
             new SynchronizedCollection<ulong>();
         private bool m_onlyAcksReceived = true;
+
+        private RecoveryEventHandler m_recovery;
 
         public event ModelShutdownEventHandler ModelShutdown
         {
@@ -211,6 +213,24 @@ namespace RabbitMQ.Client.Impl
                 lock (m_eventLock)
                 {
                     m_basicRecoverOk -= value;
+                }
+            }
+        }
+
+        public event RecoveryEventHandler Recovery
+        {
+            add
+            {
+                lock (m_eventLock)
+                {
+                    m_recovery += value;
+                }
+            }
+            remove
+            {
+                lock (m_eventLock)
+                {
+                    m_recovery -= value;
                 }
             }
         }

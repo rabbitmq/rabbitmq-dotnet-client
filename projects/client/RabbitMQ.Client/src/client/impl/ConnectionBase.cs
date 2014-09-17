@@ -40,6 +40,7 @@
 
 using System;
 using System.IO;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -59,7 +60,7 @@ using RabbitMQ.Client.Framing.Impl.v0_9_1;
 
 namespace RabbitMQ.Client.Impl
 {
-    public abstract class ConnectionBase : IConnection
+    public abstract class ConnectionBase : IConnection, NetworkConnection
     {
         ///<summary>Heartbeat frame for transmission. Reusable across connections.</summary>
         public readonly Frame m_heartbeatFrame = new Frame(CommonFraming.Constants.FrameHeartbeat,
@@ -98,6 +99,8 @@ namespace RabbitMQ.Client.Impl
         public AutoResetEvent m_heartbeatRead = new AutoResetEvent(false);
         public AutoResetEvent m_heartbeatWrite = new AutoResetEvent(false);
         public volatile bool m_closed = false;
+
+        private RecoveryEventHandler m_recovery;
 
         public Guid m_id = Guid.NewGuid();
 
@@ -204,11 +207,54 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public event RecoveryEventHandler Recovery
+        {
+            add
+            {
+                lock (m_eventLock)
+                {
+                    m_recovery += value;
+                }
+            }
+            remove
+            {
+                lock (m_eventLock)
+                {
+                    m_recovery -= value;
+                }
+            }
+        }
+
         public AmqpTcpEndpoint Endpoint
         {
             get
             {
                 return m_frameHandler.Endpoint;
+            }
+        }
+
+        public EndPoint LocalEndPoint
+        {
+            get { return m_frameHandler.LocalEndPoint; }
+        }
+
+        public EndPoint RemoteEndPoint
+        {
+            get { return m_frameHandler.RemoteEndPoint; }
+        }
+
+        public int LocalPort
+        {
+            get
+            {
+                return m_frameHandler.LocalPort;
+            }
+        }
+        public int RemotePort
+        {
+            get
+            {
+                return m_frameHandler.RemotePort;
             }
         }
 

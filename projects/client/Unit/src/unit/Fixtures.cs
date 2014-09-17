@@ -47,6 +47,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Diagnostics;
+using System.Linq;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.v0_9_1;
 
@@ -276,17 +277,31 @@ namespace RabbitMQ.Client.Unit
         }
 
         //
+        // Flow Control
+        //
+
+        protected void Block()
+        {
+            ExecRabbitMQCtl("set_vm_memory_high_watermark 0.000000001");
+        }
+
+        protected void Unblock()
+        {
+            ExecRabbitMQCtl("set_vm_memory_high_watermark 0.4");
+        }
+
+        //
         // Connection Closure
         //
 
         public class ConnectionInfo
         {
-            private string Pid
+            public string Pid
             {
                 get; set;
             }
 
-            private uint PeerPort
+            public uint PeerPort
             {
                 get; set;
             }
@@ -311,11 +326,24 @@ namespace RabbitMQ.Client.Unit
             string[] splitOn = {Environment.NewLine};
             string[] lines   = stdout.Split(splitOn, StringSplitOptions.RemoveEmptyEntries);
 
-            foreach (string line in lines)
-            {
-            }
+            // line: <rabbit@mercurio.1.11491.0>	58713
+            return lines.Select(s => {
+              var columns = s.Split('\t');
+              return new ConnectionInfo(columns[0], Convert.ToUInt32(columns[1]));
+            }).ToList();
+        }
 
-            return new List<ConnectionInfo>();
+        protected void CloseConnection(IConnection conn)
+        {
+            var ci = ListConnections().First(x => conn.LocalPort == x.PeerPort);
+            CloseConnection(ci.PeerPort);
+        }
+
+        protected void CloseConnection(uint pid)
+        {
+            ExecRabbitMQCtl("close_connection '" +
+                            pid.ToString() +
+                            "' 'Closed via rabbitmqctl'");
         }
     }
 
