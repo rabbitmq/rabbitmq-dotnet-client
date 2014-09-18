@@ -262,7 +262,9 @@ namespace RabbitMQ.Client
                                                         RequestedConnectionTimeout);
                 if(this.AutomaticRecoveryEnabled)
                 {
-                    return new AutorecoveringConnection(this, fh);
+                    AutorecoveringConnection ac = new AutorecoveringConnection(this, fh);
+                    ac.init();
+                    return ac;
                 } else
                 {
                     return p.CreateConnection(this, false, fh);

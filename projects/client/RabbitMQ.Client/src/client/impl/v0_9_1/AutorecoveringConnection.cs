@@ -50,11 +50,28 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1
 {
     public class AutorecoveringConnection : IConnection, NetworkConnection, IRecoverable
     {
+        protected ConnectionFactory m_factory;
         protected Connection m_delegate;
+        protected IFrameHandler m_frameHandler;
 
         public AutorecoveringConnection(ConnectionFactory factory, IFrameHandler frameHandler)
         {
-            m_delegate = new Connection(factory, false, frameHandler);
+            this.m_factory = factory;
+            this.m_frameHandler = frameHandler;
+        }
+
+        public void init()
+        {
+            this.m_delegate = new Connection(m_factory, false, m_frameHandler);
+
+            ConnectionShutdownEventHandler recoveryListener = (c, args) =>
+            {
+                if(args.Initiator == ShutdownInitiator.Peer)
+                {
+                    ((AutorecoveringConnection)c).BeginAutomaticRecovery();
+                }
+            };
+            this.ConnectionShutdown += recoveryListener;
         }
 
 
@@ -338,5 +355,9 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1
             m_delegate.Abort(reasonCode, reasonText, timeout);
         }
 
+        public void BeginAutomaticRecovery()
+        {
+            // TODO
+        }
     }
 }
