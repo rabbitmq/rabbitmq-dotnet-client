@@ -72,7 +72,7 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1
         {
             this.m_delegate = new Connection(m_factory, false, m_factory.CreateFrameHandler());
 
-            AutorecoveringConnection self = this;
+            var self = this;
             ConnectionShutdownEventHandler recoveryListener = (_, args) =>
             {
                 if(args.Initiator == ShutdownInitiator.Peer)
@@ -388,7 +388,7 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1
 
         protected void RecoverConnectionShutdownHandlers()
         {
-            foreach(ConnectionShutdownEventHandler eh in this.m_recordedShutdownEventHandlers)
+            foreach(var eh in this.m_recordedShutdownEventHandlers)
             {
                 this.m_delegate.ConnectionShutdown += eh;
             }
@@ -396,7 +396,7 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1
 
         protected void RecoverConnectionBlockedHandlers()
         {
-            foreach(ConnectionBlockedEventHandler eh in this.m_recordedBlockedEventHandlers)
+            foreach(var eh in this.m_recordedBlockedEventHandlers)
             {
                 this.m_delegate.ConnectionBlocked += eh;
             }
@@ -404,7 +404,7 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1
 
         protected void RecoverConnectionUnblockedHandlers()
         {
-            foreach(ConnectionUnblockedEventHandler eh in this.m_recordedUnblockedEventHandlers)
+            foreach(var eh in this.m_recordedUnblockedEventHandlers)
             {
                 this.m_delegate.ConnectionUnblocked += eh;
             }
@@ -419,7 +419,7 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1
                     reh(this);
                 } catch (Exception e)
                 {
-                    CallbackExceptionEventArgs args = new CallbackExceptionEventArgs(e);
+                    var args = new CallbackExceptionEventArgs(e);
                     args.Detail["context"] = "OnRecovery";
                     this.m_delegate.OnCallbackException(args);
                 }
