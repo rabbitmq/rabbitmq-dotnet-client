@@ -72,8 +72,14 @@ namespace RabbitMQ.Client.Unit
         [TearDown]
         public void Dispose()
         {
-            Model.Close();
-            Conn.Close();
+            if(Model.IsOpen)
+            {
+                Model.Close();
+            }
+            if(Conn.IsOpen)
+            {
+                Conn.Close();
+            }
 
             ReleaseResources();
         }
