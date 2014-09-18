@@ -88,7 +88,9 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
                                             IFrameHandler frameHandler,
                                             bool automaticRecoveryEnabled)
         {
-            return new AutorecoveringConnection(factory, frameHandler);
+            AutorecoveringConnection ac = new AutorecoveringConnection(factory);
+            ac.init();
+            return ac;
         }
 
         public void CreateConnectionClose(ushort reasonCode,

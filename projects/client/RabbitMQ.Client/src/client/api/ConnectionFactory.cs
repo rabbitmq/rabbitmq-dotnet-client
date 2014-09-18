@@ -250,24 +250,29 @@ namespace RabbitMQ.Client
         ///their respective defaults.</summary>
         public ConnectionFactory() { }
 
+        public IFrameHandler CreateFrameHandler()
+        {
+            IProtocol p = Protocols.DefaultProtocol;
+            return p.CreateFrameHandler(Endpoint,
+                                        SocketFactory,
+                                        RequestedConnectionTimeout);
+        }
+
         ///<summary>Create a connection to the specified endpoint.</summary>
         public virtual IConnection CreateConnection()
         {
             IConnection conn = null;
             try
             {
-                IProtocol p = Protocols.DefaultProtocol;
-                IFrameHandler fh = p.CreateFrameHandler(Endpoint,
-                                                        SocketFactory,
-                                                        RequestedConnectionTimeout);
                 if(this.AutomaticRecoveryEnabled)
                 {
-                    AutorecoveringConnection ac = new AutorecoveringConnection(this, fh);
+                    AutorecoveringConnection ac = new AutorecoveringConnection(this);
                     ac.init();
                     conn = ac;
                 } else
                 {
-                    conn = p.CreateConnection(this, false, fh);
+                    IProtocol p = Protocols.DefaultProtocol;
+                    conn = p.CreateConnection(this, false, this.CreateFrameHandler());
                 }
             } catch (Exception e)
             {

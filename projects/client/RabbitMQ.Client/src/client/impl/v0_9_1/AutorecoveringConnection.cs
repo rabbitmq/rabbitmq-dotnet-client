@@ -52,30 +52,32 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1
     {
         protected ConnectionFactory m_factory;
         protected Connection m_delegate;
-        protected IFrameHandler m_frameHandler;
 
-        protected List<ConnectionShutdownEventHandler> m_recordedShutdownHooks =
+        public readonly object m_eventLock = new object();
+        private RecoveryEventHandler m_recovery;
+
+        protected List<ConnectionShutdownEventHandler> m_recordedShutdownEventHandlers =
             new List<ConnectionShutdownEventHandler>();
 
-        public AutorecoveringConnection(ConnectionFactory factory, IFrameHandler frameHandler)
+        public AutorecoveringConnection(ConnectionFactory factory)
         {
             this.m_factory = factory;
-            this.m_frameHandler = frameHandler;
         }
 
         public void init()
         {
-            this.m_delegate = new Connection(m_factory, false, m_frameHandler);
+            this.m_delegate = new Connection(m_factory, false, m_factory.CreateFrameHandler());
 
-            ConnectionShutdownEventHandler recoveryListener = (c, args) =>
+            AutorecoveringConnection self = this;
+            ConnectionShutdownEventHandler recoveryListener = (_, args) =>
             {
                 if(args.Initiator == ShutdownInitiator.Peer)
                 {
-                    ((AutorecoveringConnection)c).BeginAutomaticRecovery();
+                    self.BeginAutomaticRecovery();
                 }
             };
             this.ConnectionShutdown += recoveryListener;
-            this.m_recordedShutdownHooks.Add(recoveryListener);
+            this.m_recordedShutdownEventHandlers.Add(recoveryListener);
         }
 
 
@@ -141,11 +143,11 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1
         {
             add
             {
-                m_delegate.Recovery += value;
+                this.m_recovery += value;
             }
             remove
             {
-                m_delegate.Recovery -= value;
+                this.m_recovery -= value;
             }
         }
 
@@ -363,18 +365,35 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1
         {
             this.RecoverConnectionDelegate();
             this.RecoverConnectionShutdownHandlers();
+            this.RunRecoveryEventHandlers();
         }
 
         protected void RecoverConnectionDelegate()
         {
-            this.m_delegate = new Connection(m_factory, false, m_frameHandler);
+            this.m_delegate = new Connection(m_factory, false, m_factory.CreateFrameHandler());
         }
 
         protected void RecoverConnectionShutdownHandlers()
         {
-            foreach(ConnectionShutdownEventHandler eh in this.m_recordedShutdownHooks)
+            foreach(ConnectionShutdownEventHandler eh in this.m_recordedShutdownEventHandlers)
             {
                 this.m_delegate.ConnectionShutdown += eh;
+            }
+        }
+
+        protected void RunRecoveryEventHandlers()
+        {
+            foreach(RecoveryEventHandler reh in m_recovery.GetInvocationList())
+            {
+                try
+                {
+                    reh(this);
+                } catch (Exception e)
+                {
+                    CallbackExceptionEventArgs args = new CallbackExceptionEventArgs(e);
+                    args.Detail["context"] = "OnRecovery";
+                    this.m_delegate.OnCallbackException(args);
+                }
             }
         }
     }

@@ -100,8 +100,6 @@ namespace RabbitMQ.Client.Impl
         public AutoResetEvent m_heartbeatWrite = new AutoResetEvent(false);
         public volatile bool m_closed = false;
 
-        private RecoveryEventHandler m_recovery;
-
         public Guid m_id = Guid.NewGuid();
 
         public int m_missedHeartbeats = 0;
@@ -203,24 +201,6 @@ namespace RabbitMQ.Client.Impl
                 lock (m_eventLock)
                 {
                     m_callbackException -= value;
-                }
-            }
-        }
-
-        public event RecoveryEventHandler Recovery
-        {
-            add
-            {
-                lock (m_eventLock)
-                {
-                    m_recovery += value;
-                }
-            }
-            remove
-            {
-                lock (m_eventLock)
-                {
-                    m_recovery -= value;
                 }
             }
         }
