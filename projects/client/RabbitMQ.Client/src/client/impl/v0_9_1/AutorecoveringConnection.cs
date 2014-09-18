@@ -58,6 +58,10 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1
 
         protected List<ConnectionShutdownEventHandler> m_recordedShutdownEventHandlers =
             new List<ConnectionShutdownEventHandler>();
+        protected List<ConnectionBlockedEventHandler> m_recordedBlockedEventHandlers =
+            new List<ConnectionBlockedEventHandler>();
+        protected List<ConnectionUnblockedEventHandler> m_recordedUnblockedEventHandlers =
+            new List<ConnectionUnblockedEventHandler>();
 
         public AutorecoveringConnection(ConnectionFactory factory)
         {
@@ -85,10 +89,12 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1
         {
             add
             {
+                m_recordedShutdownEventHandlers.Add(value);
                 m_delegate.ConnectionShutdown += value;
             }
             remove
             {
+                m_recordedShutdownEventHandlers.Remove(value);
                 m_delegate.ConnectionShutdown -= value;
             }
         }
@@ -97,10 +103,12 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1
         {
             add
             {
+                m_recordedBlockedEventHandlers.Add(value);
                 m_delegate.ConnectionBlocked += value;
             }
             remove
             {
+                m_recordedBlockedEventHandlers.Remove(value);
                 m_delegate.ConnectionBlocked -= value;
             }
         }
@@ -109,10 +117,12 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1
         {
             add
             {
+                m_recordedUnblockedEventHandlers.Add(value);
                 m_delegate.ConnectionUnblocked += value;
             }
             remove
             {
+                m_recordedUnblockedEventHandlers.Remove(value);
                 m_delegate.ConnectionUnblocked -= value;
             }
         }
@@ -365,6 +375,9 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1
         {
             this.RecoverConnectionDelegate();
             this.RecoverConnectionShutdownHandlers();
+            this.RecoverConnectionBlockedHandlers();
+            this.RecoverConnectionUnblockedHandlers();
+
             this.RunRecoveryEventHandlers();
         }
 
@@ -378,6 +391,22 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1
             foreach(ConnectionShutdownEventHandler eh in this.m_recordedShutdownEventHandlers)
             {
                 this.m_delegate.ConnectionShutdown += eh;
+            }
+        }
+
+        protected void RecoverConnectionBlockedHandlers()
+        {
+            foreach(ConnectionBlockedEventHandler eh in this.m_recordedBlockedEventHandlers)
+            {
+                this.m_delegate.ConnectionBlocked += eh;
+            }
+        }
+
+        protected void RecoverConnectionUnblockedHandlers()
+        {
+            foreach(ConnectionUnblockedEventHandler eh in this.m_recordedUnblockedEventHandlers)
+            {
+                this.m_delegate.ConnectionUnblocked += eh;
             }
         }
 
