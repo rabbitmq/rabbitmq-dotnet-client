@@ -54,6 +54,9 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1
         protected Connection m_delegate;
         protected IFrameHandler m_frameHandler;
 
+        protected List<ConnectionShutdownEventHandler> m_recordedShutdownHooks =
+            new List<ConnectionShutdownEventHandler>();
+
         public AutorecoveringConnection(ConnectionFactory factory, IFrameHandler frameHandler)
         {
             this.m_factory = factory;
@@ -72,6 +75,7 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1
                 }
             };
             this.ConnectionShutdown += recoveryListener;
+            this.m_recordedShutdownHooks.Add(recoveryListener);
         }
 
 
@@ -357,7 +361,21 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1
 
         public void BeginAutomaticRecovery()
         {
-            // TODO
+            this.RecoverConnectionDelegate();
+            this.RecoverConnectionShutdownHandlers();
+        }
+
+        protected void RecoverConnectionDelegate()
+        {
+            this.m_delegate = new Connection(m_factory, false, m_frameHandler);
+        }
+
+        protected void RecoverConnectionShutdownHandlers()
+        {
+            foreach(ConnectionShutdownEventHandler eh in this.m_recordedShutdownHooks)
+            {
+                this.m_delegate.ConnectionShutdown += eh;
+            }
         }
     }
 }
