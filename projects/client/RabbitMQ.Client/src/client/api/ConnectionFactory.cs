@@ -264,10 +264,10 @@ namespace RabbitMQ.Client
                 {
                     AutorecoveringConnection ac = new AutorecoveringConnection(this, fh);
                     ac.init();
-                    return ac;
+                    conn = ac;
                 } else
                 {
-                    return p.CreateConnection(this, false, fh);
+                    conn = p.CreateConnection(this, false, fh);
                 }
             } catch (Exception e)
             {
