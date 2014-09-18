@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.Unit {
     [TestFixture]
     public class TestConnectionRecovery : IntegrationFixture {
         [SetUp]
-        public void Init()
+        public new void Init()
         {
             ConnectionFactory connFactory = new ConnectionFactory();
             connFactory.AutomaticRecoveryEnabled = true;
