@@ -67,6 +67,25 @@ namespace RabbitMQ.Client.Unit {
             Assert.IsTrue(Conn.IsOpen);
         }
 
+        [Test]
+        public void TestShutdownEventHandlersRecovery()
+        {
+            Int32 counter = 0;
+            Conn.ConnectionShutdown += (c, args) =>
+            {
+                Interlocked.Increment(ref counter);
+            };
+
+            Assert.IsTrue(Conn.IsOpen);
+            CloseAndWaitForRecovery();
+            CloseAndWaitForRecovery();
+            CloseAndWaitForRecovery();
+            CloseAndWaitForRecovery();
+            Assert.IsTrue(Conn.IsOpen);
+
+            Assert.IsTrue(counter >= 3);
+        }
+
         //
         // Implementation
         // 
