@@ -40,7 +40,7 @@
 
 using System;
 
-using RabbitMQ.Client.Framing.v0_9_1;
+using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Impl
 {

@@ -49,7 +49,7 @@ using System.Threading;
 using System.Diagnostics;
 using System.Linq;
 using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Client.Framing.v0_9_1;
+using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Unit
 {

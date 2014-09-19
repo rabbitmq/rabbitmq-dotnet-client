@@ -46,7 +46,7 @@ using System.Net.Sockets;
 using System.Collections.Generic;
 
 using RabbitMQ.Client.Impl;
-using RabbitMQ.Client.Framing.Impl.v0_9_1;
+using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client

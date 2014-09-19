@@ -46,19 +46,19 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
 
-using RabbitMQ.Client.Framing.v0_9_1;
+using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Impl
 {
     public class SessionManager
     {
         private readonly IDictionary<int, ISession> m_sessionMap = new Dictionary<int, ISession>();
-        private readonly RabbitMQ.Client.Framing.Impl.v0_9_1.Connection m_connection;
+        private readonly RabbitMQ.Client.Framing.Impl.Connection m_connection;
         private readonly IntAllocator Ints;
         public readonly ushort ChannelMax;
         private bool m_autoClose = false;
 
-        public SessionManager(RabbitMQ.Client.Framing.Impl.v0_9_1.Connection connection, ushort channelMax)
+        public SessionManager(RabbitMQ.Client.Framing.Impl.Connection connection, ushort channelMax)
         {
             m_connection = connection;
             ChannelMax = (channelMax == 0) ? ushort.MaxValue : channelMax;

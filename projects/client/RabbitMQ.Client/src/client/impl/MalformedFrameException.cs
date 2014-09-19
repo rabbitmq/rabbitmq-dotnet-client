@@ -41,7 +41,7 @@
 using System;
 using System.Net;
 
-using RabbitMQ.Client.Framing.v0_9_1;
+using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Impl {
     ///<summary>Thrown when frame parsing code detects an error in the

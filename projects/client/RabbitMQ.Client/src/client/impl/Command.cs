@@ -44,8 +44,8 @@ using System.Collections.Generic;
 
 using RabbitMQ.Util;
 
-using RabbitMQ.Client.Framing.v0_9_1;
-using RabbitMQ.Client.Framing.Impl.v0_9_1;
+using RabbitMQ.Client.Framing;
+using RabbitMQ.Client.Framing.Impl;
 using System.Diagnostics;
 using System.Net;
 

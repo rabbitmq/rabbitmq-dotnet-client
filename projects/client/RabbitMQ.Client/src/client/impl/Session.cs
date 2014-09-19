@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.Impl
     {
         public CommandAssembler m_assembler;
 
-        public Session(RabbitMQ.Client.Framing.Impl.v0_9_1.Connection connection, int channelNumber)
+        public Session(RabbitMQ.Client.Framing.Impl.Connection connection, int channelNumber)
             : base(connection, channelNumber)
         {
             m_assembler = new CommandAssembler(connection.Protocol);

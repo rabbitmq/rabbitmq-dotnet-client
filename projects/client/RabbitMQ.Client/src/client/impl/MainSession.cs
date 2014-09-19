@@ -48,7 +48,7 @@ using RabbitMQ.Client.Exceptions;
 // error codes, and the frame end byte, since they don't vary *within
 // the versions we support*. Obviously we may need to revisit this if
 // that ever changes.
-using RabbitMQ.Client.Framing.v0_9_1;
+using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -67,7 +67,7 @@ namespace RabbitMQ.Client.Impl
         public delegate void SessionCloseDelegate();
         public SessionCloseDelegate m_handler;
 
-        public MainSession(RabbitMQ.Client.Framing.Impl.v0_9_1.Connection connection)
+        public MainSession(RabbitMQ.Client.Framing.Impl.Connection connection)
             : base(connection, 0)
         {
             Command request;

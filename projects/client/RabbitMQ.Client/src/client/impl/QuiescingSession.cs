@@ -44,8 +44,8 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 
-using RabbitMQ.Client.Framing.v0_9_1;
-using RabbitMQ.Client.Framing.Impl.v0_9_1;
+using RabbitMQ.Client.Framing;
+using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Impl
     {
         public ShutdownEventArgs m_reason;
 
-        public QuiescingSession(RabbitMQ.Client.Framing.Impl.v0_9_1.Connection connection,
+        public QuiescingSession(RabbitMQ.Client.Framing.Impl.Connection connection,
                                 int channelNumber,
                                 ShutdownEventArgs reason)
             : base(connection, channelNumber)

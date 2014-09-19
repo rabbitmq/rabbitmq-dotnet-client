@@ -48,8 +48,8 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
-using RabbitMQ.Client.Framing.Impl.v0_9_1;
-using RabbitMQ.Client.Framing.v0_9_1;
+using RabbitMQ.Client.Framing.Impl;
+using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Impl
 {
