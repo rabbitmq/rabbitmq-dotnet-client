@@ -48,6 +48,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
+using RabbitMQ.Client.Framing.Impl.v0_9_1;
 
 // We use spec version 0-9 for common constants such as frame types
 // and the frame end byte, since they don't vary *within the versions
@@ -252,7 +253,7 @@ namespace RabbitMQ.Client.Impl
         public RpcContinuationQueue m_continuationQueue = new RpcContinuationQueue();
 
         ///<summary>Only used to kick-start a connection open
-        ///sequence. See <see cref="ConnectionBase.Open"/> </summary>
+        ///sequence. See <see cref="Connection.Open"/> </summary>
         public BlockingCell m_connectionStartCell = null;
 
         public readonly IDictionary<string, IBasicConsumer> m_consumers = new Dictionary<string, IBasicConsumer>();
@@ -708,7 +709,7 @@ namespace RabbitMQ.Client.Impl
                     new ShutdownEventArgs(ShutdownInitiator.Library,
                                           CommonFraming.Constants.CommandInvalid,
                                           "Unexpected Connection.Start");
-                ((ConnectionBase)m_session.Connection).Close(reason);
+                ((Connection)m_session.Connection).Close(reason);
             }
             ConnectionStartDetails details = new ConnectionStartDetails();
             details.m_versionMajor = versionMajor;
@@ -732,7 +733,7 @@ namespace RabbitMQ.Client.Impl
                                                              methodId);
             try
             {
-                ((ConnectionBase)m_session.Connection).InternalClose(reason);
+                ((Connection)m_session.Connection).InternalClose(reason);
                 _Private_ConnectionCloseOk();
                 SetCloseReason((m_session.Connection).CloseReason);
             }
@@ -750,14 +751,14 @@ namespace RabbitMQ.Client.Impl
 
         public void HandleConnectionBlocked(string reason)
         {
-            ConnectionBase cb = ((ConnectionBase)m_session.Connection);
+            Connection cb = ((Connection)m_session.Connection);
 
             cb.HandleConnectionBlocked(reason);
         }
 
         public void HandleConnectionUnblocked()
         {
-            ConnectionBase cb = ((ConnectionBase)m_session.Connection);
+            Connection cb = ((Connection)m_session.Connection);
 
             cb.HandleConnectionUnblocked();
         }

@@ -47,11 +47,11 @@ using RabbitMQ.Client.Exceptions;
 namespace RabbitMQ.Client.Impl
 {
     ///<summary>Normal ISession implementation used during normal channel operation.</summary>
-    public class Session: SessionBase
+    public class Session : SessionBase
     {
         public CommandAssembler m_assembler;
 
-        public Session(ConnectionBase connection, int channelNumber)
+        public Session(RabbitMQ.Client.Framing.Impl.v0_9_1.Connection connection, int channelNumber)
             : base(connection, channelNumber)
         {
             m_assembler = new CommandAssembler(connection.Protocol);

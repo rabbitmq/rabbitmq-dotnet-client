@@ -46,23 +46,19 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
 
-// We use spec version 0-9 for common constants such as frame types,
-// error codes, and the frame end byte, since they don't vary *within
-// the versions we support*. Obviously we may need to revisit this if
-// that ever changes.
-using CommonFraming = RabbitMQ.Client.Framing.v0_9_1;
+using RabbitMQ.Client.Framing.v0_9_1;
 
 namespace RabbitMQ.Client.Impl
 {
     public class SessionManager
     {
         private readonly IDictionary<int, ISession> m_sessionMap = new Dictionary<int, ISession>();
-        private readonly ConnectionBase m_connection;
+        private readonly RabbitMQ.Client.Framing.Impl.v0_9_1.Connection m_connection;
         private readonly IntAllocator Ints;
         public readonly ushort ChannelMax;
         private bool m_autoClose = false;
 
-        public SessionManager(ConnectionBase connection, ushort channelMax)
+        public SessionManager(RabbitMQ.Client.Framing.Impl.v0_9_1.Connection connection, ushort channelMax)
         {
             m_connection = connection;
             ChannelMax = (channelMax == 0) ? ushort.MaxValue : channelMax;
@@ -193,7 +189,7 @@ namespace RabbitMQ.Client.Impl
         ///when we decide to close the connection.</summary>
         public void AutoCloseConnection()
         {
-            m_connection.Abort(CommonFraming.Constants.ReplySuccess, "AutoClose", ShutdownInitiator.Library, Timeout.Infinite);
+            m_connection.Abort(Constants.ReplySuccess, "AutoClose", ShutdownInitiator.Library, Timeout.Infinite);
         }
     }
 }

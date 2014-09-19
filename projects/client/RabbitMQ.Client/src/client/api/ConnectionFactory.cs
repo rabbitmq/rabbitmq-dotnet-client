@@ -188,7 +188,7 @@ namespace RabbitMQ.Client
         }
 
         private IDictionary<string, object> m_clientProperties =
-            ConnectionBase.DefaultClientProperties();
+            Connection.DefaultClientProperties();
         /// <summary>Dictionary of client properties to be sent to the
         /// server</summary>
         public IDictionary<string, object> ClientProperties
