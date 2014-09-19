@@ -41,11 +41,7 @@
 using System;
 using System.Net;
 
-// We use spec version 0-9 for common constants such as frame types,
-// error codes, and the frame end byte, since they don't vary *within
-// the versions we support*. Obviously we may need to revisit this if
-// that ever changes.
-using CommonFraming = RabbitMQ.Client.Framing.v0_9_1;
+using RabbitMQ.Client.Framing.v0_9_1;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -55,6 +51,6 @@ namespace RabbitMQ.Client.Impl
     {
         public SyntaxError(string message) : base(message) { }
 
-        public override ushort ReplyCode { get { return CommonFraming.Constants.SyntaxError; } }
+        public override ushort ReplyCode { get { return Constants.SyntaxError; } }
     }
 }

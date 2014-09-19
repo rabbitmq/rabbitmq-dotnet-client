@@ -49,12 +49,7 @@ using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
 using RabbitMQ.Client.Framing.Impl.v0_9_1;
-
-// We use spec version 0-9 for common constants such as frame types
-// and the frame end byte, since they don't vary *within the versions
-// we support*. Obviously we may need to revisit this if that ever
-// changes.
-using CommonFraming = RabbitMQ.Client.Framing.v0_9_1;
+using RabbitMQ.Client.Framing.v0_9_1;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -707,7 +702,7 @@ namespace RabbitMQ.Client.Impl
             {
                 ShutdownEventArgs reason =
                     new ShutdownEventArgs(ShutdownInitiator.Library,
-                                          CommonFraming.Constants.CommandInvalid,
+                                          Constants.CommandInvalid,
                                           "Unexpected Connection.Start");
                 ((Connection)m_session.Connection).Close(reason);
             }
@@ -1093,14 +1088,14 @@ namespace RabbitMQ.Client.Impl
             bool onlyAcksReceived = WaitForConfirms(timeout, out timedOut);
             if (!onlyAcksReceived) {
                 Close(new ShutdownEventArgs(ShutdownInitiator.Application,
-                                            CommonFraming.Constants.ReplySuccess,
+                                            Constants.ReplySuccess,
                                             "Nacks Received", new IOException("nack received")),
                       false);
                 throw new IOException("Nacks Received");
             }
             if (timedOut) {
                 Close(new ShutdownEventArgs(ShutdownInitiator.Application,
-                                            CommonFraming.Constants.ReplySuccess,
+                                            Constants.ReplySuccess,
                                             "Timed out waiting for acks",
                                             new IOException("timed out waiting for acks")),
                       false);
@@ -1366,7 +1361,7 @@ namespace RabbitMQ.Client.Impl
 
         public void Close()
         {
-            Close(CommonFraming.Constants.ReplySuccess, "Goodbye");
+            Close(Constants.ReplySuccess, "Goodbye");
         }
 
         public void Close(ushort replyCode, string replyText)
@@ -1376,7 +1371,7 @@ namespace RabbitMQ.Client.Impl
 
         public void Abort()
         {
-            Abort(CommonFraming.Constants.ReplySuccess, "Goodbye");
+            Abort(Constants.ReplySuccess, "Goodbye");
         }
 
         public void Abort(ushort replyCode, string replyText)
