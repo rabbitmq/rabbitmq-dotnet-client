@@ -268,6 +268,15 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public int ChannelNumber
+        {
+            get
+            {
+                return ((Session)m_session).ChannelNumber;
+            }
+        }
+
+
         public void HandleCommand(ISession session, Command cmd)
         {
             if (DispatchAsynchronous(cmd))
@@ -316,7 +325,6 @@ namespace RabbitMQ.Client.Impl
         ///</remarks>
         public virtual void OnModelShutdown(ShutdownEventArgs reason)
         {
-            //Console.WriteLine("Model shutdown "+((Session)m_session).ChannelNumber+": "+reason);
             m_continuationQueue.HandleModelShutdown(reason);
             ModelShutdownEventHandler handler;
             lock (m_shutdownLock)

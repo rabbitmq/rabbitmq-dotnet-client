@@ -68,7 +68,7 @@ namespace RabbitMQ.Client.Unit {
         }
 
         [Test]
-        public void TestShutdownEventHandlersRecovery()
+        public void TestShutdownEventHandlersRecoveryOnConnection()
         {
             Int32 counter = 0;
             Conn.ConnectionShutdown += (c, args) =>
@@ -92,6 +92,25 @@ namespace RabbitMQ.Client.Unit {
             Assert.IsTrue(Model.IsOpen);
             CloseAndWaitForRecovery();
             Assert.IsTrue(Model.IsOpen);
+        }
+
+        [Test]
+        public void TestShutdownEventHandlersRecoveryOnModel()
+        {
+            Int32 counter = 0;
+            Model.ModelShutdown += (c, args) =>
+            {
+                Interlocked.Increment(ref counter);
+            };
+
+            Assert.IsTrue(Model.IsOpen);
+            CloseAndWaitForRecovery();
+            CloseAndWaitForRecovery();
+            CloseAndWaitForRecovery();
+            CloseAndWaitForRecovery();
+            Assert.IsTrue(Model.IsOpen);
+
+            Assert.IsTrue(counter >= 3);
         }
 
 

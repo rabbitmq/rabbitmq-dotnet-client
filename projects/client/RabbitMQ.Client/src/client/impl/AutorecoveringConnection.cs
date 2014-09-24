@@ -62,6 +62,9 @@ namespace RabbitMQ.Client.Framing.Impl
             new List<ConnectionBlockedEventHandler>();
         protected List<ConnectionUnblockedEventHandler> m_recordedUnblockedEventHandlers =
             new List<ConnectionUnblockedEventHandler>();
+        protected List<AutorecoveringModel> m_models =
+            new List<AutorecoveringModel>();
+
 
         public AutorecoveringConnection(ConnectionFactory factory)
         {
@@ -293,7 +296,21 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public IModel CreateModel()
         {
-            return new AutorecoveringModel(this, (Model)this.CreateNonRecoveringModel());
+            AutorecoveringModel m;
+            lock(this)
+            {
+                m = new AutorecoveringModel(this, (Model)this.CreateNonRecoveringModel());
+                m_models.Add(m);
+            }
+            return m;
+        }
+
+        public void UnregisterModel(AutorecoveringModel model)
+        {
+            lock(this)
+            {
+                m_models.Remove(model);
+            }
         }
 
         protected IModel CreateNonRecoveringModel()
@@ -383,6 +400,8 @@ namespace RabbitMQ.Client.Framing.Impl
             this.RecoverConnectionBlockedHandlers();
             this.RecoverConnectionUnblockedHandlers();
 
+            this.RecoverModels();
+
             this.RunRecoveryEventHandlers();
         }
 
@@ -428,6 +447,14 @@ namespace RabbitMQ.Client.Framing.Impl
                     args.Detail["context"] = "OnRecovery";
                     this.m_delegate.OnCallbackException(args);
                 }
+            }
+        }
+
+        protected void RecoverModels()
+        {
+            foreach(var m in this.m_models)
+            {
+                m.AutomaticallyRecover(this, this.m_delegate);
             }
         }
     }

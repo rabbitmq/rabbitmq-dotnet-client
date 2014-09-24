@@ -49,8 +49,11 @@ namespace RabbitMQ.Client.Impl
 {
     public class AutorecoveringModel : IFullModel, IRecoverable
     {
-        AutorecoveringConnection m_connection;
-        Model m_delegate;
+        protected AutorecoveringConnection m_connection;
+        protected Model m_delegate;
+
+        protected List<ModelShutdownEventHandler> m_recordedShutdownEventHandlers =
+            new List<ModelShutdownEventHandler>();
 
         public AutorecoveringModel(AutorecoveringConnection conn, Model _delegate)
         {
@@ -63,6 +66,8 @@ namespace RabbitMQ.Client.Impl
             this.m_connection = conn;
             this.m_delegate   = (Model)connDelegate.CreateModel();
             // TODO: inherit ack offset
+
+            this.RecoverModelShutdownHandlers();
         }
 
 
@@ -71,11 +76,12 @@ namespace RabbitMQ.Client.Impl
         {
             add
             {
-                // TODO: record and re-add handlers
+                m_recordedShutdownEventHandlers.Add(value);
                 m_delegate.ModelShutdown += value;
             }
             remove
             {
+                m_recordedShutdownEventHandlers.Remove(value);
                 m_delegate.ModelShutdown -= value;
             }
         }
@@ -171,6 +177,14 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public int ChannelNumber
+        {
+            get
+            {
+                return m_delegate.ChannelNumber;
+            }
+        }
+
         public IBasicConsumer DefaultConsumer
         {
             get
@@ -193,32 +207,71 @@ namespace RabbitMQ.Client.Impl
 
         public void Close()
         {
-            m_delegate.Close();
+            try
+            {
+                m_delegate.Close();
+            } finally
+            {
+                m_connection.UnregisterModel(this);
+            }
+            
         }
 
         public void Close(ushort replyCode, string replyText)
         {
-            m_delegate.Close(replyCode, replyText);
+            try
+            {
+                m_delegate.Close(replyCode, replyText);
+            } finally
+            {
+                m_connection.UnregisterModel(this);
+            }
         }
 
         public void Abort()
         {
-            m_delegate.Abort();
+            try {
+                m_delegate.Abort();
+            } finally
+            {
+                m_connection.UnregisterModel(this);
+            }
         }
 
         public void Abort(ushort replyCode, string replyText)
         {
-            m_delegate.Abort(replyCode, replyText);
+            try
+            {
+                m_delegate.Abort(replyCode, replyText);
+            }
+            finally
+            {
+                m_connection.UnregisterModel(this);
+            }
         }
 
         public void Close(ushort replyCode, string replyText, bool abort)
         {
-            m_delegate.Close(replyCode, replyText, abort);
+            try
+            {
+                m_delegate.Close(replyCode, replyText, abort);
+            }
+            finally
+            {
+                m_connection.UnregisterModel(this);
+            }
         }
 
         public void Close(ShutdownEventArgs reason, bool abort)
         {
-            m_delegate.Close(reason, abort);
+            try
+            {
+                m_delegate.Close(reason, abort);
+            }
+            finally
+            {
+                m_connection.UnregisterModel(this);
+            }
         }
 
         public void HandleChannelCloseOk()
@@ -794,6 +847,14 @@ namespace RabbitMQ.Client.Impl
         }
 
 
+        protected void RecoverModelShutdownHandlers()
+        {
+            foreach(var eh in this.m_recordedShutdownEventHandlers)
+            {
+                this.m_delegate.ModelShutdown += eh;
+            }
+        }
+
 
         public void _Private_ExchangeDeclare(string exchange,
                                              string type,
@@ -1005,6 +1066,5 @@ namespace RabbitMQ.Client.Impl
         {
             m_delegate._Private_ConnectionCloseOk();
         }
-
     }
 }
