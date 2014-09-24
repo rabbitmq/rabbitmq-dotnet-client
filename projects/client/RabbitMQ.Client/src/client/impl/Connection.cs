@@ -52,9 +52,9 @@ using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
 
-using RabbitMQ.Client.Framing.v0_9_1;
+using RabbitMQ.Client.Framing;
 
-namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
+namespace RabbitMQ.Client.Framing.Impl {
     public class Connection : IConnection, NetworkConnection
     {
         ///<summary>Heartbeat frame for transmission. Reusable across connections.</summary>

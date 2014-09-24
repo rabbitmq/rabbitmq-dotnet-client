@@ -46,7 +46,7 @@ using RabbitMQ.Client.Impl;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 
-namespace RabbitMQ.Client.Framing.Impl.v0_9_1
+namespace RabbitMQ.Client.Framing.Impl
 {
     public class AutorecoveringConnection : IConnection, NetworkConnection, IRecoverable
     {
@@ -292,6 +292,11 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1
         }
 
         public IModel CreateModel()
+        {
+            return new AutorecoveringModel(this, (Model)this.CreateNonRecoveringModel());
+        }
+
+        protected IModel CreateNonRecoveringModel()
         {
             return m_delegate.CreateModel();
         }

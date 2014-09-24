@@ -260,6 +260,14 @@ namespace RabbitMQ.Client.Impl
             m_session.SessionShutdown += new SessionShutdownEventHandler(OnSessionShutdown);
         }
 
+        public ISession Session
+        {
+            get
+            {
+                return m_session;
+            }
+        }
+
         public void HandleCommand(ISession session, Command cmd)
         {
             if (DispatchAsynchronous(cmd))

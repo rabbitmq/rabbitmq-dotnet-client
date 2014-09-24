@@ -86,6 +86,15 @@ namespace RabbitMQ.Client.Unit {
             Assert.IsTrue(counter >= 3);
         }
 
+        [Test]
+        public void TestBasicModelRecovery()
+        {
+            Assert.IsTrue(Model.IsOpen);
+            CloseAndWaitForRecovery();
+            Assert.IsTrue(Model.IsOpen);
+        }
+
+
         //
         // Implementation
         // 

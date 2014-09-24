@@ -43,7 +43,7 @@ using RabbitMQ.Client.Impl;
 using RabbitMQ.Util;
 using System.Collections.Generic;
 
-namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
+namespace RabbitMQ.Client.Framing.Impl {
     public abstract class ProtocolBase : IProtocol {
 
         public abstract int MajorVersion { get; }
@@ -99,11 +99,11 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
                                           out int replyClassId,
                                           out int replyMethodId)
         {
-            request = new Command(new RabbitMQ.Client.Framing.Impl.v0_9_1.ConnectionClose(reasonCode,
+            request = new Command(new RabbitMQ.Client.Framing.Impl.ConnectionClose(reasonCode,
                                                                                           reasonText,
                                                                                           0, 0));
-            replyClassId = RabbitMQ.Client.Framing.Impl.v0_9_1.ConnectionCloseOk.ClassId;
-            replyMethodId = RabbitMQ.Client.Framing.Impl.v0_9_1.ConnectionCloseOk.MethodId;
+            replyClassId = RabbitMQ.Client.Framing.Impl.ConnectionCloseOk.ClassId;
+            replyMethodId = RabbitMQ.Client.Framing.Impl.ConnectionCloseOk.MethodId;
         }
 
         public void CreateChannelClose(ushort reasonCode,
@@ -112,16 +112,16 @@ namespace RabbitMQ.Client.Framing.Impl.v0_9_1 {
                                                 out int replyClassId,
                                                 out int replyMethodId)
         {
-            request = new Command(new RabbitMQ.Client.Framing.Impl.v0_9_1.ChannelClose(reasonCode,
+            request = new Command(new RabbitMQ.Client.Framing.Impl.ChannelClose(reasonCode,
                                                                                        reasonText,
                                                                                        0, 0));
-            replyClassId = RabbitMQ.Client.Framing.Impl.v0_9_1.ChannelCloseOk.ClassId;
-            replyMethodId = RabbitMQ.Client.Framing.Impl.v0_9_1.ChannelCloseOk.MethodId;
+            replyClassId = RabbitMQ.Client.Framing.Impl.ChannelCloseOk.ClassId;
+            replyMethodId = RabbitMQ.Client.Framing.Impl.ChannelCloseOk.MethodId;
         }
 
         public bool CanSendWhileClosed(Command cmd)
         {
-            return cmd.m_method is RabbitMQ.Client.Framing.Impl.v0_9_1.ChannelCloseOk;
+            return cmd.m_method is RabbitMQ.Client.Framing.Impl.ChannelCloseOk;
         }
 
         public AmqpVersion Version {
