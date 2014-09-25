@@ -77,14 +77,24 @@ namespace RabbitMQ.Client.Framing.Impl
 
             var self = this;
             ConnectionShutdownEventHandler recoveryListener = (_, args) =>
-            {
-                if(args.Initiator == ShutdownInitiator.Peer)
                 {
-                    self.BeginAutomaticRecovery();
-                }
-            };
-            this.ConnectionShutdown += recoveryListener;
-            this.m_recordedShutdownEventHandlers.Add(recoveryListener);
+                    if(args.Initiator == ShutdownInitiator.Peer)
+                    {
+                        try
+                        {
+                            self.BeginAutomaticRecovery();
+                        } catch (Exception e)
+                        {
+                            // TODO: logging
+                            Console.WriteLine("BeginAutomaticRecovery() failed: {0}", e);
+                        }
+                    }
+                };
+            lock(this.m_eventLock)
+            {
+                this.ConnectionShutdown += recoveryListener;
+                this.m_recordedShutdownEventHandlers.Add(recoveryListener);
+            }
         }
 
 
@@ -92,13 +102,19 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             add
             {
-                m_recordedShutdownEventHandlers.Add(value);
-                m_delegate.ConnectionShutdown += value;
+                lock(this.m_eventLock)
+                {
+                    m_recordedShutdownEventHandlers.Add(value);
+                    m_delegate.ConnectionShutdown += value;
+                }
             }
             remove
             {
-                m_recordedShutdownEventHandlers.Remove(value);
-                m_delegate.ConnectionShutdown -= value;
+                lock(this.m_eventLock)
+                {
+                    m_recordedShutdownEventHandlers.Remove(value);
+                    m_delegate.ConnectionShutdown -= value;
+                }
             }
         }
 
@@ -106,13 +122,19 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             add
             {
-                m_recordedBlockedEventHandlers.Add(value);
-                m_delegate.ConnectionBlocked += value;
+                lock(this.m_eventLock)
+                {
+                    m_recordedBlockedEventHandlers.Add(value);
+                    m_delegate.ConnectionBlocked += value;
+                }
             }
             remove
             {
-                m_recordedBlockedEventHandlers.Remove(value);
-                m_delegate.ConnectionBlocked -= value;
+                lock(this.m_eventLock)
+                {
+                    m_recordedBlockedEventHandlers.Remove(value);
+                    m_delegate.ConnectionBlocked -= value;
+                }
             }
         }
 
@@ -120,13 +142,19 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             add
             {
-                m_recordedUnblockedEventHandlers.Add(value);
-                m_delegate.ConnectionUnblocked += value;
+                lock(this.m_eventLock)
+                {
+                    m_recordedUnblockedEventHandlers.Add(value);
+                    m_delegate.ConnectionUnblocked += value;
+                }
             }
             remove
             {
-                m_recordedUnblockedEventHandlers.Remove(value);
-                m_delegate.ConnectionUnblocked -= value;
+                lock(this.m_eventLock)
+                {
+                    m_recordedUnblockedEventHandlers.Remove(value);
+                    m_delegate.ConnectionUnblocked -= value;
+                }
             }
         }
 
@@ -412,40 +440,56 @@ namespace RabbitMQ.Client.Framing.Impl
 
         protected void RecoverConnectionShutdownHandlers()
         {
-            foreach(var eh in this.m_recordedShutdownEventHandlers)
+            var handler = this.m_recordedShutdownEventHandlers;
+            if(handler != null)
             {
-                this.m_delegate.ConnectionShutdown += eh;
+                foreach(var eh in handler)
+                {
+                    this.m_delegate.ConnectionShutdown += eh;
+                }
             }
         }
 
         protected void RecoverConnectionBlockedHandlers()
         {
-            foreach(var eh in this.m_recordedBlockedEventHandlers)
+            var handler = this.m_recordedBlockedEventHandlers;
+            if(handler != null)
             {
-                this.m_delegate.ConnectionBlocked += eh;
+                foreach(var eh in handler)
+                {
+                    this.m_delegate.ConnectionBlocked += eh;
+                }
             }
         }
 
         protected void RecoverConnectionUnblockedHandlers()
         {
-            foreach(var eh in this.m_recordedUnblockedEventHandlers)
+            var handler = this.m_recordedUnblockedEventHandlers;
+            if(handler != null)
             {
-                this.m_delegate.ConnectionUnblocked += eh;
+                foreach(var eh in handler)
+                {
+                    this.m_delegate.ConnectionUnblocked += eh;
+                }
             }
         }
 
         protected void RunRecoveryEventHandlers()
         {
-            foreach(RecoveryEventHandler reh in m_recovery.GetInvocationList())
+            var handler = m_recovery;
+            if(handler != null)
             {
-                try
+                foreach(RecoveryEventHandler reh in handler.GetInvocationList())
                 {
-                    reh(this);
-                } catch (Exception e)
-                {
-                    var args = new CallbackExceptionEventArgs(e);
-                    args.Detail["context"] = "OnRecovery";
-                    this.m_delegate.OnCallbackException(args);
+                    try
+                    {
+                        reh(this);
+                    } catch (Exception e)
+                    {
+                        var args = new CallbackExceptionEventArgs(e);
+                        args.Detail["context"] = "OnConnectionRecovery";
+                        this.m_delegate.OnCallbackException(args);
+                    }
                 }
             }
         }

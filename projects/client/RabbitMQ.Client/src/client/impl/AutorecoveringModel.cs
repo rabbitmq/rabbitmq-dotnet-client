@@ -52,6 +52,8 @@ namespace RabbitMQ.Client.Impl
         protected AutorecoveringConnection m_connection;
         protected Model m_delegate;
 
+        private RecoveryEventHandler m_recovery;
+
         protected List<ModelShutdownEventHandler> m_recordedShutdownEventHandlers =
             new List<ModelShutdownEventHandler>();
 
@@ -68,6 +70,8 @@ namespace RabbitMQ.Client.Impl
             // TODO: inherit ack offset
 
             this.RecoverModelShutdownHandlers();
+
+            this.RunRecoveryEventHandlers();
         }
 
 
@@ -168,12 +172,11 @@ namespace RabbitMQ.Client.Impl
         {
             add
             {
-                // TODO: record and re-add handlers
-                m_delegate.Recovery += value;
+                this.m_recovery += value;
             }
             remove
             {
-                m_delegate.Recovery -= value;
+                this.m_recovery -= value;
             }
         }
 
@@ -849,9 +852,33 @@ namespace RabbitMQ.Client.Impl
 
         protected void RecoverModelShutdownHandlers()
         {
-            foreach(var eh in this.m_recordedShutdownEventHandlers)
+            var handler = this.m_recordedShutdownEventHandlers;
+            if(handler != null)
             {
-                this.m_delegate.ModelShutdown += eh;
+                foreach(var eh in handler)
+                {
+                    this.m_delegate.ModelShutdown += eh;
+                }
+            }
+        }
+
+        protected void RunRecoveryEventHandlers()
+        {
+            var handler = m_recovery;
+            if(handler != null)
+            {
+                foreach(RecoveryEventHandler reh in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        reh(this);
+                    } catch (Exception e)
+                    {
+                        var args = new CallbackExceptionEventArgs(e);
+                        args.Detail["context"] = "OnModelRecovery";
+                        this.m_delegate.OnCallbackException(args);
+                    }
+                }
             }
         }
 
