@@ -60,7 +60,7 @@
 
   <!-- Running the tests -->
   <Target Name="RunUnitTests" DependsOnTargets="Build;ImportSSL">
-    <Exec Command='$(MonoNunitTempSetting)$(PropLaunchExe)..\..\..\lib\nunit\nunit-console.exe "build\bin\$(AssemblyName).dll"' WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="false" />
+    <Exec Command='$(MonoNunitTempSetting)$(PropLaunchExe)..\..\..\lib\nunit\nunit-console.exe -config=Debug "build\bin\$(AssemblyName).dll"' WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="false" />
   </Target>
   
   <!-- Clean test result file -->
