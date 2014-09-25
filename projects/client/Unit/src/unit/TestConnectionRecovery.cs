@@ -44,6 +44,7 @@ using System;
 using System.Text;
 using System.Threading;
 
+using RabbitMQ.Client.Impl;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Events;
 
@@ -55,7 +56,7 @@ namespace RabbitMQ.Client.Unit {
         {
             ConnectionFactory connFactory = new ConnectionFactory();
             connFactory.AutomaticRecoveryEnabled = true;
-            Conn = connFactory.CreateConnection();
+            Conn = (AutorecoveringConnection)connFactory.CreateConnection();
             Model = Conn.CreateModel();
         }
 
@@ -77,6 +78,24 @@ namespace RabbitMQ.Client.Unit {
             };
 
             Assert.IsTrue(Conn.IsOpen);
+            CloseAndWaitForRecovery();
+            CloseAndWaitForRecovery();
+            CloseAndWaitForRecovery();
+            CloseAndWaitForRecovery();
+            Assert.IsTrue(Conn.IsOpen);
+
+            Assert.IsTrue(counter >= 3);
+        }
+
+        [Test]
+        public void TestRecoveryEventHandlersOnConnection()
+        {
+            Int32 counter = 0;
+            ((AutorecoveringConnection)Conn).Recovery += (c) =>
+            {
+                Interlocked.Increment(ref counter);
+            };
+
             CloseAndWaitForRecovery();
             CloseAndWaitForRecovery();
             CloseAndWaitForRecovery();
@@ -113,6 +132,24 @@ namespace RabbitMQ.Client.Unit {
             Assert.IsTrue(counter >= 3);
         }
 
+        [Test]
+        public void TestRecoveryEventHandlersOnModel()
+        {
+            Int32 counter = 0;
+            ((AutorecoveringModel)Model).Recovery += (m) =>
+            {
+                Interlocked.Increment(ref counter);
+            };
+
+            CloseAndWaitForRecovery();
+            CloseAndWaitForRecovery();
+            CloseAndWaitForRecovery();
+            CloseAndWaitForRecovery();
+            Assert.IsTrue(Model.IsOpen);
+
+            Assert.IsTrue(counter >= 3);
+        }
+
 
         //
         // Implementation
@@ -125,45 +162,38 @@ namespace RabbitMQ.Client.Unit {
 
         protected void CloseAndWaitForRecovery(AutorecoveringConnection conn)
         {
-            object latch = PrepareForRecovery(conn);
+            var sl = PrepareForShutdown(conn);
+            var rl = PrepareForRecovery(conn);
             CloseConnection(conn);
-            Wait(latch);
+            Wait(sl);
+            Wait(rl);
         }
 
-        protected object PrepareForShutdown(AutorecoveringConnection conn)
+        protected AutoResetEvent PrepareForShutdown(AutorecoveringConnection conn)
         {
-            object latch = new object();
+            var latch = new AutoResetEvent(false);
             conn.ConnectionShutdown += (c, args) =>
             {
-                lock (latch)
-                {
-                    Monitor.PulseAll(latch);
-                }
+                latch.Set();
             };
 
             return latch;
         }
 
-        protected object PrepareForRecovery(AutorecoveringConnection conn)
+        protected AutoResetEvent PrepareForRecovery(AutorecoveringConnection conn)
         {
-            object latch = new object();
+            var latch = new AutoResetEvent(false);
             conn.Recovery += (c) =>
             {
-                lock (latch)
-                {
-                    Monitor.PulseAll(latch);
-                }
+                latch.Set();
             };
 
             return latch;
         }
 
-        protected void Wait(object latch)
+        protected void Wait(AutoResetEvent latch)
         {
-            lock (latch)
-            {
-                Monitor.Wait(latch, TimeSpan.FromSeconds(8));
-            }
+            Assert.IsTrue(latch.WaitOne(TimeSpan.FromSeconds(4)));
         }
             
     }
