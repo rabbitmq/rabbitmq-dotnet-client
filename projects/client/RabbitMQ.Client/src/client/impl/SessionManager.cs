@@ -150,7 +150,6 @@ namespace RabbitMQ.Client.Impl
 
         public void HandleSessionShutdown(ISession session, ShutdownEventArgs reason)
         {
-            //Console.WriteLine("SessionManager removing session "+session);
             lock (m_sessionMap)
             {
                 m_sessionMap.Remove(session.ChannelNumber);

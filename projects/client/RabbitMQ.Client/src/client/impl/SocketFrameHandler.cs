@@ -207,8 +207,6 @@ namespace RabbitMQ.Client.Impl
             {
                 frame.WriteTo(m_writer);
                 m_writer.Flush();
-                //Console.WriteLine("OUTBOUND:");
-                //DebugUtil.DumpProperties(frame, Console.Out, 2);
             }
         }
 

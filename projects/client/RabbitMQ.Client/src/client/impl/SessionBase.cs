@@ -83,7 +83,6 @@ namespace RabbitMQ.Client.Impl
 
         public virtual void OnSessionShutdown(ShutdownEventArgs reason)
         {
-            //Console.WriteLine("Session shutdown "+ChannelNumber+": "+reason);
             m_connection.ConnectionShutdown -=
                 new ConnectionShutdownEventHandler(this.OnConnectionShutdown);
             SessionShutdownEventHandler handler;
