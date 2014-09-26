@@ -289,11 +289,20 @@ namespace RabbitMQ.Client.Unit
         protected void Block()
         {
             ExecRabbitMQCtl("set_vm_memory_high_watermark 0.000000001");
+            // give rabbitmqctl some time to do its job
+            Thread.Sleep(800);
+            Publish(Conn);
         }
 
         protected void Unblock()
         {
             ExecRabbitMQCtl("set_vm_memory_high_watermark 0.4");
+        }
+
+        protected void Publish(IConnection conn)
+        {
+            IModel ch = conn.CreateModel();
+            ch.BasicPublish("amq.fanout", "", null, enc.GetBytes("message"));
         }
 
         //

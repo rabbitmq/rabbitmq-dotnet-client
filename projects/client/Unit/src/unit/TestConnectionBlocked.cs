@@ -61,9 +61,6 @@ namespace RabbitMQ.Client.Unit {
             Conn.ConnectionUnblocked += HandleUnblocked;
 
             Block();
-            // give rabbitmqctl some time to do its job
-            Thread.Sleep(800);
-            Publish(Conn);
             lock (lockObject) {
                 if(!notified) {
                     Monitor.Wait(lockObject, TimeSpan.FromSeconds(8));
@@ -91,12 +88,6 @@ namespace RabbitMQ.Client.Unit {
                 notified = true;
                 Monitor.PulseAll(lockObject);
             }
-        }
-
-        protected void Publish(IConnection conn)
-        {
-            IModel ch = conn.CreateModel();
-            ch.BasicPublish("amq.fanout", "", null, enc.GetBytes("message"));
         }
 
         protected override void ReleaseResources()

@@ -106,6 +106,23 @@ namespace RabbitMQ.Client.Unit {
         }
 
         [Test]
+        public void TestBlockedListenersRecovery()
+        {
+            var latch = new AutoResetEvent(false);
+            Conn.ConnectionBlocked += (c, reason) =>
+            {
+                latch.Set();
+            };
+            CloseAndWaitForRecovery();
+            CloseAndWaitForRecovery();
+
+            Block();
+            Wait(latch);
+
+            Unblock();
+        }
+
+        [Test]
         public void TestBasicModelRecovery()
         {
             Assert.IsTrue(Model.IsOpen);
@@ -153,7 +170,7 @@ namespace RabbitMQ.Client.Unit {
 
         //
         // Implementation
-        // 
+        //
 
         protected void CloseAndWaitForRecovery()
         {
@@ -193,8 +210,12 @@ namespace RabbitMQ.Client.Unit {
 
         protected void Wait(AutoResetEvent latch)
         {
-            Assert.IsTrue(latch.WaitOne(TimeSpan.FromSeconds(4)));
+            Assert.IsTrue(latch.WaitOne(TimeSpan.FromSeconds(8)));
         }
-            
+
+        protected override void ReleaseResources()
+        {
+            Unblock();
+        }
     }
 }
