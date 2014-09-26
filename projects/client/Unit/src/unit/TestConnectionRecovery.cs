@@ -123,6 +123,22 @@ namespace RabbitMQ.Client.Unit {
         }
 
         [Test]
+        public void TestUnblockedListenersRecovery()
+        {
+            var latch = new AutoResetEvent(false);
+            Conn.ConnectionUnblocked += (c) =>
+            {
+                latch.Set();
+            };
+            CloseAndWaitForRecovery();
+            CloseAndWaitForRecovery();
+
+            Block();
+            Unblock();
+            Wait(latch);
+        }
+
+        [Test]
         public void TestBasicModelRecovery()
         {
             Assert.IsTrue(Model.IsOpen);
