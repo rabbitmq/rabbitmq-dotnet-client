@@ -52,10 +52,14 @@ namespace RabbitMQ.Client.Impl
         protected AutorecoveringConnection m_connection;
         protected Model m_delegate;
 
+        public readonly object m_eventLock = new object();
+
         private RecoveryEventHandler m_recovery;
 
         protected List<ModelShutdownEventHandler> m_recordedShutdownEventHandlers =
             new List<ModelShutdownEventHandler>();
+        protected List<BasicReturnEventHandler> m_recordedBasicReturnEventHandlers =
+            new List<BasicReturnEventHandler>();
 
         public AutorecoveringModel(AutorecoveringConnection conn, Model _delegate)
         {
@@ -70,6 +74,7 @@ namespace RabbitMQ.Client.Impl
             // TODO: inherit ack offset
 
             this.RecoverModelShutdownHandlers();
+            this.RecoverBasicReturnHandlers();
 
             this.RunRecoveryEventHandlers();
         }
@@ -80,13 +85,19 @@ namespace RabbitMQ.Client.Impl
         {
             add
             {
-                m_recordedShutdownEventHandlers.Add(value);
-                m_delegate.ModelShutdown += value;
+                lock(this.m_eventLock)
+                {
+                    m_recordedShutdownEventHandlers.Add(value);
+                    m_delegate.ModelShutdown += value;
+                }
             }
             remove
             {
-                m_recordedShutdownEventHandlers.Remove(value);
-                m_delegate.ModelShutdown -= value;
+                lock(this.m_eventLock)
+                {
+                    m_recordedShutdownEventHandlers.Remove(value);
+                    m_delegate.ModelShutdown -= value;
+                }
             }
         }
 
@@ -94,12 +105,19 @@ namespace RabbitMQ.Client.Impl
         {
             add
             {
-                // TODO: record and re-add handlers
-                m_delegate.BasicReturn += value;
+                lock(this.m_eventLock)
+                {
+                    m_recordedBasicReturnEventHandlers.Add(value);
+                    m_delegate.BasicReturn += value;
+                }
             }
             remove
             {
-                m_delegate.BasicReturn -= value;
+                lock(this.m_eventLock)
+                {
+                    m_recordedBasicReturnEventHandlers.Remove(value);
+                    m_delegate.BasicReturn -= value;
+                }
             }
         }
 
@@ -858,6 +876,18 @@ namespace RabbitMQ.Client.Impl
                 foreach(var eh in handler)
                 {
                     this.m_delegate.ModelShutdown += eh;
+                }
+            }
+        }
+
+        protected void RecoverBasicReturnHandlers()
+        {
+            var handler = this.m_recordedBasicReturnEventHandlers;
+            if(handler != null)
+            {
+                foreach(var eh in handler)
+                {
+                    this.m_delegate.BasicReturn += eh;
                 }
             }
         }
