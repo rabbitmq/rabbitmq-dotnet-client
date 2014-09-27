@@ -60,6 +60,17 @@ namespace RabbitMQ.Client.Impl
             new List<ModelShutdownEventHandler>();
         protected List<BasicReturnEventHandler> m_recordedBasicReturnEventHandlers =
             new List<BasicReturnEventHandler>();
+        protected List<BasicAckEventHandler> m_recordedBasicAckEventHandlers =
+            new List<BasicAckEventHandler>();
+        protected List<BasicNackEventHandler> m_recordedBasicNackEventHandlers =
+            new List<BasicNackEventHandler>();
+        protected List<CallbackExceptionEventHandler> m_recordedCallbackExceptionEventHandlers =
+            new List<CallbackExceptionEventHandler>();
+
+        protected ushort prefetchCountConsumer = 0;
+        protected ushort prefetchCountGlobal   = 0;
+        protected bool usesPublisherConfirms   = false;
+        protected bool usesTransactions        = false;
 
         public AutorecoveringModel(AutorecoveringConnection conn, Model _delegate)
         {
@@ -74,7 +85,12 @@ namespace RabbitMQ.Client.Impl
             // TODO: inherit ack offset
 
             this.RecoverModelShutdownHandlers();
+            this.RecoverState();
+
             this.RecoverBasicReturnHandlers();
+            this.RecoverBasicAckHandlers();
+            this.RecoverBasicNackHandlers();
+            this.RecoverCallbackExceptionHandlers();
 
             this.RunRecoveryEventHandlers();
         }
@@ -125,12 +141,19 @@ namespace RabbitMQ.Client.Impl
         {
             add
             {
-                // TODO: record and re-add handlers
-                m_delegate.BasicAcks += value;
+                lock(this.m_eventLock)
+                {
+                    m_recordedBasicAckEventHandlers.Add(value);
+                    m_delegate.BasicAcks += value;
+                }
             }
             remove
             {
-                m_delegate.BasicAcks -= value;
+                lock(this.m_eventLock)
+                {
+                    m_recordedBasicAckEventHandlers.Remove(value);
+                    m_delegate.BasicAcks -= value;
+                }
             }
         }
 
@@ -138,12 +161,19 @@ namespace RabbitMQ.Client.Impl
         {
             add
             {
-                // TODO: record and re-add handlers
-                m_delegate.BasicNacks += value;
+                lock(this.m_eventLock)
+                {
+                    m_recordedBasicNackEventHandlers.Add(value);
+                    m_delegate.BasicNacks += value;
+                }
             }
             remove
             {
-                m_delegate.BasicNacks -= value;
+                lock(this.m_eventLock)
+                {
+                    m_recordedBasicNackEventHandlers.Remove(value);
+                    m_delegate.BasicNacks -= value;
+                }
             }
         }
 
@@ -151,12 +181,19 @@ namespace RabbitMQ.Client.Impl
         {
             add
             {
-                // TODO: record and re-add handlers
-                m_delegate.CallbackException += value;
+                lock(this.m_eventLock)
+                {
+                    m_recordedCallbackExceptionEventHandlers.Add(value);
+                    m_delegate.CallbackException += value;
+                }
             }
             remove
             {
-                m_delegate.CallbackException -= value;
+                lock(this.m_eventLock)
+                {
+                    m_recordedCallbackExceptionEventHandlers.Remove(value);
+                    m_delegate.CallbackException -= value;
+                }
             }
         }
 
@@ -235,7 +272,7 @@ namespace RabbitMQ.Client.Impl
             {
                 m_connection.UnregisterModel(this);
             }
-            
+
         }
 
         public void Close(ushort replyCode, string replyText)
@@ -605,6 +642,7 @@ namespace RabbitMQ.Client.Impl
 
         public void ConfirmSelect()
         {
+            this.usesPublisherConfirms = true;
             m_delegate.ConfirmSelect();
         }
 
@@ -690,10 +728,23 @@ namespace RabbitMQ.Client.Impl
             m_delegate.BasicRecover(requeue);
         }
 
+        public void BasicQos(ushort prefetchCount,
+                             bool global)
+        {
+            m_delegate.BasicQos(0, prefetchCount, global);
+        }
+
         public void BasicQos(uint prefetchSize,
                              ushort prefetchCount,
                              bool global)
         {
+            if(global)
+            {
+                this.prefetchCountGlobal = prefetchCount;
+            } else
+            {
+                this.prefetchCountConsumer = prefetchCount;
+            }
             m_delegate.BasicQos(prefetchSize, prefetchCount, global);
         }
 
@@ -769,6 +820,7 @@ namespace RabbitMQ.Client.Impl
 
         public void TxSelect()
         {
+            this.usesTransactions = true;
             m_delegate.TxSelect();
         }
 
@@ -889,6 +941,65 @@ namespace RabbitMQ.Client.Impl
                 {
                     this.m_delegate.BasicReturn += eh;
                 }
+            }
+        }
+
+        protected void RecoverBasicAckHandlers()
+        {
+            var handler = this.m_recordedBasicAckEventHandlers;
+            if(handler != null)
+            {
+                foreach(var eh in handler)
+                {
+                    this.m_delegate.BasicAcks += eh;
+                }
+            }
+        }
+
+        protected void RecoverBasicNackHandlers()
+        {
+            var handler = this.m_recordedBasicNackEventHandlers;
+            if(handler != null)
+            {
+                foreach(var eh in handler)
+                {
+                    this.m_delegate.BasicNacks += eh;
+                }
+            }
+        }
+
+        protected void RecoverCallbackExceptionHandlers()
+        {
+            var handler = this.m_recordedCallbackExceptionEventHandlers;
+            if(handler != null)
+            {
+                foreach(var eh in handler)
+                {
+                    this.m_delegate.CallbackException += eh;
+                }
+            }
+        }
+
+        protected void RecoverState()
+        {
+            if(prefetchCountConsumer != 0)
+            {
+                BasicQos(prefetchCountConsumer, false);
+            }
+
+            if(prefetchCountGlobal != 0)
+            {
+                BasicQos(prefetchCountGlobal, true);
+            }
+
+            if(usesPublisherConfirms)
+            {
+                ConfirmSelect();
+            }
+
+            if(usesTransactions)
+            {
+                TxSelect();
             }
         }
 

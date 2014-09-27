@@ -183,6 +183,28 @@ namespace RabbitMQ.Client.Unit {
             Assert.IsTrue(counter >= 3);
         }
 
+        [Test]
+        public void TestBasicAckEventHandlerRecovery()
+        {
+            Model.ConfirmSelect();
+            var latch = new AutoResetEvent(false);
+            ((AutorecoveringModel)Model).BasicAcks += (m, args) =>
+            {
+                latch.Set();
+            };
+            ((AutorecoveringModel)Model).BasicNacks += (m, args) =>
+            {
+                latch.Set();
+            };
+
+            CloseAndWaitForRecovery();
+            CloseAndWaitForRecovery();
+            Assert.IsTrue(Model.IsOpen);
+
+            WithTemporaryQueue(Model, (m, q) => { m.BasicPublish("", q, null, enc.GetBytes("")); });
+            Wait(latch);
+        }
+
 
         //
         // Implementation
