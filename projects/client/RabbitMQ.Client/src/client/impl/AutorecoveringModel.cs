@@ -504,7 +504,14 @@ namespace RabbitMQ.Client.Impl
                                           bool autoDelete,
                                           IDictionary<string, object> arguments)
         {
-            m_delegate.ExchangeDeclareNoWait(exchange, type, durable, autoDelete, arguments);
+            var rx = new RecordedExchange(this, exchange).
+                Type(type).
+                Durable(durable).
+                AutoDelete(autoDelete).
+                Arguments(arguments);
+            m_delegate.ExchangeDeclareNoWait(exchange, type, durable,
+                                             autoDelete, arguments);
+            m_connection.RecordExchange(exchange, rx);
         }
 
         public void ExchangeDelete(string exchange,
@@ -523,6 +530,7 @@ namespace RabbitMQ.Client.Impl
                                          bool ifUnused)
         {
             m_delegate.ExchangeDeleteNoWait(exchange, ifUnused);
+            m_connection.DeleteRecordedExchange(exchange);
         }
 
         public void ExchangeBind(string destination,

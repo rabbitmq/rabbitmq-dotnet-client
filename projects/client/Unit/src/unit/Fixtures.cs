@@ -140,6 +140,12 @@ namespace RabbitMQ.Client.Unit
             return x;
         }
 
+        protected string DeclareNonDurableExchangeNoWait(IModel m, string x)
+        {
+            m.ExchangeDeclareNoWait(x, "fanout", false, false, null);
+            return x;
+        }
+
         //
         // Queues
         //

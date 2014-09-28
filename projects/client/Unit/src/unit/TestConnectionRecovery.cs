@@ -215,6 +215,16 @@ namespace RabbitMQ.Client.Unit {
             Model.ExchangeDelete(x);
         }
 
+        [Test]
+        public void TestExchangeRecoveryWithNoWait()
+        {
+            var x = "dotnet-client.test.recovery.x1-nowait";
+            DeclareNonDurableExchangeNoWait(Model, x);
+            CloseAndWaitForRecovery();
+            AssertExchangeRecovery(Model, x);
+            Model.ExchangeDelete(x);
+        }
+
 
         //
         // Implementation
