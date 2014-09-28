@@ -1093,6 +1093,12 @@ namespace RabbitMQ.Client.Impl
             return WaitForConfirms(TimeSpan.FromMilliseconds(Timeout.Infinite), out timedOut);
         }
 
+        public bool WaitForConfirms(TimeSpan timeout)
+        {
+            bool timedOut;
+            return WaitForConfirms(timeout, out timedOut);
+        }
+
         public void WaitForConfirmsOrDie()
         {
             WaitForConfirmsOrDie(TimeSpan.FromMilliseconds(Timeout.Infinite));

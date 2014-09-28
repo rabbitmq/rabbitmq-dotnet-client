@@ -115,6 +115,11 @@ namespace RabbitMQ.Client.Unit
             fn(m);
         }
 
+        protected bool WaitForConfirms(IModel m)
+        {
+            return m.WaitForConfirms(TimeSpan.FromSeconds(4));
+        }
+
         //
         // Exchanges
         //
@@ -127,6 +132,12 @@ namespace RabbitMQ.Client.Unit
         protected byte[] RandomMessageBody()
         {
             return enc.GetBytes(Guid.NewGuid().ToString());
+        }
+
+        protected string DeclareNonDurableExchange(IModel m, string x)
+        {
+            m.ExchangeDeclare(x, "fanout", false);
+            return x;
         }
 
         //

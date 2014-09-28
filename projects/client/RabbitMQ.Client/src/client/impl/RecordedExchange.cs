@@ -78,5 +78,12 @@ namespace RabbitMQ.Client.Impl
             this.arguments = value;
             return this;
         }
+
+        public void Recover()
+        {
+            ModelDelegate.ExchangeDeclare(this.name, this.type,
+                                          this.durable, this.autoDelete,
+                                          this.arguments);
+        }
     }
 }

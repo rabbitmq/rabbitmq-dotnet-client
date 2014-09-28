@@ -205,6 +205,16 @@ namespace RabbitMQ.Client.Unit {
             Wait(latch);
         }
 
+        [Test]
+        public void TestExchangeRecovery()
+        {
+            var x = "dotnet-client.test.recovery.x1";
+            DeclareNonDurableExchange(Model, x);
+            CloseAndWaitForRecovery();
+            AssertExchangeRecovery(Model, x);
+            Model.ExchangeDelete(x);
+        }
+
 
         //
         // Implementation
@@ -254,6 +264,20 @@ namespace RabbitMQ.Client.Unit {
         protected override void ReleaseResources()
         {
             Unblock();
+        }
+
+        protected void AssertExchangeRecovery(IModel m, string x)
+        {
+            m.ConfirmSelect();
+            WithTemporaryQueue(m, (_, q) => {
+                var rk = "routing-key";
+                m.QueueBind(q, x, rk);
+                var mb = RandomMessageBody();
+                m.BasicPublish(x, rk, null, mb);
+
+                Assert.IsTrue(WaitForConfirms(m));
+                m.ExchangeDeclarePassive(x);
+            });
         }
     }
 }

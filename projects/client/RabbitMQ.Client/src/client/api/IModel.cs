@@ -366,6 +366,21 @@ namespace RabbitMQ.Client
         ///otherwise false</returns>
         ///<param name="timeout">How long to wait (at most) before returning
         ///whether or not any nacks were returned</param>
+        ///<remarks>
+        ///Waits until all messages published since the last call have
+        ///been either ack'd or nack'd by the broker.  Returns whether
+        ///all the messages were ack'd (and none were nack'd). Note,
+        ///throws an exception when called on a non-Confirm channel.
+        ///</remarks>
+        [AmqpMethodDoNotImplement(null)]
+        bool WaitForConfirms(TimeSpan timeout);
+
+        ///<summary>Wait until all published messages have been confirmed.
+        ///</summary>
+        ///<returns>true if no nacks were received within the timeout,
+        ///otherwise false</returns>
+        ///<param name="timeout">How long to wait (at most) before returning
+        ///whether or not any nacks were returned</param>
         ///<param name="timedOut">True if the method returned because
         ///the timeout elapsed, not because all messages were ack'd
         ///or at least one nack'd.</param>

@@ -48,7 +48,7 @@ namespace RabbitMQ.Client.Impl
 {
     public class RecordedEntity
     {
-        private AutorecoveringModel model;
+        protected AutorecoveringModel model;
 
         public RecordedEntity(AutorecoveringModel model)
         {
@@ -60,7 +60,7 @@ namespace RabbitMQ.Client.Impl
             get { return this.model; }
         }
 
-        public IModel ModelDelegate
+        protected IModel ModelDelegate
         {
             get { return this.model.Delegate; }
         }

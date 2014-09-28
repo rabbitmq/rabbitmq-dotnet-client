@@ -48,7 +48,7 @@ namespace RabbitMQ.Client.Impl
 {
     public class RecordedNamedEntity : RecordedEntity
     {
-        private string name;
+        protected string name;
 
         public RecordedNamedEntity(AutorecoveringModel model, string name) : base(model)
         {

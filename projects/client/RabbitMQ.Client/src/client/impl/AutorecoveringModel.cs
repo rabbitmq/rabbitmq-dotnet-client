@@ -95,6 +95,10 @@ namespace RabbitMQ.Client.Impl
             this.RunRecoveryEventHandlers();
         }
 
+        public IModel Delegate
+        {
+            get { return this.m_delegate; }
+        }
 
 
         public event ModelShutdownEventHandler ModelShutdown
@@ -468,19 +472,25 @@ namespace RabbitMQ.Client.Impl
 
         public void ExchangeDeclare(string exchange, string type, bool durable)
         {
-            m_delegate.ExchangeDeclare(exchange, type, durable);
+            ExchangeDeclare(exchange, type, durable, false, null);
         }
 
         public void ExchangeDeclare(string exchange, string type)
         {
-            m_delegate.ExchangeDeclare(exchange, type);
+            ExchangeDeclare(exchange, type, false, false, null);
         }
 
         public void ExchangeDeclare(string exchange, string type, bool durable,
                                     bool autoDelete, IDictionary<string, object> arguments)
         {
+            var rx = new RecordedExchange(this, exchange).
+                Type(type).
+                Durable(durable).
+                AutoDelete(autoDelete).
+                Arguments(arguments);
             m_delegate.ExchangeDeclare(exchange, type, durable,
                                        autoDelete, arguments);
+            m_connection.RecordExchange(exchange, rx);
         }
 
         public void ExchangeDeclarePassive(string exchange)
@@ -501,11 +511,12 @@ namespace RabbitMQ.Client.Impl
                                    bool ifUnused)
         {
             m_delegate.ExchangeDelete(exchange, ifUnused);
+            m_connection.DeleteRecordedExchange(exchange);
         }
 
         public void ExchangeDelete(string exchange)
         {
-            m_delegate.ExchangeDelete(exchange);
+            ExchangeDelete(exchange, false);
         }
 
         public void ExchangeDeleteNoWait(string exchange,
@@ -649,6 +660,11 @@ namespace RabbitMQ.Client.Impl
         public bool WaitForConfirms(TimeSpan timeout, out bool timedOut)
         {
             return m_delegate.WaitForConfirms(timeout, out timedOut);
+        }
+
+        public bool WaitForConfirms(TimeSpan timeout)
+        {
+            return m_delegate.WaitForConfirms(timeout);
         }
 
         public bool WaitForConfirms()

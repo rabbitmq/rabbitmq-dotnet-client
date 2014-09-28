@@ -205,6 +205,12 @@ namespace RabbitMQ.Client
         /// </summary>
         public bool AutomaticRecoveryEnabled = false;
 
+        /// <summary>
+        /// Set to true to make automatic connection recovery also recover
+        /// topology (exchanges, queues, bindings, etc).
+        /// </summary>
+        public bool TopologyRecoveryEnabled = true;
+
         ///<summary>The host to connect to</summary>
         public String HostName = "localhost";
 

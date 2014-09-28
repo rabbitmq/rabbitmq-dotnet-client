@@ -54,6 +54,7 @@ namespace RabbitMQ.Client.Framing.Impl
         protected Connection m_delegate;
 
         public readonly object m_eventLock = new object();
+        public readonly object m_recordedEntitiesLock = new object();
         private RecoveryEventHandler m_recovery;
 
         protected List<ConnectionShutdownEventHandler> m_recordedShutdownEventHandlers =
@@ -65,6 +66,8 @@ namespace RabbitMQ.Client.Framing.Impl
         protected List<AutorecoveringModel> m_models =
             new List<AutorecoveringModel>();
 
+        protected IDictionary<string, RecordedExchange> m_recordedExchanges =
+            new Dictionary<string, RecordedExchange>();
 
         public AutorecoveringConnection(ConnectionFactory factory)
         {
@@ -429,6 +432,11 @@ namespace RabbitMQ.Client.Framing.Impl
             this.RecoverConnectionUnblockedHandlers();
 
             this.RecoverModels();
+            if(m_factory.TopologyRecoveryEnabled)
+            {
+                this.RecoverEntities();
+                this.RecoverConsumers();
+            }
 
             this.RunRecoveryEventHandlers();
         }
@@ -499,6 +507,71 @@ namespace RabbitMQ.Client.Framing.Impl
             foreach(var m in this.m_models)
             {
                 m.AutomaticallyRecover(this, this.m_delegate);
+            }
+        }
+
+        protected void RecoverEntities()
+        {
+            // The recovery sequence is the following:
+            //
+            // 1. Recover exchanges
+            // 2. Recover queues
+            // 3. Recover bindings
+            // 4. Recover consumers
+            RecoverExchanges();
+            RecoverQueues();
+            RecoverBindings();
+        }
+
+        protected void RecoverExchanges()
+        {
+            foreach(var rx in this.m_recordedExchanges.Values)
+            {
+                try
+                {
+                    rx.Recover();
+                } catch (Exception cause)
+                {
+                    var s = String.Format("Caught an exception while recovering exchange {0}: {1}",
+                                          rx.Name, cause.Message);
+                    HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
+                }
+            }
+        }
+
+        protected void RecoverQueues()
+        {
+            // TODO
+        }
+
+        protected void RecoverBindings()
+        {
+            // TODO
+        }
+
+        protected void RecoverConsumers()
+        {
+            // TODO
+        }
+
+        protected void HandleTopologyRecoveryException(TopologyRecoveryException e)
+        {
+            // TODO
+        }
+
+        public void RecordExchange(string name, RecordedExchange x)
+        {
+            lock(this.m_recordedEntitiesLock)
+            {
+                m_recordedExchanges.Add(name, x);
+            }
+        }
+
+        public void DeleteRecordedExchange(string name)
+        {
+            lock(this.m_recordedEntitiesLock)
+            {
+                m_recordedExchanges.Remove(name);
             }
         }
     }
