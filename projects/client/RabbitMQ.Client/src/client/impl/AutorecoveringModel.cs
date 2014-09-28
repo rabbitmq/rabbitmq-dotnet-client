@@ -43,6 +43,7 @@ using System.Collections.Generic;
 
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Framing;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
@@ -581,7 +582,7 @@ namespace RabbitMQ.Client.Impl
 
         public QueueDeclareOk QueueDeclare()
         {
-            return m_delegate.QueueDeclare();
+            return QueueDeclare("", false, true, true, null);
         }
 
         public QueueDeclareOk QueueDeclarePassive(string queue)
@@ -594,13 +595,26 @@ namespace RabbitMQ.Client.Impl
         {
             m_delegate.QueueDeclareNoWait(queue, durable, exclusive,
                                           autoDelete, arguments);
+            var rq = new RecordedQueue(this, queue).
+                Durable(durable).
+                Exclusive(exclusive).
+                AutoDelete(autoDelete).
+                Arguments(arguments);
+            m_connection.RecordQueue(queue, rq);
         }
 
         public QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive,
                                            bool autoDelete, IDictionary<string, object> arguments)
         {
-            return m_delegate.QueueDeclare(queue, durable, exclusive,
-                                           autoDelete, arguments);
+            var result = m_delegate.QueueDeclare(queue, durable, exclusive,
+                                                 autoDelete, arguments);
+            var rq     = new RecordedQueue(this, result.QueueName).
+                Durable(durable).
+                Exclusive(exclusive).
+                AutoDelete(autoDelete).
+                Arguments(arguments);
+            m_connection.RecordQueue(result.QueueName, rq);
+            return result;
         }
 
 
@@ -644,19 +658,22 @@ namespace RabbitMQ.Client.Impl
                                 bool ifUnused,
                                 bool ifEmpty)
         {
-            return m_delegate.QueueDelete(queue, ifUnused, ifEmpty);
+            var result = m_delegate.QueueDelete(queue, ifUnused, ifEmpty);
+            m_connection.DeleteRecordedQueue(queue);
+            return result;
         }
 
         public uint QueueDelete(string queue)
         {
-            return m_delegate.QueueDelete(queue);
+            return QueueDelete(queue, false, false);
         }
 
         public void QueueDeleteNoWait(string queue,
                                       bool ifUnused,
                                       bool ifEmpty)
         {
-            m_delegate.QueueDelete(queue, ifUnused, ifEmpty);
+            m_delegate.QueueDeleteNoWait(queue, ifUnused, ifEmpty);
+            m_connection.DeleteRecordedQueue(queue);
         }
 
         public void ConfirmSelect()

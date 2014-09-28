@@ -162,10 +162,31 @@ namespace RabbitMQ.Client.Unit
 
         protected void WithTemporaryQueue(IModel m, QueueOp fn)
         {
-            string q = GenerateQueueName();
+            WithTemporaryQueue(m, fn, GenerateQueueName());
+        }
+
+        protected void WithTemporaryQueue(QueueOp fn, string q)
+        {
+            WithTemporaryQueue(Model, fn, q);
+        }
+
+        protected void WithTemporaryQueue(IModel m, QueueOp fn, string q)
+        {
             try
             {
                 m.QueueDeclare(q, false, true, false, null);
+                fn(m, q);
+            } finally
+            {
+                WithTemporaryModel((tm) => tm.QueueDelete(q));
+            }
+        }
+
+        protected void WithTemporaryQueueNoWait(IModel m, QueueOp fn, string q)
+        {
+            try
+            {
+                m.QueueDeclareNoWait(q, false, true, false, null);
                 fn(m, q);
             } finally
             {

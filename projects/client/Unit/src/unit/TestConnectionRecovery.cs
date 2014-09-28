@@ -225,6 +225,26 @@ namespace RabbitMQ.Client.Unit {
             Model.ExchangeDelete(x);
         }
 
+        [Test]
+        public void TestClientNamedQueueRecovery()
+        {
+            string s = "java-client.test.recovery.q1";
+            WithTemporaryQueue(Model, (m, q) => {
+                CloseAndWaitForRecovery();
+                AssertQueueRecovery(m, q);
+            }, s);
+        }
+
+        [Test]
+        public void TestClientNamedQueueRecoveryNoWait()
+        {
+            string s = "java-client.test.recovery.q1-nowait";
+            WithTemporaryQueueNoWait(Model, (m, q) => {
+                CloseAndWaitForRecovery();
+                AssertQueueRecovery(m, q);
+            }, s);
+        }
+
 
         //
         // Implementation
@@ -288,6 +308,18 @@ namespace RabbitMQ.Client.Unit {
                 Assert.IsTrue(WaitForConfirms(m));
                 m.ExchangeDeclarePassive(x);
             });
+        }
+
+        protected void AssertQueueRecovery(IModel m, string q)
+        {
+            m.ConfirmSelect();
+            m.QueueDeclarePassive(q);
+            var ok1 = m.QueueDeclare(q, false, true, false, null);
+            Assert.AreEqual(ok1.MessageCount, 0);
+            m.BasicPublish("", q, null, enc.GetBytes(""));
+            Assert.IsTrue(WaitForConfirms(m));
+            var ok2 = m.QueueDeclare(q, false, true, false, null);
+            Assert.AreEqual(ok2.MessageCount, 1);
         }
     }
 }

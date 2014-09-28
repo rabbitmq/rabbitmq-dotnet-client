@@ -68,6 +68,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
         protected IDictionary<string, RecordedExchange> m_recordedExchanges =
             new Dictionary<string, RecordedExchange>();
+        protected IDictionary<string, RecordedQueue> m_recordedQueues =
+            new Dictionary<string, RecordedQueue>();
 
         public AutorecoveringConnection(ConnectionFactory factory)
         {
@@ -534,14 +536,41 @@ namespace RabbitMQ.Client.Framing.Impl
                 {
                     var s = String.Format("Caught an exception while recovering exchange {0}: {1}",
                                           rx.Name, cause.Message);
-                    HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
+                    this.HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
                 }
             }
         }
 
         protected void RecoverQueues()
         {
-            // TODO
+            var rqs = new Dictionary<string, RecordedQueue>(m_recordedQueues);
+            foreach(var pair in rqs)
+            {
+                var oldName = pair.Key;
+                var rq      = pair.Value;
+
+                try
+                {
+                    rq.Recover();
+                    var newName = rq.Name;
+
+                    // make sure server-named queues are re-added with
+                    // their new names. MK.
+                    lock(this.m_recordedQueues)
+                    {
+                        this.DeleteRecordedQueue(oldName);
+                        this.RecordQueue(newName, rq);
+                        // TODO
+                        // this.PropagateQueueNameChangeToBindings(oldName, newName);
+                        // this.PropagateQueueNameChangeToConsumers(oldName, newName);
+                    }
+                } catch (Exception cause)
+                {
+                    var s = String.Format("Caught an exception while recovering queue {0}: {1}",
+                                          oldName, cause.Message);
+                    this.HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
+                }
+            }
         }
 
         protected void RecoverBindings()
@@ -557,13 +586,14 @@ namespace RabbitMQ.Client.Framing.Impl
         protected void HandleTopologyRecoveryException(TopologyRecoveryException e)
         {
             // TODO
+            Console.WriteLine("Topology recovery exception: {0}", e);
         }
 
         public void RecordExchange(string name, RecordedExchange x)
         {
             lock(this.m_recordedEntitiesLock)
             {
-                m_recordedExchanges.Add(name, x);
+                m_recordedExchanges[name] = x;
             }
         }
 
@@ -572,6 +602,22 @@ namespace RabbitMQ.Client.Framing.Impl
             lock(this.m_recordedEntitiesLock)
             {
                 m_recordedExchanges.Remove(name);
+            }
+        }
+
+        public void RecordQueue(string name, RecordedQueue x)
+        {
+            lock(this.m_recordedEntitiesLock)
+            {
+                m_recordedQueues[name] = x;
+            }
+        }
+
+        public void DeleteRecordedQueue(string name)
+        {
+            lock(this.m_recordedEntitiesLock)
+            {
+                m_recordedQueues.Remove(name);
             }
         }
     }
