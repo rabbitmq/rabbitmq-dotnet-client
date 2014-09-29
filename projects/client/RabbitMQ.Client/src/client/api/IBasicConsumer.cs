@@ -43,7 +43,7 @@ using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client
 {
-    ///<summary>Consumer interface for Basic content-class. Used to
+    ///<summary>Consumer interface. Used to
     ///receive messages from a queue by subscription.</summary>
     ///<remarks>
     ///<para>
