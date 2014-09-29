@@ -70,6 +70,8 @@ namespace RabbitMQ.Client.Framing.Impl
             new Dictionary<string, RecordedExchange>();
         protected IDictionary<string, RecordedQueue> m_recordedQueues =
             new Dictionary<string, RecordedQueue>();
+        protected List<RecordedBinding> m_recordedBindings =
+            new List<RecordedBinding>();
 
         public AutorecoveringConnection(ConnectionFactory factory)
         {
@@ -618,6 +620,26 @@ namespace RabbitMQ.Client.Framing.Impl
             lock(this.m_recordedEntitiesLock)
             {
                 m_recordedQueues.Remove(name);
+            }
+        }
+
+        public void RecordBinding(RecordedBinding rb)
+        {
+            lock(this.m_recordedEntitiesLock)
+            {
+                // TODO: this operation is O(n)
+                if(!m_recordedBindings.Contains(rb))
+                {
+                    m_recordedBindings.Add(rb);
+                }
+            }
+        }
+
+        public void DeleteRecordedBinding(RecordedBinding rb)
+        {
+            lock(this.m_recordedEntitiesLock)
+            {
+                m_recordedBindings.Remove(rb);
             }
         }
     }

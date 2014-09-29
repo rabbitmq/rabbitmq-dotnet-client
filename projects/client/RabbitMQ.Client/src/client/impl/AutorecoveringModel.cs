@@ -538,7 +538,7 @@ namespace RabbitMQ.Client.Impl
                                  string source,
                                  string routingKey)
         {
-            m_delegate.ExchangeBind(destination, source, routingKey);
+            this.ExchangeBind(destination, source, routingKey, null);
         }
 
         public void ExchangeBind(string destination,
@@ -546,6 +546,12 @@ namespace RabbitMQ.Client.Impl
                                  string routingKey,
                                  IDictionary<string, object> arguments)
         {
+            var eb = new RecordedExchangeBinding(this).
+                WithSource(source).
+                WithDestination(destination).
+                WithRoutingKey(routingKey).
+                WithArguments(arguments);
+            m_connection.RecordBinding(eb);
             m_delegate.ExchangeBind(destination, source, routingKey, arguments);
         }
 
@@ -562,6 +568,12 @@ namespace RabbitMQ.Client.Impl
                                    string routingKey,
                                    IDictionary<string, object> arguments)
         {
+            var eb = new RecordedExchangeBinding(this).
+                WithSource(source).
+                WithDestination(destination).
+                WithRoutingKey(routingKey).
+                WithArguments(arguments);
+            m_connection.DeleteRecordedBinding(eb);
             m_delegate.ExchangeUnbind(destination, source, routingKey, arguments);
         }
 
@@ -569,7 +581,7 @@ namespace RabbitMQ.Client.Impl
                                    string source,
                                    string routingKey)
         {
-            m_delegate.ExchangeUnbind(destination, source, routingKey);
+            this.ExchangeUnbind(destination, source, routingKey, null);
         }
 
         public void ExchangeUnbindNoWait(string destination,
@@ -623,6 +635,12 @@ namespace RabbitMQ.Client.Impl
                               string routingKey,
                               IDictionary<string, object> arguments)
         {
+            var qb = new RecordedQueueBinding(this).
+                WithSource(exchange).
+                WithDestination(queue).
+                WithRoutingKey(routingKey).
+                WithArguments(arguments);
+            m_connection.RecordBinding(qb);
             m_delegate.QueueBind(queue, exchange, routingKey, arguments);
         }
 
@@ -630,7 +648,7 @@ namespace RabbitMQ.Client.Impl
                               string exchange,
                               string routingKey)
         {
-            m_delegate.QueueBind(queue, exchange, routingKey);
+            this.QueueBind(queue, exchange, routingKey, null);
         }
 
         public void QueueBindNoWait(string queue,
@@ -646,6 +664,12 @@ namespace RabbitMQ.Client.Impl
                                 string routingKey,
                                 IDictionary<string, object> arguments)
         {
+            var qb = new RecordedQueueBinding(this).
+                WithSource(exchange).
+                WithDestination(queue).
+                WithRoutingKey(routingKey).
+                WithArguments(arguments);
+            m_connection.DeleteRecordedBinding(qb);
             m_delegate.QueueUnbind(queue, exchange, routingKey, arguments);
         }
 
