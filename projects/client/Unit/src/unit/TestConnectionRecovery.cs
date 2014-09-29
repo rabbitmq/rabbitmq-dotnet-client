@@ -245,6 +245,22 @@ namespace RabbitMQ.Client.Unit {
             }, s);
         }
 
+        [Test]
+        public void TestDeclarationOfManyAutoDeleteQueuesWithTransientConsumer()
+        {
+            AssertRecordedQueues((AutorecoveringConnection)Conn, 0);
+            for(var i = 0; i < 5000; i++)
+            {
+                var q     = Guid.NewGuid().ToString();
+                Model.QueueDeclare(q, false, false, true, null);
+                var dummy = new QueueingBasicConsumer(Model);
+                var tag   = Model.BasicConsume(q, true, dummy);
+                Model.BasicCancel(tag);
+            }
+            AssertRecordedQueues((AutorecoveringConnection)Conn, 0);
+        }
+
+
 
         //
         // Implementation
@@ -320,6 +336,16 @@ namespace RabbitMQ.Client.Unit {
             Assert.IsTrue(WaitForConfirms(m));
             var ok2 = m.QueueDeclare(q, false, true, false, null);
             Assert.AreEqual(ok2.MessageCount, 1);
+        }
+
+        protected void AssertRecordedQueues(AutorecoveringConnection c, int n)
+        {
+            Assert.AreEqual(c.RecordedQueues.Count, n);
+        }
+
+        protected void AssertRecordedExchanges(AutorecoveringConnection c, int n)
+        {
+            Assert.AreEqual(c.RecordedExchanges.Count, n);
         }
     }
 }

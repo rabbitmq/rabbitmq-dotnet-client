@@ -41,6 +41,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Linq;
 
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Client.Events;
@@ -70,6 +71,8 @@ namespace RabbitMQ.Client.Framing.Impl
             new Dictionary<string, RecordedExchange>();
         protected IDictionary<string, RecordedQueue> m_recordedQueues =
             new Dictionary<string, RecordedQueue>();
+        protected IDictionary<string, RecordedConsumer> m_recordedConsumers =
+            new Dictionary<string, RecordedConsumer>();
         protected List<RecordedBinding> m_recordedBindings =
             new List<RecordedBinding>();
 
@@ -607,11 +610,11 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public void RecordQueue(string name, RecordedQueue x)
+        public void RecordQueue(string name, RecordedQueue q)
         {
             lock(this.m_recordedEntitiesLock)
             {
-                m_recordedQueues[name] = x;
+                m_recordedQueues[name] = q;
             }
         }
 
@@ -641,6 +644,67 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 m_recordedBindings.Remove(rb);
             }
+        }
+
+       public void RecordConsumer(string name, RecordedConsumer c)
+        {
+            lock(this.m_recordedEntitiesLock)
+            {
+                if(!m_recordedConsumers.ContainsKey(name))
+                {
+                    m_recordedConsumers.Add(name, c);
+                }
+            }
+        }
+
+        public RecordedConsumer DeleteRecordedConsumer(string consumerTag)
+        {
+            RecordedConsumer rc = null;
+            lock(this.m_recordedEntitiesLock)
+            {
+                if(m_recordedConsumers.ContainsKey(consumerTag))
+                {
+                    rc = m_recordedConsumers[consumerTag];
+                    m_recordedConsumers.Remove(consumerTag);
+                    
+                }
+            }
+
+            return rc;
+        }
+
+        public void MaybeDeleteRecordedAutoDeleteQueue(string queue)
+        {
+            lock(this.m_recordedEntitiesLock)
+            {
+                if(!HasMoreConsumersOnQueue(this.m_recordedConsumers.Values, queue))
+                {
+                    RecordedQueue rq;
+                    this.m_recordedQueues.TryGetValue(queue, out rq);
+                    // last consumer on this connection is gone, remove recorded queue
+                    // if it is auto-deleted. See bug 26364.
+                    if((rq != null) && rq.IsAutoDelete)
+                    {
+                        this.m_recordedQueues.Remove(queue);
+                    }
+                }
+            }
+        }
+
+        public bool HasMoreConsumersOnQueue(ICollection<RecordedConsumer> consumers, string queue)
+        {
+            var xs = new List<RecordedConsumer>(consumers);
+            return xs.Exists(c => c.Queue.Equals(queue));
+        }
+
+        public IDictionary<string, RecordedQueue> RecordedQueues
+        {
+            get { return m_recordedQueues; }
+        }
+
+        public IDictionary<string, RecordedExchange> RecordedExchanges
+        {
+            get { return m_recordedExchanges; }
         }
     }
 }

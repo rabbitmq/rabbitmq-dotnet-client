@@ -46,7 +46,7 @@ using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
-    public class RecordedEntity
+    public abstract class RecordedEntity
     {
         protected AutorecoveringModel model;
 

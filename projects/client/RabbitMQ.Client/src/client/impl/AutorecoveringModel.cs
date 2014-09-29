@@ -735,7 +735,7 @@ namespace RabbitMQ.Client.Impl
                                    bool noAck,
                                    IBasicConsumer consumer)
         {
-            return m_delegate.BasicConsume(queue, noAck, consumer);
+            return this.BasicConsume(queue, noAck, "", consumer);
         }
 
         public string BasicConsume(string queue,
@@ -743,7 +743,7 @@ namespace RabbitMQ.Client.Impl
                                    string consumerTag,
                                    IBasicConsumer consumer)
         {
-            return m_delegate.BasicConsume(queue, noAck, consumerTag, consumer);
+            return this.BasicConsume(queue, noAck, consumerTag, null, consumer);
         }
 
         public string BasicConsume(string queue,
@@ -752,7 +752,8 @@ namespace RabbitMQ.Client.Impl
                                    IDictionary<string, object> arguments,
                                    IBasicConsumer consumer)
         {
-            return m_delegate.BasicConsume(queue, noAck, consumerTag, arguments, consumer);
+            return this.BasicConsume(queue, noAck, consumerTag, false, false,
+                                     arguments, consumer);
         }
 
         public string BasicConsume(string queue,
@@ -763,8 +764,16 @@ namespace RabbitMQ.Client.Impl
                                    IDictionary<string, object> arguments,
                                    IBasicConsumer consumer)
         {
-            return m_delegate.BasicConsume(queue, noAck, consumerTag, noLocal,
-                                           exclusive, arguments, consumer);
+            var result = m_delegate.BasicConsume(queue, noAck, consumerTag, noLocal,
+                                                 exclusive, arguments, consumer);
+            var rc = new RecordedConsumer(this, queue).
+                WithConsumerTag(result).
+                WithConsumer(consumer).
+                WithExclusive(exclusive).
+                WithAutoAck(noAck).
+                WithArguments(arguments);
+            m_connection.RecordConsumer(result, rc);
+            return result;
         }
 
         public void HandleBasicConsumeOk(string consumerTag)
@@ -774,6 +783,11 @@ namespace RabbitMQ.Client.Impl
 
         public void BasicCancel(string consumerTag)
         {
+            var cons = m_connection.DeleteRecordedConsumer(consumerTag);
+            if(cons != null)
+            {
+                m_connection.MaybeDeleteRecordedAutoDeleteQueue(cons.Queue);
+            }
             m_delegate.BasicCancel(consumerTag);
         }
 
