@@ -607,6 +607,16 @@ namespace RabbitMQ.Client.Framing.Impl
             lock(this.m_recordedEntitiesLock)
             {
                 m_recordedExchanges.Remove(name);
+
+                // find bindings that need removal, check if some auto-delete exchanges
+                // might need the same
+                var bs = m_recordedBindings.Where(b => name.Equals(b.Destination)).
+                    ToList();
+                m_recordedBindings.RemoveWhere(b => name.Equals(b.Destination));
+                foreach(var b in bs)
+                {
+                    MaybeDeleteRecordedAutoDeleteExchange(b.Source);
+                }
             }
         }
 

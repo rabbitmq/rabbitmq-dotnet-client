@@ -294,7 +294,7 @@ namespace RabbitMQ.Client.Unit {
         public void TestDeclarationOfManyAutoDeleteExchangesWithTransientExchangesThatAreUnbound()
         {
             AssertRecordedExchanges((AutorecoveringConnection)Conn, 0);
-            for(var i = 0; i < 3; i++)
+            for(var i = 0; i < 1000; i++)
             {
                 var x1 = "source-" + Guid.NewGuid().ToString();
                 Model.ExchangeDeclare(x1, "fanout", false, true, null);
@@ -302,6 +302,22 @@ namespace RabbitMQ.Client.Unit {
                 Model.ExchangeDeclare(x2, "fanout", false, false, null);
                 Model.ExchangeBind(x2, x1, "");
                 Model.ExchangeUnbind(x2, x1, "");
+                Model.ExchangeDelete(x2);
+            }
+            AssertRecordedExchanges((AutorecoveringConnection)Conn, 0);
+        }
+
+        [Test]
+        public void TestDeclarationOfManyAutoDeleteExchangesWithTransientExchangesThatAreDeleted()
+        {
+            AssertRecordedExchanges((AutorecoveringConnection)Conn, 0);
+            for(var i = 0; i < 3; i++)
+            {
+                var x1 = "source-" + Guid.NewGuid().ToString();
+                Model.ExchangeDeclare(x1, "fanout", false, true, null);
+                var x2 = "destination-"+Guid.NewGuid().ToString();
+                Model.ExchangeDeclare(x2, "fanout", false, false, null);
+                Model.ExchangeBind(x2, x1, "");
                 Model.ExchangeDelete(x2);
             }
             AssertRecordedExchanges((AutorecoveringConnection)Conn, 0);
