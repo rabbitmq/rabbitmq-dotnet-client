@@ -575,6 +575,7 @@ namespace RabbitMQ.Client.Impl
                 WithArguments(arguments);
             m_connection.DeleteRecordedBinding(eb);
             m_delegate.ExchangeUnbind(destination, source, routingKey, arguments);
+            m_connection.MaybeDeleteRecordedAutoDeleteExchange(source);
         }
 
         public void ExchangeUnbind(string destination,
