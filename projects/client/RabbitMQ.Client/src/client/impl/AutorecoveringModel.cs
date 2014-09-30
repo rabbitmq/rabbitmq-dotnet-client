@@ -485,10 +485,10 @@ namespace RabbitMQ.Client.Impl
                                     bool autoDelete, IDictionary<string, object> arguments)
         {
             var rx = new RecordedExchange(this, exchange).
-                Type(type).
-                Durable(durable).
-                AutoDelete(autoDelete).
-                Arguments(arguments);
+                WithType(type).
+                WithDurable(durable).
+                WithAutoDelete(autoDelete).
+                WithArguments(arguments);
             m_delegate.ExchangeDeclare(exchange, type, durable,
                                        autoDelete, arguments);
             m_connection.RecordExchange(exchange, rx);
@@ -506,10 +506,10 @@ namespace RabbitMQ.Client.Impl
                                           IDictionary<string, object> arguments)
         {
             var rx = new RecordedExchange(this, exchange).
-                Type(type).
-                Durable(durable).
-                AutoDelete(autoDelete).
-                Arguments(arguments);
+                WithType(type).
+                WithDurable(durable).
+                WithAutoDelete(autoDelete).
+                WithArguments(arguments);
             m_delegate.ExchangeDeclareNoWait(exchange, type, durable,
                                              autoDelete, arguments);
             m_connection.RecordExchange(exchange, rx);
@@ -671,6 +671,7 @@ namespace RabbitMQ.Client.Impl
                 WithArguments(arguments);
             m_connection.DeleteRecordedBinding(qb);
             m_delegate.QueueUnbind(queue, exchange, routingKey, arguments);
+            m_connection.MaybeDeleteRecordedAutoDeleteExchange(exchange);
         }
 
         public uint QueuePurge(string queue)

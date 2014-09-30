@@ -110,29 +110,29 @@ namespace RabbitMQ.Client.Impl
 
             if (Object.ReferenceEquals(this, other))
             {
-                return false;
-            }
-
-            if (this.GetType() != other.GetType())
-            {
-                return false;
+                return true;
             }
 
             return (this.Source.Equals(other.Source)) &&
                 (this.Destination.Equals(other.Destination)) &&
                 (this.RoutingKey.Equals(other.RoutingKey)) &&
-                (this.arguments.Equals(other.arguments));
+                (this.arguments == other.arguments);
         }
 
         public virtual void recover() {}
 
         public override int GetHashCode()
         {
-            int result = source.GetHashCode();
-            result = 31 * result + destination.GetHashCode();
-            result = 31 * result + routingKey.GetHashCode();
-            result = 31 * result + (arguments != null ? arguments.GetHashCode() : 0);
-            return result;
+            return source.GetHashCode() ^
+                destination.GetHashCode() ^
+                routingKey.GetHashCode() ^
+                (arguments != null ? arguments.GetHashCode() : 0);
+        }
+
+        public override string ToString()
+        {
+            return String.Format("{0}: source = '{1}', destination = '{2}', routingKey = '{3}', arguments = '{4}'",
+                                 this.GetType().Name, source, destination, routingKey, arguments);
         }
     }
 

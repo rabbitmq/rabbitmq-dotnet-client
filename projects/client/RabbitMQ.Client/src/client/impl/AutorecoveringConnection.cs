@@ -73,8 +73,8 @@ namespace RabbitMQ.Client.Framing.Impl
             new Dictionary<string, RecordedQueue>();
         protected IDictionary<string, RecordedConsumer> m_recordedConsumers =
             new Dictionary<string, RecordedConsumer>();
-        protected List<RecordedBinding> m_recordedBindings =
-            new List<RecordedBinding>();
+        protected HashSet<RecordedBinding> m_recordedBindings =
+            new HashSet<RecordedBinding>();
 
         public AutorecoveringConnection(ConnectionFactory factory)
         {
@@ -623,6 +623,15 @@ namespace RabbitMQ.Client.Framing.Impl
             lock(this.m_recordedEntitiesLock)
             {
                 m_recordedQueues.Remove(name);
+                // find bindings that need removal, check if some auto-delete exchanges
+                // might need the same
+                var bs = m_recordedBindings.Where(b => name.Equals(b.Destination)).
+                    ToList();
+                m_recordedBindings.RemoveWhere(b => name.Equals(b.Destination));
+                foreach(var b in bs)
+                {
+                    MaybeDeleteRecordedAutoDeleteExchange(b.Source);
+                }
             }
         }
 
@@ -630,11 +639,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             lock(this.m_recordedEntitiesLock)
             {
-                // TODO: this operation is O(n)
-                if(!m_recordedBindings.Contains(rb))
-                {
-                    m_recordedBindings.Add(rb);
-                }
+                m_recordedBindings.Add(rb);
             }
         }
 
@@ -642,7 +647,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             lock(this.m_recordedEntitiesLock)
             {
-                m_recordedBindings.Remove(rb);
+                m_recordedBindings.RemoveWhere(b => b.Equals(rb));
             }
         }
 
@@ -691,10 +696,37 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public bool HasMoreConsumersOnQueue(ICollection<RecordedConsumer> consumers, string queue)
+        public void MaybeDeleteRecordedAutoDeleteExchange(string exchange)
         {
-            var xs = new List<RecordedConsumer>(consumers);
-            return xs.Exists(c => c.Queue.Equals(queue));
+            lock(this.m_recordedEntitiesLock)
+            {
+                if(!HasMoreDestinationsBoundToExchange(this.m_recordedBindings, exchange))
+                {
+                    RecordedExchange rx;
+                    this.m_recordedExchanges.TryGetValue(exchange, out rx);
+                    // last binding where this exchange is the source is gone,
+                    // remove recorded exchange
+                    // if it is auto-deleted. See bug 26364.
+                    if((rx != null) && rx.IsAutoDelete)
+                    {
+                        this.m_recordedExchanges.Remove(exchange);
+                    }
+                }
+            }
+        }
+
+        public bool HasMoreConsumersOnQueue(ICollection<RecordedConsumer> consumers,
+                                            string queue)
+        {
+            var cs = new List<RecordedConsumer>(consumers);
+            return cs.Exists(c => c.Queue.Equals(queue));
+        }
+
+        public bool HasMoreDestinationsBoundToExchange(ICollection<RecordedBinding> bindings,
+                                                       string exchange)
+        {
+            var bs = new List<RecordedBinding>(bindings);
+            return bs.Exists(b => b.Source.Equals(exchange));
         }
 
         public IDictionary<string, RecordedQueue> RecordedQueues

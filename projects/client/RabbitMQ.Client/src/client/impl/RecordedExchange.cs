@@ -55,25 +55,45 @@ namespace RabbitMQ.Client.Impl
 
         public RecordedExchange(AutorecoveringModel model, string name) : base(model, name) {}
 
-        public RecordedExchange Durable(bool value)
+        public string Type
+        {
+            get { return type; }
+        }
+
+        public bool Durable
+        {
+            get { return durable; }
+        }
+
+        public bool IsAutoDelete
+        {
+            get { return autoDelete; }
+        }
+
+        public IDictionary<String, object> Arguments
+        {
+            get { return arguments; }
+        }
+
+        public RecordedExchange WithDurable(bool value)
         {
             this.durable = value;
             return this;
         }
 
-        public RecordedExchange AutoDelete(bool value)
+        public RecordedExchange WithAutoDelete(bool value)
         {
             this.autoDelete = value;
             return this;
         }
 
-        public RecordedExchange Type(string value)
+        public RecordedExchange WithType(string value)
         {
             this.type = value;
             return this;
         }
 
-        public RecordedExchange Arguments(IDictionary<string, object> value)
+        public RecordedExchange WithArguments(IDictionary<string, object> value)
         {
             this.arguments = value;
             return this;
@@ -84,6 +104,12 @@ namespace RabbitMQ.Client.Impl
             ModelDelegate.ExchangeDeclare(this.name, this.type,
                                           this.durable, this.autoDelete,
                                           this.arguments);
+        }
+
+        public override string ToString()
+        {
+            return String.Format("{0}: name = '{1}', type = '{2}', durable = {3}, autoDelete = {4}, arguments = '{5}'",
+                                 this.GetType().Name, name, type, durable, autoDelete, arguments);
         }
     }
 }

@@ -123,5 +123,11 @@ namespace RabbitMQ.Client.Impl
                                                    this.arguments);
             this.name = ok.QueueName;
         }
+
+        public override string ToString()
+        {
+            return String.Format("{0}: name = '{1}', durable = {2}, exlusive = {3}, autoDelete = {4}, arguments = '{5}'",
+                                 this.GetType().Name, name, durable, exclusive, autoDelete, arguments);
+        }
     }
 }

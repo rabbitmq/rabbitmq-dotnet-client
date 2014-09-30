@@ -228,7 +228,7 @@ namespace RabbitMQ.Client.Unit {
         [Test]
         public void TestClientNamedQueueRecovery()
         {
-            string s = "java-client.test.recovery.q1";
+            string s = "dotnet-client.test.recovery.q1";
             WithTemporaryQueue(Model, (m, q) => {
                 CloseAndWaitForRecovery();
                 AssertQueueRecovery(m, q);
@@ -238,7 +238,7 @@ namespace RabbitMQ.Client.Unit {
         [Test]
         public void TestClientNamedQueueRecoveryNoWait()
         {
-            string s = "java-client.test.recovery.q1-nowait";
+            string s = "dotnet-client.test.recovery.q1-nowait";
             WithTemporaryQueueNoWait(Model, (m, q) => {
                 CloseAndWaitForRecovery();
                 AssertQueueRecovery(m, q);
@@ -249,7 +249,7 @@ namespace RabbitMQ.Client.Unit {
         public void TestDeclarationOfManyAutoDeleteQueuesWithTransientConsumer()
         {
             AssertRecordedQueues((AutorecoveringConnection)Conn, 0);
-            for(var i = 0; i < 5000; i++)
+            for(var i = 0; i < 1000; i++)
             {
                 var q     = Guid.NewGuid().ToString();
                 Model.QueueDeclare(q, false, false, true, null);
@@ -260,6 +260,35 @@ namespace RabbitMQ.Client.Unit {
             AssertRecordedQueues((AutorecoveringConnection)Conn, 0);
         }
 
+        [Test]
+        public void TestDeclarationOfManyAutoDeleteExchangesWithTransientQueuesThatAreUnbound()
+        {
+            AssertRecordedExchanges((AutorecoveringConnection)Conn, 0);
+            for(var i = 0; i < 1000; i++)
+            {
+                var x = Guid.NewGuid().ToString();
+                Model.ExchangeDeclare(x, "fanout", false, true, null);
+                var q = Model.QueueDeclare();
+                Model.QueueBind(q, x, "");
+                Model.QueueUnbind(q, x, "", null);
+            }
+            AssertRecordedExchanges((AutorecoveringConnection)Conn, 0);
+        }
+
+        [Test]
+        public void TestDeclarationOfManyAutoDeleteExchangesWithTransientQueuesThatAreDeleted()
+        {
+            AssertRecordedExchanges((AutorecoveringConnection)Conn, 0);
+            for(var i = 0; i < 1000; i++)
+            {
+                var x = Guid.NewGuid().ToString();
+                Model.ExchangeDeclare(x, "fanout", false, true, null);
+                var q = Model.QueueDeclare();
+                Model.QueueBind(q, x, "");
+                Model.QueueDelete(q);
+            }
+            AssertRecordedExchanges((AutorecoveringConnection)Conn, 0);
+        }
 
 
         //
@@ -340,12 +369,12 @@ namespace RabbitMQ.Client.Unit {
 
         protected void AssertRecordedQueues(AutorecoveringConnection c, int n)
         {
-            Assert.AreEqual(c.RecordedQueues.Count, n);
+            Assert.AreEqual(n, c.RecordedQueues.Count);
         }
 
         protected void AssertRecordedExchanges(AutorecoveringConnection c, int n)
         {
-            Assert.AreEqual(c.RecordedExchanges.Count, n);
+            Assert.AreEqual(n, c.RecordedExchanges.Count);
         }
     }
 }
