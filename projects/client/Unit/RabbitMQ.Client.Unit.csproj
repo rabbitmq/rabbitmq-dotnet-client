@@ -62,6 +62,14 @@
   <Target Name="RunUnitTests" DependsOnTargets="Build;ImportSSL">
     <Exec Command='$(MonoNunitTempSetting)$(PropLaunchExe)..\..\..\lib\nunit\nunit-console.exe -config=Debug "build\bin\$(AssemblyName).dll"' WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="false" />
   </Target>
+
+  <Target Name="RunFocusUnitTests" DependsOnTargets="Build;ImportSSL">
+    <Exec Command='$(MonoNunitTempSetting)$(PropLaunchExe)..\..\..\lib\nunit\nunit-console.exe -config=Debug -include="Focus" "build\bin\$(AssemblyName).dll"' WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="false" />
+  </Target>
+
+  <Target Name="RunSingleUnitTest" DependsOnTargets="Build;ImportSSL">
+    <Exec Command='$(MonoNunitTempSetting)$(PropLaunchExe)..\..\..\lib\nunit\nunit-console.exe -config=Debug -run="$(PropTestToRun)" "build\bin\$(AssemblyName).dll"' WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="false" />
+  </Target>
   
   <!-- Clean test result file -->
   <Target Name="CleanTestResults">
