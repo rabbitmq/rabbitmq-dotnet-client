@@ -232,11 +232,17 @@ namespace RabbitMQ.Client.Impl
         {
             add
             {
-                this.m_recovery += value;
+                lock(this.m_eventLock)
+                {
+                    this.m_recovery += value;
+                }
             }
             remove
             {
-                this.m_recovery -= value;
+                lock(this.m_eventLock)
+                {
+                    this.m_recovery -= value;
+                }
             }
         }
 
@@ -612,7 +618,8 @@ namespace RabbitMQ.Client.Impl
                 Durable(durable).
                 Exclusive(exclusive).
                 AutoDelete(autoDelete).
-                Arguments(arguments);
+                Arguments(arguments).
+                ServerNamed(string.Empty.Equals(queue));
             m_connection.RecordQueue(queue, rq);
         }
 
@@ -625,7 +632,8 @@ namespace RabbitMQ.Client.Impl
                 Durable(durable).
                 Exclusive(exclusive).
                 AutoDelete(autoDelete).
-                Arguments(arguments);
+                Arguments(arguments).
+                ServerNamed(string.Empty.Equals(queue));
             m_connection.RecordQueue(result.QueueName, rq);
             return result;
         }

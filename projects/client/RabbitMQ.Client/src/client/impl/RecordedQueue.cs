@@ -49,8 +49,6 @@ namespace RabbitMQ.Client.Impl
 {
     public class RecordedQueue : RecordedNamedEntity
     {
-        public static readonly string EMPTY_STRING = "";
-
         private bool durable;
         private bool exclusive;
         private bool autoDelete;
@@ -78,7 +76,7 @@ namespace RabbitMQ.Client.Impl
             {
                 if(IsServerNamed)
                 {
-                    return EMPTY_STRING;
+                    return string.Empty;
                 } else
                 {
                     return this.name;

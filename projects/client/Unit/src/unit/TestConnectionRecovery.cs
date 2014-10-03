@@ -323,6 +323,34 @@ namespace RabbitMQ.Client.Unit {
             AssertRecordedExchanges((AutorecoveringConnection)Conn, 0);
         }
 
+        [Test]
+        public void TestServerNamedQueueRecovery()
+        {
+            var q = Model.QueueDeclare("", false, false, false, null).QueueName;
+            var x = "amq.fanout";
+            Model.QueueBind(q, x, "");
+
+            string nameBefore = q;
+            string nameAfter  = null;
+
+            var latch = new AutoResetEvent(false);
+            ((AutorecoveringConnection)Conn).Recovery += (m) => { latch.Set(); };
+            ((AutorecoveringConnection)Conn).QueueNameChangeAfterRecovery += (prev, current) =>
+            {
+                nameAfter = current;
+            };
+
+            CloseAndWaitForRecovery();
+            Wait(latch);
+
+            Assert.IsNotNull(nameAfter);
+            Assert.IsTrue(nameBefore.StartsWith("amq."));
+            Assert.IsTrue(nameAfter.StartsWith("amq."));
+            Assert.AreNotEqual(nameBefore, nameAfter);
+
+            Model.QueueDeclarePassive(nameAfter);
+        }
+
 
         //
         // Implementation

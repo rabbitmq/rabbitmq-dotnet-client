@@ -56,7 +56,9 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public readonly object m_eventLock = new object();
         public readonly object m_recordedEntitiesLock = new object();
+
         private RecoveryEventHandler m_recovery;
+        private QueueNameChangeAfterRecoveryEventHandler m_queueNameChange;
 
         protected List<ConnectionShutdownEventHandler> m_recordedShutdownEventHandlers =
             new List<ConnectionShutdownEventHandler>();
@@ -182,11 +184,17 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             add
             {
-                m_delegate.CallbackException += value;
+                lock(this.m_eventLock)
+                {
+                    m_delegate.CallbackException += value;
+                }
             }
             remove
             {
-                m_delegate.CallbackException -= value;
+                lock(this.m_eventLock)
+                {
+                    m_delegate.CallbackException -= value;
+                }
             }
         }
 
@@ -194,14 +202,37 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             add
             {
-                this.m_recovery += value;
+                lock(this.m_eventLock)
+                {
+                    this.m_recovery += value;
+                }
             }
             remove
             {
-                this.m_recovery -= value;
+                lock(this.m_eventLock)
+                {
+                    this.m_recovery -= value;
+                }
             }
         }
 
+        public event QueueNameChangeAfterRecoveryEventHandler QueueNameChangeAfterRecovery
+        {
+            add
+            {
+                lock(this.m_eventLock)
+                {
+                    this.m_queueNameChange += value;
+                }
+            }
+            remove
+            {
+                lock(this.m_eventLock)
+                {
+                    this.m_queueNameChange -= value;
+                }
+            }
+        }
 
         public AmqpTcpEndpoint Endpoint
         {
@@ -568,6 +599,22 @@ namespace RabbitMQ.Client.Framing.Impl
                         // TODO
                         // this.PropagateQueueNameChangeToBindings(oldName, newName);
                         // this.PropagateQueueNameChangeToConsumers(oldName, newName);
+
+                        if(this.m_queueNameChange != null)
+                        {
+                            foreach(QueueNameChangeAfterRecoveryEventHandler h in this.m_queueNameChange.GetInvocationList())
+                            {
+                                try
+                                {
+                                    h(oldName, newName);
+                                } catch (Exception e)
+                                {
+                                    CallbackExceptionEventArgs args = new CallbackExceptionEventArgs(e);
+                                    args.Detail["context"] = "OnQueueRecovery";
+                                    m_delegate.OnCallbackException(args);
+                                }
+                            }
+                        }
                     }
                 } catch (Exception cause)
                 {
