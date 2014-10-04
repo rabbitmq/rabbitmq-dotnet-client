@@ -452,6 +452,26 @@ namespace RabbitMQ.Client.Unit {
             }
         }
 
+        [Test]
+        public void TestThatDeletedQueuesDontReappearOnRecovery()
+        {
+            var q = "dotnet-client.recovery.q1";
+            Model.QueueDeclare(q, false, false, false, null);
+            Model.QueueDelete(q);
+
+            try
+            {
+                CloseAndWaitForRecovery();
+                Assert.IsTrue(Model.IsOpen);
+                Model.QueueDeclarePassive(q);
+                Assert.Fail("Expected an exception");
+            } catch (OperationInterruptedException e)
+            {
+                // expected
+                AssertShutdownError(e.ShutdownReason, 404);
+            }
+        }
+
 
         //
         // Implementation
