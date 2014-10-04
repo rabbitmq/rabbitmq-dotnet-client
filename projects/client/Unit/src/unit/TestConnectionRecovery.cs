@@ -377,6 +377,34 @@ namespace RabbitMQ.Client.Unit {
             }
         }
 
+        [Test]
+        [Category("Focus")]
+        public void TestThatDeletedQueueBindingsDontReappearOnRecovery()
+        {
+var q  = Model.QueueDeclare("", false, false, false, null).QueueName;
+            var x1 = "amq.fanout";
+            var x2 = GenerateExchangeName();
+
+            Model.ExchangeDeclare(x2, "fanout");
+            Model.ExchangeBind(x1, x2, "");
+            Model.QueueBind(q, x1, "");
+            Model.QueueUnbind(q, x1, "", null);
+
+            try
+            {
+                CloseAndWaitForRecovery();
+                Assert.IsTrue(Model.IsOpen);
+                Model.BasicPublish(x2, "", null, enc.GetBytes("msg"));
+                AssertMessageCount(q, 0);
+            } finally
+            {
+                WithTemporaryModel((m) => {
+                    m.ExchangeDelete(x2);
+                    m.QueueDelete(q);
+                });
+            }
+        }
+
 
         //
         // Implementation
