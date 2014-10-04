@@ -472,6 +472,12 @@ namespace RabbitMQ.Client.Unit {
             }
         }
 
+        // TODO: TestThatCancelledConsumerDoesNotReappearOnRecover
+        // TODO: TestQueueRecoveryWithManyQueues
+        // TODO: TestConsumerRecoveryWithManyConsumers
+        // TODO: TestChannelRecoveryCallback
+        // TODO: TestBasicAckAfterChannelRecovery
+
 
         //
         // Implementation
