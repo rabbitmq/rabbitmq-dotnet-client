@@ -351,6 +351,32 @@ namespace RabbitMQ.Client.Unit {
             Model.QueueDeclarePassive(nameAfter);
         }
 
+        [Test]
+        public void TestExchangeToExchangeBindingRecovery()
+        {
+            var q  = Model.QueueDeclare("", false, false, false, null).QueueName;
+            var x1 = "amq.fanout";
+            var x2 = GenerateExchangeName();
+
+            Model.ExchangeDeclare(x2, "fanout");
+            Model.ExchangeBind(x1, x2, "");
+            Model.QueueBind(q, x1, "");
+
+            try
+            {
+                CloseAndWaitForRecovery();
+                Assert.IsTrue(Model.IsOpen);
+                Model.BasicPublish(x2, "", null, enc.GetBytes("msg"));
+                AssertMessageCount(q, 1);
+            } finally
+            {
+                WithTemporaryModel((m) => {
+                    m.ExchangeDelete(x2);
+                    m.QueueDelete(q);
+                });
+            }
+        }
+
 
         //
         // Implementation
