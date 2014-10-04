@@ -47,6 +47,7 @@ using System.Threading;
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Unit {
     [TestFixture]
@@ -378,10 +379,9 @@ namespace RabbitMQ.Client.Unit {
         }
 
         [Test]
-        [Category("Focus")]
         public void TestThatDeletedQueueBindingsDontReappearOnRecovery()
         {
-var q  = Model.QueueDeclare("", false, false, false, null).QueueName;
+            var q  = Model.QueueDeclare("", false, false, false, null).QueueName;
             var x1 = "amq.fanout";
             var x2 = GenerateExchangeName();
 
@@ -402,6 +402,53 @@ var q  = Model.QueueDeclare("", false, false, false, null).QueueName;
                     m.ExchangeDelete(x2);
                     m.QueueDelete(q);
                 });
+            }
+        }
+
+        [Test]
+        public void TestThatDeletedExchangeBindingsDontReappearOnRecovery()
+        {
+            var q  = Model.QueueDeclare("", false, false, false, null).QueueName;
+            var x1 = "amq.fanout";
+            var x2 = GenerateExchangeName();
+
+            Model.ExchangeDeclare(x2, "fanout");
+            Model.ExchangeBind(x1, x2, "");
+            Model.QueueBind(q, x1, "");
+            Model.ExchangeUnbind(x1, x2, "", null);
+
+            try
+            {
+                CloseAndWaitForRecovery();
+                Assert.IsTrue(Model.IsOpen);
+                Model.BasicPublish(x2, "", null, enc.GetBytes("msg"));
+                AssertMessageCount(q, 0);
+            } finally
+            {
+                WithTemporaryModel((m) => {
+                    m.ExchangeDelete(x2);
+                    m.QueueDelete(q);
+                });
+            }
+        }
+
+        [Test]
+        public void TestThatDeletedExchangesDontReappearOnRecovery()
+        {
+            var x = GenerateExchangeName();
+            Model.ExchangeDeclare(x, "fanout");
+            Model.ExchangeDelete(x);
+
+            try
+            {
+                CloseAndWaitForRecovery();
+                Assert.IsTrue(Model.IsOpen);
+                Model.ExchangeDeclarePassive(x);
+                Assert.Fail("Expected an exception");
+            } catch (OperationInterruptedException e)
+            {
+                // expected
+                AssertShutdownError(e.ShutdownReason, 404);
             }
         }
 
