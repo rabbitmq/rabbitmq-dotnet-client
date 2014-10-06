@@ -41,6 +41,7 @@
 using NUnit.Framework;
 
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 
@@ -472,8 +473,25 @@ namespace RabbitMQ.Client.Unit {
             }
         }
 
+        [Test]
+        public void TestQueueRecoveryWithManyQueues()
+        {
+            List<string> qs = new List<string>();
+            var n = 1024;
+            for(var i = 0; i < n; i++)
+            {
+                qs.Add(Model.QueueDeclare(GenerateQueueName(), false, false, false, null).QueueName);
+            }
+            CloseAndWaitForRecovery();
+            Assert.IsTrue(Model.IsOpen);
+            foreach (var q in qs)
+            {
+                AssertQueueRecovery(Model, q, false);
+                Model.QueueDelete(q);
+            }
+        }
+
         // TODO: TestThatCancelledConsumerDoesNotReappearOnRecover
-        // TODO: TestQueueRecoveryWithManyQueues
         // TODO: TestConsumerRecoveryWithManyConsumers
         // TODO: TestChannelRecoveryCallback
         // TODO: TestBasicAckAfterChannelRecovery
@@ -545,13 +563,18 @@ namespace RabbitMQ.Client.Unit {
 
         protected void AssertQueueRecovery(IModel m, string q)
         {
+            AssertQueueRecovery(m, q, true);
+        }
+
+        protected void AssertQueueRecovery(IModel m, string q, bool exclusive)
+        {
             m.ConfirmSelect();
             m.QueueDeclarePassive(q);
-            var ok1 = m.QueueDeclare(q, false, true, false, null);
+            var ok1 = m.QueueDeclare(q, false, exclusive, false, null);
             Assert.AreEqual(ok1.MessageCount, 0);
             m.BasicPublish("", q, null, enc.GetBytes(""));
             Assert.IsTrue(WaitForConfirms(m));
-            var ok2 = m.QueueDeclare(q, false, true, false, null);
+            var ok2 = m.QueueDeclare(q, false, exclusive, false, null);
             Assert.AreEqual(ok2.MessageCount, 1);
         }
 
