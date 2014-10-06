@@ -646,7 +646,18 @@ namespace RabbitMQ.Client.Framing.Impl
 
         protected void RecoverBindings()
         {
-            // TODO
+            foreach(var b in this.m_recordedBindings)
+            {
+                try
+                {
+                    b.Recover();
+                } catch (Exception cause)
+                {
+                    var s = String.Format("Caught an exception while recovering binding between {0} and {1}: {2}",
+                                          b.Source, b.Destination, cause.Message);
+                    this.HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
+                }
+            }
         }
 
         protected void RecoverConsumers()

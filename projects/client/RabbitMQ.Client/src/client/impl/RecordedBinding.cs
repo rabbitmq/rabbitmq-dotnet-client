@@ -119,7 +119,7 @@ namespace RabbitMQ.Client.Impl
                 (this.arguments == other.arguments);
         }
 
-        public virtual void recover() {}
+        public virtual void Recover() {}
 
         public override int GetHashCode()
         {
@@ -140,7 +140,7 @@ namespace RabbitMQ.Client.Impl
     {
         public RecordedQueueBinding(AutorecoveringModel model) : base(model) {}
 
-        public override void recover()
+        public override void Recover()
         {
             this.ModelDelegate.QueueBind(this.destination, this.source,
                                          this.routingKey, this.arguments);
@@ -151,7 +151,7 @@ namespace RabbitMQ.Client.Impl
     {
         public RecordedExchangeBinding(AutorecoveringModel model) : base(model) {}
 
-        public override void recover()
+        public override void Recover()
         {
             this.ModelDelegate.ExchangeBind(this.destination, this.source,
                                             this.routingKey, this.arguments);
