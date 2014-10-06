@@ -566,7 +566,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
         protected void RecoverModels()
         {
-            foreach(var m in this.m_models)
+            var xs = this.m_models;
+            foreach(var m in xs)
             {
                 m.AutomaticallyRecover(this, this.m_delegate);
             }
