@@ -492,7 +492,6 @@ namespace RabbitMQ.Client.Unit {
         }
 
         [Test]
-        [Category("Focus")]
         public void TestConsumerRecoveryWithManyConsumers()
         {
             var q = Model.QueueDeclare(GenerateQueueName(), false, false, false, null).QueueName;
