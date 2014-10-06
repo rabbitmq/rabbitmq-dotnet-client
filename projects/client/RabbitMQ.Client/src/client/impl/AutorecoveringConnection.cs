@@ -42,6 +42,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Linq;
+using System.Threading;
 
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Client.Events;
@@ -488,19 +489,23 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void BeginAutomaticRecovery()
         {
-            this.RecoverConnectionDelegate();
-            this.RecoverConnectionShutdownHandlers();
-            this.RecoverConnectionBlockedHandlers();
-            this.RecoverConnectionUnblockedHandlers();
-
-            this.RecoverModels();
-            if(m_factory.TopologyRecoveryEnabled)
+            Thread.Sleep(m_factory.NetworkRecoveryInterval);
+            lock(this)
             {
-                this.RecoverEntities();
-                this.RecoverConsumers();
-            }
+                this.RecoverConnectionDelegate();
+                this.RecoverConnectionShutdownHandlers();
+                this.RecoverConnectionBlockedHandlers();
+                this.RecoverConnectionUnblockedHandlers();
 
-            this.RunRecoveryEventHandlers();
+                this.RecoverModels();
+                if(m_factory.TopologyRecoveryEnabled)
+                {
+                    this.RecoverEntities();
+                    this.RecoverConsumers();
+                }
+
+                this.RunRecoveryEventHandlers();
+            }
         }
 
         protected void RecoverConnectionDelegate()
@@ -510,13 +515,9 @@ namespace RabbitMQ.Client.Framing.Impl
 
         protected void RecoverConnectionShutdownHandlers()
         {
-            var handler = this.m_recordedShutdownEventHandlers;
-            if(handler != null)
+            foreach(var eh in this.m_recordedShutdownEventHandlers)
             {
-                foreach(var eh in handler)
-                {
-                    this.m_delegate.ConnectionShutdown += eh;
-                }
+                this.m_delegate.ConnectionShutdown += eh;
             }
         }
 
@@ -566,10 +567,12 @@ namespace RabbitMQ.Client.Framing.Impl
 
         protected void RecoverModels()
         {
-            var xs = this.m_models;
-            foreach(var m in xs)
+            lock(this.m_models)
             {
-                m.AutomaticallyRecover(this, this.m_delegate);
+                foreach(var m in this.m_models)
+                {
+                    m.AutomaticallyRecover(this, this.m_delegate);
+                }
             }
         }
 
@@ -604,21 +607,21 @@ namespace RabbitMQ.Client.Framing.Impl
 
         protected void RecoverQueues()
         {
-            var rqs = new Dictionary<string, RecordedQueue>(m_recordedQueues);
-            foreach(var pair in rqs)
-            {
-                var oldName = pair.Key;
-                var rq      = pair.Value;
-
-                try
+            lock(this.m_recordedQueues) {
+                var rqs = new Dictionary<string, RecordedQueue>(m_recordedQueues);
+                foreach(var pair in rqs)
                 {
-                    rq.Recover();
-                    var newName = rq.Name;
+                    var oldName = pair.Key;
+                    var rq      = pair.Value;
 
-                    // make sure server-named queues are re-added with
-                    // their new names. MK.
-                    lock(this.m_recordedQueues)
+                    try
                     {
+                        rq.Recover();
+                        var newName = rq.Name;
+
+                        // make sure server-named queues are re-added with
+                        // their new names. MK.
+
                         this.DeleteRecordedQueue(oldName);
                         this.RecordQueue(newName, rq);
                         this.PropagateQueueNameChangeToBindings(oldName, newName);
@@ -639,12 +642,12 @@ namespace RabbitMQ.Client.Framing.Impl
                                 }
                             }
                         }
+                    } catch (Exception cause)
+                    {
+                        var s = String.Format("Caught an exception while recovering queue {0}: {1}",
+                                              oldName, cause.Message);
+                        this.HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
                     }
-                } catch (Exception cause)
-                {
-                    var s = String.Format("Caught an exception while recovering queue {0}: {1}",
-                                          oldName, cause.Message);
-                    this.HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
                 }
             }
         }
@@ -730,7 +733,7 @@ namespace RabbitMQ.Client.Framing.Impl
                                           tag, cons.Queue, cause.Message);
                     this.HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
                 }
-            }                
+            }
         }
 
 
@@ -827,7 +830,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 {
                     rc = m_recordedConsumers[consumerTag];
                     m_recordedConsumers.Remove(consumerTag);
-                    
+
                 }
             }
 

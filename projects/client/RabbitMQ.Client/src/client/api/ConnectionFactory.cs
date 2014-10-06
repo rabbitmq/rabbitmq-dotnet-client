@@ -211,6 +211,12 @@ namespace RabbitMQ.Client
         /// </summary>
         public bool TopologyRecoveryEnabled = true;
 
+        /// <summary>
+        /// Amount of time client will wait for before re-trying
+        /// to recover connection.
+        /// </summary>
+        public TimeSpan NetworkRecoveryInterval = TimeSpan.FromSeconds(5);
+
         ///<summary>The host to connect to</summary>
         public String HostName = "localhost";
 

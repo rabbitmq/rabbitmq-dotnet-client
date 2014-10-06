@@ -48,6 +48,8 @@ using System.Text;
 using System.Threading;
 using System.Diagnostics;
 using System.Linq;
+
+using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing;
 
@@ -93,12 +95,30 @@ namespace RabbitMQ.Client.Unit
         // Delegates
         //
 
+        protected delegate void ConnectionOp(IConnection m);
+        protected delegate void AutorecoveringConnectionOp(AutorecoveringConnection m);
         protected delegate void ModelOp(IModel m);
         protected delegate void QueueOp(IModel m, string q);
 
         //
         // Channels
         //
+
+        protected void WithTemporaryAutorecoveringConnection(AutorecoveringConnectionOp fn)
+        {
+            var cf = new ConnectionFactory();
+            cf.AutomaticRecoveryEnabled = true;
+            var conn = (AutorecoveringConnection)cf.CreateConnection();
+
+            try { fn(conn); } finally { conn.Abort(); }
+        }
+
+        protected void WithTemporaryModel(IConnection c, ModelOp fn)
+        {
+            IModel m = c.CreateModel();
+
+            try { fn(m); } finally { m.Abort(); }
+        }
 
         protected void WithTemporaryModel(ModelOp fn)
         {
@@ -160,9 +180,19 @@ namespace RabbitMQ.Client.Unit
             WithTemporaryQueue(Model, fn);
         }
 
+        protected void WithTemporaryNonExclusiveQueue(QueueOp fn)
+        {
+            WithTemporaryNonExclusiveQueue(Model, fn);
+        }
+
         protected void WithTemporaryQueue(IModel m, QueueOp fn)
         {
             WithTemporaryQueue(m, fn, GenerateQueueName());
+        }
+
+        protected void WithTemporaryNonExclusiveQueue(IModel m, QueueOp fn)
+        {
+            WithTemporaryNonExclusiveQueue(m, fn, GenerateQueueName());
         }
 
         protected void WithTemporaryQueue(QueueOp fn, string q)
@@ -175,6 +205,18 @@ namespace RabbitMQ.Client.Unit
             try
             {
                 m.QueueDeclare(q, false, true, false, null);
+                fn(m, q);
+            } finally
+            {
+                WithTemporaryModel((tm) => tm.QueueDelete(q));
+            }
+        }
+
+        protected void WithTemporaryNonExclusiveQueue(IModel m, QueueOp fn, string q)
+        {
+            try
+            {
+                m.QueueDeclare(q, false, false, false, null);
                 fn(m, q);
             } finally
             {
@@ -211,7 +253,7 @@ namespace RabbitMQ.Client.Unit
 
         protected void WithNonEmptyQueue(QueueOp fn, string msg)
         {
-            WithTemporaryQueue((m, q) => {
+            WithTemporaryNonExclusiveQueue((m, q) => {
                 EnsureNotEmpty(q, msg);
                 fn(m, q);
             });
@@ -219,7 +261,7 @@ namespace RabbitMQ.Client.Unit
 
         protected void WithEmptyQueue(QueueOp fn)
         {
-            WithTemporaryQueue((m, q) => {
+            WithTemporaryNonExclusiveQueue((m, q) => {
                 m.QueuePurge(q);
                 fn(m, q);
             });
@@ -239,6 +281,12 @@ namespace RabbitMQ.Client.Unit
                 QueueDeclareOk ok = m.QueueDeclarePassive(q);
                 Assert.AreEqual(count, ok.ConsumerCount);
             });
+        }
+
+        protected void AssertConsumerCount(IModel m, string q, int count)
+        {
+            QueueDeclareOk ok = m.QueueDeclarePassive(q);
+            Assert.AreEqual(count, ok.ConsumerCount);
         }
 
         //

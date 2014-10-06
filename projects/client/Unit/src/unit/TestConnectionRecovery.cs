@@ -53,12 +53,13 @@ using RabbitMQ.Client.Exceptions;
 namespace RabbitMQ.Client.Unit {
     [TestFixture]
     public class TestConnectionRecovery : IntegrationFixture {
+
+        public static TimeSpan RECOVERY_INTERVAL = TimeSpan.FromSeconds(2);
+
         [SetUp]
         public override void Init()
         {
-            ConnectionFactory connFactory = new ConnectionFactory();
-            connFactory.AutomaticRecoveryEnabled = true;
-            Conn = (AutorecoveringConnection)connFactory.CreateConnection();
+            Conn  = CreateAutorecoveringConnection();
             Model = Conn.CreateModel();
         }
 
@@ -203,7 +204,7 @@ namespace RabbitMQ.Client.Unit {
             CloseAndWaitForRecovery();
             Assert.IsTrue(Model.IsOpen);
 
-            WithTemporaryQueue(Model, (m, q) => { m.BasicPublish("", q, null, enc.GetBytes("")); });
+            WithTemporaryNonExclusiveQueue(Model, (m, q) => { m.BasicPublish("", q, null, enc.GetBytes("")); });
             Wait(latch);
         }
 
@@ -231,9 +232,10 @@ namespace RabbitMQ.Client.Unit {
         public void TestClientNamedQueueRecovery()
         {
             string s = "dotnet-client.test.recovery.q1";
-            WithTemporaryQueue(Model, (m, q) => {
+            WithTemporaryNonExclusiveQueue(Model, (m, q) => {
                 CloseAndWaitForRecovery();
-                AssertQueueRecovery(m, q);
+                AssertQueueRecovery(m, q, false);
+                Model.QueueDelete(q);
             }, s);
         }
 
@@ -516,25 +518,34 @@ namespace RabbitMQ.Client.Unit {
         }
 
         [Test]
-        public void TestConsumerRecoveryOnClientNamedQueueWithASingleRecovery()
+        [Category("Focus")]
+        public void TestConsumerRecoveryOnClientNamedQueueWithOneRecovery()
         {
-            var q    = Model.QueueDeclare("dotnet-client.recovery.queue1", false, false, false, null).QueueName;
-            var cons = new QueueingBasicConsumer(Model);
-            Model.BasicConsume(q, true, cons);
-            AssertConsumerCount(q, 1);
+            var c    = CreateAutorecoveringConnection();
+            var m    = c.CreateModel();
+            var q    = m.QueueDeclare("dotnet-client.recovery.queue1",
+                                      false, false, false, null).QueueName;
+            var cons = new EventingBasicConsumer(m);
+            m.BasicConsume(q, true, cons);
+            AssertConsumerCount(m, q, 1);
 
             string latestName  = null;
 
-            ((AutorecoveringConnection)Conn).QueueNameChangeAfterRecovery += (prev, current) =>
+            c.QueueNameChangeAfterRecovery += (prev, current) =>
             {
                 latestName = current;
             };
 
-            CloseAllAndWaitForRecovery();
-            AssertConsumerCount(latestName, 1);
+            CloseAndWaitForRecovery(c);
+            AssertConsumerCount(m, latestName, 1);
 
-            // TODO: assert consumer recovery
-            Model.QueueDelete(q);
+            var latch = new AutoResetEvent(false);
+            cons.Received += (s, args) => { latch.Set(); };
+
+            m.BasicPublish("", q, null, enc.GetBytes("msg"));
+            Wait(latch);
+
+            m.QueueDelete(q);
         }
 
         // TODO: TestThatCancelledConsumerDoesNotReappearOnRecover
@@ -567,10 +578,8 @@ namespace RabbitMQ.Client.Unit {
 
         protected void CloseAllAndWaitForRecovery(AutorecoveringConnection conn)
         {
-            var sl = PrepareForShutdown(conn);
             var rl = PrepareForRecovery(conn);
             CloseAllConnections();
-            Wait(sl);
             Wait(rl);
         }
 
@@ -609,7 +618,7 @@ namespace RabbitMQ.Client.Unit {
         protected void AssertExchangeRecovery(IModel m, string x)
         {
             m.ConfirmSelect();
-            WithTemporaryQueue(m, (_, q) => {
+            WithTemporaryNonExclusiveQueue(m, (_, q) => {
                 var rk = "routing-key";
                 m.QueueBind(q, x, rk);
                 var mb = RandomMessageBody();
@@ -645,6 +654,14 @@ namespace RabbitMQ.Client.Unit {
         protected void AssertRecordedExchanges(AutorecoveringConnection c, int n)
         {
             Assert.AreEqual(n, c.RecordedExchanges.Count);
+        }
+
+        protected AutorecoveringConnection CreateAutorecoveringConnection()
+        {
+            var cf = new ConnectionFactory();
+            cf.AutomaticRecoveryEnabled = true;
+            cf.NetworkRecoveryInterval  = RECOVERY_INTERVAL;
+            return (AutorecoveringConnection)cf.CreateConnection();
         }
     }
 }
