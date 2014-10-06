@@ -481,6 +481,11 @@ namespace RabbitMQ.Client.Framing.Impl
             m_delegate.Abort(reasonCode, reasonText, timeout);
         }
 
+        public override string ToString()
+        {
+            return string.Format("AutorecoveringConnection({0},{1},{2})", m_delegate.m_id, Endpoint, GetHashCode());
+        }
+
         public void BeginAutomaticRecovery()
         {
             this.RecoverConnectionDelegate();
@@ -615,9 +620,8 @@ namespace RabbitMQ.Client.Framing.Impl
                     {
                         this.DeleteRecordedQueue(oldName);
                         this.RecordQueue(newName, rq);
-                        // TODO
-                        // this.PropagateQueueNameChangeToBindings(oldName, newName);
-                        // this.PropagateQueueNameChangeToConsumers(oldName, newName);
+                        this.PropagateQueueNameChangeToBindings(oldName, newName);
+                        this.PropagateQueueNameChangeToConsumers(oldName, newName);
 
                         if(this.m_queueNameChange != null)
                         {
@@ -640,6 +644,32 @@ namespace RabbitMQ.Client.Framing.Impl
                     var s = String.Format("Caught an exception while recovering queue {0}: {1}",
                                           oldName, cause.Message);
                     this.HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
+                }
+            }
+        }
+
+        protected void PropagateQueueNameChangeToBindings(string oldName, string newName)
+        {
+            lock(this.m_recordedBindings)
+            {
+                var bs = this.m_recordedBindings.
+                    Where(b => b.Destination.Equals(oldName));
+                foreach(var b in bs)
+                {
+                    b.Destination = newName;
+                }
+            }
+        }
+
+        protected void PropagateQueueNameChangeToConsumers(string oldName, string newName)
+        {
+            lock(this.m_recordedBindings)
+            {
+                var cs = this.m_recordedConsumers.
+                    Where(pair => pair.Value.Queue.Equals(oldName));
+                foreach(var c in cs)
+                {
+                    c.Value.Queue = newName;
                 }
             }
         }

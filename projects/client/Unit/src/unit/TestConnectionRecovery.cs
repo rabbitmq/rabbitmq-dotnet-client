@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Unit {
     [TestFixture]
     public class TestConnectionRecovery : IntegrationFixture {
         [SetUp]
-        public new void Init()
+        public override void Init()
         {
             ConnectionFactory connFactory = new ConnectionFactory();
             connFactory.AutomaticRecoveryEnabled = true;
@@ -515,6 +515,28 @@ namespace RabbitMQ.Client.Unit {
             AssertConsumerCount(q, n);
         }
 
+        [Test]
+        public void TestConsumerRecoveryOnClientNamedQueueWithASingleRecovery()
+        {
+            var q    = Model.QueueDeclare("dotnet-client.recovery.queue1", false, false, false, null).QueueName;
+            var cons = new QueueingBasicConsumer(Model);
+            Model.BasicConsume(q, true, cons);
+            AssertConsumerCount(q, 1);
+
+            string latestName  = null;
+
+            ((AutorecoveringConnection)Conn).QueueNameChangeAfterRecovery += (prev, current) =>
+            {
+                latestName = current;
+            };
+
+            CloseAllAndWaitForRecovery();
+            AssertConsumerCount(latestName, 1);
+
+            // TODO: assert consumer recovery
+            Model.QueueDelete(q);
+        }
+
         // TODO: TestThatCancelledConsumerDoesNotReappearOnRecover
         // TODO: TestChannelRecoveryCallback
         // TODO: TestBasicAckAfterChannelRecovery
@@ -529,11 +551,25 @@ namespace RabbitMQ.Client.Unit {
             CloseAndWaitForRecovery((AutorecoveringConnection)this.Conn);
         }
 
+        protected void CloseAllAndWaitForRecovery()
+        {
+            CloseAllAndWaitForRecovery((AutorecoveringConnection)this.Conn);
+        }
+
         protected void CloseAndWaitForRecovery(AutorecoveringConnection conn)
         {
             var sl = PrepareForShutdown(conn);
             var rl = PrepareForRecovery(conn);
             CloseConnection(conn);
+            Wait(sl);
+            Wait(rl);
+        }
+
+        protected void CloseAllAndWaitForRecovery(AutorecoveringConnection conn)
+        {
+            var sl = PrepareForShutdown(conn);
+            var rl = PrepareForRecovery(conn);
+            CloseAllConnections();
             Wait(sl);
             Wait(rl);
         }

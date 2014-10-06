@@ -62,7 +62,7 @@ namespace RabbitMQ.Client.Unit
         protected Encoding enc = new UTF8Encoding();
 
         [SetUp]
-        public void Init()
+        public virtual void Init()
         {
             ConnectionFactory connFactory = new ConnectionFactory();
             Conn = connFactory.CreateConnection();
@@ -398,6 +398,15 @@ namespace RabbitMQ.Client.Unit
         {
             var ci = ListConnections().First(x => conn.LocalPort == x.PeerPort);
             CloseConnection(ci.Pid);
+        }
+
+        protected void CloseAllConnections()
+        {
+            var cs = ListConnections();
+            foreach(var c in cs)
+            {
+                CloseConnection(c.Pid);
+            }
         }
 
         protected void CloseConnection(string pid)
