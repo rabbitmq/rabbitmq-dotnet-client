@@ -491,8 +491,32 @@ namespace RabbitMQ.Client.Unit {
             }
         }
 
+        [Test]
+        [Category("Focus")]
+        public void TestConsumerRecoveryWithManyConsumers()
+        {
+            var q = Model.QueueDeclare(GenerateQueueName(), false, false, false, null).QueueName;
+            var n = 1024;
+
+            for(var i = 0; i < n; i++)
+            {
+                var cons = new QueueingBasicConsumer(Model);
+                Model.BasicConsume(q, true, cons);
+            }
+
+            var latch = new AutoResetEvent(false);
+            ((AutorecoveringConnection)Conn).ConsumerTagChangeAfterRecovery += (prev, current) =>
+            {
+                latch.Set();
+            };
+
+            CloseAndWaitForRecovery();
+            Wait(latch);
+            Assert.IsTrue(Model.IsOpen);
+            AssertConsumerCount(q, n);
+        }
+
         // TODO: TestThatCancelledConsumerDoesNotReappearOnRecover
-        // TODO: TestConsumerRecoveryWithManyConsumers
         // TODO: TestChannelRecoveryCallback
         // TODO: TestBasicAckAfterChannelRecovery
 

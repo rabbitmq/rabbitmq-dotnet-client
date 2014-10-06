@@ -59,6 +59,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private RecoveryEventHandler m_recovery;
         private QueueNameChangeAfterRecoveryEventHandler m_queueNameChange;
+        private ConsumerTagChangeAfterRecoveryEventHandler m_consumerTagChange;
 
         protected List<ConnectionShutdownEventHandler> m_recordedShutdownEventHandlers =
             new List<ConnectionShutdownEventHandler>();
@@ -230,6 +231,24 @@ namespace RabbitMQ.Client.Framing.Impl
                 lock(this.m_eventLock)
                 {
                     this.m_queueNameChange -= value;
+                }
+            }
+        }
+
+        public event ConsumerTagChangeAfterRecoveryEventHandler ConsumerTagChangeAfterRecovery
+        {
+            add
+            {
+                lock(this.m_eventLock)
+                {
+                    this.m_consumerTagChange += value;
+                }
+            }
+            remove
+            {
+                lock(this.m_eventLock)
+                {
+                    this.m_consumerTagChange -= value;
                 }
             }
         }
@@ -632,8 +651,46 @@ namespace RabbitMQ.Client.Framing.Impl
 
         protected void RecoverConsumers()
         {
-            // TODO
+            var dict = new Dictionary<string, RecordedConsumer>(m_recordedConsumers);
+            foreach(var pair in dict)
+            {
+                var tag  = pair.Key;
+                var cons = pair.Value;
+
+                try
+                {
+                    var newTag = cons.Recover();
+                    lock(this.m_recordedConsumers)
+                    {
+                        // make sure server-generated tags are re-added
+                        this.m_recordedConsumers.Remove(tag);
+                        this.m_recordedConsumers.Add(newTag, cons);
+                    }
+
+                    if(this.m_consumerTagChange != null)
+                    {
+                        foreach(ConsumerTagChangeAfterRecoveryEventHandler h in this.m_consumerTagChange.GetInvocationList())
+                        {
+                            try
+                            {
+                                h(tag, newTag);
+                            } catch (Exception e)
+                            {
+                                CallbackExceptionEventArgs args = new CallbackExceptionEventArgs(e);
+                                args.Detail["context"] = "OnConsumerRecovery";
+                                m_delegate.OnCallbackException(args);
+                            }
+                        }
+                    }
+                } catch (Exception cause)
+                {
+                    var s = String.Format("Caught an exception while recovering consumer {0} on queue {1}: {2}",
+                                          tag, cons.Queue, cause.Message);
+                    this.HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
+                }
+            }                
         }
+
 
         protected void HandleTopologyRecoveryException(TopologyRecoveryException e)
         {

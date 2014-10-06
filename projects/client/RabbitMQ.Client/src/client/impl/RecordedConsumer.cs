@@ -124,11 +124,13 @@ namespace RabbitMQ.Client.Impl
             return this;
         }
 
-        public void recover()
+        public string Recover()
         {
             this.consumerTag = ModelDelegate.BasicConsume(this.queue, this.autoAck,
                                                           this.consumerTag, false, this.exclusive,
                                                           this.arguments, this.consumer);
+
+            return this.consumerTag;
         }
     }
 }

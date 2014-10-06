@@ -233,6 +233,14 @@ namespace RabbitMQ.Client.Unit
             });
         }
 
+        protected void AssertConsumerCount(string q, int count)
+        {
+            WithTemporaryModel((m) => {
+                QueueDeclareOk ok = m.QueueDeclarePassive(q);
+                Assert.AreEqual(count, ok.ConsumerCount);
+            });
+        }
+
         //
         // Shutdown
         //
