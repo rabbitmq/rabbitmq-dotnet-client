@@ -549,7 +549,6 @@ namespace RabbitMQ.Client.Unit {
         }
 
         [Test]
-        [Category("Focus")]
         public void TestRecoveryEventHandlersOnChannel()
         {
             Int32 counter = 0;
@@ -565,7 +564,23 @@ namespace RabbitMQ.Client.Unit {
             Assert.IsTrue(counter >= 1);
         }
 
-        // TODO: TestThatCancelledConsumerDoesNotReappearOnRecover
+        [Test]
+        public void TestThatCancelledConsumerDoesNotReappearOnRecover()
+        {
+            var q = Model.QueueDeclare(GenerateQueueName(), false, false, false, null).QueueName;
+            var n = 1024;
+
+            for(var i = 0; i < n; i++)
+            {
+                var cons = new QueueingBasicConsumer(Model);
+                var tag  = Model.BasicConsume(q, true, cons);
+                Model.BasicCancel(tag);
+            }
+            CloseAndWaitForRecovery();
+            Assert.IsTrue(Model.IsOpen);
+            AssertConsumerCount(q, 0);
+        }
+
         // TODO: TestBasicAckAfterChannelRecovery
 
 
