@@ -587,13 +587,13 @@ namespace RabbitMQ.Client.Impl
 
         public abstract bool DispatchAsynchronous(Command cmd);
 
-        public void HandleBasicDeliver(string consumerTag,
-                                       ulong deliveryTag,
-                                       bool redelivered,
-                                       string exchange,
-                                       string routingKey,
-                                       IBasicProperties basicProperties,
-                                       byte[] body)
+        public virtual void HandleBasicDeliver(string consumerTag,
+                                               ulong deliveryTag,
+                                               bool redelivered,
+                                               string exchange,
+                                               string routingKey,
+                                               IBasicProperties basicProperties,
+                                               byte[] body)
         {
             IBasicConsumer consumer;
             lock (m_consumers)

@@ -404,7 +404,10 @@ namespace RabbitMQ.Client.Framing.Impl
 
         protected IModel CreateNonRecoveringModel()
         {
-            return m_delegate.CreateModel();
+            ISession session  = m_delegate.CreateSession();
+            IFullModel result = (IFullModel)(new RecoveryAwareModel(session));
+            result._Private_ChannelOpen("");
+            return result;
         }
 
         public IList<ShutdownReportEntry> ShutdownReport
