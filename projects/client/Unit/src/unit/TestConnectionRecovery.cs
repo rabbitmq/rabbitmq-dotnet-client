@@ -548,8 +548,24 @@ namespace RabbitMQ.Client.Unit {
             m.QueueDelete(q);
         }
 
+        [Test]
+        [Category("Focus")]
+        public void TestRecoveryEventHandlersOnChannel()
+        {
+            Int32 counter = 0;
+            ((AutorecoveringModel)Model).Recovery += (c) =>
+            {
+                Interlocked.Increment(ref counter);
+            };
+
+            CloseAndWaitForRecovery();
+            CloseAndWaitForRecovery();
+            Assert.IsTrue(Conn.IsOpen);
+
+            Assert.IsTrue(counter >= 1);
+        }
+
         // TODO: TestThatCancelledConsumerDoesNotReappearOnRecover
-        // TODO: TestChannelRecoveryCallback
         // TODO: TestBasicAckAfterChannelRecovery
 
 
