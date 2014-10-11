@@ -388,7 +388,8 @@ namespace RabbitMQ.Client.Framing.Impl
             AutorecoveringModel m;
             lock(this)
             {
-                m = new AutorecoveringModel(this, (Model)this.CreateNonRecoveringModel());
+                m = new AutorecoveringModel(this,
+                                            (RecoveryAwareModel)this.CreateNonRecoveringModel());
                 m_models.Add(m);
             }
             return m;
@@ -402,10 +403,10 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        protected IModel CreateNonRecoveringModel()
+        public RecoveryAwareModel CreateNonRecoveringModel()
         {
-            ISession session  = m_delegate.CreateSession();
-            IFullModel result = (IFullModel)(new RecoveryAwareModel(session));
+            var session = m_delegate.CreateSession();
+            var result  = new RecoveryAwareModel(session);
             result._Private_ChannelOpen("");
             return result;
         }

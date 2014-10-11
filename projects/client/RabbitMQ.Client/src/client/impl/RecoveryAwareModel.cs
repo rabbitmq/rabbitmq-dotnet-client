@@ -49,6 +49,16 @@ namespace RabbitMQ.Client.Impl
         private ulong maxSeenDeliveryTag = 0;
         private ulong activeDeliveryTagOffset = 0;
 
+        public ulong MaxSeenDeliveryTag
+        {
+            get { return maxSeenDeliveryTag; }
+        }
+
+        public ulong ActiveDeliveryTagOffset
+        {
+            get { return activeDeliveryTagOffset; }
+        }
+
         public RecoveryAwareModel(ISession session) : base(session) {}
 
         public override void HandleBasicDeliver(string consumerTag,
@@ -101,6 +111,11 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public void InheritOffsetFrom(RecoveryAwareModel other)
+        {
+            this.activeDeliveryTagOffset = other.ActiveDeliveryTagOffset + other.MaxSeenDeliveryTag;
+            this.maxSeenDeliveryTag = 0;
+        }
 
         protected ulong OffsetDeliveryTag(ulong deliveryTag)
         {

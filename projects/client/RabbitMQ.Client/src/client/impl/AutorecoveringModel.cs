@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.Impl
     public class AutorecoveringModel : IFullModel, IRecoverable
     {
         protected AutorecoveringConnection m_connection;
-        protected Model m_delegate;
+        protected RecoveryAwareModel m_delegate;
 
         public readonly object m_eventLock = new object();
 
@@ -73,7 +73,7 @@ namespace RabbitMQ.Client.Impl
         protected bool usesPublisherConfirms   = false;
         protected bool usesTransactions        = false;
 
-        public AutorecoveringModel(AutorecoveringConnection conn, Model _delegate)
+        public AutorecoveringModel(AutorecoveringConnection conn, RecoveryAwareModel _delegate)
         {
             this.m_connection = conn;
             this.m_delegate   = _delegate;
@@ -82,8 +82,10 @@ namespace RabbitMQ.Client.Impl
         public void AutomaticallyRecover(AutorecoveringConnection conn, IConnection connDelegate)
         {
             this.m_connection = conn;
-            this.m_delegate   = (Model)connDelegate.CreateModel();
-            // TODO: inherit ack offset
+            var defunctModel  = this.m_delegate;
+
+            this.m_delegate   = conn.CreateNonRecoveringModel();
+            this.m_delegate.InheritOffsetFrom(defunctModel);
 
             this.RecoverModelShutdownHandlers();
             this.RecoverState();
