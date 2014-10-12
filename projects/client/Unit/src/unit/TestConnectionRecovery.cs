@@ -518,7 +518,6 @@ namespace RabbitMQ.Client.Unit {
         }
 
         [Test]
-        [Category("Focus")]
         public void TestConsumerRecoveryOnClientNamedQueueWithOneRecovery()
         {
             var c    = CreateAutorecoveringConnection();
