@@ -564,7 +564,7 @@ namespace RabbitMQ.Client.Unit {
         }
 
         [Test]
-        public void TestThatCancelledConsumerDoesNotReappearOnRecover()
+        public void TestThatCancelledConsumerDoesNotReappearOnRecovery()
         {
             var q = Model.QueueDeclare(GenerateQueueName(), false, false, false, null).QueueName;
             var n = 1024;
