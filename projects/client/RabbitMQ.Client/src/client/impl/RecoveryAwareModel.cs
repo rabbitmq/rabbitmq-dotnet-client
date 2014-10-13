@@ -88,7 +88,7 @@ namespace RabbitMQ.Client.Impl
             var realTag = deliveryTag - activeDeliveryTagOffset;
             if(realTag > 0)
             {
-                base.BasicAck(deliveryTag, multiple);
+                base.BasicAck(realTag, multiple);
             }
         }
 
