@@ -58,10 +58,10 @@ namespace RabbitMQ.Client
     ///</remarks>
     public class DefaultBasicConsumer : IBasicConsumer
     {
-        private IModel m_model = null;
-        private string m_consumerTag = null;
-        private bool m_running = false;
-        private ShutdownEventArgs m_shutdownReason = null;
+        protected IModel m_model = null;
+        protected string m_consumerTag = null;
+        protected bool m_running = false;
+        protected ShutdownEventArgs m_shutdownReason = null;
         public readonly object m_eventLock = new object();
         public ConsumerCancelledEventHandler m_consumerCancelled;
 
