@@ -641,6 +641,16 @@ namespace RabbitMQ.Client.Unit {
             }
         }
 
+        public class RejectingBasicConsumer : TestBasicConsumer1
+        {
+            public RejectingBasicConsumer(IModel model, AutoResetEvent latch, Action fn) : base(model, latch, fn) {}
+
+            public override void PostHandleDelivery(ulong deliveryTag)
+            {
+                base.m_model.BasicReject(deliveryTag, false);
+            }
+        }
+
         [Test]
         public void TestBasicAckAfterChannelRecovery()
         {
@@ -657,6 +667,17 @@ namespace RabbitMQ.Client.Unit {
         {
             var latch = new AutoResetEvent(false);
             var cons  = new NackingBasicConsumer(Model, latch, () => {
+                CloseAndWaitForRecovery();
+            });
+
+            TestDelayedBasicAckNackAfterChannelRecovery(cons, latch);
+        }
+
+        [Test]
+        public void TestBasicRejectAfterChannelRecovery()
+        {
+            var latch = new AutoResetEvent(false);
+            var cons  = new RejectingBasicConsumer(Model, latch, () => {
                 CloseAndWaitForRecovery();
             });
 
