@@ -514,7 +514,22 @@ namespace RabbitMQ.Client.Framing.Impl
 
         protected void RecoverConnectionDelegate()
         {
-            this.m_delegate = new Connection(m_factory, false, m_factory.CreateFrameHandler());
+            var recovering = true;
+            while(recovering)
+            {
+                try
+                {
+                    this.m_delegate =
+                        new Connection(m_factory, false,
+                                       m_factory.CreateFrameHandler());
+                    recovering = false;
+                } catch (Exception e)
+                {
+                    // TODO: exponential back-off
+                    Thread.Sleep(m_factory.NetworkRecoveryInterval);
+                    // TODO: provide a way to handle these exceptions
+                }
+            }
         }
 
         protected void RecoverConnectionShutdownHandlers()
