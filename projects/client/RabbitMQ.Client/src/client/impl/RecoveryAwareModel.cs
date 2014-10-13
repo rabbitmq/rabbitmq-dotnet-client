@@ -97,7 +97,7 @@ namespace RabbitMQ.Client.Impl
             var realTag = deliveryTag - activeDeliveryTagOffset;
             if(realTag > 0)
             {
-                base.BasicReject(deliveryTag, requeue);
+                base.BasicReject(realTag, requeue);
             }
         }
 
@@ -107,7 +107,7 @@ namespace RabbitMQ.Client.Impl
             var realTag = deliveryTag - activeDeliveryTagOffset;
             if(realTag > 0)
             {
-                base.BasicNack(deliveryTag, multiple, requeue);
+                base.BasicNack(realTag, multiple, requeue);
             }
         }
 
