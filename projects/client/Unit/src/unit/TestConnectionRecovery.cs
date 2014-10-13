@@ -609,24 +609,64 @@ namespace RabbitMQ.Client.Unit {
                     {
                         this.latch.Set();
                     }
-                    base.m_model.BasicAck(deliveryTag, false);
+                    this.PostHandleDelivery(deliveryTag);
                 } finally
                 {
                     counter += 1;
                 }
+            }
+
+            public virtual void PostHandleDelivery(ulong deliveryTag)
+            {
+            }
+        }
+
+        public class AckingBasicConsumer : TestBasicConsumer1
+        {
+            public AckingBasicConsumer(IModel model, AutoResetEvent latch, Action fn) : base(model, latch, fn) {}
+
+            public override void PostHandleDelivery(ulong deliveryTag)
+            {
+                base.m_model.BasicAck(deliveryTag, false);
+            }
+        }
+
+        public class NackingBasicConsumer : TestBasicConsumer1
+        {
+            public NackingBasicConsumer(IModel model, AutoResetEvent latch, Action fn) : base(model, latch, fn) {}
+
+            public override void PostHandleDelivery(ulong deliveryTag)
+            {
+                base.m_model.BasicNack(deliveryTag, false, false);
             }
         }
 
         [Test]
         public void TestBasicAckAfterChannelRecovery()
         {
-            var q = Model.QueueDeclare(GenerateQueueName(), false, false, false, null).QueueName;
-            var n = 30;
-
             var latch = new AutoResetEvent(false);
-            var cons  = new TestBasicConsumer1(Model, latch, () => {
+            var cons  = new AckingBasicConsumer(Model, latch, () => {
                 CloseAndWaitForRecovery();
             });
+
+            TestDelayedBasicAckNackAfterChannelRecovery(cons, latch);
+        }
+
+        [Test]
+        public void TestBasicNackAfterChannelRecovery()
+        {
+            var latch = new AutoResetEvent(false);
+            var cons  = new NackingBasicConsumer(Model, latch, () => {
+                CloseAndWaitForRecovery();
+            });
+
+            TestDelayedBasicAckNackAfterChannelRecovery(cons, latch);
+        }
+
+        protected void TestDelayedBasicAckNackAfterChannelRecovery(TestBasicConsumer1 cons, AutoResetEvent latch)
+        {
+            var q = Model.QueueDeclare(GenerateQueueName(), false, false, false, null).QueueName;
+            var n = 30;
             Model.BasicQos(0, 1, false);
             Model.BasicConsume(q, false, cons);
 
