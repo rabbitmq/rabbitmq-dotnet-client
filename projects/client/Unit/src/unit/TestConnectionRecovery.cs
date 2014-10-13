@@ -580,7 +580,69 @@ namespace RabbitMQ.Client.Unit {
             AssertConsumerCount(q, 0);
         }
 
-        // TODO: TestBasicAckAfterChannelRecovery
+        public class TestBasicConsumer1 : DefaultBasicConsumer
+        {
+            private ushort counter = 0;
+            private AutoResetEvent latch;
+            private Action action;
+
+            public TestBasicConsumer1(IModel model, AutoResetEvent latch, Action fn) : base(model) {
+                this.latch  = latch;
+                this.action = fn;
+            }
+
+            public override void HandleBasicDeliver(string consumerTag,
+                                                    ulong deliveryTag,
+                                                    bool redelivered,
+                                                    string exchange,
+                                                    string routingKey,
+                                                    IBasicProperties properties,
+                                                    byte[] body)
+            {
+                try
+                {
+                    if(deliveryTag == 7 && counter < 10)
+                    {
+                        this.action();
+                    }
+                    if(counter == 9)
+                    {
+                        this.latch.Set();
+                    }
+                    base.m_model.BasicAck(deliveryTag, false);
+                } finally
+                {
+                    counter += 1;
+                }
+            }
+        }
+
+        [Test]
+        public void TestBasicAckAfterChannelRecovery()
+        {
+            var q = Model.QueueDeclare(GenerateQueueName(), false, false, false, null).QueueName;
+            var n = 30;
+
+            var latch = new AutoResetEvent(false);
+            var cons  = new TestBasicConsumer1(Model, latch, () => {
+                CloseAndWaitForRecovery();
+            });
+            Model.BasicQos(0, 1, false);
+            Model.BasicConsume(q, false, cons);
+
+            var publishingConn  = CreateAutorecoveringConnection();
+            var publishingModel = publishingConn.CreateModel();
+
+            for(var i = 0; i < n; i++)
+            {
+                publishingModel.BasicPublish("", q, null, enc.GetBytes(""));
+            }
+
+            Wait(latch, TimeSpan.FromSeconds(20));
+            Model.QueueDelete(q);
+            publishingModel.Close();
+            publishingConn.Close();
+        }
 
 
         //
@@ -638,6 +700,11 @@ namespace RabbitMQ.Client.Unit {
         protected void Wait(AutoResetEvent latch)
         {
             Assert.IsTrue(latch.WaitOne(TimeSpan.FromSeconds(8)));
+        }
+
+        protected void Wait(AutoResetEvent latch, TimeSpan timeSpan)
+        {
+            Assert.IsTrue(latch.WaitOne(timeSpan));
         }
 
         protected override void ReleaseResources()
