@@ -518,6 +518,7 @@ namespace RabbitMQ.Client.Unit {
         }
 
         [Test]
+        [Category("Focus")]
         public void TestConsumerRecoveryOnClientNamedQueueWithOneRecovery()
         {
             var c    = CreateAutorecoveringConnection();
@@ -535,6 +536,10 @@ namespace RabbitMQ.Client.Unit {
                 latestName = current;
             };
 
+            CloseAndWaitForRecovery(c);
+            AssertConsumerCount(m, latestName, 1);
+            CloseAndWaitForRecovery(c);
+            AssertConsumerCount(m, latestName, 1);
             CloseAndWaitForRecovery(c);
             AssertConsumerCount(m, latestName, 1);
 

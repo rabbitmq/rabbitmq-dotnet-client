@@ -92,22 +92,28 @@ namespace RabbitMQ.Client.Framing.Impl
             var self = this;
             ConnectionShutdownEventHandler recoveryListener = (_, args) =>
                 {
-                    if(ShouldTriggerConnectionRecovery(args))
+                    lock(self)
                     {
-                        try
+                        if(ShouldTriggerConnectionRecovery(args))
                         {
-                            self.BeginAutomaticRecovery();
-                        } catch (Exception e)
-                        {
-                            // TODO: logging
-                            Console.WriteLine("BeginAutomaticRecovery() failed: {0}", e);
-                        }
+                            try
+                            {
+                                self.BeginAutomaticRecovery();
+                            } catch (Exception e)
+                            {
+                                // TODO: logging
+                                Console.WriteLine("BeginAutomaticRecovery() failed: {0}", e);
+                            }
+                        }                        
                     }
                 };
             lock(this.m_eventLock)
             {
                 this.ConnectionShutdown += recoveryListener;
-                this.m_recordedShutdownEventHandlers.Add(recoveryListener);
+                if(!this.m_recordedShutdownEventHandlers.Contains(recoveryListener))
+                {
+                    this.m_recordedShutdownEventHandlers.Add(recoveryListener);
+                }
             }
         }
 
@@ -837,7 +843,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-       public void RecordConsumer(string name, RecordedConsumer c)
+        public void RecordConsumer(string name, RecordedConsumer c)
         {
             lock(this.m_recordedEntitiesLock)
             {
