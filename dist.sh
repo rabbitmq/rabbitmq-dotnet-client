@@ -107,27 +107,7 @@ function dist-zips {
     ### Source dist
     src-dist
 
-    ### .NET 2.0 library (bin) and examples (src and bin) dist
-    dist-target-framework dotnet-2.0
-    ### HTML documentation for the .NET 2.0 library dist
-    gendoc-dist \
-        build/bin/RabbitMQ.Client.xml \
-        $NAME_VSN-client-htmldoc.zip \
-        "/suppress:RabbitMQ.Client.Framing.v0_8 \
-         /suppress:RabbitMQ.Client.Framing.v0_8qpid \
-         /suppress:RabbitMQ.Client.Framing.v0_9 \
-         /suppress:RabbitMQ.Client.Framing.v0_9_1 \
-         /suppress:RabbitMQ.Client.Framing.Impl.v0_8 \
-         /suppress:RabbitMQ.Client.Framing.Impl.v0_8qpid \
-         /suppress:RabbitMQ.Client.Framing.Impl.v0_9 \
-         /suppress:RabbitMQ.Client.Framing.Impl.v0_9_1 \
-         /suppress:RabbitMQ.Client.Impl \
-         /suppress:RabbitMQ.Client.Apigen.Attributes" \
-        $NAME_VSN-tmp-xmldoc.zip \
-        projects/client/RabbitMQ.Client \
-        ../../..
-
-    ### .NET 3.0 library (bin), examples (src and bin), WCF bindings library (bin)
+    ### .NET 3.5 library (bin), examples (src and bin), WCF bindings library (bin)
     ### and WCF examples (src) dist (WCF built only if MONO_DIST is undefined)
     dist-target-framework dotnet-3.0
     if [ -z "$MONO_DIST" ]; then
