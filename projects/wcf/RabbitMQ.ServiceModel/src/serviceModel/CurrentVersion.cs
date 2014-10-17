@@ -41,7 +41,7 @@
 using System;
 using System.Text;
 
-using RabbitMQ.Client.Framing.v0_9_1;
+using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.ServiceModel
 {

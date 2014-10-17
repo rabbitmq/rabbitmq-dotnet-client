@@ -46,7 +46,7 @@ using System.ServiceModel.Channels;
 
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Framing.v0_9_1;
+using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.ServiceModel
 {
