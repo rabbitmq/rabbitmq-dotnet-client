@@ -6,6 +6,7 @@ rabbit\.snk$
 ^rabbit\-mock\.snk$
 
 ^tmp/
+^Backup/
 
 ^scratch$
 ^release/
