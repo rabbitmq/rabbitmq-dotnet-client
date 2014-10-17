@@ -5,6 +5,8 @@ syntax: regexp
 rabbit\.snk$
 ^rabbit\-mock\.snk$
 
+^tmp/
+
 ^scratch$
 ^release/
 ^build$
