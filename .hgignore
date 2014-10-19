@@ -18,6 +18,7 @@ rabbit\.snk$
 
 ^docs/pyle\.(log|pid)
 ^docs/pyle2.*/.*\.pyc
+^docs/api-guide.pdf
 
 ^wix/dotnet-client-merge-module\.wxs$
 ^wix/dotnet-client-product\.wxs$
