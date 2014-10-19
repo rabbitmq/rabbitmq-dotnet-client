@@ -45,11 +45,7 @@ using System.Net.Sockets;
 using RabbitMQ.Util;
 using RabbitMQ.Client.Exceptions;
 
-// We use spec version 0-9 for common constants such as frame types,
-// error codes, and the frame end byte, since they don't vary *within
-// the versions we support*. Obviously we may need to revisit this if
-// that ever changes.
-using CommonFraming = RabbitMQ.Client.Framing.v0_9_1;
+using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -122,7 +118,7 @@ namespace RabbitMQ.Client.Impl
             }
 
             int frameEndMarker = reader.ReadByte();
-            if (frameEndMarker != CommonFraming.Constants.FrameEnd)
+            if (frameEndMarker != Constants.FrameEnd)
             {
                 throw new MalformedFrameException("Bad frame end marker: " + frameEndMarker);
             }
@@ -180,7 +176,7 @@ namespace RabbitMQ.Client.Impl
             writer.Write((ushort) m_channel);
             writer.Write((uint) m_payload.Length);
             writer.Write((byte[]) m_payload);
-            writer.Write((byte) CommonFraming.Constants.FrameEnd);
+            writer.Write((byte) Constants.FrameEnd);
         }
 
         public NetworkBinaryReader GetReader()

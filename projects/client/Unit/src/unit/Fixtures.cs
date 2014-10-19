@@ -43,10 +43,15 @@
 using NUnit.Framework;
 
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using System.Diagnostics;
+using System.Linq;
+
+using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Client.Framing.v0_9_1;
+using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -59,7 +64,7 @@ namespace RabbitMQ.Client.Unit
         protected Encoding enc = new UTF8Encoding();
 
         [SetUp]
-        public void Init()
+        public virtual void Init()
         {
             ConnectionFactory connFactory = new ConnectionFactory();
             Conn = connFactory.CreateConnection();
@@ -69,8 +74,14 @@ namespace RabbitMQ.Client.Unit
         [TearDown]
         public void Dispose()
         {
-            Model.Close();
-            Conn.Close();
+            if(Model.IsOpen)
+            {
+                Model.Close();
+            }
+            if(Conn.IsOpen)
+            {
+                Conn.Close();
+            }
 
             ReleaseResources();
         }
@@ -84,12 +95,30 @@ namespace RabbitMQ.Client.Unit
         // Delegates
         //
 
+        protected delegate void ConnectionOp(IConnection m);
+        protected delegate void AutorecoveringConnectionOp(AutorecoveringConnection m);
         protected delegate void ModelOp(IModel m);
         protected delegate void QueueOp(IModel m, string q);
 
         //
         // Channels
         //
+
+        protected void WithTemporaryAutorecoveringConnection(AutorecoveringConnectionOp fn)
+        {
+            var cf = new ConnectionFactory();
+            cf.AutomaticRecoveryEnabled = true;
+            var conn = (AutorecoveringConnection)cf.CreateConnection();
+
+            try { fn(conn); } finally { conn.Abort(); }
+        }
+
+        protected void WithTemporaryModel(IConnection c, ModelOp fn)
+        {
+            IModel m = c.CreateModel();
+
+            try { fn(m); } finally { m.Abort(); }
+        }
 
         protected void WithTemporaryModel(ModelOp fn)
         {
@@ -106,6 +135,11 @@ namespace RabbitMQ.Client.Unit
             fn(m);
         }
 
+        protected bool WaitForConfirms(IModel m)
+        {
+            return m.WaitForConfirms(TimeSpan.FromSeconds(4));
+        }
+
         //
         // Exchanges
         //
@@ -118,6 +152,18 @@ namespace RabbitMQ.Client.Unit
         protected byte[] RandomMessageBody()
         {
             return enc.GetBytes(Guid.NewGuid().ToString());
+        }
+
+        protected string DeclareNonDurableExchange(IModel m, string x)
+        {
+            m.ExchangeDeclare(x, "fanout", false);
+            return x;
+        }
+
+        protected string DeclareNonDurableExchangeNoWait(IModel m, string x)
+        {
+            m.ExchangeDeclareNoWait(x, "fanout", false, false, null);
+            return x;
         }
 
         //
@@ -134,12 +180,55 @@ namespace RabbitMQ.Client.Unit
             WithTemporaryQueue(Model, fn);
         }
 
+        protected void WithTemporaryNonExclusiveQueue(QueueOp fn)
+        {
+            WithTemporaryNonExclusiveQueue(Model, fn);
+        }
+
         protected void WithTemporaryQueue(IModel m, QueueOp fn)
         {
-            string q = GenerateQueueName();
+            WithTemporaryQueue(m, fn, GenerateQueueName());
+        }
+
+        protected void WithTemporaryNonExclusiveQueue(IModel m, QueueOp fn)
+        {
+            WithTemporaryNonExclusiveQueue(m, fn, GenerateQueueName());
+        }
+
+        protected void WithTemporaryQueue(QueueOp fn, string q)
+        {
+            WithTemporaryQueue(Model, fn, q);
+        }
+
+        protected void WithTemporaryQueue(IModel m, QueueOp fn, string q)
+        {
             try
             {
                 m.QueueDeclare(q, false, true, false, null);
+                fn(m, q);
+            } finally
+            {
+                WithTemporaryModel((tm) => tm.QueueDelete(q));
+            }
+        }
+
+        protected void WithTemporaryNonExclusiveQueue(IModel m, QueueOp fn, string q)
+        {
+            try
+            {
+                m.QueueDeclare(q, false, false, false, null);
+                fn(m, q);
+            } finally
+            {
+                WithTemporaryModel((tm) => tm.QueueDelete(q));
+            }
+        }
+
+        protected void WithTemporaryQueueNoWait(IModel m, QueueOp fn, string q)
+        {
+            try
+            {
+                m.QueueDeclareNoWait(q, false, true, false, null);
                 fn(m, q);
             } finally
             {
@@ -164,7 +253,7 @@ namespace RabbitMQ.Client.Unit
 
         protected void WithNonEmptyQueue(QueueOp fn, string msg)
         {
-            WithTemporaryQueue((m, q) => {
+            WithTemporaryNonExclusiveQueue((m, q) => {
                 EnsureNotEmpty(q, msg);
                 fn(m, q);
             });
@@ -172,7 +261,7 @@ namespace RabbitMQ.Client.Unit
 
         protected void WithEmptyQueue(QueueOp fn)
         {
-            WithTemporaryQueue((m, q) => {
+            WithTemporaryNonExclusiveQueue((m, q) => {
                 m.QueuePurge(q);
                 fn(m, q);
             });
@@ -184,6 +273,20 @@ namespace RabbitMQ.Client.Unit
                 QueueDeclareOk ok = m.QueueDeclarePassive(q);
                 Assert.AreEqual(count, ok.MessageCount);
             });
+        }
+
+        protected void AssertConsumerCount(string q, int count)
+        {
+            WithTemporaryModel((m) => {
+                QueueDeclareOk ok = m.QueueDeclarePassive(q);
+                Assert.AreEqual(count, ok.ConsumerCount);
+            });
+        }
+
+        protected void AssertConsumerCount(IModel m, string q, int count)
+        {
+            QueueDeclareOk ok = m.QueueDeclarePassive(q);
+            Assert.AreEqual(count, ok.ConsumerCount);
         }
 
         //
@@ -210,6 +313,158 @@ namespace RabbitMQ.Client.Unit
             {
                 Monitor.Wait(o, TimingFixture.TestTimeout);
             }
+        }
+
+        //
+        // Shelling Out
+        //
+
+        protected Process ExecRabbitMQCtl(string args)
+        {
+            if(IsRunningOnMono()) {
+                return ExecCommand("../../../../../../rabbitmq-server/scripts/rabbitmqctl", args);
+            } else {
+                return ExecCommand("..\\..\\..\\..\\..\\..\\rabbitmq-server\\scripts\\rabbitmqctl.bat", args);
+            }
+        }
+
+        protected Process ExecCommand(string ctl, string args)
+        {
+            Process proc = new Process();
+            proc.StartInfo.CreateNoWindow  = true;
+            proc.StartInfo.UseShellExecute = false;
+
+            string cmd;
+            if(IsRunningOnMono()) {
+                cmd  = ctl;
+            } else {
+                cmd  = "cmd.exe";
+                args = "/c " + ctl + " -n rabbit@" + (Environment.GetEnvironmentVariable("COMPUTERNAME")).ToLower() + " " + args;
+            }
+
+            try {
+              proc.StartInfo.FileName = cmd;
+              proc.StartInfo.Arguments = args;
+              proc.StartInfo.RedirectStandardError = true;
+              proc.StartInfo.RedirectStandardOutput = true;
+
+              proc.Start();
+              String stderr = proc.StandardError.ReadToEnd();
+              proc.WaitForExit();
+              if (stderr.Length > 0)
+              {
+                  String stdout = proc.StandardOutput.ReadToEnd();
+                  ReportExecFailure(cmd, args, stderr + "\n" + stdout);
+              }
+
+              return proc;
+            }
+            catch (Exception e)
+            {
+                ReportExecFailure(cmd, args, e.Message);
+                throw e;
+            }
+        }
+
+        protected void ReportExecFailure(String cmd, String args, String msg)
+        {
+            Console.WriteLine("Failure while running " + cmd + " " + args + ":\n" + msg);
+        }
+
+        public static bool IsRunningOnMono()
+        {
+            return Type.GetType("Mono.Runtime") != null;
+        }
+
+        //
+        // Flow Control
+        //
+
+        protected void Block()
+        {
+            ExecRabbitMQCtl("set_vm_memory_high_watermark 0.000000001");
+            // give rabbitmqctl some time to do its job
+            Thread.Sleep(800);
+            Publish(Conn);
+        }
+
+        protected void Unblock()
+        {
+            ExecRabbitMQCtl("set_vm_memory_high_watermark 0.4");
+        }
+
+        protected void Publish(IConnection conn)
+        {
+            IModel ch = conn.CreateModel();
+            ch.BasicPublish("amq.fanout", "", null, enc.GetBytes("message"));
+        }
+
+        //
+        // Connection Closure
+        //
+
+        public class ConnectionInfo
+        {
+            public string Pid
+            {
+                get; set;
+            }
+
+            public uint PeerPort
+            {
+                get; set;
+            }
+
+            public ConnectionInfo(string pid, uint peerPort)
+            {
+                Pid = pid;
+                PeerPort = peerPort;
+            }
+
+            public override string ToString()
+            {
+                return "pid = " + Pid + ", peer port: " + PeerPort.ToString();
+            }
+        }
+
+        protected List<ConnectionInfo> ListConnections()
+        {
+            Process proc  = ExecRabbitMQCtl("list_connections -q pid peer_port");
+            String stdout = proc.StandardOutput.ReadToEnd();
+
+            // {Environment.NewLine} is not sufficient
+            string[] splitOn = new string[] { "\r\n", "\n" };
+            string[] lines   = stdout.Split(splitOn, StringSplitOptions.RemoveEmptyEntries);
+
+            // line: <rabbit@mercurio.1.11491.0>	58713
+            return lines.Select(s => {
+              var columns = s.Split('\t');
+              Debug.Assert(!string.IsNullOrEmpty(columns[0]), "columns[0] is null or empty!");
+	      Debug.Assert(!string.IsNullOrEmpty(columns[1]), "columns[1] is null or empty!");
+              return new ConnectionInfo(columns[0], Convert.ToUInt32(columns[1].Trim()));
+            }).ToList();
+        }
+
+        protected void CloseConnection(IConnection conn)
+        {
+            var ci = ListConnections().First(x => conn.LocalPort == x.PeerPort);
+            CloseConnection(ci.Pid);
+        }
+
+        protected void CloseAllConnections()
+        {
+            var cs = ListConnections();
+            foreach(var c in cs)
+            {
+                CloseConnection(c.Pid);
+            }
+        }
+
+        protected void CloseConnection(string pid)
+        {
+            ExecRabbitMQCtl("close_connection \"" +
+                            pid +
+                            "\" \"Closed via rabbitmqctl\"");
         }
     }
 

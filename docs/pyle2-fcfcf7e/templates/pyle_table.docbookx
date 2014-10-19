@@ -1,0 +1,10 @@
+<table>
+  <title />
+  <tgroup cols="$columncount">
+    <tbody>
+#for $item in $container_items
+$item.render('docbookx')
+#end for
+    </tbody>
+  </tgroup>
+</table>

@@ -6,7 +6,7 @@ source code.
 
 ** Major namespaces, interfaces and classes
 
-The API is closely modelled on the AMQP protocol specification, with
+The API is closely modelled on the AMQP 0-9-1 protocol specification, with
 little additional abstraction.
 
 The core API interfaces and classes are defined in the [code
@@ -48,71 +48,6 @@ developers to implement workarounds for faults or design mistakes they
 discover in the library implementation. Applications cannot rely on
 any classes, interfaces, member variables etc. that appear within
 private namespaces remaining stable across releases of the library.
-
-** Multi-protocol support
-
-Class [code RabbitMQ.Client.Protocols] contains convenient predefined
-[code IProtocol] instances that permit selection of a supported
-protocol variant. At the time of writing, the library supports:
-
- - [code Protocols.DefaultProtocol]: An alias to one of the other
-   protocols. At the time of writing, [b the default protocol is [code
-   AMQP_0_9_1]].
-
- - [code Protocols.AMQP_0_8]: Standard AMQP 0-8 protocol, including
-   [code access.request], [code basic.recover-async] and [code queue.unbind].
-
- - [code Protocols.AMQP_0_8_QPID]: AMQP 0-8 as extended by QPid's 0-8
-   M1 release, without [code access.request] and with extra parameters
-   available on certain methods.
-
- - [code Protocols.AMQP_0_9]: Standard AMQP 0-9 protocol, including
-   [code access.request] and [code basic.recover-async], but excluding
-   the [code Message] content-class and other areas of the specification
-   marked "work in progress".
-
- - [code Protocols.AMQP_0_9_1]: Standard AMQP 0-9-1 protocol.
-
-The [code Protocols] class also contains some convenience functions
-for retrieving an IProtocol from a string, from the environment or
-from a .NET XML configuration file. The protocol names permitted are
-the same as the static instance variables on class [code Protocols],
-that is, [code AMQP_0_8], [code AMQP_0_8_QPID], [code AMQP_0_9],
-[code AMQP_0_9_1] and [code DefaultProtocol].
-
-The following code binds [code p] to the [code Protocols.AMQP_0_9]
-instance by looking it up dynamically:
-
-@code java
-  IProtocol p = Protocols.SafeLookup("AMQP_0_9");
-
-Given the following [code App.config] snippet,
-
-@code
-  <appSettings>
-    <add key="my-protocol" value="AMQP_0_9"/>
-  </appSettings>
-
-the following code will also bind [code p] to the 0-9 [code IProtocol]
-implementation:
-
-@code java
-  IProtocol p = Protocols.FromConfiguration("my-protocol");
-
-An alternative is [code Protocols.FromEnvironmentVariable()], which
-reads the name of the protocol variant to return from the shell
-environment variable named by [code Protocols.EnvironmentVariable] (at
-the time of writing, [code AMQP_PROTOCOL]).
-
-Finally, [code Protocols.FromEnvironment()] tries [code
-FromConfiguration()] first, and if no setting is found, falls back to
-[code FromEnvironmentVariable()].
-
-If no argument is passed to [code FromEnvironment()] or [code
-FromConfiguration()], the value of [code
-Protocols.DefaultAppSettingsKey] is used. (At the time of writing, the
-default appSettings key is [code AMQP_PROTOCOL], the same as the name
-of the shell environment variable scanned.)
 
 ** Connecting to a broker
 
@@ -419,51 +354,78 @@ The [code BasicReturn] event will fire, for example, if the client
 publishes a message with the "mandatory" flag set to an exchange of
 "direct" type which is not bound to a queue.
 
-** QPid-compatible JMS BytesMessage, StreamMessage, and MapMessage codecs
+** Automatic Recovery From Network Failures
 
-The [code RabbitMQ.Client.Content] namespace contains classes and
-interfaces that implement QPid-compatible JMS BytesMessage,
-StreamMessage and MapMessage encoders and decoders.
+*** ConnectionRecovery
 
-For example, to construct (and send) a MapMessage:
+Network connection between clients and RabbitMQ nodes can fail.
+RabbitMQ Java client supports automatic recovery of connections
+and topology (queues, exchanges, bindings, and consumers).
 
-@code java
-  IModel channel = ...;
+The automatic recovery process for many applications follows the following steps:
 
-  IMapMessageBuilder b = new MapMessageBuilder(channel);
-  b.Headers["header1"] = "some@random.string";
-  b.Body["field1"] = 123.45;
-  b.Body["field2"] = new byte[] { 1, 2, 3 };
+  - Reconnect
+  - Restore connection listeners
+  - Re-open channels
+  - Restore channel listeners
+  - Restore channel [code basic.qos] setting, publisher confirms and transaction settings
 
-  channel.BasicPublish(exchange, routingKey,
-                       (IBasicProperties)  b.GetContentHeader(),
-                       b.GetContentBody());
+Topology recovery includes the following actions, performed for every channel
 
-A StreamMessage is similar (and BytesMessages are so similar to
-StreamMessages that I shan't demonstrate them here):
+  - Re-declare exchanges (except for predefined ones)
+  - Re-declare queues
+  - Recover all bindings
+  - Recover all consumers
 
-@code java
-  IStreamMessageBuilder b = new StreamMessageBuilder(channel);
-  b.Headers["header1"] = "some@random.string";
-  b.WriteDouble(123.45);
-  b.WriteBytes(new byte[] { 1, 2, 3 });
-
-Given a received message in the form of an [code IBasicProperties]
-header and a [code byte[]] body, reading the message as a MapMessage
-is done with [code IMapMessageReader]:
+To enable automatic connection recovery, set
+[code ConnectionFactory.AutomaticRecoveryEnabled] to true:
 
 @code java
-  IBasicProperties props = ...;
-  byte[] receivedBody = ...;
-  IMapMessageReader r = new MapMessageReader(props, receivedBody);
-  Console.Out.WriteLine("Header1: {0}", r.Headers["header1"]);
-  Console.Out.WriteLine("Field1: {0}", r.Body["field1"]);
-  Console.Out.WriteLine("Field2: {0}", r.Body["field2"]);
+ ConnectionFactory factory = new ConnectionFactory();
+ factory.AutomaticRecoveryEnabled = true;
+ // connection that will recover automatically
+ IConnection conn = factory.CreateConnection();
 
-StreamMessages (and BytesMessages) are similar:
+If recovery fails due to an exception (e.g. RabbitMQ node is
+still not reachable), it will be retried after a fixed time interval (default
+is 5 seconds). The interval can be configured:
 
 @code java
-  IStreamMessageReader r = new StreamMessageReader(props, receivedBody);
-  Console.Out.WriteLine("Header1: {0}", r.Headers["header1"]);
-  Console.Out.WriteLine("First value: {0}", r.ReadDouble());
-  Console.Out.WriteLine("Second value: {0}", r.ReadBytes());
+ ConnectionFactory factory = new ConnectionFactory();
+ // attempt recovery every 10 seconds
+ factory.NetworkRecoveryInterval = TimeSpan.FromSeconds(10);
+
+
+*** Topology Recovery
+
+Topology recovery involves recovery of exchanges, queues, bindings
+and consumers. It is enabled by default but can be disabled:
+
+@code java
+ ConnectionFactory factory = new ConnectionFactory();
+
+ Connection conn = factory.CreateConnection();
+ factory.AutomaticRecoveryEnabled = true;
+ factory.TopologyRecoveryEnabled  = false;
+
+
+*** Manual Acknowledgements and Automatic Recovery
+
+When manual acknowledgements are used, it is possible that
+network connection to RabbitMQ node fails between message
+delivery and acknowledgement. After connection recovery,
+RabbitMQ will reset delivery tags on all channels.
+
+This means that [code basic.ack], [code basic.nack], and [code basic.reject]
+with old delivery tags will cause a channel exception. To avoid this,
+RabbitMQ .NET client keeps track of and updates delivery tags to make them monotonically
+growing between recoveries.
+
+[code IModel.BasicAck],
+[code IModel.BasicNack], and
+[code IModel.BasicReject] then translate adjusted
+delivery tags into those used by RabbitMQ.
+
+Acknowledgements with stale delivery tags will not be
+sent. Applications that use manual acknowledgements and automatic
+recovery must be capable of handling redeliveries.

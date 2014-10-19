@@ -60,7 +60,15 @@
 
   <!-- Running the tests -->
   <Target Name="RunUnitTests" DependsOnTargets="Build;ImportSSL">
-    <Exec Command='$(MonoNunitTempSetting)$(PropLaunchExe)..\..\..\lib\nunit\nunit-console.exe "build\bin\$(AssemblyName).dll"' WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="false" />
+    <Exec Command='$(MonoNunitTempSetting)$(PropLaunchExe)..\..\..\lib\nunit\nunit-console.exe -config=Debug "build\bin\$(AssemblyName).dll"' WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="false" />
+  </Target>
+
+  <Target Name="RunFocusUnitTests" DependsOnTargets="Build;ImportSSL">
+    <Exec Command='$(MonoNunitTempSetting)$(PropLaunchExe)..\..\..\lib\nunit\nunit-console.exe -config=Debug -include="Focus" "build\bin\$(AssemblyName).dll"' WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="false" />
+  </Target>
+
+  <Target Name="RunSingleUnitTest" DependsOnTargets="Build;ImportSSL">
+    <Exec Command='$(MonoNunitTempSetting)$(PropLaunchExe)..\..\..\lib\nunit\nunit-console.exe -config=Debug -run="$(PropTestToRun)" "build\bin\$(AssemblyName).dll"' WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="false" />
   </Target>
   
   <!-- Clean test result file -->
@@ -75,6 +83,7 @@
       <HintPath>..\..\..\lib\nunit\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>

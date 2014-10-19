@@ -38,24 +38,18 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.ServiceModel;
+using System.ServiceModel.Channels;
+
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.ServiceModel
 {
-    using System;
-    using System.Diagnostics;
-    using System.IO;
-    using System.ServiceModel;
-    using System.ServiceModel.Channels;
-
-    using RabbitMQ.Client;
-    using RabbitMQ.Client.Events;
-
-    // We use spec version 0-9 for common constants such as frame types,
-    // error codes, and the frame end byte, since they don't vary *within
-    // the versions we support*. Obviously we may need to revisit this if
-    // that ever changes.
-    using CommonFraming = RabbitMQ.Client.Framing.v0_9_1;
-
     internal sealed class RabbitMQInputChannel : RabbitMQInputChannelBase
     {
         private RabbitMQTransportBindingElement m_bindingElement;
@@ -97,7 +91,7 @@ namespace RabbitMQ.ServiceModel
             }
             catch (EndOfStreamException)
             {
-                if (m_messageQueue== null || m_messageQueue.ShutdownReason != null && m_messageQueue.ShutdownReason.ReplyCode != CommonFraming.Constants.ReplySuccess)
+                if (m_messageQueue== null || m_messageQueue.ShutdownReason != null && m_messageQueue.ShutdownReason.ReplyCode != Constants.ReplySuccess)
                 {
                     OnFaulted();
                 }

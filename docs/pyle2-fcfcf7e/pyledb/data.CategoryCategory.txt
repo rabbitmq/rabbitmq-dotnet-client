@@ -1,0 +1,40 @@
+* What is a Category? How should I use Categories?
+
+From [link http://c2.com/cgi/wiki?CategoryCategory|the original C2 wiki]:
+
+@quote
+  A category is a ReverseIndex to related Wiki pages. Instead of a category page containing forward links to pages of that category, page authors can put a reference to one or more categories on their pages. By clicking on the title of a category page, Wiki will list the pages referenced to that category.
+
+  For instance:
+
+  Someone adds the category title 'CategoryComicBooks' at the bottom of a page. When someone clicks the link to that category, they are taken to that category's page. That page may or may not have a more detailed description of what pages it applies to (wiki users are, of course, encouraged to provide those descriptions), but in any case, if the title of that page is then clicked, Wiki will provide a list of all pages having that category's link in them.
+
+  Some easy rules for editing this page:
+
+    - create a category only when that category is really needed (be picky)
+    - create concise descriptions (as few words as possible)
+    - create useful descriptions (don't merely repeat the category name)
+
+----
+
+* All Categories
+
+Here are all the pages in this wiki that mention CategoryCategory, i.e. all the pages [i tagged] as categories:
+
+@backlinks
+
+(There are some spurious matches in the list -- FrontPage, for instance -- caused by non-tagging-related mentions of CategoryCategory.)
+
+* More on Categories
+
+There's lots of discussion on the use and abuse of Categories over on http://c2.com/cgi/wiki, the original wiki, including
+
+ - http://c2.com/cgi/wiki?PleasePleaseDontCategorizeEveryPageOnWiki
+ - http://c2.com/cgi/wiki?PleasePleaseDoCategorizeEveryPageOnWiki
+ - http://c2.com/cgi/wiki?CategoryCategory
+
+There's also some interesting stuff on Wikipedia: http://en.wikipedia.org/wiki/Categorization
+
+----
+
+CategoryCategory

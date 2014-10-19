@@ -1,0 +1,271 @@
+body {
+    background: grey;
+    margin: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: "Georgia";
+}
+h1 { font-size: 24pt; }
+h2 { font-size: 20pt; }
+h3 { font-size: 16pt; }
+h4 { font-size: 14pt; }
+
+.title h1 {
+    margin: 0;
+    font-family: "Georgia";
+}
+
+body, p, td, th {
+    font-family: "Monaco";
+    font-size: 12pt;
+}
+
+hr {
+    border: none;
+    border-top: solid grey 1px;
+}
+
+pre, code, textarea {
+    font-family: "Courier";
+}
+
+pre {
+    background: #dddddd;
+    padding: 0.5em;
+}
+
+.container {
+    width: 50em;
+    background: white;
+    padding: 1em;
+    margin: 0 auto;
+}
+
+A {
+	color: #006ee5;
+}
+
+A.wikiword {
+	color: #000030;
+	text-decoration: none;
+	border-bottom: solid #dddddd 1px;
+}
+
+A.wikiword:hover {
+	background: #eeeeee;
+}
+
+A.wikilink {
+}
+
+A.wikilink:hover {
+	background: #eeeeee;
+}
+
+div.quote {
+	margin-left: 1em;
+	border-left: solid grey 2px;
+	padding-left: 1em;
+	color: #aa3311;
+}
+
+DIV.rightfloatbox {
+	background: white;
+	padding: 1em;
+	margin-left: 1em;
+	margin-bottom: 1em;
+	border: solid black 1px;
+/*	border-left: solid black 1px;
+	border-bottom: solid black 1px; */
+	float: right;
+/*	text-align: right; */
+}
+
+.floatleft {
+	float: left;
+	margin-right: 1em;
+}
+
+.floatright {
+	float: right;
+	margin-left: 1em;
+}
+
+.clear {
+	clear: both;
+}
+
+.title {
+	padding-bottom: 1em;
+	margin-bottom: 1em;
+	border-bottom: solid #006ee5 1px;
+
+	padding-top: 1em;
+	border-top: solid #006ee5 1px;
+}
+
+.title .backlinks {
+	float: right;
+}
+
+PRE.enscript {
+	background: #cccccc;
+	padding-left: 2em;
+	padding-top: 0.25em;
+	padding-bottom: 0.25em;
+	padding-right: 2em;
+}
+
+DIV.pluginerror {
+	background: red;
+	color: white;
+	padding: 0.25em;
+	white-space: pre;
+}
+
+DIV.missingsublanguage {
+	background: red;
+	color: white;
+	padding: 0.25em;
+}
+
+SPAN.missingspanhandler {
+	background: red;
+	color: white;
+}
+
+a.footnotelink {
+	vertical-align: super;
+	font-size: smaller;
+	line-height: normal;
+}
+
+div.footnotes {
+	border-top: solid grey 1px;
+	padding-top: 1em;
+	margin-top: 1em;
+}
+
+div.footnote {
+	padding-left: 2em;
+	text-indent: -2em;
+}
+
+table {
+   border-left: solid grey 1px;
+   border-top: solid grey 1px;
+}
+td, th {
+   border-right: solid grey 1px;
+   border-bottom: solid grey 1px;
+   padding: 0.5em;
+}
+
+.footer {
+	border-top: solid #006ee5 1px;
+	margin-top: 1em;
+	padding-top: 1em;
+}
+
+.previewcontainer {
+	border-top: solid #006ee5 3px;
+	margin-top: 1em;
+	padding-top: 1em;
+}
+
+#previewholder {
+	height: 30em;
+	overflow: auto;
+	border: solid #006ee5 2px;
+	padding: 0.5em;
+}
+
+/*---------------------------------------------------------------------------*/
+/* TABLE OF CONTENTS */
+
+div.toc {
+	background: #eeeeee;
+	border: solid black 1px;
+	padding: 0.5em;
+	margin: 1em;
+}
+
+div.toc h4 {
+	color: #aa3311;
+	margin: 0pt;
+	margin-bottom: 1em;
+}
+
+div.toc A {
+	color: #aa3311;
+/*	font-family: Helvetica; */
+}
+
+div.toc ul {
+	margin: 0pt;
+}
+
+div.diff div.body {
+	margin: 0em;
+	padding-left: 0.3em;
+	padding-right: 0.3em;
+}
+
+div.diff .old {
+}
+
+div.diff .new {
+}
+
+div.diff .header {
+	text-align: center;
+}
+
+div.diff .linenumber {
+	text-align: center;
+	border-bottom: solid black 1px;
+	border-top: solid black 1px;
+	margin-top: 1em;
+}
+
+div.diff .deletion {
+	background-color: #ffcccc;
+}
+
+div.diff .insertion {
+	background-color: #ccffcc;
+}
+
+div.diff .change {
+	background-color: #ffffcc;
+}
+
+div.diff table { width: 100%; border: 0px; }
+div.diff tr { vertical-align: top; }
+div.diff td { width: 50%; padding: 0em; margin: 0em; border: 0px; }
+div.diff th { padding: 0em; margin: 0em; border: 0px; }
+div.diff th a { text-decoration: none; }
+
+div.diff .linkprev { color: lightgrey; }
+div.diff .linknext { color: lightgrey; }
+
+div.ribbon_button_container { margin-top: 1em; }
+
+/*---------------------------------------------------------------------------*/
+/* ESSAYS */
+
+div.essay_body {
+	width: 590px;
+	border-right: solid black 1px;
+	padding-right: 10px;
+	font-family: 'georgia', 'times new roman', serif;
+}
+
+div.sidebar {
+	width: 190px;
+	font-size: smaller;
+	padding: 5px;
+	position: absolute;
+	left: 610px;
+}

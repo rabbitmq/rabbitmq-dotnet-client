@@ -1,0 +1,5 @@
+<itemizedlist>
+#for $title in $backlinks
+<listitem><para>$title</para></listitem>
+#end for
+</itemizedlist>

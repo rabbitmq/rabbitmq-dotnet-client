@@ -32,7 +32,6 @@ ensure-deliverables: rabbit-vsn
 	file ${RELEASE_DIR}/${NAME_VSN}-api-guide.pdf
 	file ${RELEASE_DIR}/${NAME_VSN}-user-guide.pdf
 	file ${RELEASE_DIR}/${NAME_VSN}-wcf-service-model.pdf
-	file ${RELEASE_DIR}/${NAME_VSN}-dotnet-2.0.zip
 	file ${RELEASE_DIR}/${NAME_VSN}-client-htmldoc.zip
 	file ${RELEASE_DIR}/${NAME_VSN}-client-htmldoc
 	file ${RELEASE_DIR}/${NAME_VSN}-dotnet-3.0.zip

@@ -1,0 +1,12 @@
+#if $attachment.exists
+#if $attachment.mimetype.startswith('image/')
+<graphic xmlns:pyle="http://www.eighty-twenty.org/2007/pyle2/"
+	 pyle:url="$aescape($attachment.url)"
+	 pyle:mimetype="$aescape($attachment.mimetype)"
+	 />#slurp
+#else
+<ulink url="$aescape($attachment.url)">$attachment.name</ulink>#slurp
+#end if
+#else
+[Missing attachment $attachment.pagetitle:$attachment.name]#slurp
+#end if

@@ -1,0 +1,362 @@
+This page describes the available markup syntax for this instance of
+Pyle.
+
+** General markup
+
+There are two major kinds of markup: [i block] markup, and [i span]
+markup. Block markup is based on [i paragraphs], contiguous blocks of
+text, which may be [i indented] relative to each other. Paragraphs
+that are below and indented relative to another paragraph are
+considered [i child paragraphs] of that paragraph. You can use
+indentation of paragraphs to control scoping of effects such as [i
+sublanguages] (about which more below) and nested lists. Span markup
+is found within paragraphs, and applies formatting to individual spans
+of text.
+
+** Section headings
+
+Section headings are paragraphs that are not indented at all (no
+whitespace leading the first line in the paragraph) and that start
+with one or more stars "[code *]". The number of stars controls the
+nesting of sections - one star produces a level-one section, two stars
+produce a subsection, three a subsubsection and so forth. Section
+headings are gathered into a table of contents that is rendered at the
+top of the page and contains links to each section.
+
+@code
+  * First section
+
+  Text in first section
+
+  ** A Subsection
+
+  More text
+
+  ** Another subsection
+
+  Further text
+
+  * Another section
+
+  Yet more
+
+** Block markup
+
+Here's an example of some block markup:
+
+@pre
+
+  This is the parent paragraph.
+
+    - This is a child paragraph in list style.
+
+    - This is another child paragraph in list style.
+
+      - This is a grandchild paragraph, because it's indented further
+	than the preceding paragraph.
+
+    - Emacs' text-editing modes word-wrap child paragraphs correctly
+      when you press [pre M-q].
+
+And here's how it renders:
+
+This is the parent paragraph.
+
+  - This is a child paragraph in list style.
+
+  - This is another child paragraph in list style.
+
+    - This is a grandchild paragraph, because it's indented further
+      than the preceding paragraph.
+
+  - Emacs' text-editing modes word-wrap child paragraphs correctly
+    when you press [pre M-q].
+
+*** Lists
+
+There are two kinds of lists supported by Pyle: bulleted and
+numbered. Lists can be nested (using paragraph indentation to control
+parent-child relationships, as always), and numbered lists can be
+nested within bulleted lists and vice versa.
+
+@table (-,1,style="background:#eee")
+  Description || You type || You get
+
+  Bulleted lists || @pre ||
+                 ||  - First item  || - First item  
+                 ||  - Second item || - Second item 
+                 ||    - subitem   ||   - subitem         
+                 ||    - another   ||   - another         
+                 ||  - Third item  || - Third item
+
+  Numbered lists || @pre ||
+  (illustrating  ||  # First item  || # First item  
+  also mixed     ||  # Second item || # Second item 
+  nested lists)  ||    - subitem   ||   - subitem         
+                 ||    - another   ||   - another         
+                 ||  # Third item  || # Third item
+
+*** Block sublanguages
+
+Occasionally, it's useful to escape from regular MarkupSyntax mode for
+an entire paragraph (or more). This is where Pyle's notion of [i
+sublanguages] comes in.
+
+A sublanguage block is introduced with a paragraph beginning with an
+"@" sign and a keyword - for instance, here's a block that is
+processed by the [code pre] sublanguage handler:
+
+@code
+  @pre
+    This is [b preformatted]
+    text.
+
+All paragraphs that are child paragraphs (indented relative to their
+parent) of a paragraph starting with "@" and a keyword are included
+for processing by the sublanguage handler named by the keyword.
+
+@table (-,1,style="background:#eee")
+  Description || You type || You get
+
+  A list of backlinks to a page || @code ||
+  ||  @backlinks || @backlinks
+
+  A block of code, without embedded MarkupSyntax || @code ||
+  ||  @code			     || @code
+  ||    void foo() {		     ||   void foo() {		     
+  ||	  printf("Hello, world!\n"); ||	    printf("Hello, world!\n"); 
+  ||	}                            ||	  }                            
+
+  A preformatted block, with embedded MarkupSyntax || @code ||
+  ||  @pre			  ||  @pre			  
+  ||    This block has *embedded* ||    This block has *embedded* 
+  ||    MarkupSyntax enabled      ||    MarkupSyntax enabled      
+
+  A block of code, syntax-highlighted in a particular language. || @code ||
+  Available languages include awk, bash, cpp, c, elisp, erlang, haskell, html, javascript, java, perl, python, scheme, sh, Smalltalk, sml, sql, and tex.
+  ||  @code c			     || @code c
+  ||    void foo() {		     ||   void foo() {		     
+  ||	  printf("Hello, world!\n"); ||	    printf("Hello, world!\n"); 
+  ||	}                            ||	  }                            
+
+  A [link http://www.graphviz.org/|GraphViz] directed graph - see [link http://www.graphviz.org/cgi-bin/man?dot|the Dot manpage] for syntax details. Note that the [code NameOfGraph] needs to be unique for each Dot graph on a page. || @code ||
+  ||  @dot NameOfGraph		 || @dot NameOfGraph		 
+  ||   digraph NameOfGraph {	 ||  digraph NameOfGraph {	 
+  ||     x -> y; y -> w; y -> z; ||    x -> y; y -> w; y -> z; 
+  ||     w -> a; z -> a;	 ||    w -> a; z -> a;	 
+  ||   }                         ||  }                         
+
+  A literal HTML block   || @code ||
+  ||  @html	                ||  @html
+  ||    <p>Text <i>here</i></p> ||    <p>Text <i>here</i></p>
+
+  A list of the recent changes made to the wiki || @code ||
+  ||  @recentchanges ||  @recentchanges 10
+  ||                 ||  [comment limited to 10 to not overwhelm - this is a demo after all]
+
+  A list of the three most recent changes made to the wiki || @code ||
+  ||  @recentchanges 3 ||  @recentchanges 3
+
+  A sequence diagram, using Brian Kernighan's [link
+  http://en.wikipedia.org/wiki/Pic_(software)|Pic] diagramming DSL,
+  extended with macros for sequence diagrams from Diomidis Spinellis'
+  [link http://www.spinellis.gr/sw/umlgraph/|UMLGraph] package. See
+  [link http://www.spinellis.gr/sw/umlgraph/doc/seq-intro.html|the
+  sequence.pic documentation] for syntax details. Note that the [code
+  NameOfSequence] needs to be unique for each sequence diagram on a
+  page. || @code ||
+  ||  @sequence	NameOfSequence	       ||  @sequence NameOfSequence	       
+  ||    # Define the objects	       ||    # Define the objects	       
+  ||    object(O,"o:Toolkit");	       ||    object(O,"o:Toolkit");	       
+  ||    placeholder_object(P);	       ||    placeholder_object(P);	       
+  ||    step();			       ||    step();			       
+  ||				       ||				       
+  ||    # Message sequences	       ||    # Message sequences	       
+  ||    active(O);		       ||    active(O);		       
+  ||    step();			       ||    step();			       
+  ||    active(O);		       ||    active(O);		       
+  ||    message(O,O,"callbackLoop()"); ||    message(O,O,"callbackLoop()"); 
+  ||    inactive(O);		       ||    inactive(O);		       
+  ||    create_message(O,P,"p:Peer");  ||    create_message(O,P,"p:Peer");  
+  ||    message(O,P,"handleExpose()"); ||    message(O,P,"handleExpose()"); 
+  ||    active(P);		       ||    active(P);		       
+  ||    return_message(P,O,"");	       ||    return_message(P,O,"");	       
+  ||    inactive(P);		       ||    inactive(P);		       
+  ||    destroy_message(O,P);	       ||    destroy_message(O,P);	       
+  ||    inactive(O);		       ||    inactive(O);		       
+  ||				       ||				       
+  ||    # Complete the lifelines       ||    # Complete the lifelines       
+  ||    step();			       ||    step();			       
+  ||    complete(O);                   ||    complete(O);                   
+
+  A table. See below for details. Nested tables aren't supported (yet). || N/A || N/A
+
+*** Tables
+
+Tables are introduced using the [code @table] sublanguage. Columns are
+separated using "[code ||]", and rows are separated by a blank
+line. Since there's no way at present to escape the column separators,
+it's not possible to have tables within tables, and it can be
+problematic trying to include code or non-markup syntax using "[code
+||]" within a table cell.
+
+**** Table example
+
+The following markup produces the table below.
+
+@code
+  @table (1,3-4,colspan="2") (2,1,style="background: #eee")
+    Top left. || Top right.
+    More in the top left cell.
+    || More in the top right cell.
+
+    Second row. || Bottom right.
+		|| MarkupSyntax is enabled in tables.
+
+    Third row, with colspan="2".
+    Third row, with colspan="2".
+    Third row, with colspan="2".
+    Third row, with colspan="2".
+    Third row, with colspan="2".
+
+    @dot TestTable
+     digraph TestTable {
+       x -> y -> x;
+     }
+
+@table (1,3-4,colspan="2") (2,1,style="background: #eee")
+  Top left. || Top right.
+  More in the top left cell.
+  || More in the top right cell.
+
+  Second row. || Bottom right.
+              || MarkupSyntax is enabled in tables.
+
+  Third row, with colspan="2".
+  Third row, with colspan="2".
+  Third row, with colspan="2".
+  Third row, with colspan="2".
+  Third row, with colspan="2".
+
+  @dot TestTable
+   digraph TestTable {
+     x -> y -> x;
+   }
+
+**** BNF syntax definition for tables.
+
+@code
+  table = "@table" attribute-spec* NEWLINE child-paragraph*
+
+  attribute-spec = "(" range "," range "," html-attributes ")"
+
+  range = DIGIT+
+        | DIGIT+ "-"
+        | "-" DIGIT+
+        | DIGIT+ "-" DIGIT+
+
+You can supply HTML attributes for ranges of cells in your table by
+supplying one or more [code attribute-spec]s in the [code @table]
+header. Each [code attribute-spec] is a triple of a column range, a
+row range, and some HTML attributes, in that order. For example, the
+table header
+
+@code
+  @table (1,1,style="font-weight: bold") (2-3,-,class="myCSSclass")
+
+causes the top-left cell to have an HTML [code style] attribute, and
+all cells in columns 2 through 3 to have an HTML [code class]
+attribute. Multiple HTML attributes can be separated by spaces, as
+they would appear in regular HTML documents.
+
+Ranges can be:
+
+  - [code NN] - a single (1-based) column or row
+  - [code NN-MM] - an inclusive 1-based range of columns or rows
+  - [code -MM] - an inclusive range of columns or rows up to a particular column or row
+  - [code NN-] - an inclusive range of columns or rows starting from a particular column or row
+
+** Span markup
+
+Span markup comes in two forms - a legacy, non-regular, old-fashioned
+Wiki format (deprecated), and a new regular format that uses square
+brackets to delimit spans of text.
+
+The general syntax for span markup is [code [keyword text...]]. The
+[code keyword] controls how the [code text...] is processed - for
+instance, a keyword of [code link] causes the link spanhandler to be
+invoked (see below), and a keyword of [code b] causes the text to be
+rendered in [b bold].
+
+*** New-style span markup
+
+@table (-,1,style="background:#eee")
+  Description || You type || You get
+
+  Italic text || [code [i text]] || [i text]
+
+  Bold text || [code [b text]] || [b text]
+
+  Bold, italic text || [code [b [i text]]] || [b [i text]]
+
+  Underlined text || [code [u text]] || [u text]
+
+  A newline within a paragraph || [code blah[br]blah] || blah[br]blah
+
+  A link to a BugZilla bug || [code [bug 1]] || [bug 1]
+
+  Some literal piece of code || [code [code foo[bar].zot = quux_wibble]] || [code foo[bar].zot = quux_wibble]
+  || ||
+  || [code [code [b note] MarkupSyntax is not processed]] || [code [b note] MarkupSyntax is not processed]
+
+  Preformatted markup text (HTML "tt" tag) || [code [pre text including [b regular] MarkupSyntax]] || [pre text including [b regular] MarkupSyntax]
+
+  A comment not rendered in the output || [code this [comment some [stuff!]] text] || this [comment some [stuff!]] text
+
+  Emphasis || [code [em text]] || [em text]
+
+  A footnote || [code hello[footnote this is the footnote].] || hello[footnote this is the footnote].
+
+  Some literal HTML || [code [html <i>text</i>]] || [html <i>text</i>]
+
+  A hyperlink to a URL || [code [link http://www.lshift.net/]] || [link http://www.lshift.net/]
+
+  A hyperlink to a URL, with different displayed text || [code [link http://www.lshift.net/|LShift's website]] || [link http://www.lshift.net/|LShift's website]
+
+  Some literal text, perhaps containing markup which should be displayed as regular text || [code [literal some [example] _literal_ text]] || [literal some [example] _literal_ text]
+
+  Escaped literal square brackets (no need to escape backslash anywhere not followed by a square bracket) || [literal \\[ \\]] [comment notice the awkward escape doubling in the literal span preceding! eww] || \[ \]
+
+  A reference to an attachment on this page || [code [attachment attachmentname]] || [attachment attachmentname]
+
+  A reference to an attachment on another page (SandBox in this instance) || [code [attachment SandBox:test attachment.txt]] || [attachment SandBox:test attachment.txt]
+
+*** Semi-deprecated old-style span markup
+
+Regular expressions are used to match [code WikiWords][footnote The
+regular expression for WikiWords is, by default, [code
+\b([A-Z]+[a-z0-9]+){2,}]] and naked URLs in spans. An acceptable
+new-style non-regex-based alternative markup is still being designed.
+
+@table (-,1,style="background:#eee")
+  Description || You type || You get
+
+  Internal wiki link || [code MarkupSyntax] || MarkupSyntax
+  || ||
+  || [code SomeOtherPage] || SomeOtherPage
+
+  External URL link || [code http://www.lshift.net/] || http://www.lshift.net/
+  (available schemes: http, https, ftp, mailto, gopher, news, nntp, file)
+
+*** Deprecated old-style span markup
+
+@table (-,1,style="background:#eee")
+  Description || You type || You get || New-style equivalent
+
+  Italic text || [code ''text''] || ''text'' || [code [i text]]
+
+  Bold text || [code *text*] || *text* || [code [b text]]
+
+  Bold, italic text || [code *''text''*] || *''text''* || [code [b [i text]]]
+
+  Underlined text || [code _text_] || _text_ || [code [u text]]

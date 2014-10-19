@@ -5,6 +5,9 @@ syntax: regexp
 rabbit\.snk$
 ^rabbit\-mock\.snk$
 
+^tmp/
+^Backup/
+
 ^scratch$
 ^release/
 ^build$
@@ -12,6 +15,10 @@ rabbit\.snk$
 ^diff$
 ^src/wcf/RabbitMQ\.ServiceModel/RabbitMQ\.ServiceModel\.xml
 ^src/wcf/RabbitMQ\.ServiceModel/AssemblyInfo\.cs$
+
+^docs/pyle\.(log|pid)
+^docs/pyle2.*/.*\.pyc
+^docs/api-guide.pdf
 
 ^wix/dotnet-client-merge-module\.wxs$
 ^wix/dotnet-client-product\.wxs$
@@ -27,7 +34,6 @@ rabbit\.snk$
 ^projects/.*/.*\.csproj\.user$
 TestResult\.xml$
 
-^docs/pyle\.log$
 ^build/
 
 ~$

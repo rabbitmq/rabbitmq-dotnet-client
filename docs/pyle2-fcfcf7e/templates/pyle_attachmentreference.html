@@ -1,0 +1,9 @@
+#if $attachment.exists
+#if $attachment.mimetype.startswith('image/')
+<img alt="$aescape($alt)" src="$aescape($attachment.url)" />#slurp
+#else
+<a href="$aescape($attachment.url)">$attachment.name</a>#slurp
+#end if
+#else
+[Missing attachment $attachment.pagetitle:$attachment.name]#slurp
+#end if

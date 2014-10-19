@@ -46,6 +46,7 @@ using System.Net.Sockets;
 using System.Collections.Generic;
 
 using RabbitMQ.Client.Impl;
+using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client
@@ -187,7 +188,7 @@ namespace RabbitMQ.Client
         }
 
         private IDictionary<string, object> m_clientProperties =
-            ConnectionBase.DefaultClientProperties();
+            Connection.DefaultClientProperties();
         /// <summary>Dictionary of client properties to be sent to the
         /// server</summary>
         public IDictionary<string, object> ClientProperties
@@ -198,6 +199,23 @@ namespace RabbitMQ.Client
 
         ///<summary>Ssl options setting</summary>
         public SslOption Ssl = new SslOption();
+
+        /// <summary>
+        /// Set to true to enable automatic connection recovery.
+        /// </summary>
+        public bool AutomaticRecoveryEnabled = false;
+
+        /// <summary>
+        /// Set to true to make automatic connection recovery also recover
+        /// topology (exchanges, queues, bindings, etc).
+        /// </summary>
+        public bool TopologyRecoveryEnabled = true;
+
+        /// <summary>
+        /// Amount of time client will wait for before re-trying
+        /// to recover connection.
+        /// </summary>
+        public TimeSpan NetworkRecoveryInterval = TimeSpan.FromSeconds(5);
 
         ///<summary>The host to connect to</summary>
         public String HostName = "localhost";
@@ -244,17 +262,30 @@ namespace RabbitMQ.Client
         ///their respective defaults.</summary>
         public ConnectionFactory() { }
 
+        public IFrameHandler CreateFrameHandler()
+        {
+            IProtocol p = Protocols.DefaultProtocol;
+            return p.CreateFrameHandler(Endpoint,
+                                        SocketFactory,
+                                        RequestedConnectionTimeout);
+        }
+
         ///<summary>Create a connection to the specified endpoint.</summary>
         public virtual IConnection CreateConnection()
         {
             IConnection conn = null;
             try
             {
-                IProtocol p = Protocols.DefaultProtocol;
-                IFrameHandler fh = p.CreateFrameHandler(Endpoint,
-                                                        SocketFactory,
-                                                        RequestedConnectionTimeout);
-                conn = p.CreateConnection(this, false, fh);
+                if(this.AutomaticRecoveryEnabled)
+                {
+                    AutorecoveringConnection ac = new AutorecoveringConnection(this);
+                    ac.init();
+                    conn = ac;
+                } else
+                {
+                    IProtocol p = Protocols.DefaultProtocol;
+                    conn = p.CreateConnection(this, false, this.CreateFrameHandler());
+                }
             } catch (Exception e)
             {
 

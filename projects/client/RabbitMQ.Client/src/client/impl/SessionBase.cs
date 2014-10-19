@@ -43,6 +43,7 @@ using System;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -54,10 +55,10 @@ namespace RabbitMQ.Client.Impl
         private SessionShutdownEventHandler m_sessionShutdown;
         public ShutdownEventArgs m_closeReason = null;
 
-        public readonly ConnectionBase m_connection;
+        public readonly Connection m_connection;
         public readonly int m_channelNumber;
 
-        public SessionBase(ConnectionBase connection, int channelNumber)
+        public SessionBase(Connection connection, int channelNumber)
         {
             m_connection = connection;
             m_channelNumber = channelNumber;
@@ -82,7 +83,6 @@ namespace RabbitMQ.Client.Impl
 
         public virtual void OnSessionShutdown(ShutdownEventArgs reason)
         {
-            //Console.WriteLine("Session shutdown "+ChannelNumber+": "+reason);
             m_connection.ConnectionShutdown -=
                 new ConnectionShutdownEventHandler(this.OnConnectionShutdown);
             SessionShutdownEventHandler handler;
@@ -141,7 +141,7 @@ namespace RabbitMQ.Client.Impl
         public int ChannelNumber { get { return m_channelNumber; } }
 
         IConnection ISession.Connection { get { return m_connection; } }
-        public ConnectionBase Connection { get { return m_connection; } }
+        public Connection Connection { get { return m_connection; } }
 
         public ShutdownEventArgs CloseReason { get { return m_closeReason; } }
 

@@ -44,11 +44,8 @@ using System.Collections.Generic;
 
 using RabbitMQ.Util;
 
-// We use spec version 0-9 for common constants such as frame types
-// and the frame end byte, since they don't vary *within the versions
-// we support*. Obviously we may need to revisit this if that ever
-// changes.
-using CommonFraming = RabbitMQ.Client.Framing.v0_9_1;
+using RabbitMQ.Client.Framing;
+using RabbitMQ.Client.Framing.Impl;
 using System.Diagnostics;
 using System.Net;
 
@@ -68,7 +65,7 @@ namespace RabbitMQ.Client.Impl {
         }
 
         public static void CheckEmptyFrameSize() {
-            Frame f = new Frame(CommonFraming.Constants.FrameBody, 0, m_emptyByteArray);
+            Frame f = new Frame(Constants.FrameBody, 0, m_emptyByteArray);
             MemoryStream stream = new MemoryStream();
             NetworkBinaryWriter writer = new NetworkBinaryWriter(stream);
             f.WriteTo(writer);
@@ -137,8 +134,8 @@ namespace RabbitMQ.Client.Impl {
             }
         }
 
-        public void Transmit(int channelNumber, ConnectionBase connection) {
-            Frame frame = new Frame(CommonFraming.Constants.FrameMethod, channelNumber);
+        public void Transmit(int channelNumber, Connection connection) {
+            Frame frame = new Frame(Constants.FrameMethod, channelNumber);
             NetworkBinaryWriter writer = frame.GetWriter();
             writer.Write((ushort) m_method.ProtocolClassId);
             writer.Write((ushort) m_method.ProtocolMethodId);
@@ -150,7 +147,7 @@ namespace RabbitMQ.Client.Impl {
             if (m_method.HasContent) {
                 byte[] body = Body;
 
-                frame = new Frame(CommonFraming.Constants.FrameHeader, channelNumber);
+                frame = new Frame(Constants.FrameHeader, channelNumber);
                 writer = frame.GetWriter();
                 writer.Write((ushort) m_header.ProtocolClassId);
                 m_header.WriteTo(writer, (ulong) body.Length);
@@ -163,7 +160,7 @@ namespace RabbitMQ.Client.Impl {
                 for (int offset = 0; offset < body.Length; offset += bodyPayloadMax) {
                     int remaining = body.Length - offset;
 
-                    frame = new Frame(CommonFraming.Constants.FrameBody, channelNumber);
+                    frame = new Frame(Constants.FrameBody, channelNumber);
                     writer = frame.GetWriter();
                     writer.Write(body, offset,
                                  (remaining < bodyPayloadMax) ? remaining : bodyPayloadMax);

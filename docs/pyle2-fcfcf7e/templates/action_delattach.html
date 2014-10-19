@@ -1,0 +1,35 @@
+<html>
+  <head>
+    <title>Pyle: Delete attachment</title>
+    #include $skinfile("common_html_headers.html")
+  </head>
+  <body>
+    <div class="container">
+      <div class="title">
+	#include $skinfile("common_page_headers.html")
+	<h1>Delete attachment from page $page.title?</h1>
+	<div class="clear"></div>
+      </div>
+
+      <p>
+	<b>WARNING:</b> You are about to delete attachment
+	<b>$escape($attachname)</b> from page $escape($page.title).
+      </p>
+
+      <p>
+	If you wish to continue, check the checkbox below and click on
+	the "Confirm" button. Otherwise, use the "back" button of your
+	browser.
+      </p>
+
+      <form method="post" action="$ctx.home/$page.title/delattach">
+	<div class="deleteconfirmationform">
+	  <input type="hidden" name="name" value="$attachname" />
+	  <input type="checkbox" name="delete_confirmed" value="yes"
+		 />&nbsp;Confirm attachment deletion<br />
+	  <input type="submit" value=" Confirm " />
+	</div>
+      </form>
+    </div>
+  </body>
+</html>

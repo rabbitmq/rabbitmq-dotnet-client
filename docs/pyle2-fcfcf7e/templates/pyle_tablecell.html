@@ -1,0 +1,9 @@
+<td $attrs>
+#if $container_items
+#for $item in $container_items
+$item.render('html')
+#end for
+#else
+&nbsp;
+#end if
+</td>

@@ -58,7 +58,7 @@ namespace RabbitMQ.Client.Impl
     ///autogeneration process.</remarks>
     ///
     ///<see cref="RabbitMQ.Client.Impl.ModelBase"/>
-    ///<see cref="RabbitMQ.Client.Framing.Impl.v0_9_1.Model"/>
+    ///<see cref="RabbitMQ.Client.Framing.Impl.Model"/>
     public interface IFullModel : RabbitMQ.Client.IModel
     {
         ///<summary>Used to send a Exchange.Declare method. Called by the
@@ -205,7 +205,7 @@ namespace RabbitMQ.Client.Impl
         ///<summary>Used to send a Channel.Open. Called during session
         ///initialisation.</summary>
         [AmqpMethodMapping(null, "channel", "open")]
-        void _Private_ChannelOpen([AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1",
+        void _Private_ChannelOpen([AmqpFieldMapping("RabbitMQ.Client.Framing",
                                   "reserved1")]
                                   string outOfBand);
 
@@ -366,13 +366,13 @@ namespace RabbitMQ.Client.Impl
         [AmqpForceOneWay]
         [AmqpMethodMapping(null, "connection", "open")]
         void _Private_ConnectionOpen(string virtualHost,
-                                     [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved1")]
+                                     [AmqpFieldMapping("RabbitMQ.Client.Framing", "reserved1")]
                                      string capabilities,
-                                     [AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved2")]
+                                     [AmqpFieldMapping("RabbitMQ.Client.Framing", "reserved2")]
                                      bool insist);
 
         ///<summary>Handle an incoming Connection.OpenOk.</summary>
-        void HandleConnectionOpenOk([AmqpFieldMapping("RabbitMQ.Client.Framing.v0_9_1", "reserved1")]
+        void HandleConnectionOpenOk([AmqpFieldMapping("RabbitMQ.Client.Framing", "reserved1")]
                                     string knownHosts);
 
         ///<summary>Used to send a Connection.Close. Called during

@@ -40,16 +40,11 @@
 
 using System;
 using System.IO;
+using System.Diagnostics;
 
 using RabbitMQ.Util;
-
-// We use spec version 0-9 for common constants such as frame types
-// and the frame end byte, since they don't vary *within the versions
-// we support*. Obviously we may need to revisit this if that ever
-// changes.
-using CommonFraming = RabbitMQ.Client.Framing.v0_9_1;
-using System.Diagnostics;
-using RabbitMQ.Client.Framing.Impl.v0_9_1;
+using RabbitMQ.Client.Framing;
+using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -108,7 +103,7 @@ namespace RabbitMQ.Client.Impl
             {
                 case AssemblyState.ExpectingMethod:
                     {
-                        if (f.Type != CommonFraming.Constants.FrameMethod)
+                        if (f.Type != Constants.FrameMethod)
                         {
                             throw new UnexpectedFrameException(f);
                         }
@@ -120,7 +115,7 @@ namespace RabbitMQ.Client.Impl
                     }
                 case AssemblyState.ExpectingContentHeader:
                     {
-                        if (f.Type != CommonFraming.Constants.FrameHeader)
+                        if (f.Type != Constants.FrameHeader)
                         {
                             throw new UnexpectedFrameException(f);
                         }
@@ -132,7 +127,7 @@ namespace RabbitMQ.Client.Impl
                     }
                 case AssemblyState.ExpectingContentBody:
                     {
-                        if (f.Type != CommonFraming.Constants.FrameBody)
+                        if (f.Type != Constants.FrameBody)
                         {
                             throw new UnexpectedFrameException(f);
                         }

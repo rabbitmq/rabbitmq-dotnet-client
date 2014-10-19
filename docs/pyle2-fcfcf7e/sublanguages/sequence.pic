@@ -1,0 +1,406 @@
+#/usr/bin/pic2plot -Tps
+#
+# Pic macros for drawing UML sequence diagrams
+#
+# (C) Copyright 2004-2005 Diomidis Spinellis.
+#
+# Permission to use, copy, and distribute this software and its
+# documentation for any purpose and without fee is hereby granted,
+# provided that the above copyright notice appear in all copies and that
+# both that copyright notice and this permission notice appear in
+# supporting documentation.
+#
+# THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+# MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+#
+# $Id: sequence.pic,v 1.10 2005/10/19 18:36:08 dds Exp $
+#
+
+
+# Default parameters (can be redefined)
+
+# Spacing between messages
+spacing = 0.25;
+# Active box width
+awid = .1;
+# Box height
+boxht = 0.3;
+# Commend folding
+corner_fold=awid
+# Comment distance
+define comment_default_move {up 0.25 right 0.25};
+# Comment height
+comment_default_ht=0.5;
+# Comment width
+comment_default_wid=1;
+
+
+# Create a new object(name,label)
+define object {
+	$1: box $2; move;
+	# Could also underline text with \mk\ul\ul\ul...\rt
+	{
+		line from $1.w + (.1, -.07) to $1.e + (-.1, -.07);
+	}
+	move to $1.e;
+	move right;
+	# Active is the level of activations of the object
+	# 0 : inactive : draw thin line swimlane
+	# 1 : active : draw thick swimlane
+	# > 1: nested : draw nested swimlane
+	active_$1 = 0;
+	lifestart_$1 = $1.s.y;
+}
+
+# Create a new external actor(name,label)
+define actor {
+	$1: [
+		XSEQC: circle rad 0.06;
+		XSEQL: line from XSEQC.s down .12;
+		line from XSEQL.start - (.15,.02) to XSEQL.start + (.15,-.02);
+		XSEQL1: line from XSEQL.end left .08 down .15;
+		XSEQL2: line from XSEQL.end right .08 down .15;
+		line at XSEQC.n invis "" "" "" $2;
+	]
+	move to $1.e;
+	move right;
+	active_$1 = 0;
+	lifestart_$1 = $1.s.y - .05;
+}
+
+# Create a new placeholder object(name)
+define placeholder_object {
+	$1: box invisible;
+	move;
+	move to $1.e;
+	move right;
+	active_$1 = 0;
+	lifestart_$1 = $1.s.y;
+}
+
+define pobject {
+	placeholder_object($1);
+}
+
+define extend_lifeline {
+	if (active_$1 > 0) then {
+                # draw the left edges of the boxes
+		move to ($1.x - awid/2, Here.y);
+		for level = 1 to active_$1 do {
+			line from (Here.x, lifestart_$1) to Here;
+			move right awid/2
+		}
+
+                # draw the right edge of the innermost box
+		move right awid/2;
+		line from (Here.x, lifestart_$1) to Here;
+	} else {
+		line from ($1.x, lifestart_$1) to ($1.x, Here.y) dashed;
+	}
+	lifestart_$1 = Here.y;
+}
+
+# complete(name)
+# Complete the lifeline of the object with the given name
+define complete {
+	extend_lifeline($1)
+	if (active_$1) then {
+		# draw bottom of all active boxes
+		line right ((active_$1 + 1) * awid/2) from ($1.x - awid/2, Here.y);
+	}
+}
+
+# Draw a message(from_object,to_object,label)
+define message {
+	down;
+	move spacing;
+	# Adjust so that lines and arrows do not fall into the
+	# active box.  Should be .5, but the arrow heads tend to
+	# overshoot.
+	if ($1.x <= $2.x) then {
+		off_from = awid * .6;
+		off_to = -awid * .6;
+	} else {
+		off_from = -awid * .6;
+		off_to = awid * .6;
+	}
+
+        # add half a box width for each level of nesting
+        if (active_$1 > 1) then {
+                off_from = off_from + (active_$1 - 1) * awid/2;
+        }
+
+        # add half a box width for each level of nesting
+        if (active_$2 > 1) then {
+                off_to = off_to + (active_$2 - 1) * awid/2;
+        }
+
+	if ($1.x == $2.x) then {
+		arrow from ($1.x + off_from, Here.y) right then down .25 then left $3 ljust " " " " " " ;
+	} else {
+		arrow from ($1.x + off_from, Here.y) to ($2.x + off_to, Here.y) $3 " ";
+	}
+}
+
+# Display a lifeline constraint(object,label)
+define lifeline_constraint {
+        off_from = awid;
+        # add half a box width for each level of nesting
+        if (active_$1 > 1) then {
+                off_from = off_from + (active_$1 - 1) * awid/2;
+        }
+
+	box at ($1.x + off_from, Here.y) invis $2 ljust " " ;
+}
+
+define lconstraint {
+	lifeline_constraint($1,$2);
+}
+
+# Display an object constraint(label)
+# for the last object drawn
+define object_constraint {
+	{ box invis with .s at last box .nw $1 ljust; }
+}
+
+define oconstraint {
+	object_constraint($1);
+}
+
+# Draw a creation message(from_object,to_object,object_label)
+define create_message {
+	down;
+	move spacing;
+	if ($1.x <= $2.x) then {
+		off_from = awid * .6;
+		off_to = -boxwid * .51;
+	} else {
+		off_from = -awid * .6;
+		off_to = boxwid * .51;
+	}
+
+        # add half a box width for each level of nesting
+        if (active_$1 > 1) then {
+                off_from = off_from + (active_$1 - 1) * awid/2;
+        }
+
+	# See comment in destroy_message
+	XSEQA: arrow from ($1.x + off_from, Here.y) to ($2.x + off_to, Here.y) "«create»" " ";
+	if ($1.x <= $2.x) then {
+		{ XSEQB: box $3 with .w at XSEQA.end; }
+	} else {
+		{ XSEQB: box $3 with .e at XSEQA.end; }
+	}
+	{
+		line from XSEQB.w + (.1, -.07) to XSEQB.e + (-.1, -.07);
+	}
+	lifestart_$2 = XSEQB.s.y;
+	move (spacing + boxht) / 2;
+}
+
+define cmessage {
+	create_message($1,$2,$3);
+}
+
+# Draw an X for a given object
+define drawx {
+	{
+	line from($1.x - awid, lifestart_$1 - awid) to ($1.x + awid, lifestart_$1 + awid);
+	line from($1.x - awid, lifestart_$1 + awid) to ($1.x + awid, lifestart_$1 - awid);
+	}
+}
+
+# Draw a destroy message(from_object,to_object)
+define destroy_message {
+	down;
+	move spacing;
+	# The troff code is \(Fo \(Fc
+	# The groff code is also \[Fo] \[Fc]
+	# The pic2plot code is \Fo \Fc
+	# See http://www.delorie.com/gnu/docs/plotutils/plotutils_71.html
+	# To stay compatible with all we have to hardcode the characters
+	message($1,$2,"«destroy»");
+	complete($2);
+	drawx($2);
+}
+
+define dmessage {
+	destroy_message($1,$2);
+}
+
+# An object deletes itself: delete(object)
+define delete {
+	complete($1);
+	lifestart_$1 = lifestart_$1 - awid;
+	drawx($1);
+}
+
+# Draw a message return(from_object,to_object,label)
+define return_message {
+	down;
+	move spacing;
+	# See comment in message
+	if ($1.x <= $2.x) then {
+		off_from = awid * .6;
+		off_to = -awid * .6;
+	} else {
+		off_from = -awid * .6;
+		off_to = awid * .6;
+	}
+
+        # add half a box width for each level of nesting
+        if (active_$1 > 1) then {
+                off_from = off_from + (active_$1 - 1) * awid/2;
+        }
+
+        # add half a box width for each level of nesting
+        if (active_$2 > 1) then {
+                off_to = off_to + (active_$2 - 1) * awid/2;
+        }
+
+	arrow from  ($1.x + off_from, Here.y) to ($2.x + off_to, Here.y) dashed $3 " ";
+}
+
+define rmessage {
+	return_message($1,$2,$3);
+}
+
+# Object becomes active
+# Can be nested to show recursion
+define active {
+	extend_lifeline($1);
+	# draw top of new active box
+	line right awid from ($1.x + (active_$1 - 1) * awid/2, Here.y);
+	active_$1 = active_$1 + 1;
+}
+
+# Object becomes inactive
+# Can be nested to show recursion
+define inactive {
+	extend_lifeline($1);
+	active_$1 = active_$1 - 1;
+	# draw bottom of innermost active box
+	line right awid from ($1.x + (active_$1 - 1) * awid/2, Here.y);
+}
+
+# Time step
+# Useful at the beginning and the end
+# to show object states
+define step {
+	down;
+	move spacing;
+}
+
+# Switch to asynchronous messages
+define async {
+	arrowhead = 0;
+	arrowwid = arrowwid * 2;
+}
+
+# Switch to synchronous messages
+define sync {
+	arrowhead = 1;
+	arrowwid = arrowwid / 2;
+}
+
+# same as lifeline_constraint, but Text and empty string are exchanged.
+define lconstraint_below{
+        off_from = awid;
+        # add half a box width for each level of nesting
+        if (active_$1 > 1) then {
+                off_from = off_from + (active_$1 - 1) * awid/2;
+        }
+
+	box at ($1.x + off_from, Here.y) invis "" $2 ljust;
+}
+
+# begin_frame(left_object,name,label_text);
+define begin_frame {
+	# The lifeline will be cut here
+	extend_lifeline($1);
+	# draw the frame-label
+	$2: box $3 invis with .n at ($1.x, Here.y);
+	d = $2.e.y - $2.se.y;
+	line from $2.ne to $2.e then down d left d then to $2.sw;
+	# continue the lifeline below the frame-label
+	move to $2.s;
+	lifestart_$1 = Here.y;
+}
+
+# end_frame(right_object,name);
+define end_frame {
+	# dummy-box for the lower right corner:
+	box invis "" with .s at ($1.x, Here.y);
+	# draw the frame
+	frame_wid = last box.se.x - $2.nw.x
+	frame_ht = - last box.se.y + $2.nw.y
+	box with .nw at $2.nw wid frame_wid ht frame_ht;
+	# restore Here.y
+	move to last box.s;
+}
+
+# comment(object,[name],[line_movement], [box_size] text);
+define comment {
+	old_y = Here.y
+	# draw the first connecting line, at which's end the box wil be positioned
+	move to ($1.x, Here.y)
+	if "$3" == "" then {
+		line comment_default_move() dashed;
+	} else {
+		line $3 dashed;
+	}
+
+	# draw the box, use comment_default_xx if no explicit
+	# size is given together with the text in parameter 4
+	old_boxht=boxht;
+	old_boxwid=boxwid;
+	boxht=comment_default_ht;
+	boxwid=comment_default_wid;
+	if "$2" == "" then {
+		box invis $4;
+	} else {
+		$2: box invis $4;
+	}
+	boxht=old_boxht;
+	boxwid=old_boxwid;
+
+	# draw the frame of the comment
+	line from       last box.nw \
+		to          last box.ne - (corner_fold, 0) \
+		then to last box.ne - (0, corner_fold) \
+		then to last box.se \
+		then to last box.sw \
+		then to last box.nw ;
+	line from       last box.ne - (corner_fold, 0) \
+		to          last box.ne - (corner_fold, corner_fold) \
+		then to last box.ne - (0, corner_fold) ;
+
+	# restore Here.y
+	move to ($1.x, old_y)
+}
+
+# connect_to_comment(object,name);
+define connect_to_comment {
+	old_y = Here.y
+	# start at the object
+	move to ($1.x, Here.y)
+	# find the best connection-point of the comment to use as line-end
+	if $1.x < $2.w.x then {
+		line to $2.w dashed;
+	} else {
+		if $1.x > $2.e.x then {
+			line to $2.e dashed;
+		} else {
+			if Here.y < $2.s.y then {
+				line to $2.s dashed;
+			} else {
+				if Here.y > $2.n.y then {
+					line to $2.n dashed;
+				}
+			}
+		}
+	}
+	# restore Here.y
+	move to ($1.x, old_y)
+}

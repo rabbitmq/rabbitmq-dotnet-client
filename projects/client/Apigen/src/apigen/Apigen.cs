@@ -158,7 +158,6 @@ namespace RabbitMQ.Client.Apigen {
 
         ///////////////////////////////////////////////////////////////////////////
 
-        public string m_framingSubnamespace = null;
         public string m_inputXmlFilename;
         public string m_outputFilename;
 
@@ -204,9 +203,7 @@ namespace RabbitMQ.Client.Apigen {
         }
 
         public void HandleOption(string opt) {
-            if (opt.StartsWith("/n:")) {
-                m_framingSubnamespace = opt.Substring(3);
-            } else if (opt.StartsWith("/apiName:")) {
+            if (opt.StartsWith("/apiName:")) {
                 m_apiName = opt.Substring(9);
             } else if (opt == "/c") {
                 m_emitComments = true;
@@ -220,7 +217,6 @@ namespace RabbitMQ.Client.Apigen {
             Console.Error.WriteLine("Usage: Apigen.exe [options ...] <input-spec-xml> <output-csharp-file>");
             Console.Error.WriteLine("  Options include:");
             Console.Error.WriteLine("    /apiName:<identifier>");
-            Console.Error.WriteLine("    /n:<name.space.prefix>");
             Console.Error.WriteLine("  The apiName option is required.");
             Environment.Exit(1);
         }
@@ -242,25 +238,15 @@ namespace RabbitMQ.Client.Apigen {
 
         ///////////////////////////////////////////////////////////////////////////
 
-        public string FramingSubnamespace {
-            get {
-                if (m_framingSubnamespace == null) {
-                    return VersionToken();
-                } else {
-                    return m_framingSubnamespace;
-                }
-            }
-        }
-
         public string ApiNamespaceBase {
             get {
-                return "RabbitMQ.Client.Framing."+FramingSubnamespace;
+                return "RabbitMQ.Client.Framing";
             }
         }
 
         public string ImplNamespaceBase {
             get {
-                return "RabbitMQ.Client.Framing.Impl."+FramingSubnamespace;
+                return "RabbitMQ.Client.Framing.Impl";
             }
         }
 

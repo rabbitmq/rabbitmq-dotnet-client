@@ -299,12 +299,6 @@ namespace RabbitMQ.Client
                              IDictionary<string, object> arguments);
 
         ///<summary>(Spec method) Unbind a queue from an exchange.</summary>
-        ///<remarks>
-        ///Note: This operation is only supported when communicating
-        ///using AMQP protocol version 0-9, or when communicating with
-        ///a 0-8 broker that has been enhanced with the unofficial
-        ///addition of a queue.unbind method.
-        ///</remarks>
         void QueueUnbind(string queue,
                          string exchange,
                          string routingKey,
@@ -359,6 +353,21 @@ namespace RabbitMQ.Client
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
         bool WaitForConfirms();
+
+        ///<summary>Wait until all published messages have been confirmed.
+        ///</summary>
+        ///<returns>true if no nacks were received within the timeout,
+        ///otherwise false</returns>
+        ///<param name="timeout">How long to wait (at most) before returning
+        ///whether or not any nacks were returned</param>
+        ///<remarks>
+        ///Waits until all messages published since the last call have
+        ///been either ack'd or nack'd by the broker.  Returns whether
+        ///all the messages were ack'd (and none were nack'd). Note,
+        ///throws an exception when called on a non-Confirm channel.
+        ///</remarks>
+        [AmqpMethodDoNotImplement(null)]
+        bool WaitForConfirms(TimeSpan timeout);
 
         ///<summary>Wait until all published messages have been confirmed.
         ///</summary>

@@ -43,6 +43,26 @@ using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Events
 {
+    public abstract class BaseExceptionEventArgs: EventArgs
+    {
+        private IDictionary<string, object> m_detail;
+        private Exception m_exception;
+
+        ///<summary>Wrap an exception thrown by a callback.</summary>
+        public BaseExceptionEventArgs(Exception exception)
+        {
+            m_detail = new Dictionary<string, object>();
+            m_exception = exception;
+        }
+
+        ///<summary>Access helpful information about the context in
+        ///which the wrapped exception was thrown.</summary>
+        public IDictionary<string, object> Detail { get { return m_detail; } }
+
+        ///<summary>Access the wrapped exception.</summary>
+        public Exception Exception { get { return m_exception; } }        
+    }
+
     ///<summary>Describes an exception that was thrown during the
     ///library's invocation of an application-supplied callback
     ///handler.</summary>
@@ -63,23 +83,8 @@ namespace RabbitMQ.Client.Events
     /// call in the IDictionary available through the Detail property.
     ///</para>
     ///</remarks>
-    public class CallbackExceptionEventArgs: EventArgs
+    public class CallbackExceptionEventArgs: BaseExceptionEventArgs
     {
-        private IDictionary<string, object> m_detail;
-        private Exception m_exception;
-
-        ///<summary>Wrap an exception thrown by a callback.</summary>
-        public CallbackExceptionEventArgs(Exception exception)
-        {
-            m_detail = new Dictionary<string, object>();
-            m_exception = exception;
-        }
-
-        ///<summary>Access helpful information about the context in
-        ///which the wrapped exception was thrown.</summary>
-        public IDictionary<string, object> Detail { get { return m_detail; } }
-
-        ///<summary>Access the wrapped exception.</summary>
-        public Exception Exception { get { return m_exception; } }
+        public CallbackExceptionEventArgs(Exception e) : base(e) {}
     }
 }

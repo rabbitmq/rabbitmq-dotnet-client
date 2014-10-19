@@ -54,7 +54,6 @@ build/bin/RabbitMQ.Client.dll].
   Usage: Apigen.exe [options ...] <input-spec-xml> <output-csharp-file>
     Options include:
       /apiName:<identifier>
-      /n:<name.space.prefix>
       /v:<majorversion>-<minorversion>
     The apiName option is required.
 
@@ -67,19 +66,6 @@ The available options are:
  - [code apiName:<identifier>] - Specifies the identifier that will be
    used to represent the generated [code IProtocol] in the [code
    RabbitMQ.Client.Protocols] class.
-
- - [code n:<name.space.prefix>] - Supplying a namespace prefix of, for
-   instance, [code foo], will cause the generated code to be placed in
-   [code RabbitMQ.Client.Framing.foo] and [code
-   RabbitMQ.Client.Framing.Impl.foo]. If this parameter is not
-   supplied, a default will be constructed from the version (either
-   the [code /v:] command-line option, or the version specified in the
-   spec XML): if the version is N-M, for instance 0-8, then the effect
-   is as if [code /n:vN_M] was supplied (e.g. [code /n:v0_8]).
-
- - [code v:<majorversion>-<minorversion>] - Overrides the version
-   numbers found in the spec XML file. Used as part of the namespaces
-   for generated code if no [code /n:] option is supplied.
 
 ** Generated Classes
 

@@ -61,9 +61,6 @@ namespace RabbitMQ.Client.Unit {
             Conn.ConnectionUnblocked += HandleUnblocked;
 
             Block();
-            // give rabbitmqctl some time to do its job
-            Thread.Sleep(800);
-            Publish(Conn);
             lock (lockObject) {
                 if(!notified) {
                     Monitor.Wait(lockObject, TimeSpan.FromSeconds(8));
@@ -91,79 +88,6 @@ namespace RabbitMQ.Client.Unit {
                 notified = true;
                 Monitor.PulseAll(lockObject);
             }
-        }
-
-
-        protected void Block()
-        {
-            ExecRabbitMQCtl("set_vm_memory_high_watermark 0.000000001");
-        }
-
-        protected void Unblock()
-        {
-            ExecRabbitMQCtl("set_vm_memory_high_watermark 0.4");
-        }
-
-        protected void ExecRabbitMQCtl(string args)
-        {
-            if(IsRunningOnMono()) {
-                ExecCommand("../../../../../../rabbitmq-server/scripts/rabbitmqctl", args);
-            } else {
-                ExecCommand("..\\..\\..\\..\\..\\..\\rabbitmq-server\\scripts\\rabbitmqctl.bat", args);
-            }
-        }
-
-        protected void ExecCommand(string ctl, string args)
-        {
-            Process proc = new Process();
-            proc.StartInfo.CreateNoWindow  = true;
-            proc.StartInfo.UseShellExecute = false;
-
-            string cmd;
-            if(IsRunningOnMono()) {
-                cmd  = ctl;
-            } else {
-                cmd  = "cmd.exe";
-                args = "/c " + ctl + " -n rabbit@" + (Environment.GetEnvironmentVariable("COMPUTERNAME")).ToLower() + " " + args;
-            }
-
-            try {
-              proc.StartInfo.FileName = cmd;
-              proc.StartInfo.Arguments = args;
-              proc.StartInfo.RedirectStandardError = true;
-              proc.StartInfo.RedirectStandardOutput = true;
-
-              proc.Start();
-              String stderr = proc.StandardError.ReadToEnd();
-              String stdout = proc.StandardOutput.ReadToEnd();
-              proc.WaitForExit();
-              if (stderr.Length > 0)
-              {
-                  ReportExecFailure(cmd, args, stderr + "\n" + stdout);
-              }
-
-            }
-            catch (Exception e)
-            {
-                ReportExecFailure(cmd, args, e.Message);
-                throw e;
-            }
-        }
-
-        protected void ReportExecFailure(String cmd, String args, String msg)
-        {
-            Console.WriteLine("Failure while running " + cmd + " " + args + ":\n" + msg);
-        }
-
-        public static bool IsRunningOnMono()
-        {
-            return Type.GetType("Mono.Runtime") != null;
-        }
-
-        protected void Publish(IConnection conn)
-        {
-            IModel ch = conn.CreateModel();
-            ch.BasicPublish("amq.fanout", "", null, enc.GetBytes("message"));
         }
 
         protected override void ReleaseResources()

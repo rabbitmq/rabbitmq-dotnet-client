@@ -44,12 +44,8 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 
-// We use spec version 0-9 for common constants such as frame types,
-// error codes, and the frame end byte, since they don't vary *within
-// the versions we support*. Obviously we may need to revisit this if
-// that ever changes.
-using CommonFraming = RabbitMQ.Client.Framing.v0_9_1;
-using CommonFramingSpecs = RabbitMQ.Client.Framing.Impl.v0_9_1;
+using RabbitMQ.Client.Framing;
+using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -58,7 +54,7 @@ namespace RabbitMQ.Client.Impl
     {
         public ShutdownEventArgs m_reason;
 
-        public QuiescingSession(ConnectionBase connection,
+        public QuiescingSession(RabbitMQ.Client.Framing.Impl.Connection connection,
                                 int channelNumber,
                                 ShutdownEventArgs reason)
             : base(connection, channelNumber)
@@ -68,10 +64,10 @@ namespace RabbitMQ.Client.Impl
 
         public override void HandleFrame(Frame frame)
         {
-            if (frame.Type == CommonFraming.Constants.FrameMethod) {
+            if (frame.Type == Constants.FrameMethod) {
                 MethodBase method = Connection.Protocol.DecodeMethodFrom(frame.GetReader());
-                if ((method.ProtocolClassId == CommonFramingSpecs.ChannelCloseOk.ClassId)
-                    && (method.ProtocolMethodId == CommonFramingSpecs.ChannelCloseOk.MethodId))
+                if ((method.ProtocolClassId == ChannelCloseOk.ClassId)
+                    && (method.ProtocolMethodId == ChannelCloseOk.MethodId))
                 {
                     // This is the reply we were looking for. Release
                     // the channel with the reason we were passed in
@@ -79,8 +75,8 @@ namespace RabbitMQ.Client.Impl
                     Close(m_reason);
                     return;
                 }
-                else if ((method.ProtocolClassId == CommonFramingSpecs.ChannelClose.ClassId)
-                         && (method.ProtocolMethodId == CommonFramingSpecs.ChannelClose.MethodId))
+                else if ((method.ProtocolClassId == ChannelClose.ClassId)
+                         && (method.ProtocolMethodId == ChannelClose.MethodId))
                 {
                     // We're already shutting down the channel, so
                     // just send back an ok.
@@ -95,7 +91,7 @@ namespace RabbitMQ.Client.Impl
         }
 
         protected Command CreateChannelCloseOk() {
-            return new Command(new CommonFramingSpecs.ConnectionCloseOk());
+            return new Command(new ConnectionCloseOk());
         }
     }
 }

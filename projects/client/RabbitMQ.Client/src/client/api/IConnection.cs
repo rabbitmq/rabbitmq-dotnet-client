@@ -59,7 +59,7 @@ namespace RabbitMQ.Client
     /// appropriate.
     ///</para>
     ///</remarks>
-    public interface IConnection: IDisposable
+    public interface IConnection: NetworkConnection, IDisposable
     {
         ///<summary>Raised when the connection is destroyed.</summary>
         ///<remarks>

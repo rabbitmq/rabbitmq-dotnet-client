@@ -48,16 +48,12 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
-
-// We use spec version 0-9 for common constants such as frame types
-// and the frame end byte, since they don't vary *within the versions
-// we support*. Obviously we may need to revisit this if that ever
-// changes.
-using CommonFraming = RabbitMQ.Client.Framing.v0_9_1;
+using RabbitMQ.Client.Framing.Impl;
+using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Impl
 {
-    public abstract class ModelBase : IFullModel
+    public abstract class ModelBase : IFullModel, IRecoverable
     {
         private readonly object m_shutdownLock = new object();
         private ModelShutdownEventHandler m_modelShutdown;
@@ -79,6 +75,8 @@ namespace RabbitMQ.Client.Impl
         private SynchronizedCollection<ulong> m_unconfirmedSet =
             new SynchronizedCollection<ulong>();
         private bool m_onlyAcksReceived = true;
+
+        private RecoveryEventHandler m_recovery;
 
         public event ModelShutdownEventHandler ModelShutdown
         {
@@ -215,6 +213,24 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public event RecoveryEventHandler Recovery
+        {
+            add
+            {
+                lock (m_eventLock)
+                {
+                    m_recovery += value;
+                }
+            }
+            remove
+            {
+                lock (m_eventLock)
+                {
+                    m_recovery -= value;
+                }
+            }
+        }
+
         public IBasicConsumer DefaultConsumer
         {
             get
@@ -232,7 +248,7 @@ namespace RabbitMQ.Client.Impl
         public RpcContinuationQueue m_continuationQueue = new RpcContinuationQueue();
 
         ///<summary>Only used to kick-start a connection open
-        ///sequence. See <see cref="ConnectionBase.Open"/> </summary>
+        ///sequence. See <see cref="Connection.Open"/> </summary>
         public BlockingCell m_connectionStartCell = null;
 
         public readonly IDictionary<string, IBasicConsumer> m_consumers = new Dictionary<string, IBasicConsumer>();
@@ -243,6 +259,23 @@ namespace RabbitMQ.Client.Impl
             m_session.CommandReceived = new CommandHandler(HandleCommand);
             m_session.SessionShutdown += new SessionShutdownEventHandler(OnSessionShutdown);
         }
+
+        public ISession Session
+        {
+            get
+            {
+                return m_session;
+            }
+        }
+
+        public int ChannelNumber
+        {
+            get
+            {
+                return ((Session)m_session).ChannelNumber;
+            }
+        }
+
 
         public void HandleCommand(ISession session, Command cmd)
         {
@@ -292,7 +325,6 @@ namespace RabbitMQ.Client.Impl
         ///</remarks>
         public virtual void OnModelShutdown(ShutdownEventArgs reason)
         {
-            //Console.WriteLine("Model shutdown "+((Session)m_session).ChannelNumber+": "+reason);
             m_continuationQueue.HandleModelShutdown(reason);
             ModelShutdownEventHandler handler;
             lock (m_shutdownLock)
@@ -555,13 +587,13 @@ namespace RabbitMQ.Client.Impl
 
         public abstract bool DispatchAsynchronous(Command cmd);
 
-        public void HandleBasicDeliver(string consumerTag,
-                                       ulong deliveryTag,
-                                       bool redelivered,
-                                       string exchange,
-                                       string routingKey,
-                                       IBasicProperties basicProperties,
-                                       byte[] body)
+        public virtual void HandleBasicDeliver(string consumerTag,
+                                               ulong deliveryTag,
+                                               bool redelivered,
+                                               string exchange,
+                                               string routingKey,
+                                               IBasicProperties basicProperties,
+                                               byte[] body)
         {
             IBasicConsumer consumer;
             lock (m_consumers)
@@ -686,9 +718,9 @@ namespace RabbitMQ.Client.Impl
             {
                 ShutdownEventArgs reason =
                     new ShutdownEventArgs(ShutdownInitiator.Library,
-                                          CommonFraming.Constants.CommandInvalid,
+                                          Constants.CommandInvalid,
                                           "Unexpected Connection.Start");
-                ((ConnectionBase)m_session.Connection).Close(reason);
+                ((Connection)m_session.Connection).Close(reason);
             }
             ConnectionStartDetails details = new ConnectionStartDetails();
             details.m_versionMajor = versionMajor;
@@ -712,7 +744,7 @@ namespace RabbitMQ.Client.Impl
                                                              methodId);
             try
             {
-                ((ConnectionBase)m_session.Connection).InternalClose(reason);
+                ((Connection)m_session.Connection).InternalClose(reason);
                 _Private_ConnectionCloseOk();
                 SetCloseReason((m_session.Connection).CloseReason);
             }
@@ -730,14 +762,14 @@ namespace RabbitMQ.Client.Impl
 
         public void HandleConnectionBlocked(string reason)
         {
-            ConnectionBase cb = ((ConnectionBase)m_session.Connection);
+            Connection cb = ((Connection)m_session.Connection);
 
             cb.HandleConnectionBlocked(reason);
         }
 
         public void HandleConnectionUnblocked()
         {
-            ConnectionBase cb = ((ConnectionBase)m_session.Connection);
+            Connection cb = ((Connection)m_session.Connection);
 
             cb.HandleConnectionUnblocked();
         }
@@ -1061,6 +1093,12 @@ namespace RabbitMQ.Client.Impl
             return WaitForConfirms(TimeSpan.FromMilliseconds(Timeout.Infinite), out timedOut);
         }
 
+        public bool WaitForConfirms(TimeSpan timeout)
+        {
+            bool timedOut;
+            return WaitForConfirms(timeout, out timedOut);
+        }
+
         public void WaitForConfirmsOrDie()
         {
             WaitForConfirmsOrDie(TimeSpan.FromMilliseconds(Timeout.Infinite));
@@ -1072,14 +1110,14 @@ namespace RabbitMQ.Client.Impl
             bool onlyAcksReceived = WaitForConfirms(timeout, out timedOut);
             if (!onlyAcksReceived) {
                 Close(new ShutdownEventArgs(ShutdownInitiator.Application,
-                                            CommonFraming.Constants.ReplySuccess,
+                                            Constants.ReplySuccess,
                                             "Nacks Received", new IOException("nack received")),
                       false);
                 throw new IOException("Nacks Received");
             }
             if (timedOut) {
                 Close(new ShutdownEventArgs(ShutdownInitiator.Application,
-                                            CommonFraming.Constants.ReplySuccess,
+                                            Constants.ReplySuccess,
                                             "Timed out waiting for acks",
                                             new IOException("timed out waiting for acks")),
                       false);
@@ -1345,7 +1383,7 @@ namespace RabbitMQ.Client.Impl
 
         public void Close()
         {
-            Close(CommonFraming.Constants.ReplySuccess, "Goodbye");
+            Close(Constants.ReplySuccess, "Goodbye");
         }
 
         public void Close(ushort replyCode, string replyText)
@@ -1355,7 +1393,7 @@ namespace RabbitMQ.Client.Impl
 
         public void Abort()
         {
-            Abort(CommonFraming.Constants.ReplySuccess, "Goodbye");
+            Abort(Constants.ReplySuccess, "Goodbye");
         }
 
         public void Abort(ushort replyCode, string replyText)
