@@ -109,7 +109,7 @@ function dist-zips {
 
     ### .NET 3.5 library (bin), examples (src and bin), WCF bindings library (bin)
     ### and WCF examples (src) dist (WCF built only if MONO_DIST is undefined)
-    dist-target-framework dotnet-3.0
+    dist-target-framework dotnet-3.5
     if [ -z "$MONO_DIST" ]; then
         ### HTML documentation for the WCF bindings library dist
         gendoc-dist \
