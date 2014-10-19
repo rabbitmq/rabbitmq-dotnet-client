@@ -6,7 +6,7 @@ source code.
 
 ** Major namespaces, interfaces and classes
 
-The API is closely modelled on the AMQP protocol specification, with
+The API is closely modelled on the AMQP 0-9-1 protocol specification, with
 little additional abstraction.
 
 The core API interfaces and classes are defined in the [code
@@ -356,4 +356,73 @@ publishes a message with the "mandatory" flag set to an exchange of
 
 ** Automatic Recovery From Network Failures
 
-TODO
+Network connection between clients and RabbitMQ nodes can fail.
+RabbitMQ Java client supports automatic recovery of connections
+and topology (queues, exchanges, bindings, and consumers).
+
+The automatic recovery process for many applications follows the following steps:
+
+  - Reconnect
+  - Restore connection listeners
+  - Re-open channels
+  - Restore channel listeners
+  - Restore channel [code basic.qos] setting, publisher confirms and transaction settings
+
+Topology recovery includes the following actions, performed for every channel
+
+  - Re-declare exchanges (except for predefined ones)
+  - Re-declare queues
+  - Recover all bindings
+  - Recover all consumers
+
+To enable automatic connection recovery, use
+[code factory.AutomaticRecoveryEnabled = true]:
+@code java
+ ConnectionFactory factory = new ConnectionFactory();
+ factory.AutomaticRecoveryEnabled = true;
+ // connection that will recover automatically
+ IConnection conn = factory.CreateConnection();
+
+If recovery fails due to an exception (e.g. RabbitMQ node is
+still not reachable), it will be retried after a fixed time interval (default
+is 5 seconds). The interval can be configured:
+
+@code java
+ ConnectionFactory factory = new ConnectionFactory();
+ // attempt recovery every 10 seconds
+ factory.NetworkRecoveryInterval = TimeSpan.FromSeconds(10);
+
+
+** Topology Recovery
+
+Topology recovery involves recovery of exchanges, queues, bindings
+and consumers. It is enabled by default but can be disabled:
+
+@code java
+ ConnectionFactory factory = new ConnectionFactory();
+
+ Connection conn = factory.newConnection();
+ factory.AutomaticRecoveryEnabled = true;
+ factory.TopologyRecoveryEnabled  = false;
+
+
+ ** Manual Acknowledgements and Automatic Recovery
+
+When manual acknowledgements are used, it is possible that
+network connection to RabbitMQ node fails between message
+delivery and acknowledgement. After connection recovery,
+RabbitMQ will reset delivery tags on all channels.
+
+This means that [code basic.ack], [basic.nack], and [basic.reject]
+with old delivery tags will cause a channel exception. To avoid this,
+RabbitMQ Java client keeps track of and updates delivery tags to make them monotonically
+growing between recoveries.
+
+[code Channel.basicAck],
+[code Channel.basicNack], and
+[code Channel.basicReject] then translate adjusted
+delivery tags into those used by RabbitMQ.
+
+Acknowledgements with stale delivery tags will not be
+sent. Applications that use manual acknowledgements and automatic
+recovery must be capable of handling redeliveries.
