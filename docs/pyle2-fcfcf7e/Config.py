@@ -56,11 +56,11 @@ canonical_base_url = 'http://localhost:8080'
 use_canonical_base_url = True
 
 # How should Pyle authenticate users?
-# Use User.Anonymous() for development
-user_authenticator = \
-        User.BugzillaAuthenticator(url = 'https://extra.lshift.net/bugzilla/relogin.cgi',
-                                   default_email_suffix = 'lshift.net',
-                                   success_regex = '<h1>Logged Out</h1>')
+user_authenticator = User.Anonymous()
+# user_authenticator = \
+#         User.BugzillaAuthenticator(url = 'https://extra.lshift.net/bugzilla/relogin.cgi',
+#                                    default_email_suffix = 'lshift.net',
+#                                    success_regex = '<h1>Logged Out</h1>')
 
 # A FilteringAuthenticator can be used to restrict access to a
 # particular instance to a certain subset of otherwise-valid users,
