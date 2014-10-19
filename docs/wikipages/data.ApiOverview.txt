@@ -401,7 +401,7 @@ and consumers. It is enabled by default but can be disabled:
 @code java
  ConnectionFactory factory = new ConnectionFactory();
 
- Connection conn = factory.newConnection();
+ Connection conn = factory.CreateConnection();
  factory.AutomaticRecoveryEnabled = true;
  factory.TopologyRecoveryEnabled  = false;
 
