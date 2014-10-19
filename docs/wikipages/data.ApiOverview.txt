@@ -377,8 +377,9 @@ Topology recovery includes the following actions, performed for every channel
   - Recover all bindings
   - Recover all consumers
 
-To enable automatic connection recovery, use
-[code factory.AutomaticRecoveryEnabled = true]:
+To enable automatic connection recovery, set
+[code ConnectionFactory.AutomaticRecoveryEnabled] to true:
+
 @code java
  ConnectionFactory factory = new ConnectionFactory();
  factory.AutomaticRecoveryEnabled = true;
