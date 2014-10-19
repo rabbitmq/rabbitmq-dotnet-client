@@ -209,6 +209,33 @@ namespace RabbitMQ.Client.Unit {
         }
 
         [Test]
+        public void TestRecoveryWithTopologyDisabled()
+        {
+            AutorecoveringConnection conn = CreateAutorecoveringConnectionWithTopologyRecoveryDisabled();
+            IModel ch = conn.CreateModel();
+            string s  = "dotnet-client.test.recovery.q2";
+            ch.QueueDelete(s);
+            ch.QueueDeclare(s, false, true, false, null);
+            ch.QueueDeclarePassive(s);
+            Assert.IsTrue(ch.IsOpen);
+
+            try
+            {
+                CloseAndWaitForRecovery(conn);
+                Assert.IsTrue(ch.IsOpen);
+                ch.QueueDeclarePassive(s);
+                Assert.Fail("Expected an exception");
+            } catch(OperationInterruptedException e)
+            {
+                // expected
+            } finally
+            {
+                conn.Abort();
+            }
+        }
+
+
+        [Test]
         public void TestExchangeRecovery()
         {
             var x = "dotnet-client.test.recovery.x1";
@@ -518,7 +545,6 @@ namespace RabbitMQ.Client.Unit {
         }
 
         [Test]
-        [Category("Focus")]
         public void TestConsumerRecoveryOnClientNamedQueueWithOneRecovery()
         {
             var c    = CreateAutorecoveringConnection();
@@ -823,6 +849,15 @@ namespace RabbitMQ.Client.Unit {
         {
             var cf = new ConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
+            cf.NetworkRecoveryInterval  = RECOVERY_INTERVAL;
+            return (AutorecoveringConnection)cf.CreateConnection();
+        }
+
+       protected AutorecoveringConnection CreateAutorecoveringConnectionWithTopologyRecoveryDisabled()
+        {
+            var cf = new ConnectionFactory();
+            cf.AutomaticRecoveryEnabled = true;
+            cf.TopologyRecoveryEnabled  = false;
             cf.NetworkRecoveryInterval  = RECOVERY_INTERVAL;
             return (AutorecoveringConnection)cf.CreateConnection();
         }
