@@ -56,6 +56,7 @@ canonical_base_url = 'http://localhost:8080'
 use_canonical_base_url = True
 
 # How should Pyle authenticate users?
+# Use User.Anonymous() for development
 user_authenticator = \
         User.BugzillaAuthenticator(url = 'https://extra.lshift.net/bugzilla/relogin.cgi',
                                    default_email_suffix = 'lshift.net',
