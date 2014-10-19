@@ -353,3 +353,7 @@ event, then returned messages will be silently dropped.
 The [code BasicReturn] event will fire, for example, if the client
 publishes a message with the "mandatory" flag set to an exchange of
 "direct" type which is not bound to a queue.
+
+** Automatic Recovery From Network Failures
+
+TODO
