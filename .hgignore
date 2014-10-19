@@ -33,7 +33,6 @@ rabbit\.snk$
 ^projects/.*/.*\.csproj\.user$
 TestResult\.xml$
 
-^docs/pyle\.log$
 ^build/
 
 ~$
