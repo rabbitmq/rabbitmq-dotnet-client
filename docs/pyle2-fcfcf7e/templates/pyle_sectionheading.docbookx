@@ -1,0 +1,1 @@
+#for $fragment in $fragments#$fragment.render('docbookx')#end for#

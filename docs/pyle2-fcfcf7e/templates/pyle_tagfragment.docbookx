@@ -1,0 +1,1 @@
+<$tag xmlns="http://ohdear/this/is/bogus/">#for $fragment in $fragments#$fragment.render('docbookx')#end for#</$tag>

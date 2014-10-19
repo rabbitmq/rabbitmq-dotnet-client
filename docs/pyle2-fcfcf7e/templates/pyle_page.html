@@ -1,0 +1,45 @@
+<div class="pylepage">
+#def buildtoc($sections, $depth)
+#if $sections
+      <ul class="toc level$depth">
+#for $section in $sections
+        <li><a href="#$section.anchor">#echo '.'.join(map(str, $section.tocpath))# $section.heading.render('html')</a>$buildtoc($section.subsections, $depth + 1)</li>
+#end for
+      </ul>
+#end if
+#end def
+#set global $hastoc = 0
+#if $subsections and ((not $ctx.printmode) or $Config.include_toc_in_print_friendly)
+#set global $hastoc = 1
+  <a name="section_toc"></a>
+  <div class="toc">
+    <h4 class="toctitle">Table of Contents</h4>
+$buildtoc($subsections, 0)
+  </div>
+#endif
+  <div class="body">
+#for $item in $container_items
+$item.render('html')
+#end for
+  </div>
+#if $rendercache.has_key('footnotes')
+  <div class="footnotes">
+#for $footnote in $rendercache['footnotes']
+    <div class="footnote">
+      <span class="leader">
+	Footnote <a name="$footnote.anchor"></a>
+	<a href="#$footnote.refanchor">$footnote.number</a>:
+      </span>
+      <span class="body">
+	#for $fragment in $footnote.fragments#$fragment.render('html')#end for#	
+      </span>
+    </div>
+#end for
+  </div>
+#end if
+#if $hastoc and not $ctx.printmode
+  <p>
+    <a href="#section_toc">Go to Table of Contents</a>
+  </p>
+#endif
+</div>

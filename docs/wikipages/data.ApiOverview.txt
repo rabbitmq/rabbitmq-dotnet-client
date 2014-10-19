@@ -356,6 +356,8 @@ publishes a message with the "mandatory" flag set to an exchange of
 
 ** Automatic Recovery From Network Failures
 
+*** ConnectionRecovery
+
 Network connection between clients and RabbitMQ nodes can fail.
 RabbitMQ Java client supports automatic recovery of connections
 and topology (queues, exchanges, bindings, and consumers).
@@ -393,7 +395,7 @@ is 5 seconds). The interval can be configured:
  factory.NetworkRecoveryInterval = TimeSpan.FromSeconds(10);
 
 
-** Topology Recovery
+*** Topology Recovery
 
 Topology recovery involves recovery of exchanges, queues, bindings
 and consumers. It is enabled by default but can be disabled:
@@ -406,21 +408,21 @@ and consumers. It is enabled by default but can be disabled:
  factory.TopologyRecoveryEnabled  = false;
 
 
- ** Manual Acknowledgements and Automatic Recovery
+*** Manual Acknowledgements and Automatic Recovery
 
 When manual acknowledgements are used, it is possible that
 network connection to RabbitMQ node fails between message
 delivery and acknowledgement. After connection recovery,
 RabbitMQ will reset delivery tags on all channels.
 
-This means that [code basic.ack], [basic.nack], and [basic.reject]
+This means that [code basic.ack], [code basic.nack], and [code basic.reject]
 with old delivery tags will cause a channel exception. To avoid this,
-RabbitMQ Java client keeps track of and updates delivery tags to make them monotonically
+RabbitMQ .NET client keeps track of and updates delivery tags to make them monotonically
 growing between recoveries.
 
-[code Channel.basicAck],
-[code Channel.basicNack], and
-[code Channel.basicReject] then translate adjusted
+[code IModel.BasicAck],
+[code IModel.BasicNack], and
+[code IModel.BasicReject] then translate adjusted
 delivery tags into those used by RabbitMQ.
 
 Acknowledgements with stale delivery tags will not be

@@ -1,0 +1,5 @@
+Permissions
+
+Search: only display results readable by the user
+Links: display unreadable (not permitted) pages differently
+Default group: allow this to be computed if there's nothing explicit set?

@@ -1,0 +1,9 @@
+This page summarises the available Pyle plugins.
+
+----
+
+@plugindetails
+
+----
+
+CategoryMeta

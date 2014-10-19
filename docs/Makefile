@@ -2,6 +2,7 @@ BUILDDIR=$(CURDIR)/../build
 DOCDIR=$(BUILDDIR)/doc
 MANDIR=$(BUILDDIR)/doc/userguide
 TMPDIR=$(BUILDDIR)/doc/tmp
+PYLEDIR=pyle2-fcfcf7e
 BASEURL=http://localhost:8080
 
 PAGES=UserGuide ApiOverview MessagingPatterns ShutdownProtocols TroubleShooting Examples BuildingTheClient ImplementationGuide ApiGen
@@ -12,11 +13,11 @@ DB2PDF_OPTIONS=\
 	-V %generate-article-toc% \
 	-V %generate-article-titlepage-on-separate-page%
 
-all: delete-unpacked-pyle unpack-pyle start-pyle
+all: prepare-pyle stop-pyle start-pyle
 	OK=true && \
 	{ make targets || OK=false; } && \
 	cat pyle.log && \
-	make delete-unpacked-pyle && \
+	make stop-pyle && \
 	$$OK
 
 bundle:
@@ -48,15 +49,11 @@ $(MANDIR)/%.pdf: %-skeleton.xml
 	(cd $(TMPDIR); db2pdf $(DB2PDF_OPTIONS) $*.xml)
 	mv $(TMPDIR)/$*.pdf $(MANDIR)
 
-unpack-pyle:
-	unzip -q ../tools/pyle2-snapshot-20080107.zip
-	cp pyle2-config.py pyle2-snapshot-20080107/Config.py
-
-delete-unpacked-pyle: stop-pyle
-	rm -rf pyle2-snapshot-20080107/
+prepare-pyle:
+	cp pyle2-config.py $(PYLEDIR)/Config.py
 
 start-pyle: stop-pyle
-	( cd pyle2-snapshot-20080107; make run >../pyle.log 2>&1 & echo $$! > ../pyle.pid )
+	( cd $(PYLEDIR); make run >../pyle.log 2>&1 & echo $$! > ../pyle.pid )
 	sleep 5
 
 stop-pyle:

@@ -1,0 +1,84 @@
+#import time
+<html>
+  <head>
+    <title>Pyle: $escape($pagetitle) v$v1.friendly_id - v$v2.friendly_id</title>
+    #include $skinfile("common_html_headers.html")
+  </head>
+  <body>
+    <div class="container">
+      <div class="title">
+	#include $skinfile("common_page_headers.html")
+	<h1>
+	  $internal_link($pagetitle)
+	  v$internal_link($pagetitle, vistext = $v1.friendly_id, args = {'version': $diff.v1})
+	  -
+	  v$internal_link($pagetitle, vistext = $v2.friendly_id, args = {'version': $diff.v2})
+	</h1>
+	<div class="clear"></div>
+      </div>
+      <div class="diff">
+	<table border="0" cellpadding="0" cellspacing="0">
+	  <tr>
+#def link($style, $vv1, $vv2)
+<span class="link$style">
+#if $style == 'prev'
+#set $arrow = '&lt;&mdash;'
+#else
+#set $arrow = '&mdash;&gt;'
+#end if
+#if $vv1 and $vv2
+$internal_link($pagetitle, 'diff', vistext = $arrow,
+               args = {'v1': $vv1.version_id, 'v2': $vv2.version_id})
+#else
+$arrow
+#end if
+</span>
+#end def
+	    <th class="header" colspan="2">
+	      $link("prev", $v1.previous, $v2.previous)
+	      change
+	      $link("next", $v1.next, $v2.next)
+	    </th>
+	  </tr>
+	  <tr>
+	    <th class="old header">
+	      $link("prev", $v1.previous, $v2)
+	      version $v1.friendly_id
+	      $link("next", $v1.next, $v2)
+	      <br />$time.strftime('%a %d %b %Y %H:%M:%S %Z', $time.localtime($v1.timestamp))
+	    </th>
+	    <th class="new header">
+	      $link("prev", $v1, $v2.previous)
+	      version $v2.friendly_id
+	      $link("next", $v1, $v2.next)
+	      <br />$time.strftime('%a %d %b %Y %H:%M:%S %Z', $time.localtime($v2.timestamp))
+	    </th>
+	  </tr>
+	  #for $chunk in $diff.chunks
+	  #if $chunk.linenumber1
+	  <tr>
+	    <td class="old linenumber">line $chunk.linenumber1</td>
+	    <td class="new linenumber">line $chunk.linenumber2</td>
+	  </tr>
+	  #end if
+	  <tr>
+	    <td><div class="old body common">$escapeallpre($chunk.header)</div></td>
+	    <td><div class="new body common">$escapeallpre($chunk.header)</div></td>
+	  </tr>
+	  <tr>
+	    <td><div class="old body $chunk.kind">$escapeallpre($chunk.chunk1)</div></td>
+	    <td><div class="new body $chunk.kind">$escapeallpre($chunk.chunk2)</div></td>
+	  </tr>
+	  <tr>
+	    <td><div class="old body common">$escapeallpre($chunk.footer)</div></td>
+	    <td><div class="new body common">$escapeallpre($chunk.footer)</div></td>
+	  </tr>
+	  #end for
+	</table>
+      </div>
+      <div class="footer">
+	#include $skinfile("common_page_footers.html")
+      </div>
+    </div>
+  </body>
+</html>

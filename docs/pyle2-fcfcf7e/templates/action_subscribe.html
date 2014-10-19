@@ -1,0 +1,27 @@
+<html>
+  <head>
+    <title>Pyle: Subscription to $page.title changed</title>
+    #include $skinfile("common_html_headers.html")
+  </head>
+  <body>
+    <div class="container">
+      <div class="title">
+	#include $skinfile("common_page_headers.html")
+	<h1>Subscription to $page.title changed</h1>
+	<div class="clear"></div>
+      </div>
+      <div class="subscriptionmessage">
+	<p>
+	  #if $subscription_status
+	  You are now subscribed to page $page.title.
+	  #else
+	  You are no longer subscribed to page $page.title.
+	  #end if
+	</p>
+	<p>
+	  Click $internal_link($page.title, vistext = 'here') to return to the page.
+	</p>
+      </div>
+    </div>
+  </body>
+</html>

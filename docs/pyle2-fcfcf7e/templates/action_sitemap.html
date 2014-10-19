@@ -1,0 +1,40 @@
+#def emitnode($nodename, $node)
+<li>
+  <span class="sitemapnodename">$internal_link($nodename)</span>
+  #if $node
+  <ul class="sitemapnode">
+    #for ($childname, $childnode) in $node.items
+    $emitnode($childname, $childnode)
+    #end for
+  </ul>
+  #end if
+</li>
+#end def
+<html>
+  <head>
+    <title>Pyle: Site Map</title>
+    #include $skinfile("common_html_headers.html")
+  </head>
+  <body>
+    <div class="container">
+      <div class="title">
+	#include $skinfile("common_page_headers.html")
+	<h1>Site Map</h1>
+	<div class="clear"></div>
+      </div>
+
+      <h2>Main Hierarchy</h2>
+
+      <ul class="sitemapnode">
+	$emitnode($root_name, $root_node)
+      </ul>
+
+      <h2>Orphaned Nodes</h2>
+      <ul class="sitemapnode">
+	#for ($orphanname, $orphannode) in $orphans.items
+	$emitnode($orphanname, $orphannode)
+	#end for
+      </ul>
+    </div>
+  </body>
+</html>

@@ -16,7 +16,8 @@ rabbit\.snk$
 ^src/wcf/RabbitMQ\.ServiceModel/RabbitMQ\.ServiceModel\.xml
 ^src/wcf/RabbitMQ\.ServiceModel/AssemblyInfo\.cs$
 
-^docs/pyle
+^docs/pyle\.(log|pid)
+^docs/pyle2.*/.*\.pyc
 
 ^wix/dotnet-client-merge-module\.wxs$
 ^wix/dotnet-client-product\.wxs$
