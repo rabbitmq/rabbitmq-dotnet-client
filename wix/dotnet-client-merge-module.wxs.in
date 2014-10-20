@@ -14,7 +14,7 @@
                  (i.e. will only have to be specified once, with Assembly='.net'
                  in order to be copied in both places). -->
             <Component Id='ClientLibraryAssembly' Guid='06543EE8-DED2-4C1C-826E-6AAE0B403AF3'>
-                <File Id='RabbitMQClientDllAssembly' Name='RMQClnt.dll' LongName='RabbitMQ.Client.dll' Vital='yes' Assembly='.net' KeyPath='yes' Source='..\tmp\unzip\rabbitmq-dotnet-client-@VERSION@-dotnet-2.0\bin\RabbitMQ.Client.dll' />
+                <File Id='RabbitMQClientDllAssembly' Name='RMQClnt.dll' LongName='RabbitMQ.Client.dll' Vital='yes' Assembly='.net' KeyPath='yes' Source='..\tmp\unzip\rabbitmq-dotnet-client-@VERSION@-dotnet-3.5\bin\RabbitMQ.Client.dll' />
             </Component>
 
             <Directory Id='BinFolder' Name='bin'>
@@ -31,13 +31,13 @@
             <Directory Id='ExamplesFolder' Name='examples'>
                 <Directory Id='BinExamplesFolder' Name='bin'>
                     <Component Id='ExampleBinaries' Guid='1C270D1C-CD79-49D8-9413-E6211F52B5A8'>
-@FILES ../tmp/unzip/rabbitmq-dotnet-client-@VERSION@-dotnet-2.0/bin -name *.exe
+@FILES ../tmp/unzip/rabbitmq-dotnet-client-@VERSION@-dotnet-3.5/bin -name *.exe
                     </Component>
                 </Directory>
                 
                 <Directory Id='SrcExamplesFolder' Name='src'>
                     <Component Id='ExampleSources' Guid='962896C3-D476-4C8E-B5F3-BE963D566A49'>
-@FILES ../tmp/unzip/rabbitmq-dotnet-client-@VERSION@-dotnet-2.0/projects/examples/client -name *.cs -not -name AssemblyInfo.cs
+@FILES ../tmp/unzip/rabbitmq-dotnet-client-@VERSION@-dotnet-3.5/projects/examples/client -name *.cs -not -name AssemblyInfo.cs
                     </Component>
                 </Directory>
                 
