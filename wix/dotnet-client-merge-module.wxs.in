@@ -36,13 +36,13 @@
             <Directory Id='ExamplesFolder' Name='examples'>
                 <Directory Id='BinExamplesFolder' Name='bin'>
                     <Component Id='ExampleBinaries' Guid='1C270D1C-CD79-49D8-9413-E6211F52B5A8'>
-@FILES ../tmp/unzip/rabbitmq-dotnet-client-@VERSION@-dotnet-3.5/bin -name *.exe
+@FILES ../tmp/unzip/rabbitmq-dotnet-client-@VERSION@/bin -name *.exe
                     </Component>
                 </Directory>
                 
                 <Directory Id='SrcExamplesFolder' Name='src'>
                     <Component Id='ExampleSources' Guid='962896C3-D476-4C8E-B5F3-BE963D566A49'>
-@FILES ../tmp/unzip/rabbitmq-dotnet-client-@VERSION@-dotnet-3.5/projects/examples/client -name *.cs -not -name AssemblyInfo.cs
+@FILES ../tmp/unzip/rabbitmq-dotnet-client-@VERSION@/projects/examples/client -name *.cs -not -name AssemblyInfo.cs
                     </Component>
                 </Directory>
                 
