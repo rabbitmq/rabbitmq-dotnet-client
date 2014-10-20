@@ -23,9 +23,8 @@ The source tree is laid out as follows:
 To compile the RabbitMQ .NET client library, you will need
 
   - a .NET development environment:
-      - Microsoft .NET 2.0 (or later)
-      - Microsoft .NET 3.0 (or later) if you want to build the WCF binding too
-  - Microsoft Visual Studio 2005 or later (optional)
+      - Microsoft .NET 3.5 (or later) if you want to build the WCF binding too
+  - Microsoft Visual Studio 2008 or later (optional)
 
 To run the unit tests, you will need
 
@@ -33,7 +32,7 @@ To run the unit tests, you will need
 
 ** Configuring Your Tree
 
-Copy [code Local.props.example] to [code Local.props], and edit it if necessary (the properties in this file have suggestive names). Set [code PropTargetFramework] to [code v1.1], [code v2.0], [code v3.0] or [code v3.5]. If you would like to build under Mono, only [code v1.1] and [code v2.0] are supported; also set [code PropUsingMono] to [code true] in this case.
+Copy [code Local.props.example] to [code Local.props], and edit it if necessary (the properties in this file have suggestive names). Set [code PropTargetFramework] to [code v3.5], [code v4.0] or [code v4.5]. If you would like to build under Mono, set [code PropUsingMono] to [code true] in this case.
 
 ** Building
 
@@ -51,7 +50,7 @@ Note: If you change a property in [code Local.props] while the solution is loade
 
 *** On Windows, without Visual Studio
 
-To build the client library without Visual Studio, first you need to make sure you have the .NET's framework directory in your [code PATH] environment variable. The .NET framework directory can usually be found at [code %WINDIR%\Microsoft.NET\Framework\v2.0.50727] for .NET 2.0 or [code %WINDIR%\Microsoft.NET\Framework\v3.0] for .NET 3.0.
+To build the client library without Visual Studio, first you need to make sure you have the .NET's framework directory in your [code PATH] environment variable. The .NET framework directory can usually be found at [code %WINDIR%\Microsoft.NET\Framework\v3.5] for .NET 3.5.
 
 Open the Command Prompt (Start -> Run -> cmd) or Cygwin (if you have it installed) and change to the client's directory. Now type [code msbuild.exe] and hit return to start building the solution.
 
@@ -63,7 +62,7 @@ For building under Mono, please refer to [link http://www.rabbitmq.com/build-dot
 
 ** Building the WCF binding
 
-Building the WCF binding is enabled by default in [code Local.props] if the target framework is [code v3.0] or later (only on Windows).
+Building the WCF binding is enabled by default in [code Local.props] on Windows.
 
 To disable building the WCF binding, set [code PropBuildWcf] to [code false].
 
