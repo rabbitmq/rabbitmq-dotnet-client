@@ -112,7 +112,9 @@ function get-sources {
 }
 
 function get-binaries {
-    unzip -q $RELEASE_DIR/$NAME_VSN.zip -d tmp/unzip/$NAME_VSN
+    unzip -q $RELEASE_DIR/$NAME_VSN.zip -d tmp/unzip/
+    mkdir -p tmp/unzip/bin
+    cp -r tmp/unzip/$NAME_VSN/projects/client/RabbitMQ.Client/build/bin tmp/unzip/$NAME_VSN/bin
 }
 
 function gen-wxs {
