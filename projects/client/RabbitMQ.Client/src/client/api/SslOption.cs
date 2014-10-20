@@ -62,7 +62,7 @@ namespace RabbitMQ.Client
         }
 
 
-        private SslProtocols m_version = SslProtocols.Ssl3;
+        private SslProtocols m_version = SslProtocols.Tls;
 
         ///<summary>Retrieve or set the Ssl protocol version
         ///</summary>
