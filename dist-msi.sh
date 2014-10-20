@@ -60,6 +60,7 @@ NAME_VSN=$NAME-$RABBIT_VSN
 RELEASE_DIR=release
 
 function main {
+    ensure-tmp-unzip
     get-binaries
     get-sources
     gen-license-rtf
@@ -99,10 +100,12 @@ function build-msm-msi {
     safe-rm-deep-dir tmp/wix
 }
 
-
-function get-sources {
+function ensure-tmp-unzip {
     safe-rm-deep-dir tmp/unzip
     mkdir -p tmp/unzip
+}
+
+function get-sources {
     unzip -q $RELEASE_DIR/$NAME_VSN-client-htmldoc.zip -d tmp/unzip/$NAME_VSN-client-htmldoc
     cp $RELEASE_DIR/$NAME_VSN-api-guide.pdf tmp/unzip/
     cp $RELEASE_DIR/$NAME_VSN-user-guide.pdf tmp/unzip/
