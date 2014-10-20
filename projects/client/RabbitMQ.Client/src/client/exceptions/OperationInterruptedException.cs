@@ -52,9 +52,7 @@ namespace RabbitMQ.Client.Exceptions
     /// </summary>
     [Serializable]
     public class OperationInterruptedException
-        // Eventually, as part of .NET 3.0, we get to inherit from ...
-        /* : OperationCanceledException */
-        // Until then, there's sadly nothing better to inherit from than ...
+        // TODO: inherit from OperationCanceledException
         : Exception
     {
         ///<summary>Possible explanation for the interruption. May be null.</summary>
