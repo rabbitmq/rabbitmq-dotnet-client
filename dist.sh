@@ -107,6 +107,17 @@ function dist-zips {
     ### Source dist
     src-dist
 
+    gendoc-dist \
+        build/bin/RabbitMQ.Client.xml \
+        $NAME_VSN-client-htmldoc.zip \
+        "/suppress:RabbitMQ.Client.Framing \
+         /suppress:RabbitMQ.Client.Framing.Impl \
+         /suppress:RabbitMQ.Client.Impl \
+         /suppress:RabbitMQ.Client.Apigen.Attributes" \
+        $NAME_VSN-tmp-xmldoc.zip \
+	projects/client/RabbitMQ.Client \
+        ../../..
+
     ### .NET 3.5 library (bin), examples (src and bin), WCF bindings library (bin)
     ### and WCF examples (src) dist (WCF built only if MONO_DIST is undefined)
     dist-target-framework dotnet-3.5
