@@ -104,12 +104,23 @@ function main {
 
 
 function dist-zips {
+    # clean & build
+    dist-target-framework dotnet-3.5
+
     ### Source dist
     src-dist
 
-    ### .NET 3.5 library (bin), examples (src and bin), WCF bindings library (bin)
-    ### and WCF examples (src) dist (WCF built only if MONO_DIST is undefined)
-    dist-target-framework dotnet-3.5
+    gendoc-dist \
+        build/bin/RabbitMQ.Client.xml \
+        $NAME_VSN-client-htmldoc.zip \
+        "/suppress:RabbitMQ.Client.Framing \
+         /suppress:RabbitMQ.Client.Framing.Impl \
+         /suppress:RabbitMQ.Client.Impl \
+         /suppress:RabbitMQ.Client.Apigen.Attributes" \
+        $NAME_VSN-tmp-xmldoc.zip \
+	projects/client/RabbitMQ.Client \
+        ../../..
+
     if [ -z "$MONO_DIST" ]; then
         ### HTML documentation for the WCF bindings library dist
         gendoc-dist \
@@ -160,7 +171,7 @@ function src-dist {
 function dist-target-framework {
     TARGET_FRAMEWORK="$1"
     BUILD_WCF=
-    test "$TARGET_FRAMEWORK" == "dotnet-3.0" && test -z "$MONO_DIST" && BUILD_WCF="true"
+    test -z "$MONO_DIST" && BUILD_WCF="true"
 
     ### Make sure we can use MSBuild.Community.Tasks.dll (it might be from a
     ### remote location)
