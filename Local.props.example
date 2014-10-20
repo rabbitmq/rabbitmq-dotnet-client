@@ -13,7 +13,7 @@
     <PropLaunchExe Condition="'$(PropUsingMono)' == 'true'">mono --debug </PropLaunchExe>
 
     <!-- WCF component only for Windows, .NET 3.5 or higher -->
-    <PropBuildWcf Condition="'$(PropUsingMono)' != 'true' And ('$(PropTargetFramework)' == 'v3.5' Or '$(PropTargetFramework)' == 'v4.0' Or '$(PropTargetFramework)' == 'v4.5'))">true</PropBuildWcf>
+    <PropBuildWcf Condition="'$(PropUsingMono)' != 'true'">true</PropBuildWcf>
 
     <!-- Uncomment to run a single test case with /t:RunSingleUnitTest -->
     <!-- <PropTestToRun>RabbitMQ.Client.Unit.TestConnectionRecovery</PropTestToRun> -->
