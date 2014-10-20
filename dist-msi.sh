@@ -60,6 +60,7 @@ NAME_VSN=$NAME-$RABBIT_VSN
 RELEASE_DIR=release
 
 function main {
+    get-binaries
     get-sources
     gen-license-rtf
 
@@ -107,6 +108,9 @@ function get-sources {
     cp $RELEASE_DIR/$NAME_VSN-user-guide.pdf tmp/unzip/
 }
 
+function get-binaries {
+    unzip -q $RELEASE_DIR/$NAME_VSN.zip -d tmp/unzip/$NAME_VSN
+}
 
 function gen-wxs {
     set +x
