@@ -102,7 +102,6 @@ function build-msm-msi {
 function get-sources {
     safe-rm-deep-dir tmp/unzip
     mkdir -p tmp/unzip
-    unzip -q $RELEASE_DIR/$NAME_VSN-dotnet-2.0.zip -d tmp/unzip/$NAME_VSN-dotnet-2.0
     unzip -q $RELEASE_DIR/$NAME_VSN-client-htmldoc.zip -d tmp/unzip/$NAME_VSN-client-htmldoc
     cp $RELEASE_DIR/$NAME_VSN-api-guide.pdf tmp/unzip/
     cp $RELEASE_DIR/$NAME_VSN-user-guide.pdf tmp/unzip/
