@@ -160,7 +160,7 @@ function src-dist {
 function dist-target-framework {
     TARGET_FRAMEWORK="$1"
     BUILD_WCF=
-    test "$TARGET_FRAMEWORK" == "dotnet-3.0" && test -z "$MONO_DIST" && BUILD_WCF="true"
+    test -z "$MONO_DIST" && BUILD_WCF="true"
 
     ### Make sure we can use MSBuild.Community.Tasks.dll (it might be from a
     ### remote location)
