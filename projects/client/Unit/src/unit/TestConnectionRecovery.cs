@@ -44,12 +44,14 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using System.IO;
 
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 
+#pragma warning disable 0168
 namespace RabbitMQ.Client.Unit {
     [TestFixture]
     public class TestConnectionRecovery : IntegrationFixture {
@@ -715,6 +717,32 @@ namespace RabbitMQ.Client.Unit {
             TestDelayedBasicAckNackAfterChannelRecovery(cons, latch);
         }
 
+        [Test]
+        public void TestCreateModelOnClosedAutorecoveringConnectionDoesNotHang()
+        {
+            // we don't want this to recover quickly in this test
+            var c  = CreateAutorecoveringConnection(TimeSpan.FromSeconds(20));
+
+            try
+            {
+                c.Close();
+                WaitForShutdown(c);
+                Assert.IsFalse(c.IsOpen);
+                c.CreateModel();
+                Assert.Fail("Expected an exception");
+            } catch (AlreadyClosedException ace)
+            {
+                // expected
+            } finally
+            {
+                StartRabbitMQ();
+                if(c.IsOpen)
+                {
+                    c.Abort();
+                }
+            }
+        }
+
         protected void TestDelayedBasicAckNackAfterChannelRecovery(TestBasicConsumer1 cons, AutoResetEvent latch)
         {
             var q = Model.QueueDeclare(GenerateQueueName(), false, false, false, null).QueueName;
@@ -767,7 +795,19 @@ namespace RabbitMQ.Client.Unit {
             Wait(rl);
         }
 
-        protected AutoResetEvent PrepareForShutdown(AutorecoveringConnection conn)
+        protected void CloseAndWaitForShutdown(AutorecoveringConnection conn)
+        {
+            var sl = PrepareForShutdown(conn);
+            CloseConnection(conn);
+            Wait(sl);
+        }
+
+        protected void WaitForShutdown(IConnection conn)
+        {
+            Wait(PrepareForShutdown(conn));
+        }
+
+        protected AutoResetEvent PrepareForShutdown(IConnection conn)
         {
             var latch = new AutoResetEvent(false);
             conn.ConnectionShutdown += (c, args) =>
@@ -845,11 +885,22 @@ namespace RabbitMQ.Client.Unit {
             Assert.AreEqual(n, c.RecordedExchanges.Count);
         }
 
+        protected IConnection CreateNonRecoveringConnection()
+        {
+            var cf = new ConnectionFactory();
+            return cf.CreateConnection();
+        }
+
         protected AutorecoveringConnection CreateAutorecoveringConnection()
+        {
+            return CreateAutorecoveringConnection(RECOVERY_INTERVAL);
+        }
+
+       protected AutorecoveringConnection CreateAutorecoveringConnection(TimeSpan interval)
         {
             var cf = new ConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
-            cf.NetworkRecoveryInterval  = RECOVERY_INTERVAL;
+            cf.NetworkRecoveryInterval  = interval;
             return (AutorecoveringConnection)cf.CreateConnection();
         }
 
@@ -863,3 +914,4 @@ namespace RabbitMQ.Client.Unit {
         }
     }
 }
+#pragma warning restore 0168
