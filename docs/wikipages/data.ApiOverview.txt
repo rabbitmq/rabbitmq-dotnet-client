@@ -336,10 +336,10 @@ include, but are not limited to,
    one AMQP RPC, such as [code ExchangeDeclare], is run
    simultaneously).
 
-** Handling unroutable or undelivered messages
+** Handling unroutable messages
 
-If a message is published with the "mandatory" or "immediate" flags
-set, but cannot be delivered, the broker will return it to the sending
+If a message is published with the "mandatory" flag
+set, but cannot be routed, the broker will return it to the sending
 client (via a [code basic.return] AMQP command).
 
 To be notified of such returns, clients can subscribe to the [code
@@ -359,7 +359,7 @@ publishes a message with the "mandatory" flag set to an exchange of
 *** ConnectionRecovery
 
 Network connection between clients and RabbitMQ nodes can fail.
-RabbitMQ Java client supports automatic recovery of connections
+RabbitMQ .NET client supports automatic recovery of connections
 and topology (queues, exchanges, bindings, and consumers).
 
 The automatic recovery process for many applications follows the following steps:
