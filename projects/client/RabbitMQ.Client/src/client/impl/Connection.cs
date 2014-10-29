@@ -352,8 +352,17 @@ namespace RabbitMQ.Client.Framing.Impl {
             }
         }
 
+        public void EnsureIsOpen()
+        {
+            if(!IsOpen)
+            {
+                throw new AlreadyClosedException(this.CloseReason);
+            }
+        }
+
         public IModel CreateModel()
         {
+            this.EnsureIsOpen();
             ISession session = CreateSession();
             IFullModel model = (IFullModel)Protocol.CreateModel(session);
             model._Private_ChannelOpen("");
