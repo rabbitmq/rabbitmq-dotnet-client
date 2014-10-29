@@ -397,13 +397,19 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
+        protected void EnsureIsOpen()
+        {
+            this.m_delegate.EnsureIsOpen();
+        }
+
         public IModel CreateModel()
         {
+            this.EnsureIsOpen();
             AutorecoveringModel m;
+            m = new AutorecoveringModel(this,
+                                        (RecoveryAwareModel)this.CreateNonRecoveringModel());
             lock(this)
             {
-                m = new AutorecoveringModel(this,
-                                            (RecoveryAwareModel)this.CreateNonRecoveringModel());
                 m_models.Add(m);
             }
             return m;

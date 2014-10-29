@@ -328,11 +328,25 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        protected Process ExecCommand(string ctl, string args)
+        protected Process ExecCommand(string command)
+        {
+            return ExecCommand(command, "");
+        }
+
+        protected Process ExecCommand(string command, string args)
+        {
+            return ExecCommand(command, args, null);
+        }
+
+        protected Process ExecCommand(string ctl, string args, string changeDirTo)
         {
             Process proc = new Process();
             proc.StartInfo.CreateNoWindow  = true;
             proc.StartInfo.UseShellExecute = false;
+            if(changeDirTo != null)
+            {
+                proc.StartInfo.WorkingDirectory = changeDirTo;
+            }
 
             string cmd;
             if(IsRunningOnMono()) {
@@ -465,6 +479,23 @@ namespace RabbitMQ.Client.Unit
             ExecRabbitMQCtl("close_connection \"" +
                             pid +
                             "\" \"Closed via rabbitmqctl\"");
+        }
+
+        protected void RestartRabbitMQ()
+        {
+            StopRabbitMQ();
+            Thread.Sleep(500);
+            StartRabbitMQ();
+        }
+
+        protected void StopRabbitMQ()
+        {
+            ExecRabbitMQCtl("stop_app");
+        }
+
+        protected void StartRabbitMQ()
+        {
+            ExecRabbitMQCtl("start_app");
         }
     }
 
