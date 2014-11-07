@@ -60,8 +60,8 @@ namespace RabbitMQ.Client.Unit
         {
             ConnectionFactory connFactory = new ConnectionFactory();
             long usageSmall = measureMemory(connFactory, 100);
-            long usageLarge = measureMemory(connFactory, 500);
-            Assert.IsTrue(usageLarge < usageSmall * 2L);
+            long usageLarge = measureMemory(connFactory, 1000);
+            Assert.IsTrue(usageLarge < usageSmall * 4L);
         }
 
         private long measureMemory(ConnectionFactory connFactory, int reconnectCount)

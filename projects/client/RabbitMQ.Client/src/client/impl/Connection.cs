@@ -97,6 +97,9 @@ namespace RabbitMQ.Client.Framing.Impl {
 
         public Guid m_id = Guid.NewGuid();
 
+        private Timer heartbeatWriteTimer;
+        private Timer heartbeatReadTimer;
+
         public int m_missedHeartbeats = 0;
 
         public IList<ShutdownReportEntry> m_shutdownReport = new SynchronizedList<ShutdownReportEntry>(new List<ShutdownReportEntry>());
@@ -115,7 +118,7 @@ namespace RabbitMQ.Client.Framing.Impl {
 
             StartMainLoop(factory.UseBackgroundThreadsForIO);
             Open(insist);
-            StartHeartbeatLoops(factory.UseBackgroundThreadsForIO);
+            StartHeartbeatTimers();
             AppDomain.CurrentDomain.DomainUnload += HandleDomainUnload;
         }
 
@@ -578,29 +581,25 @@ namespace RabbitMQ.Client.Framing.Impl {
             mainLoopThread.Start();
         }
 
-        public void StartHeartbeatLoops(bool useBackgroundThread)
+        public void StartHeartbeatTimers()
         {
             if (Heartbeat != 0) {
-                StartHeartbeatLoop(new ThreadStart(HeartbeatReadLoop), "Inbound", useBackgroundThread);
-                StartHeartbeatLoop(new ThreadStart(HeartbeatWriteLoop), "Outbound", useBackgroundThread);
+                heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback);
+                heartbeatWriteTimer.Change(Heartbeat * 1000, Timeout.Infinite);
+
+                heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback);
+                heartbeatReadTimer.Change(Heartbeat * 1000, Timeout.Infinite);
             }
         }
 
-        public void StartHeartbeatLoop(ThreadStart loop, string name, bool useBackgroundThread)
+        public void HeartbeatWriteTimerCallback(object state)
         {
-            Thread heartbeatLoop = new Thread(loop);
-            heartbeatLoop.Name = "AMQP Heartbeat " + name + " for Connection " + Endpoint.ToString();
-            heartbeatLoop.IsBackground = useBackgroundThread;
-            heartbeatLoop.Start();
-        }
-
-        public void HeartbeatWriteLoop()
-        {
+            var shouldTerminate = false;
             try
             {
-                while (!m_closed)
+                if (!m_closed)
                 {
-                    if (!m_heartbeatWrite.WaitOne(Heartbeat * 1000, false))
+                    if (!m_heartbeatWrite.WaitOne(0, false))
                     {
                         WriteFrame(m_heartbeatFrame);
                     }
@@ -611,17 +610,26 @@ namespace RabbitMQ.Client.Framing.Impl {
                                                               0,
                                                               "End of stream",
                                                               e));
+                shouldTerminate = true;
             }
 
-            TerminateMainloop();
-            FinishClose();
+            if (m_closed || shouldTerminate)
+            {
+                TerminateMainloop();
+                FinishClose();
+            }
+            else
+            {
+                heartbeatWriteTimer.Change(Heartbeat * 1000, Timeout.Infinite);
+            }
         }
 
-        public void HeartbeatReadLoop()
+        public void HeartbeatReadTimerCallback(object state)
         {
-            while (!m_closed)
+            var shouldTerminate = false;
+            if (!m_closed)
             {
-                if (!m_heartbeatRead.WaitOne(Heartbeat * 1000, false))
+                if (!m_heartbeatRead.WaitOne(0, false))
                     m_missedHeartbeats++;
                 else
                     m_missedHeartbeats = 0;
@@ -638,15 +646,22 @@ namespace RabbitMQ.Client.Framing.Impl {
                                                                   0,
                                                                   "End of stream",
                                                                   eose));
-                    break;
+                    shouldTerminate = true;
                 }
             }
 
-            TerminateMainloop();
-            FinishClose();
+            if (shouldTerminate)
+            {
+                TerminateMainloop();
+                FinishClose();
+            }
+            else
+            {
+                heartbeatReadTimer.Change(Heartbeat * 1000, Timeout.Infinite);
+            }
         }
 
-        public void NotifyHeartbeatThread()
+        public void NotifyHeartbeatListener()
         {
             if (m_heartbeat == 0) {
                 // Heartbeating not enabled for this connection.
@@ -730,7 +745,7 @@ namespace RabbitMQ.Client.Framing.Impl {
         {
             Frame frame = m_frameHandler.ReadFrame();
 
-            NotifyHeartbeatThread();
+            NotifyHeartbeatListener();
             // We have received an actual frame.
             if (frame.Type == Constants.FrameHeartbeat) {
                 // Ignore it: we've already just reset the heartbeat
