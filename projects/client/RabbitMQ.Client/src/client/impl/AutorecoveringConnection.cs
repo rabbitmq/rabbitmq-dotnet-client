@@ -43,6 +43,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Linq;
 using System.Threading;
+using System.Timers;
 
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Client.Events;
@@ -513,8 +514,16 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void BeginAutomaticRecovery()
         {
-            Thread.Sleep(m_factory.NetworkRecoveryInterval);
-            lock(this)
+            var t = new System.Timers.Timer(m_factory.NetworkRecoveryInterval.TotalSeconds * 1000);
+            t.Elapsed += new ElapsedEventHandler(PerformAutomaticRecovery);
+
+            t.AutoReset = false;
+            t.Enabled   = true;
+        }
+
+        protected void PerformAutomaticRecovery(object self, ElapsedEventArgs _e)
+        {
+            lock(self)
             {
                 this.RecoverConnectionDelegate();
                 this.RecoverConnectionShutdownHandlers();
