@@ -74,6 +74,35 @@ namespace RabbitMQ.Client.Unit {
         }
 
         [Test]
+        public void TestBasicConnectionRecoveryOnBrokerRestart()
+        {
+            Assert.IsTrue(Conn.IsOpen);
+            RestartServerAndWaitForRecovery();
+            Assert.IsTrue(Conn.IsOpen);
+        }
+
+        [Test]
+        public void TestShutdownEventHandlersRecoveryOnConnectionAfterDelayedServerRestart()
+        {
+            Int32 counter = 0;
+            Conn.ConnectionShutdown += (c, args) =>
+            {
+                Interlocked.Increment(ref counter);
+            };
+
+            Assert.IsTrue(Conn.IsOpen);
+            StopRabbitMQ();
+            Console.WriteLine("About to sleep for 9 seconds...");
+            Thread.Sleep(9000);
+            StartRabbitMQ();
+            WaitForShutdown();
+            WaitForRecovery();
+            Assert.IsTrue(Conn.IsOpen);
+
+            Assert.IsTrue(counter >= 1);
+        }
+
+        [Test]
         public void TestShutdownEventHandlersRecoveryOnConnection()
         {
             Int32 counter = 0;
@@ -148,6 +177,14 @@ namespace RabbitMQ.Client.Unit {
         {
             Assert.IsTrue(Model.IsOpen);
             CloseAndWaitForRecovery();
+            Assert.IsTrue(Model.IsOpen);
+        }
+
+        [Test]
+        public void TestBasicModelRecoveryOnServerRestart()
+        {
+            Assert.IsTrue(Model.IsOpen);
+            RestartServerAndWaitForRecovery();
             Assert.IsTrue(Model.IsOpen);
         }
 
@@ -263,6 +300,17 @@ namespace RabbitMQ.Client.Unit {
             string s = "dotnet-client.test.recovery.q1";
             WithTemporaryNonExclusiveQueue(Model, (m, q) => {
                 CloseAndWaitForRecovery();
+                AssertQueueRecovery(m, q, false);
+                Model.QueueDelete(q);
+            }, s);
+        }
+
+        [Test]
+        public void TestClientNamedQueueRecoveryOnServerRestart()
+        {
+            string s = "dotnet-client.test.recovery.q1";
+            WithTemporaryNonExclusiveQueue(Model, (m, q) => {
+                RestartServerAndWaitForRecovery();
                 AssertQueueRecovery(m, q, false);
                 Model.QueueDelete(q);
             }, s);
@@ -800,6 +848,35 @@ namespace RabbitMQ.Client.Unit {
             var sl = PrepareForShutdown(conn);
             CloseConnection(conn);
             Wait(sl);
+        }
+
+        protected void RestartServerAndWaitForRecovery()
+        {
+            RestartServerAndWaitForRecovery((AutorecoveringConnection)this.Conn);
+        }
+
+        protected void RestartServerAndWaitForRecovery(AutorecoveringConnection conn)
+        {
+            var sl = PrepareForShutdown(conn);
+            var rl = PrepareForRecovery(conn);
+            RestartRabbitMQ();
+            Wait(sl);
+            Wait(rl);
+        }
+
+        protected void WaitForRecovery()
+        {
+            Wait(PrepareForRecovery((AutorecoveringConnection)this.Conn));
+        }
+
+        protected void WaitForRecovery(AutorecoveringConnection conn)
+        {
+            Wait(PrepareForRecovery(conn));
+        }
+
+        protected void WaitForShutdown()
+        {
+            Wait(PrepareForShutdown(this.Conn));
         }
 
         protected void WaitForShutdown(IConnection conn)
