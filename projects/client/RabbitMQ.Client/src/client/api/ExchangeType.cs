@@ -62,18 +62,15 @@ namespace RabbitMQ.Client
         ///<summary>Exchange type used for AMQP headers exchanges.</summary>
         public const string Headers = "headers";
 
+        private static readonly string[] m_all = { Fanout, Direct, Topic,  Headers };
+
         ///<summary>Private constructor - this class has no instances</summary>
         private ExchangeType() {}
 
         ///<summary>Retrieve a collection containing all standard exchange types.</summary>
         public static ICollection<string> All()
         {
-            return new string[] {
-                Fanout,
-                Direct,
-                Topic,
-                Headers
-            };
+            return m_all;
         }
     }
 }
