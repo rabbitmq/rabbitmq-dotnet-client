@@ -38,8 +38,6 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-
 namespace RabbitMQ.Client.Impl
 {
     public delegate void CommandHandler(ISession session, Command cmd);
@@ -48,19 +46,23 @@ namespace RabbitMQ.Client.Impl
 
     public interface ISession
     {
-        ///<summary>Multicast session shutdown event.</summary>
-        event SessionShutdownEventHandler SessionShutdown;
-
         int ChannelNumber { get; }
         ShutdownEventArgs CloseReason { get; }
 
-        ///<summary>Single recipient - no need for multiple handlers
-        ///to be informed of arriving commands.</summary>
+        ///<summary>
+        /// Single recipient - no need for multiple handlers to be informed of arriving commands.
+        ///</summary>
         CommandHandler CommandReceived { get; set; }
 
         IConnection Connection { get; }
 
         bool IsOpen { get; }
+
+        ///<summary>
+        /// Multicast session shutdown event.
+        ///</summary>
+        event SessionShutdownEventHandler SessionShutdown;
+
         void Close(ShutdownEventArgs reason);
         void Close(ShutdownEventArgs reason, bool notify);
         void HandleFrame(Frame frame);

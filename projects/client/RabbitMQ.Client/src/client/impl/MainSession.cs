@@ -38,48 +38,44 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-using RabbitMQ.Client.Framing.Impl;
 // We use spec version 0-9 for common constants such as frame types,
 // error codes, and the frame end byte, since they don't vary *within
 // the versions we support*. Obviously we may need to revisit this if
 // that ever changes.
+
 using RabbitMQ.Client.Framing;
+using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
     ///<summary>Small ISession implementation used only for channel 0.</summary>
     public class MainSession : Session
     {
+        public delegate void SessionCloseDelegate();
+
+        private readonly object _closingLock = new object();
+
         public int m_closeClassId;
         public int m_closeMethodId;
         public int m_closeOkClassId;
         public int m_closeOkMethodId;
 
         public bool m_closeServerInitiated;
-        public bool m_closing = false;
+        public bool m_closing;
 
-        private readonly object m_closingLock = new object();
-
-        public MainSession(Connection connection)
-            : base(connection, 0)
+        public MainSession(Connection connection) : base(connection, 0)
         {
             Command request;
-            connection.Protocol.CreateConnectionClose(0, "",
-                out request,
-                out m_closeOkClassId,
-                out m_closeOkMethodId);
+            connection.Protocol.CreateConnectionClose(0, "", out request, out m_closeOkClassId, out m_closeOkMethodId);
             m_closeClassId = request.Method.ProtocolClassId;
             m_closeMethodId = request.Method.ProtocolMethodId;
         }
-
-        public delegate void SessionCloseDelegate();
 
         public SessionCloseDelegate Handler { get; set; }
 
         public override void HandleFrame(Frame frame)
         {
-            lock (m_closingLock)
+            lock (_closingLock)
             {
                 if (!m_closing)
                 {
@@ -88,8 +84,7 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            if (!m_closeServerInitiated
-                && (frame.Type == Constants.FrameMethod))
+            if (!m_closeServerInitiated && (frame.Type == Constants.FrameMethod))
             {
                 MethodBase method = Connection.Protocol.DecodeMethodFrom(frame.GetReader());
                 if ((method.ProtocolClassId == m_closeClassId)
@@ -120,7 +115,7 @@ namespace RabbitMQ.Client.Impl
         ///</remarks>
         public void SetSessionClosing(bool closeServerInitiated)
         {
-            lock (m_closingLock)
+            lock (_closingLock)
             {
                 if (!m_closing)
                 {
@@ -132,7 +127,7 @@ namespace RabbitMQ.Client.Impl
 
         public override void Transmit(Command cmd)
         {
-            lock (m_closingLock)
+            lock (_closingLock)
             {
                 if (!m_closing)
                 {

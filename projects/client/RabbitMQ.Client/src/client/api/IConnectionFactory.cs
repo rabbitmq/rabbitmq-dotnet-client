@@ -45,24 +45,55 @@ namespace RabbitMQ.Client
 {
     public interface IConnectionFactory
     {
+        /// <summary>
+        /// Dictionary of client properties to be sent to the server.
+        /// </summary>
         IDictionary<String, object> ClientProperties { get; set; }
 
+        /// <summary>
+        /// Password to use when authenticating to the server.
+        /// </summary>
         string Password { get; set; }
 
+        /// <summary>
+        /// Maximum channel number to ask for.
+        /// </summary>
         ushort RequestedChannelMax { get; set; }
 
+        /// <summary>
+        /// Frame-max parameter to ask for (in bytes).
+        /// </summary>
         uint RequestedFrameMax { get; set; }
 
+        /// <summary>
+        /// Heartbeat setting to request (in seconds).
+        /// </summary>
         ushort RequestedHeartbeat { get; set; }
 
+        /// <summary>
+        /// When set to true, background threads will be used for I/O and heartbeats.
+        /// </summary>
         bool UseBackgroundThreadsForIO { get; set; }
 
+        /// <summary>
+        /// Username to use when authenticating to the server.
+        /// </summary>
         string UserName { get; set; }
 
+        /// <summary>
+        /// Virtual host to access during this connection.
+        /// </summary>
         string VirtualHost { get; set; }
 
-        AuthMechanismFactory AuthMechanismFactory(string[] mechs);
+        /// <summary>
+        /// Given a list of mechanism names supported by the server, select a preferred mechanism,
+        /// or null if we have none in common.
+        /// </summary>
+        AuthMechanismFactory AuthMechanismFactory(string[] mechanismNames);
 
+        /// <summary>
+        /// Create a connection to the specified endpoint.
+        /// </summary>
         IConnection CreateConnection();
     }
 }

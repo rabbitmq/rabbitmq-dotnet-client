@@ -38,15 +38,13 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client
 {
-    ///<summary>
-    /// A marker interface for entities that are recoverable
-    /// (currently connection or channel).
-    ///</summary>
+    /// <summary>
+    /// A marker interface for entities that are recoverable (currently connection or channel).
+    /// </summary>
     public interface IRecoverable
     {
         event RecoveryEventHandler Recovery;

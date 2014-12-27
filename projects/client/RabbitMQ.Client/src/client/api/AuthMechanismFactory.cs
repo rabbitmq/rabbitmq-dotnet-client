@@ -38,16 +38,18 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-
 namespace RabbitMQ.Client
 {
     public interface AuthMechanismFactory
     {
-        ///<summary>The name of the authentication mechanism, as negotiated on the wire</summary>
+        /// <summary>
+        /// The name of the authentication mechanism, as negotiated on the wire.
+        /// </summary>
         string Name { get; }
 
-        ///<summary>Return a new authentication mechanism implementation</summary>
+        /// <summary>
+        /// Return a new authentication mechanism implementation.
+        /// </summary>
         AuthMechanism GetInstance();
     }
 }
