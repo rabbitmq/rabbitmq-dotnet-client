@@ -44,6 +44,7 @@ using NUnit.Framework;
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Text;
 using System.Threading;
 using System.Diagnostics;
@@ -449,7 +450,6 @@ namespace RabbitMQ.Client.Unit
             // {Environment.NewLine} is not sufficient
             string[] splitOn = new string[] { "\r\n", "\n" };
             string[] lines   = stdout.Split(splitOn, StringSplitOptions.RemoveEmptyEntries);
-
             // line: <rabbit@mercurio.1.11491.0>	58713
             return lines.Select(s => {
               var columns = s.Split('\t');
