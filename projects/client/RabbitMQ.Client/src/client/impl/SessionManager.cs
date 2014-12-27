@@ -75,7 +75,13 @@ namespace RabbitMQ.Client.Impl
 
         public int Count
         {
-            get { return m_sessionMap.Count; }
+            get
+            {
+                lock (m_sessionMap)
+                {
+                    return m_sessionMap.Count;
+                }
+            }
         }
 
         ///<summary>Called from CheckAutoClose, in a separate thread,
