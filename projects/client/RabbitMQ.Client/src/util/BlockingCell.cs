@@ -55,6 +55,7 @@ namespace RabbitMQ.Util
     ///</remarks>
     public class BlockingCell
     {
+        private readonly object _lock = new object();
         private object m_value = null;
         private bool m_valueSet = false;
 
@@ -66,11 +67,11 @@ namespace RabbitMQ.Util
         {
             get
             {
-                lock (this)
+                lock (_lock)
                 {
                     while (!m_valueSet)
                     {
-                        Monitor.Wait(this);
+                        Monitor.Wait(_lock);
                     }
                     return m_value;
                 }
@@ -78,7 +79,7 @@ namespace RabbitMQ.Util
 
             set
             {
-                lock (this)
+                lock (_lock)
                 {
                     if (m_valueSet)
                     {
@@ -86,7 +87,7 @@ namespace RabbitMQ.Util
                     }
                     m_value = value;
                     m_valueSet = true;
-                    Monitor.PulseAll(this);
+                    Monitor.PulseAll(_lock);
                 }
             }
         }
@@ -128,11 +129,11 @@ namespace RabbitMQ.Util
         ///</remarks>
         public bool GetValue(int millisecondsTimeout, out object result)
         {
-            lock (this)
+            lock (_lock)
             {
                 if (!m_valueSet)
                 {
-                    Monitor.Wait(this, validatedTimeout(millisecondsTimeout));
+                    Monitor.Wait(_lock, validatedTimeout(millisecondsTimeout));
                     if (!m_valueSet)
                     {
                         result = null;
