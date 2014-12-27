@@ -38,6 +38,7 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 
 namespace RabbitMQ.Client
@@ -51,21 +52,21 @@ namespace RabbitMQ.Client
     /// ExchangeDeclare. The broker may be extended with additional
     /// exchange types that do not appear in this class.
     ///</remarks>
-    public class ExchangeType
+    public static class ExchangeType
     {
-        ///<summary>Exchange type used for AMQP fanout exchanges.</summary>
-        public const string Fanout = "fanout";
         ///<summary>Exchange type used for AMQP direct exchanges.</summary>
         public const string Direct = "direct";
-        ///<summary>Exchange type used for AMQP topic exchanges.</summary>
-        public const string Topic = "topic";
+
+        ///<summary>Exchange type used for AMQP fanout exchanges.</summary>
+        public const string Fanout = "fanout";
+
         ///<summary>Exchange type used for AMQP headers exchanges.</summary>
         public const string Headers = "headers";
 
-        private static readonly string[] m_all = { Fanout, Direct, Topic,  Headers };
+        ///<summary>Exchange type used for AMQP topic exchanges.</summary>
+        public const string Topic = "topic";
 
-        ///<summary>Private constructor - this class has no instances</summary>
-        private ExchangeType() {}
+        private static readonly string[] m_all = { Fanout, Direct, Topic, Headers };
 
         ///<summary>Retrieve a collection containing all standard exchange types.</summary>
         public static ICollection<string> All()

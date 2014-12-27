@@ -62,32 +62,46 @@ namespace RabbitMQ.Client
     ///</remarks>
     public interface IBasicProperties : IContentHeader
     {
-        ///<summary> MIME content type </summary>
-        string ContentType { get; set; }
+        ///<summary> creating application id </summary>
+        string AppId { get; set; }
+
+        ///<summary> intra-cluster routing identifier
+        /// (cluster id is deprecated in AMQP 0-9-1)
+        ///</summary>
+        string ClusterId { get; set; }
 
         ///<summary> MIME content encoding </summary>
         string ContentEncoding { get; set; }
 
-        ///<summary> message header field table. Is of type <see cref="System.Collections.Generic.IDictionary{TKey,TValue}" />.</summary>
-        IDictionary<string, object> Headers { get; set; }
-
-        ///<summary> non-persistent (1) or persistent (2) </summary>
-        byte DeliveryMode { get; set; }
-
-        ///<summary> message priority, 0 to 9 </summary>
-        byte Priority { get; set; }
+        ///<summary> MIME content type </summary>
+        string ContentType { get; set; }
 
         ///<summary> application correlation identifier </summary>
         string CorrelationId { get; set; }
 
-        ///<summary> destination to reply to </summary>
-        string ReplyTo { get; set; }
+        ///<summary> non-persistent (1) or persistent (2) </summary>
+        byte DeliveryMode { get; set; }
 
         ///<summary> message expiration specification </summary>
         string Expiration { get; set; }
 
+        ///<summary> message header field table. Is of type <see cref="System.Collections.Generic.IDictionary{TKey,TValue}" />.</summary>
+        IDictionary<string, object> Headers { get; set; }
+
         ///<summary> application message identifier </summary>
         string MessageId { get; set; }
+
+        ///<summary> message priority, 0 to 9 </summary>
+        byte Priority { get; set; }
+
+        ///<summary> destination to reply to </summary>
+        string ReplyTo { get; set; }
+
+        ///<summary>Convenience property; parses ReplyTo property
+        ///using PublicationAddress.Parse, and serializes it using
+        ///PublicationAddress.ToString. Returns null if ReplyTo property
+        ///cannot be parsed by PublicationAddress.Parse.</summary>
+        PublicationAddress ReplyToAddress { get; set; }
 
         ///<summary> message timestamp </summary>
         AmqpTimestamp Timestamp { get; set; }
@@ -98,40 +112,40 @@ namespace RabbitMQ.Client
         ///<summary> creating user id </summary>
         string UserId { get; set; }
 
-        ///<summary> creating application id </summary>
-        string AppId { get; set; }
+        ///<summary> Clear the AppId property. </summary>
+        void ClearAppId();
 
-        ///<summary> intra-cluster routing identifier
+        ///<summary> Clear the ClusterId property.
         /// (cluster id is deprecated in AMQP 0-9-1)
         ///</summary>
-        string ClusterId { get; set; }
-
-        ///<summary> Clear the ContentType property. </summary>
-        void ClearContentType();
+        void ClearClusterId();
 
         ///<summary> Clear the ContentEncoding property. </summary>
         void ClearContentEncoding();
 
-        ///<summary> Clear the Headers property. </summary>
-        void ClearHeaders();
-
-        ///<summary> Clear the DeliveryMode property. </summary>
-        void ClearDeliveryMode();
-
-        ///<summary> Clear the Priority property. </summary>
-        void ClearPriority();
+        ///<summary> Clear the ContentType property. </summary>
+        void ClearContentType();
 
         ///<summary> Clear the CorrelationId property. </summary>
         void ClearCorrelationId();
 
-        ///<summary> Clear the ReplyTo property. </summary>
-        void ClearReplyTo();
+        ///<summary> Clear the DeliveryMode property. </summary>
+        void ClearDeliveryMode();
 
         ///<summary> Clear the Expiration property. </summary>
         void ClearExpiration();
 
+        ///<summary> Clear the Headers property. </summary>
+        void ClearHeaders();
+
         ///<summary> Clear the MessageId property. </summary>
         void ClearMessageId();
+
+        ///<summary> Clear the Priority property. </summary>
+        void ClearPriority();
+
+        ///<summary> Clear the ReplyTo property. </summary>
+        void ClearReplyTo();
 
         ///<summary> Clear the Timestamp property. </summary>
         void ClearTimestamp();
@@ -142,40 +156,40 @@ namespace RabbitMQ.Client
         ///<summary> Clear the UserId property. </summary>
         void ClearUserId();
 
-        ///<summary> Clear the AppId property. </summary>
-        void ClearAppId();
+        ///<summary> Returns true iff the AppId property is present. </summary>
+        bool IsAppIdPresent();
 
-        ///<summary> Clear the ClusterId property.
+        ///<summary> Returns true iff the ClusterId property is present.
         /// (cluster id is deprecated in AMQP 0-9-1)
         ///</summary>
-        void ClearClusterId();
-
-        ///<summary> Returns true iff the ContentType property is present. </summary>
-        bool IsContentTypePresent();
+        bool IsClusterIdPresent();
 
         ///<summary> Returns true iff the ContentEncoding property is present. </summary>
         bool IsContentEncodingPresent();
 
-        ///<summary> Returns true iff the Headers property is present. </summary>
-        bool IsHeadersPresent();
-
-        ///<summary> Returns true iff the DeliveryMode property is present. </summary>
-        bool IsDeliveryModePresent();
-
-        ///<summary> Returns true iff the Priority property is present. </summary>
-        bool IsPriorityPresent();
+        ///<summary> Returns true iff the ContentType property is present. </summary>
+        bool IsContentTypePresent();
 
         ///<summary> Returns true iff the CorrelationId property is present. </summary>
         bool IsCorrelationIdPresent();
 
-        ///<summary> Returns true iff the ReplyTo property is present. </summary>
-        bool IsReplyToPresent();
+        ///<summary> Returns true iff the DeliveryMode property is present. </summary>
+        bool IsDeliveryModePresent();
 
         ///<summary> Returns true iff the Expiration property is present. </summary>
         bool IsExpirationPresent();
 
+        ///<summary> Returns true iff the Headers property is present. </summary>
+        bool IsHeadersPresent();
+
         ///<summary> Returns true iff the MessageId property is present. </summary>
         bool IsMessageIdPresent();
+
+        ///<summary> Returns true iff the Priority property is present. </summary>
+        bool IsPriorityPresent();
+
+        ///<summary> Returns true iff the ReplyTo property is present. </summary>
+        bool IsReplyToPresent();
 
         ///<summary> Returns true iff the Timestamp property is present. </summary>
         bool IsTimestampPresent();
@@ -185,20 +199,6 @@ namespace RabbitMQ.Client
 
         ///<summary> Returns true iff the UserId property is present. </summary>
         bool IsUserIdPresent();
-
-        ///<summary> Returns true iff the AppId property is present. </summary>
-        bool IsAppIdPresent();
-
-        ///<summary> Returns true iff the ClusterId property is present.
-        /// (cluster id is deprecated in AMQP 0-9-1)
-        ///</summary>
-        bool IsClusterIdPresent();
-
-        ///<summary>Convenience property; parses ReplyTo property
-        ///using PublicationAddress.Parse, and serializes it using
-        ///PublicationAddress.ToString. Returns null if ReplyTo property
-        ///cannot be parsed by PublicationAddress.Parse.</summary>
-        PublicationAddress ReplyToAddress { get; set; }
 
         ///<summary>Sets DeliveryMode to either persistent (2) or non-persistent (1).</summary>
         ///<remarks>

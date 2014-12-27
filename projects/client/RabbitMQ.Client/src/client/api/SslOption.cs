@@ -42,7 +42,6 @@ using System;
 using System.Net.Security;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
-using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
 {
@@ -50,91 +49,51 @@ namespace RabbitMQ.Client
     ///in setting up an SSL connection.</summary>
     public class SslOption
     {
-
-        private bool m_enabled;
-
-        ///<summary>Flag specifying if Ssl should indeed be
-        ///used</summary>
-        public bool Enabled
-        {
-            get { return m_enabled; }
-            set { m_enabled = value; }
-        }
-
-
-        private SslProtocols m_version = SslProtocols.Tls;
-
-        ///<summary>Retrieve or set the Ssl protocol version
-        ///</summary>
-        public SslProtocols Version
-        {
-            get { return m_version; }
-            set { m_version = value; }
-        }
-
-        private string m_certPath;
-
-        ///<summary>Retrieve or set the path to client certificate.
-        ///</summary>
-        public string CertPath
-        {
-            get { return m_certPath; }
-            set { m_certPath = value; }
-        }
-
-        private string m_certPass;
-
-        ///<summary>Retrieve or set the path to client certificate.
-        ///</summary>
-        public string CertPassphrase
-        {
-            get { return m_certPass; }
-            set { m_certPass = value; }
-        }
-
         private X509CertificateCollection m_certs;
 
-        ///<summary>Retrieve or set the X509CertificateCollection
-        ///containing the client certificate. If no collection is set,
-        ///the client will attempt to load one from the specified
-        ///CertPath.</summary>
-        public X509CertificateCollection Certs
+        ///<summary>Construct an SslOption specifying both the server cannonical name
+        ///and the client's certificate path.
+        ///</summary>
+        public SslOption(string serverName, string certPath, bool enabled)
         {
-            get {
-                if (m_certs != null) {
-                    return m_certs;
-                } else if (m_certPath == "") {
-                    return null;
-                } else {
-                    X509CertificateCollection c = new X509CertificateCollection();
-                    c.Add(new X509Certificate2(m_certPath, m_certPass));
-                    return c;
-                }
-            }
-            set {
-                m_certs = value;
-            }
+            Version = SslProtocols.Tls;
+            AcceptablePolicyErrors = SslPolicyErrors.None;
+            ServerName = serverName;
+            CertPath = certPath;
+            Enabled = enabled;
+            CertificateValidationCallback = null;
+            CertificateSelectionCallback = null;
         }
 
-        private string m_serverName;
-
-        ///<summary>Retrieve or set server's Canonical Name. This MUST match the CN
-        ///on the Certificate else the SSL connection will fail</summary>
-        public string ServerName
+        ///<summary>Construct an SslOption with just the server cannonical name.
+        ///The Certificate path is set to an empty string
+        ///</summary>
+        public SslOption(string serverName) : this(serverName, "", false)
         {
-            get { return m_serverName; }
-            set { m_serverName = value; }
         }
 
-        private SslPolicyErrors m_acceptablePolicyErrors = SslPolicyErrors.None;
+        ///<summary>Construct an SslOption with no parameters set</summary>
+        public SslOption() : this("", "", false)
+        {
+        }
 
         ///<summary>Retrieve or set the set of ssl policy errors that
         ///are deemed acceptable</summary>
-        public SslPolicyErrors AcceptablePolicyErrors
-        {
-            get { return m_acceptablePolicyErrors; }
-            set { m_acceptablePolicyErrors = value; }
-        }
+        public SslPolicyErrors AcceptablePolicyErrors { get; set; }
+
+        ///<summary>Retrieve or set the path to client certificate.
+        ///</summary>
+        public string CertPassphrase { get; set; }
+
+        ///<summary>Retrieve or set the path to client certificate.
+        ///</summary>
+        public string CertPath { get; set; }
+
+        /// <summary>
+        /// An optional client specified SSL certificate selection callback.  If this is not specified,
+        /// the first valid certificate found will be used.
+        /// </summary>
+        public LocalCertificateSelectionCallback CertificateSelectionCallback { get; set; }
 
         /// <summary>
         /// An optional client specified SSL certificate validation callback.  If this is not specified,
@@ -143,35 +102,44 @@ namespace RabbitMQ.Client
         /// </summary>
         public RemoteCertificateValidationCallback CertificateValidationCallback { get; set; }
 
-        /// <summary>
-        /// An optional client specified SSL certificate selection callback.  If this is not specified,
-        /// the first valid certificate found will be used.
-        /// </summary>
-        public LocalCertificateSelectionCallback CertificateSelectionCallback { get; set; }
+        ///<summary>Retrieve or set the X509CertificateCollection
+        ///containing the client certificate. If no collection is set,
+        ///the client will attempt to load one from the specified
+        ///CertPath.</summary>
+        public X509CertificateCollection Certs
+        {
+            get
+            {
+                if (m_certs != null)
+                {
+                    return m_certs;
+                }
+                else if (CertPath == "")
+                {
+                    return null;
+                }
+                else
+                {
+                    var c = new X509CertificateCollection
+                    {
+                        new X509Certificate2(CertPath, CertPassphrase)
+                    };
+                    return c;
+                }
+            }
+            set { m_certs = value; }
+        }
 
-        ///<summary>Construct an SslOption specifying both the server cannonical name
-        ///and the client's certificate path.
+        ///<summary>Flag specifying if Ssl should indeed be
+        ///used</summary>
+        public bool Enabled { get; set; }
+
+        ///<summary>Retrieve or set server's Canonical Name. This MUST match the CN
+        ///on the Certificate else the SSL connection will fail</summary>
+        public string ServerName { get; set; }
+
+        ///<summary>Retrieve or set the Ssl protocol version
         ///</summary>
-        public SslOption(string serverName, string certPath, bool enabled)
-        {
-            m_serverName= serverName;
-            m_certPath = certPath;
-            m_enabled = enabled;
-            CertificateValidationCallback = null;
-            CertificateSelectionCallback  = null;
-        }
-
-        ///<summary>Construct an SslOption with just the server cannonical name.
-        ///The Certificate path is set to an empty string
-        ///</summary>
-        public SslOption(string serverName): this(serverName, "", false)
-        {
-        }
-
-        ///<summary>Construct an SslOption with no parameters set</summary>
-        public SslOption(): this("", "", false)
-        {
-        }
-
+        public SslProtocols Version { get; set; }
     }
 }

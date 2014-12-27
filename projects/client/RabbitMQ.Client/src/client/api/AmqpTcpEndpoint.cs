@@ -41,7 +41,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
 {
@@ -59,56 +58,19 @@ namespace RabbitMQ.Client
     {
         ///<summary>Indicates that the default port for the protocol should be used</summary>
         public const int DefaultAmqpSslPort = 5671;
+
         public const int UseDefaultPort = -1;
 
-        ///<summary>Retrieve IProtocol of this AmqpTcpEndpoint.</summary>
-        public IProtocol Protocol
-        {
-            get { return Protocols.DefaultProtocol; }
-        }
-
-        private string m_hostName;
-        ///<summary>Retrieve or set the hostname of this AmqpTcpEndpoint.</summary>
-        public string HostName
-        {
-            get { return m_hostName; }
-            set { m_hostName = value; }
-        }
-
         private int m_port;
-        ///<summary>Retrieve or set the port number of this
-        ///AmqpTcpEndpoint. A port number of -1 causes the default
-        ///port number.</summary>
-        public int Port
-        {
-            get {
-                if (m_port != UseDefaultPort)
-                    return m_port;
-                if (m_ssl.Enabled)
-                    return DefaultAmqpSslPort;
-                return Protocol.DefaultPort;
-            }
-            set { m_port = value; }
-        }
-
-
-        private SslOption m_ssl;
-        ///<summary>Retrieve the SSL options for this AmqpTcpEndpoint.
-        ///If not set, null is returned</summary>
-        public SslOption Ssl
-        {
-            get { return m_ssl; }
-            set { m_ssl = value; }
-        }
 
         ///<summary>Construct an AmqpTcpEndpoint with the given
         ///hostname, port number and ssl option. If the port
         ///number is -1, the default port number will be used.</summary>
         public AmqpTcpEndpoint(string hostName, int portOrMinusOne, SslOption ssl)
         {
-            m_hostName = hostName;
+            HostName = hostName;
             m_port = portOrMinusOne;
-            m_ssl = ssl;
+            Ssl = ssl;
         }
 
         ///<summary>Construct an AmqpTcpEndpoint with the given
@@ -155,36 +117,38 @@ namespace RabbitMQ.Client
         {
         }
 
-        ///<summary>Returns a URI-like string of the form
-        ///amqp-PROTOCOL://HOSTNAME:PORTNUMBER</summary>
-        ///<remarks>
-        /// This method is intended mainly for debugging and logging use.
-        ///</remarks>
-        public override string ToString()
+        ///<summary>Retrieve or set the hostname of this AmqpTcpEndpoint.</summary>
+        public string HostName { get; set; }
+
+        ///<summary>Retrieve or set the port number of this
+        ///AmqpTcpEndpoint. A port number of -1 causes the default
+        ///port number.</summary>
+        public int Port
         {
-            return "amqp://" + HostName + ":" + Port;
+            get
+            {
+                if (m_port != UseDefaultPort)
+                {
+                    return m_port;
+                }
+                if (Ssl.Enabled)
+                {
+                    return DefaultAmqpSslPort;
+                }
+                return Protocol.DefaultPort;
+            }
+            set { m_port = value; }
         }
 
-        ///<summary>Compares this instance by value (protocol,
-        ///hostname, port) against another instance</summary>
-        public override bool Equals(object obj)
+        ///<summary>Retrieve IProtocol of this AmqpTcpEndpoint.</summary>
+        public IProtocol Protocol
         {
-            AmqpTcpEndpoint other = obj as AmqpTcpEndpoint;
-            if (other == null) return false;
-            if (other.HostName != HostName) return false;
-            if (other.Port != Port) return false;
-            return true;
+            get { return Protocols.DefaultProtocol; }
         }
 
-        ///<summary>Implementation of hash code depending on protocol,
-        ///hostname and port, to line up with the implementation of
-        ///Equals()</summary>
-        public override int GetHashCode()
-        {
-            return
-                HostName.GetHashCode() ^
-                Port;
-        }
+        ///<summary>Retrieve the SSL options for this AmqpTcpEndpoint.
+        ///If not set, null is returned</summary>
+        public SslOption Ssl { get; set; }
 
         ///<summary>Construct an instance from a protocol and an
         ///address in "hostname:port" format.</summary>
@@ -196,7 +160,8 @@ namespace RabbitMQ.Client
         /// variant specified).
         /// Hostnames provided as IPv6 must appear in square brackets ([]).
         ///</remarks>
-        public static AmqpTcpEndpoint Parse(string address) {
+        public static AmqpTcpEndpoint Parse(string address)
+        {
             Match match = Regex.Match(address, @"^\s*\[([%:0-9A-Fa-f]+)\](:(.*))?\s*$");
             if (match.Success)
             {
@@ -208,16 +173,19 @@ namespace RabbitMQ.Client
                     portNum = (portStr.Length == 0) ? -1 : int.Parse(portStr);
                 }
                 return new AmqpTcpEndpoint(match.Groups[1].Value,
-                                           portNum);
+                    portNum);
             }
             int index = address.LastIndexOf(':');
-            if (index == -1) {
+            if (index == -1)
+            {
                 return new AmqpTcpEndpoint(address, -1);
-            } else {
+            }
+            else
+            {
                 string portStr = address.Substring(index + 1).Trim();
                 int portNum = (portStr.Length == 0) ? -1 : int.Parse(portStr);
                 return new AmqpTcpEndpoint(address.Substring(0, index),
-                                           portNum);
+                    portNum);
             }
         }
 
@@ -229,16 +197,57 @@ namespace RabbitMQ.Client
         /// optional, and returns a corresponding array of
         /// AmqpTcpEndpoints.
         ///</remarks>
-        public static AmqpTcpEndpoint[] ParseMultiple(string addresses) {
+        public static AmqpTcpEndpoint[] ParseMultiple(string addresses)
+        {
             string[] partsArr = addresses.Split(new char[] { ',' });
-            List<AmqpTcpEndpoint> results = new List<AmqpTcpEndpoint>();
-            foreach (string partRaw in partsArr) {
+            var results = new List<AmqpTcpEndpoint>();
+            foreach (string partRaw in partsArr)
+            {
                 string part = partRaw.Trim();
-                if (part.Length > 0) {
+                if (part.Length > 0)
+                {
                     results.Add(Parse(part));
                 }
             }
             return results.ToArray();
+        }
+
+        ///<summary>Compares this instance by value (protocol,
+        ///hostname, port) against another instance</summary>
+        public override bool Equals(object obj)
+        {
+            var other = obj as AmqpTcpEndpoint;
+            if (other == null)
+            {
+                return false;
+            }
+            if (other.HostName != HostName)
+            {
+                return false;
+            }
+            if (other.Port != Port)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        ///<summary>Implementation of hash code depending on protocol,
+        ///hostname and port, to line up with the implementation of
+        ///Equals()</summary>
+        public override int GetHashCode()
+        {
+            return HostName.GetHashCode() ^ Port;
+        }
+
+        ///<summary>Returns a URI-like string of the form
+        ///amqp-PROTOCOL://HOSTNAME:PORTNUMBER</summary>
+        ///<remarks>
+        /// This method is intended mainly for debugging and logging use.
+        ///</remarks>
+        public override string ToString()
+        {
+            return "amqp://" + HostName + ":" + Port;
         }
     }
 }

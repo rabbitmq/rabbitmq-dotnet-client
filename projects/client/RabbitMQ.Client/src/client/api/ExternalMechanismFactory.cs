@@ -38,18 +38,20 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 
 namespace RabbitMQ.Client
 {
-    public class ExternalMechanismFactory : AuthMechanismFactory {
-        public AuthMechanism GetInstance() {
-            return new ExternalMechanism();
+    public class ExternalMechanismFactory : AuthMechanismFactory
+    {
+        public string Name
+        {
+            get { return "EXTERNAL"; }
         }
 
-        public string Name {
-            get {
-                return "EXTERNAL";
-            }
+        public AuthMechanism GetInstance()
+        {
+            return new ExternalMechanism();
         }
     }
 }

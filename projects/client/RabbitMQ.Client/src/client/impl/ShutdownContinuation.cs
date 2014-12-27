@@ -38,7 +38,7 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using RabbitMQ.Client;
+using System;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
@@ -46,7 +46,6 @@ namespace RabbitMQ.Client.Impl
     public class ShutdownContinuation
     {
         public readonly BlockingCell m_cell = new BlockingCell();
-        public ShutdownContinuation() { }
 
         // You will note there are two practically identical overloads
         // of OnShutdown() here. This is because Microsoft's C#

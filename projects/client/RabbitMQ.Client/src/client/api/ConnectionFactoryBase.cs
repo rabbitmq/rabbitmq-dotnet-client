@@ -38,21 +38,26 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Net.Sockets;
 
 namespace RabbitMQ.Client
 {
     public class ConnectionFactoryBase
     {
+        ///<summary>Set custom socket options by providing a SocketFactory</summary>
+        public ObtainSocket SocketFactory = DefaultSocketFactory;
+
+
         public delegate TcpClient ObtainSocket(AddressFamily addressFamily);
 
-        ///<summary>Set custom socket options by providing a SocketFactory</summary>
-        public ObtainSocket SocketFactory = DefaultSocketFactory;        
 
         public static TcpClient DefaultSocketFactory(AddressFamily addressFamily)
         {
-            TcpClient tcpClient = new TcpClient(addressFamily);
-            tcpClient.NoDelay = true;
+            var tcpClient = new TcpClient(addressFamily)
+            {
+                NoDelay = true
+            };
             return tcpClient;
         }
     }

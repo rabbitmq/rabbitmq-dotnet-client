@@ -39,7 +39,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-
 using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Impl
@@ -50,35 +49,34 @@ namespace RabbitMQ.Client.Impl
     /// </summary>
     public class UnknownClassOrMethodException : HardProtocolException
     {
-
-        private ushort m_classId;
-        private ushort m_methodId;
-
-        ///<summary>The AMQP content-class ID.</summary>
-        public ushort ClassId { get { return m_classId; } }
-
-        ///<summary>The AMQP method ID within the content-class, or 0 if none.</summary>
-        public ushort MethodId { get { return m_methodId; } }
-
         public UnknownClassOrMethodException(ushort classId, ushort methodId)
             : base(string.Format("The Class or Method <{0}.{1}> is unknown", classId, methodId))
         {
-            m_classId = classId;
-            m_methodId = methodId;
+            ClassId = classId;
+            MethodId = methodId;
+        }
+
+        ///<summary>The AMQP content-class ID.</summary>
+        public ushort ClassId { get; private set; }
+
+        ///<summary>The AMQP method ID within the content-class, or 0 if none.</summary>
+        public ushort MethodId { get; private set; }
+
+        public override ushort ReplyCode
+        {
+            get { return Constants.NotImplemented; }
         }
 
         public override string ToString()
         {
-            if (m_methodId == 0)
+            if (MethodId == 0)
             {
-                return base.ToString() + "<" + m_classId + ">";
+                return base.ToString() + "<" + ClassId + ">";
             }
             else
             {
-                return base.ToString() + "<" + m_classId + "." + m_methodId + ">";
+                return base.ToString() + "<" + ClassId + "." + MethodId + ">";
             }
         }
-
-        public override ushort ReplyCode { get { return Constants.NotImplemented; } }
     }
 }

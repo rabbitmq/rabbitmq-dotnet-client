@@ -39,10 +39,8 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.IO;
 using System.Collections.Generic;
-
-using RabbitMQ.Client;
+using System.IO;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Content
@@ -51,11 +49,47 @@ namespace RabbitMQ.Client.Content
     ///Basic-class application messages.</summary>
     public class BasicMessageReader : IMessageReader
     {
-        protected IBasicProperties m_properties;
-        protected byte[] m_body;
-
-        protected MemoryStream m_stream = null;
         protected NetworkBinaryReader m_reader = null;
+        protected MemoryStream m_stream = null;
+
+        ///<summary>Construct an instance ready for reading.</summary>
+        public BasicMessageReader(IBasicProperties properties, byte[] body)
+        {
+            Properties = properties;
+            BodyBytes = body;
+        }
+
+        ///<summary>Implement IMessageReader.BodyBytes</summary>
+        public byte[] BodyBytes { get; protected set; }
+
+        ///<summary>Implement IMessageReader.BodyStream</summary>
+        public Stream BodyStream
+        {
+            get
+            {
+                if (m_stream == null)
+                {
+                    m_stream = new MemoryStream(BodyBytes);
+                }
+                return m_stream;
+            }
+        }
+
+        ///<summary>Implement IMessageReader.Headers</summary>
+        public IDictionary<string, object> Headers
+        {
+            get
+            {
+                if (Properties.Headers == null)
+                {
+                    Properties.Headers = new Dictionary<string, object>();
+                }
+                return Properties.Headers;
+            }
+        }
+
+        ///<summary>Retrieve the IBasicProperties associated with this instance.</summary>
+        public IBasicProperties Properties { get; protected set; }
 
         ///<summary>Retrieve this instance's NetworkBinaryReader reading from BodyBytes.</summary>
         ///<remarks>
@@ -73,57 +107,6 @@ namespace RabbitMQ.Client.Content
                     m_reader = new NetworkBinaryReader(BodyStream);
                 }
                 return m_reader;
-            }
-        }
-
-        ///<summary>Construct an instance ready for reading.</summary>
-        public BasicMessageReader(IBasicProperties properties, byte[] body)
-        {
-            m_properties = properties;
-            m_body = body;
-        }
-
-        ///<summary>Implement IMessageReader.Headers</summary>
-        public IDictionary<string, object> Headers
-        {
-            get
-            {
-                if (Properties.Headers == null)
-                {
-                    Properties.Headers = new Dictionary<string, object>();
-                }
-                return Properties.Headers;
-            }
-        }
-
-        ///<summary>Retrieve the IBasicProperties associated with this instance.</summary>
-        public IBasicProperties Properties
-        {
-            get
-            {
-                return m_properties;
-            }
-        }
-
-        ///<summary>Implement IMessageReader.BodyBytes</summary>
-        public byte[] BodyBytes
-        {
-            get
-            {
-                return m_body;
-            }
-        }
-
-        ///<summary>Implement IMessageReader.BodyStream</summary>
-        public Stream BodyStream
-        {
-            get
-            {
-                if (m_stream == null)
-                {
-                    m_stream = new MemoryStream(m_body);
-                }
-                return m_stream;
             }
         }
 

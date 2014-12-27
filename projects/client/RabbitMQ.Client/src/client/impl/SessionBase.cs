@@ -39,32 +39,68 @@
 //---------------------------------------------------------------------------
 
 using System;
-
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
-    public abstract class SessionBase: ISession
+    public abstract class SessionBase : ISession
     {
-        private CommandHandler m_commandReceived;
-
         private readonly object m_shutdownLock = new object();
         private SessionShutdownEventHandler m_sessionShutdown;
-        public ShutdownEventArgs m_closeReason = null;
-
-        public readonly Connection m_connection;
-        public readonly int m_channelNumber;
 
         public SessionBase(Connection connection, int channelNumber)
         {
-            m_connection = connection;
-            m_channelNumber = channelNumber;
+            CloseReason = null;
+            Connection = connection;
+            ChannelNumber = channelNumber;
             if (channelNumber != 0)
+            {
                 connection.ConnectionShutdown +=
-                    new ConnectionShutdownEventHandler(this.OnConnectionShutdown);
+                    OnConnectionShutdown;
+            }
+        }
+
+        public event SessionShutdownEventHandler SessionShutdown
+        {
+            add
+            {
+                bool ok = false;
+                lock (m_shutdownLock)
+                {
+                    if (CloseReason == null)
+                    {
+                        m_sessionShutdown += value;
+                        ok = true;
+                    }
+                }
+                if (!ok)
+                {
+                    value(this, CloseReason);
+                }
+            }
+            remove
+            {
+                lock (m_shutdownLock)
+                {
+                    m_sessionShutdown -= value;
+                }
+            }
+        }
+
+        public int ChannelNumber { get; private set; }
+        public ShutdownEventArgs CloseReason { get; set; }
+        public CommandHandler CommandReceived { get; set; }
+        public Connection Connection { get; private set; }
+
+        public bool IsOpen
+        {
+            get { return CloseReason == null; }
+        }
+
+        IConnection ISession.Connection
+        {
+            get { return Connection; }
         }
 
         public virtual void OnCommandReceived(Command cmd)
@@ -83,8 +119,8 @@ namespace RabbitMQ.Client.Impl
 
         public virtual void OnSessionShutdown(ShutdownEventArgs reason)
         {
-            m_connection.ConnectionShutdown -=
-                new ConnectionShutdownEventHandler(this.OnConnectionShutdown);
+            Connection.ConnectionShutdown -=
+                OnConnectionShutdown;
             SessionShutdownEventHandler handler;
             lock (m_shutdownLock)
             {
@@ -99,69 +135,7 @@ namespace RabbitMQ.Client.Impl
 
         public override string ToString()
         {
-            return this.GetType().Name+"#" + m_channelNumber + ":" + m_connection;
-        }
-
-        //---------------------------------------------------------------------------
-        // ISession implementation
-
-        public CommandHandler CommandReceived
-        {
-            get { return m_commandReceived; }
-            set { m_commandReceived = value; }
-        }
-
-        public event SessionShutdownEventHandler SessionShutdown
-        {
-            add
-            {
-                bool ok = false;
-                lock (m_shutdownLock)
-                {
-                    if (m_closeReason == null)
-                    {
-                        m_sessionShutdown += value;
-                        ok = true;
-                    }
-                }
-                if (!ok)
-                {
-                    value(this, m_closeReason);
-                }
-            }
-            remove
-            {
-                lock (m_shutdownLock)
-                {
-                    m_sessionShutdown -= value;
-                }
-            }
-        }
-
-        public int ChannelNumber { get { return m_channelNumber; } }
-
-        IConnection ISession.Connection { get { return m_connection; } }
-        public Connection Connection { get { return m_connection; } }
-
-        public ShutdownEventArgs CloseReason { get { return m_closeReason; } }
-
-        public bool IsOpen { get { return m_closeReason == null; } }
-
-        public abstract void HandleFrame(Frame frame);
-
-        public virtual void Transmit(Command cmd)
-        {
-            lock (m_shutdownLock)
-            {
-                if (m_closeReason != null)
-                {
-                    if (!m_connection.Protocol.CanSendWhileClosed(cmd))
-                  	    throw new AlreadyClosedException(m_closeReason);
-                }
-                // We transmit *inside* the lock to avoid interleaving
-                // of frames within a channel.
-                cmd.Transmit(m_channelNumber, m_connection);
-            }
+            return GetType().Name + "#" + ChannelNumber + ":" + Connection;
         }
 
         public void Close(ShutdownEventArgs reason)
@@ -173,14 +147,18 @@ namespace RabbitMQ.Client.Impl
         {
             lock (m_shutdownLock)
             {
-                if (m_closeReason == null)
+                if (CloseReason == null)
                 {
-                    m_closeReason = reason;
+                    CloseReason = reason;
                 }
             }
             if (notify)
-                OnSessionShutdown(m_closeReason);
+            {
+                OnSessionShutdown(CloseReason);
+            }
         }
+
+        public abstract void HandleFrame(Frame frame);
 
         public void Notify()
         {
@@ -188,10 +166,29 @@ namespace RabbitMQ.Client.Impl
             // If not, throw exception, since this is a serious bug in the library
             lock (m_shutdownLock)
             {
-        	    if (m_closeReason == null)
+                if (CloseReason == null)
+                {
                     throw new Exception("Internal Error in Session.Close");
+                }
             }
-            OnSessionShutdown(m_closeReason);
+            OnSessionShutdown(CloseReason);
+        }
+
+        public virtual void Transmit(Command cmd)
+        {
+            lock (m_shutdownLock)
+            {
+                if (CloseReason != null)
+                {
+                    if (!Connection.Protocol.CanSendWhileClosed(cmd))
+                    {
+                        throw new AlreadyClosedException(CloseReason);
+                    }
+                }
+                // We transmit *inside* the lock to avoid interleaving
+                // of frames within a channel.
+                cmd.Transmit(ChannelNumber, Connection);
+            }
         }
     }
 }

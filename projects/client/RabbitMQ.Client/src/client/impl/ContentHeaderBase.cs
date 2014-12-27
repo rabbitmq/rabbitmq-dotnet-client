@@ -38,9 +38,9 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using RabbitMQ.Client;
-using RabbitMQ.Util;
 using System;
+using System.Text;
+using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -48,9 +48,7 @@ namespace RabbitMQ.Client.Impl
     {
         public abstract int ProtocolClassId { get; }
         public abstract string ProtocolClassName { get; }
-        public abstract void ReadPropertiesFrom(ContentHeaderPropertyReader reader);
-        public abstract void WritePropertiesTo(ContentHeaderPropertyWriter writer);
-        public abstract void AppendPropertyDebugStringTo(System.Text.StringBuilder sb);
+        public abstract void AppendPropertyDebugStringTo(StringBuilder sb);
 
         ///<summary>Fill this instance from the given byte buffer stream.
         ///</summary>
@@ -62,10 +60,13 @@ namespace RabbitMQ.Client.Impl
             return bodySize;
         }
 
+        public abstract void ReadPropertiesFrom(ContentHeaderPropertyReader reader);
+        public abstract void WritePropertiesTo(ContentHeaderPropertyWriter writer);
+
         public void WriteTo(NetworkBinaryWriter writer, ulong bodySize)
         {
             writer.Write((ushort)0); // weight - not currently used
-            writer.Write((ulong)bodySize);
+            writer.Write(bodySize);
             WritePropertiesTo(new ContentHeaderPropertyWriter(writer));
         }
 

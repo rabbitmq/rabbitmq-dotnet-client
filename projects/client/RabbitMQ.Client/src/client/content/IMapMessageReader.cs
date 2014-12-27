@@ -41,10 +41,12 @@
 using System;
 using System.Collections.Generic;
 
-namespace RabbitMQ.Client.Content {
+namespace RabbitMQ.Client.Content
+{
     ///<summary>Analyzes messages binary-compatible with QPid's
     ///"MapMessage" wire encoding.</summary>
-    public interface IMapMessageReader: IMessageReader {
+    public interface IMapMessageReader : IMessageReader
+    {
         ///<summary>Parses the message body into an IDictionary instance.</summary>
         IDictionary<string, object> Body { get; }
     }

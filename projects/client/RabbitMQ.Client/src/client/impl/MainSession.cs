@@ -39,11 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Exceptions;
-
+using RabbitMQ.Client.Framing.Impl;
 // We use spec version 0-9 for common constants such as frame types,
 // error codes, and the frame end byte, since they don't vary *within
 // the versions we support*. Obviously we may need to revisit this if
@@ -53,60 +49,37 @@ using RabbitMQ.Client.Framing;
 namespace RabbitMQ.Client.Impl
 {
     ///<summary>Small ISession implementation used only for channel 0.</summary>
-    public class MainSession: Session
+    public class MainSession : Session
     {
-        public bool m_closing = false;
         public int m_closeClassId;
         public int m_closeMethodId;
         public int m_closeOkClassId;
         public int m_closeOkMethodId;
 
         public bool m_closeServerInitiated;
+        public bool m_closing = false;
 
         private readonly object m_closingLock = new object();
-        public delegate void SessionCloseDelegate();
-        public SessionCloseDelegate m_handler;
 
-        public MainSession(RabbitMQ.Client.Framing.Impl.Connection connection)
+        public MainSession(Connection connection)
             : base(connection, 0)
         {
             Command request;
-            connection.Protocol.CreateConnectionClose(0,"",
-                                                      out request,
-                                                      out m_closeOkClassId,
-                                                      out m_closeOkMethodId);
+            connection.Protocol.CreateConnectionClose(0, "",
+                out request,
+                out m_closeOkClassId,
+                out m_closeOkMethodId);
             m_closeClassId = request.Method.ProtocolClassId;
             m_closeMethodId = request.Method.ProtocolMethodId;
         }
 
-        ///<summary> Set channel 0 as quiescing </summary>
-        ///<remarks>
-        /// Method should be idempotent. Cannot use base.Close
-        /// method call because that would prevent us from
-        /// sending/receiving Close/CloseOk commands
-        ///</remarks>
-        public void SetSessionClosing(bool closeServerInitiated)
-        {
-            lock(m_closingLock)
-            {
-                if (!m_closing)
-                {
-                    m_closing = true;
-                    m_closeServerInitiated = closeServerInitiated;
-                }
-            }
-        }
+        public delegate void SessionCloseDelegate();
 
-        public SessionCloseDelegate Handler
-        {
-            get { return m_handler; }
-            set { m_handler = value; }
-        }
+        public SessionCloseDelegate Handler { get; set; }
 
         public override void HandleFrame(Frame frame)
         {
-
-            lock(m_closingLock)
+            lock (m_closingLock)
             {
                 if (!m_closing)
                 {
@@ -131,8 +104,7 @@ namespace RabbitMQ.Client.Impl
                 {
                     // This is the reply (CloseOk) we were looking for
                     // Call any listener attached to this session
-                    this.Handler();
-                    return;
+                    Handler();
                 }
             }
 
@@ -140,10 +112,27 @@ namespace RabbitMQ.Client.Impl
             // for. Ignore it - we're quiescing.
         }
 
+        ///<summary> Set channel 0 as quiescing </summary>
+        ///<remarks>
+        /// Method should be idempotent. Cannot use base.Close
+        /// method call because that would prevent us from
+        /// sending/receiving Close/CloseOk commands
+        ///</remarks>
+        public void SetSessionClosing(bool closeServerInitiated)
+        {
+            lock (m_closingLock)
+            {
+                if (!m_closing)
+                {
+                    m_closing = true;
+                    m_closeServerInitiated = closeServerInitiated;
+                }
+            }
+        }
 
         public override void Transmit(Command cmd)
         {
-            lock(m_closingLock)
+            lock (m_closingLock)
             {
                 if (!m_closing)
                 {
@@ -154,16 +143,15 @@ namespace RabbitMQ.Client.Impl
 
             // Allow always for sending close ok
             // Or if application initiated, allow also for sending close
-            MethodBase method = cmd.m_method;
-            if ( ((method.ProtocolClassId == m_closeOkClassId)
-                  && (method.ProtocolMethodId == m_closeOkMethodId))
-                  || (!m_closeServerInitiated && (
-                      (method.ProtocolClassId == m_closeClassId) &&
-                      (method.ProtocolMethodId == m_closeMethodId))
-                      ))
+            MethodBase method = cmd.Method;
+            if (((method.ProtocolClassId == m_closeOkClassId)
+                 && (method.ProtocolMethodId == m_closeOkMethodId))
+                || (!m_closeServerInitiated && (
+                    (method.ProtocolClassId == m_closeClassId) &&
+                    (method.ProtocolMethodId == m_closeMethodId))
+                    ))
             {
                 base.Transmit(cmd);
-                return;
             }
         }
     }

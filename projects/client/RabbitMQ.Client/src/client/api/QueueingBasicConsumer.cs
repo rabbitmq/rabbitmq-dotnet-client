@@ -39,9 +39,8 @@
 //---------------------------------------------------------------------------
 
 using System;
-
-using RabbitMQ.Util;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Util;
 
 namespace RabbitMQ.Client
 {
@@ -90,17 +89,19 @@ namespace RabbitMQ.Client
     ///</remarks>
     public class QueueingBasicConsumer : DefaultBasicConsumer
     {
-        protected SharedQueue<BasicDeliverEventArgs> m_queue;
-
         ///<summary>Creates a fresh QueueingBasicConsumer,
         ///initialising the Model property to null and the Queue
         ///property to a fresh SharedQueue.</summary>
-        public QueueingBasicConsumer() : this(null) { }
+        public QueueingBasicConsumer() : this(null)
+        {
+        }
 
         ///<summary>Creates a fresh QueueingBasicConsumer, with Model
         ///set to the argument, and Queue set to a fresh
         ///SharedQueue.</summary>
-        public QueueingBasicConsumer(IModel model) : this(model, new SharedQueue<BasicDeliverEventArgs>()) { }
+        public QueueingBasicConsumer(IModel model) : this(model, new SharedQueue<BasicDeliverEventArgs>())
+        {
+        }
 
         ///<summary>Creates a fresh QueueingBasicConsumer,
         ///initialising the Model and Queue properties to the given
@@ -108,13 +109,35 @@ namespace RabbitMQ.Client
         public QueueingBasicConsumer(IModel model, SharedQueue<BasicDeliverEventArgs> queue)
             : base(model)
         {
-            m_queue = queue;
+            Queue = queue;
         }
 
         ///<summary>Retrieves the SharedQueue that messages arrive on.</summary>
-        public SharedQueue<BasicDeliverEventArgs> Queue
+        public SharedQueue<BasicDeliverEventArgs> Queue { get; protected set; }
+
+        ///<summary>Overrides DefaultBasicConsumer's
+        ///HandleBasicDeliver implementation, building a
+        ///BasicDeliverEventArgs instance and placing it in the
+        ///Queue.</summary>
+        public override void HandleBasicDeliver(string consumerTag,
+            ulong deliveryTag,
+            bool redelivered,
+            string exchange,
+            string routingKey,
+            IBasicProperties properties,
+            byte[] body)
         {
-            get { return m_queue; }
+            var e = new BasicDeliverEventArgs
+            {
+                ConsumerTag = consumerTag,
+                DeliveryTag = deliveryTag,
+                Redelivered = redelivered,
+                Exchange = exchange,
+                RoutingKey = routingKey,
+                BasicProperties = properties,
+                Body = body
+            };
+            Queue.Enqueue(e);
         }
 
         ///<summary>Overrides DefaultBasicConsumer's OnCancel
@@ -122,31 +145,8 @@ namespace RabbitMQ.Client
         ///the SharedQueue.</summary>
         public override void OnCancel()
         {
-            m_queue.Close();
+            Queue.Close();
             base.OnCancel();
-        }
-
-        ///<summary>Overrides DefaultBasicConsumer's
-        ///HandleBasicDeliver implementation, building a
-        ///BasicDeliverEventArgs instance and placing it in the
-        ///Queue.</summary>
-        public override void HandleBasicDeliver(string consumerTag,
-                                                ulong deliveryTag,
-                                                bool redelivered,
-                                                string exchange,
-                                                string routingKey,
-                                                IBasicProperties properties,
-                                                byte[] body)
-        {
-            BasicDeliverEventArgs e = new BasicDeliverEventArgs();
-            e.ConsumerTag = consumerTag;
-            e.DeliveryTag = deliveryTag;
-            e.Redelivered = redelivered;
-            e.Exchange = exchange;
-            e.RoutingKey = routingKey;
-            e.BasicProperties = properties;
-            e.Body = body;
-            m_queue.Enqueue(e);
         }
     }
 }

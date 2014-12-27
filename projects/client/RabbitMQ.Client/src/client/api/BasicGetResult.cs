@@ -38,6 +38,8 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+
 namespace RabbitMQ.Client
 {
     ///<summary>Represents Basic.GetOk responses from the server.</summary>
@@ -47,41 +49,36 @@ namespace RabbitMQ.Client
     ///</remarks>
     public class BasicGetResult
     {
-        private ulong m_deliveryTag;
-        private bool m_redelivered;
-        private string m_exchange;
-        private string m_routingKey;
-        private uint m_messageCount;
-        private IBasicProperties m_basicProperties;
-        private byte[] m_body;
-
         ///<summary>Sets the new instance's properties from the
         ///arguments passed in.</summary>
         public BasicGetResult(ulong deliveryTag,
-                              bool redelivered,
-                              string exchange,
-                              string routingKey,
-                              uint messageCount,
-                              IBasicProperties basicProperties,
-                              byte[] body)
+            bool redelivered,
+            string exchange,
+            string routingKey,
+            uint messageCount,
+            IBasicProperties basicProperties,
+            byte[] body)
         {
-            m_deliveryTag = deliveryTag;
-            m_redelivered = redelivered;
-            m_exchange = exchange;
-            m_routingKey = routingKey;
-            m_messageCount = messageCount;
-            m_basicProperties = basicProperties;
-            m_body = body;
+            DeliveryTag = deliveryTag;
+            Redelivered = redelivered;
+            Exchange = exchange;
+            RoutingKey = routingKey;
+            MessageCount = messageCount;
+            BasicProperties = basicProperties;
+            Body = body;
         }
 
+        ///<summary>Retrieves the Basic-class content header properties for this message.</summary>
+        public IBasicProperties BasicProperties { get; private set; }
+
+        ///<summary>Retrieves the body of this message.</summary>
+        public byte[] Body { get; private set; }
+
         ///<summary>Retrieve the delivery tag for this message. See also IModel.BasicAck.</summary>
-        public ulong DeliveryTag { get { return m_deliveryTag; } }
-        ///<summary>Retrieve the redelivered flag for this message.</summary>
-        public bool Redelivered { get { return m_redelivered; } }
+        public ulong DeliveryTag { get; private set; }
+
         ///<summary>Retrieve the exchange this message was published to.</summary>
-        public string Exchange { get { return m_exchange; } }
-        ///<summary>Retrieve the routing key with which this message was published.</summary>
-        public string RoutingKey { get { return m_routingKey; } }
+        public string Exchange { get; private set; }
 
         ///<summary>Retrieve the number of messages pending on the
         ///queue, excluding the message being delivered.</summary>
@@ -90,11 +87,12 @@ namespace RabbitMQ.Client
         /// change arbitrarily as messages are added to the queue and
         /// removed by other clients.
         ///</remarks>
-        public uint MessageCount { get { return m_messageCount; } }
+        public uint MessageCount { get; private set; }
 
-        ///<summary>Retrieves the Basic-class content header properties for this message.</summary>
-        public IBasicProperties BasicProperties { get { return m_basicProperties; } }
-        ///<summary>Retrieves the body of this message.</summary>
-        public byte[] Body { get { return m_body; } }
+        ///<summary>Retrieve the redelivered flag for this message.</summary>
+        public bool Redelivered { get; private set; }
+
+        ///<summary>Retrieve the routing key with which this message was published.</summary>
+        public string RoutingKey { get; private set; }
     }
 }

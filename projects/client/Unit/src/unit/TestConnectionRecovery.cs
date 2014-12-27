@@ -708,7 +708,7 @@ namespace RabbitMQ.Client.Unit {
 
             public override void PostHandleDelivery(ulong deliveryTag)
             {
-                base.m_model.BasicAck(deliveryTag, false);
+                base.Model.BasicAck(deliveryTag, false);
             }
         }
 
@@ -718,7 +718,7 @@ namespace RabbitMQ.Client.Unit {
 
             public override void PostHandleDelivery(ulong deliveryTag)
             {
-                base.m_model.BasicNack(deliveryTag, false, false);
+                base.Model.BasicNack(deliveryTag, false, false);
             }
         }
 
@@ -728,7 +728,7 @@ namespace RabbitMQ.Client.Unit {
 
             public override void PostHandleDelivery(ulong deliveryTag)
             {
-                base.m_model.BasicReject(deliveryTag, false);
+                base.Model.BasicReject(deliveryTag, false);
             }
         }
 

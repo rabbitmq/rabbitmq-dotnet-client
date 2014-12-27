@@ -41,7 +41,8 @@
 using System;
 using System.Threading;
 
-namespace RabbitMQ.Util {
+namespace RabbitMQ.Util
+{
     ///<summary>A thread-safe single-assignment reference cell.</summary>
     ///<remarks>
     ///A fresh BlockingCell holds no value (is empty). Any thread
@@ -52,30 +53,35 @@ namespace RabbitMQ.Util {
     ///attempts to set Value result in a thrown
     ///InvalidOperationException.
     ///</remarks>
-    public class BlockingCell {
-        private bool m_valueSet = false;
+    public class BlockingCell
+    {
         private object m_value = null;
-
-        ///<summary>Construct an empty BlockingCell.</summary>
-        public BlockingCell() {}
+        private bool m_valueSet = false;
 
         ///<summary>Retrieve the cell's value, blocking if none exists
         ///at present, or supply a value to an empty cell, thereby
         ///filling it.</summary>
         /// <exception cref="InvalidOperationException" />
-        public object Value {
-            get {
-                lock (this) {
-                    while (!m_valueSet) {
+        public object Value
+        {
+            get
+            {
+                lock (this)
+                {
+                    while (!m_valueSet)
+                    {
                         Monitor.Wait(this);
                     }
                     return m_value;
                 }
             }
 
-            set {
-                lock (this) {
-                    if (m_valueSet) {
+            set
+            {
+                lock (this)
+                {
+                    if (m_valueSet)
+                    {
                         throw new InvalidOperationException("Setting BlockingCell value twice forbidden");
                     }
                     m_value = value;
@@ -83,6 +89,15 @@ namespace RabbitMQ.Util {
                     Monitor.PulseAll(this);
                 }
             }
+        }
+
+        ///<summary>Return valid timeout value</summary>
+        ///<remarks>If value of the parameter is less then zero, return 0
+        ///to mean infinity</remarks>
+        public static int validatedTimeout(int timeout)
+        {
+            return (timeout != Timeout.Infinite)
+                   && (timeout < 0) ? 0 : timeout;
         }
 
         ///<summary>Retrieve the cell's value, waiting for the given
@@ -113,12 +128,13 @@ namespace RabbitMQ.Util {
         ///</remarks>
         public bool GetValue(int millisecondsTimeout, out object result)
         {
-
-
-            lock (this) {
-                if (!m_valueSet) {
+            lock (this)
+            {
+                if (!m_valueSet)
+                {
                     Monitor.Wait(this, validatedTimeout(millisecondsTimeout));
-                    if (!m_valueSet) {
+                    if (!m_valueSet)
+                    {
                         result = null;
                         return false;
                     }
@@ -126,15 +142,6 @@ namespace RabbitMQ.Util {
                 result = m_value;
                 return true;
             }
-        }
-
-        ///<summary>Return valid timeout value</summary>
-        ///<remarks>If value of the parameter is less then zero, return 0
-        ///to mean infinity</remarks>
-        public static int validatedTimeout(int timeout)
-        {
-            return (timeout != Timeout.Infinite)
-                && (timeout < 0) ? 0 : timeout;
         }
     }
 }

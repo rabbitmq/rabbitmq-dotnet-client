@@ -38,38 +38,22 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+
 namespace RabbitMQ.Client
 {
     public class QueueDeclareOk
     {
-
-        private string m_queueName;
-        public string QueueName
-        {
-            get { return m_queueName; }
-            private set { m_queueName = value; }
-        }
-
-        private uint m_messageCount;
-        public uint MessageCount
-        {
-            get { return m_messageCount; }
-            private set { m_messageCount = value; }
-        }
-
-        private uint m_consumerCount;
-        public uint ConsumerCount
-        {
-            get { return m_consumerCount; }
-            private set { m_consumerCount = value; }
-        }
-
         public QueueDeclareOk(string queueName, uint messageCount, uint consumerCount)
         {
             QueueName = queueName;
             MessageCount = messageCount;
             ConsumerCount = consumerCount;
         }
+
+        public uint ConsumerCount { get; private set; }
+        public uint MessageCount { get; private set; }
+        public string QueueName { get; private set; }
 
         public static implicit operator string(QueueDeclareOk declareOk)
         {

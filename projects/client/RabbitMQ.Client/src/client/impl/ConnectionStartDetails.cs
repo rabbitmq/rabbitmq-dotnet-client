@@ -38,16 +38,17 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
 {
     public class ConnectionStartDetails
     {
+        public byte[] m_locales;
+        public byte[] m_mechanisms;
+        public IDictionary<string, object> m_serverProperties;
         public byte m_versionMajor;
         public byte m_versionMinor;
-        public IDictionary<string, object> m_serverProperties;
-        public byte[] m_mechanisms;
-        public byte[] m_locales;
     }
 }

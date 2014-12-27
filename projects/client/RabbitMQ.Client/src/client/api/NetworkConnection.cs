@@ -38,6 +38,7 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Net;
 
 namespace RabbitMQ.Client
@@ -47,10 +48,9 @@ namespace RabbitMQ.Client
     /// </summary>
     public interface NetworkConnection
     {
-        EndPoint LocalEndPoint  { get; }
+        EndPoint LocalEndPoint { get; }
+        int LocalPort { get; }
         EndPoint RemoteEndPoint { get; }
-
-        int LocalPort  { get; }
         int RemotePort { get; }
     }
 }

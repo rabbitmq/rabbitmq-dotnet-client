@@ -38,26 +38,23 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-
 using System;
 
 namespace RabbitMQ.Client.Events
 {
-
     ///<summary>Delegate used to process connection blocked events.</summary>
     public delegate void ConnectionBlockedEventHandler(IConnection sender, ConnectionBlockedEventArgs args);
+
 
     ///<summary>Event relating to connection being blocked</summary>
     public class ConnectionBlockedEventArgs : EventArgs
     {
-        private readonly string m_reason;
-
         public ConnectionBlockedEventArgs(string reason)
         {
-            m_reason = reason;
+            Reason = reason;
         }
 
         ///<summary>Access the reason why connection is blocked</summary>
-        public string Reason { get { return m_reason; } }
+        public string Reason { get; private set; }
     }
 }

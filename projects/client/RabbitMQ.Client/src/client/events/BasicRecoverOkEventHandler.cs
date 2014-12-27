@@ -45,4 +45,3 @@ namespace RabbitMQ.Client.Events
     ///<summary>Delegate used to process Basic.RecoverOk events.</summary>
     public delegate void BasicRecoverOkEventHandler(IModel model, EventArgs args);
 }
-

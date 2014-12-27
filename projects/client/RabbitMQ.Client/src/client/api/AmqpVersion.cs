@@ -59,14 +59,6 @@ namespace RabbitMQ.Client
     ///</remarks>
     public class AmqpVersion
     {
-        private readonly int m_major;
-        private readonly int m_minor;
-
-        ///<summary>The AMQP specification major version number</summary>
-        public int Major { get { return m_major; } }
-        ///<summary>The AMQP specification minor version number</summary>
-        public int Minor { get { return m_minor; } }
-
         ///<summary>Construct an AmqpVersion from major and minor version numbers.</summary>
         ///<remarks>
         ///Converts major=8 and minor=0 into major=0 and
@@ -82,8 +74,27 @@ namespace RabbitMQ.Client
                 major = 0;
                 minor = 8;
             }
-            m_major = major;
-            m_minor = minor;
+            Major = major;
+            Minor = minor;
+        }
+
+        ///<summary>The AMQP specification major version number</summary>
+        public int Major { get; private set; }
+
+        ///<summary>The AMQP specification minor version number</summary>
+        public int Minor { get; private set; }
+
+        ///<summary>Implement value-equality comparison.</summary>
+        public override bool Equals(object other)
+        {
+            var v = other as AmqpVersion;
+            return (v != null) && (v.Major == Major) && (v.Minor == Minor);
+        }
+
+        ///<summary>Implement hashing as for value-equality.</summary>
+        public override int GetHashCode()
+        {
+            return 31 * Major.GetHashCode() + Minor.GetHashCode();
         }
 
         ///<summary>Format appropriately for display.</summary>
@@ -92,20 +103,7 @@ namespace RabbitMQ.Client
         ///</remarks>
         public override string ToString()
         {
-            return m_major + "-" + m_minor;
-        }
-
-        ///<summary>Implement value-equality comparison.</summary>
-        public override bool Equals(object other)
-        {
-            AmqpVersion v = other as AmqpVersion;
-            return (v != null) && (v.m_major == m_major) && (v.m_minor == m_minor);
-        }
-
-        ///<summary>Implement hashing as for value-equality.</summary>
-        public override int GetHashCode()
-        {
-            return 31 * m_major.GetHashCode() + m_minor.GetHashCode();
+            return Major + "-" + Minor;
         }
     }
 }

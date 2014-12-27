@@ -38,18 +38,20 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 
 namespace RabbitMQ.Client
 {
-    public class PlainMechanismFactory : AuthMechanismFactory {
-        public AuthMechanism GetInstance() {
-            return new PlainMechanism();
+    public class PlainMechanismFactory : AuthMechanismFactory
+    {
+        public string Name
+        {
+            get { return "PLAIN"; }
         }
 
-        public string Name {
-            get {
-                return "PLAIN";
-            }
+        public AuthMechanism GetInstance()
+        {
+            return new PlainMechanism();
         }
     }
 }

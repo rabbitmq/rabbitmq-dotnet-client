@@ -40,38 +40,40 @@
 
 using System;
 
-namespace RabbitMQ.Client.Content {
+namespace RabbitMQ.Client.Content
+{
     ///<summary>Analyzes messages binary-compatible with QPid's
     ///"BytesMessage" wire encoding.</summary>
-    public interface IBytesMessageReader: IMessageReader {
-        ///<summary>Reads an int from the message body.</summary>
-        int ReadInt32();
-
-        ///<summary>Reads a short from the message body.</summary>
-        short ReadInt16();
+    public interface IBytesMessageReader : IMessageReader
+    {
+        ///<summary>Reads a given number ("count") of bytes from the
+        ///message body, placing them into "target", starting at
+        ///"offset".</summary>
+        int Read(byte[] target, int offset, int count);
 
         ///<summary>Reads a byte from the message body.</summary>
         byte ReadByte();
 
+        ///<summary>Reads a given number of bytes from the message body.</summary>
+        byte[] ReadBytes(int count);
+
         ///<summary>Reads a char from the message body.</summary>
         char ReadChar();
+
+        ///<summary>Reads a double from the message body.</summary>
+        double ReadDouble();
+
+        ///<summary>Reads a short from the message body.</summary>
+        short ReadInt16();
+
+        ///<summary>Reads an int from the message body.</summary>
+        int ReadInt32();
 
         ///<summary>Reads a long from the message body.</summary>
         long ReadInt64();
 
         ///<summary>Reads a float from the message body.</summary>
         float ReadSingle();
-
-        ///<summary>Reads a double from the message body.</summary>
-        double ReadDouble();
-
-        ///<summary>Reads a given number ("count") of bytes from the
-        ///message body, placing them into "target", starting at
-        ///"offset".</summary>
-        int Read(byte[] target, int offset, int count);
-
-        ///<summary>Reads a given number of bytes from the message body.</summary>
-        byte[] ReadBytes(int count);
 
         ///<summary>Reads a string from the message body.</summary>
         string ReadString();

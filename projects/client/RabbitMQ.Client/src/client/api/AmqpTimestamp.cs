@@ -61,29 +61,21 @@ namespace RabbitMQ.Client
     ///</remarks>
     public struct AmqpTimestamp
     {
-        private long m_unixTime;
-
         ///<summary>Construct an AmqpTimestamp holding the given time_t value.</summary>
         ///<remarks>
         ///</remarks>
-        public AmqpTimestamp(long unixTime)
+        public AmqpTimestamp(long unixTime) : this()
         {
-            m_unixTime = unixTime;
+            UnixTime = unixTime;
         }
 
         ///<summary>Retrieve the time_t from this structure.</summary>
-        public long UnixTime
-        {
-            get
-            {
-                return m_unixTime;
-            }
-        }
+        public long UnixTime { get; private set; }
 
         ///<summary>Provides a debugger-friendly display.</summary>
         public override string ToString()
         {
-            return "((time_t)" + m_unixTime + ")";
+            return "((time_t)" + UnixTime + ")";
         }
     }
 }

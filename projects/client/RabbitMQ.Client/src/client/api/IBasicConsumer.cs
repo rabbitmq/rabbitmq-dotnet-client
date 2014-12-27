@@ -58,18 +58,13 @@ namespace RabbitMQ.Client
     ///</remarks>
     public interface IBasicConsumer
     {
+        ///<summary>Signalled when the consumer gets cancelled.</summary>
+        event ConsumerCancelledEventHandler ConsumerCancelled;
+
         ///<summary>Retrieve the IModel this consumer is associated
         ///with, for use in acknowledging received messages, for
         ///instance.</summary>
         IModel Model { get; }
-
-        ///<summary>Called upon successful registration of the
-        ///consumer with the broker.</summary>
-        void HandleBasicConsumeOk(string consumerTag);
-
-        ///<summary>Called upon successful deregistration of the
-        ///consumer from the broker.</summary>
-        void HandleBasicCancelOk(string consumerTag);
 
         /// <summary>
         /// Called when the consumer is cancelled for reasons other than by a
@@ -79,24 +74,27 @@ namespace RabbitMQ.Client
         /// </summary>
         void HandleBasicCancel(string consumerTag);
 
-        ///<summary>Called when the model shuts down.</summary>
-        void HandleModelShutdown(IModel model, ShutdownEventArgs reason);
+        ///<summary>Called upon successful deregistration of the
+        ///consumer from the broker.</summary>
+        void HandleBasicCancelOk(string consumerTag);
+
+        ///<summary>Called upon successful registration of the
+        ///consumer with the broker.</summary>
+        void HandleBasicConsumeOk(string consumerTag);
 
         ///<summary>Called each time a message arrives for this consumer.</summary>
         ///<remarks>
         ///Be aware that acknowledgement may be required. See IModel.BasicAck.
         ///</remarks>
         void HandleBasicDeliver(string consumerTag,
-                                ulong deliveryTag,
-                                bool redelivered,
-                                string exchange,
-                                string routingKey,
-                                IBasicProperties properties,
-                                byte[] body);
+            ulong deliveryTag,
+            bool redelivered,
+            string exchange,
+            string routingKey,
+            IBasicProperties properties,
+            byte[] body);
 
-
-
-        ///<summary>Signalled when the consumer gets cancelled.</summary>
-        event ConsumerCancelledEventHandler ConsumerCancelled;
+        ///<summary>Called when the model shuts down.</summary>
+        void HandleModelShutdown(IModel model, ShutdownEventArgs reason);
     }
 }

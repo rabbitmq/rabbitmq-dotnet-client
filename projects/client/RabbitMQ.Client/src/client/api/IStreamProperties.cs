@@ -62,11 +62,11 @@ namespace RabbitMQ.Client
     ///</remarks>
     public interface IStreamProperties : IContentHeader
     {
-        ///<summary> MIME content type </summary>
-        string ContentType { get; set; }
-
         ///<summary> MIME content encoding </summary>
         string ContentEncoding { get; set; }
+
+        ///<summary> MIME content type </summary>
+        string ContentType { get; set; }
 
         ///<summary> message header field table </summary>
         IDictionary<string, object> Headers { get; set; }
@@ -77,11 +77,11 @@ namespace RabbitMQ.Client
         ///<summary> message timestamp </summary>
         AmqpTimestamp Timestamp { get; set; }
 
-        ///<summary> Clear the ContentType property. </summary>
-        void ClearContentType();
-
         ///<summary> Clear the ContentEncoding property. </summary>
         void ClearContentEncoding();
+
+        ///<summary> Clear the ContentType property. </summary>
+        void ClearContentType();
 
         ///<summary> Clear the Headers property. </summary>
         void ClearHeaders();
@@ -92,11 +92,11 @@ namespace RabbitMQ.Client
         ///<summary> Clear the Timestamp property. </summary>
         void ClearTimestamp();
 
-        ///<summary> Returns true iff the ContentType property is present. </summary>
-        bool IsContentTypePresent();
-
         ///<summary> Returns true iff the ContentEncoding property is present. </summary>
         bool IsContentEncodingPresent();
+
+        ///<summary> Returns true iff the ContentType property is present. </summary>
+        bool IsContentTypePresent();
 
         ///<summary> Returns true iff the Headers property is present. </summary>
         bool IsHeadersPresent();

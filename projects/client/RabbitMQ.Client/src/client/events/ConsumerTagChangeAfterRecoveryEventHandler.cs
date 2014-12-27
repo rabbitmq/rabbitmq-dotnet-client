@@ -38,10 +38,12 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+
 namespace RabbitMQ.Client.Events
 {
     ///<summary>Delegate used to handle consumer tag changes
     ///after connection recovery.</summary>
     public delegate void ConsumerTagChangeAfterRecoveryEventHandler(string tagBefore,
-                                                                    string tagAfter);
+        string tagAfter);
 }

@@ -40,7 +40,6 @@
 
 using System;
 using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
 {
@@ -58,107 +57,26 @@ namespace RabbitMQ.Client
     ///</remarks>
     public class DefaultBasicConsumer : IBasicConsumer
     {
-        protected IModel m_model = null;
-        protected string m_consumerTag = null;
-        protected bool m_running = false;
-        protected ShutdownEventArgs m_shutdownReason = null;
         public readonly object m_eventLock = new object();
         public ConsumerCancelledEventHandler m_consumerCancelled;
 
-        ///<summary>Retrieve the IModel instance this consumer is
-        ///registered with.</summary>
-        public IModel Model
-        {
-            get { return m_model; }
-            set { m_model = value; }
-        }
-
-        ///<summary>Retrieve the consumer tag this consumer is
-        ///registered as; to be used when discussing this consumer
-        ///with the server, for instance with
-        ///IModel.BasicCancel().</summary>
-        public string ConsumerTag
-        {
-            get { return m_consumerTag; }
-            set { m_consumerTag = value; }
-        }
-
-        ///<summary>Returns true while the consumer is registered and
-        ///expecting deliveries from the broker.</summary>
-        public bool IsRunning
-        {
-            get { return m_running; }
-        }
-
-        ///<summary>If our IModel shuts down, this property will
-        ///contain a description of the reason for the
-        ///shutdown. Otherwise it will contain null. See
-        ///ShutdownEventArgs.</summary>
-        public ShutdownEventArgs ShutdownReason
-        {
-            get { return m_shutdownReason; }
-        }
-
         ///<summary>Default constructor.</summary>
-        public DefaultBasicConsumer() { }
+        public DefaultBasicConsumer()
+        {
+            ShutdownReason = null;
+            Model = null;
+            IsRunning = false;
+            ConsumerTag = null;
+        }
 
         ///<summary>Constructor which sets the Model property to the
         ///given value.</summary>
         public DefaultBasicConsumer(IModel model)
         {
-            m_model = model;
-        }
-
-        ///<summary>Default implementation - overridable in subclasses.</summary>
-        ///<remarks>
-        /// This default implementation simply sets the IsRunning
-        /// property to false, and takes no further action.
-        ///</remarks>
-        public virtual void OnCancel()
-        {
-            m_running = false;
-            ConsumerCancelledEventHandler handler;
-            lock (m_eventLock)
-            {
-                handler = m_consumerCancelled;
-            }
-            if (handler != null)
-            {
-                foreach (ConsumerCancelledEventHandler h in handler.GetInvocationList())
-                {
-                    h(this, new ConsumerEventArgs(m_consumerTag));
-                }
-            }
-        }
-
-
-
-        ///<summary>Default implementation - sets the ConsumerTag
-        ///property and sets IsRunning to true.</summary>
-        public virtual void HandleBasicConsumeOk(string consumerTag)
-        {
-            ConsumerTag = consumerTag;
-            m_running = true;
-        }
-
-        ///<summary>Default implementation - calls OnCancel().</summary>
-        public virtual void HandleBasicCancelOk(string consumerTag)
-        {
-            OnCancel();
-        }
-
-        ///<summary>Default implementation - calls OnCancel().</summary>
-        public virtual void HandleBasicCancel(string consumerTag)
-        {
-            OnCancel();
-        }
-
-        ///<summary>Default implementation - sets ShutdownReason and
-        ///calls OnCancel().</summary>
-        public virtual void HandleModelShutdown(IModel model, ShutdownEventArgs reason)
-        {
-            m_shutdownReason = reason;
-            OnCancel();
+            ShutdownReason = null;
+            IsRunning = false;
+            ConsumerTag = null;
+            Model = model;
         }
 
         public event ConsumerCancelledEventHandler ConsumerCancelled
@@ -179,6 +97,68 @@ namespace RabbitMQ.Client
             }
         }
 
+        ///<summary>Retrieve the consumer tag this consumer is
+        ///registered as; to be used when discussing this consumer
+        ///with the server, for instance with
+        ///IModel.BasicCancel().</summary>
+        public string ConsumerTag { get; set; }
+
+        ///<summary>Returns true while the consumer is registered and
+        ///expecting deliveries from the broker.</summary>
+        public bool IsRunning { get; protected set; }
+
+        ///<summary>Retrieve the IModel instance this consumer is
+        ///registered with.</summary>
+        public IModel Model { get; set; }
+
+        ///<summary>If our IModel shuts down, this property will
+        ///contain a description of the reason for the
+        ///shutdown. Otherwise it will contain null. See
+        ///ShutdownEventArgs.</summary>
+        public ShutdownEventArgs ShutdownReason { get; protected set; }
+
+        ///<summary>Default implementation - overridable in subclasses.</summary>
+        ///<remarks>
+        /// This default implementation simply sets the IsRunning
+        /// property to false, and takes no further action.
+        ///</remarks>
+        public virtual void OnCancel()
+        {
+            IsRunning = false;
+            ConsumerCancelledEventHandler handler;
+            lock (m_eventLock)
+            {
+                handler = m_consumerCancelled;
+            }
+            if (handler != null)
+            {
+                foreach (ConsumerCancelledEventHandler h in handler.GetInvocationList())
+                {
+                    h(this, new ConsumerEventArgs(ConsumerTag));
+                }
+            }
+        }
+
+        ///<summary>Default implementation - calls OnCancel().</summary>
+        public virtual void HandleBasicCancel(string consumerTag)
+        {
+            OnCancel();
+        }
+
+        ///<summary>Default implementation - calls OnCancel().</summary>
+        public virtual void HandleBasicCancelOk(string consumerTag)
+        {
+            OnCancel();
+        }
+
+        ///<summary>Default implementation - sets the ConsumerTag
+        ///property and sets IsRunning to true.</summary>
+        public virtual void HandleBasicConsumeOk(string consumerTag)
+        {
+            ConsumerTag = consumerTag;
+            IsRunning = true;
+        }
+
         ///<summary>Default implementation - override in subclasses.</summary>
         ///<remarks>
         /// Does nothing with the passed in information. Note that in
@@ -188,14 +168,22 @@ namespace RabbitMQ.Client
         /// messages.
         ///</remarks>
         public virtual void HandleBasicDeliver(string consumerTag,
-                                               ulong deliveryTag,
-                                               bool redelivered,
-                                               string exchange,
-                                               string routingKey,
-                                               IBasicProperties properties,
-                                               byte[] body)
+            ulong deliveryTag,
+            bool redelivered,
+            string exchange,
+            string routingKey,
+            IBasicProperties properties,
+            byte[] body)
         {
             // Nothing to do here.
+        }
+
+        ///<summary>Default implementation - sets ShutdownReason and
+        ///calls OnCancel().</summary>
+        public virtual void HandleModelShutdown(IModel model, ShutdownEventArgs reason)
+        {
+            ShutdownReason = reason;
+            OnCancel();
         }
     }
 }

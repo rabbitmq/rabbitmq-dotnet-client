@@ -40,41 +40,37 @@
 
 using System;
 
-namespace RabbitMQ.Client.Content {
+namespace RabbitMQ.Client.Content
+{
     ///<summary>Analyzes messages binary-compatible with QPid's
     ///"StreamMessage" wire encoding.</summary>
-    public interface IStreamMessageReader: IMessageReader {
+    public interface IStreamMessageReader : IMessageReader
+    {
         ///<summary>Reads a bool from the message body.</summary>
         bool ReadBool();
 
-        ///<summary>Reads an int from the message body.</summary>
-        int ReadInt32();
-
-        ///<summary>Reads a short from the message body.</summary>
-        short ReadInt16();
-
         ///<summary>Reads a byte from the message body.</summary>
         byte ReadByte();
-
-        ///<summary>Reads a char from the message body.</summary>
-        char ReadChar();
-
-        ///<summary>Reads a long from the message body.</summary>
-        long ReadInt64();
-
-        ///<summary>Reads a float from the message body.</summary>
-        float ReadSingle();
-
-        ///<summary>Reads a double from the message body.</summary>
-        double ReadDouble();
 
         ///<summary>Reads a byte array from the message body. The body
         ///contains information about the size of the array to
         ///read.</summary>
         byte[] ReadBytes();
 
-        ///<summary>Reads a string from the message body.</summary>
-        string ReadString();
+        ///<summary>Reads a char from the message body.</summary>
+        char ReadChar();
+
+        ///<summary>Reads a double from the message body.</summary>
+        double ReadDouble();
+
+        ///<summary>Reads a short from the message body.</summary>
+        short ReadInt16();
+
+        ///<summary>Reads an int from the message body.</summary>
+        int ReadInt32();
+
+        ///<summary>Reads a long from the message body.</summary>
+        long ReadInt64();
 
         ///<summary>Reads an object from the message body.</summary>
         object ReadObject();
@@ -82,5 +78,11 @@ namespace RabbitMQ.Client.Content {
         ///<summary>Reads objects from the message body until the
         ///end-of-stream is reached.</summary>
         object[] ReadObjects();
+
+        ///<summary>Reads a float from the message body.</summary>
+        float ReadSingle();
+
+        ///<summary>Reads a string from the message body.</summary>
+        string ReadString();
     }
 }

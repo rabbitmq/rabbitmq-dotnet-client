@@ -38,10 +38,11 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+
 namespace RabbitMQ.Client.Events
 {
     ///<summary>Delegate used to handle server-named queue name changes
     ///after connection recovery.</summary>
-    public delegate void QueueNameChangeAfterRecoveryEventHandler(string nameBefore,
-                                                                  string nameAfter);
+    public delegate void QueueNameChangeAfterRecoveryEventHandler(string nameBefore, string nameAfter);
 }

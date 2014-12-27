@@ -53,20 +53,8 @@ namespace RabbitMQ.Client
     /// statement can be used to scope the lifetime of a channel when
     /// appropriate.
     ///</remarks>
-    public interface IModel: IDisposable
+    public interface IModel : IDisposable
     {
-        ///<summary>Notifies the destruction of the model.</summary>
-        ///<remarks>
-        /// If the model is already destroyed at the time an event
-        /// handler is added to this event, the event handler will be
-        /// fired immediately.
-        ///</remarks>
-        event ModelShutdownEventHandler ModelShutdown;
-
-        ///<summary>Signalled when a Basic.Return command arrives from
-        ///the broker.</summary>
-        event BasicReturnEventHandler BasicReturn;
-
         ///<summary>Signalled when a Basic.Ack command arrives from
         ///the broker.</summary>
         event BasicAckEventHandler BasicAcks;
@@ -74,6 +62,20 @@ namespace RabbitMQ.Client
         ///<summary>Signalled when a Basic.Nack command arrives from
         ///the broker.</summary>
         event BasicNackEventHandler BasicNacks;
+
+        ///<summary>All messages received before this fires that haven't been
+        ///ack'ed will be redelivered. All messages received afterwards won't
+        ///be.
+        ///
+        ///Handlers for this event are invoked by the connection thread.
+        ///It is sometimes useful to allow that thread to know that a recover-ok
+        ///has been received, rather than the thread that invoked BasicRecover().
+        ///</summary>
+        event BasicRecoverOkEventHandler BasicRecoverOk;
+
+        ///<summary>Signalled when a Basic.Return command arrives from
+        ///the broker.</summary>
+        event BasicReturnEventHandler BasicReturn;
 
         ///<summary>Signalled when an exception occurs in a callback
         ///invoked by the model.</summary>
@@ -87,15 +89,18 @@ namespace RabbitMQ.Client
 
         event FlowControlEventHandler FlowControl;
 
-        ///<summary>All messages received before this fires that haven't been
-        ///ack'ed will be redelivered. All messages received afterwards won't
-        ///be.
-        ///
-        ///Handlers for this event are invoked by the connection thread.
-        ///It is sometimes useful to allow that thread to know that a recover-ok
-        ///has been received, rather than the thread that invoked BasicRecover().
-        ///</summary>
-        event BasicRecoverOkEventHandler BasicRecoverOk;
+        ///<summary>Notifies the destruction of the model.</summary>
+        ///<remarks>
+        /// If the model is already destroyed at the time an event
+        /// handler is added to this event, the event handler will be
+        /// fired immediately.
+        ///</remarks>
+        event ModelShutdownEventHandler ModelShutdown;
+
+        ///<summary>Returns null if the session is still in a state
+        ///where it can be used, or the cause of its closure
+        ///otherwise.</summary>
+        ShutdownEventArgs CloseReason { get; }
 
         ///<summary>Signalled when an unexpected message is delivered
         ///
@@ -121,28 +126,211 @@ namespace RabbitMQ.Client
         /// Most people will not need to use this.</summary>
         IBasicConsumer DefaultConsumer { get; set; }
 
-        ///<summary>Returns null if the session is still in a state
-        ///where it can be used, or the cause of its closure
-        ///otherwise.</summary>
-        ShutdownEventArgs CloseReason { get; }
+        ///<summary>Returns true if the model is no longer in a state
+        ///where it can be used.</summary>
+        bool IsClosed { get; }
 
         ///<summary>Returns true if the model is still in a state
         ///where it can be used. Identical to checking if CloseReason
         ///== null.</summary>
         bool IsOpen { get; }
 
-        ///<summary>Returns true if the model is no longer in a state
-        ///where it can be used.</summary>
-        bool IsClosed { get; }
-
         ///<summary>When in confirm mode, return the sequence number
         ///of the next message to be published.</summary>
         ulong NextPublishSeqNo { get; }
+
+        ///<summary>Abort this session.</summary>
+        ///<remarks>
+        ///If the session is already closed (or closing), then this
+        ///method does nothing but wait for the in-progress close
+        ///operation to complete. This method will not return to the
+        ///caller until the shutdown is complete.
+        ///In comparison to normal Close() method, Abort() will not throw
+        ///AlreadyClosedException or IOException during closing model.
+        ///</remarks>
+        [AmqpMethodDoNotImplement(null)]
+        void Abort();
+
+        ///<summary>Abort this session.</summary>
+        ///<remarks>
+        ///The method behaves in the same way as Abort(), with the only
+        ///difference that the model is closed with the given model
+        ///close code and message.
+        ///<para>
+        ///The close code (See under "Reply Codes" in the AMQP specification)
+        ///</para>
+        ///<para>
+        ///A message indicating the reason for closing the model
+        ///</para>
+        ///</remarks>
+        [AmqpMethodDoNotImplement(null)]
+        void Abort(ushort replyCode, string replyText);
+
+        ///<summary>(Spec method) Acknowledge one or more delivered message(s).</summary>
+        void BasicAck(ulong deliveryTag, bool multiple);
+
+        ///<summary>Delete a Basic content-class consumer.</summary>
+        [AmqpMethodDoNotImplement(null)]
+        void BasicCancel(string consumerTag);
+
+        ///<summary>Start a Basic content-class consumer.</summary>
+        ///<remarks>
+        ///The consumer is started with noAck=false (i.e. BasicAck is required),
+        ///an empty consumer tag (i.e. the server creates and returns a fresh consumer tag),
+        ///noLocal=false and exclusive=false.
+        ///</remarks>
+        [AmqpMethodDoNotImplement(null)]
+        string BasicConsume(string queue, bool noAck, IBasicConsumer consumer);
+
+        ///<summary>Start a Basic content-class consumer.</summary>
+        ///<remarks>
+        ///The consumer is started with
+        ///an empty consumer tag (i.e. the server creates and returns a fresh consumer tag),
+        ///noLocal=false and exclusive=false.
+        ///</remarks>
+        [AmqpMethodDoNotImplement(null)]
+        string BasicConsume(string queue, bool noAck, string consumerTag, IBasicConsumer consumer);
+
+        ///<summary>Start a Basic content-class consumer.</summary>
+        ///<remarks>
+        ///The consumer is started with
+        ///noLocal=false and exclusive=false.
+        ///</remarks>
+        [AmqpMethodDoNotImplement(null)]
+        string BasicConsume(string queue,
+            bool noAck,
+            string consumerTag,
+            IDictionary<string, object> arguments,
+            IBasicConsumer consumer);
+
+        ///<summary>Start a Basic content-class consumer.</summary>
+        [AmqpMethodDoNotImplement(null)]
+        string BasicConsume(string queue,
+            bool noAck,
+            string consumerTag,
+            bool noLocal,
+            bool exclusive,
+            IDictionary<string, object> arguments,
+            IBasicConsumer consumer);
+
+        ///<summary>(Spec method) Retrieve an individual message, if
+        ///one is available; returns null if the server answers that
+        ///no messages are currently available. See also
+        ///IModel.BasicAck.</summary>
+        [AmqpMethodDoNotImplement(null)]
+        BasicGetResult BasicGet(string queue, bool noAck);
+
+        ///<summary>Reject one or more delivered message(s).</summary>
+        void BasicNack(ulong deliveryTag, bool multiple, bool requeue);
+
+        ///<summary>(Spec method) Convenience overload of BasicPublish.</summary>
+        ///<remarks>
+        ///The publication occurs with mandatory=false and immediate=false.
+        ///</remarks>
+        [AmqpMethodDoNotImplement(null)]
+        void BasicPublish(PublicationAddress addr, IBasicProperties basicProperties, byte[] body);
+
+        ///<summary>(Spec method) Convenience overload of BasicPublish.</summary>
+        ///<remarks>
+        ///The publication occurs with mandatory=false and immediate=false.
+        ///</remarks>
+        [AmqpMethodDoNotImplement(null)]
+        void BasicPublish(string exchange,
+            string routingKey,
+            IBasicProperties basicProperties,
+            byte[] body);
+
+        ///<summary>(Spec method) Convenience overload of BasicPublish.</summary>
+        ///<remarks>
+        ///The publication occurs with immediate=false.
+        ///</remarks>
+        [AmqpMethodDoNotImplement(null)]
+        void BasicPublish(string exchange,
+            string routingKey,
+            bool mandatory,
+            IBasicProperties basicProperties,
+            byte[] body);
+
+        ///<summary>(Spec method) Publish a message using the Basic
+        ///content-class.</summary>
+        ///<remarks>
+        ///Note that the RabbitMQ server does not support the 'immediate' flag.
+        ///</remarks>
+        [AmqpMethodDoNotImplement(null)]
+        void BasicPublish(string exchange,
+            string routingKey,
+            bool mandatory,
+            bool immediate,
+            IBasicProperties basicProperties,
+            byte[] body);
+
+        ///<summary>(Spec method) Configures QoS parameters of the Basic content-class.</summary>
+        void BasicQos(uint prefetchSize, ushort prefetchCount, bool global);
+
+        ///<summary>(Spec method)</summary>
+        [AmqpMethodDoNotImplement(null)]
+        void BasicRecover(bool requeue);
+
+        ///<summary>(Spec method)</summary>
+        void BasicRecoverAsync(bool requeue);
+
+        ///<summary>(Spec method) Reject a delivered message.</summary>
+        void BasicReject(ulong deliveryTag, bool requeue);
+
+        ///<summary>Close this session.</summary>
+        ///<remarks>
+        ///If the session is already closed (or closing), then this
+        ///method does nothing but wait for the in-progress close
+        ///operation to complete. This method will not return to the
+        ///caller until the shutdown is complete.
+        ///</remarks>
+        [AmqpMethodDoNotImplement(null)]
+        void Close();
+
+        ///<summary>Close this session.</summary>
+        ///<remarks>
+        ///The method behaves in the same way as Close(), with the only
+        ///difference that the model is closed with the given model
+        ///close code and message.
+        ///<para>
+        ///The close code (See under "Reply Codes" in the AMQP specification)
+        ///</para>
+        ///<para>
+        ///A message indicating the reason for closing the model
+        ///</para>
+        ///</remarks>
+        [AmqpMethodDoNotImplement(null)]
+        void Close(ushort replyCode, string replyText);
+
+        ///<summary>Enable publisher acknowledgements.</summary>
+        [AmqpMethodDoNotImplement(null)]
+        void ConfirmSelect();
 
         ///<summary>Construct a completely empty content header for
         ///use with the Basic content class.</summary>
         [AmqpContentHeaderFactory("basic")]
         IBasicProperties CreateBasicProperties();
+
+        ///<summary>(Extension method) Bind an exchange to an exchange.</summary>
+        [AmqpMethodDoNotImplement(null)]
+        void ExchangeBind(string destination,
+            string source,
+            string routingKey,
+            IDictionary<string, object> arguments);
+
+        ///<summary>(Extension method) Bind an exchange to an exchange.</summary>
+        [AmqpMethodDoNotImplement(null)]
+        void ExchangeBind(string destination,
+            string source,
+            string routingKey);
+
+        ///<summary>
+        ///Like ExchangeBind but sets nowait to true.
+        ///</summary>
+        void ExchangeBindNoWait(string destination,
+            string source,
+            string routingKey,
+            IDictionary<string, object> arguments);
 
         ///<summary>(Spec method) Declare an exchange.</summary>
         ///<remarks>
@@ -151,10 +339,10 @@ namespace RabbitMQ.Client
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
         void ExchangeDeclare(string exchange,
-                             string type,
-                             bool durable,
-                             bool autoDelete,
-                             IDictionary<string, object> arguments);
+            string type,
+            bool durable,
+            bool autoDelete,
+            IDictionary<string, object> arguments);
 
         ///<summary>(Spec method) Declare an exchange.</summary>
         ///<remarks>
@@ -174,22 +362,22 @@ namespace RabbitMQ.Client
         [AmqpMethodDoNotImplement(null)]
         void ExchangeDeclare(string exchange, string type);
 
+        /// <summary>
+        /// Same as ExchangeDeclare but sets nowait to true and returns void (as there
+        /// will be no response from the server).
+        /// </summary>
+        void ExchangeDeclareNoWait(string exchange,
+            string type,
+            bool durable,
+            bool autoDelete,
+            IDictionary<string, object> arguments);
+
         ///<summary>(Spec method) Declare an exchange.</summary>
         ///<remarks>
         /// The exchange is declared passive.
         /// </remarks>
         [AmqpMethodDoNotImplement(null)]
         void ExchangeDeclarePassive(string exchange);
-
-        /// <summary>
-        /// Same as ExchangeDeclare but sets nowait to true and returns void (as there
-        /// will be no response from the server).
-        /// </summary>
-        void ExchangeDeclareNoWait(string exchange,
-                                   string type,
-                                   bool durable,
-                                   bool autoDelete,
-                                   IDictionary<string, object> arguments);
 
         ///<summary>(Spec method) Delete an exchange.</summary>
         [AmqpMethodDoNotImplement(null)]
@@ -207,46 +395,40 @@ namespace RabbitMQ.Client
         ///</summary>
         void ExchangeDeleteNoWait(string exchange, bool ifUnused);
 
-        ///<summary>(Extension method) Bind an exchange to an exchange.</summary>
-        [AmqpMethodDoNotImplement(null)]
-        void ExchangeBind(string destination,
-                          string source,
-                          string routingKey,
-                          IDictionary<string, object> arguments);
-
-        ///<summary>(Extension method) Bind an exchange to an exchange.</summary>
-        [AmqpMethodDoNotImplement(null)]
-        void ExchangeBind(string destination,
-                          string source,
-                          string routingKey);
-
-        ///<summary>
-        ///Like ExchangeBind but sets nowait to true.
-        ///</summary>
-        void ExchangeBindNoWait(string destination,
-                                string source,
-                                string routingKey,
-                                IDictionary<string, object> arguments);
-
         ///<summary>(Extension method) Unbind an exchange from an exchange.</summary>
         [AmqpMethodDoNotImplement(null)]
         void ExchangeUnbind(string destination,
-                            string source,
-                            string routingKey,
-                            IDictionary<string, object> arguments);
+            string source,
+            string routingKey,
+            IDictionary<string, object> arguments);
 
         ///<summary>(Extension method) Unbind an exchange from an exchange.</summary>
         [AmqpMethodDoNotImplement(null)]
-        void ExchangeUnbind(string destination,
-                            string source,
-                            string routingKey);
+        void ExchangeUnbind(string destination, string source, string routingKey);
 
         ///<summary>Like ExchangeUnbind but sets nowait to true.</summary>
         [AmqpMethodDoNotImplement(null)]
         void ExchangeUnbindNoWait(string destination,
-                                  string source,
-                                  string routingKey,
-                                  IDictionary<string, object> arguments);
+            string source,
+            string routingKey,
+            IDictionary<string, object> arguments);
+
+        ///<summary>(Spec method) Bind a queue to an exchange.</summary>
+        [AmqpMethodDoNotImplement(null)]
+        void QueueBind(string queue,
+            string exchange,
+            string routingKey,
+            IDictionary<string, object> arguments);
+
+        ///<summary>(Spec method) Bind a queue to an exchange.</summary>
+        [AmqpMethodDoNotImplement(null)]
+        void QueueBind(string queue, string exchange, string routingKey);
+
+        ///<summary>Same as QueueBind but sets nowait parameter to true.</summary>
+        void QueueBindNoWait(string queue,
+            string exchange,
+            string routingKey,
+            IDictionary<string, object> arguments);
 
         ///<summary>(Spec method) Declare a queue.</summary>
         ///<remarks>
@@ -258,6 +440,18 @@ namespace RabbitMQ.Client
         [AmqpMethodDoNotImplement(null)]
         QueueDeclareOk QueueDeclare();
 
+        ///<summary>(Spec method) Declare a queue.</summary>
+        [AmqpMethodDoNotImplement(null)]
+        QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive,
+            bool autoDelete, IDictionary<string, object> arguments);
+
+        /// <summary>
+        /// Same as QueueDeclare but sets nowait to true and returns void (as there
+        /// will be no response from the server).
+        /// </summary>
+        void QueueDeclareNoWait(string queue, bool durable, bool exclusive,
+            bool autoDelete, IDictionary<string, object> arguments);
+
         ///<summary>Declare a queue passively.</summary>
         ///<remarks>
         ///The queue is declared passive, non-durable,
@@ -267,50 +461,6 @@ namespace RabbitMQ.Client
         [AmqpMethodDoNotImplement(null)]
         QueueDeclareOk QueueDeclarePassive(string queue);
 
-        ///<summary>(Spec method) Declare a queue.</summary>
-        [AmqpMethodDoNotImplement(null)]
-        QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive,
-                    bool autoDelete, IDictionary<string, object> arguments);
-
-        /// <summary>
-        /// Same as QueueDeclare but sets nowait to true and returns void (as there
-        /// will be no response from the server).
-        /// </summary>
-        void QueueDeclareNoWait(string queue, bool durable, bool exclusive,
-                                bool autoDelete, IDictionary<string, object> arguments);
-
-        ///<summary>(Spec method) Bind a queue to an exchange.</summary>
-        [AmqpMethodDoNotImplement(null)]
-        void QueueBind(string queue,
-                       string exchange,
-                       string routingKey,
-                       IDictionary<string, object> arguments);
-
-        ///<summary>(Spec method) Bind a queue to an exchange.</summary>
-        [AmqpMethodDoNotImplement(null)]
-        void QueueBind(string queue,
-                       string exchange,
-                       string routingKey);
-
-        ///<summary>Same as QueueBind but sets nowait parameter to true.</summary>
-        void QueueBindNoWait(string queue,
-                             string exchange,
-                             string routingKey,
-                             IDictionary<string, object> arguments);
-
-        ///<summary>(Spec method) Unbind a queue from an exchange.</summary>
-        void QueueUnbind(string queue,
-                         string exchange,
-                         string routingKey,
-                         IDictionary<string, object> arguments);
-
-        ///<summary>(Spec method) Purge a queue of messages.</summary>
-        ///<remarks>
-        ///Returns the number of messages purged.
-        ///</remarks>
-        [AmqpMethodDoNotImplement(null)]
-        uint QueuePurge(string queue);
-
         ///<summary>(Spec method) Delete a queue.</summary>
         ///<remarks>
         ///Returns the number of messages purged during queue
@@ -318,18 +468,7 @@ namespace RabbitMQ.Client
         ///<code>uint.MaxValue</code>.
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        uint QueueDelete(string queue,
-                         bool ifUnused,
-                         bool ifEmpty);
-
-        ///<summary>
-        ///Same as QueueDelete but sets nowait parameter to true
-        ///and returns void (as there will be no response from the server)
-        ///</summary>
-        void QueueDeleteNoWait(string queue,
-                               bool ifUnused,
-                               bool ifEmpty);
-
+        uint QueueDelete(string queue, bool ifUnused, bool ifEmpty);
 
         ///<summary>(Spec method) Delete a queue.</summary>
         ///<remarks>
@@ -339,9 +478,35 @@ namespace RabbitMQ.Client
         [AmqpMethodDoNotImplement(null)]
         uint QueueDelete(string queue);
 
-        ///<summary>Enable publisher acknowledgements.</summary>
+        ///<summary>
+        ///Same as QueueDelete but sets nowait parameter to true
+        ///and returns void (as there will be no response from the server)
+        ///</summary>
+        void QueueDeleteNoWait(string queue, bool ifUnused, bool ifEmpty);
+
+        ///<summary>(Spec method) Purge a queue of messages.</summary>
+        ///<remarks>
+        ///Returns the number of messages purged.
+        ///</remarks>
         [AmqpMethodDoNotImplement(null)]
-        void ConfirmSelect();
+        uint QueuePurge(string queue);
+
+        ///<summary>(Spec method) Unbind a queue from an exchange.</summary>
+        void QueueUnbind(string queue,
+            string exchange,
+            string routingKey,
+            IDictionary<string, object> arguments);
+
+        ///<summary>(Spec method) Commit this session's active TX
+        ///transaction.</summary>
+        void TxCommit();
+
+        ///<summary>(Spec method) Roll back this session's active TX
+        ///transaction.</summary>
+        void TxRollback();
+
+        ///<summary>(Spec method) Enable TX mode for this session.</summary>
+        void TxSelect();
 
         ///<summary>Wait until all published messages have been confirmed.
         ///</summary>
@@ -407,193 +572,5 @@ namespace RabbitMQ.Client
         ///</remarks>
         [AmqpMethodDoNotImplement(null)]
         void WaitForConfirmsOrDie(TimeSpan timeout);
-
-        ///<summary>Start a Basic content-class consumer.</summary>
-        ///<remarks>
-        ///The consumer is started with noAck=false (i.e. BasicAck is required),
-        ///an empty consumer tag (i.e. the server creates and returns a fresh consumer tag),
-        ///noLocal=false and exclusive=false.
-        ///</remarks>
-        [AmqpMethodDoNotImplement(null)]
-        string BasicConsume(string queue,
-                            bool noAck,
-                            IBasicConsumer consumer);
-
-        ///<summary>Start a Basic content-class consumer.</summary>
-        ///<remarks>
-        ///The consumer is started with
-        ///an empty consumer tag (i.e. the server creates and returns a fresh consumer tag),
-        ///noLocal=false and exclusive=false.
-        ///</remarks>
-        [AmqpMethodDoNotImplement(null)]
-        string BasicConsume(string queue,
-                            bool noAck,
-                            string consumerTag,
-                            IBasicConsumer consumer);
-
-        ///<summary>Start a Basic content-class consumer.</summary>
-        ///<remarks>
-        ///The consumer is started with
-        ///noLocal=false and exclusive=false.
-        ///</remarks>
-        [AmqpMethodDoNotImplement(null)]
-        string BasicConsume(string queue,
-                            bool noAck,
-                            string consumerTag,
-                            IDictionary<string, object> arguments,
-                            IBasicConsumer consumer);
-
-        ///<summary>Start a Basic content-class consumer.</summary>
-        [AmqpMethodDoNotImplement(null)]
-        string BasicConsume(string queue,
-                            bool noAck,
-                            string consumerTag,
-                            bool noLocal,
-                            bool exclusive,
-                            IDictionary<string, object> arguments,
-                            IBasicConsumer consumer);
-
-        ///<summary>Delete a Basic content-class consumer.</summary>
-        [AmqpMethodDoNotImplement(null)]
-        void BasicCancel(string consumerTag);
-
-        ///<summary>(Spec method) Configures QoS parameters of the Basic content-class.</summary>
-        void BasicQos(uint prefetchSize,
-                      ushort prefetchCount,
-                      bool global);
-
-        ///<summary>(Spec method) Convenience overload of BasicPublish.</summary>
-        ///<remarks>
-        ///The publication occurs with mandatory=false and immediate=false.
-        ///</remarks>
-        [AmqpMethodDoNotImplement(null)]
-        void BasicPublish(PublicationAddress addr,
-                          IBasicProperties basicProperties,
-                          byte[] body);
-
-        ///<summary>(Spec method) Convenience overload of BasicPublish.</summary>
-        ///<remarks>
-        ///The publication occurs with mandatory=false and immediate=false.
-        ///</remarks>
-        [AmqpMethodDoNotImplement(null)]
-        void BasicPublish(string exchange,
-                          string routingKey,
-                          IBasicProperties basicProperties,
-                          byte[] body);
-
-        ///<summary>(Spec method) Convenience overload of BasicPublish.</summary>
-        ///<remarks>
-        ///The publication occurs with immediate=false.
-        ///</remarks>
-        [AmqpMethodDoNotImplement(null)]
-        void BasicPublish(string exchange,
-                          string routingKey,
-                          bool mandatory,
-                          IBasicProperties basicProperties,
-                          byte[] body);
-
-        ///<summary>(Spec method) Publish a message using the Basic
-        ///content-class.</summary>
-        ///<remarks>
-        ///Note that the RabbitMQ server does not support the 'immediate' flag.
-        ///</remarks>
-        [AmqpMethodDoNotImplement(null)]
-        void BasicPublish(string exchange,
-                          string routingKey,
-                          bool mandatory,
-                          bool immediate,
-                          IBasicProperties basicProperties,
-                          byte[] body);
-
-        ///<summary>(Spec method) Acknowledge one or more delivered message(s).</summary>
-        void BasicAck(ulong deliveryTag,
-                      bool multiple);
-
-        ///<summary>(Spec method) Reject a delivered message.</summary>
-        void BasicReject(ulong deliveryTag,
-                         bool requeue);
-
-         ///<summary>Reject one or more delivered message(s).</summary>
-         void BasicNack(ulong deliveryTag,
-                        bool multiple,
-                        bool requeue);
-
-        ///<summary>(Spec method)</summary>
-        [AmqpMethodDoNotImplement(null)]
-        void BasicRecover(bool requeue);
-
-        ///<summary>(Spec method)</summary>
-        void BasicRecoverAsync(bool requeue);
-
-        ///<summary>(Spec method) Retrieve an individual message, if
-        ///one is available; returns null if the server answers that
-        ///no messages are currently available. See also
-        ///IModel.BasicAck.</summary>
-        [AmqpMethodDoNotImplement(null)]
-        BasicGetResult BasicGet(string queue,
-                                bool noAck);
-
-        ///<summary>(Spec method) Enable TX mode for this session.</summary>
-        void TxSelect();
-
-        ///<summary>(Spec method) Commit this session's active TX
-        ///transaction.</summary>
-        void TxCommit();
-
-        ///<summary>(Spec method) Roll back this session's active TX
-        ///transaction.</summary>
-        void TxRollback();
-
-        ///<summary>Close this session.</summary>
-        ///<remarks>
-        ///If the session is already closed (or closing), then this
-        ///method does nothing but wait for the in-progress close
-        ///operation to complete. This method will not return to the
-        ///caller until the shutdown is complete.
-        ///</remarks>
-        [AmqpMethodDoNotImplement(null)]
-        void Close();
-
-        ///<summary>Close this session.</summary>
-        ///<remarks>
-        ///The method behaves in the same way as Close(), with the only
-        ///difference that the model is closed with the given model
-        ///close code and message.
-        ///<para>
-        ///The close code (See under "Reply Codes" in the AMQP specification)
-        ///</para>
-        ///<para>
-        ///A message indicating the reason for closing the model
-        ///</para>
-        ///</remarks>
-        [AmqpMethodDoNotImplement(null)]
-        void Close(ushort replyCode, string replyText);
-
-        ///<summary>Abort this session.</summary>
-        ///<remarks>
-        ///If the session is already closed (or closing), then this
-        ///method does nothing but wait for the in-progress close
-        ///operation to complete. This method will not return to the
-        ///caller until the shutdown is complete.
-        ///In comparison to normal Close() method, Abort() will not throw
-        ///AlreadyClosedException or IOException during closing model.
-        ///</remarks>
-        [AmqpMethodDoNotImplement(null)]
-        void Abort();
-
-        ///<summary>Abort this session.</summary>
-        ///<remarks>
-        ///The method behaves in the same way as Abort(), with the only
-        ///difference that the model is closed with the given model
-        ///close code and message.
-        ///<para>
-        ///The close code (See under "Reply Codes" in the AMQP specification)
-        ///</para>
-        ///<para>
-        ///A message indicating the reason for closing the model
-        ///</para>
-        ///</remarks>
-        [AmqpMethodDoNotImplement(null)]
-        void Abort(ushort replyCode, string replyText);
     }
 }

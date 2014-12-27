@@ -40,11 +40,14 @@
 
 using System;
 
-namespace RabbitMQ.Client.Exceptions {
+namespace RabbitMQ.Client.Exceptions
+{
     /// <summary>Thrown when a connection to the broker fails</summary>
-    public class ConnectFailureException: SystemException
+    public class ConnectFailureException : SystemException
     {
         public ConnectFailureException(String msg, Exception inner)
-            : base(msg, inner) { }
+            : base(msg, inner)
+        {
+        }
     }
 }

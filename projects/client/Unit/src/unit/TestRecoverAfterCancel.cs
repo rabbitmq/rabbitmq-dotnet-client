@@ -62,7 +62,7 @@ namespace RabbitMQ.Client.Unit
 
         public int ModelNumber(IModel model)
         {
-            return ((ModelBase)model).m_session.ChannelNumber;
+            return ((ModelBase)model).Session.ChannelNumber;
         }
 
         [SetUp] public void Connect()

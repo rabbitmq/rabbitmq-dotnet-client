@@ -55,42 +55,46 @@ namespace RabbitMQ.Client.Exceptions
         // TODO: inherit from OperationCanceledException
         : Exception
     {
-        ///<summary>Possible explanation for the interruption. May be null.</summary>
-        protected ShutdownEventArgs m_shutdownReason;
-
-        protected OperationInterruptedException() { }
-
-        protected OperationInterruptedException(string message) : base(message) { }
-
-        protected OperationInterruptedException(string message, System.Exception inner)
-            : base(message, inner) { }
-
-        protected OperationInterruptedException(SerializationInfo info,
-                                                StreamingContext context)
-            : base(info, context) { }
-
         ///<summary>Construct an OperationInterruptedException with
         ///the passed-in explanation, if any.</summary>
         public OperationInterruptedException(ShutdownEventArgs reason)
             : base(reason == null ? "The AMQP operation was interrupted" :
-                   string.Format("The AMQP operation was interrupted: {0}",
-                                 reason))
+                string.Format("The AMQP operation was interrupted: {0}",
+                    reason))
         {
-            m_shutdownReason = reason;
+            ShutdownReason = reason;
         }
 
         ///<summary>Construct an OperationInterruptedException with
         ///the passed-in explanation and prefix, if any.</summary>
         public OperationInterruptedException(ShutdownEventArgs reason, String prefix)
-        : base(reason == null ? (prefix + ": The AMQP operation was interrupted") :
-                   string.Format("{0}: The AMQP operation was interrupted: {1}",
-                                 prefix, reason))
+            : base(reason == null ? (prefix + ": The AMQP operation was interrupted") :
+                string.Format("{0}: The AMQP operation was interrupted: {1}",
+                    prefix, reason))
         {
-            m_shutdownReason = reason;
+            ShutdownReason = reason;
+        }
+
+        protected OperationInterruptedException()
+        {
+        }
+
+        protected OperationInterruptedException(string message) : base(message)
+        {
+        }
+
+        protected OperationInterruptedException(string message, Exception inner)
+            : base(message, inner)
+        {
+        }
+
+        protected OperationInterruptedException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
         }
 
         ///<summary>Retrieves the explanation for the shutdown. May
         ///return null if no explanation is available.</summary>
-        public ShutdownEventArgs ShutdownReason { get { return m_shutdownReason; } }
+        public ShutdownEventArgs ShutdownReason { get; protected set; }
     }
 }

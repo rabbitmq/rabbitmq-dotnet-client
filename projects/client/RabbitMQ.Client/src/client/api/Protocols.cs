@@ -39,8 +39,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Reflection;
-using System.Configuration;
 
 namespace RabbitMQ.Client
 {

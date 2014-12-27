@@ -71,22 +71,25 @@ namespace RabbitMQ.Client
         ///<summary>Regular expression used to extract the
         ///exchange-type, exchange-name and routing-key from a
         ///string.</summary>
-        public readonly static Regex PSEUDO_URI_PARSER = new Regex("^([^:]+)://([^/]*)/(.*)$");
-
-        private string m_exchangeType;
-        private string m_exchangeName;
-        private string m_routingKey;
+        public static readonly Regex PSEUDO_URI_PARSER = new Regex("^([^:]+)://([^/]*)/(.*)$");
 
         ///<summary>Construct a PublicationAddress with the given exchange
         ///type, exchange name and routing key.</summary>
-        public PublicationAddress(string exchangeType,
-                                  string exchangeName,
-                                  string routingKey)
+        public PublicationAddress(string exchangeType, string exchangeName, string routingKey)
         {
-            m_exchangeType = exchangeType;
-            m_exchangeName = exchangeName;
-            m_routingKey = routingKey;
+            ExchangeType = exchangeType;
+            ExchangeName = exchangeName;
+            RoutingKey = routingKey;
         }
+
+        ///<summary>Retrieve the exchange name.</summary>
+        public string ExchangeName { get; private set; }
+
+        ///<summary>Retrieve the exchange type string.</summary>
+        public string ExchangeType { get; private set; }
+
+        ///<summary>Retrieve the routing key.</summary>
+        public string RoutingKey { get; private set; }
 
         ///<summary>Parse a PublicationAddress out of the given string,
         ///using the PSEUDO_URI_PARSER regex.</summary>
@@ -96,23 +99,14 @@ namespace RabbitMQ.Client
             if (m.Success)
             {
                 return new PublicationAddress(m.Groups[1].Value,
-                                              m.Groups[2].Value,
-                                              m.Groups[3].Value);
+                    m.Groups[2].Value,
+                    m.Groups[3].Value);
             }
             else
             {
                 return null;
             }
         }
-
-        ///<summary>Retrieve the exchange type string.</summary>
-        public string ExchangeType { get { return m_exchangeType; } }
-
-        ///<summary>Retrieve the exchange name.</summary>
-        public string ExchangeName { get { return m_exchangeName; } }
-
-        ///<summary>Retrieve the routing key.</summary>
-        public string RoutingKey { get { return m_routingKey; } }
 
         ///<summary>Reconstruct the "uri" from its constituents.</summary>
         public override string ToString()

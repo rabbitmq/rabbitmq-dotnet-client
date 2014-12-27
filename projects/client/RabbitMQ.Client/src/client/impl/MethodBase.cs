@@ -38,18 +38,19 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using RabbitMQ.Client;
+using System;
+using System.Text;
 
 namespace RabbitMQ.Client.Impl
 {
     public abstract class MethodBase : IMethod
     {
+        public abstract bool HasContent { get; }
         public abstract int ProtocolClassId { get; }
         public abstract int ProtocolMethodId { get; }
         public abstract string ProtocolMethodName { get; }
-        public abstract bool HasContent { get; }
+        public abstract void AppendArgumentDebugStringTo(StringBuilder sb);
         public abstract void ReadArgumentsFrom(MethodArgumentReader reader);
         public abstract void WriteArgumentsTo(MethodArgumentWriter writer);
-        public abstract void AppendArgumentDebugStringTo(System.Text.StringBuilder sb);
     }
 }

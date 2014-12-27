@@ -41,77 +41,66 @@
 using System;
 using System.IO;
 using System.Net.Security;
-using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
-using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
 {
-
     ///<summary>Represents an SslHelper which does the actual heavy lifting
     ///to set up an SSL connection, using the config options in an SslOption
     ///to make things cleaner</summary>
     public class SslHelper
     {
-
-        private SslOption m_sslOption;
-
-        private X509Certificate CertificateSelectionCallback(object sender,
-                                                             string targetHost,
-                                                             X509CertificateCollection localCertificates,
-                                                             X509Certificate remoteCertificate,
-                                                             string[] acceptableIssuers)
-        {
-            if (acceptableIssuers != null && acceptableIssuers.Length > 0 &&
-                localCertificates != null && localCertificates.Count > 0)
-                {
-                    foreach (X509Certificate certificate in localCertificates)
-                        {
-                            if (Array.IndexOf(acceptableIssuers, certificate.Issuer) != -1)
-                                return certificate;
-                        }
-                }
-            if (localCertificates != null && localCertificates.Count > 0)
-                return localCertificates[0];
-
-            return null;
-        }
-
-        private bool CertificateValidationCallback(object sender,
-                                                   X509Certificate certificate,
-                                                   X509Chain chain,
-                                                   SslPolicyErrors sslPolicyErrors)
-        {
-            return (sslPolicyErrors & ~m_sslOption.AcceptablePolicyErrors) == SslPolicyErrors.None;
-        }
-
-        ///<summary>Upgrade a Tcp stream to an Ssl stream using the SSL options
-        ///provided</summary>
-        public static Stream TcpUpgrade(Stream tcpStream, SslOption sslOption)
-        {
-            SslHelper helper = new SslHelper(sslOption);
-
-            RemoteCertificateValidationCallback remoteCertValidator =
-              sslOption.CertificateValidationCallback ?? new RemoteCertificateValidationCallback(helper.CertificateValidationCallback);
-            LocalCertificateSelectionCallback localCertSelector =
-              sslOption.CertificateSelectionCallback ?? new LocalCertificateSelectionCallback(helper.CertificateSelectionCallback);
-
-            SslStream sslStream = new SslStream(tcpStream, false,
-                                                remoteCertValidator,
-                                                localCertSelector);
-
-            sslStream.AuthenticateAsClient(sslOption.ServerName,
-                                           sslOption.Certs,
-                                           sslOption.Version,
-                                           false);
-
-            return sslStream;
-        }
+        private readonly SslOption m_sslOption;
 
         private SslHelper(SslOption sslOption)
         {
             m_sslOption = sslOption;
         }
 
+        ///<summary>Upgrade a Tcp stream to an Ssl stream using the SSL options
+        ///provided</summary>
+        public static Stream TcpUpgrade(Stream tcpStream, SslOption sslOption)
+        {
+            var helper = new SslHelper(sslOption);
+
+            RemoteCertificateValidationCallback remoteCertValidator =
+                sslOption.CertificateValidationCallback ?? helper.CertificateValidationCallback;
+            LocalCertificateSelectionCallback localCertSelector =
+                sslOption.CertificateSelectionCallback ?? helper.CertificateSelectionCallback;
+
+            var sslStream = new SslStream(tcpStream, false, remoteCertValidator, localCertSelector);
+
+            sslStream.AuthenticateAsClient(sslOption.ServerName, sslOption.Certs, sslOption.Version, false);
+
+            return sslStream;
+        }
+
+        private X509Certificate CertificateSelectionCallback(object sender, string targetHost,
+            X509CertificateCollection localCertificates, X509Certificate remoteCertificate, string[] acceptableIssuers)
+        {
+            if (acceptableIssuers != null && acceptableIssuers.Length > 0 &&
+                localCertificates != null && localCertificates.Count > 0)
+            {
+                foreach (X509Certificate certificate in localCertificates)
+                {
+                    if (Array.IndexOf(acceptableIssuers, certificate.Issuer) != -1)
+                    {
+                        return certificate;
+                    }
+                }
+            }
+            if (localCertificates != null && localCertificates.Count > 0)
+            {
+                return localCertificates[0];
+            }
+
+            return null;
+        }
+
+        private bool CertificateValidationCallback(object sender, X509Certificate certificate,
+            X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            return (sslPolicyErrors & ~m_sslOption.AcceptablePolicyErrors) == SslPolicyErrors.None;
+        }
     }
 }

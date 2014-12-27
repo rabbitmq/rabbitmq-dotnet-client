@@ -46,27 +46,13 @@ namespace RabbitMQ.Client.Events
     ///from an AMQP broker within the Basic content-class.</summary>
     public class BasicAckEventArgs : EventArgs
     {
-        private ulong m_deliveryTag;
-        private bool m_multiple;
-
-        ///<summary>Default constructor.</summary>
-        public BasicAckEventArgs() { }
-
         ///<summary>The sequence number of the acknowledged message, or
         ///the closed upper bound of acknowledged messages if multiple
         ///is true.</summary>
-        public ulong DeliveryTag
-        {
-            get { return m_deliveryTag; }
-            set { m_deliveryTag = value; }
-        }
+        public ulong DeliveryTag { get; set; }
 
         ///<summary>Whether this acknoledgement applies to one message
         ///or multiple messages.</summary>
-        public bool Multiple
-        {
-            get { return m_multiple; }
-            set { m_multiple = value; }
-        }
+        public bool Multiple { get; set; }
     }
 }

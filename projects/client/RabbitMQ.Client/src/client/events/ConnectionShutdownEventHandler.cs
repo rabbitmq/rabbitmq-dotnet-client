@@ -38,10 +38,11 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+
 namespace RabbitMQ.Client.Events
 {
     ///<summary>Delegate used to process connection shutdown
     ///notifications.</summary>
-    public delegate void ConnectionShutdownEventHandler(IConnection connection,
-                                                        ShutdownEventArgs reason);
+    public delegate void ConnectionShutdownEventHandler(IConnection connection, ShutdownEventArgs reason);
 }

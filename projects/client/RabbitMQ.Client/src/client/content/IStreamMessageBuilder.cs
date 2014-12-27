@@ -40,33 +40,17 @@
 
 using System;
 
-namespace RabbitMQ.Client.Content {
+namespace RabbitMQ.Client.Content
+{
     ///<summary>Interface for constructing messages binary-compatible
     ///with QPid's "StreamMessage" wire encoding.</summary>
-    public interface IStreamMessageBuilder: IMessageBuilder {
+    public interface IStreamMessageBuilder : IMessageBuilder
+    {
         ///<summary>Writes a bool value into the message body being assembled.</summary>
         IStreamMessageBuilder WriteBool(bool value);
 
-        ///<summary>Writes an int value into the message body being assembled.</summary>
-        IStreamMessageBuilder WriteInt32(int value);
-
-        ///<summary>Writes a short value into the message body being assembled.</summary>
-        IStreamMessageBuilder WriteInt16(short value);
-
         ///<summary>Writes a byte value into the message body being assembled.</summary>
         IStreamMessageBuilder WriteByte(byte value);
-
-        ///<summary>Writes a char value into the message body being assembled.</summary>
-        IStreamMessageBuilder WriteChar(char value);
-
-        ///<summary>Writes a long value into the message body being assembled.</summary>
-        IStreamMessageBuilder WriteInt64(long value);
-
-        ///<summary>Writes a float value into the message body being assembled.</summary>
-        IStreamMessageBuilder WriteSingle(float value);
-
-        ///<summary>Writes a double value into the message body being assembled.</summary>
-        IStreamMessageBuilder WriteDouble(double value);
 
         ///<summary>Writes a section of a byte array into the message body being assembled.</summary>
         IStreamMessageBuilder WriteBytes(byte[] source, int offset, int count);
@@ -74,8 +58,20 @@ namespace RabbitMQ.Client.Content {
         ///<summary>Writes a byte array into the message body being assembled.</summary>
         IStreamMessageBuilder WriteBytes(byte[] source);
 
-        ///<summary>Writes a string value into the message body being assembled.</summary>
-        IStreamMessageBuilder WriteString(string value);
+        ///<summary>Writes a char value into the message body being assembled.</summary>
+        IStreamMessageBuilder WriteChar(char value);
+
+        ///<summary>Writes a double value into the message body being assembled.</summary>
+        IStreamMessageBuilder WriteDouble(double value);
+
+        ///<summary>Writes a short value into the message body being assembled.</summary>
+        IStreamMessageBuilder WriteInt16(short value);
+
+        ///<summary>Writes an int value into the message body being assembled.</summary>
+        IStreamMessageBuilder WriteInt32(int value);
+
+        ///<summary>Writes a long value into the message body being assembled.</summary>
+        IStreamMessageBuilder WriteInt64(long value);
 
         ///<summary>Writes an object value into the message body being assembled.</summary>
         ///<remarks>
@@ -88,5 +84,11 @@ namespace RabbitMQ.Client.Content {
         ///other. No length indicator is written. See also
         ///IStreamMessageReader.ReadObjects().</summary>
         IStreamMessageBuilder WriteObjects(params object[] values);
+
+        ///<summary>Writes a float value into the message body being assembled.</summary>
+        IStreamMessageBuilder WriteSingle(float value);
+
+        ///<summary>Writes a string value into the message body being assembled.</summary>
+        IStreamMessageBuilder WriteString(string value);
     }
 }

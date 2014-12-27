@@ -45,13 +45,9 @@ namespace RabbitMQ.Client
 {
     public interface IConnectionFactory
     {
-        IConnection CreateConnection();
-
-        string UserName { get; set; }
+        IDictionary<String, object> ClientProperties { get; set; }
 
         string Password { get; set; }
-
-        string VirtualHost { get; set; }
 
         ushort RequestedChannelMax { get; set; }
 
@@ -61,8 +57,12 @@ namespace RabbitMQ.Client
 
         bool UseBackgroundThreadsForIO { get; set; }
 
-        IDictionary<String, object> ClientProperties { get; set; }
+        string UserName { get; set; }
+
+        string VirtualHost { get; set; }
 
         AuthMechanismFactory AuthMechanismFactory(string[] mechs);
+
+        IConnection CreateConnection();
     }
 }

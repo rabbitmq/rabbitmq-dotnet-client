@@ -40,38 +40,40 @@
 
 using System;
 
-namespace RabbitMQ.Client.Content {
+namespace RabbitMQ.Client.Content
+{
     ///<summary>Interface for constructing messages binary-compatible
     ///with QPid's "BytesMessage" wire encoding.</summary>
-    public interface IBytesMessageBuilder: IMessageBuilder {
-        ///<summary>Writes an int value into the message body being assembled.</summary>
-        IBytesMessageBuilder WriteInt32(int value);
-
-        ///<summary>Writes a short value into the message body being assembled.</summary>
-        IBytesMessageBuilder WriteInt16(short value);
+    public interface IBytesMessageBuilder : IMessageBuilder
+    {
+        ///<summary>Write a section of a byte array into the message
+        ///body being assembled.</summary>
+        IBytesMessageBuilder Write(byte[] source, int offset, int count);
 
         ///<summary>Writes a byte value into the message body being assembled.</summary>
         IBytesMessageBuilder WriteByte(byte value);
 
+        ///<summary>Write a byte array into the message body being
+        ///assembled.</summary>
+        IBytesMessageBuilder WriteBytes(byte[] source);
+
         ///<summary>Writes a char value into the message body being assembled.</summary>
         IBytesMessageBuilder WriteChar(char value);
+
+        ///<summary>Writes a double value into the message body being assembled.</summary>
+        IBytesMessageBuilder WriteDouble(double value);
+
+        ///<summary>Writes a short value into the message body being assembled.</summary>
+        IBytesMessageBuilder WriteInt16(short value);
+
+        ///<summary>Writes an int value into the message body being assembled.</summary>
+        IBytesMessageBuilder WriteInt32(int value);
 
         ///<summary>Writes a long value into the message body being assembled.</summary>
         IBytesMessageBuilder WriteInt64(long value);
 
         ///<summary>Writes a float value into the message body being assembled.</summary>
         IBytesMessageBuilder WriteSingle(float value);
-
-        ///<summary>Writes a double value into the message body being assembled.</summary>
-        IBytesMessageBuilder WriteDouble(double value);
-
-        ///<summary>Write a section of a byte array into the message
-        ///body being assembled.</summary>
-        IBytesMessageBuilder Write(byte[] source, int offset, int count);
-
-        ///<summary>Write a byte array into the message body being
-        ///assembled.</summary>
-        IBytesMessageBuilder WriteBytes(byte[] source);
 
         ///<summary>Writes a string value into the message body being assembled.</summary>
         IBytesMessageBuilder WriteString(string value);

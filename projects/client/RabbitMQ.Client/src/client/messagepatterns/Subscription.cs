@@ -39,15 +39,13 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.IO;
 using System.Collections;
-
-using RabbitMQ.Client;
-using RabbitMQ.Client.Exceptions;
+using System.IO;
 using RabbitMQ.Client.Events;
-using RabbitMQ.Util;
+using RabbitMQ.Client.Exceptions;
 
-namespace RabbitMQ.Client.MessagePatterns {
+namespace RabbitMQ.Client.MessagePatterns
+{
     ///<summary>Manages a subscription to a queue or exchange.</summary>
     ///<remarks>
     ///<para>
@@ -70,99 +68,99 @@ namespace RabbitMQ.Client.MessagePatterns {
     /// called with the correct parameters.
     ///</para>
     ///</remarks>
-    public class Subscription: IEnumerable, IEnumerator, IDisposable {
-        protected IModel m_model;
-
-        ///<summary>Retrieve the IModel our subscription is carried by.</summary>
-        public IModel Model { get { return m_model; } }
-
-        protected string m_queueName;
-        protected bool m_noAck;
-
+    public class Subscription : IEnumerable, IEnumerator, IDisposable
+    {
         protected readonly object m_eventLock = new object();
         protected volatile QueueingBasicConsumer m_consumer;
-        protected string m_consumerTag;
 
-        ///<summary>Retrieve the queue name we have subscribed to.</summary>
-        public string QueueName { get { return m_queueName; } }
+        ///<summary>Creates a new Subscription in "noAck" mode,
+        ///consuming from a named queue.</summary>
+        public Subscription(IModel model, string queueName)
+            : this(model, queueName, true)
+        {
+        }
+
+        ///<summary>Creates a new Subscription, with full control over
+        ///both "noAck" mode and the name of the queue.</summary>
+        public Subscription(IModel model, string queueName, bool noAck)
+        {
+            Model = model;
+            QueueName = queueName;
+            NoAck = noAck;
+            m_consumer = new QueueingBasicConsumer(Model);
+            ConsumerTag = Model.BasicConsume(QueueName, NoAck, m_consumer);
+            LatestEvent = null;
+        }
+
+        ///<summary>Creates a new Subscription, with full control over
+        ///both "noAck" mode, the name of the queue, and the consumer tag.</summary>
+        public Subscription(IModel model, string queueName, bool noAck, string consumerTag)
+        {
+            Model = model;
+            QueueName = queueName;
+            NoAck = noAck;
+            m_consumer = new QueueingBasicConsumer(Model);
+            ConsumerTag = Model.BasicConsume(QueueName, NoAck, consumerTag, m_consumer);
+            LatestEvent = null;
+        }
+
         ///<summary>Retrieve the IBasicConsumer that is receiving the
         ///messages from the server for us. Normally, you will not
         ///need to access this property - use Next() and friends
         ///instead.</summary>
-        public IBasicConsumer Consumer { get { return m_consumer; } }
+        public IBasicConsumer Consumer
+        {
+            get { return m_consumer; }
+        }
+
         ///<summary>Retrieve the consumer-tag that this subscription
         ///is using. Will usually be a server-generated
         ///name.</summary>
-        public string ConsumerTag { get { return m_consumerTag; } }
-        ///<summary>Returns true if we are in "noAck" mode, where
-        ///calls to Ack() will be no-ops, and where the server acks
-        ///messages before they are delivered to us. Returns false if
-        ///we are in a mode where calls to Ack() are required, and
-        ///where such calls will actually send an acknowledgement
-        ///message across the network to the server.</summary>
-        public bool NoAck { get { return m_noAck; } }
-
-        protected BasicDeliverEventArgs m_latestEvent;
+        public string ConsumerTag { get; protected set; }
 
         ///<summary>Returns the most recent value returned by Next(),
         ///or null when either no values have been retrieved yet, the
         ///end of the subscription has been reached, or the most
         ///recent value has already been Ack()ed. See also the
         ///documentation for Ack().</summary>
-        public BasicDeliverEventArgs LatestEvent { get { return m_latestEvent; } }
+        public BasicDeliverEventArgs LatestEvent { get; protected set; }
 
-        ///<summary>Creates a new Subscription in "noAck" mode,
-        ///consuming from a named queue.</summary>
-        public Subscription(IModel model, string queueName)
-            : this(model, queueName, true) {}
+        ///<summary>Retrieve the IModel our subscription is carried by.</summary>
+        public IModel Model { get; protected set; }
 
-        ///<summary>Creates a new Subscription, with full control over
-        ///both "noAck" mode and the name of the queue.</summary>
-        public Subscription(IModel model, string queueName, bool noAck)
+        ///<summary>Returns true if we are in "noAck" mode, where
+        ///calls to Ack() will be no-ops, and where the server acks
+        ///messages before they are delivered to us. Returns false if
+        ///we are in a mode where calls to Ack() are required, and
+        ///where such calls will actually send an acknowledgement
+        ///message across the network to the server.</summary>
+        public bool NoAck { get; protected set; }
+
+        ///<summary>Retrieve the queue name we have subscribed to.</summary>
+        public string QueueName { get; protected set; }
+
+        ///<summary>Implementation of the IEnumerator interface, for
+        ///permitting Subscription to be used in foreach
+        ///loops.</summary>
+        ///<remarks>
+        ///<para>
+        /// As per the IEnumerator interface definition, throws
+        /// InvalidOperationException if LatestEvent is null.
+        ///</para>
+        ///<para>
+        /// Does not acknowledge any deliveries at all. Ack() must be
+        /// called explicitly on received deliveries.
+        ///</para>
+        ///</remarks>
+        object IEnumerator.Current
         {
-            m_model = model;
-            m_queueName = queueName;
-            m_noAck = noAck;
-            m_consumer = new QueueingBasicConsumer(m_model);
-            m_consumerTag = m_model.BasicConsume(m_queueName, m_noAck, m_consumer);
-            m_latestEvent = null;
-        }
-
-
-        ///<summary>Creates a new Subscription, with full control over
-        ///both "noAck" mode, the name of the queue, and the consumer tag.</summary>
-        public Subscription(IModel model, string queueName, bool noAck, string consumerTag)
-        {
-            m_model = model;
-            m_queueName = queueName;
-            m_noAck = noAck;
-            m_consumer = new QueueingBasicConsumer(m_model);
-            m_consumerTag = m_model.BasicConsume(m_queueName, m_noAck, consumerTag, m_consumer);
-            m_latestEvent = null;
-        }
-
-        ///<summary>Closes this Subscription, cancelling the consumer
-        ///record in the server.</summary>
-        public void Close()
-        {
-            try {
-                bool shouldCancelConsumer = false;
-
-                if (m_consumer != null) {
-                    shouldCancelConsumer = true;
-                    m_consumer = null;
+            get
+            {
+                if (LatestEvent == null)
+                {
+                    throw new InvalidOperationException();
                 }
-
-                if (shouldCancelConsumer) {
-                    if(m_model.IsOpen)
-                    {
-                        m_model.BasicCancel(m_consumerTag);
-                    }
-                    
-                    m_consumerTag = null;
-                }
-            } catch (OperationInterruptedException) {
-                // We don't mind, here.
+                return LatestEvent;
             }
         }
 
@@ -171,7 +169,7 @@ namespace RabbitMQ.Client.MessagePatterns {
         ///null.</summary>
         public void Ack()
         {
-            Ack(m_latestEvent);
+            Ack(LatestEvent);
         }
 
         ///<summary>If we are not in "noAck" mode, calls
@@ -185,16 +183,49 @@ namespace RabbitMQ.Client.MessagePatterns {
         ///</remarks>
         public void Ack(BasicDeliverEventArgs evt)
         {
-            if (evt == null) {
+            if (evt == null)
+            {
                 return;
             }
 
-            if (!m_noAck && m_model.IsOpen) {
-                m_model.BasicAck(evt.DeliveryTag, false);
+            if (!NoAck && Model.IsOpen)
+            {
+                Model.BasicAck(evt.DeliveryTag, false);
             }
 
-            if (evt == m_latestEvent) {
+            if (evt == LatestEvent)
+            {
                 MutateLatestEvent(null);
+            }
+        }
+
+        ///<summary>Closes this Subscription, cancelling the consumer
+        ///record in the server.</summary>
+        public void Close()
+        {
+            try
+            {
+                bool shouldCancelConsumer = false;
+
+                if (m_consumer != null)
+                {
+                    shouldCancelConsumer = true;
+                    m_consumer = null;
+                }
+
+                if (shouldCancelConsumer)
+                {
+                    if (Model.IsOpen)
+                    {
+                        Model.BasicCancel(ConsumerTag);
+                    }
+
+                    ConsumerTag = null;
+                }
+            }
+            catch (OperationInterruptedException)
+            {
+                // We don't mind, here.
             }
         }
 
@@ -203,16 +234,15 @@ namespace RabbitMQ.Client.MessagePatterns {
         ///null.</summary>
         public void Nack(bool requeue)
         {
-            Nack(m_latestEvent, false, requeue);
+            Nack(LatestEvent, false, requeue);
         }
-
 
         ///<summary>If LatestEvent is non-null, passes it to
         ///Nack(BasicDeliverEventArgs, multiple, requeue). Causes LatestEvent to become
         ///null.</summary>
         public void Nack(bool multiple, bool requeue)
         {
-            Nack(m_latestEvent, multiple, requeue);
+            Nack(LatestEvent, multiple, requeue);
         }
 
         ///<summary>If we are not in "noAck" mode, calls
@@ -224,19 +254,20 @@ namespace RabbitMQ.Client.MessagePatterns {
         ///Passing an event that did not originate with this Subscription's
         /// channel, will lead to unpredictable behaviour
         ///</remarks>
-        public void Nack(BasicDeliverEventArgs evt,
-                         bool multiple,
-                         bool requeue)
+        public void Nack(BasicDeliverEventArgs evt, bool multiple, bool requeue)
         {
-            if (evt == null) {
+            if (evt == null)
+            {
                 return;
             }
 
-            if (!m_noAck && m_model.IsOpen) {
-                m_model.BasicNack(evt.DeliveryTag, multiple, requeue);
+            if (!NoAck && Model.IsOpen)
+            {
+                Model.BasicNack(evt.DeliveryTag, multiple, requeue);
             }
 
-            if (evt == m_latestEvent) {
+            if (evt == LatestEvent)
+            {
                 MutateLatestEvent(null);
             }
         }
@@ -265,17 +296,23 @@ namespace RabbitMQ.Client.MessagePatterns {
             // from under us by the operation of Close() from
             // another thread.
             QueueingBasicConsumer consumer = m_consumer;
-            try {
-                if (consumer == null || m_model.IsClosed) {
+            try
+            {
+                if (consumer == null || Model.IsClosed)
+                {
                     MutateLatestEvent(null);
-                } else {
-                    BasicDeliverEventArgs bdea = (BasicDeliverEventArgs) consumer.Queue.Dequeue();
+                }
+                else
+                {
+                    BasicDeliverEventArgs bdea = consumer.Queue.Dequeue();
                     MutateLatestEvent(bdea);
                 }
-            } catch (EndOfStreamException) {
+            }
+            catch (EndOfStreamException)
+            {
                 MutateLatestEvent(null);
             }
-            return m_latestEvent;
+            return LatestEvent;
         }
 
         ///<summary>Retrieves the next incoming delivery in our
@@ -324,28 +361,43 @@ namespace RabbitMQ.Client.MessagePatterns {
         ///</remarks>
         public bool Next(int millisecondsTimeout, out BasicDeliverEventArgs result)
         {
-            try {
+            try
+            {
                 // Alias the pointer as otherwise it may change out
                 // from under us by the operation of Close() from
                 // another thread.
                 QueueingBasicConsumer consumer = m_consumer;
-                if (consumer == null || m_model.IsClosed) {
+                if (consumer == null || Model.IsClosed)
+                {
                     MutateLatestEvent(null);
                     result = null;
                     return false;
-                } else {
+                }
+                else
+                {
                     BasicDeliverEventArgs qValue;
-                    if (!consumer.Queue.Dequeue(millisecondsTimeout, out qValue)) {
+                    if (!consumer.Queue.Dequeue(millisecondsTimeout, out qValue))
+                    {
                         result = null;
                         return false;
                     }
                     MutateLatestEvent(qValue);
                 }
-            } catch (EndOfStreamException) {
+            }
+            catch (EndOfStreamException)
+            {
                 MutateLatestEvent(null);
             }
-            result = m_latestEvent;
+            result = LatestEvent;
             return true;
+        }
+
+        ///<summary>Implementation of the IDisposable interface,
+        ///permitting Subscription to be used in using
+        ///statements. Simply calls Close().</summary>
+        void IDisposable.Dispose()
+        {
+            Close();
         }
 
         ///<summary>Implementation of the IEnumerable interface, for
@@ -354,28 +406,6 @@ namespace RabbitMQ.Client.MessagePatterns {
         IEnumerator IEnumerable.GetEnumerator()
         {
             return this;
-        }
-
-        ///<summary>Implementation of the IEnumerator interface, for
-        ///permitting Subscription to be used in foreach
-        ///loops.</summary>
-        ///<remarks>
-        ///<para>
-        /// As per the IEnumerator interface definition, throws
-        /// InvalidOperationException if LatestEvent is null.
-        ///</para>
-        ///<para>
-        /// Does not acknowledge any deliveries at all. Ack() must be
-        /// called explicitly on received deliveries.
-        ///</para>
-        ///</remarks>
-        object IEnumerator.Current {
-            get {
-                if (m_latestEvent == null) {
-                    throw new InvalidOperationException();
-                }
-                return m_latestEvent;
-            }
         }
 
         ///<summary>Implementation of the IEnumerator interface, for
@@ -402,19 +432,11 @@ namespace RabbitMQ.Client.MessagePatterns {
             throw new InvalidOperationException("Subscription.Reset() does not make sense");
         }
 
-        ///<summary>Implementation of the IDisposable interface,
-        ///permitting Subscription to be used in using
-        ///statements. Simply calls Close().</summary>
-        void IDisposable.Dispose()
-        {
-            Close();
-        }
-
         protected void MutateLatestEvent(BasicDeliverEventArgs value)
         {
-            lock(m_eventLock)
+            lock (m_eventLock)
             {
-                m_latestEvent = value;
+                LatestEvent = value;
             }
         }
     }

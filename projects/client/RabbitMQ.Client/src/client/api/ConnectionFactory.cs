@@ -39,15 +39,11 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.IO;
-using System.Net;
-using System.Net.Security;
-using System.Net.Sockets;
 using System.Collections.Generic;
-
-using RabbitMQ.Client.Impl;
-using RabbitMQ.Client.Framing.Impl;
+using System.Net.Security;
 using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Framing.Impl;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
 {
@@ -97,18 +93,13 @@ namespace RabbitMQ.Client
     ///hosts with an empty name are not addressable. </para></remarks>
     public class ConnectionFactory : ConnectionFactoryBase, IConnectionFactory
     {
-        /// <summary>Default user name (value: "guest")</summary>
-        public const string DefaultUser = "guest"; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
-
-        /// <summary>Default password (value: "guest")</summary>
-        public const string DefaultPass = "guest"; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
-
-        /// <summary>Default virtual host (value: "/")</summary>
-        public const string DefaultVHost = "/"; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
-
         /// <summary> Default value for the desired maximum channel
         /// number, with zero meaning unlimited (value: 0)</summary>
         public const ushort DefaultChannelMax = 0; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
+
+        /// <summary> Default value for connection attempt timeout,
+        /// in milliseconds</summary>
+        public const int DefaultConnectionTimeout = 30 * 1000;
 
         /// <summary>Default value for the desired maximum frame size,
         /// with zero meaning unlimited (value: 0)</summary>
@@ -118,98 +109,28 @@ namespace RabbitMQ.Client
         /// seconds, with zero meaning none (value: 0)</summary>
         public const ushort DefaultHeartbeat = 0; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
 
-        /// <summary> Default value for connection attempt timeout,
-        /// in milliseconds</summary>
-        public const int DefaultConnectionTimeout = 30 * 1000;
+        /// <summary>Default password (value: "guest")</summary>
+        public const string DefaultPass = "guest"; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
+
+        /// <summary>Default user name (value: "guest")</summary>
+        public const string DefaultUser = "guest"; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
+
+        /// <summary>Default virtual host (value: "/")</summary>
+        public const string DefaultVHost = "/"; // PLEASE KEEP THIS MATCHING THE DOC ABOVE
 
         ///<summary> Default SASL auth mechanisms to use.</summary>
-        public static AuthMechanismFactory[] DefaultAuthMechanisms =
-            new AuthMechanismFactory[] { new PlainMechanismFactory() };
+        public static AuthMechanismFactory[] DefaultAuthMechanisms = { new PlainMechanismFactory() };
 
-        private string m_username = DefaultUser;
-        /// <summary>Username to use when authenticating to the server</summary>
-        public string UserName
-        {
-            get { return m_username;  }
-            set { m_username = value; }
-        }
-
-        private string m_password = DefaultPass;
-        /// <summary>Password to use when authenticating to the server</summary>
-        public string Password
-        {
-            get { return m_password; }
-            set { m_password = value; }
-        }
-
-        private string m_vhost = DefaultVHost;
-        /// <summary>Virtual host to access during this connection</summary>
-        public string VirtualHost
-        {
-            get { return m_vhost; }
-            set { m_vhost = value; }
-        }
-
-        private ushort m_requestedChannelMax = DefaultChannelMax;
-        /// <summary>Maximum channel number to ask for</summary>
-        public ushort RequestedChannelMax
-        {
-            get { return m_requestedChannelMax; }
-            set { m_requestedChannelMax = value; }
-        }
-
-        private uint m_requestedFrameMax = DefaultFrameMax;
-        /// <summary>Frame-max parameter to ask for (in bytes)</summary>
-        public uint RequestedFrameMax
-        {
-            get { return m_requestedFrameMax; }
-            set { m_requestedFrameMax = value; }
-        }
-
-        private ushort m_requestedHeartbeat = DefaultHeartbeat;
-        /// <summary>Heartbeat setting to request (in seconds)</summary>
-        public ushort RequestedHeartbeat
-        {
-            get { return m_requestedHeartbeat; }
-            set { m_requestedHeartbeat = value; }
-        }
-
-        /// <summary>Timeout setting for connection attempts (in milliseconds)</summary>
-        public int RequestedConnectionTimeout = DefaultConnectionTimeout;
-
-        private bool m_useBackgroundThreadsForIO = false;
-        /// <summary>
-        /// When set to true, background threads will be used for I/O and heartbeats.
-        /// </summary>
-        public bool UseBackgroundThreadsForIO
-        {
-            get { return m_useBackgroundThreadsForIO; }
-            set { m_useBackgroundThreadsForIO = value; }
-        }
-
-        private IDictionary<string, object> m_clientProperties =
-            Connection.DefaultClientProperties();
-        /// <summary>Dictionary of client properties to be sent to the
-        /// server</summary>
-        public IDictionary<string, object> ClientProperties
-        {
-            get { return m_clientProperties; }
-            set { m_clientProperties = value; }
-        }
-
-        ///<summary>Ssl options setting</summary>
-        public SslOption Ssl = new SslOption();
+        ///<summary> SASL auth mechanisms to use.</summary>
+        public AuthMechanismFactory[] AuthMechanisms = DefaultAuthMechanisms;
 
         /// <summary>
         /// Set to true to enable automatic connection recovery.
         /// </summary>
         public bool AutomaticRecoveryEnabled = false;
 
-        /// <summary>
-        /// Set to true to make automatic connection recovery also recover
-        /// topology (exchanges, queues, bindings, etc).
-        /// </summary>
-        public bool TopologyRecoveryEnabled = true;
+        ///<summary>The host to connect to</summary>
+        public String HostName = "localhost";
 
         /// <summary>
         /// Amount of time client will wait for before re-trying
@@ -217,57 +138,111 @@ namespace RabbitMQ.Client
         /// </summary>
         public TimeSpan NetworkRecoveryInterval = TimeSpan.FromSeconds(5);
 
-        ///<summary>The host to connect to</summary>
-        public String HostName = "localhost";
-
         ///<summary>The port to connect on.
         /// AmqpTcpEndpoint.UseDefaultPort indicates the default for
         /// the protocol should be used.</summary>
         public int Port = AmqpTcpEndpoint.UseDefaultPort;
 
-        ///<summary> SASL auth mechanisms to use.</summary>
-        public AuthMechanismFactory[] AuthMechanisms = DefaultAuthMechanisms;
-
         ///<summary>The AMQP protocol to be used. Currently 0-9-1.</summary>
         public IProtocol Protocol = Protocols.DefaultProtocol;
+
+        /// <summary>Timeout setting for connection attempts (in milliseconds)</summary>
+        public int RequestedConnectionTimeout = DefaultConnectionTimeout;
+
+        ///<summary>Ssl options setting</summary>
+        public SslOption Ssl = new SslOption();
+
+        /// <summary>
+        /// Set to true to make automatic connection recovery also recover
+        /// topology (exchanges, queues, bindings, etc).
+        /// </summary>
+        public bool TopologyRecoveryEnabled = true;
+
+        ///<summary>Construct a fresh instance, with all fields set to
+        ///their respective defaults.</summary>
+        public ConnectionFactory()
+        {
+            VirtualHost = DefaultVHost;
+            UserName = DefaultUser;
+            RequestedHeartbeat = DefaultHeartbeat;
+            RequestedFrameMax = DefaultFrameMax;
+            RequestedChannelMax = DefaultChannelMax;
+            Password = DefaultPass;
+            ClientProperties = Connection.DefaultClientProperties();
+            UseBackgroundThreadsForIO = false;
+        }
+
+        /// <summary>Dictionary of client properties to be sent to the
+        /// server</summary>
+        public IDictionary<string, object> ClientProperties { get; set; }
 
         ///<summary>The AMQP connection target</summary>
         public AmqpTcpEndpoint Endpoint
         {
-          get
-          {
-              return new AmqpTcpEndpoint(HostName, Port, Ssl);
-          }
-          set
-          {
-              Port = value.Port;
-              HostName = value.HostName;
-              Ssl = value.Ssl;
-          }
+            get { return new AmqpTcpEndpoint(HostName, Port, Ssl); }
+            set
+            {
+                Port = value.Port;
+                HostName = value.HostName;
+                Ssl = value.Ssl;
+            }
         }
 
-        ///<summary>Set connection parameters using the amqp or amqps scheme</summary>
-        public Uri uri
-        {
-          set { SetUri(value); }
-        }
+        /// <summary>Password to use when authenticating to the server</summary>
+        public string Password { get; set; }
+
+        /// <summary>Maximum channel number to ask for</summary>
+        public ushort RequestedChannelMax { get; set; }
+
+        /// <summary>Frame-max parameter to ask for (in bytes)</summary>
+        public uint RequestedFrameMax { get; set; }
+
+        /// <summary>Heartbeat setting to request (in seconds)</summary>
+        public ushort RequestedHeartbeat { get; set; }
 
         ///<summary>Set connection parameters using the amqp or amqps scheme</summary>
         public String Uri
         {
-          set { SetUri(new Uri(value, UriKind.Absolute)); }
+            set { SetUri(new Uri(value, UriKind.Absolute)); }
         }
 
-        ///<summary>Construct a fresh instance, with all fields set to
-        ///their respective defaults.</summary>
-        public ConnectionFactory() { }
+        /// <summary>
+        /// When set to true, background threads will be used for I/O and heartbeats.
+        /// </summary>
+        public bool UseBackgroundThreadsForIO { get; set; }
+
+        /// <summary>Username to use when authenticating to the server</summary>
+        public string UserName { get; set; }
+
+        /// <summary>Virtual host to access during this connection</summary>
+        public string VirtualHost { get; set; }
+
+        ///<summary>Set connection parameters using the amqp or amqps scheme</summary>
+        public Uri uri
+        {
+            set { SetUri(value); }
+        }
 
         public IFrameHandler CreateFrameHandler()
         {
             IProtocol p = Protocols.DefaultProtocol;
-            return p.CreateFrameHandler(Endpoint,
-                                        SocketFactory,
-                                        RequestedConnectionTimeout);
+            return p.CreateFrameHandler(Endpoint, SocketFactory, RequestedConnectionTimeout);
+        }
+
+        ///<summary>Given a list of mechanism names supported by the
+        ///server, select a preferred mechanism, or null if we have
+        ///none in common.</summary>
+        public AuthMechanismFactory AuthMechanismFactory(string[] mechs)
+        {
+            // Our list is in order of preference, the server one is not.
+            foreach (AuthMechanismFactory f in AuthMechanisms)
+            {
+                if (((IList<string>)mechs).Contains(f.Name))
+                {
+                    return f;
+                }
+            }
+            return null;
         }
 
         ///<summary>Create a connection to the specified endpoint.</summary>
@@ -276,92 +251,90 @@ namespace RabbitMQ.Client
             IConnection conn = null;
             try
             {
-                if(this.AutomaticRecoveryEnabled)
+                if (AutomaticRecoveryEnabled)
                 {
-                    AutorecoveringConnection ac = new AutorecoveringConnection(this);
+                    var ac = new AutorecoveringConnection(this);
                     ac.init();
                     conn = ac;
-                } else
+                }
+                else
                 {
                     IProtocol p = Protocols.DefaultProtocol;
-                    conn = p.CreateConnection(this, false, this.CreateFrameHandler());
+                    conn = p.CreateConnection(this, false, CreateFrameHandler());
                 }
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
-
                 throw new BrokerUnreachableException(e);
             }
 
             return conn;
         }
 
-        ///<summary>Given a list of mechanism names supported by the
-        ///server, select a preferred mechanism, or null if we have
-        ///none in common.</summary>
-        public AuthMechanismFactory AuthMechanismFactory(string[] mechs) {
-            // Our list is in order of preference, the server one is not.
-            foreach (AuthMechanismFactory f in AuthMechanisms) {
-                if (((IList<string>)mechs).Contains(f.Name)) {
-                    return f;
-                }
-            }
-
-            return null;
-        }
-
-
         private void SetUri(Uri uri)
         {
             Endpoint = new AmqpTcpEndpoint();
 
-            if ("amqp".CompareTo(uri.Scheme.ToLower()) == 0) {
+            if ("amqp".CompareTo(uri.Scheme.ToLower()) == 0)
+            {
                 // nothing special to do
-            } else if ("amqps".CompareTo(uri.Scheme.ToLower()) == 0) {
+            }
+            else if ("amqps".CompareTo(uri.Scheme.ToLower()) == 0)
+            {
                 Ssl.Enabled = true;
                 Ssl.AcceptablePolicyErrors =
                     SslPolicyErrors.RemoteCertificateNameMismatch;
                 Port = AmqpTcpEndpoint.DefaultAmqpSslPort;
-            } else {
-                throw new ArgumentException("Wrong scheme in AMQP URI: " +
-                                            uri.Scheme);
+            }
+            else
+            {
+                throw new ArgumentException("Wrong scheme in AMQP URI: " + uri.Scheme);
             }
             string host = uri.Host;
-            if (!String.IsNullOrEmpty(host)) {
+            if (!String.IsNullOrEmpty(host))
+            {
                 HostName = host;
             }
             Ssl.ServerName = HostName;
 
             int port = uri.Port;
-            if (port != -1) {
+            if (port != -1)
+            {
                 Port = port;
             }
 
             string userInfo = uri.UserInfo;
-            if (!String.IsNullOrEmpty(userInfo)) {
+            if (!String.IsNullOrEmpty(userInfo))
+            {
                 string[] userPass = userInfo.Split(':');
-                if (userPass.Length > 2) {
-                    throw new ArgumentException("Bad user info in AMQP " +
-                                                "URI: " + userInfo);
+                if (userPass.Length > 2)
+                {
+                    throw new ArgumentException("Bad user info in AMQP " + "URI: " + userInfo);
                 }
                 UserName = UriDecode(userPass[0]);
-                if (userPass.Length == 2) {
+                if (userPass.Length == 2)
+                {
                     Password = UriDecode(userPass[1]);
                 }
             }
 
             /* C# automatically changes URIs into a canonical form
                that has at least the path segment "/". */
-            if (uri.Segments.Length > 2) {
+            if (uri.Segments.Length > 2)
+            {
                 throw new ArgumentException("Multiple segments in " +
                                             "path of AMQP URI: " +
                                             String.Join(", ", uri.Segments));
-            } else if (uri.Segments.Length == 2) {
+            }
+            else if (uri.Segments.Length == 2)
+            {
                 VirtualHost = UriDecode(uri.Segments[1]);
             }
         }
 
         //<summary>Unescape a string, protecting '+'.</summary>
-        private string UriDecode(string uri) {
+        private string UriDecode(string uri)
+        {
             return System.Uri.UnescapeDataString(uri.Replace("+", "%2B"));
         }
     }

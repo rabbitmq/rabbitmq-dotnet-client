@@ -38,6 +38,8 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+
 namespace RabbitMQ.Client
 {
     ///<summary>Wrapper for a byte[]. May appear as values read from
@@ -69,26 +71,22 @@ namespace RabbitMQ.Client
     ///</remarks>
     public class BinaryTableValue
     {
-        private byte[] m_bytes = null;
-
-        ///<summary>The wrapped byte array, as decoded or as to be
-        ///encoded.</summary>
-        public byte[] Bytes {
-            get { return m_bytes; }
-            set { m_bytes = value; }
-        }
-
         ///<summary>Constructs an instance with null for its Bytes
         ///property.</summary>
         public BinaryTableValue()
             : this(null)
-        {}
+        {
+        }
 
         ///<summary>Constructs an instance with the passed-in value
         ///for its Bytes property.</summary>
         public BinaryTableValue(byte[] bytes)
         {
-            m_bytes = bytes;
+            Bytes = bytes;
         }
+
+        ///<summary>The wrapped byte array, as decoded or as to be
+        ///encoded.</summary>
+        public byte[] Bytes { get; set; }
     }
 }

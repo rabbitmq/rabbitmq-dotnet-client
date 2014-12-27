@@ -45,16 +45,14 @@ namespace RabbitMQ.Client.Exceptions
     /// <summary>
     /// Thrown when the model receives an RPC reply that it wasn't expecting.
     /// </summary>
-    public class UnexpectedMethodException : System.Exception
+    public class UnexpectedMethodException : Exception
     {
-        private IMethod m_method;
-
-        ///<summary>The unexpected reply method.</summary>
-        public IMethod Method { get { return m_method; } }
-
         public UnexpectedMethodException(IMethod method)
         {
-            m_method = method;
+            Method = method;
         }
+
+        ///<summary>The unexpected reply method.</summary>
+        public IMethod Method { get; private set; }
     }
 }

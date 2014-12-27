@@ -39,87 +39,122 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Text;
 using System.Threading;
-using System.Collections.Generic;
-
-using RabbitMQ.Client;
-using RabbitMQ.Client.Impl;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Impl;
+using RabbitMQ.Client.Framing;
 using RabbitMQ.Util;
 
-using RabbitMQ.Client.Framing;
-
-namespace RabbitMQ.Client.Framing.Impl {
-    public class Connection : IConnection, NetworkConnection
+namespace RabbitMQ.Client.Framing.Impl
+{
+    public class Connection : IConnection
     {
+        public readonly object m_eventLock = new object();
+
         ///<summary>Heartbeat frame for transmission. Reusable across connections.</summary>
         public readonly Frame m_heartbeatFrame = new Frame(Constants.FrameHeartbeat,
-                                                           0,
-                                                           new byte[0]);
+            0,
+            new byte[0]);
 
         ///<summary>Timeout used while waiting for AMQP handshaking to
         ///complete (milliseconds)</summary>
-        public static int HandshakeTimeout = 10000;
-
-        public IConnectionFactory m_factory;
-        public IFrameHandler m_frameHandler;
-        public uint m_frameMax = 0;
-        public ushort m_heartbeat = 0;
-        public IDictionary<string, object> m_clientProperties;
-        public IDictionary<string, object> m_serverProperties;
-        public AmqpTcpEndpoint[] m_knownHosts = null;
-
-        public MainSession m_session0;
-        public ModelBase m_model0;
-
-        public SessionManager m_sessionManager;
-
-        public volatile bool m_running = true;
-
-        public readonly object m_eventLock = new object();
-        public ConnectionShutdownEventHandler m_connectionShutdown;
-
-        public volatile ShutdownEventArgs m_closeReason = null;
-        public CallbackExceptionEventHandler m_callbackException;
-
-        public ConnectionBlockedEventHandler m_connectionBlocked;
-        public ConnectionUnblockedEventHandler m_connectionUnblocked;
+        public const int HandshakeTimeout = 10000;
 
         public ManualResetEvent m_appContinuation = new ManualResetEvent(false);
+        public CallbackExceptionEventHandler m_callbackException;
+
+        public IDictionary<string, object> m_clientProperties;
+
+        public volatile ShutdownEventArgs m_closeReason = null;
+        public volatile bool m_closed = false;
+
+        public ConnectionBlockedEventHandler m_connectionBlocked;
+        public ConnectionShutdownEventHandler m_connectionShutdown;
+        public ConnectionUnblockedEventHandler m_connectionUnblocked;
+        public IConnectionFactory m_factory;
+        public IFrameHandler m_frameHandler;
+        public ushort m_heartbeat = 0;
+
         public AutoResetEvent m_heartbeatRead = new AutoResetEvent(false);
         public AutoResetEvent m_heartbeatWrite = new AutoResetEvent(false);
-        public volatile bool m_closed = false;
 
         public Guid m_id = Guid.NewGuid();
 
-        private Timer heartbeatWriteTimer;
-        private Timer heartbeatReadTimer;
-
         public int m_missedHeartbeats = 0;
+        public ModelBase m_model0;
+        public volatile bool m_running = true;
+        public MainSession m_session0;
+        public SessionManager m_sessionManager;
 
         public IList<ShutdownReportEntry> m_shutdownReport = new SynchronizedList<ShutdownReportEntry>(new List<ShutdownReportEntry>());
+        private Timer heartbeatReadTimer;
+        private Timer heartbeatWriteTimer;
 
-        public Connection(IConnectionFactory factory,
-                          bool insist,
-                          IFrameHandler frameHandler)
+        public Connection(IConnectionFactory factory, bool insist, IFrameHandler frameHandler)
         {
+            KnownHosts = null;
+            FrameMax = 0;
             m_factory = factory;
             m_frameHandler = frameHandler;
 
             m_sessionManager = new SessionManager(this, 0);
-            m_session0 = new MainSession(this);
-            m_session0.Handler = new MainSession.SessionCloseDelegate(NotifyReceivedCloseOk);
+            m_session0 = new MainSession(this) { Handler = NotifyReceivedCloseOk };
             m_model0 = (ModelBase)Protocol.CreateModel(m_session0);
 
             StartMainLoop(factory.UseBackgroundThreadsForIO);
             Open(insist);
             StartHeartbeatTimers();
             AppDomain.CurrentDomain.DomainUnload += HandleDomainUnload;
+        }
+
+
+        public delegate void ConnectionCloseDelegate(ushort replyCode,
+            string replyText,
+            ushort classId,
+            ushort methodId);
+
+
+        public event CallbackExceptionEventHandler CallbackException
+        {
+            add
+            {
+                lock (m_eventLock)
+                {
+                    m_callbackException += value;
+                }
+            }
+            remove
+            {
+                lock (m_eventLock)
+                {
+                    m_callbackException -= value;
+                }
+            }
+        }
+
+        public event ConnectionBlockedEventHandler ConnectionBlocked
+        {
+            add
+            {
+                lock (m_eventLock)
+                {
+                    m_connectionBlocked += value;
+                }
+            }
+            remove
+            {
+                lock (m_eventLock)
+                {
+                    m_connectionBlocked -= value;
+                }
+            }
         }
 
         public event ConnectionShutdownEventHandler ConnectionShutdown
@@ -149,24 +184,6 @@ namespace RabbitMQ.Client.Framing.Impl {
             }
         }
 
-        public event ConnectionBlockedEventHandler ConnectionBlocked
-        {
-            add
-            {
-                lock (m_eventLock)
-                {
-                    m_connectionBlocked += value;
-                }
-            }
-            remove
-            {
-                lock (m_eventLock)
-                {
-                    m_connectionBlocked -= value;
-                }
-            }
-        }
-
         public event ConnectionUnblockedEventHandler ConnectionUnblocked
         {
             add
@@ -185,108 +202,38 @@ namespace RabbitMQ.Client.Framing.Impl {
             }
         }
 
-        public event CallbackExceptionEventHandler CallbackException
+        public bool AutoClose
         {
-            add
-            {
-                lock (m_eventLock)
-                {
-                    m_callbackException += value;
-                }
-            }
-            remove
-            {
-                lock (m_eventLock)
-                {
-                    m_callbackException -= value;
-                }
-            }
-        }
-
-        public AmqpTcpEndpoint Endpoint
-        {
-            get
-            {
-                return m_frameHandler.Endpoint;
-            }
-        }
-
-        public EndPoint LocalEndPoint
-        {
-            get { return m_frameHandler.LocalEndPoint; }
-        }
-
-        public EndPoint RemoteEndPoint
-        {
-            get { return m_frameHandler.RemoteEndPoint; }
-        }
-
-        public int LocalPort
-        {
-            get
-            {
-                return m_frameHandler.LocalPort;
-            }
-        }
-        public int RemotePort
-        {
-            get
-            {
-                return m_frameHandler.RemotePort;
-            }
-        }
-
-        ///<summary>Explicit implementation of IConnection.Protocol.</summary>
-        IProtocol IConnection.Protocol
-        {
-            get
-            {
-                return Endpoint.Protocol;
-            }
-        }
-
-        ///<summary>Another overload of a Protocol property, useful
-        ///for exposing a tighter type.</summary>
-        public ProtocolBase Protocol
-        {
-            get
-            {
-                return (ProtocolBase)Endpoint.Protocol;
-            }
-        }
-
-        public void WriteFrame(Frame f)
-        {
-            m_frameHandler.WriteFrame(f);
-            m_heartbeatWrite.Set();
+            get { return m_sessionManager.AutoClose; }
+            set { m_sessionManager.AutoClose = value; }
         }
 
         public ushort ChannelMax
         {
-            get
-            {
-                return m_sessionManager.ChannelMax;
-            }
+            get { return m_sessionManager.ChannelMax; }
         }
 
-        public uint FrameMax
+        public IDictionary<string, object> ClientProperties
         {
-            get
-            {
-                return m_frameMax;
-            }
-            set
-            {
-                m_frameMax = value;
-            }
+            get { return m_clientProperties; }
+            set { m_clientProperties = value; }
         }
+
+        public ShutdownEventArgs CloseReason
+        {
+            get { return m_closeReason; }
+        }
+
+        public AmqpTcpEndpoint Endpoint
+        {
+            get { return m_frameHandler.Endpoint; }
+        }
+
+        public uint FrameMax { get; set; }
 
         public ushort Heartbeat
         {
-            get
-            {
-                return m_heartbeat;
-            }
+            get { return m_heartbeat; }
             set
             {
                 m_heartbeat = value;
@@ -297,187 +244,79 @@ namespace RabbitMQ.Client.Framing.Impl {
             }
         }
 
-        public IDictionary<string, object> ClientProperties
-        {
-            get
-            {
-                return m_clientProperties;
-            }
-            set
-            {
-                m_clientProperties = value;
-            }
-        }
-
-        public IDictionary<string, object> ServerProperties
-        {
-            get
-            {
-                return m_serverProperties;
-            }
-            set
-            {
-                m_serverProperties = value;
-            }
-        }
-
-        public AmqpTcpEndpoint[] KnownHosts
-        {
-            get { return m_knownHosts; }
-            set { m_knownHosts = value; }
-        }
-
-        public ShutdownEventArgs CloseReason
-        {
-            get
-            {
-                return m_closeReason;
-            }
-        }
-
         public bool IsOpen
         {
-            get
-            {
-                return CloseReason == null;
-            }
+            get { return CloseReason == null; }
         }
 
-        public bool AutoClose
+        public AmqpTcpEndpoint[] KnownHosts { get; set; }
+
+        public EndPoint LocalEndPoint
         {
-            get
-            {
-                return m_sessionManager.AutoClose;
-            }
-            set
-            {
-                m_sessionManager.AutoClose = value;
-            }
+            get { return m_frameHandler.LocalEndPoint; }
         }
 
-        public void EnsureIsOpen()
+        public int LocalPort
         {
-            if(!IsOpen)
-            {
-                throw new AlreadyClosedException(this.CloseReason);
-            }
+            get { return m_frameHandler.LocalPort; }
         }
 
-        public IModel CreateModel()
+        ///<summary>Another overload of a Protocol property, useful
+        ///for exposing a tighter type.</summary>
+        public ProtocolBase Protocol
         {
-            this.EnsureIsOpen();
-            ISession session = CreateSession();
-            IFullModel model = (IFullModel)Protocol.CreateModel(session);
-            model._Private_ChannelOpen("");
-            return model;
+            get { return (ProtocolBase)Endpoint.Protocol; }
         }
 
-        public ISession CreateSession()
+        public EndPoint RemoteEndPoint
         {
-            return m_sessionManager.Create();
+            get { return m_frameHandler.RemoteEndPoint; }
         }
 
-        public ISession CreateSession(int channelNumber)
+        public int RemotePort
         {
-            return m_sessionManager.Create(channelNumber);
+            get { return m_frameHandler.RemotePort; }
         }
 
-        public bool SetCloseReason(ShutdownEventArgs reason)
-        {
-            lock (m_eventLock)
-            {
-                if (m_closeReason == null)
-                {
-                    m_closeReason = reason;
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-        }
+        public IDictionary<string, object> ServerProperties { get; set; }
 
         public IList<ShutdownReportEntry> ShutdownReport
         {
-            get
-            {
-                return m_shutdownReport;
-            }
+            get { return m_shutdownReport; }
         }
 
-        void IDisposable.Dispose()
+        ///<summary>Explicit implementation of IConnection.Protocol.</summary>
+        IProtocol IConnection.Protocol
         {
-            Abort();
-            if (ShutdownReport.Count > 0)
-            {
-                foreach (ShutdownReportEntry entry in ShutdownReport)
-                {
-                    if (entry.Exception != null)
-                        throw entry.Exception;
-                }
-                throw new OperationInterruptedException(null);
-            }
+            get { return Endpoint.Protocol; }
         }
 
-        ///<summary>API-side invocation of connection.close.</summary>
-        public void Close()
+        public static IDictionary<string, object> DefaultClientProperties()
         {
-            Close(Constants.ReplySuccess, "Goodbye", Timeout.Infinite);
+            Assembly assembly =
+                Assembly.GetAssembly(typeof(Connection));
+            string version = assembly.GetName().Version.ToString();
+            //TODO: Get the rest of this data from the Assembly Attributes
+            IDictionary<string, object> table = new Dictionary<string, object>();
+            table["product"] = Encoding.UTF8.GetBytes("RabbitMQ");
+            table["version"] = Encoding.UTF8.GetBytes(version);
+            table["platform"] = Encoding.UTF8.GetBytes(".NET");
+            table["copyright"] = Encoding.UTF8.GetBytes("Copyright (C) 2007-2014 GoPivotal, Inc.");
+            table["information"] = Encoding.UTF8.GetBytes("Licensed under the MPL.  " +
+                                                          "See http://www.rabbitmq.com/");
+            return table;
         }
 
-        ///<summary>API-side invocation of connection.close.</summary>
-        public void Close(ushort reasonCode, string reasonText)
+        public void Abort(ushort reasonCode, string reasonText,
+            ShutdownInitiator initiator, int timeout)
         {
-            Close(reasonCode, reasonText, Timeout.Infinite);
-        }
-
-        ///<summary>API-side invocation of connection.close with timeout.</summary>
-        public void Close(int timeout)
-        {
-            Close(Constants.ReplySuccess, "Goodbye", timeout);
-        }
-
-        ///<summary>API-side invocation of connection.close with timeout.</summary>
-        public void Close(ushort reasonCode, string reasonText, int timeout)
-        {
-            Close(new ShutdownEventArgs(ShutdownInitiator.Application, reasonCode, reasonText), false, timeout);
+            Close(new ShutdownEventArgs(initiator, reasonCode, reasonText),
+                true, timeout);
         }
 
         public void Close(ShutdownEventArgs reason)
         {
             Close(reason, false, Timeout.Infinite);
-        }
-
-        ///<summary>API-side invocation of connection abort.</summary>
-        public void Abort()
-        {
-            Abort(Timeout.Infinite);
-        }
-
-        ///<summary>API-side invocation of connection abort.</summary>
-        public void Abort(ushort reasonCode, string reasonText)
-        {
-            Abort(reasonCode, reasonText, Timeout.Infinite);
-        }
-
-        ///<summary>API-side invocation of connection abort with timeout.</summary>
-        public void Abort(int timeout)
-        {
-            Abort(Constants.ReplySuccess, "Connection close forced", timeout);
-        }
-
-        ///<summary>API-side invocation of connection abort with timeout.</summary>
-        public void Abort(ushort reasonCode, string reasonText, int timeout)
-        {
-            Abort(reasonCode, reasonText, ShutdownInitiator.Application, timeout);
-        }
-
-        public void Abort(ushort reasonCode, string reasonText,
-                          ShutdownInitiator initiator, int timeout)
-        {
-            Close( new ShutdownEventArgs(initiator, reasonCode, reasonText),
-                   true, timeout);
         }
 
         ///<summary>Try to close connection in a graceful way</summary>
@@ -500,7 +339,9 @@ namespace RabbitMQ.Client.Framing.Impl {
             if (!SetCloseReason(reason))
             {
                 if (!abort)
+                {
                     throw new AlreadyClosedException(m_closeReason);
+                }
             }
             else
             {
@@ -512,12 +353,14 @@ namespace RabbitMQ.Client.Framing.Impl {
                     // Try to send connection.close
                     // Wait for CloseOk in the MainLoop
                     m_session0.Transmit(ConnectionCloseWrapper(reason.ReplyCode,
-                                                               reason.ReplyText));
+                        reason.ReplyText));
                 }
                 catch (AlreadyClosedException ace)
                 {
                     if (!abort)
+                    {
                         throw ace;
+                    }
                 }
 #pragma warning disable 0168
                 catch (NotSupportedException nse)
@@ -531,10 +374,14 @@ namespace RabbitMQ.Client.Framing.Impl {
                     if (m_model0.CloseReason == null)
                     {
                         if (!abort)
+                        {
                             throw ioe;
+                        }
                         else
+                        {
                             LogCloseError("Couldn't close connection cleanly. "
                                           + "Socket closed unexpectedly", ioe);
+                        }
                     }
                 }
                 finally
@@ -542,248 +389,79 @@ namespace RabbitMQ.Client.Framing.Impl {
                     TerminateMainloop();
                 }
             }
-            if (!m_appContinuation.WaitOne(BlockingCell.validatedTimeout(timeout),true))
-                m_frameHandler.Close();
-        }
-
-        public delegate void ConnectionCloseDelegate(ushort replyCode,
-                                                     string replyText,
-                                                     ushort classId,
-                                                     ushort methodId);
-
-        public void InternalClose(ShutdownEventArgs reason)
-        {
-            if (!SetCloseReason(reason))
+            if (!m_appContinuation.WaitOne(BlockingCell.validatedTimeout(timeout), true))
             {
-                if (m_closed)
-                    throw new AlreadyClosedException(m_closeReason);
-                // We are quiescing, but still allow for server-close
+                m_frameHandler.Close();
             }
-
-            OnShutdown();
-            m_session0.SetSessionClosing(true);
-            TerminateMainloop();
         }
 
         ///<remarks>
-        /// May be called more than once. Should therefore be idempotent.
+        /// Loop only used while quiescing. Use only to cleanly close connection
         ///</remarks>
-        public void TerminateMainloop()
+        public void ClosingLoop()
         {
-            m_running = false;
-        }
-
-        public void StartMainLoop(bool useBackgroundThread)
-        {
-            Thread mainLoopThread = new Thread(new ThreadStart(MainLoop));
-            mainLoopThread.Name = "AMQP Connection " + Endpoint.ToString();
-            mainLoopThread.IsBackground = useBackgroundThread;
-            mainLoopThread.Start();
-        }
-
-        public void StartHeartbeatTimers()
-        {
-            if (Heartbeat != 0) {
-                heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback);
-                heartbeatWriteTimer.Change(Heartbeat * 1000, Timeout.Infinite);
-
-                heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback);
-                heartbeatReadTimer.Change(Heartbeat * 1000, Timeout.Infinite);
-            }
-        }
-
-        public void HeartbeatWriteTimerCallback(object state)
-        {
-            var shouldTerminate = false;
             try
+            {
+                m_frameHandler.Timeout = 0;
+                // Wait for response/socket closure or timeout
+                while (!m_closed)
+                {
+                    MainLoopIteration();
+                }
+            }
+            catch (ObjectDisposedException ode)
             {
                 if (!m_closed)
                 {
-                    if (!m_heartbeatWrite.WaitOne(0, false))
-                    {
-                        WriteFrame(m_heartbeatFrame);
-                    }
+                    LogCloseError("Connection didn't close cleanly", ode);
                 }
-            } catch (Exception e) {
-                HandleMainLoopException(new ShutdownEventArgs(
-                                                              ShutdownInitiator.Library,
-                                                              0,
-                                                              "End of stream",
-                                                              e));
-                shouldTerminate = true;
             }
-
-            if (m_closed || shouldTerminate)
+            catch (EndOfStreamException eose)
             {
-                TerminateMainloop();
-                FinishClose();
+                if (m_model0.CloseReason == null)
+                {
+                    LogCloseError("Connection didn't close cleanly. "
+                                  + "Socket closed unexpectedly", eose);
+                }
             }
-            else
+            catch (IOException ioe)
             {
-                heartbeatWriteTimer.Change(Heartbeat * 1000, Timeout.Infinite);
+                LogCloseError("Connection didn't close cleanly. "
+                              + "Socket closed unexpectedly", ioe);
+            }
+            catch (Exception e)
+            {
+                LogCloseError("Unexpected exception while closing: ", e);
             }
         }
 
-        public void HeartbeatReadTimerCallback(object state)
+        public Command ConnectionCloseWrapper(ushort reasonCode, string reasonText)
         {
-            var shouldTerminate = false;
-            if (!m_closed)
-            {
-                if (!m_heartbeatRead.WaitOne(0, false))
-                    m_missedHeartbeats++;
-                else
-                    m_missedHeartbeats = 0;
-
-                // Has to miss two full heartbeats to force socket close
-                if (m_missedHeartbeats > 1)
-                {
-                    String description = "Heartbeat missing with heartbeat == " +
-                        m_heartbeat + " seconds";
-                    EndOfStreamException eose = new EndOfStreamException(description);
-                    m_shutdownReport.Add(new ShutdownReportEntry(description, eose));
-                    HandleMainLoopException(new ShutdownEventArgs(
-                                                                  ShutdownInitiator.Library,
-                                                                  0,
-                                                                  "End of stream",
-                                                                  eose));
-                    shouldTerminate = true;
-                }
-            }
-
-            if (shouldTerminate)
-            {
-                TerminateMainloop();
-                FinishClose();
-            }
-            else
-            {
-                heartbeatReadTimer.Change(Heartbeat * 1000, Timeout.Infinite);
-            }
+            Command request;
+            int replyClassId, replyMethodId;
+            Protocol.CreateConnectionClose(reasonCode,
+                reasonText,
+                out request,
+                out replyClassId,
+                out replyMethodId);
+            return request;
         }
 
-        public void NotifyHeartbeatListener()
+        public ISession CreateSession()
         {
-            if (m_heartbeat == 0) {
-                // Heartbeating not enabled for this connection.
-                return;
-            }
-            m_heartbeatRead.Set();
+            return m_sessionManager.Create();
         }
 
-        public void MainLoop()
+        public ISession CreateSession(int channelNumber)
         {
-            try
-            {
-                bool shutdownCleanly = false;
-                try
-                {
-                    while (m_running)
-                    {
-                        try {
-                            MainLoopIteration();
-                        } catch (SoftProtocolException spe) {
-                            QuiesceChannel(spe);
-                        }
-                    }
-                    shutdownCleanly = true;
-                }
-                catch (EndOfStreamException eose)
-                {
-                    // Possible heartbeat exception
-                    HandleMainLoopException(new ShutdownEventArgs(
-                                                                  ShutdownInitiator.Library,
-                                                                  0,
-                                                                  "End of stream",
-                                                                  eose));
-                }
-                catch (HardProtocolException hpe)
-                {
-                    shutdownCleanly = HardProtocolExceptionHandler(hpe);
-                }
-                catch (SocketException se)
-                {
-                    // Possibly due to handshake timeout
-                    HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library,
-                                                                  0,
-                                                                  "Socket exception",
-                                                                  se));
-                }
-                catch (Exception ex)
-                {
-                    HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library,
-                                                                  Constants.InternalError,
-                                                                  "Unexpected Exception",
-                                                                  ex));
-                }
-
-                // If allowed for clean shutdown, run main loop until the
-                // connection closes.
-                if (shutdownCleanly)
-                {
-                    try
-                    {
-                        ClosingLoop();
-#pragma warning disable 0168
-                    } catch (SocketException se)
-                    {
-                        // means that socket was closed when frame handler
-                        // attempted to use it. Since we are shutting down,
-                        // ignore it.
-                    }
-#pragma warning restore 0168
-                }
-
-                FinishClose();
-            }
-            finally
-            {
-                m_appContinuation.Set();
-            }
+            return m_sessionManager.Create(channelNumber);
         }
 
-        public void MainLoopIteration()
+        public void EnsureIsOpen()
         {
-            Frame frame = m_frameHandler.ReadFrame();
-
-            NotifyHeartbeatListener();
-            // We have received an actual frame.
-            if (frame.Type == Constants.FrameHeartbeat) {
-                // Ignore it: we've already just reset the heartbeat
-                // counter.
-                return;
-            }
-
-            if (frame.Channel == 0) {
-                // In theory, we could get non-connection.close-ok
-                // frames here while we're quiescing (m_closeReason !=
-                // null). In practice, there's a limited number of
-                // things the server can ask of us on channel 0 -
-                // essentially, just connection.close. That, combined
-                // with the restrictions on pipelining, mean that
-                // we're OK here to handle channel 0 traffic in a
-                // quiescing situation, even though technically we
-                // should be ignoring everything except
-                // connection.close-ok.
-                m_session0.HandleFrame(frame);
-            } else {
-                // If we're still m_running, but have a m_closeReason,
-                // then we must be quiescing, which means any inbound
-                // frames for non-zero channels (and any inbound
-                // commands on channel zero that aren't
-                // Connection.CloseOk) must be discarded.
-                if (m_closeReason == null)
-                {
-                    // No close reason, not quiescing the
-                    // connection. Handle the frame. (Of course, the
-                    // Session itself may be quiescing this particular
-                    // channel, but that's none of our concern.)
-                    ISession session = m_sessionManager.Lookup(frame.Channel);
-                    if (session == null) {
-                        throw new ChannelErrorException(frame.Channel);
-                    } else {
-                        session.HandleFrame(frame);
-                    }
-                }
+            if (!IsOpen)
+            {
+                throw new AlreadyClosedException(CloseReason);
             }
         }
 
@@ -809,6 +487,19 @@ namespace RabbitMQ.Client.Framing.Impl {
             Abort(Constants.InternalError, "Domain Unload");
         }
 
+        public void HandleMainLoopException(ShutdownEventArgs reason)
+        {
+            if (!SetCloseReason(reason))
+            {
+                LogCloseError("Unexpected Main Loop Exception while closing: "
+                              + reason, null);
+                return;
+            }
+
+            OnShutdown();
+            LogCloseError("Unexpected connection closure: " + reason, null);
+        }
+
         public bool HardProtocolExceptionHandler(HardProtocolException hpe)
         {
             if (SetCloseReason(hpe.ShutdownReason))
@@ -818,60 +509,390 @@ namespace RabbitMQ.Client.Framing.Impl {
                 try
                 {
                     m_session0.Transmit(ConnectionCloseWrapper(
-                                                               hpe.ShutdownReason.ReplyCode,
-                                                               hpe.ShutdownReason.ReplyText));
+                        hpe.ShutdownReason.ReplyCode,
+                        hpe.ShutdownReason.ReplyText));
                     return true;
-                } catch (IOException ioe) {
+                }
+                catch (IOException ioe)
+                {
                     LogCloseError("Broker closed socket unexpectedly", ioe);
                 }
-
-            } else
-                  LogCloseError("Hard Protocol Exception occured "
-                                + "while closing the connection", hpe);
+            }
+            else
+            {
+                LogCloseError("Hard Protocol Exception occured "
+                              + "while closing the connection", hpe);
+            }
 
             return false;
         }
 
-        ///<remarks>
-        /// Loop only used while quiescing. Use only to cleanly close connection
-        ///</remarks>
-        public void ClosingLoop()
+        public void HeartbeatReadTimerCallback(object state)
         {
-            try
+            bool shouldTerminate = false;
+            if (!m_closed)
             {
-                m_frameHandler.Timeout = 0;
-                // Wait for response/socket closure or timeout
-                while (!m_closed)
+                if (!m_heartbeatRead.WaitOne(0, false))
                 {
-                    MainLoopIteration();
+                    m_missedHeartbeats++;
+                }
+                else
+                {
+                    m_missedHeartbeats = 0;
+                }
+
+                // Has to miss two full heartbeats to force socket close
+                if (m_missedHeartbeats > 1)
+                {
+                    String description = "Heartbeat missing with heartbeat == " +
+                                         m_heartbeat + " seconds";
+                    var eose = new EndOfStreamException(description);
+                    m_shutdownReport.Add(new ShutdownReportEntry(description, eose));
+                    HandleMainLoopException(new ShutdownEventArgs(
+                        ShutdownInitiator.Library,
+                        0,
+                        "End of stream",
+                        eose));
+                    shouldTerminate = true;
                 }
             }
-            catch (ObjectDisposedException ode)
+
+            if (shouldTerminate)
+            {
+                TerminateMainloop();
+                FinishClose();
+            }
+            else
+            {
+                heartbeatReadTimer.Change(Heartbeat * 1000, Timeout.Infinite);
+            }
+        }
+
+        public void HeartbeatWriteTimerCallback(object state)
+        {
+            bool shouldTerminate = false;
+            try
             {
                 if (!m_closed)
-                    LogCloseError("Connection didn't close cleanly", ode);
-            }
-            catch (EndOfStreamException eose)
-            {
-                if (m_model0.CloseReason == null)
-                    LogCloseError("Connection didn't close cleanly. "
-                                  + "Socket closed unexpectedly", eose);
-            }
-            catch (IOException ioe)
-            {
-                LogCloseError("Connection didn't close cleanly. "
-                              + "Socket closed unexpectedly", ioe);
+                {
+                    if (!m_heartbeatWrite.WaitOne(0, false))
+                    {
+                        WriteFrame(m_heartbeatFrame);
+                    }
+                }
             }
             catch (Exception e)
             {
-                LogCloseError("Unexpected exception while closing: ", e);
+                HandleMainLoopException(new ShutdownEventArgs(
+                    ShutdownInitiator.Library,
+                    0,
+                    "End of stream",
+                    e));
+                shouldTerminate = true;
             }
+
+            if (m_closed || shouldTerminate)
+            {
+                TerminateMainloop();
+                FinishClose();
+            }
+            else
+            {
+                heartbeatWriteTimer.Change(Heartbeat * 1000, Timeout.Infinite);
+            }
+        }
+
+        public void InternalClose(ShutdownEventArgs reason)
+        {
+            if (!SetCloseReason(reason))
+            {
+                if (m_closed)
+                {
+                    throw new AlreadyClosedException(m_closeReason);
+                }
+                // We are quiescing, but still allow for server-close
+            }
+
+            OnShutdown();
+            m_session0.SetSessionClosing(true);
+            TerminateMainloop();
+        }
+
+        public void LogCloseError(String error, Exception ex)
+        {
+            m_shutdownReport.Add(new ShutdownReportEntry(error, ex));
+        }
+
+        public void MainLoop()
+        {
+            try
+            {
+                bool shutdownCleanly = false;
+                try
+                {
+                    while (m_running)
+                    {
+                        try
+                        {
+                            MainLoopIteration();
+                        }
+                        catch (SoftProtocolException spe)
+                        {
+                            QuiesceChannel(spe);
+                        }
+                    }
+                    shutdownCleanly = true;
+                }
+                catch (EndOfStreamException eose)
+                {
+                    // Possible heartbeat exception
+                    HandleMainLoopException(new ShutdownEventArgs(
+                        ShutdownInitiator.Library,
+                        0,
+                        "End of stream",
+                        eose));
+                }
+                catch (HardProtocolException hpe)
+                {
+                    shutdownCleanly = HardProtocolExceptionHandler(hpe);
+                }
+                catch (SocketException se)
+                {
+                    // Possibly due to handshake timeout
+                    HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library,
+                        0,
+                        "Socket exception",
+                        se));
+                }
+                catch (Exception ex)
+                {
+                    HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library,
+                        Constants.InternalError,
+                        "Unexpected Exception",
+                        ex));
+                }
+
+                // If allowed for clean shutdown, run main loop until the
+                // connection closes.
+                if (shutdownCleanly)
+                {
+                    try
+                    {
+                        ClosingLoop();
+#pragma warning disable 0168
+                    }
+                    catch (SocketException se)
+                    {
+                        // means that socket was closed when frame handler
+                        // attempted to use it. Since we are shutting down,
+                        // ignore it.
+                    }
+#pragma warning restore 0168
+                }
+
+                FinishClose();
+            }
+            finally
+            {
+                m_appContinuation.Set();
+            }
+        }
+
+        public void MainLoopIteration()
+        {
+            Frame frame = m_frameHandler.ReadFrame();
+
+            NotifyHeartbeatListener();
+            // We have received an actual frame.
+            if (frame.Type == Constants.FrameHeartbeat)
+            {
+                // Ignore it: we've already just reset the heartbeat
+                // counter.
+                return;
+            }
+
+            if (frame.Channel == 0)
+            {
+                // In theory, we could get non-connection.close-ok
+                // frames here while we're quiescing (m_closeReason !=
+                // null). In practice, there's a limited number of
+                // things the server can ask of us on channel 0 -
+                // essentially, just connection.close. That, combined
+                // with the restrictions on pipelining, mean that
+                // we're OK here to handle channel 0 traffic in a
+                // quiescing situation, even though technically we
+                // should be ignoring everything except
+                // connection.close-ok.
+                m_session0.HandleFrame(frame);
+            }
+            else
+            {
+                // If we're still m_running, but have a m_closeReason,
+                // then we must be quiescing, which means any inbound
+                // frames for non-zero channels (and any inbound
+                // commands on channel zero that aren't
+                // Connection.CloseOk) must be discarded.
+                if (m_closeReason == null)
+                {
+                    // No close reason, not quiescing the
+                    // connection. Handle the frame. (Of course, the
+                    // Session itself may be quiescing this particular
+                    // channel, but that's none of our concern.)
+                    ISession session = m_sessionManager.Lookup(frame.Channel);
+                    if (session == null)
+                    {
+                        throw new ChannelErrorException(frame.Channel);
+                    }
+                    else
+                    {
+                        session.HandleFrame(frame);
+                    }
+                }
+            }
+        }
+
+        public void NotifyHeartbeatListener()
+        {
+            if (m_heartbeat == 0)
+            {
+                // Heartbeating not enabled for this connection.
+                return;
+            }
+            m_heartbeatRead.Set();
         }
 
         public void NotifyReceivedCloseOk()
         {
             TerminateMainloop();
             m_closed = true;
+        }
+
+        public void OnCallbackException(CallbackExceptionEventArgs args)
+        {
+            CallbackExceptionEventHandler handler;
+            lock (m_eventLock)
+            {
+                handler = m_callbackException;
+            }
+            if (handler != null)
+            {
+                foreach (CallbackExceptionEventHandler h in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        h(this, args);
+                    }
+                    catch
+                    {
+                        // Exception in
+                        // Callback-exception-handler. That was the
+                        // app's last chance. Swallow the exception.
+                        // FIXME: proper logging
+                    }
+                }
+            }
+        }
+
+        public void OnConnectionBlocked(ConnectionBlockedEventArgs args)
+        {
+            ConnectionBlockedEventHandler handler;
+            lock (m_eventLock)
+            {
+                handler = m_connectionBlocked;
+            }
+            if (handler != null)
+            {
+                foreach (ConnectionBlockedEventHandler h in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        h(this, args);
+                    }
+                    catch (Exception e)
+                    {
+                        var cee_args = new CallbackExceptionEventArgs(e);
+                        cee_args.Detail["context"] = "OnConnectionBlocked";
+                        OnCallbackException(cee_args);
+                    }
+                }
+            }
+        }
+
+        public void OnConnectionUnblocked()
+        {
+            ConnectionUnblockedEventHandler handler;
+            lock (m_eventLock)
+            {
+                handler = m_connectionUnblocked;
+            }
+            if (handler != null)
+            {
+                foreach (ConnectionUnblockedEventHandler h in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        h(this);
+                    }
+                    catch (Exception e)
+                    {
+                        var args = new CallbackExceptionEventArgs(e);
+                        args.Detail["context"] = "OnConnectionUnblocked";
+                        OnCallbackException(args);
+                    }
+                }
+            }
+        }
+
+        ///<summary>Broadcasts notification of the final shutdown of the connection.</summary>
+        public void OnShutdown()
+        {
+            ConnectionShutdownEventHandler handler;
+            ShutdownEventArgs reason;
+            lock (m_eventLock)
+            {
+                handler = m_connectionShutdown;
+                reason = m_closeReason;
+                m_connectionShutdown = null;
+            }
+            if (handler != null)
+            {
+                foreach (ConnectionShutdownEventHandler h in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        h(this, reason);
+                    }
+                    catch (Exception e)
+                    {
+                        var args = new CallbackExceptionEventArgs(e);
+                        args.Detail["context"] = "OnShutdown";
+                        OnCallbackException(args);
+                    }
+                }
+            }
+            AppDomain.CurrentDomain.DomainUnload -= HandleDomainUnload;
+        }
+
+        public void Open(bool insist)
+        {
+            StartAndTune();
+            m_model0.ConnectionOpen(m_factory.VirtualHost, String.Empty, false);
+        }
+
+        public void PrettyPrintShutdownReport()
+        {
+            if (ShutdownReport.Count == 0)
+            {
+                Console.Error.WriteLine("No errors reported when closing connection {0}", this);
+            }
+            else
+            {
+                Console.Error.WriteLine("Log of errors while closing connection {0}:", this);
+                foreach (ShutdownReportEntry entry in ShutdownReport)
+                {
+                    Console.Error.WriteLine(entry.ToString());
+                }
+            }
         }
 
         ///<summary>
@@ -903,13 +924,14 @@ namespace RabbitMQ.Client.Framing.Impl {
         /// to do to clean up and shut down the channel.
         ///</para>
         ///</remarks>
-        public void QuiesceChannel(SoftProtocolException pe) {
+        public void QuiesceChannel(SoftProtocolException pe)
+        {
             // Construct the QuiescingSession that we'll use during
             // the quiesce process.
 
             ISession newSession = new QuiescingSession(this,
-                                                       pe.Channel,
-                                                       pe.ShutdownReason);
+                pe.Channel,
+                pe.ShutdownReason);
 
             // Here we detach the session from the connection. It's
             // still alive: it just won't receive any further frames
@@ -931,163 +953,143 @@ namespace RabbitMQ.Client.Framing.Impl {
             newSession.Transmit(ChannelCloseWrapper(pe.ReplyCode, pe.Message));
         }
 
-        public void HandleMainLoopException(ShutdownEventArgs reason) {
-            if (!SetCloseReason(reason))
-            {
-                LogCloseError("Unexpected Main Loop Exception while closing: "
-                              + reason.ToString(), null);
-                return;
-            }
-
-            OnShutdown();
-            LogCloseError("Unexpected connection closure: " + reason.ToString(), null);
-        }
-
-        public void LogCloseError(String error, Exception ex)
+        public bool SetCloseReason(ShutdownEventArgs reason)
         {
-            m_shutdownReport.Add(new ShutdownReportEntry(error, ex));
-        }
-
-        public void PrettyPrintShutdownReport()
-        {
-            if (ShutdownReport.Count == 0)
+            lock (m_eventLock)
             {
-                Console.Error.WriteLine("No errors reported when closing connection {0}", this);
-            } else {
-                Console.Error.WriteLine("Log of errors while closing connection {0}:", this);
-                foreach(ShutdownReportEntry entry in ShutdownReport)
+                if (m_closeReason == null)
                 {
-                    Console.Error.WriteLine(entry.ToString());
+                    m_closeReason = reason;
+                    return true;
+                }
+                else
+                {
+                    return false;
                 }
             }
+        }
+
+        public void StartHeartbeatTimers()
+        {
+            if (Heartbeat != 0)
+            {
+                heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback);
+                heartbeatWriteTimer.Change(Heartbeat * 1000, Timeout.Infinite);
+
+                heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback);
+                heartbeatReadTimer.Change(Heartbeat * 1000, Timeout.Infinite);
+            }
+        }
+
+        public void StartMainLoop(bool useBackgroundThread)
+        {
+            var mainLoopThread = new Thread(MainLoop);
+            mainLoopThread.Name = "AMQP Connection " + Endpoint;
+            mainLoopThread.IsBackground = useBackgroundThread;
+            mainLoopThread.Start();
+        }
+
+        ///<remarks>
+        /// May be called more than once. Should therefore be idempotent.
+        ///</remarks>
+        public void TerminateMainloop()
+        {
+            m_running = false;
+        }
+
+        public override string ToString()
+        {
+            return string.Format("Connection({0},{1})", m_id, Endpoint);
+        }
+
+        public void WriteFrame(Frame f)
+        {
+            m_frameHandler.WriteFrame(f);
+            m_heartbeatWrite.Set();
+        }
+
+        ///<summary>API-side invocation of connection abort.</summary>
+        public void Abort()
+        {
+            Abort(Timeout.Infinite);
+        }
+
+        ///<summary>API-side invocation of connection abort.</summary>
+        public void Abort(ushort reasonCode, string reasonText)
+        {
+            Abort(reasonCode, reasonText, Timeout.Infinite);
+        }
+
+        ///<summary>API-side invocation of connection abort with timeout.</summary>
+        public void Abort(int timeout)
+        {
+            Abort(Constants.ReplySuccess, "Connection close forced", timeout);
+        }
+
+        ///<summary>API-side invocation of connection abort with timeout.</summary>
+        public void Abort(ushort reasonCode, string reasonText, int timeout)
+        {
+            Abort(reasonCode, reasonText, ShutdownInitiator.Application, timeout);
+        }
+
+        ///<summary>API-side invocation of connection.close.</summary>
+        public void Close()
+        {
+            Close(Constants.ReplySuccess, "Goodbye", Timeout.Infinite);
+        }
+
+        ///<summary>API-side invocation of connection.close.</summary>
+        public void Close(ushort reasonCode, string reasonText)
+        {
+            Close(reasonCode, reasonText, Timeout.Infinite);
+        }
+
+        ///<summary>API-side invocation of connection.close with timeout.</summary>
+        public void Close(int timeout)
+        {
+            Close(Constants.ReplySuccess, "Goodbye", timeout);
+        }
+
+        ///<summary>API-side invocation of connection.close with timeout.</summary>
+        public void Close(ushort reasonCode, string reasonText, int timeout)
+        {
+            Close(new ShutdownEventArgs(ShutdownInitiator.Application, reasonCode, reasonText), false, timeout);
+        }
+
+        public IModel CreateModel()
+        {
+            EnsureIsOpen();
+            ISession session = CreateSession();
+            var model = (IFullModel)Protocol.CreateModel(session);
+            model._Private_ChannelOpen("");
+            return model;
         }
 
         public void HandleConnectionBlocked(string reason)
         {
-            ConnectionBlockedEventArgs args = new ConnectionBlockedEventArgs(reason);
+            var args = new ConnectionBlockedEventArgs(reason);
             OnConnectionBlocked(args);
         }
-
-        public void OnConnectionBlocked(ConnectionBlockedEventArgs args)
-        {
-            ConnectionBlockedEventHandler handler;
-            lock (m_eventLock)
-            {
-                handler = m_connectionBlocked;
-            }
-            if (handler != null)
-            {
-                foreach (ConnectionBlockedEventHandler h in handler.GetInvocationList()) {
-                    try {
-                        h(this, args);
-                    } catch (Exception e) {
-                        CallbackExceptionEventArgs cee_args = new CallbackExceptionEventArgs(e);
-                        cee_args.Detail["context"] = "OnConnectionBlocked";
-                        OnCallbackException(cee_args);
-                    }
-                }
-            }
-        }
-
 
         public void HandleConnectionUnblocked()
         {
             OnConnectionUnblocked();
         }
 
-        public void OnConnectionUnblocked()
+        void IDisposable.Dispose()
         {
-            ConnectionUnblockedEventHandler handler;
-            lock (m_eventLock)
+            Abort();
+            if (ShutdownReport.Count > 0)
             {
-                handler = m_connectionUnblocked;
-            }
-            if (handler != null)
-            {
-                foreach (ConnectionUnblockedEventHandler h in handler.GetInvocationList()) {
-                    try {
-                        h(this);
-                    } catch (Exception e) {
-                        CallbackExceptionEventArgs args = new CallbackExceptionEventArgs(e);
-                        args.Detail["context"] = "OnConnectionUnblocked";
-                        OnCallbackException(args);
+                foreach (ShutdownReportEntry entry in ShutdownReport)
+                {
+                    if (entry.Exception != null)
+                    {
+                        throw entry.Exception;
                     }
                 }
+                throw new OperationInterruptedException(null);
             }
-        }
-
-        ///<summary>Broadcasts notification of the final shutdown of the connection.</summary>
-        public void OnShutdown()
-        {
-            ConnectionShutdownEventHandler handler;
-            ShutdownEventArgs reason;
-            lock (m_eventLock)
-            {
-                handler = m_connectionShutdown;
-                reason = m_closeReason;
-                m_connectionShutdown = null;
-            }
-            if (handler != null)
-            {
-                foreach (ConnectionShutdownEventHandler h in handler.GetInvocationList()) {
-                    try {
-                        h(this, reason);
-                    } catch (Exception e) {
-                        CallbackExceptionEventArgs args = new CallbackExceptionEventArgs(e);
-                        args.Detail["context"] = "OnShutdown";
-                        OnCallbackException(args);
-                    }
-                }
-            }
-            AppDomain.CurrentDomain.DomainUnload -= HandleDomainUnload;
-        }
-
-        public void OnCallbackException(CallbackExceptionEventArgs args)
-        {
-            CallbackExceptionEventHandler handler;
-            lock (m_eventLock) {
-                handler = m_callbackException;
-            }
-            if (handler != null) {
-                foreach (CallbackExceptionEventHandler h in handler.GetInvocationList()) {
-                    try {
-                        h(this, args);
-                    } catch {
-                        // Exception in
-                        // Callback-exception-handler. That was the
-                        // app's last chance. Swallow the exception.
-                        // FIXME: proper logging
-                    }
-                }
-            }
-        }
-
-        public static IDictionary<string, object> DefaultClientProperties()
-        {
-            System.Reflection.Assembly assembly =
-                System.Reflection.Assembly.GetAssembly(typeof(Connection));
-            string version = assembly.GetName().Version.ToString();
-            //TODO: Get the rest of this data from the Assembly Attributes
-            IDictionary<string, object> table = new Dictionary<string, object>();
-            table["product"] = Encoding.UTF8.GetBytes("RabbitMQ");
-            table["version"] = Encoding.UTF8.GetBytes(version);
-            table["platform"] = Encoding.UTF8.GetBytes(".NET");
-            table["copyright"] = Encoding.UTF8.GetBytes("Copyright (C) 2007-2014 GoPivotal, Inc.");
-            table["information"] = Encoding.UTF8.GetBytes("Licensed under the MPL.  " +
-                                                          "See http://www.rabbitmq.com/");
-            return table;
-        }
-
-        public Command ConnectionCloseWrapper(ushort reasonCode, string reasonText)
-        {
-            Command request;
-            int replyClassId, replyMethodId;
-            Protocol.CreateConnectionClose(reasonCode,
-                                           reasonText,
-                                           out request,
-                                           out replyClassId,
-                                           out replyMethodId);
-            return request;
         }
 
         protected Command ChannelCloseWrapper(ushort reasonCode, string reasonText)
@@ -1095,46 +1097,40 @@ namespace RabbitMQ.Client.Framing.Impl {
             Command request;
             int replyClassId, replyMethodId;
             Protocol.CreateChannelClose(reasonCode,
-                                        reasonText,
-                                        out request,
-                                        out replyClassId,
-                                        out replyMethodId);
+                reasonText,
+                out request,
+                out replyClassId,
+                out replyMethodId);
             return request;
-        }
-
-        private static uint NegotiatedMaxValue(uint clientValue, uint serverValue)
-        {
-            return (clientValue == 0 || serverValue == 0) ?
-                Math.Max(clientValue, serverValue) :
-                Math.Min(clientValue, serverValue);
         }
 
         protected void StartAndTune()
         {
-            BlockingCell connectionStartCell = new BlockingCell();
+            var connectionStartCell = new BlockingCell();
             m_model0.m_connectionStartCell = connectionStartCell;
             m_frameHandler.Timeout = HandshakeTimeout;
             m_frameHandler.SendHeader();
 
-            ConnectionStartDetails connectionStart = (ConnectionStartDetails)
+            var connectionStart = (ConnectionStartDetails)
                 connectionStartCell.Value;
 
-            if (connectionStart == null){
+            if (connectionStart == null)
+            {
                 throw new IOException("connection.start was never received, likely due to a network timeout");
             }
 
             ServerProperties = connectionStart.m_serverProperties;
 
-            AmqpVersion serverVersion = new AmqpVersion(connectionStart.m_versionMajor,
-                                                        connectionStart.m_versionMinor);
+            var serverVersion = new AmqpVersion(connectionStart.m_versionMajor,
+                connectionStart.m_versionMinor);
             if (!serverVersion.Equals(Protocol.Version))
             {
                 TerminateMainloop();
                 FinishClose();
                 throw new ProtocolVersionMismatchException(Protocol.MajorVersion,
-                                                           Protocol.MinorVersion,
-                                                           serverVersion.Major,
-                                                           serverVersion.Minor);
+                    Protocol.MinorVersion,
+                    serverVersion.Major,
+                    serverVersion.Minor);
             }
 
             m_clientProperties = new Dictionary<string, object>(m_factory.ClientProperties);
@@ -1148,32 +1144,40 @@ namespace RabbitMQ.Client.Framing.Impl {
                 string mechanismsString = Encoding.UTF8.GetString(connectionStart.m_mechanisms);
                 string[] mechanisms = mechanismsString.Split(' ');
                 AuthMechanismFactory mechanismFactory = m_factory.AuthMechanismFactory(mechanisms);
-                if (mechanismFactory == null) {
+                if (mechanismFactory == null)
+                {
                     throw new IOException("No compatible authentication mechanism found - " +
                                           "server offered [" + mechanismsString + "]");
                 }
                 AuthMechanism mechanism = mechanismFactory.GetInstance();
                 byte[] challenge = null;
-                do {
+                do
+                {
                     byte[] response = mechanism.handleChallenge(challenge, m_factory);
                     ConnectionSecureOrTune res;
-                    if (challenge == null) {
+                    if (challenge == null)
+                    {
                         res = m_model0.ConnectionStartOk(m_clientProperties,
-                                                         mechanismFactory.Name,
-                                                         response,
-                                                         "en_US");
+                            mechanismFactory.Name,
+                            response,
+                            "en_US");
                     }
-                    else {
+                    else
+                    {
                         res = m_model0.ConnectionSecureOk(response);
                     }
 
-                    if (res.m_challenge == null) {
+                    if (res.m_challenge == null)
+                    {
                         connectionTune = res.m_tuneDetails;
                         tuned = true;
-                    } else {
+                    }
+                    else
+                    {
                         challenge = res.m_challenge;
                     }
-                } while (!tuned);
+                }
+                while (!tuned);
             }
             catch (OperationInterruptedException e)
             {
@@ -1182,35 +1186,31 @@ namespace RabbitMQ.Client.Framing.Impl {
                     throw new AuthenticationFailureException(e.ShutdownReason.ReplyText);
                 }
                 throw new PossibleAuthenticationFailureException(
-                                                                 "Possibly caused by authentication failure", e);
+                    "Possibly caused by authentication failure", e);
             }
 
-            ushort channelMax = (ushort) NegotiatedMaxValue(m_factory.RequestedChannelMax,
-                                                            connectionTune.m_channelMax);
+            var channelMax = (ushort)NegotiatedMaxValue(m_factory.RequestedChannelMax,
+                connectionTune.m_channelMax);
             m_sessionManager = new SessionManager(this, channelMax);
 
             uint frameMax = NegotiatedMaxValue(m_factory.RequestedFrameMax,
-                                               connectionTune.m_frameMax);
+                connectionTune.m_frameMax);
             FrameMax = frameMax;
 
-            ushort heartbeat = (ushort) NegotiatedMaxValue(m_factory.RequestedHeartbeat,
-                                                           connectionTune.m_heartbeat);
+            var heartbeat = (ushort)NegotiatedMaxValue(m_factory.RequestedHeartbeat,
+                connectionTune.m_heartbeat);
             Heartbeat = heartbeat;
 
             m_model0.ConnectionTuneOk(channelMax,
-                                      frameMax,
-                                      heartbeat);
+                frameMax,
+                heartbeat);
         }
 
-        public void Open(bool insist)
+        private static uint NegotiatedMaxValue(uint clientValue, uint serverValue)
         {
-            StartAndTune();
-            m_model0.ConnectionOpen(m_factory.VirtualHost, String.Empty, false);
-        }
-
-        public override string ToString()
-        {
-            return string.Format("Connection({0},{1})", m_id, Endpoint);
+            return (clientValue == 0 || serverValue == 0) ?
+                Math.Max(clientValue, serverValue) :
+                Math.Min(clientValue, serverValue);
         }
     }
 }

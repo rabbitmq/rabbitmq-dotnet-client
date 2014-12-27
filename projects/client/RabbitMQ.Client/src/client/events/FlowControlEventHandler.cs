@@ -38,26 +38,23 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-
 using System;
 
 namespace RabbitMQ.Client.Events
 {
-
     ///<summary>Delegate used to process flow control events.</summary>
     public delegate void FlowControlEventHandler(IModel sender, FlowControlEventArgs args);
+
 
     ///<summary>Event relating to flow control</summary>
     public class FlowControlEventArgs : EventArgs
     {
-        private readonly bool m_active;
-
         public FlowControlEventArgs(bool active)
         {
-            m_active = active;
+            Active = active;
         }
 
         ///<summary>Access the flow control setting</summary>
-        public bool Active { get { return m_active; } }
+        public bool Active { get; private set; }
     }
 }
