@@ -112,7 +112,7 @@ namespace RabbitMQ.Client
                 {
                     return _certificateCollection;
                 }
-                if (System.String.IsNullOrWhiteSpace(CertPath))
+                if (string.IsNullOrEmpty(CertPath))
                 {
                     return null;
                 }
