@@ -38,6 +38,7 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Util;
 
@@ -58,7 +59,7 @@ namespace RabbitMQ.Client
     public class DefaultBasicConsumer : IBasicConsumer
     {
         public readonly object m_eventLock = new object();
-        public ConsumerCancelledEventHandler m_consumerCancelled;
+        public EventHandler<ConsumerEventArgs> m_consumerCancelled;
 
         /// <summary>
         /// Creates a new instance of an <see cref="DefaultBasicConsumer"/>.
@@ -103,7 +104,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Signalled when the consumer gets cancelled.
         /// </summary>
-        public event ConsumerCancelledEventHandler ConsumerCancelled
+        public event EventHandler<ConsumerEventArgs> ConsumerCancelled
         {
             add
             {
@@ -196,14 +197,14 @@ namespace RabbitMQ.Client
         public virtual void OnCancel()
         {
             IsRunning = false;
-            ConsumerCancelledEventHandler handler;
+            EventHandler<ConsumerEventArgs> handler;
             lock (m_eventLock)
             {
                 handler = m_consumerCancelled;
             }
             if (handler != null)
             {
-                foreach (ConsumerCancelledEventHandler h in handler.GetInvocationList())
+                foreach (EventHandler<ConsumerEventArgs> h in handler.GetInvocationList())
                 {
                     h(this, new ConsumerEventArgs(ConsumerTag));
                 }

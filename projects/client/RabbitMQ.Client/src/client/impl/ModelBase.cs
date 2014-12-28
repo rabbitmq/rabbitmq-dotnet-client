@@ -73,7 +73,7 @@ namespace RabbitMQ.Client.Impl
         private BasicNackEventHandler m_basicNack;
         private BasicRecoverOkEventHandler m_basicRecoverOk;
         private BasicReturnEventHandler m_basicReturn;
-        private CallbackExceptionEventHandler m_callbackException;
+        private EventHandler<CallbackExceptionEventArgs> m_callbackException;
         private FlowControlEventHandler m_flowControl;
         private ModelShutdownEventHandler m_modelShutdown;
 
@@ -162,7 +162,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public event CallbackExceptionEventHandler CallbackException
+        public event EventHandler<CallbackExceptionEventArgs> CallbackException
         {
             add
             {
@@ -534,14 +534,14 @@ namespace RabbitMQ.Client.Impl
 
         public virtual void OnCallbackException(CallbackExceptionEventArgs args)
         {
-            CallbackExceptionEventHandler handler;
+            EventHandler<CallbackExceptionEventArgs> handler;
             lock (m_eventLock)
             {
                 handler = m_callbackException;
             }
             if (handler != null)
             {
-                foreach (CallbackExceptionEventHandler h in handler.GetInvocationList())
+                foreach (EventHandler<CallbackExceptionEventArgs> h in handler.GetInvocationList())
                 {
                     try
                     {

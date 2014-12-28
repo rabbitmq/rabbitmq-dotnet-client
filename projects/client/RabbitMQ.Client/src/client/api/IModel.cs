@@ -134,7 +134,7 @@ namespace RabbitMQ.Client
         /// include exceptions thrown in <see cref="IBasicConsumer"/> methods, or
         /// exceptions thrown in <see cref="ModelShutdownEventHandler"/> delegates etc.
         /// </summary>
-        event CallbackExceptionEventHandler CallbackException;
+        event EventHandler<CallbackExceptionEventArgs> CallbackException;
 
         event FlowControlEventHandler FlowControl;
 

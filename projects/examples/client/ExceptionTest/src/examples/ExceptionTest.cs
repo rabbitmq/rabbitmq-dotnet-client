@@ -68,13 +68,13 @@ namespace RabbitMQ.Client.Examples {
                     conn.ConnectionShutdown += new ConnectionShutdownEventHandler(First);
                     conn.ConnectionShutdown += new ConnectionShutdownEventHandler(OnConnectionShutdown);
                     conn.ConnectionShutdown += new ConnectionShutdownEventHandler(Second);
-                    conn.CallbackException += new CallbackExceptionEventHandler(OnCallbackException);
+                    conn.CallbackException += OnCallbackException;
 
                     using (IModel ch = conn.CreateModel()) {
                         ch.ModelShutdown += new ModelShutdownEventHandler(First);
                         ch.ModelShutdown += new ModelShutdownEventHandler(OnModelShutdown);
                         ch.ModelShutdown += new ModelShutdownEventHandler(Second);
-                        ch.CallbackException += new CallbackExceptionEventHandler(OnCallbackException);
+                        ch.CallbackException += OnCallbackException;
 
                         string queueName = ch.QueueDeclare();
 

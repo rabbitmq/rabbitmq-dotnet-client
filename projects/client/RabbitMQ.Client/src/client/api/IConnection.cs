@@ -161,7 +161,7 @@ namespace RabbitMQ.Client
         /// <see cref="IConnection"/>, then this event will be signalled whenever one
         /// of those event handlers throws an exception, as well.
         /// </remarks>
-        event CallbackExceptionEventHandler CallbackException;
+        event EventHandler<CallbackExceptionEventArgs> CallbackException;
 
         event ConnectionBlockedEventHandler ConnectionBlocked;
 

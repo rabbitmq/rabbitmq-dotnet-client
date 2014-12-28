@@ -89,7 +89,7 @@ namespace RabbitMQ.Client.Framing.Impl
             m_factory = factory;
         }
 
-        public event CallbackExceptionEventHandler CallbackException
+        public event EventHandler<CallbackExceptionEventArgs> CallbackException
         {
             add
             {

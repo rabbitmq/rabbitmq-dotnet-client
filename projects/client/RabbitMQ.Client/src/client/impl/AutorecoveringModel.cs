@@ -60,8 +60,8 @@ namespace RabbitMQ.Client.Impl
         protected List<BasicReturnEventHandler> m_recordedBasicReturnEventHandlers =
             new List<BasicReturnEventHandler>();
 
-        protected List<CallbackExceptionEventHandler> m_recordedCallbackExceptionEventHandlers =
-            new List<CallbackExceptionEventHandler>();
+        protected List<EventHandler<CallbackExceptionEventArgs>> m_recordedCallbackExceptionEventHandlers =
+            new List<EventHandler<CallbackExceptionEventArgs>>();
 
         protected List<ModelShutdownEventHandler> m_recordedShutdownEventHandlers =
             new List<ModelShutdownEventHandler>();
@@ -148,7 +148,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public event CallbackExceptionEventHandler CallbackException
+        public event EventHandler<CallbackExceptionEventArgs> CallbackException
         {
             add
             {
@@ -1227,10 +1227,10 @@ namespace RabbitMQ.Client.Impl
 
         protected void RecoverCallbackExceptionHandlers()
         {
-            List<CallbackExceptionEventHandler> handler = m_recordedCallbackExceptionEventHandlers;
+            List<EventHandler<CallbackExceptionEventArgs>> handler = m_recordedCallbackExceptionEventHandlers;
             if (handler != null)
             {
-                foreach (CallbackExceptionEventHandler eh in handler)
+                foreach (EventHandler<CallbackExceptionEventArgs> eh in handler)
                 {
                     m_delegate.CallbackException += eh;
                 }

@@ -68,7 +68,7 @@ namespace RabbitMQ.Client.Framing.Impl
         public const int HandshakeTimeout = 10000;
 
         public ManualResetEvent m_appContinuation = new ManualResetEvent(false);
-        public CallbackExceptionEventHandler m_callbackException;
+        public EventHandler<CallbackExceptionEventArgs> m_callbackException;
 
         public IDictionary<string, object> m_clientProperties;
 
@@ -121,7 +121,7 @@ namespace RabbitMQ.Client.Framing.Impl
             ushort methodId);
 
 
-        public event CallbackExceptionEventHandler CallbackException
+        public event EventHandler<CallbackExceptionEventArgs> CallbackException
         {
             add
             {
@@ -769,14 +769,14 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void OnCallbackException(CallbackExceptionEventArgs args)
         {
-            CallbackExceptionEventHandler handler;
+            EventHandler<CallbackExceptionEventArgs> handler;
             lock (m_eventLock)
             {
                 handler = m_callbackException;
             }
             if (handler != null)
             {
-                foreach (CallbackExceptionEventHandler h in handler.GetInvocationList())
+                foreach (EventHandler<CallbackExceptionEventArgs> h in handler.GetInvocationList())
                 {
                     try
                     {

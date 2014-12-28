@@ -60,13 +60,13 @@ namespace RabbitMQ.Client.Events
         public event BasicDeliverEventHandler Received;
 
         ///<summary>Event fired on HandleBasicConsumeOk.</summary>
-        public event ConsumerEventHandler Registered;
+        public event EventHandler<ConsumerEventArgs> Registered;
 
         ///<summary>Event fired on HandleModelShutdown.</summary>
-        public event ConsumerShutdownEventHandler Shutdown;
+        public event EventHandler<ShutdownEventArgs> Shutdown;
 
         ///<summary>Event fired on HandleBasicCancelOk.</summary>
-        public event ConsumerEventHandler Unregistered;
+        public event EventHandler<ConsumerEventArgs> Unregistered;
 
         ///<summary>Fires the Unregistered event.</summary>
         public override void HandleBasicCancelOk(string consumerTag)
