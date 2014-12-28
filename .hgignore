@@ -41,3 +41,5 @@ TestResult\.xml$
 \.user$
 \.orig$
 
+syntax: glob
+RabbitMQDotNetClient.sln.GhostDoc.xml
