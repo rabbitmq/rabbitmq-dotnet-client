@@ -38,32 +38,30 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-
 namespace RabbitMQ.Client
 {
-    ///<summary>Represents a version of the AMQP specification.</summary>
-    ///<remarks>
-    ///<para>
-    ///Vendor-specific variants of particular official specification
-    ///versions exist: this class simply represents the AMQP
-    ///specification version, and does not try to represent
-    ///information about any custom variations involved.
-    ///</para>
-    ///<para>
-    ///AMQP version 0-8 peers sometimes advertise themselves as
-    ///version 8-0: for this reason, this class's constructor
-    ///special-cases 8-0, rewriting it at construction time to be 0-8
-    ///instead.
-    ///</para>
-    ///</remarks>
+    /// <summary>Represents a version of the AMQP specification.</summary>
+    /// <remarks>
+    /// <para>
+    /// Vendor-specific variants of particular official specification
+    /// versions exist: this class simply represents the AMQP
+    /// specification version, and does not try to represent
+    /// information about any custom variations involved.
+    /// </para>
+    /// <para>
+    /// AMQP version 0-8 peers sometimes advertise themselves as
+    /// version 8-0: for this reason, this class's constructor
+    /// special-cases 8-0, rewriting it at construction time to be 0-8 instead.
+    /// </para>
+    /// </remarks>
     public class AmqpVersion
     {
-        ///<summary>Construct an AmqpVersion from major and minor version numbers.</summary>
-        ///<remarks>
-        ///Converts major=8 and minor=0 into major=0 and
-        ///minor=8. Please see the class comment.
-        ///</remarks>
+        /// <summary>
+        /// Construct an <see cref="AmqpVersion"/> from major and minor version numbers.
+        /// </summary>
+        /// <remarks>
+        /// Converts major=8 and minor=0 into major=0 and minor=8. Please see the class comment.
+        /// </remarks>
         public AmqpVersion(int major, int minor)
         {
             if (major == 8 && minor == 0)
@@ -78,29 +76,39 @@ namespace RabbitMQ.Client
             Minor = minor;
         }
 
-        ///<summary>The AMQP specification major version number</summary>
+        /// <summary>
+        /// The AMQP specification major version number.
+        /// </summary>
         public int Major { get; private set; }
 
-        ///<summary>The AMQP specification minor version number</summary>
+        /// <summary>
+        /// The AMQP specification minor version number.
+        /// </summary>
         public int Minor { get; private set; }
 
-        ///<summary>Implement value-equality comparison.</summary>
+        /// <summary>
+        /// Implement value-equality comparison.
+        /// </summary>
         public override bool Equals(object other)
         {
-            var v = other as AmqpVersion;
-            return (v != null) && (v.Major == Major) && (v.Minor == Minor);
+            var version = other as AmqpVersion;
+            return (version != null) && (version.Major == Major) && (version.Minor == Minor);
         }
 
-        ///<summary>Implement hashing as for value-equality.</summary>
+        /// <summary>
+        /// Implement hashing as for value-equality.
+        /// </summary>
         public override int GetHashCode()
         {
-            return 31 * Major.GetHashCode() + Minor.GetHashCode();
+            return 31*Major.GetHashCode() + Minor.GetHashCode();
         }
 
-        ///<summary>Format appropriately for display.</summary>
-        ///<remarks>
-        ///The specification currently uses "MAJOR-MINOR" as a display format.
-        ///</remarks>
+        /// <summary>
+        /// Format appropriately for display.
+        /// </summary>
+        /// <remarks>
+        /// The specification currently uses "MAJOR-MINOR" as a display format.
+        /// </remarks>
         public override string ToString()
         {
             return Major + "-" + Minor;

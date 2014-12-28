@@ -51,7 +51,7 @@ using Timer = System.Timers.Timer;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    public class AutorecoveringConnection : IConnection, NetworkConnection, IRecoverable
+    public class AutorecoveringConnection : IConnection, IRecoverable
     {
         public readonly object m_eventLock = new object();
         public readonly object m_recordedEntitiesLock = new object();

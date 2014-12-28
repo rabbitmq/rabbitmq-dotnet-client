@@ -38,54 +38,64 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client
 {
-    ///<summary>Consumer interface. Used to
+    /// <summary>Consumer interface. Used to
     ///receive messages from a queue by subscription.</summary>
-    ///<remarks>
-    ///<para>
+    /// <remarks>
+    /// <para>
     /// See IModel.BasicConsume, IModel.BasicCancel.
-    ///</para>
-    ///<para>
+    /// </para>
+    /// <para>
     /// Note that the "Handle*" methods run in the connection's
     /// thread! Consider using QueueingBasicConsumer, which uses a
     /// SharedQueue instance to safely pass received messages across
     /// to user threads.
-    ///</para>
-    ///</remarks>
+    /// </para>
+    /// </remarks>
     public interface IBasicConsumer
     {
-        ///<summary>Signalled when the consumer gets cancelled.</summary>
-        event ConsumerCancelledEventHandler ConsumerCancelled;
-
-        ///<summary>Retrieve the IModel this consumer is associated
-        ///with, for use in acknowledging received messages, for
-        ///instance.</summary>
+        /// <summary>
+        /// Retrieve the <see cref="IModel"/> this consumer is associated with,
+        ///  for use in acknowledging received messages, for instance.
+        /// </summary>
         IModel Model { get; }
 
         /// <summary>
-        /// Called when the consumer is cancelled for reasons other than by a
-        /// basicCancel: e.g. the queue has been deleted (either by this channel or
-        /// by any other channel). See handleCancelOk for notification of consumer
-        /// cancellation due to basicCancel.
+        /// Signalled when the consumer gets cancelled.
         /// </summary>
+        event ConsumerCancelledEventHandler ConsumerCancelled;
+
+        /// <summary>
+        ///  Called when the consumer is cancelled for reasons other than by a basicCancel:
+        ///  e.g. the queue has been deleted (either by this channel or  by any other channel).
+        ///  See <see cref="HandleBasicCancelOk"/> for notification of consumer cancellation due to basicCancel
+        /// </summary>
+        /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
         void HandleBasicCancel(string consumerTag);
 
-        ///<summary>Called upon successful deregistration of the
-        ///consumer from the broker.</summary>
+        /// <summary>
+        /// Called upon successful deregistration of the consumer from the broker.
+        /// </summary>
+        /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
         void HandleBasicCancelOk(string consumerTag);
 
-        ///<summary>Called upon successful registration of the
-        ///consumer with the broker.</summary>
+        /// <summary>
+        /// Called upon successful registration of the consumer with the broker.
+        /// </summary>
+        /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
         void HandleBasicConsumeOk(string consumerTag);
 
-        ///<summary>Called each time a message arrives for this consumer.</summary>
-        ///<remarks>
-        ///Be aware that acknowledgement may be required. See IModel.BasicAck.
-        ///</remarks>
+        /// <summary>
+        /// Called each time a message arrives for this consumer.
+        /// </summary>
+        /// <remarks>
+        /// Does nothing with the passed in information.
+        /// Note that in particular, some delivered messages may require acknowledgement via <see cref="IModel.BasicAck"/>.
+        /// The implementation of this method in this class does NOT acknowledge such messages.
+        /// </remarks>
         void HandleBasicDeliver(string consumerTag,
             ulong deliveryTag,
             bool redelivered,
@@ -94,7 +104,11 @@ namespace RabbitMQ.Client
             IBasicProperties properties,
             byte[] body);
 
-        ///<summary>Called when the model shuts down.</summary>
+        /// <summary>
+        ///  Called when the model shuts down.
+        ///  </summary>
+        ///  <param name="model"> Common AMQP model.</param>
+        /// <param name="reason"> Information about the reason why a particular model, session, or connection was destroyed.</param>
         void HandleModelShutdown(IModel model, ShutdownEventArgs reason);
     }
 }

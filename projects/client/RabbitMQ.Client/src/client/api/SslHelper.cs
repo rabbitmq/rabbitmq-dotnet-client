@@ -45,20 +45,22 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace RabbitMQ.Client
 {
-    ///<summary>Represents an SslHelper which does the actual heavy lifting
-    ///to set up an SSL connection, using the config options in an SslOption
-    ///to make things cleaner</summary>
+    /// <summary>
+    /// Represents an <see cref="SslHelper"/> which does the actual heavy lifting to set up an SSL connection,
+    ///  using the config options in an <see cref="SslOption"/> to make things cleaner.
+    /// </summary>
     public class SslHelper
     {
-        private readonly SslOption m_sslOption;
+        private readonly SslOption _sslOption;
 
         private SslHelper(SslOption sslOption)
         {
-            m_sslOption = sslOption;
+            _sslOption = sslOption;
         }
 
-        ///<summary>Upgrade a Tcp stream to an Ssl stream using the SSL options
-        ///provided</summary>
+        /// <summary>
+        /// Upgrade a Tcp stream to an Ssl stream using the SSL options provided.
+        /// </summary>
         public static Stream TcpUpgrade(Stream tcpStream, SslOption sslOption)
         {
             var helper = new SslHelper(sslOption);
@@ -100,7 +102,7 @@ namespace RabbitMQ.Client
         private bool CertificateValidationCallback(object sender, X509Certificate certificate,
             X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
-            return (sslPolicyErrors & ~m_sslOption.AcceptablePolicyErrors) == SslPolicyErrors.None;
+            return (sslPolicyErrors & ~_sslOption.AcceptablePolicyErrors) == SslPolicyErrors.None;
         }
     }
 }

@@ -38,13 +38,13 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-
 namespace RabbitMQ.Client
 {
-    ///<summary>A decoded AMQP method frame.</summary>
-    ///<remarks>
-    ///<para>
+    /// <summary>
+    /// A decoded AMQP method frame.
+    /// </summary>
+    /// <remarks>
+    /// <para>
     /// AMQP methods can be RPC requests, RPC responses, exceptions
     /// (ChannelClose, ConnectionClose), or one-way asynchronous
     /// messages. Currently this information is not recorded in their
@@ -53,8 +53,8 @@ namespace RabbitMQ.Client
     /// future revision of the RabbitMQ .NET client library may extend
     /// the IMethod interface to represent this information
     /// explicitly.
-    ///</para>
-    ///</remarks>
+    /// </para>
+    /// </remarks>
     public interface IMethod
     {
         /// <summary>

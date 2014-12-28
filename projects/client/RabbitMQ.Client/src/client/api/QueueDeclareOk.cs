@@ -38,12 +38,19 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-
 namespace RabbitMQ.Client
 {
+    /// <summary>
+    /// Represents Queue info.
+    /// </summary>
     public class QueueDeclareOk
     {
+        /// <summary>
+        /// Creates a new instance of the <see cref="QueueDeclareOk"/>.
+        /// </summary>
+        /// <param name="queueName">Queue name.</param>
+        /// <param name="messageCount">Message count.</param>
+        /// <param name="consumerCount">Consumer count.</param>
         public QueueDeclareOk(string queueName, uint messageCount, uint consumerCount)
         {
             QueueName = queueName;
@@ -51,8 +58,19 @@ namespace RabbitMQ.Client
             ConsumerCount = consumerCount;
         }
 
+        /// <summary>
+        /// Consumer count.
+        /// </summary>
         public uint ConsumerCount { get; private set; }
+
+        /// <summary>
+        /// Message count.
+        /// </summary>
         public uint MessageCount { get; private set; }
+
+        /// <summary>
+        /// Queue name.
+        /// </summary>
         public string QueueName { get; private set; }
 
         public static implicit operator string(QueueDeclareOk declareOk)

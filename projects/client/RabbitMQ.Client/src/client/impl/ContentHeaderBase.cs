@@ -46,11 +46,25 @@ namespace RabbitMQ.Client.Impl
 {
     public abstract class ContentHeaderBase : IContentHeader
     {
+        ///<summary>
+        /// Retrieve the AMQP class ID of this content header.
+        ///</summary>
         public abstract int ProtocolClassId { get; }
-        public abstract string ProtocolClassName { get; }
-        public abstract void AppendPropertyDebugStringTo(StringBuilder sb);
 
-        ///<summary>Fill this instance from the given byte buffer stream.
+        ///<summary>
+        /// Retrieve the AMQP class name of this content header.
+        ///</summary>
+        public abstract string ProtocolClassName { get; }
+
+        public virtual object Clone()
+        {
+            throw new NotImplementedException();
+        }
+
+        public abstract void AppendPropertyDebugStringTo(StringBuilder stringBuilder);
+
+        ///<summary>
+        /// Fill this instance from the given byte buffer stream.
         ///</summary>
         public ulong ReadFrom(NetworkBinaryReader reader)
         {
@@ -65,14 +79,9 @@ namespace RabbitMQ.Client.Impl
 
         public void WriteTo(NetworkBinaryWriter writer, ulong bodySize)
         {
-            writer.Write((ushort)0); // weight - not currently used
+            writer.Write((ushort) 0); // weight - not currently used
             writer.Write(bodySize);
             WritePropertiesTo(new ContentHeaderPropertyWriter(writer));
-        }
-
-        public virtual object Clone()
-        {
-            throw new NotImplementedException();
         }
     }
 }

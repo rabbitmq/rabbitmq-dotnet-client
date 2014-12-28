@@ -38,55 +38,53 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.Net.Security;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 
 namespace RabbitMQ.Client
 {
-    ///<summary>Represents a configurable SSL option, used
-    ///in setting up an SSL connection.</summary>
+    /// <summary>
+    /// Represents a configurable SSL option, used in setting up an SSL connection.
+    /// </summary>
     public class SslOption
     {
-        private X509CertificateCollection m_certs;
+        private X509CertificateCollection _certificateCollection;
 
-        ///<summary>Construct an SslOption specifying both the server cannonical name
-        ///and the client's certificate path.
-        ///</summary>
-        public SslOption(string serverName, string certPath, bool enabled)
+        /// <summary>
+        /// Constructs an SslOption specifying both the server cannonical name and the client's certificate path.
+        /// </summary>
+        public SslOption(string serverName, string certificatePath = "", bool enabled = false)
         {
             Version = SslProtocols.Tls;
             AcceptablePolicyErrors = SslPolicyErrors.None;
             ServerName = serverName;
-            CertPath = certPath;
+            CertPath = certificatePath;
             Enabled = enabled;
             CertificateValidationCallback = null;
             CertificateSelectionCallback = null;
         }
 
-        ///<summary>Construct an SslOption with just the server cannonical name.
-        ///The Certificate path is set to an empty string
-        ///</summary>
-        public SslOption(string serverName) : this(serverName, "", false)
+        /// <summary>
+        /// Constructs an <see cref="SslOption"/> with no parameters set.
+        /// </summary>
+        public SslOption() : this(string.Empty)
         {
         }
 
-        ///<summary>Construct an SslOption with no parameters set</summary>
-        public SslOption() : this("", "", false)
-        {
-        }
-
-        ///<summary>Retrieve or set the set of ssl policy errors that
-        ///are deemed acceptable</summary>
+        /// <summary>
+        /// Retrieve or set the set of ssl policy errors that are deemed acceptable.
+        /// </summary>
         public SslPolicyErrors AcceptablePolicyErrors { get; set; }
 
-        ///<summary>Retrieve or set the path to client certificate.
-        ///</summary>
+        /// <summary>
+        /// Retrieve or set the path to client certificate.
+        /// </summary>
         public string CertPassphrase { get; set; }
 
-        ///<summary>Retrieve or set the path to client certificate.
-        ///</summary>
+        /// <summary>
+        /// Retrieve or set the path to client certificate.
+        /// </summary>
         public string CertPath { get; set; }
 
         /// <summary>
@@ -97,49 +95,50 @@ namespace RabbitMQ.Client
 
         /// <summary>
         /// An optional client specified SSL certificate validation callback.  If this is not specified,
-        /// the default callback will be used in conjunction with the AcceptablePolicyErrors property to 
+        /// the default callback will be used in conjunction with the <see cref="AcceptablePolicyErrors"/> property to 
         /// determine if the remote server certificate is valid.
         /// </summary>
         public RemoteCertificateValidationCallback CertificateValidationCallback { get; set; }
 
-        ///<summary>Retrieve or set the X509CertificateCollection
-        ///containing the client certificate. If no collection is set,
-        ///the client will attempt to load one from the specified
-        ///CertPath.</summary>
+        /// <summary>
+        /// Retrieve or set the X509CertificateCollection containing the client certificate.
+        /// If no collection is set, the client will attempt to load one from the specified <see cref="CertPath"/>.
+        /// </summary>
         public X509CertificateCollection Certs
         {
             get
             {
-                if (m_certs != null)
+                if (_certificateCollection != null)
                 {
-                    return m_certs;
+                    return _certificateCollection;
                 }
-                else if (CertPath == "")
+                if (System.String.IsNullOrWhiteSpace(CertPath))
                 {
                     return null;
                 }
-                else
+                var collection = new X509CertificateCollection
                 {
-                    var c = new X509CertificateCollection
-                    {
-                        new X509Certificate2(CertPath, CertPassphrase)
-                    };
-                    return c;
-                }
+                    new X509Certificate2(CertPath, CertPassphrase)
+                };
+                return collection;
             }
-            set { m_certs = value; }
+            set { _certificateCollection = value; }
         }
 
-        ///<summary>Flag specifying if Ssl should indeed be
-        ///used</summary>
+        /// <summary>
+        /// Flag specifying if Ssl should indeed be used.
+        /// </summary>
         public bool Enabled { get; set; }
 
-        ///<summary>Retrieve or set server's Canonical Name. This MUST match the CN
-        ///on the Certificate else the SSL connection will fail</summary>
+        /// <summary>
+        /// Retrieve or set server's Canonical Name.
+        /// This MUST match the CN on the Certificate else the SSL connection will fail.
+        /// </summary>
         public string ServerName { get; set; }
 
-        ///<summary>Retrieve or set the Ssl protocol version
-        ///</summary>
+        /// <summary>
+        /// Retrieve or set the Ssl protocol version.
+        /// </summary>
         public SslProtocols Version { get; set; }
     }
 }
