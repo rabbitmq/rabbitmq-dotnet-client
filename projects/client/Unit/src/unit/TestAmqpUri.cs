@@ -47,8 +47,10 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestAmqpUri
     {
+        private readonly string[] IPv6Loopbacks = {"[0000:0000:0000:0000:0000:0000:0000:0001]", "[::1]"};
+
         [Test]
-        public void TestAmqpUriParse()
+        public void TestAmqpUriParseSucceed()
         {
             /* From the spec */
             ParseSuccess("amqp://user:pass@host:10000/vhost",
@@ -70,7 +72,7 @@ namespace RabbitMQ.Client.Unit
             ParseSuccess("amqp://host/%2f",
                          "guest", "guest", "host", 5672, "/");
             ParseSuccess("amqp://[::1]", "guest", "guest",
-                         "[0000:0000:0000:0000:0000:0000:0000:0001]",
+                         IPv6Loopbacks,
                          5672, "/");
 
             /* Various other success cases */
@@ -78,7 +80,7 @@ namespace RabbitMQ.Client.Unit
                          "guest", "guest", "host", 100, "/");
             ParseSuccess("amqp://[::1]:100",
                          "guest", "guest",
-                         "[0000:0000:0000:0000:0000:0000:0000:0001]",
+                         IPv6Loopbacks,
                          100, "/");
 
             ParseSuccess("amqp://host/blah",
@@ -89,11 +91,11 @@ namespace RabbitMQ.Client.Unit
                          "guest", "guest", "localhost", 100, "blah");
             ParseSuccess("amqp://[::1]/blah",
                          "guest", "guest",
-                         "[0000:0000:0000:0000:0000:0000:0000:0001]",
+                         IPv6Loopbacks,
                          5672, "blah");
             ParseSuccess("amqp://[::1]:100/blah",
                          "guest", "guest",
-                         "[0000:0000:0000:0000:0000:0000:0000:0001]",
+                         IPv6Loopbacks,
                          100, "blah");
 
             ParseSuccess("amqp://user:pass@host",
@@ -104,13 +106,18 @@ namespace RabbitMQ.Client.Unit
                          "user", "pass", "localhost", 100, "/");
             ParseSuccess("amqp://user:pass@[::1]",
                          "user", "pass",
-                         "[0000:0000:0000:0000:0000:0000:0000:0001]",
+                         IPv6Loopbacks,
                          5672, "/");
             ParseSuccess("amqp://user:pass@[::1]:100",
                          "user", "pass",
-                         "[0000:0000:0000:0000:0000:0000:0000:0001]",
+                         IPv6Loopbacks,
                          100, "/");
+        }
 
+        [Test]
+        [ExpectedException(typeof(ArgumentException))]
+        public void TestAmqpUriParseFail()
+        {
             /* Various failure cases */
             ParseFail("http://www.rabbitmq.com");
             ParseFail("amqp://foo:bar:baz");
@@ -130,14 +137,27 @@ namespace RabbitMQ.Client.Unit
         {
             ConnectionFactory cf = new ConnectionFactory();
             cf.Uri = uri;
+            AssertUriPartEquivalence(user, password, port, vhost, cf);
+            Assert.AreEqual(host, cf.HostName);
+        }
+
+        private static void AssertUriPartEquivalence(string user, string password, int port, string vhost, ConnectionFactory cf)
+        {
             Assert.AreEqual(user, cf.UserName);
             Assert.AreEqual(password, cf.Password);
-            Assert.AreEqual(host, cf.HostName);
             Assert.AreEqual(port, cf.Port);
             Assert.AreEqual(vhost, cf.VirtualHost);
         }
 
-        [ExpectedException(typeof(Exception))]
+        private void ParseSuccess(string uri, string user, string password,
+                                  string[] hosts, int port, string vhost)
+        {
+            ConnectionFactory cf = new ConnectionFactory();
+            cf.Uri = uri;
+            AssertUriPartEquivalence(user, password, port, vhost, cf);
+            Assert.IsTrue((Array.IndexOf<string>(hosts, cf.HostName)) != -1);
+        }
+
         private void ParseFail(string uri)
         {
             ConnectionFactory cf = new ConnectionFactory();
