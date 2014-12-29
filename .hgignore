@@ -28,6 +28,7 @@ rabbit\.snk$
 ^.*\.suo$
 ^RabbitMQDotNetClient\.sln\.proj$
 ^RabbitMQDotNetClient\.sln\.cache$
+\.playlist$
 ^UpgradeLog\.XML$
 ^\_UpgradeReport\_Files/
 ^gensrc/

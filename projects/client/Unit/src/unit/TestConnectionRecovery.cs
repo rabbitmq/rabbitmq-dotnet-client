@@ -89,14 +89,16 @@ namespace RabbitMQ.Client.Unit {
             {
                 Interlocked.Increment(ref counter);
             };
+            var shutdownLatch = PrepareForShutdown(((AutorecoveringConnection)Conn));
+            var recoveryLatch = PrepareForRecovery(((AutorecoveringConnection)Conn));
 
             Assert.IsTrue(Conn.IsOpen);
             StopRabbitMQ();
-            Console.WriteLine("About to sleep for 9 seconds...");
-            Thread.Sleep(9000);
+            Console.WriteLine("Stopped RabbitMQ. About to sleep for multiple recovery intervals...");
+            Thread.Sleep(7000);
             StartRabbitMQ();
-            WaitForShutdown();
-            WaitForRecovery();
+            Wait(shutdownLatch, TimeSpan.FromSeconds(15));
+            Wait(recoveryLatch, TimeSpan.FromSeconds(15));
             Assert.IsTrue(Conn.IsOpen);
 
             Assert.IsTrue(counter >= 1);
@@ -142,7 +144,7 @@ namespace RabbitMQ.Client.Unit {
         [Test]
         public void TestBlockedListenersRecovery()
         {
-            var latch = new AutoResetEvent(false);
+            var latch = new ManualResetEvent(false);
             Conn.ConnectionBlocked += (c, reason) =>
             {
                 latch.Set();
@@ -159,7 +161,7 @@ namespace RabbitMQ.Client.Unit {
         [Test]
         public void TestUnblockedListenersRecovery()
         {
-            var latch = new AutoResetEvent(false);
+            var latch = new ManualResetEvent(false);
             Conn.ConnectionUnblocked += (c) =>
             {
                 latch.Set();
@@ -229,7 +231,7 @@ namespace RabbitMQ.Client.Unit {
         public void TestBasicAckEventHandlerRecovery()
         {
             Model.ConfirmSelect();
-            var latch = new AutoResetEvent(false);
+            var latch = new ManualResetEvent(false);
             ((AutorecoveringModel)Model).BasicAcks += (m, args) =>
             {
                 latch.Set();
@@ -414,7 +416,7 @@ namespace RabbitMQ.Client.Unit {
             string nameBefore = q;
             string nameAfter  = null;
 
-            var latch = new AutoResetEvent(false);
+            var latch = new ManualResetEvent(false);
             ((AutorecoveringConnection)Conn).Recovery += (m) => { latch.Set(); };
             ((AutorecoveringConnection)Conn).QueueNameChangeAfterRecovery += (prev, current) =>
             {
@@ -582,7 +584,7 @@ namespace RabbitMQ.Client.Unit {
                 Model.BasicConsume(q, true, cons);
             }
 
-            var latch = new AutoResetEvent(false);
+            var latch = new ManualResetEvent(false);
             ((AutorecoveringConnection)Conn).ConsumerTagChangeAfterRecovery += (prev, current) =>
             {
                 latch.Set();
@@ -619,7 +621,7 @@ namespace RabbitMQ.Client.Unit {
             CloseAndWaitForRecovery(c);
             AssertConsumerCount(m, latestName, 1);
 
-            var latch = new AutoResetEvent(false);
+            var latch = new ManualResetEvent(false);
             cons.Received += (s, args) => { latch.Set(); };
 
             m.BasicPublish("", q, null, enc.GetBytes("msg"));
@@ -664,10 +666,12 @@ namespace RabbitMQ.Client.Unit {
         public class TestBasicConsumer1 : DefaultBasicConsumer
         {
             private ushort counter = 0;
-            private AutoResetEvent latch;
+            private ManualResetEvent latch;
             private Action action;
 
-            public TestBasicConsumer1(IModel model, AutoResetEvent latch, Action fn) : base(model) {
+            public TestBasicConsumer1(IModel model, ManualResetEvent latch, Action fn)
+                : base(model)
+            {
                 this.latch  = latch;
                 this.action = fn;
             }
@@ -704,7 +708,7 @@ namespace RabbitMQ.Client.Unit {
 
         public class AckingBasicConsumer : TestBasicConsumer1
         {
-            public AckingBasicConsumer(IModel model, AutoResetEvent latch, Action fn) : base(model, latch, fn) {}
+            public AckingBasicConsumer(IModel model, ManualResetEvent latch, Action fn) : base(model, latch, fn) { }
 
             public override void PostHandleDelivery(ulong deliveryTag)
             {
@@ -714,7 +718,7 @@ namespace RabbitMQ.Client.Unit {
 
         public class NackingBasicConsumer : TestBasicConsumer1
         {
-            public NackingBasicConsumer(IModel model, AutoResetEvent latch, Action fn) : base(model, latch, fn) {}
+            public NackingBasicConsumer(IModel model, ManualResetEvent latch, Action fn) : base(model, latch, fn) { }
 
             public override void PostHandleDelivery(ulong deliveryTag)
             {
@@ -724,7 +728,7 @@ namespace RabbitMQ.Client.Unit {
 
         public class RejectingBasicConsumer : TestBasicConsumer1
         {
-            public RejectingBasicConsumer(IModel model, AutoResetEvent latch, Action fn) : base(model, latch, fn) {}
+            public RejectingBasicConsumer(IModel model, ManualResetEvent latch, Action fn) : base(model, latch, fn) { }
 
             public override void PostHandleDelivery(ulong deliveryTag)
             {
@@ -735,7 +739,7 @@ namespace RabbitMQ.Client.Unit {
         [Test]
         public void TestBasicAckAfterChannelRecovery()
         {
-            var latch = new AutoResetEvent(false);
+            var latch = new ManualResetEvent(false);
             var cons  = new AckingBasicConsumer(Model, latch, () => {
                 CloseAndWaitForRecovery();
             });
@@ -746,7 +750,7 @@ namespace RabbitMQ.Client.Unit {
         [Test]
         public void TestBasicNackAfterChannelRecovery()
         {
-            var latch = new AutoResetEvent(false);
+            var latch = new ManualResetEvent(false);
             var cons  = new NackingBasicConsumer(Model, latch, () => {
                 CloseAndWaitForRecovery();
             });
@@ -757,7 +761,7 @@ namespace RabbitMQ.Client.Unit {
         [Test]
         public void TestBasicRejectAfterChannelRecovery()
         {
-            var latch = new AutoResetEvent(false);
+            var latch = new ManualResetEvent(false);
             var cons  = new RejectingBasicConsumer(Model, latch, () => {
                 CloseAndWaitForRecovery();
             });
@@ -791,7 +795,7 @@ namespace RabbitMQ.Client.Unit {
             }
         }
 
-        protected void TestDelayedBasicAckNackAfterChannelRecovery(TestBasicConsumer1 cons, AutoResetEvent latch)
+        protected void TestDelayedBasicAckNackAfterChannelRecovery(TestBasicConsumer1 cons, ManualResetEvent latch)
         {
             var q = Model.QueueDeclare(GenerateQueueName(), false, false, false, null).QueueName;
             var n = 30;
@@ -884,9 +888,9 @@ namespace RabbitMQ.Client.Unit {
             Wait(PrepareForShutdown(conn));
         }
 
-        protected AutoResetEvent PrepareForShutdown(IConnection conn)
+        protected ManualResetEvent PrepareForShutdown(IConnection conn)
         {
-            var latch = new AutoResetEvent(false);
+            var latch = new ManualResetEvent(false);
             conn.ConnectionShutdown += (c, args) =>
             {
                 latch.Set();
@@ -895,9 +899,9 @@ namespace RabbitMQ.Client.Unit {
             return latch;
         }
 
-        protected AutoResetEvent PrepareForRecovery(AutorecoveringConnection conn)
+        protected ManualResetEvent PrepareForRecovery(AutorecoveringConnection conn)
         {
-            var latch = new AutoResetEvent(false);
+            var latch = new ManualResetEvent(false);
             conn.Recovery += (c) =>
             {
                 latch.Set();
@@ -906,14 +910,14 @@ namespace RabbitMQ.Client.Unit {
             return latch;
         }
 
-        protected void Wait(AutoResetEvent latch)
+        protected void Wait(ManualResetEvent latch)
         {
-            Assert.IsTrue(latch.WaitOne(TimeSpan.FromSeconds(8)));
+            Assert.IsTrue(latch.WaitOne(TimeSpan.FromSeconds(10)), "waiting on a latch timed out");
         }
 
-        protected void Wait(AutoResetEvent latch, TimeSpan timeSpan)
+        protected void Wait(ManualResetEvent latch, TimeSpan timeSpan)
         {
-            Assert.IsTrue(latch.WaitOne(timeSpan));
+            Assert.IsTrue(latch.WaitOne(timeSpan), "waiting on a latch timed out");
         }
 
         protected override void ReleaseResources()
