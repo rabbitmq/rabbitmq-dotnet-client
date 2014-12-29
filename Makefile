@@ -29,9 +29,6 @@ ensure-universally-readable:
 
 ensure-deliverables: rabbit-vsn
 	file ${RELEASE_DIR}/${NAME_VSN}.zip
-	file ${RELEASE_DIR}/${NAME_VSN}-api-guide.pdf
-	file ${RELEASE_DIR}/${NAME_VSN}-user-guide.pdf
-	file ${RELEASE_DIR}/${NAME_VSN}-wcf-service-model.pdf
 	file ${RELEASE_DIR}/${NAME_VSN}-client-htmldoc.zip
 	file ${RELEASE_DIR}/${NAME_VSN}-client-htmldoc
 	file ${RELEASE_DIR}/${NAME_VSN}-dotnet-3.5.zip
@@ -55,12 +52,7 @@ doc: rabbit-vsn ensure-prerequisites ensure-release-dir ensure-docs
 	mkdir -p build/tmpdoc/html build/tmpdoc/xml
 	unzip -q -j ${RELEASE_DIR}/${NAME_VSN}-client-htmldoc.zip -d build/tmpdoc/html
 	unzip -q -j ${RELEASE_DIR}/${NAME_VSN}-tmp-xmldoc.zip -d build/tmpdoc/xml
-	cd docs && ./api-guide.sh && \
-	  mv api-guide.pdf ../${RELEASE_DIR}/${NAME_VSN}-api-guide.pdf
 	$(MAKE) -C docs
-	mv build/doc/userguide/user-guide.pdf ${RELEASE_DIR}/${NAME_VSN}-user-guide.pdf
-	cp docs/"RabbitMQ Service Model.pdf" \
-	  ${RELEASE_DIR}/${NAME_VSN}-wcf-service-model.pdf
 	cd ${RELEASE_DIR} && \
 	  rm -rf ${NAME_VSN}-htmldoc && \
 	  unzip -q ${NAME_VSN}-client-htmldoc.zip -d ${NAME_VSN}-client-htmldoc && \
