@@ -137,14 +137,11 @@ namespace RabbitMQ.Client.Unit
             Assert.AreEqual(vhost, cf.VirtualHost);
         }
 
+        [ExpectedException(typeof(Exception))]
         private void ParseFail(string uri)
         {
-            Assert.Throws(
-              Is.InstanceOf<Exception>(),
-              delegate {
-                  ConnectionFactory cf = new ConnectionFactory();
-                  cf.Uri = uri;
-              });
+            ConnectionFactory cf = new ConnectionFactory();
+            cf.Uri = uri;
         }
     }
 }

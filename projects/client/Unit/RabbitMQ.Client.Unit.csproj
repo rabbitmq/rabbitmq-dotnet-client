@@ -72,7 +72,7 @@
   </Target>
   <!-- Visual Studio generated reference and file list -->
   <ItemGroup>
-    <Reference Include="nunit.framework, Version=2.4.3.0, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77">
+    <Reference Include="nunit.framework, Version=2.6.4.0, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\lib\nunit\nunit.framework.dll</HintPath>
     </Reference>
