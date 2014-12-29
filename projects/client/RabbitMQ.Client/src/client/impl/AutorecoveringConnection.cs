@@ -43,7 +43,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading;
-using System.Timers;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Impl;
@@ -54,9 +54,13 @@ namespace RabbitMQ.Client.Framing.Impl
     public class AutorecoveringConnection : IConnection, IRecoverable
     {
         public readonly object m_eventLock = new object();
-        public readonly object m_recordedEntitiesLock = new object();
         protected Connection m_delegate;
         protected ConnectionFactory m_factory;
+
+        public readonly object m_recordedEntitiesLock = new object();
+        protected readonly TaskFactory recoveryTaskFactory = new TaskFactory();
+        protected readonly object recoveryLockTarget = new object();
+        protected bool performingRecovery = false;
 
         protected List<AutorecoveringModel> m_models = new List<AutorecoveringModel>();
 
@@ -320,11 +324,48 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void BeginAutomaticRecovery()
         {
-            var t = new Timer(m_factory.NetworkRecoveryInterval.TotalSeconds * 1000);
-            t.Elapsed += PerformAutomaticRecovery;
+            lock (recoveryLockTarget)
+            {
+                if (!performingRecovery)
+                {
+                    performingRecovery = true;
+                    var self = this;
+                    var interval = m_factory.NetworkRecoveryInterval;;
+                    recoveryTaskFactory.StartNew(() =>
+                    {
+                        try
+                        {
+                            Thread.Sleep(m_factory.NetworkRecoveryInterval);
+                            self.PerformAutomaticRecovery();
+                        }
+                        finally
+                        {
+                            performingRecovery = false;
+                        }
+                    });
+                }
+            }
+            
+        }
 
-            t.AutoReset = false;
-            t.Enabled = true;
+        protected void PerformAutomaticRecovery()
+        {
+            lock (recoveryLockTarget)
+            {
+                RecoverConnectionDelegate();
+                RecoverConnectionShutdownHandlers();
+                RecoverConnectionBlockedHandlers();
+                RecoverConnectionUnblockedHandlers();
+
+                RecoverModels();
+                if (m_factory.TopologyRecoveryEnabled)
+                {
+                    RecoverEntities();
+                    RecoverConsumers();
+                }
+
+                RunRecoveryEventHandlers();
+            }
         }
 
         public void Close(ShutdownEventArgs reason)
@@ -502,7 +543,7 @@ namespace RabbitMQ.Client.Framing.Impl
             AutorecoveringConnection self = this;
             ConnectionShutdownEventHandler recoveryListener = (_, args) =>
             {
-                lock (self)
+                lock (recoveryLockTarget)
                 {
                     if (ShouldTriggerConnectionRecovery(args))
                     {
@@ -624,26 +665,6 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             // TODO
             Console.WriteLine("Topology recovery exception: {0}", e);
-        }
-
-        protected void PerformAutomaticRecovery(object self, ElapsedEventArgs _e)
-        {
-            lock (self)
-            {
-                RecoverConnectionDelegate();
-                RecoverConnectionShutdownHandlers();
-                RecoverConnectionBlockedHandlers();
-                RecoverConnectionUnblockedHandlers();
-
-                RecoverModels();
-                if (m_factory.TopologyRecoveryEnabled)
-                {
-                    RecoverEntities();
-                    RecoverConsumers();
-                }
-
-                RunRecoveryEventHandlers();
-            }
         }
 
         protected void PropagateQueueNameChangeToBindings(string oldName, string newName)
