@@ -330,7 +330,6 @@ namespace RabbitMQ.Client.Framing.Impl
                 {
                     performingRecovery = true;
                     var self = this;
-                    var interval = m_factory.NetworkRecoveryInterval;;
                     recoveryTaskFactory.StartNew(() =>
                     {
                         try
