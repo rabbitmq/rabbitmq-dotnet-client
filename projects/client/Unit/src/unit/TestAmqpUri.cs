@@ -128,23 +128,25 @@ namespace RabbitMQ.Client.Unit
         private void ParseSuccess(string uri, string user, string password,
                                   string host, int port, string vhost)
         {
-            ConnectionFactory cf = new ConnectionFactory();
-            cf.Uri = uri;
-            Assert.AreEqual(user, cf.UserName);
-            Assert.AreEqual(password, cf.Password);
-            Assert.AreEqual(host, cf.HostName);
-            Assert.AreEqual(port, cf.Port);
-            Assert.AreEqual(vhost, cf.VirtualHost);
+            var factory = new ConnectionFactory
+            {
+                Uri = uri
+            };
+            Assert.AreEqual(user, factory.UserName);
+            Assert.AreEqual(password, factory.Password);
+            Assert.AreEqual(host, factory.HostName);
+            Assert.AreEqual(port, factory.Port);
+            Assert.AreEqual(vhost, factory.VirtualHost);
         }
 
         private void ParseFail(string uri)
         {
-            Assert.Throws(
-              Is.InstanceOf<Exception>(),
-              delegate {
-                  ConnectionFactory cf = new ConnectionFactory();
-                  cf.Uri = uri;
-              });
+            TestDelegate testDelegate = delegate
+            {
+                var factory = new ConnectionFactory();
+                factory.Uri = uri;
+            };
+            Assert.Throws( Is.InstanceOf<Exception>(), testDelegate);
         }
     }
 }

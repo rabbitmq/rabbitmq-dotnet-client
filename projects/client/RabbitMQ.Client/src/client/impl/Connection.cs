@@ -59,9 +59,7 @@ namespace RabbitMQ.Client.Framing.Impl
         public readonly object m_eventLock = new object();
 
         ///<summary>Heartbeat frame for transmission. Reusable across connections.</summary>
-        public readonly Frame m_heartbeatFrame = new Frame(Constants.FrameHeartbeat,
-            0,
-            new byte[0]);
+        public readonly Frame m_heartbeatFrame = new Frame(Constants.FrameHeartbeat, 0, new byte[0]);
 
         ///<summary>Timeout used while waiting for AMQP handshaking to
         ///complete (milliseconds)</summary>
@@ -94,8 +92,8 @@ namespace RabbitMQ.Client.Framing.Impl
         public SessionManager m_sessionManager;
 
         public IList<ShutdownReportEntry> m_shutdownReport = new SynchronizedList<ShutdownReportEntry>(new List<ShutdownReportEntry>());
-        private Timer heartbeatReadTimer;
-        private Timer heartbeatWriteTimer;
+        private Timer _heartbeatReadTimer;
+        private Timer _heartbeatWriteTimer;
 
         public Connection(IConnectionFactory factory, bool insist, IFrameHandler frameHandler)
         {
@@ -113,13 +111,6 @@ namespace RabbitMQ.Client.Framing.Impl
             StartHeartbeatTimers();
             AppDomain.CurrentDomain.DomainUnload += HandleDomainUnload;
         }
-
-
-        public delegate void ConnectionCloseDelegate(ushort replyCode,
-            string replyText,
-            ushort classId,
-            ushort methodId);
-
 
         public event EventHandler<CallbackExceptionEventArgs> CallbackException
         {
@@ -564,7 +555,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             else
             {
-                heartbeatReadTimer.Change(Heartbeat * 1000, Timeout.Infinite);
+                _heartbeatReadTimer.Change(Heartbeat * 1000, Timeout.Infinite);
             }
         }
 
@@ -598,7 +589,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             else
             {
-                heartbeatWriteTimer.Change(Heartbeat * 1000, Timeout.Infinite);
+                _heartbeatWriteTimer.Change(Heartbeat * 1000, Timeout.Infinite);
             }
         }
 
@@ -973,11 +964,11 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             if (Heartbeat != 0)
             {
-                heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback);
-                heartbeatWriteTimer.Change(Heartbeat * 1000, Timeout.Infinite);
+                _heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback);
+                _heartbeatWriteTimer.Change(Heartbeat * 1000, Timeout.Infinite);
 
-                heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback);
-                heartbeatReadTimer.Change(Heartbeat * 1000, Timeout.Infinite);
+                _heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback);
+                _heartbeatReadTimer.Change(Heartbeat * 1000, Timeout.Infinite);
             }
         }
 

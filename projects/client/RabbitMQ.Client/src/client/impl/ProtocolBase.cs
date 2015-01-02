@@ -40,6 +40,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net.Sockets;
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Client;
 using RabbitMQ.Util;
@@ -138,7 +139,7 @@ namespace RabbitMQ.Client.Framing.Impl
         }
 
         public IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint,
-            ConnectionFactoryBase.ObtainSocket socketFactory,
+            Func<AddressFamily, TcpClient> socketFactory,
             int timeout)
         {
             return new SocketFrameHandler(endpoint, socketFactory, timeout);

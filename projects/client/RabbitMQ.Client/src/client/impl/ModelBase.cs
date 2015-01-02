@@ -625,7 +625,7 @@ namespace RabbitMQ.Client.Impl
             m_flowControlBlock.Set();
         }
 
-        public void OnSessionShutdown(ISession session, ShutdownEventArgs reason)
+        public void OnSessionShutdown(object sender, ShutdownEventArgs reason)
         {
             SetCloseReason(reason);
             OnModelShutdown(reason);

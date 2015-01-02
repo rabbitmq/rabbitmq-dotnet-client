@@ -46,8 +46,8 @@ namespace RabbitMQ.Client.Impl
 {
     public abstract class SessionBase : ISession
     {
-        private readonly object m_shutdownLock = new object();
-        private SessionShutdownEventHandler m_sessionShutdown;
+        private readonly object _shutdownLock = new object();
+        private EventHandler<ShutdownEventArgs> _sessionShutdown;
 
         public SessionBase(Connection connection, int channelNumber)
         {
@@ -60,16 +60,16 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public event SessionShutdownEventHandler SessionShutdown
+        public event EventHandler<ShutdownEventArgs> SessionShutdown
         {
             add
             {
                 bool ok = false;
-                lock (m_shutdownLock)
+                lock (_shutdownLock)
                 {
                     if (CloseReason == null)
                     {
-                        m_sessionShutdown += value;
+                        _sessionShutdown += value;
                         ok = true;
                     }
                 }
@@ -80,16 +80,16 @@ namespace RabbitMQ.Client.Impl
             }
             remove
             {
-                lock (m_shutdownLock)
+                lock (_shutdownLock)
                 {
-                    m_sessionShutdown -= value;
+                    _sessionShutdown -= value;
                 }
             }
         }
 
         public int ChannelNumber { get; private set; }
         public ShutdownEventArgs CloseReason { get; set; }
-        public CommandHandler CommandReceived { get; set; }
+        public Action<ISession, Command> CommandReceived { get; set; }
         public Connection Connection { get; private set; }
 
         public bool IsOpen
@@ -104,7 +104,7 @@ namespace RabbitMQ.Client.Impl
 
         public virtual void OnCommandReceived(Command cmd)
         {
-            CommandHandler handler = CommandReceived;
+            Action<ISession, Command> handler = CommandReceived;
             if (handler != null)
             {
                 handler(this, cmd);
@@ -119,11 +119,11 @@ namespace RabbitMQ.Client.Impl
         public virtual void OnSessionShutdown(ShutdownEventArgs reason)
         {
             Connection.ConnectionShutdown -= OnConnectionShutdown;
-            SessionShutdownEventHandler handler;
-            lock (m_shutdownLock)
+            EventHandler<ShutdownEventArgs> handler;
+            lock (_shutdownLock)
             {
-                handler = m_sessionShutdown;
-                m_sessionShutdown = null;
+                handler = _sessionShutdown;
+                _sessionShutdown = null;
             }
             if (handler != null)
             {
@@ -143,7 +143,7 @@ namespace RabbitMQ.Client.Impl
 
         public void Close(ShutdownEventArgs reason, bool notify)
         {
-            lock (m_shutdownLock)
+            lock (_shutdownLock)
             {
                 if (CloseReason == null)
                 {
@@ -162,7 +162,7 @@ namespace RabbitMQ.Client.Impl
         {
             // Ensure that we notify only when session is already closed
             // If not, throw exception, since this is a serious bug in the library
-            lock (m_shutdownLock)
+            lock (_shutdownLock)
             {
                 if (CloseReason == null)
                 {
@@ -174,7 +174,7 @@ namespace RabbitMQ.Client.Impl
 
         public virtual void Transmit(Command cmd)
         {
-            lock (m_shutdownLock)
+            lock (_shutdownLock)
             {
                 if (CloseReason != null)
                 {

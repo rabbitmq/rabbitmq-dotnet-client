@@ -154,7 +154,7 @@ namespace RabbitMQ.Client.Unit
 
             for (int i = 0; i < n; i++)
             {
-                publishingModel.BasicPublish("", q, null, enc.GetBytes(""));
+                publishingModel.BasicPublish("", q, null, encoding.GetBytes(""));
             }
 
             Wait(latch, TimeSpan.FromSeconds(20));
@@ -292,7 +292,7 @@ namespace RabbitMQ.Client.Unit
             m.QueueDeclarePassive(q);
             QueueDeclareOk ok1 = m.QueueDeclare(q, false, exclusive, false, null);
             Assert.AreEqual(ok1.MessageCount, 0);
-            m.BasicPublish("", q, null, enc.GetBytes(""));
+            m.BasicPublish("", q, null, encoding.GetBytes(""));
             Assert.IsTrue(WaitForConfirms(m));
             QueueDeclareOk ok2 = m.QueueDeclare(q, false, exclusive, false, null);
             Assert.AreEqual(ok2.MessageCount, 1);
@@ -359,7 +359,7 @@ namespace RabbitMQ.Client.Unit
             CloseAndWaitForRecovery();
             Assert.IsTrue(Model.IsOpen);
 
-            WithTemporaryNonExclusiveQueue(Model, (m, q) => m.BasicPublish("", q, null, enc.GetBytes("")));
+            WithTemporaryNonExclusiveQueue(Model, (m, q) => m.BasicPublish("", q, null, encoding.GetBytes("")));
             Wait(latch);
         }
 
@@ -487,7 +487,7 @@ namespace RabbitMQ.Client.Unit
             var latch = new AutoResetEvent(false);
             cons.Received += (s, args) => latch.Set();
 
-            m.BasicPublish("", q, null, enc.GetBytes("msg"));
+            m.BasicPublish("", q, null, encoding.GetBytes("msg"));
             Wait(latch);
 
             m.QueueDelete(q);
@@ -655,7 +655,7 @@ namespace RabbitMQ.Client.Unit
             {
                 CloseAndWaitForRecovery();
                 Assert.IsTrue(Model.IsOpen);
-                Model.BasicPublish(x2, "", null, enc.GetBytes("msg"));
+                Model.BasicPublish(x2, "", null, encoding.GetBytes("msg"));
                 AssertMessageCount(q, 1);
             }
             finally
@@ -866,7 +866,7 @@ namespace RabbitMQ.Client.Unit
             {
                 CloseAndWaitForRecovery();
                 Assert.IsTrue(Model.IsOpen);
-                Model.BasicPublish(x2, "", null, enc.GetBytes("msg"));
+                Model.BasicPublish(x2, "", null, encoding.GetBytes("msg"));
                 AssertMessageCount(q, 0);
             }
             finally
@@ -916,7 +916,7 @@ namespace RabbitMQ.Client.Unit
             {
                 CloseAndWaitForRecovery();
                 Assert.IsTrue(Model.IsOpen);
-                Model.BasicPublish(x2, "", null, enc.GetBytes("msg"));
+                Model.BasicPublish(x2, "", null, encoding.GetBytes("msg"));
                 AssertMessageCount(q, 0);
             }
             finally
