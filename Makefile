@@ -37,9 +37,6 @@ ensure-deliverables: rabbit-vsn
 	file ${RELEASE_DIR}/${NAME_VSN}.msi
 	file ${RELEASE_DIR}/${NAME_VSN}.msm
 
-ensure-prerequisites: rabbit-vsn
-	[ -f "/etc/debian_version" ] && dpkg -L htmldoc plotutils transfig graphviz docbook-utils xmlstarlet || true > /dev/null
-
 ensure-release-dir: rabbit-vsn
 	touch ${RELEASE_DIR}/
 
@@ -47,7 +44,7 @@ ensure-docs: rabbit-vsn
 	file ${RELEASE_DIR}/${NAME_VSN}-client-htmldoc.zip
 	file ${RELEASE_DIR}/${TMPXMLZIP}
 
-doc: rabbit-vsn ensure-prerequisites ensure-release-dir ensure-docs
+doc: rabbit-vsn ensure-release-dir ensure-docs
 	rm -rf build/tmpdoc build/doc
 	mkdir -p build/tmpdoc/html build/tmpdoc/xml
 	unzip -q -j ${RELEASE_DIR}/${NAME_VSN}-client-htmldoc.zip -d build/tmpdoc/html
