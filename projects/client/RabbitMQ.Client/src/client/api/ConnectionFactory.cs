@@ -274,10 +274,11 @@ namespace RabbitMQ.Client
         /// </summary>
         public AuthMechanismFactory AuthMechanismFactory(string[] mechanismNames)
         {
+            
             // Our list is in order of preference, the server one is not.
             foreach (AuthMechanismFactory factory in AuthMechanisms)
             {
-                if (((IList<string>) mechanismNames).Contains(factory.Name))
+                if (Array.Exists(mechanismNames, x => string.Equals(x, factory.Name, StringComparison.OrdinalIgnoreCase)))
                 {
                     return factory;
                 }
@@ -323,11 +324,11 @@ namespace RabbitMQ.Client
         {
             Endpoint = new AmqpTcpEndpoint();
 
-            if ("amqp".CompareTo(uri.Scheme.ToLower()) == 0)
+            if (string.Equals("amqp", uri.Scheme, StringComparison.OrdinalIgnoreCase))
             {
                 // nothing special to do
             }
-            else if ("amqps".CompareTo(uri.Scheme.ToLower()) == 0)
+            else if (string.Equals("amqps", uri.Scheme, StringComparison.OrdinalIgnoreCase))
             {
                 Ssl.Enabled = true;
                 Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNameMismatch;
