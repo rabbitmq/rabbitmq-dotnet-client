@@ -123,7 +123,7 @@ namespace RabbitMQ.Client.Unit {
         {
             public ConsumerFailingOnShutdown(IModel model) : base(model) {}
 
-            public override void HandleModelShutdown(IModel m, ShutdownEventArgs reason) {
+            public override void HandleModelShutdown(object model, ShutdownEventArgs reason) {
                 throw new SystemException("oops");
             }
         }

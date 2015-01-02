@@ -1,4 +1,4 @@
-// This source code is dual-licensed under the Apache License, version
+﻿// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 1.1.
 //
 // The APL v2.0:
@@ -42,6 +42,27 @@ using System;
 
 namespace RabbitMQ.Client.Events
 {
-    ///<summary>Delegate used to process Basic.Ack events.</summary>
-    public delegate void BasicAckEventHandler(IModel model, BasicAckEventArgs args);
+    public sealed class QueueNameChangedAfterRecoveryEventArgs : EventArgs
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="QueueNameChangedAfterRecoveryEventArgs"/> class.
+        /// </summary>
+        /// <param name="nameBefore">The name before.</param>
+        /// <param name="nameAfter">The name after.</param>
+        public QueueNameChangedAfterRecoveryEventArgs(string nameBefore, string nameAfter)
+        {
+            NameBefore = nameBefore;
+            NameAfter = nameAfter;
+        }
+
+        /// <summary>
+        /// Gets the name before.
+        /// </summary>
+        public string NameBefore { get; private set; }
+
+        /// <summary>
+        /// Gets the name after.
+        /// </summary>
+        public string NameAfter { get; private set; }
+    }
 }

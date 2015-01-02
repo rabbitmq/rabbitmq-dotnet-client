@@ -1,4 +1,4 @@
-// This source code is dual-licensed under the Apache License, version
+﻿// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 1.1.
 //
 // The APL v2.0:
@@ -42,6 +42,27 @@ using System;
 
 namespace RabbitMQ.Client.Events
 {
-    ///<summary>Delegate used to process connection unblocked events.</summary>
-    public delegate void ConnectionUnblockedEventHandler(IConnection sender);
+    public sealed class ConsumerTagChangedAfterRecoveryEventArgs : EventArgs
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ConsumerTagChangedAfterRecoveryEventArgs"/> class.
+        /// </summary>
+        /// <param name="tagBefore">The tag before.</param>
+        /// <param name="tagAfter">The tag after.</param>
+        public ConsumerTagChangedAfterRecoveryEventArgs(string tagBefore, string tagAfter)
+        {
+            TagBefore = tagBefore;
+            TagAfter = tagAfter;
+        }
+
+        /// <summary>
+        /// Gets the tag before.
+        /// </summary>
+        public string TagBefore { get; private set; }
+
+        /// <summary>
+        /// Gets the tag after.
+        /// </summary>
+        public string TagAfter { get; private set; }
+    }
 }

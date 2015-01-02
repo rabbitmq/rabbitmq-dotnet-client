@@ -75,9 +75,9 @@ namespace RabbitMQ.Client.Framing.Impl
         public volatile ShutdownEventArgs m_closeReason = null;
         public volatile bool m_closed = false;
 
-        public ConnectionBlockedEventHandler m_connectionBlocked;
-        public ConnectionShutdownEventHandler m_connectionShutdown;
-        public ConnectionUnblockedEventHandler m_connectionUnblocked;
+        public EventHandler<ConnectionBlockedEventArgs> m_connectionBlocked;
+        public EventHandler<ShutdownEventArgs> m_connectionShutdown;
+        public EventHandler<EventArgs> m_connectionUnblocked;
         public IConnectionFactory m_factory;
         public IFrameHandler m_frameHandler;
         public ushort m_heartbeat = 0;
@@ -139,7 +139,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public event ConnectionBlockedEventHandler ConnectionBlocked
+        public event EventHandler<ConnectionBlockedEventArgs> ConnectionBlocked
         {
             add
             {
@@ -157,7 +157,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public event ConnectionShutdownEventHandler ConnectionShutdown
+        public event EventHandler<ShutdownEventArgs> ConnectionShutdown
         {
             add
             {
@@ -184,7 +184,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public event ConnectionUnblockedEventHandler ConnectionUnblocked
+        public event EventHandler<EventArgs> ConnectionUnblocked
         {
             add
             {
@@ -795,14 +795,14 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void OnConnectionBlocked(ConnectionBlockedEventArgs args)
         {
-            ConnectionBlockedEventHandler handler;
+            EventHandler<ConnectionBlockedEventArgs> handler;
             lock (m_eventLock)
             {
                 handler = m_connectionBlocked;
             }
             if (handler != null)
             {
-                foreach (ConnectionBlockedEventHandler h in handler.GetInvocationList())
+                foreach (EventHandler<ConnectionBlockedEventArgs> h in handler.GetInvocationList())
                 {
                     try
                     {
@@ -820,18 +820,18 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void OnConnectionUnblocked()
         {
-            ConnectionUnblockedEventHandler handler;
+            EventHandler<EventArgs> handler;
             lock (m_eventLock)
             {
                 handler = m_connectionUnblocked;
             }
             if (handler != null)
             {
-                foreach (ConnectionUnblockedEventHandler h in handler.GetInvocationList())
+                foreach (EventHandler<EventArgs> h in handler.GetInvocationList())
                 {
                     try
                     {
-                        h(this);
+                        h(this, EventArgs.Empty);
                     }
                     catch (Exception e)
                     {
@@ -846,7 +846,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>Broadcasts notification of the final shutdown of the connection.</summary>
         public void OnShutdown()
         {
-            ConnectionShutdownEventHandler handler;
+            EventHandler<ShutdownEventArgs> handler;
             ShutdownEventArgs reason;
             lock (m_eventLock)
             {
@@ -856,7 +856,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             if (handler != null)
             {
-                foreach (ConnectionShutdownEventHandler h in handler.GetInvocationList())
+                foreach (EventHandler<ShutdownEventArgs> h in handler.GetInvocationList())
                 {
                     try
                     {

@@ -163,7 +163,7 @@ namespace RabbitMQ.Client
         /// </remarks>
         event EventHandler<CallbackExceptionEventArgs> CallbackException;
 
-        event ConnectionBlockedEventHandler ConnectionBlocked;
+        event EventHandler<ConnectionBlockedEventArgs> ConnectionBlocked;
 
         /// <summary>
         /// Raised when the connection is destroyed.
@@ -173,9 +173,9 @@ namespace RabbitMQ.Client
         /// event handler is added to this event, the event handler
         /// will be fired immediately.
         /// </remarks>
-        event ConnectionShutdownEventHandler ConnectionShutdown;
+        event EventHandler<ShutdownEventArgs> ConnectionShutdown;
 
-        event ConnectionUnblockedEventHandler ConnectionUnblocked;
+        event EventHandler<EventArgs> ConnectionUnblocked;
 
         /// <summary>
         /// Abort this connection and all its channels.

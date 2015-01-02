@@ -51,26 +51,26 @@ namespace RabbitMQ.Client.Impl
         protected AutorecoveringConnection m_connection;
         protected RecoveryAwareModel m_delegate;
 
-        protected List<BasicAckEventHandler> m_recordedBasicAckEventHandlers =
-            new List<BasicAckEventHandler>();
+        protected List<EventHandler<BasicAckEventArgs>> m_recordedBasicAckEventHandlers =
+            new List<EventHandler<BasicAckEventArgs>>();
 
-        protected List<BasicNackEventHandler> m_recordedBasicNackEventHandlers =
-            new List<BasicNackEventHandler>();
+        protected List<EventHandler<BasicNackEventArgs>> m_recordedBasicNackEventHandlers =
+            new List<EventHandler<BasicNackEventArgs>>();
 
-        protected List<BasicReturnEventHandler> m_recordedBasicReturnEventHandlers =
-            new List<BasicReturnEventHandler>();
+        protected List<EventHandler<BasicReturnEventArgs>> m_recordedBasicReturnEventHandlers =
+            new List<EventHandler<BasicReturnEventArgs>>();
 
         protected List<EventHandler<CallbackExceptionEventArgs>> m_recordedCallbackExceptionEventHandlers =
             new List<EventHandler<CallbackExceptionEventArgs>>();
 
-        protected List<ModelShutdownEventHandler> m_recordedShutdownEventHandlers =
-            new List<ModelShutdownEventHandler>();
+        protected List<EventHandler<ShutdownEventArgs>> m_recordedShutdownEventHandlers =
+            new List<EventHandler<ShutdownEventArgs>>();
 
         protected ushort prefetchCountConsumer = 0;
         protected ushort prefetchCountGlobal = 0;
         protected bool usesPublisherConfirms = false;
         protected bool usesTransactions = false;
-        private RecoveryEventHandler m_recovery;
+        private EventHandler<EventArgs> m_recovery;
 
         public AutorecoveringModel(AutorecoveringConnection conn, RecoveryAwareModel _delegate)
         {
@@ -78,7 +78,7 @@ namespace RabbitMQ.Client.Impl
             m_delegate = _delegate;
         }
 
-        public event BasicAckEventHandler BasicAcks
+        public event EventHandler<BasicAckEventArgs> BasicAcks
         {
             add
             {
@@ -98,7 +98,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public event BasicNackEventHandler BasicNacks
+        public event EventHandler<BasicNackEventArgs> BasicNacks
         {
             add
             {
@@ -118,7 +118,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public event BasicRecoverOkEventHandler BasicRecoverOk
+        public event EventHandler<EventArgs> BasicRecoverOk
         {
             add
             {
@@ -128,7 +128,7 @@ namespace RabbitMQ.Client.Impl
             remove { m_delegate.BasicRecoverOk -= value; }
         }
 
-        public event BasicReturnEventHandler BasicReturn
+        public event EventHandler<BasicReturnEventArgs> BasicReturn
         {
             add
             {
@@ -168,7 +168,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public event FlowControlEventHandler FlowControl
+        public event EventHandler<FlowControlEventArgs> FlowControl
         {
             add
             {
@@ -178,7 +178,7 @@ namespace RabbitMQ.Client.Impl
             remove { m_delegate.FlowControl -= value; }
         }
 
-        public event ModelShutdownEventHandler ModelShutdown
+        public event EventHandler<ShutdownEventArgs> ModelShutdown
         {
             add
             {
@@ -198,7 +198,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public event RecoveryEventHandler Recovery
+        public event EventHandler<EventArgs> Recovery
         {
             add
             {
@@ -1191,10 +1191,10 @@ namespace RabbitMQ.Client.Impl
 
         protected void RecoverBasicAckHandlers()
         {
-            List<BasicAckEventHandler> handler = m_recordedBasicAckEventHandlers;
+            List<EventHandler<BasicAckEventArgs>> handler = m_recordedBasicAckEventHandlers;
             if (handler != null)
             {
-                foreach (BasicAckEventHandler eh in handler)
+                foreach (EventHandler<BasicAckEventArgs> eh in handler)
                 {
                     m_delegate.BasicAcks += eh;
                 }
@@ -1203,10 +1203,10 @@ namespace RabbitMQ.Client.Impl
 
         protected void RecoverBasicNackHandlers()
         {
-            List<BasicNackEventHandler> handler = m_recordedBasicNackEventHandlers;
+            List<EventHandler<BasicNackEventArgs>> handler = m_recordedBasicNackEventHandlers;
             if (handler != null)
             {
-                foreach (BasicNackEventHandler eh in handler)
+                foreach (EventHandler<BasicNackEventArgs> eh in handler)
                 {
                     m_delegate.BasicNacks += eh;
                 }
@@ -1215,10 +1215,10 @@ namespace RabbitMQ.Client.Impl
 
         protected void RecoverBasicReturnHandlers()
         {
-            List<BasicReturnEventHandler> handler = m_recordedBasicReturnEventHandlers;
+            List<EventHandler<BasicReturnEventArgs>> handler = m_recordedBasicReturnEventHandlers;
             if (handler != null)
             {
-                foreach (BasicReturnEventHandler eh in handler)
+                foreach (EventHandler<BasicReturnEventArgs> eh in handler)
                 {
                     m_delegate.BasicReturn += eh;
                 }
@@ -1239,10 +1239,10 @@ namespace RabbitMQ.Client.Impl
 
         protected void RecoverModelShutdownHandlers()
         {
-            List<ModelShutdownEventHandler> handler = m_recordedShutdownEventHandlers;
+            List<EventHandler<ShutdownEventArgs>> handler = m_recordedShutdownEventHandlers;
             if (handler != null)
             {
-                foreach (ModelShutdownEventHandler eh in handler)
+                foreach (EventHandler<ShutdownEventArgs> eh in handler)
                 {
                     m_delegate.ModelShutdown += eh;
                 }
@@ -1274,14 +1274,14 @@ namespace RabbitMQ.Client.Impl
 
         protected void RunRecoveryEventHandlers()
         {
-            RecoveryEventHandler handler = m_recovery;
+            EventHandler<EventArgs> handler = m_recovery;
             if (handler != null)
             {
-                foreach (RecoveryEventHandler reh in handler.GetInvocationList())
+                foreach (EventHandler<EventArgs> reh in handler.GetInvocationList())
                 {
                     try
                     {
-                        reh(this);
+                        reh(this, EventArgs.Empty);
                     }
                     catch (Exception e)
                     {

@@ -110,6 +110,6 @@ namespace RabbitMQ.Client
         ///  </summary>
         ///  <param name="model"> Common AMQP model.</param>
         /// <param name="reason"> Information about the reason why a particular model, session, or connection was destroyed.</param>
-        void HandleModelShutdown(IModel model, ShutdownEventArgs reason);
+        void HandleModelShutdown(object model, ShutdownEventArgs reason);
     }
 }

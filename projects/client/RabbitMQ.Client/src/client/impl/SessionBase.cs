@@ -56,8 +56,7 @@ namespace RabbitMQ.Client.Impl
             ChannelNumber = channelNumber;
             if (channelNumber != 0)
             {
-                connection.ConnectionShutdown +=
-                    OnConnectionShutdown;
+                connection.ConnectionShutdown += OnConnectionShutdown;
             }
         }
 
@@ -112,15 +111,14 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public virtual void OnConnectionShutdown(IConnection conn, ShutdownEventArgs reason)
+        public virtual void OnConnectionShutdown(object conn, ShutdownEventArgs reason)
         {
             Close(reason);
         }
 
         public virtual void OnSessionShutdown(ShutdownEventArgs reason)
         {
-            Connection.ConnectionShutdown -=
-                OnConnectionShutdown;
+            Connection.ConnectionShutdown -= OnConnectionShutdown;
             SessionShutdownEventHandler handler;
             lock (m_shutdownLock)
             {

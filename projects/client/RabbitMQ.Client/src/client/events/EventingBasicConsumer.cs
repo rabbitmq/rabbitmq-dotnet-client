@@ -57,7 +57,7 @@ namespace RabbitMQ.Client.Events
         }
 
         ///<summary>Event fired on HandleBasicDeliver.</summary>
-        public event BasicDeliverEventHandler Received;
+        public event EventHandler<BasicDeliverEventArgs> Received;
 
         ///<summary>Event fired on HandleBasicConsumeOk.</summary>
         public event EventHandler<ConsumerEventArgs> Registered;
@@ -119,7 +119,7 @@ namespace RabbitMQ.Client.Events
         }
 
         ///<summary>Fires the Shutdown event.</summary>
-        public override void HandleModelShutdown(IModel model, ShutdownEventArgs reason)
+        public override void HandleModelShutdown(object model, ShutdownEventArgs reason)
         {
             base.HandleModelShutdown(model, reason);
 
