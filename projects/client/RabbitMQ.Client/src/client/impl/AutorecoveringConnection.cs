@@ -80,7 +80,7 @@ namespace RabbitMQ.Client.Framing.Impl
         protected List<EventHandler<EventArgs>> m_recordedUnblockedEventHandlers =
             new List<EventHandler<EventArgs>>();
 
-        private EventHandler<QueueNameChangedAfterRecoveryEventArgs> m_consumerTagChange;
+        private EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> m_consumerTagChange;
         private EventHandler<QueueNameChangedAfterRecoveryEventArgs> m_queueNameChange;
         private EventHandler<EventArgs> m_recovery;
 
@@ -167,7 +167,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public event EventHandler<QueueNameChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery
+        public event EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery
         {
             add
             {
@@ -760,11 +760,11 @@ namespace RabbitMQ.Client.Framing.Impl
 
                     if (m_consumerTagChange != null)
                     {
-                        foreach (EventHandler<QueueNameChangedAfterRecoveryEventArgs> h in m_consumerTagChange.GetInvocationList())
+                        foreach (EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> h in m_consumerTagChange.GetInvocationList())
                         {
                             try
                             {
-                                var eventArgs = new QueueNameChangedAfterRecoveryEventArgs(tag, newTag);
+                                var eventArgs = new ConsumerTagChangedAfterRecoveryEventArgs(tag, newTag);
                                 h(this, eventArgs);
                             }
                             catch (Exception e)
