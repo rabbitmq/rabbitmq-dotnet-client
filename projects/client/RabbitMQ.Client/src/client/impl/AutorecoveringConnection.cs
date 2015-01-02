@@ -330,7 +330,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 {
                     performingRecovery = true;
                     var self = this;
-                    var interval = m_factory.NetworkRecoveryInterval;;
+
                     recoveryTaskFactory.StartNew(() =>
                     {
                         try
@@ -732,7 +732,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     m_delegate = new Connection(m_factory, false, m_factory.CreateFrameHandler());
                     recovering = false;
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     // TODO: exponential back-off
                     Thread.Sleep(m_factory.NetworkRecoveryInterval);
