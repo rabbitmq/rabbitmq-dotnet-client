@@ -38,16 +38,16 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.Text;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Content
 {
-    ///<summary>Internal support class for use in reading and writing
-    ///information binary-compatible with QPid's "BytesMessage" wire
-    ///encoding.</summary>
-    public class BytesWireFormatting
+    /// <summary>
+    /// Internal support class for use in reading and
+    /// writing information binary-compatible with QPid's "BytesMessage" wire encoding.
+    /// </summary>
+    public static class BytesWireFormatting
     {
         public static int Read(NetworkBinaryReader reader, byte[] target, int offset, int count)
         {
@@ -66,7 +66,7 @@ namespace RabbitMQ.Client.Content
 
         public static char ReadChar(NetworkBinaryReader reader)
         {
-            return (char)reader.ReadUInt16();
+            return (char) reader.ReadUInt16();
         }
 
         public static double ReadDouble(NetworkBinaryReader reader)
@@ -118,7 +118,7 @@ namespace RabbitMQ.Client.Content
 
         public static void WriteChar(NetworkBinaryWriter writer, char value)
         {
-            writer.Write((ushort)value);
+            writer.Write((ushort) value);
         }
 
         public static void WriteDouble(NetworkBinaryWriter writer, double value)
@@ -149,7 +149,7 @@ namespace RabbitMQ.Client.Content
         public static void WriteString(NetworkBinaryWriter writer, string value)
         {
             byte[] bytes = Encoding.UTF8.GetBytes(value);
-            writer.Write((ushort)bytes.Length);
+            writer.Write((ushort) bytes.Length);
             writer.Write(bytes);
         }
     }

@@ -38,30 +38,41 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+
 namespace RabbitMQ.Client.Impl
 {
-    public delegate void CommandHandler(ISession session, Command cmd);
-
-    public delegate void SessionShutdownEventHandler(ISession session, ShutdownEventArgs reason);
-
     public interface ISession
     {
+        /// <summary>
+        /// Gets the channel number.
+        /// </summary>
         int ChannelNumber { get; }
+
+        /// <summary>
+        /// Gets the close reason.
+        /// </summary>
         ShutdownEventArgs CloseReason { get; }
 
         ///<summary>
         /// Single recipient - no need for multiple handlers to be informed of arriving commands.
         ///</summary>
-        CommandHandler CommandReceived { get; set; }
+        Action<ISession, Command> CommandReceived { get; set; }
 
+        /// <summary>
+        /// Gets the connection.
+        /// </summary>
         IConnection Connection { get; }
 
+        /// <summary>
+        /// Gets a value indicating whether this session is open.
+        /// </summary>
         bool IsOpen { get; }
 
         ///<summary>
         /// Multicast session shutdown event.
         ///</summary>
-        event SessionShutdownEventHandler SessionShutdown;
+        event EventHandler<ShutdownEventArgs> SessionShutdown;
 
         void Close(ShutdownEventArgs reason);
         void Close(ShutdownEventArgs reason, bool notify);

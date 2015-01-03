@@ -38,18 +38,18 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Net;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Content
 {
-    ///<summary>Internal support class for use in reading and writing
-    ///information binary-compatible with QPid's "MapMessage" wire
-    ///encoding.</summary>
-    ///<exception cref="ProtocolViolationException"/>
-    public class MapWireFormatting
+    /// <summary>
+    /// Internal support class for use in reading and
+    /// writing information binary-compatible with QPid's "MapMessage" wire encoding.
+    /// </summary>
+    /// <exception cref="ProtocolViolationException"/>
+    public static class MapWireFormatting
     {
         public static IDictionary<string, object> ReadMap(NetworkBinaryReader reader)
         {
@@ -71,8 +71,6 @@ namespace RabbitMQ.Client.Content
             return table;
         }
 
-        /// <param name="writer">Type is <seealso cref="RabbitMQ.Util.NetworkBinaryWriter"/>.</param>
-        /// <param name="table">Type is <seealso cref="System.Collections.Generic.IDictionary{TKey,TValue}"/>.</param>
         public static void WriteMap(NetworkBinaryWriter writer, IDictionary<string, object> table)
         {
             int entryCount = table.Count;

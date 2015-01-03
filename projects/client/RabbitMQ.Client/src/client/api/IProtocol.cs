@@ -38,6 +38,8 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+using System.Net.Sockets;
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
@@ -93,8 +95,7 @@ namespace RabbitMQ.Client
         /// <param name="socketFactory">Socket factory method.</param>
         /// <param name="timeout">Timeout in milliseconds.</param>
         /// <param name="endpoint">Represents a TCP-addressable AMQP peer: a host name and port number.</param>
-        IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint, 
-            ConnectionFactoryBase.ObtainSocket socketFactory, int timeout);
+        IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint, Func<AddressFamily, TcpClient> socketFactory, int timeout);
 
         /// <summary>
         /// Construct a protocol model atop a given session.

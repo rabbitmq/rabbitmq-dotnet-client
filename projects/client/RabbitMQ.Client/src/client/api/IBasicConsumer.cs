@@ -38,6 +38,7 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client
@@ -66,7 +67,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Signalled when the consumer gets cancelled.
         /// </summary>
-        event ConsumerCancelledEventHandler ConsumerCancelled;
+        event EventHandler<ConsumerEventArgs> ConsumerCancelled;
 
         /// <summary>
         ///  Called when the consumer is cancelled for reasons other than by a basicCancel:
@@ -109,6 +110,6 @@ namespace RabbitMQ.Client
         ///  </summary>
         ///  <param name="model"> Common AMQP model.</param>
         /// <param name="reason"> Information about the reason why a particular model, session, or connection was destroyed.</param>
-        void HandleModelShutdown(IModel model, ShutdownEventArgs reason);
+        void HandleModelShutdown(object model, ShutdownEventArgs reason);
     }
 }

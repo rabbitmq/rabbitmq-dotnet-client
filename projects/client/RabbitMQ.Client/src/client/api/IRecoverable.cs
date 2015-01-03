@@ -38,7 +38,7 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using RabbitMQ.Client.Events;
+using System;
 
 namespace RabbitMQ.Client
 {
@@ -47,6 +47,6 @@ namespace RabbitMQ.Client
     /// </summary>
     public interface IRecoverable
     {
-        event RecoveryEventHandler Recovery;
+        event EventHandler<EventArgs> Recovery;
     }
 }

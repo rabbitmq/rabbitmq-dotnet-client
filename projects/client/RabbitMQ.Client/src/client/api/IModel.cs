@@ -104,12 +104,12 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Signalled when a Basic.Ack command arrives from the broker.
         /// </summary>
-        event BasicAckEventHandler BasicAcks;
+        event EventHandler<BasicAckEventArgs> BasicAcks;
 
         /// <summary>
         /// Signalled when a Basic.Nack command arrives from the broker.
         /// </summary>
-        event BasicNackEventHandler BasicNacks;
+        event EventHandler<BasicNackEventArgs> BasicNacks;
 
         /// <summary>
         /// All messages received before this fires that haven't been ack'ed will be redelivered.
@@ -120,12 +120,12 @@ namespace RabbitMQ.Client
         /// It is sometimes useful to allow that thread to know that a recover-ok
         /// has been received, rather than the thread that invoked <see cref="BasicRecover"/>.
         /// </remarks>
-        event BasicRecoverOkEventHandler BasicRecoverOk;
+        event EventHandler<EventArgs> BasicRecoverOk;
 
         /// <summary>
         /// Signalled when a Basic.Return command arrives from the broker.
         /// </summary>
-        event BasicReturnEventHandler BasicReturn;
+        event EventHandler<BasicReturnEventArgs> BasicReturn;
 
         /// <summary>
         /// Signalled when an exception occurs in a callback invoked by the model.
@@ -134,9 +134,9 @@ namespace RabbitMQ.Client
         /// include exceptions thrown in <see cref="IBasicConsumer"/> methods, or
         /// exceptions thrown in <see cref="ModelShutdownEventHandler"/> delegates etc.
         /// </summary>
-        event CallbackExceptionEventHandler CallbackException;
+        event EventHandler<CallbackExceptionEventArgs> CallbackException;
 
-        event FlowControlEventHandler FlowControl;
+        event EventHandler<FlowControlEventArgs> FlowControl;
 
         /// <summary>
         /// Notifies the destruction of the model.
@@ -145,7 +145,7 @@ namespace RabbitMQ.Client
         /// If the model is already destroyed at the time an event
         /// handler is added to this event, the event handler will be fired immediately.
         /// </remarks>
-        event ModelShutdownEventHandler ModelShutdown;
+        event EventHandler<ShutdownEventArgs> ModelShutdown;
 
         /// <summary>
         /// Abort this session.

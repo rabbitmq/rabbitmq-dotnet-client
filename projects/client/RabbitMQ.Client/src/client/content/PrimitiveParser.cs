@@ -43,122 +43,119 @@ using System.Net;
 
 namespace RabbitMQ.Client.Content
 {
-    ///<summary>Utility class for extracting typed values from strings.</summary>
-    public class PrimitiveParser
+    /// <summary>
+    ///     Utility class for extracting typed values from strings.
+    /// </summary>
+    public static class PrimitiveParser
     {
-        ///<summary>Causes ProtocolViolationException to be thrown;
-        ///called by the various "Parse*" methods when a syntax error
-        ///is detected.</summary>
-        ///<exception cref="ProtocolViolationException"/>
-        public static void InvalidConversion(string target, object source)
+        /// <summary>
+        /// Creates the protocol violation exception.
+        /// </summary>
+        /// <param name="targetType">Type of the target.</param>
+        /// <param name="source">The source.</param>
+        /// <returns>Instance of the <see cref="ProtocolViolationException" />.</returns>
+        public static ProtocolViolationException CreateProtocolViolationException(string targetType, object source)
         {
-            throw new ProtocolViolationException(string.Format("Invalid conversion to {0}: {1}",
-                target, source));
+            string message = string.Format("Invalid conversion to {0}: {1}", targetType, source);
+            return new ProtocolViolationException(message);
         }
 
-        ///<summary>Attempt to parse a string representation of a bool.</summary>
-        ///<exception cref="ProtocolViolationException"/>
+        /// <summary>
+        /// Attempt to parse a string representation of a <see cref="bool" />.
+        /// </summary>
+        /// <exception cref="ProtocolViolationException" />
         public static bool ParseBool(string value)
         {
-            try
+            bool result;
+            if (bool.TryParse(value, out result))
             {
-                return bool.Parse(value);
+                return result;
             }
-            catch
-            {
-                InvalidConversion("bool", value);
-                return false;
-            }
+            throw CreateProtocolViolationException("bool", value);
         }
 
-        ///<summary>Attempt to parse a string representation of a byte.</summary>
-        ///<exception cref="ProtocolViolationException"/>
+        /// <summary>
+        /// Attempt to parse a string representation of a <see cref="byte" />.
+        /// </summary>
+        /// <exception cref="ProtocolViolationException" />
         public static byte ParseByte(string value)
         {
-            try
+            byte result;
+            if (byte.TryParse(value, out result))
             {
-                return byte.Parse(value);
+                return result;
             }
-            catch
-            {
-                InvalidConversion("byte", value);
-                return 0;
-            }
+            throw CreateProtocolViolationException("byte", value);
         }
 
-        ///<summary>Attempt to parse a string representation of a double.</summary>
-        ///<exception cref="ProtocolViolationException"/>
+        /// <summary>
+        /// Attempt to parse a string representation of a <see cref="double" />.
+        /// </summary>
+        /// <exception cref="ProtocolViolationException" />
         public static double ParseDouble(string value)
         {
-            try
+            double result;
+            if (double.TryParse(value, out result))
             {
-                return double.Parse(value);
+                return result;
             }
-            catch
-            {
-                InvalidConversion("double", value);
-                return 0;
-            }
+            throw CreateProtocolViolationException("double", value);
         }
 
-        ///<summary>Attempt to parse a string representation of a float.</summary>
-        ///<exception cref="ProtocolViolationException"/>
+        /// <summary>
+        /// Attempt to parse a string representation of a <see cref="float" />.
+        /// </summary>
+        /// <exception cref="ProtocolViolationException" />
         public static float ParseFloat(string value)
         {
-            try
+            float result;
+            if (float.TryParse(value, out result))
             {
-                return float.Parse(value);
+                return result;
             }
-            catch
-            {
-                InvalidConversion("float", value);
-                return 0;
-            }
+            throw CreateProtocolViolationException("float", value);
         }
 
-        ///<summary>Attempt to parse a string representation of an int.</summary>
-        ///<exception cref="ProtocolViolationException"/>
+        /// <summary>
+        /// Attempt to parse a string representation of an <see cref="int" />.
+        /// </summary>
+        /// <exception cref="ProtocolViolationException" />
         public static int ParseInt(string value)
         {
-            try
+            int result;
+            if (int.TryParse(value, out result))
             {
-                return int.Parse(value);
+                return result;
             }
-            catch
-            {
-                InvalidConversion("int", value);
-                return 0;
-            }
+            throw CreateProtocolViolationException("int", value);
         }
 
-        ///<summary>Attempt to parse a string representation of a long.</summary>
-        ///<exception cref="ProtocolViolationException"/>
+        /// <summary>
+        /// Attempt to parse a string representation of a <see cref="long" />.
+        /// </summary>
+        /// <exception cref="ProtocolViolationException" />
         public static long ParseLong(string value)
         {
-            try
+            long result;
+            if (long.TryParse(value, out result))
             {
-                return long.Parse(value);
+                return result;
             }
-            catch
-            {
-                InvalidConversion("long", value);
-                return 0;
-            }
+            throw CreateProtocolViolationException("long", value);
         }
 
-        ///<summary>Attempt to parse a string representation of a short.</summary>
-        ///<exception cref="ProtocolViolationException"/>
+        /// <summary>
+        /// Attempt to parse a string representation of a <see cref="short" />.
+        /// </summary>
+        /// <exception cref="ProtocolViolationException" />
         public static short ParseShort(string value)
         {
-            try
+            short result;
+            if (short.TryParse(value, out result))
             {
-                return short.Parse(value);
+                return result;
             }
-            catch
-            {
-                InvalidConversion("short", value);
-                return 0;
-            }
+            throw CreateProtocolViolationException("short", value);
         }
     }
 }

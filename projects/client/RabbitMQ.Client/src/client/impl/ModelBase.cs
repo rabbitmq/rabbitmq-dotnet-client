@@ -69,17 +69,17 @@ namespace RabbitMQ.Client.Impl
         private readonly SynchronizedCollection<ulong> m_unconfirmedSet =
             new SynchronizedCollection<ulong>();
 
-        private BasicAckEventHandler m_basicAck;
-        private BasicNackEventHandler m_basicNack;
-        private BasicRecoverOkEventHandler m_basicRecoverOk;
-        private BasicReturnEventHandler m_basicReturn;
-        private CallbackExceptionEventHandler m_callbackException;
-        private FlowControlEventHandler m_flowControl;
-        private ModelShutdownEventHandler m_modelShutdown;
+        private EventHandler<BasicAckEventArgs> m_basicAck;
+        private EventHandler<BasicNackEventArgs> m_basicNack;
+        private EventHandler<EventArgs> m_basicRecoverOk;
+        private EventHandler<BasicReturnEventArgs> m_basicReturn;
+        private EventHandler<CallbackExceptionEventArgs> m_callbackException;
+        private EventHandler<FlowControlEventArgs> m_flowControl;
+        private EventHandler<ShutdownEventArgs> m_modelShutdown;
 
         private bool m_onlyAcksReceived = true;
 
-        private RecoveryEventHandler m_recovery;
+        private EventHandler<EventArgs> m_recovery;
 
         public ModelBase(ISession session)
         {
@@ -90,7 +90,7 @@ namespace RabbitMQ.Client.Impl
             Session.SessionShutdown += OnSessionShutdown;
         }
 
-        public event BasicAckEventHandler BasicAcks
+        public event EventHandler<BasicAckEventArgs> BasicAcks
         {
             add
             {
@@ -108,7 +108,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public event BasicNackEventHandler BasicNacks
+        public event EventHandler<BasicNackEventArgs> BasicNacks
         {
             add
             {
@@ -126,7 +126,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public event BasicRecoverOkEventHandler BasicRecoverOk
+        public event EventHandler<EventArgs> BasicRecoverOk
         {
             add
             {
@@ -144,7 +144,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public event BasicReturnEventHandler BasicReturn
+        public event EventHandler<BasicReturnEventArgs> BasicReturn
         {
             add
             {
@@ -162,7 +162,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public event CallbackExceptionEventHandler CallbackException
+        public event EventHandler<CallbackExceptionEventArgs> CallbackException
         {
             add
             {
@@ -180,7 +180,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public event FlowControlEventHandler FlowControl
+        public event EventHandler<FlowControlEventArgs> FlowControl
         {
             add
             {
@@ -198,7 +198,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public event ModelShutdownEventHandler ModelShutdown
+        public event EventHandler<ShutdownEventArgs> ModelShutdown
         {
             add
             {
@@ -225,7 +225,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public event RecoveryEventHandler Recovery
+        public event EventHandler<EventArgs> Recovery
         {
             add
             {
@@ -276,7 +276,7 @@ namespace RabbitMQ.Client.Impl
         public void Close(ShutdownEventArgs reason, bool abort)
         {
             var k = new ShutdownContinuation();
-            ModelShutdown += k.OnShutdown;
+            ModelShutdown += k.OnConnectionShutdown;
 
             try
             {
@@ -430,14 +430,14 @@ namespace RabbitMQ.Client.Impl
 
         public virtual void OnBasicAck(BasicAckEventArgs args)
         {
-            BasicAckEventHandler handler;
+            EventHandler<BasicAckEventArgs> handler;
             lock (m_eventLock)
             {
                 handler = m_basicAck;
             }
             if (handler != null)
             {
-                foreach (BasicAckEventHandler h in handler.GetInvocationList())
+                foreach (EventHandler<BasicAckEventArgs> h in handler.GetInvocationList())
                 {
                     try
                     {
@@ -457,14 +457,14 @@ namespace RabbitMQ.Client.Impl
 
         public virtual void OnBasicNack(BasicNackEventArgs args)
         {
-            BasicNackEventHandler handler;
+            EventHandler<BasicNackEventArgs> handler;
             lock (m_eventLock)
             {
                 handler = m_basicNack;
             }
             if (handler != null)
             {
-                foreach (BasicNackEventHandler h in handler.GetInvocationList())
+                foreach (EventHandler<BasicNackEventArgs> h in handler.GetInvocationList())
                 {
                     try
                     {
@@ -484,14 +484,14 @@ namespace RabbitMQ.Client.Impl
 
         public virtual void OnBasicRecoverOk(EventArgs args)
         {
-            BasicRecoverOkEventHandler handler;
+            EventHandler<EventArgs> handler;
             lock (m_eventLock)
             {
                 handler = m_basicRecoverOk;
             }
             if (handler != null)
             {
-                foreach (BasicRecoverOkEventHandler h in handler.GetInvocationList())
+                foreach (EventHandler<EventArgs> h in handler.GetInvocationList())
                 {
                     try
                     {
@@ -509,14 +509,14 @@ namespace RabbitMQ.Client.Impl
 
         public virtual void OnBasicReturn(BasicReturnEventArgs args)
         {
-            BasicReturnEventHandler handler;
+            EventHandler<BasicReturnEventArgs> handler;
             lock (m_eventLock)
             {
                 handler = m_basicReturn;
             }
             if (handler != null)
             {
-                foreach (BasicReturnEventHandler h in handler.GetInvocationList())
+                foreach (EventHandler<BasicReturnEventArgs> h in handler.GetInvocationList())
                 {
                     try
                     {
@@ -534,14 +534,14 @@ namespace RabbitMQ.Client.Impl
 
         public virtual void OnCallbackException(CallbackExceptionEventArgs args)
         {
-            CallbackExceptionEventHandler handler;
+            EventHandler<CallbackExceptionEventArgs> handler;
             lock (m_eventLock)
             {
                 handler = m_callbackException;
             }
             if (handler != null)
             {
-                foreach (CallbackExceptionEventHandler h in handler.GetInvocationList())
+                foreach (EventHandler<CallbackExceptionEventArgs> h in handler.GetInvocationList())
                 {
                     try
                     {
@@ -560,14 +560,14 @@ namespace RabbitMQ.Client.Impl
 
         public virtual void OnFlowControl(FlowControlEventArgs args)
         {
-            FlowControlEventHandler handler;
+            EventHandler<FlowControlEventArgs> handler;
             lock (m_eventLock)
             {
                 handler = m_flowControl;
             }
             if (handler != null)
             {
-                foreach (FlowControlEventHandler h in handler.GetInvocationList())
+                foreach (EventHandler<FlowControlEventArgs> h in handler.GetInvocationList())
                 {
                     try
                     {
@@ -598,7 +598,7 @@ namespace RabbitMQ.Client.Impl
         public virtual void OnModelShutdown(ShutdownEventArgs reason)
         {
             m_continuationQueue.HandleModelShutdown(reason);
-            ModelShutdownEventHandler handler;
+            EventHandler<ShutdownEventArgs> handler;
             lock (m_shutdownLock)
             {
                 handler = m_modelShutdown;
@@ -606,7 +606,7 @@ namespace RabbitMQ.Client.Impl
             }
             if (handler != null)
             {
-                foreach (ModelShutdownEventHandler h in handler.GetInvocationList())
+                foreach (EventHandler<ShutdownEventArgs> h in handler.GetInvocationList())
                 {
                     try
                     {
@@ -625,7 +625,7 @@ namespace RabbitMQ.Client.Impl
             m_flowControlBlock.Set();
         }
 
-        public void OnSessionShutdown(ISession session, ShutdownEventArgs reason)
+        public void OnSessionShutdown(object sender, ShutdownEventArgs reason)
         {
             SetCloseReason(reason);
             OnModelShutdown(reason);
@@ -1136,13 +1136,11 @@ namespace RabbitMQ.Client.Impl
             Close(replyCode, replyText, true);
         }
 
-        public abstract void BasicAck(ulong deliveryTag,
-            bool multiple);
+        public abstract void BasicAck(ulong deliveryTag, bool multiple);
 
         public void BasicCancel(string consumerTag)
         {
-            var k = new BasicConsumerRpcContinuation();
-            k.m_consumerTag = consumerTag;
+            var k = new BasicConsumerRpcContinuation {m_consumerTag = consumerTag};
 
             Enqueue(k);
 
@@ -1152,9 +1150,7 @@ namespace RabbitMQ.Client.Impl
             ModelShutdown -= k.m_consumer.HandleModelShutdown;
         }
 
-        public string BasicConsume(string queue,
-            bool noAck,
-            IBasicConsumer consumer)
+        public string BasicConsume(string queue, bool noAck, IBasicConsumer consumer)
         {
             return BasicConsume(queue, noAck, "", consumer);
         }

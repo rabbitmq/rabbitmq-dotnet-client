@@ -59,25 +59,23 @@ namespace RabbitMQ.Client.Framing.Impl
         public readonly object m_eventLock = new object();
 
         ///<summary>Heartbeat frame for transmission. Reusable across connections.</summary>
-        public readonly Frame m_heartbeatFrame = new Frame(Constants.FrameHeartbeat,
-            0,
-            new byte[0]);
+        public readonly Frame m_heartbeatFrame = new Frame(Constants.FrameHeartbeat, 0, new byte[0]);
 
         ///<summary>Timeout used while waiting for AMQP handshaking to
         ///complete (milliseconds)</summary>
         public const int HandshakeTimeout = 10000;
 
         public ManualResetEvent m_appContinuation = new ManualResetEvent(false);
-        public CallbackExceptionEventHandler m_callbackException;
+        public EventHandler<CallbackExceptionEventArgs> m_callbackException;
 
         public IDictionary<string, object> m_clientProperties;
 
         public volatile ShutdownEventArgs m_closeReason = null;
         public volatile bool m_closed = false;
 
-        public ConnectionBlockedEventHandler m_connectionBlocked;
-        public ConnectionShutdownEventHandler m_connectionShutdown;
-        public ConnectionUnblockedEventHandler m_connectionUnblocked;
+        public EventHandler<ConnectionBlockedEventArgs> m_connectionBlocked;
+        public EventHandler<ShutdownEventArgs> m_connectionShutdown;
+        public EventHandler<EventArgs> m_connectionUnblocked;
         public IConnectionFactory m_factory;
         public IFrameHandler m_frameHandler;
         public ushort m_heartbeat = 0;
@@ -94,8 +92,8 @@ namespace RabbitMQ.Client.Framing.Impl
         public SessionManager m_sessionManager;
 
         public IList<ShutdownReportEntry> m_shutdownReport = new SynchronizedList<ShutdownReportEntry>(new List<ShutdownReportEntry>());
-        private Timer heartbeatReadTimer;
-        private Timer heartbeatWriteTimer;
+        private Timer _heartbeatReadTimer;
+        private Timer _heartbeatWriteTimer;
 
         public Connection(IConnectionFactory factory, bool insist, IFrameHandler frameHandler)
         {
@@ -114,14 +112,7 @@ namespace RabbitMQ.Client.Framing.Impl
             AppDomain.CurrentDomain.DomainUnload += HandleDomainUnload;
         }
 
-
-        public delegate void ConnectionCloseDelegate(ushort replyCode,
-            string replyText,
-            ushort classId,
-            ushort methodId);
-
-
-        public event CallbackExceptionEventHandler CallbackException
+        public event EventHandler<CallbackExceptionEventArgs> CallbackException
         {
             add
             {
@@ -139,7 +130,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public event ConnectionBlockedEventHandler ConnectionBlocked
+        public event EventHandler<ConnectionBlockedEventArgs> ConnectionBlocked
         {
             add
             {
@@ -157,7 +148,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public event ConnectionShutdownEventHandler ConnectionShutdown
+        public event EventHandler<ShutdownEventArgs> ConnectionShutdown
         {
             add
             {
@@ -184,7 +175,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public event ConnectionUnblockedEventHandler ConnectionUnblocked
+        public event EventHandler<EventArgs> ConnectionUnblocked
         {
             add
             {
@@ -564,7 +555,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             else
             {
-                heartbeatReadTimer.Change(Heartbeat * 1000, Timeout.Infinite);
+                _heartbeatReadTimer.Change(Heartbeat * 1000, Timeout.Infinite);
             }
         }
 
@@ -598,7 +589,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             else
             {
-                heartbeatWriteTimer.Change(Heartbeat * 1000, Timeout.Infinite);
+                _heartbeatWriteTimer.Change(Heartbeat * 1000, Timeout.Infinite);
             }
         }
 
@@ -769,14 +760,14 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void OnCallbackException(CallbackExceptionEventArgs args)
         {
-            CallbackExceptionEventHandler handler;
+            EventHandler<CallbackExceptionEventArgs> handler;
             lock (m_eventLock)
             {
                 handler = m_callbackException;
             }
             if (handler != null)
             {
-                foreach (CallbackExceptionEventHandler h in handler.GetInvocationList())
+                foreach (EventHandler<CallbackExceptionEventArgs> h in handler.GetInvocationList())
                 {
                     try
                     {
@@ -795,14 +786,14 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void OnConnectionBlocked(ConnectionBlockedEventArgs args)
         {
-            ConnectionBlockedEventHandler handler;
+            EventHandler<ConnectionBlockedEventArgs> handler;
             lock (m_eventLock)
             {
                 handler = m_connectionBlocked;
             }
             if (handler != null)
             {
-                foreach (ConnectionBlockedEventHandler h in handler.GetInvocationList())
+                foreach (EventHandler<ConnectionBlockedEventArgs> h in handler.GetInvocationList())
                 {
                     try
                     {
@@ -820,18 +811,18 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void OnConnectionUnblocked()
         {
-            ConnectionUnblockedEventHandler handler;
+            EventHandler<EventArgs> handler;
             lock (m_eventLock)
             {
                 handler = m_connectionUnblocked;
             }
             if (handler != null)
             {
-                foreach (ConnectionUnblockedEventHandler h in handler.GetInvocationList())
+                foreach (EventHandler<EventArgs> h in handler.GetInvocationList())
                 {
                     try
                     {
-                        h(this);
+                        h(this, EventArgs.Empty);
                     }
                     catch (Exception e)
                     {
@@ -846,7 +837,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>Broadcasts notification of the final shutdown of the connection.</summary>
         public void OnShutdown()
         {
-            ConnectionShutdownEventHandler handler;
+            EventHandler<ShutdownEventArgs> handler;
             ShutdownEventArgs reason;
             lock (m_eventLock)
             {
@@ -856,7 +847,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             if (handler != null)
             {
-                foreach (ConnectionShutdownEventHandler h in handler.GetInvocationList())
+                foreach (EventHandler<ShutdownEventArgs> h in handler.GetInvocationList())
                 {
                     try
                     {
@@ -973,11 +964,11 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             if (Heartbeat != 0)
             {
-                heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback);
-                heartbeatWriteTimer.Change(Heartbeat * 1000, Timeout.Infinite);
+                _heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback);
+                _heartbeatWriteTimer.Change(Heartbeat * 1000, Timeout.Infinite);
 
-                heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback);
-                heartbeatReadTimer.Change(Heartbeat * 1000, Timeout.Infinite);
+                _heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback);
+                _heartbeatReadTimer.Change(Heartbeat * 1000, Timeout.Infinite);
             }
         }
 

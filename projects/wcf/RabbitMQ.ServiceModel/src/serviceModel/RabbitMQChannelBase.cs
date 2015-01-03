@@ -39,30 +39,40 @@
 //---------------------------------------------------------------------------
 
 
+using System;
+using System.ServiceModel;
+using System.ServiceModel.Channels;
+
 namespace RabbitMQ.ServiceModel
 {
-    using System;
-    using System.ServiceModel;
-    using System.ServiceModel.Channels;
-
     internal abstract class RabbitMQChannelBase : IChannel
     {
-        private CommunicationOperation m_closeMethod;
-        private BindingContext m_context;
-        private CommunicationOperation m_openMethod;
-        private CommunicationState m_state;
+        private readonly Action<TimeSpan> _closeMethod;
+        private readonly BindingContext _context;
+        private readonly Action<TimeSpan> _openMethod;
+        private CommunicationState _state;
 
         private RabbitMQChannelBase()
         {
-            m_state = CommunicationState.Created;
-            m_closeMethod = new CommunicationOperation(Close);
-            m_openMethod = new CommunicationOperation(Open);
+            _state = CommunicationState.Created;
+            _closeMethod = Close;
+            _openMethod = Open;
         }
 
         protected RabbitMQChannelBase(BindingContext context)
             : this()
         {
-            m_context = context;
+            _context = context;
+        }
+
+        protected BindingContext Context
+        {
+            get { return _context; }
+        }
+
+        protected String Exchange
+        {
+            get { return "amq.direct"; }
         }
 
         public abstract void Close(TimeSpan timeout);
@@ -76,7 +86,7 @@ namespace RabbitMQ.ServiceModel
 
         public virtual void Close()
         {
-            Close(m_context.Binding.CloseTimeout);
+            Close(_context.Binding.CloseTimeout);
         }
 
         public virtual T GetProperty<T>() where T : class
@@ -86,96 +96,12 @@ namespace RabbitMQ.ServiceModel
 
         public virtual void Open()
         {
-            Open(m_context.Binding.OpenTimeout);
+            Open(_context.Binding.OpenTimeout);
         }
-
-        #region Async Methods
-
-        public virtual IAsyncResult BeginClose(TimeSpan timeout, AsyncCallback callback, object state)
-        {
-            return m_closeMethod.BeginInvoke(timeout, callback, state);
-        }
-
-        public virtual IAsyncResult BeginClose(AsyncCallback callback, object state)
-        {
-            return m_closeMethod.BeginInvoke(m_context.Binding.CloseTimeout, callback, state);
-        }
-
-        public virtual IAsyncResult BeginOpen(TimeSpan timeout, AsyncCallback callback, object state)
-        {
-            return m_openMethod.BeginInvoke(timeout, callback, state);
-        }
-
-        public virtual IAsyncResult BeginOpen(AsyncCallback callback, object state)
-        {
-            return m_openMethod.BeginInvoke(m_context.Binding.OpenTimeout, callback, state);
-        }
-
-        public virtual void EndClose(IAsyncResult result)
-        {
-            m_closeMethod.EndInvoke(result);
-        }
-
-        public virtual void EndOpen(IAsyncResult result)
-        {
-            m_openMethod.EndInvoke(result);
-        }
-
-        #endregion
-
-        #region Event Raising Methods
-
-        protected void OnOpening()
-        {
-            m_state = CommunicationState.Opening;
-            if (Opening != null)
-                Opening(this, null);
-        }
-
-        protected void OnOpened()
-        {
-            m_state = CommunicationState.Opened;
-            if (Opened != null)
-                Opened(this, null);
-        }
-
-        protected void OnClosing()
-        {
-            m_state = CommunicationState.Closing;
-            if (Closing != null)
-                Closing(this, null);
-        }
-
-        protected void OnClosed()
-        {
-            m_state = CommunicationState.Closed;
-            if (Closed != null)
-                Closed(this, null);
-        }
-
-        protected void OnFaulted()
-        {
-            m_state = CommunicationState.Faulted;
-            if (Faulted != null)
-                Faulted(this, null);
-        }
-
-        #endregion
-
 
         public CommunicationState State
         {
-            get { return m_state; }
-        }
-
-        protected BindingContext Context
-        {
-            get { return m_context; }
-        }
-
-        protected String Exchange
-        {
-            get { return "amq.direct"; }
+            get { return _state; }
         }
 
         public event EventHandler Closed;
@@ -187,5 +113,78 @@ namespace RabbitMQ.ServiceModel
         public event EventHandler Opened;
 
         public event EventHandler Opening;
+
+        #region Async Methods
+
+        public virtual IAsyncResult BeginClose(TimeSpan timeout, AsyncCallback callback, object state)
+        {
+            return _closeMethod.BeginInvoke(timeout, callback, state);
+        }
+
+        public virtual IAsyncResult BeginClose(AsyncCallback callback, object state)
+        {
+            return _closeMethod.BeginInvoke(_context.Binding.CloseTimeout, callback, state);
+        }
+
+        public virtual IAsyncResult BeginOpen(TimeSpan timeout, AsyncCallback callback, object state)
+        {
+            return _openMethod.BeginInvoke(timeout, callback, state);
+        }
+
+        public virtual IAsyncResult BeginOpen(AsyncCallback callback, object state)
+        {
+            return _openMethod.BeginInvoke(_context.Binding.OpenTimeout, callback, state);
+        }
+
+        public virtual void EndClose(IAsyncResult result)
+        {
+            _closeMethod.EndInvoke(result);
+        }
+
+        public virtual void EndOpen(IAsyncResult result)
+        {
+            _openMethod.EndInvoke(result);
+        }
+
+        #endregion
+
+        #region Event Raising Methods
+
+        protected void OnOpening()
+        {
+            _state = CommunicationState.Opening;
+            if (Opening != null)
+                Opening(this, null);
+        }
+
+        protected void OnOpened()
+        {
+            _state = CommunicationState.Opened;
+            if (Opened != null)
+                Opened(this, null);
+        }
+
+        protected void OnClosing()
+        {
+            _state = CommunicationState.Closing;
+            if (Closing != null)
+                Closing(this, null);
+        }
+
+        protected void OnClosed()
+        {
+            _state = CommunicationState.Closed;
+            if (Closed != null)
+                Closed(this, null);
+        }
+
+        protected void OnFaulted()
+        {
+            _state = CommunicationState.Faulted;
+            if (Faulted != null)
+                Faulted(this, null);
+        }
+
+        #endregion
     }
 }

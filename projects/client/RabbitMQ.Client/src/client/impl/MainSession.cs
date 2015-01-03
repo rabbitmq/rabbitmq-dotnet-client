@@ -43,6 +43,7 @@
 // the versions we support*. Obviously we may need to revisit this if
 // that ever changes.
 
+using System;
 using RabbitMQ.Client.Framing;
 using RabbitMQ.Client.Framing.Impl;
 
@@ -51,8 +52,6 @@ namespace RabbitMQ.Client.Impl
     ///<summary>Small ISession implementation used only for channel 0.</summary>
     public class MainSession : Session
     {
-        public delegate void SessionCloseDelegate();
-
         private readonly object _closingLock = new object();
 
         public int m_closeClassId;
@@ -71,7 +70,7 @@ namespace RabbitMQ.Client.Impl
             m_closeMethodId = request.Method.ProtocolMethodId;
         }
 
-        public SessionCloseDelegate Handler { get; set; }
+        public Action Handler { get; set; }
 
         public override void HandleFrame(Frame frame)
         {

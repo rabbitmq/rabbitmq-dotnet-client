@@ -42,6 +42,19 @@ using System;
 
 namespace RabbitMQ.Client.Events
 {
-    ///<summary>Delegate used to process Basic.RecoverOk events.</summary>
-    public delegate void BasicRecoverOkEventHandler(IModel model, EventArgs args);
+    /// <summary>
+    /// Event relating to flow control.
+    /// </summary>
+    public class FlowControlEventArgs : EventArgs
+    {
+        public FlowControlEventArgs(bool active)
+        {
+            Active = active;
+        }
+
+        /// <summary>
+        /// Access the flow control setting.
+        /// </summary>
+        public bool Active { get; private set; }
+    }
 }

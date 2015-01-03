@@ -107,7 +107,7 @@ namespace RabbitMQ.Client.Unit {
             };
 
             Model.BasicConsume(q, true, ec);
-            Model.BasicPublish("", q, null, enc.GetBytes("msg"));
+            Model.BasicPublish("", q, null, encoding.GetBytes("msg"));
 
             WaitOn(o);
             Assert.IsTrue(receivedInvoked);
