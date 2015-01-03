@@ -38,42 +38,49 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Content
 {
-    ///<summary>Constructs AMQP Basic-class messages binary-compatible
-    ///with QPid's "MapMessage" wire encoding.</summary>
+    /// <summary>
+    /// Constructs AMQP Basic-class messages binary-compatible with QPid's "MapMessage" wire encoding.
+    /// </summary>
     public class MapMessageBuilder : BasicMessageBuilder, IMapMessageBuilder
     {
-        ///<summary>MIME type associated with QPid MapMessages.</summary>
+        /// <summary>
+        /// MIME type associated with QPid MapMessages.
+        /// </summary>
         public const string MimeType = "jms/map-message";
 
-        ///<summary>Construct an instance for writing. See superclass.</summary>
+        /// <summary>
+        /// Construct an instance for writing. See <see cref="BasicMessageBuilder"/>.
+        /// </summary>
         public MapMessageBuilder(IModel model)
             : base(model)
         {
             Body = new Dictionary<string, object>();
         }
 
-        ///<summary>Construct an instance for writing. See superclass.</summary>
+        /// <summary>
+        /// Construct an instance for writing. See <see cref="BasicMessageBuilder"/>.
+        /// </summary>
         public MapMessageBuilder(IModel model, int initialAccumulatorSize)
             : base(model, initialAccumulatorSize)
         {
             Body = new Dictionary<string, object>();
         }
 
-        ///<summary>Implement IMapMessageBuilder.Body</summary>
+        /// <summary>
+        /// Retrieves the dictionary that will be written into the body of the message.
+        /// </summary>
         public IDictionary<string, object> Body { get; protected set; }
 
-        ///<summary>Override superclass method to write Body out into
-        ///the message BodyStream before retrieving the final byte
-        ///array.</summary>
-        ///<remarks>
-        /// Calling this message clears Body to null. Subsequent calls
-        /// will fault.
-        ///</remarks>
+        /// <summary>
+        /// Finish and retrieve the content body for transmission.
+        /// </summary>
+        /// <remarks>
+        /// Calling this message clears Body to null. Subsequent calls will fault.
+        /// </remarks>
         public override byte[] GetContentBody()
         {
             Body = null;
@@ -81,7 +88,10 @@ namespace RabbitMQ.Client.Content
             return base.GetContentBody();
         }
 
-        ///<summary>Override superclass method to answer our characteristic MIME type.</summary>
+        /// <summary>
+        /// Returns the default MIME content type for messages this instance constructs,
+        /// or null if none is available or relevant.
+        /// </summary>
         public override string GetDefaultContentType()
         {
             return MimeType;

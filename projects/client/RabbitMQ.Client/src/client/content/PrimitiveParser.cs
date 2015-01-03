@@ -38,26 +38,30 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.Net;
 
 namespace RabbitMQ.Client.Content
 {
-    ///<summary>Utility class for extracting typed values from strings.</summary>
-    public class PrimitiveParser
+    /// <summary>
+    /// Utility class for extracting typed values from strings.
+    /// </summary>
+    public static class PrimitiveParser
     {
-        ///<summary>Causes ProtocolViolationException to be thrown;
-        ///called by the various "Parse*" methods when a syntax error
-        ///is detected.</summary>
-        ///<exception cref="ProtocolViolationException"/>
+        /// <summary>
+        /// Causes ProtocolViolationException to be thrown;
+        /// Called by the various "Parse*" methods when a syntax error is detected.
+        /// </summary>
+        /// <exception cref="ProtocolViolationException"/>
         public static void InvalidConversion(string target, object source)
         {
             throw new ProtocolViolationException(string.Format("Invalid conversion to {0}: {1}",
                 target, source));
         }
 
-        ///<summary>Attempt to parse a string representation of a bool.</summary>
-        ///<exception cref="ProtocolViolationException"/>
+        /// <summary>
+        /// Attempt to parse a string representation of a <see cref="bool"/>.
+        /// </summary>
+        /// <exception cref="ProtocolViolationException"/>
         public static bool ParseBool(string value)
         {
             try
@@ -71,8 +75,10 @@ namespace RabbitMQ.Client.Content
             }
         }
 
-        ///<summary>Attempt to parse a string representation of a byte.</summary>
-        ///<exception cref="ProtocolViolationException"/>
+        /// <summary>
+        /// Attempt to parse a string representation of a <see cref="byte"/>.
+        /// </summary>
+        /// <exception cref="ProtocolViolationException"/>
         public static byte ParseByte(string value)
         {
             try
@@ -86,8 +92,10 @@ namespace RabbitMQ.Client.Content
             }
         }
 
-        ///<summary>Attempt to parse a string representation of a double.</summary>
-        ///<exception cref="ProtocolViolationException"/>
+        /// <summary>
+        /// Attempt to parse a string representation of a <see cref="double"/>.
+        /// </summary>
+        /// <exception cref="ProtocolViolationException"/>
         public static double ParseDouble(string value)
         {
             try
@@ -101,8 +109,10 @@ namespace RabbitMQ.Client.Content
             }
         }
 
-        ///<summary>Attempt to parse a string representation of a float.</summary>
-        ///<exception cref="ProtocolViolationException"/>
+        /// <summary>
+        /// Attempt to parse a string representation of a <see cref="float"/>.
+        /// </summary>
+        /// <exception cref="ProtocolViolationException"/>
         public static float ParseFloat(string value)
         {
             try
@@ -116,8 +126,10 @@ namespace RabbitMQ.Client.Content
             }
         }
 
-        ///<summary>Attempt to parse a string representation of an int.</summary>
-        ///<exception cref="ProtocolViolationException"/>
+        /// <summary>
+        /// Attempt to parse a string representation of an <see cref="int"/>.
+        /// </summary>
+        /// <exception cref="ProtocolViolationException"/>
         public static int ParseInt(string value)
         {
             try
@@ -131,8 +143,10 @@ namespace RabbitMQ.Client.Content
             }
         }
 
-        ///<summary>Attempt to parse a string representation of a long.</summary>
-        ///<exception cref="ProtocolViolationException"/>
+        /// <summary>
+        /// Attempt to parse a string representation of a <see cref="long"/>.
+        /// </summary>
+        /// <exception cref="ProtocolViolationException"/>
         public static long ParseLong(string value)
         {
             try
@@ -146,8 +160,10 @@ namespace RabbitMQ.Client.Content
             }
         }
 
-        ///<summary>Attempt to parse a string representation of a short.</summary>
-        ///<exception cref="ProtocolViolationException"/>
+        /// <summary>
+        /// Attempt to parse a string representation of a <see cref="short"/>.
+        /// </summary>
+        /// <exception cref="ProtocolViolationException"/>
         public static short ParseShort(string value)
         {
             try
