@@ -54,6 +54,8 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestConnectionRecovery : IntegrationFixture
     {
+        public static TimeSpan RECOVERY_INTERVAL = TimeSpan.FromSeconds(2);
+
         [SetUp]
         public override void Init()
         {
@@ -61,288 +63,11 @@ namespace RabbitMQ.Client.Unit
             Model = Conn.CreateModel();
         }
 
-        public static TimeSpan RECOVERY_INTERVAL = TimeSpan.FromSeconds(2);
-
-        public class TestBasicConsumer1 : DefaultBasicConsumer
-        {
-            private readonly Action action;
-            private readonly AutoResetEvent latch;
-            private ushort counter;
-
-            public TestBasicConsumer1(IModel model, AutoResetEvent latch, Action fn) : base(model)
-            {
-                this.latch = latch;
-                action = fn;
-            }
-
-            public override void HandleBasicDeliver(string consumerTag,
-                ulong deliveryTag,
-                bool redelivered,
-                string exchange,
-                string routingKey,
-                IBasicProperties properties,
-                byte[] body)
-            {
-                try
-                {
-                    if (deliveryTag == 7 && counter < 10)
-                    {
-                        action();
-                    }
-                    if (counter == 9)
-                    {
-                        latch.Set();
-                    }
-                    PostHandleDelivery(deliveryTag);
-                }
-                finally
-                {
-                    counter += 1;
-                }
-            }
-
-            public virtual void PostHandleDelivery(ulong deliveryTag)
-            {
-            }
-        }
-
-        public class AckingBasicConsumer : TestBasicConsumer1
-        {
-            public AckingBasicConsumer(IModel model, AutoResetEvent latch, Action fn) : base(model, latch, fn)
-            {
-            }
-
-            public override void PostHandleDelivery(ulong deliveryTag)
-            {
-                Model.BasicAck(deliveryTag, false);
-            }
-        }
-
-        public class NackingBasicConsumer : TestBasicConsumer1
-        {
-            public NackingBasicConsumer(IModel model, AutoResetEvent latch, Action fn) : base(model, latch, fn)
-            {
-            }
-
-            public override void PostHandleDelivery(ulong deliveryTag)
-            {
-                Model.BasicNack(deliveryTag, false, false);
-            }
-        }
-
-        public class RejectingBasicConsumer : TestBasicConsumer1
-        {
-            public RejectingBasicConsumer(IModel model, AutoResetEvent latch, Action fn) : base(model, latch, fn)
-            {
-            }
-
-            public override void PostHandleDelivery(ulong deliveryTag)
-            {
-                Model.BasicReject(deliveryTag, false);
-            }
-        }
-
-        protected void TestDelayedBasicAckNackAfterChannelRecovery(TestBasicConsumer1 cons, AutoResetEvent latch)
-        {
-            string q = Model.QueueDeclare(GenerateQueueName(), false, false, false, null).QueueName;
-            int n = 30;
-            Model.BasicQos(0, 1, false);
-            Model.BasicConsume(q, false, cons);
-
-            AutorecoveringConnection publishingConn = CreateAutorecoveringConnection();
-            IModel publishingModel = publishingConn.CreateModel();
-
-            for (int i = 0; i < n; i++)
-            {
-                publishingModel.BasicPublish("", q, null, encoding.GetBytes(""));
-            }
-
-            Wait(latch, TimeSpan.FromSeconds(20));
-            Model.QueueDelete(q);
-            publishingModel.Close();
-            publishingConn.Close();
-        }
-
-
-        //
-        // Implementation
-        //
-
-        protected void CloseAndWaitForRecovery()
-        {
-            CloseAndWaitForRecovery((AutorecoveringConnection) Conn);
-        }
-
-        protected void CloseAllAndWaitForRecovery()
-        {
-            CloseAllAndWaitForRecovery((AutorecoveringConnection) Conn);
-        }
-
-        protected void CloseAndWaitForRecovery(AutorecoveringConnection conn)
-        {
-            AutoResetEvent sl = PrepareForShutdown(conn);
-            AutoResetEvent rl = PrepareForRecovery(conn);
-            CloseConnection(conn);
-            Wait(sl);
-            Wait(rl);
-        }
-
-        protected void CloseAllAndWaitForRecovery(AutorecoveringConnection conn)
-        {
-            AutoResetEvent rl = PrepareForRecovery(conn);
-            CloseAllConnections();
-            Wait(rl);
-        }
-
-        protected void CloseAndWaitForShutdown(AutorecoveringConnection conn)
-        {
-            AutoResetEvent sl = PrepareForShutdown(conn);
-            CloseConnection(conn);
-            Wait(sl);
-        }
-
-        protected void RestartServerAndWaitForRecovery()
-        {
-            RestartServerAndWaitForRecovery((AutorecoveringConnection) Conn);
-        }
-
-        protected void RestartServerAndWaitForRecovery(AutorecoveringConnection conn)
-        {
-            AutoResetEvent sl = PrepareForShutdown(conn);
-            AutoResetEvent rl = PrepareForRecovery(conn);
-            RestartRabbitMQ();
-            Wait(sl);
-            Wait(rl);
-        }
-
-        protected void WaitForRecovery()
-        {
-            Wait(PrepareForRecovery((AutorecoveringConnection) Conn));
-        }
-
-        protected void WaitForRecovery(AutorecoveringConnection conn)
-        {
-            Wait(PrepareForRecovery(conn));
-        }
-
-        protected void WaitForShutdown()
-        {
-            Wait(PrepareForShutdown(Conn));
-        }
-
-        protected void WaitForShutdown(IConnection conn)
-        {
-            Wait(PrepareForShutdown(conn));
-        }
-
-        protected AutoResetEvent PrepareForShutdown(IConnection conn)
-        {
-            var latch = new AutoResetEvent(false);
-            conn.ConnectionShutdown += (c, args) => { latch.Set(); };
-
-            return latch;
-        }
-
-        protected AutoResetEvent PrepareForRecovery(AutorecoveringConnection conn)
-        {
-            var latch = new AutoResetEvent(false);
-            conn.Recovery += (source, ea) => latch.Set();
-
-            return latch;
-        }
-
-        protected void Wait(AutoResetEvent latch)
-        {
-            Assert.IsTrue(latch.WaitOne(TimeSpan.FromSeconds(8)));
-        }
-
-        protected void Wait(AutoResetEvent latch, TimeSpan timeSpan)
-        {
-            Assert.IsTrue(latch.WaitOne(timeSpan));
-        }
-
-        protected override void ReleaseResources()
-        {
-            Unblock();
-        }
-
-        protected void AssertExchangeRecovery(IModel m, string x)
-        {
-            m.ConfirmSelect();
-            WithTemporaryNonExclusiveQueue(m, (_, q) =>
-            {
-                string rk = "routing-key";
-                m.QueueBind(q, x, rk);
-                byte[] mb = RandomMessageBody();
-                m.BasicPublish(x, rk, null, mb);
-
-                Assert.IsTrue(WaitForConfirms(m));
-                m.ExchangeDeclarePassive(x);
-            });
-        }
-
-        protected void AssertQueueRecovery(IModel m, string q)
-        {
-            AssertQueueRecovery(m, q, true);
-        }
-
-        protected void AssertQueueRecovery(IModel m, string q, bool exclusive)
-        {
-            m.ConfirmSelect();
-            m.QueueDeclarePassive(q);
-            QueueDeclareOk ok1 = m.QueueDeclare(q, false, exclusive, false, null);
-            Assert.AreEqual(ok1.MessageCount, 0);
-            m.BasicPublish("", q, null, encoding.GetBytes(""));
-            Assert.IsTrue(WaitForConfirms(m));
-            QueueDeclareOk ok2 = m.QueueDeclare(q, false, exclusive, false, null);
-            Assert.AreEqual(ok2.MessageCount, 1);
-        }
-
-        protected void AssertRecordedQueues(AutorecoveringConnection c, int n)
-        {
-            Assert.AreEqual(n, c.RecordedQueues.Count);
-        }
-
-        protected void AssertRecordedExchanges(AutorecoveringConnection c, int n)
-        {
-            Assert.AreEqual(n, c.RecordedExchanges.Count);
-        }
-
-        protected IConnection CreateNonRecoveringConnection()
-        {
-            var cf = new ConnectionFactory();
-            return cf.CreateConnection();
-        }
-
-        protected AutorecoveringConnection CreateAutorecoveringConnection()
-        {
-            return CreateAutorecoveringConnection(RECOVERY_INTERVAL);
-        }
-
-        protected AutorecoveringConnection CreateAutorecoveringConnection(TimeSpan interval)
-        {
-            var cf = new ConnectionFactory
-            {
-                AutomaticRecoveryEnabled = true,
-                NetworkRecoveryInterval = interval
-            };
-            return (AutorecoveringConnection) cf.CreateConnection();
-        }
-
-        protected AutorecoveringConnection CreateAutorecoveringConnectionWithTopologyRecoveryDisabled()
-        {
-            var cf = new ConnectionFactory();
-            cf.AutomaticRecoveryEnabled = true;
-            cf.TopologyRecoveryEnabled = false;
-            cf.NetworkRecoveryInterval = RECOVERY_INTERVAL;
-            return (AutorecoveringConnection) cf.CreateConnection();
-        }
-
         [Test]
         public void TestBasicAckAfterChannelRecovery()
         {
-            var latch = new AutoResetEvent(false);
-            var cons = new AckingBasicConsumer(Model, latch, CloseAndWaitForRecovery);
+            var latch = new ManualResetEvent(false);
+            var cons = new AckingBasicConsumer(Model, latch, () => { CloseAndWaitForRecovery(); });
 
             TestDelayedBasicAckNackAfterChannelRecovery(cons, latch);
         }
@@ -351,9 +76,9 @@ namespace RabbitMQ.Client.Unit
         public void TestBasicAckEventHandlerRecovery()
         {
             Model.ConfirmSelect();
-            var latch = new AutoResetEvent(false);
-            ((AutorecoveringModel) Model).BasicAcks += (m, args) => latch.Set();
-            ((AutorecoveringModel) Model).BasicNacks += (m, args) => latch.Set();
+            var latch = new ManualResetEvent(false);
+            ((AutorecoveringModel)Model).BasicAcks += (m, args) => latch.Set();
+            ((AutorecoveringModel)Model).BasicNacks += (m, args) => latch.Set();
 
             CloseAndWaitForRecovery();
             CloseAndWaitForRecovery();
@@ -398,8 +123,8 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestBasicNackAfterChannelRecovery()
         {
-            var latch = new AutoResetEvent(false);
-            var cons = new NackingBasicConsumer(Model, latch, CloseAndWaitForRecovery);
+            var latch = new ManualResetEvent(false);
+            var cons = new NackingBasicConsumer(Model, latch, () => { CloseAndWaitForRecovery(); });
 
             TestDelayedBasicAckNackAfterChannelRecovery(cons, latch);
         }
@@ -407,8 +132,8 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestBasicRejectAfterChannelRecovery()
         {
-            var latch = new AutoResetEvent(false);
-            var cons = new RejectingBasicConsumer(Model, latch, CloseAndWaitForRecovery);
+            var latch = new ManualResetEvent(false);
+            var cons = new RejectingBasicConsumer(Model, latch, () => { CloseAndWaitForRecovery(); });
 
             TestDelayedBasicAckNackAfterChannelRecovery(cons, latch);
         }
@@ -416,7 +141,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestBlockedListenersRecovery()
         {
-            var latch = new AutoResetEvent(false);
+            var latch = new ManualResetEvent(false);
             Conn.ConnectionBlocked += (c, reason) => latch.Set();
             CloseAndWaitForRecovery();
             CloseAndWaitForRecovery();
@@ -484,7 +209,7 @@ namespace RabbitMQ.Client.Unit
             CloseAndWaitForRecovery(c);
             AssertConsumerCount(m, latestName, 1);
 
-            var latch = new AutoResetEvent(false);
+            var latch = new ManualResetEvent(false);
             cons.Received += (s, args) => latch.Set();
 
             m.BasicPublish("", q, null, encoding.GetBytes("msg"));
@@ -505,8 +230,8 @@ namespace RabbitMQ.Client.Unit
                 Model.BasicConsume(q, true, cons);
             }
 
-            var latch = new AutoResetEvent(false);
-            ((AutorecoveringConnection) Conn).ConsumerTagChangeAfterRecovery += (prev, current) => { latch.Set(); };
+            var latch = new ManualResetEvent(false);
+            ((AutorecoveringConnection)Conn).ConsumerTagChangeAfterRecovery += (prev, current) => latch.Set();
 
             CloseAndWaitForRecovery();
             Wait(latch);
@@ -545,7 +270,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestDeclarationOfManyAutoDeleteExchangesWithTransientExchangesThatAreDeleted()
         {
-            AssertRecordedExchanges((AutorecoveringConnection) Conn, 0);
+            AssertRecordedExchanges((AutorecoveringConnection)Conn, 0);
             for (int i = 0; i < 3; i++)
             {
                 string x1 = "source-" + Guid.NewGuid();
@@ -555,13 +280,13 @@ namespace RabbitMQ.Client.Unit
                 Model.ExchangeBind(x2, x1, "");
                 Model.ExchangeDelete(x2);
             }
-            AssertRecordedExchanges((AutorecoveringConnection) Conn, 0);
+            AssertRecordedExchanges((AutorecoveringConnection)Conn, 0);
         }
 
         [Test]
         public void TestDeclarationOfManyAutoDeleteExchangesWithTransientExchangesThatAreUnbound()
         {
-            AssertRecordedExchanges((AutorecoveringConnection) Conn, 0);
+            AssertRecordedExchanges((AutorecoveringConnection)Conn, 0);
             for (int i = 0; i < 1000; i++)
             {
                 string x1 = "source-" + Guid.NewGuid();
@@ -572,13 +297,13 @@ namespace RabbitMQ.Client.Unit
                 Model.ExchangeUnbind(x2, x1, "");
                 Model.ExchangeDelete(x2);
             }
-            AssertRecordedExchanges((AutorecoveringConnection) Conn, 0);
+            AssertRecordedExchanges((AutorecoveringConnection)Conn, 0);
         }
 
         [Test]
         public void TestDeclarationOfManyAutoDeleteExchangesWithTransientQueuesThatAreDeleted()
         {
-            AssertRecordedExchanges((AutorecoveringConnection) Conn, 0);
+            AssertRecordedExchanges((AutorecoveringConnection)Conn, 0);
             for (int i = 0; i < 1000; i++)
             {
                 string x = Guid.NewGuid().ToString();
@@ -587,13 +312,13 @@ namespace RabbitMQ.Client.Unit
                 Model.QueueBind(q, x, "");
                 Model.QueueDelete(q);
             }
-            AssertRecordedExchanges((AutorecoveringConnection) Conn, 0);
+            AssertRecordedExchanges((AutorecoveringConnection)Conn, 0);
         }
 
         [Test]
         public void TestDeclarationOfManyAutoDeleteExchangesWithTransientQueuesThatAreUnbound()
         {
-            AssertRecordedExchanges((AutorecoveringConnection) Conn, 0);
+            AssertRecordedExchanges((AutorecoveringConnection)Conn, 0);
             for (int i = 0; i < 1000; i++)
             {
                 string x = Guid.NewGuid().ToString();
@@ -602,13 +327,13 @@ namespace RabbitMQ.Client.Unit
                 Model.QueueBind(q, x, "");
                 Model.QueueUnbind(q, x, "", null);
             }
-            AssertRecordedExchanges((AutorecoveringConnection) Conn, 0);
+            AssertRecordedExchanges((AutorecoveringConnection)Conn, 0);
         }
 
         [Test]
         public void TestDeclarationOfManyAutoDeleteQueuesWithTransientConsumer()
         {
-            AssertRecordedQueues((AutorecoveringConnection) Conn, 0);
+            AssertRecordedQueues((AutorecoveringConnection)Conn, 0);
             for (int i = 0; i < 1000; i++)
             {
                 string q = Guid.NewGuid().ToString();
@@ -617,7 +342,7 @@ namespace RabbitMQ.Client.Unit
                 string tag = Model.BasicConsume(q, true, dummy);
                 Model.BasicCancel(tag);
             }
-            AssertRecordedQueues((AutorecoveringConnection) Conn, 0);
+            AssertRecordedQueues((AutorecoveringConnection)Conn, 0);
         }
 
         [Test]
@@ -690,7 +415,7 @@ namespace RabbitMQ.Client.Unit
         public void TestRecoveryEventHandlersOnChannel()
         {
             Int32 counter = 0;
-            ((AutorecoveringModel) Model).Recovery += (source, ea) => Interlocked.Increment(ref counter);
+            ((AutorecoveringModel)Model).Recovery += (source, ea) => Interlocked.Increment(ref counter);
 
             CloseAndWaitForRecovery();
             CloseAndWaitForRecovery();
@@ -703,7 +428,7 @@ namespace RabbitMQ.Client.Unit
         public void TestRecoveryEventHandlersOnConnection()
         {
             Int32 counter = 0;
-            ((AutorecoveringConnection) Conn).Recovery += (source, ea) => Interlocked.Increment(ref counter);
+            ((AutorecoveringConnection)Conn).Recovery += (source, ea) => Interlocked.Increment(ref counter);
 
             CloseAndWaitForRecovery();
             CloseAndWaitForRecovery();
@@ -718,7 +443,7 @@ namespace RabbitMQ.Client.Unit
         public void TestRecoveryEventHandlersOnModel()
         {
             Int32 counter = 0;
-            ((AutorecoveringModel) Model).Recovery += (source, ea) => Interlocked.Increment(ref counter);
+            ((AutorecoveringModel)Model).Recovery += (source, ea) => Interlocked.Increment(ref counter);
 
             CloseAndWaitForRecovery();
             CloseAndWaitForRecovery();
@@ -767,8 +492,8 @@ namespace RabbitMQ.Client.Unit
             string nameBefore = q;
             string nameAfter = null;
 
-            var latch = new AutoResetEvent(false);
-            var connection = ((AutorecoveringConnection) Conn);
+            var latch = new ManualResetEvent(false);
+            var connection = ((AutorecoveringConnection)Conn);
             connection.Recovery += (source, ea) => latch.Set();
             connection.QueueNameChangeAfterRecovery += (source, ea) => { nameAfter = ea.NameAfter; };
 
@@ -804,14 +529,16 @@ namespace RabbitMQ.Client.Unit
         {
             Int32 counter = 0;
             Conn.ConnectionShutdown += (c, args) => Interlocked.Increment(ref counter);
+            ManualResetEvent shutdownLatch = PrepareForShutdown(Conn);
+            ManualResetEvent recoveryLatch = PrepareForRecovery(((AutorecoveringConnection)Conn));
 
             Assert.IsTrue(Conn.IsOpen);
             StopRabbitMQ();
-            Console.WriteLine("About to sleep for 9 seconds...");
-            Thread.Sleep(9000);
+            Console.WriteLine("Stopped RabbitMQ. About to sleep for multiple recovery intervals...");
+            Thread.Sleep(7000);
             StartRabbitMQ();
-            WaitForShutdown();
-            WaitForRecovery();
+            Wait(shutdownLatch, TimeSpan.FromSeconds(15));
+            Wait(recoveryLatch, TimeSpan.FromSeconds(15));
             Assert.IsTrue(Conn.IsOpen);
 
             Assert.IsTrue(counter >= 1);
@@ -821,7 +548,7 @@ namespace RabbitMQ.Client.Unit
         public void TestShutdownEventHandlersRecoveryOnModel()
         {
             Int32 counter = 0;
-            Model.ModelShutdown += (c, args) => { Interlocked.Increment(ref counter); };
+            Model.ModelShutdown += (c, args) => Interlocked.Increment(ref counter);
 
             Assert.IsTrue(Model.IsOpen);
             CloseAndWaitForRecovery();
@@ -953,7 +680,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestUnblockedListenersRecovery()
         {
-            var latch = new AutoResetEvent(false);
+            var latch = new ManualResetEvent(false);
             Conn.ConnectionUnblocked += (source, ea) => latch.Set();
             CloseAndWaitForRecovery();
             CloseAndWaitForRecovery();
@@ -961,6 +688,279 @@ namespace RabbitMQ.Client.Unit
             Block();
             Unblock();
             Wait(latch);
+        }
+
+        protected void AssertExchangeRecovery(IModel m, string x)
+        {
+            m.ConfirmSelect();
+            WithTemporaryNonExclusiveQueue(m, (_, q) =>
+            {
+                string rk = "routing-key";
+                m.QueueBind(q, x, rk);
+                byte[] mb = RandomMessageBody();
+                m.BasicPublish(x, rk, null, mb);
+
+                Assert.IsTrue(WaitForConfirms(m));
+                m.ExchangeDeclarePassive(x);
+            });
+        }
+
+        protected void AssertQueueRecovery(IModel m, string q)
+        {
+            AssertQueueRecovery(m, q, true);
+        }
+
+        protected void AssertQueueRecovery(IModel m, string q, bool exclusive)
+        {
+            m.ConfirmSelect();
+            m.QueueDeclarePassive(q);
+            QueueDeclareOk ok1 = m.QueueDeclare(q, false, exclusive, false, null);
+            Assert.AreEqual(ok1.MessageCount, 0);
+            m.BasicPublish("", q, null, encoding.GetBytes(""));
+            Assert.IsTrue(WaitForConfirms(m));
+            QueueDeclareOk ok2 = m.QueueDeclare(q, false, exclusive, false, null);
+            Assert.AreEqual(ok2.MessageCount, 1);
+        }
+
+        protected void AssertRecordedExchanges(AutorecoveringConnection c, int n)
+        {
+            Assert.AreEqual(n, c.RecordedExchanges.Count);
+        }
+
+        protected void AssertRecordedQueues(AutorecoveringConnection c, int n)
+        {
+            Assert.AreEqual(n, c.RecordedQueues.Count);
+        }
+
+        protected void CloseAllAndWaitForRecovery()
+        {
+            CloseAllAndWaitForRecovery((AutorecoveringConnection)Conn);
+        }
+
+        protected void CloseAllAndWaitForRecovery(AutorecoveringConnection conn)
+        {
+            ManualResetEvent rl = PrepareForRecovery(conn);
+            CloseAllConnections();
+            Wait(rl);
+        }
+
+        protected void CloseAndWaitForRecovery()
+        {
+            CloseAndWaitForRecovery((AutorecoveringConnection)Conn);
+        }
+
+        protected void CloseAndWaitForRecovery(AutorecoveringConnection conn)
+        {
+            ManualResetEvent sl = PrepareForShutdown(conn);
+            ManualResetEvent rl = PrepareForRecovery(conn);
+            CloseConnection(conn);
+            Wait(sl);
+            Wait(rl);
+        }
+
+        protected void CloseAndWaitForShutdown(AutorecoveringConnection conn)
+        {
+            ManualResetEvent sl = PrepareForShutdown(conn);
+            CloseConnection(conn);
+            Wait(sl);
+        }
+
+        protected AutorecoveringConnection CreateAutorecoveringConnection()
+        {
+            return CreateAutorecoveringConnection(RECOVERY_INTERVAL);
+        }
+
+        protected AutorecoveringConnection CreateAutorecoveringConnection(TimeSpan interval)
+        {
+            var cf = new ConnectionFactory();
+            cf.AutomaticRecoveryEnabled = true;
+            cf.NetworkRecoveryInterval = interval;
+            return (AutorecoveringConnection)cf.CreateConnection();
+        }
+
+        protected AutorecoveringConnection CreateAutorecoveringConnectionWithTopologyRecoveryDisabled()
+        {
+            var cf = new ConnectionFactory();
+            cf.AutomaticRecoveryEnabled = true;
+            cf.TopologyRecoveryEnabled = false;
+            cf.NetworkRecoveryInterval = RECOVERY_INTERVAL;
+            return (AutorecoveringConnection)cf.CreateConnection();
+        }
+
+        protected IConnection CreateNonRecoveringConnection()
+        {
+            var cf = new ConnectionFactory();
+            return cf.CreateConnection();
+        }
+
+        protected ManualResetEvent PrepareForRecovery(AutorecoveringConnection conn)
+        {
+            var latch = new ManualResetEvent(false);
+            conn.Recovery += (source, ea) => latch.Set();
+
+            return latch;
+        }
+
+        protected ManualResetEvent PrepareForShutdown(IConnection conn)
+        {
+            var latch = new ManualResetEvent(false);
+            conn.ConnectionShutdown += (c, args) => latch.Set();
+
+            return latch;
+        }
+
+        protected override void ReleaseResources()
+        {
+            Unblock();
+        }
+
+        protected void RestartServerAndWaitForRecovery()
+        {
+            RestartServerAndWaitForRecovery((AutorecoveringConnection)Conn);
+        }
+
+        protected void RestartServerAndWaitForRecovery(AutorecoveringConnection conn)
+        {
+            ManualResetEvent sl = PrepareForShutdown(conn);
+            ManualResetEvent rl = PrepareForRecovery(conn);
+            RestartRabbitMQ();
+            Wait(sl);
+            Wait(rl);
+        }
+
+        protected void TestDelayedBasicAckNackAfterChannelRecovery(TestBasicConsumer1 cons, ManualResetEvent latch)
+        {
+            string q = Model.QueueDeclare(GenerateQueueName(), false, false, false, null).QueueName;
+            int n = 30;
+            Model.BasicQos(0, 1, false);
+            Model.BasicConsume(q, false, cons);
+
+            AutorecoveringConnection publishingConn = CreateAutorecoveringConnection();
+            IModel publishingModel = publishingConn.CreateModel();
+
+            for (int i = 0; i < n; i++)
+            {
+                publishingModel.BasicPublish("", q, null, encoding.GetBytes(""));
+            }
+
+            Wait(latch, TimeSpan.FromSeconds(20));
+            Model.QueueDelete(q);
+            publishingModel.Close();
+            publishingConn.Close();
+        }
+
+        protected void Wait(ManualResetEvent latch)
+        {
+            Assert.IsTrue(latch.WaitOne(TimeSpan.FromSeconds(10)), "waiting on a latch timed out");
+        }
+
+        protected void Wait(ManualResetEvent latch, TimeSpan timeSpan)
+        {
+            Assert.IsTrue(latch.WaitOne(timeSpan), "waiting on a latch timed out");
+        }
+
+        protected void WaitForRecovery()
+        {
+            Wait(PrepareForRecovery((AutorecoveringConnection)Conn));
+        }
+
+        protected void WaitForRecovery(AutorecoveringConnection conn)
+        {
+            Wait(PrepareForRecovery(conn));
+        }
+
+        protected void WaitForShutdown()
+        {
+            Wait(PrepareForShutdown(Conn));
+        }
+
+        protected void WaitForShutdown(IConnection conn)
+        {
+            Wait(PrepareForShutdown(conn));
+        }
+
+
+        public class AckingBasicConsumer : TestBasicConsumer1
+        {
+            public AckingBasicConsumer(IModel model, ManualResetEvent latch, Action fn) : base(model, latch, fn)
+            {
+            }
+
+            public override void PostHandleDelivery(ulong deliveryTag)
+            {
+                Model.BasicAck(deliveryTag, false);
+            }
+        }
+
+
+        public class NackingBasicConsumer : TestBasicConsumer1
+        {
+            public NackingBasicConsumer(IModel model, ManualResetEvent latch, Action fn) : base(model, latch, fn)
+            {
+            }
+
+            public override void PostHandleDelivery(ulong deliveryTag)
+            {
+                Model.BasicNack(deliveryTag, false, false);
+            }
+        }
+
+
+        public class RejectingBasicConsumer : TestBasicConsumer1
+        {
+            public RejectingBasicConsumer(IModel model, ManualResetEvent latch, Action fn) : base(model, latch, fn)
+            {
+            }
+
+            public override void PostHandleDelivery(ulong deliveryTag)
+            {
+                Model.BasicReject(deliveryTag, false);
+            }
+        }
+
+
+        public class TestBasicConsumer1 : DefaultBasicConsumer
+        {
+            private readonly Action action;
+            private readonly ManualResetEvent latch;
+            private ushort counter = 0;
+
+            public TestBasicConsumer1(IModel model, ManualResetEvent latch, Action fn)
+                : base(model)
+            {
+                this.latch = latch;
+                action = fn;
+            }
+
+            public override void HandleBasicDeliver(string consumerTag,
+                ulong deliveryTag,
+                bool redelivered,
+                string exchange,
+                string routingKey,
+                IBasicProperties properties,
+                byte[] body)
+            {
+                try
+                {
+                    if (deliveryTag == 7 && counter < 10)
+                    {
+                        action();
+                    }
+                    if (counter == 9)
+                    {
+                        latch.Set();
+                    }
+                    PostHandleDelivery(deliveryTag);
+                }
+                finally
+                {
+                    counter += 1;
+                }
+            }
+
+            public virtual void PostHandleDelivery(ulong deliveryTag)
+            {
+            }
         }
     }
 }

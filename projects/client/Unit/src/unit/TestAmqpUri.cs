@@ -38,79 +38,20 @@
 //  Copyright (c) 2011-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
 using System;
-using RabbitMQ.Client;
+using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
     public class TestAmqpUri
     {
+        private readonly string[] IPv6Loopbacks = { "[0000:0000:0000:0000:0000:0000:0000:0001]", "[::1]" };
+
         [Test]
-        public void TestAmqpUriParse()
+        [ExpectedException(typeof(ArgumentException))]
+        public void TestAmqpUriParseFail()
         {
-            /* From the spec */
-            ParseSuccess("amqp://user:pass@host:10000/vhost",
-                         "user", "pass", "host", 10000, "vhost");
-            ParseSuccess("aMQps://user%61:%61pass@host:10000/v%2fhost",
-                         "usera", "apass", "host", 10000, "v/host");
-            ParseSuccess("amqp://localhost", "guest", "guest", "localhost", 5672, "/");
-            ParseSuccess("amqp://:@localhost/", "", "", "localhost", 5672, "/");
-            ParseSuccess("amqp://user@localhost",
-                         "user", "guest", "localhost", 5672, "/");
-            ParseSuccess("amqp://user:pass@localhost",
-                         "user", "pass", "localhost", 5672, "/");
-            ParseSuccess("amqp://host", "guest", "guest", "host", 5672, "/");
-            ParseSuccess("amqp://localhost:10000",
-                         "guest", "guest", "localhost", 10000, "/");
-            ParseSuccess("amqp://localhost/vhost",
-                         "guest", "guest", "localhost", 5672, "vhost");
-            ParseSuccess("amqp://host/", "guest", "guest", "host", 5672, "/");
-            ParseSuccess("amqp://host/%2f",
-                         "guest", "guest", "host", 5672, "/");
-            ParseSuccess("amqp://[::1]", "guest", "guest",
-                         "[0000:0000:0000:0000:0000:0000:0000:0001]",
-                         5672, "/");
-
-            /* Various other success cases */
-            ParseSuccess("amqp://host:100",
-                         "guest", "guest", "host", 100, "/");
-            ParseSuccess("amqp://[::1]:100",
-                         "guest", "guest",
-                         "[0000:0000:0000:0000:0000:0000:0000:0001]",
-                         100, "/");
-
-            ParseSuccess("amqp://host/blah",
-                         "guest", "guest", "host", 5672, "blah");
-            ParseSuccess("amqp://host:100/blah",
-                         "guest", "guest", "host", 100, "blah");
-            ParseSuccess("amqp://localhost:100/blah",
-                         "guest", "guest", "localhost", 100, "blah");
-            ParseSuccess("amqp://[::1]/blah",
-                         "guest", "guest",
-                         "[0000:0000:0000:0000:0000:0000:0000:0001]",
-                         5672, "blah");
-            ParseSuccess("amqp://[::1]:100/blah",
-                         "guest", "guest",
-                         "[0000:0000:0000:0000:0000:0000:0000:0001]",
-                         100, "blah");
-
-            ParseSuccess("amqp://user:pass@host",
-                         "user", "pass", "host", 5672, "/");
-            ParseSuccess("amqp://user:pass@host:100",
-                         "user", "pass", "host", 100, "/");
-            ParseSuccess("amqp://user:pass@localhost:100",
-                         "user", "pass", "localhost", 100, "/");
-            ParseSuccess("amqp://user:pass@[::1]",
-                         "user", "pass",
-                         "[0000:0000:0000:0000:0000:0000:0000:0001]",
-                         5672, "/");
-            ParseSuccess("amqp://user:pass@[::1]:100",
-                         "user", "pass",
-                         "[0000:0000:0000:0000:0000:0000:0000:0001]",
-                         100, "/");
-
             /* Various failure cases */
             ParseFail("http://www.rabbitmq.com");
             ParseFail("amqp://foo:bar:baz");
@@ -125,28 +66,98 @@ namespace RabbitMQ.Client.Unit
             ParseFail("amqp://foo%xy");
         }
 
-        private void ParseSuccess(string uri, string user, string password,
-                                  string host, int port, string vhost)
+        [Test]
+        public void TestAmqpUriParseSucceed()
         {
-            var factory = new ConnectionFactory
-            {
-                Uri = uri
-            };
-            Assert.AreEqual(user, factory.UserName);
-            Assert.AreEqual(password, factory.Password);
-            Assert.AreEqual(host, factory.HostName);
-            Assert.AreEqual(port, factory.Port);
-            Assert.AreEqual(vhost, factory.VirtualHost);
+            /* From the spec */
+            ParseSuccess("amqp://user:pass@host:10000/vhost",
+                "user", "pass", "host", 10000, "vhost");
+            ParseSuccess("aMQps://user%61:%61pass@host:10000/v%2fhost",
+                "usera", "apass", "host", 10000, "v/host");
+            ParseSuccess("amqp://localhost", "guest", "guest", "localhost", 5672, "/");
+            ParseSuccess("amqp://:@localhost/", "", "", "localhost", 5672, "/");
+            ParseSuccess("amqp://user@localhost",
+                "user", "guest", "localhost", 5672, "/");
+            ParseSuccess("amqp://user:pass@localhost",
+                "user", "pass", "localhost", 5672, "/");
+            ParseSuccess("amqp://host", "guest", "guest", "host", 5672, "/");
+            ParseSuccess("amqp://localhost:10000",
+                "guest", "guest", "localhost", 10000, "/");
+            ParseSuccess("amqp://localhost/vhost",
+                "guest", "guest", "localhost", 5672, "vhost");
+            ParseSuccess("amqp://host/", "guest", "guest", "host", 5672, "/");
+            ParseSuccess("amqp://host/%2f",
+                "guest", "guest", "host", 5672, "/");
+            ParseSuccess("amqp://[::1]", "guest", "guest",
+                IPv6Loopbacks,
+                5672, "/");
+
+            /* Various other success cases */
+            ParseSuccess("amqp://host:100",
+                "guest", "guest", "host", 100, "/");
+            ParseSuccess("amqp://[::1]:100",
+                "guest", "guest",
+                IPv6Loopbacks,
+                100, "/");
+
+            ParseSuccess("amqp://host/blah",
+                "guest", "guest", "host", 5672, "blah");
+            ParseSuccess("amqp://host:100/blah",
+                "guest", "guest", "host", 100, "blah");
+            ParseSuccess("amqp://localhost:100/blah",
+                "guest", "guest", "localhost", 100, "blah");
+            ParseSuccess("amqp://[::1]/blah",
+                "guest", "guest",
+                IPv6Loopbacks,
+                5672, "blah");
+            ParseSuccess("amqp://[::1]:100/blah",
+                "guest", "guest",
+                IPv6Loopbacks,
+                100, "blah");
+
+            ParseSuccess("amqp://user:pass@host",
+                "user", "pass", "host", 5672, "/");
+            ParseSuccess("amqp://user:pass@host:100",
+                "user", "pass", "host", 100, "/");
+            ParseSuccess("amqp://user:pass@localhost:100",
+                "user", "pass", "localhost", 100, "/");
+            ParseSuccess("amqp://user:pass@[::1]",
+                "user", "pass",
+                IPv6Loopbacks,
+                5672, "/");
+            ParseSuccess("amqp://user:pass@[::1]:100",
+                "user", "pass",
+                IPv6Loopbacks,
+                100, "/");
+        }
+
+        private static void AssertUriPartEquivalence(string user, string password, int port, string vhost, ConnectionFactory cf)
+        {
+            Assert.AreEqual(user, cf.UserName);
+            Assert.AreEqual(password, cf.Password);
+            Assert.AreEqual(port, cf.Port);
+            Assert.AreEqual(vhost, cf.VirtualHost);
         }
 
         private void ParseFail(string uri)
         {
-            TestDelegate testDelegate = delegate
-            {
-                var factory = new ConnectionFactory();
-                factory.Uri = uri;
-            };
-            Assert.Throws( Is.InstanceOf<Exception>(), testDelegate);
+            var cf = new ConnectionFactory();
+            cf.Uri = uri;
+        }
+
+        private void ParseSuccess(string uri, string user, string password, string host, int port, string vhost)
+        {
+            var factory = new ConnectionFactory { Uri = uri };
+            AssertUriPartEquivalence(user, password, port, vhost, factory);
+            Assert.AreEqual(host, factory.HostName);
+        }
+
+        private void ParseSuccess(string uri, string user, string password,
+            string[] hosts, int port, string vhost)
+        {
+            var factory = new ConnectionFactory { Uri = uri };
+            AssertUriPartEquivalence(user, password, port, vhost, factory);
+            Assert.IsTrue((Array.IndexOf(hosts, factory.HostName)) != -1);
         }
     }
 }

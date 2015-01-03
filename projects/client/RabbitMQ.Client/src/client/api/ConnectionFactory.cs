@@ -114,7 +114,7 @@ namespace RabbitMQ.Client
         /// Default value for desired heartbeat interval, in seconds, with zero meaning none (value: 0).
         /// </summary>
         /// <remarks>PLEASE KEEP THIS MATCHING THE DOC ABOVE.</remarks>
-        public const ushort DefaultHeartbeat = 0; // 
+        public const ushort DefaultHeartbeat = 0; //
 
         /// <summary>
         /// Default password (value: "guest").
@@ -274,7 +274,7 @@ namespace RabbitMQ.Client
         /// </summary>
         public AuthMechanismFactory AuthMechanismFactory(string[] mechanismNames)
         {
-            
+
             // Our list is in order of preference, the server one is not.
             foreach (AuthMechanismFactory factory in AuthMechanisms)
             {

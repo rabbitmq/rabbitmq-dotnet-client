@@ -1,8 +1,9 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Warning! This file contains important customizations. Using Visual Studio to edit project's properties might break things. -->
+    
   <!-- Props file -->
   <Import Project="$(MSBuildProjectDirectory)\..\..\..\..\..\Local.props" />
+  
   <!-- Visual Studio generated -->
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -17,11 +18,6 @@
     <ProjectTypeGuids>{3D9AD99F-2412-4246-B90B-4EAA41C64699};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <StartArguments>/client:"WcfTestClient.exe"</StartArguments>
     <TargetFrameworkVersion>$(PropTargetFramework)</TargetFrameworkVersion>
-    <FileUpgradeFlags>
-    </FileUpgradeFlags>
-    <UpgradeBackupLocation>
-    </UpgradeBackupLocation>
-    <OldToolsVersion>3.5</OldToolsVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -66,6 +62,7 @@
       <Name>RabbitMQ.ServiceModel</Name>
     </ProjectReference>
   </ItemGroup>
+  
   <!-- Microsoft CSharp targets; replace Build, Rebuild and Clean targets if building WCF is turned off -->
   <Target Name="Build" Condition="'$(PropBuildWcf)' != 'true'">
     <Message Text="Not building anything in $(MSBuildProjectName) because PropBuildWcf is false." />
@@ -76,5 +73,7 @@
   <Target Name="Clean" Condition="'$(PropBuildWcf)' != 'true'">
     <Message Text="Not cleaning anything in $(MSBuildProjectName) because PropBuildWcf is false." />
   </Target>
-  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" Condition="'$(PropBuildWcf)' == 'true'" />
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" Condition="'$(PropBuildWcf)' == 'true'"/>
+  
 </Project>
+

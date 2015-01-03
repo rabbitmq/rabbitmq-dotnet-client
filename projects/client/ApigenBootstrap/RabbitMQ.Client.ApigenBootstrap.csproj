@@ -16,11 +16,6 @@
     <AssemblyName>apigen-bootstrap</AssemblyName>
     <TargetFrameworkVersion>$(PropTargetFramework)</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <FileUpgradeFlags>
-    </FileUpgradeFlags>
-    <UpgradeBackupLocation>
-    </UpgradeBackupLocation>
-    <OldToolsVersion>3.5</OldToolsVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -87,11 +82,11 @@
     <Compile Include="..\RabbitMQ.Client\src\client\events\CallbackExceptionEventArgs.cs">
       <Link>src\client\events\CallbackExceptionEventArgs.cs</Link>
     </Compile>
-    <Compile Include="..\RabbitMQ.Client\src\client\events\FlowControlEventArgs.cs">
-      <Link>src\client\events\FlowControlEventArgs.cs</Link>
-    </Compile>
     <Compile Include="..\RabbitMQ.Client\src\client\events\ConsumerEventArgs.cs">
       <Link>src\client\events\ConsumerEventArgs.cs</Link>
+    </Compile>
+    <Compile Include="..\RabbitMQ.Client\src\client\events\FlowControlEventArgs.cs">
+      <Link>src\client\events\FlowControlEventArgs.cs</Link>
     </Compile>
     <Compile Include="..\RabbitMQ.Client\src\client\impl\IFullModel.cs">
       <Link>src\client\impl\IFullModel.cs</Link>
