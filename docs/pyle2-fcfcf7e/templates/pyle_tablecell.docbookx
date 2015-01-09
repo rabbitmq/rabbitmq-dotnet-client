@@ -1,9 +1,0 @@
-<entry>
-#if $container_items
-#for $item in $container_items
-$item.render('docbookx')
-#end for
-#else
-&nbsp;
-#end if
-</entry>

@@ -1,5 +1,0 @@
-owner: 
-timestamp: Thu, 05 Jun 2007 15:05:16 GMT
-author: 
-editgroup: 
-viewgroup: 
