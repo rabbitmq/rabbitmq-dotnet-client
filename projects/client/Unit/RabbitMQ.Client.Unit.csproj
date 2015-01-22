@@ -39,7 +39,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <!-- SSL test support -->
+  <!-- SSL test support, SSL_CERTS_DIR is typically pointed at ../rabbitmq-test/certs (absolute path) -->
   <!-- I'd use the Choose construct for this, but it seems broken on Mono -->
   <PropertyGroup Condition="'$(SSL_CERTS_DIR)' == ''">
     <SSLAvail>false</SSLAvail>
