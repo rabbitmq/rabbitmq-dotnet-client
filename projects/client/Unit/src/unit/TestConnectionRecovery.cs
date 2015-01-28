@@ -537,8 +537,8 @@ namespace RabbitMQ.Client.Unit
             Console.WriteLine("Stopped RabbitMQ. About to sleep for multiple recovery intervals...");
             Thread.Sleep(7000);
             StartRabbitMQ();
-            Wait(shutdownLatch, TimeSpan.FromSeconds(15));
-            Wait(recoveryLatch, TimeSpan.FromSeconds(15));
+            Wait(shutdownLatch, TimeSpan.FromSeconds(30));
+            Wait(recoveryLatch, TimeSpan.FromSeconds(30));
             Assert.IsTrue(Conn.IsOpen);
 
             Assert.IsTrue(counter >= 1);
