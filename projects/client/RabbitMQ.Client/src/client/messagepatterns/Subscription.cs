@@ -46,11 +46,11 @@ using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.MessagePatterns
 {
-    ///<summary>Manages a subscription to a queue or exchange.</summary>
+    ///<summary>Manages a subscription to a queue.</summary>
     ///<remarks>
     ///<para>
     /// This convenience class abstracts away from much of the detail
-    /// involved in receiving messages from a queue or an exchange.
+    /// involved in receiving messages from a queue.
     ///</para>
     ///<para>
     /// Once created, the Subscription consumes from a queue (using a
@@ -68,7 +68,7 @@ namespace RabbitMQ.Client.MessagePatterns
     /// called with the correct parameters.
     ///</para>
     ///</remarks>
-    public class Subscription : IEnumerable, IEnumerator, IDisposable
+    public class Subscription : ISubscription
     {
         protected readonly object m_eventLock = new object();
         protected volatile QueueingBasicConsumer m_consumer;
