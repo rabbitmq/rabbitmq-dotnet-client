@@ -38,14 +38,15 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client
 {
     /// <summary>
-    /// Simple <see cref="IBasicConsumer"/> implementation that
-    ///  uses a <see cref="SharedQueue"/> to buffer incoming deliveries.
+    /// A <see cref="IBasicConsumer"/> implementation that
+    /// uses a <see cref="SharedQueue"/> to buffer incoming deliveries.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -87,7 +88,7 @@ namespace RabbitMQ.Client
     /// }
     /// </code></example>
     /// </remarks>
-    public class QueueingBasicConsumer : DefaultBasicConsumer
+    public class QueueingBasicConsumer : DefaultBasicConsumer, IQueueingBasicConsumer
     {
         /// <summary>
         /// Creates a fresh <see cref="QueueingBasicConsumer"/>,

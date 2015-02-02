@@ -38,35 +38,29 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using RabbitMQ.Client.Events;
 using System;
-using System.Collections;
+using RabbitMQ.Util;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 
-namespace RabbitMQ.Client.MessagePatterns
+namespace RabbitMQ.Client
 {
-    ///<summary>Manages a subscription to a queue.</summary>
+    /// <summary>
+    /// A <see cref="IBasicConsumer"/> implementation that
+    /// uses a <see cref="SharedQueue"/> to buffer incoming deliveries.
+    /// </summary>
     ///<remarks>
     ///<para>
     /// This interface is provided to make creation of test doubles
-    /// for <see cref="Subscription" /> easier.
+    /// for <see cref="QueueingBasicConsumer" /> easier.
     ///</para>
     ///<para>
     ///</remarks>
-    interface ISubscription : IEnumerable, IEnumerator, IDisposable
+    interface IQueueingBasicConsumer
     {
-        void Ack();
-        void Ack(BasicDeliverEventArgs evt);
-        void Close();
-        IBasicConsumer Consumer { get; }
-        string ConsumerTag { get; }
-        BasicDeliverEventArgs LatestEvent { get; }
-        IModel Model { get; }
-        void Nack(BasicDeliverEventArgs evt, bool multiple, bool requeue);
-        void Nack(bool multiple, bool requeue);
-        void Nack(bool requeue);
-        BasicDeliverEventArgs Next();
-        bool Next(int millisecondsTimeout, out BasicDeliverEventArgs result);
-        bool NoAck { get; }
-        string QueueName { get; }
+        void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered,
+            string exchange, string routingKey, IBasicProperties properties, byte[] body);
+        void OnCancel();
+        SharedQueue<BasicDeliverEventArgs> Queue { get; }
     }
 }
