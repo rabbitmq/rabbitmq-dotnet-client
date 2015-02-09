@@ -39,8 +39,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Net;
-
 using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Impl
@@ -49,8 +47,13 @@ namespace RabbitMQ.Client.Impl
     /// illegal values for one or more fields. </summary>
     public class SyntaxError : HardProtocolException
     {
-        public SyntaxError(string message) : base(message) { }
+        public SyntaxError(string message) : base(message)
+        {
+        }
 
-        public override ushort ReplyCode { get { return Constants.SyntaxError; } }
+        public override ushort ReplyCode
+        {
+            get { return Constants.SyntaxError; }
+        }
     }
 }

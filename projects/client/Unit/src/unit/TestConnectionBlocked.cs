@@ -38,61 +38,58 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
-
 using System;
-using System.Text;
 using System.Threading;
-using System.Diagnostics;
-
+using NUnit.Framework;
 using RabbitMQ.Client.Events;
 
-namespace RabbitMQ.Client.Unit {
+namespace RabbitMQ.Client.Unit
+{
     [TestFixture]
-    public class TestConnectionBlocked : IntegrationFixture {
+    public class TestConnectionBlocked : IntegrationFixture
+    {
+        private readonly Object _lockObject = new Object();
+        private bool _notified;
 
-        Object lockObject = new Object();
-        bool notified = false;
-
-        [Test]
-        public void TestConnectionBlockedNotification()
-        {
-            Conn.ConnectionBlocked   += HandleBlocked;
-            Conn.ConnectionUnblocked += HandleUnblocked;
-
-            Block();
-            lock (lockObject) {
-                if(!notified) {
-                    Monitor.Wait(lockObject, TimeSpan.FromSeconds(8));
-                }
-            }
-            if (!notified)
-            {
-                Unblock();
-                Assert.Fail("Unblock notification not received.");
-            }
-        }
-
-
-
-        public void HandleBlocked(IConnection sender, ConnectionBlockedEventArgs args)
+        public void HandleBlocked(object sender, ConnectionBlockedEventArgs args)
         {
             Unblock();
         }
 
 
-        public void HandleUnblocked(IConnection sender)
+        public void HandleUnblocked(object sender, EventArgs ea)
         {
-            lock (lockObject)
+            lock (_lockObject)
             {
-                notified = true;
-                Monitor.PulseAll(lockObject);
+                _notified = true;
+                Monitor.PulseAll(_lockObject);
             }
         }
 
         protected override void ReleaseResources()
         {
             Unblock();
+        }
+
+        [Test]
+        public void TestConnectionBlockedNotification()
+        {
+            Conn.ConnectionBlocked += HandleBlocked;
+            Conn.ConnectionUnblocked += HandleUnblocked;
+
+            Block();
+            lock (_lockObject)
+            {
+                if (!_notified)
+                {
+                    Monitor.Wait(_lockObject, TimeSpan.FromSeconds(8));
+                }
+            }
+            if (!_notified)
+            {
+                Unblock();
+                Assert.Fail("Unblock notification not received.");
+            }
         }
     }
 }

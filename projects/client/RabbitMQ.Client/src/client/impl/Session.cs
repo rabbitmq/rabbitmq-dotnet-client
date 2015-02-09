@@ -39,10 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -51,7 +48,7 @@ namespace RabbitMQ.Client.Impl
     {
         public CommandAssembler m_assembler;
 
-        public Session(RabbitMQ.Client.Framing.Impl.Connection connection, int channelNumber)
+        public Session(Connection connection, int channelNumber)
             : base(connection, channelNumber)
         {
             m_assembler = new CommandAssembler(connection.Protocol);

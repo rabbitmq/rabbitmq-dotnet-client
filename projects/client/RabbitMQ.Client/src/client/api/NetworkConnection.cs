@@ -47,10 +47,24 @@ namespace RabbitMQ.Client
     /// </summary>
     public interface NetworkConnection
     {
-        EndPoint LocalEndPoint  { get; }
+        /// <summary>
+        /// Identifies local network address.
+        /// </summary>
+        EndPoint LocalEndPoint { get; }
+
+        /// <summary>
+        /// Local port.
+        /// </summary>
+        int LocalPort { get; }
+
+        /// <summary>
+        /// Identifies remote network address.
+        /// </summary>
         EndPoint RemoteEndPoint { get; }
 
-        int LocalPort  { get; }
+        /// <summary>
+        /// Remote port.
+        /// </summary>
         int RemotePort { get; }
     }
 }

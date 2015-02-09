@@ -53,8 +53,8 @@ namespace RabbitMQ.Client.Impl
     ///</remarks>
     public class RpcContinuationQueue
     {
-        private readonly object m_outstandingRpcLock = new object();
         public IRpcContinuation m_outstandingRpc = null;
+        private readonly object m_outstandingRpcLock = new object();
 
         ///<summary>Enqueue a continuation, marking a pending RPC.</summary>
         ///<remarks>
@@ -80,6 +80,22 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        ///<summary>Interrupt all waiting continuations.</summary>
+        ///<remarks>
+        ///<para>
+        /// There's just the one potential waiter in the current
+        /// implementation.
+        ///</para>
+        ///</remarks>
+        public void HandleModelShutdown(ShutdownEventArgs reason)
+        {
+            IRpcContinuation k = Next();
+            if (k != null)
+            {
+                k.HandleModelShutdown(reason);
+            }
+        }
+
         ///<summary>Retrieve the next waiting continuation.</summary>
         ///<remarks>
         ///<para>
@@ -99,22 +115,6 @@ namespace RabbitMQ.Client.Impl
                 IRpcContinuation result = m_outstandingRpc;
                 m_outstandingRpc = null;
                 return result;
-            }
-        }
-
-        ///<summary>Interrupt all waiting continuations.</summary>
-        ///<remarks>
-        ///<para>
-        /// There's just the one potential waiter in the current
-        /// implementation.
-        ///</para>
-        ///</remarks>
-        public void HandleModelShutdown(ShutdownEventArgs reason)
-        {
-            IRpcContinuation k = Next();
-            if (k != null)
-            {
-                k.HandleModelShutdown(reason);
             }
         }
     }

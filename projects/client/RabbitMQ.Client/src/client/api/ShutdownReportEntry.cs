@@ -38,36 +38,36 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-
 using System;
 
 namespace RabbitMQ.Client
 {
-    ///<summary>Single entry object in the shutdown report that encapsulates
-    ///description of the error which occured during shutdown</summary>
+    /// <summary>
+    /// Single entry object in the shutdown report that encapsulates description
+    /// of the error which occured during shutdown.
+    /// </summary>
     public class ShutdownReportEntry
     {
-        public string m_description;
-        public Exception m_ex;
-
-        public ShutdownReportEntry(string description, Exception ex)
+        public ShutdownReportEntry(string description, Exception exception)
         {
-            m_description = description;
-            m_ex = ex;
+            Description = description;
+            Exception = exception;
         }
 
-        ///<summary>Description provided in the error</summary>
-        public string Description { get { return m_description; } }
+        /// <summary>
+        /// Description provided in the error.
+        /// </summary>
+        public string Description { get; set; }
 
-        ///<summary>Exception object that occured during shutdown, or null
-        ///if unspecified</summary>
-        public Exception Exception { get { return m_ex; } }
+        /// <summary>
+        /// <see cref="Exception"/> object that occured during shutdown, or null if unspecified.
+        /// </summary>
+        public Exception Exception { get; set; }
 
         public override string ToString()
         {
             string output = "Message: " + Description;
-            return (Exception != null) ? output + " Exception: " + Exception :
-                                         output;
+            return (Exception != null) ? output + " Exception: " + Exception : output;
         }
     }
 }

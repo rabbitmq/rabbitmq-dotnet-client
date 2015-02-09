@@ -41,96 +41,65 @@
 using System;
 using System.Collections.Generic;
 
-using RabbitMQ.Client;
-using RabbitMQ.Client.Framing.Impl;
-
 namespace RabbitMQ.Client.Impl
 {
     public class RecordedConsumer : RecordedEntity
     {
-        protected string queue;
-        protected string consumerTag;
-        protected IBasicConsumer consumer;
-        protected bool exclusive;
-        protected bool autoAck;
-        protected IDictionary<string, object> arguments;
-
-        public RecordedConsumer(AutorecoveringModel model,
-                                string queue) : base(model) {
-            this.queue = queue;
+        public RecordedConsumer(AutorecoveringModel model, string queue) : base(model)
+        {
+            Queue = queue;
         }
 
-        public string Queue
+        public IDictionary<string, object> Arguments { get; set; }
+        public bool AutoAck { get; set; }
+        public IBasicConsumer Consumer { get; set; }
+        public string ConsumerTag { get; set; }
+        public bool Exclusive { get; set; }
+        public string Queue { get; set; }
+
+        public string Recover()
         {
-            get { return this.queue; }
-            set { this.queue = value; }
-        }
-        public string ConsumerTag
-        {
-            get { return this.consumerTag; }
-            set { this.consumerTag = value; }
-        }
-        public IBasicConsumer Consumer
-        {
-            get { return this.consumer; }
-            set { this.consumer = value; }
+            ConsumerTag = ModelDelegate.BasicConsume(Queue, AutoAck,
+                ConsumerTag, false, Exclusive,
+                Arguments, Consumer);
+
+            return ConsumerTag;
         }
 
-        public bool Exclusive
+        public RecordedConsumer WithArguments(IDictionary<string, object> value)
         {
-            get { return this.exclusive; }
-            set { this.exclusive = value; }
-        }
-        public bool AutoAck
-        {
-            get { return this.autoAck; }
-            set { this.autoAck = value; }
-        }
-
-        public IDictionary<string, object> Arguments
-        {
-            get { return this.arguments; }
-            set { this.arguments = value; }
-        }
-
-        public RecordedConsumer WithQueue(string value) {
-            this.queue = value;
+            Arguments = value;
             return this;
         }
-        public RecordedConsumer WithConsumerTag(string value) {
-            this.consumerTag = value;
+
+        public RecordedConsumer WithAutoAck(bool value)
+        {
+            AutoAck = value;
             return this;
         }
+
         public RecordedConsumer WithConsumer(IBasicConsumer value)
         {
-            this.consumer = value;
+            Consumer = value;
+            return this;
+        }
+
+        public RecordedConsumer WithConsumerTag(string value)
+        {
+            ConsumerTag = value;
             return this;
         }
 
         public RecordedConsumer WithExclusive(bool value)
         {
-            this.exclusive = value;
-            return this;
-        }
-        public RecordedConsumer WithAutoAck(bool value)
-        {
-            this.autoAck = value;
+            Exclusive = value;
             return this;
         }
 
-        public RecordedConsumer WithArguments(IDictionary<string, object> value)
+        public RecordedConsumer WithQueue(string value)
         {
-            this.arguments = value;
+            Queue = value;
             return this;
-        }
-
-        public string Recover()
-        {
-            this.consumerTag = ModelDelegate.BasicConsume(this.queue, this.autoAck,
-                                                          this.consumerTag, false, this.exclusive,
-                                                          this.arguments, this.consumer);
-
-            return this.consumerTag;
         }
     }
 }

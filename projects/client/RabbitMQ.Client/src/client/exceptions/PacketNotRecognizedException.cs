@@ -39,8 +39,10 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Net;
 
-namespace RabbitMQ.Client.Exceptions {
+namespace RabbitMQ.Client.Exceptions
+{
     ///<summary>Thrown to indicate that the peer didn't understand
     ///the packet received from the client. Peer sent default message
     ///describing protocol version it is using and transport parameters.
@@ -49,33 +51,32 @@ namespace RabbitMQ.Client.Exceptions {
     ///The peer's {'A','M','Q','P',txHi,txLo,major,minor} packet is
     ///decoded into instances of this class.
     ///</remarks>
-    public class PacketNotRecognizedException: System.Net.ProtocolViolationException {
-        private readonly int m_transportHigh;
-        private readonly int m_transportLow;
-        private readonly int m_serverMajor;
-        private readonly int m_serverMinor;
-
-        ///<summary>The peer's high transport byte.</summary>
-        public int TransportHigh { get { return m_transportHigh; } }
-        ///<summary>The peer's low transport byte.</summary>
-        public int TransportLow { get { return m_transportLow; } }
-        ///<summary>The peer's AMQP specification major version.</summary>
-        public int ServerMajor { get { return m_serverMajor; } }
-        ///<summary>The peer's AMQP specification minor version.</summary>
-        public int ServerMinor { get { return m_serverMinor; } }
-
+    public class PacketNotRecognizedException : ProtocolViolationException
+    {
         ///<summary>Fills the new instance's properties with the values passed in.</summary>
         public PacketNotRecognizedException(int transportHigh,
-                                                int transportLow,
-                                                int serverMajor,
-                                                int serverMinor)
+            int transportLow,
+            int serverMajor,
+            int serverMinor)
             : base("AMQP server protocol version " + serverMajor + "-" + serverMinor +
                    ", transport parameters " + transportHigh + ":" + transportLow)
         {
-            m_transportHigh = transportHigh;
-            m_transportLow = transportLow;
-            m_serverMajor = serverMajor;
-            m_serverMinor = serverMinor;
+            TransportHigh = transportHigh;
+            TransportLow = transportLow;
+            ServerMajor = serverMajor;
+            ServerMinor = serverMinor;
         }
+
+        ///<summary>The peer's AMQP specification major version.</summary>
+        public int ServerMajor { get; private set; }
+
+        ///<summary>The peer's AMQP specification minor version.</summary>
+        public int ServerMinor { get; private set; }
+
+        ///<summary>The peer's high transport byte.</summary>
+        public int TransportHigh { get; private set; }
+
+        ///<summary>The peer's low transport byte.</summary>
+        public int TransportLow { get; private set; }
     }
 }

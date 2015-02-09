@@ -48,19 +48,16 @@ namespace RabbitMQ.Client.Exceptions
     /// question.</summary>
     public class UnsupportedMethodFieldException : NotSupportedException
     {
-        private string m_methodName;
-        private string m_fieldName;
-
-        ///<summary>The name of the method involved.</summary>
-        public string MethodName { get { return m_methodName; } }
-
-        ///<summary>The name of the unsupported field.</summary>
-        public string FieldName { get { return m_fieldName; } }
-
         public UnsupportedMethodFieldException(string methodName, string fieldName)
         {
-            m_methodName = methodName;
-            m_fieldName = fieldName;
+            MethodName = methodName;
+            FieldName = fieldName;
         }
+
+        ///<summary>The name of the unsupported field.</summary>
+        public string FieldName { get; private set; }
+
+        ///<summary>The name of the method involved.</summary>
+        public string MethodName { get; private set; }
     }
 }
