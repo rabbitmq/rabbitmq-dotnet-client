@@ -249,7 +249,6 @@ function gendoc-dist {
 
     ### Generate XMLs with ndocproc
     $DOTNET_PROGRAM_PREPEND $RELATIVE_DIR/lib/ndocproc-bin/bin/ndocproc.exe \
-    /nosubtypes \
     $EXTRA_NDOCPROC_ARGS \
     $RELATIVE_DIR/tmp/gendoc/xml \
     $XML_SOURCE_FILE \
