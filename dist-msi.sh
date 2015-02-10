@@ -88,7 +88,7 @@ function build-msm-msi {
     candle -out ../tmp/wix/rabbitmq-dotnet-client-msi.wixobj dotnet-client-product.wxs
     light -out ../tmp/wix/rabbitmq-dotnet-client.msi \
         ../tmp/wix/rabbitmq-dotnet-client-msi.wixobj \
-        ../lib/wix/wixui.wixlib \
+        -ext WixUIExtension -cultures:en-us \
         -loc WixUI_en-us.wxl
     test "$SKIP_MSIVAL2" || MsiVal2.exe ../tmp/wix/rabbitmq-dotnet-client.msi ../lib/wix/darice.cub -f
 
@@ -145,18 +145,7 @@ function gen-wxs {
     id = $2;
     gsub("[^a-zA-Z0-9]", "", id);
 
-    split($2, shorta, "\\.");
-    short = substr(shorta[1], 0, 8);
-    ext = substr(shorta[2], 0, 3);
-    count = 0;
-    while (short in shorts) {
-        count++;
-        short = substr(short, 0, 7-length(count)) "_" count;
-    }
-    shorts[short] = 1;
-    short = toupper(short) "." toupper(ext);
-
-    print "<File Id=\"" id "\" Name=\"" short "\" LongName=\"" $2 "\" Source=\"" path "\" Vital=\"yes\"/>"
+    print "<File Id=\"" id "\" Name=\"" $2 "\" Source=\"" path "\" Vital=\"yes\"/>"
 }'
             )
         fi
