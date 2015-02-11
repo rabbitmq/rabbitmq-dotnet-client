@@ -10,7 +10,7 @@
 
     You must not remove this notice, or any other, from this software.
 -->
-<WixLocalization>
+<WixLocalization xmlns="http://schemas.microsoft.com/wix/2006/localization">
   <String Id="WixUIBack">&amp;Back</String>
   <String Id="WixUINext">&amp;Next</String>
   <String Id="WixUICancel">Cancel</String>
