@@ -43,32 +43,30 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-
-using RabbitMQ.Util;
 using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
     public class SocketFrameHandler : IFrameHandler
     {
-        public const int WSAEWOULDBLOCK = 10035;
         // ^^ System.Net.Sockets.SocketError doesn't exist in .NET 1.1
 
         // Timeout in seconds to wait for a clean socket close.
         public const int SOCKET_CLOSING_TIMEOUT = 1;
+        public const int WSAEWOULDBLOCK = 10035;
 
-        public AmqpTcpEndpoint m_endpoint;
-        public TcpClient m_socket;
         public NetworkBinaryReader m_reader;
+        public TcpClient m_socket;
         public NetworkBinaryWriter m_writer;
-        private bool m_closed = false;
-        private Object m_semaphore = new object();
+        private readonly object _semaphore = new object();
+        private bool _closed;
 
         public SocketFrameHandler(AmqpTcpEndpoint endpoint,
-                                  ConnectionFactoryBase.ObtainSocket socketFactory,
-                                  int timeout)
+            Func<AddressFamily, TcpClient> socketFactory,
+            int timeout)
         {
-            m_endpoint = endpoint;
+            Endpoint = endpoint;
             m_socket = null;
             if (Socket.OSSupportsIPv6)
             {
@@ -81,8 +79,8 @@ namespace RabbitMQ.Client.Impl
                 {
                     m_socket = null;
                 }
-                // Mono might raise a SocketException when using IPv4 addresses on
-                // an OS that supports IPv6
+                    // Mono might raise a SocketException when using IPv4 addresses on
+                    // an OS that supports IPv6
                 catch (SocketException)
                 {
                     m_socket = null;
@@ -114,6 +112,101 @@ namespace RabbitMQ.Client.Impl
             m_writer = new NetworkBinaryWriter(new BufferedStream(netstream));
         }
 
+        public AmqpTcpEndpoint Endpoint { get; set; }
+
+        public EndPoint LocalEndPoint
+        {
+            get { return m_socket.Client.LocalEndPoint; }
+        }
+
+        public int LocalPort
+        {
+            get { return ((IPEndPoint)LocalEndPoint).Port; }
+        }
+
+        public EndPoint RemoteEndPoint
+        {
+            get { return m_socket.Client.RemoteEndPoint; }
+        }
+
+        public int RemotePort
+        {
+            get { return ((IPEndPoint)LocalEndPoint).Port; }
+        }
+
+        public int Timeout
+        {
+            set
+            {
+                try
+                {
+                    if (m_socket.Connected)
+                    {
+                        m_socket.ReceiveTimeout = value;
+                    }
+                }
+#pragma warning disable 0168
+                catch (SocketException _)
+                {
+                    // means that the socket is already closed
+                }
+#pragma warning restore 0168
+            }
+        }
+
+        public void Close()
+        {
+            lock (_semaphore)
+            {
+                if (!_closed)
+                {
+                    m_socket.LingerState = new LingerOption(true, SOCKET_CLOSING_TIMEOUT);
+                    m_socket.Close();
+                    _closed = true;
+                }
+            }
+        }
+
+        public Frame ReadFrame()
+        {
+            lock (m_reader)
+            {
+                return Frame.ReadFrom(m_reader);
+            }
+        }
+
+        public void SendHeader()
+        {
+            lock (m_writer)
+            {
+                m_writer.Write(Encoding.ASCII.GetBytes("AMQP"));
+                if (Endpoint.Protocol.Revision != 0)
+                {
+                    m_writer.Write((byte)0);
+                    m_writer.Write((byte)Endpoint.Protocol.MajorVersion);
+                    m_writer.Write((byte)Endpoint.Protocol.MinorVersion);
+                    m_writer.Write((byte)Endpoint.Protocol.Revision);
+                }
+                else
+                {
+                    m_writer.Write((byte)1);
+                    m_writer.Write((byte)1);
+                    m_writer.Write((byte)Endpoint.Protocol.MajorVersion);
+                    m_writer.Write((byte)Endpoint.Protocol.MinorVersion);
+                }
+                m_writer.Flush();
+            }
+        }
+
+        public void WriteFrame(Frame frame)
+        {
+            lock (m_writer)
+            {
+                frame.WriteTo(m_writer);
+                m_writer.Flush();
+            }
+        }
+
         private void Connect(TcpClient socket, AmqpTcpEndpoint endpoint, int timeout)
         {
             IAsyncResult ar = null;
@@ -138,113 +231,9 @@ namespace RabbitMQ.Client.Impl
             finally
             {
                 if (ar != null)
+                {
                     ar.AsyncWaitHandle.Close();
-            }
-        }
-
-        public AmqpTcpEndpoint Endpoint
-        {
-            get
-            {
-                return m_endpoint;
-            }
-        }
-
-        public int Timeout
-        {
-            set
-            {
-                try
-                {
-                    if (m_socket.Connected)
-                    {
-                        m_socket.ReceiveTimeout = value;
-                    }
                 }
-                #pragma warning disable 0168
-                catch (SocketException _)
-                {
-                    // means that the socket is already closed
-                }
-                #pragma warning restore 0168
-            }
-        }
-
-        public void SendHeader()
-        {
-            lock (m_writer)
-            {
-                m_writer.Write(Encoding.ASCII.GetBytes("AMQP"));
-                if (m_endpoint.Protocol.Revision != 0)
-                {
-                    m_writer.Write((byte)0);
-                    m_writer.Write((byte)m_endpoint.Protocol.MajorVersion);
-                    m_writer.Write((byte)m_endpoint.Protocol.MinorVersion);
-                    m_writer.Write((byte)m_endpoint.Protocol.Revision);
-                }
-                else
-                {
-                    m_writer.Write((byte)1);
-                    m_writer.Write((byte)1);
-                    m_writer.Write((byte)m_endpoint.Protocol.MajorVersion);
-                    m_writer.Write((byte)m_endpoint.Protocol.MinorVersion);
-                }
-                m_writer.Flush();
-            }
-        }
-
-        public Frame ReadFrame()
-        {
-            lock (m_reader)
-            {
-                return Frame.ReadFrom(m_reader);
-            }
-        }
-
-        public void WriteFrame(Frame frame)
-        {
-            lock (m_writer)
-            {
-                frame.WriteTo(m_writer);
-                m_writer.Flush();
-            }
-        }
-
-        public void Close()
-        {
-            lock (m_semaphore)
-            {
-                if (!m_closed)
-                {
-                    m_socket.LingerState = new LingerOption(true, SOCKET_CLOSING_TIMEOUT);
-                    m_socket.Close();
-                    m_closed = true;
-                }
-            }
-        }
-
-        public EndPoint LocalEndPoint
-        {
-            get { return m_socket.Client.LocalEndPoint; }
-        }
-
-        public EndPoint RemoteEndPoint
-        {
-            get { return m_socket.Client.RemoteEndPoint; }
-        }
-
-        public int LocalPort
-        {
-            get
-            {
-                return ((System.Net.IPEndPoint)this.LocalEndPoint).Port;
-            }
-        }
-        public int RemotePort
-        {
-            get
-            {
-                return ((System.Net.IPEndPoint)this.LocalEndPoint).Port;
             }
         }
     }

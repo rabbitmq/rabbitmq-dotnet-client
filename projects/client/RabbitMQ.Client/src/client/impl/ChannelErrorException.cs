@@ -39,7 +39,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-
 using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Impl
@@ -47,19 +46,20 @@ namespace RabbitMQ.Client.Impl
     /// <summary> Thrown when the server sends a frame along a channel
     /// that we do not currently have a Session entry in our
     /// SessionManager for. </summary>
-    public class ChannelErrorException: HardProtocolException
+    public class ChannelErrorException : HardProtocolException
     {
-        private int m_channel;
-
-        ///<summary>The channel number concerned.</summary>
-        public int Channel { get { return m_channel; } }
-
         public ChannelErrorException(int channel)
             : base(string.Format("Frame received for invalid channel {0}", channel))
         {
-            m_channel = channel;
+            Channel = channel;
         }
 
-        public override ushort ReplyCode { get { return Constants.ChannelError; } }
+        ///<summary>The channel number concerned.</summary>
+        public int Channel { get; private set; }
+
+        public override ushort ReplyCode
+        {
+            get { return Constants.ChannelError; }
+        }
     }
 }

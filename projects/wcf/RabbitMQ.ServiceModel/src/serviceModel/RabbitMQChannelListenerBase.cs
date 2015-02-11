@@ -39,97 +39,95 @@
 //---------------------------------------------------------------------------
 
 
+using System;
+using System.ServiceModel.Channels;
+using System.ServiceModel.Description;
+
 namespace RabbitMQ.ServiceModel
 {
-    using System;
-    using System.ServiceModel;
-    using System.ServiceModel.Channels;
-    using System.ServiceModel.Description;
-
-    internal abstract class RabbitMQChannelListenerBase<TChannel> : ChannelListenerBase<TChannel> where TChannel: class, IChannel
+    internal abstract class RabbitMQChannelListenerBase<TChannel> : ChannelListenerBase<TChannel>
+        where TChannel : class, IChannel
     {
-        private Uri m_listenUri;
-        private BindingContext m_context;
+        private readonly Func<TimeSpan, TChannel> _acceptChannelMethod;
+        private readonly Action<TimeSpan> _closeMethod;
+        private readonly BindingContext _context;
+        private readonly Uri _listenUri;
+        private readonly Action<TimeSpan> _openMethod;
+        private readonly Func<TimeSpan, bool> _waitForChannelMethod;
         protected RabbitMQTransportBindingElement m_bindingElement;
-        private CommunicationOperation m_closeMethod;
-        private CommunicationOperation m_openMethod;
-        private CommunicationOperation<TChannel> m_acceptChannelMethod;
-        private CommunicationOperation<bool> m_waitForChannelMethod;
 
         protected RabbitMQChannelListenerBase(BindingContext context)
         {
-            m_context = context;
+            _context = context;
             m_bindingElement = context.Binding.Elements.Find<RabbitMQTransportBindingElement>();
-            m_closeMethod = new CommunicationOperation(OnClose);
-            m_openMethod = new CommunicationOperation(OnOpen);
-            m_waitForChannelMethod = new CommunicationOperation<bool>(OnWaitForChannel);
-            m_acceptChannelMethod = new CommunicationOperation<TChannel>(OnAcceptChannel);
+            _closeMethod = OnClose;
+            _openMethod = OnOpen;
+            _waitForChannelMethod = OnWaitForChannel;
+            _acceptChannelMethod = OnAcceptChannel;
 
             if (context.ListenUriMode == ListenUriMode.Explicit && context.ListenUriBaseAddress != null)
             {
-                m_listenUri = new Uri(context.ListenUriBaseAddress, context.ListenUriRelativeAddress);
+                _listenUri = new Uri(context.ListenUriBaseAddress, context.ListenUriRelativeAddress);
             }
             else
             {
-                m_listenUri = new Uri(new Uri("soap.amqp:///"), Guid.NewGuid().ToString());
+                _listenUri = new Uri(new Uri("soap.amqp:///"), Guid.NewGuid().ToString());
             }
-
         }
-
-        protected override void OnAbort()
-        {
-            OnClose(m_context.Binding.CloseTimeout);
-        }
-
-        protected override IAsyncResult OnBeginAcceptChannel(TimeSpan timeout, AsyncCallback callback, object state)
-        {
-            return m_acceptChannelMethod.BeginInvoke(timeout, callback, state);
-        }
-
-        protected override TChannel OnEndAcceptChannel(IAsyncResult result)
-        {
-            return m_acceptChannelMethod.EndInvoke(result);
-        }
-
-        protected override IAsyncResult OnBeginWaitForChannel(TimeSpan timeout, AsyncCallback callback, object state)
-        {
-            return m_waitForChannelMethod.BeginInvoke(timeout, callback, state);
-        }
-
-        protected override bool OnEndWaitForChannel(IAsyncResult result)
-        {
-            return m_waitForChannelMethod.EndInvoke(result);
-        }
-
-        protected override IAsyncResult OnBeginClose(TimeSpan timeout, AsyncCallback callback, object state)
-        {
-            return m_closeMethod.BeginInvoke(timeout, callback, state);
-        }
-
-        protected override IAsyncResult OnBeginOpen(TimeSpan timeout, AsyncCallback callback, object state)
-        {
-            return m_openMethod.BeginInvoke(timeout, callback, state);
-        }
-
-        protected override void OnEndClose(IAsyncResult result)
-        {
-            m_closeMethod.EndInvoke(result);
-        }
-
-        protected override void OnEndOpen(IAsyncResult result)
-        {
-            m_openMethod.EndInvoke(result);
-        }
-
 
         public override Uri Uri
         {
-            get { return m_listenUri; }
+            get { return _listenUri; }
         }
 
         protected BindingContext Context
         {
-            get { return m_context; }
+            get { return _context; }
+        }
+
+        protected override void OnAbort()
+        {
+            OnClose(_context.Binding.CloseTimeout);
+        }
+
+        protected override IAsyncResult OnBeginAcceptChannel(TimeSpan timeout, AsyncCallback callback, object state)
+        {
+            return _acceptChannelMethod.BeginInvoke(timeout, callback, state);
+        }
+
+        protected override TChannel OnEndAcceptChannel(IAsyncResult result)
+        {
+            return _acceptChannelMethod.EndInvoke(result);
+        }
+
+        protected override IAsyncResult OnBeginWaitForChannel(TimeSpan timeout, AsyncCallback callback, object state)
+        {
+            return _waitForChannelMethod.BeginInvoke(timeout, callback, state);
+        }
+
+        protected override bool OnEndWaitForChannel(IAsyncResult result)
+        {
+            return _waitForChannelMethod.EndInvoke(result);
+        }
+
+        protected override IAsyncResult OnBeginClose(TimeSpan timeout, AsyncCallback callback, object state)
+        {
+            return _closeMethod.BeginInvoke(timeout, callback, state);
+        }
+
+        protected override IAsyncResult OnBeginOpen(TimeSpan timeout, AsyncCallback callback, object state)
+        {
+            return _openMethod.BeginInvoke(timeout, callback, state);
+        }
+
+        protected override void OnEndClose(IAsyncResult result)
+        {
+            _closeMethod.EndInvoke(result);
+        }
+
+        protected override void OnEndOpen(IAsyncResult result)
+        {
+            _openMethod.EndInvoke(result);
         }
     }
 }

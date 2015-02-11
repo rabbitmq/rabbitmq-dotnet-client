@@ -38,37 +38,27 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
-
 using System;
-using System.Text;
-using System.Threading;
-using System.Diagnostics;
-
+using NUnit.Framework;
 using RabbitMQ.Client.Exceptions;
 
-namespace RabbitMQ.Client.Unit {
+namespace RabbitMQ.Client.Unit
+{
     [TestFixture]
-    public class TestPassiveDeclare : IntegrationFixture {
+    public class TestPassiveDeclare : IntegrationFixture
+    {
+        [Test]
+        public void TestPassiveExchangeDeclareWhenExchangeDoesNotExist()
+        {
+            Assert.Throws(Is.InstanceOf<OperationInterruptedException>(),
+                () => Model.ExchangeDeclarePassive(Guid.NewGuid().ToString()));
+        }
 
         [Test]
         public void TestPassiveQueueDeclareWhenQueueDoesNotExist()
         {
             Assert.Throws(Is.InstanceOf<OperationInterruptedException>(),
-                          delegate
-                          {
-                              Model.QueueDeclarePassive(Guid.NewGuid().ToString());
-                          });
-        }
-
-        [Test]
-        public void TestPassiveExchangeDeclareWhenExchangeDoesNotExist()
-        {
-            Assert.Throws(Is.InstanceOf<OperationInterruptedException>(),
-                          delegate
-                          {
-                              Model.ExchangeDeclarePassive(Guid.NewGuid().ToString());
-                          });
+                () => Model.QueueDeclarePassive(Guid.NewGuid().ToString()));
         }
     }
 }

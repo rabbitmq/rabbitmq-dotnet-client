@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Net;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -46,8 +47,12 @@ namespace RabbitMQ.Client.Impl
     /// HardProtocolException and SoftProtocolException are thrown in
     /// situations when we detect a problem with the connection-,
     /// channel- or wire-level parts of the AMQP protocol. </summary>
-    public abstract class ProtocolException : System.Net.ProtocolViolationException
+    public abstract class ProtocolException : ProtocolViolationException
     {
+        protected ProtocolException(string message) : base(message)
+        {
+        }
+
         ///<summary>Retrieve the reply code to use in a
         ///connection/channel close method.</summary>
         public abstract ushort ReplyCode { get; }
@@ -57,15 +62,9 @@ namespace RabbitMQ.Client.Impl
         ///ShutdownInitiator.Library, and this.ReplyCode and
         ///this.Message as the reply code and text,
         ///respectively.</summary>
-        public virtual ShutdownEventArgs ShutdownReason {
-            get {
-                return new ShutdownEventArgs(ShutdownInitiator.Library,
-                                             this.ReplyCode,
-                                             this.Message,
-                                             this);
-            }
+        public virtual ShutdownEventArgs ShutdownReason
+        {
+            get { return new ShutdownEventArgs(ShutdownInitiator.Library, ReplyCode, Message, this); }
         }
-
-        protected ProtocolException(string message) : base(message) { }
     }
 }

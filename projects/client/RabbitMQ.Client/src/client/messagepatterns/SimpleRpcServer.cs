@@ -39,13 +39,11 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.IO;
-
-using RabbitMQ.Client;
 using RabbitMQ.Client.Content;
 using RabbitMQ.Client.Events;
 
-namespace RabbitMQ.Client.MessagePatterns {
+namespace RabbitMQ.Client.MessagePatterns
+{
     ///<summary>Implements a simple RPC service, responding to
     ///requests received via a Subscription.</summary>
     ///<remarks>
@@ -115,172 +113,39 @@ namespace RabbitMQ.Client.MessagePatterns {
     ///</para>
     ///</remarks>
     ///<see cref="SimpleRpcClient"/>
-    public class SimpleRpcServer: IDisposable {
+    public class SimpleRpcServer : IDisposable
+    {
         protected Subscription m_subscription;
-        private bool m_transactional;
-
-        ///<summary>Returns true if we are in "transactional" mode, or
-        ///false if we are not.</summary>
-        public bool Transactional { get { return m_transactional; } }
 
         ///<summary>Create, but do not start, an instance that will
         ///receive requests via the given Subscription.</summary>
         ///<remarks>
-	///<para>
-	/// The instance is initially in non-transactional mode. See
-	/// SetTransactional().
-	///</para>
-	///<para>
-	/// Call MainLoop() to start the request-processing loop.
-	///</para>
+        ///<para>
+        /// The instance is initially in non-transactional mode. See
+        /// SetTransactional().
+        ///</para>
+        ///<para>
+        /// Call MainLoop() to start the request-processing loop.
+        ///</para>
         ///</remarks>
         public SimpleRpcServer(Subscription subscription)
         {
             m_subscription = subscription;
-            m_transactional = false;
+            Transactional = false;
         }
+
+        ///<summary>Returns true if we are in "transactional" mode, or
+        ///false if we are not.</summary>
+        public bool Transactional { get; private set; }
 
         ///<summary>Shut down the server, causing MainLoop() to return
         ///to its caller.</summary>
         ///<remarks>
-	/// Acts by calling Close() on the server's Subscription object.
+        /// Acts by calling Close() on the server's Subscription object.
         ///</remarks>
         public void Close()
         {
             m_subscription.Close();
-        }
-
-	///<summary>Enables transactional mode.</summary>
-	///<remarks>
-	///<para>
-	/// Once enabled, transactional mode is not only enabled for
-	/// all users of the underlying IModel instance, but cannot be
-	/// disabled without shutting down the entire IModel (which
-	/// involves shutting down all the services depending on it,
-	/// and should not be undertaken lightly).
-	///</para>
-	///<para>
-	/// This method calls IModel.TxSelect, every time it is
-	/// called. (TxSelect is idempotent, so this is harmless.)
-	///</para>
-	///</remarks>
-	public void SetTransactional() {
-	    m_subscription.Model.TxSelect();
-	    m_transactional = true;
-        }
-
-        ///<summary>Enters the main loop of the RPC service.</summary>
-        ///<remarks>
-	///<para>
-	/// Retrieves requests repeatedly from the service's
-	/// subscription. Each request is passed to
-	/// ProcessRequest. Once ProcessRequest returns, the request
-	/// is acknowledged via Subscription.Ack(). If transactional
-	/// mode is enabled, TxCommit is then called. Finally, the
-	/// loop begins again.
-	///</para>
-	///<para>
-	/// Runs until the subscription ends, which happens either as
-	/// a result of disconnection, or of a call to Close().
-	///</para>
-        ///</remarks>
-        public void MainLoop()
-        {
-            foreach (BasicDeliverEventArgs evt in m_subscription) {
-                ProcessRequest(evt);
-                m_subscription.Ack();
-                if (m_transactional) {
-                    m_subscription.Model.TxCommit();
-                }
-            }
-        }
-
-        ///<summary>Process a single request received from our
-        ///subscription.</summary>
-        ///<remarks>
-	///<para>
-	/// If the request's properties contain a non-null, non-empty
-	/// CorrelationId string (see IBasicProperties), it is assumed
-	/// to be a two-way call, requiring a response. The ReplyTo
-	/// header property is used as the reply address (via
-	/// PublicationAddress.Parse, unless that fails, in which case it
-	/// is treated as a simple queue name), and the request is
-	/// passed to HandleCall().
-	///</para>
-	///<para>
-	/// If the CorrelationId is absent or empty, the request is
-	/// treated as one-way asynchronous event, and is passed to
-	/// HandleCast().
-	///</para>
-	///<para>
-	/// Usually, overriding HandleCall(), HandleCast(), or one of
-	/// their delegates is sufficient to implement a service, but
-	/// in some cases overriding ProcessRequest() is
-	/// required. Overriding ProcessRequest() gives the
-	/// opportunity to implement schemes for detecting interaction
-	/// patterns other than simple request/response or one-way
-	/// communication.
-	///</para>
-        ///</remarks>
-        public virtual void ProcessRequest(BasicDeliverEventArgs evt)
-        {
-            IBasicProperties properties = evt.BasicProperties;
-            if (properties.ReplyTo != null && properties.ReplyTo != "") {
-                // It's a request.
-
-                PublicationAddress replyAddress = PublicationAddress.Parse(properties.ReplyTo);
-                if (replyAddress == null) {
-                    replyAddress = new PublicationAddress(ExchangeType.Direct,
-                                                          "",
-                                                          properties.ReplyTo);
-                }
-
-                IBasicProperties replyProperties;
-                byte[] reply = HandleCall(evt.Redelivered,
-                                          properties,
-                                          evt.Body,
-                                          out replyProperties);
-                if (replyProperties == null) {
-                    replyProperties = m_subscription.Model.CreateBasicProperties();
-                }
-
-                replyProperties.CorrelationId = properties.CorrelationId;
-                m_subscription.Model.BasicPublish(replyAddress,
-                                                  replyProperties,
-                                                  reply);
-            } else {
-                // It's an asynchronous message.
-                HandleCast(evt.Redelivered, properties, evt.Body);
-            }
-        }
-
-        ///<summary>Called by HandleCall and HandleCast when a
-        ///"jms/stream-message" request is received.</summary>
-        ///<remarks>
-        ///<para>
-        /// The args array contains the values decoded by HandleCall
-        /// or HandleCast.
-        ///</para>
-        ///<para>
-        /// The replyWriter parameter will be null if we were called
-        /// from HandleCast, in which case a reply is not expected or
-        /// possible, or non-null if we were called from
-        /// HandleCall. Use the methods of replyWriter in this case to
-        /// assemble your reply, which will be sent back to the remote
-        /// caller.
-        ///</para>
-        ///<para>
-        /// This default implementation does nothing, which
-        /// effectively sends back an empty reply to any and all
-        /// remote callers.
-        ///</para>
-        ///</remarks>
-        public virtual void HandleStreamMessageCall(IStreamMessageBuilder replyWriter,
-                                                    bool isRedelivered,
-                                                    IBasicProperties requestProperties,
-                                                    object[] args)
-        {
-            // Override to do something with the request.
         }
 
         ///<summary>Called by ProcessRequest(), this is the most
@@ -311,46 +176,28 @@ namespace RabbitMQ.Client.MessagePatterns {
         ///</para>
         ///</remarks>
         public virtual byte[] HandleCall(bool isRedelivered,
-                                         IBasicProperties requestProperties,
-                                         byte[] body,
-                                         out IBasicProperties replyProperties)
+            IBasicProperties requestProperties,
+            byte[] body,
+            out IBasicProperties replyProperties)
         {
-            if (requestProperties.ContentType == StreamMessageBuilder.MimeType) {
+            if (requestProperties.ContentType == StreamMessageBuilder.MimeType)
+            {
                 IStreamMessageReader r = new StreamMessageReader(requestProperties, body);
                 IStreamMessageBuilder w = new StreamMessageBuilder(m_subscription.Model);
                 HandleStreamMessageCall(w,
-                                        isRedelivered,
-                                        requestProperties,
-                                        r.ReadObjects());
-                replyProperties = (IBasicProperties) w.GetContentHeader();
+                    isRedelivered,
+                    requestProperties,
+                    r.ReadObjects());
+                replyProperties = (IBasicProperties)w.GetContentHeader();
                 return w.GetContentBody();
-            } else {
-                return HandleSimpleCall(isRedelivered,
-                                        requestProperties,
-                                        body,
-                                        out replyProperties);
             }
-        }
-
-        ///<summary>Called by the default HandleCall() implementation
-        ///as a fallback.</summary>
-        ///<remarks>
-        /// If the MIME ContentType of the request did not match any
-        /// of the types specially recognised
-        /// (e.g. "jms/stream-message"), this method is called instead
-        /// with the raw bytes of the request. It should fill in
-        /// replyProperties (or set it to null) and return a byte
-        /// array to send back to the remote caller as a reply
-        /// message.
-        ///</remarks>
-        public virtual byte[] HandleSimpleCall(bool isRedelivered,
-                                               IBasicProperties requestProperties,
-                                               byte[] body,
-                                               out IBasicProperties replyProperties)
-        {
-            // Override to do something with the request.
-            replyProperties = null;
-            return null;
+            else
+            {
+                return HandleSimpleCall(isRedelivered,
+                    requestProperties,
+                    body,
+                    out replyProperties);
+            }
         }
 
         ///<summary>Called by ProcessRequest(), this is the most
@@ -379,20 +226,42 @@ namespace RabbitMQ.Client.MessagePatterns {
         ///</para>
         ///</remarks>
         public virtual void HandleCast(bool isRedelivered,
-                                       IBasicProperties requestProperties,
-                                       byte[] body)
+            IBasicProperties requestProperties,
+            byte[] body)
         {
-            if (requestProperties.ContentType == StreamMessageBuilder.MimeType) {
+            if (requestProperties.ContentType == StreamMessageBuilder.MimeType)
+            {
                 IStreamMessageReader r = new StreamMessageReader(requestProperties, body);
                 HandleStreamMessageCall(null,
-                                        isRedelivered,
-                                        requestProperties,
-                                        r.ReadObjects());
-            } else {
-                HandleSimpleCast(isRedelivered,
-                                 requestProperties,
-                                 body);
+                    isRedelivered,
+                    requestProperties,
+                    r.ReadObjects());
             }
+            else
+            {
+                HandleSimpleCast(isRedelivered, requestProperties, body);
+            }
+        }
+
+        ///<summary>Called by the default HandleCall() implementation
+        ///as a fallback.</summary>
+        ///<remarks>
+        /// If the MIME ContentType of the request did not match any
+        /// of the types specially recognised
+        /// (e.g. "jms/stream-message"), this method is called instead
+        /// with the raw bytes of the request. It should fill in
+        /// replyProperties (or set it to null) and return a byte
+        /// array to send back to the remote caller as a reply
+        /// message.
+        ///</remarks>
+        public virtual byte[] HandleSimpleCall(bool isRedelivered,
+            IBasicProperties requestProperties,
+            byte[] body,
+            out IBasicProperties replyProperties)
+        {
+            // Override to do something with the request.
+            replyProperties = null;
+            return null;
         }
 
         ///<summary>Called by the default HandleCast() implementation
@@ -404,10 +273,151 @@ namespace RabbitMQ.Client.MessagePatterns {
         /// with the raw bytes of the request.
         ///</remarks>
         public virtual void HandleSimpleCast(bool isRedelivered,
-                                             IBasicProperties requestProperties,
-                                             byte[] body)
+            IBasicProperties requestProperties,
+            byte[] body)
         {
             // Override to do something with the request.
+        }
+
+        ///<summary>Called by HandleCall and HandleCast when a
+        ///"jms/stream-message" request is received.</summary>
+        ///<remarks>
+        ///<para>
+        /// The args array contains the values decoded by HandleCall
+        /// or HandleCast.
+        ///</para>
+        ///<para>
+        /// The replyWriter parameter will be null if we were called
+        /// from HandleCast, in which case a reply is not expected or
+        /// possible, or non-null if we were called from
+        /// HandleCall. Use the methods of replyWriter in this case to
+        /// assemble your reply, which will be sent back to the remote
+        /// caller.
+        ///</para>
+        ///<para>
+        /// This default implementation does nothing, which
+        /// effectively sends back an empty reply to any and all
+        /// remote callers.
+        ///</para>
+        ///</remarks>
+        public virtual void HandleStreamMessageCall(IStreamMessageBuilder replyWriter,
+            bool isRedelivered,
+            IBasicProperties requestProperties,
+            object[] args)
+        {
+            // Override to do something with the request.
+        }
+
+        ///<summary>Enters the main loop of the RPC service.</summary>
+        ///<remarks>
+        ///<para>
+        /// Retrieves requests repeatedly from the service's
+        /// subscription. Each request is passed to
+        /// ProcessRequest. Once ProcessRequest returns, the request
+        /// is acknowledged via Subscription.Ack(). If transactional
+        /// mode is enabled, TxCommit is then called. Finally, the
+        /// loop begins again.
+        ///</para>
+        ///<para>
+        /// Runs until the subscription ends, which happens either as
+        /// a result of disconnection, or of a call to Close().
+        ///</para>
+        ///</remarks>
+        public void MainLoop()
+        {
+            foreach (BasicDeliverEventArgs evt in m_subscription)
+            {
+                ProcessRequest(evt);
+                m_subscription.Ack();
+                if (Transactional)
+                {
+                    m_subscription.Model.TxCommit();
+                }
+            }
+        }
+
+        ///<summary>Process a single request received from our
+        ///subscription.</summary>
+        ///<remarks>
+        ///<para>
+        /// If the request's properties contain a non-null, non-empty
+        /// CorrelationId string (see IBasicProperties), it is assumed
+        /// to be a two-way call, requiring a response. The ReplyTo
+        /// header property is used as the reply address (via
+        /// PublicationAddress.Parse, unless that fails, in which case it
+        /// is treated as a simple queue name), and the request is
+        /// passed to HandleCall().
+        ///</para>
+        ///<para>
+        /// If the CorrelationId is absent or empty, the request is
+        /// treated as one-way asynchronous event, and is passed to
+        /// HandleCast().
+        ///</para>
+        ///<para>
+        /// Usually, overriding HandleCall(), HandleCast(), or one of
+        /// their delegates is sufficient to implement a service, but
+        /// in some cases overriding ProcessRequest() is
+        /// required. Overriding ProcessRequest() gives the
+        /// opportunity to implement schemes for detecting interaction
+        /// patterns other than simple request/response or one-way
+        /// communication.
+        ///</para>
+        ///</remarks>
+        public virtual void ProcessRequest(BasicDeliverEventArgs evt)
+        {
+            IBasicProperties properties = evt.BasicProperties;
+            if (properties.ReplyTo != null && properties.ReplyTo != "")
+            {
+                // It's a request.
+
+                PublicationAddress replyAddress = PublicationAddress.Parse(properties.ReplyTo);
+                if (replyAddress == null)
+                {
+                    replyAddress = new PublicationAddress(ExchangeType.Direct,
+                        "",
+                        properties.ReplyTo);
+                }
+
+                IBasicProperties replyProperties;
+                byte[] reply = HandleCall(evt.Redelivered,
+                    properties,
+                    evt.Body,
+                    out replyProperties);
+                if (replyProperties == null)
+                {
+                    replyProperties = m_subscription.Model.CreateBasicProperties();
+                }
+
+                replyProperties.CorrelationId = properties.CorrelationId;
+                m_subscription.Model.BasicPublish(replyAddress,
+                    replyProperties,
+                    reply);
+            }
+            else
+            {
+                // It's an asynchronous message.
+                HandleCast(evt.Redelivered, properties, evt.Body);
+            }
+        }
+
+        ///<summary>Enables transactional mode.</summary>
+        ///<remarks>
+        ///<para>
+        /// Once enabled, transactional mode is not only enabled for
+        /// all users of the underlying IModel instance, but cannot be
+        /// disabled without shutting down the entire IModel (which
+        /// involves shutting down all the services depending on it,
+        /// and should not be undertaken lightly).
+        ///</para>
+        ///<para>
+        /// This method calls IModel.TxSelect, every time it is
+        /// called. (TxSelect is idempotent, so this is harmless.)
+        ///</para>
+        ///</remarks>
+        public void SetTransactional()
+        {
+            m_subscription.Model.TxSelect();
+            Transactional = true;
         }
 
         ///<summary>Implement the IDisposable interface, permitting

@@ -39,7 +39,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Text;
 
 namespace RabbitMQ.Client.Events
 {
@@ -51,17 +50,31 @@ namespace RabbitMQ.Client.Events
     ///</remarks>
     public class EventingBasicConsumer : DefaultBasicConsumer
     {
-
         ///<summary>Constructor which sets the Model property to the
         ///given value.</summary>
-        public EventingBasicConsumer(IModel model) : base(model) {}
+        public EventingBasicConsumer(IModel model) : base(model)
+        {
+        }
+
+        ///<summary>Event fired on HandleBasicDeliver.</summary>
+        public event EventHandler<BasicDeliverEventArgs> Received;
+
+        ///<summary>Event fired on HandleBasicConsumeOk.</summary>
+        public event EventHandler<ConsumerEventArgs> Registered;
+
+        ///<summary>Event fired on HandleModelShutdown.</summary>
+        public event EventHandler<ShutdownEventArgs> Shutdown;
+
+        ///<summary>Event fired on HandleBasicCancelOk.</summary>
+        public event EventHandler<ConsumerEventArgs> Unregistered;
 
         ///<summary>Fires the Unregistered event.</summary>
         public override void HandleBasicCancelOk(string consumerTag)
         {
             base.HandleBasicCancelOk(consumerTag);
 
-            if (Unregistered != null) {
+            if (Unregistered != null)
+            {
                 Unregistered(this, new ConsumerEventArgs(consumerTag));
             }
         }
@@ -71,58 +84,49 @@ namespace RabbitMQ.Client.Events
         {
             base.HandleBasicConsumeOk(consumerTag);
 
-            if (Registered != null) {
+            if (Registered != null)
+            {
                 Registered(this, new ConsumerEventArgs(consumerTag));
             }
         }
 
         ///<summary>Fires the Received event.</summary>
         public override void HandleBasicDeliver(string consumerTag,
-                                                ulong deliveryTag,
-                                                bool redelivered,
-                                                string exchange,
-                                                string routingKey,
-                                                IBasicProperties properties,
-                                                byte[] body)
+            ulong deliveryTag,
+            bool redelivered,
+            string exchange,
+            string routingKey,
+            IBasicProperties properties,
+            byte[] body)
         {
             base.HandleBasicDeliver(consumerTag,
-                                    deliveryTag,
-                                    redelivered,
-                                    exchange,
-                                    routingKey,
-                                    properties,
-                                    body);
-            if (Received != null) {
+                deliveryTag,
+                redelivered,
+                exchange,
+                routingKey,
+                properties,
+                body);
+            if (Received != null)
+            {
                 Received(this, new BasicDeliverEventArgs(consumerTag,
-                                                         deliveryTag,
-                                                         redelivered,
-                                                         exchange,
-                                                         routingKey,
-                                                         properties,
-                                                         body));
+                    deliveryTag,
+                    redelivered,
+                    exchange,
+                    routingKey,
+                    properties,
+                    body));
             }
         }
 
         ///<summary>Fires the Shutdown event.</summary>
-        public override void HandleModelShutdown(IModel model, ShutdownEventArgs reason)
+        public override void HandleModelShutdown(object model, ShutdownEventArgs reason)
         {
             base.HandleModelShutdown(model, reason);
 
-            if (Shutdown != null) {
+            if (Shutdown != null)
+            {
                 Shutdown(this, reason);
             }
         }
-
-        ///<summary>Event fired on HandleBasicConsumeOk.</summary>
-        public event ConsumerEventHandler Registered;
-
-        ///<summary>Event fired on HandleBasicCancelOk.</summary>
-        public event ConsumerEventHandler Unregistered;
-
-        ///<summary>Event fired on HandleModelShutdown.</summary>
-        public event ConsumerShutdownEventHandler Shutdown;
-
-        ///<summary>Event fired on HandleBasicDeliver.</summary>
-        public event BasicDeliverEventHandler Received;
     }
 }

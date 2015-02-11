@@ -38,84 +38,78 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+using System.ServiceModel;
+using System.ServiceModel.Channels;
 
 namespace RabbitMQ.ServiceModel
 {
-    using System;
-    using System.ServiceModel;
-    using System.ServiceModel.Channels;
-
     internal abstract class RabbitMQInputChannelBase : RabbitMQChannelBase, IInputChannel
     {
-        private EndpointAddress m_localAddress;
-        private CommunicationOperation<Message> m_receiveMethod;
-        private CommunicationOperation<bool, Message> m_tryReceiveMethod;
-        private CommunicationOperation<bool> m_waitForMessage;
-
+        private readonly EndpointAddress _localAddress;
+        private readonly Func<TimeSpan, Message> _receiveMethod;
+        private readonly CommunicationOperation<bool, Message> _tryReceiveMethod;
+        private readonly Func<TimeSpan, bool> _waitForMessage;
 
         protected RabbitMQInputChannelBase(BindingContext context, EndpointAddress localAddress)
-        :base(context)
+            : base(context)
         {
-            m_localAddress = localAddress;
-            m_receiveMethod = new CommunicationOperation<Message>(Receive);
-            m_tryReceiveMethod = new CommunicationOperation<bool, Message>(TryReceive);
-            m_waitForMessage = new CommunicationOperation<bool>(WaitForMessage);
+            _localAddress = localAddress;
+            _receiveMethod = Receive;
+            _tryReceiveMethod = TryReceive;
+            _waitForMessage = WaitForMessage;
         }
 
+        public EndpointAddress LocalAddress
+        {
+            get { return _localAddress; }
+        }
 
-        #region Async Methods
         public virtual IAsyncResult BeginReceive(TimeSpan timeout, AsyncCallback callback, object state)
         {
-            return m_receiveMethod.BeginInvoke(timeout, callback, state);
+            return _receiveMethod.BeginInvoke(timeout, callback, state);
         }
 
         public virtual IAsyncResult BeginReceive(AsyncCallback callback, object state)
         {
-            return m_receiveMethod.BeginInvoke(Context.Binding.ReceiveTimeout, callback, state);
+            return _receiveMethod.BeginInvoke(Context.Binding.ReceiveTimeout, callback, state);
         }
 
         public virtual IAsyncResult BeginTryReceive(TimeSpan timeout, AsyncCallback callback, object state)
         {
-            Message message = null;
-            return m_tryReceiveMethod.BeginInvoke(timeout, out message, callback, state);
+            Message message;
+            return _tryReceiveMethod.BeginInvoke(timeout, out message, callback, state);
         }
 
         public virtual IAsyncResult BeginWaitForMessage(TimeSpan timeout, AsyncCallback callback, object state)
         {
-            return m_waitForMessage.BeginInvoke(timeout, callback, state);
+            return _waitForMessage.BeginInvoke(timeout, callback, state);
         }
 
         public virtual Message EndReceive(IAsyncResult result)
         {
-            return m_receiveMethod.EndInvoke(result);
+            return _receiveMethod.EndInvoke(result);
         }
 
         public virtual bool EndTryReceive(IAsyncResult result, out Message message)
         {
-            return m_tryReceiveMethod.EndInvoke(out message, result);
+            return _tryReceiveMethod.EndInvoke(out message, result);
         }
 
         public virtual bool EndWaitForMessage(IAsyncResult result)
         {
-            return m_waitForMessage.EndInvoke(result);
+            return _waitForMessage.EndInvoke(result);
         }
-        #endregion
 
         public abstract Message Receive(TimeSpan timeout);
+
+        public virtual Message Receive()
+        {
+            return Receive(Context.Binding.ReceiveTimeout);
+        }
 
         public abstract bool TryReceive(TimeSpan timeout, out Message message);
 
         public abstract bool WaitForMessage(TimeSpan timeout);
-
-        public virtual Message Receive()
-        {
-            return Receive(base.Context.Binding.ReceiveTimeout);
-        }
-
-
-        public EndpointAddress LocalAddress
-        {
-            get { return m_localAddress; }
-        }
     }
 }

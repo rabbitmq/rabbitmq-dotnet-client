@@ -38,182 +38,258 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 
 namespace RabbitMQ.Client
 {
-    ///<summary>Common AMQP Basic content-class headers interface,
-    ///spanning the union of the functionality offered by versions
-    ///0-8, 0-8qpid, 0-9 and 0-9-1 of AMQP.</summary>
-    ///<remarks>
-    ///<para>
-    ///The specification code generator provides
-    ///protocol-version-specific implementations of this interface. To
-    ///obtain an implementation of this interface in a
-    ///protocol-version-neutral way, use
-    ///IModel.CreateBasicProperties().
-    ///</para>
-    ///<para>
-    ///Each property is readable, writable and clearable: a cleared
-    ///property will not be transmitted over the wire. Properties on a
-    ///fresh instance are clear by default.
-    ///</para>
-    ///</remarks>
+    /// <summary>Common AMQP Basic content-class headers interface,
+    /// spanning the union of the functionality offered by versions
+    /// 0-8, 0-8qpid, 0-9 and 0-9-1 of AMQP.</summary>
+    /// <remarks>
+    /// <para>
+    /// The specification code generator provides
+    /// protocol-version-specific implementations of this interface. To
+    /// obtain an implementation of this interface in a
+    /// protocol-version-neutral way, use <see cref="IModel.CreateBasicProperties"/>.
+    /// </para>
+    /// <para>
+    /// Each property is readable, writable and clearable: a cleared
+    /// property will not be transmitted over the wire. Properties on a
+    /// fresh instance are clear by default.
+    /// </para>
+    /// </remarks>
     public interface IBasicProperties : IContentHeader
     {
-        ///<summary> MIME content type </summary>
-        string ContentType { get; set; }
-
-        ///<summary> MIME content encoding </summary>
-        string ContentEncoding { get; set; }
-
-        ///<summary> message header field table. Is of type <see cref="System.Collections.Generic.IDictionary{TKey,TValue}" />.</summary>
-        IDictionary<string, object> Headers { get; set; }
-
-        ///<summary> non-persistent (1) or persistent (2) </summary>
-        byte DeliveryMode { get; set; }
-
-        ///<summary> message priority, 0 to 9 </summary>
-        byte Priority { get; set; }
-
-        ///<summary> application correlation identifier </summary>
-        string CorrelationId { get; set; }
-
-        ///<summary> destination to reply to </summary>
-        string ReplyTo { get; set; }
-
-        ///<summary> message expiration specification </summary>
-        string Expiration { get; set; }
-
-        ///<summary> application message identifier </summary>
-        string MessageId { get; set; }
-
-        ///<summary> message timestamp </summary>
-        AmqpTimestamp Timestamp { get; set; }
-
-        ///<summary> message type name </summary>
-        string Type { get; set; }
-
-        ///<summary> creating user id </summary>
-        string UserId { get; set; }
-
-        ///<summary> creating application id </summary>
+        /// <summary>
+        /// Application Id.
+        /// </summary>
         string AppId { get; set; }
 
-        ///<summary> intra-cluster routing identifier
-        /// (cluster id is deprecated in AMQP 0-9-1)
-        ///</summary>
+        /// <summary>
+        /// Intra-cluster routing identifier (cluster id is deprecated in AMQP 0-9-1).
+        /// </summary>
         string ClusterId { get; set; }
 
-        ///<summary> Clear the ContentType property. </summary>
-        void ClearContentType();
+        /// <summary>
+        /// MIME content encoding.
+        /// </summary>
+        string ContentEncoding { get; set; }
 
-        ///<summary> Clear the ContentEncoding property. </summary>
-        void ClearContentEncoding();
+        /// <summary>
+        /// MIME content type.
+        /// </summary>
+        string ContentType { get; set; }
 
-        ///<summary> Clear the Headers property. </summary>
-        void ClearHeaders();
+        /// <summary>
+        /// Application correlation identifier.
+        /// </summary>
+        string CorrelationId { get; set; }
 
-        ///<summary> Clear the DeliveryMode property. </summary>
-        void ClearDeliveryMode();
+        /// <summary>
+        /// Non-persistent (1) or persistent (2).
+        /// </summary>
+        byte DeliveryMode { get; set; }
 
-        ///<summary> Clear the Priority property. </summary>
-        void ClearPriority();
+        /// <summary>
+        /// Message expiration specification.
+        /// </summary>
+        string Expiration { get; set; }
 
-        ///<summary> Clear the CorrelationId property. </summary>
-        void ClearCorrelationId();
+        /// <summary>
+        /// Message header field table. Is of type <see cref="IDictionary{TKey,TValue}" />.
+        /// </summary>
+        IDictionary<string, object> Headers { get; set; }
 
-        ///<summary> Clear the ReplyTo property. </summary>
-        void ClearReplyTo();
+        /// <summary>
+        /// Application message Id.
+        /// </summary>
+        string MessageId { get; set; }
 
-        ///<summary> Clear the Expiration property. </summary>
-        void ClearExpiration();
+        /// <summary>
+        /// Message priority, 0 to 9.
+        /// </summary>
+        byte Priority { get; set; }
 
-        ///<summary> Clear the MessageId property. </summary>
-        void ClearMessageId();
+        /// <summary>
+        /// Destination to reply to.
+        /// </summary>
+        string ReplyTo { get; set; }
 
-        ///<summary> Clear the Timestamp property. </summary>
-        void ClearTimestamp();
-
-        ///<summary> Clear the Type property. </summary>
-        void ClearType();
-
-        ///<summary> Clear the UserId property. </summary>
-        void ClearUserId();
-
-        ///<summary> Clear the AppId property. </summary>
-        void ClearAppId();
-
-        ///<summary> Clear the ClusterId property.
-        /// (cluster id is deprecated in AMQP 0-9-1)
-        ///</summary>
-        void ClearClusterId();
-
-        ///<summary> Returns true iff the ContentType property is present. </summary>
-        bool IsContentTypePresent();
-
-        ///<summary> Returns true iff the ContentEncoding property is present. </summary>
-        bool IsContentEncodingPresent();
-
-        ///<summary> Returns true iff the Headers property is present. </summary>
-        bool IsHeadersPresent();
-
-        ///<summary> Returns true iff the DeliveryMode property is present. </summary>
-        bool IsDeliveryModePresent();
-
-        ///<summary> Returns true iff the Priority property is present. </summary>
-        bool IsPriorityPresent();
-
-        ///<summary> Returns true iff the CorrelationId property is present. </summary>
-        bool IsCorrelationIdPresent();
-
-        ///<summary> Returns true iff the ReplyTo property is present. </summary>
-        bool IsReplyToPresent();
-
-        ///<summary> Returns true iff the Expiration property is present. </summary>
-        bool IsExpirationPresent();
-
-        ///<summary> Returns true iff the MessageId property is present. </summary>
-        bool IsMessageIdPresent();
-
-        ///<summary> Returns true iff the Timestamp property is present. </summary>
-        bool IsTimestampPresent();
-
-        ///<summary> Returns true iff the Type property is present. </summary>
-        bool IsTypePresent();
-
-        ///<summary> Returns true iff the UserId property is present. </summary>
-        bool IsUserIdPresent();
-
-        ///<summary> Returns true iff the AppId property is present. </summary>
-        bool IsAppIdPresent();
-
-        ///<summary> Returns true iff the ClusterId property is present.
-        /// (cluster id is deprecated in AMQP 0-9-1)
-        ///</summary>
-        bool IsClusterIdPresent();
-
-        ///<summary>Convenience property; parses ReplyTo property
-        ///using PublicationAddress.Parse, and serializes it using
-        ///PublicationAddress.ToString. Returns null if ReplyTo property
-        ///cannot be parsed by PublicationAddress.Parse.</summary>
+        /// <summary>
+        /// Convenience property; parses <see cref="ReplyTo"/> property using <see cref="PublicationAddress.Parse"/>,
+        /// and serializes it using <see cref="PublicationAddress.ToString"/>.
+        /// Returns null if <see cref="ReplyTo"/> property cannot be parsed by <see cref="PublicationAddress.Parse"/>.
+        /// </summary>
         PublicationAddress ReplyToAddress { get; set; }
 
-        ///<summary>Sets DeliveryMode to either persistent (2) or non-persistent (1).</summary>
-        ///<remarks>
-        ///<para>
-        ///The numbers 1 and 2 for delivery mode are "magic" in that
-        ///they appear in the AMQP 0-8 and 0-9 specifications as part
-        ///of the definition of the DeliveryMode Basic-class property,
-        ///without being defined as named constants.
-        ///</para>
-        ///<para>
-        ///Calling this method causes DeliveryMode to take on a
-        ///value. In order to reset DeliveryMode to the default empty
-        ///condition, call ClearDeliveryMode.
-        ///</para>
-        ///</remarks>
+        /// <summary>
+        /// Message timestamp.
+        /// </summary>
+        AmqpTimestamp Timestamp { get; set; }
+
+        /// <summary>
+        /// Message type name.
+        /// </summary>
+        string Type { get; set; }
+
+        /// <summary>
+        /// User Id.
+        /// </summary>
+        string UserId { get; set; }
+
+        /// <summary>
+        /// Clear the <see cref="AppId"/> property.
+        /// </summary>
+        void ClearAppId();
+
+        /// <summary>
+        /// Clear the <see cref="ClusterId"/> property (cluster id is deprecated in AMQP 0-9-1).
+        /// </summary>
+        void ClearClusterId();
+
+        /// <summary>
+        /// Clear the <see cref="ContentEncoding"/> property.
+        /// </summary>
+        void ClearContentEncoding();
+
+        /// <summary>
+        /// Clear the <see cref="ContentType"/> property.
+        /// </summary>
+        void ClearContentType();
+
+        /// <summary>
+        /// Clear the <see cref="CorrelationId"/> property.
+        /// </summary>
+        void ClearCorrelationId();
+
+        /// <summary>
+        /// Clear the <see cref="DeliveryMode"/> property.
+        /// </summary>
+        void ClearDeliveryMode();
+
+        /// <summary>
+        /// Clear the <see cref="Expiration"/> property.
+        /// </summary>
+        void ClearExpiration();
+
+        /// <summary>
+        /// Clear the <see cref="Headers"/> property.
+        /// </summary>
+        void ClearHeaders();
+
+        /// <summary>
+        /// Clear the <see cref="MessageId"/> property.
+        /// </summary>
+        void ClearMessageId();
+
+        /// <summary>
+        /// Clear the <see cref="Priority"/> property.
+        /// </summary>
+        void ClearPriority();
+
+        /// <summary>
+        /// Clear the <see cref="ReplyTo"/> property.
+        /// </summary>
+        void ClearReplyTo();
+
+        /// <summary>
+        /// Clear the <see cref="Timestamp"/> property.
+        /// </summary>
+        void ClearTimestamp();
+
+        /// <summary>
+        /// Clear the Type property.
+        /// </summary>
+        void ClearType();
+
+        /// <summary>
+        /// Clear the <see cref="UserId"/> property.
+        /// </summary>
+        void ClearUserId();
+
+        /// <summary>
+        /// Returns true if the <see cref="AppId"/> property is present.
+        /// </summary>
+        bool IsAppIdPresent();
+
+        /// <summary>
+        /// Returns true if the <see cref="ClusterId"/> property is present (cluster id is deprecated in AMQP 0-9-1).
+        /// </summary>
+        bool IsClusterIdPresent();
+
+        /// <summary>
+        /// Returns true if the <see cref="ContentEncoding"/> property is present.
+        /// </summary>
+        bool IsContentEncodingPresent();
+
+        /// <summary>
+        /// Returns true if the <see cref="ContentType"/> property is present.
+        /// </summary>
+        bool IsContentTypePresent();
+
+        /// <summary>
+        /// Returns true if the <see cref="CorrelationId"/> property is present.
+        /// </summary>
+        bool IsCorrelationIdPresent();
+
+        /// <summary>
+        /// Returns true if the <see cref="DeliveryMode"/> property is present.
+        /// </summary>
+        bool IsDeliveryModePresent();
+
+        /// <summary>
+        /// Returns true if the <see cref="Expiration"/> property is present.
+        /// </summary>
+        bool IsExpirationPresent();
+
+        /// <summary>
+        /// Returns true if the <see cref="Headers"/> property is present.
+        /// </summary>
+        bool IsHeadersPresent();
+
+        /// <summary>
+        /// Returns true if the <see cref="MessageId"/> property is present.
+        /// </summary>
+        bool IsMessageIdPresent();
+
+        /// <summary>
+        /// Returns true if the <see cref="Priority"/> property is present.
+        /// </summary>
+        bool IsPriorityPresent();
+
+        /// <summary>
+        /// Returns true if the <see cref="ReplyTo"/> property is present.
+        /// </summary>
+        bool IsReplyToPresent();
+
+        /// <summary>
+        /// Returns true if the <see cref="Timestamp"/> property is present.
+        /// </summary>
+        bool IsTimestampPresent();
+
+        /// <summary>
+        /// Returns true if the Type property is present.
+        /// </summary>
+        bool IsTypePresent();
+
+        /// <summary>
+        /// Returns true if the <see cref="UserId"/> UserId property is present.
+        /// </summary>
+        bool IsUserIdPresent();
+
+        /// <summary>Sets <see cref="DeliveryMode"/> to either persistent (2) or non-persistent (1).</summary>
+        /// <remarks>
+        /// <para>
+        /// The numbers 1 and 2 for delivery mode are "magic" in that
+        /// they appear in the AMQP 0-8 and 0-9 specifications as part
+        /// of the definition of the DeliveryMode Basic-class property,
+        /// without being defined as named constants.
+        /// </para>
+        /// <para>
+        /// Calling this method causes <see cref="DeliveryMode"/> to take on a  value.
+        /// In order to reset <see cref="DeliveryMode"/> to the default empty condition, call <see cref="ClearDeliveryMode"/> .
+        /// </para>
+        /// </remarks>
         void SetPersistent(bool persistent);
     }
 }

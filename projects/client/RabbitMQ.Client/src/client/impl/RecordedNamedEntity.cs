@@ -39,25 +39,16 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-
-using RabbitMQ.Client;
-using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
     public class RecordedNamedEntity : RecordedEntity
     {
-        protected string name;
-
         public RecordedNamedEntity(AutorecoveringModel model, string name) : base(model)
         {
-            this.name = name;
+            Name = name;
         }
 
-        public string Name
-        {
-            get { return this.name; }
-        }
+        public string Name { get; protected set; }
     }
 }

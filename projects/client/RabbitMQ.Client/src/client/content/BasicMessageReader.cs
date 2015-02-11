@@ -38,32 +38,43 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-using System.IO;
 using System.Collections.Generic;
-
-using RabbitMQ.Client;
+using System.IO;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Content
 {
-    ///<summary>Framework for analyzing various types of AMQP
-    ///Basic-class application messages.</summary>
+    /// <summary>
+    /// Framework for analyzing various types of AMQP Basic-class application messages.
+    /// </summary>
     public class BasicMessageReader : IMessageReader
     {
-        protected IBasicProperties m_properties;
-        protected byte[] m_body;
+        protected NetworkBinaryReader m_reader;
+        protected MemoryStream m_stream;
 
-        protected MemoryStream m_stream = null;
-        protected NetworkBinaryReader m_reader = null;
+        /// <summary>
+        /// Construct an instance ready for reading.
+        /// </summary>
+        public BasicMessageReader(IBasicProperties properties, byte[] body)
+        {
+            Properties = properties;
+            BodyBytes = body;
+        }
 
-        ///<summary>Retrieve this instance's NetworkBinaryReader reading from BodyBytes.</summary>
-        ///<remarks>
+        /// <summary>
+        /// Retrieve the <see cref="IBasicProperties"/> associated with this instance.
+        /// </summary>
+        public IBasicProperties Properties { get; protected set; }
+
+        /// <summary>
+        /// Retrieve this instance's NetworkBinaryReader reading from <see cref="BodyBytes"/>.
+        /// </summary>
+        /// <remarks>
         /// If no NetworkBinaryReader instance exists, one is created,
         /// pointing at the beginning of the body. If one already
         /// exists, the existing instance is returned. The instance is
         /// not reset.
-        ///</remarks>
+        /// </remarks>
         public NetworkBinaryReader Reader
         {
             get
@@ -76,14 +87,29 @@ namespace RabbitMQ.Client.Content
             }
         }
 
-        ///<summary>Construct an instance ready for reading.</summary>
-        public BasicMessageReader(IBasicProperties properties, byte[] body)
+        /// <summary>
+        /// Retrieve the message body, as a byte array.
+        /// </summary>
+        public byte[] BodyBytes { get; protected set; }
+
+        /// <summary>
+        /// Retrieve the <see cref="Stream"/> being used to read from the message body.
+        /// </summary>
+        public Stream BodyStream
         {
-            m_properties = properties;
-            m_body = body;
+            get
+            {
+                if (m_stream == null)
+                {
+                    m_stream = new MemoryStream(BodyBytes);
+                }
+                return m_stream;
+            }
         }
 
-        ///<summary>Implement IMessageReader.Headers</summary>
+        /// <summary>
+        /// Retrieves the content header properties of the message being read. Is of type <seealso cref="IDictionary{TKey,TValue}"/>.
+        /// </summary>
         public IDictionary<string, object> Headers
         {
             get
@@ -96,44 +122,22 @@ namespace RabbitMQ.Client.Content
             }
         }
 
-        ///<summary>Retrieve the IBasicProperties associated with this instance.</summary>
-        public IBasicProperties Properties
-        {
-            get
-            {
-                return m_properties;
-            }
-        }
-
-        ///<summary>Implement IMessageReader.BodyBytes</summary>
-        public byte[] BodyBytes
-        {
-            get
-            {
-                return m_body;
-            }
-        }
-
-        ///<summary>Implement IMessageReader.BodyStream</summary>
-        public Stream BodyStream
-        {
-            get
-            {
-                if (m_stream == null)
-                {
-                    m_stream = new MemoryStream(m_body);
-                }
-                return m_stream;
-            }
-        }
-
-        ///<summary>Implement IMessageReader.RawRead</summary>
+        /// <summary>
+        /// Read a single byte from the body stream, without encoding or interpretation.
+        /// Returns -1 for end-of-stream.
+        /// </summary>
         public int RawRead()
         {
             return BodyStream.ReadByte();
         }
 
-        ///<summary>Implement IMessageReader.RawRead</summary>
+        /// <summary>
+        /// Read bytes from the body stream into a section of
+        /// an existing byte array, without encoding or
+        /// interpretation. Returns the number of bytes read from the
+        /// body and written into the target array, which may be less
+        /// than the number requested if the end-of-stream is reached.
+        /// </summary>
         public int RawRead(byte[] target, int offset, int length)
         {
             return BodyStream.Read(target, offset, length);
