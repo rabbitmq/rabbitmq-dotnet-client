@@ -34,7 +34,6 @@ ensure-deliverables: rabbit-vsn
 	file ${RELEASE_DIR}/${NAME_VSN}-dotnet-4.0.zip
 	file ${RELEASE_DIR}/${NAME_VSN}-wcf-htmldoc.zip
 	file ${RELEASE_DIR}/${NAME_VSN}-wcf-htmldoc
-	file ${RELEASE_DIR}/${NAME_VSN}.msm
 
 ensure-release-dir: rabbit-vsn
 	touch ${RELEASE_DIR}/
