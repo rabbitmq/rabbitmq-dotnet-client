@@ -48,7 +48,6 @@ doc: rabbit-vsn ensure-release-dir ensure-docs
 	mkdir -p build/tmpdoc/html build/tmpdoc/xml
 	unzip -q -j ${RELEASE_DIR}/${NAME_VSN}-client-htmldoc.zip -d build/tmpdoc/html
 	unzip -q -j ${RELEASE_DIR}/${NAME_VSN}-tmp-xmldoc.zip -d build/tmpdoc/xml
-	$(MAKE) -C docs
 	cd ${RELEASE_DIR} && \
 	  rm -rf ${NAME_VSN}-htmldoc && \
 	  unzip -q ${NAME_VSN}-client-htmldoc.zip -d ${NAME_VSN}-client-htmldoc && \
