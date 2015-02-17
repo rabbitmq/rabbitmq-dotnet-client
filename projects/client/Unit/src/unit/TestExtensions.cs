@@ -39,7 +39,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Threading;
 using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
@@ -48,45 +47,45 @@ namespace RabbitMQ.Client.Unit
     public class TestExtensions : IntegrationFixture
     {
         [Test]
+        public void TestConfirmBarrier()
+        {
+            Model.ConfirmSelect();
+            for (int i = 0; i < 10; i++)
+            {
+                Model.BasicPublish("", String.Empty, null, new byte[] {});
+            }
+            Assert.That(Model.WaitForConfirms(), Is.True);
+        }
+
+        [Test]
+        public void TestConfirmBeforeWait()
+        {
+            Assert.Throws(typeof (InvalidOperationException), () => Model.WaitForConfirms());
+        }
+
+        [Test]
         public void TestExchangeBinding()
         {
             Model.ConfirmSelect();
 
             Model.ExchangeDeclare("src", ExchangeType.Direct, false, false, null);
             Model.ExchangeDeclare("dest", ExchangeType.Direct, false, false, null);
-            String queue = Model.QueueDeclare();
+            string queue = Model.QueueDeclare();
 
             Model.ExchangeBind("dest", "src", String.Empty);
             Model.QueueBind(queue, "dest", String.Empty);
 
-            Model.BasicPublish("src", String.Empty, null, new byte[] { });
+            Model.BasicPublish("src", String.Empty, null, new byte[] {});
             Model.WaitForConfirms();
             Assert.IsNotNull(Model.BasicGet(queue, true));
 
             Model.ExchangeUnbind("dest", "src", String.Empty);
-            Model.BasicPublish("src", String.Empty, null, new byte[] { });
+            Model.BasicPublish("src", String.Empty, null, new byte[] {});
             Model.WaitForConfirms();
             Assert.IsNull(Model.BasicGet(queue, true));
 
             Model.ExchangeDelete("src");
             Model.ExchangeDelete("dest");
-        }
-
-        [Test]
-        public void TestConfirmBeforeWait()
-        {
-            Assert.Throws(
-                typeof (InvalidOperationException),
-                delegate { Model.WaitForConfirms(); });
-        }
-
-        [Test]
-        public void TestConfirmBarrier()
-        {
-            Model.ConfirmSelect();
-            for (int i = 0; i < 10; i++)
-                Model.BasicPublish("", String.Empty, null, new byte[] { });
-            Assert.That(Model.WaitForConfirms(), Is.True);
         }
     }
 }

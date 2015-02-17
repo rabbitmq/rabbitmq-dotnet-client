@@ -39,19 +39,18 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.IO;
-using System.Text;
-
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 using RabbitMQ.Util;
 
-namespace RabbitMQ.Client.Examples {
-    public class SingleGet {
-        public static int Main(string[] args) {
-            if (args.Length < 2) {
+namespace RabbitMQ.Client.Examples
+{
+    public class SingleGet
+    {
+        public static int Main(string[] args)
+        {
+            if (args.Length < 2)
+            {
                 Console.Error.WriteLine("Usage: SingleGet <uri> <queuename>");
-                Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
+                Console.Error.WriteLine("RabbitMQ .NET client version " + typeof (IModel).Assembly.GetName().Version);
                 Console.Error.WriteLine("Parameters:");
                 Console.Error.WriteLine("  <uri> = \"amqp://user:pass@host:port/vhost\"");
                 return 2;
@@ -59,20 +58,23 @@ namespace RabbitMQ.Client.Examples {
 
             string serverAddress = args[0];
             string queueName = args[1];
-            ConnectionFactory cf = new ConnectionFactory();
-            cf.Uri = serverAddress;
-            IConnection conn = cf.CreateConnection();
-            conn.ConnectionShutdown += new ConnectionShutdownEventHandler(LogConnClose);
+            var connectionFactory = new ConnectionFactory {Uri = serverAddress};
+            IConnection conn = connectionFactory.CreateConnection();
+            conn.ConnectionShutdown += LogConnClose;
 
-            using (IModel ch = conn.CreateModel()) {
+            using (IModel model = conn.CreateModel())
+            {
                 conn.AutoClose = true;
 
-                ch.QueueDeclare(queueName, false, false, false, null);
-                BasicGetResult result = ch.BasicGet(queueName, false);
-                if (result == null) {
+                model.QueueDeclare(queueName, false, false, false, null);
+                BasicGetResult result = model.BasicGet(queueName, false);
+                if (result == null)
+                {
                     Console.WriteLine("No message available.");
-                } else {
-                    ch.BasicAck(result.DeliveryTag, false);
+                }
+                else
+                {
+                    model.BasicAck(result.DeliveryTag, false);
                     Console.WriteLine("Message:");
                     DebugUtil.DumpProperties(result, Console.Out, 0);
                 }
@@ -83,8 +85,10 @@ namespace RabbitMQ.Client.Examples {
             // conn will have been closed here by AutoClose above.
         }
 
-        public static void LogConnClose(IConnection conn, ShutdownEventArgs reason) {
-            Console.Error.WriteLine("Closing connection "+conn+" with reason "+reason);
+        public static void LogConnClose(object sender, ShutdownEventArgs reason)
+        {
+            var connection = (IConnection) sender;
+            Console.Error.WriteLine("Closing connection " + connection + " with reason " + reason);
         }
     }
 }

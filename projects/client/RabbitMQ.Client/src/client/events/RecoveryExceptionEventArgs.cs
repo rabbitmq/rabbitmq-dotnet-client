@@ -46,8 +46,10 @@ namespace RabbitMQ.Client.Events
     ///Describes an exception that was thrown during
     ///automatic connection recovery performed by the library.
     ///</summary>
-    public class RecoveryExceptionEventArgs: BaseExceptionEventArgs
+    public class RecoveryExceptionEventArgs : BaseExceptionEventArgs
     {
-        public RecoveryExceptionEventArgs(Exception e) : base(e) {}
+        public RecoveryExceptionEventArgs(Exception e) : base(e)
+        {
+        }
     }
 }

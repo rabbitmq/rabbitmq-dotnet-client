@@ -39,30 +39,21 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-
-using RabbitMQ.Client;
-using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
     public abstract class RecordedEntity
     {
-        protected AutorecoveringModel model;
-
         public RecordedEntity(AutorecoveringModel model)
         {
-            this.model = model;
+            Model = model;
         }
 
-        public AutorecoveringModel Model
-        {
-            get { return this.model; }
-        }
+        public AutorecoveringModel Model { get; protected set; }
 
         protected IModel ModelDelegate
         {
-            get { return this.model.Delegate; }
+            get { return Model.Delegate; }
         }
     }
 }

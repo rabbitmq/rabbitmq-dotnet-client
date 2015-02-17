@@ -47,8 +47,6 @@ using System.ServiceModel;
 
 namespace RabbitMQ.ServiceModel.Test
 {
-    delegate void TestRun();
-
     class Program
     {
         public static Binding GetBinding() {

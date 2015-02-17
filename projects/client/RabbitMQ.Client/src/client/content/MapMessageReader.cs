@@ -38,36 +38,44 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-using System.IO;
 using System.Collections.Generic;
 
-using RabbitMQ.Client;
+namespace RabbitMQ.Client.Content
+{
+    /// <summary>
+    /// Analyzes AMQP Basic-class messages binary-compatible with QPid's "MapMessage" wire encoding.
+    /// </summary>
+    public class MapMessageReader : BasicMessageReader, IMapMessageReader
+    {
+        /// <summary>
+        /// MIME type associated with QPid MapMessages.
+        /// </summary>
+        public const string MimeType = MapMessageBuilder.MimeType;
 
-namespace RabbitMQ.Client.Content {
-    ///<summary>Analyzes AMQP Basic-class messages binary-compatible
-    ///with QPid's "MapMessage" wire encoding.</summary>
-    public class MapMessageReader: BasicMessageReader, IMapMessageReader {
-        ///<summary>MIME type associated with QPid MapMessages.</summary>
-        public readonly static string MimeType = MapMessageBuilder.MimeType;
-	// ^ repeated here for convenience
+        protected IDictionary<string, object> m_table;
 
-        ///<summary>Construct an instance for reading. See superclass.</summary>
+        /// <summary>
+        /// Construct an instance for reading. See <see cref="BasicMessageReader"/>.
+        /// </summary>
         public MapMessageReader(IBasicProperties properties, byte[] payload)
             : base(properties, payload)
-        {}
+        {
+        }
 
-	protected IDictionary<string, object> m_table = null;
-
-	///<summary>Implement IMapMessageReader.Body</summary>
-        ///<exception cref="System.Net.ProtocolViolationException"/>
-	public IDictionary<string, object> Body {
-	    get {
-		if (m_table == null) {
-		    m_table = MapWireFormatting.ReadMap(Reader);
-		}
-		return m_table;
-	    }
+        ///<summary>
+        /// Parses the message body into an <see cref="IDictionary{TKey,TValue}"/> instance.
+        /// </summary>
+        /// <exception cref="System.Net.ProtocolViolationException"/>.
+        public IDictionary<string, object> Body
+        {
+            get
+            {
+                if (m_table == null)
+                {
+                    m_table = MapWireFormatting.ReadMap(Reader);
+                }
+                return m_table;
+            }
         }
     }
 }

@@ -38,6 +38,7 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Net;
 
 namespace RabbitMQ.Client.Impl
@@ -46,24 +47,26 @@ namespace RabbitMQ.Client.Impl
     {
         AmqpTcpEndpoint Endpoint { get; }
 
-        EndPoint LocalEndPoint  { get; }
+        EndPoint LocalEndPoint { get; }
+
+        int LocalPort { get; }
+
         EndPoint RemoteEndPoint { get; }
 
-        int LocalPort  { get; }
         int RemotePort { get; }
 
         ///<summary>Socket read timeout, in milliseconds. Zero signals "infinity".</summary>
         int Timeout { set; }
 
-        void SendHeader();
+        void Close();
 
         ///<summary>Read a frame from the underlying
         ///transport. Returns null if the read operation timed out
         ///(see Timeout property).</summary>
         Frame ReadFrame();
 
-        void WriteFrame(Frame frame);
+        void SendHeader();
 
-        void Close();
+        void WriteFrame(Frame frame);
     }
 }

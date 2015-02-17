@@ -41,75 +41,58 @@
 using System;
 using System.Collections.Generic;
 
-using RabbitMQ.Client;
-using RabbitMQ.Client.Framing.Impl;
-
 namespace RabbitMQ.Client.Impl
 {
     public class RecordedExchange : RecordedNamedEntity
     {
-        private bool durable;
-        private bool autoDelete;
         private string type;
-        private IDictionary<string, object> arguments;
 
-        public RecordedExchange(AutorecoveringModel model, string name) : base(model, name) {}
+        public RecordedExchange(AutorecoveringModel model, string name) : base(model, name)
+        {
+        }
+
+        public IDictionary<string, object> Arguments { get; private set; }
+        public bool Durable { get; private set; }
+        public bool IsAutoDelete { get; private set; }
 
         public string Type
         {
             get { return type; }
         }
 
-        public bool Durable
-        {
-            get { return durable; }
-        }
-
-        public bool IsAutoDelete
-        {
-            get { return autoDelete; }
-        }
-
-        public IDictionary<String, object> Arguments
-        {
-            get { return arguments; }
-        }
-
-        public RecordedExchange WithDurable(bool value)
-        {
-            this.durable = value;
-            return this;
-        }
-
-        public RecordedExchange WithAutoDelete(bool value)
-        {
-            this.autoDelete = value;
-            return this;
-        }
-
-        public RecordedExchange WithType(string value)
-        {
-            this.type = value;
-            return this;
-        }
-
-        public RecordedExchange WithArguments(IDictionary<string, object> value)
-        {
-            this.arguments = value;
-            return this;
-        }
-
         public void Recover()
         {
-            ModelDelegate.ExchangeDeclare(this.name, this.type,
-                                          this.durable, this.autoDelete,
-                                          this.arguments);
+            ModelDelegate.ExchangeDeclare(Name, type, Durable, IsAutoDelete, Arguments);
         }
 
         public override string ToString()
         {
             return String.Format("{0}: name = '{1}', type = '{2}', durable = {3}, autoDelete = {4}, arguments = '{5}'",
-                                 this.GetType().Name, name, type, durable, autoDelete, arguments);
+                GetType().Name, Name, type, Durable, IsAutoDelete, Arguments);
+        }
+
+        public RecordedExchange WithArguments(IDictionary<string, object> value)
+        {
+            Arguments = value;
+            return this;
+        }
+
+        public RecordedExchange WithAutoDelete(bool value)
+        {
+            IsAutoDelete = value;
+            return this;
+        }
+
+        public RecordedExchange WithDurable(bool value)
+        {
+            Durable = value;
+            return this;
+        }
+
+        public RecordedExchange WithType(string value)
+        {
+            type = value;
+            return this;
         }
     }
 }

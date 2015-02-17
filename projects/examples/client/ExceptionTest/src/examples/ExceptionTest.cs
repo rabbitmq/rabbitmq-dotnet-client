@@ -39,117 +39,132 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.IO;
 using System.Text;
-
-using RabbitMQ.Client;
-using RabbitMQ.Client.Content;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Util;
 
-namespace RabbitMQ.Client.Examples {
-    public class ExceptionTest {
-        public static int Main(string[] args) {
-            try {
-                if (args.Length < 1) {
+namespace RabbitMQ.Client.Examples
+{
+    public class ExceptionTest
+    {
+        public static int Main(string[] args)
+        {
+            try
+            {
+                if (args.Length < 1)
+                {
                     Console.Error.WriteLine("Usage: ExceptionTest <uri>");
-                    Console.Error.WriteLine("RabbitMQ .NET client version "+typeof(IModel).Assembly.GetName().Version.ToString());
+                    Console.Error.WriteLine("RabbitMQ .NET client version " + typeof (IModel).Assembly.GetName().Version);
                     Console.Error.WriteLine("Parameters:");
                     Console.Error.WriteLine("  <uri> = \"amqp://user:pass@host:port/vhost\"");
                     return 2;
                 }
 
                 string serverAddress = args[0];
-                ConnectionFactory cf = new ConnectionFactory();
-                cf.Uri = serverAddress;
+                var connectionFactory = new ConnectionFactory {Uri = serverAddress};
 
-                using (IConnection conn = cf.CreateConnection())
+                using (IConnection connection = connectionFactory.CreateConnection())
                 {
-                    conn.ConnectionShutdown += new ConnectionShutdownEventHandler(First);
-                    conn.ConnectionShutdown += new ConnectionShutdownEventHandler(OnConnectionShutdown);
-                    conn.ConnectionShutdown += new ConnectionShutdownEventHandler(Second);
-                    conn.CallbackException += new CallbackExceptionEventHandler(OnCallbackException);
+                    connection.ConnectionShutdown += OnConnectionShutdownFirst;
+                    connection.ConnectionShutdown += OnConnectionShutdown;
+                    connection.ConnectionShutdown += OnConnectionShutdownSecond;
+                    connection.CallbackException += OnCallbackException;
 
-                    using (IModel ch = conn.CreateModel()) {
-                        ch.ModelShutdown += new ModelShutdownEventHandler(First);
-                        ch.ModelShutdown += new ModelShutdownEventHandler(OnModelShutdown);
-                        ch.ModelShutdown += new ModelShutdownEventHandler(Second);
-                        ch.CallbackException += new CallbackExceptionEventHandler(OnCallbackException);
+                    using (IModel model = connection.CreateModel())
+                    {
+                        model.ModelShutdown += OnModelShutdownFirst;
+                        model.ModelShutdown += OnModelShutdown;
+                        model.ModelShutdown += OnModelShutdownSecond;
+                        model.CallbackException += OnCallbackException;
 
-                        string queueName = ch.QueueDeclare();
+                        string queueName = model.QueueDeclare();
 
-                        ThrowingConsumer consumer = new ThrowingConsumer(ch);
-                        string consumerTag = ch.BasicConsume(queueName, false, consumer);
-                        ch.BasicPublish("", queueName, null, Encoding.UTF8.GetBytes("test"));
-                        ch.BasicCancel(consumerTag);
+                        var consumer = new ThrowingConsumer(model);
+                        string consumerTag = model.BasicConsume(queueName, false, consumer);
+                        model.BasicPublish("", queueName, null, Encoding.UTF8.GetBytes("test"));
+                        model.BasicCancel(consumerTag);
                         return 0;
                     }
                 }
-            } catch (Exception e) {
+            }
+            catch (Exception ex)
+            {
                 Console.Error.WriteLine("-=-=-=-=-= MAIN EXCEPTION CATCHER");
-                Console.Error.WriteLine(e);
+                Console.Error.WriteLine(ex);
                 return 1;
             }
         }
 
-        public static void First(IConnection sender, ShutdownEventArgs args) {
+        public static void OnConnectionShutdownFirst(object sender, ShutdownEventArgs args)
+        {
             Console.WriteLine("********** First (IConnection)");
         }
 
-        public static void Second(IConnection sender, ShutdownEventArgs args) {
+        public static void OnConnectionShutdownSecond(object sender, ShutdownEventArgs args)
+        {
             Console.WriteLine("********** Second (IConnection)");
         }
 
-        public static void First(IModel sender, ShutdownEventArgs args) {
+        public static void OnModelShutdownFirst(object sender, ShutdownEventArgs args)
+        {
             Console.WriteLine("********** First (IModel)");
         }
 
-        public static void Second(IModel sender, ShutdownEventArgs args) {
+        public static void OnModelShutdownSecond(object sender, ShutdownEventArgs args)
+        {
             Console.WriteLine("********** Second (IModel)");
         }
 
-        public static void OnConnectionShutdown(IConnection conn, ShutdownEventArgs reason) {
+        public static void OnConnectionShutdown(object sender, ShutdownEventArgs reason)
+        {
             throw new Exception("OnConnectionShutdown");
         }
 
-        public static void OnModelShutdown(IModel conn, ShutdownEventArgs reason) {
+        public static void OnModelShutdown(object conn, ShutdownEventArgs reason)
+        {
             throw new Exception("OnModelShutdown");
         }
 
-        public static void OnCallbackException(object sender, CallbackExceptionEventArgs args) {
+        public static void OnCallbackException(object sender, CallbackExceptionEventArgs args)
+        {
             Console.WriteLine("OnCallbackException ==============================");
             Console.WriteLine("Sender: " + sender);
             Console.WriteLine("Message: " + args.Exception.Message);
             Console.WriteLine("Detail:");
             DebugUtil.DumpProperties(args.Detail, Console.Out, 2);
-	    Console.WriteLine("----------------------------------------");
+            Console.WriteLine("----------------------------------------");
         }
     }
 
-    public class ThrowingConsumer: DefaultBasicConsumer {
+    public class ThrowingConsumer : DefaultBasicConsumer
+    {
         public ThrowingConsumer(IModel ch)
             : base(ch)
-        {}
+        {
+        }
 
-        public override void HandleBasicConsumeOk(string consumerTag) {
+        public override void HandleBasicConsumeOk(string consumerTag)
+        {
             throw new Exception("HandleBasicConsumeOk " + consumerTag);
         }
 
-        public override void HandleBasicCancelOk(string consumerTag) {
+        public override void HandleBasicCancelOk(string consumerTag)
+        {
             throw new Exception("HandleBasicCancelOk " + consumerTag);
         }
 
-        public override void HandleModelShutdown(IModel model, ShutdownEventArgs args) {
+        public override void HandleModelShutdown(object model, ShutdownEventArgs args)
+        {
             throw new Exception("HandleModelShutdown " + args);
         }
 
         public override void HandleBasicDeliver(string consumerTag,
-                                                ulong deliveryTag,
-                                                bool redelivered,
-                                                string exchange,
-                                                string routingKey,
-                                                IBasicProperties properties,
-                                                byte[] body)
+            ulong deliveryTag,
+            bool redelivered,
+            string exchange,
+            string routingKey,
+            IBasicProperties properties,
+            byte[] body)
         {
             throw new Exception("HandleBasicDeliver " + consumerTag);
         }

@@ -44,43 +44,55 @@ using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 
-namespace RabbitMQ.Util {
+namespace RabbitMQ.Util
+{
     ///<summary>Miscellaneous helpful XML utilities.</summary>
-    public class XmlUtil {
+    public class XmlUtil
+    {
         ///<summary>Private constructor - this class has no instances</summary>
-        private XmlUtil() {}
-
-        ///<summary>Serializes an arbitrary serializable object to an
-        ///XML document.</summary>
-        public static XmlDocument SerializeObject(Type serializationType, object obj) {
-            StringWriter writer = new StringWriter();
-            XmlSerializer serializer = new XmlSerializer(serializationType);
-            serializer.Serialize(writer, obj);
-            XmlDocument doc = new XmlDocument();
-            doc.Load(new StringReader(writer.ToString()));
-            return doc;
+        private XmlUtil()
+        {
         }
 
         ///<summary>Constructs an indenting XmlTextWriter that writes to a
         ///fresh MemoryStream.</summary>
-        public static XmlTextWriter CreateIndentedXmlWriter() {
+        public static XmlTextWriter CreateIndentedXmlWriter()
+        {
             return CreateIndentedXmlWriter(new MemoryStream());
         }
 
         ///<summary>Constructs an indenting XmlTextWriter that writes to
         ///the supplied stream.</summary>
-        public static XmlTextWriter CreateIndentedXmlWriter(Stream stream) {
-            XmlTextWriter w = new XmlTextWriter(stream, Encoding.UTF8);
-            w.Formatting = Formatting.Indented;
+        public static XmlTextWriter CreateIndentedXmlWriter(Stream stream)
+        {
+            var w = new XmlTextWriter(stream, Encoding.UTF8)
+            {
+                Formatting = Formatting.Indented
+            };
             return w;
         }
 
         ///<summary>Constructs an indenting XmlTextWriter that writes to
         ///the supplied file name.</summary>
-        public static XmlTextWriter CreateIndentedXmlWriter(string path) {
-            XmlTextWriter w = new XmlTextWriter(path, Encoding.UTF8);
-            w.Formatting = Formatting.Indented;
+        public static XmlTextWriter CreateIndentedXmlWriter(string path)
+        {
+            var w = new XmlTextWriter(path, Encoding.UTF8)
+            {
+                Formatting = Formatting.Indented
+            };
             return w;
+        }
+
+        ///<summary>Serializes an arbitrary serializable object to an
+        ///XML document.</summary>
+        public static XmlDocument SerializeObject(Type serializationType, object obj)
+        {
+            var writer = new StringWriter();
+            var serializer = new XmlSerializer(serializationType);
+            serializer.Serialize(writer, obj);
+            var doc = new XmlDocument();
+            doc.Load(new StringReader(writer.ToString()));
+            return doc;
         }
     }
 }

@@ -39,77 +39,29 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.IO;
-using System.Text;
 using System.Collections.Generic;
-
-using RabbitMQ.Client;
-using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
     public class MethodArgumentReader
     {
-        private NetworkBinaryReader m_reader;
-        private int m_bits;
         private int m_bit;
+        private int m_bits;
 
         public MethodArgumentReader(NetworkBinaryReader reader)
         {
-            m_reader = reader;
+            BaseReader = reader;
             ClearBits();
         }
 
-        public NetworkBinaryReader BaseReader { get { return m_reader; } }
-
-        private void ClearBits()
-        {
-            m_bits = 0;
-            m_bit = 0x100;
-        }
-
-        public byte ReadOctet()
-        {
-            ClearBits();
-            return WireFormatting.ReadOctet(m_reader);
-        }
-
-        public string ReadShortstr()
-        {
-            ClearBits();
-            return WireFormatting.ReadShortstr(m_reader);
-        }
-
-        public byte[] ReadLongstr()
-        {
-            ClearBits();
-            return WireFormatting.ReadLongstr(m_reader);
-        }
-
-        public ushort ReadShort()
-        {
-            ClearBits();
-            return WireFormatting.ReadShort(m_reader);
-        }
-
-        public uint ReadLong()
-        {
-            ClearBits();
-            return WireFormatting.ReadLong(m_reader);
-        }
-
-        public ulong ReadLonglong()
-        {
-            ClearBits();
-            return WireFormatting.ReadLonglong(m_reader);
-        }
+        public NetworkBinaryReader BaseReader { get; private set; }
 
         public bool ReadBit()
         {
             if (m_bit > 0x80)
             {
-                m_bits = m_reader.ReadByte();
+                m_bits = BaseReader.ReadByte();
                 m_bit = 0x01;
             }
 
@@ -118,24 +70,67 @@ namespace RabbitMQ.Client.Impl
             return result;
         }
 
+        public byte[] ReadContent()
+        {
+            throw new NotSupportedException("ReadContent should not be called");
+        }
+
+        public uint ReadLong()
+        {
+            ClearBits();
+            return WireFormatting.ReadLong(BaseReader);
+        }
+
+        public ulong ReadLonglong()
+        {
+            ClearBits();
+            return WireFormatting.ReadLonglong(BaseReader);
+        }
+
+        public byte[] ReadLongstr()
+        {
+            ClearBits();
+            return WireFormatting.ReadLongstr(BaseReader);
+        }
+
+        public byte ReadOctet()
+        {
+            ClearBits();
+            return WireFormatting.ReadOctet(BaseReader);
+        }
+
+        public ushort ReadShort()
+        {
+            ClearBits();
+            return WireFormatting.ReadShort(BaseReader);
+        }
+
+        public string ReadShortstr()
+        {
+            ClearBits();
+            return WireFormatting.ReadShortstr(BaseReader);
+        }
+
         public IDictionary<string, object> ReadTable()
         {
             ClearBits();
-            return WireFormatting.ReadTable(m_reader);
+            return WireFormatting.ReadTable(BaseReader);
         }
 
         public AmqpTimestamp ReadTimestamp()
         {
             ClearBits();
-            return WireFormatting.ReadTimestamp(m_reader);
+            return WireFormatting.ReadTimestamp(BaseReader);
+        }
+
+        private void ClearBits()
+        {
+            m_bits = 0;
+            m_bit = 0x100;
         }
 
         // TODO: Consider using NotImplementedException (?)
         // This is a completely bizarre consequence of the way the
         // Message.Transfer method is marked up in the XML spec.
-        public byte[] ReadContent()
-        {
-            throw new NotSupportedException("ReadContent should not be called");
-        }
     }
 }

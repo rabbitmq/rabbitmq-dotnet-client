@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Warning! This file contains important customizations. Using Visual Studio to edit project's properties might break things. -->
   
   <!-- Props file -->
   <PropertyGroup>
     <LocalPropsFile>$(MSBuildProjectDirectory)\..\..\..\Local.props</LocalPropsFile>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>3.5</OldToolsVersion>
   </PropertyGroup>
   <Import Project="$(LocalPropsFile)" />
   <!-- MSBuild Community Tasks -->
@@ -12,7 +17,6 @@
     <MSBuildCommunityTasksPath>$(MSBuildProjectDirectory)\..\..\..\lib\MSBuild.Community.Tasks\</MSBuildCommunityTasksPath>
   </PropertyGroup>
   <Import Project="$(MSBuildCommunityTasksPath)MSBuild.Community.Tasks.Targets" />
-  
   <!-- Gensrc dir -->
   <PropertyGroup>
     <GensrcDir>..\..\..\gensrc\$(MSBuildProjectName)\</GensrcDir>
@@ -20,7 +24,6 @@
   <Target Name="CreateGensrcDir">
     <MakeDir Directories="$(GensrcDir)" />
   </Target>
-  
   <!-- Detokenize -->
   <PropertyGroup>
     <AssemblyInfoBaseName>AssemblyInfo.cs</AssemblyInfoBaseName>
@@ -29,9 +32,16 @@
   </PropertyGroup>
   <ItemGroup>
     <Tokenized Include="$(AssemblyInfoTok)" />
-    <Detokenized Include="$(AssemblyInfoDetok)"><Link>properties\$(AssemblyInfoBaseName)</Link></Detokenized>
-    <Compile Include="$(AssemblyInfoDetok)"><Visible>false</Visible></Compile>
-    <Tokens Include="PropAssemblyVersion"><ReplacementValue>$(PropAssemblyVersion)</ReplacementValue><Visible>false</Visible></Tokens>
+    <Detokenized Include="$(AssemblyInfoDetok)">
+      <Link>properties\$(AssemblyInfoBaseName)</Link>
+    </Detokenized>
+    <Compile Include="$(AssemblyInfoDetok)">
+      <Visible>false</Visible>
+    </Compile>
+    <Tokens Include="PropAssemblyVersion">
+      <ReplacementValue>$(PropAssemblyVersion)</ReplacementValue>
+      <Visible>false</Visible>
+    </Tokens>
   </ItemGroup>
   <Target Name="Detokenize" DependsOnTargets="CreateGensrcDir" Inputs="@(Tokenized); $(LocalPropsFile)" Outputs="@(Detokenized)">
     <Delete Files="@(Detokenized)" />
@@ -41,7 +51,6 @@
   <Target Name="CleanDetokenize">
     <Delete Files="@(Detokenized)" />
   </Target>
-
   <!-- Visual Studio generated -->
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -81,7 +90,9 @@
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Data" />
-    <Reference Include="System.ServiceModel"><RequiredTargetFramework>3.0</RequiredTargetFramework></Reference>
+    <Reference Include="System.ServiceModel">
+      <RequiredTargetFramework>3.0</RequiredTargetFramework>
+    </Reference>
     <Reference Include="System.Xml" />
     <Reference Include="System.Runtime.Serialization" />
   </ItemGroup>
@@ -94,12 +105,10 @@
   <ItemGroup>
     <Compile Include="src\serviceModel\**\*.cs" />
   </ItemGroup>
-
   <!-- Mono compatibility workarounds -->
   <PropertyGroup Condition=" '$(PropUsingMono)' == 'true'">
     <_DisabledWarnings>$(NoWarn)</_DisabledWarnings>
   </PropertyGroup>
-  
   <!-- Microsoft CSharp targets; replace Build, Rebuild and Clean targets if building WCF is turned off -->
   <Target Name="Build" Condition="'$(PropBuildWcf)' != 'true'">
     <Message Text="Not building anything in $(MSBuildProjectName) because PropBuildWcf is false." />
@@ -110,13 +119,9 @@
   <Target Name="Clean" Condition="'$(PropBuildWcf)' != 'true'">
     <Message Text="Not cleaning anything in $(MSBuildProjectName) because PropBuildWcf is false." />
   </Target>
-  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" Condition="'$(PropBuildWcf)' == 'true'"/>
-  
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" Condition="'$(PropBuildWcf)' == 'true'" />
   <!-- Custom BeforeBuild-->
   <Target Name="BeforeBuild" DependsOnTargets="Detokenize" />
-  
   <!-- Custom BeforeClean -->
   <Target Name="BeforeClean" DependsOnTargets="CleanDetokenize" />
-  
 </Project>
-

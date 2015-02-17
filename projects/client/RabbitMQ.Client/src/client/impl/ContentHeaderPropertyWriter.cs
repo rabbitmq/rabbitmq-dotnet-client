@@ -39,35 +39,53 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.IO;
 using System.Collections.Generic;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
     public class ContentHeaderPropertyWriter
     {
-        private NetworkBinaryWriter m_writer;
-
-        public NetworkBinaryWriter BaseWriter { get { return m_writer; } }
-
-        protected ushort m_flagWord;
         protected int m_bitCount;
+        protected ushort m_flagWord;
 
         public ContentHeaderPropertyWriter(NetworkBinaryWriter writer)
         {
-            m_writer = writer;
+            BaseWriter = writer;
             m_flagWord = 0;
             m_bitCount = 0;
         }
 
-        private void EmitFlagWord(bool continuationBit)
+        public NetworkBinaryWriter BaseWriter { get; private set; }
+
+        public void FinishPresence()
         {
-            m_writer.Write((ushort)(continuationBit ? (m_flagWord | 1) : m_flagWord));
-            m_flagWord = 0;
-            m_bitCount = 0;
+            EmitFlagWord(false);
+        }
+
+        public void WriteBit(bool bit)
+        {
+            WritePresence(bit);
+        }
+
+        public void WriteLong(uint val)
+        {
+            WireFormatting.WriteLong(BaseWriter, val);
+        }
+
+        public void WriteLonglong(ulong val)
+        {
+            WireFormatting.WriteLonglong(BaseWriter, val);
+        }
+
+        public void WriteLongstr(byte[] val)
+        {
+            WireFormatting.WriteLongstr(BaseWriter, val);
+        }
+
+        public void WriteOctet(byte val)
+        {
+            WireFormatting.WriteOctet(BaseWriter, val);
         }
 
         public void WritePresence(bool present)
@@ -85,54 +103,31 @@ namespace RabbitMQ.Client.Impl
             m_bitCount++;
         }
 
-        public void FinishPresence()
+        public void WriteShort(ushort val)
         {
-            EmitFlagWord(false);
-        }
-
-        public void WriteBit(bool bit)
-        {
-            WritePresence(bit);
-        }
-
-        public void WriteOctet(byte val)
-        {
-            WireFormatting.WriteOctet(m_writer, val);
+            WireFormatting.WriteShort(BaseWriter, val);
         }
 
         public void WriteShortstr(string val)
         {
-            WireFormatting.WriteShortstr(m_writer, val);
-        }
-
-        public void WriteLongstr(byte[] val)
-        {
-            WireFormatting.WriteLongstr(m_writer, val);
-        }
-
-        public void WriteShort(ushort val)
-        {
-            WireFormatting.WriteShort(m_writer, val);
-        }
-
-        public void WriteLong(uint val)
-        {
-            WireFormatting.WriteLong(m_writer, val);
-        }
-
-        public void WriteLonglong(ulong val)
-        {
-            WireFormatting.WriteLonglong(m_writer, val);
+            WireFormatting.WriteShortstr(BaseWriter, val);
         }
 
         public void WriteTable(IDictionary<string, object> val)
         {
-            WireFormatting.WriteTable(m_writer, val);
+            WireFormatting.WriteTable(BaseWriter, val);
         }
 
         public void WriteTimestamp(AmqpTimestamp val)
         {
-            WireFormatting.WriteTimestamp(m_writer, val);
+            WireFormatting.WriteTimestamp(BaseWriter, val);
+        }
+
+        private void EmitFlagWord(bool continuationBit)
+        {
+            BaseWriter.Write((ushort)(continuationBit ? (m_flagWord | 1) : m_flagWord));
+            m_flagWord = 0;
+            m_bitCount = 0;
         }
     }
 }

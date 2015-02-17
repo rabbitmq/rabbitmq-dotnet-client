@@ -39,20 +39,17 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.IO;
 using System.Collections.Generic;
-
+using System.IO;
+using System.Net;
+using RabbitMQ.Client.Framing.Impl;
+using RabbitMQ.Client.Framing;
 using RabbitMQ.Util;
 
-using RabbitMQ.Client.Framing;
-using RabbitMQ.Client.Framing.Impl;
-using System.Diagnostics;
-using System.Net;
-
-namespace RabbitMQ.Client.Impl {
-    public class Command {
-        private static readonly byte[] m_emptyByteArray = new byte[0];
-
+namespace RabbitMQ.Client.Impl
+{
+    public class Command
+    {
         // EmptyFrameSize, 8 = 1 + 2 + 4 + 1
         // - 1 byte of frame type
         // - 2 bytes of channel number
@@ -60,60 +57,92 @@ namespace RabbitMQ.Client.Impl {
         // - 1 byte of payload trailer FrameEnd byte
         public const int EmptyFrameSize = 8;
 
-        static Command() {
+        public byte[] m_body0;
+        public IList<byte[]> m_bodyN;
+        private static readonly byte[] m_emptyByteArray = new byte[0];
+
+        static Command()
+        {
             CheckEmptyFrameSize();
         }
 
-        public static void CheckEmptyFrameSize() {
-            Frame f = new Frame(Constants.FrameBody, 0, m_emptyByteArray);
-            MemoryStream stream = new MemoryStream();
-            NetworkBinaryWriter writer = new NetworkBinaryWriter(stream);
-            f.WriteTo(writer);
-            long actualLength = stream.Length;
-
-            if (EmptyFrameSize != actualLength) {
-                string message =
-                    string.Format("EmptyFrameSize is incorrect - defined as {0} where the computed value is in fact {1}.",
-                                  EmptyFrameSize,
-                                  actualLength);
-                throw new ProtocolViolationException(message);
-            }
+        public Command() : this(null, null, null)
+        {
         }
 
-        ///////////////////////////////////////////////////////////////////////////
+        public Command(MethodBase method) : this(method, null, null)
+        {
+        }
 
-        public MethodBase m_method;
-        public ContentHeaderBase m_header;
-        public byte[] m_body0;
-        public IList<byte[]> m_bodyN;
-
-        public MethodBase Method { get { return m_method; } }
-        public ContentHeaderBase Header { get { return m_header; } }
-        public byte[] Body { get { return ConsolidateBody(); } }
-
-        public Command(): this(null, null, null) {}
-
-        public Command(MethodBase method): this(method, null, null) {}
-
-        public Command(MethodBase method, ContentHeaderBase header, byte[] body) {
-            m_method = method;
-            m_header = header;
+        public Command(MethodBase method, ContentHeaderBase header, byte[] body)
+        {
+            Method = method;
+            Header = header;
             m_body0 = body;
             m_bodyN = null;
         }
 
-        public byte[] ConsolidateBody() {
-            if (m_bodyN == null) {
-                return (m_body0 == null) ? m_emptyByteArray : m_body0;
-            } else {
+        public byte[] Body
+        {
+            get { return ConsolidateBody(); }
+        }
+
+        public ContentHeaderBase Header { get; set; }
+
+        public MethodBase Method { get; set; }
+
+        public static void CheckEmptyFrameSize()
+        {
+            var f = new Frame(Constants.FrameBody, 0, m_emptyByteArray);
+            var stream = new MemoryStream();
+            var writer = new NetworkBinaryWriter(stream);
+            f.WriteTo(writer);
+            long actualLength = stream.Length;
+
+            if (EmptyFrameSize != actualLength)
+            {
+                string message =
+                    string.Format("EmptyFrameSize is incorrect - defined as {0} where the computed value is in fact {1}.",
+                        EmptyFrameSize,
+                        actualLength);
+                throw new ProtocolViolationException(message);
+            }
+        }
+
+        public void AppendBodyFragment(byte[] fragment)
+        {
+            if (m_body0 == null)
+            {
+                m_body0 = fragment;
+            }
+            else
+            {
+                if (m_bodyN == null)
+                {
+                    m_bodyN = new List<byte[]>();
+                }
+                m_bodyN.Add(fragment);
+            }
+        }
+
+        public byte[] ConsolidateBody()
+        {
+            if (m_bodyN == null)
+            {
+                return m_body0 ?? m_emptyByteArray;
+            }
+            else
+            {
                 int totalSize = m_body0.Length;
-                foreach (byte[] fragment in m_bodyN) {
+                foreach (byte[] fragment in m_bodyN)
+                {
                     totalSize += fragment.Length;
                 }
-                byte[] result = new byte[totalSize];
+                var result = new byte[totalSize];
                 Array.Copy(m_body0, 0, result, 0, m_body0.Length);
                 int offset = m_body0.Length;
-                foreach (byte[] fragment in m_bodyN) {
+                foreach (byte[] fragment in m_bodyN)
+                {
                     Array.Copy(fragment, 0, result, offset, fragment.Length);
                     offset += fragment.Length;
                 }
@@ -123,47 +152,39 @@ namespace RabbitMQ.Client.Impl {
             }
         }
 
-        public void AppendBodyFragment(byte[] fragment) {
-            if (m_body0 == null) {
-                m_body0 = fragment;
-            } else {
-                if (m_bodyN == null) {
-                    m_bodyN = new List<byte[]>();
-                }
-                m_bodyN.Add(fragment);
-            }
-        }
-
-        public void Transmit(int channelNumber, Connection connection) {
-            Frame frame = new Frame(Constants.FrameMethod, channelNumber);
+        public void Transmit(int channelNumber, Connection connection)
+        {
+            var frame = new Frame(Constants.FrameMethod, channelNumber);
             NetworkBinaryWriter writer = frame.GetWriter();
-            writer.Write((ushort) m_method.ProtocolClassId);
-            writer.Write((ushort) m_method.ProtocolMethodId);
-            MethodArgumentWriter argWriter = new MethodArgumentWriter(writer);
-            m_method.WriteArgumentsTo(argWriter);
+            writer.Write((ushort)Method.ProtocolClassId);
+            writer.Write((ushort)Method.ProtocolMethodId);
+            var argWriter = new MethodArgumentWriter(writer);
+            Method.WriteArgumentsTo(argWriter);
             argWriter.Flush();
             connection.WriteFrame(frame);
 
-            if (m_method.HasContent) {
+            if (Method.HasContent)
+            {
                 byte[] body = Body;
 
                 frame = new Frame(Constants.FrameHeader, channelNumber);
                 writer = frame.GetWriter();
-                writer.Write((ushort) m_header.ProtocolClassId);
-                m_header.WriteTo(writer, (ulong) body.Length);
+                writer.Write((ushort)Header.ProtocolClassId);
+                Header.WriteTo(writer, (ulong)body.Length);
                 connection.WriteFrame(frame);
 
-                int frameMax = (int) Math.Min(int.MaxValue, connection.FrameMax);
+                var frameMax = (int)Math.Min(int.MaxValue, connection.FrameMax);
                 int bodyPayloadMax = (frameMax == 0)
                     ? body.Length
                     : frameMax - EmptyFrameSize;
-                for (int offset = 0; offset < body.Length; offset += bodyPayloadMax) {
+                for (int offset = 0; offset < body.Length; offset += bodyPayloadMax)
+                {
                     int remaining = body.Length - offset;
 
                     frame = new Frame(Constants.FrameBody, channelNumber);
                     writer = frame.GetWriter();
                     writer.Write(body, offset,
-                                 (remaining < bodyPayloadMax) ? remaining : bodyPayloadMax);
+                        (remaining < bodyPayloadMax) ? remaining : bodyPayloadMax);
                     connection.WriteFrame(frame);
                 }
             }

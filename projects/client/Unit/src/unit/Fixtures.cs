@@ -44,6 +44,7 @@ using NUnit.Framework;
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Text;
 using System.Threading;
 using System.Diagnostics;
@@ -61,12 +62,12 @@ namespace RabbitMQ.Client.Unit
         protected IConnection Conn;
         protected IModel Model;
 
-        protected Encoding enc = new UTF8Encoding();
+        protected Encoding encoding = new UTF8Encoding();
 
         [SetUp]
         public virtual void Init()
         {
-            ConnectionFactory connFactory = new ConnectionFactory();
+            var connFactory = new ConnectionFactory();
             Conn = connFactory.CreateConnection();
             Model = Conn.CreateModel();
         }
@@ -92,47 +93,61 @@ namespace RabbitMQ.Client.Unit
         }
 
         //
-        // Delegates
-        //
-
-        protected delegate void ConnectionOp(IConnection m);
-        protected delegate void AutorecoveringConnectionOp(AutorecoveringConnection m);
-        protected delegate void ModelOp(IModel m);
-        protected delegate void QueueOp(IModel m, string q);
-
-        //
         // Channels
         //
 
-        protected void WithTemporaryAutorecoveringConnection(AutorecoveringConnectionOp fn)
+        protected void WithTemporaryAutorecoveringConnection(Action<AutorecoveringConnection> action)
         {
-            var cf = new ConnectionFactory();
-            cf.AutomaticRecoveryEnabled = true;
-            var conn = (AutorecoveringConnection)cf.CreateConnection();
+            var factory = new ConnectionFactory
+            {
+                AutomaticRecoveryEnabled = true
+            };
 
-            try { fn(conn); } finally { conn.Abort(); }
+            var connection = (AutorecoveringConnection)factory.CreateConnection();
+            try
+            {
+                action(connection);
+            }
+            finally
+            {
+                connection.Abort();
+            }
         }
 
-        protected void WithTemporaryModel(IConnection c, ModelOp fn)
+        protected void WithTemporaryModel(IConnection connection, Action<IModel> action)
         {
-            IModel m = c.CreateModel();
+            IModel model = connection.CreateModel();
 
-            try { fn(m); } finally { m.Abort(); }
+            try
+            {
+                action(model);
+            }
+            finally
+            {
+                model.Abort();
+            }
         }
 
-        protected void WithTemporaryModel(ModelOp fn)
+        protected void WithTemporaryModel(Action<IModel> action)
         {
-            IModel m = Conn.CreateModel();
+            IModel model = Conn.CreateModel();
 
-            try { fn(m); } finally { m.Abort(); }
+            try
+            {
+                action(model);
+            }
+            finally
+            {
+                model.Abort();
+            }
         }
 
-        protected void WithClosedModel(ModelOp fn)
+        protected void WithClosedModel(Action<IModel> action)
         {
-            IModel m = Conn.CreateModel();
-            m.Close();
+            IModel model = Conn.CreateModel();
+            model.Close();
 
-            fn(m);
+            action(model);
         }
 
         protected bool WaitForConfirms(IModel m)
@@ -151,7 +166,7 @@ namespace RabbitMQ.Client.Unit
 
         protected byte[] RandomMessageBody()
         {
-            return enc.GetBytes(Guid.NewGuid().ToString());
+            return encoding.GetBytes(Guid.NewGuid().ToString());
         }
 
         protected string DeclareNonDurableExchange(IModel m, string x)
@@ -175,64 +190,64 @@ namespace RabbitMQ.Client.Unit
             return "queue" + Guid.NewGuid().ToString();
         }
 
-        protected void WithTemporaryQueue(QueueOp fn)
+        protected void WithTemporaryQueue(Action<IModel, string> action)
         {
-            WithTemporaryQueue(Model, fn);
+            WithTemporaryQueue(Model, action);
         }
 
-        protected void WithTemporaryNonExclusiveQueue(QueueOp fn)
+        protected void WithTemporaryNonExclusiveQueue(Action<IModel, string> action)
         {
-            WithTemporaryNonExclusiveQueue(Model, fn);
+            WithTemporaryNonExclusiveQueue(Model, action);
         }
 
-        protected void WithTemporaryQueue(IModel m, QueueOp fn)
+        protected void WithTemporaryQueue(IModel model, Action<IModel, string> action)
         {
-            WithTemporaryQueue(m, fn, GenerateQueueName());
+            WithTemporaryQueue(model, action, GenerateQueueName());
         }
 
-        protected void WithTemporaryNonExclusiveQueue(IModel m, QueueOp fn)
+        protected void WithTemporaryNonExclusiveQueue(IModel model, Action<IModel, string> action)
         {
-            WithTemporaryNonExclusiveQueue(m, fn, GenerateQueueName());
+            WithTemporaryNonExclusiveQueue(model, action, GenerateQueueName());
         }
 
-        protected void WithTemporaryQueue(QueueOp fn, string q)
+        protected void WithTemporaryQueue(Action<IModel, string> action, string q)
         {
-            WithTemporaryQueue(Model, fn, q);
+            WithTemporaryQueue(Model, action, q);
         }
 
-        protected void WithTemporaryQueue(IModel m, QueueOp fn, string q)
+        protected void WithTemporaryQueue(IModel model, Action<IModel, string> action, string queue)
         {
             try
             {
-                m.QueueDeclare(q, false, true, false, null);
-                fn(m, q);
+                model.QueueDeclare(queue, false, true, false, null);
+                action(model, queue);
             } finally
             {
-                WithTemporaryModel((tm) => tm.QueueDelete(q));
+                WithTemporaryModel(x => x.QueueDelete(queue));
             }
         }
 
-        protected void WithTemporaryNonExclusiveQueue(IModel m, QueueOp fn, string q)
+        protected void WithTemporaryNonExclusiveQueue(IModel model, Action<IModel, string> action, string queue)
         {
             try
             {
-                m.QueueDeclare(q, false, false, false, null);
-                fn(m, q);
+                model.QueueDeclare(queue, false, false, false, null);
+                action(model, queue);
             } finally
             {
-                WithTemporaryModel((tm) => tm.QueueDelete(q));
+                WithTemporaryModel(tm => tm.QueueDelete(queue));
             }
         }
 
-        protected void WithTemporaryQueueNoWait(IModel m, QueueOp fn, string q)
+        protected void WithTemporaryQueueNoWait(IModel model, Action<IModel, string> action, string queue)
         {
             try
             {
-                m.QueueDeclareNoWait(q, false, true, false, null);
-                fn(m, q);
+                model.QueueDeclareNoWait(queue, false, true, false, null);
+                action(model, queue);
             } finally
             {
-                WithTemporaryModel((tm) => tm.QueueDelete(q));
+                WithTemporaryModel(x => x.QueueDelete(queue));
             }
         }
 
@@ -243,27 +258,29 @@ namespace RabbitMQ.Client.Unit
 
         protected void EnsureNotEmpty(string q, string body)
         {
-            WithTemporaryModel((m) => m.BasicPublish("", q, null, enc.GetBytes(body)));
+            WithTemporaryModel(x => x.BasicPublish("", q, null, encoding.GetBytes(body)));
         }
 
-        protected void WithNonEmptyQueue(QueueOp fn)
+        protected void WithNonEmptyQueue(Action<IModel, string> action)
         {
-            WithNonEmptyQueue(fn, "msg");
+            WithNonEmptyQueue(action, "msg");
         }
 
-        protected void WithNonEmptyQueue(QueueOp fn, string msg)
+        protected void WithNonEmptyQueue(Action<IModel, string> action, string msg)
         {
-            WithTemporaryNonExclusiveQueue((m, q) => {
+            WithTemporaryNonExclusiveQueue((m, q) =>
+            {
                 EnsureNotEmpty(q, msg);
-                fn(m, q);
+                action(m, q);
             });
         }
 
-        protected void WithEmptyQueue(QueueOp fn)
+        protected void WithEmptyQueue(Action<IModel, string> action)
         {
-            WithTemporaryNonExclusiveQueue((m, q) => {
-                m.QueuePurge(q);
-                fn(m, q);
+            WithTemporaryNonExclusiveQueue((model, queue) =>
+            {
+                model.QueuePurge(queue);
+                action(model, queue);
             });
         }
 
@@ -321,11 +338,11 @@ namespace RabbitMQ.Client.Unit
 
         protected Process ExecRabbitMQCtl(string args)
         {
-            if(IsRunningOnMono()) {
+            if(IsRunningOnMono())
+            {
                 return ExecCommand("../../../../../../rabbitmq-server/scripts/rabbitmqctl", args);
-            } else {
-                return ExecCommand("..\\..\\..\\..\\..\\..\\rabbitmq-server\\scripts\\rabbitmqctl.bat", args);
             }
+            return ExecCommand("..\\..\\..\\..\\..\\..\\rabbitmq-server\\scripts\\rabbitmqctl.bat", args);
         }
 
         protected Process ExecCommand(string command)
@@ -340,9 +357,14 @@ namespace RabbitMQ.Client.Unit
 
         protected Process ExecCommand(string ctl, string args, string changeDirTo)
         {
-            Process proc = new Process();
-            proc.StartInfo.CreateNoWindow  = true;
-            proc.StartInfo.UseShellExecute = false;
+            var proc = new Process
+            {
+                StartInfo = 
+                {
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                }
+            };
             if(changeDirTo != null)
             {
                 proc.StartInfo.WorkingDirectory = changeDirTo;
@@ -410,7 +432,7 @@ namespace RabbitMQ.Client.Unit
         protected void Publish(IConnection conn)
         {
             IModel ch = conn.CreateModel();
-            ch.BasicPublish("amq.fanout", "", null, enc.GetBytes("message"));
+            ch.BasicPublish("amq.fanout", "", null, encoding.GetBytes("message"));
         }
 
         //
@@ -437,7 +459,7 @@ namespace RabbitMQ.Client.Unit
 
             public override string ToString()
             {
-                return "pid = " + Pid + ", peer port: " + PeerPort.ToString();
+                return "pid = " + Pid + ", peer port: " + PeerPort;
             }
         }
 
@@ -449,9 +471,8 @@ namespace RabbitMQ.Client.Unit
             // {Environment.NewLine} is not sufficient
             string[] splitOn = new string[] { "\r\n", "\n" };
             string[] lines   = stdout.Split(splitOn, StringSplitOptions.RemoveEmptyEntries);
-
             // line: <rabbit@mercurio.1.11491.0>	58713
-            return lines.Select(s => {
+            return lines.Select(s => {              
               var columns = s.Split('\t');
               Debug.Assert(!string.IsNullOrEmpty(columns[0]), "columns[0] is null or empty!");
 	      Debug.Assert(!string.IsNullOrEmpty(columns[1]), "columns[1] is null or empty!");

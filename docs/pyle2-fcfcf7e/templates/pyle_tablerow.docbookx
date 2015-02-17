@@ -1,5 +1,0 @@
-<row>
-#for $item in $container_items
-$item.render('docbookx')
-#end for
-</row>

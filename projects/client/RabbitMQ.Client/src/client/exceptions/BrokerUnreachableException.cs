@@ -39,20 +39,19 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
-namespace RabbitMQ.Client.Exceptions {
-    using System.Collections;
-
+namespace RabbitMQ.Client.Exceptions
+{
     ///<summary>Thrown when no connection could be opened during a
     ///ConnectionFactory.CreateConnection attempt.</summary>
-    public class BrokerUnreachableException: IOException
+    public class BrokerUnreachableException : IOException
     {
         ///<summary>Construct a BrokerUnreachableException. The inner exception is associated
         ///with only one connection attempt.</summary>
         public BrokerUnreachableException(Exception Inner)
-            : base("None of the specified endpoints were reachable", Inner) {}
+            : base("None of the specified endpoints were reachable", Inner)
+        {
+        }
     }
 }

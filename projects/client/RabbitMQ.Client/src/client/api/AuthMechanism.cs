@@ -38,12 +38,16 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-
 namespace RabbitMQ.Client
 {
-    ///<summary>A pluggable authentication mechanism.</summary>
-    public interface AuthMechanism {
-        ///<summary>Handle one round of challenge-response</summary>
+    /// <summary>
+    /// A pluggable authentication mechanism.
+    /// </summary>
+    public interface AuthMechanism
+    {
+        /// <summary>
+        /// Handle one round of challenge-response.
+        /// </summary>
         byte[] handleChallenge(byte[] challenge, IConnectionFactory factory);
     }
 }

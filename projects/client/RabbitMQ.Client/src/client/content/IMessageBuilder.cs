@@ -38,48 +38,61 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
 
-using RabbitMQ.Client;
-
-namespace RabbitMQ.Client.Content {
-    ///<summary>Interface for constructing application messages.</summary>
-    ///<remarks>
+namespace RabbitMQ.Client.Content
+{
+    /// <summary>
+    /// Interface for constructing application messages.
+    /// </summary>
+    /// <remarks>
     /// Subinterfaces provide specialized data-writing methods. This
     /// base interface deals with the lowest common denominator:
     /// bytes, with no special encodings for higher-level objects.
-    ///</remarks>
-    public interface IMessageBuilder {
-        ///<summary>Returns the default MIME content type for messages
-        ///this instance constructs, or null if none is available or
-        ///relevant.</summary>
-	string GetDefaultContentType();
+    /// </remarks>
+    public interface IMessageBuilder
+    {
+        /// <summary>
+        /// Retrieve the <see cref="Stream"/> being used to construct the message body.
+        /// </summary>
+        Stream BodyStream { get; }
 
-        ///<summary>Retrieves the dictionary that will be used to
-        ///construct the message header table. It is of type <see cref="System.Collections.Generic.IDictionary{TKey,TValue}" /></summary>
+        /// <summary>
+        /// Retrieves the dictionary that will be used to construct the message header table.
+        /// It is of type <see cref="IDictionary{TKey,TValue}" />.
+        /// </summary>
         IDictionary<string, object> Headers { get; }
 
-	///<summary>Retrieve the Stream being used to construct the message body.</summary>
-	Stream BodyStream { get; }
+        /// <summary>
+        /// Finish and retrieve the content body for transmission.
+        /// </summary>
+        byte[] GetContentBody();
 
-	///<summary>Write a single byte into the message body, without
-	///encoding or interpretation.</summary>
-	IMessageBuilder RawWrite(byte b);
+        /// <summary>
+        /// Finish and retrieve the content header for transmission.
+        /// </summary>
+        IContentHeader GetContentHeader();
 
-	///<summary>Write a byte array into the message body, without
-	///encoding or interpretation.</summary>
-	IMessageBuilder RawWrite(byte[] bytes);
+        /// <summary>
+        /// Returns the default MIME content type for messages this instance constructs,
+        /// or null if none is available or relevant.
+        /// </summary>
+        string GetDefaultContentType();
 
-	///<summary>Write a section of a byte array into the message
-	///body, without encoding or interpretation.</summary>
-	IMessageBuilder RawWrite(byte[] bytes, int offset, int length);
+        /// <summary>
+        /// Write a single byte into the message body, without encoding or interpretation.
+        /// </summary>
+        IMessageBuilder RawWrite(byte value);
 
-	///<summary>Finish and retrieve the content header for transmission.</summary>
-	IContentHeader GetContentHeader();
+        /// <summary>
+        /// Write a byte array into the message body, without encoding or interpretation.
+        /// </summary>
+        IMessageBuilder RawWrite(byte[] bytes);
 
-	///<summary>Finish and retrieve the content body for transmission.</summary>
-	byte[] GetContentBody();
+        /// <summary>
+        /// Write a section of a byte array into the message body, without encoding or interpretation.
+        /// </summary>
+        IMessageBuilder RawWrite(byte[] bytes, int offset, int length);
     }
 }

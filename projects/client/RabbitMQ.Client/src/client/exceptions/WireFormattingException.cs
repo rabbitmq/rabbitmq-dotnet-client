@@ -47,22 +47,22 @@ namespace RabbitMQ.Client.Exceptions
     /// particular .NET value to AMQP protocol format.  </summary>
     public class WireFormattingException : ProtocolViolationException
     {
-        private object m_offender;
-
-        ///<summary>Object which this exception is complaining about;
-        ///may be null if no particular offender exists</summary>
-        public object Offender { get { return m_offender; } }
-
         ///<summary>Construct a WireFormattingException with no
         ///particular offender (i.e. null)</summary>
-        public WireFormattingException(string message) : this(message, null) { }
+        public WireFormattingException(string message) : this(message, null)
+        {
+        }
 
         ///<summary>Construct a WireFormattingException with the given
         ///offender</summary>
         public WireFormattingException(string message, object offender)
             : base(message)
         {
-            m_offender = offender;
+            Offender = offender;
         }
+
+        ///<summary>Object which this exception is complaining about;
+        ///may be null if no particular offender exists</summary>
+        public object Offender { get; private set; }
     }
 }

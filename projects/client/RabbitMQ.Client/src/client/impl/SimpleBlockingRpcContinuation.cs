@@ -38,8 +38,8 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Diagnostics;
-using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
 
@@ -48,21 +48,10 @@ namespace RabbitMQ.Client.Impl
     public class SimpleBlockingRpcContinuation : IRpcContinuation
     {
         public readonly BlockingCell m_cell = new BlockingCell();
-        public SimpleBlockingRpcContinuation() { }
-
-        public virtual void HandleCommand(Command cmd)
-        {
-            m_cell.Value = Either.Left(cmd);
-        }
-
-        public virtual void HandleModelShutdown(ShutdownEventArgs reason)
-        {
-            m_cell.Value = Either.Right(reason);
-        }
 
         public virtual Command GetReply()
         {
-            Either result = (Either)m_cell.Value;
+            var result = (Either)m_cell.Value;
             switch (result.Alternative)
             {
                 case EitherAlternative.Left:
@@ -73,6 +62,16 @@ namespace RabbitMQ.Client.Impl
                     Trace.Fail("Illegal EitherAlternative " + result.Alternative);
                     return null;
             }
+        }
+
+        public virtual void HandleCommand(Command cmd)
+        {
+            m_cell.Value = Either.Left(cmd);
+        }
+
+        public virtual void HandleModelShutdown(ShutdownEventArgs reason)
+        {
+            m_cell.Value = Either.Right(reason);
         }
     }
 }

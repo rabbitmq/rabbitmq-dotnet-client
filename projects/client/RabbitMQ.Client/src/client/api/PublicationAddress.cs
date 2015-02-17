@@ -38,16 +38,16 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.Text.RegularExpressions;
 
 namespace RabbitMQ.Client
 {
-    ///<summary>Container for an exchange name, exchange type and
-    ///routing key, usable as the target address of a message to be
-    ///published.</summary>
-    ///<remarks>
-    ///<para>
+    /// <summary>
+    /// Container for an exchange name, exchange type and
+    /// routing key, usable as the target address of a message to be published.
+    /// </summary>
+    /// <remarks>
+    /// <para>
     /// The syntax used for the external representation of instances
     /// of this class is compatible with QPid's "Reply-To" field
     /// pseudo-URI format. The pseudo-URI format is
@@ -55,8 +55,8 @@ namespace RabbitMQ.Client
     /// exchange-type is one of the permitted exchange type names (see
     /// class ExchangeType), exchange-name must be present but may be
     /// empty, and routing-key must be present but may be empty.
-    ///</para>
-    ///<para>
+    /// </para>
+    /// <para>
     /// The syntax is as it is solely for compatibility with QPid's
     /// existing usage of the ReplyTo field; the AMQP specifications
     /// 0-8 and 0-9 do not define the format of the field, and do not
@@ -64,57 +64,63 @@ namespace RabbitMQ.Client
     /// type, routing key) that could be used instead. Please see also
     /// the way class RabbitMQ.Client.MessagePatterns.SimpleRpcServer
     /// uses the ReplyTo field.
-    ///</para>
-    ///</remarks>
+    /// </para>
+    /// </remarks>
     public class PublicationAddress
     {
-        ///<summary>Regular expression used to extract the
-        ///exchange-type, exchange-name and routing-key from a
-        ///string.</summary>
-        public readonly static Regex PSEUDO_URI_PARSER = new Regex("^([^:]+)://([^/]*)/(.*)$");
+        /// <summary>
+        /// Regular expression used to extract the exchange-type,
+        /// exchange-name and routing-key from a string.
+        /// </summary>
+        public static readonly Regex PSEUDO_URI_PARSER = new Regex("^([^:]+)://([^/]*)/(.*)$");
 
-        private string m_exchangeType;
-        private string m_exchangeName;
-        private string m_routingKey;
-
-        ///<summary>Construct a PublicationAddress with the given exchange
-        ///type, exchange name and routing key.</summary>
-        public PublicationAddress(string exchangeType,
-                                  string exchangeName,
-                                  string routingKey)
+        /// <summary>
+        ///  Creates a new instance of the <see cref="PublicationAddress"/>.
+        /// </summary>
+        /// <param name="exchangeType">Exchange type.</param>
+        /// <param name="exchangeName">Exchange name.</param>
+        /// <param name="routingKey">Routing key.</param>
+        public PublicationAddress(string exchangeType, string exchangeName, string routingKey)
         {
-            m_exchangeType = exchangeType;
-            m_exchangeName = exchangeName;
-            m_routingKey = routingKey;
+            ExchangeType = exchangeType;
+            ExchangeName = exchangeName;
+            RoutingKey = routingKey;
         }
 
-        ///<summary>Parse a PublicationAddress out of the given string,
-        ///using the PSEUDO_URI_PARSER regex.</summary>
+        /// <summary>
+        /// Retrieve the exchange name.
+        /// </summary>
+        public string ExchangeName { get; private set; }
+
+        /// <summary>
+        /// Retrieve the exchange type string.
+        /// </summary>
+        public string ExchangeType { get; private set; }
+
+        /// <summary>
+        ///Retrieve the routing key.
+        /// </summary>
+        public string RoutingKey { get; private set; }
+
+        /// <summary>
+        /// Parse a <see cref="PublicationAddress"/> out of the given string,
+        ///  using the <see cref="PSEUDO_URI_PARSER"/> regex.
+        /// </summary>
         public static PublicationAddress Parse(string uriLikeString)
         {
-            Match m = PSEUDO_URI_PARSER.Match(uriLikeString);
-            if (m.Success)
+            Match match = PSEUDO_URI_PARSER.Match(uriLikeString);
+            if (match.Success)
             {
-                return new PublicationAddress(m.Groups[1].Value,
-                                              m.Groups[2].Value,
-                                              m.Groups[3].Value);
+                return new PublicationAddress(match.Groups[1].Value,
+                    match.Groups[2].Value,
+                    match.Groups[3].Value);
             }
-            else
-            {
-                return null;
-            }
+            return null;
         }
 
-        ///<summary>Retrieve the exchange type string.</summary>
-        public string ExchangeType { get { return m_exchangeType; } }
-
-        ///<summary>Retrieve the exchange name.</summary>
-        public string ExchangeName { get { return m_exchangeName; } }
-
-        ///<summary>Retrieve the routing key.</summary>
-        public string RoutingKey { get { return m_routingKey; } }
-
-        ///<summary>Reconstruct the "uri" from its constituents.</summary>
+        /// <summary>
+        /// Reconstruct the "uri" from its constituents.
+        /// </summary>
         public override string ToString()
         {
             return ExchangeType + "://" + ExchangeName + "/" + RoutingKey;
