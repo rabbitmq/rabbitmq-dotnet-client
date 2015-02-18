@@ -50,6 +50,11 @@ namespace RabbitMQ.Util
         private readonly IList<T> list;
         private readonly object root;
 
+        internal SynchronizedList()
+            : this(new List<T>())
+        {
+        }
+
         internal SynchronizedList(IList<T> list)
         {
             this.list = list;
@@ -82,6 +87,11 @@ namespace RabbitMQ.Util
                 lock (root)
                     list[index] = value;
             }
+        }
+
+        public object SyncRoot
+        {
+            get { return root; }
         }
 
         public void Add(T item)
