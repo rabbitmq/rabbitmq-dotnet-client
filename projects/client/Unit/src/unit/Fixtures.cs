@@ -342,7 +342,7 @@ namespace RabbitMQ.Client.Unit
             {
                 return ExecCommand("../../../../../../rabbitmq-server/scripts/rabbitmqctl", args);
             }
-            return ExecCommand("..\\..\\..\\..\\..\\..\\rabbitmq-server\\scripts\\rabbitmqctl.bat", args);
+            return ExecCommand(@"..\..\..\..\..\..\rabbitmq-server\scripts\rabbitmqctl.bat", args);
         }
 
         protected Process ExecCommand(string command)
@@ -375,7 +375,7 @@ namespace RabbitMQ.Client.Unit
                 cmd  = ctl;
             } else {
                 cmd  = "cmd.exe";
-                args = "/c " + ctl + " -n rabbit@" + (Environment.GetEnvironmentVariable("COMPUTERNAME")).ToLower() + " " + args;
+                args = "/c \"\"" + ctl + "\" -n rabbit@" + (Environment.GetEnvironmentVariable("COMPUTERNAME")) + " " + args + "\"";
             }
 
             try {
