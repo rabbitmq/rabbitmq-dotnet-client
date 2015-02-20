@@ -1,4 +1,4 @@
-## RabbitMQ Java Client
+## RabbitMQ .NET Client
 
 This repository contains source code of the [RabbitMQ .NET client](http://www.rabbitmq.com/dotnet.html).
 The client is maintained by the [RabbitMQ team at Pivotal](http://github.com/rabbitmq/).
