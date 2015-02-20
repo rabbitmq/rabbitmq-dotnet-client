@@ -249,7 +249,7 @@ namespace RabbitMQ.Client
         public uint RequestedFrameMax { get; set; }
 
         /// <summary>
-        /// Heartbeat setting to request (in seconds).
+        /// Heartbeat timeout to use when negotiating with the server (in seconds).
         /// </summary>
         public ushort RequestedHeartbeat { get; set; }
 
