@@ -387,7 +387,7 @@ namespace RabbitMQ.Client.Unit
               proc.Start();
               String stderr = proc.StandardError.ReadToEnd();
               proc.WaitForExit();
-              if (stderr.Length > 0)
+              if (stderr.Length >  0 || proc.ExitCode > 0)
               {
                   String stdout = proc.StandardOutput.ReadToEnd();
                   ReportExecFailure(cmd, args, stderr + "\n" + stdout);
