@@ -849,16 +849,6 @@ namespace RabbitMQ.Client.Unit
             publishingConn.Close();
         }
 
-        protected void Wait(ManualResetEvent latch)
-        {
-            Assert.IsTrue(latch.WaitOne(TimeSpan.FromSeconds(10)), "waiting on a latch timed out");
-        }
-
-        protected void Wait(ManualResetEvent latch, TimeSpan timeSpan)
-        {
-            Assert.IsTrue(latch.WaitOne(timeSpan), "waiting on a latch timed out");
-        }
-
         protected void WaitForRecovery()
         {
             Wait(PrepareForRecovery((AutorecoveringConnection)Conn));
