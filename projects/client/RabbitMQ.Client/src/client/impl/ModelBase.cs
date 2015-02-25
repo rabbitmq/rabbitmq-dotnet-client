@@ -80,6 +80,7 @@ namespace RabbitMQ.Client.Impl
         private bool m_onlyAcksReceived = true;
 
         private EventHandler<EventArgs> m_recovery;
+        private IConsumerDispatcher m_consumerDispatcher;
 
         public ModelBase(ISession session)
         {
@@ -88,6 +89,7 @@ namespace RabbitMQ.Client.Impl
             Session = session;
             Session.CommandReceived = HandleCommand;
             Session.SessionShutdown += OnSessionShutdown;
+            m_consumerDispatcher = new ConsumerDispatcher();
         }
 
         public event EventHandler<BasicAckEventArgs> BasicAcks
@@ -693,7 +695,7 @@ namespace RabbitMQ.Client.Impl
 
             try
             {
-                consumer.HandleBasicCancel(consumerTag);
+                m_consumerDispatcher.HandleBasicCancel(consumer, consumerTag);
             }
             catch (Exception e)
             {
@@ -722,7 +724,7 @@ namespace RabbitMQ.Client.Impl
             }
             try
             {
-                k.m_consumer.HandleBasicCancelOk(consumerTag);
+                m_consumerDispatcher.HandleBasicCancelOk(k.m_consumer, consumerTag);
             }
             catch (Exception e)
             {
@@ -747,7 +749,7 @@ namespace RabbitMQ.Client.Impl
             }
             try
             {
-                k.m_consumer.HandleBasicConsumeOk(consumerTag);
+                m_consumerDispatcher.HandleBasicConsumeOk(k.m_consumer, consumerTag);
             }
             catch (Exception e)
             {
@@ -790,7 +792,8 @@ namespace RabbitMQ.Client.Impl
 
             try
             {
-                consumer.HandleBasicDeliver(consumerTag,
+                m_consumerDispatcher.HandleBasicDeliver(consumer,
+                    consumerTag,
                     deliveryTag,
                     redelivered,
                     exchange,
