@@ -518,6 +518,20 @@ namespace RabbitMQ.Client.Unit
         {
             ExecRabbitMQCtl("start_app");
         }
+
+        //
+        // Concurrency and Coordination
+        //
+
+        protected void Wait(ManualResetEvent latch)
+        {
+            Assert.IsTrue(latch.WaitOne(TimeSpan.FromSeconds(10)), "waiting on a latch timed out");
+        }
+
+        protected void Wait(ManualResetEvent latch, TimeSpan timeSpan)
+        {
+            Assert.IsTrue(latch.WaitOne(timeSpan), "waiting on a latch timed out");
+        }
     }
 
     public class TimingFixture
