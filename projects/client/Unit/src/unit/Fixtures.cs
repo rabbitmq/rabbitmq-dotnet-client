@@ -338,11 +338,24 @@ namespace RabbitMQ.Client.Unit
 
         protected Process ExecRabbitMQCtl(string args)
         {
-            if(IsRunningOnMono())
+            // Allow the path to the rabbitmqctl.bat to be set per machine
+            var envVariable = Environment.GetEnvironmentVariable("RABBITMQ_RABBITMQCTL_PATH");
+
+            string rabbitmqctlPath;
+            if (envVariable != null)
             {
-                return ExecCommand("../../../../../../rabbitmq-server/scripts/rabbitmqctl", args);
+                rabbitmqctlPath = envVariable;
             }
-            return ExecCommand(@"..\..\..\..\..\..\rabbitmq-server\scripts\rabbitmqctl.bat", args);
+            else if (IsRunningOnMono())
+            {
+                rabbitmqctlPath = "../../../../../../rabbitmq-server/scripts/rabbitmqctl";
+            }
+            else
+            {
+                rabbitmqctlPath = @"..\..\..\..\..\..\rabbitmq-server\scripts\rabbitmqctl.bat";
+            }
+
+            return ExecCommand(rabbitmqctlPath, args);
         }
 
         protected Process ExecCommand(string command)
