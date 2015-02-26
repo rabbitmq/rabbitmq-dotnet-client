@@ -481,16 +481,25 @@ namespace RabbitMQ.Client.Unit
             Process proc  = ExecRabbitMQCtl("list_connections -q pid peer_port");
             String stdout = proc.StandardOutput.ReadToEnd();
 
-            // {Environment.NewLine} is not sufficient
-            string[] splitOn = new string[] { "\r\n", "\n" };
-            string[] lines   = stdout.Split(splitOn, StringSplitOptions.RemoveEmptyEntries);
-            // line: <rabbit@mercurio.1.11491.0>	58713
-            return lines.Select(s => {              
-              var columns = s.Split('\t');
-              Debug.Assert(!string.IsNullOrEmpty(columns[0]), "columns[0] is null or empty!");
-	      Debug.Assert(!string.IsNullOrEmpty(columns[1]), "columns[1] is null or empty!");
-              return new ConnectionInfo(columns[0], Convert.ToUInt32(columns[1].Trim()));
-            }).ToList();
+            try
+            {
+                // {Environment.NewLine} is not sufficient
+                string[] splitOn = new string[] { "\r\n", "\n" };
+                string[] lines   = stdout.Split(splitOn, StringSplitOptions.RemoveEmptyEntries);
+                // line: <rabbit@mercurio.1.11491.0>	58713
+                return lines.Select(s =>
+                {
+                    var columns = s.Split('\t');
+                    Debug.Assert(!string.IsNullOrEmpty(columns[0]), "columns[0] is null or empty!");
+                    Debug.Assert(!string.IsNullOrEmpty(columns[1]), "columns[1] is null or empty!");
+                    return new ConnectionInfo(columns[0], Convert.ToUInt32(columns[1].Trim()));
+                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Bad response from rabbitmqctl list_connections -q pid peer_port:" + Environment.NewLine + stdout);
+                throw;
+            }
         }
 
         protected void CloseConnection(IConnection conn)
