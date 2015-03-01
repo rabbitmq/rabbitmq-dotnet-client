@@ -1,14 +1,17 @@
 ﻿using System;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Impl;
+using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Impl
 {
     class ConcurrentConsumerDispatcher : IConsumerDispatcher
     {
-        private IModel model;
+        private ModelBase model;
         private ConsumerWorkService workService;
         private bool isShuttingDown = false;
 
-        public ConcurrentConsumerDispatcher(IModel model, ConsumerWorkService ws)
+        public ConcurrentConsumerDispatcher(ModelBase model, ConsumerWorkService ws)
         {
             this.model = model;
             this.workService = ws;
@@ -25,7 +28,9 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (Exception e)
                 {
-                    // TODO
+                    var args = new CallbackExceptionEventArgs(e);
+                    args.Detail["context"] = "OnBasicConsumeOk";
+                    model.OnCallbackException(args);
                 }
             });
         }
@@ -39,17 +44,58 @@ namespace RabbitMQ.Client.Impl
                                        IBasicProperties basicProperties,
                                        byte[] body)
         {
-            throw new NotImplementedException();
+            UnlessShuttingDown(() =>
+            {
+                try
+                {
+                    consumer.HandleBasicDeliver(consumerTag,
+                                                deliveryTag,
+                                                redelivered,
+                                                exchange,
+                                                routingKey,
+                                                basicProperties,
+                                                body);
+                }
+                catch (Exception e)
+                {
+                    var args = new CallbackExceptionEventArgs(e);
+                    args.Detail["context"] = "OnBasicDeliver";
+                    model.OnCallbackException(args);
+                }
+            });
         }
 
         public void HandleBasicCancelOk(IBasicConsumer consumer, string consumerTag)
         {
-            throw new NotImplementedException();
+            UnlessShuttingDown(() => {
+                try
+                {
+                    consumer.HandleBasicCancelOk(consumerTag);
+                }
+                catch (Exception e)
+                {
+                    var args = new CallbackExceptionEventArgs(e);
+                    args.Detail["context"] = "OnBasicCancelOk";
+                    model.OnCallbackException(args);
+                }
+            });
         }
 
         public void HandleBasicCancel(IBasicConsumer consumer, string consumerTag)
         {
-            throw new NotImplementedException();
+            UnlessShuttingDown(() =>
+            {
+                try
+                {
+                    consumer.HandleBasicCancel(consumerTag);
+                }
+                catch (Exception e)
+                {
+                    var args = new CallbackExceptionEventArgs(e);
+                    args.Detail["context"] = "OnBasicCancel";
+                    model.OnCallbackException(args);
+                }
+            });
         }
 
         public void Shutdown()
