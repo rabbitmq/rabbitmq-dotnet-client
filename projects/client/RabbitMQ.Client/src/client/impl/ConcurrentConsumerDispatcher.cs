@@ -15,6 +15,12 @@ namespace RabbitMQ.Client.Impl
         {
             this.model = model;
             this.workService = ws;
+            this.workService.RegisterKey(model);
+        }
+
+        public void Quiesce()
+        {
+            isShuttingDown = true;
         }
 
         public void HandleBasicConsumeOk(IBasicConsumer consumer,
@@ -29,6 +35,7 @@ namespace RabbitMQ.Client.Impl
                 catch (Exception e)
                 {
                     var args = new CallbackExceptionEventArgs(e);
+                    args.Detail["consumer"] = consumer;
                     args.Detail["context"] = "OnBasicConsumeOk";
                     model.OnCallbackException(args);
                 }
@@ -59,6 +66,7 @@ namespace RabbitMQ.Client.Impl
                 catch (Exception e)
                 {
                     var args = new CallbackExceptionEventArgs(e);
+                    args.Detail["consumer"] = consumer;
                     args.Detail["context"] = "OnBasicDeliver";
                     model.OnCallbackException(args);
                 }
@@ -75,6 +83,7 @@ namespace RabbitMQ.Client.Impl
                 catch (Exception e)
                 {
                     var args = new CallbackExceptionEventArgs(e);
+                    args.Detail["consumer"] = consumer;
                     args.Detail["context"] = "OnBasicCancelOk";
                     model.OnCallbackException(args);
                 }
@@ -92,15 +101,11 @@ namespace RabbitMQ.Client.Impl
                 catch (Exception e)
                 {
                     var args = new CallbackExceptionEventArgs(e);
+                    args.Detail["consumer"] = consumer;
                     args.Detail["context"] = "OnBasicCancel";
                     model.OnCallbackException(args);
                 }
             });
-        }
-
-        public void Shutdown()
-        {
-            this.isShuttingDown = true;
         }
 
         private void UnlessShuttingDown(Action fn)

@@ -64,5 +64,7 @@ namespace RabbitMQ.Client
 
         void HandleBasicCancel(IBasicConsumer consumer,
                           string consumerTag);
+
+        void Quiesce();
     }
 }

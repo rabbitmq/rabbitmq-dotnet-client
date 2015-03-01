@@ -78,5 +78,10 @@ namespace RabbitMQ.Client
         {
             consumer.HandleBasicCancel(consumerTag);
         }
+
+        public void Quiesce()
+        {
+            // no-op
+        }
     }
 }

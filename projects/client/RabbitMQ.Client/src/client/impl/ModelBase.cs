@@ -89,7 +89,7 @@ namespace RabbitMQ.Client.Impl
             Session = session;
             Session.CommandReceived = HandleCommand;
             Session.SessionShutdown += OnSessionShutdown;
-            m_consumerDispatcher = new SequentialConsumerDispatcher(this);
+            m_consumerDispatcher = new ConcurrentConsumerDispatcher(this, new ConsumerWorkService(10000));
         }
 
         public event EventHandler<BasicAckEventArgs> BasicAcks
@@ -286,6 +286,7 @@ namespace RabbitMQ.Client.Impl
                 {
                     _Private_ChannelClose(reason.ReplyCode, reason.ReplyText, 0, 0);
                 }
+                m_consumerDispatcher.Quiesce();
                 k.Wait();
             }
             catch (AlreadyClosedException ace)
@@ -753,8 +754,6 @@ namespace RabbitMQ.Client.Impl
             }
             catch (Exception e)
             {
-                // FIXME: should we propagate the exception to the
-                // caller of BasicConsume?
                 var args = new CallbackExceptionEventArgs(e);
                 args.Detail["consumer"] = k.m_consumer;
                 args.Detail["context"] = "HandleBasicConsumeOk";
