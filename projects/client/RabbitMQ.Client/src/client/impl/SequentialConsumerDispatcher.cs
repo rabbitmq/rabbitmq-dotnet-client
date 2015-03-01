@@ -40,10 +40,13 @@
 
 namespace RabbitMQ.Client
 {
-    sealed class ConsumerDispatcher : IConsumerDispatcher
+    sealed class SequentialConsumerDispatcher : IConsumerDispatcher
     {
-        public ConsumerDispatcher()
-        {}
+        private IModel model;
+        public SequentialConsumerDispatcher(IModel model)
+        {
+            this.model = model;
+        }
 
         public void HandleBasicConsumeOk(IBasicConsumer consumer,
                              string consumerTag)

@@ -89,7 +89,7 @@ namespace RabbitMQ.Client.Impl
             Session = session;
             Session.CommandReceived = HandleCommand;
             Session.SessionShutdown += OnSessionShutdown;
-            m_consumerDispatcher = new ConsumerDispatcher();
+            m_consumerDispatcher = new SequentialConsumerDispatcher(this);
         }
 
         public event EventHandler<BasicAckEventArgs> BasicAcks
