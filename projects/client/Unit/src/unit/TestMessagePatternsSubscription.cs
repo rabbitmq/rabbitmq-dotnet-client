@@ -71,7 +71,22 @@ namespace RabbitMQ.Client.Unit
                 thread.Start();
             }
 
-            threads.ForEach(x => x.Join());
+            threads.ForEach(x => x.Join(TimeSpan.FromSeconds(20)));
+        }
+
+        protected void TestSequentialIterationWithDrainer(Action<Subscription> action)
+        {
+            IDictionary<string, object> args = new Dictionary<string, object>
+            {
+                {"x-message-ttl", 5000}
+            };
+            string queueDeclare = Model.QueueDeclare("", false, true, false, args);
+            var subscription = new Subscription(Model, queueDeclare, false);
+
+            PreparedQueue(queueDeclare);
+
+            var drainer = new SubscriptionDrainer(subscription, action);
+            drainer.Drain();
         }
 
         private void TestSubscriptionAction(Action<Subscription> action)
@@ -133,7 +148,10 @@ namespace RabbitMQ.Client.Unit
 
         private void PreparedQueue(string q)
         {
-            for (int i = 0; i < 1024; i++)
+            // this should be greater than the number of threads
+            // multiplied by 100 (deliveries per Subscription), alternatively
+            // drainers can use Subscription.Next with a timeout.
+            for (int i = 0; i < 20000; i++)
             {
                 Model.BasicPublish("", q, null, encoding.GetBytes("a message"));
             }
