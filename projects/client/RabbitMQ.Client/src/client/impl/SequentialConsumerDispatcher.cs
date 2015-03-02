@@ -38,20 +38,36 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using RabbitMQ.Client.Impl;
+using RabbitMQ.Client.Events;
+
 namespace RabbitMQ.Client
 {
     sealed class SequentialConsumerDispatcher : IConsumerDispatcher
     {
-        private IModel model;
-        public SequentialConsumerDispatcher(IModel model)
+        private ModelBase model;
+        public SequentialConsumerDispatcher(ModelBase model)
         {
             this.model = model;
         }
 
         public void HandleBasicConsumeOk(IBasicConsumer consumer,
-                             string consumerTag)
+                                         string consumerTag)
         {
-            consumer.HandleBasicConsumeOk(consumerTag);
+            try
+            {
+                consumer.HandleBasicConsumeOk(consumerTag);
+            }
+            catch (Exception e)
+            {
+                this.model.OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object>()
+                    {
+                        {"consumer", consumer},
+                        {"context",  "HandleBasicConsumeOk"}
+                    }));
+            }
         }
 
         public void HandleBasicDeliver(IBasicConsumer consumer,
@@ -63,20 +79,53 @@ namespace RabbitMQ.Client
                             IBasicProperties basicProperties,
                             byte[] body)
         {
-            consumer.HandleBasicDeliver(consumerTag, deliveryTag, redelivered,
-                                        exchange, routingKey, basicProperties, body);
+            try
+            {
+                consumer.HandleBasicDeliver(consumerTag, deliveryTag, redelivered,
+                                            exchange, routingKey, basicProperties, body);
+            }
+            catch (Exception e)
+            {
+                this.model.OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object>()
+                    {
+                        {"consumer", consumer},
+                        {"context",  "HandleBasicDeliver"}
+                    }));
+            }
         }
 
         public void HandleBasicCancelOk(IBasicConsumer consumer,
                             string consumerTag)
         {
-            consumer.HandleBasicCancelOk(consumerTag);
+            try
+            {
+                consumer.HandleBasicCancelOk(consumerTag);
+            }
+            catch (Exception e)
+            {
+                this.model.OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object>()
+                    {
+                        {"consumer", consumer},
+                        {"context",  "HandleBasicConsumeOk"}
+                    }));
+            }
         }
 
         public void HandleBasicCancel(IBasicConsumer consumer,
                           string consumerTag)
         {
-            consumer.HandleBasicCancel(consumerTag);
+            try
+            {
+                consumer.HandleBasicCancel(consumerTag);
+            }
+            catch (Exception e)
+            {
+                this.model.OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object>()
+                    {
+                        {"consumer", consumer},
+                        {"context",  "HandleBasicCancel"}
+                    }));
+            }
         }
 
         public void Quiesce()

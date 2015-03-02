@@ -45,7 +45,7 @@ using System.Text;
 
 namespace RabbitMQ.Client
 {
-    interface IConsumerDispatcher
+    public interface IConsumerDispatcher
     {
         void HandleBasicConsumeOk(IBasicConsumer consumer,
                              string consumerTag);

@@ -84,12 +84,23 @@ namespace RabbitMQ.Client.Impl
 
         public ModelBase(ISession session)
         {
+            Initialise(session);
+            m_consumerDispatcher = new ConcurrentConsumerDispatcher(this, new ConsumerWorkService(10000));
+        }
+
+        public ModelBase(ISession session, IConsumerDispatcher dispatcher)
+        {
+            Initialise(session);
+            m_consumerDispatcher = dispatcher;
+        }
+
+        protected void Initialise(ISession session)
+        {
             CloseReason = null;
             NextPublishSeqNo = 0;
             Session = session;
             Session.CommandReceived = HandleCommand;
             Session.SessionShutdown += OnSessionShutdown;
-            m_consumerDispatcher = new ConcurrentConsumerDispatcher(this, new ConsumerWorkService(10000));
         }
 
         public event EventHandler<BasicAckEventArgs> BasicAcks
@@ -681,19 +692,7 @@ namespace RabbitMQ.Client.Impl
             {
                 consumer = DefaultConsumer;
             }
-
-            try
-            {
-                m_consumerDispatcher.HandleBasicCancel(consumer, consumerTag);
-            }
-            catch (Exception e)
-            {
-                OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object>()
-                    {
-                        {"consumer", consumer},
-                        {"context",  "HandleBasicCancel"}
-                    }));
-            }
+            m_consumerDispatcher.HandleBasicCancel(consumer, consumerTag); 
         }
 
         public void HandleBasicCancelOk(string consumerTag)
@@ -712,18 +711,7 @@ namespace RabbitMQ.Client.Impl
                 k.m_consumer = m_consumers[consumerTag];
                 m_consumers.Remove(consumerTag);
             }
-            try
-            {
-                m_consumerDispatcher.HandleBasicCancelOk(k.m_consumer, consumerTag);
-            }
-            catch (Exception e)
-            {
-                OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object>()
-                    {
-                        {"consumer", k.m_consumer},
-                        {"context",  "HandleBasicConsumeOk"}
-                    }));
-            }
+            m_consumerDispatcher.HandleBasicCancelOk(k.m_consumer, consumerTag);    
             k.HandleCommand(null); // release the continuation.
         }
 
@@ -736,18 +724,7 @@ namespace RabbitMQ.Client.Impl
             {
                 m_consumers[consumerTag] = k.m_consumer;
             }
-            try
-            {
-                m_consumerDispatcher.HandleBasicConsumeOk(k.m_consumer, consumerTag);
-            }
-            catch (Exception e)
-            {
-                OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object>()
-                    {
-                        {"consumer", k.m_consumer},
-                        {"context",  "HandleBasicConsumeOk"}
-                    }));
-            }
+            m_consumerDispatcher.HandleBasicConsumeOk(k.m_consumer, consumerTag);  
             k.HandleCommand(null); // release the continuation.
         }
 
@@ -778,9 +755,7 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            try
-            {
-                m_consumerDispatcher.HandleBasicDeliver(consumer,
+            m_consumerDispatcher.HandleBasicDeliver(consumer,
                     consumerTag,
                     deliveryTag,
                     redelivered,
@@ -788,15 +763,6 @@ namespace RabbitMQ.Client.Impl
                     routingKey,
                     basicProperties,
                     body);
-            }
-            catch (Exception e)
-            {
-                OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object>()
-                    {
-                        {"consumer", consumer},
-                        {"context",  "HandleBasicDeliver"}
-                    }));
-            }
         }
 
         public void HandleBasicGetEmpty()
