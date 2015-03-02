@@ -106,7 +106,7 @@ namespace RabbitMQ.Client
                 this.model.OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object>()
                     {
                         {"consumer", consumer},
-                        {"context",  "HandleBasicConsumeOk"}
+                        {"context",  "HandleBasicCancelOk"}
                     }));
             }
         }
