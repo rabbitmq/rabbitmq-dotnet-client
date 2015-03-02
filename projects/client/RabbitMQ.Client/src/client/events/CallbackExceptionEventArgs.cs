@@ -58,6 +58,15 @@ namespace RabbitMQ.Client.Events
 
         ///<summary>Access the wrapped exception.</summary>
         public Exception Exception { get; private set; }
+
+        public IDictionary<string, object> UpdateDetails(IDictionary<string, object> other)
+        {
+            foreach (var pair in other)
+            {
+                this.Detail[pair.Key] = pair.Value;
+            }
+            return this.Detail;
+        }
     }
 
 
