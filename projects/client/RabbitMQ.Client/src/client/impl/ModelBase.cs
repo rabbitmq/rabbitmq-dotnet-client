@@ -448,8 +448,7 @@ namespace RabbitMQ.Client.Impl
                     }
                     catch (Exception e)
                     {
-                        var exnArgs = CallbackExceptionEventArgsFor(e, "OnBasicAck");
-                        OnCallbackException(exnArgs);
+                        OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnBasicAck"));
                     }
                 }
             }
@@ -474,8 +473,7 @@ namespace RabbitMQ.Client.Impl
                     }
                     catch (Exception e)
                     {
-                        var exnArgs = CallbackExceptionEventArgsFor(e, "OnBasicNack");
-                        OnCallbackException(exnArgs);
+                        OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnBasicNack"));
                     }
                 }
             }
@@ -500,8 +498,7 @@ namespace RabbitMQ.Client.Impl
                     }
                     catch (Exception e)
                     {
-                        var exnArgs = this.CallbackExceptionEventArgsFor(e, "OnBasicRecover");
-                        OnCallbackException(exnArgs);
+                        OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnBasicRecover"));
                     }
                 }
             }
@@ -524,8 +521,7 @@ namespace RabbitMQ.Client.Impl
                     }
                     catch (Exception e)
                     {
-                        var exnArgs = this.CallbackExceptionEventArgsFor(e, "OnBasicReturn");
-                        OnCallbackException(exnArgs);
+                        OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnBasicReturn"));
                     }
                 }
             }
@@ -574,8 +570,7 @@ namespace RabbitMQ.Client.Impl
                     }
                     catch (Exception e)
                     {
-                        var exnArgs = this.CallbackExceptionEventArgsFor(e, "OnFlowControl");
-                        OnCallbackException(exnArgs);
+                        OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnFlowControl"));
                     }
                 }
             }
@@ -612,8 +607,7 @@ namespace RabbitMQ.Client.Impl
                     }
                     catch (Exception e)
                     {
-                        var args = this.CallbackExceptionEventArgsFor(e, "OnModelShutdown");
-                        OnCallbackException(args);
+                        OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnModelShutdown"));
                     }
                 }
             }
@@ -694,10 +688,11 @@ namespace RabbitMQ.Client.Impl
             }
             catch (Exception e)
             {
-                var args = new CallbackExceptionEventArgs(e);
-                args.Detail["consumer"] = consumer;
-                args.Detail["context"] = "HandleBasicCancel";
-                OnCallbackException(args);
+                OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object>()
+                    {
+                        {"consumer", consumer},
+                        {"context",  "HandleBasicCancel"}
+                    }));
             }
         }
 
@@ -723,12 +718,11 @@ namespace RabbitMQ.Client.Impl
             }
             catch (Exception e)
             {
-                // FIXME: should we propagate the exception to the
-                // caller of BasicCancel?
-                var args = new CallbackExceptionEventArgs(e);
-                args.Detail["consumer"] = k.m_consumer;
-                args.Detail["context"] = "HandleBasicCancelOk";
-                OnCallbackException(args);
+                OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object>()
+                    {
+                        {"consumer", k.m_consumer},
+                        {"context",  "HandleBasicConsumeOk"}
+                    }));
             }
             k.HandleCommand(null); // release the continuation.
         }
@@ -748,10 +742,11 @@ namespace RabbitMQ.Client.Impl
             }
             catch (Exception e)
             {
-                var args = new CallbackExceptionEventArgs(e);
-                args.Detail["consumer"] = k.m_consumer;
-                args.Detail["context"] = "HandleBasicConsumeOk";
-                OnCallbackException(args);
+                OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object>()
+                    {
+                        {"consumer", k.m_consumer},
+                        {"context",  "HandleBasicConsumeOk"}
+                    }));
             }
             k.HandleCommand(null); // release the continuation.
         }
@@ -796,10 +791,11 @@ namespace RabbitMQ.Client.Impl
             }
             catch (Exception e)
             {
-                var args = new CallbackExceptionEventArgs(e);
-                args.Detail["consumer"] = consumer;
-                args.Detail["context"] = "HandleBasicDeliver";
-                OnCallbackException(args);
+                OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object>()
+                    {
+                        {"consumer", consumer},
+                        {"context",  "HandleBasicDeliver"}
+                    }));
             }
         }
 
@@ -1022,24 +1018,6 @@ namespace RabbitMQ.Client.Impl
             var k = (QueueDeclareRpcContinuation)m_continuationQueue.Next();
             k.m_result = new QueueDeclareOk(queue, messageCount, consumerCount);
             k.HandleCommand(null); // release the continuation.
-        }
-
-        private CallbackExceptionEventArgs CallbackExceptionEventArgsFor(Exception e,
-                                                                         string context)
-        {
-            var details = new Dictionary<string, object>
-            {
-                {"context", context}
-            };
-            return CallbackExceptionEventArgsFor(e, details);
-        }
-
-        private CallbackExceptionEventArgs CallbackExceptionEventArgsFor(Exception e,
-                                                                         IDictionary<string, object> details)
-        {
-            var exnArgs = new CallbackExceptionEventArgs(e);
-            exnArgs.UpdateDetails(details);
-            return exnArgs;
         }
 
         public abstract void _Private_BasicCancel(string consumerTag,

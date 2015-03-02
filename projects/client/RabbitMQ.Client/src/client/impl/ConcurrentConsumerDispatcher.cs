@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Client.Events;
@@ -34,9 +35,12 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (Exception e)
                 {
-                    var args = new CallbackExceptionEventArgs(e);
-                    args.Detail["consumer"] = consumer;
-                    args.Detail["context"] = "OnBasicConsumeOk";
+                    var details = new Dictionary<string, object>()
+                    {
+                        {"consumer", consumer},
+                        {"context",  "OnBasicConsumeOk"}
+                    };
+                    var args = CallbackExceptionEventArgs.Build(e, details);
                     model.OnCallbackException(args);
                 }
             });
@@ -65,9 +69,12 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (Exception e)
                 {
-                    var args = new CallbackExceptionEventArgs(e);
-                    args.Detail["consumer"] = consumer;
-                    args.Detail["context"] = "OnBasicDeliver";
+                    var details = new Dictionary<string, object>()
+                    {
+                        {"consumer", consumer},
+                        {"context",  "OnBasicDeliver"}
+                    };
+                    var args = CallbackExceptionEventArgs.Build(e, details);
                     model.OnCallbackException(args);
                 }
             });
@@ -82,9 +89,12 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (Exception e)
                 {
-                    var args = new CallbackExceptionEventArgs(e);
-                    args.Detail["consumer"] = consumer;
-                    args.Detail["context"] = "OnBasicCancelOk";
+                    var details = new Dictionary<string, object>()
+                    {
+                        {"consumer", consumer},
+                        {"context",  "OnBasicCancelOk"}
+                    };
+                    var args = CallbackExceptionEventArgs.Build(e, details);
                     model.OnCallbackException(args);
                 }
             });
@@ -100,9 +110,12 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (Exception e)
                 {
-                    var args = new CallbackExceptionEventArgs(e);
-                    args.Detail["consumer"] = consumer;
-                    args.Detail["context"] = "OnBasicCancel";
+                    var details = new Dictionary<string, object>()
+                    {
+                        {"consumer", consumer},
+                        {"context",  "OnBasicCancel"}
+                    };
+                    var args = CallbackExceptionEventArgs.Build(e, details);
                     model.OnCallbackException(args);
                 }
             });
