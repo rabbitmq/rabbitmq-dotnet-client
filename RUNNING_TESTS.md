@@ -12,8 +12,12 @@ It is possible to use [Visual Studio 2013 Community](http://www.visualstudio.com
 
 ## Building
 
+### Copy `Local.props.example` and Edit
+
 First copy `Local.props.example` to `Local.props` and edit it if needed, specifying whether
 you intend to build the client on Mono and what .NET version should be targeted.
+
+### Build
 
 Then, build in Visual Studio or build from the command line. To do the latter,
 simply run
