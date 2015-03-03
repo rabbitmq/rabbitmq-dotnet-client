@@ -41,6 +41,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Impl;
 using RabbitMQ.Client.Apigen.Attributes;
 using RabbitMQ.Client.Events;
 

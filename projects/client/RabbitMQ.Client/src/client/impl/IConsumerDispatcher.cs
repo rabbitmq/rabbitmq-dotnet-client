@@ -43,10 +43,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace RabbitMQ.Client
+namespace RabbitMQ.Client.Impl
 {
     public interface IConsumerDispatcher
     {
+        bool IsShutdown { get; }
+
         void HandleBasicConsumeOk(IBasicConsumer consumer,
                              string consumerTag);
 

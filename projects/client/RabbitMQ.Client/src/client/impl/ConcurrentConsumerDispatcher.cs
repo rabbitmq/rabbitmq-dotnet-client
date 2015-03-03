@@ -10,18 +10,24 @@ namespace RabbitMQ.Client.Impl
     {
         private ModelBase model;
         private ConsumerWorkService workService;
-        private bool isShuttingDown = false;
 
         public ConcurrentConsumerDispatcher(ModelBase model, ConsumerWorkService ws)
         {
             this.model = model;
             this.workService = ws;
             this.workService.RegisterKey(model);
+            this.IsShutdown = false;
         }
 
         public void Quiesce()
         {
-            isShuttingDown = true;
+            IsShutdown = true;
+        }
+
+        public bool IsShutdown
+        {
+            get;
+            private set;
         }
 
         public void HandleBasicConsumeOk(IBasicConsumer consumer,
@@ -123,7 +129,7 @@ namespace RabbitMQ.Client.Impl
 
         private void UnlessShuttingDown(Action fn)
         {
-            if(!this.isShuttingDown)
+            if(!this.IsShutdown)
             {
                 Execute(fn);
             }

@@ -48,9 +48,12 @@ namespace RabbitMQ.Client
     sealed class SequentialConsumerDispatcher : IConsumerDispatcher
     {
         private ModelBase model;
+        public bool IsShutdown { get; private set; }
+
         public SequentialConsumerDispatcher(ModelBase model)
         {
             this.model = model;
+            this.IsShutdown = false;
         }
 
         public void HandleBasicConsumeOk(IBasicConsumer consumer,
@@ -130,7 +133,7 @@ namespace RabbitMQ.Client
 
         public void Quiesce()
         {
-            // no-op
+            this.IsShutdown = true;
         }
     }
 }

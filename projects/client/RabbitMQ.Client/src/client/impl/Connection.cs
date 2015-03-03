@@ -803,9 +803,11 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                     catch (Exception e)
                     {
-                        var cee_args = new CallbackExceptionEventArgs(e);
-                        cee_args.Detail["context"] = "OnConnectionBlocked";
-                        OnCallbackException(cee_args);
+                        OnCallbackException(CallbackExceptionEventArgs.Build(e,
+                            new Dictionary<string, object>
+                            {
+                                {"context", "OnConnectionBlocked"}
+                            }));
                     }
                 }
             }
@@ -828,9 +830,11 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                     catch (Exception e)
                     {
-                        var args = new CallbackExceptionEventArgs(e);
-                        args.Detail["context"] = "OnConnectionUnblocked";
-                        OnCallbackException(args);
+                        OnCallbackException(CallbackExceptionEventArgs.Build(e,
+                            new Dictionary<string, object>
+                            {
+                                {"context", "OnConnectionUnblocked"}
+                            }));
                     }
                 }
             }
@@ -857,9 +861,11 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                     catch (Exception e)
                     {
-                        var args = new CallbackExceptionEventArgs(e);
-                        args.Detail["context"] = "OnShutdown";
-                        OnCallbackException(args);
+                        OnCallbackException(CallbackExceptionEventArgs.Build(e,
+                            new Dictionary<string, object>
+                            {
+                                {"context", "OnShutdown"}
+                            }));
                     }
                 }
             }

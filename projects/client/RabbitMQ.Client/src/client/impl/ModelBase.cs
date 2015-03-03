@@ -81,7 +81,7 @@ namespace RabbitMQ.Client.Impl
         private bool m_onlyAcksReceived = true;
 
         private EventHandler<EventArgs> m_recovery;
-        private IConsumerDispatcher m_consumerDispatcher;
+        public IConsumerDispatcher ConsumerDispatcher { get; private set; }
 
         public ModelBase(ISession session) : this(session, session.Connection.ConsumerWorkService)
         {}
@@ -89,7 +89,7 @@ namespace RabbitMQ.Client.Impl
         public ModelBase(ISession session, ConsumerWorkService workService)
         {
             Initialise(session);
-            m_consumerDispatcher = new ConcurrentConsumerDispatcher(this, workService);
+            ConsumerDispatcher = new ConcurrentConsumerDispatcher(this, workService);
         }
 
         protected void Initialise(ISession session)
@@ -296,7 +296,7 @@ namespace RabbitMQ.Client.Impl
                     _Private_ChannelClose(reason.ReplyCode, reason.ReplyText, 0, 0);
                 }
                 k.Wait();
-                m_consumerDispatcher.Quiesce();
+                ConsumerDispatcher.Quiesce();
             }
             catch (AlreadyClosedException ace)
             {
@@ -627,6 +627,7 @@ namespace RabbitMQ.Client.Impl
 
         public void OnSessionShutdown(object sender, ShutdownEventArgs reason)
         {
+            this.ConsumerDispatcher.Quiesce();
             SetCloseReason(reason);
             OnModelShutdown(reason);
         }
@@ -690,7 +691,7 @@ namespace RabbitMQ.Client.Impl
             {
                 consumer = DefaultConsumer;
             }
-            m_consumerDispatcher.HandleBasicCancel(consumer, consumerTag); 
+            ConsumerDispatcher.HandleBasicCancel(consumer, consumerTag);
         }
 
         public void HandleBasicCancelOk(string consumerTag)
@@ -709,7 +710,7 @@ namespace RabbitMQ.Client.Impl
                 k.m_consumer = m_consumers[consumerTag];
                 m_consumers.Remove(consumerTag);
             }
-            m_consumerDispatcher.HandleBasicCancelOk(k.m_consumer, consumerTag);    
+            ConsumerDispatcher.HandleBasicCancelOk(k.m_consumer, consumerTag);
             k.HandleCommand(null); // release the continuation.
         }
 
@@ -722,7 +723,7 @@ namespace RabbitMQ.Client.Impl
             {
                 m_consumers[consumerTag] = k.m_consumer;
             }
-            m_consumerDispatcher.HandleBasicConsumeOk(k.m_consumer, consumerTag);  
+            ConsumerDispatcher.HandleBasicConsumeOk(k.m_consumer, consumerTag);
             k.HandleCommand(null); // release the continuation.
         }
 
@@ -753,7 +754,7 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            m_consumerDispatcher.HandleBasicDeliver(consumer,
+            ConsumerDispatcher.HandleBasicDeliver(consumer,
                     consumerTag,
                     deliveryTag,
                     redelivered,
