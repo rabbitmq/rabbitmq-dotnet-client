@@ -295,8 +295,8 @@ namespace RabbitMQ.Client.Impl
                 {
                     _Private_ChannelClose(reason.ReplyCode, reason.ReplyText, 0, 0);
                 }
-                m_consumerDispatcher.Quiesce();
                 k.Wait();
+                m_consumerDispatcher.Quiesce();
             }
             catch (AlreadyClosedException ace)
             {
