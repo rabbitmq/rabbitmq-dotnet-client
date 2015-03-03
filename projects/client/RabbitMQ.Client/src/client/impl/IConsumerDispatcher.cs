@@ -68,5 +68,7 @@ namespace RabbitMQ.Client.Impl
                           string consumerTag);
 
         void Quiesce();
+
+        void Shutdown();
     }
 }

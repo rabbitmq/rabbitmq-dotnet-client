@@ -13,13 +13,12 @@ namespace RabbitMQ.Client
         private BatchingWorkPool<IModel, Action> workPool;
         private int shutdownTimeout;
 
-        public ConsumerWorkService(int shutdownTimeout) :
-            this(TaskScheduler.Default, shutdownTimeout) {}
+        public ConsumerWorkService() :
+            this(TaskScheduler.Default) {}
 
-        public ConsumerWorkService(TaskScheduler scheduler, int shutdownTimeout)
+        public ConsumerWorkService(TaskScheduler scheduler)
         {
             this.workPool = new BatchingWorkPool<IModel, Action>();
-            this.shutdownTimeout = shutdownTimeout;
         }
 
         public int ShutdownTimeout
@@ -75,6 +74,11 @@ namespace RabbitMQ.Client
         public void StopWork(IModel model)
         {
             this.workPool.UnregisterKey(model);
+        }
+
+        public void StopWork()
+        {
+            this.workPool.UnregisterAllKeys();
         }
     }
 }

@@ -291,12 +291,13 @@ namespace RabbitMQ.Client.Impl
 
             try
             {
+                ConsumerDispatcher.Quiesce();
                 if (SetCloseReason(reason))
                 {
                     _Private_ChannelClose(reason.ReplyCode, reason.ReplyText, 0, 0);
                 }
                 k.Wait();
-                ConsumerDispatcher.Quiesce();
+                ConsumerDispatcher.Shutdown();
             }
             catch (AlreadyClosedException ace)
             {
@@ -630,6 +631,7 @@ namespace RabbitMQ.Client.Impl
             this.ConsumerDispatcher.Quiesce();
             SetCloseReason(reason);
             OnModelShutdown(reason);
+            this.ConsumerDispatcher.Shutdown();
         }
 
         public bool SetCloseReason(ShutdownEventArgs reason)

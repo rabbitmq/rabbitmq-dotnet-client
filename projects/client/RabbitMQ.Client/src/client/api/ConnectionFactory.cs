@@ -185,12 +185,6 @@ namespace RabbitMQ.Client
         public bool TopologyRecoveryEnabled = true;
 
         /// <summary>
-        /// How much time will consumer dispatcher wait for running
-        /// consumer operations (e.g. delivery handlers) to complete.
-        /// </summary>
-        public int ConsumerShutdownTimeout { get; set; }
-
-        /// <summary>
         /// Task scheduler connections created by this factory will use when
         /// dispatching consumer operations, such as message deliveries.
         /// </summary>
@@ -210,7 +204,6 @@ namespace RabbitMQ.Client
             Password = DefaultPass;
             ClientProperties = Connection.DefaultClientProperties();
             UseBackgroundThreadsForIO = false;
-            ConsumerShutdownTimeout = 10000;
         }
 
         /// <summary>

@@ -98,12 +98,6 @@ namespace RabbitMQ.Client
         IConnection CreateConnection();
 
         /// <summary>
-        /// How much time will consumer dispatcher wait for running
-        /// consumer operations (e.g. delivery handlers) to complete.
-        /// </summary>
-        int ConsumerShutdownTimeout { get; set; }
-
-        /// <summary>
         /// Advanced option.
         /// 
         /// What task scheduler should consumer dispatcher use.
