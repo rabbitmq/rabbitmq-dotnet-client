@@ -41,6 +41,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Security;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Impl;
@@ -184,10 +185,23 @@ namespace RabbitMQ.Client
         public bool TopologyRecoveryEnabled = true;
 
         /// <summary>
+        /// How much time will consumer dispatcher wait for running
+        /// consumer operations (e.g. delivery handlers) to complete.
+        /// </summary>
+        public int ConsumerShutdownTimeout { get; set; }
+
+        /// <summary>
+        /// Task scheduler connections created by this factory will use when
+        /// dispatching consumer operations, such as message deliveries.
+        /// </summary>
+        public TaskScheduler TaskScheduler { get; set; }
+
+        /// <summary>
         /// Construct a fresh instance, with all fields set to their respective defaults.
         /// </summary>
         public ConnectionFactory()
         {
+            this.TaskScheduler = TaskScheduler.Default;
             VirtualHost = DefaultVHost;
             UserName = DefaultUser;
             RequestedHeartbeat = DefaultHeartbeat;
@@ -196,6 +210,7 @@ namespace RabbitMQ.Client
             Password = DefaultPass;
             ClientProperties = Connection.DefaultClientProperties();
             UseBackgroundThreadsForIO = false;
+            ConsumerShutdownTimeout = 10000;
         }
 
         /// <summary>

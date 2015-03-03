@@ -6,7 +6,7 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client
 {
-    class ConsumerWorkService
+    public class ConsumerWorkService
     {
         public const int MAX_THUNK_EXECUTION_BATCH_SIZE = 16;
         private TaskScheduler scheduler;

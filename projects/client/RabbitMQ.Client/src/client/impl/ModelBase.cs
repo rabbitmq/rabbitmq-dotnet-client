@@ -43,6 +43,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
@@ -82,16 +83,13 @@ namespace RabbitMQ.Client.Impl
         private EventHandler<EventArgs> m_recovery;
         private IConsumerDispatcher m_consumerDispatcher;
 
-        public ModelBase(ISession session)
-        {
-            Initialise(session);
-            m_consumerDispatcher = new ConcurrentConsumerDispatcher(this, new ConsumerWorkService(10000));
-        }
+        public ModelBase(ISession session) : this(session, session.Connection.ConsumerWorkService)
+        {}
 
-        public ModelBase(ISession session, IConsumerDispatcher dispatcher)
+        public ModelBase(ISession session, ConsumerWorkService workService)
         {
             Initialise(session);
-            m_consumerDispatcher = dispatcher;
+            m_consumerDispatcher = new ConcurrentConsumerDispatcher(this, workService);
         }
 
         protected void Initialise(ISession session)

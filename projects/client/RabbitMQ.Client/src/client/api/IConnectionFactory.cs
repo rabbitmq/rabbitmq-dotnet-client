@@ -40,6 +40,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client
 {
@@ -95,5 +96,18 @@ namespace RabbitMQ.Client
         /// Create a connection to the specified endpoint.
         /// </summary>
         IConnection CreateConnection();
+
+        /// <summary>
+        /// How much time will consumer dispatcher wait for running
+        /// consumer operations (e.g. delivery handlers) to complete.
+        /// </summary>
+        int ConsumerShutdownTimeout { get; set; }
+
+        /// <summary>
+        /// Advanced option.
+        /// 
+        /// What task scheduler should consumer dispatcher use.
+        /// </summary>
+        TaskScheduler TaskScheduler { get; set; }
     }
 }

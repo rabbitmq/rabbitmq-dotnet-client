@@ -94,6 +94,7 @@ namespace RabbitMQ.Client.Framing.Impl
         public IList<ShutdownReportEntry> m_shutdownReport = new SynchronizedList<ShutdownReportEntry>(new List<ShutdownReportEntry>());
         private Timer _heartbeatReadTimer;
         private Timer _heartbeatWriteTimer;
+        public ConsumerWorkService ConsumerWorkService { get; private set; }
 
         public Connection(IConnectionFactory factory, bool insist, IFrameHandler frameHandler)
         {
@@ -101,6 +102,7 @@ namespace RabbitMQ.Client.Framing.Impl
             FrameMax = 0;
             m_factory = factory;
             m_frameHandler = frameHandler;
+            this.ConsumerWorkService = new ConsumerWorkService(factory.TaskScheduler, factory.ConsumerShutdownTimeout);
 
             m_sessionManager = new SessionManager(this, 0);
             m_session0 = new MainSession(this) { Handler = NotifyReceivedCloseOk };
@@ -1051,7 +1053,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             EnsureIsOpen();
             ISession session = CreateSession();
-            var model = (IFullModel)Protocol.CreateModel(session);
+            var model = (IFullModel)Protocol.CreateModel(session, this.ConsumerWorkService);
             model._Private_ChannelOpen("");
             return model;
         }

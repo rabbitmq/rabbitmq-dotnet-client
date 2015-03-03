@@ -309,5 +309,7 @@ namespace RabbitMQ.Client
         /// Handle incoming Connection.Unblocked methods.
         /// </summary>
         void HandleConnectionUnblocked();
+
+        ConsumerWorkService ConsumerWorkService { get; }
     }
 }
