@@ -269,7 +269,7 @@ namespace RabbitMQ.Client
         public ushort RequestedHeartbeat { get; set; }
 
         /// <summary>
-        /// When set to true, background threads will be used for I/O and heartbeats.
+        /// When set to true, background thread will be used for the I/O loop.
         /// </summary>
         public bool UseBackgroundThreadsForIO { get; set; }
 
