@@ -38,6 +38,10 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Impl;
+using RabbitMQ.Util;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -46,11 +50,6 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Client.Impl;
-using RabbitMQ.Client.Framing;
-using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -94,6 +93,7 @@ namespace RabbitMQ.Client.Framing.Impl
         public IList<ShutdownReportEntry> m_shutdownReport = new SynchronizedList<ShutdownReportEntry>(new List<ShutdownReportEntry>());
         private Timer _heartbeatReadTimer;
         private Timer _heartbeatWriteTimer;
+
         public ConsumerWorkService ConsumerWorkService { get; private set; }
 
         public Connection(IConnectionFactory factory, bool insist, IFrameHandler frameHandler)

@@ -38,17 +38,16 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Framing;
+using RabbitMQ.Client.Framing.Impl;
+using RabbitMQ.Util;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
-using System.Threading.Tasks;
-using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Client.Framing.Impl;
-using RabbitMQ.Util;
-using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -81,10 +80,12 @@ namespace RabbitMQ.Client.Impl
         private bool m_onlyAcksReceived = true;
 
         private EventHandler<EventArgs> m_recovery;
+
         public IConsumerDispatcher ConsumerDispatcher { get; private set; }
 
-        public ModelBase(ISession session) : this(session, session.Connection.ConsumerWorkService)
-        {}
+        public ModelBase(ISession session)
+            : this(session, session.Connection.ConsumerWorkService)
+        { }
 
         public ModelBase(ISession session, ConsumerWorkService workService)
         {
@@ -1016,8 +1017,11 @@ namespace RabbitMQ.Client.Impl
             ushort methodId);
 
         public abstract void _Private_ChannelCloseOk();
+
         public abstract void _Private_ChannelFlowOk(bool active);
+
         public abstract void _Private_ChannelOpen(string outOfBand);
+
         public abstract void _Private_ConfirmSelect(bool nowait);
 
         public abstract void _Private_ConnectionClose(ushort replyCode,
@@ -1099,7 +1103,7 @@ namespace RabbitMQ.Client.Impl
 
         public void BasicCancel(string consumerTag)
         {
-            var k = new BasicConsumerRpcContinuation {m_consumerTag = consumerTag};
+            var k = new BasicConsumerRpcContinuation { m_consumerTag = consumerTag };
 
             Enqueue(k);
 
@@ -1442,7 +1446,9 @@ namespace RabbitMQ.Client.Impl
             IDictionary<string, object> arguments);
 
         public abstract void TxCommit();
+
         public abstract void TxRollback();
+
         public abstract void TxSelect();
 
         public bool WaitForConfirms(TimeSpan timeout, out bool timedOut)
@@ -1564,7 +1570,6 @@ namespace RabbitMQ.Client.Impl
             k.GetReply();
             return k.m_result;
         }
-
 
         public class BasicConsumerRpcContinuation : SimpleBlockingRpcContinuation
         {

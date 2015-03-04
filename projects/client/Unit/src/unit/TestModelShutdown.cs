@@ -38,16 +38,15 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using NUnit.Framework;
+using RabbitMQ.Client.Impl;
 using System;
 using System.Threading;
-using NUnit.Framework;
-
-using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    class TestModelShutdown : IntegrationFixture
+    internal class TestModelShutdown : IntegrationFixture
     {
         [Test]
         public void TestConsumerDispatcherShutdown()
@@ -55,7 +54,8 @@ namespace RabbitMQ.Client.Unit
             var m = (ModelBase)Model;
             var latch = new ManualResetEvent(false);
 
-            this.Model.ModelShutdown += (model, args) => {
+            this.Model.ModelShutdown += (model, args) =>
+            {
                 latch.Set();
             };
             Assert.IsFalse(m.ConsumerDispatcher.IsShutdown, "dispatcher should NOT be shut down before Close");

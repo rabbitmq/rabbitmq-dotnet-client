@@ -38,13 +38,13 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
 using NUnit.Framework;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.MessagePatterns;
+using System;
+using System.Collections.Generic;
+using System.Threading;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -125,7 +125,7 @@ namespace RabbitMQ.Client.Unit
                         BasicDeliverEventArgs ea = m_subscription.Next();
                         if (ea != null)
                         {
-                            Assert.That(ea, Is.TypeOf(typeof (BasicDeliverEventArgs)));
+                            Assert.That(ea, Is.TypeOf(typeof(BasicDeliverEventArgs)));
                             PostProcess(m_subscription);
                         }
                         else
