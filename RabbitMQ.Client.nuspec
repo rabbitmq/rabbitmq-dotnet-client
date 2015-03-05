@@ -13,7 +13,7 @@
     <description>The RabbitMQ .NET client is an implementation of an AMQP client library for C# (and, implicitly, other .NET languages), and a binding exposing AMQP services via Microsoft's Windows Communication Foundation (WCF).</description>
     <summary />
     <language>en-US</language>
-    <tags>RabbitMQ Client AMQP SpringSource Pivotal</tags>
+    <tags>RabbitMQ AMQP</tags>
   </metadata>
   <files>
     <file src="projects\client\RabbitMQ.Client\build\bin\RabbitMQ.Client.dll" target="lib\net40" />
