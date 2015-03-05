@@ -10,7 +10,7 @@
     <licenseUrl>http://www.rabbitmq.com/dotnet.html</licenseUrl>
     <iconUrl>https://en.gravatar.com/userimage/10048884/0ea8846e080980f705da081be53599ce.png?size=100</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>The RabbitMQ .NET client is an implementation of an AMQP client library for C# (and, implicitly, other .NET languages), and a binding exposing AMQP services via Microsoft's Windows Communication Foundation (WCF).</description>
+    <description>The RabbitMQ .NET client is the official client library for C# (and, implicitly, other .NET languages), compatible with RabbitMQ 2.0 or later versions (some features may only be available in 3.x)</description>
     <summary />
     <language>en-US</language>
     <tags>RabbitMQ AMQP</tags>
