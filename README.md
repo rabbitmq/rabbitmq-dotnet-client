@@ -4,12 +4,12 @@ This repository contains source code of the [RabbitMQ .NET client](http://www.ra
 The client is maintained by the [RabbitMQ team at Pivotal](http://github.com/rabbitmq/).
 
 
-## Dependency (Binaries and Nuget Artefact)
+## Dependency (Binaries and Nuget Artifact)
 
 There are two ways to consume the client:
 
  * [Binary releases](http://www.rabbitmq.com/download.html)
- * [NuGet artefacts](https://www.nuget.org/packages/RabbitMQ.Client/)
+ * [NuGet artifacts](https://www.nuget.org/packages/RabbitMQ.Client/)
 
 
 ## Tutorials and Documentation
