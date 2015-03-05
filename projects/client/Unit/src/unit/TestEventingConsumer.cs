@@ -56,33 +56,33 @@ namespace RabbitMQ.Client.Unit {
         {
             string q = Model.QueueDeclare();
 
-            bool registeredInvoked = false;
+            var registeredLatch = new ManualResetEvent(false);
             object registeredSender = null;
-            bool unregisteredInvoked = false;
+            var unregisteredLatch = new ManualResetEvent(false);
             object unregisteredSender = null;
 
             EventingBasicConsumer ec = new EventingBasicConsumer(Model);
             ec.Registered += (s, args) =>
             {
-                registeredInvoked = true;
                 registeredSender = s;
+                registeredLatch.Set();
             };
 
             ec.Unregistered += (s, args) =>
             {
-                unregisteredInvoked = true;
                 unregisteredSender = s;
+                unregisteredLatch.Set();
             };
 
             string tag = Model.BasicConsume(q, false, ec);
+            Wait(registeredLatch);
 
-            Assert.IsTrue(registeredInvoked);
             Assert.IsNotNull(registeredSender);
             Assert.AreEqual(ec, registeredSender);
             Assert.AreEqual(Model, ((EventingBasicConsumer)registeredSender).Model);
 
             Model.BasicCancel(tag);
-            Assert.IsTrue(unregisteredInvoked);
+            Wait(unregisteredLatch);
             Assert.IsNotNull(unregisteredSender);
             Assert.AreEqual(ec, unregisteredSender);
             Assert.AreEqual(Model, ((EventingBasicConsumer)unregisteredSender).Model);

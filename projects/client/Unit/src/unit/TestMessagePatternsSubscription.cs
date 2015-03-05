@@ -38,13 +38,13 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
 using NUnit.Framework;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.MessagePatterns;
+using System;
+using System.Collections.Generic;
+using System.Threading;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -71,7 +71,22 @@ namespace RabbitMQ.Client.Unit
                 thread.Start();
             }
 
-            threads.ForEach(x => x.Join());
+            threads.ForEach(x => x.Join(TimeSpan.FromSeconds(20)));
+        }
+
+        protected void TestSequentialIterationWithDrainer(Action<Subscription> action)
+        {
+            IDictionary<string, object> args = new Dictionary<string, object>
+            {
+                {"x-message-ttl", 5000}
+            };
+            string queueDeclare = Model.QueueDeclare("", false, true, false, args);
+            var subscription = new Subscription(Model, queueDeclare, false);
+
+            PreparedQueue(queueDeclare);
+
+            var drainer = new SubscriptionDrainer(subscription, action);
+            drainer.Drain();
         }
 
         private void TestSubscriptionAction(Action<Subscription> action)
@@ -110,7 +125,7 @@ namespace RabbitMQ.Client.Unit
                         BasicDeliverEventArgs ea = m_subscription.Next();
                         if (ea != null)
                         {
-                            Assert.That(ea, Is.TypeOf(typeof (BasicDeliverEventArgs)));
+                            Assert.That(ea, Is.TypeOf(typeof(BasicDeliverEventArgs)));
                             PostProcess(m_subscription);
                         }
                         else
@@ -133,7 +148,10 @@ namespace RabbitMQ.Client.Unit
 
         private void PreparedQueue(string q)
         {
-            for (int i = 0; i < 1024; i++)
+            // this should be greater than the number of threads
+            // multiplied by 100 (deliveries per Subscription), alternatively
+            // drainers can use Subscription.Next with a timeout.
+            for (int i = 0; i < 20000; i++)
             {
                 Model.BasicPublish("", q, null, encoding.GetBytes("a message"));
             }

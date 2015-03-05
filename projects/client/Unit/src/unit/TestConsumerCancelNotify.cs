@@ -39,17 +39,15 @@
 //---------------------------------------------------------------------------
 
 using NUnit.Framework;
-
+using RabbitMQ.Client.Events;
 using System;
 using System.Threading;
 
-using RabbitMQ.Client.Events;
-
-
-namespace RabbitMQ.Client.Unit {
+namespace RabbitMQ.Client.Unit
+{
     [TestFixture]
-    public class TestConsumerCancelNotify : IntegrationFixture {
-
+    public class TestConsumerCancelNotify : IntegrationFixture
+    {
         protected readonly Object lockObject = new Object();
         protected bool notifiedCallback;
         protected bool notifiedEvent;
@@ -79,10 +77,12 @@ namespace RabbitMQ.Client.Unit {
 
         private class CancelNotificationConsumer : DefaultBasicConsumer
         {
-            TestConsumerCancelNotify testClass;
+            private TestConsumerCancelNotify testClass;
             private bool EventMode;
 
-            public CancelNotificationConsumer(IModel model, TestConsumerCancelNotify tc, bool EventMode) : base(model) {
+            public CancelNotificationConsumer(IModel model, TestConsumerCancelNotify tc, bool EventMode)
+                : base(model)
+            {
                 this.testClass = tc;
                 this.EventMode = EventMode;
                 if (EventMode)
@@ -91,7 +91,8 @@ namespace RabbitMQ.Client.Unit {
                 }
             }
 
-            public override void HandleBasicCancel(string consumerTag) {
+            public override void HandleBasicCancel(string consumerTag)
+            {
                 if (!EventMode)
                 {
                     lock (testClass.lockObject)
@@ -114,4 +115,3 @@ namespace RabbitMQ.Client.Unit {
         }
     }
 }
-

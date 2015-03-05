@@ -775,6 +775,7 @@ namespace RabbitMQ.Client.Apigen {
         public void EmitModelImplementation() {
             EmitLine("  public class Model: RabbitMQ.Client.Impl.ModelBase {");
             EmitLine("    public Model(RabbitMQ.Client.Impl.ISession session): base(session) {}");
+            EmitLine("    public Model(RabbitMQ.Client.Impl.ISession session, RabbitMQ.Client.ConsumerWorkService workService): base(session, workService) {}");
             IList<MethodInfo> asynchronousHandlers = new List<MethodInfo>();
             foreach (Type t in m_modelTypes) {
                 foreach (MethodInfo method in t.GetMethods()) {

@@ -38,16 +38,16 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Framing;
+using RabbitMQ.Client.Framing.Impl;
+using RabbitMQ.Util;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
-using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Client.Framing.Impl;
-using RabbitMQ.Util;
-using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -81,7 +81,19 @@ namespace RabbitMQ.Client.Impl
 
         private EventHandler<EventArgs> m_recovery;
 
+        public IConsumerDispatcher ConsumerDispatcher { get; private set; }
+
         public ModelBase(ISession session)
+            : this(session, session.Connection.ConsumerWorkService)
+        { }
+
+        public ModelBase(ISession session, ConsumerWorkService workService)
+        {
+            Initialise(session);
+            ConsumerDispatcher = new ConcurrentConsumerDispatcher(this, workService);
+        }
+
+        protected void Initialise(ISession session)
         {
             CloseReason = null;
             NextPublishSeqNo = 0;
@@ -280,11 +292,13 @@ namespace RabbitMQ.Client.Impl
 
             try
             {
+                ConsumerDispatcher.Quiesce();
                 if (SetCloseReason(reason))
                 {
                     _Private_ChannelClose(reason.ReplyCode, reason.ReplyText, 0, 0);
                 }
                 k.Wait();
+                ConsumerDispatcher.Shutdown();
             }
             catch (AlreadyClosedException ace)
             {
@@ -445,9 +459,7 @@ namespace RabbitMQ.Client.Impl
                     }
                     catch (Exception e)
                     {
-                        var exnArgs = new CallbackExceptionEventArgs(e);
-                        exnArgs.Detail["context"] = "OnBasicAck";
-                        OnCallbackException(exnArgs);
+                        OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnBasicAck"));
                     }
                 }
             }
@@ -472,9 +484,7 @@ namespace RabbitMQ.Client.Impl
                     }
                     catch (Exception e)
                     {
-                        var exnArgs = new CallbackExceptionEventArgs(e);
-                        exnArgs.Detail["context"] = "OnBasicNack";
-                        OnCallbackException(exnArgs);
+                        OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnBasicNack"));
                     }
                 }
             }
@@ -499,9 +509,7 @@ namespace RabbitMQ.Client.Impl
                     }
                     catch (Exception e)
                     {
-                        var exnArgs = new CallbackExceptionEventArgs(e);
-                        exnArgs.Detail["context"] = "OnBasicRecoverOk";
-                        OnCallbackException(exnArgs);
+                        OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnBasicRecover"));
                     }
                 }
             }
@@ -524,9 +532,7 @@ namespace RabbitMQ.Client.Impl
                     }
                     catch (Exception e)
                     {
-                        var exnArgs = new CallbackExceptionEventArgs(e);
-                        exnArgs.Detail["context"] = "OnBasicReturn";
-                        OnCallbackException(exnArgs);
+                        OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnBasicReturn"));
                     }
                 }
             }
@@ -575,9 +581,7 @@ namespace RabbitMQ.Client.Impl
                     }
                     catch (Exception e)
                     {
-                        var exnArgs = new CallbackExceptionEventArgs(e);
-                        exnArgs.Detail["context"] = "OnFlowControl";
-                        OnCallbackException(exnArgs);
+                        OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnFlowControl"));
                     }
                 }
             }
@@ -614,9 +618,7 @@ namespace RabbitMQ.Client.Impl
                     }
                     catch (Exception e)
                     {
-                        var args = new CallbackExceptionEventArgs(e);
-                        args.Detail["context"] = "OnModelShutdown";
-                        OnCallbackException(args);
+                        OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnModelShutdown"));
                     }
                 }
             }
@@ -627,8 +629,19 @@ namespace RabbitMQ.Client.Impl
 
         public void OnSessionShutdown(object sender, ShutdownEventArgs reason)
         {
+            this.ConsumerDispatcher.Quiesce();
             SetCloseReason(reason);
             OnModelShutdown(reason);
+            BroadcastShutdownToConsumers(m_consumers, reason);
+            this.ConsumerDispatcher.Shutdown();
+        }
+
+        protected void BroadcastShutdownToConsumers(IDictionary<string, IBasicConsumer> cs, ShutdownEventArgs reason)
+        {
+            foreach (var c in cs)
+            {
+                this.ConsumerDispatcher.HandleModelShutdown(c.Value, reason);
+            }
         }
 
         public bool SetCloseReason(ShutdownEventArgs reason)
@@ -690,18 +703,7 @@ namespace RabbitMQ.Client.Impl
             {
                 consumer = DefaultConsumer;
             }
-
-            try
-            {
-                consumer.HandleBasicCancel(consumerTag);
-            }
-            catch (Exception e)
-            {
-                var args = new CallbackExceptionEventArgs(e);
-                args.Detail["consumer"] = consumer;
-                args.Detail["context"] = "HandleBasicCancel";
-                OnCallbackException(args);
-            }
+            ConsumerDispatcher.HandleBasicCancel(consumer, consumerTag);
         }
 
         public void HandleBasicCancelOk(string consumerTag)
@@ -720,19 +722,7 @@ namespace RabbitMQ.Client.Impl
                 k.m_consumer = m_consumers[consumerTag];
                 m_consumers.Remove(consumerTag);
             }
-            try
-            {
-                k.m_consumer.HandleBasicCancelOk(consumerTag);
-            }
-            catch (Exception e)
-            {
-                // FIXME: should we propagate the exception to the
-                // caller of BasicCancel?
-                var args = new CallbackExceptionEventArgs(e);
-                args.Detail["consumer"] = k.m_consumer;
-                args.Detail["context"] = "HandleBasicCancelOk";
-                OnCallbackException(args);
-            }
+            ConsumerDispatcher.HandleBasicCancelOk(k.m_consumer, consumerTag);
             k.HandleCommand(null); // release the continuation.
         }
 
@@ -745,19 +735,7 @@ namespace RabbitMQ.Client.Impl
             {
                 m_consumers[consumerTag] = k.m_consumer;
             }
-            try
-            {
-                k.m_consumer.HandleBasicConsumeOk(consumerTag);
-            }
-            catch (Exception e)
-            {
-                // FIXME: should we propagate the exception to the
-                // caller of BasicConsume?
-                var args = new CallbackExceptionEventArgs(e);
-                args.Detail["consumer"] = k.m_consumer;
-                args.Detail["context"] = "HandleBasicConsumeOk";
-                OnCallbackException(args);
-            }
+            ConsumerDispatcher.HandleBasicConsumeOk(k.m_consumer, consumerTag);
             k.HandleCommand(null); // release the continuation.
         }
 
@@ -788,23 +766,14 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            try
-            {
-                consumer.HandleBasicDeliver(consumerTag,
+            ConsumerDispatcher.HandleBasicDeliver(consumer,
+                    consumerTag,
                     deliveryTag,
                     redelivered,
                     exchange,
                     routingKey,
                     basicProperties,
                     body);
-            }
-            catch (Exception e)
-            {
-                var args = new CallbackExceptionEventArgs(e);
-                args.Detail["consumer"] = consumer;
-                args.Detail["context"] = "HandleBasicDeliver";
-                OnCallbackException(args);
-            }
         }
 
         public void HandleBasicGetEmpty()
@@ -1057,8 +1026,11 @@ namespace RabbitMQ.Client.Impl
             ushort methodId);
 
         public abstract void _Private_ChannelCloseOk();
+
         public abstract void _Private_ChannelFlowOk(bool active);
+
         public abstract void _Private_ChannelOpen(string outOfBand);
+
         public abstract void _Private_ConfirmSelect(bool nowait);
 
         public abstract void _Private_ConnectionClose(ushort replyCode,
@@ -1140,12 +1112,16 @@ namespace RabbitMQ.Client.Impl
 
         public void BasicCancel(string consumerTag)
         {
-            var k = new BasicConsumerRpcContinuation {m_consumerTag = consumerTag};
+            var k = new BasicConsumerRpcContinuation { m_consumerTag = consumerTag };
 
             Enqueue(k);
 
             _Private_BasicCancel(consumerTag, false);
             k.GetReply();
+            lock (m_consumers)
+            {
+                m_consumers.Remove(consumerTag);
+            }
 
             ModelShutdown -= k.m_consumer.HandleModelShutdown;
         }
@@ -1483,7 +1459,9 @@ namespace RabbitMQ.Client.Impl
             IDictionary<string, object> arguments);
 
         public abstract void TxCommit();
+
         public abstract void TxRollback();
+
         public abstract void TxSelect();
 
         public bool WaitForConfirms(TimeSpan timeout, out bool timedOut)
@@ -1605,7 +1583,6 @@ namespace RabbitMQ.Client.Impl
             k.GetReply();
             return k.m_result;
         }
-
 
         public class BasicConsumerRpcContinuation : SimpleBlockingRpcContinuation
         {

@@ -1,4 +1,4 @@
-// This source code is dual-licensed under the Apache License, version
+﻿// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 1.1.
 //
 // The APL v2.0:
@@ -39,43 +39,39 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Threading;
-using NUnit.Framework;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
-using RabbitMQ.Client.Impl;
-
-namespace RabbitMQ.Client.Unit
+namespace RabbitMQ.Client.Impl
 {
-    [TestFixture]
-    public class TestConnectionShutdown : IntegrationFixture
+    public interface IConsumerDispatcher
     {
-        [Test]
-        public void TestShutdownSignalPropagationToChannels()
-        {
-            var latch = new ManualResetEvent(false);
+        bool IsShutdown { get; }
 
-            this.Model.ModelShutdown += (model, args) => {
-                latch.Set();
-            };
-            Conn.Close();
+        void HandleBasicConsumeOk(IBasicConsumer consumer,
+                             string consumerTag);
 
-            Wait(latch, TimeSpan.FromSeconds(3));
-        }
+        void HandleBasicDeliver(IBasicConsumer consumer,
+                            string consumerTag,
+                            ulong deliveryTag,
+                            bool redelivered,
+                            string exchange,
+                            string routingKey,
+                            IBasicProperties basicProperties,
+                            byte[] body);
 
-        [Test]
-        public void TestConsumerDispatcherShutdown()
-        {
-            var m = (ModelBase)Model;
-            var latch = new ManualResetEvent(false);
+        void HandleBasicCancelOk(IBasicConsumer consumer,
+                            string consumerTag);
 
-            this.Model.ModelShutdown += (model, args) =>
-            {
-                latch.Set();
-            };
-            Assert.IsFalse(m.ConsumerDispatcher.IsShutdown, "dispatcher should NOT be shut down before Close");
-            Conn.Close();
-            Wait(latch, TimeSpan.FromSeconds(3));
-            Assert.IsTrue(m.ConsumerDispatcher.IsShutdown, "dispatcher should be shut down after Close");
-        }
+        void HandleBasicCancel(IBasicConsumer consumer,
+                          string consumerTag);
+
+        void HandleModelShutdown(IBasicConsumer consumer,
+            ShutdownEventArgs reason);
+
+        void Quiesce();
+
+        void Shutdown();
     }
 }

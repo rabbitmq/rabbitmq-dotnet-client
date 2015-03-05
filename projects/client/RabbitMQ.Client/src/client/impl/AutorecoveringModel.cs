@@ -71,6 +71,10 @@ namespace RabbitMQ.Client.Impl
         protected bool usesPublisherConfirms = false;
         protected bool usesTransactions = false;
         private EventHandler<EventArgs> m_recovery;
+        public IConsumerDispatcher ConsumerDispatcher
+        {
+            get { return m_delegate.ConsumerDispatcher; }
+        }
 
         public AutorecoveringModel(AutorecoveringConnection conn, RecoveryAwareModel _delegate)
         {

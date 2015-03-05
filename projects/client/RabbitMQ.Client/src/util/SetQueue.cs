@@ -1,4 +1,4 @@
-// This source code is dual-licensed under the Apache License, version
+﻿// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 1.1.
 //
 // The APL v2.0:
@@ -39,43 +39,58 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Threading;
-using NUnit.Framework;
+using System.Collections.Generic;
 
-using RabbitMQ.Client.Impl;
-
-namespace RabbitMQ.Client.Unit
+namespace RabbitMQ.Util
 {
-    [TestFixture]
-    public class TestConnectionShutdown : IntegrationFixture
+    public class SetQueue<T>
     {
-        [Test]
-        public void TestShutdownSignalPropagationToChannels()
+        private HashSet<T> members = new HashSet<T>();
+        private LinkedList<T> queue = new LinkedList<T>();
+
+        public bool Enqueue(T item)
         {
-            var latch = new ManualResetEvent(false);
-
-            this.Model.ModelShutdown += (model, args) => {
-                latch.Set();
-            };
-            Conn.Close();
-
-            Wait(latch, TimeSpan.FromSeconds(3));
+            if(this.members.Contains(item))
+            {
+                return false;
+            }
+            this.members.Add(item);
+            this.queue.AddLast(item);
+            return true;
         }
 
-        [Test]
-        public void TestConsumerDispatcherShutdown()
+        public T Dequeue()
         {
-            var m = (ModelBase)Model;
-            var latch = new ManualResetEvent(false);
-
-            this.Model.ModelShutdown += (model, args) =>
+            if (this.queue.Count == 0)
             {
-                latch.Set();
-            };
-            Assert.IsFalse(m.ConsumerDispatcher.IsShutdown, "dispatcher should NOT be shut down before Close");
-            Conn.Close();
-            Wait(latch, TimeSpan.FromSeconds(3));
-            Assert.IsTrue(m.ConsumerDispatcher.IsShutdown, "dispatcher should be shut down after Close");
+                return default(T);
+            }
+            T item = this.queue.First.Value;
+            this.queue.RemoveFirst();
+            this.members.Remove(item);
+            return item;
+        }
+
+        public bool Contains(T item)
+        {
+            return this.members.Contains(item);
+        }
+
+        public bool IsEmpty()
+        {
+            return this.members.Count == 0;
+        }
+
+        public bool Remove(T item)
+        {
+            this.queue.Remove(item);
+            return this.members.Remove(item);
+        }
+
+        public void Clear()
+        {
+            this.queue.Clear();
+            this.members.Clear();
         }
     }
 }

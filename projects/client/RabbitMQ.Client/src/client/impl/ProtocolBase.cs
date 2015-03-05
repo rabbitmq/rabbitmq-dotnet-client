@@ -149,5 +149,10 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             return new Model(session);
         }
+
+        public IModel CreateModel(ISession session, ConsumerWorkService workService)
+        {
+            return new Model(session, workService);
+        }
     }
 }

@@ -38,6 +38,10 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Impl;
+using RabbitMQ.Util;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -46,11 +50,6 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Client.Impl;
-using RabbitMQ.Client.Framing;
-using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -95,12 +94,15 @@ namespace RabbitMQ.Client.Framing.Impl
         private Timer _heartbeatReadTimer;
         private Timer _heartbeatWriteTimer;
 
+        public ConsumerWorkService ConsumerWorkService { get; private set; }
+
         public Connection(IConnectionFactory factory, bool insist, IFrameHandler frameHandler)
         {
             KnownHosts = null;
             FrameMax = 0;
             m_factory = factory;
             m_frameHandler = frameHandler;
+            this.ConsumerWorkService = new ConsumerWorkService(factory.TaskScheduler);
 
             m_sessionManager = new SessionManager(this, 0);
             m_session0 = new MainSession(this) { Handler = NotifyReceivedCloseOk };
@@ -801,9 +803,11 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                     catch (Exception e)
                     {
-                        var cee_args = new CallbackExceptionEventArgs(e);
-                        cee_args.Detail["context"] = "OnConnectionBlocked";
-                        OnCallbackException(cee_args);
+                        OnCallbackException(CallbackExceptionEventArgs.Build(e,
+                            new Dictionary<string, object>
+                            {
+                                {"context", "OnConnectionBlocked"}
+                            }));
                     }
                 }
             }
@@ -826,9 +830,11 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                     catch (Exception e)
                     {
-                        var args = new CallbackExceptionEventArgs(e);
-                        args.Detail["context"] = "OnConnectionUnblocked";
-                        OnCallbackException(args);
+                        OnCallbackException(CallbackExceptionEventArgs.Build(e,
+                            new Dictionary<string, object>
+                            {
+                                {"context", "OnConnectionUnblocked"}
+                            }));
                     }
                 }
             }
@@ -855,9 +861,11 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                     catch (Exception e)
                     {
-                        var args = new CallbackExceptionEventArgs(e);
-                        args.Detail["context"] = "OnShutdown";
-                        OnCallbackException(args);
+                        OnCallbackException(CallbackExceptionEventArgs.Build(e,
+                            new Dictionary<string, object>
+                            {
+                                {"context", "OnShutdown"}
+                            }));
                     }
                 }
             }
@@ -1051,7 +1059,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             EnsureIsOpen();
             ISession session = CreateSession();
-            var model = (IFullModel)Protocol.CreateModel(session);
+            var model = (IFullModel)Protocol.CreateModel(session, this.ConsumerWorkService);
             model._Private_ChannelOpen("");
             return model;
         }

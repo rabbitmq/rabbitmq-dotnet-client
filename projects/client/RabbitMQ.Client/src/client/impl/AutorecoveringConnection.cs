@@ -236,6 +236,11 @@ namespace RabbitMQ.Client.Framing.Impl
             get { return m_delegate.ChannelMax; }
         }
 
+        public ConsumerWorkService ConsumerWorkService
+        {
+            get { return m_delegate.ConsumerWorkService; }
+        }
+
         public IDictionary<string, object> ClientProperties
         {
             get { return m_delegate.ClientProperties; }

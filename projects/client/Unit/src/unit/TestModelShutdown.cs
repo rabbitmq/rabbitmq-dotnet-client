@@ -1,4 +1,4 @@
-// This source code is dual-licensed under the Apache License, version
+﻿// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 1.1.
 //
 // The APL v2.0:
@@ -38,30 +38,16 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using NUnit.Framework;
+using RabbitMQ.Client.Impl;
 using System;
 using System.Threading;
-using NUnit.Framework;
-
-using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestConnectionShutdown : IntegrationFixture
+    internal class TestModelShutdown : IntegrationFixture
     {
-        [Test]
-        public void TestShutdownSignalPropagationToChannels()
-        {
-            var latch = new ManualResetEvent(false);
-
-            this.Model.ModelShutdown += (model, args) => {
-                latch.Set();
-            };
-            Conn.Close();
-
-            Wait(latch, TimeSpan.FromSeconds(3));
-        }
-
         [Test]
         public void TestConsumerDispatcherShutdown()
         {
@@ -73,7 +59,7 @@ namespace RabbitMQ.Client.Unit
                 latch.Set();
             };
             Assert.IsFalse(m.ConsumerDispatcher.IsShutdown, "dispatcher should NOT be shut down before Close");
-            Conn.Close();
+            Model.Close();
             Wait(latch, TimeSpan.FromSeconds(3));
             Assert.IsTrue(m.ConsumerDispatcher.IsShutdown, "dispatcher should be shut down after Close");
         }

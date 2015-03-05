@@ -38,11 +38,13 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client;
+using RabbitMQ.Client.Apigen.Attributes;
+using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Impl;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using RabbitMQ.Client.Apigen.Attributes;
-using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client
 {
@@ -56,6 +58,11 @@ namespace RabbitMQ.Client
     /// </remarks>
     public interface IModel : IDisposable
     {
+        /// <summary>
+        /// Channel number, unique per connections.
+        /// </summary>
+        int ChannelNumber { get; }
+
         /// <summary>
         /// Returns null if the session is still in a state where it can be used,
         /// or the cause of its closure otherwise.
@@ -445,7 +452,7 @@ namespace RabbitMQ.Client
         void QueueBind(string queue, string exchange, string routingKey);
 
         /// <summary>Same as QueueBind but sets nowait parameter to true.</summary>
-        void QueueBindNoWait(string queue, string exchange,  string routingKey, IDictionary<string, object> arguments);
+        void QueueBindNoWait(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
 
         /// <summary>(Spec method) Declare a queue.</summary>
         /// <remarks>

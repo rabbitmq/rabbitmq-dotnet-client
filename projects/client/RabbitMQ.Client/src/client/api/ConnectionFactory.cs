@@ -41,6 +41,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Security;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Impl;
@@ -184,10 +185,17 @@ namespace RabbitMQ.Client
         public bool TopologyRecoveryEnabled = true;
 
         /// <summary>
+        /// Task scheduler connections created by this factory will use when
+        /// dispatching consumer operations, such as message deliveries.
+        /// </summary>
+        public TaskScheduler TaskScheduler { get; set; }
+
+        /// <summary>
         /// Construct a fresh instance, with all fields set to their respective defaults.
         /// </summary>
         public ConnectionFactory()
         {
+            this.TaskScheduler = TaskScheduler.Default;
             VirtualHost = DefaultVHost;
             UserName = DefaultUser;
             RequestedHeartbeat = DefaultHeartbeat;
@@ -254,7 +262,7 @@ namespace RabbitMQ.Client
         public ushort RequestedHeartbeat { get; set; }
 
         /// <summary>
-        /// When set to true, background threads will be used for I/O and heartbeats.
+        /// When set to true, background thread will be used for the I/O loop.
         /// </summary>
         public bool UseBackgroundThreadsForIO { get; set; }
 
