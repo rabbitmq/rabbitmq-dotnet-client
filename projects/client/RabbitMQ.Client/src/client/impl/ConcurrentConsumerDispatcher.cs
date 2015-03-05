@@ -1,12 +1,10 @@
-﻿using System;
+﻿using RabbitMQ.Client.Events;
+using System;
 using System.Collections.Generic;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Impl;
-using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Impl
 {
-    class ConcurrentConsumerDispatcher : IConsumerDispatcher
+    internal class ConcurrentConsumerDispatcher : IConsumerDispatcher
     {
         private ModelBase model;
         private ConsumerWorkService workService;
@@ -49,10 +47,9 @@ namespace RabbitMQ.Client.Impl
                     var details = new Dictionary<string, object>()
                     {
                         {"consumer", consumer},
-                        {"context",  "OnBasicConsumeOk"}
+                        {"context",  "HandleBasicConsumeOk"}
                     };
-                    var args = CallbackExceptionEventArgs.Build(e, details);
-                    model.OnCallbackException(args);
+                    model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
                 }
             });
         }
@@ -83,17 +80,17 @@ namespace RabbitMQ.Client.Impl
                     var details = new Dictionary<string, object>()
                     {
                         {"consumer", consumer},
-                        {"context",  "OnBasicDeliver"}
+                        {"context",  "HandleBasicDeliver"}
                     };
-                    var args = CallbackExceptionEventArgs.Build(e, details);
-                    model.OnCallbackException(args);
+                    model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
                 }
             });
         }
 
         public void HandleBasicCancelOk(IBasicConsumer consumer, string consumerTag)
         {
-            UnlessShuttingDown(() => {
+            UnlessShuttingDown(() =>
+            {
                 try
                 {
                     consumer.HandleBasicCancelOk(consumerTag);
@@ -103,10 +100,9 @@ namespace RabbitMQ.Client.Impl
                     var details = new Dictionary<string, object>()
                     {
                         {"consumer", consumer},
-                        {"context",  "OnBasicCancelOk"}
+                        {"context",  "HandleBasicCancelOk"}
                     };
-                    var args = CallbackExceptionEventArgs.Build(e, details);
-                    model.OnCallbackException(args);
+                    model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
                 }
             });
         }
@@ -124,17 +120,34 @@ namespace RabbitMQ.Client.Impl
                     var details = new Dictionary<string, object>()
                     {
                         {"consumer", consumer},
-                        {"context",  "OnBasicCancel"}
+                        {"context",  "HandleBasicCancel"}
                     };
-                    var args = CallbackExceptionEventArgs.Build(e, details);
-                    model.OnCallbackException(args);
+                    model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
                 }
             });
         }
 
+        public void HandleModelShutdown(IBasicConsumer consumer, ShutdownEventArgs reason)
+        {
+            // the only case where we ignore the shutdown flag.
+            try
+            {
+                consumer.HandleModelShutdown(model, reason);
+            }
+            catch (Exception e)
+            {
+                var details = new Dictionary<string, object>()
+                    {
+                        {"consumer", consumer},
+                        {"context",  "HandleModelShutdown"}
+                    };
+                model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
+            };
+        }
+
         private void UnlessShuttingDown(Action fn)
         {
-            if(!this.IsShutdown)
+            if (!this.IsShutdown)
             {
                 Execute(fn);
             }

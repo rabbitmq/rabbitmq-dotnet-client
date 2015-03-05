@@ -632,7 +632,16 @@ namespace RabbitMQ.Client.Impl
             this.ConsumerDispatcher.Quiesce();
             SetCloseReason(reason);
             OnModelShutdown(reason);
+            BroadcastShutdownToConsumers(m_consumers, reason);
             this.ConsumerDispatcher.Shutdown();
+        }
+
+        protected void BroadcastShutdownToConsumers(IDictionary<string, IBasicConsumer> cs, ShutdownEventArgs reason)
+        {
+            foreach (var c in cs)
+            {
+                this.ConsumerDispatcher.HandleModelShutdown(c.Value, reason);
+            }
         }
 
         public bool SetCloseReason(ShutdownEventArgs reason)
@@ -1109,6 +1118,10 @@ namespace RabbitMQ.Client.Impl
 
             _Private_BasicCancel(consumerTag, false);
             k.GetReply();
+            lock (m_consumers)
+            {
+                m_consumers.Remove(consumerTag);
+            }
 
             ModelShutdown -= k.m_consumer.HandleModelShutdown;
         }

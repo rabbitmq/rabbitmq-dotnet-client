@@ -1,8 +1,8 @@
-﻿using System;
+﻿using RabbitMQ.Util;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using RabbitMQ.Util;
 
 namespace RabbitMQ.Client
 {
@@ -14,7 +14,7 @@ namespace RabbitMQ.Client
         private int shutdownTimeout;
 
         public ConsumerWorkService() :
-            this(TaskScheduler.Default) {}
+            this(TaskScheduler.Default) { }
 
         public ConsumerWorkService(TaskScheduler scheduler)
         {
@@ -59,7 +59,7 @@ namespace RabbitMQ.Client
 
         public void AddWork(IModel model, Action fn)
         {
-            if(this.workPool.AddWorkItem(model, fn))
+            if (this.workPool.AddWorkItem(model, fn))
             {
                 var t = new Task(new Action(ExecuteThunk));
                 t.Start();

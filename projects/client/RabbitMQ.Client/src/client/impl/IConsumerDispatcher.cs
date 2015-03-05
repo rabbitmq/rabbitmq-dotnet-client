@@ -67,6 +67,9 @@ namespace RabbitMQ.Client.Impl
         void HandleBasicCancel(IBasicConsumer consumer,
                           string consumerTag);
 
+        void HandleModelShutdown(IBasicConsumer consumer,
+            ShutdownEventArgs reason);
+
         void Quiesce();
 
         void Shutdown();
