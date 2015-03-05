@@ -4,7 +4,7 @@
     <id>RabbitMQ.Client</id>
     <version>$version$</version>
     <title>RabbitMQ.Client</title>
-    <authors>Pivotal,joefitzgerald</authors>
+    <authors>The RabbitMQ Team</authors>
     <owners>Pivotal</owners>
     <projectUrl>http://www.rabbitmq.com/dotnet.html</projectUrl>
     <licenseUrl>http://www.rabbitmq.com/dotnet.html</licenseUrl>
