@@ -41,48 +41,79 @@
 using System;
 using System.IO;
 using System.Net.Sockets;
-
-using RabbitMQ.Util;
 using RabbitMQ.Client.Exceptions;
-
+using RabbitMQ.Util;
 using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Impl
 {
     public class Frame
     {
-        public int m_type;
-        public int m_channel;
-        public byte[] m_payload;
-
-        public int Type { get { return m_type; } }
-        public int Channel { get { return m_channel; } }
-        public byte[] Payload { get { return m_payload; } }
-
         public MemoryStream m_accumulator;
 
-        public Frame() { }
+        public Frame()
+        {
+        }
 
         public Frame(int type, int channel)
         {
-            m_type = type;
-            m_channel = channel;
-            m_payload = null;
+            Type = type;
+            Channel = channel;
+            Payload = null;
             m_accumulator = new MemoryStream();
         }
 
         public Frame(int type, int channel, byte[] payload)
         {
-            m_type = type;
-            m_channel = channel;
-            m_payload = payload;
+            Type = type;
+            Channel = channel;
+            Payload = payload;
             m_accumulator = null;
+        }
+
+        public int Channel { get; set; }
+
+        public byte[] Payload { get; set; }
+
+        public int Type { get; set; }
+
+        public static void ProcessProtocolHeader(NetworkBinaryReader reader)
+        {
+            try
+            {
+                byte b1 = reader.ReadByte();
+                byte b2 = reader.ReadByte();
+                byte b3 = reader.ReadByte();
+                if (b1 != 'M' || b2 != 'Q' || b3 != 'P')
+                {
+                    throw new MalformedFrameException("Invalid AMQP protocol header from server");
+                }
+
+                int transportHigh = reader.ReadByte();
+                int transportLow = reader.ReadByte();
+                int serverMajor = reader.ReadByte();
+                int serverMinor = reader.ReadByte();
+                throw new PacketNotRecognizedException(transportHigh,
+                    transportLow,
+                    serverMajor,
+                    serverMinor);
+            }
+            catch (EndOfStreamException)
+            {
+                // Ideally we'd wrap the EndOfStreamException in the
+                // MalformedFrameException, but unfortunately the
+                // design of MalformedFrameException's superclass,
+                // ProtocolViolationException, doesn't permit
+                // this. Fortunately, the call stack in the
+                // EndOfStreamException is largely irrelevant at this
+                // point, so can safely be ignored.
+                throw new MalformedFrameException("Invalid AMQP protocol header from server");
+            }
         }
 
         public static Frame ReadFrom(NetworkBinaryReader reader)
         {
             int type;
-            int channel;
 
             try
             {
@@ -96,7 +127,9 @@ namespace RabbitMQ.Client.Impl
                 if (ioe.InnerException == null ||
                     !(ioe.InnerException is SocketException) ||
                     ((SocketException)ioe.InnerException).SocketErrorCode != SocketError.TimedOut)
+                {
                     throw ioe;
+                }
                 throw ioe.InnerException;
             }
 
@@ -106,7 +139,7 @@ namespace RabbitMQ.Client.Impl
                 ProcessProtocolHeader(reader);
             }
 
-            channel = reader.ReadUInt16();
+            int channel = reader.ReadUInt16();
             int payloadSize = reader.ReadInt32(); // FIXME - throw exn on unreasonable value
             byte[] payload = reader.ReadBytes(payloadSize);
             if (payload.Length != payloadSize)
@@ -126,62 +159,18 @@ namespace RabbitMQ.Client.Impl
             return new Frame(type, channel, payload);
         }
 
-        public static void ProcessProtocolHeader(NetworkBinaryReader reader)
-        {
-            try
-            {
-                byte b1 = reader.ReadByte();
-                byte b2 = reader.ReadByte();
-                byte b3 = reader.ReadByte();
-                if (b1 != 'M' || b2 != 'Q' || b3 != 'P')
-                {
-                    throw new MalformedFrameException("Invalid AMQP protocol header from server");
-                }
-
-                int transportHigh = reader.ReadByte();
-                int transportLow = reader.ReadByte();
-                int serverMajor = reader.ReadByte();
-                int serverMinor = reader.ReadByte();
-                throw new PacketNotRecognizedException(transportHigh,
-                                                       transportLow,
-                                                       serverMajor,
-                                                       serverMinor);
-            }
-            catch (EndOfStreamException)
-            {
-                // Ideally we'd wrap the EndOfStreamException in the
-                // MalformedFrameException, but unfortunately the
-                // design of MalformedFrameException's superclass,
-                // ProtocolViolationException, doesn't permit
-                // this. Fortunately, the call stack in the
-                // EndOfStreamException is largely irrelevant at this
-                // point, so can safely be ignored.
-                throw new MalformedFrameException("Invalid AMQP protocol header from server");
-            }
-        }
-
         public void FinishWriting()
         {
             if (m_accumulator != null)
             {
-                m_payload = m_accumulator.ToArray();
+                Payload = m_accumulator.ToArray();
                 m_accumulator = null;
             }
         }
 
-        public void WriteTo(NetworkBinaryWriter writer)
-        {
-            FinishWriting();
-            writer.Write((byte) m_type);
-            writer.Write((ushort) m_channel);
-            writer.Write((uint) m_payload.Length);
-            writer.Write((byte[]) m_payload);
-            writer.Write((byte) Constants.FrameEnd);
-        }
-
         public NetworkBinaryReader GetReader()
         {
-            return new NetworkBinaryReader(new MemoryStream(m_payload));
+            return new NetworkBinaryReader(new MemoryStream(Payload));
         }
 
         public NetworkBinaryWriter GetWriter()
@@ -192,11 +181,21 @@ namespace RabbitMQ.Client.Impl
         public override string ToString()
         {
             return base.ToString() + string.Format("(type={0}, channel={1}, {2} bytes of payload)",
-                                                   Type,
-                                                   Channel,
-                                                   Payload == null
-                                                     ? "(null)"
-                                                     : Payload.Length.ToString());
+                Type,
+                Channel,
+                Payload == null
+                    ? "(null)"
+                    : Payload.Length.ToString());
+        }
+
+        public void WriteTo(NetworkBinaryWriter writer)
+        {
+            FinishWriting();
+            writer.Write((byte)Type);
+            writer.Write((ushort)Channel);
+            writer.Write((uint)Payload.Length);
+            writer.Write(Payload);
+            writer.Write((byte)Constants.FrameEnd);
         }
     }
 }

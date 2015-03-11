@@ -62,7 +62,7 @@ namespace RabbitMQ.Client.Unit
 
         public int ModelNumber(IModel model)
         {
-            return ((ModelBase)model).m_session.ChannelNumber;
+            return ((ModelBase)model).Session.ChannelNumber;
         }
 
         [SetUp] public void Connect()
@@ -107,7 +107,7 @@ namespace RabbitMQ.Client.Unit
             Assert.AreEqual(1, callbackCount);
         }
 
-        void IncrCallback(IModel model, EventArgs args)
+        void IncrCallback(object sender, EventArgs args)
         {
             callbackCount++;
         }

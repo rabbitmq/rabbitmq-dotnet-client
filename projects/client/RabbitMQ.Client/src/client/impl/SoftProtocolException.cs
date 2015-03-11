@@ -44,13 +44,14 @@ namespace RabbitMQ.Client.Impl
 {
     ///<summary>Subclass of ProtocolException representing problems
     ///requiring a channel.close.</summary>
-    public abstract class SoftProtocolException: ProtocolException {
-        private readonly int m_channelNumber;
-        public int Channel { get { return m_channelNumber; } }
+    public abstract class SoftProtocolException : ProtocolException
+    {
         protected SoftProtocolException(int channelNumber, string message)
             : base(message)
         {
-            m_channelNumber = channelNumber;
+            Channel = channelNumber;
         }
+
+        public int Channel { get; private set; }
     }
 }

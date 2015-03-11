@@ -39,7 +39,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-
 using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Impl
@@ -51,14 +50,20 @@ namespace RabbitMQ.Client.Impl
     {
         public Frame m_frame;
 
-        public Frame Frame { get { return m_frame; } }
-
         public UnexpectedFrameException(Frame frame)
             : base("A frame of this type was not expected at this time")
         {
             m_frame = frame;
         }
 
-        public override ushort ReplyCode { get { return Constants.CommandInvalid; } }
+        public Frame Frame
+        {
+            get { return m_frame; }
+        }
+
+        public override ushort ReplyCode
+        {
+            get { return Constants.CommandInvalid; }
+        }
     }
 }

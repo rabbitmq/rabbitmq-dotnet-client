@@ -41,120 +41,103 @@
 using System;
 using System.Collections.Generic;
 
-using RabbitMQ.Client;
-using RabbitMQ.Client.Framing;
-using RabbitMQ.Client.Framing.Impl;
-
 namespace RabbitMQ.Client.Impl
 {
     public abstract class RecordedBinding : RecordedEntity
     {
-        protected string source;
-        protected string destination;
-        protected string routingKey;
-        protected IDictionary<string, object> arguments;
-
-        public RecordedBinding(AutorecoveringModel model) : base(model) {}
-
-        public string Source
+        public RecordedBinding(AutorecoveringModel model) : base(model)
         {
-            get { return this.source; }
         }
 
-        public string Destination
-        {
-            get { return this.destination; }
-            set { this.destination = value; }
-        }
-
-        public string RoutingKey
-        {
-            get { return this.routingKey; }
-        }
-
-        public IDictionary<string, object> Arguments
-        {
-            get { return this.arguments; }
-        }
-
-        public RecordedBinding WithSource(string value)
-        {
-            this.source = value;
-            return this;
-        }
-
-        public RecordedBinding WithDestination(string value)
-        {
-            this.destination = value;
-            return this;
-        }
-
-        public RecordedBinding WithRoutingKey(string value)
-        {
-            this.routingKey = value;
-            return this;
-        }
-
-        public RecordedBinding WithArguments(IDictionary<string, object> value)
-        {
-            this.arguments = value;
-            return this;
-        }
+        public IDictionary<string, object> Arguments { get; protected set; }
+        public string Destination { get; set; }
+        public string RoutingKey { get; protected set; }
+        public string Source { get; protected set; }
 
         public bool Equals(RecordedBinding other)
         {
-            if (Object.ReferenceEquals(other, null))
+            if (ReferenceEquals(other, null))
             {
                 return false;
             }
 
-            if (Object.ReferenceEquals(this, other))
+            if (ReferenceEquals(this, other))
             {
                 return true;
             }
 
-            return (this.Source.Equals(other.Source)) &&
-                (this.Destination.Equals(other.Destination)) &&
-                (this.RoutingKey.Equals(other.RoutingKey)) &&
-                (this.arguments == other.arguments);
+            return (Source.Equals(other.Source)) &&
+                   (Destination.Equals(other.Destination)) &&
+                   (RoutingKey.Equals(other.RoutingKey)) &&
+                   (Arguments == other.Arguments);
         }
-
-        public virtual void Recover() {}
 
         public override int GetHashCode()
         {
-            return source.GetHashCode() ^
-                destination.GetHashCode() ^
-                routingKey.GetHashCode() ^
-                (arguments != null ? arguments.GetHashCode() : 0);
+            return Source.GetHashCode() ^
+                   Destination.GetHashCode() ^
+                   RoutingKey.GetHashCode() ^
+                   (Arguments != null ? Arguments.GetHashCode() : 0);
+        }
+
+        public virtual void Recover()
+        {
         }
 
         public override string ToString()
         {
             return String.Format("{0}: source = '{1}', destination = '{2}', routingKey = '{3}', arguments = '{4}'",
-                                 this.GetType().Name, source, destination, routingKey, arguments);
+                GetType().Name, Source, Destination, RoutingKey, Arguments);
+        }
+
+        public RecordedBinding WithArguments(IDictionary<string, object> value)
+        {
+            Arguments = value;
+            return this;
+        }
+
+        public RecordedBinding WithDestination(string value)
+        {
+            Destination = value;
+            return this;
+        }
+
+        public RecordedBinding WithRoutingKey(string value)
+        {
+            RoutingKey = value;
+            return this;
+        }
+
+        public RecordedBinding WithSource(string value)
+        {
+            Source = value;
+            return this;
         }
     }
+
 
     public class RecordedQueueBinding : RecordedBinding
     {
-        public RecordedQueueBinding(AutorecoveringModel model) : base(model) {}
+        public RecordedQueueBinding(AutorecoveringModel model) : base(model)
+        {
+        }
 
         public override void Recover()
         {
-            this.ModelDelegate.QueueBind(this.destination, this.source,
-                                         this.routingKey, this.arguments);
+            ModelDelegate.QueueBind(Destination, Source, RoutingKey, Arguments);
         }
     }
 
+
     public class RecordedExchangeBinding : RecordedBinding
     {
-        public RecordedExchangeBinding(AutorecoveringModel model) : base(model) {}
+        public RecordedExchangeBinding(AutorecoveringModel model) : base(model)
+        {
+        }
 
         public override void Recover()
         {
-            this.ModelDelegate.ExchangeBind(this.destination, this.source,
-                                            this.routingKey, this.arguments);
+            ModelDelegate.ExchangeBind(Destination, Source, RoutingKey, Arguments);
         }
     }
 }

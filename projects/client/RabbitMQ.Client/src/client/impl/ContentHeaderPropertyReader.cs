@@ -40,51 +40,27 @@
 
 using System;
 using System.Collections.Generic;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
     public class ContentHeaderPropertyReader
     {
-        private NetworkBinaryReader m_reader;
-
-        public NetworkBinaryReader BaseReader { get { return m_reader; } }
-
-        protected ushort m_flagWord;
         protected ushort m_bitCount;
+        protected ushort m_flagWord;
 
         public ContentHeaderPropertyReader(NetworkBinaryReader reader)
         {
-            m_reader = reader;
+            BaseReader = reader;
             m_flagWord = 1; // just the continuation bit
             m_bitCount = 15; // the correct position to force a m_flagWord read
         }
 
-        public bool ContinuationBitSet { get { return ((m_flagWord & 1) != 0); } }
+        public NetworkBinaryReader BaseReader { get; private set; }
 
-        public void ReadFlagWord()
+        public bool ContinuationBitSet
         {
-            if (!ContinuationBitSet)
-            {
-                throw new MalformedFrameException("Attempted to read flag word when none advertised");
-            }
-            m_flagWord = m_reader.ReadUInt16();
-            m_bitCount = 0;
-        }
-
-        public bool ReadPresence()
-        {
-            if (m_bitCount == 15)
-            {
-                ReadFlagWord();
-            }
-
-            int bit = 15 - m_bitCount;
-            bool result = (m_flagWord & (1 << bit)) != 0;
-            m_bitCount++;
-            return result;
+            get { return ((m_flagWord & 1) != 0); }
         }
 
         public void FinishPresence()
@@ -100,45 +76,68 @@ namespace RabbitMQ.Client.Impl
             return ReadPresence();
         }
 
-        public byte ReadOctet()
+        public void ReadFlagWord()
         {
-            return WireFormatting.ReadOctet(m_reader);
-        }
-
-        public string ReadShortstr()
-        {
-            return WireFormatting.ReadShortstr(m_reader);
-        }
-
-        public byte[] ReadLongstr()
-        {
-            return WireFormatting.ReadLongstr(m_reader);
-        }
-
-        public ushort ReadShort()
-        {
-            return WireFormatting.ReadShort(m_reader);
+            if (!ContinuationBitSet)
+            {
+                throw new MalformedFrameException("Attempted to read flag word when none advertised");
+            }
+            m_flagWord = BaseReader.ReadUInt16();
+            m_bitCount = 0;
         }
 
         public uint ReadLong()
         {
-            return WireFormatting.ReadLong(m_reader);
+            return WireFormatting.ReadLong(BaseReader);
         }
 
         public ulong ReadLonglong()
         {
-            return WireFormatting.ReadLonglong(m_reader);
+            return WireFormatting.ReadLonglong(BaseReader);
+        }
+
+        public byte[] ReadLongstr()
+        {
+            return WireFormatting.ReadLongstr(BaseReader);
+        }
+
+        public byte ReadOctet()
+        {
+            return WireFormatting.ReadOctet(BaseReader);
+        }
+
+        public bool ReadPresence()
+        {
+            if (m_bitCount == 15)
+            {
+                ReadFlagWord();
+            }
+
+            int bit = 15 - m_bitCount;
+            bool result = (m_flagWord & (1 << bit)) != 0;
+            m_bitCount++;
+            return result;
+        }
+
+        public ushort ReadShort()
+        {
+            return WireFormatting.ReadShort(BaseReader);
+        }
+
+        public string ReadShortstr()
+        {
+            return WireFormatting.ReadShortstr(BaseReader);
         }
 
         /// <returns>A type of <seealso cref="System.Collections.Generic.IDictionary{TKey,TValue}"/>.</returns>
         public IDictionary<string, object> ReadTable()
         {
-            return WireFormatting.ReadTable(m_reader);
+            return WireFormatting.ReadTable(BaseReader);
         }
 
         public AmqpTimestamp ReadTimestamp()
         {
-            return WireFormatting.ReadTimestamp(m_reader);
+            return WireFormatting.ReadTimestamp(BaseReader);
         }
     }
 }

@@ -39,24 +39,22 @@
 //---------------------------------------------------------------------------
 
 using System;
-
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
-
-using RabbitMQ.Client.Framing;
 using RabbitMQ.Client.Framing.Impl;
+using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Impl
 {
     ///<summary>Small ISession implementation used during channel quiescing.</summary>
-    public class QuiescingSession: SessionBase
+    public class QuiescingSession : SessionBase
     {
         public ShutdownEventArgs m_reason;
 
-        public QuiescingSession(RabbitMQ.Client.Framing.Impl.Connection connection,
-                                int channelNumber,
-                                ShutdownEventArgs reason)
+        public QuiescingSession(Connection connection,
+            int channelNumber,
+            ShutdownEventArgs reason)
             : base(connection, channelNumber)
         {
             m_reason = reason;
@@ -64,7 +62,8 @@ namespace RabbitMQ.Client.Impl
 
         public override void HandleFrame(Frame frame)
         {
-            if (frame.Type == Constants.FrameMethod) {
+            if (frame.Type == Constants.FrameMethod)
+            {
                 MethodBase method = Connection.Protocol.DecodeMethodFrom(frame.GetReader());
                 if ((method.ProtocolClassId == ChannelCloseOk.ClassId)
                     && (method.ProtocolMethodId == ChannelCloseOk.MethodId))
@@ -73,7 +72,6 @@ namespace RabbitMQ.Client.Impl
                     // the channel with the reason we were passed in
                     // our constructor.
                     Close(m_reason);
-                    return;
                 }
                 else if ((method.ProtocolClassId == ChannelClose.ClassId)
                          && (method.ProtocolMethodId == ChannelClose.MethodId))
@@ -81,16 +79,15 @@ namespace RabbitMQ.Client.Impl
                     // We're already shutting down the channel, so
                     // just send back an ok.
                     Transmit(CreateChannelCloseOk());
-                    return;
                 }
-
             }
 
             // Either a non-method frame, or not what we were looking
             // for. Ignore it - we're quiescing.
         }
 
-        protected Command CreateChannelCloseOk() {
+        protected Command CreateChannelCloseOk()
+        {
             return new Command(new ConnectionCloseOk());
         }
     }

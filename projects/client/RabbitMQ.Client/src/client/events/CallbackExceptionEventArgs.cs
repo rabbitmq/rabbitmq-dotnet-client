@@ -43,25 +43,32 @@ using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Events
 {
-    public abstract class BaseExceptionEventArgs: EventArgs
+    public abstract class BaseExceptionEventArgs : EventArgs
     {
-        private IDictionary<string, object> m_detail;
-        private Exception m_exception;
-
         ///<summary>Wrap an exception thrown by a callback.</summary>
         public BaseExceptionEventArgs(Exception exception)
         {
-            m_detail = new Dictionary<string, object>();
-            m_exception = exception;
+            Detail = new Dictionary<string, object>();
+            Exception = exception;
         }
 
         ///<summary>Access helpful information about the context in
         ///which the wrapped exception was thrown.</summary>
-        public IDictionary<string, object> Detail { get { return m_detail; } }
+        public IDictionary<string, object> Detail { get; private set; }
 
         ///<summary>Access the wrapped exception.</summary>
-        public Exception Exception { get { return m_exception; } }        
+        public Exception Exception { get; private set; }
+
+        public IDictionary<string, object> UpdateDetails(IDictionary<string, object> other)
+        {
+            foreach (var pair in other)
+            {
+                this.Detail[pair.Key] = pair.Value;
+            }
+            return this.Detail;
+        }
     }
+
 
     ///<summary>Describes an exception that was thrown during the
     ///library's invocation of an application-supplied callback
@@ -83,8 +90,28 @@ namespace RabbitMQ.Client.Events
     /// call in the IDictionary available through the Detail property.
     ///</para>
     ///</remarks>
-    public class CallbackExceptionEventArgs: BaseExceptionEventArgs
+    public class CallbackExceptionEventArgs : BaseExceptionEventArgs
     {
-        public CallbackExceptionEventArgs(Exception e) : base(e) {}
+        public CallbackExceptionEventArgs(Exception e) : base(e)
+        {
+        }
+
+        public static CallbackExceptionEventArgs Build(Exception e,
+                                                       string context)
+        {
+            var details = new Dictionary<string, object>
+            {
+                {"context", context}
+            };
+            return Build(e, details);
+        }
+
+        public static CallbackExceptionEventArgs Build(Exception e,
+                                                       IDictionary<string, object> details)
+        {
+            var exnArgs = new CallbackExceptionEventArgs(e);
+            exnArgs.UpdateDetails(details);
+            return exnArgs;
+        }
     }
 }

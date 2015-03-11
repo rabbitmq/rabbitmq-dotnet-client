@@ -44,6 +44,8 @@ namespace RabbitMQ.Client
 {
     public class TopologyRecoveryException : Exception
     {
-        public TopologyRecoveryException(string message, Exception cause) : base(message, cause) {}
+        public TopologyRecoveryException(string message, Exception cause) : base(message, cause)
+        {
+        }
     }
 }

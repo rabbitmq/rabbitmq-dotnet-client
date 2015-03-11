@@ -50,101 +50,98 @@ namespace RabbitMQ.Util
         private readonly IList<T> list;
         private readonly object root;
 
+        internal SynchronizedList(IList<T> list)
+        {
+            this.list = list;
+            root = new Object();
+        }
+
         public int Count
         {
             get
             {
-                lock (this.root)
-                    return this.list.Count;
+                lock (root)
+                    return list.Count;
             }
         }
 
         public bool IsReadOnly
         {
-            get
-            {
-                return this.list.IsReadOnly;
-            }
+            get { return list.IsReadOnly; }
         }
 
         public T this[int index]
         {
             get
             {
-                lock (this.root)
-                    return this.list[index];
+                lock (root)
+                    return list[index];
             }
             set
             {
-                lock (this.root)
-                    this.list[index] = value;
+                lock (root)
+                    list[index] = value;
             }
-        }
-
-        internal SynchronizedList(IList<T> list)
-        {
-            this.list = list;
-            this.root = new Object();
         }
 
         public void Add(T item)
         {
-            lock (this.root)
-                this.list.Add(item);
+            lock (root)
+                list.Add(item);
         }
 
         public void Clear()
         {
-            lock (this.root)
-                this.list.Clear();
+            lock (root)
+                list.Clear();
         }
 
         public bool Contains(T item)
         {
-            lock (this.root)
-                return this.list.Contains(item);
+            lock (root)
+                return list.Contains(item);
         }
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            lock (this.root)
-                this.list.CopyTo(array, arrayIndex);
+            lock (root)
+                list.CopyTo(array, arrayIndex);
         }
 
         public bool Remove(T item)
         {
-            lock (this.root)
-                return this.list.Remove(item);
+            lock (root)
+                return list.Remove(item);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            lock (this.root)
-                return this.list.GetEnumerator();
+            lock (root)
+                return list.GetEnumerator();
         }
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
-            lock (this.root)
-                return this.list.GetEnumerator();
+            lock (root)
+                return list.GetEnumerator();
         }
 
         public int IndexOf(T item)
         {
-            lock (this.root)
-                return this.list.IndexOf(item);
+            lock (root)
+                return list.IndexOf(item);
         }
 
         public void Insert(int index, T item)
         {
-            lock (this.root)
-                this.list.Insert(index, item);
+            lock (root)
+                list.Insert(index, item);
         }
 
         public void RemoveAt(int index)
         {
-            lock (this.root)
-                this.list.RemoveAt(index);
+            lock (root)
+                list.RemoveAt(index);
         }
     }
 }

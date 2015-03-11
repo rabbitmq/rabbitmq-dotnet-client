@@ -41,91 +41,78 @@
 using System;
 using System.Collections.Generic;
 
-using RabbitMQ.Client;
-using RabbitMQ.Client.Framing;
-using RabbitMQ.Client.Framing.Impl;
-
 namespace RabbitMQ.Client.Impl
 {
     public class RecordedQueue : RecordedNamedEntity
     {
+        private IDictionary<string, object> arguments;
         private bool durable;
         private bool exclusive;
-        private bool autoDelete;
-        private IDictionary<string, object> arguments;
 
-        private bool serverNamed;
-
-
-        public RecordedQueue(AutorecoveringModel model, string name) : base(model, name) {}
-
-
-        public bool IsServerNamed
+        public RecordedQueue(AutorecoveringModel model, string name) : base(model, name)
         {
-            get { return this.serverNamed; }
         }
 
-        public bool IsAutoDelete
-        {
-            get { return this.autoDelete; }
-        }
+        public bool IsAutoDelete { get; private set; }
+        public bool IsServerNamed { get; private set; }
 
         protected string NameToUseForRecovery
         {
             get
             {
-                if(IsServerNamed)
+                if (IsServerNamed)
                 {
                     return string.Empty;
-                } else
+                }
+                else
                 {
-                    return this.name;
+                    return Name;
                 }
             }
         }
 
-        public RecordedQueue Durable(bool value)
+        public RecordedQueue Arguments(IDictionary<string, object> value)
         {
-            this.durable = value;
-            return this;
-        }
-
-        public RecordedQueue Exclusive(bool value)
-        {
-            this.exclusive = value;
+            arguments = value;
             return this;
         }
 
         public RecordedQueue AutoDelete(bool value)
         {
-            this.autoDelete = value;
+            IsAutoDelete = value;
             return this;
         }
 
-        public RecordedQueue Arguments(IDictionary<string, object> value)
+        public RecordedQueue Durable(bool value)
         {
-            this.arguments = value;
+            durable = value;
             return this;
         }
 
-        public RecordedQueue ServerNamed(bool value)
+        public RecordedQueue Exclusive(bool value)
         {
-            this.serverNamed = value;
+            exclusive = value;
             return this;
         }
 
         public void Recover()
         {
-            var ok    = ModelDelegate.QueueDeclare(NameToUseForRecovery, this.durable,
-                                                   this.exclusive, this.autoDelete,
-                                                   this.arguments);
-            this.name = ok.QueueName;
+            QueueDeclareOk ok = ModelDelegate.QueueDeclare(NameToUseForRecovery, durable,
+                exclusive, IsAutoDelete,
+                arguments);
+            Name = ok.QueueName;
+        }
+
+        public RecordedQueue ServerNamed(bool value)
+        {
+            IsServerNamed = value;
+            return this;
         }
 
         public override string ToString()
         {
             return String.Format("{0}: name = '{1}', durable = {2}, exlusive = {3}, autoDelete = {4}, arguments = '{5}'",
-                                 this.GetType().Name, name, durable, exclusive, autoDelete, arguments);
+                GetType().Name, Name, durable, exclusive, IsAutoDelete, arguments);
         }
     }
 }

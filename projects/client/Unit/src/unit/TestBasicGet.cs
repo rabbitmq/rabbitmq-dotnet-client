@@ -39,42 +39,45 @@
 //---------------------------------------------------------------------------
 
 using NUnit.Framework;
-
-using System;
 using RabbitMQ.Client.Exceptions;
 
-namespace RabbitMQ.Client.Unit {
+namespace RabbitMQ.Client.Unit
+{
     [TestFixture]
-    public class TestBasicGet : IntegrationFixture {
+    public class TestBasicGet : IntegrationFixture
+    {
         [Test]
-        public void TestBasicGetWithNonEmptyResponseAndAutoAckMode()
+        public void TestBasicGetWithClosedChannel()
         {
-            const string msg = "for basic.get";
-            WithNonEmptyQueue((m, q) => {
-                BasicGetResult res = m.BasicGet(q, true);
-                Assert.AreEqual(msg, enc.GetString(res.Body));
-                AssertMessageCount(q, 0);
-            }, msg);
+            WithNonEmptyQueue( (_, q) =>
+                {
+                    WithClosedModel(cm =>
+                    {
+                        Assert.Throws(Is.InstanceOf<AlreadyClosedException>(), () => cm.BasicGet(q, true));
+                    });
+                });
         }
 
         [Test]
         public void TestBasicGetWithEmptyResponse()
         {
-            WithEmptyQueue((m, q) => {
-                BasicGetResult res = m.BasicGet(q, false);
+            WithEmptyQueue((model, queue) =>
+            {
+                BasicGetResult res = model.BasicGet(queue, false);
                 Assert.IsNull(res);
             });
         }
 
         [Test]
-        public void TestBasicGetWithClosedChannel()
+        public void TestBasicGetWithNonEmptyResponseAndAutoAckMode()
         {
-            WithNonEmptyQueue((_, q) => {
-                WithClosedModel((cm) => {
-                    Assert.Throws(Is.InstanceOf<AlreadyClosedException>(),
-                                 delegate { cm.BasicGet(q, true); });
-                });
-            });
+            const string msg = "for basic.get";
+            WithNonEmptyQueue((model, queue) =>
+            {
+                BasicGetResult res = model.BasicGet(queue, true);
+                Assert.AreEqual(msg, encoding.GetString(res.Body));
+                AssertMessageCount(queue, 0);
+            }, msg);
         }
     }
 }

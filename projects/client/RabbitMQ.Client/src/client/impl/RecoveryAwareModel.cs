@@ -39,87 +39,83 @@
 //---------------------------------------------------------------------------
 
 using System;
-
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
     public class RecoveryAwareModel : Model, IFullModel, IRecoverable
     {
-        private ulong maxSeenDeliveryTag = 0;
-        private ulong activeDeliveryTagOffset = 0;
-
-        public ulong MaxSeenDeliveryTag
+        public RecoveryAwareModel(ISession session) : base(session)
         {
-            get { return maxSeenDeliveryTag; }
+            ActiveDeliveryTagOffset = 0;
+            MaxSeenDeliveryTag = 0;
         }
 
-        public ulong ActiveDeliveryTagOffset
-        {
-            get { return activeDeliveryTagOffset; }
-        }
+        public ulong ActiveDeliveryTagOffset { get; private set; }
+        public ulong MaxSeenDeliveryTag { get; private set; }
 
-        public RecoveryAwareModel(ISession session) : base(session) {}
+        public void InheritOffsetFrom(RecoveryAwareModel other)
+        {
+            ActiveDeliveryTagOffset = other.ActiveDeliveryTagOffset + other.MaxSeenDeliveryTag;
+            MaxSeenDeliveryTag = 0;
+        }
 
         public override void HandleBasicDeliver(string consumerTag,
-                                                ulong deliveryTag,
-                                                bool redelivered,
-                                                string exchange,
-                                                string routingKey,
-                                                IBasicProperties basicProperties,
-                                                byte[] body)
+            ulong deliveryTag,
+            bool redelivered,
+            string exchange,
+            string routingKey,
+            IBasicProperties basicProperties,
+            byte[] body)
         {
-            if(deliveryTag > maxSeenDeliveryTag)
+            if (deliveryTag > MaxSeenDeliveryTag)
             {
-                maxSeenDeliveryTag = deliveryTag;
+                MaxSeenDeliveryTag = deliveryTag;
             }
 
             base.HandleBasicDeliver(consumerTag,
-                                    OffsetDeliveryTag(deliveryTag),
-                                    redelivered,
-                                    exchange,
-                                    routingKey,
-                                    basicProperties,
-                                    body);
+                OffsetDeliveryTag(deliveryTag),
+                redelivered,
+                exchange,
+                routingKey,
+                basicProperties,
+                body);
         }
 
         public override void BasicAck(ulong deliveryTag,
-                                      bool multiple) {
-            var realTag = deliveryTag - activeDeliveryTagOffset;
-            if(realTag > 0)
+            bool multiple)
+        {
+            ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
+            if (realTag > 0)
             {
                 base.BasicAck(realTag, multiple);
             }
         }
 
-        public override void BasicReject(ulong deliveryTag,
-                                         bool requeue) {
-            var realTag = deliveryTag - activeDeliveryTagOffset;
-            if(realTag > 0)
-            {
-                base.BasicReject(realTag, requeue);
-            }
-        }
-
         public override void BasicNack(ulong deliveryTag,
-                                       bool multiple,
-                                       bool requeue) {
-            var realTag = deliveryTag - activeDeliveryTagOffset;
-            if(realTag > 0)
+            bool multiple,
+            bool requeue)
+        {
+            ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
+            if (realTag > 0)
             {
                 base.BasicNack(realTag, multiple, requeue);
             }
         }
 
-        public void InheritOffsetFrom(RecoveryAwareModel other)
+        public override void BasicReject(ulong deliveryTag,
+            bool requeue)
         {
-            this.activeDeliveryTagOffset = other.ActiveDeliveryTagOffset + other.MaxSeenDeliveryTag;
-            this.maxSeenDeliveryTag = 0;
+            ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
+            if (realTag > 0)
+            {
+                base.BasicReject(realTag, requeue);
+            }
         }
 
         protected ulong OffsetDeliveryTag(ulong deliveryTag)
         {
-            return deliveryTag + this.activeDeliveryTagOffset;
+            return deliveryTag + ActiveDeliveryTagOffset;
         }
     }
 }

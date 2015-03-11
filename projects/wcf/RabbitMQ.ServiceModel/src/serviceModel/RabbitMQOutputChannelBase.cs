@@ -38,63 +38,54 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+using System.ServiceModel;
+using System.ServiceModel.Channels;
 
 namespace RabbitMQ.ServiceModel
 {
-    using System;
-    using System.ServiceModel;
-    using System.ServiceModel.Channels;
-
     internal abstract class RabbitMQOutputChannelBase : RabbitMQChannelBase, IOutputChannel
     {
-
-
-        private SendOperation m_sendMethod;
-        private EndpointAddress m_address;
-
+        private readonly EndpointAddress _address;
+        private readonly Action<Message, TimeSpan> _sendMethod;
 
         protected RabbitMQOutputChannelBase(BindingContext context, EndpointAddress address)
             : base(context)
         {
-            m_address = address;
-            m_sendMethod = new SendOperation(Send);
+            _address = address;
+            _sendMethod = Send;
         }
 
+        public EndpointAddress RemoteAddress
+        {
+            get { return _address; }
+        }
 
-        #region Async Methods
+        public Uri Via
+        {
+            get { throw new NotImplementedException(); }
+        }
 
         public IAsyncResult BeginSend(Message message, TimeSpan timeout, AsyncCallback callback, object state)
         {
-            return m_sendMethod.BeginInvoke(message, timeout, callback, state);
+            return _sendMethod.BeginInvoke(message, timeout, callback, state);
         }
 
         public IAsyncResult BeginSend(Message message, AsyncCallback callback, object state)
         {
-            return m_sendMethod.BeginInvoke(message, Context.Binding.SendTimeout, callback, state);
+            return _sendMethod.BeginInvoke(message, Context.Binding.SendTimeout, callback, state);
         }
 
         public void EndSend(IAsyncResult result)
         {
-            m_sendMethod.EndInvoke(result);
+            _sendMethod.EndInvoke(result);
         }
-
-        #endregion
 
         public abstract void Send(Message message, TimeSpan timeout);
 
         public virtual void Send(Message message)
         {
             Send(message, Context.Binding.SendTimeout);
-        }
-
-        public EndpointAddress RemoteAddress
-        {
-            get { return m_address; }
-        }
-
-        public Uri Via
-        {
-            get { throw new NotImplementedException(); }
         }
     }
 }

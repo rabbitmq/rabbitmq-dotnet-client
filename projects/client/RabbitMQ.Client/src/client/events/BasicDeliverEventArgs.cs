@@ -46,87 +46,53 @@ namespace RabbitMQ.Client.Events
     ///from an AMQP broker within the Basic content-class.</summary>
     public class BasicDeliverEventArgs : EventArgs
     {
-        private string m_consumerTag;
-        private ulong m_deliveryTag;
-        private bool m_redelivered;
-        private string m_exchange;
-        private string m_routingKey;
-        private IBasicProperties m_basicProperties;
-        private byte[] m_body;
-
         ///<summary>Default constructor.</summary>
-        public BasicDeliverEventArgs() { }
+        public BasicDeliverEventArgs()
+        {
+        }
 
         ///<summary>Constructor that fills the event's properties from
         ///its arguments.</summary>
         public BasicDeliverEventArgs(string consumerTag,
-                                     ulong deliveryTag,
-                                     bool redelivered,
-                                     string exchange,
-                                     string routingKey,
-                                     IBasicProperties properties,
-                                     byte[] body)
+            ulong deliveryTag,
+            bool redelivered,
+            string exchange,
+            string routingKey,
+            IBasicProperties properties,
+            byte[] body)
         {
-            m_consumerTag = consumerTag;
-            m_deliveryTag = deliveryTag;
-            m_redelivered = redelivered;
-            m_exchange = exchange;
-            m_routingKey = routingKey;
-            m_basicProperties = properties;
-            m_body = body;
-        }
-
-        ///<summary>The consumer tag of the consumer that the message
-        ///was delivered to.</summary>
-        public string ConsumerTag
-        {
-            get { return m_consumerTag; }
-            set { m_consumerTag = value; }
-        }
-
-        ///<summary>The delivery tag for this delivery. See
-        ///IModel.BasicAck.</summary>
-        public ulong DeliveryTag
-        {
-            get { return m_deliveryTag; }
-            set { m_deliveryTag = value; }
-        }
-
-        ///<summary>The AMQP "redelivered" flag.</summary>
-        public bool Redelivered
-        {
-            get { return m_redelivered; }
-            set { m_redelivered = value; }
-        }
-
-        ///<summary>The exchange the message was originally published
-        ///to.</summary>
-        public string Exchange
-        {
-            get { return m_exchange; }
-            set { m_exchange = value; }
-        }
-
-        ///<summary>The routing key used when the message was
-        ///originally published.</summary>
-        public string RoutingKey
-        {
-            get { return m_routingKey; }
-            set { m_routingKey = value; }
+            ConsumerTag = consumerTag;
+            DeliveryTag = deliveryTag;
+            Redelivered = redelivered;
+            Exchange = exchange;
+            RoutingKey = routingKey;
+            BasicProperties = properties;
+            Body = body;
         }
 
         ///<summary>The content header of the message.</summary>
-        public IBasicProperties BasicProperties
-        {
-            get { return m_basicProperties; }
-            set { m_basicProperties = value; }
-        }
+        public IBasicProperties BasicProperties { get; set; }
 
         ///<summary>The message body.</summary>
-        public byte[] Body
-        {
-            get { return m_body; }
-            set { m_body = value; }
-        }
+        public byte[] Body { get; set; }
+
+        ///<summary>The consumer tag of the consumer that the message
+        ///was delivered to.</summary>
+        public string ConsumerTag { get; set; }
+
+        ///<summary>The delivery tag for this delivery. See
+        ///IModel.BasicAck.</summary>
+        public ulong DeliveryTag { get; set; }
+
+        ///<summary>The exchange the message was originally published
+        ///to.</summary>
+        public string Exchange { get; set; }
+
+        ///<summary>The AMQP "redelivered" flag.</summary>
+        public bool Redelivered { get; set; }
+
+        ///<summary>The routing key used when the message was
+        ///originally published.</summary>
+        public string RoutingKey { get; set; }
     }
 }

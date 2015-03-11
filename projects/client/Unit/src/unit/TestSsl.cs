@@ -43,66 +43,69 @@ using System;
 using System.Net.Security;
 using RabbitMQ.Client;
 
-[TestFixture]
-public class TestSsl {
+namespace RabbitMQ.Client.Unit
+{
+    [TestFixture]
+    public class TestSsl {
 
-    public void SendReceive(ConnectionFactory cf) {
-        using (IConnection conn = cf.CreateConnection()) {
-            IModel ch = conn.CreateModel();
+        public void SendReceive(ConnectionFactory cf) {
+            using (IConnection conn = cf.CreateConnection()) {
+                IModel ch = conn.CreateModel();
 
-            ch.ExchangeDeclare("Exchange_TestSslEndPoint", ExchangeType.Direct);
-            String qName = ch.QueueDeclare();
-            ch.QueueBind(qName, "Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null);
+                ch.ExchangeDeclare("Exchange_TestSslEndPoint", ExchangeType.Direct);
+                String qName = ch.QueueDeclare();
+                ch.QueueBind(qName, "Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null);
 
-            string message = "Hello C# SSL Client World";
-            byte[] msgBytes =  System.Text.Encoding.UTF8.GetBytes(message);
-            ch.BasicPublish("Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null, msgBytes);
+                string message = "Hello C# SSL Client World";
+                byte[] msgBytes =  System.Text.Encoding.UTF8.GetBytes(message);
+                ch.BasicPublish("Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null, msgBytes);
 
-            bool noAck = false;
-            BasicGetResult result = ch.BasicGet(qName, noAck);
-            byte[] body = result.Body;
-            string resultMessage = System.Text.Encoding.UTF8.GetString(body);
+                bool noAck = false;
+                BasicGetResult result = ch.BasicGet(qName, noAck);
+                byte[] body = result.Body;
+                string resultMessage = System.Text.Encoding.UTF8.GetString(body);
 
-            Assert.AreEqual(message, resultMessage);
+                Assert.AreEqual(message, resultMessage);
+            }
         }
-    }
 
-    [Test]
-    public void TestServerVerifiedIgnoringNameMismatch() {
-        string sslDir = Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
-        if (null == sslDir) return;
+        [Test]
+        public void TestServerVerifiedIgnoringNameMismatch() {
+            string sslDir = Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
+            if (null == sslDir) return;
 
-        ConnectionFactory cf = new ConnectionFactory();
-        cf.Ssl.ServerName = "*";
-        cf.Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNameMismatch;
-        cf.Ssl.Enabled = true;
-        SendReceive(cf);
-    }
+            ConnectionFactory cf = new ConnectionFactory();
+            cf.Ssl.ServerName = "*";
+            cf.Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNameMismatch;
+            cf.Ssl.Enabled = true;
+            SendReceive(cf);
+        }
 
-    [Test]
-    public void TestServerVerified() {
-        string sslDir = Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
-        if (null == sslDir) return;
+        [Test]
+        public void TestServerVerified() {
+            string sslDir = Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
+            if (null == sslDir) return;
 
-        ConnectionFactory cf = new ConnectionFactory();
-        cf.Ssl.ServerName = System.Net.Dns.GetHostName();
-        cf.Ssl.Enabled = true;
-        SendReceive(cf);
-    }
+            ConnectionFactory cf = new ConnectionFactory();
+            cf.Ssl.ServerName = System.Net.Dns.GetHostName();
+            cf.Ssl.Enabled = true;
+            SendReceive(cf);
+        }
 
-    [Test]
-    public void TestClientAndServerVerified() {
-        string sslDir = Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
-        if (null == sslDir) return;
+        [Test]
+        public void TestClientAndServerVerified() {
+            string sslDir = Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
+            if (null == sslDir) return;
 
-        ConnectionFactory cf = new ConnectionFactory();
-        cf.Ssl.ServerName = System.Net.Dns.GetHostName();
-        Assert.IsNotNull(sslDir);
-        cf.Ssl.CertPath = sslDir + "/client/keycert.p12";
-        string p12Password = Environment.GetEnvironmentVariable("PASSWORD");
-        Assert.IsNotNull(p12Password, "missing PASSWORD env var");
-        cf.Ssl.CertPassphrase = p12Password;
-        cf.Ssl.Enabled = true;
-        SendReceive(cf);
+            ConnectionFactory cf = new ConnectionFactory();
+            cf.Ssl.ServerName = System.Net.Dns.GetHostName();
+            Assert.IsNotNull(sslDir);
+            cf.Ssl.CertPath = sslDir + "/client/keycert.p12";
+            string p12Password = Environment.GetEnvironmentVariable("PASSWORD");
+            Assert.IsNotNull(p12Password, "missing PASSWORD env var");
+            cf.Ssl.CertPassphrase = p12Password;
+            cf.Ssl.Enabled = true;
+            SendReceive(cf);
+        }
     }
 }

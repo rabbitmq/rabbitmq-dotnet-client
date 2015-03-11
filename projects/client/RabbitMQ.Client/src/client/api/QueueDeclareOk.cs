@@ -40,36 +40,38 @@
 
 namespace RabbitMQ.Client
 {
+    /// <summary>
+    /// Represents Queue info.
+    /// </summary>
     public class QueueDeclareOk
     {
-
-        private string m_queueName;
-        public string QueueName
-        {
-            get { return m_queueName; }
-            private set { m_queueName = value; }
-        }
-
-        private uint m_messageCount;
-        public uint MessageCount
-        {
-            get { return m_messageCount; }
-            private set { m_messageCount = value; }
-        }
-
-        private uint m_consumerCount;
-        public uint ConsumerCount
-        {
-            get { return m_consumerCount; }
-            private set { m_consumerCount = value; }
-        }
-
+        /// <summary>
+        /// Creates a new instance of the <see cref="QueueDeclareOk"/>.
+        /// </summary>
+        /// <param name="queueName">Queue name.</param>
+        /// <param name="messageCount">Message count.</param>
+        /// <param name="consumerCount">Consumer count.</param>
         public QueueDeclareOk(string queueName, uint messageCount, uint consumerCount)
         {
             QueueName = queueName;
             MessageCount = messageCount;
             ConsumerCount = consumerCount;
         }
+
+        /// <summary>
+        /// Consumer count.
+        /// </summary>
+        public uint ConsumerCount { get; private set; }
+
+        /// <summary>
+        /// Message count.
+        /// </summary>
+        public uint MessageCount { get; private set; }
+
+        /// <summary>
+        /// Queue name.
+        /// </summary>
+        public string QueueName { get; private set; }
 
         public static implicit operator string(QueueDeclareOk declareOk)
         {

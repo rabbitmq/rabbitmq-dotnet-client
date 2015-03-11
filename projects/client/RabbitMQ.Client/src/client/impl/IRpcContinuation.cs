@@ -38,6 +38,8 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+
 namespace RabbitMQ.Client.Impl
 {
     public interface IRpcContinuation

@@ -83,7 +83,7 @@ namespace RabbitMQ.Client.Unit {
                 Monitor.PulseAll(o);
             };
             m.BasicConsume(q, true, new FaultyConsumer(Model));
-            m.BasicPublish("", q, null, enc.GetBytes("message"));
+            m.BasicPublish("", q, null, encoding.GetBytes("message"));
             WaitOn(o);
 
             Assert.IsNotNull(ea);

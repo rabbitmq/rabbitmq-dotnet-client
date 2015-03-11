@@ -51,6 +51,7 @@ namespace RabbitMQ.Client.Unit {
     public class TestQueueDeclare : IntegrationFixture {
 
         [Test]
+        [Category("RequireSMP")]
         public void TestConcurrentQueueDeclare()
         {
             string q = GenerateQueueName();
