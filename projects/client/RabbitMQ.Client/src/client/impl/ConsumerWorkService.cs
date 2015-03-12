@@ -18,6 +18,7 @@ namespace RabbitMQ.Client
 
         public ConsumerWorkService(TaskScheduler scheduler)
         {
+            this.scheduler = scheduler;
             this.workPool = new BatchingWorkPool<IModel, Action>();
         }
 
@@ -47,7 +48,7 @@ namespace RabbitMQ.Client
                     if (this.workPool.FinishWorkBlock(key))
                     {
                         var t = new Task(new Action(ExecuteThunk));
-                        t.Start();
+                        t.Start(this.scheduler);
                     }
                 }
             }
