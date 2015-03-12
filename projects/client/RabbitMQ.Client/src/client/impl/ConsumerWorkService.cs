@@ -63,7 +63,7 @@ namespace RabbitMQ.Client
             if (this.workPool.AddWorkItem(model, fn))
             {
                 var t = new Task(new Action(ExecuteThunk));
-                t.Start();
+                t.Start(this.scheduler);
             }
         }
 
