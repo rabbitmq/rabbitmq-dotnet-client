@@ -93,6 +93,22 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
+        public void TestVersionVerified() {
+            string sslDir = Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
+            if (null == sslDir) return;
+
+            ConnectionFactory cf = new ConnectionFactory();
+            cf.Ssl.Version = SslProtocols.Ssl2;
+            cf.Ssl.AcceptablePolicyErrors = (SslPolicyErrors)~0;
+            cf.Ssl.ServerName = "*";
+            cf.Ssl.Enabled = true;
+            Assert.Throws<BrokerUnreachableException>(() => SendReceive(cf));
+
+            cf.Ssl.Version = SslProtocols.Default;
+            Assert.DoesNotThrow(() => SendReceive(cf));
+        }
+
+        [Test]
         public void TestClientAndServerVerified() {
             string sslDir = Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
             if (null == sslDir) return;
