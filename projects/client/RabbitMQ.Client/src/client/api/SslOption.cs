@@ -38,6 +38,7 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Net.Security;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
@@ -68,7 +69,8 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Constructs an <see cref="SslOption"/> with no parameters set.
         /// </summary>
-        public SslOption() : this(string.Empty)
+        public SslOption()
+            : this(string.Empty)
         {
         }
 
@@ -95,7 +97,7 @@ namespace RabbitMQ.Client
 
         /// <summary>
         /// An optional client specified SSL certificate validation callback.  If this is not specified,
-        /// the default callback will be used in conjunction with the <see cref="AcceptablePolicyErrors"/> property to 
+        /// the default callback will be used in conjunction with the <see cref="AcceptablePolicyErrors"/> property to
         /// determine if the remote server certificate is valid.
         /// </summary>
         public RemoteCertificateValidationCallback CertificateValidationCallback { get; set; }
