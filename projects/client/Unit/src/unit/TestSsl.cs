@@ -41,7 +41,9 @@
 using NUnit.Framework;
 using System;
 using System.Net.Security;
+using System.Security.Authentication;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -90,6 +92,22 @@ namespace RabbitMQ.Client.Unit
             cf.Ssl.ServerName = System.Net.Dns.GetHostName();
             cf.Ssl.Enabled = true;
             SendReceive(cf);
+        }
+
+        [Test]
+        public void TestVersionVerified() {
+            string sslDir = Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
+            if (null == sslDir) return;
+
+            ConnectionFactory cf = new ConnectionFactory();
+            cf.Ssl.Version = SslProtocols.Ssl2;
+            cf.Ssl.AcceptablePolicyErrors = (SslPolicyErrors)~0;
+            cf.Ssl.ServerName = "*";
+            cf.Ssl.Enabled = true;
+            Assert.Throws<BrokerUnreachableException>(() => SendReceive(cf));
+
+            cf.Ssl.Version = SslProtocols.Default;
+            Assert.DoesNotThrow(() => SendReceive(cf));
         }
 
         [Test]
