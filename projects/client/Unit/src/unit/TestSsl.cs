@@ -39,19 +39,26 @@
 //---------------------------------------------------------------------------
 
 using NUnit.Framework;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Exceptions;
 using System;
 using System.Net.Security;
 using System.Security.Authentication;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestSsl {
+    public class TestSsl
+    {
+        public static string CertificatesDirectory()
+        {
+            return Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
+        }
 
-        public void SendReceive(ConnectionFactory cf) {
-            using (IConnection conn = cf.CreateConnection()) {
+        public void SendReceive(ConnectionFactory cf)
+        {
+            using (IConnection conn = cf.CreateConnection())
+            {
                 IModel ch = conn.CreateModel();
 
                 ch.ExchangeDeclare("Exchange_TestSslEndPoint", ExchangeType.Direct);
@@ -59,7 +66,7 @@ namespace RabbitMQ.Client.Unit
                 ch.QueueBind(qName, "Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null);
 
                 string message = "Hello C# SSL Client World";
-                byte[] msgBytes =  System.Text.Encoding.UTF8.GetBytes(message);
+                byte[] msgBytes = System.Text.Encoding.UTF8.GetBytes(message);
                 ch.BasicPublish("Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null, msgBytes);
 
                 bool noAck = false;
@@ -72,8 +79,9 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestServerVerifiedIgnoringNameMismatch() {
-            string sslDir = Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
+        public void TestServerVerifiedIgnoringNameMismatch()
+        {
+            string sslDir = CertificatesDirectory();
             if (null == sslDir) return;
 
             ConnectionFactory cf = new ConnectionFactory();
@@ -84,7 +92,8 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestServerVerified() {
+        public void TestServerVerified()
+        {
             string sslDir = Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
             if (null == sslDir) return;
 
@@ -95,7 +104,8 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestVersionVerified() {
+        public void TestVersionVerified()
+        {
             string sslDir = Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
             if (null == sslDir) return;
 
@@ -111,7 +121,8 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestClientAndServerVerified() {
+        public void TestClientAndServerVerified()
+        {
             string sslDir = Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
             if (null == sslDir) return;
 
