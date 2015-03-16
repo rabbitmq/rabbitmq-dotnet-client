@@ -38,14 +38,14 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
 using NUnit.Framework;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Impl;
+using System;
+using System.Collections.Generic;
+using System.Threading;
 
 #pragma warning disable 0168
 
@@ -409,6 +409,64 @@ namespace RabbitMQ.Client.Unit
                 AssertQueueRecovery(Model, q, false);
                 Model.QueueDelete(q);
             }
+        }
+
+        // rabbitmq/rabbitmq-dotnet-client#43
+        [Test]
+        public void TestClientNamedTransientAutoDeleteQueueAndBindingRecovery()
+        {
+            var q = Guid.NewGuid().ToString();
+            var x = "tmp-fanout";
+            var ch = Conn.CreateModel();
+            ch.QueueDelete(q);
+            ch.ExchangeDelete(x);
+            ch.ExchangeDeclare(exchange: x, type: "fanout");
+            ch.QueueDeclare(queue: q, durable: false, exclusive: false, autoDelete: true, arguments: null);
+            ch.QueueBind(queue: q, exchange: x, routingKey: "");
+            RestartServerAndWaitForRecovery();
+            Assert.IsTrue(ch.IsOpen);
+            ch.ConfirmSelect();
+            ch.QueuePurge(q);
+            ch.ExchangeDeclare(exchange: x, type: "fanout");
+            ch.BasicPublish(exchange: x, routingKey: "", basicProperties: null, body: encoding.GetBytes("msg"));
+            WaitForConfirms(ch);
+            var ok = ch.QueueDeclare(queue: q, durable: false, exclusive: false, autoDelete: true, arguments: null);
+            Assert.AreEqual(1, ok.MessageCount);
+            ch.QueueDelete(q);
+            ch.ExchangeDelete(x);
+        }
+
+        // rabbitmq/rabbitmq-dotnet-client#43
+        [Test]
+        public void TestServerNamedTransientAutoDeleteQueueAndBindingRecovery()
+        {
+            var x = "tmp-fanout";
+            var ch = Conn.CreateModel();
+            ch.ExchangeDelete(x);
+            ch.ExchangeDeclare(exchange: x, type: "fanout");
+            var q = ch.QueueDeclare(queue: "", durable: false, exclusive: false, autoDelete: true, arguments: null).QueueName;
+            string nameBefore = q;
+            string nameAfter = null;
+            var latch = new ManualResetEvent(false);
+            ((AutorecoveringConnection)Conn).QueueNameChangeAfterRecovery += (source, ea) =>
+            {
+                nameBefore = ea.NameBefore;
+                nameAfter = ea.NameAfter;
+                latch.Set();
+            };
+            ch.QueueBind(queue: nameBefore, exchange: x, routingKey: "");
+            RestartServerAndWaitForRecovery();
+            Wait(latch);
+            Assert.IsTrue(ch.IsOpen);
+            Assert.AreNotEqual(nameBefore, nameAfter);
+            ch.ConfirmSelect();
+            ch.ExchangeDeclare(exchange: x, type: "fanout");
+            ch.BasicPublish(exchange: x, routingKey: "", basicProperties: null, body: encoding.GetBytes("msg"));
+            WaitForConfirms(ch);
+            var ok = ch.QueueDeclarePassive(nameAfter);
+            Assert.AreEqual(1, ok.MessageCount);
+            ch.QueueDelete(q);
+            ch.ExchangeDelete(x);
         }
 
         [Test]
@@ -869,10 +927,10 @@ namespace RabbitMQ.Client.Unit
             Wait(PrepareForShutdown(conn));
         }
 
-
         public class AckingBasicConsumer : TestBasicConsumer1
         {
-            public AckingBasicConsumer(IModel model, ManualResetEvent latch, Action fn) : base(model, latch, fn)
+            public AckingBasicConsumer(IModel model, ManualResetEvent latch, Action fn)
+                : base(model, latch, fn)
             {
             }
 
@@ -882,10 +940,10 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-
         public class NackingBasicConsumer : TestBasicConsumer1
         {
-            public NackingBasicConsumer(IModel model, ManualResetEvent latch, Action fn) : base(model, latch, fn)
+            public NackingBasicConsumer(IModel model, ManualResetEvent latch, Action fn)
+                : base(model, latch, fn)
             {
             }
 
@@ -895,10 +953,10 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-
         public class RejectingBasicConsumer : TestBasicConsumer1
         {
-            public RejectingBasicConsumer(IModel model, ManualResetEvent latch, Action fn) : base(model, latch, fn)
+            public RejectingBasicConsumer(IModel model, ManualResetEvent latch, Action fn)
+                : base(model, latch, fn)
             {
             }
 
@@ -907,7 +965,6 @@ namespace RabbitMQ.Client.Unit
                 Model.BasicReject(deliveryTag, false);
             }
         }
-
 
         public class TestBasicConsumer1 : DefaultBasicConsumer
         {
