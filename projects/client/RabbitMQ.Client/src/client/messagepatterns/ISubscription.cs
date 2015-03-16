@@ -52,7 +52,7 @@ namespace RabbitMQ.Client.MessagePatterns
     ///</para>
     ///<para>
     ///</remarks>
-    interface ISubscription : IEnumerable, IEnumerator, IDisposable
+    public interface ISubscription : IEnumerable, IEnumerator, IDisposable
     {
         void Ack();
         void Ack(BasicDeliverEventArgs evt);
