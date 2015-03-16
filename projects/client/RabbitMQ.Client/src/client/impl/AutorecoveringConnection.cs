@@ -38,15 +38,15 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Impl;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Client.Impl;
 using Timer = System.Timers.Timer;
 
 namespace RabbitMQ.Client.Framing.Impl
@@ -350,7 +350,6 @@ namespace RabbitMQ.Client.Framing.Impl
                     });
                 }
             }
-            
         }
 
         protected void PerformAutomaticRecovery()
@@ -867,13 +866,19 @@ namespace RabbitMQ.Client.Framing.Impl
                         rq.Recover();
                         string newName = rq.Name;
 
-                        // make sure server-named queues are re-added with
-                        // their new names. MK.
-
-                        DeleteRecordedQueue(oldName);
-                        RecordQueue(newName, rq);
+                        // Make sure server-named queues are re-added with
+                        // their new names.
+                        // We only remove old name after we've updated the bindings and consumers,
+                        // plus only for server-named queues, both to make sure we don't lose
+                        // anything to recover. MK.
                         PropagateQueueNameChangeToBindings(oldName, newName);
                         PropagateQueueNameChangeToConsumers(oldName, newName);
+                        // see rabbitmq/rabbitmq-dotnet-client#43
+                        if (rq.IsServerNamed)
+                        {
+                            DeleteRecordedQueue(oldName);
+                        }
+                        RecordQueue(newName, rq);
 
                         if (m_queueNameChange != null)
                         {
@@ -927,8 +932,8 @@ namespace RabbitMQ.Client.Framing.Impl
         protected bool ShouldTriggerConnectionRecovery(ShutdownEventArgs args)
         {
             return (args.Initiator == ShutdownInitiator.Peer ||
-                    // happens when EOF is reached, e.g. due to RabbitMQ node
-                    // connectivity loss or abrupt shutdown
+                // happens when EOF is reached, e.g. due to RabbitMQ node
+                // connectivity loss or abrupt shutdown
                     args.Initiator == ShutdownInitiator.Library);
         }
     }
