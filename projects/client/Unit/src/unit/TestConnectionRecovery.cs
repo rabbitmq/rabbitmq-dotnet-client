@@ -188,6 +188,29 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
+        public void TestConsumerWorkServiceRecovery()
+        {
+            AutorecoveringConnection c = CreateAutorecoveringConnection();
+            IModel m = c.CreateModel();
+            string q = m.QueueDeclare("dotnet-client.recovery.consumer_work_pool1",
+                false, false, false, null).QueueName;
+            var cons = new EventingBasicConsumer(m);
+            m.BasicConsume(q, true, cons);
+            AssertConsumerCount(m, q, 1);
+
+            CloseAndWaitForRecovery();
+
+            Assert.IsTrue(m.IsOpen);
+            var latch = new ManualResetEvent(false);
+            cons.Received += (s, args) => latch.Set();
+
+            m.BasicPublish("", q, null, encoding.GetBytes("msg"));
+            Wait(latch);
+
+            m.QueueDelete(q);
+        }
+
+        [Test]
         public void TestConsumerRecoveryOnClientNamedQueueWithOneRecovery()
         {
             AutorecoveringConnection c = CreateAutorecoveringConnection();
