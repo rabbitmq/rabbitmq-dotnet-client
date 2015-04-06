@@ -83,9 +83,10 @@ namespace RabbitMQ.Client.Content
         /// </remarks>
         public override byte[] GetContentBody()
         {
-            Body = null;
             MapWireFormatting.WriteMap(Writer, Body);
-            return base.GetContentBody();
+            var res = base.GetContentBody();
+            Body = null;
+            return res;
         }
 
         /// <summary>
