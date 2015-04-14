@@ -988,11 +988,18 @@ namespace RabbitMQ.Client.Framing.Impl
             mainLoopThread.Start();
         }
 
+        protected void StopHeartbeatTimers()
+        {
+            _heartbeatReadTimer.Dispose();
+            _heartbeatWriteTimer.Dispose();
+        }
+
         ///<remarks>
         /// May be called more than once. Should therefore be idempotent.
         ///</remarks>
         public void TerminateMainloop()
         {
+            StopHeartbeatTimers();
             m_running = false;
         }
 
@@ -1077,6 +1084,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         void IDisposable.Dispose()
         {
+            StopHeartbeatTimers();
             Abort();
             if (ShutdownReport.Count > 0)
             {
