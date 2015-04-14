@@ -50,7 +50,6 @@ namespace RabbitMQ.Client.Unit
     public class TestConnectionChurnHandleLeak : IntegrationFixture
     {
         [Test]
-        [Category("RequireSMP")]
         public void TestHandleLeak()
         {
             var cf = new ConnectionFactory();
