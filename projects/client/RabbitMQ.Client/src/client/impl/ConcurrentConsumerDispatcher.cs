@@ -27,6 +27,11 @@ namespace RabbitMQ.Client.Impl
             this.workService.StopWork();
         }
 
+        public void Shutdown(IModel model)
+        {
+            this.workService.StopWork(model);
+        }
+
         public bool IsShutdown
         {
             get;

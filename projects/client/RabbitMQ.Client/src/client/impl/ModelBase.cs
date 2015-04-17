@@ -298,7 +298,7 @@ namespace RabbitMQ.Client.Impl
                     _Private_ChannelClose(reason.ReplyCode, reason.ReplyText, 0, 0);
                 }
                 k.Wait();
-                ConsumerDispatcher.Shutdown();
+                ConsumerDispatcher.Shutdown(this);
             }
             catch (AlreadyClosedException ace)
             {
@@ -633,7 +633,7 @@ namespace RabbitMQ.Client.Impl
             SetCloseReason(reason);
             OnModelShutdown(reason);
             BroadcastShutdownToConsumers(m_consumers, reason);
-            this.ConsumerDispatcher.Shutdown();
+            this.ConsumerDispatcher.Shutdown(this);
         }
 
         protected void BroadcastShutdownToConsumers(IDictionary<string, IBasicConsumer> cs, ShutdownEventArgs reason)
