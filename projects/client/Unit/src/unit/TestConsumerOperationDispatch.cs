@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using NUnit.Framework;
+using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Framing;
 using System;
 using System.Collections.Generic;
@@ -147,6 +148,33 @@ namespace RabbitMQ.Client.Unit
                     Assert.IsTrue(a < b);
                 }
             }
+        }
+
+        // see rabbitmq/rabbitmq-dotnet-client#61
+        [Test]
+        public void TestChannelShutdownDoesNotShutDownDispatcher()
+        {
+            var ch1 = Conn.CreateModel();
+            var ch2 = Conn.CreateModel();
+            Model.ExchangeDeclare(x, "fanout", durable: false);
+
+            var q1 = ch1.QueueDeclare().QueueName;
+            var q2 = ch2.QueueDeclare().QueueName;
+            ch2.QueueBind(queue: q2, exchange: x, routingKey: "");
+
+            var latch = new ManualResetEvent(false);
+            ch1.BasicConsume(q1, true, new EventingBasicConsumer(ch1));
+            var c2 = new EventingBasicConsumer(ch2);
+            c2.Received += (object sender, BasicDeliverEventArgs e) =>
+            {
+                latch.Set();
+            };
+            ch2.BasicConsume(q2, true, c2);
+            // closing this channel must not affect ch2
+            ch1.Close();
+
+            ch2.BasicPublish(exchange: x, basicProperties: null, body: encoding.GetBytes("msg"), routingKey: "");
+            Wait(latch);
         }
 
         private class ShutdownLatchConsumer : DefaultBasicConsumer
