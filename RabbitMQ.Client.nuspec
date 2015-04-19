@@ -19,7 +19,12 @@
     <file src="projects\client\RabbitMQ.Client\build\bin\RabbitMQ.Client.dll" target="lib\net40" />
     <file src="projects\client\RabbitMQ.Client\build\bin\RabbitMQ.Client.pdb" target="lib\net40" />
     <file src="projects\client\RabbitMQ.Client\build\bin\RabbitMQ.Client.xml" target="lib\net40" />
+    <file src="projects\client\RabbitMQ.Client.WinRT\build\bin\RabbitMQ.Client.dll" target="lib\netcore45" />
+    <file src="projects\client\RabbitMQ.Client.WinRT\build\bin\RabbitMQ.Client.pdb" target="lib\netcore45" />
+    <file src="projects\client\RabbitMQ.Client.WinRT\build\bin\RabbitMQ.Client.xml" target="lib\netcore45" />
     <file src="projects\client\RabbitMQ.Client\**\*.cs" target="src\projects\client\RabbitMQ.Client" />
+    <file src="projects\client\RabbitMQ.Client.WinRT\**\*.cs" target="src\projects\client\RabbitMQ.Client.WinRT" />
     <file src="gensrc\RabbitMQ.Client\**\*.cs" target="src\gensrc\RabbitMQ.Client" />
+    <file src="gensrc\RabbitMQ.Client.WinRT\**\*.cs" target="src\gensrc\RabbitMQ.Client.WinRT" />
   </files>
 </package>
