@@ -39,7 +39,13 @@
 //---------------------------------------------------------------------------
 
 using System;
+
+#if !NETFX_CORE
 using System.Net.Sockets;
+#else
+using Windows.Networking.Sockets;
+#endif
+
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
@@ -95,8 +101,14 @@ namespace RabbitMQ.Client
         /// <param name="socketFactory">Socket factory method.</param>
         /// <param name="timeout">Timeout in milliseconds.</param>
         /// <param name="endpoint">Represents a TCP-addressable AMQP peer: a host name and port number.</param>
-        IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint, Func<AddressFamily, TcpClient> socketFactory, int timeout);
-
+        IFrameHandler CreateFrameHandler(
+            AmqpTcpEndpoint endpoint, 
+#if !NETFX_CORE
+            Func<AddressFamily, TcpClient> socketFactory, 
+#else
+            Func<StreamSocket> socketFactory,
+#endif
+            int timeout);
         /// <summary>
         /// Construct a protocol model atop a given session.
         /// </summary>

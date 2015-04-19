@@ -54,7 +54,12 @@ namespace RabbitMQ.Client
             }
             catch (Exception e)
             {
+#if NETFX_CORE
+                // To end a task, return
+                return;
+#else
                 Thread.CurrentThread.Interrupt();
+#endif
             }
         }
 

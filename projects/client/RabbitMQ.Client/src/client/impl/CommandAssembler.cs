@@ -117,7 +117,11 @@ namespace RabbitMQ.Client.Impl
                 }
                 case AssemblyState.Complete:
                 default:
+#if NETFX_CORE
+                    Debug.WriteLine("Received frame in invalid state {0}; {1}", m_state, f);
+#else
                     Trace.Fail(string.Format("Received frame in invalid state {0}; {1}", m_state, f));
+#endif
                     return null;
             }
         }
