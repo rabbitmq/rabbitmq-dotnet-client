@@ -40,8 +40,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Net.Security;
 using System.Threading.Tasks;
+
+#if !NETFX_CORE
+using System.Net.Security;
+#endif
+
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Impl;
@@ -339,7 +343,9 @@ namespace RabbitMQ.Client
             else if (string.Equals("amqps", uri.Scheme, StringComparison.OrdinalIgnoreCase))
             {
                 Ssl.Enabled = true;
+#if !(NETFX_CORE)
                 Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNameMismatch;
+#endif
                 Port = AmqpTcpEndpoint.DefaultAmqpSslPort;
             }
             else

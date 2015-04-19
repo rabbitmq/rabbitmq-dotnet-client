@@ -59,7 +59,12 @@ namespace RabbitMQ.Client.Impl
                 case EitherAlternative.Right:
                     throw new OperationInterruptedException((ShutdownEventArgs)result.Value);
                 default:
-                    Trace.Fail("Illegal EitherAlternative " + result.Alternative);
+                    string error = "Illegal EitherAlternative " + result.Alternative;
+#if !(NETFX_CORE)
+                    Trace.Fail(error);
+#else
+                    MetroEventSource.Log.Error(error);
+#endif
                     return null;
             }
         }

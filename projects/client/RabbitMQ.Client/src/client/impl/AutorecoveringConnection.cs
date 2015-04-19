@@ -47,7 +47,6 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Timer = System.Timers.Timer;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -277,10 +276,12 @@ namespace RabbitMQ.Client.Framing.Impl
             set { m_delegate.KnownHosts = value; }
         }
 
+#if !NETFX_CORE
         public EndPoint LocalEndPoint
         {
             get { return m_delegate.LocalEndPoint; }
         }
+#endif
 
         public int LocalPort
         {
@@ -302,10 +303,12 @@ namespace RabbitMQ.Client.Framing.Impl
             get { return m_recordedQueues; }
         }
 
+#if !NETFX_CORE
         public EndPoint RemoteEndPoint
         {
             get { return m_delegate.RemoteEndPoint; }
         }
+#endif
 
         public int RemotePort
         {
@@ -340,7 +343,11 @@ namespace RabbitMQ.Client.Framing.Impl
                     {
                         try
                         {
+#if NETFX_CORE
+                            System.Threading.Tasks.Task.Delay(m_factory.NetworkRecoveryInterval).Wait();
+#else
                             Thread.Sleep(m_factory.NetworkRecoveryInterval);
+#endif
                             self.PerformAutomaticRecovery();
                         }
                         finally
@@ -558,7 +565,12 @@ namespace RabbitMQ.Client.Framing.Impl
                         catch (Exception e)
                         {
                             // TODO: logging
-                            Console.WriteLine("BeginAutomaticRecovery() failed: {0}", e);
+#if NETFX_CORE
+                            System.Diagnostics.Debug.WriteLine(
+#else
+                            Console.WriteLine(
+#endif
+                                "BeginAutomaticRecovery() failed: {0}", e);
                         }
                     }
                 }
@@ -668,7 +680,12 @@ namespace RabbitMQ.Client.Framing.Impl
         protected void HandleTopologyRecoveryException(TopologyRecoveryException e)
         {
             // TODO
-            Console.WriteLine("Topology recovery exception: {0}", e);
+#if NETFX_CORE
+            System.Diagnostics.Debug.WriteLine(
+#else
+            Console.WriteLine(
+#endif
+                "Topology recovery exception: {0}", e);
         }
 
         protected void PropagateQueueNameChangeToBindings(string oldName, string newName)
@@ -739,7 +756,11 @@ namespace RabbitMQ.Client.Framing.Impl
                 catch (Exception)
                 {
                     // TODO: exponential back-off
+#if NETFX_CORE
+                    System.Threading.Tasks.Task.Delay(m_factory.NetworkRecoveryInterval).Wait();
+#else
                     Thread.Sleep(m_factory.NetworkRecoveryInterval);
+#endif
                     // TODO: provide a way to handle these exceptions
                 }
             }

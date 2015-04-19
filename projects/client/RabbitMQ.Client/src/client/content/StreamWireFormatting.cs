@@ -299,7 +299,8 @@ namespace RabbitMQ.Client.Content
                 byte b = reader.ReadByte();
                 if (b == 0)
                 {
-                    return Encoding.UTF8.GetString(NetworkBinaryWriter.TemporaryContents(buffer));
+                    byte[] temporaryContents = NetworkBinaryWriter.TemporaryContents(buffer);
+                    return Encoding.UTF8.GetString(temporaryContents, 0, temporaryContents.Length);
                 }
                 buffer.Write(b);
             }

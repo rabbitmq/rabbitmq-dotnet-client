@@ -88,10 +88,12 @@ namespace RabbitMQ.Client.Exceptions
         {
         }
 
+#if !(NETFX_CORE)
         protected OperationInterruptedException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
         }
+#endif
 
         ///<summary>Retrieves the explanation for the shutdown. May
         ///return null if no explanation is available.</summary>

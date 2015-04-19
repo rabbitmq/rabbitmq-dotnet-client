@@ -47,20 +47,24 @@ namespace RabbitMQ.Client
     /// </summary>
     public interface NetworkConnection
     {
+#if !NETFX_CORE
         /// <summary>
         /// Identifies local network address.
         /// </summary>
         EndPoint LocalEndPoint { get; }
+#endif
 
         /// <summary>
         /// Local port.
         /// </summary>
         int LocalPort { get; }
 
+#if !NETFX_CORE
         /// <summary>
         /// Identifies remote network address.
         /// </summary>
         EndPoint RemoteEndPoint { get; }
+#endif
 
         /// <summary>
         /// Remote port.

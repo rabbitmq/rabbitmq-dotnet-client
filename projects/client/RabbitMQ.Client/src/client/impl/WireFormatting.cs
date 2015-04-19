@@ -199,7 +199,8 @@ namespace RabbitMQ.Client.Impl
         public static string ReadShortstr(NetworkBinaryReader reader)
         {
             int byteCount = reader.ReadByte();
-            return Encoding.UTF8.GetString(reader.ReadBytes(byteCount));
+            byte[] readBytes = reader.ReadBytes(byteCount);
+            return Encoding.UTF8.GetString(readBytes, 0, readBytes.Length);
         }
 
         ///<summary>Reads an AMQP "table" definition from the reader.</summary>

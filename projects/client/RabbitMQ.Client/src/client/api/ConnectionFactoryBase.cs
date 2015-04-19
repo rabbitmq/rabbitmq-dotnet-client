@@ -39,7 +39,12 @@
 //---------------------------------------------------------------------------
 
 using System;
+
+#if NETFX_CORE
+using Windows.Networking.Sockets;
+#else
 using System.Net.Sockets;
+#endif
 
 namespace RabbitMQ.Client
 {
@@ -48,13 +53,25 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Set custom socket options by providing a SocketFactory.
         /// </summary>
+#if NETFX_CORE
+        public Func<StreamSocket> SocketFactory = DefaultSocketFactory;
+#else
         public Func<AddressFamily, TcpClient> SocketFactory = DefaultSocketFactory;
+#endif
 
         /// <summary>
         /// Creates a new instance of the <see cref="TcpClient"/>.
         /// </summary>
         /// <param name="addressFamily">Specifies the addressing scheme.</param>
         /// <returns>New instance of a <see cref="TcpClient"/>.</returns>
+#if NETFX_CORE
+        public static StreamSocket DefaultSocketFactory()
+        {
+            StreamSocket tcpClient = new StreamSocket();
+            tcpClient.Control.NoDelay = true;
+            return tcpClient;
+        }
+#else
         public static TcpClient DefaultSocketFactory(AddressFamily addressFamily)
         {
             var tcpClient = new TcpClient(addressFamily)
@@ -63,5 +80,6 @@ namespace RabbitMQ.Client
             };
             return tcpClient;
         }
+#endif
     }
 }

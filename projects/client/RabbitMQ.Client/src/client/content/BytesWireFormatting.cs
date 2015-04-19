@@ -98,7 +98,7 @@ namespace RabbitMQ.Client.Content
         {
             ushort length = reader.ReadUInt16();
             byte[] bytes = reader.ReadBytes(length);
-            return Encoding.UTF8.GetString(bytes);
+            return Encoding.UTF8.GetString(bytes, 0, bytes.Length);
         }
 
         public static void Write(NetworkBinaryWriter writer, byte[] source, int offset, int count)
