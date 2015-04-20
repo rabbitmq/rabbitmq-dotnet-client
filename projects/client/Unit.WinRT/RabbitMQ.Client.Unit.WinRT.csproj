@@ -14,10 +14,8 @@
     <AppDesignerFolder>properties</AppDesignerFolder>
     <RootNamespace>RabbitMQ.Client.Test</RootNamespace>
     <AssemblyName>unit-tests</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>$(PropTargetFramework)</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
-    <TargetPlatformVersion>8.0</TargetPlatformVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -76,6 +74,7 @@
       <HintPath>..\..\..\lib\nunit\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="Windows" />
@@ -87,7 +86,7 @@
   <ItemGroup>
     <ProjectReference Include="..\RabbitMQ.Client.WinRT\RabbitMQ.Client.WinRT.csproj">
       <Project>{61D29F90-5B1C-4748-89FC-9FD2937F09C6}</Project>
-      <Name>RabbitMQ.Client.WinRT</Name>
+      <Name>RabbitMQ.Client</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -101,4 +100,20 @@
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- Custom BeforeClean -->
   <Target Name="BeforeClean" DependsOnTargets="CleanTestResults" />
+
+  <!-- Mono compatibility workarounds -->
+  <PropertyGroup Condition=" '$(PropUsingMono)' == 'true'">
+    <_DisabledWarnings>$(NoWarn)</_DisabledWarnings>
+  </PropertyGroup>
+
+  <!-- Microsoft CSharp targets; replace Build, Rebuild and Clean targets if building WinRT version is turned off -->
+  <Target Name="Build" Condition="'$(PropBuildWinRT)' != 'true'">
+    <Message Text="Not building anything in $(MSBuildProjectName) because PropBuildWinRT is false." />
+  </Target>
+  <Target Name="Rebuild" Condition="'$(PropBuildWinRT)' != 'true'">
+    <Message Text="Not rebuilding anything in $(MSBuildProjectName) because PropBuildWinRT is false." />
+  </Target>
+  <Target Name="Clean" Condition="'$(PropBuildWinRT)' != 'true'">
+    <Message Text="Not cleaning anything in $(MSBuildProjectName) because PropBuildWinRT is false." />
+  </Target>
 </Project>
