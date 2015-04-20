@@ -42,6 +42,7 @@
   </Target>
   <!-- Detokenize -->
   <PropertyGroup>
+    <TargetFrameworkVersion>4.5</TargetFrameworkVersion>
     <AssemblyInfoBaseName>AssemblyInfo.cs</AssemblyInfoBaseName>
     <AssemblyInfoTok>src\tokenized\$(AssemblyInfoBaseName).in</AssemblyInfoTok>
     <AssemblyInfoDetok>$(GensrcDir)$(AssemblyInfoBaseName)</AssemblyInfoDetok>
@@ -129,6 +130,21 @@
   <ItemGroup>
     <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
   </ItemGroup>
+
+  <!-- Mono compatibility workarounds -->
+  <PropertyGroup Condition=" '$(PropUsingMono)' == 'true'">
+    <_DisabledWarnings>$(NoWarn)</_DisabledWarnings>
+  </PropertyGroup>
+  <!-- Microsoft CSharp targets; replace Build, Rebuild and Clean targets if building WCF is turned off -->
+  <Target Name="Build" Condition="'$(PropBuildWinRT)' != 'true'">
+    <Message Text="Not building anything in $(MSBuildProjectName) because PropBuildWinRT is false." />
+  </Target>
+  <Target Name="Rebuild" Condition="'$(PropBuildWinRT)' != 'true'">
+    <Message Text="Not rebuilding anything in $(MSBuildProjectName) because PropBuildWinRT is false." />
+  </Target>
+  <Target Name="Clean" Condition="'$(PropBuildWinRT)' != 'true'">
+    <Message Text="Not cleaning anything in $(MSBuildProjectName) because PropBuildWinRT is false." />
+  </Target>
 
   <!-- Microsoft Windows 8 CSharp targets -->
   <Import Condition="'$(PropUsingMono)' != 'true'" Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />

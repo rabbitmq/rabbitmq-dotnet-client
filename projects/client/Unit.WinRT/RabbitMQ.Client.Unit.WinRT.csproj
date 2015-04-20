@@ -14,7 +14,7 @@
     <AppDesignerFolder>properties</AppDesignerFolder>
     <RootNamespace>RabbitMQ.Client.Test</RootNamespace>
     <AssemblyName>unit-tests</AssemblyName>
-    <TargetFrameworkVersion>$(PropTargetFramework)</TargetFrameworkVersion>
+    <TargetFrameworkVersion>4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -74,7 +74,6 @@
       <HintPath>..\..\..\lib\nunit\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="Windows" />
@@ -96,8 +95,25 @@
   <PropertyGroup Condition=" '$(PropUsingMono)' == 'true'">
     <_DisabledWarnings>$(NoWarn)</_DisabledWarnings>
   </PropertyGroup>
+  <!-- Mono compatibility workarounds -->
+  <PropertyGroup Condition=" '$(PropUsingMono)' == 'true'">
+    <_DisabledWarnings>$(NoWarn)</_DisabledWarnings>
+  </PropertyGroup>
+  <!-- Microsoft CSharp targets; replace Build, Rebuild and Clean targets if building WCF is turned off -->
+  <Target Name="Build" Condition="'$(PropBuildWinRT)' != 'true'">
+    <Message Text="Not building anything in $(MSBuildProjectName) because PropBuildWinRT is false." />
+  </Target>
+  <Target Name="Rebuild" Condition="'$(PropBuildWinRT)' != 'true'">
+    <Message Text="Not rebuilding anything in $(MSBuildProjectName) because PropBuildWinRT is false." />
+  </Target>
+  <Target Name="Clean" Condition="'$(PropBuildWinRT)' != 'true'">
+    <Message Text="Not cleaning anything in $(MSBuildProjectName) because PropBuildWinRT is false." />
+  </Target>
+  <Target Name="RunUniTests" Condition="'$(PropBuildWinRT)' != 'true'">
+    <Message Text="Not running tests in $(MSBuildProjectName) because PropBuildWinRT is false." />
+  </Target>
   <!-- Microsoft CSharp targets -->
-  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Condition="'$(PropUsingMono)' != 'true'" Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
   <!-- Custom BeforeClean -->
   <Target Name="BeforeClean" DependsOnTargets="CleanTestResults" />
 </Project>
