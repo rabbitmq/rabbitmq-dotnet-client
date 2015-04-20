@@ -4,13 +4,16 @@
     <PropTargetFramework>v4.0</PropTargetFramework>
     <PropAssemblyVersion>0.0.0.0</PropAssemblyVersion>
     <PropUsingMono>false</PropUsingMono>
-    
+
     <!-- Assembly strong naming - $(MSBuildProjectDirectory) is the RabbitMQ.Client project directory -->
     <!-- <PropKeyfile>$(MSBuildProjectDirectory)\rabbit.snk</PropKeyfile> -->
-    
+
     <!-- Program to prepend to commands when launching .exe files (note the trailing space) -->
     <!-- (do not worry about this under Windows, just set PropUsingMono to false) -->
     <PropLaunchExe Condition="'$(PropUsingMono)' == 'true'">mono --debug </PropLaunchExe>
+
+    <!-- Windows RT -->
+    <PropBuildWinRT Condition="'$(PropUsingMono)' != 'true'">true</PropBuildWinRT>
 
     <!-- WCF component only for Windows -->
     <PropBuildWcf Condition="'$(PropUsingMono)' != 'true'">true</PropBuildWcf>
@@ -19,4 +22,3 @@
     <!-- <PropTestToRun>RabbitMQ.Client.Unit.TestConnectionRecovery</PropTestToRun> -->
   </PropertyGroup>
 </Project>
-

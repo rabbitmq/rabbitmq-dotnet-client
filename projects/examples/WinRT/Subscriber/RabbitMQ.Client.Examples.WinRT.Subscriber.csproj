@@ -1,6 +1,7 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <Import Project="$(MSBuildProjectDirectory)\..\..\..\..\Local.props" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -149,12 +150,25 @@
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '11.0' ">
     <VisualStudioVersion>11.0</VisualStudioVersion>
   </PropertyGroup>
-  <Import Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
+
+  <!-- Microsoft Windows 8 CSharp targets -->
+  <Import Condition="'$(PropUsingMono)' != 'true'" Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
+
+  <Import Condition="'$(PropUsingMono)' == 'true'" Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+
+  <!-- Mono compatibility workarounds -->
+  <PropertyGroup Condition=" '$(PropUsingMono)' == 'true'">
+    <_DisabledWarnings>$(NoWarn)</_DisabledWarnings>
+  </PropertyGroup>
+
+  <!-- Microsoft CSharp targets; replace Build, Rebuild and Clean targets if building WinRT version is turned off -->
+  <Target Name="Build" Condition="'$(PropBuildWinRT)' != 'true'">
+    <Message Text="Not building anything in $(MSBuildProjectName) because PropBuildWinRT is false." />
   </Target>
-  <Target Name="AfterBuild">
+  <Target Name="Rebuild" Condition="'$(PropBuildWinRT)' != 'true'">
+    <Message Text="Not rebuilding anything in $(MSBuildProjectName) because PropBuildWinRT is false." />
   </Target>
-  -->
+  <Target Name="Clean" Condition="'$(PropBuildWinRT)' != 'true'">
+    <Message Text="Not cleaning anything in $(MSBuildProjectName) because PropBuildWinRT is false." />
+  </Target>  
 </Project>
