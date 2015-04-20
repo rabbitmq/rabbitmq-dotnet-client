@@ -87,4 +87,4 @@ Backup*/
 UpgradeLog*.XML
 UpgradeLog*.htm
 
-projects/client/Unit/TestResult.xml
+projects/client/Unit*/TestResult.xml
