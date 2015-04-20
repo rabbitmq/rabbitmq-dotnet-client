@@ -100,20 +100,4 @@
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- Custom BeforeClean -->
   <Target Name="BeforeClean" DependsOnTargets="CleanTestResults" />
-
-  <!-- Mono compatibility workarounds -->
-  <PropertyGroup Condition=" '$(PropUsingMono)' == 'true'">
-    <_DisabledWarnings>$(NoWarn)</_DisabledWarnings>
-  </PropertyGroup>
-
-  <!-- Microsoft CSharp targets; replace Build, Rebuild and Clean targets if building WinRT version is turned off -->
-  <Target Name="Build" Condition="'$(PropBuildWinRT)' != 'true'">
-    <Message Text="Not building anything in $(MSBuildProjectName) because PropBuildWinRT is false." />
-  </Target>
-  <Target Name="Rebuild" Condition="'$(PropBuildWinRT)' != 'true'">
-    <Message Text="Not rebuilding anything in $(MSBuildProjectName) because PropBuildWinRT is false." />
-  </Target>
-  <Target Name="Clean" Condition="'$(PropBuildWinRT)' != 'true'">
-    <Message Text="Not cleaning anything in $(MSBuildProjectName) because PropBuildWinRT is false." />
-  </Target>
 </Project>
