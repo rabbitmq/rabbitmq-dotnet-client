@@ -76,7 +76,6 @@
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="Windows" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="properties\AssemblyInfo.cs" />
@@ -113,7 +112,7 @@
     <Message Text="Not running tests in $(MSBuildProjectName) because PropBuildWinRT is false." />
   </Target>
   <!-- Microsoft CSharp targets -->
-  <Import Condition="'$(PropUsingMono)' != 'true'" Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
+  <Import Condition="'$(PropBuildWinRT)' == 'true'" Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- Custom BeforeClean -->
   <Target Name="BeforeClean" DependsOnTargets="CleanTestResults" />
 </Project>

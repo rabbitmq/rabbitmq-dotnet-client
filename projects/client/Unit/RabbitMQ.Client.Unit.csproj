@@ -137,8 +137,10 @@
   <PropertyGroup Condition=" '$(PropUsingMono)' == 'true'">
     <_DisabledWarnings>$(NoWarn)</_DisabledWarnings>
   </PropertyGroup>
+
   <!-- Microsoft CSharp targets -->
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+
   <!-- Custom BeforeClean -->
   <Target Name="BeforeClean" DependsOnTargets="CleanTestResults" />
 </Project>
