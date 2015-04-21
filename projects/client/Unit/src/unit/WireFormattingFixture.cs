@@ -76,9 +76,9 @@ namespace RabbitMQ.Client.Unit
             {
                 Console.WriteLine();
                 Console.WriteLine("EXPECTED ==================================================");
-                DebugUtil.Dump(expected);
+                DebugUtil.Dump(expected, Console.Out);
                 Console.WriteLine("ACTUAL ====================================================");
-                DebugUtil.Dump(actual);
+                DebugUtil.Dump(actual, Console.Out);
                 Console.WriteLine("===========================================================");
                 throw;
             }

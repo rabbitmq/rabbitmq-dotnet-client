@@ -49,6 +49,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 
+#if (NETFX_CORE)
+using Trace = System.Diagnostics.Debug;
+#endif
+
 namespace RabbitMQ.Client.Impl
 {
     public abstract class ModelBase : IFullModel, IRecoverable
@@ -66,8 +70,8 @@ namespace RabbitMQ.Client.Impl
         private readonly object m_flowSendLock = new object();
         private readonly object m_shutdownLock = new object();
 
-        private readonly SynchronizedCollection<ulong> m_unconfirmedSet =
-            new SynchronizedCollection<ulong>();
+        private readonly SynchronizedList<ulong> m_unconfirmedSet =
+            new SynchronizedList<ulong>();
 
         private EventHandler<BasicAckEventArgs> m_basicAck;
         private EventHandler<BasicNackEventArgs> m_basicNack;

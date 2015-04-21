@@ -49,18 +49,15 @@ namespace RabbitMQ.Util
     ///<remarks>
     ///Not part of the public API.
     ///</remarks>
-    public class DebugUtil
+    public static class DebugUtil
     {
-        ///<summary>Private constructor - this class has no instances</summary>
-        private DebugUtil()
-        {
-        }
-
+#if !(NETFX_CORE)
         ///<summary>Print a hex dump of the supplied bytes to stdout.</summary>
         public static void Dump(byte[] bytes)
         {
             Dump(bytes, Console.Out);
         }
+#endif
 
         ///<summary>Print a hex dump of the supplied bytes to the supplied TextWriter.</summary>
         public static void Dump(byte[] bytes, TextWriter writer)
@@ -124,7 +121,7 @@ namespace RabbitMQ.Util
             else if (value is byte[])
             {
                 writer.WriteLine("byte[]");
-                Dump((byte[])value);
+                Dump((byte[])value, writer);
             }
             else if (value is ValueType)
             {
@@ -153,9 +150,13 @@ namespace RabbitMQ.Util
             {
                 Type t = value.GetType();
                 writer.WriteLine(t.FullName);
+#if !(NETFX_CORE)
                 foreach (PropertyInfo pi in t.GetProperties(BindingFlags.Instance
                                                             | BindingFlags.Public
                                                             | BindingFlags.DeclaredOnly))
+#else
+                foreach (PropertyInfo pi in t.GetRuntimeProperties())
+#endif
                 {
                     if (pi.GetIndexParameters().Length == 0)
                     {

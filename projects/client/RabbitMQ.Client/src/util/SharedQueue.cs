@@ -44,6 +44,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 
+#if NETFX_CORE || NET4  // For Windows 8 Store, but could be .NET 4.0 and greater
+using System.Threading.Tasks;
+#endif
+
 namespace RabbitMQ.Util
 {
     ///<summary>A thread-safe shared queue implementation.</summary>
@@ -66,6 +70,10 @@ namespace RabbitMQ.Util
         ///</remarks>
         protected Queue<T> m_queue = new Queue<T>();
 
+#if NETFX_CORE || NET4
+        protected Queue<TaskCompletionSource<T>> m_waiting = new Queue<TaskCompletionSource<T>>();
+#endif
+
         ///<summary>Close the queue. Causes all further Enqueue()
         ///operations to throw EndOfStreamException, and all pending
         ///or subsequent Dequeue() operations to throw an
@@ -76,6 +84,23 @@ namespace RabbitMQ.Util
             {
                 m_isOpen = false;
                 Monitor.PulseAll(m_queue);
+#if NETFX_CORE
+                // let all waiting tasks know we just closed by passing them an exception
+                if (m_waiting.Count > 0) 
+                {
+                    try 
+                    {
+                        this.EnsureIsOpen();
+                    }
+                    catch (Exception ex) 
+                    {
+                        foreach (var tcs in m_waiting) 
+                        {
+                            tcs.TrySetException(ex);
+                        }
+                    }
+                }
+#endif
             }
         }
 
@@ -98,6 +123,29 @@ namespace RabbitMQ.Util
                 return m_queue.Dequeue();
             }
         }
+
+#if NETFX_CORE || NET4
+        /// <summary>
+        /// Asynchronously retrieves the first item from the queue.
+        /// </summary>
+        public Task<T> DequeueAsync() 
+        {
+            lock (m_queue) 
+            {
+                EnsureIsOpen();
+                if (m_queue.Count > 0)
+                {
+                    return Task.FromResult(this.Dequeue());
+                }
+                else 
+                {
+                    var tcs = new TaskCompletionSource<T>();
+                    m_waiting.Enqueue(tcs);
+                    return tcs.Task;
+                }
+            }
+        }
+#endif
 
         ///<summary>Retrieve the first item from the queue, or return
         ///nothing if no items are available after the given
@@ -214,6 +262,20 @@ namespace RabbitMQ.Util
             lock (m_queue)
             {
                 EnsureIsOpen();
+
+#if NETFX_CORE
+                while (m_waiting.Count > 0)
+                {
+                    var tcs = m_waiting.Dequeue();
+                    if (tcs != null && tcs.TrySetResult(o)) 
+                    {
+                        // We successfully set a task return result, so
+                        // no need to Enqueue or Monitor.Pulse
+                        return;
+                    }
+                }
+#endif
+
                 m_queue.Enqueue(o);
                 Monitor.Pulse(m_queue);
             }

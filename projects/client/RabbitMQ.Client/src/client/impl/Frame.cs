@@ -40,7 +40,12 @@
 
 using System;
 using System.IO;
+
+#if NETFX_CORE
+using Windows.Networking.Sockets;
+#else
 using System.Net.Sockets;
+#endif
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
 using RabbitMQ.Client.Framing;
@@ -121,6 +126,15 @@ namespace RabbitMQ.Client.Impl
             }
             catch (IOException ioe)
             {
+#if NETFX_CORE
+                if (ioe.InnerException != null
+                    && SocketError.GetStatus(ioe.InnerException.HResult) == SocketErrorStatus.ConnectionTimedOut)
+                {
+                    throw ioe.InnerException;
+                }
+
+                throw;
+#else
                 // If it's a WSAETIMEDOUT SocketException, unwrap it.
                 // This might happen when the limit of half-open connections is
                 // reached.
@@ -131,6 +145,8 @@ namespace RabbitMQ.Client.Impl
                     throw ioe;
                 }
                 throw ioe.InnerException;
+
+#endif
             }
 
             if (type == 'A')

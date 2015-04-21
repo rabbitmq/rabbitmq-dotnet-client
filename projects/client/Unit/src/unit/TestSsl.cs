@@ -92,7 +92,11 @@ namespace RabbitMQ.Client.Unit
 
             ConnectionFactory cf = new ConnectionFactory();
             cf.Ssl.ServerName = "*";
+
+#if !(NETFX_CORE)
             cf.Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNameMismatch;
+#endif
+
             cf.Ssl.Enabled = true;
             SendReceive(cf);
         }
@@ -113,6 +117,7 @@ namespace RabbitMQ.Client.Unit
             SendReceive(cf);
         }
 
+#if !NETFX_CORE
         [Test]
         public void TestVersionVerified()
         {
@@ -133,6 +138,7 @@ namespace RabbitMQ.Client.Unit
             cf.Ssl.Version = SslProtocols.Default;
             Assert.DoesNotThrow(() => SendReceive(cf));
         }
+#endif
 
         [Test]
         public void TestClientAndServerVerified()
@@ -169,12 +175,16 @@ namespace RabbitMQ.Client.Unit
             ConnectionFactory cf = new ConnectionFactory();
             cf.Ssl = new SslOption()
             {
-                Version = SslProtocols.Tls,
-                AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNotAvailable |
-                                         SslPolicyErrors.RemoteCertificateNameMismatch,
                 CertPath = null,
                 Enabled = true,
             };
+
+#if !NETFX_CORE
+            cf.Ssl.Version = SslProtocols.Tls;
+            cf.Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNotAvailable |
+                                        SslPolicyErrors.RemoteCertificateNameMismatch;
+#endif
+
             SendReceive(cf);
         }
     }

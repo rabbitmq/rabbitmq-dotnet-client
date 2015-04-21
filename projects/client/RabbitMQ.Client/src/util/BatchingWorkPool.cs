@@ -69,6 +69,10 @@ namespace RabbitMQ.Util
                     return false;
                 }
             }
+
+#if NETFX_CORE
+            q.Add(item);
+#else
             try
             {
                 q.Add(item);
@@ -77,6 +81,8 @@ namespace RabbitMQ.Util
             {
                 // most likely due to shutdown. ok.
             }
+#endif
+
             lock (lockObject)
             {
                 if (IsDormant(key))

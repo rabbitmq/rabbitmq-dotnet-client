@@ -40,7 +40,13 @@
 
 using System;
 using System.Collections.Generic;
+
+#if !NETFX_CORE
 using System.Net.Sockets;
+#else
+using Windows.Networking.Sockets;
+#endif
+
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Client;
 using RabbitMQ.Util;
@@ -138,8 +144,13 @@ namespace RabbitMQ.Client.Framing.Impl
             return ac;
         }
 
-        public IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint,
-            Func<AddressFamily, TcpClient> socketFactory,
+        public IFrameHandler CreateFrameHandler(
+            AmqpTcpEndpoint endpoint,
+#if !NETFX_CORE
+            Func<AddressFamily, TcpClient> socketFactory, 
+#else
+            Func<StreamSocket> socketFactory,
+#endif
             int timeout)
         {
             return new SocketFrameHandler(endpoint, socketFactory, timeout);
