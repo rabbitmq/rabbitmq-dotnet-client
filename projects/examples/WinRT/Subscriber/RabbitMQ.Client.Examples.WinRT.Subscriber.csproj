@@ -152,7 +152,7 @@
   </PropertyGroup>
 
   <!-- Microsoft Windows 8 CSharp targets -->
-  <Import Condition="'$(PropUsingMono)' == 'true'" Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets')" Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
 
   <!-- Mono compatibility workarounds -->
