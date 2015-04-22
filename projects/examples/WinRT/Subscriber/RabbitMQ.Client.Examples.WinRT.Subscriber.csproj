@@ -152,27 +152,24 @@
   </PropertyGroup>
 
   <!-- Microsoft Windows 8 CSharp targets -->
-  <Import Condition="'$(PropUsingMono)' != 'true'" Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
-
   <Import Condition="'$(PropUsingMono)' == 'true'" Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets')" Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
 
   <!-- Mono compatibility workarounds -->
-  <PropertyGroup Condition=" '$(PropUsingMono)' == 'true'">
-    <_DisabledWarnings>$(NoWarn)</_DisabledWarnings>
-    
+  <PropertyGroup Condition=" '$(PropBuildWinRT)' != 'true'">
     <BuildDependsOn>SkippingBuild</BuildDependsOn>
     <CleanDependsOn>SkippingClean</CleanDependsOn>
     <RebuildDependsOn>SkippingRebuild</RebuildDependsOn>
   </PropertyGroup>
-  
+
   <!-- Replace Build, Rebuild and Clean DependsOnTargets with these Targets if building WinRT version is turned off -->
-  <Target Name="SkippingBuild">
+  <Target Name="SkippingBuild" Condition=" '$(PropBuildWinRT)' != 'true'">
     <Message Text="Not building anything in $(MSBuildProjectName) because PropBuildWinRT is false." />
   </Target>
-  <Target Name="SkippingRebuild">
+  <Target Name="SkippingRebuild" Condition=" '$(PropBuildWinRT)' != 'true'">
     <Message Text="Not rebuilding anything in $(MSBuildProjectName) because PropBuildWinRT is false." />
   </Target>
-  <Target Name="SkippingClean">
+  <Target Name="SkippingClean" Condition=" '$(PropBuildWinRT)' != 'true'">
     <Message Text="Not cleaning anything in $(MSBuildProjectName) because PropBuildWinRT is false." />
-  </Target>  
+  </Target>
 </Project>
