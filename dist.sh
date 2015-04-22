@@ -230,13 +230,10 @@ function gen-props {
     else
         USING_MONO="false"
     fi
-    sed -e "s:@VERSION@:$ASSEMBLY_VSN:g" \
-        -e "s:@KEYFILE@:$KEYFILE:g" \
-        -e "s:@USINGMONO@:$USING_MONO:g" \
-        # once our build infra is on Windows 8.1,
-        # we can enable WinRT builds
-        -e "s:@BUILDWINRT@:$BUILD_WINRT:g" \
-    < $1 > $2
+    # once our build infra is on Windows 8.1,
+    # we can enable WinRT builds
+    sed -e "s:@VERSION@:$ASSEMBLY_VSN:g" -e "s:@KEYFILE@:$KEYFILE:g" -e "s:@USINGMONO@:$USING_MONO:g" -e "s:@BUILDWINRT@:$BUILD_WINRT:g" < $1 > $2
+
 }
 
 function gendoc-dist {
@@ -301,4 +298,3 @@ function genhtml {
 
 
 main $@
-
