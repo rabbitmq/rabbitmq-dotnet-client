@@ -4,7 +4,7 @@
     <PropTargetFramework>v4.0</PropTargetFramework>
     <PropUsingMono>@USINGMONO@</PropUsingMono>
     <PropLaunchExe Condition="'$(PropUsingMono)' == 'true'">mono </PropLaunchExe>
-    <PropBuildWinRT">@BUILDWINRT@</PropBuildWinRT>
+    <PropBuildWinRT>@BUILDWINRT@</PropBuildWinRT>
     <PropBuildWcf Condition="'$(PropUsingMono)' != 'true'">true</PropBuildWcf>
     <PropAssemblyVersion>@VERSION@</PropAssemblyVersion>
     <PropKeyfile>$(MSBuildProjectDirectory)\..\..\..\@KEYFILE@</PropKeyfile>
