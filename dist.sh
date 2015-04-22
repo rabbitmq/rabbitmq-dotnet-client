@@ -56,6 +56,7 @@ test "$RABBIT_VSN" || RABBIT_VSN=0.0.0.0
 test "$WEB_URL" || WEB_URL=http://stage.rabbitmq.com/
 test "$UNOFFICIAL_RELEASE" || UNOFFICIAL_RELEASE=
 test "$MONO_DIST" || MONO_DIST=
+test "$BUILD_WINRT" || BUILD_WINRT=false
 
 ### Other, general vars
 NAME=rabbitmq-dotnet-client
@@ -232,6 +233,9 @@ function gen-props {
     sed -e "s:@VERSION@:$ASSEMBLY_VSN:g" \
         -e "s:@KEYFILE@:$KEYFILE:g" \
         -e "s:@USINGMONO@:$USING_MONO:g" \
+        # once our build infra is on Windows 8.1,
+        # we can enable WinRT builds
+        -e "s:@BUILDWINRT@:$BUILD_WINRT:g" \
     < $1 > $2
 }
 
