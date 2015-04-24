@@ -236,7 +236,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 // timers fire at half the interval to avoid race
                 // conditions
                 m_heartbeatTimeSpan = TimeSpan.FromSeconds(value / 2);
-                m_frameHandler.Timeout = value * 1000;
+                m_frameHandler.Timeout = (value * 1000) / 2;
             }
         }
 
@@ -603,14 +603,6 @@ namespace RabbitMQ.Client.Framing.Impl
                 {
                     shutdownCleanly = HardProtocolExceptionHandler(hpe);
                 }
-                catch (SocketException se)
-                {
-                    // Possibly due to handshake timeout
-                    HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library,
-                        0,
-                        "Socket exception",
-                        se));
-                }
                 catch (Exception ex)
                 {
                     HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library,
@@ -698,26 +690,30 @@ namespace RabbitMQ.Client.Framing.Impl
                         }
                     }
                 }
-            } catch (IOException ioe)
+            }
+            catch (SocketException ioe)
             {
                 HandleIOException(ioe);
             }
-
+            catch (IOException ioe)
+            {
+                HandleIOException(ioe);
+            }
         }
 
-        protected void HandleIOException(IOException ioe)
+        protected void HandleIOException(Exception e)
         {
             // socket error when in negotiation, throw BrokerUnreachableException
             // immediately
-            if(m_inConnectionNegotiation)
+            if (m_inConnectionNegotiation)
             {
-                var cfe = new ConnectFailureException("I/O error before connection negotiation was completed", ioe);
+                var cfe = new ConnectFailureException("I/O error before connection negotiation was completed", e);
                 throw new BrokerUnreachableException(cfe);
             }
 
             // socket receive timeout is configured to be 1/2 of the heartbeat timeout,
             // the peer must be considered dead after two subsequent missed heartbeats
-            if(++m_missedHeartbeats >= 4)
+            if (++m_missedHeartbeats >= 4)
             {
                 var description =
                     String.Format("Peer missed 2 heartbeats with heartbeat timeout set to {0} seconds",
@@ -966,7 +962,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         protected void StopHeartbeatTimer()
         {
-            if(_heartbeatWriteTimer != null)
+            if (_heartbeatWriteTimer != null)
             {
                 _heartbeatWriteTimer.Dispose();
             }

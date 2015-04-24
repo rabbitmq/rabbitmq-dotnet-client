@@ -38,13 +38,13 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Framing.Impl;
+using RabbitMQ.Client.Impl;
 using System;
 using System.Collections.Generic;
 using System.Net.Security;
 using System.Threading.Tasks;
-using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Client.Framing.Impl;
-using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
 {
@@ -103,7 +103,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Default value for connection attempt timeout, in milliseconds.
         /// </summary>
-        public const int DefaultConnectionTimeout = 30*1000;
+        public const int DefaultConnectionTimeout = 30 * 1000;
 
         /// <summary>
         /// Default value for the desired maximum frame size, with zero meaning unlimited (value: 0).
@@ -138,7 +138,7 @@ namespace RabbitMQ.Client
         /// <summary>
         ///  Default SASL auth mechanisms to use.
         /// </summary>
-        public static AuthMechanismFactory[] DefaultAuthMechanisms = {new PlainMechanismFactory()};
+        public static AuthMechanismFactory[] DefaultAuthMechanisms = { new PlainMechanismFactory() };
 
         /// <summary>
         ///  SASL auth mechanisms to use.
@@ -282,7 +282,6 @@ namespace RabbitMQ.Client
         /// </summary>
         public AuthMechanismFactory AuthMechanismFactory(string[] mechanismNames)
         {
-
             // Our list is in order of preference, the server one is not.
             foreach (AuthMechanismFactory factory in AuthMechanisms)
             {

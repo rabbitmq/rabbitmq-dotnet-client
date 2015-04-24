@@ -54,14 +54,18 @@ namespace RabbitMQ.Client.Unit
         [Category("Focus")]
         public void TestThatHeartbeatWriterUsesConfigurableInterval()
         {
-            var cf = new ConnectionFactory() { RequestedHeartbeat = heartbeatTimeout, AutomaticRecoveryEnabled = false };
+            var cf = new ConnectionFactory()
+            {
+                RequestedHeartbeat = heartbeatTimeout,
+                AutomaticRecoveryEnabled = false
+            };
             var conn = cf.CreateConnection();
             var ch = conn.CreateModel();
             bool wasShutdown = false;
 
             conn.ConnectionShutdown += (sender, evt) =>
             {
-                lock(conn)
+                lock (conn)
                 {
                     wasShutdown = true;
                 }

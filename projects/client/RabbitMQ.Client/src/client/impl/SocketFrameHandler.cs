@@ -38,13 +38,13 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Util;
 using System;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -54,6 +54,7 @@ namespace RabbitMQ.Client.Impl
 
         // Timeout in seconds to wait for a clean socket close.
         public const int SOCKET_CLOSING_TIMEOUT = 1;
+
         public const int WSAEWOULDBLOCK = 10035;
 
         public NetworkBinaryReader m_reader;
@@ -79,8 +80,8 @@ namespace RabbitMQ.Client.Impl
                 {
                     m_socket = null;
                 }
-                    // Mono might raise a SocketException when using IPv4 addresses on
-                    // an OS that supports IPv6
+                // Mono might raise a SocketException when using IPv4 addresses on
+                // an OS that supports IPv6
                 catch (SocketException)
                 {
                     m_socket = null;
@@ -163,7 +164,8 @@ namespace RabbitMQ.Client.Impl
                     try
                     {
                         m_socket.LingerState = new LingerOption(true, SOCKET_CLOSING_TIMEOUT);
-                    } catch (ArgumentException _)
+                    }
+                    catch (ArgumentException _)
                     {
                         // ignore, we are closing anyway
                     }
