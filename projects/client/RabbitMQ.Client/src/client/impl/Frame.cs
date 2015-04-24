@@ -38,12 +38,12 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Framing;
+using RabbitMQ.Util;
 using System;
 using System.IO;
 using System.Net.Sockets;
-using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Util;
-using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Impl
 {
