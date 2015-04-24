@@ -55,6 +55,12 @@ namespace RabbitMQ.Client.Unit
         [Category("Focus")]
         public void TestThatHeartbeatWriterUsesConfigurableInterval()
         {
+            if (!LongRunningTestsEnabled())
+            {
+                Console.WriteLine("RABBITMQ_LONG_RUNNING_TESTS is not set, skipping test");
+                return;
+            }
+
             var cf = new ConnectionFactory()
             {
                 RequestedHeartbeat = heartbeatTimeout,
@@ -75,7 +81,7 @@ namespace RabbitMQ.Client.Unit
                     }
                 }
             };
-            Thread.Sleep(heartbeatTimeout * 10 * 1000);
+            SleepFor(30);
 
             Assert.IsFalse(wasShutdown, "shutdown event should not have been fired");
             Assert.IsTrue(conn.IsOpen, "connection should be open");
@@ -87,6 +93,13 @@ namespace RabbitMQ.Client.Unit
         [Category("Focus")]
         public void TestHundredsOfConnectionsWithRandomHeartbeatInterval()
         {
+            if (!LongRunningTestsEnabled())
+            {
+                Console.WriteLine("RABBITMQ_LONG_RUNNING_TESTS is not set, skipping test");
+                return;
+            }
+
+
             var rnd = new Random();
             List<IConnection> xs = new List<IConnection>();
             for(var i = 0; i < 200; i++)
@@ -104,7 +117,7 @@ namespace RabbitMQ.Client.Unit
                     };
             }
 
-            Thread.Sleep(20 * 1000);
+            SleepFor(60);
 
             foreach(var x in xs)
             {
@@ -122,6 +135,22 @@ namespace RabbitMQ.Client.Unit
                 Console.WriteLine(s);
                 Assert.Fail(s);
             }
+        }
+
+        private bool LongRunningTestsEnabled()
+        {
+            var s = Environment.GetEnvironmentVariable("RABBITMQ_LONG_RUNNING_TESTS");
+            if(s == null || s.Equals(""))
+            {
+                return false;
+            }
+            return true;
+        }
+
+        private void SleepFor(int t)
+        {
+            Console.WriteLine("Testing heartbeats, sleeping for {0} seconds", t);
+            Thread.Sleep(t * 1000);
         }
     }
 }
