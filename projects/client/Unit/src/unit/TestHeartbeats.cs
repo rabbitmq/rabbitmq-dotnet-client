@@ -41,6 +41,7 @@
 using NUnit.Framework;
 using RabbitMQ.Client.Impl;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace RabbitMQ.Client.Unit
@@ -67,13 +68,60 @@ namespace RabbitMQ.Client.Unit
             {
                 lock (conn)
                 {
-                    wasShutdown = true;
+                    if(InitiatedByPeerOrLibrary(evt))
+                    {
+                        CheckInitiator(evt);
+                        wasShutdown = true;
+                    }
                 }
             };
             Thread.Sleep(heartbeatTimeout * 10 * 1000);
 
             Assert.IsFalse(wasShutdown, "shutdown event should not have been fired");
             Assert.IsTrue(conn.IsOpen, "connection should be open");
+
+            conn.Close();
+        }
+
+        [Test]
+        [Category("Focus")]
+        public void TestHundredsOfConnectionsWithRandomHeartbeatInterval()
+        {
+            var rnd = new Random();
+            List<IConnection> xs = new List<IConnection>();
+            for(var i = 0; i < 200; i++)
+            {
+                var n = Convert.ToUInt16(rnd.Next(2, 6));
+                var cf = new ConnectionFactory() { RequestedHeartbeat = n, AutomaticRecoveryEnabled = false };
+                var conn = cf.CreateConnection();
+                xs.Add(conn);
+                var ch = conn.CreateModel();
+                bool wasShutdown = false;
+
+                conn.ConnectionShutdown += (sender, evt) =>
+                    {
+                        CheckInitiator(evt);
+                    };
+            }
+
+            Thread.Sleep(20 * 1000);
+
+            foreach(var x in xs)
+            {
+                x.Close();
+            }
+
+        }
+
+        private void CheckInitiator(ShutdownEventArgs evt)
+        {
+            if(InitiatedByPeerOrLibrary(evt))
+            {
+                var s = String.Format("Shutdown: {0}, initiated by: {1}",
+                                      evt, evt.Initiator);
+                Console.WriteLine(s);
+                Assert.Fail(s);
+            }
         }
     }
 }
