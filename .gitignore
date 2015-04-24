@@ -87,4 +87,10 @@ Backup*/
 UpgradeLog*.XML
 UpgradeLog*.htm
 
+# Unit tests
+
 projects/client/Unit*/TestResult.xml
+
+# Development scripts
+
+*.fsx

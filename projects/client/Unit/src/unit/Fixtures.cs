@@ -320,6 +320,11 @@ namespace RabbitMQ.Client.Unit
             AssertShutdownError(args, Constants.PreconditionFailed);
         }
 
+        protected bool InitiatedByPeerOrLibrary(ShutdownEventArgs evt)
+        {
+            return !(evt.Initiator == ShutdownInitiator.Application);
+        }
+
         //
         // Concurrency
         //
@@ -372,7 +377,7 @@ namespace RabbitMQ.Client.Unit
         {
             var proc = new Process
             {
-                StartInfo = 
+                StartInfo =
                 {
                     CreateNoWindow = true,
                     UseShellExecute = false
