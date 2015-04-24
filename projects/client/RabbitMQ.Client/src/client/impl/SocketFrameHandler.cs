@@ -164,13 +164,16 @@ namespace RabbitMQ.Client.Impl
                     try
                     {
                         m_socket.LingerState = new LingerOption(true, SOCKET_CLOSING_TIMEOUT);
+                        m_socket.Close();
                     }
-                    catch (ArgumentException _)
+                    catch (Exception _)
                     {
                         // ignore, we are closing anyway
                     }
-                    m_socket.Close();
-                    _closed = true;
+                    finally
+                    {
+                        _closed = true;
+                    }
                 }
             }
         }
