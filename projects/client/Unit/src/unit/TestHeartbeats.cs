@@ -52,7 +52,6 @@ namespace RabbitMQ.Client.Unit
         private const UInt16 heartbeatTimeout = 2;
 
         [Test]
-        [Category("Focus")]
         public void TestThatHeartbeatWriterUsesConfigurableInterval()
         {
             if (!LongRunningTestsEnabled())
@@ -74,7 +73,7 @@ namespace RabbitMQ.Client.Unit
             {
                 lock (conn)
                 {
-                    if(InitiatedByPeerOrLibrary(evt))
+                    if (InitiatedByPeerOrLibrary(evt))
                     {
                         CheckInitiator(evt);
                         wasShutdown = true;
@@ -90,7 +89,6 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        [Category("Focus")]
         public void TestHundredsOfConnectionsWithRandomHeartbeatInterval()
         {
             if (!LongRunningTestsEnabled())
@@ -99,10 +97,9 @@ namespace RabbitMQ.Client.Unit
                 return;
             }
 
-
             var rnd = new Random();
             List<IConnection> xs = new List<IConnection>();
-            for(var i = 0; i < 200; i++)
+            for (var i = 0; i < 200; i++)
             {
                 var n = Convert.ToUInt16(rnd.Next(2, 6));
                 var cf = new ConnectionFactory() { RequestedHeartbeat = n, AutomaticRecoveryEnabled = false };
@@ -119,16 +116,15 @@ namespace RabbitMQ.Client.Unit
 
             SleepFor(60);
 
-            foreach(var x in xs)
+            foreach (var x in xs)
             {
                 x.Close();
             }
-
         }
 
         private void CheckInitiator(ShutdownEventArgs evt)
         {
-            if(InitiatedByPeerOrLibrary(evt))
+            if (InitiatedByPeerOrLibrary(evt))
             {
                 var s = String.Format("Shutdown: {0}, initiated by: {1}",
                                       evt, evt.Initiator);
@@ -140,7 +136,7 @@ namespace RabbitMQ.Client.Unit
         private bool LongRunningTestsEnabled()
         {
             var s = Environment.GetEnvironmentVariable("RABBITMQ_LONG_RUNNING_TESTS");
-            if(s == null || s.Equals(""))
+            if (s == null || s.Equals(""))
             {
                 return false;
             }
