@@ -235,7 +235,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 m_heartbeat = value;
                 // timers fire at half the interval to avoid race
                 // conditions
-                m_heartbeatTimeSpan = TimeSpan.FromSeconds(value / 2);
+                m_heartbeatTimeSpan = TimeSpan.FromMilliseconds((value * 1000) / 2.0);
                 m_frameHandler.Timeout = (value * 1000) / 2;
             }
         }
