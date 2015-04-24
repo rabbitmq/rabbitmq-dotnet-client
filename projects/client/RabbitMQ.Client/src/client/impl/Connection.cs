@@ -701,6 +701,11 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
+        // socket receive timeout is configured to be 1/2 of the heartbeat timeout
+        // and the peer must be considered dead after two subsequent missed heartbeats:
+        // terminate after 4 socket timeouts
+        private const int SOCKET_TIMEOUTS_TO_CONSIDER_PEER_UNRESPONSIVE = 4;
+
         protected void HandleIOException(Exception e)
         {
             // socket error when in negotiation, throw BrokerUnreachableException
@@ -711,9 +716,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 throw new BrokerUnreachableException(cfe);
             }
 
-            // socket receive timeout is configured to be 1/2 of the heartbeat timeout,
-            // the peer must be considered dead after two subsequent missed heartbeats
-            if (++m_missedHeartbeats >= 4)
+            if (++m_missedHeartbeats >= SOCKET_TIMEOUTS_TO_CONSIDER_PEER_UNRESPONSIVE)
             {
                 var description =
                     String.Format("Peer missed 2 heartbeats with heartbeat timeout set to {0} seconds",
@@ -948,7 +951,7 @@ namespace RabbitMQ.Client.Framing.Impl
             if (Heartbeat != 0)
             {
                 _heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback);
-                _heartbeatWriteTimer.Change(m_heartbeatTimeSpan, m_heartbeatTimeSpan);
+                _heartbeatWriteTimer.Change(TimeSpan.FromMilliseconds(0), m_heartbeatTimeSpan);
             }
         }
 
