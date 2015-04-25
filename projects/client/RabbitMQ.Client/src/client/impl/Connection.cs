@@ -1044,7 +1044,11 @@ namespace RabbitMQ.Client.Framing.Impl
             if (Heartbeat != 0)
             {
                 _heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback);
+#if NETFX_CORE
+                _heartbeatWriteTimer.Change(0, m_heartbeatTimeSpan.Milliseconds);
+#else
                 _heartbeatWriteTimer.Change(TimeSpan.FromMilliseconds(0), m_heartbeatTimeSpan);
+#endif
             }
         }
 
