@@ -190,14 +190,10 @@ function dist-target-framework {
     ### Overwrite Local.props with settings specific to dist
     gen-props Dist-$TARGET_FRAMEWORK.props.in ./Local.props
 
-    mkdir -p tmp/dist/bin tmp/dist/projects/examples
+    mkdir -p tmp/dist/bin
 
     ### Clean
     $MSBUILD /verbosity:quiet RabbitMQDotNetClient.sln /t:Clean /property:Configuration="Release"
-
-    ### Copy examples code to be zipped to tmp/dist/
-    cp -r projects/examples/client tmp/dist/projects/examples/
-    test "$BUILD_WCF" && cp -r projects/examples/wcf tmp/dist/projects/examples/
 
     ### Build
     $MSBUILD /verbosity:quiet RabbitMQDotNetClient.sln /t:Build /property:Configuration="Release"
@@ -205,9 +201,6 @@ function dist-target-framework {
     ### Copy bin files to be zipped to tmp/dist/
     cp projects/client/RabbitMQ.Client/build/bin/RabbitMQ.Client.xml tmp/dist/bin/
     cp projects/client/RabbitMQ.Client/build/bin/RabbitMQ.Client.dll tmp/dist/bin/
-    for example in $(ls projects/examples/client); do
-        cp projects/examples/client/$example/build/bin/$example.exe tmp/dist/bin/
-    done
     test "$BUILD_WCF" && cp projects/wcf/RabbitMQ.ServiceModel/build/bin/RabbitMQ.ServiceModel.dll tmp/dist/bin/
     cp-license-to tmp/dist/
 
