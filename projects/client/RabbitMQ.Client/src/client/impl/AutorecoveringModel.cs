@@ -38,10 +38,10 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Framing.Impl;
+using System;
+using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -71,6 +71,7 @@ namespace RabbitMQ.Client.Impl
         protected bool usesPublisherConfirms = false;
         protected bool usesTransactions = false;
         private EventHandler<EventArgs> m_recovery;
+
         public IConsumerDispatcher ConsumerDispatcher
         {
             get { return m_delegate.ConsumerDispatcher; }
@@ -1108,6 +1109,11 @@ namespace RabbitMQ.Client.Impl
         public QueueDeclareOk QueueDeclarePassive(string queue)
         {
             return m_delegate.QueueDeclarePassive(queue);
+        }
+
+        public uint MessageCount(string queue)
+        {
+            return m_delegate.MessageCount(queue);
         }
 
         public uint QueueDelete(string queue,
