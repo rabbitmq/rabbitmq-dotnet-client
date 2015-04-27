@@ -485,6 +485,15 @@ namespace RabbitMQ.Client
         QueueDeclareOk QueueDeclarePassive(string queue);
 
         /// <summary>
+        /// Returns the number of messages in a queue ready to be delivered
+        /// to consumers. This method assumes the queue exists. If it doesn't,
+        /// an exception will be closed with an exception.
+        /// </summary>
+        /// <param name="queue">The name of the queue</param>
+        [AmqpMethodDoNotImplement(null)]
+        uint MessageCount(string queue);
+
+        /// <summary>
         /// (Spec method) Delete a queue.
         /// </summary>
         /// <remarks>

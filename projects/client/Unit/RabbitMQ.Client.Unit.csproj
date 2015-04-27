@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Warning! This file contains important customizations. Using Visual Studio to edit project's properties might break things. -->
   <!-- Props file -->
@@ -105,11 +105,12 @@
     <Compile Include="src\unit\TestExtensions.cs" />
     <Compile Include="src\unit\TestFieldTableFormatting.cs" />
     <Compile Include="src\unit\TestFieldTableFormattingGeneric.cs" />
-    <Compile Include="src\unit\TestHeartbeats.cs" />    
+    <Compile Include="src\unit\TestHeartbeats.cs" />
     <Compile Include="src\unit\TestIntAllocator.cs" />
     <Compile Include="src\unit\TestInvalidAck.cs" />
     <Compile Include="src\unit\TestMainLoop.cs" />
     <Compile Include="src\unit\TestMapMessage.cs" />
+    <Compile Include="src\unit\TestMessageCount.cs" />
     <Compile Include="src\unit\TestMessagePatternsSubscription.cs" />
     <Compile Include="src\unit\TestMethodArgumentCodec.cs" />
     <Compile Include="src\unit\TestModelShutdown.cs" />
@@ -138,10 +139,8 @@
   <PropertyGroup Condition=" '$(PropUsingMono)' == 'true'">
     <_DisabledWarnings>$(NoWarn)</_DisabledWarnings>
   </PropertyGroup>
-
   <!-- Microsoft CSharp targets -->
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-
   <!-- Custom BeforeClean -->
   <Target Name="BeforeClean" DependsOnTargets="CleanTestResults" />
 </Project>
