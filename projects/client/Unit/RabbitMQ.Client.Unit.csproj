@@ -96,6 +96,7 @@
     <Compile Include="src\unit\TestConnectionShutdown.cs" />
     <Compile Include="src\unit\TestConnectionWithBackgroundThreads.cs" />
     <Compile Include="src\unit\TestConsumerCancelNotify.cs" />
+    <Compile Include="src\unit\TestConsumerCount.cs" />
     <Compile Include="src\unit\TestConsumerExceptions.cs" />
     <Compile Include="src\unit\TestConsumerOperationDispatch.cs" />
     <Compile Include="src\unit\TestContentHeaderCodec.cs" />

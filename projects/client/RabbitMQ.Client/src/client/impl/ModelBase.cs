@@ -1439,6 +1439,12 @@ namespace RabbitMQ.Client.Impl
             return ok.MessageCount;
         }
 
+        public uint ConsumerCount(string queue)
+        {
+            var ok = QueueDeclarePassive(queue);
+            return ok.ConsumerCount;
+        }
+
         public uint QueueDelete(string queue,
             bool ifUnused,
             bool ifEmpty)
