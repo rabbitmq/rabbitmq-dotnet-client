@@ -1116,6 +1116,11 @@ namespace RabbitMQ.Client.Impl
             return m_delegate.MessageCount(queue);
         }
 
+        public uint ConsumerCount(string queue)
+        {
+            return m_delegate.ConsumerCount(queue);
+        }
+
         public uint QueueDelete(string queue,
             bool ifUnused,
             bool ifEmpty)
