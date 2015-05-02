@@ -55,12 +55,6 @@ namespace RabbitMQ.Client.Unit
         [Category("LongRunning")]
         public void TestThatHeartbeatWriterUsesConfigurableInterval()
         {
-            if (!LongRunningTestsEnabled())
-            {
-                Console.WriteLine("RABBITMQ_LONG_RUNNING_TESTS is not set, skipping test");
-                return;
-            }
-
             var cf = new ConnectionFactory()
             {
                 RequestedHeartbeat = heartbeatTimeout,
@@ -93,12 +87,6 @@ namespace RabbitMQ.Client.Unit
         [Category("LongRunning")]
         public void TestHundredsOfConnectionsWithRandomHeartbeatInterval()
         {
-            if (!LongRunningTestsEnabled())
-            {
-                Console.WriteLine("RABBITMQ_LONG_RUNNING_TESTS is not set, skipping test");
-                return;
-            }
-
             var rnd = new Random();
             List<IConnection> xs = new List<IConnection>();
             for (var i = 0; i < 200; i++)
@@ -133,16 +121,6 @@ namespace RabbitMQ.Client.Unit
                 Console.WriteLine(s);
                 Assert.Fail(s);
             }
-        }
-
-        private bool LongRunningTestsEnabled()
-        {
-            var s = Environment.GetEnvironmentVariable("RABBITMQ_LONG_RUNNING_TESTS");
-            if (s == null || s.Equals(""))
-            {
-                return false;
-            }
-            return true;
         }
 
         private void SleepFor(int t)
