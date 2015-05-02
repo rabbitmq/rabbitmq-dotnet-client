@@ -38,24 +38,21 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Util;
 using System;
 using System.IO;
 using System.Text;
-
 using System.Threading;
-
 using Windows.Foundation;
 using Windows.Networking;
 using Windows.Networking.Sockets;
 
-using RabbitMQ.Util;
-using RabbitMQ.Client.Exceptions;
-
 namespace RabbitMQ.Client.Impl
 {
     /// <summary>
-    /// Implement <see cref="IFrameHandler"/> for WinRT.  The significant 
-    /// difference is that TcpClient is not available and the new 
+    /// Implement <see cref="IFrameHandler"/> for WinRT.  The significant
+    /// difference is that TcpClient is not available and the new
     /// <see cref="StreamSocket"/> needs to be used.
     /// </summary>
     public class SocketFrameHandler : IFrameHandler
@@ -89,7 +86,7 @@ namespace RabbitMQ.Client.Impl
                     cts = new CancellationTokenSource();
                     if (this.defaultTimeout.HasValue)
                         cts.CancelAfter(this.defaultTimeout.Value);
-                    
+
                     ar = this.m_socket.UpgradeToSslAsync(
                         SocketProtectionLevel.Ssl, new HostName(endpoint.Ssl.ServerName));
                     ar.AsTask(cts.Token).Wait();
@@ -122,6 +119,7 @@ namespace RabbitMQ.Client.Impl
                 return port;
             }
         }
+
         public int RemotePort
         {
             get
@@ -154,6 +152,7 @@ namespace RabbitMQ.Client.Impl
                     // TODO: Figure out the equivalent for LingerState
                     //m_socket.LingerState = new LingerOption(true, SOCKET_CLOSING_TIMEOUT);
                     m_socket.Dispose();
+                    cts.Dispose();
                     _closed = true;
                 }
             }

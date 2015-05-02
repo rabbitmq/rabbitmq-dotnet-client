@@ -47,7 +47,9 @@ using System.IO;
 #if NETFX_CORE
 using Windows.Networking.Sockets;
 #else
+
 using System.Net.Sockets;
+
 #endif
 
 namespace RabbitMQ.Client.Impl
@@ -145,7 +147,6 @@ namespace RabbitMQ.Client.Impl
                     throw ioe;
                 }
                 throw ioe.InnerException;
-
 #endif
             }
 
