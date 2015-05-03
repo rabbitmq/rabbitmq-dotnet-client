@@ -44,6 +44,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
+#if !NETFX_CORE
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
@@ -51,16 +52,9 @@ namespace RabbitMQ.Client.Unit
     {
         private const UInt16 heartbeatTimeout = 2;
 
-        [Test]
-        [Category("LongRunning")]
+        [Test, Category("LongRunning"), Timeout(35000)]
         public void TestThatHeartbeatWriterUsesConfigurableInterval()
         {
-            if (!LongRunningTestsEnabled())
-            {
-                Console.WriteLine("RABBITMQ_LONG_RUNNING_TESTS is not set, skipping test");
-                return;
-            }
-
             var cf = new ConnectionFactory()
             {
                 RequestedHeartbeat = heartbeatTimeout,
@@ -89,16 +83,9 @@ namespace RabbitMQ.Client.Unit
             conn.Close();
         }
 
-        [Test]
-        [Category("LongRunning")]
+        [Test, Category("LongRunning"), Timeout(65000)]
         public void TestHundredsOfConnectionsWithRandomHeartbeatInterval()
         {
-            if (!LongRunningTestsEnabled())
-            {
-                Console.WriteLine("RABBITMQ_LONG_RUNNING_TESTS is not set, skipping test");
-                return;
-            }
-
             var rnd = new Random();
             List<IConnection> xs = new List<IConnection>();
             for (var i = 0; i < 200; i++)
@@ -135,16 +122,6 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        private bool LongRunningTestsEnabled()
-        {
-            var s = Environment.GetEnvironmentVariable("RABBITMQ_LONG_RUNNING_TESTS");
-            if (s == null || s.Equals(""))
-            {
-                return false;
-            }
-            return true;
-        }
-
         private void SleepFor(int t)
         {
             Console.WriteLine("Testing heartbeats, sleeping for {0} seconds", t);
@@ -152,3 +129,4 @@ namespace RabbitMQ.Client.Unit
         }
     }
 }
+#endif

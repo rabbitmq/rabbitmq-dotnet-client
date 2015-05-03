@@ -47,9 +47,11 @@ using System.Collections.Generic;
 using System.IO;
 
 #if NETFX_CORE
+
 using System.Threading.Tasks;
 using Windows.Networking.Sockets;
 using Windows.ApplicationModel;
+
 #else
 using System.Net;
 using System.Net.Sockets;
@@ -121,14 +123,14 @@ namespace RabbitMQ.Client.Framing.Impl
             StartMainLoop(factory.UseBackgroundThreadsForIO);
             Open(insist);
             StartHeartbeatTimer();
-            
+
 #if NETFX_CORE
 #pragma warning disable 0168
             try
             {
                 Windows.UI.Xaml.Application.Current.Suspending += this.HandleApplicationSuspend;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 // If called from a desktop app (i.e. unit tests), then there is no current application
             }
@@ -316,7 +318,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             Assembly assembly =
 #if NETFX_CORE
-                System.Reflection.IntrospectionExtensions.GetTypeInfo(typeof(Connection)).Assembly;
+ System.Reflection.IntrospectionExtensions.GetTypeInfo(typeof(Connection)).Assembly;
 #else
                 System.Reflection.Assembly.GetAssembly(typeof(Connection));
 #endif
@@ -511,6 +513,7 @@ namespace RabbitMQ.Client.Framing.Impl
         }
 
 #if NETFX_CORE
+
         /// <remarks>
         /// We need to close the socket, otherwise suspending the application will take the maximum time allowed
         /// </remarks>
@@ -518,6 +521,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             Abort(Constants.InternalError, "Application Suspend");
         }
+
 #else
         /// <remarks>
         /// We need to close the socket, otherwise attempting to unload the domain
@@ -588,7 +592,6 @@ namespace RabbitMQ.Client.Framing.Impl
                     e));
                 shouldTerminate = true;
             }
-
             if (m_closed || shouldTerminate)
             {
                 TerminateMainloop();
@@ -668,7 +671,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     try
                     {
                         ClosingLoop();
-                    } 
+                    }
 #if NETFX_CORE
                     catch (Exception ex)
                     {
@@ -680,7 +683,7 @@ namespace RabbitMQ.Client.Framing.Impl
                         }
                         else
                         {
-                            throw;
+                            throw ex;
                         }
                     }
 #else
@@ -756,10 +759,12 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 }
             }
+#if !NETFX_CORE
             catch (SocketException ioe)
             {
                 HandleIOException(ioe);
             }
+#endif
             catch (IOException ioe)
             {
                 HandleIOException(ioe);
@@ -943,7 +948,7 @@ namespace RabbitMQ.Client.Framing.Impl
 #else
                 Console.Error.WriteLine(
 #endif
-                    "No errors reported when closing connection {0}", this);
+"No errors reported when closing connection {0}", this);
             }
             else
             {
@@ -952,15 +957,15 @@ namespace RabbitMQ.Client.Framing.Impl
 #else
                 Console.Error.WriteLine(
 #endif
-                    "Log of errors while closing connection {0}:", this);
+"Log of errors while closing connection {0}:", this);
                 foreach (ShutdownReportEntry entry in ShutdownReport)
                 {
 #if NETFX_CORE
-                System.Diagnostics.Debug.WriteLine(
+                    System.Diagnostics.Debug.WriteLine(
 #else
                     Console.Error.WriteLine(
 #endif
-                        entry.ToString());
+entry.ToString());
                 }
             }
         }

@@ -57,17 +57,16 @@ namespace RabbitMQ.Client.Unit
         private List<CollectingConsumer> consumers = new List<CollectingConsumer>();
 
         // number of channels (and consumers)
-        private const int y = 200;
+        private const int y = 100;
 
         // number of messages to be published
-        private const int n = 250;
+        private const int n = 100;
 
         public static CountdownEvent counter = new CountdownEvent(y);
 
         [TearDown]
         protected override void ReleaseResources()
         {
-            base.ReleaseResources();
             foreach (var ch in channels)
             {
                 if (ch.IsOpen)
@@ -78,6 +77,7 @@ namespace RabbitMQ.Client.Unit
             queues.Clear();
             consumers.Clear();
             counter.Reset();
+            base.ReleaseResources();
         }
 
         private class CollectingConsumer : DefaultBasicConsumer
