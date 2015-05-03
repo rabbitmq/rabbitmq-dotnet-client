@@ -592,7 +592,6 @@ namespace RabbitMQ.Client.Framing.Impl
                     e));
                 shouldTerminate = true;
             }
-
             if (m_closed || shouldTerminate)
             {
                 TerminateMainloop();
@@ -684,7 +683,7 @@ namespace RabbitMQ.Client.Framing.Impl
                         }
                         else
                         {
-                            throw;
+                            throw ex;
                         }
                     }
 #else
