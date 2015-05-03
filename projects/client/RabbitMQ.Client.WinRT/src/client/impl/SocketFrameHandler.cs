@@ -61,7 +61,6 @@ namespace RabbitMQ.Client.Impl
         public const int SOCKET_CLOSING_TIMEOUT = 1;
 
         public StreamSocket m_socket;
-        private CancellationTokenSource cts;
         public NetworkBinaryReader m_reader;
         public NetworkBinaryWriter m_writer;
         private bool _closed = false;
@@ -83,7 +82,7 @@ namespace RabbitMQ.Client.Impl
                 IAsyncAction ar = null;
                 try
                 {
-                    cts = new CancellationTokenSource();
+                    var cts = new CancellationTokenSource();
                     if (this.defaultTimeout.HasValue)
                         cts.CancelAfter(this.defaultTimeout.Value);
 
@@ -135,11 +134,6 @@ namespace RabbitMQ.Client.Impl
         {
             set
             {
-                defaultTimeout = value;
-                if (cts != null && cts.Token.CanBeCanceled)
-                {
-                    cts.CancelAfter(value);
-                }
             }
         }
 
@@ -152,7 +146,6 @@ namespace RabbitMQ.Client.Impl
                     // TODO: Figure out the equivalent for LingerState
                     //m_socket.LingerState = new LingerOption(true, SOCKET_CLOSING_TIMEOUT);
                     m_socket.Dispose();
-                    cts.Dispose();
                     _closed = true;
                 }
             }
@@ -203,7 +196,7 @@ namespace RabbitMQ.Client.Impl
             IAsyncAction ar = null;
             try
             {
-                cts = new CancellationTokenSource();
+                var cts = new CancellationTokenSource();
                 if (this.defaultTimeout.HasValue)
                     cts.CancelAfter(this.defaultTimeout.Value);
 
