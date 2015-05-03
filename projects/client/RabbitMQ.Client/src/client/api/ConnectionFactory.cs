@@ -46,7 +46,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 #if !NETFX_CORE
+
 using System.Net.Security;
+
 #endif
 
 namespace RabbitMQ.Client
@@ -141,7 +143,7 @@ namespace RabbitMQ.Client
         /// <summary>
         ///  Default SASL auth mechanisms to use.
         /// </summary>
-        public static AuthMechanismFactory[] DefaultAuthMechanisms = { new PlainMechanismFactory() };
+        public static readonly AuthMechanismFactory[] DefaultAuthMechanisms = { new PlainMechanismFactory() };
 
         /// <summary>
         ///  SASL auth mechanisms to use.
