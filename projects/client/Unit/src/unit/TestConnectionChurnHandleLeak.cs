@@ -63,6 +63,7 @@ namespace RabbitMQ.Client.Unit
                 }
             }
             Thread.Sleep(TimeSpan.FromSeconds(10));
+            me = Process.GetCurrentProcess();
             Console.WriteLine("{0} handles after the test...", me.HandleCount);
             Assert.That(me.HandleCount, Is.LessThanOrEqualTo(n));
         }
