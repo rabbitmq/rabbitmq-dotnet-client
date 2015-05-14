@@ -54,50 +54,48 @@ namespace RabbitMQ.Client
     public static class Headers
     {
         /// <summary>
-        /// Header used to declare priority queues and set maximum priority of a queue
+        /// x-max-priority header
         /// </summary>
-        public const string QueueMaxPriority = "x-max-priority";
+        public const string XMaxPriority = "x-max-priority";
 
         /// <summary>
-        /// Header used to limit maximum length of a queue in messages
+        /// x-max-length header
         /// </summary>
-        public const string QueueMaxLengthInMessages = "x-max-length";
+        public const string XMaxLength = "x-max-length";
 
         /// <summary>
-        /// Header used to limit maximum length of a queue in bytes
+        /// x-max-length-bytes header
         /// </summary>
-        public const string QueueMaxLengthInBytes = "x-max-length-bytes";
+        public const string XMaxLengthInBytes = "x-max-length-bytes";
         
         /// <summary>
-        /// Header used to set dead letter exchange for a queue
+        /// x-dead-letter-exchange header
         /// </summary>
-        public const string DeadLetterExchange = "x-dead-letter-exchange";
+        public const string XDeadLetterExchange = "x-dead-letter-exchange";
         
         /// <summary>
-        /// Header used to set dead letter routing key for a queue
+        /// x-dead-letter-routing-key header
         /// </summary>
-        public const string DeadLetterRoutingKey = "x-dead-letter-routing-key";
+        public const string XDeadLetterRoutingKey = "x-dead-letter-routing-key";
 
         /// <summary>
-        /// Header used to set ttl globaly to all messages in a queue
+        /// x-message-ttl header
         /// </summary>
-        public const string PerQueueMessageTtl = "x-message-ttl";
+        public const string XMessageTTL = "x-message-ttl";
 
         /// <summary>
-        /// Header used to set expiration for a queue
+        /// x-expires header
         /// </summary>
-        public const string QueueExpires = "x-expires";
-
+        public const string XExpires = "x-expires";
 
         /// <summary>
-        /// Header used to set alternate exchange for an exchange
+        /// alternate-exchange header
         /// </summary>
         public const string AlternateExchange = "alternate-exchange";
 
-
         /// <summary>
-        /// Header used to set priority of consumer
+        /// x-priority header
         /// </summary>
-        public const string ConsumerPriority = "x-priority";
+        public const string XPriority = "x-priority";
     }
 }
