@@ -43,11 +43,11 @@ using System.Collections.Generic;
 namespace RabbitMQ.Client
 {
     /// <summary>
-    /// Convenience class providing compile-time names for standard exchange types.
+    /// Convenience class providing compile-time names for standard headers.
     /// </summary>
     /// <remarks>
     /// Use the static members of this class as headers for the
-    /// arguments for Queue, Exchange and Consumer declaration. 
+    /// arguments for Queue and Exchange declaration or Consumer creation. 
     /// The broker may be extended with additional
     /// headers that do not appear in this class.
     /// </remarks>
