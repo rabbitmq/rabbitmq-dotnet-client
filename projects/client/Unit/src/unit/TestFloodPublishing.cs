@@ -75,16 +75,17 @@ namespace RabbitMQ.Client.Unit
             };
 
             bool elapsed = false;
-            var t = new System.Timers.Timer(1000 * 65);
+            var t = new System.Timers.Timer(1000 * 185);
             t.Elapsed += (_sender, _args) => { elapsed = true; };
             t.AutoReset = false;
             t.Start();
 
             while (!elapsed)
             {
-                Model.BasicPublish("", "", null, encoding.GetBytes("msg"));
+                Model.BasicPublish("", "", null, new byte[2048]);
             }
             Assert.IsTrue(Conn.IsOpen);
+            t.Dispose();
         }
     }
 }
