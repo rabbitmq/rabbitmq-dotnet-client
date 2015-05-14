@@ -16,11 +16,6 @@
     <AssemblyName>unit-tests</AssemblyName>
     <TargetFrameworkVersion>$(PropTargetFramework)</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <FileUpgradeFlags>
-    </FileUpgradeFlags>
-    <UpgradeBackupLocation>
-    </UpgradeBackupLocation>
-    <OldToolsVersion>3.5</OldToolsVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -110,7 +105,8 @@
     <Compile Include="src\unit\TestExtensions.cs" />
     <Compile Include="src\unit\TestFieldTableFormatting.cs" />
     <Compile Include="src\unit\TestFieldTableFormattingGeneric.cs" />
-    <Compile Include="src\unit\TestHeartbeats.cs" />    
+    <Compile Include="src\unit\TestFloodPublishing.cs" />
+    <Compile Include="src\unit\TestHeartbeats.cs" />
     <Compile Include="src\unit\TestIntAllocator.cs" />
     <Compile Include="src\unit\TestInvalidAck.cs" />
     <Compile Include="src\unit\TestMainLoop.cs" />
