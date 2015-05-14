@@ -106,6 +106,7 @@
     <Compile Include="src\unit\TestExtensions.cs" />
     <Compile Include="src\unit\TestFieldTableFormatting.cs" />
     <Compile Include="src\unit\TestFieldTableFormattingGeneric.cs" />
+    <Compile Include="src\unit\TestFloodPublishing.cs" />
     <Compile Include="src\unit\TestHeartbeats.cs" />
     <Compile Include="src\unit\TestIntAllocator.cs" />
     <Compile Include="src\unit\TestInvalidAck.cs" />
