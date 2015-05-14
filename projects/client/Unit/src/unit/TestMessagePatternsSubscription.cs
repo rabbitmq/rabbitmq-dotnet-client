@@ -55,7 +55,7 @@ namespace RabbitMQ.Client.Unit
         {
             IDictionary<string, object> args = new Dictionary<string, object>
             {
-                {"x-message-ttl", 5000}
+                {Headers.PerQueueMessageTtl, 5000}
             };
             string queueDeclare = Model.QueueDeclare("", false, true, false, args);
             var subscription = new Subscription(Model, queueDeclare, false);
@@ -78,7 +78,7 @@ namespace RabbitMQ.Client.Unit
         {
             IDictionary<string, object> args = new Dictionary<string, object>
             {
-                {"x-message-ttl", 5000}
+                {Headers.PerQueueMessageTtl, 5000}
             };
             string queueDeclare = Model.QueueDeclare("", false, true, false, args);
             var subscription = new Subscription(Model, queueDeclare, false);
