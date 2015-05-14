@@ -130,6 +130,7 @@
     <Compile Include="src\client\api\ConnectionFactory.cs" />
     <Compile Include="src\client\api\ConnectionFactoryBase.cs" />
     <Compile Include="src\client\api\DefaultBasicConsumer.cs" />
+    <Compile Include="src\client\api\Headers.cs" />
     <Compile Include="src\client\api\ExchangeType.cs" />
     <Compile Include="src\client\api\ExternalMechanism.cs" />
     <Compile Include="src\client\api\ExternalMechanismFactory.cs" />
