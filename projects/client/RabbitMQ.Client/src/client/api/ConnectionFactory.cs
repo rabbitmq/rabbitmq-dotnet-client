@@ -44,6 +44,7 @@ using RabbitMQ.Client.Impl;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 
 #if !NETFX_CORE
 
@@ -143,12 +144,13 @@ namespace RabbitMQ.Client
         /// <summary>
         ///  Default SASL auth mechanisms to use.
         /// </summary>
-        public static readonly AuthMechanismFactory[] DefaultAuthMechanisms = { new PlainMechanismFactory() };
+        public static readonly IList<AuthMechanismFactory> DefaultAuthMechanisms =
+            new List<AuthMechanismFactory>(){ new PlainMechanismFactory() };
 
         /// <summary>
         ///  SASL auth mechanisms to use.
         /// </summary>
-        public AuthMechanismFactory[] AuthMechanisms = DefaultAuthMechanisms;
+        public IList<AuthMechanismFactory> AuthMechanisms = DefaultAuthMechanisms;
 
         /// <summary>
         /// Set to true to enable automatic connection recovery.
@@ -212,7 +214,7 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// The AMQP connection target.
+        /// Connection endpoint.
         /// </summary>
         public AmqpTcpEndpoint Endpoint
         {
@@ -285,12 +287,12 @@ namespace RabbitMQ.Client
         /// Given a list of mechanism names supported by the server, select a preferred mechanism,
         ///  or null if we have none in common.
         /// </summary>
-        public AuthMechanismFactory AuthMechanismFactory(string[] mechanismNames)
+        public AuthMechanismFactory AuthMechanismFactory(IList<string> mechanismNames)
         {
             // Our list is in order of preference, the server one is not.
             foreach (AuthMechanismFactory factory in AuthMechanisms)
             {
-                if (Array.Exists(mechanismNames, x => string.Equals(x, factory.Name, StringComparison.OrdinalIgnoreCase)))
+                if (mechanismNames.Any<string>(x => string.Equals(x, factory.Name, StringComparison.OrdinalIgnoreCase)))
                 {
                     return factory;
                 }

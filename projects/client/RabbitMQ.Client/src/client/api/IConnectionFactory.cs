@@ -90,7 +90,7 @@ namespace RabbitMQ.Client
         /// Given a list of mechanism names supported by the server, select a preferred mechanism,
         /// or null if we have none in common.
         /// </summary>
-        AuthMechanismFactory AuthMechanismFactory(string[] mechanismNames);
+        AuthMechanismFactory AuthMechanismFactory(IList<string> mechanismNames);
 
         /// <summary>
         /// Create a connection to the specified endpoint.
