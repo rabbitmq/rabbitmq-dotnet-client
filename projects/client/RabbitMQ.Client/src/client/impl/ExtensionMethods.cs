@@ -1,4 +1,4 @@
-// This source code is dual-licensed under the Apache License, version
+﻿// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 1.1.
 //
 // The APL v2.0:
@@ -38,23 +38,31 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Net;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace RabbitMQ.Client
+namespace RabbitMQ.Client.Impl
 {
-    /// <summary>
-    /// Common interface for network (TCP/IP) connection classes.
-    /// </summary>
-    public interface NetworkConnection
+    public static class ExtensionMethods
     {
         /// <summary>
-        /// Local port.
+        /// Returns a random item from the list.
         /// </summary>
-        int LocalPort { get; }
+        /// <typeparam name="T">Element item type</typeparam>
+        /// <param name="list">Input list</param>
+        /// <returns></returns>
+        public static T RandomItem<T>(this IList<T> list)
+        {
+            System.Diagnostics.Debug.WriteLine("List: {0}", list);
+            var n = list.Count;
+            if (n == 0)
+            {
+                return default(T);
+            }
 
-        /// <summary>
-        /// Remote port.
-        /// </summary>
-        int RemotePort { get; }
+            var hashCode = Math.Abs(Guid.NewGuid().GetHashCode());
+            return list.ElementAt<T>(hashCode % n);
+        }
     }
 }

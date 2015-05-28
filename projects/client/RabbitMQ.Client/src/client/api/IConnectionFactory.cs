@@ -98,6 +98,13 @@ namespace RabbitMQ.Client
         IConnection CreateConnection();
 
         /// <summary>
+        /// Connects to the first reachable hostname from the list.
+        /// </summary>
+        /// <param name="hostnames">List of host names to use</param>
+        /// <returns></returns>
+        IConnection CreateConnection(IList<string> hostnames);
+
+        /// <summary>
         /// Advanced option.
         /// 
         /// What task scheduler should consumer dispatcher use.

@@ -140,7 +140,7 @@ namespace RabbitMQ.Client.Framing.Impl
             bool automaticRecoveryEnabled)
         {
             var ac = new AutorecoveringConnection(factory);
-            ac.init();
+            ac.Init();
             return ac;
         }
 

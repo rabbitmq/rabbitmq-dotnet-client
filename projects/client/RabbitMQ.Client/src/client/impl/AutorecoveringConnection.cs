@@ -56,6 +56,11 @@ namespace RabbitMQ.Client.Framing.Impl
         protected Connection m_delegate;
         protected ConnectionFactory m_factory;
 
+        // list of hostnames provided on initial connection.
+        // on re-connection, the next host in the line is chosen using
+        // IHostnameSelector
+        protected IList<string> hostnames;
+
         public readonly object m_recordedEntitiesLock = new object();
         protected readonly TaskFactory recoveryTaskFactory = new TaskFactory();
         protected readonly object recoveryLockTarget = new object();
@@ -276,13 +281,6 @@ namespace RabbitMQ.Client.Framing.Impl
             set { m_delegate.KnownHosts = value; }
         }
 
-#if !NETFX_CORE
-        public EndPoint LocalEndPoint
-        {
-            get { return m_delegate.LocalEndPoint; }
-        }
-#endif
-
         public int LocalPort
         {
             get { return m_delegate.LocalPort; }
@@ -302,13 +300,6 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             get { return m_recordedQueues; }
         }
-
-#if !NETFX_CORE
-        public EndPoint RemoteEndPoint
-        {
-            get { return m_delegate.RemoteEndPoint; }
-        }
-#endif
 
         public int RemotePort
         {
@@ -547,7 +538,36 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public void init()
+        public void Init()
+        {
+            this.Init(m_factory.HostName);
+        }
+
+        public void Init(IList<string> hostnames)
+        {
+            this.hostnames = hostnames;
+            string reachableHostname = null;
+            IFrameHandler fh = null;
+            Exception e = null;
+            foreach (var h in hostnames)
+            {
+                try
+                {
+                    fh = m_factory.CreateFrameHandler(m_factory.Endpoint.CloneWithHostname(h));
+                    reachableHostname = h;
+                } catch (Exception caught)
+                {
+                    e = caught;
+                }
+            }
+            if (reachableHostname == null)
+            {
+                throw e;
+            }
+            this.Init(reachableHostname);
+        }
+
+        protected void Init(string hostname)
         {
             m_delegate = new Connection(m_factory, false, m_factory.CreateFrameHandler());
 
@@ -570,7 +590,7 @@ namespace RabbitMQ.Client.Framing.Impl
 #else
                             Console.WriteLine(
 #endif
-                                "BeginAutomaticRecovery() failed: {0}", e);
+"BeginAutomaticRecovery() failed: {0}", e);
                         }
                     }
                 }
@@ -750,12 +770,13 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 try
                 {
-                    m_delegate = new Connection(m_factory, false, m_factory.CreateFrameHandler());
+                    var nextHostname = m_factory.HostnameSelector.NextFrom(this.hostnames);
+                    var fh = m_factory.CreateFrameHandler(m_factory.Endpoint.CloneWithHostname(nextHostname));
+                    m_delegate = new Connection(m_factory, false, fh);
                     recovering = false;
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    // TODO: exponential back-off
 #if NETFX_CORE
                     System.Threading.Tasks.Task.Delay(m_factory.NetworkRecoveryInterval).Wait();
 #else

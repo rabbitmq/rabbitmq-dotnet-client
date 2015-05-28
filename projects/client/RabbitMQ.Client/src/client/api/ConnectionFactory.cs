@@ -157,6 +157,13 @@ namespace RabbitMQ.Client
         /// </summary>
         public bool AutomaticRecoveryEnabled;
 
+        /// <summary>
+        /// Used to select next hostname to try when performing
+        /// connection recovery (re-connecting). Is not used for
+        /// non-recovering connections.
+        /// </summary>
+        public IHostnameSelector HostnameSelector = new RandomHostnameSelector();
+
         /// <summary>The host to connect to.</summary>
         public String HostName = "localhost";
 
@@ -305,33 +312,41 @@ namespace RabbitMQ.Client
         /// </summary>
         public virtual IConnection CreateConnection()
         {
-            IConnection connection;
+            return CreateConnection(new List<string>() { HostName });
+        }
+
+        public IConnection CreateConnection(IList<string> hostnames)
+        {
+            IConnection conn;
             try
             {
                 if (AutomaticRecoveryEnabled)
                 {
                     var autorecoveringConnection = new AutorecoveringConnection(this);
-                    autorecoveringConnection.init();
-                    connection = autorecoveringConnection;
+                    autorecoveringConnection.Init(hostnames);
+                    conn = autorecoveringConnection;
                 }
                 else
                 {
                     IProtocol protocol = Protocols.DefaultProtocol;
-                    connection = protocol.CreateConnection(this, false, CreateFrameHandler());
+                    conn = protocol.CreateConnection(this, false, CreateFrameHandler());
                 }
             }
             catch (Exception e)
             {
                 throw new BrokerUnreachableException(e);
             }
-
-            return connection;
+            return conn;
         }
 
         public IFrameHandler CreateFrameHandler()
         {
-            IProtocol protocol = Protocols.DefaultProtocol;
-            return protocol.CreateFrameHandler(Endpoint, SocketFactory, RequestedConnectionTimeout);
+            return Protocols.DefaultProtocol.CreateFrameHandler(Endpoint, SocketFactory, RequestedConnectionTimeout);
+        }
+
+        public IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint)
+        {
+            return Protocols.DefaultProtocol.CreateFrameHandler(endpoint, SocketFactory, RequestedConnectionTimeout);
         }
 
         private void SetUri(Uri uri)
