@@ -54,7 +54,6 @@ namespace RabbitMQ.Client.Impl
         /// <returns></returns>
         public static T RandomItem<T>(this IList<T> list)
         {
-            System.Diagnostics.Debug.WriteLine("List: {0}", list);
             var n = list.Count;
             if (n == 0)
             {

@@ -97,6 +97,15 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
+        public void TestBasicConnectionRecoveryWithHostnameList()
+        {
+            var c = CreateAutorecoveringConnection(new List<string>() { "127.0.0.1", "localhost" });
+            Assert.IsTrue(c.IsOpen);
+            CloseAndWaitForRecovery(c);
+            Assert.IsTrue(c.IsOpen);
+        }
+
+        [Test]
         public void TestBasicConnectionRecoveryOnBrokerRestart()
         {
             Assert.IsTrue(Conn.IsOpen);
@@ -851,12 +860,25 @@ namespace RabbitMQ.Client.Unit
             return CreateAutorecoveringConnection(RECOVERY_INTERVAL);
         }
 
+        protected AutorecoveringConnection CreateAutorecoveringConnection(IList<string> hostnames)
+        {
+            return CreateAutorecoveringConnection(RECOVERY_INTERVAL, hostnames);
+        }
+
         protected AutorecoveringConnection CreateAutorecoveringConnection(TimeSpan interval)
         {
             var cf = new ConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
             cf.NetworkRecoveryInterval = interval;
             return (AutorecoveringConnection)cf.CreateConnection();
+        }
+
+        protected AutorecoveringConnection CreateAutorecoveringConnection(TimeSpan interval, IList<string> hostnames)
+        {
+            var cf = new ConnectionFactory();
+            cf.AutomaticRecoveryEnabled = true;
+            cf.NetworkRecoveryInterval = interval;
+            return (AutorecoveringConnection)cf.CreateConnection(hostnames);
         }
 
         protected AutorecoveringConnection CreateAutorecoveringConnectionWithTopologyRecoveryDisabled()
