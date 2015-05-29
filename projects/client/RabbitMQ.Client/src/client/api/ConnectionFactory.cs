@@ -44,6 +44,7 @@ using RabbitMQ.Client.Impl;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 
 #if !NETFX_CORE
 
@@ -143,17 +144,25 @@ namespace RabbitMQ.Client
         /// <summary>
         ///  Default SASL auth mechanisms to use.
         /// </summary>
-        public static readonly AuthMechanismFactory[] DefaultAuthMechanisms = { new PlainMechanismFactory() };
+        public static readonly IList<AuthMechanismFactory> DefaultAuthMechanisms =
+            new List<AuthMechanismFactory>(){ new PlainMechanismFactory() };
 
         /// <summary>
         ///  SASL auth mechanisms to use.
         /// </summary>
-        public AuthMechanismFactory[] AuthMechanisms = DefaultAuthMechanisms;
+        public IList<AuthMechanismFactory> AuthMechanisms = DefaultAuthMechanisms;
 
         /// <summary>
         /// Set to true to enable automatic connection recovery.
         /// </summary>
         public bool AutomaticRecoveryEnabled;
+
+        /// <summary>
+        /// Used to select next hostname to try when performing
+        /// connection recovery (re-connecting). Is not used for
+        /// non-recovering connections.
+        /// </summary>
+        public IHostnameSelector HostnameSelector = new RandomHostnameSelector();
 
         /// <summary>The host to connect to.</summary>
         public String HostName = "localhost";
@@ -212,7 +221,7 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// The AMQP connection target.
+        /// Connection endpoint.
         /// </summary>
         public AmqpTcpEndpoint Endpoint
         {
@@ -285,12 +294,12 @@ namespace RabbitMQ.Client
         /// Given a list of mechanism names supported by the server, select a preferred mechanism,
         ///  or null if we have none in common.
         /// </summary>
-        public AuthMechanismFactory AuthMechanismFactory(string[] mechanismNames)
+        public AuthMechanismFactory AuthMechanismFactory(IList<string> mechanismNames)
         {
             // Our list is in order of preference, the server one is not.
             foreach (AuthMechanismFactory factory in AuthMechanisms)
             {
-                if (Array.Exists(mechanismNames, x => string.Equals(x, factory.Name, StringComparison.OrdinalIgnoreCase)))
+                if (mechanismNames.Any<string>(x => string.Equals(x, factory.Name, StringComparison.OrdinalIgnoreCase)))
                 {
                     return factory;
                 }
@@ -301,35 +310,59 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Create a connection to the specified endpoint.
         /// </summary>
+        /// <exception cref="BrokerUnreachableException">
+        /// When the configured hostname was not reachable.
+        /// </exception>
         public virtual IConnection CreateConnection()
         {
-            IConnection connection;
+            return CreateConnection(new List<string>() { HostName });
+        }
+
+        /// <summary>
+        /// Create a connection using a list of hostnames. The first reachable
+        /// hostname will be used initially. Subsequent hostname picks are determined
+        /// by the <see cref="IHostnameSelector" /> configured.
+        /// </summary>
+        /// <param name="hostnames">
+        /// List of hostnames to use for the initial
+        /// connection and recovery.
+        /// </param>
+        /// <returns>Open connection</returns>
+        /// <exception cref="BrokerUnreachableException">
+        /// When no hostname was reachable.
+        /// </exception>
+        public IConnection CreateConnection(IList<string> hostnames)
+        {
+            IConnection conn;
             try
             {
                 if (AutomaticRecoveryEnabled)
                 {
                     var autorecoveringConnection = new AutorecoveringConnection(this);
-                    autorecoveringConnection.init();
-                    connection = autorecoveringConnection;
+                    autorecoveringConnection.Init(hostnames);
+                    conn = autorecoveringConnection;
                 }
                 else
                 {
                     IProtocol protocol = Protocols.DefaultProtocol;
-                    connection = protocol.CreateConnection(this, false, CreateFrameHandler());
+                    conn = protocol.CreateConnection(this, false, CreateFrameHandler());
                 }
             }
             catch (Exception e)
             {
                 throw new BrokerUnreachableException(e);
             }
-
-            return connection;
+            return conn;
         }
 
         public IFrameHandler CreateFrameHandler()
         {
-            IProtocol protocol = Protocols.DefaultProtocol;
-            return protocol.CreateFrameHandler(Endpoint, SocketFactory, RequestedConnectionTimeout);
+            return Protocols.DefaultProtocol.CreateFrameHandler(Endpoint, SocketFactory, RequestedConnectionTimeout);
+        }
+
+        public IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint)
+        {
+            return Protocols.DefaultProtocol.CreateFrameHandler(endpoint, SocketFactory, RequestedConnectionTimeout);
         }
 
         private void SetUri(Uri uri)

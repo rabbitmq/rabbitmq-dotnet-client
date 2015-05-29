@@ -1,4 +1,4 @@
-// This source code is dual-licensed under the Apache License, version
+﻿// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 1.1.
 //
 // The APL v2.0:
@@ -38,23 +38,19 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Net;
+using System;
+using System.Collections.Generic;
 
 namespace RabbitMQ.Client
 {
-    /// <summary>
-    /// Common interface for network (TCP/IP) connection classes.
-    /// </summary>
-    public interface NetworkConnection
+    public interface IHostnameSelector
     {
         /// <summary>
-        /// Local port.
+        /// Picks a hostname from a list of options that should be used
+        /// by <see cref="IConnectionFactory"/>.
         /// </summary>
-        int LocalPort { get; }
-
-        /// <summary>
-        /// Remote port.
-        /// </summary>
-        int RemotePort { get; }
+        /// <param name="options"></param>
+        /// <returns></returns>
+        string NextFrom(IList<string> options);
     }
 }

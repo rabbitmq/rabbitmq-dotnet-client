@@ -1,4 +1,4 @@
-// This source code is dual-licensed under the Apache License, version
+﻿// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 1.1.
 //
 // The APL v2.0:
@@ -38,23 +38,46 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Net;
+using NUnit.Framework;
+using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Framing.Impl;
+using RabbitMQ.Client.Impl;
+using System;
+using System.Collections.Generic;
+using System.Threading;
 
-namespace RabbitMQ.Client
+namespace RabbitMQ.Client.Unit
 {
-    /// <summary>
-    /// Common interface for network (TCP/IP) connection classes.
-    /// </summary>
-    public interface NetworkConnection
+    [TestFixture]
+    public class TestInitialConnection : IntegrationFixture
     {
-        /// <summary>
-        /// Local port.
-        /// </summary>
-        int LocalPort { get; }
+        [Test]
+        public void TestBasicConnectionRecoveryWithHostnameList()
+        {
+            var c = CreateAutorecoveringConnection(new List<string>() { "127.0.0.1", "localhost" });
+            Assert.IsTrue(c.IsOpen);
+            c.Close();
+        }
 
-        /// <summary>
-        /// Remote port.
-        /// </summary>
-        int RemotePort { get; }
+        [Test]
+        public void TestBasicConnectionRecoveryWithHostnameListAndUnreachableHosts()
+        {
+            var c = CreateAutorecoveringConnection(new List<string>() { "191.72.44.22", "127.0.0.1", "localhost" });
+            Assert.IsTrue(c.IsOpen);
+            c.Close();
+        }
+
+        [Test]
+        public void TestBasicConnectionRecoveryWithHostnameListWithOnlyUnreachableHosts()
+        {
+            Assert.Throws<BrokerUnreachableException>(delegate {
+                CreateAutorecoveringConnection(new List<string>() {
+                    "191.72.44.22",
+                    "145.23.22.18",
+                    "192.255.255.255"
+                });
+            });
+        }
     }
 }
