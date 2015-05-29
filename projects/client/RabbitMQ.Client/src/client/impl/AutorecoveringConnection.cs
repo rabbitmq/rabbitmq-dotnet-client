@@ -782,8 +782,7 @@ namespace RabbitMQ.Client.Framing.Impl
 #else
                     Thread.Sleep(m_factory.NetworkRecoveryInterval);
 #endif
-                    // TODO: provide a way to handle these exceptions
-                    System.Diagnostics.Debug.WriteLine(e);                    
+                    // TODO: provide a way to handle these exceptions                  
                 }
             }
         }

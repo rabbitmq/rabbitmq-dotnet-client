@@ -63,6 +63,7 @@ namespace RabbitMQ.Client.Unit
         protected IModel Model;
 
         protected Encoding encoding = new UTF8Encoding();
+        public static TimeSpan RECOVERY_INTERVAL = TimeSpan.FromSeconds(2);
 
         [SetUp]
         public virtual void Init()
@@ -90,6 +91,54 @@ namespace RabbitMQ.Client.Unit
         protected virtual void ReleaseResources()
         {
             // no-op
+        }
+
+        //
+        // Connections
+        //
+
+        protected AutorecoveringConnection CreateAutorecoveringConnection()
+        {
+            return CreateAutorecoveringConnection(RECOVERY_INTERVAL);
+        }
+
+        protected AutorecoveringConnection CreateAutorecoveringConnection(IList<string> hostnames)
+        {
+            return CreateAutorecoveringConnection(RECOVERY_INTERVAL, hostnames);
+        }
+
+        protected AutorecoveringConnection CreateAutorecoveringConnection(TimeSpan interval)
+        {
+            var cf = new ConnectionFactory();
+            cf.AutomaticRecoveryEnabled = true;
+            cf.NetworkRecoveryInterval = interval;
+            return (AutorecoveringConnection)cf.CreateConnection();
+        }
+
+        protected AutorecoveringConnection CreateAutorecoveringConnection(TimeSpan interval, IList<string> hostnames)
+        {
+            var cf = new ConnectionFactory();
+            cf.AutomaticRecoveryEnabled = true;
+            // tests that use this helper will likely list unreachable hosts,
+            // make sure we time out quickly on those
+            cf.RequestedConnectionTimeout = 1000;
+            cf.NetworkRecoveryInterval = interval;
+            return (AutorecoveringConnection)cf.CreateConnection(hostnames);
+        }
+
+        protected AutorecoveringConnection CreateAutorecoveringConnectionWithTopologyRecoveryDisabled()
+        {
+            var cf = new ConnectionFactory();
+            cf.AutomaticRecoveryEnabled = true;
+            cf.TopologyRecoveryEnabled = false;
+            cf.NetworkRecoveryInterval = RECOVERY_INTERVAL;
+            return (AutorecoveringConnection)cf.CreateConnection();
+        }
+
+        protected IConnection CreateNonRecoveringConnection()
+        {
+            var cf = new ConnectionFactory();
+            return cf.CreateConnection();
         }
 
         //

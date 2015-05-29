@@ -54,8 +54,6 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestConnectionRecovery : IntegrationFixture
     {
-        public static TimeSpan RECOVERY_INTERVAL = TimeSpan.FromSeconds(2);
-
         [SetUp]
         public override void Init()
         {
@@ -103,6 +101,17 @@ namespace RabbitMQ.Client.Unit
             Assert.IsTrue(c.IsOpen);
             CloseAndWaitForRecovery(c);
             Assert.IsTrue(c.IsOpen);
+            c.Close();
+        }
+
+        [Test]
+        public void TestBasicConnectionRecoveryWithHostnameListAndUnreachableHosts()
+        {
+            var c = CreateAutorecoveringConnection(new List<string>() { "191.72.44.22", "127.0.0.1", "localhost" });
+            Assert.IsTrue(c.IsOpen);
+            CloseAndWaitForRecovery(c);
+            Assert.IsTrue(c.IsOpen);
+            c.Close();
         }
 
         [Test]
@@ -853,47 +862,6 @@ namespace RabbitMQ.Client.Unit
             ManualResetEvent sl = PrepareForShutdown(conn);
             CloseConnection(conn);
             Wait(sl);
-        }
-
-        protected AutorecoveringConnection CreateAutorecoveringConnection()
-        {
-            return CreateAutorecoveringConnection(RECOVERY_INTERVAL);
-        }
-
-        protected AutorecoveringConnection CreateAutorecoveringConnection(IList<string> hostnames)
-        {
-            return CreateAutorecoveringConnection(RECOVERY_INTERVAL, hostnames);
-        }
-
-        protected AutorecoveringConnection CreateAutorecoveringConnection(TimeSpan interval)
-        {
-            var cf = new ConnectionFactory();
-            cf.AutomaticRecoveryEnabled = true;
-            cf.NetworkRecoveryInterval = interval;
-            return (AutorecoveringConnection)cf.CreateConnection();
-        }
-
-        protected AutorecoveringConnection CreateAutorecoveringConnection(TimeSpan interval, IList<string> hostnames)
-        {
-            var cf = new ConnectionFactory();
-            cf.AutomaticRecoveryEnabled = true;
-            cf.NetworkRecoveryInterval = interval;
-            return (AutorecoveringConnection)cf.CreateConnection(hostnames);
-        }
-
-        protected AutorecoveringConnection CreateAutorecoveringConnectionWithTopologyRecoveryDisabled()
-        {
-            var cf = new ConnectionFactory();
-            cf.AutomaticRecoveryEnabled = true;
-            cf.TopologyRecoveryEnabled = false;
-            cf.NetworkRecoveryInterval = RECOVERY_INTERVAL;
-            return (AutorecoveringConnection)cf.CreateConnection();
-        }
-
-        protected IConnection CreateNonRecoveringConnection()
-        {
-            var cf = new ConnectionFactory();
-            return cf.CreateConnection();
         }
 
         protected ManualResetEvent PrepareForRecovery(AutorecoveringConnection conn)
