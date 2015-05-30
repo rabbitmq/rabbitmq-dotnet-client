@@ -127,6 +127,7 @@
     <Compile Include="src\unit\TestSharedQueue.cs" />
     <Compile Include="src\unit\TestSsl.cs" />
     <Compile Include="src\unit\TestStreamWireFormatting.cs" />
+    <Compile Include="src\unit\TestSubscription.cs" />
     <Compile Include="src\unit\WireFormattingFixture.cs" />
   </ItemGroup>
   <ItemGroup>
