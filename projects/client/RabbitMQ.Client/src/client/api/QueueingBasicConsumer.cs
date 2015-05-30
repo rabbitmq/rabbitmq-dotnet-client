@@ -38,6 +38,8 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Util;
@@ -153,8 +155,8 @@ namespace RabbitMQ.Client
         /// </summary>
         public override void OnCancel()
         {
-            Queue.Close();
             base.OnCancel();
+            Queue.Close();
         }
     }
 }

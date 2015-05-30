@@ -89,6 +89,7 @@ namespace RabbitMQ.Client.MessagePatterns
             NoAck = noAck;
             m_consumer = new QueueingBasicConsumer(Model);
             ConsumerTag = Model.BasicConsume(QueueName, NoAck, m_consumer);
+            m_consumer.ConsumerCancelled += HandleConsumerCancelled;
             LatestEvent = null;
         }
 
@@ -100,6 +101,7 @@ namespace RabbitMQ.Client.MessagePatterns
             QueueName = queueName;
             NoAck = noAck;
             m_consumer = new QueueingBasicConsumer(Model);
+            m_consumer.ConsumerCancelled += HandleConsumerCancelled;
             ConsumerTag = Model.BasicConsume(QueueName, NoAck, consumerTag, m_consumer);
             LatestEvent = null;
         }
@@ -206,10 +208,9 @@ namespace RabbitMQ.Client.MessagePatterns
             try
             {
                 bool shouldCancelConsumer = false;
-
                 if (m_consumer != null)
                 {
-                    shouldCancelConsumer = true;
+                    shouldCancelConsumer = m_consumer.IsRunning;
                     m_consumer = null;
                 }
 
@@ -437,6 +438,15 @@ namespace RabbitMQ.Client.MessagePatterns
             lock (m_eventLock)
             {
                 LatestEvent = value;
+            }
+        }
+
+        private void HandleConsumerCancelled(object sender, ConsumerEventArgs e)
+        {
+            lock (m_eventLock)
+            {
+                m_consumer = null;
+                MutateLatestEvent(null);
             }
         }
     }
