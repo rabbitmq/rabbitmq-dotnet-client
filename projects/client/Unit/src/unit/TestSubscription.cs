@@ -66,11 +66,15 @@ namespace RabbitMQ.Client.Unit
             var q = Guid.NewGuid().ToString();
             this.Model.QueueDeclare(queue: q, durable: false, exclusive: false, autoDelete: false, arguments: null);
             var sub = new Subscription(this.Model, q);
-            this.Model.QueueDelete(q);
+            var latch = new ManualResetEvent(false);
             sub.Consumer.ConsumerCancelled += (_sender, _args) =>
             {
                 sub.Close();
+                latch.Set();
+                Conn.Close();
             };
+            this.Model.QueueDelete(q);
+            Wait(latch, TimeSpan.FromSeconds(4));
         }
     }
 }
