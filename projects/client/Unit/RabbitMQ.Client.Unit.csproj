@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Warning! This file contains important customizations. Using Visual Studio to edit project's properties might break things. -->
   <!-- Props file -->
@@ -45,7 +45,8 @@
   </PropertyGroup>
   <Target Name="ImportSSL" Condition="$(SSLAvail)">
     <!-- import cacert into certmgr -->
-    <Exec Command="CertMgr /add $(SSLCertsDir)/testca/cacert.cer /s root" />
+    <!-- <Exec Command="certmgr -c -add -s $(SSLCertsDir)\testca\cacert.cer -r localMachine Root" /> -->
+    <Exec Command="certutil -addstore Root $(SSLCertsDir)\testca\cacert.cer" />
   </Target>
   <!-- Decide whether we need to set TEMP under mono -->
   <PropertyGroup>
