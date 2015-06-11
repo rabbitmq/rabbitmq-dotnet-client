@@ -139,7 +139,7 @@
     <Compile Include="src\client\api\IConnection.cs" />
     <Compile Include="src\client\api\IConnectionFactory.cs" />
     <Compile Include="src\client\api\IContentHeader.cs" />
-    <Compile Include="src\client\api\IHostnameSelector.cs" />
+    <Compile Include="src\client\api\IEndpointSelector.cs" />
     <Compile Include="src\client\api\IMethod.cs" />
     <Compile Include="src\client\api\IModel.cs" />
     <Compile Include="src\client\api\IProtocol.cs" />
@@ -235,7 +235,7 @@
     <Compile Include="src\client\impl\ProtocolBase.cs" />
     <Compile Include="src\client\impl\ProtocolException.cs" />
     <Compile Include="src\client\impl\QuiescingSession.cs" />
-    <Compile Include="src\client\impl\RandomHostnameSelector.cs" />
+    <Compile Include="src\client\impl\RandomEndpointSelector.cs" />
     <Compile Include="src\client\impl\RecordedBinding.cs" />
     <Compile Include="src\client\impl\RecordedConsumer.cs" />
     <Compile Include="src\client\impl\RecordedEntity.cs" />

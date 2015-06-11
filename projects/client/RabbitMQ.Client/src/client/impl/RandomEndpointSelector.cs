@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
-    class RandomHostnameSelector : IHostnameSelector
+    class RandomEndpointSelector : IEndpointSelector
     {
-        string IHostnameSelector.NextFrom(IList<string> options)
+        AmqpTcpEndpoint IEndpointSelector.NextFrom(IList<AmqpTcpEndpoint> options)
         {
             return options.RandomItem();
         }

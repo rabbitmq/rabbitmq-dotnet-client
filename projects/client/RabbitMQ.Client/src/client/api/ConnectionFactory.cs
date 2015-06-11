@@ -162,7 +162,7 @@ namespace RabbitMQ.Client
         /// connection recovery (re-connecting). Is not used for
         /// non-recovering connections.
         /// </summary>
-        public IHostnameSelector HostnameSelector = new RandomHostnameSelector();
+        public IEndpointSelector EndpointSelector = new RandomEndpointSelector();
 
         /// <summary>The host to connect to.</summary>
         public String HostName = "localhost";
@@ -240,14 +240,33 @@ namespace RabbitMQ.Client
         public String Uri
         {
             set { SetUri(new Uri(value, UriKind.Absolute)); }
+            get {
+                var protocol="amqp";
+                if(Ssl!=null&& Ssl.Enabled) {
+                    protocol="amqps";
+                }
+                var uriString=protocol+"://"+HostName+":"+Port+"/";
+                if(VirtualHost!=null&&!VirtualHost.Equals("")) {
+                    uriString=uriString+VirtualHost;
+                }
+                return uriString;
+            }
         }
 
+        private IList<Uri> _uris;
         /// <summary>
-        /// Set connection parameters using the amqp or amqps scheme.
+        /// Set a list of conection parameters (only for autorecovering connections)
         /// </summary>
-        public Uri uri
-        {
-            set { SetUri(value); }
+        public IList<Uri> Uris {
+            set {
+                if(value==null||value.Count==0) {
+                    throw new InvalidOperationException("The list of broker uris must contain at least one broker.");
+                }
+                _uris=value;
+            }
+            get {
+                return _uris;
+            }
         }
 
         /// <summary>
@@ -321,7 +340,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Create a connection using a list of hostnames. The first reachable
         /// hostname will be used initially. Subsequent hostname picks are determined
-        /// by the <see cref="IHostnameSelector" /> configured.
+        /// by the <see cref="IEndpointSelector" /> configured.
         /// </summary>
         /// <param name="hostnames">
         /// List of hostnames to use for the initial
@@ -334,12 +353,33 @@ namespace RabbitMQ.Client
         public IConnection CreateConnection(IList<string> hostnames)
         {
             IConnection conn;
+            if (Uris == null)
+            {
+                Uris = hostnames.Select(h =>
+                {
+                    var uri = Uri.Replace(HostName, h);
+                    return new Uri(uri);
+                }).ToList();
+            }
+            else
+            {
+                foreach (var hostname in hostnames)
+                {
+                    if (!Uris.Where(u => u.DnsSafeHost.ToLowerInvariant().Equals(hostname.ToLowerInvariant())).Any())
+                    {
+                        // Hostname is unknown in existing uris, add it
+                        var uri = Uri.Replace(HostName, hostname);
+                        Uris.Add(new Uri(uri));
+                    }
+                }
+            }
             try
             {
                 if (AutomaticRecoveryEnabled)
                 {
                     var autorecoveringConnection = new AutorecoveringConnection(this);
-                    autorecoveringConnection.Init(hostnames);
+                    var endpoints=_uris.Select(u=>EndpointFromUri(u)).ToList();
+                    autorecoveringConnection.Init(endpoints);
                     conn = autorecoveringConnection;
                 }
                 else
@@ -365,6 +405,22 @@ namespace RabbitMQ.Client
             return Protocols.DefaultProtocol.CreateFrameHandler(endpoint, SocketFactory, RequestedConnectionTimeout);
         }
 
+        private AmqpTcpEndpoint EndpointFromUri(Uri uri)
+        {
+            if (string.Equals("amqp", uri.Scheme, StringComparison.OrdinalIgnoreCase))
+            {
+                return new AmqpTcpEndpoint(uri.Authority,uri.Port);
+                
+            }
+            else if (string.Equals("amqps", uri.Scheme, StringComparison.OrdinalIgnoreCase))
+            {
+                var sslOptions=Ssl.Clone() as SslOption;
+                sslOptions.ServerName=uri.Authority;
+                return new AmqpTcpEndpoint(uri.Authority,uri.Port,sslOptions);
+            } else {
+                throw new InvalidOperationException("Only amqp and amqps Uris supported");
+            }
+        }
         private void SetUri(Uri uri)
         {
             Endpoint = new AmqpTcpEndpoint();
