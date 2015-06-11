@@ -50,11 +50,6 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestSsl
     {
-        public static string CertificatesDirectory()
-        {
-            return Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
-        }
-
         public void SendReceive(ConnectionFactory cf)
         {
             using (IConnection conn = cf.CreateConnection())
@@ -81,7 +76,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestServerVerifiedIgnoringNameMismatch()
         {
-            string sslDir = CertificatesDirectory();
+            string sslDir = IntegrationFixture.CertificatesDirectory();
             if (null == sslDir)
             {
                 Console.WriteLine("SSL_CERT_DIR is not configured, skipping test");
@@ -98,7 +93,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestServerVerified()
         {
-            string sslDir = CertificatesDirectory();
+            string sslDir = IntegrationFixture.CertificatesDirectory();
             if (null == sslDir)
             {
                 Console.WriteLine("SSL_CERT_DIR is not configured, skipping test");
@@ -114,7 +109,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestVersionVerified()
         {
-            string sslDir = CertificatesDirectory();
+            string sslDir = IntegrationFixture.CertificatesDirectory();
             if (null == sslDir)
             {
                 Console.WriteLine("SSL_CERT_DIR is not configured, skipping test");
@@ -135,7 +130,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestClientAndServerVerified()
         {
-            string sslDir = CertificatesDirectory();
+            string sslDir = IntegrationFixture.CertificatesDirectory();
             if (null == sslDir)
             {
                 Console.WriteLine("SSL_CERT_DIR is not configured, skipping test");
@@ -157,7 +152,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestNoClientCertificate()
         {
-            string sslDir = CertificatesDirectory();
+            string sslDir = IntegrationFixture.CertificatesDirectory();
             if (null == sslDir)
             {
                 Console.WriteLine("SSL_CERT_DIR is not configured, skipping test");

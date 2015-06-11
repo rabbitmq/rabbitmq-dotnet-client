@@ -65,27 +65,7 @@ namespace RabbitMQ.Client.Unit
                 RequestedHeartbeat = heartbeatTimeout,
                 AutomaticRecoveryEnabled = false
             };
-            var conn = cf.CreateConnection();
-            var ch = conn.CreateModel();
-            bool wasShutdown = false;
-
-            conn.ConnectionShutdown += (sender, evt) =>
-            {
-                lock (conn)
-                {
-                    if (InitiatedByPeerOrLibrary(evt))
-                    {
-                        CheckInitiator(evt);
-                        wasShutdown = true;
-                    }
-                }
-            };
-            SleepFor(30);
-
-            Assert.IsFalse(wasShutdown, "shutdown event should not have been fired");
-            Assert.IsTrue(conn.IsOpen, "connection should be open");
-
-            conn.Close();
+            RunSingleConnectionTest(cf);
         }
 
         [Test]
@@ -120,6 +100,31 @@ namespace RabbitMQ.Client.Unit
             {
                 x.Close();
             }
+        }
+
+        protected void RunSingleConnectionTest(ConnectionFactory cf)
+        {
+            var conn = cf.CreateConnection();
+            var ch = conn.CreateModel();
+            bool wasShutdown = false;
+
+            conn.ConnectionShutdown += (sender, evt) =>
+            {
+                lock (conn)
+                {
+                    if (InitiatedByPeerOrLibrary(evt))
+                    {
+                        CheckInitiator(evt);
+                        wasShutdown = true;
+                    }
+                }
+            };
+            SleepFor(30);
+
+            Assert.IsFalse(wasShutdown, "shutdown event should not have been fired");
+            Assert.IsTrue(conn.IsOpen, "connection should be open");
+
+            conn.Close();
         }
 
         private void CheckInitiator(ShutdownEventArgs evt)
