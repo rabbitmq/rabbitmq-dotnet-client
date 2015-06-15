@@ -69,6 +69,38 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
+        public void TestThatHeartbeatWriterWithTLSEnabled()
+        {
+            if (!LongRunningTestsEnabled())
+            {
+                Console.WriteLine("RABBITMQ_LONG_RUNNING_TESTS is not set, skipping test");
+                return;
+            }
+
+            var cf = new ConnectionFactory()
+            {
+                RequestedHeartbeat = heartbeatTimeout,
+                AutomaticRecoveryEnabled = false
+            };
+
+            string sslDir = IntegrationFixture.CertificatesDirectory();
+            if (null == sslDir)
+            {
+                Console.WriteLine("SSL_CERT_DIR is not configured, skipping test");
+                return;
+            }
+            cf.Ssl.ServerName = System.Net.Dns.GetHostName();
+            Assert.IsNotNull(sslDir);
+            cf.Ssl.CertPath = sslDir + "/client/keycert.p12";
+            string p12Password = Environment.GetEnvironmentVariable("PASSWORD");
+            Assert.IsNotNull(p12Password, "missing PASSWORD env var");
+            cf.Ssl.CertPassphrase = p12Password;
+            cf.Ssl.Enabled = true;
+
+            RunSingleConnectionTest(cf);
+        }
+
+        [Test]
         public void TestHundredsOfConnectionsWithRandomHeartbeatInterval()
         {
             if (!LongRunningTestsEnabled())
@@ -131,6 +163,7 @@ namespace RabbitMQ.Client.Unit
         {
             if (InitiatedByPeerOrLibrary(evt))
             {
+                Console.WriteLine(((Exception)evt.Cause).StackTrace);
                 var s = String.Format("Shutdown: {0}, initiated by: {1}",
                                       evt, evt.Initiator);
                 Console.WriteLine(s);

@@ -94,8 +94,9 @@ namespace RabbitMQ.Client.Impl
             }
 
             Stream netstream = m_socket.GetStream();
-            netstream.ReadTimeout = timeout;
-            netstream.WriteTimeout = timeout;
+            // make sure the socket timeout is greater than heartbeat timeout
+            netstream.ReadTimeout = timeout * 4;
+            netstream.WriteTimeout = timeout * 4;
 
             if (endpoint.Ssl.Enabled)
             {
@@ -143,7 +144,8 @@ namespace RabbitMQ.Client.Impl
                 {
                     if (m_socket.Connected)
                     {
-                        m_socket.ReceiveTimeout = value;
+                        // make sure the socket timeout is greater than heartbeat interval
+                        m_socket.ReceiveTimeout = value * 4;
                     }
                 }
 #pragma warning disable 0168
@@ -163,7 +165,13 @@ namespace RabbitMQ.Client.Impl
                 {
                     try
                     {
-                        m_socket.LingerState = new LingerOption(true, SOCKET_CLOSING_TIMEOUT);
+                        try
+                        {
+                            
+                        } catch (ArgumentException _)
+                        {
+                            // ignore, we are closing anyway
+                        };
                         m_socket.Close();
                     }
                     catch (Exception _)
