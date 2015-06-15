@@ -94,3 +94,7 @@ projects/client/Unit/TestResult.xml
 # Development scripts
 
 *.fsx
+
+# Vim
+.sw?
+.*.sw?
