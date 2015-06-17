@@ -95,8 +95,8 @@ namespace RabbitMQ.Client.Impl
 
             Stream netstream = m_socket.GetStream();
             // make sure the socket timeout is greater than heartbeat timeout
-            netstream.ReadTimeout = timeout * 4;
-            netstream.WriteTimeout = timeout * 4;
+            netstream.ReadTimeout = timeout;
+            netstream.WriteTimeout = timeout;
 
             if (endpoint.Ssl.Enabled)
             {
@@ -222,6 +222,14 @@ namespace RabbitMQ.Client.Impl
             lock (m_writer)
             {
                 frame.WriteTo(m_writer);
+                m_writer.Flush();
+            }
+        }
+
+        public void Flush()
+        {
+            lock (m_writer)
+            {
                 m_writer.Flush();
             }
         }

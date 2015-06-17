@@ -122,7 +122,6 @@ namespace RabbitMQ.Client.Framing.Impl
             StartMainLoop(factory.UseBackgroundThreadsForIO);
             Open(insist);
 
-            StartHeartbeatTimers();
             AppDomain.CurrentDomain.DomainUnload += HandleDomainUnload;
         }
 
@@ -242,10 +241,10 @@ namespace RabbitMQ.Client.Framing.Impl
             set
             {
                 m_heartbeat = value;
-                // timers fire at half the interval to avoid race
+                // timers fire at slightly below half the interval to avoid race
                 // conditions
-                m_heartbeatTimeSpan = TimeSpan.FromMilliseconds((value * 1000) / 2.0);
-                m_frameHandler.Timeout = (value * 1000) / 2;
+                m_heartbeatTimeSpan = TimeSpan.FromMilliseconds((value * 1000) / 4);
+                m_frameHandler.Timeout = value * 1000 * 2;
             }
         }
 
@@ -477,7 +476,7 @@ namespace RabbitMQ.Client.Framing.Impl
             m_heartbeatRead.Set();
             m_heartbeatWrite.Set();
             m_closed = true;
-            StopHeartbeatTimers();
+            MaybeStopHeartbeatTimers();
 
             m_frameHandler.Close();
             m_model0.SetCloseReason(m_closeReason);
@@ -896,15 +895,15 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public void StartHeartbeatTimers()
+        public void MaybeStartHeartbeatTimers()
         {
             if (Heartbeat != 0)
             {
                 _heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback);
-                _heartbeatWriteTimer.Change(TimeSpan.FromMilliseconds(0), TimeSpan.FromMilliseconds(-1));
+                _heartbeatWriteTimer.Change(TimeSpan.FromMilliseconds(200), m_heartbeatTimeSpan);
 
                 _heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback);
-                _heartbeatReadTimer.Change(TimeSpan.FromMilliseconds(0), TimeSpan.FromMilliseconds(-1));
+                _heartbeatReadTimer.Change(TimeSpan.FromMilliseconds(200), m_heartbeatTimeSpan);
             }
         }
 
@@ -930,8 +929,11 @@ namespace RabbitMQ.Client.Framing.Impl
                     m_missedHeartbeats = 0;
                 }
 
-                // Has to miss two full heartbeats to force socket close
-                if (m_missedHeartbeats > 1)
+                // We check against 8 = 2 * 4 because we need to wait for at
+                // least two complete heartbeat setting intervals before
+                // complaining, and we've set the socket timeout to a quarter
+                // of the heartbeat setting in setHeartbeat above.
+                if (m_missedHeartbeats > 2 * 4)
                 {
                     String description = String.Format("Heartbeat missing with heartbeat == {0} seconds", m_heartbeat);
                     var eose = new EndOfStreamException(description);
@@ -960,10 +962,8 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 if (!m_closed)
                 {
-                    if (!m_heartbeatWrite.WaitOne(0, false))
-                    {
-                        WriteFrame(m_heartbeatFrame);
-                    }
+                    WriteFrame(m_heartbeatFrame);
+                    m_frameHandler.Flush();
                 }
             }
             catch (Exception e)
@@ -981,13 +981,9 @@ namespace RabbitMQ.Client.Framing.Impl
                 TerminateMainloop();
                 FinishClose();
             }
-            else
-            {
-                _heartbeatWriteTimer.Change(Heartbeat * 1000, Timeout.Infinite);
-            }
         }
 
-        protected void StopHeartbeatTimers()
+        protected void MaybeStopHeartbeatTimers()
         {
             if(_heartbeatReadTimer != null)
             {
@@ -1004,7 +1000,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///</remarks>
         public void TerminateMainloop()
         {
-            StopHeartbeatTimers();
+            MaybeStopHeartbeatTimers();
             m_running = false;
         }
 
@@ -1089,7 +1085,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         void IDisposable.Dispose()
         {
-            StopHeartbeatTimers();
+            MaybeStopHeartbeatTimers();
             Abort();
             if (ShutdownReport.Count > 0)
             {
@@ -1219,6 +1215,8 @@ namespace RabbitMQ.Client.Framing.Impl
                 heartbeat);
 
             m_inConnectionNegotiation = false;
+            // now we can start heartbeat timers
+            MaybeStartHeartbeatTimers();
         }
 
         private static uint NegotiatedMaxValue(uint clientValue, uint serverValue)
