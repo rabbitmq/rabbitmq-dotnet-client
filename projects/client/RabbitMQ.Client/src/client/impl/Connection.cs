@@ -77,19 +77,28 @@ namespace RabbitMQ.Client.Framing.Impl
         public EventHandler<EventArgs> m_connectionUnblocked;
         public IConnectionFactory m_factory;
         public IFrameHandler m_frameHandler;
-        public ushort m_heartbeat = 0;
-        public TimeSpan m_heartbeatTimeSpan = TimeSpan.FromSeconds(0);
 
         public Guid m_id = Guid.NewGuid();
-
-        public int m_missedHeartbeats = 0;
         public ModelBase m_model0;
         public volatile bool m_running = true;
         public MainSession m_session0;
         public SessionManager m_sessionManager;
 
         public IList<ShutdownReportEntry> m_shutdownReport = new SynchronizedList<ShutdownReportEntry>(new List<ShutdownReportEntry>());
+
+        //
+        // Heartbeats
+        //
+
+        public ushort m_heartbeat = 0;
+        public TimeSpan m_heartbeatTimeSpan = TimeSpan.FromSeconds(0);
+        public int m_missedHeartbeats = 0;
+
         private Timer _heartbeatWriteTimer;
+        private Timer _heartbeatReadTimer;
+        public AutoResetEvent m_heartbeatRead = new AutoResetEvent(false);
+        public AutoResetEvent m_heartbeatWrite = new AutoResetEvent(false);
+
 
         // true if we haven't finished connection negotiation.
         // In this state socket exceptions are treated as fatal connection
@@ -113,7 +122,6 @@ namespace RabbitMQ.Client.Framing.Impl
             StartMainLoop(factory.UseBackgroundThreadsForIO);
             Open(insist);
 
-            StartHeartbeatTimer();
             AppDomain.CurrentDomain.DomainUnload += HandleDomainUnload;
         }
 
@@ -233,10 +241,10 @@ namespace RabbitMQ.Client.Framing.Impl
             set
             {
                 m_heartbeat = value;
-                // timers fire at half the interval to avoid race
+                // timers fire at slightly below half the interval to avoid race
                 // conditions
-                m_heartbeatTimeSpan = TimeSpan.FromMilliseconds((value * 1000) / 2.0);
-                m_frameHandler.Timeout = (value * 1000) / 2;
+                m_heartbeatTimeSpan = TimeSpan.FromMilliseconds((value * 1000) / 4);
+                m_frameHandler.Timeout = value * 1000 * 2;
             }
         }
 
@@ -465,8 +473,10 @@ namespace RabbitMQ.Client.Framing.Impl
         public void FinishClose()
         {
             // Notify hearbeat loops that they can leave
+            m_heartbeatRead.Set();
+            m_heartbeatWrite.Set();
             m_closed = true;
-            StopHeartbeatTimer();
+            MaybeStopHeartbeatTimers();
 
             m_frameHandler.Close();
             m_model0.SetCloseReason(m_closeReason);
@@ -520,33 +530,6 @@ namespace RabbitMQ.Client.Framing.Impl
             }
 
             return false;
-        }
-
-        public void HeartbeatWriteTimerCallback(object state)
-        {
-            bool shouldTerminate = false;
-            try
-            {
-                if (!m_closed)
-                {
-                    WriteFrame(m_heartbeatFrame);
-                }
-            }
-            catch (Exception e)
-            {
-                HandleMainLoopException(new ShutdownEventArgs(
-                    ShutdownInitiator.Library,
-                    0,
-                    "End of stream",
-                    e));
-                shouldTerminate = true;
-            }
-
-            if (m_closed || shouldTerminate)
-            {
-                TerminateMainloop();
-                FinishClose();
-            }
         }
 
         public void InternalClose(ShutdownEventArgs reason)
@@ -639,96 +622,62 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void MainLoopIteration()
         {
-            try
+            Frame frame = m_frameHandler.ReadFrame();
+
+            NotifyHeartbeatListener();
+            // We have received an actual frame.
+            if (frame.Type == Constants.FrameHeartbeat)
             {
-                Frame frame = m_frameHandler.ReadFrame();
+                // Ignore it: we've already just reset the heartbeat
+                // latch.
+                return;
+            }
 
-                // We have received an actual frame.
-                m_missedHeartbeats = 0;
-                if (frame.Type == Constants.FrameHeartbeat)
+            if (frame.Channel == 0)
+            {
+                // In theory, we could get non-connection.close-ok
+                // frames here while we're quiescing (m_closeReason !=
+                // null). In practice, there's a limited number of
+                // things the server can ask of us on channel 0 -
+                // essentially, just connection.close. That, combined
+                // with the restrictions on pipelining, mean that
+                // we're OK here to handle channel 0 traffic in a
+                // quiescing situation, even though technically we
+                // should be ignoring everything except
+                // connection.close-ok.
+                m_session0.HandleFrame(frame);
+            }
+            else
+            {
+                // If we're still m_running, but have a m_closeReason,
+                // then we must be quiescing, which means any inbound
+                // frames for non-zero channels (and any inbound
+                // commands on channel zero that aren't
+                // Connection.CloseOk) must be discarded.
+                if (m_closeReason == null)
                 {
-                    // Ignore it: we've already just reset the heartbeat
-                    // counter.
-                    return;
-                }
-
-                if (frame.Channel == 0)
-                {
-                    // In theory, we could get non-connection.close-ok
-                    // frames here while we're quiescing (m_closeReason !=
-                    // null). In practice, there's a limited number of
-                    // things the server can ask of us on channel 0 -
-                    // essentially, just connection.close. That, combined
-                    // with the restrictions on pipelining, mean that
-                    // we're OK here to handle channel 0 traffic in a
-                    // quiescing situation, even though technically we
-                    // should be ignoring everything except
-                    // connection.close-ok.
-                    m_session0.HandleFrame(frame);
-                }
-                else
-                {
-                    // If we're still m_running, but have a m_closeReason,
-                    // then we must be quiescing, which means any inbound
-                    // frames for non-zero channels (and any inbound
-                    // commands on channel zero that aren't
-                    // Connection.CloseOk) must be discarded.
-                    if (m_closeReason == null)
+                    // No close reason, not quiescing the
+                    // connection. Handle the frame. (Of course, the
+                    // Session itself may be quiescing this particular
+                    // channel, but that's none of our concern.)
+                    ISession session = m_sessionManager.Lookup(frame.Channel);
+                    if (session == null)
                     {
-                        // No close reason, not quiescing the
-                        // connection. Handle the frame. (Of course, the
-                        // Session itself may be quiescing this particular
-                        // channel, but that's none of our concern.)
-                        ISession session = m_sessionManager.Lookup(frame.Channel);
-                        if (session == null)
-                        {
-                            throw new ChannelErrorException(frame.Channel);
-                        }
-                        else
-                        {
-                            session.HandleFrame(frame);
-                        }
+                        throw new ChannelErrorException(frame.Channel);
+                    }
+                    else
+                    {
+                        session.HandleFrame(frame);
                     }
                 }
             }
-            catch (SocketException ioe)
-            {
-                HandleIOException(ioe);
-            }
-            catch (IOException ioe)
-            {
-                HandleIOException(ioe);
-            }
         }
 
-        // socket receive timeout is configured to be 1/2 of the heartbeat timeout
-        // and the peer must be considered dead after two subsequent missed heartbeats:
-        // terminate after 4 socket timeouts
-        private const int SOCKET_TIMEOUTS_TO_CONSIDER_PEER_UNRESPONSIVE = 4;
-
-        protected void HandleIOException(Exception e)
+        public void NotifyHeartbeatListener()
         {
-            // socket error when in negotiation, throw BrokerUnreachableException
-            // immediately
-            if (m_inConnectionNegotiation)
+            if (m_heartbeat != 0)
             {
-                var cfe = new ConnectFailureException("I/O error before connection negotiation was completed", e);
-                throw new BrokerUnreachableException(cfe);
-            }
-
-            if (++m_missedHeartbeats >= SOCKET_TIMEOUTS_TO_CONSIDER_PEER_UNRESPONSIVE)
-            {
-                var description =
-                    String.Format("Peer missed 2 heartbeats with heartbeat timeout set to {0} seconds",
-                                  m_heartbeat);
-                var eose = new EndOfStreamException(description);
-                m_shutdownReport.Add(new ShutdownReportEntry(description, eose));
-                HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library,
-                                                              0,
-                                                              "End of stream",
-                                                              eose));
-                TerminateMainloop();
-                FinishClose();
+                m_heartbeatRead.Set();
             }
         }
 
@@ -946,12 +895,15 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public void StartHeartbeatTimer()
+        public void MaybeStartHeartbeatTimers()
         {
             if (Heartbeat != 0)
             {
                 _heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback);
-                _heartbeatWriteTimer.Change(TimeSpan.FromMilliseconds(0), m_heartbeatTimeSpan);
+                _heartbeatWriteTimer.Change(TimeSpan.FromMilliseconds(200), m_heartbeatTimeSpan);
+
+                _heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback);
+                _heartbeatReadTimer.Change(TimeSpan.FromMilliseconds(200), m_heartbeatTimeSpan);
             }
         }
 
@@ -963,9 +915,81 @@ namespace RabbitMQ.Client.Framing.Impl
             mainLoopThread.Start();
         }
 
-        protected void StopHeartbeatTimer()
+        public void HeartbeatReadTimerCallback(object state)
         {
-            if (_heartbeatWriteTimer != null)
+            bool shouldTerminate = false;
+            if (!m_closed)
+            {
+                if (!m_heartbeatRead.WaitOne(0, false))
+                {
+                    m_missedHeartbeats++;
+                }
+                else
+                {
+                    m_missedHeartbeats = 0;
+                }
+
+                // We check against 8 = 2 * 4 because we need to wait for at
+                // least two complete heartbeat setting intervals before
+                // complaining, and we've set the socket timeout to a quarter
+                // of the heartbeat setting in setHeartbeat above.
+                if (m_missedHeartbeats > 2 * 4)
+                {
+                    String description = String.Format("Heartbeat missing with heartbeat == {0} seconds", m_heartbeat);
+                    var eose = new EndOfStreamException(description);
+                    m_shutdownReport.Add(new ShutdownReportEntry(description, eose));
+                    HandleMainLoopException(
+                        new ShutdownEventArgs(ShutdownInitiator.Library, 0, "End of stream", eose));
+                    shouldTerminate = true;
+                }
+             }
+
+            if (shouldTerminate)
+            {
+                TerminateMainloop();
+                FinishClose();
+            }
+            else
+            {
+                _heartbeatReadTimer.Change(Heartbeat * 1000, Timeout.Infinite);
+            }
+        }
+
+        public void HeartbeatWriteTimerCallback(object state)
+        {
+            bool shouldTerminate = false;
+            try
+            {
+                if (!m_closed)
+                {
+                    WriteFrame(m_heartbeatFrame);
+                    m_frameHandler.Flush();
+                }
+            }
+            catch (Exception e)
+            {
+                HandleMainLoopException(new ShutdownEventArgs(
+                    ShutdownInitiator.Library,
+                    0,
+                    "End of stream",
+                    e));
+                shouldTerminate = true;
+            }
+
+            if (m_closed || shouldTerminate)
+            {
+                TerminateMainloop();
+                FinishClose();
+            }
+        }
+
+        protected void MaybeStopHeartbeatTimers()
+        {
+            if(_heartbeatReadTimer != null)
+            {
+                _heartbeatReadTimer.Dispose();
+            }
+            if(_heartbeatWriteTimer != null)
             {
                 _heartbeatWriteTimer.Dispose();
             }
@@ -976,7 +1000,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///</remarks>
         public void TerminateMainloop()
         {
-            StopHeartbeatTimer();
+            MaybeStopHeartbeatTimers();
             m_running = false;
         }
 
@@ -988,6 +1012,7 @@ namespace RabbitMQ.Client.Framing.Impl
         public void WriteFrame(Frame f)
         {
             m_frameHandler.WriteFrame(f);
+            m_heartbeatWrite.Set();
         }
 
         ///<summary>API-side invocation of connection abort.</summary>
@@ -1060,7 +1085,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         void IDisposable.Dispose()
         {
-            StopHeartbeatTimer();
+            MaybeStopHeartbeatTimers();
             Abort();
             if (ShutdownReport.Count > 0)
             {
@@ -1190,6 +1215,8 @@ namespace RabbitMQ.Client.Framing.Impl
                 heartbeat);
 
             m_inConnectionNegotiation = false;
+            // now we can start heartbeat timers
+            MaybeStartHeartbeatTimers();
         }
 
         private static uint NegotiatedMaxValue(uint clientValue, uint serverValue)
