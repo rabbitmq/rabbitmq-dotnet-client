@@ -44,8 +44,6 @@ using RabbitMQ.Client.Exceptions;
 using System;
 using System.Net.Security;
 using System.Security.Authentication;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Unit
 {
