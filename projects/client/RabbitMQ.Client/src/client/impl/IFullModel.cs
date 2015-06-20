@@ -225,7 +225,6 @@ namespace RabbitMQ.Client.Impl
         void _Private_BasicPublish(string exchange,
             string routingKey,
             bool mandatory,
-            bool immediate,
             [AmqpContentHeaderMapping] IBasicProperties basicProperties,
             [AmqpContentBodyMapping] byte[] body);
 
