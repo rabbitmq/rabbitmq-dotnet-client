@@ -608,6 +608,15 @@ namespace RabbitMQ.Client.Unit
         {
             Assert.IsTrue(latch.WaitOne(timeSpan), "waiting on a latch timed out");
         }
+
+        //
+        // TLS
+        //
+
+        public static string CertificatesDirectory()
+        {
+            return Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
+        }
     }
 
     public class TimingFixture

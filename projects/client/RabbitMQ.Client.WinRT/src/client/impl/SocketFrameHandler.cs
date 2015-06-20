@@ -134,6 +134,10 @@ namespace RabbitMQ.Client.Impl
         {
             set
             {
+                // Ignored, timeouts over streams on WinRT
+                // are much trickier to get right.
+                //
+                // Heartbeat implementation is in Connection.
             }
         }
 
@@ -187,6 +191,14 @@ namespace RabbitMQ.Client.Impl
             lock (m_writer)
             {
                 frame.WriteTo(m_writer);
+                m_writer.Flush();
+            }
+        }
+
+        public void Flush()
+        {
+            lock (m_writer)
+            {
                 m_writer.Flush();
             }
         }

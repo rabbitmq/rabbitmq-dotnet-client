@@ -72,5 +72,7 @@ namespace RabbitMQ.Client.Impl
         void SendHeader();
 
         void WriteFrame(Frame frame);
+
+        void Flush();
     }
 }

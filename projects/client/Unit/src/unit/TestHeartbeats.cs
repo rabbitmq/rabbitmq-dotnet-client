@@ -60,27 +60,39 @@ namespace RabbitMQ.Client.Unit
                 RequestedHeartbeat = heartbeatTimeout,
                 AutomaticRecoveryEnabled = false
             };
-            var conn = cf.CreateConnection();
-            var ch = conn.CreateModel();
-            bool wasShutdown = false;
+            RunSingleConnectionTest(cf);
+        }
 
-            conn.ConnectionShutdown += (sender, evt) =>
+        [Test]
+        public void TestThatHeartbeatWriterWithTLSEnabled()
+        {
+            if (!LongRunningTestsEnabled())
             {
-                lock (conn)
-                {
-                    if (InitiatedByPeerOrLibrary(evt))
-                    {
-                        CheckInitiator(evt);
-                        wasShutdown = true;
-                    }
-                }
+                Console.WriteLine("RABBITMQ_LONG_RUNNING_TESTS is not set, skipping test");
+                return;
+            }
+
+            var cf = new ConnectionFactory()
+            {
+                RequestedHeartbeat = heartbeatTimeout,
+                AutomaticRecoveryEnabled = false
             };
-            SleepFor(30);
 
-            Assert.IsFalse(wasShutdown, "shutdown event should not have been fired");
-            Assert.IsTrue(conn.IsOpen, "connection should be open");
+            string sslDir = IntegrationFixture.CertificatesDirectory();
+            if (null == sslDir)
+            {
+                Console.WriteLine("SSL_CERT_DIR is not configured, skipping test");
+                return;
+            }
+            cf.Ssl.ServerName = System.Net.Dns.GetHostName();
+            Assert.IsNotNull(sslDir);
+            cf.Ssl.CertPath = sslDir + "/client/keycert.p12";
+            string p12Password = Environment.GetEnvironmentVariable("PASSWORD");
+            Assert.IsNotNull(p12Password, "missing PASSWORD env var");
+            cf.Ssl.CertPassphrase = p12Password;
+            cf.Ssl.Enabled = true;
 
-            conn.Close();
+            RunSingleConnectionTest(cf);
         }
 
         [Test, Category("LongRunning"), Timeout(65000)]
@@ -111,15 +123,51 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
+        protected void RunSingleConnectionTest(ConnectionFactory cf)
+        {
+            var conn = cf.CreateConnection();
+            var ch = conn.CreateModel();
+            bool wasShutdown = false;
+
+            conn.ConnectionShutdown += (sender, evt) =>
+            {
+                lock (conn)
+                {
+                    if (InitiatedByPeerOrLibrary(evt))
+                    {
+                        CheckInitiator(evt);
+                        wasShutdown = true;
+                    }
+                }
+            };
+            SleepFor(30);
+
+            Assert.IsFalse(wasShutdown, "shutdown event should not have been fired");
+            Assert.IsTrue(conn.IsOpen, "connection should be open");
+
+            conn.Close();
+        }
+
         private void CheckInitiator(ShutdownEventArgs evt)
         {
             if (InitiatedByPeerOrLibrary(evt))
             {
+                Console.WriteLine(((Exception)evt.Cause).StackTrace);
                 var s = String.Format("Shutdown: {0}, initiated by: {1}",
                                       evt, evt.Initiator);
                 Console.WriteLine(s);
                 Assert.Fail(s);
             }
+        }
+
+        private bool LongRunningTestsEnabled()
+        {
+            var s = Environment.GetEnvironmentVariable("RABBITMQ_LONG_RUNNING_TESTS");
+            if (s == null || s.Equals(""))
+            {
+                return false;
+            }
+            return true;
         }
 
         private void SleepFor(int t)

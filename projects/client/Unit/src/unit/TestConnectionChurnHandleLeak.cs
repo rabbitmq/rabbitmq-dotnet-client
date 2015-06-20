@@ -58,9 +58,8 @@ namespace RabbitMQ.Client.Unit
             Console.WriteLine("{0} handles before the test...", me.HandleCount);
             for (var i = 0; i < 1000; i++)
             {
-                using (var conn = cf.CreateConnection())
-                {
-                }
+                var conn = cf.CreateConnection();
+                conn.Close();
             }
             Thread.Sleep(TimeSpan.FromSeconds(10));
             me = Process.GetCurrentProcess();
