@@ -50,9 +50,27 @@ namespace RabbitMQ.Client.Unit
     public class TestConnectionChurnHandleLeak : IntegrationFixture
     {
         [Test]
-        public void TestHandleLeak()
+        public void TestHandleLeakWithDisabledHeartbeats()
         {
-            var cf = new ConnectionFactory();
+            var cf = new ConnectionFactory()
+            {
+                RequestedHeartbeat = 0
+            };
+            PerformLeakTest(cf);
+        }
+
+        [Test]
+        public void TestHandleLeakWithEnabledHeartbeats()
+        {
+            var cf = new ConnectionFactory()
+            {
+                RequestedHeartbeat = 16
+            };
+            PerformLeakTest(cf);
+        }
+
+        protected void PerformLeakTest(ConnectionFactory cf)
+        {
             var me = Process.GetCurrentProcess();
             var n = me.HandleCount;
             Console.WriteLine("{0} handles before the test...", me.HandleCount);
