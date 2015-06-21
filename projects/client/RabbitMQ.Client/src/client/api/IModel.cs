@@ -139,7 +139,7 @@ namespace RabbitMQ.Client
         ///
         /// Examples of cases where this event will be signalled
         /// include exceptions thrown in <see cref="IBasicConsumer"/> methods, or
-        /// exceptions thrown in <see cref="ModelShutdownEventHandler"/> delegates etc.
+        /// exceptions thrown in <see cref="ModelShutdown"/> delegates etc.
         /// </summary>
         event EventHandler<CallbackExceptionEventArgs> CallbackException;
 
@@ -258,7 +258,7 @@ namespace RabbitMQ.Client
         /// (Spec method) Convenience overload of BasicPublish.
         /// </summary>
         /// <remarks>
-        /// The publication occurs with mandatory=false and immediate=false.
+        /// The publication occurs with mandatory=false
         /// </remarks>
         [AmqpMethodDoNotImplement(null)]
         void BasicPublish(string exchange, string routingKey, IBasicProperties basicProperties, byte[] body);
@@ -266,21 +266,9 @@ namespace RabbitMQ.Client
         /// <summary>
         /// (Spec method) Convenience overload of BasicPublish.
         /// </summary>
-        /// <remarks>
-        /// The publication occurs with immediate=false.
-        /// </remarks>
         [AmqpMethodDoNotImplement(null)]
         void BasicPublish(string exchange, string routingKey, bool mandatory,
             IBasicProperties basicProperties, byte[] body);
-
-        /// <summary>(Spec method) Publish a message using the Basic
-        ///content-class.</summary>
-        /// <remarks>
-        ///Note that the RabbitMQ server does not support the 'immediate' flag.
-        /// </remarks>
-        [AmqpMethodDoNotImplement(null)]
-        void BasicPublish(string exchange, string routingKey, bool mandatory,
-            bool immediate, IBasicProperties basicProperties, byte[] body);
 
         /// <summary>
         /// (Spec method) Configures QoS parameters of the Basic content-class.

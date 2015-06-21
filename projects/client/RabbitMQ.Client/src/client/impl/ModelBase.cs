@@ -1018,7 +1018,6 @@ namespace RabbitMQ.Client.Impl
         public abstract void _Private_BasicPublish(string exchange,
             string routingKey,
             bool mandatory,
-            bool immediate,
             IBasicProperties basicProperties,
             byte[] body);
 
@@ -1217,21 +1216,6 @@ namespace RabbitMQ.Client.Impl
             IBasicProperties basicProperties,
             byte[] body)
         {
-            BasicPublish(exchange,
-                routingKey,
-                mandatory,
-                false,
-                basicProperties,
-                body);
-        }
-
-        public void BasicPublish(string exchange,
-            string routingKey,
-            bool mandatory,
-            bool immediate,
-            IBasicProperties basicProperties,
-            byte[] body)
-        {
             if (basicProperties == null)
             {
                 basicProperties = CreateBasicProperties();
@@ -1250,7 +1234,6 @@ namespace RabbitMQ.Client.Impl
             _Private_BasicPublish(exchange,
                 routingKey,
                 mandatory,
-                immediate,
                 basicProperties,
                 body);
         }
