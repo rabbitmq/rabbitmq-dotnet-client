@@ -79,6 +79,8 @@ namespace RabbitMQ.Client.Unit
                 var conn = cf.CreateConnection();
                 conn.Close();
             }
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
             Thread.Sleep(TimeSpan.FromSeconds(10));
             me = Process.GetCurrentProcess();
             Console.WriteLine("{0} handles after the test...", me.HandleCount);
