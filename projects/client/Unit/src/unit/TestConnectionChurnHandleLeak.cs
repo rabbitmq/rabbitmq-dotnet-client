@@ -80,6 +80,8 @@ namespace RabbitMQ.Client.Unit
                 {
                 }
             }
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
             Thread.Sleep(TimeSpan.FromSeconds(10));
             Console.WriteLine("{0} handles after the test...", me.HandleCount);
             Assert.That(me.HandleCount, Is.LessThanOrEqualTo(n));
