@@ -84,7 +84,9 @@ namespace RabbitMQ.Client.Unit
             GC.WaitForPendingFinalizers();
             Thread.Sleep(TimeSpan.FromSeconds(10));
             Console.WriteLine("{0} handles after the test...", me.HandleCount);
-            Assert.That(me.HandleCount, Is.LessThanOrEqualTo(n));
+            // allow for a 20% margin of error, as GC behaviour and native handle
+            // release is difficult to predict
+            Assert.That(me.HandleCount, Is.LessThanOrEqualTo(n + 200));
         }
     }
 }
