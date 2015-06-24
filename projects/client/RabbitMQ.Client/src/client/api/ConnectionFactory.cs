@@ -142,10 +142,20 @@ namespace RabbitMQ.Client
         public const string DefaultVHost = "/";
 
         /// <summary>
+        /// URI scheme for amqp protocol
+        /// </summary>
+        public const string AmqpScheme = "amqp";
+
+        /// <summary>
+        /// URI scheme for amqp protocol over tls
+        /// </summary>
+        public const string AmqpsScheme = "amqps";
+
+        /// <summary>
         ///  Default SASL auth mechanisms to use.
         /// </summary>
         public static readonly IList<AuthMechanismFactory> DefaultAuthMechanisms =
-            new List<AuthMechanismFactory>(){ new PlainMechanismFactory() };
+            new List<AuthMechanismFactory>() { new PlainMechanismFactory() };
 
         /// <summary>
         ///  SASL auth mechanisms to use.
@@ -237,17 +247,28 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Set connection parameters using the amqp or amqps scheme.
         /// </summary>
+        public Uri uri
+        {
+            set { SetUri(value); }
+        }
+
+        /// <summary>
+        /// Set connection parameters using the amqp or amqps scheme.
+        /// </summary>
         public String Uri
         {
             set { SetUri(new Uri(value, UriKind.Absolute)); }
-            get {
-                var protocol="amqp";
-                if(Ssl!=null&& Ssl.Enabled) {
-                    protocol="amqps";
+            get
+            {
+                var protocol = "amqp";
+                if (Ssl != null && Ssl.Enabled)
+                {
+                    protocol = "amqps";
                 }
-                var uriString=protocol+"://"+HostName+":"+Port+"/";
-                if(VirtualHost!=null&&!VirtualHost.Equals("")) {
-                    uriString=uriString+VirtualHost;
+                var uriString = protocol + "://" + HostName + ":" + Port + "/";
+                if (VirtualHost != null && !VirtualHost.Equals(""))
+                {
+                    uriString = uriString + VirtualHost;
                 }
                 return uriString;
             }
@@ -255,16 +276,20 @@ namespace RabbitMQ.Client
 
         private IList<Uri> _uris;
         /// <summary>
-        /// Set a list of conection parameters (only for autorecovering connections)
+        /// Set a list of connection parameters (only for autorecovering connections)
         /// </summary>
-        public IList<Uri> Uris {
-            set {
-                if(value==null||value.Count==0) {
+        public IList<Uri> Uris
+        {
+            set
+            {
+                if (value == null || value.Count == 0)
+                {
                     throw new InvalidOperationException("The list of broker uris must contain at least one broker.");
                 }
-                _uris=value;
+                _uris = value;
             }
-            get {
+            get
+            {
                 return _uris;
             }
         }
@@ -357,19 +382,19 @@ namespace RabbitMQ.Client
             {
                 Uris = hostnames.Select(h =>
                 {
-                    var uri = Uri.Replace(HostName, h);
-                    return new Uri(uri);
+                    var uri2 = Uri.Replace(HostName, h);
+                    return new Uri(uri2);
                 }).ToList();
             }
             else
             {
                 foreach (var hostname in hostnames)
                 {
-                    if (!Uris.Where(u => u.DnsSafeHost.ToLowerInvariant().Equals(hostname.ToLowerInvariant())).Any())
+                    if (!Uris.Any(u => u.DnsSafeHost.ToLowerInvariant().Equals(hostname.ToLowerInvariant())))
                     {
                         // Hostname is unknown in existing uris, add it
-                        var uri = Uri.Replace(HostName, hostname);
-                        Uris.Add(new Uri(uri));
+                        var uri2 = Uri.Replace(HostName, hostname);
+                        Uris.Add(new Uri(uri2));
                     }
                 }
             }
@@ -378,7 +403,7 @@ namespace RabbitMQ.Client
                 if (AutomaticRecoveryEnabled)
                 {
                     var autorecoveringConnection = new AutorecoveringConnection(this);
-                    var endpoints=_uris.Select(u=>EndpointFromUri(u)).ToList();
+                    var endpoints = _uris.Select(u => EndpointFromUri(u)).ToList();
                     autorecoveringConnection.Init(endpoints);
                     conn = autorecoveringConnection;
                 }
@@ -407,29 +432,35 @@ namespace RabbitMQ.Client
 
         private AmqpTcpEndpoint EndpointFromUri(Uri uri)
         {
-            if (string.Equals("amqp", uri.Scheme, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(AmqpScheme, uri.Scheme, StringComparison.OrdinalIgnoreCase))
             {
-                return new AmqpTcpEndpoint(uri.Authority,uri.Port);
-                
+                return new AmqpTcpEndpoint(uri.Authority, uri.Port);
+
             }
-            else if (string.Equals("amqps", uri.Scheme, StringComparison.OrdinalIgnoreCase))
+            else if (string.Equals(AmqpsScheme, uri.Scheme, StringComparison.OrdinalIgnoreCase))
             {
-                var sslOptions=Ssl.Clone() as SslOption;
-                sslOptions.ServerName=uri.Authority;
-                return new AmqpTcpEndpoint(uri.Authority,uri.Port,sslOptions);
-            } else {
+                var sslOptions = Ssl.Clone() as SslOption;
+                sslOptions.ServerName = uri.Authority;
+                return new AmqpTcpEndpoint(uri.Authority, uri.Port, sslOptions);
+            }
+            else
+            {
                 throw new InvalidOperationException("Only amqp and amqps Uris supported");
             }
         }
         private void SetUri(Uri uri)
         {
+            if (Uris != null && !Uris.Contains(uri))
+            {
+                Uris.Add(uri);
+            }
             Endpoint = new AmqpTcpEndpoint();
 
-            if (string.Equals("amqp", uri.Scheme, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(AmqpScheme, uri.Scheme, StringComparison.OrdinalIgnoreCase))
             {
                 // nothing special to do
             }
-            else if (string.Equals("amqps", uri.Scheme, StringComparison.OrdinalIgnoreCase))
+            else if (string.Equals(AmqpsScheme, uri.Scheme, StringComparison.OrdinalIgnoreCase))
             {
                 Ssl.Enabled = true;
 #if !(NETFX_CORE)
