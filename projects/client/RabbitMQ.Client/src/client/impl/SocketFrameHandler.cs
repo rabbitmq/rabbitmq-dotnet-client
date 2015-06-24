@@ -50,12 +50,8 @@ namespace RabbitMQ.Client.Impl
 {
     public class SocketFrameHandler : IFrameHandler
     {
-        // ^^ System.Net.Sockets.SocketError doesn't exist in .NET 1.1
-
         // Timeout in seconds to wait for a clean socket close.
         public const int SOCKET_CLOSING_TIMEOUT = 1;
-
-        public const int WSAEWOULDBLOCK = 10035;
 
         public NetworkBinaryReader m_reader;
         public TcpClient m_socket;
