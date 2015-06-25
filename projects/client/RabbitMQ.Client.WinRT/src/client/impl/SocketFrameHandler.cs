@@ -42,6 +42,7 @@ using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
 using System;
 using System.IO;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using Windows.Foundation;
@@ -191,6 +192,18 @@ namespace RabbitMQ.Client.Impl
             lock (m_writer)
             {
                 frame.WriteTo(m_writer);
+                m_writer.Flush();
+            }
+        }
+
+        public void WriteFrameSet(IList<Frame> frames)
+        {
+            lock (m_writer)
+            {
+                foreach (var f in frames)
+                {
+                    f.WriteTo(m_writer);
+                }
                 m_writer.Flush();
             }
         }

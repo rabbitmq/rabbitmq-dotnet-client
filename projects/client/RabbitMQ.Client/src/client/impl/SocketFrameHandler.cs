@@ -43,6 +43,7 @@ using RabbitMQ.Util;
 using System;
 using System.IO;
 using System.Net;
+using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
 
@@ -50,12 +51,8 @@ namespace RabbitMQ.Client.Impl
 {
     public class SocketFrameHandler : IFrameHandler
     {
-        // ^^ System.Net.Sockets.SocketError doesn't exist in .NET 1.1
-
         // Timeout in seconds to wait for a clean socket close.
         public const int SOCKET_CLOSING_TIMEOUT = 1;
-
-        public const int WSAEWOULDBLOCK = 10035;
 
         public NetworkBinaryReader m_reader;
         public TcpClient m_socket;
@@ -222,6 +219,18 @@ namespace RabbitMQ.Client.Impl
             lock (m_writer)
             {
                 frame.WriteTo(m_writer);
+                m_writer.Flush();
+            }
+        }
+
+        public void WriteFrameSet(IList<Frame> frames)
+        {
+            lock (m_writer)
+            {
+                foreach(var f in frames)
+                {
+                    f.WriteTo(m_writer);
+                }
                 m_writer.Flush();
             }
         }

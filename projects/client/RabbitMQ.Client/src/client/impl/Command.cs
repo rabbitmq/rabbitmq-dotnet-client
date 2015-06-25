@@ -154,6 +154,18 @@ namespace RabbitMQ.Client.Impl
 
         public void Transmit(int channelNumber, Connection connection)
         {
+            if(Method.HasContent)
+            {
+                TransmitAsFrameSet(channelNumber, connection);
+            }
+            else
+            {
+                TransmitAsSingleFrame(channelNumber, connection);
+            }
+        }
+
+        public void TransmitAsSingleFrame(int channelNumber, Connection connection)
+        {
             var frame = new Frame(Constants.FrameMethod, channelNumber);
             NetworkBinaryWriter writer = frame.GetWriter();
             writer.Write((ushort)Method.ProtocolClassId);
@@ -162,6 +174,20 @@ namespace RabbitMQ.Client.Impl
             Method.WriteArgumentsTo(argWriter);
             argWriter.Flush();
             connection.WriteFrame(frame);
+        }
+
+        public void TransmitAsFrameSet(int channelNumber, Connection connection)
+        {
+            var frame = new Frame(Constants.FrameMethod, channelNumber);
+            NetworkBinaryWriter writer = frame.GetWriter();
+            writer.Write((ushort)Method.ProtocolClassId);
+            writer.Write((ushort)Method.ProtocolMethodId);
+            var argWriter = new MethodArgumentWriter(writer);
+            Method.WriteArgumentsTo(argWriter);
+            argWriter.Flush();
+
+            var frames = new List<Frame>();
+            frames.Add(frame);
 
             if (Method.HasContent)
             {
@@ -171,7 +197,7 @@ namespace RabbitMQ.Client.Impl
                 writer = frame.GetWriter();
                 writer.Write((ushort)Header.ProtocolClassId);
                 Header.WriteTo(writer, (ulong)body.Length);
-                connection.WriteFrame(frame);
+                frames.Add(frame);
 
                 var frameMax = (int)Math.Min(int.MaxValue, connection.FrameMax);
                 int bodyPayloadMax = (frameMax == 0)
@@ -185,9 +211,11 @@ namespace RabbitMQ.Client.Impl
                     writer = frame.GetWriter();
                     writer.Write(body, offset,
                         (remaining < bodyPayloadMax) ? remaining : bodyPayloadMax);
-                    connection.WriteFrame(frame);
+                    frames.Add(frame);
                 }
             }
+
+            connection.WriteFrameSet(frames);
         }
     }
 }
