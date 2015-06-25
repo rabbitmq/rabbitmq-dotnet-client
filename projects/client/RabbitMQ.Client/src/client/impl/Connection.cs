@@ -1015,6 +1015,12 @@ namespace RabbitMQ.Client.Framing.Impl
             m_heartbeatWrite.Set();
         }
 
+        public void WriteFrameSet(IList<Frame> f)
+        {
+            m_frameHandler.WriteFrameSet(f);
+            m_heartbeatWrite.Set();
+        }
+
         ///<summary>API-side invocation of connection abort.</summary>
         public void Abort()
         {

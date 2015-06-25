@@ -43,6 +43,7 @@ using RabbitMQ.Util;
 using System;
 using System.IO;
 using System.Net;
+using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
 
@@ -218,6 +219,18 @@ namespace RabbitMQ.Client.Impl
             lock (m_writer)
             {
                 frame.WriteTo(m_writer);
+                m_writer.Flush();
+            }
+        }
+
+        public void WriteFrameSet(IList<Frame> frames)
+        {
+            lock (m_writer)
+            {
+                foreach(var f in frames)
+                {
+                    f.WriteTo(m_writer);
+                }
                 m_writer.Flush();
             }
         }
