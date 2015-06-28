@@ -47,7 +47,8 @@
   </PropertyGroup>
   <Target Name="ImportSSL" Condition="$(SSLAvail)">
     <!-- import cacert into certmgr -->
-    <Exec Command="certmgr -add -c Trust $(SSLCertsDir)/testca/cacert.cer" />
+    <!-- <Exec Command="certmgr -c -add -s $(SSLCertsDir)\testca\cacert.cer -r localMachine Root" /> -->
+    <Exec Command="certutil -addstore Root $(SSLCertsDir)\testca\cacert.cer" />
   </Target>
   <!-- Decide whether we need to set TEMP under mono -->
   <PropertyGroup>
