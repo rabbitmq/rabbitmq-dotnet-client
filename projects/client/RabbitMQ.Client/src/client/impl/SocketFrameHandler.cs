@@ -218,6 +218,7 @@ namespace RabbitMQ.Client.Impl
         {
             lock (m_writer)
             {
+                m_socket.Client.Poll(-1, SelectMode.SelectWrite);
                 frame.WriteTo(m_writer);
                 m_writer.Flush();
             }
@@ -227,6 +228,7 @@ namespace RabbitMQ.Client.Impl
         {
             lock (m_writer)
             {
+                m_socket.Client.Poll(-1, SelectMode.SelectWrite);
                 foreach(var f in frames)
                 {
                     f.WriteTo(m_writer);
