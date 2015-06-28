@@ -53,6 +53,10 @@ namespace RabbitMQ.Client.Impl
     {
         // Timeout in seconds to wait for a clean socket close.
         public const int SOCKET_CLOSING_TIMEOUT = 1;
+        // Socket poll timeout in ms. If the socket does not
+        // become writeable in this amount of time, we throw
+        // an exception.
+        protected int m_writeableStateTimeout = 30000;
 
         public NetworkBinaryReader m_reader;
         public TcpClient m_socket;
@@ -143,6 +147,7 @@ namespace RabbitMQ.Client.Impl
                     {
                         // make sure the socket timeout is greater than heartbeat interval
                         m_socket.ReceiveTimeout = value * 4;
+                        m_writeableStateTimeout = value * 4;
                     }
                 }
 #pragma warning disable 0168
@@ -218,6 +223,7 @@ namespace RabbitMQ.Client.Impl
         {
             lock (m_writer)
             {
+                m_socket.Client.Poll(m_writeableStateTimeout, SelectMode.SelectWrite);
                 frame.WriteTo(m_writer);
                 m_writer.Flush();
             }
@@ -227,6 +233,7 @@ namespace RabbitMQ.Client.Impl
         {
             lock (m_writer)
             {
+                m_socket.Client.Poll(m_writeableStateTimeout, SelectMode.SelectWrite);
                 foreach(var f in frames)
                 {
                     f.WriteTo(m_writer);
