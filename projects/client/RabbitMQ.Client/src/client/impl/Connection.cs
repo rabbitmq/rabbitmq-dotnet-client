@@ -1092,15 +1092,22 @@ entry.ToString());
 
         protected void MaybeStopHeartbeatTimers()
         {
-            if(_heartbeatReadTimer != null)
+            MaybeDisposeTimer(_heartbeatReadTimer);
+            MaybeDisposeTimer(_heartbeatWriteTimer);
+        }
+
+        private void MaybeDisposeTimer(Timer timer)
+        {
+            if (timer != null)
             {
-                _heartbeatReadTimer.Change(Timeout.Infinite, Timeout.Infinite);
-                _heartbeatReadTimer.Dispose();
-            }
-            if(_heartbeatWriteTimer != null)
-            {
-                _heartbeatWriteTimer.Change(Timeout.Infinite, Timeout.Infinite);
-                _heartbeatWriteTimer.Dispose();
+                try
+                {
+                    timer.Change(Timeout.Infinite, Timeout.Infinite);
+                    timer.Dispose();
+                } catch (ObjectDisposedException ignored)
+                {
+                    // we are shutting down, ignore
+                }
             }
         }
 
