@@ -987,10 +987,12 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             if(_heartbeatReadTimer != null)
             {
+                _heartbeatReadTimer.Change(Timeout.Infinite, Timeout.Infinite);
                 _heartbeatReadTimer.Dispose();
             }
             if(_heartbeatWriteTimer != null)
             {
+                _heartbeatWriteTimer.Change(Timeout.Infinite, Timeout.Infinite);
                 _heartbeatWriteTimer.Dispose();
             }
         }
