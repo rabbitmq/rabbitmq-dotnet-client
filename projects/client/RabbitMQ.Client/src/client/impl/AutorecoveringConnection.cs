@@ -691,7 +691,13 @@ namespace RabbitMQ.Client.Framing.Impl
 
         void IDisposable.Dispose()
         {
-            Abort();
+            try {
+                Abort();
+            }
+            finally
+            {
+                m_models.Clear();
+            }
             if (ShutdownReport.Count > 0)
             {
                 foreach (ShutdownReportEntry entry in ShutdownReport)

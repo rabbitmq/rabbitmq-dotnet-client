@@ -373,7 +373,7 @@ namespace RabbitMQ.Client.Impl
 
         void IDisposable.Dispose()
         {
-            m_delegate.Close();
+            Abort();
         }
 
         public void ConnectionTuneOk(ushort channelMax,
