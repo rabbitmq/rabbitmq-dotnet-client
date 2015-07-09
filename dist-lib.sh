@@ -41,10 +41,11 @@
 ##---------------------------------------------------------------------------
 
 function assembly-version {
-    local RELEASE_PATTERN="^[0-9]+(\.[0-9]+){2}$"
-    local NIGHTLY_PATTERN="^[0-9]+(\.[0-9]+){3}$"
+    local RELEASE_PATTERN="^[0-9]+(\.[0-9a-z]+){2,3}$"
+    local NIGHTLY_PATTERN="^[0-9]+(\.[0-9]+){2,3}$"
     if [[ $1 =~ $RELEASE_PATTERN ]] ; then
-        ASSEMBLY_VSN=$RABBIT_VSN.0
+        # AssemblyVersion cannot contain arbitrary strings
+        ASSEMBLY_VSN=$(echo $RABBIT_VSN | sed -e "s/milestone/80/g" -e "s/rc/90/g")
     elif [[ $1 =~ $NIGHTLY_PATTERN ]] ; then
         ASSEMBLY_VSN=$RABBIT_VSN
     else
