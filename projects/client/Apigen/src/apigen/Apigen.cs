@@ -133,7 +133,7 @@ namespace RabbitMQ.Client.Apigen {
         public static string MangleClass(string name) {
             StringBuilder sb = new StringBuilder();
             foreach (String s in IdentifierParts(name)) {
-                sb.Append(Char.ToUpper(s[0]) + s.Substring(1).ToLower());
+                sb.Append(Char.ToUpperInvariant(s[0]) + s.Substring(1).ToLowerInvariant());
             }
             return sb.ToString();
         }
@@ -143,9 +143,9 @@ namespace RabbitMQ.Client.Apigen {
             bool useUpper = false;
             foreach (String s in IdentifierParts(name)) {
                 if (useUpper) {
-                    sb.Append(Char.ToUpper(s[0]) + s.Substring(1).ToLower());
+                    sb.Append(Char.ToUpperInvariant(s[0]) + s.Substring(1).ToLowerInvariant());
                 } else {
-                    sb.Append(s.ToLower());
+                    sb.Append(s.ToLowerInvariant());
                     useUpper = true;
                 }
             }
