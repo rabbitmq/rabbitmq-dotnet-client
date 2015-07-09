@@ -41,7 +41,7 @@
 ##---------------------------------------------------------------------------
 
 function assembly-version {
-    local RELEASE_PATTERN="^[0-9]+(\.[0-9]+){2,3}$"
+    local RELEASE_PATTERN="^[0-9]+(\.[0-9a-z]+){2,3}$"
     local NIGHTLY_PATTERN="^[0-9]+(\.[0-9]+){2,3}$"
     if [[ $1 =~ $RELEASE_PATTERN ]] ; then
         # AssemblyVersion cannot contain arbitrary strings
