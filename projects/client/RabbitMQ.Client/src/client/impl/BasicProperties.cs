@@ -38,6 +38,7 @@
 //  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
@@ -88,6 +89,15 @@ namespace RabbitMQ.Client.Impl
         /// Application message Id.
         /// </summary>
         public abstract string MessageId { get; set; }
+
+        /// <summary>
+        /// Sets <see cref="DeliveryMode"/> to either persistent (2) or non-persistent (1).
+        /// </summary>
+        public bool Persistent
+        {
+            get { return DeliveryMode == 2; }
+            set { DeliveryMode = value ? (byte)2 : (byte)1; }
+        }
 
         /// <summary>
         /// Message priority, 0 to 9.
@@ -278,16 +288,10 @@ namespace RabbitMQ.Client.Impl
         /// In order to reset <see cref="DeliveryMode"/> to the default empty condition, call <see cref="ClearDeliveryMode"/> .
         /// </para>
         /// </remarks>
+        [Obsolete("Usage of this setter method is deprecated. Use the Persistent property instead.")]
         public void SetPersistent(bool persistent)
         {
-            if (persistent)
-            {
-                DeliveryMode = 2;
-            }
-            else
-            {
-                DeliveryMode = 1;
-            }
+            Persistent = persistent;
         }
 
         public override object Clone()
