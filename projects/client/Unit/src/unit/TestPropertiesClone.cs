@@ -39,20 +39,14 @@
 //---------------------------------------------------------------------------
 
 using System.Collections.Generic;
-
 using NUnit.Framework;
-
-using System;
-using System.IO;
-using System.Collections;
-
 using RabbitMQ.Client;
 using RabbitMQ.Client.Impl;
 
 [TestFixture]
 public class TestPropertiesClone
 {
-     [Test]
+    [Test]
     public void TestBasicPropertiesCloneV0_9_1()
     {
         TestBasicPropertiesClone(new RabbitMQ.Client.Framing.BasicProperties());
@@ -72,7 +66,9 @@ public class TestPropertiesClone
         bp.Headers = new Dictionary<string, object>();
         bp.Headers.Add("foo_3", "foo_4");
         bp.Headers.Add("foo_5", "foo_6");
-        bp.DeliveryMode = 12;
+        bp.DeliveryMode = 2;
+        // Persistent also changes DeliveryMode's value to 2
+        bp.Persistent = true;
         bp.Priority = 12;
         bp.CorrelationId = "foo_7";
         bp.ReplyTo = "foo_8";
@@ -94,7 +90,9 @@ public class TestPropertiesClone
         bp.Headers.Remove("foo_5");
         bp.Headers.Add("foo_17", "foo_18");
         bp.Headers.Add("foo_19", "foo_20");
-        bp.DeliveryMode = 23;
+        bp.DeliveryMode = 1;
+        // Persistent also changes DeliveryMode's value to 1
+        bp.Persistent = false;
         bp.Priority = 23;
         bp.CorrelationId = "foo_21";
         bp.ReplyTo = "foo_22";
@@ -114,7 +112,8 @@ public class TestPropertiesClone
         Assert.AreEqual("foo_4", bpClone.Headers["foo_3"]);
         Assert.AreEqual(true, bpClone.Headers.ContainsKey("foo_5"));
         Assert.AreEqual("foo_6", bpClone.Headers["foo_5"]);
-        Assert.AreEqual(12, bpClone.DeliveryMode);
+        Assert.AreEqual(2, bpClone.DeliveryMode);
+        Assert.AreEqual(true, bpClone.Persistent);
         Assert.AreEqual(12, bpClone.Priority);
         Assert.AreEqual("foo_7", bpClone.CorrelationId);
         Assert.AreEqual("foo_8", bpClone.ReplyTo);
@@ -138,7 +137,9 @@ public class TestPropertiesClone
         bp.Headers = new Dictionary<string, object>();
         bp.Headers.Add("foo_3", "foo_4");
         bp.Headers.Add("foo_5", "foo_6");
-        bp.DeliveryMode = 12;
+        bp.DeliveryMode = 2;
+        // Persistent also changes DeliveryMode's value to 2
+        bp.Persistent = true;
         bp.Priority = 12;
         bp.CorrelationId = "foo_7";
         bp.ReplyTo = "foo_8";
