@@ -22,9 +22,9 @@
     </frameworkAssemblies>
   </metadata>
   <files>
-    <file src="projects\wcf\RabbitMQ.ServiceModel\build\bin\RabbitMQ.ServiceModel.dll" target="lib\net40" />
-    <file src="projects\wcf\RabbitMQ.ServiceModel\build\bin\RabbitMQ.ServiceModel.pdb" target="lib\net40" />
-    <file src="projects\wcf\RabbitMQ.ServiceModel\build\bin\RabbitMQ.ServiceModel.xml" target="lib\net40" />
-    <file src="projects\wcf\RabbitMQ.ServiceModel\**\*.cs" target="src\projects\wcf\RabbitMQ.ServiceModel" />
+    <file src="src\RabbitMQ.ServiceModel\build\bin\RabbitMQ.ServiceModel.dll" target="lib\net40" />
+    <file src="src\RabbitMQ.ServiceModel\build\bin\RabbitMQ.ServiceModel.pdb" target="lib\net40" />
+    <file src="src\RabbitMQ.ServiceModel\build\bin\RabbitMQ.ServiceModel.xml" target="lib\net40" />
+    <file src="src\RabbitMQ.ServiceModel\**\*.cs" target="src\RabbitMQ.ServiceModel" />
   </files>
 </package>

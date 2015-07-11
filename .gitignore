@@ -89,7 +89,7 @@ UpgradeLog*.htm
 
 # Unit tests
 
-projects/client/Unit/TestResult.xml
+src/RabbitMQ.Client.Unit/TestResult.xml
 
 # Development scripts
 
