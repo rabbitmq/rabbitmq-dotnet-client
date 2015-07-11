@@ -61,7 +61,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="properties\AssemblyInfo.cs" />
     <Compile Include="**\*.cs" />
   </ItemGroup>
   <ItemGroup>
