@@ -2,7 +2,7 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Warning! This file contains important customizations. Using Visual Studio to edit project's properties might break things. -->
   <!-- Props file -->
-  <Import Project="$(MSBuildProjectDirectory)\..\..\..\Local.props" />
+  <Import Project="$(MSBuildProjectDirectory)\..\..\Local.props" />
   <!-- Visual Studio generated -->
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -62,10 +62,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="properties\AssemblyInfo.cs" />
-    <Compile Include="src\apigen\**\*.cs" />
+    <Compile Include="**\*.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ApigenBootstrap\RabbitMQ.Client.ApigenBootstrap.csproj">
+    <ProjectReference Include="..\RabbitMQ.Client.ApigenBootstrap\RabbitMQ.Client.ApigenBootstrap.csproj">
       <Project>{CC8F4572-6730-4C4D-A0BB-15151E2A26AE}</Project>
       <Name>RabbitMQ.Client.ApigenBootstrap</Name>
     </ProjectReference>
