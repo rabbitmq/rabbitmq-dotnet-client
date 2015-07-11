@@ -4,7 +4,7 @@
   
   <!-- Props file -->
   <PropertyGroup>
-    <LocalPropsFile>$(MSBuildProjectDirectory)\..\..\..\Local.props</LocalPropsFile>
+    <LocalPropsFile>$(MSBuildProjectDirectory)\..\..\Local.props</LocalPropsFile>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
     <UpgradeBackupLocation>
@@ -14,12 +14,12 @@
   <Import Project="$(LocalPropsFile)" />
   <!-- MSBuild Community Tasks -->
   <PropertyGroup>
-    <MSBuildCommunityTasksPath>$(MSBuildProjectDirectory)\..\..\..\lib\MSBuild.Community.Tasks\</MSBuildCommunityTasksPath>
+    <MSBuildCommunityTasksPath>$(MSBuildProjectDirectory)\..\..\lib\MSBuild.Community.Tasks\</MSBuildCommunityTasksPath>
   </PropertyGroup>
   <Import Project="$(MSBuildCommunityTasksPath)MSBuild.Community.Tasks.Targets" />
   <!-- Gensrc dir -->
   <PropertyGroup>
-    <GensrcDir>..\..\..\gensrc\$(MSBuildProjectName)\</GensrcDir>
+    <GensrcDir>..\..\gensrc\$(MSBuildProjectName)\</GensrcDir>
   </PropertyGroup>
   <Target Name="CreateGensrcDir">
     <MakeDir Directories="$(GensrcDir)" />
@@ -27,7 +27,7 @@
   <!-- Detokenize -->
   <PropertyGroup>
     <AssemblyInfoBaseName>AssemblyInfo.cs</AssemblyInfoBaseName>
-    <AssemblyInfoTok>src\tokenized\$(AssemblyInfoBaseName).in</AssemblyInfoTok>
+    <AssemblyInfoTok>Tokenized\$(AssemblyInfoBaseName).in</AssemblyInfoTok>
     <AssemblyInfoDetok>$(GensrcDir)$(AssemblyInfoBaseName)</AssemblyInfoDetok>
   </PropertyGroup>
   <ItemGroup>
@@ -46,7 +46,7 @@
   <Target Name="Detokenize" DependsOnTargets="CreateGensrcDir" Inputs="@(Tokenized); $(LocalPropsFile)" Outputs="@(Detokenized)">
     <Delete Files="@(Detokenized)" />
     <TemplateFile Template="$(AssemblyInfoTok)" OutputFilename="detok.out" Tokens="@(Tokens)" />
-    <Move SourceFiles="src\tokenized\detok.out" DestinationFiles="$(AssemblyInfoDetok)" />
+    <Move SourceFiles="Tokenized\detok.out" DestinationFiles="$(AssemblyInfoDetok)" />
   </Target>
   <Target Name="CleanDetokenize">
     <Delete Files="@(Detokenized)" />
@@ -97,13 +97,13 @@
     <Reference Include="System.Runtime.Serialization" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\client\RabbitMQ.Client\RabbitMQ.Client.csproj">
+    <ProjectReference Include="..\RabbitMQ.Client\RabbitMQ.Client.csproj">
       <Project>{71713FDD-D5EC-40B2-A924-76F80AD57E12}</Project>
       <Name>RabbitMQ.Client</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="src\serviceModel\**\*.cs" />
+    <Compile Include="**\*.cs" />
   </ItemGroup>
   <!-- Mono compatibility workarounds -->
   <PropertyGroup Condition=" '$(PropUsingMono)' == 'true'">

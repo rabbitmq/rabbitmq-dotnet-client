@@ -16,10 +16,10 @@
     <tags>RabbitMQ AMQP</tags>
   </metadata>
   <files>
-    <file src="projects\client\RabbitMQ.Client\build\bin\RabbitMQ.Client.dll" target="lib\net40" />
-    <file src="projects\client\RabbitMQ.Client\build\bin\RabbitMQ.Client.pdb" target="lib\net40" />
-    <file src="projects\client\RabbitMQ.Client\build\bin\RabbitMQ.Client.xml" target="lib\net40" />
-    <file src="projects\client\RabbitMQ.Client\**\*.cs" target="src\projects\client\RabbitMQ.Client" />
-    <file src="gensrc\RabbitMQ.Client\**\*.cs" target="src\gensrc\RabbitMQ.Client" />
+    <file src="src\RabbitMQ.Client\build\bin\RabbitMQ.Client.dll" target="lib\net40" />
+    <file src="src\RabbitMQ.Client\build\bin\RabbitMQ.Client.pdb" target="lib\net40" />
+    <file src="src\RabbitMQ.Client\build\bin\RabbitMQ.Client.xml" target="lib\net40" />
+    <file src="src\RabbitMQ.Client\**\*.cs" target="src\RabbitMQ.Client" />
+    <file src="gensrc\RabbitMQ.Client\**\*.cs" target="gensrc\RabbitMQ.Client" />
   </files>
 </package>

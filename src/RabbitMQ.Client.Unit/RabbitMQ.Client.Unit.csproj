@@ -2,7 +2,7 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Warning! This file contains important customizations. Using Visual Studio to edit project's properties might break things. -->
   <!-- Props file -->
-  <Import Project="$(MSBuildProjectDirectory)\..\..\..\Local.props" />
+  <Import Project="$(MSBuildProjectDirectory)\..\..\Local.props" />
   <!-- Visual Studio generated properties -->
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -54,13 +54,13 @@
   </PropertyGroup>
   <!-- Running the tests -->
   <Target Name="RunUnitTests" DependsOnTargets="Build;ImportSSL">
-    <Exec Command="$(MonoNunitTempSetting)$(PropLaunchExe)..\..\..\lib\nunit\nunit-console.exe -config=Debug &quot;build\bin\$(AssemblyName).dll&quot;" WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="false" />
+    <Exec Command="$(MonoNunitTempSetting)$(PropLaunchExe)..\..\lib\nunit\nunit-console.exe -config=Debug &quot;build\bin\$(AssemblyName).dll&quot;" WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="false" />
   </Target>
   <Target Name="RunFocusUnitTests" DependsOnTargets="Build;ImportSSL">
-    <Exec Command="$(MonoNunitTempSetting)$(PropLaunchExe)..\..\..\lib\nunit\nunit-console.exe -config=Debug -include=&quot;Focus&quot; &quot;build\bin\$(AssemblyName).dll&quot;" WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="false" />
+    <Exec Command="$(MonoNunitTempSetting)$(PropLaunchExe)..\..\lib\nunit\nunit-console.exe -config=Debug -include=&quot;Focus&quot; &quot;build\bin\$(AssemblyName).dll&quot;" WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="false" />
   </Target>
   <Target Name="RunSingleUnitTest" DependsOnTargets="Build;ImportSSL">
-    <Exec Command="$(MonoNunitTempSetting)$(PropLaunchExe)..\..\..\lib\nunit\nunit-console.exe -config=Debug -run=&quot;$(PropTestToRun)&quot; &quot;build\bin\$(AssemblyName).dll&quot;" WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="false" />
+    <Exec Command="$(MonoNunitTempSetting)$(PropLaunchExe)..\..\lib\nunit\nunit-console.exe -config=Debug -run=&quot;$(PropTestToRun)&quot; &quot;build\bin\$(AssemblyName).dll&quot;" WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="false" />
   </Target>
   <!-- Clean test result file -->
   <Target Name="CleanTestResults">
@@ -70,7 +70,7 @@
   <ItemGroup>
     <Reference Include="nunit.framework, Version=2.6.4.0, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\lib\nunit\nunit.framework.dll</HintPath>
+      <HintPath>..\..\lib\nunit\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -79,55 +79,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="properties\AssemblyInfo.cs" />
-    <Compile Include="src\unit\Fixtures.cs" />
-    <Compile Include="src\unit\TestAmqpTcpEndpointParsing.cs" />
-    <Compile Include="src\unit\TestAmqpUri.cs" />
-    <Compile Include="src\unit\TestAuth.cs" />
-    <Compile Include="src\unit\TestBasicGet.cs" />
-    <Compile Include="src\unit\TestBasicProperties.cs" />
-    <Compile Include="src\unit\TestBatchingWorkPool.cs" />
-    <Compile Include="src\unit\TestBlockingCell.cs" />
-    <Compile Include="src\unit\TestBytesWireFormatting.cs" />
-    <Compile Include="src\unit\TestChannelAllocation.cs" />
-    <Compile Include="src\unit\TestConfirmSelect.cs" />
-    <Compile Include="src\unit\TestConnectionBlocked.cs" />
-    <Compile Include="src\unit\TestConnectionChurnHandleLeak.cs" />
-    <Compile Include="src\unit\TestConnectionFactory.cs" />
-    <Compile Include="src\unit\TestConnectionRecovery.cs" />
-    <Compile Include="src\unit\TestConnectionShutdown.cs" />
-    <Compile Include="src\unit\TestConnectionWithBackgroundThreads.cs" />
-    <Compile Include="src\unit\TestConsumerCancelNotify.cs" />
-    <Compile Include="src\unit\TestConsumerExceptions.cs" />
-    <Compile Include="src\unit\TestConsumerOperationDispatch.cs" />
-    <Compile Include="src\unit\TestContentHeaderCodec.cs" />
-    <Compile Include="src\unit\TestEventingConsumer.cs" />
-    <Compile Include="src\unit\TestExceptionMessages.cs" />
-    <Compile Include="src\unit\TestExchangeDeclare.cs" />
-    <Compile Include="src\unit\TestExtensions.cs" />
-    <Compile Include="src\unit\TestFieldTableFormatting.cs" />
-    <Compile Include="src\unit\TestFieldTableFormattingGeneric.cs" />
-    <Compile Include="src\unit\TestFloodPublishing.cs" />
-    <Compile Include="src\unit\TestHeartbeats.cs" />
-    <Compile Include="src\unit\TestIntAllocator.cs" />
-    <Compile Include="src\unit\TestInvalidAck.cs" />
-    <Compile Include="src\unit\TestMainLoop.cs" />
-    <Compile Include="src\unit\TestMapMessage.cs" />
-    <Compile Include="src\unit\TestMessagePatternsSubscription.cs" />
-    <Compile Include="src\unit\TestMethodArgumentCodec.cs" />
-    <Compile Include="src\unit\TestModelShutdown.cs" />
-    <Compile Include="src\unit\TestNetworkBinaryCodec.cs" />
-    <Compile Include="src\unit\TestNowait.cs" />
-    <Compile Include="src\unit\TestPassiveDeclare.cs" />
-    <Compile Include="src\unit\TestPropertiesClone.cs" />
-    <Compile Include="src\unit\TestPublicationAddress.cs" />
-    <Compile Include="src\unit\TestQueueDeclare.cs" />
-    <Compile Include="src\unit\TestRecoverAfterCancel.cs" />
-    <Compile Include="src\unit\TestSharedQueue.cs" />
-    <Compile Include="src\unit\TestSsl.cs" />
-    <Compile Include="src\unit\TestStreamWireFormatting.cs" />
-    <Compile Include="src\unit\TestSubscription.cs" />
-    <Compile Include="src\unit\WireFormattingFixture.cs" />
+    <Compile Include="**\*.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\RabbitMQ.Client\RabbitMQ.Client.csproj">
