@@ -56,7 +56,7 @@ namespace RabbitMQ.Client
 #if NETFX_CORE
         public Func<StreamSocket> SocketFactory = DefaultSocketFactory;
 #else
-        public Func<AddressFamily, TcpClient> SocketFactory = DefaultSocketFactory;
+        public Func<AddressFamily, ITcpClient> SocketFactory = DefaultSocketFactory;
 #endif
 
         /// <summary>
@@ -72,13 +72,13 @@ namespace RabbitMQ.Client
             return tcpClient;
         }
 #else
-        public static TcpClient DefaultSocketFactory(AddressFamily addressFamily)
+        public static ITcpClient DefaultSocketFactory(AddressFamily addressFamily)
         {
             var tcpClient = new TcpClient(addressFamily)
             {
                 NoDelay = true
             };
-            return tcpClient;
+            return new TcpClientAdapter(tcpClient);
         }
 #endif
     }

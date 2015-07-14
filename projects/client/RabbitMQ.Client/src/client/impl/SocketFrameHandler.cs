@@ -59,13 +59,13 @@ namespace RabbitMQ.Client.Impl
         protected int m_writeableStateTimeout = 30000;
 
         public NetworkBinaryReader m_reader;
-        public TcpClient m_socket;
+        public ITcpClient m_socket;
         public NetworkBinaryWriter m_writer;
         private readonly object _semaphore = new object();
         private bool _closed;
 
         public SocketFrameHandler(AmqpTcpEndpoint endpoint,
-            Func<AddressFamily, TcpClient> socketFactory,
+            Func<AddressFamily, ITcpClient> socketFactory,
             int timeout)
         {
             Endpoint = endpoint;
@@ -250,7 +250,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        private void Connect(TcpClient socket, AmqpTcpEndpoint endpoint, int timeout)
+        private void Connect(ITcpClient socket, AmqpTcpEndpoint endpoint, int timeout)
         {
             IAsyncResult ar = null;
             try

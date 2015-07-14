@@ -146,6 +146,7 @@
     <Compile Include="src\client\api\IQueueingBasicConsumer.cs" />
     <Compile Include="src\client\api\IRecoverable.cs" />
     <Compile Include="src\client\api\IStreamProperties.cs" />
+    <Compile Include="src\client\api\ITcpClient.cs" />
     <Compile Include="src\client\api\NetworkConnection.cs" />
     <Compile Include="src\client\api\PlainMechanism.cs" />
     <Compile Include="src\client\api\PlainMechanismFactory.cs" />
@@ -252,6 +253,7 @@
     <Compile Include="src\client\impl\SoftProtocolException.cs" />
     <Compile Include="src\client\impl\StreamProperties.cs" />
     <Compile Include="src\client\impl\SyntaxError.cs" />
+    <Compile Include="src\client\impl\TcpClientAdapter.cs" />
     <Compile Include="src\client\impl\UnexpectedFrameException.cs" />
     <Compile Include="src\client\impl\UnknownClassOrMethodException.cs" />
     <Compile Include="src\client\impl\WireFormatting.cs" />

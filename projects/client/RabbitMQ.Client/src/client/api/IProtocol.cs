@@ -104,7 +104,7 @@ namespace RabbitMQ.Client
         IFrameHandler CreateFrameHandler(
             AmqpTcpEndpoint endpoint, 
 #if !NETFX_CORE
-            Func<AddressFamily, TcpClient> socketFactory, 
+            Func<AddressFamily, ITcpClient> socketFactory, 
 #else
             Func<StreamSocket> socketFactory,
 #endif
