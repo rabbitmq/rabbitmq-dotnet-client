@@ -85,7 +85,5 @@ namespace RabbitMQ.Client
                 _tcpClient.ReceiveTimeout = value;
             }
         }
-
     }
-
 }
