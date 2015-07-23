@@ -265,11 +265,12 @@ namespace RabbitMQ.Client
                 {
                     protocol = "amqps";
                 }
-                var uriString = protocol + "://" + HostName + ":" + Port + "/";
-                if (VirtualHost != null && !VirtualHost.Equals(""))
+                var uriString = protocol + "://" + HostName;
+                if (Port != AmqpTcpEndpoint.UseDefaultPort)
                 {
-                    uriString = uriString + VirtualHost;
+                    uriString += ":" + Port;
                 }
+                uriString += VirtualHost;
                 return uriString;
             }
         }
