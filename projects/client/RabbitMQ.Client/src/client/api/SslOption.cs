@@ -53,7 +53,7 @@ namespace RabbitMQ.Client
     /// <summary>
     /// Represents a configurable SSL option, used in setting up an SSL connection.
     /// </summary>
-    public class SslOption
+    public class SslOption:ICloneable
     {
 #if !NETFX_CORE
         private X509CertificateCollection _certificateCollection;
@@ -161,5 +161,10 @@ namespace RabbitMQ.Client
         /// </summary>
         public SslProtocols Version { get; set; }
 #endif
+
+        public Object Clone() 
+        {
+            return MemberwiseClone();
+        }
     }
 }

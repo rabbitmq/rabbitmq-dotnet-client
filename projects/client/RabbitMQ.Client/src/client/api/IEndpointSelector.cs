@@ -43,14 +43,15 @@ using System.Collections.Generic;
 
 namespace RabbitMQ.Client
 {
-    public interface IHostnameSelector
+    public interface IEndpointSelector
     {
         /// <summary>
-        /// Picks a hostname from a list of options that should be used
+        /// Picks an endpoint from a list of options that should be used
         /// by <see cref="IConnectionFactory"/>.
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        string NextFrom(IList<string> options);
+        AmqpTcpEndpoint NextFrom(IList<AmqpTcpEndpoint> options);
+       
     }
 }

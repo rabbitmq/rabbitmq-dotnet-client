@@ -95,6 +95,7 @@ projects/client/Unit*/TestResult.xml
 
 *.fsx
 *.pcap
+*.nupkg
 
 # Vim
 .sw?

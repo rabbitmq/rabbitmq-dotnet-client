@@ -44,16 +44,16 @@ using NUnit.Framework;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    class TestConnectionFactory 
+    class TestConnectionFactory
     {
         [Test]
         public void TestProperties()
         {
-            var u  = "username";
+            var u = "username";
             var pw = "password";
-            var v  = "vhost";
-            var h  = "192.168.0.1";
-            var p  = 5674;
+            var v = "vhost";
+            var h = "192.168.0.1";
+            var p = 5674;
 
             var cf = new ConnectionFactory();
             cf.UserName = u;
@@ -67,6 +67,31 @@ namespace RabbitMQ.Client.Unit
             Assert.AreEqual(cf.VirtualHost, v);
             Assert.AreEqual(cf.HostName, h);
             Assert.AreEqual(cf.Port, p);
+        }
+
+        [Test]
+        public void TestClusterConnectionFactory()
+        {
+            var u = "username";
+            var pw = "password";
+            var v = "vhost";
+            var h = "192.168.0.1";
+            var p = 5674;
+
+            var cf = new ConnectionFactory();
+            cf.Uris = new Uri[]
+            {
+                new Uri("amqp://localhost:5675/vhost"),
+                new Uri("amqp://localhost:5676/vhost"),
+                new Uri("amqp://localhost:5677/vhost")
+            };
+            // Check that the initial parameters did not change
+            Assert.AreEqual(cf.UserName, u);
+            Assert.AreEqual(cf.Password, pw);
+            Assert.AreEqual(cf.VirtualHost, v);
+            Assert.AreEqual(cf.HostName, h);
+            Assert.AreEqual(cf.Port, p);
+            
         }
     }
 }
