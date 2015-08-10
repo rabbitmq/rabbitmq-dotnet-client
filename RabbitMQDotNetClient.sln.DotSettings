@@ -121,7 +121,10 @@
       &lt;And&gt;&#xD;
         &lt;Kind Is="Class" /&gt;&#xD;
         &lt;HasAttribute Name="NUnit.Framework.TestFixtureAttribute" Inherited="true" /&gt;&#xD;
+<<<<<<< HEAD
         &lt;HasAttribute Name="NUnit.Framework.TestCaseFixtureAttribute" Inherited="true" /&gt;&#xD;
+=======
+>>>>>>> stable
       &lt;/And&gt;&#xD;
     &lt;/TypePattern.Match&gt;&#xD;
 &#xD;

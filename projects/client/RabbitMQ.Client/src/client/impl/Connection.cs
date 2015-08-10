@@ -1025,40 +1025,47 @@ entry.ToString());
         public void HeartbeatReadTimerCallback(object state)
         {
             bool shouldTerminate = false;
-            if (!m_closed)
+            try
             {
-                if (!m_heartbeatRead.WaitOne(0))
+                if (!m_closed)
                 {
-                    m_missedHeartbeats++;
+                    if (!m_heartbeatRead.WaitOne(0))
+                    {
+                        m_missedHeartbeats++;
+                    }
+                    else
+                    {
+                        m_missedHeartbeats = 0;
+                    }
+
+                    // We check against 8 = 2 * 4 because we need to wait for at
+                    // least two complete heartbeat setting intervals before
+                    // complaining, and we've set the socket timeout to a quarter
+                    // of the heartbeat setting in setHeartbeat above.
+                    if (m_missedHeartbeats > 2 * 4)
+                    {
+                        String description = String.Format("Heartbeat missing with heartbeat == {0} seconds", m_heartbeat);
+                        var eose = new EndOfStreamException(description);
+                        m_shutdownReport.Add(new ShutdownReportEntry(description, eose));
+                        HandleMainLoopException(
+                            new ShutdownEventArgs(ShutdownInitiator.Library, 0, "End of stream", eose));
+                        shouldTerminate = true;
+                    }
+                }
+
+                if (shouldTerminate)
+                {
+                    TerminateMainloop();
+                    FinishClose();
                 }
                 else
                 {
-                    m_missedHeartbeats = 0;
+                    _heartbeatReadTimer.Change(Heartbeat * 1000, Timeout.Infinite);
                 }
-
-                // We check against 8 = 2 * 4 because we need to wait for at
-                // least two complete heartbeat setting intervals before
-                // complaining, and we've set the socket timeout to a quarter
-                // of the heartbeat setting in setHeartbeat above.
-                if (m_missedHeartbeats > 2 * 4)
-                {
-                    String description = String.Format("Heartbeat missing with heartbeat == {0} seconds", m_heartbeat);
-                    var eose = new EndOfStreamException(description);
-                    m_shutdownReport.Add(new ShutdownReportEntry(description, eose));
-                    HandleMainLoopException(
-                        new ShutdownEventArgs(ShutdownInitiator.Library, 0, "End of stream", eose));
-                    shouldTerminate = true;
-                }
-             }
-
-            if (shouldTerminate)
+            } catch (ObjectDisposedException ignored)
             {
-                TerminateMainloop();
-                FinishClose();
-            }
-            else
-            {
-                _heartbeatReadTimer.Change(Heartbeat * 1000, Timeout.Infinite);
+                // timer is already disposed,
+                // e.g. due to shutdown
             }
         }
 
@@ -1067,26 +1074,33 @@ entry.ToString());
             bool shouldTerminate = false;
             try
             {
-                if (!m_closed)
+                try
                 {
-                    WriteFrame(m_heartbeatFrame);
-                    m_frameHandler.Flush();
+                    if (!m_closed)
+                    {
+                        WriteFrame(m_heartbeatFrame);
+                        m_frameHandler.Flush();
+                    }
                 }
-            }
-            catch (Exception e)
-            {
-                HandleMainLoopException(new ShutdownEventArgs(
-                    ShutdownInitiator.Library,
-                    0,
-                    "End of stream",
-                    e));
-                shouldTerminate = true;
-            }
+                catch (Exception e)
+                {
+                    HandleMainLoopException(new ShutdownEventArgs(
+                        ShutdownInitiator.Library,
+                        0,
+                        "End of stream",
+                        e));
+                    shouldTerminate = true;
+                }
 
-            if (m_closed || shouldTerminate)
+                if (m_closed || shouldTerminate)
+                {
+                    TerminateMainloop();
+                    FinishClose();
+                }
+            } catch (ObjectDisposedException ignored)
             {
-                TerminateMainloop();
-                FinishClose();
+                // timer is already disposed,
+                // e.g. due to shutdown
             }
         }
 

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "projects", "projects", "{068D7DC3-8E6E-4951-B9E3-272C641BF0DE}"
 EndProject
@@ -25,6 +25,7 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMQ.Client.WinRT", "projects\client\RabbitMQ.Client.WinRT\RabbitMQ.Client.WinRT.csproj", "{61D29F90-5B1C-4748-89FC-9FD2937F09C6}"
 	ProjectSection(ProjectDependencies) = postProject
 		{9E8B8DC5-3837-46E9-90D7-8391CC62AB45} = {9E8B8DC5-3837-46E9-90D7-8391CC62AB45}
+		{71713FDD-D5EC-40B2-A924-76F80AD57E12} = {71713FDD-D5EC-40B2-A924-76F80AD57E12}
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMQ.Client.Unit.WinRT", "projects\client\Unit.WinRT\RabbitMQ.Client.Unit.WinRT.csproj", "{897505A9-8373-4F41-8DE8-221BF06D877D}"
