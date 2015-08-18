@@ -300,18 +300,25 @@ namespace RabbitMQ.Client.Impl
                 k.Wait();
                 ConsumerDispatcher.Shutdown(this);
             }
-            catch (AlreadyClosedException ace)
+            catch (AlreadyClosedException)
             {
                 if (!abort)
                 {
-                    throw ace;
+                    throw;
                 }
             }
-            catch (IOException ioe)
+            catch (IOException)
             {
                 if (!abort)
                 {
-                    throw ioe;
+                    throw;
+                }
+            }
+            catch (Exception)
+            {
+                if (!abort)
+                {
+                    throw;
                 }
             }
         }
@@ -673,7 +680,7 @@ namespace RabbitMQ.Client.Impl
 
         void IDisposable.Dispose()
         {
-            Close();
+            Abort();
         }
 
         public abstract void ConnectionTuneOk(ushort channelMax,
