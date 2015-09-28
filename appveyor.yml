@@ -21,7 +21,7 @@ before_build:
       $xml.Save($localpropsitem)
 
 build:
-  parallel: true
+  parallel: false
   project: RabbitMQDotNetClient.sln
   publish_nuget: false
   publish_nuget_symbols: false
