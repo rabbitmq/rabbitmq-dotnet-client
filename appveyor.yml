@@ -2,7 +2,7 @@
 version: "{build}"
 
 # Operating system (build VM template)
-os: Windows Server 2012 R2
+os: Visual Studio 2015
 platform: Any CPU
 configuration: Release
 skip_tags: true
@@ -26,7 +26,7 @@ build:
   publish_nuget: false
   publish_nuget_symbols: false
   include_nuget_references: false
-  verbosity: normal
+  verbosity: minimal
 
 before_test:
   - ps: |
