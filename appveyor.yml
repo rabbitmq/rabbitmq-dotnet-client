@@ -41,5 +41,11 @@ test_script:
   - cd c:\projects\rabbitmq-dotnet-client
   - tools\nunit\bin\nunit-console.exe /framework:net-4.5 -config=Debug projects/client/Unit/RabbitMQ.Client.Unit.csproj
 
-test: off
+test:
+  assemblies:
+    - '**\build\bin\unit-tests.dll'
+  categories:
+    except:
+      - RequireSMP
+
 deploy: off
