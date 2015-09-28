@@ -28,14 +28,16 @@ build:
   include_nuget_references: false
   verbosity: minimal
 
-before_test:
+install:
   - ps: |
       $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\RabbitMQ"
       if (Test-Path "HKLM:\SOFTWARE\Wow6432Node\") { $regPath = "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\RabbitMQ" }
       $path = Split-Path -Parent (Get-ItemProperty $regPath "UninstallString").UninstallString
       $version = (Get-ItemProperty $regPath "DisplayVersion").DisplayVersion
-      [Environment]::SetEnvironmentVariable("RABBITMQ_HOME", "$path\rabbitmq_server-$version", "User")
-      [Environment]::SetEnvironmentVariable("RABBITMQ_RABBITMQCTL_PATH", "$path\rabbitmq_server-$version\sbin\rabbitmqctl.bat", "User")
+      [Environment]::SetEnvironmentVariable("RABBITMQ_HOME", "$path\rabbitmq_server-$version", "Machine")
+      $env:RABBITMQ_HOME = "$path\rabbitmq_server-$version"
+      [Environment]::SetEnvironmentVariable("RABBITMQ_RABBITMQCTL_PATH", "$path\rabbitmq_server-$version\sbin\rabbitmqctl.bat", "Machine")
+      $env:RABBITMQ_RABBITMQCTL_PATH = "$path\rabbitmq_server-$version\sbin\rabbitmqctl.bat"
 
 test:
   assemblies:
