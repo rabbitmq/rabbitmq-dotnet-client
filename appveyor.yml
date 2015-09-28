@@ -35,7 +35,7 @@ before_test:
       $path = Split-Path -Parent (Get-ItemProperty $regPath "UninstallString").UninstallString
       $version = (Get-ItemProperty $regPath "DisplayVersion").DisplayVersion
       [Environment]::SetEnvironmentVariable("RABBITMQ_HOME", "$path\rabbitmq_server-$version", "User")
-      [Environment]::SetEnvironmentVariable("RABBITMQ_RABBITMQCTL_PATHen", "$path\rabbitmq_server-$version\sbin\rabietmqctl.bat", "User")
+      [Environment]::SetEnvironmentVariable("RABBITMQ_RABBITMQCTL_PATH", "$path\rabbitmq_server-$version\sbin\rabbitmqctl.bat", "User")
 
 test_script:
   - cd c:\projects\rabbitmq-dotnet-client
