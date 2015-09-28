@@ -1,0 +1,43 @@
+# version format
+version: "{build}"
+
+# Operating system (build VM template)
+os: Windows Server 2012 R2
+platform: Any CPU
+configuration: Release
+skip_tags: true
+
+init:
+  - choco install -y erlang
+  - choco install -y rabbitmq
+
+install:
+  - copy "Local.props.example" "Local.props"
+  - ps: |
+  $localpropsitem = Get-ChildItem ".\Local.props"
+  $xml = New-Object -TypeName XML
+  $xml.Load($localpropsitem)
+  $xml.Project.PropertyGroup.PropAssemblyVersion = ${env:APPVEYOR_BUILD_VERSION}
+  $xml.Save($localpropsitem)
+  - ps: |
+  $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\RabbitMQ"
+  if (Test-Path "HKLM:\SOFTWARE\Wow6432Node\") { $regPath = "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\RabbitMQ" }
+  $path = Split-Path -Parent (Get-ItemProperty $regPath "UninstallString").UninstallString
+  $version = (Get-ItemProperty $regPath "DisplayVersion").DisplayVersion
+  [Environment]::SetEnvironmentVariable("RABBITMQ_HOME", "$path\rabbitmq_server-$version", "User")
+  [Environment]::SetEnvironmentVariable("RABBITMQ_RABBITMQCTL_PATHen", "$path\rabbitmq_server-$version\sbin\rabietmqctl.bat", "User")
+
+build:
+  parallel: true
+  project: RabbitMQDotNetClient.sln
+  publish_nuget: false
+  publish_nuget_symbols: false
+  include_nuget_references: false
+  verbosity: normal
+
+test_script:
+  - cd c:\projects\rabbitmq-dotnet-client
+  - tools\nunit\bin\nunit-console.exe /framework:net-4.5 -config=Debug projects/client/Unit/RabbitMQ.Client.Unit.csproj
+
+test: off
+deploy: off
