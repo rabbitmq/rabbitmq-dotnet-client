@@ -1,5 +1,5 @@
 # version format
-version: "{build}"
+version: "3.5.5.{build}"
 
 # Operating system (build VM template)
 os: Visual Studio 2015
