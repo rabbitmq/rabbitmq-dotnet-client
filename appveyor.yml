@@ -7,18 +7,32 @@ platform: Any CPU
 configuration: Release
 skip_tags: true
 
+environment:
+  BUILDWINRT: true
+  USINGMONO: false
+  KEYFILE: rabbitmq.snk
+  SNKSECRET:
+    secure: C8FL0UTKVN8YcMW1wdssabbkSWMIrpJTqgUNeI2NfQw=
+
 init:
   - choco install -y erlang
   - choco install -y rabbitmq
 
-before_build:
-  - copy "Local.props.example" "Local.props"
+install:
+  - nuget install secure-file -ExcludeVersion
+  - secure-file\tools\secure-file -decrypt rabbitmq.snk.enc -secret %SNKSECRET%
   - ps: |
-      $localpropsitem = Get-ChildItem ".\Local.props"
-      $xml = New-Object -TypeName XML
-      $xml.Load($localpropsitem)
-      $xml.Project.PropertyGroup.PropAssemblyVersion = ${env:APPVEYOR_BUILD_VERSION}
-      $xml.Save($localpropsitem)
+      $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\RabbitMQ"
+      if (Test-Path "HKLM:\SOFTWARE\Wow6432Node\") { $regPath = "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\RabbitMQ" }
+      $path = Split-Path -Parent (Get-ItemProperty $regPath "UninstallString").UninstallString
+      $version = (Get-ItemProperty $regPath "DisplayVersion").DisplayVersion
+      [Environment]::SetEnvironmentVariable("RABBITMQ_HOME", "$path\rabbitmq_server-$version", "Machine")
+      $env:RABBITMQ_HOME = "$path\rabbitmq_server-$version"
+      [Environment]::SetEnvironmentVariable("RABBITMQ_RABBITMQCTL_PATH", "$path\rabbitmq_server-$version\sbin\rabbitmqctl.bat", "Machine")
+      $env:RABBITMQ_RABBITMQCTL_PATH = "$path\rabbitmq_server-$version\sbin\rabbitmqctl.bat"
+
+before_build:
+  - copy "appveyor.props.in" "Local.props"
 
 build:
   parallel: false
@@ -34,17 +48,6 @@ after_build:
       $semver = $semver.Substring(0, [System.Math]::Min(20, $semver.Length))
       nuget pack RabbitMQ.Client.nuspec -version $semver -symbols
       nuget pack RabbitMQ.ServiceModel.nuspec -version $semver -symbols
-
-install:
-  - ps: |
-      $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\RabbitMQ"
-      if (Test-Path "HKLM:\SOFTWARE\Wow6432Node\") { $regPath = "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\RabbitMQ" }
-      $path = Split-Path -Parent (Get-ItemProperty $regPath "UninstallString").UninstallString
-      $version = (Get-ItemProperty $regPath "DisplayVersion").DisplayVersion
-      [Environment]::SetEnvironmentVariable("RABBITMQ_HOME", "$path\rabbitmq_server-$version", "Machine")
-      $env:RABBITMQ_HOME = "$path\rabbitmq_server-$version"
-      [Environment]::SetEnvironmentVariable("RABBITMQ_RABBITMQCTL_PATH", "$path\rabbitmq_server-$version\sbin\rabbitmqctl.bat", "Machine")
-      $env:RABBITMQ_RABBITMQCTL_PATH = "$path\rabbitmq_server-$version\sbin\rabbitmqctl.bat"
 
 test:
   assemblies:

@@ -99,3 +99,4 @@ projects/client/Unit*/TestResult.xml
 # Vim
 .sw?
 .*.sw?
+rabbit.snk
