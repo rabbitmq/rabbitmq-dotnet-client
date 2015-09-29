@@ -28,6 +28,13 @@ build:
   include_nuget_references: false
   verbosity: minimal
 
+after_build:
+  - ps: |
+      $semver = ${env:APPVEYOR_BUILD_VERSION} -ireplace '(\d+.\d+.\d+).(\d+)', "`$1-ci`$2-${env:APPVEYOR_REPO_BRANCH}"
+      $semver = $semver.Substring(0, [System.Math]::Min(20, $semver.Length))
+      nuget pack RabbitMQ.Client.nuspec -version $semver -symbols
+      nuget pack RabbitMQ.ServiceModel.nuspec -version $semver -symbols
+
 install:
   - ps: |
       $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\RabbitMQ"
@@ -45,5 +52,8 @@ test:
   categories:
     except:
       - RequireSMP
+
+artifacts:
+  - path: '**\*.nupkg'
 
 deploy: off
