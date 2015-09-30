@@ -10,7 +10,7 @@ skip_tags: true
 environment:
   BUILDWINRT: true
   USINGMONO: false
-  KEYFILE: rabbitmq.snk
+  KEYFILE: rabbit.snk
   SNKSECRET:
     secure: C8FL0UTKVN8YcMW1wdssabbkSWMIrpJTqgUNeI2NfQw=
 
