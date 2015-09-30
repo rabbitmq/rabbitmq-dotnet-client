@@ -20,7 +20,7 @@ init:
 
 install:
   - nuget install secure-file -ExcludeVersion
-  - secure-file\tools\secure-file -decrypt %APPVEYOR_BUILD_FOLDER%\rabbitmq.snk.enc -secret %SNKSECRET%
+  - secure-file\tools\secure-file -decrypt %APPVEYOR_BUILD_FOLDER%\%KEYFILE%.enc -secret %SNKSECRET%
   - ps: |
       $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\RabbitMQ"
       if (Test-Path "HKLM:\SOFTWARE\Wow6432Node\") { $regPath = "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\RabbitMQ" }
