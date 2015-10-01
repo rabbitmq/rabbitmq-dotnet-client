@@ -2,11 +2,11 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <PropTargetFramework>v4.0</PropTargetFramework>
-    <PropUsingMono>@USINGMONO@</PropUsingMono>
+    <PropUsingMono>$(USINGMONO)</PropUsingMono>
     <PropLaunchExe Condition="'$(PropUsingMono)' == 'true'">mono </PropLaunchExe>
-    <PropBuildWinRT>@BUILDWINRT@</PropBuildWinRT>
+    <PropBuildWinRT>$(BUILDWINRT)</PropBuildWinRT>
     <PropBuildWcf Condition="'$(PropUsingMono)' != 'true'">true</PropBuildWcf>
-    <PropAssemblyVersion>@APPVEYOR_BUILD_VERSION@</PropAssemblyVersion>
+    <PropAssemblyVersion>$(APPVEYOR_BUILD_VERSION)</PropAssemblyVersion>
     <PropKeyfile>c:\projects\rabbitmq-dotnet-client\rabbit.snk</PropKeyfile>
   </PropertyGroup>
 </Project>
