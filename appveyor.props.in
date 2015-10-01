@@ -7,6 +7,6 @@
     <PropBuildWinRT>@BUILDWINRT@</PropBuildWinRT>
     <PropBuildWcf Condition="'$(PropUsingMono)' != 'true'">true</PropBuildWcf>
     <PropAssemblyVersion>@APPVEYOR_BUILD_VERSION@</PropAssemblyVersion>
-    <PropKeyfile>$(MSBuildProjectDirectory)\rabbit.snk</PropKeyfile>
+    <PropKeyfile>c:\projects\rabbitmq-dotnet-client\rabbit.snk</PropKeyfile>
   </PropertyGroup>
 </Project>

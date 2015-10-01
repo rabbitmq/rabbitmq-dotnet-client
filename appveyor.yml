@@ -14,6 +14,7 @@ environment:
     secure: C8FL0UTKVN8YcMW1wdssabbkSWMIrpJTqgUNeI2NfQw=
 
 init:
+  - echo %APPVEYOR_BUILD_VERSION%
   - choco install -y erlang
   - choco install -y rabbitmq
 
