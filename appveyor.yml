@@ -12,7 +12,6 @@ environment:
 
 init:
   - echo %APPVEYOR_BUILD_VERSION%
-  - choco install -y erlang
   - choco install -y rabbitmq
 
 install:
