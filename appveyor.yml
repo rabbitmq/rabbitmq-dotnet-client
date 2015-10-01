@@ -10,7 +10,6 @@ skip_tags: true
 environment:
   BUILDWINRT: true
   USINGMONO: false
-  KEYFILE: rabbit.snk
   SNKSECRET:
     secure: C8FL0UTKVN8YcMW1wdssabbkSWMIrpJTqgUNeI2NfQw=
 
@@ -20,7 +19,7 @@ init:
 
 install:
   - IF DEFINED SNKSECRET (nuget install secure-file -ExcludeVersion)
-  - IF DEFINED SNKSECRET (secure-file\tools\secure-file -decrypt %APPVEYOR_BUILD_FOLDER%\%KEYFILE%.enc -secret %SNKSECRET%) ELSE (ECHO This Is A Pull Request Build)
+  - IF DEFINED SNKSECRET (secure-file\tools\secure-file -decrypt %APPVEYOR_BUILD_FOLDER%\rabbit.snk.enc -secret %SNKSECRET%) ELSE (ECHO This Is A Pull Request Build)
   - IF NOT DEFINED SNKSECRET (copy "rabbit.snk.prbuilds" "rabbit.snk") ELSE (ECHO Using The Release Key File)
   - ps: |
       $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\RabbitMQ"
