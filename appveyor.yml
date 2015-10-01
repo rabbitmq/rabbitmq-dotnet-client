@@ -19,8 +19,9 @@ init:
   - choco install -y rabbitmq
 
 install:
-  - nuget install secure-file -ExcludeVersion
-  - secure-file\tools\secure-file -decrypt %APPVEYOR_BUILD_FOLDER%\%KEYFILE%.enc -secret %SNKSECRET%
+  - IF DEFINED SNKSECRET (nuget install secure-file -ExcludeVersion)
+  - IF DEFINED SNKSECRET (secure-file\tools\secure-file -decrypt %APPVEYOR_BUILD_FOLDER%\%KEYFILE%.enc -secret %SNKSECRET%)
+  - IF NOT DEFINED SNKSECRET (sn -k rabbitmq.snk)
   - ps: |
       $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\RabbitMQ"
       if (Test-Path "HKLM:\SOFTWARE\Wow6432Node\") { $regPath = "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\RabbitMQ" }
