@@ -41,8 +41,6 @@
 using NUnit.Framework;
 
 using System;
-using System.IO;
-using System.Collections;
 using System.Threading;
 
 using RabbitMQ.Util;
@@ -94,85 +92,101 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestTimeoutShort()
+        public void TestGetValueWhichDoesNotTimeOut()
         {
             BlockingCell k = new BlockingCell();
             k.Value = 123;
 
             ResetTimer();
-            object v;
-            bool r = k.GetValue(TimingInterval, out v);
+            var v = k.GetValue(TimingInterval);
             Assert.Greater(SafetyMargin, ElapsedMs());
-            Assert.IsTrue(r);
             Assert.AreEqual(123, v);
         }
 
         [Test]
-        public void TestTimeoutLong()
+        public void TestGetValueWhichDoesTimeOut()
         {
             BlockingCell k = new BlockingCell();
-
             ResetTimer();
-            object v;
-            bool r = k.GetValue(TimingInterval, out v);
-            Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
-            Assert.IsTrue(!r);
-            Assert.AreEqual(null, v);
+            Assert.Throws<TimeoutException>(() => k.GetValue(TimingInterval));
         }
 
         [Test]
-        public void TestTimeoutNegative()
+        public void TestGetValueWhichDoesTimeOutWithTimeSpan()
         {
             BlockingCell k = new BlockingCell();
-
             ResetTimer();
-            object v;
-            bool r = k.GetValue(-10000, out v);
-            Assert.Greater(SafetyMargin, ElapsedMs());
-            Assert.IsTrue(!r);
-            Assert.AreEqual(null, v);
+            Assert.Throws<TimeoutException>(() => k.GetValue(TimeSpan.FromMilliseconds(TimingInterval)));
         }
 
         [Test]
-        public void TestTimeoutInfinite()
+        public void TestGetValueWithTimeoutInfinite()
         {
             BlockingCell k = new BlockingCell();
             SetAfter(TimingInterval, k, 123);
 
             ResetTimer();
-            object v;
-            bool r = k.GetValue(Timeout.Infinite, out v);
+            var v = k.GetValue(Timeout.Infinite);
             Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
-            Assert.IsTrue(r);
             Assert.AreEqual(123, v);
         }
 
         [Test]
-        public void TestBgShort()
+        public void TestBackgroundUpdateSucceeds()
         {
             BlockingCell k = new BlockingCell();
             SetAfter(TimingInterval, k, 123);
 
             ResetTimer();
-            object v;
-            bool r = k.GetValue(TimingInterval * 2, out v);
+            var v = k.GetValue(TimingInterval * 2);
             Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
-            Assert.IsTrue(r);
             Assert.AreEqual(123, v);
         }
 
         [Test]
-        public void TestBgLong()
+        public void TestBackgroundUpdateSucceedsWithTimeSpan()
+        {
+            BlockingCell k = new BlockingCell();
+            SetAfter(TimingInterval, k, 123);
+
+            ResetTimer();
+            var v = k.GetValue(TimeSpan.FromMilliseconds(TimingInterval * 2));
+            Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
+            Assert.AreEqual(123, v);
+        }
+
+        [Test]
+        public void TestBackgroundUpdateSucceedsWithInfiniteTimeout()
+        {
+            BlockingCell k = new BlockingCell();
+            SetAfter(TimingInterval, k, 123);
+
+            ResetTimer();
+            var v = k.GetValue(Timeout.Infinite);
+            Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
+            Assert.AreEqual(123, v);
+        }
+
+        [Test]
+        public void TestBackgroundUpdateSucceedsWithInfiniteTimeoutTimeSpan()
+        {
+            BlockingCell k = new BlockingCell();
+            SetAfter(TimingInterval, k, 123);
+
+            ResetTimer();
+            var v = k.GetValue(Timeout.InfiniteTimeSpan);
+            Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
+            Assert.AreEqual(123, v);
+        }
+
+        [Test]
+        public void TestBackgroundUpdateFails()
         {
             BlockingCell k = new BlockingCell();
             SetAfter(TimingInterval * 2, k, 123);
 
             ResetTimer();
-            object v;
-            bool r = k.GetValue(TimingInterval, out v);
-            Assert.Greater(TimingInterval + SafetyMargin, ElapsedMs());
-            Assert.IsTrue(!r);
-            Assert.AreEqual(null, v);
+            Assert.Throws<TimeoutException>(() => k.GetValue(TimingInterval));
         }
     }
 }
