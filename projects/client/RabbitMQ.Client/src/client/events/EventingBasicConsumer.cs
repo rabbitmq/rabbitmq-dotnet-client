@@ -44,10 +44,6 @@ namespace RabbitMQ.Client.Events
 {
     ///<summary>Experimental class exposing an IBasicConsumer's
     ///methods as separate events.</summary>
-    ///<remarks>
-    /// This class is experimental, and its interface may change
-    /// radically from release to release.
-    ///</remarks>
     public class EventingBasicConsumer : DefaultBasicConsumer
     {
         ///<summary>Constructor which sets the Model property to the
