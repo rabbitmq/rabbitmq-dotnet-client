@@ -1,0 +1,59 @@
+version: "3.5.5.{build}"
+
+platform: Any CPU
+configuration: Release
+skip_tags: true
+
+environment:
+  BUILDWINRT: true
+  USINGMONO: false
+  SNKSECRET:
+    secure: C8FL0UTKVN8YcMW1wdssabbkSWMIrpJTqgUNeI2NfQw=
+
+init:
+  - echo %APPVEYOR_BUILD_VERSION%
+  - choco install -y rabbitmq
+
+install:
+  - IF DEFINED SNKSECRET (nuget install secure-file -ExcludeVersion)
+  - IF DEFINED SNKSECRET (secure-file\tools\secure-file -decrypt %APPVEYOR_BUILD_FOLDER%\rabbit.snk.enc -secret %SNKSECRET%) ELSE (ECHO This Is A Pull Request Build)
+  - IF NOT DEFINED SNKSECRET (copy "rabbit.snk.prbuilds" "rabbit.snk") ELSE (ECHO Using The Release Key File)
+  - ps: |
+      $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\RabbitMQ"
+      if (Test-Path "HKLM:\SOFTWARE\Wow6432Node\") { $regPath = "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\RabbitMQ" }
+      $path = Split-Path -Parent (Get-ItemProperty $regPath "UninstallString").UninstallString
+      $version = (Get-ItemProperty $regPath "DisplayVersion").DisplayVersion
+      [Environment]::SetEnvironmentVariable("RABBITMQ_HOME", "$path\rabbitmq_server-$version", "Machine")
+      $env:RABBITMQ_HOME = "$path\rabbitmq_server-$version"
+      [Environment]::SetEnvironmentVariable("RABBITMQ_RABBITMQCTL_PATH", "$path\rabbitmq_server-$version\sbin\rabbitmqctl.bat", "Machine")
+      $env:RABBITMQ_RABBITMQCTL_PATH = "$path\rabbitmq_server-$version\sbin\rabbitmqctl.bat"
+
+before_build:
+  - copy "appveyor.props.in" "Local.props"
+
+build:
+  parallel: false
+  project: RabbitMQDotNetClient.sln
+  publish_nuget: false
+  publish_nuget_symbols: false
+  include_nuget_references: false
+  verbosity: minimal
+
+after_build:
+  - ps: |
+      $semver = ${env:APPVEYOR_BUILD_VERSION} -ireplace '(\d+.\d+.\d+).(\d+)', "`$1-ci`$2-${env:APPVEYOR_REPO_BRANCH}"
+      $semver = $semver.Substring(0, [System.Math]::Min(20, $semver.Length))
+      nuget pack RabbitMQ.Client.nuspec -version $semver -symbols
+      nuget pack RabbitMQ.ServiceModel.nuspec -version $semver -symbols
+
+test:
+  assemblies:
+    - '**\build\bin\unit-tests.dll'
+  categories:
+    except:
+      - RequireSMP
+
+artifacts:
+  - path: '**\*.nupkg'
+
+deploy: off
