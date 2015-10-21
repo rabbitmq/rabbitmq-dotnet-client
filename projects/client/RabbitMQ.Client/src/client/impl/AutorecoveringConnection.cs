@@ -539,7 +539,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void UnregisterModel(AutorecoveringModel model)
         {
-            lock (this)
+            lock (m_models)
             {
                 m_models.Remove(model);
             }
@@ -640,7 +640,7 @@ namespace RabbitMQ.Client.Framing.Impl
             AutorecoveringModel m;
             m = new AutorecoveringModel(this,
                 CreateNonRecoveringModel());
-            lock (this)
+            lock (m_models)
             {
                 m_models.Add(m);
             }
