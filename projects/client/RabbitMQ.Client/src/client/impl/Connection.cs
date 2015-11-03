@@ -70,10 +70,6 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>Heartbeat frame for transmission. Reusable across connections.</summary>
         public readonly Frame m_heartbeatFrame = new Frame(Constants.FrameHeartbeat, 0, new byte[0]);
 
-        ///<summary>Timeout used while waiting for AMQP handshaking to
-        ///complete (milliseconds)</summary>
-        public const int HandshakeTimeout = 10000;
-
         public ManualResetEvent m_appContinuation = new ManualResetEvent(false);
         public EventHandler<CallbackExceptionEventArgs> m_callbackException;
 
@@ -1254,7 +1250,8 @@ entry.ToString());
             m_inConnectionNegotiation = true;
             var connectionStartCell = new BlockingCell();
             m_model0.m_connectionStartCell = connectionStartCell;
-            m_frameHandler.Timeout = HandshakeTimeout;
+            m_model0.HandshakeContinuationTimeout = m_factory.HandshakeContinuationTimeout;
+            m_frameHandler.Timeout = m_factory.HandshakeContinuationTimeout.Milliseconds;
             m_frameHandler.SendHeader();
 
             var connectionStart = (ConnectionStartDetails)
