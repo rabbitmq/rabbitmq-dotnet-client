@@ -110,5 +110,17 @@ namespace RabbitMQ.Client
         /// What task scheduler should consumer dispatcher use.
         /// </summary>
         TaskScheduler TaskScheduler { get; set; }
+
+        /// <summary>
+        /// Amount of time protocol handshake operations are allowed to take before
+        /// timing out.
+        /// </summary>
+        TimeSpan HandshakeContinuationTimeout { get; set; }
+
+        /// <summary>
+        /// Amount of time protocol  operations (e.g. <code>queue.declare</code>) are allowed to take before
+        /// timing out.
+        /// </summary>
+        TimeSpan ContinuationTimeout { get; set; }
     }
 }

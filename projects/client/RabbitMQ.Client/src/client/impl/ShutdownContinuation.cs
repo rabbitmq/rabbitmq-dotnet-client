@@ -76,5 +76,10 @@ namespace RabbitMQ.Client.Impl
         {
             return (ShutdownEventArgs)m_cell.Value;
         }
+
+        public ShutdownEventArgs Wait(TimeSpan timeout)
+        {
+            return (ShutdownEventArgs)m_cell.GetValue(timeout);
+        }
     }
 }

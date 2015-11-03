@@ -108,40 +108,56 @@ namespace RabbitMQ.Util
         /// If a value is present in the cell at the time the call is
         /// made, the call will return immediately. Otherwise, the
         /// calling thread blocks until either a value appears, or
-        /// millisecondsTimeout milliseconds have elapsed.
+        /// operation times out.
         ///</para>
         ///<para>
-        /// Returns true in the case that the value was available
-        /// before the timeout, in which case the out parameter
-        /// "result" is set to the value itself.
-        ///</para>
-        ///<para>
-        /// If no value was available before the timeout, returns
-        /// false, and sets "result" to null.
-        ///</para>
-        ///<para>
-        /// A timeout of -1 (i.e. System.Threading.Timeout.Infinite)
-        /// will be interpreted as a command to wait for an
-        /// indefinitely long period of time for the cell's value to
-        /// become available. See the MSDN documentation for
-        /// System.Threading.Monitor.Wait(object,int).
+        /// If no value was available before the timeout, an exception
+        /// is thrown.
         ///</para>
         ///</remarks>
-        public bool GetValue(int millisecondsTimeout, out object result)
+        public object GetValue(TimeSpan timeout)
         {
             lock (_lock)
             {
                 if (!m_valueSet)
                 {
-                    Monitor.Wait(_lock, validatedTimeout(millisecondsTimeout));
+                    Monitor.Wait(_lock, timeout);
                     if (!m_valueSet)
                     {
-                        result = null;
-                        return false;
+                        throw new TimeoutException();
                     }
                 }
-                result = m_value;
-                return true;
+                return m_value;
+            }
+        }
+
+        ///<summary>Retrieve the cell's value, waiting for the given
+        ///timeout if no value is immediately available.</summary>
+        ///<remarks>
+        ///<para>
+        /// If a value is present in the cell at the time the call is
+        /// made, the call will return immediately. Otherwise, the
+        /// calling thread blocks until either a value appears, or
+        /// operation times out.
+        ///</para>
+        ///<para>
+        /// If no value was available before the timeout, an exception
+        /// is thrown.
+        ///</para>
+        ///</remarks>
+        public object GetValue(int timeout)
+        {
+            lock (_lock)
+            {
+                if (!m_valueSet)
+                {
+                    Monitor.Wait(_lock, validatedTimeout(timeout));
+                    if (!m_valueSet)
+                    {
+                        throw new TimeoutException();
+                    }
+                }
+                return m_value;
             }
         }
     }
