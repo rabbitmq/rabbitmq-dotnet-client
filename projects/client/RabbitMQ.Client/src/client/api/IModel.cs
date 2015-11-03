@@ -611,5 +611,11 @@ namespace RabbitMQ.Client
         /// </remarks>
         [AmqpMethodDoNotImplement(null)]
         void WaitForConfirmsOrDie(TimeSpan timeout);
+
+        /// <summary>
+        /// Amount of time protocol  operations (e.g. <code>queue.declare</code>) are allowed to take before
+        /// timing out.
+        /// </summary>
+        TimeSpan ContinuationTimeout { get; set; }
     }
 }

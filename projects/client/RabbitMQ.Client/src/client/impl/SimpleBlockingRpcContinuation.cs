@@ -69,6 +69,31 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public virtual Command GetReply(TimeSpan timeout)
+        {
+            var result = (Either)m_cell.GetValue(timeout);
+            switch (result.Alternative)
+            {
+                case EitherAlternative.Left:
+                    return (Command)result.Value;
+                case EitherAlternative.Right:
+                    throw new OperationInterruptedException((ShutdownEventArgs)result.Value);
+                default:
+                    ReportInvalidInvariant(result);
+                    return null;
+            }
+        }
+
+        private static void ReportInvalidInvariant(Either result)
+        {
+            string error = "Illegal EitherAlternative " + result.Alternative;
+#if !(NETFX_CORE)
+            Trace.Fail(error);
+#else
+            MetroEventSource.Log.Error(error);
+#endif
+        }
+
         public virtual void HandleCommand(Command cmd)
         {
             m_cell.Value = Either.Left(cmd);

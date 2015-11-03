@@ -1204,6 +1204,7 @@ entry.ToString());
             EnsureIsOpen();
             ISession session = CreateSession();
             var model = (IFullModel)Protocol.CreateModel(session, this.ConsumerWorkService);
+            model.ContinuationTimeout = m_factory.ContinuationTimeout;
             model._Private_ChannelOpen("");
             return model;
         }

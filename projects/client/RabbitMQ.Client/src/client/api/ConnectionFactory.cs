@@ -172,6 +172,29 @@ namespace RabbitMQ.Client
         /// </summary>
         public TimeSpan NetworkRecoveryInterval = TimeSpan.FromSeconds(5);
 
+        private TimeSpan m_handshakeContinuationTimeout = TimeSpan.FromSeconds(10);
+        private TimeSpan m_continuationTimeout = TimeSpan.FromSeconds(20);
+
+        /// <summary>
+        /// Amount of time protocol handshake operations are allowed to take before
+        /// timing out.
+        /// </summary>
+        public TimeSpan HandshakeContinuationTimeout
+        {
+            get { return m_handshakeContinuationTimeout; }
+            set { m_handshakeContinuationTimeout = value; }
+        }
+
+        /// <summary>
+        /// Amount of time protocol  operations (e.g. <code>queue.declare</code>) are allowed to take before
+        /// timing out.
+        /// </summary>
+        public TimeSpan ContinuationTimeout
+        {
+            get { return m_continuationTimeout; }
+            set { m_continuationTimeout = value; }
+        }
+
         /// <summary>
         /// The port to connect on. <see cref="AmqpTcpEndpoint.UseDefaultPort"/>
         ///  indicates the default for the protocol should be used.

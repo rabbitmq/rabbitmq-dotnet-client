@@ -77,6 +77,12 @@ namespace RabbitMQ.Client.Impl
             get { return m_delegate.ConsumerDispatcher; }
         }
 
+        public TimeSpan ContinuationTimeout
+        {
+            get { return m_delegate.ContinuationTimeout; }
+            set { m_delegate.ContinuationTimeout = value; }
+        }
+
         public AutorecoveringModel(AutorecoveringConnection conn, RecoveryAwareModel _delegate)
         {
             m_connection = conn;
