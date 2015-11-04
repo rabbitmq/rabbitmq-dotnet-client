@@ -124,6 +124,7 @@
     <Compile Include="src\unit\TestPassiveDeclare.cs" />
     <Compile Include="src\unit\TestPropertiesClone.cs" />
     <Compile Include="src\unit\TestPublicationAddress.cs" />
+    <Compile Include="src\unit\TestPublisherConfirms.cs" />
     <Compile Include="src\unit\TestQueueDeclare.cs" />
     <Compile Include="src\unit\TestRecoverAfterCancel.cs" />
     <Compile Include="src\unit\TestSharedQueue.cs" />
