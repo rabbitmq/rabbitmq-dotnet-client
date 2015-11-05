@@ -50,18 +50,40 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestWaitForConfirmsWithoutTimeout()
         {
+            TestWaitForConfirms(200, (ch) =>
+            {
+                Assert.IsTrue(ch.WaitForConfirms());
+            });;
+        }
+
+        [Test]
+        public void TestWaitForConfirmsWithTimeout()
+        {
+            TestWaitForConfirms(200, (ch) =>
+            {
+                Assert.IsTrue(ch.WaitForConfirms(TimeSpan.FromSeconds(4)));
+            }); ;
+        }
+
+        protected void TestWaitForConfirms(int numberOfMessagesToPublish, Action<IModel> fn)
+        {
             var ch = Conn.CreateModel();
             ch.ConfirmSelect();
 
             var q = ch.QueueDeclare().QueueName;
 
-            for (int i = 0; i < 200; i++)
+            for (int i = 0; i < numberOfMessagesToPublish; i++)
             {
                 ch.BasicPublish("", q, null, encoding.GetBytes("msg"));
             }
-            Assert.IsTrue(ch.WaitForConfirms());
-            ch.QueueDelete(q);
-            ch.Close();
+            try
+            {
+                fn(ch);
+            } finally
+            {
+                ch.QueueDelete(q);
+                ch.Close();
+            }
         }
     }
 }
