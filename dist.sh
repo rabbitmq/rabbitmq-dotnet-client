@@ -53,6 +53,7 @@ cd $(dirname "$0")
 if [ -f "$KEYFILE" ]; then
     cp "$KEYFILE" .
     KEYFILE="$(basename "$KEYFILE")"
+    trap "rm \"$KEYFILE\"" EXIT
 fi
 
 . dist-lib.sh
