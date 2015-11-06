@@ -155,8 +155,8 @@ function src-dist {
     cp README.in tmp/srcdist/README
     if [ -n "$NO_LINKS" ]; then
         touch tmp/srcdist/README
-    elif [ -f build-dotnet-client.txt ]; then
-        mv build-dotnet-client.txt tmp/srcdist/README
+    elif [ -f "$BUILD_DOC" ]; then
+        cp "$BUILD_DOC" tmp/srcdist/README
     else
         links -dump ${WEB_URL}build-dotnet-client.html >> tmp/srcdist/README
     fi
