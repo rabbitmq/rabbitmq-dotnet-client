@@ -48,6 +48,13 @@ set -x
 ### Disable sharing files by default (it causes things not to work properly)
 CYGWIN=nontsec
 
+### Change to this script's directory and copy the KEYFILE is any.
+cd $(dirname "$0")
+if [ -f "$KEYFILE" ]; then
+    cp "$KEYFILE" .
+    KEYFILE="$(basename "$KEYFILE")"
+fi
+
 . dist-lib.sh
 
 ### Overrideable vars
@@ -83,7 +90,7 @@ function main {
     ### we're building an official release
     if [ ! -f "$KEYFILE" ]; then
         if [ "$UNOFFICIAL_RELEASE" ]; then
-            sn -k $KEYFILE
+            sn -k "$KEYFILE"
         else
             echo "ERROR! Keyfile $KEYFILE not found."
             exit 1
