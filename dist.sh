@@ -114,7 +114,7 @@ function main {
 
 function dist-zips {
     # clean & build
-    dist-target-framework dotnet-4.0
+    dist-target-framework dotnet-4.5
 
     ### Source dist
     src-dist

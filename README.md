@@ -20,7 +20,7 @@ There are two ways to consume the client:
 
 ## Supported Platforms and .NET Releases
 
-The client requires .NET 4.0 or later. It supports Linux and OS X on [Mono](http://www.mono-project.com/).
+The client requires .NET 4.5 or later. It supports Linux and OS X on [Mono](http://www.mono-project.com/).
 
 
 ## Contributing
