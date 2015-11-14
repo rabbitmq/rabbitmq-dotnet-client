@@ -22,6 +22,8 @@ docs/api-guide.pdf
 *.suo
 *.user
 *.sln.docstates
+# Visual Studio 2015
+*.vs
 
 # Build results
 
@@ -89,7 +91,7 @@ UpgradeLog*.htm
 
 # Unit tests
 
-projects/client/Unit*/TestResult.xml
+src/*Unit*/TestResult.xml
 
 # Development scripts
 
@@ -100,3 +102,4 @@ projects/client/Unit*/TestResult.xml
 .sw?
 .*.sw?
 rabbit.snk
+Local.props
