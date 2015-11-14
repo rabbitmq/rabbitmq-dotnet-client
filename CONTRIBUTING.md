@@ -8,7 +8,7 @@ Pull requests is the primary place of discussing code changes.
 The process is fairly standard:
 
  * Fork the repository or repositories you plan on contributing to
- * Copy `Local.props.example` into `Local.props` and make adjustments if necessary, otherwise the Solution won't load
+ * Copy `project-directory\build\skeletons\Local.props.example` into `project-directory\Local.props` and make adjustments if necessary, otherwise the Solution won't load
  * Clone [RabbitMQ umbrella repository](https://github.com/rabbitmq/rabbitmq-public-umbrella)
  * `cd umbrella`, `make co`
  * Create a branch with a descriptive name in the relevant repositories
