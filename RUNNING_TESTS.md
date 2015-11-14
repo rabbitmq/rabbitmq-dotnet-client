@@ -38,10 +38,10 @@ Note that it may take some time for the adapter to discover tests in the assembl
 
 Running the tests from the command line is also straightforward: use
 
-    msbuild.exe /t:RunUnitTests projects/client/Unit/RabbitMQ.Client.Unit.csproj
+    msbuild.exe /t:RunUnitTests src/RabbitMQ.Client.Unit/RabbitMQ.Client.Unit.csproj
 
 on Windows with .NET and
 
-    xbuild /nologo /t:RunUnitTests projects/client/Unit/RabbitMQ.Client.Unit.csproj | grep -v "warning CS2002"
+    xbuild /nologo /t:RunUnitTests src/RabbitMQ.Client.Unit/RabbitMQ.Client.Unit.csproj | grep -v "warning CS2002"
 
 on Mono.
