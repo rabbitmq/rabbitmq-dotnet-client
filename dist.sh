@@ -127,7 +127,7 @@ function dist-zips {
          /suppress:RabbitMQ.Client.Impl \
          /suppress:RabbitMQ.Client.Apigen.Attributes" \
         $NAME_VSN-tmp-xmldoc.zip \
-	projects/client/RabbitMQ.Client \
+	src/RabbitMQ.Client \
         ../../..
 
     if [ -z "$MONO_DIST" ]; then
@@ -137,7 +137,7 @@ function dist-zips {
             $NAME_VSN-wcf-htmldoc.zip \
             "" \
             "" \
-            projects/wcf/RabbitMQ.ServiceModel \
+            src/RabbitMQ.ServiceModel \
             ../../..
     fi
 }
@@ -154,8 +154,8 @@ function src-dist {
     ### Copy files to be zipped to tmp/srcdist/
     mkdir -p tmp/srcdist/docs/specs tmp/srcdist/lib
     cp RabbitMQDotNetClient.sln tmp/srcdist/
-    cp -r projects tmp/srcdist/
-    rm -f tmp/srcdist/projects/README
+    cp -r src tmp/srcdist/
+    rm -f tmp/srcdist/src/README
     cp -r docs/specs/*.xml tmp/srcdist/docs/specs/
     cp -r lib/MSBuild.Community.Tasks tmp/srcdist/lib/
     cp -r lib/nunit tmp/srcdist/lib/
@@ -209,9 +209,9 @@ function dist-target-framework {
     $MSBUILD /verbosity:quiet RabbitMQDotNetClient.sln /t:Build /property:Configuration="Release"
 
     ### Copy bin files to be zipped to tmp/dist/
-    cp projects/client/RabbitMQ.Client/build/bin/RabbitMQ.Client.xml tmp/dist/bin/
-    cp projects/client/RabbitMQ.Client/build/bin/RabbitMQ.Client.dll tmp/dist/bin/
-    test "$BUILD_WCF" && cp projects/wcf/RabbitMQ.ServiceModel/build/bin/RabbitMQ.ServiceModel.dll tmp/dist/bin/
+    cp src/RabbitMQ.Client/build/bin/RabbitMQ.Client.xml tmp/dist/bin/
+    cp src/RabbitMQ.Client/build/bin/RabbitMQ.Client.dll tmp/dist/bin/
+    test "$BUILD_WCF" && cp src/RabbitMQ.ServiceModel/build/bin/RabbitMQ.ServiceModel.dll tmp/dist/bin/
     cp-license-to tmp/dist/
 
     ### Zip tmp/dist
