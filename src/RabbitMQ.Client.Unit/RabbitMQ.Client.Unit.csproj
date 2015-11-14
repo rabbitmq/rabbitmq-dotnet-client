@@ -1,0 +1,153 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- Warning! This file contains important customizations. Using Visual Studio to edit project's properties might break things. -->
+  <!-- Props file -->
+  <Import Project="$(MSBuildProjectDirectory)\..\..\Local.props" />
+  <!-- Visual Studio generated properties -->
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{DC9022AA-DC30-4871-AD28-3F166E05DBB5}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>properties</AppDesignerFolder>
+    <RootNamespace>RabbitMQ.Client.Test</RootNamespace>
+    <AssemblyName>unit-tests</AssemblyName>
+    <TargetFrameworkVersion>$(PropTargetFramework)</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>build\bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>build\bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <!-- SSL test support, SSL_CERTS_DIR is typically pointed at ../rabbitmq-test/certs (absolute path) -->
+  <!-- I'd use the Choose construct for this, but it seems broken on Mono -->
+  <PropertyGroup Condition="'$(SSL_CERTS_DIR)' == ''">
+    <SSLAvail>false</SSLAvail>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(SSL_CERTS_DIR)' != ''">
+    <SSLAvail>true</SSLAvail>
+    <SSLCertsDir>$(SSL_CERTS_DIR)</SSLCertsDir>
+  </PropertyGroup>
+  <Target Name="ImportSSL" Condition="$(SSLAvail)">
+    <!-- import cacert into certmgr -->
+    <!-- <Exec Command="certmgr -c -add -s $(SSLCertsDir)\testca\cacert.cer -r localMachine Root" /> -->
+    <Exec Command="certutil -addstore Root $(SSLCertsDir)\testca\cacert.cer" />
+  </Target>
+  <!-- Decide whether we need to set TEMP under mono -->
+  <PropertyGroup>
+    <MonoNunitTempSetting Condition="'$(PropUsingMono)' == 'true' and '$(temp)' == ''">temp=/tmp </MonoNunitTempSetting>
+  </PropertyGroup>
+  <!-- Running the tests -->
+  <Target Name="RunUnitTests" DependsOnTargets="Build;ImportSSL">
+    <Exec Command="$(MonoNunitTempSetting)$(PropLaunchExe)..\..\build\lib\nunit\nunit-console.exe -config=Debug &quot;build\bin\$(AssemblyName).dll&quot;" WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="false" />
+  </Target>
+  <Target Name="RunFocusUnitTests" DependsOnTargets="Build;ImportSSL">
+    <Exec Command="$(MonoNunitTempSetting)$(PropLaunchExe)..\..\build\lib\nunit\nunit-console.exe -config=Debug -include=&quot;Focus&quot; &quot;build\bin\$(AssemblyName).dll&quot;" WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="false" />
+  </Target>
+  <Target Name="RunSingleUnitTest" DependsOnTargets="Build;ImportSSL">
+    <Exec Command="$(MonoNunitTempSetting)$(PropLaunchExe)..\..\build\lib\nunit\nunit-console.exe -config=Debug -run=&quot;$(PropTestToRun)&quot; &quot;build\bin\$(AssemblyName).dll&quot;" WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="false" />
+  </Target>
+  <!-- Clean test result file -->
+  <Target Name="CleanTestResults">
+    <Delete Files="TestResult.xml" />
+  </Target>
+  <!-- Visual Studio generated reference and file list -->
+  <ItemGroup>
+    <Reference Include="nunit.framework, Version=2.6.4.0, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\build\lib\nunit\nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Fixtures.cs" />
+    <Compile Include="TestAmqpTcpEndpointParsing.cs" />
+    <Compile Include="TestAmqpUri.cs" />
+    <Compile Include="TestAuth.cs" />
+    <Compile Include="TestBasicGet.cs" />
+    <Compile Include="TestBasicProperties.cs" />
+    <Compile Include="TestBatchingWorkPool.cs" />
+    <Compile Include="TestBlockingCell.cs" />
+    <Compile Include="TestBytesWireFormatting.cs" />
+    <Compile Include="TestChannelAllocation.cs" />
+    <Compile Include="TestConfirmSelect.cs" />
+    <Compile Include="TestConnectionBlocked.cs" />
+    <Compile Include="TestConnectionChurnHandleLeak.cs" />
+    <Compile Include="TestConnectionFactory.cs" />
+    <Compile Include="TestConnectionRecovery.cs" />
+    <Compile Include="TestConnectionShutdown.cs" />
+    <Compile Include="TestConnectionWithBackgroundThreads.cs" />
+    <Compile Include="TestInitialConnection.cs" />
+    <Compile Include="TestConsumerCancelNotify.cs" />
+    <Compile Include="TestConsumerCount.cs" />
+    <Compile Include="TestConsumerExceptions.cs" />
+    <Compile Include="TestConsumerOperationDispatch.cs" />
+    <Compile Include="TestContentHeaderCodec.cs" />
+    <Compile Include="TestEventingConsumer.cs" />
+    <Compile Include="TestExceptionMessages.cs" />
+    <Compile Include="TestExchangeDeclare.cs" />
+    <Compile Include="TestExtensions.cs" />
+    <Compile Include="TestFieldTableFormatting.cs" />
+    <Compile Include="TestFieldTableFormattingGeneric.cs" />
+    <Compile Include="TestFloodPublishing.cs" />
+    <Compile Include="TestHeartbeats.cs" />
+    <Compile Include="TestIntAllocator.cs" />
+    <Compile Include="TestInvalidAck.cs" />
+    <Compile Include="TestMainLoop.cs" />
+    <Compile Include="TestMapMessage.cs" />
+    <Compile Include="TestMessageCount.cs" />
+    <Compile Include="TestMessagePatternsSubscription.cs" />
+    <Compile Include="TestMethodArgumentCodec.cs" />
+    <Compile Include="TestModelShutdown.cs" />
+    <Compile Include="TestNetworkBinaryCodec.cs" />
+    <Compile Include="TestNowait.cs" />
+    <Compile Include="TestPassiveDeclare.cs" />
+    <Compile Include="TestPropertiesClone.cs" />
+    <Compile Include="TestPublicationAddress.cs" />
+    <Compile Include="TestPublisherConfirms.cs" />
+    <Compile Include="TestQueueDeclare.cs" />
+    <Compile Include="TestRecoverAfterCancel.cs" />
+    <Compile Include="TestSharedQueue.cs" />
+    <Compile Include="TestSsl.cs" />
+    <Compile Include="TestStreamWireFormatting.cs" />
+    <Compile Include="TestSubscription.cs" />
+    <Compile Include="WireFormattingFixture.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\RabbitMQ.Client\RabbitMQ.Client.csproj">
+      <Project>{71713FDD-D5EC-40B2-A924-76F80AD57E12}</Project>
+      <Name>RabbitMQ.Client</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <!-- Mono compatibility workarounds -->
+  <PropertyGroup Condition=" '$(PropUsingMono)' == 'true'">
+    <_DisabledWarnings>$(NoWarn)</_DisabledWarnings>
+  </PropertyGroup>
+  <!-- Microsoft CSharp targets -->
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- Custom BeforeClean -->
+  <Target Name="BeforeClean" DependsOnTargets="CleanTestResults" />
+</Project>
