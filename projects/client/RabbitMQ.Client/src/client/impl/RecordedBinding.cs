@@ -53,23 +53,31 @@ namespace RabbitMQ.Client.Impl
         public string Destination { get; set; }
         public string RoutingKey { get; protected set; }
         public string Source { get; protected set; }
+		
+		public bool Equals(RecordedBinding other)
+		{
+            return other != null && 
+				   (Source.Equals(other.Source)) &&
+                   (Destination.Equals(other.Destination)) &&
+                   (RoutingKey.Equals(other.RoutingKey)) &&
+                   (Arguments == other.Arguments);
+		}
 
-        public bool Equals(RecordedBinding other)
+        public override bool Equals(object obj)
         {
-            if (ReferenceEquals(other, null))
+            if (ReferenceEquals(obj, null))
             {
                 return false;
             }
 
-            if (ReferenceEquals(this, other))
+            if (ReferenceEquals(this, obj))
             {
                 return true;
             }
 
-            return (Source.Equals(other.Source)) &&
-                   (Destination.Equals(other.Destination)) &&
-                   (RoutingKey.Equals(other.RoutingKey)) &&
-                   (Arguments == other.Arguments);
+			var other = obj as RecordedBinding;
+			
+			return Equals(other);
         }
 
         public override int GetHashCode()
