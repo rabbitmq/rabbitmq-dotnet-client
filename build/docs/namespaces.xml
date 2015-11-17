@@ -1,0 +1,62 @@
+<doc>
+  <members>
+    <member name="N:RabbitMQ.Client">
+      <summary>
+	Main public API to the RabbitMQ .NET AMQP client library.
+      </summary>
+    </member>
+    <member name="N:RabbitMQ.Client.Apigen.Attributes">
+      <summary>
+	Internal. Attributes used during implementation autogeneration
+	from the AMQP XML specification files.
+      </summary>
+    </member>
+    <member name="N:RabbitMQ.Client.Framing.Impl.v0_9">
+      <summary>
+	Internal. Implementation code specific to AMQP version 0-9.
+      </summary>
+    </member>
+    <member name="N:RabbitMQ.Client.Framing.v0_9">
+      <summary>
+	Semi-public. Interfaces specific to AMQP version 0-9.
+      </summary>
+    </member>
+    <member name="N:RabbitMQ.Client.Impl">
+      <summary>
+	Internal. AMQP client library implementation code. These
+	interfaces and classes are not public APIs, and may change
+	from release to release of the library.
+      </summary>
+    </member>
+    <member name="N:RabbitMQ.Util">
+      <summary>
+	Internal. Utility classes.
+      </summary>
+    </member>
+    <member name="N:RabbitMQ.Client.Content">
+      <summary>
+	Public API for construction and analysis of messages that are
+	binary-compatible with messages produced and consumed by
+	QPid's JMS compatibility layer.
+      </summary>
+    </member>
+    <member name="N:RabbitMQ.Client.Events">
+      <summary>
+	Public API for various events and event handlers that are part
+	of the AMQP client library.
+      </summary>
+    </member>
+    <member name="N:RabbitMQ.Client.Exceptions">
+      <summary>
+	Public API for exceptions visible to the user of the AMQP
+	client library.
+      </summary>
+    </member>
+    <member name="N:RabbitMQ.Client.MessagePatterns">
+      <summary>
+	Public API for high-level helper classes and interface for
+	common ways of using the AMQP client library.
+      </summary>
+    </member>
+  </members>
+</doc>
