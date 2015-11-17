@@ -30,7 +30,7 @@ docs/api-guide.pdf
 [Dd]ebug/
 [Rr]elease/
 x64/
-build/
+src/**/build/
 [Bb]in/
 [Oo]bj/
 
