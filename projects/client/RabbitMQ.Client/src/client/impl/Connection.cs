@@ -1219,17 +1219,13 @@ entry.ToString());
         void IDisposable.Dispose()
         {
             MaybeStopHeartbeatTimers();
-            Abort();
-            if (ShutdownReport.Count > 0)
+            try
             {
-                foreach (ShutdownReportEntry entry in ShutdownReport)
-                {
-                    if (entry.Exception != null)
-                    {
-                        throw entry.Exception;
-                    }
-                }
-                throw new OperationInterruptedException(null);
+                Abort();
+            }
+            catch (OperationInterruptedException ignored)
+            {
+                // ignored, see rabbitmq/rabbitmq-dotnet-client#133
             }
         }
 
