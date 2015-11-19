@@ -6,8 +6,8 @@ SSL port. Connection recovery tests assume `rabbitmqctl` at `../rabbitmq-server/
 can control the running node: this is the case when all repositories are cloned using
 the [umbrella repository](https://github.com/rabbitmq/rabbitmq-public-umbrella).
 
-It is possible to use [Visual Studio 2013 Community](http://www.visualstudio.com/en-us/news/vs2013-community-vs.aspx),
-`msbuild.exe`, or `xbuild` (on Mono) to build the client and run the test suite.
+It is possible to use [Visual Studio Community edition](https://www.visualstudio.com/en-us/products/visual-studio-community-vs.aspx),
+.NET 4.5 or later, and `msbuild.exe` in `PATH`, to build the client and run the test suite.
 
 
 ## Building
@@ -24,12 +24,6 @@ simply run
 
     msbuild.exe
 
-on Windows and
-
-    xbuild
-
-if you use Mono.
-
 
 ## Running Tests
 
@@ -39,9 +33,3 @@ Note that it may take some time for the adapter to discover tests in the assembl
 Running the tests from the command line is also straightforward: use
 
     msbuild.exe /t:RunUnitTests projects/client/Unit/RabbitMQ.Client.Unit.csproj
-
-on Windows with .NET and
-
-    xbuild /nologo /t:RunUnitTests projects/client/Unit/RabbitMQ.Client.Unit.csproj | grep -v "warning CS2002"
-
-on Mono.
