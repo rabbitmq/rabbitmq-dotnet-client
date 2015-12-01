@@ -402,11 +402,11 @@ namespace RabbitMQ.Client.Unit
             }
             else if (IsRunningOnMono())
             {
-                rabbitmqctlPath = "../../../../../../rabbitmq-server/scripts/rabbitmqctl";
+                rabbitmqctlPath = "../../../../../../rabbit/scripts/rabbitmqctl";
             }
             else
             {
-                rabbitmqctlPath = @"..\..\..\..\..\..\rabbitmq-server\scripts\rabbitmqctl.bat";
+                rabbitmqctlPath = @"..\..\..\..\..\..\rabbit\scripts\rabbitmqctl.bat";
             }
 
             return ExecCommand(rabbitmqctlPath, args);
@@ -442,7 +442,7 @@ namespace RabbitMQ.Client.Unit
                 cmd  = ctl;
             } else {
                 cmd  = "cmd.exe";
-                args = "/c \"\"" + ctl + "\" -n rabbit@" + (Environment.GetEnvironmentVariable("COMPUTERNAME")) + " " + args + "\"";
+                args = "/c \"\"" + ctl + "\" -n rabbit@" + (Environment.GetEnvironmentVariable("COMPUTERNAME").ToLower()) + " " + args + "\"";
             }
 
             try {
