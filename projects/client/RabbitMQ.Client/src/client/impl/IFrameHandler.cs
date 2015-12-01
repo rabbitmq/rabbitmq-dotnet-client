@@ -61,7 +61,10 @@ namespace RabbitMQ.Client.Impl
         int RemotePort { get; }
 
         ///<summary>Socket read timeout, in milliseconds. Zero signals "infinity".</summary>
-        int Timeout { set; }
+        int ReadTimeout { set; }
+
+        ///<summary>Socket write timeout, in milliseconds. Zero signals "infinity".</summary>
+        int WriteTimeout { set; }
 
         void Close();
 

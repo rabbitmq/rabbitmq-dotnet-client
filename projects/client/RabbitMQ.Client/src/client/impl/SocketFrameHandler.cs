@@ -66,7 +66,7 @@ namespace RabbitMQ.Client.Impl
 
         public SocketFrameHandler(AmqpTcpEndpoint endpoint,
             Func<AddressFamily, ITcpClient> socketFactory,
-            int timeout)
+            int connectionTimeout, int readTimeout, int writeTimeout)
         {
             Endpoint = endpoint;
             m_socket = null;
@@ -75,7 +75,7 @@ namespace RabbitMQ.Client.Impl
                 try
                 {
                     m_socket = socketFactory(AddressFamily.InterNetworkV6);
-                    Connect(m_socket, endpoint, timeout);
+                    Connect(m_socket, endpoint, connectionTimeout);
                 }
                 catch (ConnectFailureException) // could not connect using IPv6
                 {
@@ -91,13 +91,12 @@ namespace RabbitMQ.Client.Impl
             if (m_socket == null)
             {
                 m_socket = socketFactory(AddressFamily.InterNetwork);
-                Connect(m_socket, endpoint, timeout);
+                Connect(m_socket, endpoint, connectionTimeout);
             }
 
             Stream netstream = m_socket.GetStream();
-            // make sure the socket timeout is greater than heartbeat timeout
-            netstream.ReadTimeout = timeout;
-            netstream.WriteTimeout = timeout;
+            netstream.ReadTimeout  = readTimeout;
+            netstream.WriteTimeout = writeTimeout;
 
             if (endpoint.Ssl.Enabled)
             {
@@ -113,6 +112,8 @@ namespace RabbitMQ.Client.Impl
             }
             m_reader = new NetworkBinaryReader(new BufferedStream(netstream));
             m_writer = new NetworkBinaryWriter(new BufferedStream(netstream));
+
+            m_writeableStateTimeout = writeTimeout;
         }
 
         public AmqpTcpEndpoint Endpoint { get; set; }
@@ -137,17 +138,15 @@ namespace RabbitMQ.Client.Impl
             get { return ((IPEndPoint)LocalEndPoint).Port; }
         }
 
-        public int Timeout
+        public int ReadTimeout
         {
             set
             {
                 try
                 {
                     if (m_socket.Connected)
-                    {
-                        // make sure the socket timeout is greater than heartbeat interval
-                        m_socket.ReceiveTimeout = value * 4;
-                        m_writeableStateTimeout = value * 4;
+                    {                        
+                        m_socket.ReceiveTimeout = value;
                     }
                 }
 #pragma warning disable 0168
@@ -156,6 +155,15 @@ namespace RabbitMQ.Client.Impl
                     // means that the socket is already closed
                 }
 #pragma warning restore 0168
+            }
+        }
+
+        public int WriteTimeout
+        {
+            set
+            {
+                m_writeableStateTimeout = value;
+                m_socket.Client.SendTimeout = value;
             }
         }
 

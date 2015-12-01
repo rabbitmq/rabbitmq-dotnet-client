@@ -263,7 +263,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 // timers fire at slightly below half the interval to avoid race
                 // conditions
                 m_heartbeatTimeSpan = TimeSpan.FromMilliseconds((value * 1000) / 4);
-                m_frameHandler.Timeout = value * 1000 * 2;
+                m_frameHandler.ReadTimeout = value * 1000 * 2;
             }
         }
 
@@ -441,7 +441,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             try
             {
-                m_frameHandler.Timeout = 0;
+                m_frameHandler.ReadTimeout = 0;
                 // Wait for response/socket closure or timeout
                 while (!m_closed)
                 {
@@ -1247,7 +1247,7 @@ entry.ToString());
             var connectionStartCell = new BlockingCell();
             m_model0.m_connectionStartCell = connectionStartCell;
             m_model0.HandshakeContinuationTimeout = m_factory.HandshakeContinuationTimeout;
-            m_frameHandler.Timeout = m_factory.HandshakeContinuationTimeout.Milliseconds;
+            m_frameHandler.ReadTimeout = m_factory.HandshakeContinuationTimeout.Milliseconds;
             m_frameHandler.SendHeader();
 
             var connectionStart = (ConnectionStartDetails)

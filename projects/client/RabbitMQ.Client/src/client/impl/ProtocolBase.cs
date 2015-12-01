@@ -48,7 +48,6 @@ using Windows.Networking.Sockets;
 #endif
 
 using RabbitMQ.Client.Impl;
-using RabbitMQ.Client;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Framing.Impl
@@ -151,9 +150,12 @@ namespace RabbitMQ.Client.Framing.Impl
 #else
             Func<StreamSocket> socketFactory,
 #endif
-            int timeout)
+            int connectionTimeout,
+            int readTimeout,
+            int writeTimeout)
         {
-            return new SocketFrameHandler(endpoint, socketFactory, timeout);
+            return new SocketFrameHandler(endpoint, socketFactory,
+                connectionTimeout, readTimeout, writeTimeout);
         }
 
         public IModel CreateModel(ISession session)
