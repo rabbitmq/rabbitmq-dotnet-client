@@ -202,7 +202,7 @@ namespace RabbitMQ.Client
         public int Port = AmqpTcpEndpoint.UseDefaultPort;
 
         /// <summary>
-        /// The AMQP protocol to be used. Currently 0-9-1.
+        /// Protocol used, only AMQP 0-9-1 is supported in modern versions.
         /// </summary>
         public IProtocol Protocol = Protocols.DefaultProtocol;
 
@@ -210,6 +210,16 @@ namespace RabbitMQ.Client
         /// Timeout setting for connection attempts (in milliseconds).
         /// </summary>
         public int RequestedConnectionTimeout = DefaultConnectionTimeout;
+
+        /// <summary>
+        /// Timeout setting for socket read operations (in milliseconds).
+        /// </summary>
+        public int SocketReadTimeout = DefaultConnectionTimeout;
+
+        /// <summary>
+        /// Timeout setting for socket write operations (in milliseconds).
+        /// </summary>
+        public int SocketWriteTimeout = DefaultConnectionTimeout;
 
         /// <summary>
         /// Ssl options setting.
@@ -380,12 +390,25 @@ namespace RabbitMQ.Client
 
         public IFrameHandler CreateFrameHandler()
         {
-            return Protocols.DefaultProtocol.CreateFrameHandler(Endpoint, SocketFactory, RequestedConnectionTimeout);
+            var fh = Protocols.DefaultProtocol.CreateFrameHandler(Endpoint, SocketFactory,
+                RequestedConnectionTimeout, SocketReadTimeout, SocketWriteTimeout);
+            return ConfigureFrameHandler(fh);
         }
 
         public IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint)
         {
-            return Protocols.DefaultProtocol.CreateFrameHandler(endpoint, SocketFactory, RequestedConnectionTimeout);
+            var fh = Protocols.DefaultProtocol.CreateFrameHandler(endpoint, SocketFactory,
+                RequestedConnectionTimeout, SocketReadTimeout, SocketWriteTimeout);
+            return ConfigureFrameHandler(fh);
+        }
+
+        private IFrameHandler ConfigureFrameHandler(IFrameHandler fh)
+        {
+            // make sure socket timeouts are higher than heartbeat
+            fh.ReadTimeout  = Math.Max(SocketReadTimeout,  RequestedHeartbeat * 1000);
+            fh.WriteTimeout = Math.Max(SocketWriteTimeout, RequestedHeartbeat * 1000);
+            // TODO: add user-provided configurator, like in the Java client
+            return fh;
         }
 
         private void SetUri(Uri uri)

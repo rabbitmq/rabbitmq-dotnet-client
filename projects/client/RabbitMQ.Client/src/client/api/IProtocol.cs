@@ -99,7 +99,7 @@ namespace RabbitMQ.Client
         ///  Construct a frame handler for a given endpoint.
         ///  </summary>
         /// <param name="socketFactory">Socket factory method.</param>
-        /// <param name="timeout">Timeout in milliseconds.</param>
+        /// <param name="connectionTimeout">Timeout in milliseconds.</param>
         /// <param name="endpoint">Represents a TCP-addressable AMQP peer: a host name and port number.</param>
         IFrameHandler CreateFrameHandler(
             AmqpTcpEndpoint endpoint, 
@@ -108,7 +108,9 @@ namespace RabbitMQ.Client
 #else
             Func<StreamSocket> socketFactory,
 #endif
-            int timeout);
+            int connectionTimeout,
+            int readTimeout,
+            int writeTimeout);
         /// <summary>
         /// Construct a protocol model atop a given session.
         /// </summary>

@@ -71,12 +71,14 @@ namespace RabbitMQ.Client.Impl
 
         public SocketFrameHandler(AmqpTcpEndpoint endpoint,
             Func<StreamSocket> socketFactory,
-            int timeout)
+            int connectionTimeout,
+            int _readTimeout,
+            int _writeTimeout)
         {
             Endpoint = endpoint;
 
             m_socket = socketFactory();
-            Connect(m_socket, endpoint, timeout);
+            Connect(m_socket, endpoint, connectionTimeout);
 
             if (endpoint.Ssl.Enabled)
             {
@@ -131,14 +133,23 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public int Timeout
+        public int ReadTimeout
         {
             set
             {
                 // Ignored, timeouts over streams on WinRT
                 // are much trickier to get right.
                 //
-                // Heartbeat implementation is in Connection.
+                // See heartbeats implementation is in Connection.
+            }
+        }
+
+        public int WriteTimeout
+        {
+            set
+            {
+                // Ignored, timeouts over streams on WinRT
+                // are much trickier to get right.
             }
         }
 
