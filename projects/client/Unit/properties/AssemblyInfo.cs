@@ -34,7 +34,7 @@
 //
 //  The Original Code is RabbitMQ.
 //
-//  The Initial Developer of the Original Code is GoPivotal, Inc.
+//  The Initial Developer of the Original Code is Pivotal Software, Inc.
 //  Copyright (c) 2007-2015 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
@@ -48,7 +48,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("RabbitMQ.Client Unit Tests")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("GoPivotal, Inc.")]
+[assembly: AssemblyCompany("Pivotal Software, Inc.")]
 [assembly: AssemblyProduct("RabbitMQ.Client")]
 [assembly: AssemblyCopyright("Copyright © 2007-2015 Pivotal Software, Inc.")]
 [assembly: AssemblyTrademark("")]

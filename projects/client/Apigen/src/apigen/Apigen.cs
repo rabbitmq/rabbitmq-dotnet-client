@@ -34,7 +34,7 @@
 //
 //  The Original Code is RabbitMQ.
 //
-//  The Initial Developer of the Original Code is GoPivotal, Inc.
+//  The Initial Developer of the Original Code is Pivotal Software, Inc.
 //  Copyright (c) 2007-2015 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
@@ -370,7 +370,7 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("//");
             EmitLine("//   The Original Code is RabbitMQ.");
             EmitLine("//");
-            EmitLine("//   The Initial Developer of the Original Code is GoPivotal, Inc.");
+            EmitLine("//   The Initial Developer of the Original Code is Pivotal Software, Inc.");
             EmitLine("//   Copyright (c) 2007-2015 Pivotal Software, Inc.  All rights reserved.");
             EmitLine("//---------------------------------------------------------------------------");
             EmitLine("");

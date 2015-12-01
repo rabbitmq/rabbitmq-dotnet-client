@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2014 GoPivotal, Inc.
+//   Copyright (C) 2007-2015 Pivotal Software, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -34,8 +34,8 @@
 //
 //  The Original Code is RabbitMQ.
 //
-//  The Initial Developer of the Original Code is GoPivotal, Inc.
-//  Copyright (c) 2007-2014 GoPivotal, Inc.  All rights reserved.
+//  The Initial Developer of the Original Code is Pivotal Software, Inc.
+//  Copyright (c) 2007-2015 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System.Reflection;
@@ -45,9 +45,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("RabbitMQ Client Library for .Net")]
 [assembly: AssemblyDescription("Open Source Enterprise Messaging")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("GoPivotal, Inc.")]
+[assembly: AssemblyCompany("Pivotal Software, Inc.")]
 [assembly: AssemblyProduct("RabbitMQ")]
-[assembly: AssemblyCopyright("Copyright © 2007-2014 GoPivotal, Inc.")]
+[assembly: AssemblyCopyright("Copyright © 2007-2015 Pivotal Software, Inc.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
