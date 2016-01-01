@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2007-2015 Pivotal Software, Inc.
+//   Copyright (c) 2007-2016 Pivotal Software, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is Pivotal Software, Inc.
-//  Copyright (c) 2007-2015 Pivotal Software, Inc.  All rights reserved.
+//  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
@@ -340,7 +340,7 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("// The APL v2.0:");
             EmitLine("//");
             EmitLine("//---------------------------------------------------------------------------");
-            EmitLine("//   Copyright (C) 2007-2015 Pivotal Software, Inc.");
+            EmitLine("//   Copyright (c) 2007-2016 Pivotal Software, Inc.");
             EmitLine("//");
             EmitLine("//   Licensed under the Apache License, Version 2.0 (the \"License\");");
             EmitLine("//   you may not use this file except in compliance with the License.");
@@ -371,7 +371,7 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("//   The Original Code is RabbitMQ.");
             EmitLine("//");
             EmitLine("//   The Initial Developer of the Original Code is Pivotal Software, Inc.");
-            EmitLine("//   Copyright (c) 2007-2015 Pivotal Software, Inc.  All rights reserved.");
+            EmitLine("//   Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.");
             EmitLine("//---------------------------------------------------------------------------");
             EmitLine("");
             EmitLine("using RabbitMQ.Client;");
