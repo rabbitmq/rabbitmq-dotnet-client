@@ -43,7 +43,7 @@ using RabbitMQ.Client.Framing;
 using RabbitMQ.Util;
 using System;
 using System.IO;
-
+using System.Threading.Tasks;
 #if NETFX_CORE
 using Windows.Networking.Sockets;
 #else
@@ -213,6 +213,168 @@ namespace RabbitMQ.Client.Impl
             writer.Write((uint)Payload.Length);
             writer.Write(Payload);
             writer.Write((byte)Constants.FrameEnd);
+        }
+    }
+
+    public class AsyncFrame
+    {
+        public MemoryStream m_accumulator;
+
+        public AsyncFrame()
+        {
+        }
+
+        public AsyncFrame(int type, int channel)
+        {
+            Type = type;
+            Channel = channel;
+            Payload = null;
+            m_accumulator = new MemoryStream();
+        }
+
+        public AsyncFrame(int type, int channel, byte[] payload)
+        {
+            Type = type;
+            Channel = channel;
+            Payload = payload;
+            m_accumulator = null;
+        }
+
+        public int Channel { get; set; }
+
+        public byte[] Payload { get; set; }
+
+        public int Type { get; set; }
+
+        public static void ProcessProtocolHeader(NetworkBinaryReader reader)
+        {
+            try
+            {
+                byte b1 = reader.ReadByte();
+                byte b2 = reader.ReadByte();
+                byte b3 = reader.ReadByte();
+                if (b1 != 'M' || b2 != 'Q' || b3 != 'P')
+                {
+                    throw new MalformedFrameException("Invalid AMQP protocol header from server");
+                }
+
+                int transportHigh = reader.ReadByte();
+                int transportLow = reader.ReadByte();
+                int serverMajor = reader.ReadByte();
+                int serverMinor = reader.ReadByte();
+                throw new PacketNotRecognizedException(transportHigh,
+                    transportLow,
+                    serverMajor,
+                    serverMinor);
+            }
+            catch (EndOfStreamException)
+            {
+                // Ideally we'd wrap the EndOfStreamException in the
+                // MalformedFrameException, but unfortunately the
+                // design of MalformedFrameException's superclass,
+                // ProtocolViolationException, doesn't permit
+                // this. Fortunately, the call stack in the
+                // EndOfStreamException is largely irrelevant at this
+                // point, so can safely be ignored.
+                throw new MalformedFrameException("Invalid AMQP protocol header from server");
+            }
+        }
+
+        public static Frame ReadFrom(NetworkBinaryReader reader)
+        {
+            int type;
+
+            try
+            {
+                type = reader.ReadByte();
+            }
+            catch (IOException ioe)
+            {
+#if NETFX_CORE
+                if (ioe.InnerException != null
+                    && SocketError.GetStatus(ioe.InnerException.HResult) == SocketErrorStatus.ConnectionTimedOut)
+                {
+                    throw ioe.InnerException;
+                }
+
+                throw;
+#else
+                // If it's a WSAETIMEDOUT SocketException, unwrap it.
+                // This might happen when the limit of half-open connections is
+                // reached.
+                if (ioe.InnerException == null ||
+                    !(ioe.InnerException is SocketException) ||
+                    ((SocketException)ioe.InnerException).SocketErrorCode != SocketError.TimedOut)
+                {
+                    throw ioe;
+                }
+                throw ioe.InnerException;
+#endif
+            }
+
+            if (type == 'A')
+            {
+                // Probably an AMQP protocol header, otherwise meaningless
+                ProcessProtocolHeader(reader);
+            }
+
+            int channel = reader.ReadUInt16();
+            int payloadSize = reader.ReadInt32(); // FIXME - throw exn on unreasonable value
+            byte[] payload = reader.ReadBytes(payloadSize);
+            if (payload.Length != payloadSize)
+            {
+                // Early EOF.
+                throw new MalformedFrameException("Short frame - expected " +
+                                                  payloadSize + " bytes, got " +
+                                                  payload.Length + " bytes");
+            }
+
+            int frameEndMarker = reader.ReadByte();
+            if (frameEndMarker != Constants.FrameEnd)
+            {
+                throw new MalformedFrameException("Bad frame end marker: " + frameEndMarker);
+            }
+
+            return new Frame(type, channel, payload);
+        }
+
+        public void FinishWriting()
+        {
+            if (m_accumulator != null)
+            {
+                Payload = m_accumulator.ToArray();
+                m_accumulator = null;
+            }
+        }
+
+        public NetworkBinaryReader GetReader()
+        {
+            return new NetworkBinaryReader(new MemoryStream(Payload));
+        }
+
+        public AsyncNetworkBinaryWriter GetWriter()
+        {
+            return new AsyncNetworkBinaryWriter(m_accumulator);
+        }
+
+        public override string ToString()
+        {
+            return base.ToString() + string.Format("(type={0}, channel={1}, {2} bytes of payload)",
+                Type,
+                Channel,
+                Payload == null
+                    ? "(null)"
+                    : Payload.Length.ToString());
+        }
+
+        public async Task WriteTo(AsyncNetworkBinaryWriter writer)
+        {
+            FinishWriting();
+            await writer.Write((byte)Type).ConfigureAwait(false);
+            await writer.Write((ushort)Channel).ConfigureAwait(false);
+            await writer.Write((uint)Payload.Length).ConfigureAwait(false);
+            await writer.Write(Payload).ConfigureAwait(false);
+            await writer.Write((byte)Constants.FrameEnd).ConfigureAwait(false);
         }
     }
 }

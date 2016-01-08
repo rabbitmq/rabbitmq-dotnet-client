@@ -40,6 +40,7 @@
 
 using System.Collections.Generic;
 using System.Net;
+using System.Threading.Tasks;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Content
@@ -80,6 +81,46 @@ namespace RabbitMQ.Client.Content
             {
                 StreamWireFormatting.WriteUntypedString(writer, entry.Key);
                 StreamWireFormatting.WriteObject(writer, entry.Value);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Internal support class for use in reading and
+    /// writing information binary-compatible with QPid's "MapMessage" wire encoding.
+    /// </summary>
+    /// <exception cref="ProtocolViolationException"/>
+    public static class AsyncMapWireFormatting
+    {
+        public static IDictionary<string, object> ReadMap(NetworkBinaryReader reader)
+        {
+            int entryCount = BytesWireFormatting.ReadInt32(reader);
+            if (entryCount < 0)
+            {
+                string message = string.Format("Invalid (negative) entryCount: {0}", entryCount);
+                throw new ProtocolViolationException(message);
+            }
+
+            IDictionary<string, object> table = new Dictionary<string, object>(entryCount);
+            for (int entryIndex = 0; entryIndex < entryCount; entryIndex++)
+            {
+                string key = StreamWireFormatting.ReadUntypedString(reader);
+                object value = StreamWireFormatting.ReadObject(reader);
+                table[key] = value;
+            }
+
+            return table;
+        }
+
+        public static async Task WriteMap(AsyncNetworkBinaryWriter writer, IDictionary<string, object> table)
+        {
+            int entryCount = table.Count;
+            await AsyncBytesWireFormatting.WriteInt32(writer, entryCount).ConfigureAwait(false);
+
+            foreach (KeyValuePair<string, object> entry in table)
+            {
+                await AsyncStreamWireFormatting.WriteUntypedString(writer, entry.Key).ConfigureAwait(false);
+                await AsyncStreamWireFormatting.WriteObject(writer, entry.Value).ConfigureAwait(false);
             }
         }
     }

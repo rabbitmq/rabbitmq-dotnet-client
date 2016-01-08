@@ -40,6 +40,7 @@
 
 using System;
 using System.Text;
+using System.Threading.Tasks;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
@@ -82,6 +83,47 @@ namespace RabbitMQ.Client.Impl
             writer.Write((ushort) 0); // weight - not currently used
             writer.Write(bodySize);
             WritePropertiesTo(new ContentHeaderPropertyWriter(writer));
+        }
+    }
+
+    public abstract class AsyncContentHeaderBase : IContentHeader
+    {
+        ///<summary>
+        /// Retrieve the AMQP class ID of this content header.
+        ///</summary>
+        public abstract int ProtocolClassId { get; }
+
+        ///<summary>
+        /// Retrieve the AMQP class name of this content header.
+        ///</summary>
+        public abstract string ProtocolClassName { get; }
+
+        public virtual object Clone()
+        {
+            throw new NotImplementedException();
+        }
+
+        public abstract void AppendPropertyDebugStringTo(StringBuilder stringBuilder);
+
+        ///<summary>
+        /// Fill this instance from the given byte buffer stream.
+        ///</summary>
+        public ulong ReadFrom(NetworkBinaryReader reader)
+        {
+            reader.ReadUInt16(); // weight - not currently used
+            ulong bodySize = reader.ReadUInt64();
+            ReadPropertiesFrom(new ContentHeaderPropertyReader(reader));
+            return bodySize;
+        }
+
+        public abstract void ReadPropertiesFrom(ContentHeaderPropertyReader reader);
+        public abstract Task WritePropertiesTo(AsyncContentHeaderPropertyWriter writer);
+
+        public async Task WriteTo(AsyncNetworkBinaryWriter writer, ulong bodySize)
+        {
+            await writer.Write((ushort)0).ConfigureAwait(false); // weight - not currently used
+            await writer.Write(bodySize).ConfigureAwait(false);
+            await WritePropertiesTo(new AsyncContentHeaderPropertyWriter(writer)).ConfigureAwait(false);
         }
     }
 }

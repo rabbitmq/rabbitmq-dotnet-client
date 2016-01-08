@@ -43,6 +43,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
 
@@ -482,6 +483,443 @@ namespace RabbitMQ.Client.Impl
             // 0-9 is afaict silent on the signedness of the timestamp.
             // See also MethodArgumentReader.ReadTimestamp and AmqpTimestamp itself
             WriteLonglong(writer, (ulong)val.UnixTime);
+        }
+    }
+
+    public class AsyncWireFormatting
+    {
+        public static decimal AmqpToDecimal(byte scale, uint unsignedMantissa)
+        {
+            if (scale > 28)
+            {
+                throw new SyntaxError("Unrepresentable AMQP decimal table field: " +
+                                      "scale=" + scale);
+            }
+            return new decimal((int)(unsignedMantissa & 0x7FFFFFFF),
+                0,
+                0,
+                ((unsignedMantissa & 0x80000000) == 0) ? false : true,
+                scale);
+        }
+
+        public static void DecimalToAmqp(decimal value, out byte scale, out int mantissa)
+        {
+            // According to the documentation :-
+            //  - word 0: low-order "mantissa"
+            //  - word 1, word 2: medium- and high-order "mantissa"
+            //  - word 3: mostly reserved; "exponent" and sign bit
+            // In one way, this is broader than AMQP: the mantissa is larger.
+            // In another way, smaller: the exponent ranges 0-28 inclusive.
+            // We need to be careful about the range of word 0, too: we can
+            // only take 31 bits worth of it, since the sign bit needs to
+            // fit in there too.
+            int[] bitRepresentation = decimal.GetBits(value);
+            if (bitRepresentation[1] != 0 || // mantissa extends into middle word
+                bitRepresentation[2] != 0 || // mantissa extends into top word
+                bitRepresentation[0] < 0) // mantissa extends beyond 31 bits
+            {
+                throw new WireFormattingException("Decimal overflow in AMQP encoding", value);
+            }
+            scale = (byte)((((uint)bitRepresentation[3]) >> 16) & 0xFF);
+            mantissa = (int)((((uint)bitRepresentation[3]) & 0x80000000) |
+                             (((uint)bitRepresentation[0]) & 0x7FFFFFFF));
+        }
+
+        public static IList ReadArray(NetworkBinaryReader reader)
+        {
+            IList array = new List<object>();
+            long arrayLength = reader.ReadUInt32();
+            Stream backingStream = reader.BaseStream;
+            long startPosition = backingStream.Position;
+            while ((backingStream.Position - startPosition) < arrayLength)
+            {
+                object value = ReadFieldValue(reader);
+                array.Add(value);
+            }
+            return array;
+        }
+
+        public static decimal ReadDecimal(NetworkBinaryReader reader)
+        {
+            byte scale = ReadOctet(reader);
+            uint unsignedMantissa = ReadLong(reader);
+            return AmqpToDecimal(scale, unsignedMantissa);
+        }
+
+        public static object ReadFieldValue(NetworkBinaryReader reader)
+        {
+            object value = null;
+            byte discriminator = reader.ReadByte();
+            switch ((char)discriminator)
+            {
+                case 'S':
+                    value = ReadLongstr(reader);
+                    break;
+                case 'I':
+                    value = reader.ReadInt32();
+                    break;
+                case 'D':
+                    value = ReadDecimal(reader);
+                    break;
+                case 'T':
+                    value = ReadTimestamp(reader);
+                    break;
+                case 'F':
+                    value = ReadTable(reader);
+                    break;
+
+                case 'A':
+                    value = ReadArray(reader);
+                    break;
+                case 'b':
+                    value = reader.ReadSByte();
+                    break;
+                case 'd':
+                    value = reader.ReadDouble();
+                    break;
+                case 'f':
+                    value = reader.ReadSingle();
+                    break;
+                case 'l':
+                    value = reader.ReadInt64();
+                    break;
+                case 's':
+                    value = reader.ReadInt16();
+                    break;
+                case 't':
+                    value = (ReadOctet(reader) != 0);
+                    break;
+                case 'x':
+                    value = new BinaryTableValue(ReadLongstr(reader));
+                    break;
+                case 'V':
+                    value = null;
+                    break;
+
+                default:
+                    throw new SyntaxError("Unrecognised type in table: " +
+                                          (char)discriminator);
+            }
+            return value;
+        }
+
+        public static uint ReadLong(NetworkBinaryReader reader)
+        {
+            return reader.ReadUInt32();
+        }
+
+        public static ulong ReadLonglong(NetworkBinaryReader reader)
+        {
+            return reader.ReadUInt64();
+        }
+
+        public static byte[] ReadLongstr(NetworkBinaryReader reader)
+        {
+            uint byteCount = reader.ReadUInt32();
+            if (byteCount > int.MaxValue)
+            {
+                throw new SyntaxError("Long string too long; " +
+                                      "byte length=" + byteCount + ", max=" + int.MaxValue);
+            }
+            return reader.ReadBytes((int)byteCount);
+        }
+
+        public static byte ReadOctet(NetworkBinaryReader reader)
+        {
+            return reader.ReadByte();
+        }
+
+        public static ushort ReadShort(NetworkBinaryReader reader)
+        {
+            return reader.ReadUInt16();
+        }
+
+        public static string ReadShortstr(NetworkBinaryReader reader)
+        {
+            int byteCount = reader.ReadByte();
+            byte[] readBytes = reader.ReadBytes(byteCount);
+            return Encoding.UTF8.GetString(readBytes, 0, readBytes.Length);
+        }
+
+        ///<summary>Reads an AMQP "table" definition from the reader.</summary>
+        ///<remarks>
+        /// Supports the AMQP 0-8/0-9 standard entry types S, I, D, T
+        /// and F, as well as the QPid-0-8 specific b, d, f, l, s, t,
+        /// x and V types and the AMQP 0-9-1 A type.
+        ///</remarks>
+        /// <returns>A <seealso cref="System.Collections.Generic.IDictionary{TKey,TValue}"/>.</returns>
+        public static IDictionary<string, object> ReadTable(NetworkBinaryReader reader)
+        {
+            IDictionary<string, object> table = new Dictionary<string, object>();
+            long tableLength = reader.ReadUInt32();
+
+            Stream backingStream = reader.BaseStream;
+            long startPosition = backingStream.Position;
+            while ((backingStream.Position - startPosition) < tableLength)
+            {
+                string key = ReadShortstr(reader);
+                object value = ReadFieldValue(reader);
+
+                if (!table.ContainsKey(key))
+                {
+                    table[key] = value;
+                }
+            }
+
+            return table;
+        }
+
+        public static AmqpTimestamp ReadTimestamp(NetworkBinaryReader reader)
+        {
+            ulong stamp = ReadLonglong(reader);
+            // 0-9 is afaict silent on the signedness of the timestamp.
+            // See also MethodArgumentWriter.WriteTimestamp and AmqpTimestamp itself
+            return new AmqpTimestamp((long)stamp);
+        }
+
+        public static async Task WriteArray(AsyncNetworkBinaryWriter writer, IList val)
+        {
+            if (val == null)
+            {
+                await writer.Write((uint)0).ConfigureAwait(false);
+            }
+            else
+            {
+                Stream backingStream = writer.BaseStream;
+                long patchPosition = backingStream.Position;
+                await writer.Write((uint)0).ConfigureAwait(false); // length of table - will be backpatched
+                foreach (object entry in val)
+                {
+                    await WriteFieldValue(writer, entry).ConfigureAwait(false);
+                }
+                long savedPosition = backingStream.Position;
+                long tableLength = savedPosition - patchPosition - 4; // offset for length word
+                backingStream.Seek(patchPosition, SeekOrigin.Begin);
+                await writer.Write((uint)tableLength).ConfigureAwait(false);
+                backingStream.Seek(savedPosition, SeekOrigin.Begin);
+            }
+        }
+
+        public static async Task WriteDecimal(AsyncNetworkBinaryWriter writer, decimal value)
+        {
+            byte scale;
+            int mantissa;
+            DecimalToAmqp(value, out scale, out mantissa);
+            await WriteOctet(writer, scale).ConfigureAwait(false);
+            await WriteLong(writer, (uint)mantissa).ConfigureAwait(false);
+        }
+
+        public static async Task WriteFieldValue(AsyncNetworkBinaryWriter writer, object value)
+        {
+            if (value == null)
+            {
+                await WriteOctet(writer, (byte)'V').ConfigureAwait(false);
+            }
+            else if (value is string)
+            {
+                await WriteOctet(writer, (byte)'S').ConfigureAwait(false);
+                await WriteLongstr(writer, Encoding.UTF8.GetBytes((string)value)).ConfigureAwait(false);
+            }
+            else if (value is byte[])
+            {
+                await WriteOctet(writer, (byte)'S').ConfigureAwait(false);
+                await WriteLongstr(writer, (byte[])value).ConfigureAwait(false);
+            }
+            else if (value is int)
+            {
+                await WriteOctet(writer, (byte)'I').ConfigureAwait(false);
+                await writer.Write((int)value).ConfigureAwait(false);
+            }
+            else if (value is decimal)
+            {
+                await WriteOctet(writer, (byte)'D').ConfigureAwait(false);
+                await WriteDecimal(writer, (decimal)value).ConfigureAwait(false);
+            }
+            else if (value is AmqpTimestamp)
+            {
+                await WriteOctet(writer, (byte)'T').ConfigureAwait(false);
+                await WriteTimestamp(writer, (AmqpTimestamp)value).ConfigureAwait(false);
+            }
+            else if (value is IDictionary)
+            {
+                await WriteOctet(writer, (byte)'F').ConfigureAwait(false);
+                await WriteTable(writer, (IDictionary)value).ConfigureAwait(false);
+            }
+            else if (value is IList)
+            {
+                await WriteOctet(writer, (byte)'A').ConfigureAwait(false);
+                await WriteArray(writer, (IList)value).ConfigureAwait(false);
+            }
+            else if (value is sbyte)
+            {
+                await WriteOctet(writer, (byte)'b').ConfigureAwait(false);
+                await writer.Write((sbyte)value).ConfigureAwait(false);
+            }
+            else if (value is double)
+            {
+                await WriteOctet(writer, (byte)'d').ConfigureAwait(false);
+                await writer.Write((double)value).ConfigureAwait(false);
+            }
+            else if (value is float)
+            {
+                await WriteOctet(writer, (byte)'f').ConfigureAwait(false);
+                await writer.Write((float)value).ConfigureAwait(false);
+            }
+            else if (value is long)
+            {
+                await WriteOctet(writer, (byte)'l').ConfigureAwait(false);
+                await writer.Write((long)value).ConfigureAwait(false);
+            }
+            else if (value is short)
+            {
+                await WriteOctet(writer, (byte)'s').ConfigureAwait(false);
+                await writer.Write((short)value).ConfigureAwait(false);
+            }
+            else if (value is bool)
+            {
+                await WriteOctet(writer, (byte)'t').ConfigureAwait(false);
+                await WriteOctet(writer, (byte)(((bool)value) ? 1 : 0)).ConfigureAwait(false);
+            }
+            else if (value is BinaryTableValue)
+            {
+                await WriteOctet(writer, (byte)'x').ConfigureAwait(false);
+                await WriteLongstr(writer, ((BinaryTableValue)value).Bytes).ConfigureAwait(false);
+            }
+            else
+            {
+                throw new WireFormattingException("Value cannot appear as table value",
+                    value);
+            }
+        }
+
+        public static Task WriteLong(AsyncNetworkBinaryWriter writer, uint val)
+        {
+            return writer.Write(val);
+        }
+
+        public static Task WriteLonglong(AsyncNetworkBinaryWriter writer, ulong val)
+        {
+            return writer.Write(val);
+        }
+
+        public static async Task WriteLongstr(AsyncNetworkBinaryWriter writer, byte[] val)
+        {
+            await WriteLong(writer, (uint)val.Length).ConfigureAwait(false);
+            await writer.Write(val).ConfigureAwait(false);
+        }
+
+        public static Task WriteOctet(AsyncNetworkBinaryWriter writer, byte val)
+        {
+            return writer.Write(val);
+        }
+
+        public static Task WriteShort(AsyncNetworkBinaryWriter writer, ushort val)
+        {
+            return writer.Write(val);
+        }
+
+        public static async Task WriteShortstr(AsyncNetworkBinaryWriter writer, string val)
+        {
+            byte[] bytes = Encoding.UTF8.GetBytes(val);
+            int len = bytes.Length;
+            if (len > 255)
+            {
+                throw new WireFormattingException("Short string too long; " +
+                                                  "UTF-8 encoded length=" + len + ", max=255");
+            }
+            await writer.Write((byte)len).ConfigureAwait(false);
+            await writer.Write(bytes).ConfigureAwait(false);
+        }
+
+        ///<summary>Writes an AMQP "table" to the writer.</summary>
+        ///<remarks>
+        ///<para>
+        /// In this method, we assume that the stream that backs our
+        /// NetworkBinaryWriter is a positionable stream - which it is
+        /// currently (see Frame.m_accumulator, Frame.GetWriter and
+        /// Command.Transmit).
+        ///</para>
+        ///<para>
+        /// Supports the AMQP 0-8/0-9 standard entry types S, I, D, T
+        /// and F, as well as the QPid-0-8 specific b, d, f, l, s, t
+        /// x and V types and the AMQP 0-9-1 A type.
+        ///</para>
+        ///</remarks>
+        public static async Task WriteTable(AsyncNetworkBinaryWriter writer, IDictionary val)
+        {
+            if (val == null)
+            {
+                await writer.Write((uint)0).ConfigureAwait(false);
+            }
+            else
+            {
+                Stream backingStream = writer.BaseStream;
+                long patchPosition = backingStream.Position;
+                await writer.Write((uint)0).ConfigureAwait(false); // length of table - will be backpatched
+
+                foreach (DictionaryEntry entry in val)
+                {
+                    await WriteShortstr(writer, entry.Key.ToString()).ConfigureAwait(false);
+                    object value = entry.Value;
+                    await WriteFieldValue(writer, value).ConfigureAwait(false);
+                }
+
+                // Now, backpatch the table length.
+                long savedPosition = backingStream.Position;
+                long tableLength = savedPosition - patchPosition - 4; // offset for length word
+                backingStream.Seek(patchPosition, SeekOrigin.Begin);
+                await writer.Write((uint)tableLength).ConfigureAwait(false);
+                backingStream.Seek(savedPosition, SeekOrigin.Begin);
+            }
+        }
+
+        ///<summary>Writes an AMQP "table" to the writer.</summary>
+        ///<remarks>
+        ///<para>
+        /// In this method, we assume that the stream that backs our
+        /// NetworkBinaryWriter is a positionable stream - which it is
+        /// currently (see Frame.m_accumulator, Frame.GetWriter and
+        /// Command.Transmit).
+        ///</para>
+        ///<para>
+        /// Supports the AMQP 0-8/0-9 standard entry types S, I, D, T
+        /// and F, as well as the QPid-0-8 specific b, d, f, l, s, t
+        /// x and V types and the AMQP 0-9-1 A type.
+        ///</para>
+        ///</remarks>
+        public static async Task WriteTable(AsyncNetworkBinaryWriter writer, IDictionary<string, object> val)
+        {
+            if (val == null)
+            {
+                await writer.Write((uint)0).ConfigureAwait(false);
+            }
+            else
+            {
+                Stream backingStream = writer.BaseStream;
+                long patchPosition = backingStream.Position;
+                await writer.Write((uint)0).ConfigureAwait(false); // length of table - will be backpatched
+
+                foreach (KeyValuePair<string, object> entry in val)
+                {
+                    await WriteShortstr(writer, entry.Key).ConfigureAwait(false);
+                    object value = entry.Value;
+                    await WriteFieldValue(writer, value).ConfigureAwait(false);
+                }
+
+                // Now, backpatch the table length.
+                long savedPosition = backingStream.Position;
+                long tableLength = savedPosition - patchPosition - 4; // offset for length word
+                backingStream.Seek(patchPosition, SeekOrigin.Begin);
+                await writer.Write((uint)tableLength).ConfigureAwait(false);
+                backingStream.Seek(savedPosition, SeekOrigin.Begin);
+            }
+        }
+
+        public static Task WriteTimestamp(AsyncNetworkBinaryWriter writer, AmqpTimestamp val)
+        {
+            // 0-9 is afaict silent on the signedness of the timestamp.
+            // See also MethodArgumentReader.ReadTimestamp and AmqpTimestamp itself
+            return WriteLonglong(writer, (ulong)val.UnixTime);
         }
     }
 }

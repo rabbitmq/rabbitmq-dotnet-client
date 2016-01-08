@@ -41,6 +41,7 @@
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Content
@@ -434,6 +435,375 @@ namespace RabbitMQ.Client.Content
         {
             writer.Write(Encoding.UTF8.GetBytes(value));
             writer.Write((byte) 0);
+        }
+    }
+
+    public static class AsyncStreamWireFormatting
+    {
+        public static bool ReadBool(NetworkBinaryReader reader)
+        {
+            object value = ReadNonnullObject("bool", reader);
+            if (value is bool)
+            {
+                return (bool)value;
+            }
+            if (value is string)
+            {
+                return PrimitiveParser.ParseBool((string)value);
+            }
+            throw PrimitiveParser.CreateProtocolViolationException("bool", value);
+        }
+
+        public static byte ReadByte(NetworkBinaryReader reader)
+        {
+            object value = ReadNonnullObject("byte", reader);
+            if (value is byte)
+            {
+                return (byte)value;
+            }
+            if (value is string)
+            {
+                return PrimitiveParser.ParseByte((string)value);
+            }
+            throw PrimitiveParser.CreateProtocolViolationException("byte", value);
+        }
+
+        public static byte[] ReadBytes(NetworkBinaryReader reader)
+        {
+            object value = ReadObject(reader);
+            if (value == null)
+            {
+                return null;
+            }
+            if (value is byte[])
+            {
+                return (byte[])value;
+            }
+            throw PrimitiveParser.CreateProtocolViolationException("byte[]", value);
+        }
+
+        public static char ReadChar(NetworkBinaryReader reader)
+        {
+            object value = ReadNonnullObject("char", reader);
+            if (value is char)
+            {
+                return (char)value;
+            }
+            throw PrimitiveParser.CreateProtocolViolationException("char", value);
+        }
+
+        public static double ReadDouble(NetworkBinaryReader reader)
+        {
+            object value = ReadNonnullObject("double", reader);
+            if (value is double || value is float)
+            {
+                return (double)value;
+            }
+            if (value is string)
+            {
+                return PrimitiveParser.ParseDouble((string)value);
+            }
+            throw PrimitiveParser.CreateProtocolViolationException("double", value);
+        }
+
+        public static short ReadInt16(NetworkBinaryReader reader)
+        {
+            object value = ReadNonnullObject("short", reader);
+            if (value is short || value is byte)
+            {
+                return (short)value;
+            }
+            if (value is string)
+            {
+                return PrimitiveParser.ParseShort((string)value);
+            }
+            throw PrimitiveParser.CreateProtocolViolationException("short", value);
+        }
+
+        public static int ReadInt32(NetworkBinaryReader reader)
+        {
+            object value = ReadNonnullObject("int", reader);
+            if (value is int || value is short || value is byte)
+            {
+                return (int)value;
+            }
+            if (value is string)
+            {
+                return PrimitiveParser.ParseInt((string)value);
+            }
+            throw PrimitiveParser.CreateProtocolViolationException("int", value);
+        }
+
+        public static long ReadInt64(NetworkBinaryReader reader)
+        {
+            object value = ReadNonnullObject("long", reader);
+            if (value is long || value is int || value is short || value is byte)
+            {
+                return (long)value;
+            }
+            if (value is string)
+            {
+                return PrimitiveParser.ParseLong((string)value);
+            }
+            throw PrimitiveParser.CreateProtocolViolationException("long", value);
+        }
+
+        /// <exception cref="ProtocolViolationException"/>
+        public static object ReadNonnullObject(string target, NetworkBinaryReader reader)
+        {
+            object value = ReadObject(reader);
+            if (value == null)
+            {
+                throw new ProtocolViolationException(string.Format("Null {0} value not permitted",
+                    target));
+            }
+            return value;
+        }
+
+        /// <exception cref="EndOfStreamException"/>
+        /// <exception cref="ProtocolViolationException"/>
+        public static object ReadObject(NetworkBinaryReader reader)
+        {
+            int typeTag = reader.ReadByte();
+            switch (typeTag)
+            {
+                case -1:
+                    throw new EndOfStreamException("End of StreamMessage reached");
+
+                case (int)StreamWireFormattingTag.Bool:
+                    {
+                        byte value = reader.ReadByte();
+                        switch (value)
+                        {
+                            case 0x00:
+                                return false;
+                            case 0x01:
+                                return true;
+                            default:
+                                {
+                                    string message =
+                                        string.Format("Invalid boolean value in StreamMessage: {0}", value);
+                                    throw new ProtocolViolationException(message);
+                                }
+                        }
+                    }
+
+                case (int)StreamWireFormattingTag.Byte:
+                    return reader.ReadByte();
+
+                case (int)StreamWireFormattingTag.Bytes:
+                    {
+                        int length = reader.ReadInt32();
+                        if (length == -1)
+                        {
+                            return null;
+                        }
+                        return reader.ReadBytes(length);
+                    }
+
+                case (int)StreamWireFormattingTag.Int16:
+                    return reader.ReadInt16();
+
+                case (int)StreamWireFormattingTag.Char:
+                    return (char)reader.ReadUInt16();
+
+                case (int)StreamWireFormattingTag.Int32:
+                    return reader.ReadInt32();
+
+                case (int)StreamWireFormattingTag.Int64:
+                    return reader.ReadInt64();
+
+                case (int)StreamWireFormattingTag.Single:
+                    return reader.ReadSingle();
+
+                case (int)StreamWireFormattingTag.Double:
+                    return reader.ReadDouble();
+
+                case (int)StreamWireFormattingTag.String:
+                    return ReadUntypedString(reader);
+
+                case (int)StreamWireFormattingTag.Null:
+                    return null;
+
+                default:
+                    {
+                        string message = string.Format("Invalid type tag in StreamMessage: {0}", typeTag);
+                        throw new ProtocolViolationException(message);
+                    }
+            }
+        }
+
+        public static float ReadSingle(NetworkBinaryReader reader)
+        {
+            object value = ReadNonnullObject("float", reader);
+            if (value is float)
+            {
+                return (float)value;
+            }
+            if (value is string)
+            {
+                return PrimitiveParser.ParseFloat((string)value);
+            }
+            throw PrimitiveParser.CreateProtocolViolationException("float", value);
+        }
+
+        public static string ReadString(NetworkBinaryReader reader)
+        {
+            object value = ReadObject(reader);
+            if (value == null)
+            {
+                return null;
+            }
+            if (value is byte[])
+            {
+                throw PrimitiveParser.CreateProtocolViolationException("string", value);
+            }
+            return value.ToString();
+        }
+
+        public static string ReadUntypedString(NetworkBinaryReader reader)
+        {
+            BinaryWriter buffer = NetworkBinaryWriter.TemporaryBinaryWriter(256);
+            while (true)
+            {
+                byte b = reader.ReadByte();
+                if (b == 0)
+                {
+                    byte[] temporaryContents = NetworkBinaryWriter.TemporaryContents(buffer);
+                    return Encoding.UTF8.GetString(temporaryContents, 0, temporaryContents.Length);
+                }
+                buffer.Write(b);
+            }
+        }
+
+        public static async Task WriteBool(AsyncNetworkBinaryWriter writer, bool value)
+        {
+            await writer.Write((byte)StreamWireFormattingTag.Bool).ConfigureAwait(false);
+            await writer.Write(value ? (byte)0x01 : (byte)0x00).ConfigureAwait(false);
+        }
+
+        public static async Task WriteByte(AsyncNetworkBinaryWriter writer, byte value)
+        {
+            await writer.Write((byte)StreamWireFormattingTag.Byte).ConfigureAwait(false);
+            await writer.Write(value).ConfigureAwait(false);
+        }
+
+        public static async Task WriteBytes(AsyncNetworkBinaryWriter writer,
+            byte[] value,
+            int offset,
+            int length)
+        {
+            await writer.Write((byte)StreamWireFormattingTag.Bytes).ConfigureAwait(false);
+            await writer.Write(length).ConfigureAwait(false);
+            await writer.Write(value, offset, length).ConfigureAwait(false);
+        }
+
+        public static Task WriteBytes(AsyncNetworkBinaryWriter writer, byte[] value)
+        {
+            return WriteBytes(writer, value, 0, value.Length);
+        }
+
+        public static async Task WriteChar(AsyncNetworkBinaryWriter writer, char value)
+        {
+            await writer.Write((byte)StreamWireFormattingTag.Char).ConfigureAwait(false);
+            await writer.Write((ushort)value).ConfigureAwait(false);
+        }
+
+        public static async Task WriteDouble(AsyncNetworkBinaryWriter writer, double value)
+        {
+            await writer.Write((byte)StreamWireFormattingTag.Double).ConfigureAwait(false);
+            await writer.Write(value).ConfigureAwait(false);
+        }
+
+        public static async Task WriteInt16(AsyncNetworkBinaryWriter writer, short value)
+        {
+            await writer.Write((byte)StreamWireFormattingTag.Int16).ConfigureAwait(false);
+            await writer.Write(value).ConfigureAwait(false);
+        }
+
+        public static async Task WriteInt32(AsyncNetworkBinaryWriter writer, int value)
+        {
+            await writer.Write((byte)StreamWireFormattingTag.Int32).ConfigureAwait(false);
+            await writer.Write(value).ConfigureAwait(false);
+        }
+
+        public static async Task WriteInt64(AsyncNetworkBinaryWriter writer, long value)
+        {
+            await writer.Write((byte)StreamWireFormattingTag.Int64).ConfigureAwait(false);
+            await writer.Write(value).ConfigureAwait(false);
+        }
+
+        /// <exception cref="ProtocolViolationException"/>
+        public static async Task WriteObject(AsyncNetworkBinaryWriter writer, object value)
+        {
+            if (value is bool)
+            {
+                await WriteBool(writer, (bool)value).ConfigureAwait(false);
+            }
+            else if (value is int)
+            {
+                await WriteInt32(writer, (int)value).ConfigureAwait(false);
+            }
+            else if (value is short)
+            {
+                await WriteInt16(writer, (short)value).ConfigureAwait(false);
+            }
+            else if (value is byte)
+            {
+                await WriteByte(writer, (byte)value).ConfigureAwait(false);
+            }
+            else if (value is char)
+            {
+                await WriteChar(writer, (char)value).ConfigureAwait(false);
+            }
+            else if (value is long)
+            {
+                await WriteInt64(writer, (long)value).ConfigureAwait(false);
+            }
+            else if (value is float)
+            {
+                await WriteSingle(writer, (float)value).ConfigureAwait(false);
+            }
+            else if (value is double)
+            {
+                await WriteDouble(writer, (double)value).ConfigureAwait(false);
+            }
+            else if (value is byte[])
+            {
+                WriteBytes(writer, (byte[])value).ConfigureAwait(false);
+            }
+            else if (value is BinaryTableValue)
+            {
+                await WriteBytes(writer,
+                    ((BinaryTableValue)value).Bytes).ConfigureAwait(false);
+            }
+            else if (value is string)
+            {
+                await WriteString(writer, (string)value).ConfigureAwait(false);
+            }
+            else
+            {
+                string message = string.Format("Invalid object in StreamMessage.WriteObject: {0}", value);
+                throw new ProtocolViolationException(message);
+            }
+        }
+
+        public static async Task WriteSingle(AsyncNetworkBinaryWriter writer, float value)
+        {
+            await writer.Write((byte)StreamWireFormattingTag.Single).ConfigureAwait(false);
+            await writer.Write(value).ConfigureAwait(false);
+        }
+
+        public static async Task WriteString(AsyncNetworkBinaryWriter writer, string value)
+        {
+            await writer.Write((byte)StreamWireFormattingTag.String).ConfigureAwait(false);
+            await WriteUntypedString(writer, value).ConfigureAwait(false);
+        }
+
+        public static async Task WriteUntypedString(AsyncNetworkBinaryWriter writer, string value)
+        {
+            await writer.Write(Encoding.UTF8.GetBytes(value)).ConfigureAwait(false);
+            await writer.Write((byte)0).ConfigureAwait(false);
         }
     }
 }
