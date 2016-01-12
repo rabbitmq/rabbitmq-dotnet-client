@@ -116,4 +116,71 @@ namespace RabbitMQ.Client
         /// </summary>
         IModel CreateModel(ISession session);
     }
+
+    /// <summary>
+    /// Object describing various overarching parameters
+    /// associated with a particular AMQP protocol variant.
+    /// </summary>
+    public interface IAsyncProtocol
+    {
+        /// <summary>
+        /// Retrieve the protocol's API name, used for printing,
+        /// configuration properties, IDE integration, Protocols.cs etc.
+        /// </summary>
+        string ApiName { get; }
+
+        /// <summary>
+        /// Retrieve the protocol's default TCP port.
+        /// </summary>
+        int DefaultPort { get; }
+
+        /// <summary>
+        /// Retrieve the protocol's major version number.
+        /// </summary>
+        int MajorVersion { get; }
+
+        /// <summary>
+        /// Retrieve the protocol's minor version number.
+        /// </summary>
+        int MinorVersion { get; }
+
+        /// <summary>
+        /// Retrieve the protocol's revision (if specified).
+        /// </summary>
+        int Revision { get; }
+
+        /// <summary>
+        /// Construct a connection from a given set of parameters,
+        /// a frame handler, and no automatic recovery.
+        /// The "insist" parameter is passed on to the AMQP connection.open method.
+        /// </summary>
+        IAsyncConnection CreateConnection(IConnectionFactory factory, bool insist, IAsyncFrameHandler frameHandler);
+
+        /// <summary>
+        /// Construct a connection from a given set of parameters,
+        /// a frame handler, and automatic recovery settings.
+        /// </summary>
+        IAsyncConnection CreateConnection(ConnectionFactory factory, IAsyncFrameHandler frameHandler, bool automaticRecoveryEnabled);
+
+        /// <summary>
+        ///  Construct a frame handler for a given endpoint.
+        ///  </summary>
+        /// <param name="socketFactory">Socket factory method.</param>
+        /// <param name="connectionTimeout">Timeout in milliseconds.</param>
+        /// <param name="endpoint">Represents a TCP-addressable AMQP peer: a host name and port number.</param>
+        IAsyncFrameHandler CreateFrameHandler(
+            AmqpTcpEndpoint endpoint,
+#if !NETFX_CORE
+            Func<AddressFamily, ITcpClient> socketFactory,
+#else
+            Func<StreamSocket> socketFactory,
+#endif
+            int connectionTimeout,
+            int readTimeout,
+            int writeTimeout);
+        /// <summary>
+        /// Construct a protocol model atop a given session.
+        /// </summary>
+        IModel CreateModel(IAsyncSession session);
+    }
 }

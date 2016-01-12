@@ -312,4 +312,253 @@ namespace RabbitMQ.Client
 
         ConsumerWorkService ConsumerWorkService { get; }
     }
+
+    public interface IAsyncConnection : NetworkConnection, IDisposable
+    {
+        /// <summary>
+        /// If true, will close the whole connection as soon as there are no channels open on it;
+        /// if false, manual connection closure will be required.
+        /// </summary>
+        /// <remarks>
+        /// DON'T set AutoClose to true before opening the first
+        /// channel, because the connection will be immediately closed if you do!
+        /// </remarks>
+        bool AutoClose { get; set; }
+
+        /// <summary>
+        /// The maximum channel number this connection supports (0 if unlimited).
+        /// Usable channel numbers range from 1 to this number, inclusive.
+        /// </summary>
+        ushort ChannelMax { get; }
+
+        /// <summary>
+        /// A copy of the client properties that has been sent to the server.
+        /// </summary>
+        IDictionary<string, object> ClientProperties { get; }
+
+        /// <summary>
+        /// Returns null if the connection is still in a state
+        /// where it can be used, or the cause of its closure otherwise.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Applications should use the ConnectionShutdown event to
+        /// avoid race conditions. The scenario to avoid is checking
+        /// <see cref="CloseReason"/>, seeing it is null (meaning the <see cref="RabbitMQ.Client.IConnection"/>
+        /// was available for use at the time of the check), and
+        /// interpreting this mistakenly as a guarantee that the
+        /// <see cref="RabbitMQ.Client.IConnection"/> will remain usable for a time. Instead, the
+        /// operation of interest should simply be attempted: if the
+        /// <see cref="RabbitMQ.Client.IConnection"/> is not in a usable state, an exception will be
+        /// thrown (most likely <see cref="OperationInterruptedException"/>, but may
+        /// vary depending on the particular operation being attempted).
+        /// </para>
+        /// </remarks>
+        ShutdownEventArgs CloseReason { get; }
+
+        /// <summary>
+        /// Retrieve the endpoint this connection is connected to.
+        /// </summary>
+        AmqpTcpEndpoint Endpoint { get; }
+
+        /// <summary>
+        /// The maximum frame size this connection supports (0 if unlimited).
+        /// </summary>
+        uint FrameMax { get; }
+
+        /// <summary>
+        /// The current heartbeat setting for this connection (0 for disabled), in seconds.
+        /// </summary>
+        ushort Heartbeat { get; }
+
+        /// <summary>
+        /// Returns true if the connection is still in a state where it can be used.
+        /// Identical to checking if <see cref="CloseReason"/> equal null.
+        /// </summary>
+        bool IsOpen { get; }
+
+        /// <summary>
+        /// Returns the known hosts that came back from the
+        /// broker in the connection.open-ok method at connection
+        /// startup time. Null until the connection is completely open and ready for use.
+        /// </summary>
+        AmqpTcpEndpoint[] KnownHosts { get; }
+
+        /// <summary>
+        /// The <see cref="IProtocol"/> this connection is using to communicate with its peer.
+        /// </summary>
+        IProtocol Protocol { get; }
+
+        /// <summary>
+        /// A dictionary of the server properties sent by the server while establishing the connection.
+        /// This typically includes the product name and version of the server.
+        /// </summary>
+        IDictionary<string, object> ServerProperties { get; }
+
+        /// <summary>
+        /// Returns the list of <see cref="ShutdownReportEntry"/> objects that contain information
+        /// about any errors reported while closing the connection in the order they appeared
+        /// </summary>
+        IList<ShutdownReportEntry> ShutdownReport { get; }
+
+        /// <summary>
+        /// Signalled when an exception occurs in a callback invoked by the connection.
+        /// </summary>
+        /// <remarks>
+        /// This event is signalled when a ConnectionShutdown handler
+        /// throws an exception. If, in future, more events appear on
+        /// <see cref="RabbitMQ.Client.IConnection"/>, then this event will be signalled whenever one
+        /// of those event handlers throws an exception, as well.
+        /// </remarks>
+        event EventHandler<CallbackExceptionEventArgs> CallbackException;
+
+        event EventHandler<ConnectionBlockedEventArgs> ConnectionBlocked;
+
+        /// <summary>
+        /// Raised when the connection is destroyed.
+        /// </summary>
+        /// <remarks>
+        /// If the connection is already destroyed at the time an
+        /// event handler is added to this event, the event handler
+        /// will be fired immediately.
+        /// </remarks>
+        event EventHandler<ShutdownEventArgs> ConnectionShutdown;
+
+        event EventHandler<EventArgs> ConnectionUnblocked;
+
+        /// <summary>
+        /// Abort this connection and all its channels.
+        /// </summary>
+        /// <remarks>
+        /// Note that all active channels, sessions, and models will be closed if this method is called.
+        /// In comparison to normal <see cref="Close()"/> method, <see cref="Abort()"/> will not throw
+        /// <see cref="AlreadyClosedException"/> or <see cref="IOException"/> during closing connection.
+        ///This method waits infinitely for the in-progress close operation to complete.
+        /// </remarks>
+        void Abort();
+
+        /// <summary>
+        /// Abort this connection and all its channels.
+        /// </summary>
+        /// <remarks>
+        /// The method behaves in the same way as <see cref="Abort()"/>, with the only
+        /// difference that the connection is closed with the given connection close code and message.
+        /// <para>
+        /// The close code (See under "Reply Codes" in the AMQP specification)
+        /// </para>
+        /// <para>
+        /// A message indicating the reason for closing the connection
+        /// </para>
+        /// </remarks>
+        void Abort(ushort reasonCode, string reasonText);
+
+        /// <summary>
+        /// Abort this connection and all its channels and wait with a
+        /// timeout for all the in-progress close operations to complete.
+        /// </summary>
+        /// <remarks>
+        /// This method, behaves in a similar way as method <see cref="Abort()"/> with the
+        /// only difference that it explictly specifies the timeout given
+        /// for all the in-progress close operations to complete.
+        /// If timeout is reached and the close operations haven't finished, then socket is forced to close.
+        /// <para>
+        ///To wait infinitely for the close operations to complete use <see cref="Timeout.Infinite"/>.
+        /// </para>
+        /// </remarks>
+        void Abort(int timeout);
+
+        /// <summary>
+        /// Abort this connection and all its channels and wait with a
+        /// timeout for all the in-progress close operations to complete.
+        /// </summary>
+        /// <remarks>
+        /// The method behaves in the same way as <see cref="Abort(int)"/>, with the only
+        /// difference that the connection is closed with the given connection close code and message.
+        /// <para>
+        /// The close code (See under "Reply Codes" in the AMQP specification).
+        /// </para>
+        /// <para>
+        /// A message indicating the reason for closing the connection.
+        /// </para>
+        /// </remarks>
+        void Abort(ushort reasonCode, string reasonText, int timeout);
+
+        /// <summary>
+        /// Close this connection and all its channels.
+        /// </summary>
+        /// <remarks>
+        /// Note that all active channels, sessions, and models will be
+        /// closed if this method is called. It will wait for the in-progress
+        /// close operation to complete. This method will not return to the caller
+        /// until the shutdown is complete. If the connection is already closed
+        /// (or closing), then this method will throw <see cref="AlreadyClosedException"/>.
+        /// It can also throw <see cref="IOException"/> when socket was closed unexpectedly.
+        /// </remarks>
+        void Close();
+
+        /// <summary>
+        /// Close this connection and all its channels.
+        /// </summary>
+        /// <remarks>
+        /// The method behaves in the same way as <see cref="Close()"/>, with the only
+        /// difference that the connection is closed with the given connection close code and message.
+        /// <para>
+        /// The close code (See under "Reply Codes" in the AMQP specification).
+        /// </para>
+        /// <para>
+        /// A message indicating the reason for closing the connection.
+        /// </para>
+        /// </remarks>
+        void Close(ushort reasonCode, string reasonText);
+
+        /// <summary>
+        /// Close this connection and all its channels
+        /// and wait with a timeout for all the in-progress close operations to complete.
+        /// </summary>
+        /// <remarks>
+        /// Note that all active channels, sessions, and models will be
+        /// closed if this method is called. It will wait for the in-progress
+        /// close operation to complete with a timeout. If the connection is
+        /// already closed (or closing), then this method will throw <see cref="AlreadyClosedException"/>.
+        /// It can also throw <see cref="IOException"/> when socket was closed unexpectedly.
+        /// If timeout is reached and the close operations haven't finished, then socket is forced to close.
+        /// <para>
+        /// To wait infinitely for the close operations to complete use <see cref="Timeout.Infinite"/>.
+        /// </para>
+        /// </remarks>
+        void Close(int timeout);
+
+        /// <summary>
+        /// Close this connection and all its channels
+        /// and wait with a timeout for all the in-progress close operations to complete.
+        /// </summary>
+        /// <remarks>
+        /// The method behaves in the same way as <see cref="Close(int)"/>, with the only
+        /// difference that the connection is closed with the given connection close code and message.
+        /// <para>
+        /// The close code (See under "Reply Codes" in the AMQP specification).
+        /// </para>
+        /// <para>
+        /// A message indicating the reason for closing the connection.
+        /// </para>
+        /// </remarks>
+        void Close(ushort reasonCode, string reasonText, int timeout);
+
+        /// <summary>
+        /// Create and return a fresh channel, session, and model.
+        /// </summary>
+        IModel CreateModel();
+
+        /// <summary>
+        /// Handle incoming Connection.Blocked methods.
+        /// </summary>
+        void HandleConnectionBlocked(string reason);
+
+        /// <summary>
+        /// Handle incoming Connection.Unblocked methods.
+        /// </summary>
+        void HandleConnectionUnblocked();
+
+        ConsumerWorkService ConsumerWorkService { get; }
+    }
 }

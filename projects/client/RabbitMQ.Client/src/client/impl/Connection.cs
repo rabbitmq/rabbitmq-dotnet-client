@@ -1358,7 +1358,7 @@ entry.ToString());
         }
     }
 
-    public class AsyncConnection : IConnection
+    public class AsyncConnection : IAsyncConnection
     {
         public readonly object m_eventLock = new object();
 
@@ -1383,7 +1383,7 @@ entry.ToString());
         public ModelBase m_model0;
         public volatile bool m_running = true;
         public MainSession m_session0;
-        public SessionManager m_sessionManager;
+        public AsyncSessionManager m_sessionManager;
 
         public IList<ShutdownReportEntry> m_shutdownReport = new SynchronizedList<ShutdownReportEntry>(new List<ShutdownReportEntry>());
 
@@ -1416,8 +1416,8 @@ entry.ToString());
             m_frameHandler = frameHandler;
             this.ConsumerWorkService = new ConsumerWorkService(factory.TaskScheduler);
 
-            m_sessionManager = new SessionManager(this, 0);
-            m_session0 = new MainSession(this) { Handler = NotifyReceivedCloseOk };
+            m_sessionManager = new AsyncSessionManager(this, 0);
+            m_session0 = new AsyncMainSession(this) { Handler = NotifyReceivedCloseOk };
             m_model0 = (ModelBase)Protocol.CreateModel(m_session0);
 
             StartMainLoop(factory.UseBackgroundThreadsForIO);
@@ -1583,9 +1583,9 @@ entry.ToString());
 
         ///<summary>Another overload of a Protocol property, useful
         ///for exposing a tighter type.</summary>
-        public ProtocolBase Protocol
+        public AsyncProtocolBase Protocol
         {
-            get { return (ProtocolBase)Endpoint.Protocol; }
+            get { return (AsyncProtocolBase)Endpoint.Protocol; }
         }
 
 #if !NETFX_CORE
@@ -1608,7 +1608,7 @@ entry.ToString());
         }
 
         ///<summary>Explicit implementation of IConnection.Protocol.</summary>
-        IProtocol IConnection.Protocol
+        IProtocol IAsyncConnection.Protocol
         {
             get { return Endpoint.Protocol; }
         }
@@ -1619,7 +1619,7 @@ entry.ToString());
 #if NETFX_CORE
  System.Reflection.IntrospectionExtensions.GetTypeInfo(typeof(Connection)).Assembly;
 #else
-                System.Reflection.Assembly.GetAssembly(typeof(Connection));
+                System.Reflection.Assembly.GetAssembly(typeof(AsyncConnection));
 #endif
 
             string version = assembly.GetName().Version.ToString();
@@ -2041,9 +2041,9 @@ entry.ToString());
             }
         }
 
-        public void NotifyReceivedCloseOk()
+        public async Task NotifyReceivedCloseOk()
         {
-            TerminateMainloop();
+            await TerminateMainloop().ConfigureAwait(false);
             m_closed = true;
         }
 
@@ -2630,7 +2630,7 @@ entry.ToString());
 
             var channelMax = (ushort)NegotiatedMaxValue(m_factory.RequestedChannelMax,
                 connectionTune.m_channelMax);
-            m_sessionManager = new SessionManager(this, channelMax);
+            m_sessionManager = new AsyncSessionManager(this, channelMax);
 
             uint frameMax = NegotiatedMaxValue(m_factory.RequestedFrameMax,
                 connectionTune.m_frameMax);

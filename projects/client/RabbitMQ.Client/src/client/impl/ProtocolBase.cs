@@ -168,4 +168,122 @@ namespace RabbitMQ.Client.Framing.Impl
             return new Model(session, workService);
         }
     }
+
+    public abstract class AsyncProtocolBase : IAsyncProtocol
+    {
+        public IDictionary<string, bool> Capabilities = new Dictionary<string, bool>();
+
+        public AsyncProtocolBase()
+        {
+            Capabilities["publisher_confirms"] = true;
+            Capabilities["exchange_exchange_bindings"] = true;
+            Capabilities["basic.nack"] = true;
+            Capabilities["consumer_cancel_notify"] = true;
+            Capabilities["connection.blocked"] = true;
+            Capabilities["authentication_failure_close"] = true;
+        }
+
+        public abstract string ApiName { get; }
+        public abstract int DefaultPort { get; }
+
+        public abstract int MajorVersion { get; }
+        public abstract int MinorVersion { get; }
+        public abstract int Revision { get; }
+
+        public AmqpVersion Version
+        {
+            get { return new AmqpVersion(MajorVersion, MinorVersion); }
+        }
+
+        public bool CanSendWhileClosed(AsyncCommand cmd)
+        {
+            return cmd.Method is Impl.ChannelCloseOk;
+        }
+
+        public void CreateChannelClose(ushort reasonCode,
+            string reasonText,
+            out AsyncCommand request,
+            out int replyClassId,
+            out int replyMethodId)
+        {
+            request = new AsyncCommand(new Impl.ChannelClose(reasonCode,
+                reasonText,
+                0, 0));
+            replyClassId = Impl.ChannelCloseOk.ClassId;
+            replyMethodId = Impl.ChannelCloseOk.MethodId;
+        }
+
+        public void CreateConnectionClose(ushort reasonCode,
+            string reasonText,
+            out AsyncCommand request,
+            out int replyClassId,
+            out int replyMethodId)
+        {
+            request = new AsyncCommand(new Impl.ConnectionClose(reasonCode,
+                reasonText,
+                0, 0));
+            replyClassId = Impl.ConnectionCloseOk.ClassId;
+            replyMethodId = Impl.ConnectionCloseOk.MethodId;
+        }
+
+        public abstract AsyncContentHeaderBase DecodeContentHeaderFrom(AsyncNetworkBinaryReader reader);
+        public abstract AsyncMethodBase DecodeMethodFrom(NetworkBinaryReader reader);
+
+        public override bool Equals(object obj)
+        {
+            return (GetType() == obj.GetType());
+        }
+
+        public override int GetHashCode()
+        {
+            return GetType().GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return Version.ToString();
+        }
+
+        public IAsyncConnection CreateConnection(IConnectionFactory factory,
+            bool insist,
+            IAsyncFrameHandler frameHandler)
+        {
+            return new AsyncConnection(factory, insist, frameHandler);
+        }
+
+        public IAsyncConnection CreateConnection(ConnectionFactory factory,
+            IAsyncFrameHandler frameHandler,
+            bool automaticRecoveryEnabled)
+        {
+            var ac = new AutorecoveringConnection(factory);
+            ac.Init();
+            // TODO: Fix this! return ac
+            return null;
+        }
+
+        public IAsyncFrameHandler CreateFrameHandler(
+            AmqpTcpEndpoint endpoint,
+#if !NETFX_CORE
+            Func<AddressFamily, ITcpClient> socketFactory,
+#else
+            Func<StreamSocket> socketFactory,
+#endif
+            int connectionTimeout,
+            int readTimeout,
+            int writeTimeout)
+        {
+            return new AsyncSocketFrameHandler(endpoint, socketFactory,
+                connectionTimeout, readTimeout, writeTimeout);
+        }
+
+        public IModel CreateModel(IAsyncSession session)
+        {
+            return new Model(session);
+        }
+
+        public IModel CreateModel(ISession session, ConsumerWorkService workService)
+        {
+            return new Model(session, workService);
+        }
+    }
 }
