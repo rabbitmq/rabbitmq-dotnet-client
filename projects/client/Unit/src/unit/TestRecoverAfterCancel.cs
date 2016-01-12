@@ -69,7 +69,7 @@ namespace RabbitMQ.Client.Unit
         {
             Connection = new ConnectionFactory().CreateConnection();
             Channel = Connection.CreateModel();
-            Queue = Channel.QueueDeclare("", false, true, false, null);
+            Queue = Channel.QueueDeclare("", false, true, false, null).GetAwaiter().GetResult();
         }
 
         [TearDown] public void Disconnect()

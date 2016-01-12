@@ -44,7 +44,7 @@ using System;
 using System.Text;
 using System.Threading;
 using System.Diagnostics;
-
+using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Unit {
@@ -62,6 +62,7 @@ namespace RabbitMQ.Client.Unit {
                 shutdownFired = true;
                 shutdownArgs = args;
                 Monitor.PulseAll(o);
+                return Task.FromResult(0);
             };
 
             Model.BasicAck(123456, false);

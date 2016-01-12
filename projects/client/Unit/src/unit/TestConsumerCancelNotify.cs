@@ -42,6 +42,7 @@ using NUnit.Framework;
 using RabbitMQ.Client.Events;
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -91,7 +92,7 @@ namespace RabbitMQ.Client.Unit
                 }
             }
 
-            public override void HandleBasicCancel(string consumerTag)
+            public override Task HandleBasicCancel(string consumerTag)
             {
                 if (!EventMode)
                 {
@@ -101,16 +102,17 @@ namespace RabbitMQ.Client.Unit
                         Monitor.PulseAll(testClass.lockObject);
                     }
                 }
-                base.HandleBasicCancel(consumerTag);
+                return base.HandleBasicCancel(consumerTag);
             }
 
-            private void Cancelled(object sender, ConsumerEventArgs arg)
+            private Task Cancelled(object sender, ConsumerEventArgs arg)
             {
                 lock (testClass.lockObject)
                 {
                     testClass.notifiedEvent = true;
                     Monitor.PulseAll(testClass.lockObject);
                 }
+                return Task.FromResult(0);
             }
         }
     }

@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 using RabbitMQ.Util;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -58,9 +59,9 @@ namespace RabbitMQ.Client
     ///</remarks>
     public interface IQueueingBasicConsumer
     {
-        void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered,
+        Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered,
             string exchange, string routingKey, IBasicProperties properties, byte[] body);
-        void OnCancel();
+        Task OnCancel();
         SharedQueue<BasicDeliverEventArgs> Queue { get; }
     }
 }

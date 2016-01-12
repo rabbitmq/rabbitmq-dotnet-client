@@ -40,6 +40,7 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 using RabbitMQ.Client.MessagePatterns;
@@ -72,6 +73,7 @@ namespace RabbitMQ.Client.Unit
                 sub.Close();
                 latch.Set();
                 Conn.Close();
+                return Task.FromResult(0);
             };
             this.Model.QueueDelete(q);
             Wait(latch, TimeSpan.FromSeconds(4));

@@ -45,9 +45,13 @@ using RabbitMQ.Client.Impl;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client
 {
+    public delegate Task AsyncEventHandler<in TEventArgs>(object sender, TEventArgs args)
+        where TEventArgs : EventArgs;
+
     /// <summary>
     /// Common AMQP model, spanning the union of the
     /// functionality offered by versions 0-8, 0-8qpid, 0-9 and 0-9-1 of AMQP.
@@ -152,7 +156,7 @@ namespace RabbitMQ.Client
         /// If the model is already destroyed at the time an event
         /// handler is added to this event, the event handler will be fired immediately.
         /// </remarks>
-        event EventHandler<ShutdownEventArgs> ModelShutdown;
+        event AsyncEventHandler<ShutdownEventArgs> ModelShutdown;
 
         /// <summary>
         /// Abort this session.
@@ -449,11 +453,11 @@ namespace RabbitMQ.Client
         /// server autogenerates a name for the queue - the generated name is the return value of this method.
         /// </remarks>
         [AmqpMethodDoNotImplement(null)]
-        QueueDeclareOk QueueDeclare();
+        Task<QueueDeclareOk> QueueDeclare();
 
         /// <summary>(Spec method) Declare a queue.</summary>
         [AmqpMethodDoNotImplement(null)]
-        QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive,
+        Task<QueueDeclareOk> QueueDeclare(string queue, bool durable, bool exclusive,
             bool autoDelete, IDictionary<string, object> arguments);
 
         /// <summary>
@@ -599,7 +603,7 @@ namespace RabbitMQ.Client
         /// OperationInterrupedException exception immediately.
         /// </remarks>
         [AmqpMethodDoNotImplement(null)]
-        void WaitForConfirmsOrDie();
+        Task WaitForConfirmsOrDie();
 
         /// <summary>
         /// Wait until all published messages have been confirmed.
@@ -610,7 +614,7 @@ namespace RabbitMQ.Client
         /// elapses, throws an OperationInterrupedException exception immediately.
         /// </remarks>
         [AmqpMethodDoNotImplement(null)]
-        void WaitForConfirmsOrDie(TimeSpan timeout);
+        Task WaitForConfirmsOrDie(TimeSpan timeout);
 
         /// <summary>
         /// Amount of time protocol  operations (e.g. <code>queue.declare</code>) are allowed to take before

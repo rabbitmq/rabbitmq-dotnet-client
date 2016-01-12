@@ -40,6 +40,7 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
@@ -53,7 +54,7 @@ namespace RabbitMQ.Client.Unit
             {
             }
 
-            public override void HandleBasicDeliver(string consumerTag,
+            public override Task HandleBasicDeliver(string consumerTag,
                 ulong deliveryTag,
                 bool redelivered,
                 string exchange,
@@ -71,7 +72,7 @@ namespace RabbitMQ.Client.Unit
             {
             }
 
-            public override void HandleBasicCancel(string consumerTag)
+            public override Task HandleBasicCancel(string consumerTag)
             {
                 throw new SystemException("oops");
             }
@@ -83,7 +84,7 @@ namespace RabbitMQ.Client.Unit
             {
             }
 
-            public override void HandleModelShutdown(object model, ShutdownEventArgs reason)
+            public override Task HandleModelShutdown(object model, ShutdownEventArgs reason)
             {
                 throw new SystemException("oops");
             }
@@ -95,7 +96,7 @@ namespace RabbitMQ.Client.Unit
             {
             }
 
-            public override void HandleBasicConsumeOk(string consumerTag)
+            public override Task HandleBasicConsumeOk(string consumerTag)
             {
                 throw new SystemException("oops");
             }
@@ -107,7 +108,7 @@ namespace RabbitMQ.Client.Unit
             {
             }
 
-            public override void HandleBasicCancelOk(string consumerTag)
+            public override Task HandleBasicCancelOk(string consumerTag)
             {
                 throw new SystemException("oops");
             }
@@ -118,7 +119,7 @@ namespace RabbitMQ.Client.Unit
         {
             var o = new object();
             bool notified = false;
-            string q = Model.QueueDeclare();
+            string q = Model.QueueDeclare().GetAwaiter().GetResult();
 
 
             Model.CallbackException += (m, evt) =>

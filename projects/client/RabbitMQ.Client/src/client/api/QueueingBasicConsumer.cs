@@ -39,7 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Util;
@@ -128,7 +128,7 @@ namespace RabbitMQ.Client
         /// Overrides <see cref="DefaultBasicConsumer"/>'s  <see cref="HandleBasicDeliver"/> implementation,
         ///  building a <see cref="BasicDeliverEventArgs"/> instance and placing it in the Queue.
         /// </summary>
-        public override void HandleBasicDeliver(string consumerTag,
+        public override Task HandleBasicDeliver(string consumerTag,
             ulong deliveryTag,
             bool redelivered,
             string exchange,
@@ -147,15 +147,16 @@ namespace RabbitMQ.Client
                 Body = body
             };
             Queue.Enqueue(eventArgs);
+            return _doneTask;
         }
 
         /// <summary>
         /// Overrides <see cref="DefaultBasicConsumer"/>'s OnCancel implementation,
         ///  extending it to call the Close() method of the <see cref="SharedQueue"/>.
         /// </summary>
-        public override void OnCancel()
+        public override async Task OnCancel()
         {
-            base.OnCancel();
+            await base.OnCancel().ConfigureAwait(false);
             Queue.Close();
         }
     }

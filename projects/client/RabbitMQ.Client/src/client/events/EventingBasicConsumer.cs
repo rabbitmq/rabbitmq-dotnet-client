@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Events
 {
@@ -50,44 +51,42 @@ namespace RabbitMQ.Client.Events
         ///given value.</summary>
         public EventingBasicConsumer(IModel model) : base(model)
         {
+            Received = (s, e) => _doneTask;
+            Registered = (s, e) => _doneTask;
+            Shutdown = (s, e) => _doneTask;
+            Unregistered = (s, e) => _doneTask;
         }
 
         ///<summary>Event fired on HandleBasicDeliver.</summary>
-        public event EventHandler<BasicDeliverEventArgs> Received;
+        public event AsyncEventHandler<BasicDeliverEventArgs> Received;
 
         ///<summary>Event fired on HandleBasicConsumeOk.</summary>
-        public event EventHandler<ConsumerEventArgs> Registered;
+        public event AsyncEventHandler<ConsumerEventArgs> Registered;
 
         ///<summary>Event fired on HandleModelShutdown.</summary>
-        public event EventHandler<ShutdownEventArgs> Shutdown;
+        public event AsyncEventHandler<ShutdownEventArgs> Shutdown;
 
         ///<summary>Event fired on HandleBasicCancelOk.</summary>
-        public event EventHandler<ConsumerEventArgs> Unregistered;
+        public event AsyncEventHandler<ConsumerEventArgs> Unregistered;
 
         ///<summary>Fires the Unregistered event.</summary>
-        public override void HandleBasicCancelOk(string consumerTag)
+        public override async Task HandleBasicCancelOk(string consumerTag)
         {
-            base.HandleBasicCancelOk(consumerTag);
+            await base.HandleBasicCancelOk(consumerTag).ConfigureAwait(false);
 
-            if (Unregistered != null)
-            {
-                Unregistered(this, new ConsumerEventArgs(consumerTag));
-            }
+            await Unregistered(this, new ConsumerEventArgs(consumerTag)).ConfigureAwait(false);
         }
 
         ///<summary>Fires the Registered event.</summary>
-        public override void HandleBasicConsumeOk(string consumerTag)
+        public override async Task HandleBasicConsumeOk(string consumerTag)
         {
-            base.HandleBasicConsumeOk(consumerTag);
+            await base.HandleBasicConsumeOk(consumerTag).ConfigureAwait(false);
 
-            if (Registered != null)
-            {
-                Registered(this, new ConsumerEventArgs(consumerTag));
-            }
+            await Registered(this, new ConsumerEventArgs(consumerTag)).ConfigureAwait(false);
         }
 
         ///<summary>Fires the Received event.</summary>
-        public override void HandleBasicDeliver(string consumerTag,
+        public override async Task HandleBasicDeliver(string consumerTag,
             ulong deliveryTag,
             bool redelivered,
             string exchange,
@@ -95,34 +94,28 @@ namespace RabbitMQ.Client.Events
             IBasicProperties properties,
             byte[] body)
         {
-            base.HandleBasicDeliver(consumerTag,
+            await base.HandleBasicDeliver(consumerTag,
                 deliveryTag,
                 redelivered,
                 exchange,
                 routingKey,
                 properties,
-                body);
-            if (Received != null)
-            {
-                Received(this, new BasicDeliverEventArgs(consumerTag,
-                    deliveryTag,
-                    redelivered,
-                    exchange,
-                    routingKey,
-                    properties,
-                    body));
-            }
+                body).ConfigureAwait(false);
+            await Received(this, new BasicDeliverEventArgs(consumerTag,
+                deliveryTag,
+                redelivered,
+                exchange,
+                routingKey,
+                properties,
+                body)).ConfigureAwait(false);
         }
 
         ///<summary>Fires the Shutdown event.</summary>
-        public override void HandleModelShutdown(object model, ShutdownEventArgs reason)
+        public override async Task HandleModelShutdown(object model, ShutdownEventArgs reason)
         {
-            base.HandleModelShutdown(model, reason);
+            await base.HandleModelShutdown(model, reason).ConfigureAwait(false);
 
-            if (Shutdown != null)
-            {
-                Shutdown(this, reason);
-            }
+            await Shutdown(this, reason).ConfigureAwait(false);
         }
     }
 }

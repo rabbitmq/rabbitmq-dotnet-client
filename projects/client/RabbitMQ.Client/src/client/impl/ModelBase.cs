@@ -48,6 +48,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 
 #if (NETFX_CORE)
 using Trace = System.Diagnostics.Debug;
@@ -82,7 +83,7 @@ namespace RabbitMQ.Client.Impl
         private EventHandler<BasicReturnEventArgs> m_basicReturn;
         private EventHandler<CallbackExceptionEventArgs> m_callbackException;
         private EventHandler<FlowControlEventArgs> m_flowControl;
-        private EventHandler<ShutdownEventArgs> m_modelShutdown;
+        private AsyncEventHandler<ShutdownEventArgs> m_modelShutdown;
 
         private bool m_onlyAcksReceived = true;
 
@@ -98,6 +99,8 @@ namespace RabbitMQ.Client.Impl
         {
             Initialise(session);
             ConsumerDispatcher = new ConcurrentConsumerDispatcher(this, workService);
+
+            m_flowControl += (sender, args) => { };
         }
 
         protected void Initialise(ISession session)
@@ -229,7 +232,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public event EventHandler<ShutdownEventArgs> ModelShutdown
+        public event AsyncEventHandler<ShutdownEventArgs> ModelShutdown
         {
             add
             {
@@ -297,14 +300,14 @@ namespace RabbitMQ.Client.Impl
 
         public ISession Session { get; set; }
 
-        public void Close(ushort replyCode, string replyText, bool abort)
+        public Task Close(ushort replyCode, string replyText, bool abort)
         {
-            Close(new ShutdownEventArgs(ShutdownInitiator.Application,
+            return Close(new ShutdownEventArgs(ShutdownInitiator.Application,
                 replyCode, replyText),
                 abort);
         }
 
-        public void Close(ShutdownEventArgs reason, bool abort)
+        public async Task Close(ShutdownEventArgs reason, bool abort)
         {
             var k = new ShutdownContinuation();
             ModelShutdown += k.OnConnectionShutdown;
@@ -316,7 +319,7 @@ namespace RabbitMQ.Client.Impl
                 {
                     _Private_ChannelClose(reason.ReplyCode, reason.ReplyText, 0, 0);
                 }                
-                k.Wait(TimeSpan.FromMilliseconds(10000));
+                await k.WaitAsync(TimeSpan.FromMilliseconds(10000)).ConfigureAwait(false);
                 ConsumerDispatcher.Shutdown(this);
             }
             catch (AlreadyClosedException)
@@ -449,7 +452,7 @@ namespace RabbitMQ.Client.Impl
         {
             var k = new SimpleBlockingRpcContinuation();
             TransmitAndEnqueue(new Command(method, header, body), k);
-            return k.GetReply(this.ContinuationTimeout).Method;
+            return k.GetReply(this.ContinuationTimeout).GetAwaiter().GetResult().Method;
         }
 
         public void ModelSend(MethodBase method, ContentHeaderBase header, byte[] body)
@@ -628,15 +631,14 @@ namespace RabbitMQ.Client.Impl
         public virtual void OnModelShutdown(ShutdownEventArgs reason)
         {
             m_continuationQueue.HandleModelShutdown(reason);
-            EventHandler<ShutdownEventArgs> handler;
-            lock (m_shutdownLock)
+            AsyncEventHandler<ShutdownEventArgs> handler;
+            lock (m_eventLock)
             {
                 handler = m_modelShutdown;
-                m_modelShutdown = null;
             }
             if (handler != null)
             {
-                foreach (EventHandler<ShutdownEventArgs> h in handler.GetInvocationList())
+                foreach (AsyncEventHandler<ShutdownEventArgs> h in handler.GetInvocationList())
                 {
                     try
                     {
@@ -644,7 +646,7 @@ namespace RabbitMQ.Client.Impl
                     }
                     catch (Exception e)
                     {
-                        OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnModelShutdown"));
+                        OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnFlowControl"));
                     }
                 }
             }
@@ -1416,12 +1418,12 @@ namespace RabbitMQ.Client.Impl
             _Private_QueueBind(queue, exchange, routingKey, true, arguments);
         }
 
-        public QueueDeclareOk QueueDeclare()
+        public Task<QueueDeclareOk> QueueDeclare()
         {
             return QueueDeclare("", false, true, true, null);
         }
 
-        public QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive,
+        public Task<QueueDeclareOk> QueueDeclare(string queue, bool durable, bool exclusive,
             bool autoDelete, IDictionary<string, object> arguments)
         {
             return QueueDeclare(queue, false, durable, exclusive, autoDelete, arguments);
@@ -1435,7 +1437,7 @@ namespace RabbitMQ.Client.Impl
 
         public QueueDeclareOk QueueDeclarePassive(string queue)
         {
-            return QueueDeclare(queue, true, false, false, false, null);
+            return QueueDeclare(queue, true, false, false, false, null).GetAwaiter().GetResult();
         }
 
         public uint MessageCount(string queue)
@@ -1539,30 +1541,30 @@ namespace RabbitMQ.Client.Impl
             return WaitForConfirms(timeout, out timedOut);
         }
 
-        public void WaitForConfirmsOrDie()
+        public Task WaitForConfirmsOrDie()
         {
-            WaitForConfirmsOrDie(TimeSpan.FromMilliseconds(Timeout.Infinite));
+            return WaitForConfirmsOrDie(TimeSpan.FromMilliseconds(Timeout.Infinite));
         }
 
-        public void WaitForConfirmsOrDie(TimeSpan timeout)
+        public async Task WaitForConfirmsOrDie(TimeSpan timeout)
         {
             bool timedOut;
             bool onlyAcksReceived = WaitForConfirms(timeout, out timedOut);
             if (!onlyAcksReceived)
             {
-                Close(new ShutdownEventArgs(ShutdownInitiator.Application,
+                await Close(new ShutdownEventArgs(ShutdownInitiator.Application,
                     Constants.ReplySuccess,
                     "Nacks Received", new IOException("nack received")),
-                    false);
+                    false).ConfigureAwait(false);
                 throw new IOException("Nacks Received");
             }
             if (timedOut)
             {
-                Close(new ShutdownEventArgs(ShutdownInitiator.Application,
+                await Close(new ShutdownEventArgs(ShutdownInitiator.Application,
                     Constants.ReplySuccess,
                     "Timed out waiting for acks",
                     new IOException("timed out waiting for acks")),
-                    false);
+                    false).ConfigureAwait(false);
                 throw new IOException("Timed out waiting for acks");
             }
         }
@@ -1595,13 +1597,13 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        private QueueDeclareOk QueueDeclare(string queue, bool passive, bool durable, bool exclusive,
+        private async Task<QueueDeclareOk> QueueDeclare(string queue, bool passive, bool durable, bool exclusive,
             bool autoDelete, IDictionary<string, object> arguments)
         {
             var k = new QueueDeclareRpcContinuation();
             Enqueue(k);
             _Private_QueueDeclare(queue, passive, durable, exclusive, autoDelete, false, arguments);
-            k.GetReply(this.ContinuationTimeout);
+            await k.GetReply(this.ContinuationTimeout).ConfigureAwait(false);
             return k.m_result;
         }
 

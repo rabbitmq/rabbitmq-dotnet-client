@@ -41,6 +41,7 @@
 using NUnit.Framework;
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 
 namespace RabbitMQ.Client.Unit
@@ -67,12 +68,12 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestWaitForConfirmsWithEvents()
+        public async Task TestWaitForConfirmsWithEvents()
         {
             var ch = Conn.CreateModel();
             ch.ConfirmSelect();
 
-            var q = ch.QueueDeclare().QueueName;
+            var q = (await ch.QueueDeclare()).QueueName;
             var n = 200;
             // number of event handler invocations
             var c = 0;
@@ -108,7 +109,7 @@ namespace RabbitMQ.Client.Unit
             var ch = Conn.CreateModel();
             ch.ConfirmSelect();
 
-            var q = ch.QueueDeclare().QueueName;
+            var q = ch.QueueDeclare().GetAwaiter().GetResult().QueueName;
 
             for (int i = 0; i < numberOfMessagesToPublish; i++)
             {

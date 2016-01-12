@@ -57,7 +57,7 @@ namespace RabbitMQ.Client.Unit
                 IModel ch = conn.CreateModel();
 
                 ch.ExchangeDeclare("Exchange_TestSslEndPoint", ExchangeType.Direct);
-                String qName = ch.QueueDeclare();
+                String qName = ch.QueueDeclare().GetAwaiter().GetResult();
                 ch.QueueBind(qName, "Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null);
 
                 string message = "Hello C# SSL Client World";

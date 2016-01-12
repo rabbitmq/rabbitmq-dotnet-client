@@ -39,13 +39,15 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
     public class ShutdownContinuation
     {
-        public readonly BlockingCell m_cell = new BlockingCell();
+        private readonly TaskCompletionSource<ShutdownEventArgs> tcs = new TaskCompletionSource<ShutdownEventArgs>(); 
 
         // You will note there are two practically identical overloads
         // of OnShutdown() here. This is because Microsoft's C#
@@ -62,24 +64,29 @@ namespace RabbitMQ.Client.Impl
         // presumably they improved the type checker with the new
         // release of the compiler.
 
-        public virtual void OnConnectionShutdown(object sender, ShutdownEventArgs reason)
+        public virtual Task OnConnectionShutdown(object sender, ShutdownEventArgs reason)
         {
-            m_cell.Value = reason;
+            tcs.SetResult(reason);
+            return Task.FromResult(0);
         }
 
-        public virtual void OnModelShutdown(IModel sender, ShutdownEventArgs reason)
+        public virtual Task OnModelShutdown(IModel sender, ShutdownEventArgs reason)
         {
-            m_cell.Value = reason;
+            tcs.SetResult(reason);
+            return Task.FromResult(0);
         }
 
-        public virtual ShutdownEventArgs Wait()
+        public virtual Task<ShutdownEventArgs> WaitAsync()
         {
-            return (ShutdownEventArgs)m_cell.Value;
+            return tcs.Task;
         }
 
-        public ShutdownEventArgs Wait(TimeSpan timeout)
+        public Task<ShutdownEventArgs> WaitAsync(TimeSpan timeout)
         {
-            return (ShutdownEventArgs)m_cell.GetValue(timeout);
+            var cancellationTokenSource = new CancellationTokenSource();
+            cancellationTokenSource.CancelAfter(timeout);
+            cancellationTokenSource.Token.Register(() => tcs.SetCanceled());
+            return tcs.Task;
         }
     }
 }

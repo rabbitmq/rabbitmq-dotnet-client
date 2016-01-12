@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
@@ -64,13 +65,13 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestExchangeBinding()
+        public async Task TestExchangeBinding()
         {
             Model.ConfirmSelect();
 
             Model.ExchangeDeclare("src", ExchangeType.Direct, false, false, null);
             Model.ExchangeDeclare("dest", ExchangeType.Direct, false, false, null);
-            string queue = Model.QueueDeclare();
+            string queue = await Model.QueueDeclare();
 
             Model.ExchangeBind("dest", "src", String.Empty);
             Model.QueueBind(queue, "dest", String.Empty);

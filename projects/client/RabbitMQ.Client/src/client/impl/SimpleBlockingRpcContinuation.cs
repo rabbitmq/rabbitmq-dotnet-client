@@ -40,6 +40,8 @@
 
 using System;
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
 
@@ -47,11 +49,11 @@ namespace RabbitMQ.Client.Impl
 {
     public class SimpleBlockingRpcContinuation : IRpcContinuation
     {
-        public readonly BlockingCell m_cell = new BlockingCell();
+        public readonly TaskCompletionSource<Either> tcs = new TaskCompletionSource<Either>();
 
-        public virtual Command GetReply()
+        public virtual async Task<Command> GetReply()
         {
-            var result = (Either)m_cell.Value;
+            var result = await tcs.Task.ConfigureAwait(false);
             switch (result.Alternative)
             {
                 case EitherAlternative.Left:
@@ -69,9 +71,12 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public virtual Command GetReply(TimeSpan timeout)
+        public virtual async Task<Command> GetReply(TimeSpan timeout)
         {
-            var result = (Either)m_cell.GetValue(timeout);
+            var cancellationTokenSource = new CancellationTokenSource();
+            cancellationTokenSource.Token.Register(() => tcs.SetCanceled());
+            cancellationTokenSource.CancelAfter(timeout);
+            var result = await tcs.Task.ConfigureAwait(false);
             switch (result.Alternative)
             {
                 case EitherAlternative.Left:
@@ -96,12 +101,12 @@ namespace RabbitMQ.Client.Impl
 
         public virtual void HandleCommand(Command cmd)
         {
-            m_cell.Value = Either.Left(cmd);
+            tcs.SetResult(Either.Left(cmd));
         }
 
         public virtual void HandleModelShutdown(ShutdownEventArgs reason)
         {
-            m_cell.Value = Either.Right(reason);
+            tcs.SetResult(Either.Right(reason));
         }
     }
 }

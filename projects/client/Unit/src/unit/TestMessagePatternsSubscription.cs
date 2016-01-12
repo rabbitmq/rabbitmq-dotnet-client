@@ -45,6 +45,7 @@ using RabbitMQ.Client.MessagePatterns;
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -57,7 +58,7 @@ namespace RabbitMQ.Client.Unit
             {
                 {Headers.XMessageTTL, 5000}
             };
-            string queueDeclare = Model.QueueDeclare("", false, true, false, args);
+            string queueDeclare = Model.QueueDeclare("", false, true, false, args).GetAwaiter().GetResult();
             var subscription = new Subscription(Model, queueDeclare, false);
 
             PreparedQueue(queueDeclare);
@@ -80,7 +81,7 @@ namespace RabbitMQ.Client.Unit
             {
                 {Headers.XMessageTTL, 5000}
             };
-            string queueDeclare = Model.QueueDeclare("", false, true, false, args);
+            string queueDeclare = Model.QueueDeclare("", false, true, false, args).GetAwaiter().GetResult();
             var subscription = new Subscription(Model, queueDeclare, false);
 
             PreparedQueue(queueDeclare);
@@ -92,7 +93,7 @@ namespace RabbitMQ.Client.Unit
         private void TestSubscriptionAction(Action<Subscription> action)
         {
             Model.BasicQos(0, 1, false);
-            string queueDeclare = Model.QueueDeclare();
+            string queueDeclare = Model.QueueDeclare().GetAwaiter().GetResult();
             var subscription = new Subscription(Model, queueDeclare, false);
 
             Model.BasicPublish("", queueDeclare, null, encoding.GetBytes("a message"));
@@ -158,9 +159,9 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestChannelClosureIsObservableOnSubscription()
+        public async Task TestChannelClosureIsObservableOnSubscription()
         {
-            string q = Model.QueueDeclare();
+            string q = await Model.QueueDeclare();
             var sub = new Subscription(Model, q, true);
 
             BasicDeliverEventArgs r1;

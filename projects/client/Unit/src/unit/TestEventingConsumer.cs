@@ -44,7 +44,7 @@ using System;
 using System.Text;
 using System.Threading;
 using System.Diagnostics;
-
+using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Unit {
@@ -52,9 +52,9 @@ namespace RabbitMQ.Client.Unit {
     public class TestEventingConsumer : IntegrationFixture {
 
         [Test]
-        public void TestEventingConsumerRegistrationEvents()
+        public async Task TestEventingConsumerRegistrationEvents()
         {
-            string q = Model.QueueDeclare();
+            string q = await Model.QueueDeclare();
 
             var registeredLatch = new ManualResetEvent(false);
             object registeredSender = null;
@@ -66,12 +66,14 @@ namespace RabbitMQ.Client.Unit {
             {
                 registeredSender = s;
                 registeredLatch.Set();
+                return Task.FromResult(0);
             };
 
             ec.Unregistered += (s, args) =>
             {
                 unregisteredSender = s;
                 unregisteredLatch.Set();
+                return Task.FromResult(0);
             };
 
             string tag = Model.BasicConsume(q, false, ec);
@@ -89,9 +91,9 @@ namespace RabbitMQ.Client.Unit {
         }
 
         [Test]
-        public void TestEventingConsumerDeliveryEvents()
+        public async Task TestEventingConsumerDeliveryEvents()
         {
-            string q = Model.QueueDeclare();
+            string q = await Model.QueueDeclare();
             object o = new Object ();
 
             bool receivedInvoked = false;
@@ -104,6 +106,7 @@ namespace RabbitMQ.Client.Unit {
                 receivedSender = s;
 
                 Monitor.PulseAll(o);
+                return Task.FromResult(0);
             };
 
             Model.BasicConsume(q, true, ec);
@@ -124,6 +127,7 @@ namespace RabbitMQ.Client.Unit {
                 shutdownSender = s;
 
                 Monitor.PulseAll(o);
+                return Task.FromResult(0);
             };
 
             Model.Close();
