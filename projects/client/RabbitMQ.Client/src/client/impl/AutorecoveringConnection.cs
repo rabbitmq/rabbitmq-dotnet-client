@@ -574,7 +574,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
         protected void Init(string hostname)
         {
-            m_delegate = new Connection(m_factory, false, m_factory.CreateFrameHandler());
+            m_delegate = new Connection(m_factory, false,
+                m_factory.CreateFrameHandlerForHostname(hostname));
 
             AutorecoveringConnection self = this;
             EventHandler<ShutdownEventArgs> recoveryListener = (_, args) =>

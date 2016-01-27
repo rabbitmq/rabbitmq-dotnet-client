@@ -402,6 +402,11 @@ namespace RabbitMQ.Client
             return ConfigureFrameHandler(fh);
         }
 
+        public IFrameHandler CreateFrameHandlerForHostname(string hostname)
+        {
+            return CreateFrameHandler(this.Endpoint.CloneWithHostname(hostname));
+        }
+
         private IFrameHandler ConfigureFrameHandler(IFrameHandler fh)
         {
             // make sure socket timeouts are higher than heartbeat
