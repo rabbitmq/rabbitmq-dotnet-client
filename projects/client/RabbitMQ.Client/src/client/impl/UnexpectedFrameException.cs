@@ -66,4 +66,25 @@ namespace RabbitMQ.Client.Impl
             get { return Constants.CommandInvalid; }
         }
     }
+
+    public class AsyncUnexpectedFrameException : HardProtocolException
+    {
+        public AsyncFrame m_frame;
+
+        public AsyncUnexpectedFrameException(AsyncFrame frame)
+            : base("A frame of this type was not expected at this time")
+        {
+            m_frame = frame;
+        }
+
+        public AsyncFrame Frame
+        {
+            get { return m_frame; }
+        }
+
+        public override ushort ReplyCode
+        {
+            get { return Constants.CommandInvalid; }
+        }
+    }
 }

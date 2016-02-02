@@ -46,6 +46,8 @@ using System.Net;
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -255,6 +257,253 @@ namespace RabbitMQ.Client.Impl
             lock (m_writer)
             {
                 m_writer.Flush();
+            }
+        }
+
+        private void Connect(ITcpClient socket, AmqpTcpEndpoint endpoint, int timeout)
+        {
+            IAsyncResult ar = null;
+            try
+            {
+                ar = socket.BeginConnect(endpoint.HostName, endpoint.Port, null, null);
+                if (!ar.AsyncWaitHandle.WaitOne(timeout, false))
+                {
+                    socket.Close();
+                    throw new TimeoutException("Connection to " + endpoint + " timed out");
+                }
+                socket.EndConnect(ar);
+            }
+            catch (ArgumentException e)
+            {
+                throw new ConnectFailureException("Connection failed", e);
+            }
+            catch (SocketException e)
+            {
+                throw new ConnectFailureException("Connection failed", e);
+            }
+            finally
+            {
+                if (ar != null)
+                {
+                    ar.AsyncWaitHandle.Close();
+                }
+            }
+        }
+    }
+
+    public class AsyncSocketFrameHandler : IAsyncFrameHandler
+    {
+        // Timeout in seconds to wait for a clean socket close.
+        public const int SOCKET_CLOSING_TIMEOUT = 1;
+        // Socket poll timeout in ms. If the socket does not
+        // become writeable in this amount of time, we throw
+        // an exception.
+        protected int m_writeableStateTimeout = 30000;
+
+        public NetworkBinaryReader m_reader;
+        public ITcpClient m_socket;
+        public AsyncNetworkBinaryWriter m_writer;
+        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+        private bool _closed;
+        private readonly AsyncLock m_writerLock = new AsyncLock();
+
+        public AsyncSocketFrameHandler(AmqpTcpEndpoint endpoint,
+            Func<AddressFamily, ITcpClient> socketFactory,
+            int connectionTimeout, int readTimeout, int writeTimeout)
+        {
+            Endpoint = endpoint;
+            m_socket = null;
+            if (Socket.OSSupportsIPv6)
+            {
+                try
+                {
+                    m_socket = socketFactory(AddressFamily.InterNetworkV6);
+                    Connect(m_socket, endpoint, connectionTimeout);
+                }
+                catch (ConnectFailureException) // could not connect using IPv6
+                {
+                    m_socket = null;
+                }
+                // Mono might raise a SocketException when using IPv4 addresses on
+                // an OS that supports IPv6
+                catch (SocketException)
+                {
+                    m_socket = null;
+                }
+            }
+            if (m_socket == null)
+            {
+                m_socket = socketFactory(AddressFamily.InterNetwork);
+                Connect(m_socket, endpoint, connectionTimeout);
+            }
+
+            Stream netstream = m_socket.GetStream();
+            netstream.ReadTimeout = readTimeout;
+            netstream.WriteTimeout = writeTimeout;
+
+            if (endpoint.Ssl.Enabled)
+            {
+                try
+                {
+                    netstream = SslHelper.TcpUpgrade(netstream, endpoint.Ssl);
+                }
+                catch (Exception)
+                {
+                    Close().GetAwaiter().GetResult();
+                    throw;
+                }
+            }
+            m_reader = new NetworkBinaryReader(new BufferedStream(netstream));
+            m_writer = new AsyncNetworkBinaryWriter(new BufferedStream(netstream));
+
+            m_writeableStateTimeout = writeTimeout;
+        }
+
+        public AmqpTcpEndpoint Endpoint { get; set; }
+
+        public EndPoint LocalEndPoint
+        {
+            get { return m_socket.Client.LocalEndPoint; }
+        }
+
+        public int LocalPort
+        {
+            get { return ((IPEndPoint)LocalEndPoint).Port; }
+        }
+
+        public EndPoint RemoteEndPoint
+        {
+            get { return m_socket.Client.RemoteEndPoint; }
+        }
+
+        public int RemotePort
+        {
+            get { return ((IPEndPoint)LocalEndPoint).Port; }
+        }
+
+        public int ReadTimeout
+        {
+            set
+            {
+                try
+                {
+                    if (m_socket.Connected)
+                    {
+                        m_socket.ReceiveTimeout = value;
+                    }
+                }
+#pragma warning disable 0168
+                catch (SocketException _)
+                {
+                    // means that the socket is already closed
+                }
+#pragma warning restore 0168
+            }
+        }
+
+        public int WriteTimeout
+        {
+            set
+            {
+                m_writeableStateTimeout = value;
+                m_socket.Client.SendTimeout = value;
+            }
+        }
+
+        public async Task Close()
+        {
+            try
+            {
+                await _semaphore.WaitAsync().ConfigureAwait(false);
+                if (!_closed)
+                {
+                    try
+                    {
+                        try
+                        {
+
+                        }
+                        catch (ArgumentException _)
+                        {
+                            // ignore, we are closing anyway
+                        };
+                        m_socket.Close();
+                    }
+                    catch (Exception _)
+                    {
+                        // ignore, we are closing anyway
+                    }
+                    finally
+                    {
+                        _closed = true;
+                    }
+                }
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
+        public Frame ReadFrame()
+        {
+            lock (m_reader)
+            {
+                return Frame.ReadFrom(m_reader);
+            }
+        }
+
+        public async Task SendHeader()
+        {
+            using (await m_writerLock.LockAsync().ConfigureAwait(false))
+            {
+                await m_writer.Write(Encoding.ASCII.GetBytes("AMQP")).ConfigureAwait(false);
+                if (Endpoint.Protocol.Revision != 0)
+                {
+                    await m_writer.Write((byte)0).ConfigureAwait(false);
+                    await m_writer.Write((byte)Endpoint.Protocol.MajorVersion).ConfigureAwait(false);
+                    await m_writer.Write((byte)Endpoint.Protocol.MinorVersion).ConfigureAwait(false);
+                    await m_writer.Write((byte)Endpoint.Protocol.Revision).ConfigureAwait(false);
+                }
+                else
+                {
+                    await m_writer.Write((byte)1).ConfigureAwait(false);
+                    await m_writer.Write((byte)1).ConfigureAwait(false);
+                    await m_writer.Write((byte)Endpoint.Protocol.MajorVersion).ConfigureAwait(false);
+                    await m_writer.Write((byte)Endpoint.Protocol.MinorVersion).ConfigureAwait(false);
+                }
+                await m_writer.Flush().ConfigureAwait(false);
+            }
+        }
+
+        public async Task WriteFrame(AsyncFrame frame)
+        {
+            using (await m_writerLock.LockAsync().ConfigureAwait(false))
+            {
+                m_socket.Client.Poll(m_writeableStateTimeout, SelectMode.SelectWrite);
+                await frame.WriteTo(m_writer).ConfigureAwait(false);
+                await m_writer.Flush().ConfigureAwait(false);
+            }
+        }
+
+        public async Task WriteFrameSet(IList<AsyncFrame> frames)
+        {
+            using (await m_writerLock.LockAsync().ConfigureAwait(false))
+            {
+                m_socket.Client.Poll(m_writeableStateTimeout, SelectMode.SelectWrite);
+                foreach (var f in frames)
+                {
+                    await f.WriteTo(m_writer).ConfigureAwait(false);
+                }
+                await m_writer.Flush().ConfigureAwait(false);
+            }
+        }
+
+        public async Task Flush()
+        {
+            using (await m_writerLock.LockAsync().ConfigureAwait(false))
+            {
+                await m_writer.Flush().ConfigureAwait(false);
             }
         }
 

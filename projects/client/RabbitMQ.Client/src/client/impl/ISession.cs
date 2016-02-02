@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -79,5 +80,44 @@ namespace RabbitMQ.Client.Impl
         void HandleFrame(Frame frame);
         void Notify();
         void Transmit(Command cmd);
+    }
+
+    public interface IAsyncSession
+    {
+        /// <summary>
+        /// Gets the channel number.
+        /// </summary>
+        int ChannelNumber { get; }
+
+        /// <summary>
+        /// Gets the close reason.
+        /// </summary>
+        ShutdownEventArgs CloseReason { get; }
+
+        ///<summary>
+        /// Single recipient - no need for multiple handlers to be informed of arriving commands.
+        ///</summary>
+        Action<IAsyncSession, AsyncCommand> CommandReceived { get; set; }
+
+        /// <summary>
+        /// Gets the connection.
+        /// </summary>
+        IAsyncConnection Connection { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether this session is open.
+        /// </summary>
+        bool IsOpen { get; }
+
+        ///<summary>
+        /// Multicast session shutdown event.
+        ///</summary>
+        event EventHandler<ShutdownEventArgs> SessionShutdown;
+
+        void Close(ShutdownEventArgs reason);
+        void Close(ShutdownEventArgs reason, bool notify);
+        Task HandleFrame(AsyncFrame frame);
+        void Notify();
+        Task Transmit(AsyncCommand cmd);
     }
 }

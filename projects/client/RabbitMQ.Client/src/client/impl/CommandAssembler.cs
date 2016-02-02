@@ -154,4 +154,104 @@ namespace RabbitMQ.Client.Impl
                 : AssemblyState.Complete;
         }
     }
+
+    public class AsyncCommandAssembler
+    {
+        public AsyncCommand m_command;
+        public AsyncProtocolBase m_protocol;
+        public ulong m_remainingBodyBytes;
+        public AssemblyState m_state;
+
+        public AsyncCommandAssembler(AsyncProtocolBase protocol)
+        {
+            m_protocol = protocol;
+            Reset();
+        }
+
+        public AsyncCommand HandleFrame(AsyncFrame f)
+        {
+            switch (m_state)
+            {
+                case AssemblyState.ExpectingMethod:
+                    {
+                        if (f.Type != Constants.FrameMethod)
+                        {
+                            throw new AsyncUnexpectedFrameException(f);
+                        }
+                        m_command.Method = m_protocol.DecodeMethodFrom(f.GetReader());
+                        m_state = m_command.Method.HasContent
+                            ? AssemblyState.ExpectingContentHeader
+                            : AssemblyState.Complete;
+                        return CompletedCommand();
+                    }
+                case AssemblyState.ExpectingContentHeader:
+                    {
+                        if (f.Type != Constants.FrameHeader)
+                        {
+                            throw new AsyncUnexpectedFrameException(f);
+                        }
+                        NetworkBinaryReader reader = f.GetReader();
+                        m_command.Header = m_protocol.DecodeContentHeaderFrom(reader);
+                        m_remainingBodyBytes = m_command.Header.ReadFrom(reader);
+                        UpdateContentBodyState();
+                        return CompletedCommand();
+                    }
+                case AssemblyState.ExpectingContentBody:
+                    {
+                        if (f.Type != Constants.FrameBody)
+                        {
+                            throw new AsyncUnexpectedFrameException(f);
+                        }
+                        byte[] fragment = f.Payload;
+                        m_command.AppendBodyFragment(fragment);
+                        if ((ulong)fragment.Length > m_remainingBodyBytes)
+                        {
+                            throw new MalformedFrameException
+                                (string.Format("Overlong content body received - {0} bytes remaining, {1} bytes received",
+                                    m_remainingBodyBytes,
+                                    fragment.Length));
+                        }
+                        m_remainingBodyBytes -= (ulong)fragment.Length;
+                        UpdateContentBodyState();
+                        return CompletedCommand();
+                    }
+                case AssemblyState.Complete:
+                default:
+#if NETFX_CORE
+                    Debug.WriteLine("Received frame in invalid state {0}; {1}", m_state, f);
+#else
+                    Trace.Fail(string.Format("Received frame in invalid state {0}; {1}", m_state, f));
+#endif
+                    return null;
+            }
+        }
+
+        private AsyncCommand CompletedCommand()
+        {
+            if (m_state == AssemblyState.Complete)
+            {
+                AsyncCommand result = m_command;
+                Reset();
+                return result;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        private void Reset()
+        {
+            m_state = AssemblyState.ExpectingMethod;
+            m_command = new AsyncCommand();
+            m_remainingBodyBytes = 0;
+        }
+
+        private void UpdateContentBodyState()
+        {
+            m_state = (m_remainingBodyBytes > 0)
+                ? AssemblyState.ExpectingContentBody
+                : AssemblyState.Complete;
+        }
+    }
 }

@@ -40,6 +40,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
@@ -126,6 +127,93 @@ namespace RabbitMQ.Client.Impl
         private void EmitFlagWord(bool continuationBit)
         {
             BaseWriter.Write((ushort)(continuationBit ? (m_flagWord | 1) : m_flagWord));
+            m_flagWord = 0;
+            m_bitCount = 0;
+        }
+    }
+
+    public class AsyncContentHeaderPropertyWriter
+    {
+        protected int m_bitCount;
+        protected ushort m_flagWord;
+
+        public AsyncContentHeaderPropertyWriter(AsyncNetworkBinaryWriter writer)
+        {
+            BaseWriter = writer;
+            m_flagWord = 0;
+            m_bitCount = 0;
+        }
+
+        public AsyncNetworkBinaryWriter BaseWriter { get; private set; }
+
+        public Task FinishPresence()
+        {
+            return EmitFlagWord(false);
+        }
+
+        public Task WriteBit(bool bit)
+        {
+            return WritePresence(bit);
+        }
+
+        public Task WriteLong(uint val)
+        {
+            return AsyncWireFormatting.WriteLong(BaseWriter, val);
+        }
+
+        public Task WriteLonglong(ulong val)
+        {
+            return AsyncWireFormatting.WriteLonglong(BaseWriter, val);
+        }
+
+        public Task WriteLongstr(byte[] val)
+        {
+            return AsyncWireFormatting.WriteLongstr(BaseWriter, val);
+        }
+
+        public Task WriteOctet(byte val)
+        {
+            return AsyncWireFormatting.WriteOctet(BaseWriter, val);
+        }
+
+        public async Task WritePresence(bool present)
+        {
+            if (m_bitCount == 15)
+            {
+                await EmitFlagWord(true).ConfigureAwait(false);
+            }
+
+            if (present)
+            {
+                int bit = 15 - m_bitCount;
+                m_flagWord = (ushort)(m_flagWord | (1 << bit));
+            }
+            m_bitCount++;
+        }
+
+        public Task WriteShort(ushort val)
+        {
+            return AsyncWireFormatting.WriteShort(BaseWriter, val);
+        }
+
+        public Task WriteShortstr(string val)
+        {
+            return AsyncWireFormatting.WriteShortstr(BaseWriter, val);
+        }
+
+        public Task WriteTable(IDictionary<string, object> val)
+        {
+            return AsyncWireFormatting.WriteTable(BaseWriter, val);
+        }
+
+        public Task WriteTimestamp(AmqpTimestamp val)
+        {
+            return AsyncWireFormatting.WriteTimestamp(BaseWriter, val);
+        }
+
+        private async Task EmitFlagWord(bool continuationBit)
+        {
+            await BaseWriter.Write((ushort)(continuationBit ? (m_flagWord | 1) : m_flagWord)).ConfigureAwait(false);
             m_flagWord = 0;
             m_bitCount = 0;
         }

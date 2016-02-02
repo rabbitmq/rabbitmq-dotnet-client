@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
@@ -57,6 +58,26 @@ namespace RabbitMQ.Client.Impl
         public override void HandleFrame(Frame frame)
         {
             Command cmd = m_assembler.HandleFrame(frame);
+            if (cmd != null)
+            {
+                OnCommandReceived(cmd);
+            }
+        }
+    }
+
+    public class AsyncSession : AsyncSessionBase
+    {
+        public AsyncCommandAssembler m_assembler;
+
+        public AsyncSession(AsyncConnection connection, int channelNumber)
+            : base(connection, channelNumber)
+        {
+            m_assembler = new AsyncCommandAssembler(connection.Protocol);
+        }
+
+        public override Task HandleFrame(AsyncFrame frame)
+        {
+            AsyncCommand cmd = m_assembler.HandleFrame(frame);
             if (cmd != null)
             {
                 OnCommandReceived(cmd);

@@ -41,6 +41,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -80,5 +81,43 @@ namespace RabbitMQ.Client.Impl
         void WriteFrameSet(IList<Frame> frames);
 
         void Flush();
+    }
+
+    public interface IAsyncFrameHandler
+    {
+        AmqpTcpEndpoint Endpoint { get; }
+
+#if !NETFX_CORE
+        EndPoint LocalEndPoint { get; }
+#endif
+
+        int LocalPort { get; }
+
+#if !NETFX_CORE
+        EndPoint RemoteEndPoint { get; }
+#endif
+
+        int RemotePort { get; }
+
+        ///<summary>Socket read timeout, in milliseconds. Zero signals "infinity".</summary>
+        int ReadTimeout { set; }
+
+        ///<summary>Socket write timeout, in milliseconds. Zero signals "infinity".</summary>
+        int WriteTimeout { set; }
+
+        Task Close();
+
+        ///<summary>Read a frame from the underlying
+        ///transport. Returns null if the read operation timed out
+        ///(see Timeout property).</summary>
+        Frame ReadFrame();
+
+        Task SendHeader();
+
+        Task WriteFrame(AsyncFrame frame);
+
+        Task WriteFrameSet(IList<AsyncFrame> frames);
+
+        Task Flush();
     }
 }

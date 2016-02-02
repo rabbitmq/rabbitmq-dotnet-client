@@ -44,6 +44,7 @@
 // that ever changes.
 
 using System;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Framing;
 using RabbitMQ.Client.Framing.Impl;
 
@@ -147,6 +148,99 @@ namespace RabbitMQ.Client.Impl
             {
                 base.Transmit(cmd);
             }
+        }
+    }
+
+    ///<summary>Small ISession implementation used only for channel 0.</summary>
+    public class AsyncMainSession : AsyncSession
+    {
+        public int m_closeClassId;
+        public int m_closeMethodId;
+        public int m_closeOkClassId;
+        public int m_closeOkMethodId;
+
+        public bool m_closeServerInitiated;
+        public volatile bool m_closing;
+
+        public AsyncMainSession(AsyncConnection connection) : base(connection, 0)
+        {
+            AsyncCommand request;
+            connection.Protocol.CreateConnectionClose(0, "", out request, out m_closeOkClassId, out m_closeOkMethodId);
+            m_closeClassId = request.Method.ProtocolClassId;
+            m_closeMethodId = request.Method.ProtocolMethodId;
+        }
+
+        public Func<Task> Handler { get; set; }
+
+        public override async Task HandleFrame(AsyncFrame frame)
+        {
+            // TODO: Check locking
+            // Do it without lock to get it working
+            if (!m_closing)
+            {
+                await base.HandleFrame(frame).ConfigureAwait(false);
+                return;
+            }
+
+            if (!m_closeServerInitiated && (frame.Type == Constants.FrameMethod))
+            {
+                MethodBase method = Connection.Protocol.DecodeMethodFrom(frame.GetReader());
+                if ((method.ProtocolClassId == m_closeClassId)
+                    && (method.ProtocolMethodId == m_closeMethodId))
+                {
+                    await base.HandleFrame(frame).ConfigureAwait(false);
+                    return;
+                }
+
+                if ((method.ProtocolClassId == m_closeOkClassId)
+                    && (method.ProtocolMethodId == m_closeOkMethodId))
+                {
+                    // This is the reply (CloseOk) we were looking for
+                    // Call any listener attached to this session
+                    await Handler().ConfigureAwait(false);
+                }
+            }
+
+            // Either a non-method frame, or not what we were looking
+            // for. Ignore it - we're quiescing.
+        }
+
+        ///<summary> Set channel 0 as quiescing </summary>
+        ///<remarks>
+        /// Method should be idempotent. Cannot use base.Close
+        /// method call because that would prevent us from
+        /// sending/receiving Close/CloseOk commands
+        ///</remarks>
+        public void SetSessionClosing(bool closeServerInitiated)
+        {
+            if (!m_closing)
+            {
+                m_closing = true;
+                m_closeServerInitiated = closeServerInitiated;
+            }
+        }
+
+        public override Task Transmit(AsyncCommand cmd)
+        {
+            if (!m_closing)
+            {
+                return base.Transmit(cmd);
+            }
+
+            // Allow always for sending close ok
+            // Or if application initiated, allow also for sending close
+            AsyncMethodBase method = cmd.Method;
+            if (((method.ProtocolClassId == m_closeOkClassId)
+                 && (method.ProtocolMethodId == m_closeOkMethodId))
+                || (!m_closeServerInitiated && (
+                    (method.ProtocolClassId == m_closeClassId) &&
+                    (method.ProtocolMethodId == m_closeMethodId))
+                    ))
+            {
+                return base.Transmit(cmd);
+            }
+
+            return Task.FromResult(0);
         }
     }
 }

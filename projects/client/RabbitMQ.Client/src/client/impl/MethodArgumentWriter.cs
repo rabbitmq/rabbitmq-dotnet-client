@@ -41,6 +41,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
@@ -156,6 +157,133 @@ namespace RabbitMQ.Client.Impl
             if (m_needBitFlush)
             {
                 BaseWriter.Write(m_bitAccumulator);
+                ResetBitAccumulator();
+            }
+        }
+
+        private void ResetBitAccumulator()
+        {
+            m_needBitFlush = false;
+            m_bitAccumulator = 0;
+            m_bitMask = 1;
+        }
+
+        // TODO: Consider using NotImplementedException (?)
+        // This is a completely bizarre consequence of the way the
+        // Message.Transfer method is marked up in the XML spec.
+    }
+
+    public class AsyncMethodArgumentWriter
+    {
+        private byte m_bitAccumulator;
+        private int m_bitMask;
+        private bool m_needBitFlush;
+
+        public AsyncMethodArgumentWriter(AsyncNetworkBinaryWriter writer)
+        {
+            BaseWriter = writer;
+            if (!BaseWriter.BaseStream.CanSeek)
+            {
+                //FIXME: Consider throwing System.IO.IOException
+                // with message indicating that the specified writer does not support Seeking
+
+                // Only really a problem if we try to write a table,
+                // but complain anyway. See WireFormatting.WriteTable
+                throw new NotSupportedException("Cannot write method arguments to non-positionable stream");
+            }
+            ResetBitAccumulator();
+        }
+
+        public AsyncNetworkBinaryWriter BaseWriter { get; private set; }
+
+        public async Task Flush()
+        {
+            await BitFlush().ConfigureAwait(false);
+            await BaseWriter.Flush().ConfigureAwait(false);
+        }
+
+        public async Task WriteBit(bool val)
+        {
+            if (m_bitMask > 0x80)
+            {
+                await BitFlush().ConfigureAwait(false);
+            }
+            if (val)
+            {
+                // The cast below is safe, because the combination of
+                // the test against 0x80 above, and the action of
+                // BitFlush(), causes m_bitMask never to exceed 0x80
+                // at the point the following statement executes.
+                m_bitAccumulator = (byte)(m_bitAccumulator | (byte)m_bitMask);
+            }
+            m_bitMask = m_bitMask << 1;
+            m_needBitFlush = true;
+        }
+
+        public Task WriteContent(byte[] val)
+        {
+            throw new NotSupportedException("WriteContent should not be called");
+        }
+
+        public async Task WriteLong(uint val)
+        {
+            await BitFlush().ConfigureAwait(false);
+            await AsyncWireFormatting.WriteLong(BaseWriter, val).ConfigureAwait(false);
+        }
+
+        public async Task WriteLonglong(ulong val)
+        {
+            await BitFlush().ConfigureAwait(false);
+            await AsyncWireFormatting.WriteLonglong(BaseWriter, val).ConfigureAwait(false);
+        }
+
+        public async Task WriteLongstr(byte[] val)
+        {
+            await BitFlush().ConfigureAwait(false);
+            await AsyncWireFormatting.WriteLongstr(BaseWriter, val).ConfigureAwait(false);
+        }
+
+        public async Task WriteOctet(byte val)
+        {
+            await BitFlush().ConfigureAwait(false);
+            await AsyncWireFormatting.WriteOctet(BaseWriter, val).ConfigureAwait(false);
+        }
+
+        public async Task WriteShort(ushort val)
+        {
+            await BitFlush().ConfigureAwait(false);
+            await AsyncWireFormatting.WriteShort(BaseWriter, val).ConfigureAwait(false);
+        }
+
+        public async Task WriteShortstr(string val)
+        {
+            await BitFlush().ConfigureAwait(false);
+            await AsyncWireFormatting.WriteShortstr(BaseWriter, val).ConfigureAwait(false);
+        }
+
+        public async Task WriteTable(IDictionary val)
+        {
+            await BitFlush().ConfigureAwait(false);
+            await AsyncWireFormatting.WriteTable(BaseWriter, val).ConfigureAwait(false);
+        }
+
+        public async Task WriteTable(IDictionary<string, object> val)
+        {
+            await BitFlush().ConfigureAwait(false);
+            await AsyncWireFormatting.WriteTable(BaseWriter, val).ConfigureAwait(false);
+        }
+
+        public async Task WriteTimestamp(AmqpTimestamp val)
+        {
+            await BitFlush().ConfigureAwait(false);
+            await AsyncWireFormatting.WriteTimestamp(BaseWriter, val).ConfigureAwait(false);
+        }
+
+        private async Task BitFlush()
+        {
+            if (m_needBitFlush)
+            {
+                await BaseWriter.Write(m_bitAccumulator).ConfigureAwait(false);
                 ResetBitAccumulator();
             }
         }
