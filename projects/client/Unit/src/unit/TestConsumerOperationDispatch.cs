@@ -45,6 +45,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -90,7 +91,7 @@ namespace RabbitMQ.Client.Unit
                 this.DeliveryTags = new List<ulong>();
             }
 
-            public override void HandleBasicDeliver(string consumerTag,
+            public override Task HandleBasicDeliver(string consumerTag,
                 ulong deliveryTag, bool redelivered, string exchange, string routingKey,
                 IBasicProperties properties, byte[] body)
             {
@@ -105,6 +106,7 @@ namespace RabbitMQ.Client.Unit
                 }
 
                 this.Model.BasicAck(deliveryTag: deliveryTag, multiple: false);
+                return Task.FromResult(0);
             }
         }
 
@@ -117,7 +119,7 @@ namespace RabbitMQ.Client.Unit
             for (int i = 0; i < y; i++)
             {
                 var ch = Conn.CreateModel();
-                var q = ch.QueueDeclare("", durable: false, exclusive: true, autoDelete: true, arguments: null);
+                var q = ch.QueueDeclare("", durable: false, exclusive: true, autoDelete: true, arguments: null).GetAwaiter().GetResult();
                 ch.QueueBind(queue: q, exchange: x, routingKey: "");
                 channels.Add(ch);
                 queues.Add(q);
@@ -152,14 +154,14 @@ namespace RabbitMQ.Client.Unit
 
         // see rabbitmq/rabbitmq-dotnet-client#61
         [Test]
-        public void TestChannelShutdownDoesNotShutDownDispatcher()
+        public async Task TestChannelShutdownDoesNotShutDownDispatcher()
         {
             var ch1 = Conn.CreateModel();
             var ch2 = Conn.CreateModel();
             Model.ExchangeDeclare(x, "fanout", durable: false);
 
-            var q1 = ch1.QueueDeclare().QueueName;
-            var q2 = ch2.QueueDeclare().QueueName;
+            var q1 = (await ch1.QueueDeclare()).QueueName;
+            var q2 = (await ch2.QueueDeclare()).QueueName;
             ch2.QueueBind(queue: q2, exchange: x, routingKey: "");
 
             var latch = new ManualResetEvent(false);
@@ -168,6 +170,7 @@ namespace RabbitMQ.Client.Unit
             c2.Received += (object sender, BasicDeliverEventArgs e) =>
             {
                 latch.Set();
+                return Task.FromResult(0);
             };
             ch2.BasicConsume(q2, true, c2);
             // closing this channel must not affect ch2
@@ -186,17 +189,18 @@ namespace RabbitMQ.Client.Unit
                 this.Latch = latch;
             }
 
-            public override void HandleModelShutdown(object model, ShutdownEventArgs reason)
+            public override Task HandleModelShutdown(object model, ShutdownEventArgs reason)
             {
                 this.Latch.Set();
+                return Task.FromResult(0);
             }
         }
 
         [Test]
-        public void TestModelShutdownHandler()
+        public async Task TestModelShutdownHandler()
         {
             var latch = new ManualResetEvent(false);
-            var q = this.Model.QueueDeclare().QueueName;
+            var q = (await this.Model.QueueDeclare()).QueueName;
             var c = new ShutdownLatchConsumer(latch);
 
             this.Model.BasicConsume(queue: q, noAck: true, consumer: c);

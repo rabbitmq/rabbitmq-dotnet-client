@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client
@@ -67,7 +68,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Signalled when the consumer gets cancelled.
         /// </summary>
-        event EventHandler<ConsumerEventArgs> ConsumerCancelled;
+        event AsyncEventHandler<ConsumerEventArgs> ConsumerCancelled;
 
         /// <summary>
         ///  Called when the consumer is cancelled for reasons other than by a basicCancel:
@@ -75,19 +76,19 @@ namespace RabbitMQ.Client
         ///  See <see cref="HandleBasicCancelOk"/> for notification of consumer cancellation due to basicCancel
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        void HandleBasicCancel(string consumerTag);
+        Task HandleBasicCancel(string consumerTag);
 
         /// <summary>
         /// Called upon successful deregistration of the consumer from the broker.
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        void HandleBasicCancelOk(string consumerTag);
+        Task HandleBasicCancelOk(string consumerTag);
 
         /// <summary>
         /// Called upon successful registration of the consumer with the broker.
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        void HandleBasicConsumeOk(string consumerTag);
+        Task HandleBasicConsumeOk(string consumerTag);
 
         /// <summary>
         /// Called each time a message arrives for this consumer.
@@ -97,7 +98,7 @@ namespace RabbitMQ.Client
         /// Note that in particular, some delivered messages may require acknowledgement via <see cref="IModel.BasicAck"/>.
         /// The implementation of this method in this class does NOT acknowledge such messages.
         /// </remarks>
-        void HandleBasicDeliver(string consumerTag,
+        Task HandleBasicDeliver(string consumerTag,
             ulong deliveryTag,
             bool redelivered,
             string exchange,
@@ -110,6 +111,6 @@ namespace RabbitMQ.Client
         ///  </summary>
         ///  <param name="model"> Common AMQP model.</param>
         /// <param name="reason"> Information about the reason why a particular model, session, or connection was destroyed.</param>
-        void HandleModelShutdown(object model, ShutdownEventArgs reason);
+        Task HandleModelShutdown(object model, ShutdownEventArgs reason);
     }
 }

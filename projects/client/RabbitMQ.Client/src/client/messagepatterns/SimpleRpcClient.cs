@@ -413,7 +413,7 @@ namespace RabbitMQ.Client.MessagePatterns
         {
             if (Subscription == null)
             {
-                string queueName = Model.QueueDeclare();
+                string queueName = Model.QueueDeclare().GetAwaiter().GetResult();
                 Subscription = new Subscription(Model, queueName);
             }
         }

@@ -44,7 +44,7 @@ using System;
 using System.IO;
 using System.Text;
 using System.Collections;
-
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Client.Exceptions;
@@ -57,7 +57,7 @@ namespace RabbitMQ.Client.Unit
     {
 
         [Test]
-        public void TestWithBackgroundThreadsEnabled()
+        public async Task TestWithBackgroundThreadsEnabled()
         {
             ConnectionFactory connFactory = new ConnectionFactory();
             connFactory.UseBackgroundThreadsForIO = true;
@@ -66,7 +66,7 @@ namespace RabbitMQ.Client.Unit
             IModel ch = conn.CreateModel();
 
             // sanity check
-            string q = ch.QueueDeclare();
+            string q = await ch.QueueDeclare();
             ch.QueueDelete(q);
 
             ch.Close();

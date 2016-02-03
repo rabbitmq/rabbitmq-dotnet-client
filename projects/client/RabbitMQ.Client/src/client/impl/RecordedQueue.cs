@@ -99,7 +99,7 @@ namespace RabbitMQ.Client.Impl
         {
             QueueDeclareOk ok = ModelDelegate.QueueDeclare(NameToUseForRecovery, durable,
                 exclusive, IsAutoDelete,
-                arguments);
+                arguments).GetAwaiter().GetResult();
             Name = ok.QueueName;
         }
 

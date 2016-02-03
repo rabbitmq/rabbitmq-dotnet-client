@@ -42,7 +42,7 @@ using NUnit.Framework;
 
 using System;
 using System.Threading;
-
+using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 
@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Unit {
         {
             public FaultyConsumer(IModel model) : base(model) {}
 
-            public override void HandleBasicDeliver(string consumerTag,
+            public override Task HandleBasicDeliver(string consumerTag,
                                                ulong deliveryTag,
                                                bool redelivered,
                                                string exchange,

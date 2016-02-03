@@ -42,6 +42,7 @@ using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Framing.Impl;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -63,8 +64,8 @@ namespace RabbitMQ.Client.Impl
         protected List<EventHandler<CallbackExceptionEventArgs>> m_recordedCallbackExceptionEventHandlers =
             new List<EventHandler<CallbackExceptionEventArgs>>();
 
-        protected List<EventHandler<ShutdownEventArgs>> m_recordedShutdownEventHandlers =
-            new List<EventHandler<ShutdownEventArgs>>();
+        protected List<AsyncEventHandler<ShutdownEventArgs>> m_recordedShutdownEventHandlers =
+            new List<AsyncEventHandler<ShutdownEventArgs>>();
 
         protected ushort prefetchCountConsumer = 0;
         protected ushort prefetchCountGlobal = 0;
@@ -189,7 +190,7 @@ namespace RabbitMQ.Client.Impl
             remove { m_delegate.FlowControl -= value; }
         }
 
-        public event EventHandler<ShutdownEventArgs> ModelShutdown
+        public event AsyncEventHandler<ShutdownEventArgs> ModelShutdown
         {
             add
             {
@@ -1066,15 +1067,15 @@ namespace RabbitMQ.Client.Impl
             m_delegate.QueueBind(queue, exchange, routingKey, arguments);
         }
 
-        public QueueDeclareOk QueueDeclare()
+        public Task<QueueDeclareOk> QueueDeclare()
         {
             return QueueDeclare("", false, true, true, null);
         }
 
-        public QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive,
+        public async Task<QueueDeclareOk> QueueDeclare(string queue, bool durable, bool exclusive,
             bool autoDelete, IDictionary<string, object> arguments)
         {
-            var result = m_delegate.QueueDeclare(queue, durable, exclusive,
+            var result = await m_delegate.QueueDeclare(queue, durable, exclusive,
                 autoDelete, arguments);
             RecordedQueue rq = new RecordedQueue(this, result.QueueName).
                 Durable(durable).
@@ -1188,14 +1189,14 @@ namespace RabbitMQ.Client.Impl
             return m_delegate.WaitForConfirms();
         }
 
-        public void WaitForConfirmsOrDie()
+        public Task WaitForConfirmsOrDie()
         {
-            m_delegate.WaitForConfirmsOrDie();
+            return m_delegate.WaitForConfirmsOrDie();
         }
 
-        public void WaitForConfirmsOrDie(TimeSpan timeout)
+        public Task WaitForConfirmsOrDie(TimeSpan timeout)
         {
-            m_delegate.WaitForConfirmsOrDie(timeout);
+            return m_delegate.WaitForConfirmsOrDie(timeout);
         }
 
         protected void RecoverBasicAckHandlers()
@@ -1248,10 +1249,10 @@ namespace RabbitMQ.Client.Impl
 
         protected void RecoverModelShutdownHandlers()
         {
-            List<EventHandler<ShutdownEventArgs>> handler = m_recordedShutdownEventHandlers;
+            List<AsyncEventHandler<ShutdownEventArgs>> handler = m_recordedShutdownEventHandlers;
             if (handler != null)
             {
-                foreach (EventHandler<ShutdownEventArgs> eh in handler)
+                foreach (AsyncEventHandler<ShutdownEventArgs> eh in handler)
                 {
                     m_delegate.ModelShutdown += eh;
                 }

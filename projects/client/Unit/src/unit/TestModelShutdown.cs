@@ -42,6 +42,7 @@ using NUnit.Framework;
 using RabbitMQ.Client.Impl;
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -57,6 +58,7 @@ namespace RabbitMQ.Client.Unit
             this.Model.ModelShutdown += (model, args) =>
             {
                 latch.Set();
+                return Task.FromResult(0);
             };
             Assert.IsFalse(m.ConsumerDispatcher.IsShutdown, "dispatcher should NOT be shut down before Close");
             Model.Close();

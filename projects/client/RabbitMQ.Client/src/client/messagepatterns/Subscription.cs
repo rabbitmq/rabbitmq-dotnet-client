@@ -41,7 +41,7 @@
 using System;
 using System.Collections;
 using System.IO;
-
+using System.Threading.Tasks;
 #if NETFX_CORE || NET4  // For Windows 8 Store, but could be .NET 4.0 and greater
 using System.Threading.Tasks;
 #endif
@@ -475,13 +475,14 @@ namespace RabbitMQ.Client.MessagePatterns
             }
         }
 
-        private void HandleConsumerCancelled(object sender, ConsumerEventArgs e)
+        private Task HandleConsumerCancelled(object sender, ConsumerEventArgs e)
         {
             lock (m_eventLock)
             {
                 m_consumer = null;
                 MutateLatestEvent(null);
             }
+            return Task.FromResult(0);
         }
     }
 }
