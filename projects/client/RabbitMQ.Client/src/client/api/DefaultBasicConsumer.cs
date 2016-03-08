@@ -50,9 +50,8 @@ namespace RabbitMQ.Client
     /// </summary>
     /// <remarks>
     /// Note that the "Handle*" methods run in the connection's thread!
-    /// Consider using <see cref="QueueingBasicConsumer"/>,  which uses a
-    /// <see cref="SharedQueue"/> instance to safely pass received messages across
-    /// to user threads, or  RabbitMQ.Client.MessagePatterns.Subscription,
+    /// Consider using <see cref="EventingBasicConsumer"/>,  which exposes
+    /// events that can be subscribed to consumer messages, or RabbitMQ.Client.MessagePatterns.Subscription,
     ///  which manages resource declaration and binding in addition to providing a
     /// thread-safe interface.
     /// </remarks>
