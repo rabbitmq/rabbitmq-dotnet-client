@@ -60,7 +60,7 @@ namespace RabbitMQ.Client.Unit
             Model = Conn.CreateModel();
         }
 
-        [Test, Timeout(5000)]
+        [Test, Timeout(16000)]
         public void TestConsumerCancellationNotification()
         {
             var q = Guid.NewGuid().ToString();
@@ -70,11 +70,11 @@ namespace RabbitMQ.Client.Unit
             sub.Consumer.ConsumerCancelled += (_sender, _args) =>
             {
                 sub.Close();
-                latch.Set();
                 Conn.Close();
+                latch.Set();
             };
             this.Model.QueueDelete(q);
-            Wait(latch, TimeSpan.FromSeconds(4));
+            Wait(latch, TimeSpan.FromSeconds(8));
         }
     }
 }
