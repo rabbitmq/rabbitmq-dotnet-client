@@ -442,7 +442,7 @@ namespace RabbitMQ.Client.Unit
                 cmd  = ctl;
             } else {
                 cmd  = "cmd.exe";
-                args = "/c \"\"" + ctl + "\" -n rabbit@" + (Environment.GetEnvironmentVariable("COMPUTERNAME").ToLower()) + " " + args + "\"";
+                args = "/c \"\"" + ctl + "\" " + args + "\"";
             }
 
             try {
