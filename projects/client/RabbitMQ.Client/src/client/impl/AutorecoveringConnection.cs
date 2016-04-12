@@ -94,9 +94,10 @@ namespace RabbitMQ.Client.Framing.Impl
         private EventHandler<QueueNameChangedAfterRecoveryEventArgs> m_queueNameChange;
         private EventHandler<EventArgs> m_recovery;
 
-        public AutorecoveringConnection(ConnectionFactory factory)
+        public AutorecoveringConnection(ConnectionFactory factory, String connectionName = null)
         {
             m_factory = factory;
+            ConnectionName = connectionName;
         }
 
         public event EventHandler<CallbackExceptionEventArgs> CallbackException
@@ -230,6 +231,8 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
             }
         }
+
+        public String ConnectionName { get; private set; }
 
         public bool AutoClose
         {
@@ -575,7 +578,8 @@ namespace RabbitMQ.Client.Framing.Impl
         protected void Init(string hostname)
         {
             m_delegate = new Connection(m_factory, false,
-                m_factory.CreateFrameHandlerForHostname(hostname));
+                m_factory.CreateFrameHandlerForHostname(hostname),
+                ConnectionName);
 
             AutorecoveringConnection self = this;
             EventHandler<ShutdownEventArgs> recoveryListener = (_, args) =>
@@ -792,7 +796,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 {
                     var nextHostname = m_factory.HostnameSelector.NextFrom(this.hostnames);
                     var fh = m_factory.CreateFrameHandler(m_factory.Endpoint.CloneWithHostname(nextHostname));
-                    m_delegate = new Connection(m_factory, false, fh);
+                    m_delegate = new Connection(m_factory, false, fh, ConnectionName);
                     recovering = false;
                 }
                 catch (Exception e)

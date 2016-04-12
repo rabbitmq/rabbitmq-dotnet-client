@@ -153,6 +153,11 @@ namespace RabbitMQ.Client
         IList<ShutdownReportEntry> ShutdownReport { get; }
 
         /// <summary>
+        /// Returns connection name from client properties
+        /// </summary>
+        String ConnectionName { get; }
+
+        /// <summary>
         /// Signalled when an exception occurs in a callback invoked by the connection.
         /// </summary>
         /// <remarks>

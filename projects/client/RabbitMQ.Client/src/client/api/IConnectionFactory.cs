@@ -98,6 +98,13 @@ namespace RabbitMQ.Client
         IConnection CreateConnection();
 
         /// <summary>
+        /// Create a connection to the specified endpoint.
+        /// </summary>
+        /// <param name="connectionName">Connection name client property</param>
+        /// <returns></returns>
+        IConnection CreateConnection(String connectionName);
+
+        /// <summary>
         /// Connects to the first reachable hostname from the list.
         /// </summary>
         /// <param name="hostnames">List of host names to use</param>
@@ -105,8 +112,16 @@ namespace RabbitMQ.Client
         IConnection CreateConnection(IList<string> hostnames);
 
         /// <summary>
+        /// Connects to the first reachable hostname from the list.
+        /// </summary>
+        /// <param name="hostnames">List of host names to use</param>
+        /// <param name="connectionName">Connection name client property</param>
+        /// <returns></returns>
+        IConnection CreateConnection(IList<string> hostnames, String connectionName);
+
+        /// <summary>
         /// Advanced option.
-        /// 
+        ///
         /// What task scheduler should consumer dispatcher use.
         /// </summary>
         TaskScheduler TaskScheduler { get; set; }

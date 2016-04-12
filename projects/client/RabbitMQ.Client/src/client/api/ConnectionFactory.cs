@@ -348,7 +348,19 @@ namespace RabbitMQ.Client
         /// </exception>
         public virtual IConnection CreateConnection()
         {
-            return CreateConnection(new List<string>() { HostName });
+            return CreateConnection(new List<string>() { HostName }, null);
+        }
+
+        /// <summary>
+        /// Create a connection to the specified endpoint.
+        /// </summary>
+        /// <param name="connectionName">Connection name client property</param>
+        /// <exception cref="BrokerUnreachableException">
+        /// When the configured hostname was not reachable.
+        /// </exception>
+        public IConnection CreateConnection(String connectionName)
+        {
+            return CreateConnection(new List<string>() { HostName }, connectionName);
         }
 
         /// <summary>
@@ -366,19 +378,38 @@ namespace RabbitMQ.Client
         /// </exception>
         public IConnection CreateConnection(IList<string> hostnames)
         {
+            return CreateConnection(hostnames, null);
+        }
+
+        /// <summary>
+        /// Create a connection using a list of hostnames. The first reachable
+        /// hostname will be used initially. Subsequent hostname picks are determined
+        /// by the <see cref="IHostnameSelector" /> configured.
+        /// </summary>
+        /// <param name="hostnames">
+        /// List of hostnames to use for the initial
+        /// connection and recovery.
+        /// </param>
+        /// <param name="connectionName">Connection name client property</param>
+        /// <returns>Open connection</returns>
+        /// <exception cref="BrokerUnreachableException">
+        /// When no hostname was reachable.
+        /// </exception>
+        public IConnection CreateConnection(IList<string> hostnames, String connectionName)
+        {
             IConnection conn;
             try
             {
                 if (AutomaticRecoveryEnabled)
                 {
-                    var autorecoveringConnection = new AutorecoveringConnection(this);
+                    var autorecoveringConnection = new AutorecoveringConnection(this, connectionName);
                     autorecoveringConnection.Init(hostnames);
                     conn = autorecoveringConnection;
                 }
                 else
                 {
                     IProtocol protocol = Protocols.DefaultProtocol;
-                    conn = protocol.CreateConnection(this, false, CreateFrameHandler());
+                    conn = protocol.CreateConnection(this, false, CreateFrameHandler(), connectionName);
                 }
             }
             catch (Exception e)
