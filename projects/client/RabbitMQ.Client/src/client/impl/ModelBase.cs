@@ -1181,7 +1181,6 @@ namespace RabbitMQ.Client.Impl
             IDictionary<string, object> arguments,
             IBasicConsumer consumer)
         {
-            ModelShutdown += consumer.HandleModelShutdown;
 
             var k = new BasicConsumerRpcContinuation { m_consumer = consumer };
 

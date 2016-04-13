@@ -180,15 +180,22 @@ namespace RabbitMQ.Client.Unit
         private class ShutdownLatchConsumer : DefaultBasicConsumer
         {
             public ManualResetEvent Latch { get; private set; }
+            public ManualResetEvent DuplicateLatch { get; private set; }
 
-            public ShutdownLatchConsumer(ManualResetEvent latch)
+            public ShutdownLatchConsumer(ManualResetEvent latch, ManualResetEvent duplicateLatch)
             {
                 this.Latch = latch;
+                this.DuplicateLatch = duplicateLatch;
             }
 
             public override void HandleModelShutdown(object model, ShutdownEventArgs reason)
             {
-                this.Latch.Set();
+                // keep track of duplicates
+                if (this.Latch.WaitOne(0)){
+                    this.DuplicateLatch.Set();
+                } else {
+                    this.Latch.Set();
+                }
             }
         }
 
@@ -196,12 +203,15 @@ namespace RabbitMQ.Client.Unit
         public void TestModelShutdownHandler()
         {
             var latch = new ManualResetEvent(false);
+            var duplicateLatch = new ManualResetEvent(false);
             var q = this.Model.QueueDeclare().QueueName;
-            var c = new ShutdownLatchConsumer(latch);
+            var c = new ShutdownLatchConsumer(latch, duplicateLatch);
 
             this.Model.BasicConsume(queue: q, noAck: true, consumer: c);
             this.Model.Close();
             Wait(latch, TimeSpan.FromSeconds(5));
+            Assert.IsFalse(duplicateLatch.WaitOne(TimeSpan.FromSeconds(5)),
+                           "event handler fired more than once");
         }
     }
 }
