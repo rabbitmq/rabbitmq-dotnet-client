@@ -180,19 +180,19 @@ namespace RabbitMQ.Client.Unit
         private class ShutdownLatchConsumer : DefaultBasicConsumer
         {
             public ManualResetEvent Latch { get; private set; }
-            public ManualResetEvent LatchDuplicate { get; private set; }
+            public ManualResetEvent DuplicateLatch { get; private set; }
 
-            public ShutdownLatchConsumer(ManualResetEvent latch, ManualResetEvent latchDuplicate)
+            public ShutdownLatchConsumer(ManualResetEvent latch, ManualResetEvent duplicateLatch)
             {
                 this.Latch = latch;
-                this.LatchDuplicate = latchDuplicate;
+                this.DuplicateLatch = duplicateLatch;
             }
 
             public override void HandleModelShutdown(object model, ShutdownEventArgs reason)
             {
-                // If Latch is already set - event is duplicate
+                // keep track of duplicates
                 if (this.Latch.WaitOne(0)){
-                    this.LatchDuplicate.Set();
+                    this.DuplicateLatch.Set();
                 } else {
                     this.Latch.Set();
                 }
@@ -203,15 +203,15 @@ namespace RabbitMQ.Client.Unit
         public void TestModelShutdownHandler()
         {
             var latch = new ManualResetEvent(false);
-            var latchDuplicate = new ManualResetEvent(false);
+            var duplicateLatch = new ManualResetEvent(false);
             var q = this.Model.QueueDeclare().QueueName;
-            var c = new ShutdownLatchConsumer(latch, latchDuplicate);
+            var c = new ShutdownLatchConsumer(latch, duplicateLatch);
 
             this.Model.BasicConsume(queue: q, noAck: true, consumer: c);
             this.Model.Close();
             Wait(latch, TimeSpan.FromSeconds(5));
-            Assert.IsFalse(latchDuplicate.WaitOne(TimeSpan.FromSeconds(5)),
-                           "duplicate events");
+            Assert.IsFalse(duplicateLatch.WaitOne(TimeSpan.FromSeconds(5)),
+                           "event handler fired more than once");
         }
     }
 }
