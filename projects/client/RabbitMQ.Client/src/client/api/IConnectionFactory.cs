@@ -98,6 +98,17 @@ namespace RabbitMQ.Client
         IConnection CreateConnection();
 
         /// <summary>
+        /// Create a connection to the specified endpoint.
+        /// </summary>
+        /// <param name="clientProvidedName">        /// Application-specific connection name, will be displayed in the management UI
+        /// if RabbitMQ server supports it. This value doesn't have to be unique and cannot
+        /// be used as a connection identifier, e.g. in HTTP API requests.
+        /// This value is supposed to be human-readable.
+        /// </param>
+        /// <returns></returns>
+        IConnection CreateConnection(String clientProvidedName);
+
+        /// <summary>
         /// Connects to the first reachable hostname from the list.
         /// </summary>
         /// <param name="hostnames">List of host names to use</param>
@@ -105,8 +116,21 @@ namespace RabbitMQ.Client
         IConnection CreateConnection(IList<string> hostnames);
 
         /// <summary>
+        /// Connects to the first reachable hostname from the list.
+        /// </summary>
+        /// <param name="hostnames">List of host names to use</param>
+        /// <param name="clientProvidedName">
+        /// Application-specific connection name, will be displayed in the management UI
+        /// if RabbitMQ server supports it. This value doesn't have to be unique and cannot
+        /// be used as a connection identifier, e.g. in HTTP API requests.
+        /// This value is supposed to be human-readable.
+        /// </param>
+        /// <returns></returns>
+        IConnection CreateConnection(IList<string> hostnames, String clientProvidedName);
+
+        /// <summary>
         /// Advanced option.
-        /// 
+        ///
         /// What task scheduler should consumer dispatcher use.
         /// </summary>
         TaskScheduler TaskScheduler { get; set; }

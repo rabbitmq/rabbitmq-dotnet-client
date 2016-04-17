@@ -113,8 +113,9 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public ConsumerWorkService ConsumerWorkService { get; private set; }
 
-        public Connection(IConnectionFactory factory, bool insist, IFrameHandler frameHandler)
+        public Connection(IConnectionFactory factory, bool insist, IFrameHandler frameHandler, string clientProvidedName = null)
         {
+            clientProvidedName = clientProvidedName;
             KnownHosts = null;
             FrameMax = 0;
             m_factory = factory;
@@ -224,6 +225,8 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
             }
         }
+
+        public string ClientProvidedName { get; private set; }
 
         public bool AutoClose
         {
@@ -995,7 +998,7 @@ entry.ToString());
                 _heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback);
                 _heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback);
 #if NETFX_CORE
-                _heartbeatWriteTimer.Change(200, m_heartbeatTimeSpan.Milliseconds);               
+                _heartbeatWriteTimer.Change(200, m_heartbeatTimeSpan.Milliseconds);
                 _heartbeatReadTimer.Change(200, m_heartbeatTimeSpan.Milliseconds);
 #else
                 _heartbeatWriteTimer.Change(TimeSpan.FromMilliseconds(200), m_heartbeatTimeSpan);
@@ -1274,6 +1277,7 @@ entry.ToString());
 
             m_clientProperties = new Dictionary<string, object>(m_factory.ClientProperties);
             m_clientProperties["capabilities"] = Protocol.Capabilities;
+            m_clientProperties["connection_name"] = this.ClientProvidedName;
 
             // FIXME: parse out locales properly!
             ConnectionTuneDetails connectionTune = default(ConnectionTuneDetails);
