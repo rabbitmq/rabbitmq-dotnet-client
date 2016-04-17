@@ -65,7 +65,9 @@
   <Target Name="Detokenize" DependsOnTargets="CreateGensrcDir" Inputs="@(Tokenized); $(LocalPropsFile)" Outputs="@(Detokenized)">
     <Delete Files="@(Detokenized)" />
     <TemplateFile Template="$(AssemblyInfoTok)" OutputFilename="detok.out" Tokens="@(Tokens)" />
-    <Move SourceFiles="src\tokenized\detok.out" DestinationFiles="$(AssemblyInfoDetok)" />
+    <!-- <Move SourceFiles="src\tokenized\detok.out" DestinationFiles="$(AssemblyInfoDetok)" /> -->
+    <Copy SourceFiles="src\tokenized\detok.out" DestinationFiles="$(AssemblyInfoDetok)" />
+    <Delete Files="src\tokenized\detok.out" />
   </Target>
   <Target Name="CleanDetokenize">
     <Delete Files="@(Detokenized)" />
