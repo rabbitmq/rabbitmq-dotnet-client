@@ -68,6 +68,7 @@ namespace RabbitMQ.Client.Framing.Impl
         protected bool manuallyClosed = false;
         protected bool performingRecovery = false;
 
+
         protected List<AutorecoveringModel> m_models = new List<AutorecoveringModel>();
 
         protected HashSet<RecordedBinding> m_recordedBindings = new HashSet<RecordedBinding>();
@@ -94,10 +95,10 @@ namespace RabbitMQ.Client.Framing.Impl
         private EventHandler<QueueNameChangedAfterRecoveryEventArgs> m_queueNameChange;
         private EventHandler<EventArgs> m_recovery;
 
-        public AutorecoveringConnection(ConnectionFactory factory, String connectionName = null)
+        public AutorecoveringConnection(ConnectionFactory factory, string clientProvidedName = null)
         {
             m_factory = factory;
-            ConnectionName = connectionName;
+            this.ClientProvidedName = clientProvidedName;
         }
 
         public event EventHandler<CallbackExceptionEventArgs> CallbackException
@@ -232,7 +233,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public String ConnectionName { get; private set; }
+        public string ClientProvidedName { get; private set; }
 
         public bool AutoClose
         {
@@ -579,7 +580,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             m_delegate = new Connection(m_factory, false,
                 m_factory.CreateFrameHandlerForHostname(hostname),
-                ConnectionName);
+                this.ClientProvidedName);
 
             AutorecoveringConnection self = this;
             EventHandler<ShutdownEventArgs> recoveryListener = (_, args) =>
@@ -796,7 +797,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 {
                     var nextHostname = m_factory.HostnameSelector.NextFrom(this.hostnames);
                     var fh = m_factory.CreateFrameHandler(m_factory.Endpoint.CloneWithHostname(nextHostname));
-                    m_delegate = new Connection(m_factory, false, fh, ConnectionName);
+                    m_delegate = new Connection(m_factory, false, fh, this.ClientProvidedName);
                     recovering = false;
                 }
                 catch (Exception e)

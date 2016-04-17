@@ -113,9 +113,9 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public ConsumerWorkService ConsumerWorkService { get; private set; }
 
-        public Connection(IConnectionFactory factory, bool insist, IFrameHandler frameHandler, String connectionName = null)
+        public Connection(IConnectionFactory factory, bool insist, IFrameHandler frameHandler, string clientProvidedName = null)
         {
-            ConnectionName = connectionName;
+            clientProvidedName = clientProvidedName;
             KnownHosts = null;
             FrameMax = 0;
             m_factory = factory;
@@ -226,7 +226,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public String ConnectionName { get; private set; }
+        public string ClientProvidedName { get; private set; }
 
         public bool AutoClose
         {
@@ -1277,7 +1277,7 @@ entry.ToString());
 
             m_clientProperties = new Dictionary<string, object>(m_factory.ClientProperties);
             m_clientProperties["capabilities"] = Protocol.Capabilities;
-            m_clientProperties["connection_name"] = ConnectionName;
+            m_clientProperties["connection_name"] = this.ClientProvidedName;
 
             // FIXME: parse out locales properly!
             ConnectionTuneDetails connectionTune = default(ConnectionTuneDetails);

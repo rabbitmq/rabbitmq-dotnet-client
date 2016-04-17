@@ -100,9 +100,13 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Create a connection to the specified endpoint.
         /// </summary>
-        /// <param name="connectionName">Connection name client property</param>
+        /// <param name="clientProvidedName">        /// Application-specific connection name, will be displayed in the management UI
+        /// if RabbitMQ server supports it. This value doesn't have to be unique and cannot
+        /// be used as a connection identifier, e.g. in HTTP API requests.
+        /// This value is supposed to be human-readable.
+        /// </param>
         /// <returns></returns>
-        IConnection CreateConnection(String connectionName);
+        IConnection CreateConnection(String clientProvidedName);
 
         /// <summary>
         /// Connects to the first reachable hostname from the list.
@@ -115,9 +119,14 @@ namespace RabbitMQ.Client
         /// Connects to the first reachable hostname from the list.
         /// </summary>
         /// <param name="hostnames">List of host names to use</param>
-        /// <param name="connectionName">Connection name client property</param>
+        /// <param name="clientProvidedName">
+        /// Application-specific connection name, will be displayed in the management UI
+        /// if RabbitMQ server supports it. This value doesn't have to be unique and cannot
+        /// be used as a connection identifier, e.g. in HTTP API requests.
+        /// This value is supposed to be human-readable.
+        /// </param>
         /// <returns></returns>
-        IConnection CreateConnection(IList<string> hostnames, String connectionName);
+        IConnection CreateConnection(IList<string> hostnames, String clientProvidedName);
 
         /// <summary>
         /// Advanced option.

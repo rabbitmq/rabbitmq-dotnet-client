@@ -354,13 +354,18 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Create a connection to the specified endpoint.
         /// </summary>
-        /// <param name="connectionName">Connection name client property</param>
+        /// <param name="clientProvidedName">
+        /// Application-specific connection name, will be displayed in the management UI
+        /// if RabbitMQ server supports it. This value doesn't have to be unique and cannot
+        /// be used as a connection identifier, e.g. in HTTP API requests.
+        /// This value is supposed to be human-readable.
+        /// </param>
         /// <exception cref="BrokerUnreachableException">
         /// When the configured hostname was not reachable.
         /// </exception>
-        public IConnection CreateConnection(String connectionName)
+        public IConnection CreateConnection(String clientProvidedName)
         {
-            return CreateConnection(new List<string>() { HostName }, connectionName);
+            return CreateConnection(new List<string>() { HostName }, clientProvidedName);
         }
 
         /// <summary>
@@ -390,26 +395,31 @@ namespace RabbitMQ.Client
         /// List of hostnames to use for the initial
         /// connection and recovery.
         /// </param>
-        /// <param name="connectionName">Connection name client property</param>
+        /// <param name="clientProvidedName">
+        /// Application-specific connection name, will be displayed in the management UI
+        /// if RabbitMQ server supports it. This value doesn't have to be unique and cannot
+        /// be used as a connection identifier, e.g. in HTTP API requests.
+        /// This value is supposed to be human-readable.
+        /// </param>
         /// <returns>Open connection</returns>
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public IConnection CreateConnection(IList<string> hostnames, String connectionName)
+        public IConnection CreateConnection(IList<string> hostnames, String clientProvidedName)
         {
             IConnection conn;
             try
             {
                 if (AutomaticRecoveryEnabled)
                 {
-                    var autorecoveringConnection = new AutorecoveringConnection(this, connectionName);
+                    var autorecoveringConnection = new AutorecoveringConnection(this, clientProvidedName);
                     autorecoveringConnection.Init(hostnames);
                     conn = autorecoveringConnection;
                 }
                 else
                 {
                     IProtocol protocol = Protocols.DefaultProtocol;
-                    conn = protocol.CreateConnection(this, false, CreateFrameHandler(), connectionName);
+                    conn = protocol.CreateConnection(this, false, CreateFrameHandler(), clientProvidedName);
                 }
             }
             catch (Exception e)

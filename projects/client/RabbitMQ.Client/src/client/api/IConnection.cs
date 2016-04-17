@@ -153,9 +153,12 @@ namespace RabbitMQ.Client
         IList<ShutdownReportEntry> ShutdownReport { get; }
 
         /// <summary>
-        /// Returns connection name from client properties
+        /// Application-specific connection name, will be displayed in the management UI
+        /// if RabbitMQ server supports it. This value doesn't have to be unique and cannot
+        /// be used as a connection identifier, e.g. in HTTP API requests.
+        /// This value is supposed to be human-readable.
         /// </summary>
-        String ConnectionName { get; }
+        string ClientProvidedName { get; }
 
         /// <summary>
         /// Signalled when an exception occurs in a callback invoked by the connection.
