@@ -72,11 +72,11 @@ NAME_VSN=$NAME-$RABBIT_VSN
 RELEASE_DIR=release
 if [ "$MONO_DIST" ] ; then
     INCLUDE_WCF=true
-    MSBUILD=xbuild
+    BUILD=build.sh
     DOTNET_PROGRAM_PREPEND="mono"
 else
     INCLUDE_WCF=true
-    MSBUILD=msbuild.exe
+    BUILD=build.bat
     DOTNET_PROGRAM_PREPEND=
 fi
 
@@ -157,9 +157,7 @@ function src-dist {
     cp -r projects tmp/srcdist/
     rm -f tmp/srcdist/projects/README
     cp -r docs/specs/*.xml tmp/srcdist/docs/specs/
-    cp -r lib/MSBuild.Community.Tasks tmp/srcdist/lib/
     cp -r lib/nunit tmp/srcdist/lib/
-    cp Local.props.example tmp/srcdist/
     cp README.in tmp/srcdist/README
     if [ -n "$NO_LINKS" ]; then
         touch tmp/srcdist/README
@@ -188,25 +186,24 @@ function dist-target-framework {
     BUILD_WCF=
     test -z "$MONO_DIST" && BUILD_WCF="true"
 
-    ### Make sure we can use MSBuild.Community.Tasks.dll (it might be from a
-    ### remote location)
-    chmod +x lib/MSBuild.Community.Tasks/MSBuild.Community.Tasks.dll
-
-    ### Save current Local.props
-    LOCAL_PROPS_EXISTS=
-    test -f Local.props && LOCAL_PROPS_EXISTS="true"
-    test "$LOCAL_PROPS_EXISTS" && mv ./Local.props ./Local.props.user
-
-    ### Overwrite Local.props with settings specific to dist
-    gen-props Dist-$TARGET_FRAMEWORK.props.in ./Local.props
 
     mkdir -p tmp/dist/bin
 
     ### Clean
-    $MSBUILD /verbosity:quiet RabbitMQDotNetClient.sln /t:Clean /property:Configuration="Release"
+    #$MSBUILD /verbosity:quiet RabbitMQDotNetClient.sln /t:Clean /property:Configuration="Release"
 
     ### Build
-    $MSBUILD /verbosity:quiet RabbitMQDotNetClient.sln /t:Build /property:Configuration="Release"
+    #$MSBUILD /verbosity:quiet RabbitMQDotNetClient.sln /t:Build /property:Configuration="Release"
+
+    if [ "$MONO_DIST" ] ; then
+	mono .paket/paket.bootstrapper.exe
+	mono .paket/paket.exe restore
+	mono ./packages/FAKE/tools/FAKE.exe build.fsx
+    else
+	.paket/paket.bootstrapper.exe
+	.paket/paket.exe restore
+	./packages/FAKE/tools/FAKE.exe build.fsx
+    fi
 
     ### Copy bin files to be zipped to tmp/dist/
     cp projects/client/RabbitMQ.Client/build/bin/RabbitMQ.Client.xml tmp/dist/bin/
@@ -222,9 +219,6 @@ function dist-target-framework {
     ### Remove tmp/dist
     rm -rf tmp/dist
 
-    ### Restore Local.props
-    rm -f ./Local.props
-    test "$LOCAL_PROPS_EXISTS" && mv ./Local.props.user ./Local.props || true
 }
 
 function gen-props {

@@ -1,0 +1,9 @@
+﻿<Properties StartupItem="projects/client/Apigen/RabbitMQ.Client.Apigen.csproj">
+  <MonoDevelop.Ide.ItemProperties.projects.client.RabbitMQ.Client.Apigen PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.Workbench />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>

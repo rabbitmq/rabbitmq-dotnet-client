@@ -1,58 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <!-- Warning! This file contains important customizations. Using Visual Studio to edit project's properties might break things. -->
-  
-  <!-- Props file -->
-  <PropertyGroup>
-    <LocalPropsFile>$(MSBuildProjectDirectory)\..\..\..\Local.props</LocalPropsFile>
-    <FileUpgradeFlags>
-    </FileUpgradeFlags>
-    <UpgradeBackupLocation>
-    </UpgradeBackupLocation>
-    <OldToolsVersion>3.5</OldToolsVersion>
-  </PropertyGroup>
-  <Import Project="$(LocalPropsFile)" />
-  <!-- MSBuild Community Tasks -->
-  <PropertyGroup>
-    <MSBuildCommunityTasksPath>$(MSBuildProjectDirectory)\..\..\..\lib\MSBuild.Community.Tasks\</MSBuildCommunityTasksPath>
-  </PropertyGroup>
-  <Import Project="$(MSBuildCommunityTasksPath)MSBuild.Community.Tasks.Targets" />
-  <!-- Gensrc dir -->
-  <PropertyGroup>
-    <GensrcDir>..\..\..\gensrc\$(MSBuildProjectName)\</GensrcDir>
-  </PropertyGroup>
-  <Target Name="CreateGensrcDir">
-    <MakeDir Directories="$(GensrcDir)" />
-  </Target>
-  <!-- Detokenize -->
-  <PropertyGroup>
-    <AssemblyInfoBaseName>AssemblyInfo.cs</AssemblyInfoBaseName>
-    <AssemblyInfoTok>src\tokenized\$(AssemblyInfoBaseName).in</AssemblyInfoTok>
-    <AssemblyInfoDetok>$(GensrcDir)$(AssemblyInfoBaseName)</AssemblyInfoDetok>
-  </PropertyGroup>
-  <ItemGroup>
-    <Tokenized Include="$(AssemblyInfoTok)" />
-    <Detokenized Include="$(AssemblyInfoDetok)">
-      <Link>properties\$(AssemblyInfoBaseName)</Link>
-    </Detokenized>
-    <Compile Include="$(AssemblyInfoDetok)">
-      <Visible>false</Visible>
-    </Compile>
-    <Tokens Include="PropAssemblyVersion">
-      <ReplacementValue>$(PropAssemblyVersion)</ReplacementValue>
-      <Visible>false</Visible>
-    </Tokens>
-  </ItemGroup>
-  <Target Name="Detokenize" DependsOnTargets="CreateGensrcDir" Inputs="@(Tokenized); $(LocalPropsFile)" Outputs="@(Detokenized)">
-    <Delete Files="@(Detokenized)" />
-    <TemplateFile Template="$(AssemblyInfoTok)" OutputFilename="detok.out" Tokens="@(Tokens)" />
-    <!-- <Move SourceFiles="src\tokenized\detok.out" DestinationFiles="$(AssemblyInfoDetok)" /> -->
-    <Copy SourceFiles="src\tokenized\detok.out" DestinationFiles="$(AssemblyInfoDetok)" />
-    <Delete Files="src\tokenized\detok.out" />
-  </Target>
-  <Target Name="CleanDetokenize">
-    <Delete Files="@(Detokenized)" />
-  </Target>
   <!-- Visual Studio generated -->
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -64,7 +11,7 @@
     <AppDesignerFolder>properties</AppDesignerFolder>
     <RootNamespace>RabbitMQ.ServiceModel</RootNamespace>
     <AssemblyName>RabbitMQ.ServiceModel</AssemblyName>
-    <TargetFrameworkVersion>$(PropTargetFramework)</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -106,24 +53,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="src\serviceModel\**\*.cs" />
+    <Compile Include="properties\AssemblyInfo.cs" />
   </ItemGroup>
   <!-- Mono compatibility workarounds -->
-  <PropertyGroup Condition=" '$(PropUsingMono)' == 'true'">
-    <_DisabledWarnings>$(NoWarn)</_DisabledWarnings>
-  </PropertyGroup>
-  <!-- Microsoft CSharp targets; replace Build, Rebuild and Clean targets if building WCF is turned off -->
-  <Target Name="Build" Condition="'$(PropBuildWcf)' != 'true'">
-    <Message Text="Not building anything in $(MSBuildProjectName) because PropBuildWcf is false." />
-  </Target>
-  <Target Name="Rebuild" Condition="'$(PropBuildWcf)' != 'true'">
-    <Message Text="Not rebuilding anything in $(MSBuildProjectName) because PropBuildWcf is false." />
-  </Target>
-  <Target Name="Clean" Condition="'$(PropBuildWcf)' != 'true'">
-    <Message Text="Not cleaning anything in $(MSBuildProjectName) because PropBuildWcf is false." />
-  </Target>
-  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" Condition="'$(PropBuildWcf)' == 'true'" />
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- Custom BeforeBuild-->
-  <Target Name="BeforeBuild" DependsOnTargets="Detokenize" />
+  <Target Name="BeforeBuild" DependsOnTargets="" />
   <!-- Custom BeforeClean -->
-  <Target Name="BeforeClean" DependsOnTargets="CleanDetokenize" />
+  <Target Name="BeforeClean" DependsOnTargets="" />
 </Project>
