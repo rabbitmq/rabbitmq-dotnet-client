@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
 using System.ServiceModel;
@@ -55,7 +56,9 @@ namespace RabbitMQ.ServiceModel
         private RabbitMQTransportBindingElement m_bindingElement;
         private MessageEncoder m_encoder;
         private IModel m_model;
-        private QueueingBasicConsumer m_messageQueue;
+        private EventingBasicConsumer m_consumer;
+        private BlockingCollection<BasicDeliverEventArgs> m_queue = 
+            new BlockingCollection<BasicDeliverEventArgs>(new ConcurrentQueue<BasicDeliverEventArgs>());
 
         public RabbitMQInputChannel(BindingContext context, IModel model, EndpointAddress address)
             : base(context, address)
@@ -67,21 +70,21 @@ namespace RabbitMQ.ServiceModel
                 m_encoder = encoderElem.CreateMessageEncoderFactory().Encoder;
             }
             m_model = model;
-            m_messageQueue = null;
+            m_consumer = null;
         }
 
 
-        public override Message Receive(TimeSpan timeout)
+        public override Message Receive(TimeSpan timeout) //TODO: timeout isn't used
         {
             try
             {
-                BasicDeliverEventArgs msg = m_messageQueue.Queue.Dequeue() as BasicDeliverEventArgs;
+                BasicDeliverEventArgs msg = m_queue.Take();
 #if VERBOSE
                 DebugHelper.Start();
 #endif
                 Message result = m_encoder.ReadMessage(new MemoryStream(msg.Body), (int)m_bindingElement.MaxReceivedMessageSize);
                 result.Headers.To = base.LocalAddress.Uri;
-                m_messageQueue.Model.BasicAck(msg.DeliveryTag, false);
+                m_consumer.Model.BasicAck(msg.DeliveryTag, false);
 #if VERBOSE
                 DebugHelper.Stop(" #### Message.Receive {{\n\tAction={2}, \n\tBytes={1}, \n\tTime={0}ms}}.",
                         msg.Body.Length,
@@ -91,7 +94,7 @@ namespace RabbitMQ.ServiceModel
             }
             catch (EndOfStreamException)
             {
-                if (m_messageQueue== null || m_messageQueue.ShutdownReason != null && m_messageQueue.ShutdownReason.ReplyCode != Constants.ReplySuccess)
+                if (m_consumer== null || m_consumer.ShutdownReason != null && m_consumer.ShutdownReason.ReplyCode != Constants.ReplySuccess)
                 {
                     OnFaulted();
                 }
@@ -124,9 +127,9 @@ namespace RabbitMQ.ServiceModel
 #if VERBOSE
             DebugHelper.Start();
 #endif
-            if (m_messageQueue != null) {
-                m_model.BasicCancel(m_messageQueue.ConsumerTag);
-                m_messageQueue = null;
+            if (m_consumer != null) {
+                m_model.BasicCancel(m_consumer.ConsumerTag);
+                m_consumer = null;
             }
 #if VERBOSE
             DebugHelper.Stop(" ## In.Channel.Close {{\n\tAddress={1}, \n\tTime={0}ms}}.", LocalAddress.Uri.PathAndQuery);
@@ -148,8 +151,9 @@ namespace RabbitMQ.ServiceModel
             m_model.QueueBind(queue, Exchange, base.LocalAddress.Uri.PathAndQuery, null);
 
             //Listen to the queue
-            m_messageQueue = new QueueingBasicConsumer(m_model);
-            m_model.BasicConsume(queue, false, m_messageQueue);
+            m_consumer = new EventingBasicConsumer(m_model);
+            m_consumer.Received += (sender, args) => m_queue.Add(args);
+            m_model.BasicConsume(queue, false, m_consumer);
 
 #if VERBOSE
             DebugHelper.Stop(" ## In.Channel.Open {{\n\tAddress={1}, \n\tTime={0}ms}}.", LocalAddress.Uri.PathAndQuery);

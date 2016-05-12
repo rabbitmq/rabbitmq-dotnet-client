@@ -90,6 +90,7 @@ namespace RabbitMQ.Client
     /// }
     /// </code></example>
     /// </remarks>
+    [Obsolete("Deprecated. Use EventingBasicConsumer or a different consumer interface implementation instead")]
     public class QueueingBasicConsumer : DefaultBasicConsumer, IQueueingBasicConsumer
     {
         /// <summary>
