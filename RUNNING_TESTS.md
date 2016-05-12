@@ -12,9 +12,13 @@ It is possible to use [Visual Studio Community edition](https://www.visualstudio
 
 ## Building
 
-Simply run
+On Windows run:
 
-    build.sh|bat
+    build.bat
+
+On osx/linux run:
+    
+    build.sh
 
 This will complete the code AMQP spec generation and build all projects. After this open the solution in Visual Studio.
 
@@ -26,4 +30,10 @@ Note that it may take some time for the adapter to discover tests in the assembl
 
 Running the tests from the command line is also straightforward you don't need to build first to do this: use
 
-    ./run-test.sh|bat
+On Windows run:
+
+    run-test.bat
+
+On osx/linux run:
+    
+    run-test.sh

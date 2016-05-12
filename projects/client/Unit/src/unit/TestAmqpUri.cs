@@ -66,7 +66,7 @@ namespace RabbitMQ.Client.Unit
             ParseFail("amqp://foo%xy");
         }
 
-        [Test]
+        [Test, Category("MonoBug")]
         public void TestAmqpUriParseSucceed()
         {
             /* From the spec */
