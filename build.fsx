@@ -1,3 +1,4 @@
+#!/usr/bin/env fsharpi --exec
 #r "./packages/FAKE/tools/FakeLib.dll"
 #r "System.Xml.Linq"
 open Fake
@@ -104,14 +105,12 @@ Target "BuildApigen" (fun _ ->
     |> Log "Build: ")
 
 Target "BuildClient" (fun _ ->
-    //MSBuildWithDefaults "Build" appRefs 
     MSBuild null "Build" ["Configuration", "Release"; "Platform", "AnyCPU" ] appRefs 
     |> Log "Build: ")
 
 Target "Clean" (fun _ ->
     deleteGensrcDirs()
     MSBuild null "Clean" ["Configuration", "Release"; "Platform", "AnyCPU" ] appRefs 
-    //MSBuildRelease null "Clean" appRefs 
     |> Log "Clean: ")
 
 Target "UpdateAssemblyInfos"
@@ -119,24 +118,37 @@ Target "UpdateAssemblyInfos"
         trace (sprintf "Updating assembly infos to: %s" version)
         ReplaceAssemblyInfoVersionsBulk assemblyInfos (fun f -> 
             { f with AssemblyVersion = version }))    
+
+let test excludes =
+    !! ("./projects/client/**/build/**/unit-tests.dll")
+    |> NUnit (fun p -> 
+        { p with
+            TimeOut = TimeSpan.FromMinutes 30.
+            ExcludeCategory = excludes
+            DisableShadowCopy = true; 
+            OutputFile = "./TestResults.xml"})
         
 Target "Test" (fun _ ->  
-    !! ("./projects/client/**/build/**/unit-tests.dll")
+    match buildEnv with
+    | Mono -> "MonoBug"
+    | _ -> "" 
+    |> test)
+
+Target "TestQuick" (fun _ ->  
+    let excludes =
+        match buildEnv with
+        | Mono -> "RequireSMP,LongRunning,MonoBug"
+        | _ -> "RequireSMP,LongRunning"
+    !! ("./projects/client/Unit/build/**/unit-tests.dll")
     |> NUnit (fun p -> 
         { p with
             TimeOut = TimeSpan.FromMinutes 30.
+            ExcludeCategory = excludes
             DisableShadowCopy = true; 
             OutputFile = "./TestResults.xml"}))
-
     
 Target "AppVeyorTest" (fun _ ->  
-    !! ("./projects/client/**/build/**/unit-tests.dll")
-    |> NUnit (fun p -> 
-        { p with
-            TimeOut = TimeSpan.FromMinutes 30.
-            ExcludeCategory = "RequireSMP,LongRunning,GCTest"
-            DisableShadowCopy = true; 
-            OutputFile = "./TestResults.xml"}))
+    test "RequireSMP,LongRunning,GCTest")
 
 Target "CreateGensrcDir" createGensrcDirs
 
@@ -158,6 +170,9 @@ Target "Pack" (fun _ ->
 
 "BuildClient"
     ==> "Test"
+
+"BuildClient"
+    ==> "TestQuick"
 
 "BuildClient"
     ==> "AppVeyorTest"
