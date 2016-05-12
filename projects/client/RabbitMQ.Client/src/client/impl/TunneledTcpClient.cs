@@ -55,11 +55,6 @@ namespace RabbitMQ.Client
 
         #region dispose
 
-        ~TunneledTcpClient()
-        {
-            Dispose();
-        }
-
         public void Dispose()
         {
             if (_tcpClient != null)
