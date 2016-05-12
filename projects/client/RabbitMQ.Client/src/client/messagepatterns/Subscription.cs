@@ -40,11 +40,11 @@
 
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.IO;
 
-#if NETFX_CORE || NET4  // For Windows 8 Store, but could be .NET 4.0 and greater
+using System.Threading;
 using System.Threading.Tasks;
-#endif
 
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
@@ -59,7 +59,7 @@ namespace RabbitMQ.Client.MessagePatterns
     ///</para>
     ///<para>
     /// Once created, the Subscription consumes from a queue (using a
-    /// QueueingBasicConsumer). Received deliveries can be retrieved
+    /// EventingBasicConsumer). Received deliveries can be retrieved
     /// by calling Next(), or by using the Subscription as an
     /// IEnumerator in, for example, a foreach loop.
     ///</para>
@@ -76,8 +76,16 @@ namespace RabbitMQ.Client.MessagePatterns
     public class Subscription : ISubscription
     {
         protected readonly object m_eventLock = new object();
-        protected volatile QueueingBasicConsumer m_consumer;
+        protected volatile EventingBasicConsumer m_consumer;
+        private BlockingCollection<BasicDeliverEventArgs> m_queue = 
+            new BlockingCollection<BasicDeliverEventArgs>(new ConcurrentQueue<BasicDeliverEventArgs>());
 
+        private CancellationTokenSource m_queueCts = new CancellationTokenSource();
+
+#if NETFX_CORE || NET4
+        private ConcurrentQueue<TaskCompletionSource<BasicDeliverEventArgs>> m_waiting = 
+            new ConcurrentQueue<TaskCompletionSource<BasicDeliverEventArgs>>();
+#endif
         ///<summary>Creates a new Subscription in "noAck" mode,
         ///consuming from a named queue.</summary>
         public Subscription(IModel model, string queueName)
@@ -92,7 +100,12 @@ namespace RabbitMQ.Client.MessagePatterns
             Model = model;
             QueueName = queueName;
             NoAck = noAck;
-            m_consumer = new QueueingBasicConsumer(Model);
+            m_consumer = new EventingBasicConsumer(Model);
+#if NETFX_CORE || NET4
+            m_consumer.Received += (sender, args) => QueueAdd(args); 
+#else
+            m_consumer.Received += (sender, args) => m_queue.Add(args); 
+#endif
             ConsumerTag = Model.BasicConsume(QueueName, NoAck, m_consumer);
             m_consumer.ConsumerCancelled += HandleConsumerCancelled;
             LatestEvent = null;
@@ -105,8 +118,9 @@ namespace RabbitMQ.Client.MessagePatterns
             Model = model;
             QueueName = queueName;
             NoAck = noAck;
-            m_consumer = new QueueingBasicConsumer(Model);
+            m_consumer = new EventingBasicConsumer(Model);
             m_consumer.ConsumerCancelled += HandleConsumerCancelled;
+            m_consumer.Received += (sender, args) => m_queue.Add(args);
             ConsumerTag = Model.BasicConsume(QueueName, NoAck, consumerTag, m_consumer);
             LatestEvent = null;
         }
@@ -228,6 +242,17 @@ namespace RabbitMQ.Client.MessagePatterns
 
                     ConsumerTag = null;
                 }
+
+                m_queueCts.Cancel(true);
+                m_queue.Dispose();
+                m_queue = null;
+#if NETFX_CORE || NET4
+                var exn = new EndOfStreamException("Subscription closed");
+                foreach (var tsc in m_waiting)
+                {
+                    tsc.TrySetException(exn);
+                }
+#endif
             }
             catch (OperationInterruptedException)
             {
@@ -301,7 +326,7 @@ namespace RabbitMQ.Client.MessagePatterns
             // Alias the pointer as otherwise it may change out
             // from under us by the operation of Close() from
             // another thread.
-            QueueingBasicConsumer consumer = m_consumer;
+            EventingBasicConsumer consumer = m_consumer;
             try
             {
                 if (consumer == null || Model.IsClosed)
@@ -310,7 +335,7 @@ namespace RabbitMQ.Client.MessagePatterns
                 }
                 else
                 {
-                    BasicDeliverEventArgs bdea = consumer.Queue.Dequeue();
+                    BasicDeliverEventArgs bdea = m_queue.Take(m_queueCts.Token);
                     MutateLatestEvent(bdea);
                 }
             }
@@ -322,31 +347,49 @@ namespace RabbitMQ.Client.MessagePatterns
         }
 
 #if NETFX_CORE || NET4
-        public async Task<BasicDeliverEventArgs> NextAsync() {
-            try {
+        public Task<BasicDeliverEventArgs> NextAsync() 
+        {
+            try 
+            {
                 // Alias the pointer as otherwise it may change out
                 // from under us by the operation of Close() from
                 // another thread.
-                QueueingBasicConsumer consumer = m_consumer;
-                if (consumer == null) {
+                var queue = m_queue;
+                if (queue == null || Model.IsClosed) 
+                {
                     // Closed!
                     MutateLatestEvent(null);
                 }
-                else {
-                    MutateLatestEvent(await consumer.Queue.DequeueAsync());
+                else 
+                {
+                    BasicDeliverEventArgs evt = null;
+                    if(queue.TryTake(out evt))
+                    {
+                        MutateLatestEvent(evt);
+                    }
+                    else
+                    {
+                        var tcs = new TaskCompletionSource<BasicDeliverEventArgs>();
+                        m_waiting.Enqueue(tcs);
+                        return tcs.Task;
+                    }
                 }
             }
-            catch (AggregateException ex) {
+            catch (AggregateException ex) 
+            {
                 // since tasks wrap exceptions as AggregateException, 
                 // reach in and check if the EndOfStream exception is what happened
-                if (ex.InnerException is EndOfStreamException) {
+                if (ex.InnerException is EndOfStreamException) 
+                {
                     MutateLatestEvent(null);
                 }
             }
-            catch (EndOfStreamException) {
+            catch (EndOfStreamException) 
+            {
                 MutateLatestEvent(null);
             }
-            return LatestEvent;
+
+            return Task.FromResult(LatestEvent);
         }
 #endif
 
@@ -401,7 +444,7 @@ namespace RabbitMQ.Client.MessagePatterns
                 // Alias the pointer as otherwise it may change out
                 // from under us by the operation of Close() from
                 // another thread.
-                QueueingBasicConsumer consumer = m_consumer;
+                var consumer = m_consumer;
                 if (consumer == null || Model.IsClosed)
                 {
                     MutateLatestEvent(null);
@@ -411,7 +454,7 @@ namespace RabbitMQ.Client.MessagePatterns
                 else
                 {
                     BasicDeliverEventArgs qValue;
-                    if (!consumer.Queue.Dequeue(millisecondsTimeout, out qValue))
+                    if (!m_queue.TryTake(out qValue, millisecondsTimeout))
                     {
                         result = null;
                         return false;
@@ -483,5 +526,22 @@ namespace RabbitMQ.Client.MessagePatterns
                 MutateLatestEvent(null);
             }
         }
+
+#if NETFX_CORE || NET4
+        private void QueueAdd(BasicDeliverEventArgs args)
+        {
+            //NB: as long as there are async awaiters sync callers will never be served
+            //this is not ideal but consistent with how SharedQueue behaves
+            TaskCompletionSource<BasicDeliverEventArgs> tsc;
+            if(m_waiting.TryDequeue(out tsc) && tsc.TrySetResult(args))
+            {
+                return;
+            }
+            else
+            {
+                m_queue.Add(args);
+            }
+        }
+#endif
     }
 }
