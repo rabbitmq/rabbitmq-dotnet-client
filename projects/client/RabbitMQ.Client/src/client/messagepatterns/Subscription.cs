@@ -244,8 +244,11 @@ namespace RabbitMQ.Client.MessagePatterns
                 }
 
                 m_queueCts.Cancel(true);
-                m_queue.Dispose();
-                m_queue = null;
+                if(m_queue != null)
+                {
+                    m_queue.Dispose();
+                    m_queue = null;
+                }
 #if NETFX_CORE || NET4
                 var exn = new EndOfStreamException("Subscription closed");
                 foreach (var tsc in m_waiting)
