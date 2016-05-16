@@ -419,7 +419,9 @@ namespace RabbitMQ.Client
                 else
                 {
                     IProtocol protocol = Protocols.DefaultProtocol;
-                    conn = protocol.CreateConnection(this, false, CreateFrameHandler(), clientProvidedName);
+                    var selectedHost = this.HostnameSelector.NextFrom(hostnames);
+                    var endPoint = AmqpTcpEndpoint.Parse(selectedHost);
+                    conn = protocol.CreateConnection(this, false, CreateFrameHandler(endPoint), clientProvidedName);
                 }
             }
             catch (Exception e)
