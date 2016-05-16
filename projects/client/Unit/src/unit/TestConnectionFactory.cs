@@ -68,5 +68,22 @@ namespace RabbitMQ.Client.Unit
             Assert.AreEqual(cf.HostName, h);
             Assert.AreEqual(cf.Port, p);
         }
+
+        [Test]
+        public void TestCreateConnectionParsesHostNameWithPort()
+        {
+            var cf = new ConnectionFactory();
+            cf.AutomaticRecoveryEnabled = true;
+            cf.HostName = "not_localhost";
+            cf.Port = 1234;
+            var conn = cf.CreateConnection(new System.Collections.Generic.List<string> { "localhost:5672" }, "oregano");
+            conn.Close();
+            conn.Dispose();
+            Assert.AreEqual("not_localhost", cf.HostName);
+            Assert.AreEqual(1234, cf.Port);
+            Assert.AreEqual("localhost", conn.Endpoint.HostName);
+            Assert.AreEqual(5672, conn.Endpoint.Port);
+        }
+
     }
 }

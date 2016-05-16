@@ -445,8 +445,11 @@ namespace RabbitMQ.Client
 
         public IFrameHandler CreateFrameHandlerForHostname(string hostname)
         {
-            return CreateFrameHandler(this.Endpoint.CloneWithHostname(hostname));
+            var ep = AmqpTcpEndpoint.Parse(hostname);
+            ep.Ssl = this.Endpoint.Ssl;
+            return CreateFrameHandler(ep);
         }
+
 
         private IFrameHandler ConfigureFrameHandler(IFrameHandler fh)
         {
