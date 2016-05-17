@@ -1096,6 +1096,10 @@ entry.ToString());
                     TerminateMainloop();
                     FinishClose();
                 }
+                else
+                {
+                    _heartbeatWriteTimer.Change(Heartbeat * 1000, Timeout.Infinite);
+                }
             } catch (ObjectDisposedException ignored)
             {
                 // timer is already disposed,
