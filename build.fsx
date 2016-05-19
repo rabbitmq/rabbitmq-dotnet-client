@@ -92,9 +92,9 @@ let appRefs =
         ++ "./projects/client/Unit/**/*.csproj" 
         ++ "./projects/wcf/**/*.csproj" 
     match buildEnv with
-    | Mono -> main
-    | _ -> 
+    | Windows8Plus -> 
         !! "./projects/**/*.csproj" 
+    | _ -> main
 
 let appGenRef = [ "./projects/client/Apigen/RabbitMQ.Client.Apigen.csproj" ] 
 
