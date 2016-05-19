@@ -92,7 +92,7 @@ let appRefs =
         ++ "./projects/client/Unit/**/*.csproj" 
         ++ "./projects/wcf/**/*.csproj" 
     match buildEnv with
-    | Windows8Plus -> 
+    | Windows8Plus | AppVeyor -> 
         !! "./projects/**/*.csproj" 
     | _ -> main
 
