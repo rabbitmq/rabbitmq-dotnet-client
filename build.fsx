@@ -22,8 +22,6 @@ let getEnv = Environment.GetEnvironmentVariable
 
 Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
 
-let gitBranch = Fake.Git.Information.getBranchName __SOURCE_DIRECTORY__
-
 let targetFramework = "v4.5"
 
 let context =
