@@ -39,7 +39,6 @@
 //---------------------------------------------------------------------------
 
 using NUnit.Framework;
-using RabbitMQ.Client.Impl;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -48,14 +47,14 @@ using System.Threading;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    internal class TestHeartbeats : IntegrationFixture
+    class TestHeartbeats : IntegrationFixture
     {
         private const UInt16 heartbeatTimeout = 2;
 
         [Test, Category("LongRunning"), Timeout(35000)]
         public void TestThatHeartbeatWriterUsesConfigurableInterval()
         {
-            var cf = new ConnectionFactory()
+            var cf = new ConnectionFactory
             {
                 RequestedHeartbeat = heartbeatTimeout,
                 AutomaticRecoveryEnabled = false
@@ -72,7 +71,7 @@ namespace RabbitMQ.Client.Unit
                 return;
             }
 
-            var cf = new ConnectionFactory()
+            var cf = new ConnectionFactory
             {
                 RequestedHeartbeat = heartbeatTimeout,
                 AutomaticRecoveryEnabled = false
@@ -99,15 +98,14 @@ namespace RabbitMQ.Client.Unit
         public void TestHundredsOfConnectionsWithRandomHeartbeatInterval()
         {
             var rnd = new Random();
-            List<IConnection> xs = new List<IConnection>();
+            var xs = new List<IConnection>();
             for (var i = 0; i < 200; i++)
             {
                 var n = Convert.ToUInt16(rnd.Next(2, 6));
-                var cf = new ConnectionFactory() { RequestedHeartbeat = n, AutomaticRecoveryEnabled = false };
+                var cf = new ConnectionFactory { RequestedHeartbeat = n, AutomaticRecoveryEnabled = false };
                 var conn = cf.CreateConnection();
                 xs.Add(conn);
-                var ch = conn.CreateModel();
-                bool wasShutdown = false;
+                conn.CreateModel();
 
                 conn.ConnectionShutdown += (sender, evt) =>
                     {
@@ -126,8 +124,8 @@ namespace RabbitMQ.Client.Unit
         protected void RunSingleConnectionTest(ConnectionFactory cf)
         {
             var conn = cf.CreateConnection();
-            var ch = conn.CreateModel();
-            bool wasShutdown = false;
+            conn.CreateModel();
+            var wasShutdown = false;
 
             conn.ConnectionShutdown += (sender, evt) =>
             {

@@ -36,6 +36,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Constructor.  
         /// </summary>
+        /// <param name="addressFamily">Address family of the proxy server.</param>
         /// <param name="proxyHost">Host name or IP address of the proxy server.</param>
         /// <param name="proxyPort">Port number to connect to the proxy server.</param>
         /// <param name="proxyUsername">Username for the proxy server.</param>

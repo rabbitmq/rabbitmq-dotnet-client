@@ -11,7 +11,7 @@ namespace RabbitMQ.Client
         public const int MAX_THUNK_EXECUTION_BATCH_SIZE = 16;
         private TaskScheduler scheduler;
         private BatchingWorkPool<IModel, Action> workPool;
-        private int shutdownTimeout;
+        private int shutdownTimeout = 0;
 
         public ConsumerWorkService() :
             this(TaskScheduler.Default) { }
@@ -52,7 +52,7 @@ namespace RabbitMQ.Client
                     }
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
 #if NETFX_CORE
                 // To end a task, return

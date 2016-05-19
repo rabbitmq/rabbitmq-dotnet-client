@@ -549,7 +549,7 @@ namespace RabbitMQ.Client.Unit
                     return new ConnectionInfo(columns[0], Convert.ToUInt32(columns[1].Trim()));
                 }).ToList();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 Console.WriteLine("Bad response from rabbitmqctl list_connections -q pid peer_port:" + Environment.NewLine + stdout);
                 throw;

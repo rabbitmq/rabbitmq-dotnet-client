@@ -267,7 +267,7 @@ namespace RabbitMQ.Client.Unit
 
             for (int i = 0; i < n; i++)
             {
-                var cons = new QueueingBasicConsumer(Model);
+                var cons = new EventingBasicConsumer(Model);
                 Model.BasicConsume(q, true, cons);
             }
 
@@ -379,7 +379,7 @@ namespace RabbitMQ.Client.Unit
             {
                 string q = Guid.NewGuid().ToString();
                 Model.QueueDeclare(q, false, false, true, null);
-                var dummy = new QueueingBasicConsumer(Model);
+                var dummy = new EventingBasicConsumer(Model);
                 string tag = Model.BasicConsume(q, true, dummy);
                 Model.BasicCancel(tag);
             }
@@ -667,7 +667,7 @@ namespace RabbitMQ.Client.Unit
 
             for (int i = 0; i < n; i++)
             {
-                var cons = new QueueingBasicConsumer(Model);
+                var cons = new EventingBasicConsumer(Model);
                 string tag = Model.BasicConsume(q, true, cons);
                 Model.BasicCancel(tag);
             }

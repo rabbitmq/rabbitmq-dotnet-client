@@ -114,6 +114,8 @@ namespace RabbitMQ.Client
         /// <param name="socketFactory">Socket factory method.</param>
         /// <param name="connectionTimeout">Timeout in milliseconds.</param>
         /// <param name="endpoint">Represents a TCP-addressable AMQP peer: a host name and port number.</param>
+        /// <param name="readTimeout">Read timeout.</param>
+        /// <param name="writeTimeout">Write timeout.</param>
         IFrameHandler CreateFrameHandler(
             AmqpTcpEndpoint endpoint, 
 #if !NETFX_CORE

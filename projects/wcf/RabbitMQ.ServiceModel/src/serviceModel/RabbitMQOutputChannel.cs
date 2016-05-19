@@ -51,14 +51,12 @@ namespace RabbitMQ.ServiceModel
 
     internal sealed class RabbitMQOutputChannel : RabbitMQOutputChannelBase
     {
-        private RabbitMQTransportBindingElement m_bindingElement;
         private MessageEncoder m_encoder;
         private IModel m_model;
 
         public RabbitMQOutputChannel(BindingContext context, IModel model, EndpointAddress address)
             : base(context, address)
         {
-            m_bindingElement = context.Binding.Elements.Find<RabbitMQTransportBindingElement>();
             MessageEncodingBindingElement encoderElement = context.Binding.Elements.Find<MessageEncodingBindingElement>();
             if (encoderElement != null) {
                 m_encoder = encoderElement.CreateMessageEncoderFactory().Encoder;

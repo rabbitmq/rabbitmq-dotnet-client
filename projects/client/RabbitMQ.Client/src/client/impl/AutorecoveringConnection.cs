@@ -556,13 +556,12 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             this.hostnames = hostnames;
             string reachableHostname = null;
-            IFrameHandler fh = null;
             Exception e = null;
             foreach (var h in hostnames)
             {
                 try
                 {
-                    fh = m_factory.CreateFrameHandler(m_factory.Endpoint.CloneWithHostname(h));
+                    m_factory.CreateFrameHandler(m_factory.Endpoint.CloneWithHostname(h));
                     reachableHostname = h;
                 } catch (Exception caught)
                 {
@@ -800,7 +799,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     m_delegate = new Connection(m_factory, false, fh, this.ClientProvidedName);
                     recovering = false;
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
 #if NETFX_CORE
                     System.Threading.Tasks.Task.Delay(m_factory.NetworkRecoveryInterval).Wait();

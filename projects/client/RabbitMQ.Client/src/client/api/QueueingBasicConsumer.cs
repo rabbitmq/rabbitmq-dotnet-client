@@ -62,9 +62,9 @@ namespace RabbitMQ.Client
     /// <para>
     /// When the consumer is closed, through BasicCancel or through
     /// the shutdown of the underlying <see cref="IModel"/> or <see cref="IConnection"/>,
-    ///  the  <see cref="SharedQueue.Close"/> method is called, which causes any
+    ///  the  <see cref="RabbitMQ.Util.SharedQueue{T}.Close"/> method is called, which causes any
     /// Enqueue() operations, and Dequeue() operations when the queue
-    /// is empty, to throw EndOfStreamException (see the comment for <see cref="SharedQueue.Close"/>).
+    /// is empty, to throw EndOfStreamException (see the comment for <see cref="SharedQueue{T}.Close"/>).
     /// </para>
     /// <para>
     /// The following is a simple example of the usage of this class:

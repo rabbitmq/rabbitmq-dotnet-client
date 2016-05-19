@@ -178,13 +178,14 @@ namespace RabbitMQ.Client.Impl
                         try
                         {
                             
-                        } catch (ArgumentException _)
+                        } 
+                        catch (ArgumentException)
                         {
                             // ignore, we are closing anyway
                         };
                         m_socket.Close();
                     }
-                    catch (Exception _)
+                    catch (Exception)
                     {
                         // ignore, we are closing anyway
                     }

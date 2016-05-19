@@ -41,14 +41,11 @@
 using NUnit.Framework;
 
 using System;
-using System.IO;
 using System.Text;
-using System.Collections;
 
 using RabbitMQ.Client.Impl;
-using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Events;
-using RabbitMQ.Util;
+//using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -60,7 +57,7 @@ namespace RabbitMQ.Client.Unit
         String Queue;
         int callbackCount;
 
-        public int ModelNumber(IModel model)
+        public static int ModelNumber(IModel model)
         {
             return ((ModelBase)model).Session.ChannelNumber;
         }
@@ -80,18 +77,22 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestRecoverAfterCancel_()
         {
-            UTF8Encoding enc = new UTF8Encoding();
+            var enc = new UTF8Encoding();
             Channel.BasicPublish("", Queue, null, enc.GetBytes("message"));
-            QueueingBasicConsumer Consumer = new QueueingBasicConsumer(Channel);
+            var Consumer = new EventingBasicConsumer(Channel);
+            var queue = new System.Collections.Concurrent.BlockingCollection<BasicDeliverEventArgs>();
+            Consumer.Received += (asdf, args) => queue.Add(args);
 
             String CTag = Channel.BasicConsume(Queue, false, Consumer);
-            BasicDeliverEventArgs Event = (BasicDeliverEventArgs) Consumer.Queue.Dequeue();
+            BasicDeliverEventArgs Event = queue.Take(); 
             Channel.BasicCancel(CTag);
             Channel.BasicRecover(true);
 
-            QueueingBasicConsumer Consumer2 = new QueueingBasicConsumer(Channel);
+            var Consumer2 = new EventingBasicConsumer(Channel);
+            var queue2 = new System.Collections.Concurrent.BlockingCollection<BasicDeliverEventArgs>();
+            Consumer2.Received += (asdf, args) => queue2.Add(args);
             Channel.BasicConsume(Queue, false, Consumer2);
-            BasicDeliverEventArgs Event2 = (BasicDeliverEventArgs)Consumer2.Queue.Dequeue();
+            BasicDeliverEventArgs Event2 = queue2.Take(); 
 
             Assert.AreEqual(Event.Body, Event2.Body);
             Assert.IsFalse(Event.Redelivered);

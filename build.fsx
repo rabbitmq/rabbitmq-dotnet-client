@@ -103,7 +103,9 @@ Target "BuildApigen" (fun _ ->
     |> Log "Build: ")
 
 Target "BuildClient" (fun _ ->
-    MSBuild null "Build" ["Configuration", "Release"; "Platform", "AnyCPU" ] appRefs 
+    MSBuild null "Build" [ "Configuration", "Release"
+                           "TreatWarningsAsErrors", "True"
+                           "Platform", "AnyCPU" ] appRefs 
     |> Log "Build: ")
 
 Target "Clean" (fun _ ->

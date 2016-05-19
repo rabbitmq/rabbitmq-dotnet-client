@@ -83,7 +83,7 @@ namespace RabbitMQ.Client.Unit
             var subject = new Framing.BasicProperties();
 
             // Act
-            subject.SetPersistent(true);
+            subject.Persistent = true;
 
             // Assert
             Assert.AreEqual(2, subject.DeliveryMode);
@@ -98,7 +98,7 @@ namespace RabbitMQ.Client.Unit
             var subject = new Framing.BasicProperties();
 
             // Act
-            subject.SetPersistent(false);
+            subject.Persistent = false;
 
             // Assert
             Assert.AreEqual(1, subject.DeliveryMode);
