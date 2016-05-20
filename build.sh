@@ -1,4 +1,6 @@
-#! /bin/bash
+#!/bin/sh
+
+set -e
 
 mono .paket/paket.bootstrapper.exe
 mono .paket/paket.exe restore
