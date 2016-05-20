@@ -17,7 +17,7 @@ On Windows run:
     build.bat
 
 On osx/linux run:
-    
+
     build.sh
 
 This will complete the code AMQP spec generation and build all projects. After this open the solution in Visual Studio.
@@ -35,5 +35,5 @@ On Windows run:
     run-test.bat
 
 On osx/linux run:
-    
+
     run-test.sh
