@@ -29,15 +29,10 @@ install:
       $env:RABBITMQ_RABBITMQCTL_PATH = "$path\rabbitmq_server-$version\sbin\rabbitmqctl.bat"
 
 before_build:
-  - copy "appveyor.props.in" "Local.props"
 
-build:
-  parallel: false
-  project: RabbitMQDotNetClient.sln
-  publish_nuget: false
-  publish_nuget_symbols: false
-  include_nuget_references: false
-  verbosity: minimal
+build_script: fake.bat AppVeyor
+
+test: off
 
 after_build:
   - ps: |
@@ -46,15 +41,7 @@ after_build:
       nuget pack RabbitMQ.Client.nuspec -version $semver -symbols
       nuget pack RabbitMQ.ServiceModel.nuspec -version $semver -symbols
 
-test:
-  assemblies:
-    - '**\build\bin\unit-tests.dll'
-  categories:
-    except:
-      - RequireSMP
-      - LongRunning
-
 artifacts:
-  - path: '**\*.nupkg'
+  - path: '*.nupkg'
 
 deploy: off

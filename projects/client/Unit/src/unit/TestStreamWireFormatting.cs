@@ -62,7 +62,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestSingleDecoding2()
         {
-            Assert.AreEqual("1.234",
+            Assert.AreEqual(1.234f.ToString(),
                             StreamWireFormatting.ReadString(Reader
                                                             (new byte[] { 8, 63, 157, 243, 182 })));
         }
