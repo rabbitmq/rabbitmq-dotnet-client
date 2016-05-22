@@ -42,22 +42,18 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-// General Information about an assembly is controlled through the following
-// set of attributes. Change these attribute values to modify the information
-// associated with an assembly.
-[assembly: AssemblyTitle("RabbitMQ.Client.WinRT Unit Tests")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("RabbitMQ Client Library for .NET")]
+[assembly: AssemblyDescription("See http://rabbitmq.com")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Pivotal Software, Inc.")]
-[assembly: AssemblyProduct("RabbitMQ.Client.WinRT")]
+[assembly: AssemblyProduct("RabbitMQ")]
 [assembly: AssemblyCopyright("Copyright © 2007-2016 Pivotal Software, Inc.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
-// Setting ComVisible to false makes the types in this assembly not visible
-// to COM components.  If you need to access a type in this assembly from
-// COM, set the ComVisible attribute to true on that type.
-[assembly: ComVisible(false)]
+[assembly: ComVisible(true)]
 
-// The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("42d39d91-847a-44fa-9875-a508ae59bda6")]
+[assembly: Guid("32a32ed8-c871-45ad-86b3-f50723a7434b")]
+
+[assembly: AssemblyVersion("0.0.0.0")]
+

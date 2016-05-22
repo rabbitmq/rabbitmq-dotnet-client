@@ -12,17 +12,15 @@ It is possible to use [Visual Studio 2015 Community Edition](https://www.visuals
 
 ## Building
 
-### Copy `Local.props.example` and Edit
+On Windows run:
 
-First copy `Local.props.example` to `Local.props` and edit it if needed, specifying whether
-you intend to build the client on Mono and what .NET version should be targeted.
+    build.bat
 
-### Build
+On osx/linux run:
 
-Then, build in Visual Studio or build from the command line. To do the latter,
-simply run
+    build.sh
 
-    msbuild.exe
+This will complete the code AMQP spec generation and build all projects. After this open the solution in Visual Studio.
 
 
 ## Running Tests
@@ -30,6 +28,12 @@ simply run
 Tests can be run from Visual Studio using [NUnit Test Adapter](https://visualstudiogallery.msdn.microsoft.com/6ab922d0-21c0-4f06-ab5f-4ecd1fe7175d).
 Note that it may take some time for the adapter to discover tests in the assemblies.
 
-Running the tests from the command line is also straightforward: use
+Running the tests from the command line is also straightforward you don't need to build first to do this: use
 
-    msbuild.exe /t:RunUnitTests projects/client/Unit/RabbitMQ.Client.Unit.csproj
+On Windows run:
+
+    run-test.bat
+
+On osx/linux run:
+
+    run-test.sh

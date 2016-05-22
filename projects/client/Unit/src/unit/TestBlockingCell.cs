@@ -174,7 +174,8 @@ namespace RabbitMQ.Client.Unit
             SetAfter(TimingInterval, k, 123);
 
             ResetTimer();
-            var v = k.GetValue(Timeout.InfiniteTimeSpan);
+            var infiniteTimeSpan =new TimeSpan(0, 0, 0, 0, Timeout.Infinite);
+            var v = k.GetValue(infiniteTimeSpan);
             Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.AreEqual(123, v);
         }

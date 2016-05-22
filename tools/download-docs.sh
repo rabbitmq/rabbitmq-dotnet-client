@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/sh
 
 OUTPUT_DIR=../releases/rabbitmq-dotnet-client/v1.6.0
 

@@ -50,7 +50,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Pivotal Software, Inc.")]
 [assembly: AssemblyProduct("RabbitMQ.Client")]
-[assembly: AssemblyCopyright("Copyright © 2007-2015 Pivotal Software, Inc.")]
+[assembly: AssemblyCopyright("Copyright © 2007-2016 Pivotal Software, Inc.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
