@@ -40,6 +40,7 @@
 
 using System;
 using NUnit.Framework;
+using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -70,19 +71,34 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestCreateConnectionParsesHostNameWithPort()
+        [ExpectedException(typeof(BrokerUnreachableException))]
+        public void TestCreateConnectionUsesSpecifiedPort()
         {
             var cf = new ConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
-            cf.HostName = "not_localhost";
+            cf.HostName = "localhost";
             cf.Port = 1234;
-            var conn = cf.CreateConnection(new System.Collections.Generic.List<string> { "localhost:5672" }, "oregano");
-            conn.Close();
-            conn.Dispose();
-            Assert.AreEqual("not_localhost", cf.HostName);
-            Assert.AreEqual(1234, cf.Port);
-            Assert.AreEqual("localhost", conn.Endpoint.HostName);
-            Assert.AreEqual(5672, conn.Endpoint.Port);
+            using(var conn = cf.CreateConnection());
+        }
+
+        [Test]
+        [ExpectedException(typeof(BrokerUnreachableException))]
+        public void TestCreateConnectionWithClientProvidedNameUsesSpecifiedPort()
+        {
+            var cf = new ConnectionFactory();
+            cf.AutomaticRecoveryEnabled = true;
+            cf.HostName = "localhost";
+            cf.Port = 1234;
+            using(var conn = cf.CreateConnection("some_name"));
+        }
+        
+        [Test]
+        public void TestCreateConnectionUsesDefaultPort()
+        {
+            var cf = new ConnectionFactory();
+            cf.AutomaticRecoveryEnabled = true;
+            cf.HostName = "localhost";
+            using(var conn = cf.CreateConnection());
         }
 
         [Test]
@@ -91,12 +107,11 @@ namespace RabbitMQ.Client.Unit
             var cf = new ConnectionFactory();
             cf.AutomaticRecoveryEnabled = false;
             cf.HostName = "not_localhost";
-            cf.Port = 1234;
             var conn = cf.CreateConnection(new System.Collections.Generic.List<string> { "localhost" }, "oregano");
             conn.Close();
             conn.Dispose();
             Assert.AreEqual("not_localhost", cf.HostName);
             Assert.AreEqual("localhost", conn.Endpoint.HostName);       
-	}
+        }
     }
 }

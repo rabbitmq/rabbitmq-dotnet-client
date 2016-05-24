@@ -18,6 +18,7 @@ TestResult.xml
 .paket/paket.exe
 /NuGet
 rabbit-mock.snk
+test.sh
 
 #################
 ## Visual Studio
