@@ -115,7 +115,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public Connection(IConnectionFactory factory, bool insist, IFrameHandler frameHandler, string clientProvidedName = null)
         {
-            clientProvidedName = clientProvidedName;
+            this.ClientProvidedName = clientProvidedName;
             KnownHosts = null;
             FrameMax = 0;
             m_factory = factory;
