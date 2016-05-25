@@ -37,3 +37,9 @@ On Windows run:
 On osx/linux run:
 
     run-test.sh
+
+
+Running individual tests and fixtures on Windows is trivial using the Visual Studio test runner.
+To run a single test fixture on osx/linux you can use:
+    
+    ./fake.sh Test fixture=MyNameSpace.MyFixture

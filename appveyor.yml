@@ -1,4 +1,4 @@
-version: "3.5.5.{build}"
+version: "3.6.3.{build}"
 
 platform: Any CPU
 configuration: Release

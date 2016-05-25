@@ -19,6 +19,7 @@ TestResult.xml
 /NuGet
 rabbit-mock.snk
 test.sh
+*.VisualState.xml
 
 #################
 ## Visual Studio
