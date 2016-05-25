@@ -562,8 +562,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 try
                 {
-                    var endPoint = CloneEndpointWithHostname(h);
-                    fh = m_factory.CreateFrameHandler(endPoint);
+                    fh = m_factory.CreateFrameHandler(m_factory.Endpoint.CloneWithHostname(h));
                     reachableHostname = h;
                 } 
                 catch (Exception caught)
@@ -798,8 +797,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 try
                 {
                     var nextHostname = m_factory.HostnameSelector.NextFrom(this.hostnames);
-                    var endPoint = CloneEndpointWithHostname(nextHostname);
-                    var fh = m_factory.CreateFrameHandler(endPoint);
+                    var fh = m_factory.CreateFrameHandler(m_factory.Endpoint.CloneWithHostname(nextHostname));
                     m_delegate = new Connection(m_factory, false, fh, this.ClientProvidedName);
                     recovering = false;
                 }
@@ -1005,13 +1003,6 @@ namespace RabbitMQ.Client.Framing.Impl
                 // happens when EOF is reached, e.g. due to RabbitMQ node
                 // connectivity loss or abrupt shutdown
                     args.Initiator == ShutdownInitiator.Library);
-        }
-
-        private AmqpTcpEndpoint CloneEndpointWithHostname(string hostname)
-        {
-            var ate = AmqpTcpEndpoint.Parse(hostname);
-            ate.Ssl = m_factory.Endpoint.Ssl;
-            return ate;
         }
     }
 }
