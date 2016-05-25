@@ -420,8 +420,7 @@ namespace RabbitMQ.Client
                 {
                     IProtocol protocol = Protocols.DefaultProtocol;
                     var selectedHost = this.HostnameSelector.NextFrom(hostnames);
-                    var endPoint = AmqpTcpEndpoint.Parse(selectedHost);
-                    conn = protocol.CreateConnection(this, false, CreateFrameHandler(endPoint), clientProvidedName);
+                    conn = protocol.CreateConnection(this, false, CreateFrameHandlerForHostname(selectedHost), clientProvidedName);
                 }
             }
             catch (Exception e)
@@ -447,9 +446,7 @@ namespace RabbitMQ.Client
 
         public IFrameHandler CreateFrameHandlerForHostname(string hostname)
         {
-            var ep = AmqpTcpEndpoint.Parse(hostname);
-            ep.Ssl = this.Endpoint.Ssl;
-            return CreateFrameHandler(ep);
+            return CreateFrameHandler(this.Endpoint.CloneWithHostname(hostname));
         }
 
 
