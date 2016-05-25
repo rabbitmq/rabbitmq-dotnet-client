@@ -91,7 +91,30 @@ namespace RabbitMQ.Client.Unit
             cf.Port = 1234;
             using(var conn = cf.CreateConnection("some_name"));
         }
+
+        [Test]
+        public void TestCreateConnectionWithClientProvidedNameUsesName()
+        {
+            var cf = new ConnectionFactory();
+            cf.AutomaticRecoveryEnabled = false;
+            using(var conn = cf.CreateConnection("some_name"))
+            {
+                Assert.AreEqual("some_name", conn.ClientProvidedName);
+                Assert.AreEqual("some_name", conn.ClientProperties["connection_name"]);
+            }
+        }
         
+        [Test]
+        public void TestCreateConnectionWithClientProvidedNameAndAutorecoveryUsesName()
+        {
+            var cf = new ConnectionFactory();
+            cf.AutomaticRecoveryEnabled = true;
+            using(var conn = cf.CreateConnection("some_name"))
+            {
+                Assert.AreEqual("some_name", conn.ClientProvidedName);
+                Assert.AreEqual("some_name", conn.ClientProperties["connection_name"]);
+            }
+        }
         [Test]
         public void TestCreateConnectionUsesDefaultPort()
         {
