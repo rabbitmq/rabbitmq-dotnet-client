@@ -126,6 +126,17 @@ namespace RabbitMQ.Client.Unit
             return (AutorecoveringConnection)cf.CreateConnection(hostnames);
         }
 
+        protected AutorecoveringConnection CreateAutorecoveringConnection(IList<AmqpTcpEndpoint> endpoints)
+        {
+            var cf = new ConnectionFactory();
+            cf.AutomaticRecoveryEnabled = true;
+            // tests that use this helper will likely list unreachable hosts,
+            // make sure we time out quickly on those
+            cf.RequestedConnectionTimeout = 1000;
+            cf.NetworkRecoveryInterval = RECOVERY_INTERVAL;
+            return (AutorecoveringConnection)cf.CreateConnection(endpoints);
+        }
+
         protected AutorecoveringConnection CreateAutorecoveringConnectionWithTopologyRecoveryDisabled()
         {
             var cf = new ConnectionFactory();

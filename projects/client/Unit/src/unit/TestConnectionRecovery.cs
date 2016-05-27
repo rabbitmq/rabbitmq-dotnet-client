@@ -97,7 +97,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestBasicConnectionRecoveryWithHostnameList()
         {
-            var c = CreateAutorecoveringConnection(new List<string>() { "127.0.0.1", "localhost" });
+            var c = CreateAutorecoveringConnection(new List<string> { "127.0.0.1", "localhost" });
             Assert.IsTrue(c.IsOpen);
             CloseAndWaitForRecovery(c);
             Assert.IsTrue(c.IsOpen);
@@ -107,7 +107,38 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestBasicConnectionRecoveryWithHostnameListAndUnreachableHosts()
         {
-            var c = CreateAutorecoveringConnection(new List<string>() { "191.72.44.22", "127.0.0.1", "localhost" });
+            var c = CreateAutorecoveringConnection(new List<string> { "191.72.44.22", "127.0.0.1", "localhost" });
+            Assert.IsTrue(c.IsOpen);
+            CloseAndWaitForRecovery(c);
+            Assert.IsTrue(c.IsOpen);
+            c.Close();
+        }
+
+        [Test]
+        public void TestBasicConnectionRecoveryWithEndpointList()
+        {
+            var c = CreateAutorecoveringConnection(
+                        new List<AmqpTcpEndpoint> 
+                        { 
+                            new AmqpTcpEndpoint("127.0.0.1"), 
+                            new AmqpTcpEndpoint("localhost") 
+                        });
+            Assert.IsTrue(c.IsOpen);
+            CloseAndWaitForRecovery(c);
+            Assert.IsTrue(c.IsOpen);
+            c.Close();
+        }
+
+        [Test]
+        public void TestBasicConnectionRecoveryWithEndpointListAndUnreachableHosts()
+        {
+            var c = CreateAutorecoveringConnection(
+                        new List<AmqpTcpEndpoint> 
+                        { 
+                            new AmqpTcpEndpoint("191.72.44.22"), 
+                            new AmqpTcpEndpoint("127.0.0.1"), 
+                            new AmqpTcpEndpoint("localhost") 
+                        });
             Assert.IsTrue(c.IsOpen);
             CloseAndWaitForRecovery(c);
             Assert.IsTrue(c.IsOpen);
