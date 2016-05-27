@@ -136,5 +136,45 @@ namespace RabbitMQ.Client.Unit
             Assert.AreEqual("not_localhost", cf.HostName);
             Assert.AreEqual("localhost", conn.Endpoint.HostName);       
         }
+
+        [Test]
+        public void TestCreateConnectionWithAutoRecoveryUsesAmqpTcpEndpoint()
+        {
+            var cf = new ConnectionFactory();
+            cf.AutomaticRecoveryEnabled = true;
+            cf.HostName = "not_localhost";
+            cf.Port = 1234 ;
+            var ep = new AmqpTcpEndpoint("localhost");
+            using(var conn = cf.CreateConnection(new System.Collections.Generic.List<AmqpTcpEndpoint> { ep }));
+        }
+
+        [Test]
+        [ExpectedException(typeof(BrokerUnreachableException))]
+        public void TestCreateConnectionWithAutoRecoveryUsesInvalidAmqpTcpEndpoint()
+        {
+            var cf = new ConnectionFactory();
+            cf.AutomaticRecoveryEnabled = true;
+            var ep = new AmqpTcpEndpoint("localhost", 1234);
+            using(var conn = cf.CreateConnection(new System.Collections.Generic.List<AmqpTcpEndpoint> { ep }));
+        }
+
+        [Test]
+        public void TestCreateConnectionUsesAmqpTcpEndpoint()
+        {
+            var cf = new ConnectionFactory();
+            cf.HostName = "not_localhost";
+            cf.Port = 1234 ;
+            var ep = new AmqpTcpEndpoint("localhost");
+            using(var conn = cf.CreateConnection(new System.Collections.Generic.List<AmqpTcpEndpoint> { ep }));
+        }
+
+        [Test]
+        [ExpectedException(typeof(BrokerUnreachableException))]
+        public void TestCreateConnectionUsesInvalidAmqpTcpEndpoint()
+        {
+            var cf = new ConnectionFactory();
+            var ep = new AmqpTcpEndpoint("localhost", 1234);
+            using(var conn = cf.CreateConnection(new System.Collections.Generic.List<AmqpTcpEndpoint> { ep }));
+        }
     }
 }
