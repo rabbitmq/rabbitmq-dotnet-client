@@ -118,9 +118,12 @@ Target "UpdateAssemblyInfos"
             { f with AssemblyVersion = version }))    
 
 let test excludes =
+    let fixture = getBuildParamOrDefault "fixture" ""
+    trace <| sprintf "fixture %s" fixture
     !! ("./projects/client/**/build/**/unit-tests.dll")
     |> NUnit (fun p -> 
         { p with
+            Fixture = fixture
             TimeOut = TimeSpan.FromMinutes 30.
             ExcludeCategory = excludes
             DisableShadowCopy = true; 
