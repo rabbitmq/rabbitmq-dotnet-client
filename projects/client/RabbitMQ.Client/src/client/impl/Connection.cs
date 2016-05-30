@@ -998,8 +998,8 @@ entry.ToString());
                 _heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback);
                 _heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback);
 #if NETFX_CORE
-                _heartbeatWriteTimer.Change(200, m_heartbeatTimeSpan.Milliseconds);
-                _heartbeatReadTimer.Change(200, m_heartbeatTimeSpan.Milliseconds);
+                _heartbeatWriteTimer.Change(200, (int)m_heartbeatTimeSpan.TotalMilliseconds);
+                _heartbeatReadTimer.Change(200, (int)m_heartbeatTimeSpan.TotalMilliseconds);
 #else
                 _heartbeatWriteTimer.Change(TimeSpan.FromMilliseconds(200), m_heartbeatTimeSpan);
                 _heartbeatReadTimer.Change(TimeSpan.FromMilliseconds(200), m_heartbeatTimeSpan);
