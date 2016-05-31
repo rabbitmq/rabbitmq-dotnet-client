@@ -96,8 +96,8 @@ namespace RabbitMQ.Client.Impl
 
         public ModelBase(ISession session, ConsumerWorkService workService)
         {
-            Initialise(session);
             ConsumerDispatcher = new ConcurrentConsumerDispatcher(this, workService);
+            Initialise(session);
         }
 
         protected void Initialise(ISession session)
