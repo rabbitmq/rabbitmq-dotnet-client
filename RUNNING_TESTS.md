@@ -40,6 +40,8 @@ On osx/linux run:
 
 
 Running individual tests and fixtures on Windows is trivial using the Visual Studio test runner.
-To run a single test fixture on osx/linux you can use:
+To run a specific tests fixture on osx/linux you can use nunit3 where expressions to select the tests
+to be run:
     
-    ./fake.sh Test fixture=MyNameSpace.MyFixture
+    ./fake.sh Test where="test =~ /SomeTest/"
+
