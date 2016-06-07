@@ -49,26 +49,12 @@
   <PropertyGroup>
     <MonoNunitTempSetting Condition="'$(PropUsingMono)' == 'true' and '$(temp)' == ''">temp=/tmp </MonoNunitTempSetting>
   </PropertyGroup>
-  <!-- Running the tests -->
-  <Target Name="RunUnitTests" DependsOnTargets="Build;ImportSSL">
-    <Exec Command="$(MonoNunitTempSetting)$(PropLaunchExe)..\..\..\lib\nunit\nunit-console.exe -config=Debug &quot;build\bin\$(AssemblyName).dll&quot;" WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="false" />
-  </Target>
-  <Target Name="RunFocusUnitTests" DependsOnTargets="Build;ImportSSL">
-    <Exec Command="$(MonoNunitTempSetting)$(PropLaunchExe)..\..\..\lib\nunit\nunit-console.exe -config=Debug -include=&quot;Focus&quot; &quot;build\bin\$(AssemblyName).dll&quot;" WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="false" />
-  </Target>
-  <Target Name="RunSingleUnitTest" DependsOnTargets="Build;ImportSSL">
-    <Exec Command="$(MonoNunitTempSetting)$(PropLaunchExe)..\..\..\lib\nunit\nunit-console.exe -config=Debug -run=&quot;$(PropTestToRun)&quot; &quot;build\bin\$(AssemblyName).dll&quot;" WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="false" />
-  </Target>
   <!-- Clean test result file -->
   <Target Name="CleanTestResults">
     <Delete Files="TestResult.xml" />
   </Target>
   <!-- Visual Studio generated reference and file list -->
   <ItemGroup>
-    <Reference Include="nunit.framework, Version=2.6.4.0, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\lib\nunit\nunit.framework.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
@@ -143,4 +129,51 @@
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- Custom BeforeClean -->
   <Target Name="BeforeClean" DependsOnTargets="CleanTestResults" />
+  <Choose>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v3.5'">
+      <ItemGroup>
+        <Reference Include="nunit.framework">
+          <HintPath>..\..\..\packages\NUnit\lib\net35\nunit.framework.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v2.0' Or $(TargetFrameworkVersion) == 'v3.0')">
+      <ItemGroup>
+        <Reference Include="nunit.framework">
+          <HintPath>..\..\..\packages\NUnit\lib\net20\nunit.framework.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.0')">
+      <ItemGroup>
+        <Reference Include="nunit.framework">
+          <HintPath>..\..\..\packages\NUnit\lib\net40\nunit.framework.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1' Or $(TargetFrameworkVersion) == 'v4.6.2')">
+      <ItemGroup>
+        <Reference Include="nunit.framework">
+          <HintPath>..\..\..\packages\NUnit\lib\net45\nunit.framework.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="($(TargetFrameworkIdentifier) == 'WindowsPhoneApp') Or ($(TargetFrameworkIdentifier) == '.NETCore') Or ($(TargetFrameworkIdentifier) == 'WindowsPhone' And ($(TargetFrameworkVersion) == 'v8.0' Or $(TargetFrameworkVersion) == 'v8.1')) Or ($(TargetFrameworkIdentifier) == 'MonoAndroid') Or ($(TargetFrameworkIdentifier) == 'MonoTouch') Or ($(TargetFrameworkIdentifier) == 'Xamarin.iOS') Or ($(TargetFrameworkIdentifier) == 'Xamarin.Mac') Or ($(TargetFrameworkProfile) == 'Profile7') Or ($(TargetFrameworkProfile) == 'Profile31') Or ($(TargetFrameworkProfile) == 'Profile32') Or ($(TargetFrameworkProfile) == 'Profile44') Or ($(TargetFrameworkProfile) == 'Profile49') Or ($(TargetFrameworkProfile) == 'Profile78') Or ($(TargetFrameworkProfile) == 'Profile84') Or ($(TargetFrameworkProfile) == 'Profile111') Or ($(TargetFrameworkProfile) == 'Profile151') Or ($(TargetFrameworkProfile) == 'Profile157') Or ($(TargetFrameworkProfile) == 'Profile259')">
+      <ItemGroup>
+        <Reference Include="nunit.framework">
+          <HintPath>..\..\..\packages\NUnit\lib\portable-net45+win8+wp8+wpa81+Xamarin.Mac+MonoAndroid10+MonoTouch10+Xamarin.iOS10\nunit.framework.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
 </Project>

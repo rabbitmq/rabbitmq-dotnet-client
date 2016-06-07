@@ -115,7 +115,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public Connection(IConnectionFactory factory, bool insist, IFrameHandler frameHandler, string clientProvidedName = null)
         {
-            clientProvidedName = clientProvidedName;
+            this.ClientProvidedName = clientProvidedName;
             KnownHosts = null;
             FrameMax = 0;
             m_factory = factory;
@@ -963,8 +963,8 @@ entry.ToString());
                 _heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback, null, 200, m_heartbeatTimeSpan.Milliseconds);
                 _heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback, null, 200, m_heartbeatTimeSpan.Milliseconds);
 #if NETFX_CORE
-                _heartbeatWriteTimer.Change(200, m_heartbeatTimeSpan.Milliseconds);
-                _heartbeatReadTimer.Change(200, m_heartbeatTimeSpan.Milliseconds);
+                _heartbeatWriteTimer.Change(200, (int)m_heartbeatTimeSpan.TotalMilliseconds);
+                _heartbeatReadTimer.Change(200, (int)m_heartbeatTimeSpan.TotalMilliseconds);
 #else
                 _heartbeatWriteTimer.Change(TimeSpan.FromMilliseconds(200), m_heartbeatTimeSpan);
                 _heartbeatReadTimer.Change(TimeSpan.FromMilliseconds(200), m_heartbeatTimeSpan);

@@ -56,10 +56,12 @@ namespace RabbitMQ.Client.Framing.Impl
         protected Connection m_delegate;
         protected ConnectionFactory m_factory;
 
-        // list of hostnames provided on initial connection.
+        //retained for compatibility
+        protected IList<string> hostnames;
+        // list of endpoints provided on initial connection.
         // on re-connection, the next host in the line is chosen using
         // IHostnameSelector
-        protected IList<string> hostnames;
+        private IList<AmqpTcpEndpoint> endpoints;
 
         public readonly object m_recordedEntitiesLock = new object();
         protected readonly TaskFactory recoveryTaskFactory = new TaskFactory();
@@ -554,34 +556,45 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void Init(IList<string> hostnames)
         {
-            this.hostnames = hostnames;
-            string reachableHostname = null;
+            this.Init(hostnames.Select(m_factory.Endpoint.CloneWithHostname).ToList());
+        }
+
+        public void Init(IList<AmqpTcpEndpoint> endpoints)
+        {
+            this.endpoints = endpoints;
+            this.hostnames = endpoints.Select(ep => ep.HostName).ToList();
+            AmqpTcpEndpoint reachableEndpoint = null;
             IFrameHandler fh = null;
             Exception e = null;
-            foreach (var h in hostnames)
+            foreach (var ep in endpoints)
             {
                 try
                 {
-                    var endPoint = CloneEndpointWithHostname(h);
-                    fh = m_factory.CreateFrameHandler(endPoint);
-                    reachableHostname = h;
+                    fh = m_factory.CreateFrameHandler(ep);
+                    reachableEndpoint = ep;
                 } 
                 catch (Exception caught)
                 {
                     e = caught;
                 }
             }
-            if (reachableHostname == null)
+            if (reachableEndpoint == null)
             {
                 throw e;
             }
-            this.Init(reachableHostname);
+
+            this.Init(reachableEndpoint);
         }
 
         protected void Init(string hostname)
         {
+            this.Init(m_factory.Endpoint.CloneWithHostname(hostname));
+        }
+
+        private void Init(AmqpTcpEndpoint endpoint)
+        {
             m_delegate = new Connection(m_factory, false,
-                m_factory.CreateFrameHandlerForHostname(hostname),
+                m_factory.CreateFrameHandler(endpoint),
                 this.ClientProvidedName);
 
             AutorecoveringConnection self = this;
@@ -798,8 +811,8 @@ namespace RabbitMQ.Client.Framing.Impl
                 try
                 {
                     var nextHostname = m_factory.HostnameSelector.NextFrom(this.hostnames);
-                    var endPoint = CloneEndpointWithHostname(nextHostname);
-                    var fh = m_factory.CreateFrameHandler(endPoint);
+                    var endpoint = this.endpoints.First((e) => e.HostName == nextHostname);
+                    var fh = m_factory.CreateFrameHandler(endpoint);
                     m_delegate = new Connection(m_factory, false, fh, this.ClientProvidedName);
                     recovering = false;
                 }
@@ -1005,13 +1018,6 @@ namespace RabbitMQ.Client.Framing.Impl
                 // happens when EOF is reached, e.g. due to RabbitMQ node
                 // connectivity loss or abrupt shutdown
                     args.Initiator == ShutdownInitiator.Library);
-        }
-
-        private AmqpTcpEndpoint CloneEndpointWithHostname(string hostname)
-        {
-            var ate = AmqpTcpEndpoint.Parse(hostname);
-            ate.Ssl = m_factory.Endpoint.Ssl;
-            return ate;
         }
     }
 }

@@ -8,7 +8,6 @@ Pull requests is the primary place of discussing code changes.
 The process is fairly standard:
 
  * Fork the repository or repositories you plan on contributing to
- * Copy `Local.props.example` into `Local.props` and make adjustments if necessary, otherwise the Solution won't load
  * Clone [RabbitMQ umbrella repository](https://github.com/rabbitmq/rabbitmq-public-umbrella)
  * `cd umbrella`, `make co`
  * Create a branch with a descriptive name in the relevant repositories
@@ -21,22 +20,9 @@ If what you are going to work on is a substantial change, please first ask the c
 of their opinion on [RabbitMQ mailing list](https://groups.google.com/forum/#!forum/rabbitmq-users).
 
 
-## (Brief) Code of Conduct
+## Code of Conduct
 
-In one line: don't be a dick.
-
-Be respectful to the maintainers and other contributors. Open source
-contributors put long hours into developing projects and doing user
-support. Those projects and user support are available for free. We
-believe this deserves some respect.
-
-Be respectful to people of all races, genders, religious beliefs and
-political views. Regardless of how brilliant a pull request is
-technically, we will not tolerate disrespectful or aggressive
-behaviour.
-
-Contributors who violate this straightforward Code of Conduct will see
-their pull requests closed and locked.
+See [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md).
 
 
 ## Contributor Agreement

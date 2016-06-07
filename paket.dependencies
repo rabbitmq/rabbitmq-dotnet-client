@@ -1,3 +1,7 @@
 source https://nuget.org/api/v2
+
+
 nuget Fake
 nuget NuGet.Commandline
+nuget NUnit
+nuget NUnit.Runners

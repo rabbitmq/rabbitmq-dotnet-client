@@ -40,6 +40,7 @@
 
 using System;
 using NUnit.Framework;
+using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -70,19 +71,61 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestCreateConnectionParsesHostNameWithPort()
+        public void TestCreateConnectionUsesSpecifiedPort()
         {
             var cf = new ConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
-            cf.HostName = "not_localhost";
+            cf.HostName = "localhost";
             cf.Port = 1234;
-            var conn = cf.CreateConnection(new System.Collections.Generic.List<string> { "localhost:5672" }, "oregano");
-            conn.Close();
-            conn.Dispose();
-            Assert.AreEqual("not_localhost", cf.HostName);
-            Assert.AreEqual(1234, cf.Port);
-            Assert.AreEqual("localhost", conn.Endpoint.HostName);
-            Assert.AreEqual(5672, conn.Endpoint.Port);
+            Assert.That(() =>
+                    {
+                        using(var conn = cf.CreateConnection());
+                    }, Throws.TypeOf<BrokerUnreachableException>());
+        }
+
+        [Test]
+        public void TestCreateConnectionWithClientProvidedNameUsesSpecifiedPort()
+        {
+            var cf = new ConnectionFactory();
+            cf.AutomaticRecoveryEnabled = true;
+            cf.HostName = "localhost";
+            cf.Port = 1234;
+            Assert.That(() =>
+                    {
+                        using(var conn = cf.CreateConnection("some_name"));
+                    }, Throws.TypeOf<BrokerUnreachableException>());
+        }
+
+        [Test]
+        public void TestCreateConnectionWithClientProvidedNameUsesName()
+        {
+            var cf = new ConnectionFactory();
+            cf.AutomaticRecoveryEnabled = false;
+            using(var conn = cf.CreateConnection("some_name"))
+            {
+                Assert.AreEqual("some_name", conn.ClientProvidedName);
+                Assert.AreEqual("some_name", conn.ClientProperties["connection_name"]);
+            }
+        }
+        
+        [Test]
+        public void TestCreateConnectionWithClientProvidedNameAndAutorecoveryUsesName()
+        {
+            var cf = new ConnectionFactory();
+            cf.AutomaticRecoveryEnabled = true;
+            using(var conn = cf.CreateConnection("some_name"))
+            {
+                Assert.AreEqual("some_name", conn.ClientProvidedName);
+                Assert.AreEqual("some_name", conn.ClientProperties["connection_name"]);
+            }
+        }
+        [Test]
+        public void TestCreateConnectionUsesDefaultPort()
+        {
+            var cf = new ConnectionFactory();
+            cf.AutomaticRecoveryEnabled = true;
+            cf.HostName = "localhost";
+            using(var conn = cf.CreateConnection());
         }
 
         [Test]
@@ -91,12 +134,55 @@ namespace RabbitMQ.Client.Unit
             var cf = new ConnectionFactory();
             cf.AutomaticRecoveryEnabled = false;
             cf.HostName = "not_localhost";
-            cf.Port = 1234;
             var conn = cf.CreateConnection(new System.Collections.Generic.List<string> { "localhost" }, "oregano");
             conn.Close();
             conn.Dispose();
             Assert.AreEqual("not_localhost", cf.HostName);
             Assert.AreEqual("localhost", conn.Endpoint.HostName);       
-	}
+        }
+
+        [Test]
+        public void TestCreateConnectionWithAutoRecoveryUsesAmqpTcpEndpoint()
+        {
+            var cf = new ConnectionFactory();
+            cf.AutomaticRecoveryEnabled = true;
+            cf.HostName = "not_localhost";
+            cf.Port = 1234 ;
+            var ep = new AmqpTcpEndpoint("localhost");
+            using(var conn = cf.CreateConnection(new System.Collections.Generic.List<AmqpTcpEndpoint> { ep }));
+        }
+
+        [Test]
+        public void TestCreateConnectionWithAutoRecoveryUsesInvalidAmqpTcpEndpoint()
+        {
+            var cf = new ConnectionFactory();
+            cf.AutomaticRecoveryEnabled = true;
+            var ep = new AmqpTcpEndpoint("localhost", 1234);
+            Assert.That(() =>
+                    {
+                        using(var conn = cf.CreateConnection(new System.Collections.Generic.List<AmqpTcpEndpoint> { ep }));
+                    }, Throws.TypeOf<BrokerUnreachableException>());
+        }
+
+        [Test]
+        public void TestCreateConnectionUsesAmqpTcpEndpoint()
+        {
+            var cf = new ConnectionFactory();
+            cf.HostName = "not_localhost";
+            cf.Port = 1234 ;
+            var ep = new AmqpTcpEndpoint("localhost");
+            using(var conn = cf.CreateConnection(new System.Collections.Generic.List<AmqpTcpEndpoint> { ep }));
+        }
+
+        [Test]
+        public void TestCreateConnectionUsesInvalidAmqpTcpEndpoint()
+        {
+            var cf = new ConnectionFactory();
+            var ep = new AmqpTcpEndpoint("localhost", 1234);
+            Assert.That(() =>
+                    {
+                        using(var conn = cf.CreateConnection(new System.Collections.Generic.List<AmqpTcpEndpoint> { ep }));
+                    }, Throws.TypeOf<BrokerUnreachableException>());
+        }
     }
 }

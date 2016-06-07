@@ -20,6 +20,12 @@ TestResult.xml
 rabbit-mock.snk
 .vscode/
 
+test.sh
+*.VisualState.xml
+test-output.log
+InternalTrace*
+nunit-agent*
+>>>>>>> origin/rabbitmq-dotnet-client-192
 #################
 ## Visual Studio
 #################

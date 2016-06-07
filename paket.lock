@@ -1,5 +1,17 @@
 NUGET
-  remote: https://nuget.org/api/v2
+  remote: https://www.nuget.org/api/v2
   specs:
-    FAKE (4.25.5)
+    FAKE (4.28)
     NuGet.CommandLine (3.4.3)
+    NUnit (3.2.1)
+    NUnit.ConsoleRunner (3.2.1)
+    NUnit.Extension.NUnitProjectLoader (3.2.1)
+    NUnit.Extension.NUnitV2Driver (3.2.1)
+    NUnit.Extension.NUnitV2ResultWriter (3.2.1)
+    NUnit.Extension.VSProjectLoader (3.2.1)
+    NUnit.Runners (3.2.1)
+      NUnit.ConsoleRunner (3.2.1)
+      NUnit.Extension.NUnitProjectLoader (3.2.1)
+      NUnit.Extension.NUnitV2Driver (3.2.1)
+      NUnit.Extension.NUnitV2ResultWriter (3.2.1)
+      NUnit.Extension.VSProjectLoader (3.2.1)

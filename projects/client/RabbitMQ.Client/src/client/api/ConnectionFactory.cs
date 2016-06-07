@@ -332,7 +332,8 @@ namespace RabbitMQ.Client
             // Our list is in order of preference, the server one is not.
             foreach (AuthMechanismFactory factory in AuthMechanisms)
             {
-                if (mechanismNames.Any<string>(x => string.Equals(x, factory.Name, StringComparison.OrdinalIgnoreCase)))
+                var factoryName = factory.Name;
+                if (mechanismNames.Any<string>(x => string.Equals(x, factoryName, StringComparison.OrdinalIgnoreCase)))
                 {
                     return factory;
                 }
@@ -348,7 +349,7 @@ namespace RabbitMQ.Client
         /// </exception>
         public virtual IConnection CreateConnection()
         {
-            return CreateConnection(new List<string>() { HostName }, null);
+            return CreateConnection(new List<string> { HostName }, null);
         }
 
         /// <summary>
@@ -365,7 +366,7 @@ namespace RabbitMQ.Client
         /// </exception>
         public IConnection CreateConnection(String clientProvidedName)
         {
-            return CreateConnection(new List<string>() { HostName }, clientProvidedName);
+            return CreateConnection(new List<string> { HostName }, clientProvidedName);
         }
 
         /// <summary>
@@ -407,21 +408,66 @@ namespace RabbitMQ.Client
         /// </exception>
         public IConnection CreateConnection(IList<string> hostnames, String clientProvidedName)
         {
+            return CreateConnection(hostnames.Select(Endpoint.CloneWithHostname).ToList(), clientProvidedName);
+        }
+
+        /// <summary>
+        /// Create a connection using a list of hostnames. The first reachable
+        /// hostname will be used initially. Subsequent hostname picks are determined
+        /// by the <see cref="IHostnameSelector" /> configured.
+        /// </summary>
+        /// <param name="endpoints">
+        /// List of endpoints to use for the initial
+        /// connection and recovery.
+        /// </param>
+        /// <returns>Open connection</returns>
+        /// <exception cref="BrokerUnreachableException">
+        /// When no hostname was reachable.
+        /// </exception>
+        public IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints)
+        {
+            return CreateConnection(endpoints, null);
+        }
+
+        /// <summary>
+        /// Create a connection using a list of hostnames. The first reachable
+        /// hostname will be used initially. Subsequent hostname picks are determined
+        /// by the <see cref="IHostnameSelector" /> configured.
+        /// </summary>
+        /// <param name="endpoints">
+        /// List of endpoints to use for the initial
+        /// connection and recovery.
+        /// </param>
+        /// <param name="clientProvidedName">
+        /// Application-specific connection name, will be displayed in the management UI
+        /// if RabbitMQ server supports it. This value doesn't have to be unique and cannot
+        /// be used as a connection identifier, e.g. in HTTP API requests.
+        /// This value is supposed to be human-readable.
+        /// </param>
+        /// <returns>Open connection</returns>
+        /// <exception cref="BrokerUnreachableException">
+        /// When no hostname was reachable.
+        /// </exception>
+        public IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints, String clientProvidedName)
+        {
+            var eps = endpoints.ToList();
             IConnection conn;
             try
             {
                 if (AutomaticRecoveryEnabled)
                 {
                     var autorecoveringConnection = new AutorecoveringConnection(this, clientProvidedName);
-                    autorecoveringConnection.Init(hostnames);
+                    autorecoveringConnection.Init(eps);
                     conn = autorecoveringConnection;
                 }
                 else
                 {
                     IProtocol protocol = Protocols.DefaultProtocol;
-                    var selectedHost = this.HostnameSelector.NextFrom(hostnames);
-                    var endPoint = AmqpTcpEndpoint.Parse(selectedHost);
-                    conn = protocol.CreateConnection(this, false, CreateFrameHandler(endPoint), clientProvidedName);
+                    //We can't make this more elegant without changing the contract of the IHostnameSelector
+                    //if there are endpoints with the same hostname but different ports the first match is selected 
+                    var selectedHost = HostnameSelector.NextFrom(eps.Select(ep => ep.HostName).ToList());
+                    var selectedEndpoint = eps.First(ep => ep.HostName == selectedHost);
+                    conn = protocol.CreateConnection(this, false, CreateFrameHandler(selectedEndpoint), clientProvidedName);
                 }
             }
             catch (Exception e)
@@ -447,9 +493,7 @@ namespace RabbitMQ.Client
 
         public IFrameHandler CreateFrameHandlerForHostname(string hostname)
         {
-            var ep = AmqpTcpEndpoint.Parse(hostname);
-            ep.Ssl = this.Endpoint.Ssl;
-            return CreateFrameHandler(ep);
+            return CreateFrameHandler(this.Endpoint.CloneWithHostname(hostname));
         }
 
 
@@ -527,7 +571,7 @@ namespace RabbitMQ.Client
         ///<summary>
         /// Unescape a string, protecting '+'.
         /// </summary>
-        private string UriDecode(string uri)
+        private static string UriDecode(string uri)
         {
             return System.Uri.UnescapeDataString(uri.Replace("+", "%2B"));
         }
