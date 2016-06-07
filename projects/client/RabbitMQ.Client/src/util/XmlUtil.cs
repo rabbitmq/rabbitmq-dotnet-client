@@ -39,47 +39,60 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.IO;
+using System.Text;
+using System.Xml;
+using System.Xml.Serialization;
 
-#if NETFX_CORE
-using Windows.Networking.Sockets;
-#else
-using System.Net.Sockets;
-#endif
-
-namespace RabbitMQ.Client
+namespace RabbitMQ.Util
 {
-    public class ConnectionFactoryBase
+    ///<summary>Miscellaneous helpful XML utilities.</summary>
+    public class XmlUtil
     {
-        /// <summary>
-        /// Set custom socket options by providing a SocketFactory.
-        /// </summary>
-#if NETFX_CORE
-        public Func<StreamSocket> SocketFactory = DefaultSocketFactory;
-#else
-        public Func<AddressFamily, ITcpClient> SocketFactory = DefaultSocketFactory;
-#endif
-
-        /// <summary>
-        /// Creates a new instance of the <see cref="TcpClient"/>.
-        /// </summary>
-        /// <param name="addressFamily">Specifies the addressing scheme.</param>
-        /// <returns>New instance of a <see cref="TcpClient"/>.</returns>
-#if NETFX_CORE
-        public static StreamSocket DefaultSocketFactory()
+        ///<summary>Private constructor - this class has no instances</summary>
+        private XmlUtil()
         {
-            StreamSocket tcpClient = new StreamSocket();
-            tcpClient.Control.NoDelay = true;
-            return tcpClient;
         }
-#else
-        public static ITcpClient DefaultSocketFactory(AddressFamily addressFamily)
+
+        ///<summary>Constructs an indenting XmlTextWriter that writes to a
+        ///fresh MemoryStream.</summary>
+        public static XmlTextWriter CreateIndentedXmlWriter()
         {
-            var socket = new Socket(addressFamily, SocketType.Stream, ProtocolType.Tcp)
+            return CreateIndentedXmlWriter(new MemoryStream());
+        }
+
+        ///<summary>Constructs an indenting XmlTextWriter that writes to
+        ///the supplied stream.</summary>
+        public static XmlTextWriter CreateIndentedXmlWriter(Stream stream)
+        {
+            var w = new XmlTextWriter(stream, Encoding.UTF8)
             {
-                NoDelay = true
+                Formatting = Formatting.Indented
             };
-            return new TcpClientAdapter(socket);
-                }
-#endif
+            return w;
+        }
+
+        ///<summary>Constructs an indenting XmlTextWriter that writes to
+        ///the supplied file name.</summary>
+        public static XmlTextWriter CreateIndentedXmlWriter(string path)
+        {
+            var w = new XmlTextWriter(path, Encoding.UTF8)
+            {
+                Formatting = Formatting.Indented
+            };
+            return w;
+        }
+
+        ///<summary>Serializes an arbitrary serializable object to an
+        ///XML document.</summary>
+        public static XmlDocument SerializeObject(Type serializationType, object obj)
+        {
+            var writer = new StringWriter();
+            var serializer = new XmlSerializer(serializationType);
+            serializer.Serialize(writer, obj);
+            var doc = new XmlDocument();
+            doc.Load(new StringReader(writer.ToString()));
+            return doc;
+        }
     }
 }

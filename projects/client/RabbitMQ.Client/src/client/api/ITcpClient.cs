@@ -17,7 +17,7 @@ namespace RabbitMQ.Client
 
         Socket Client { get; }
 
-        void Connect(string host, int port);
+        Task ConnectAsync(string host, int port);
 
         NetworkStream GetStream();
 

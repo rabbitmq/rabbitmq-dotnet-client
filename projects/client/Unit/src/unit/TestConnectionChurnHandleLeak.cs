@@ -49,6 +49,8 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestConnectionChurnHandleLeak : IntegrationFixture
     {
+        //TODO: work out if these tests can be replicated
+        /*
         [Test, Category("GCTest"), Category("MonoBug")]
         public void TestHandleLeakWithDisabledHeartbeats()
         {
@@ -68,6 +70,7 @@ namespace RabbitMQ.Client.Unit
             };
             PerformLeakTest(cf);
         }
+
 
         protected void PerformLeakTest(ConnectionFactory cf)
         {
@@ -89,5 +92,6 @@ namespace RabbitMQ.Client.Unit
             // release is difficult to predict
             Assert.That(me.HandleCount, Is.LessThanOrEqualTo(n + 200));
         }
+        */
     }
 }

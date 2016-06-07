@@ -8,13 +8,16 @@
       "type": "platform",
       "version": "1.0.0-rc2-3002702"
     },
-    "RabbitMQ.Client": "*"
+    "Unit": "*"
   },
   "frameworks": {
     "netcoreapp1.0": {
-      //"bin" : { "assembly":"../bin/Debug/netcoreapp1.0/RabbitMQ.Client.dll" },
       "imports": "dnxcore50",
-      "System.Collections": "4.0.11-rc2-24027"
+      "dependencies": {
+          "System.Runtime": "4.1.0-rc2-24027",
+          "NUnit": "*",
+          "NUnitLite": "*"    
+      }
     }
   }
 }

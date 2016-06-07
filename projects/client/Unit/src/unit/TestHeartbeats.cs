@@ -52,7 +52,7 @@ namespace RabbitMQ.Client.Unit
     {
         private const UInt16 heartbeatTimeout = 2;
 
-        [Test, Category("LongRunning"), Timeout(35000)]
+        [Test, Category("LongRunning"), MaxTimeAttribute(35000)]
         public void TestThatHeartbeatWriterUsesConfigurableInterval()
         {
             var cf = new ConnectionFactory()
@@ -95,7 +95,7 @@ namespace RabbitMQ.Client.Unit
             RunSingleConnectionTest(cf);
         }
 
-        [Test, Category("LongRunning"), Timeout(65000)]
+        [Test, Category("LongRunning"), MaxTimeAttribute(65000)]
         public void TestHundredsOfConnectionsWithRandomHeartbeatInterval()
         {
             var rnd = new Random();

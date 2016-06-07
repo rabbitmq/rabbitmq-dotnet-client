@@ -57,8 +57,8 @@ namespace RabbitMQ.Client
 #if NETFX_CORE
                 // To end a task, return
                 return;
-#else
-                //Thread.CurrentThread..Interrupt(); //TODO: what to do?
+#else   
+                //Thread.CurrentThread.Interrupt(); //TODO: what to do?
 #endif
             }
         }

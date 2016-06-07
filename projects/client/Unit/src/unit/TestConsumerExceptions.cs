@@ -61,7 +61,7 @@ namespace RabbitMQ.Client.Unit
                 IBasicProperties properties,
                 byte[] body)
             {
-                throw new SystemException("oops");
+                throw new Exception("oops");
             }
         }
 
@@ -73,7 +73,7 @@ namespace RabbitMQ.Client.Unit
 
             public override void HandleBasicCancel(string consumerTag)
             {
-                throw new SystemException("oops");
+                throw new Exception("oops");
             }
         }
 
@@ -85,7 +85,7 @@ namespace RabbitMQ.Client.Unit
 
             public override void HandleModelShutdown(object model, ShutdownEventArgs reason)
             {
-                throw new SystemException("oops");
+                throw new Exception("oops");
             }
         }
 
@@ -97,7 +97,7 @@ namespace RabbitMQ.Client.Unit
 
             public override void HandleBasicConsumeOk(string consumerTag)
             {
-                throw new SystemException("oops");
+                throw new Exception("oops");
             }
         }
 
@@ -109,7 +109,7 @@ namespace RabbitMQ.Client.Unit
 
             public override void HandleBasicCancelOk(string consumerTag)
             {
-                throw new SystemException("oops");
+                throw new Exception("oops");
             }
         }
 

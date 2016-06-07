@@ -60,7 +60,7 @@ namespace RabbitMQ.Client.Unit
             Model = Conn.CreateModel();
         }
 
-        [Test, Timeout(16000)]
+        [Test, MaxTime(16000)]
         public void TestConsumerCancellationNotification()
         {
             var q = Guid.NewGuid().ToString();

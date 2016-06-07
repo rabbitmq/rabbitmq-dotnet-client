@@ -71,7 +71,7 @@ namespace RabbitMQ.Client.Unit
                 thread.Start();
             }
 
-            threads.ForEach(x => x.Join(TimeSpan.FromSeconds(20)));
+            threads.ForEach(x => x.Join(20 * 1000));
         }
 
         protected void TestSequentialIterationWithDrainer(Action<Subscription> action)

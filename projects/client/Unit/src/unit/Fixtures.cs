@@ -487,7 +487,7 @@ namespace RabbitMQ.Client.Unit
 
         public static bool IsRunningOnMono()
         {
-            return Type.GetType("Mono.Runtime") != null;
+            return true;// Type.GetType("Mono.Runtime") != null;
         }
 
         //

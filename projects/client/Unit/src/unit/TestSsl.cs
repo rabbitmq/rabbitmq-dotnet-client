@@ -128,7 +128,7 @@ namespace RabbitMQ.Client.Unit
             cf.Ssl.Enabled = true;
             Assert.Throws<BrokerUnreachableException>(() => SendReceive(cf));
 
-            cf.Ssl.Version = SslProtocols.Default;
+            cf.Ssl.Version = SslProtocols.Tls12;
             Assert.DoesNotThrow(() => SendReceive(cf));
         }
 #endif

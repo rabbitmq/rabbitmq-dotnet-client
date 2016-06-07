@@ -46,9 +46,21 @@ using System.Net;
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
+    static class TaskExtensions 
+    {
+        public static async Task TimeoutAfter(this Task task, int millisecondsTimeout)
+        {
+            if (task == await Task.WhenAny(task, Task.Delay(millisecondsTimeout))) 
+                await task;
+            else
+                throw new TimeoutException();
+        }
+    }
+
     public class SocketFrameHandler : IFrameHandler
     {
         // Timeout in seconds to wait for a clean socket close.
@@ -262,7 +274,11 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
-                socket.Connect(endpoint.HostName, endpoint.Port);
+                socket.ConnectAsync(endpoint.HostName, endpoint.Port)
+                            .TimeoutAfter(timeout)
+                            .ConfigureAwait(false)
+                            .GetAwaiter()//this ensures exceptions aren't wrapped in an AggregateException
+                            .GetResult();
             }
             catch (ArgumentException e)
             {
@@ -271,6 +287,11 @@ namespace RabbitMQ.Client.Impl
             catch (SocketException e)
             {
                 throw new ConnectFailureException("Connection failed", e);
+            } 
+            catch (TimeoutException)
+            {
+                socket.Close();
+                throw new TimeoutException("Connection to " + endpoint + " timed out");;
             }
         }
     }

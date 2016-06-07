@@ -182,7 +182,6 @@
     <Compile Include="src\client\impl\StreamProperties.cs" />
     <Compile Include="src\client\impl\SyntaxError.cs" />
     <Compile Include="src\client\impl\TcpClientAdapter.cs" />
-    <Compile Include="src\client\impl\TunneledTcpClient.cs" />
     <Compile Include="src\client\impl\UnexpectedFrameException.cs" />
     <Compile Include="src\client\impl\UnknownClassOrMethodException.cs" />
     <Compile Include="src\client\impl\WireFormatting.cs" />

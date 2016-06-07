@@ -24,12 +24,14 @@ namespace RabbitMQ.Client
             this.sock = socket;
         }
 
-        public virtual void Connect(string host, int port)
+        public virtual Task ConnectAsync(string host, int port)
         {
-            var _host = IPAddress.Parse("127.0.0.1");
-            var ep =new IPEndPoint(_host, port);
-    
-            sock.Connect(ep);
+            #if CORECLR
+            return sock.ConnectAsync(host, port);
+            #else
+            sock.Connect(host, port);
+            return System.Threading.Tasks.Task.FromResult (false);
+            #endif
         }
 
         public virtual void Close()
