@@ -1,0 +1,19 @@
+{
+  "version": "1.0.0-*",
+  "buildOptions": {
+    "emitEntryPoint": true
+  },
+  "dependencies": {
+    "Microsoft.NETCore.App": {
+      "type": "platform",
+      "version": "1.0.0-rc2-3002702"
+    },
+    "RabbitMQ.Client": "*"
+  },
+  "frameworks": {
+    "netcoreapp1.0": {
+      //"bin" : { "assembly":"../bin/Debug/netcoreapp1.0/RabbitMQ.Client.dll" },
+      "imports": "dnxcore50"
+    }
+  }
+}
