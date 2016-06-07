@@ -25,7 +25,6 @@ test.sh
 test-output.log
 InternalTrace*
 nunit-agent*
->>>>>>> origin/rabbitmq-dotnet-client-192
 #################
 ## Visual Studio
 #################
