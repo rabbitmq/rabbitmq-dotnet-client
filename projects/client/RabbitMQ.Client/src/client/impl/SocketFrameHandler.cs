@@ -260,16 +260,9 @@ namespace RabbitMQ.Client.Impl
 
         private void Connect(ITcpClient socket, AmqpTcpEndpoint endpoint, int timeout)
         {
-            IAsyncResult ar = null;
             try
             {
-                ar = socket.BeginConnect(endpoint.HostName, endpoint.Port, null, null);
-                if (!ar.AsyncWaitHandle.WaitOne(timeout, false))
-                {
-                    socket.Close();
-                    throw new TimeoutException("Connection to " + endpoint + " timed out");
-                }
-                socket.EndConnect(ar);
+                socket.Connect(endpoint.HostName, endpoint.Port);
             }
             catch (ArgumentException e)
             {
@@ -278,13 +271,6 @@ namespace RabbitMQ.Client.Impl
             catch (SocketException e)
             {
                 throw new ConnectFailureException("Connection failed", e);
-            }
-            finally
-            {
-                if (ar != null)
-                {
-                    ar.AsyncWaitHandle.Close();
-                }
             }
         }
     }

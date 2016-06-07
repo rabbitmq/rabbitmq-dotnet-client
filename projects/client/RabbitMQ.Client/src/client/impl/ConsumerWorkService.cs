@@ -58,7 +58,7 @@ namespace RabbitMQ.Client
                 // To end a task, return
                 return;
 #else
-                Thread.CurrentThread.Interrupt();
+                //Thread.CurrentThread..Interrupt(); //TODO: what to do?
 #endif
             }
         }

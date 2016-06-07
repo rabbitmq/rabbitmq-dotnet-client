@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
+using System.Net;
 using System.Text;
-
+using System.Threading.Tasks;
 namespace RabbitMQ.Client
 {
 
@@ -13,76 +14,56 @@ namespace RabbitMQ.Client
     /// </summary>
     public class TcpClientAdapter : ITcpClient
     {
-        protected TcpClient _tcpClient;
+        protected Socket sock;
 
-
-        public TcpClientAdapter(TcpClient tcpClient)
+        public TcpClientAdapter(Socket socket)
         {
-            _tcpClient = tcpClient;
+            if (socket == null)
+                throw new InvalidOperationException("socket must not be null");
+        
+            this.sock = socket;
         }
 
-        public virtual IAsyncResult BeginConnect(string host, int port, AsyncCallback requestCallback, object state)
+        public virtual void Connect(string host, int port)
         {
-            assertTcpClient();
-            
-            return _tcpClient.BeginConnect(host, port, requestCallback, state);
-        }
-
-        private void assertTcpClient()
-        {
-            if (_tcpClient == null)
-                throw new InvalidOperationException("Field tcpClient is null. Should have been passed to constructor.");
-        }
-
-        public virtual void EndConnect(IAsyncResult asyncResult)
-        {
-            assertTcpClient();
-
-            _tcpClient.EndConnect(asyncResult);
+            var _host = IPAddress.Parse("127.0.0.1");
+            var ep =new IPEndPoint(_host, port);
+    
+            sock.Connect(ep);
         }
 
         public virtual void Close()
         {
-            assertTcpClient();
-
-            _tcpClient.Close();
+            sock.Dispose();
         }
 
         public virtual NetworkStream GetStream()
         {
-            assertTcpClient();
-
-            return _tcpClient.GetStream();
+            return new NetworkStream(sock);
         }
 
         public virtual Socket Client
         {
             get
             {
-                assertTcpClient();
-
-                return _tcpClient.Client;
-            }
-            set
-            {
-                _tcpClient.Client = value;
+                return sock;
             }
         }
 
         public virtual bool Connected
         {
-            get { return _tcpClient!=null && _tcpClient.Connected; }
+            get { return sock.Connected; }
         }
 
         public virtual int ReceiveTimeout
         {
             get
             {
-                return _tcpClient.ReceiveTimeout;
+                return sock.ReceiveTimeout;
             }
             set
             {
-                _tcpClient.ReceiveTimeout = value;
+                sock.ReceiveTimeout = value;
             }
         }
     }

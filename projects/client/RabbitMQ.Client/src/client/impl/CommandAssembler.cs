@@ -120,7 +120,7 @@ namespace RabbitMQ.Client.Impl
 #if NETFX_CORE
                     Debug.WriteLine("Received frame in invalid state {0}; {1}", m_state, f);
 #else
-                    Trace.Fail(string.Format("Received frame in invalid state {0}; {1}", m_state, f));
+                    //Trace.Fail(string.Format("Received frame in invalid state {0}; {1}", m_state, f));
 #endif
                     return null;
             }

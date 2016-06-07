@@ -61,7 +61,7 @@ namespace RabbitMQ.Client.Impl
                 default:
                     string error = "Illegal EitherAlternative " + result.Alternative;
 #if !(NETFX_CORE)
-                    Trace.Fail(error);
+                   // Trace.Fail(error);
 #else
                     MetroEventSource.Log.Error(error);
 #endif
@@ -88,7 +88,7 @@ namespace RabbitMQ.Client.Impl
         {
             string error = "Illegal EitherAlternative " + result.Alternative;
 #if !(NETFX_CORE)
-            Trace.Fail(error);
+            //Trace.Fail(error);
 #else
             MetroEventSource.Log.Error(error);
 #endif

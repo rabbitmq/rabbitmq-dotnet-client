@@ -77,7 +77,7 @@ namespace RabbitMQ.Util
             {
                 q.Add(item);
             }
-            catch (ThreadInterruptedException tie)
+            catch (Exception tie)
             {
                 // most likely due to shutdown. ok.
             }

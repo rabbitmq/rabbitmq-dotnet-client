@@ -39,7 +39,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Runtime.Serialization;
 
 namespace RabbitMQ.Client.Exceptions
 {
@@ -50,7 +49,6 @@ namespace RabbitMQ.Client.Exceptions
     /// operation, an OperationInterruptedException will be thrown to
     /// the caller of IModel.QueueDeclare.
     /// </summary>
-    [Serializable]
     public class OperationInterruptedException
         // TODO: inherit from OperationCanceledException
         : Exception
@@ -87,13 +85,14 @@ namespace RabbitMQ.Client.Exceptions
             : base(message, inner)
         {
         }
-
+/*
 #if !(NETFX_CORE)
         protected OperationInterruptedException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
         }
 #endif
+*/
 
         ///<summary>Retrieves the explanation for the shutdown. May
         ///return null if no explanation is available.</summary>

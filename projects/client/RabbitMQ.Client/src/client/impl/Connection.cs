@@ -128,21 +128,6 @@ namespace RabbitMQ.Client.Framing.Impl
 
             StartMainLoop(factory.UseBackgroundThreadsForIO);
             Open(insist);
-
-#if NETFX_CORE
-#pragma warning disable 0168
-            try
-            {
-                Windows.UI.Xaml.Application.Current.Suspending += this.HandleApplicationSuspend;
-            }
-            catch (Exception ex)
-            {
-                // If called from a desktop app (i.e. unit tests), then there is no current application
-            }
-#pragma warning restore 0168
-#else
-            AppDomain.CurrentDomain.DomainUnload += HandleDomainUnload;
-#endif
         }
 
         public event EventHandler<CallbackExceptionEventArgs> CallbackException
@@ -323,14 +308,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public static IDictionary<string, object> DefaultClientProperties()
         {
-            Assembly assembly =
-#if NETFX_CORE
- System.Reflection.IntrospectionExtensions.GetTypeInfo(typeof(Connection)).Assembly;
-#else
-                System.Reflection.Assembly.GetAssembly(typeof(Connection));
-#endif
 
-            string version = assembly.GetName().Version.ToString();
+            string version = "0.0.0.0";// assembly.GetName().Version.ToString();
             //TODO: Get the rest of this data from the Assembly Attributes
             IDictionary<string, object> table = new Dictionary<string, object>();
             table["product"] = Encoding.UTF8.GetBytes("RabbitMQ");
@@ -428,7 +407,7 @@ namespace RabbitMQ.Client.Framing.Impl
 #if NETFX_CORE
             var receivedSignal = m_appContinuation.WaitOne(BlockingCell.validatedTimeout(timeout));
 #else
-            var receivedSignal = m_appContinuation.WaitOne(BlockingCell.validatedTimeout(timeout), true);
+            var receivedSignal = m_appContinuation.WaitOne(BlockingCell.validatedTimeout(timeout));
 #endif
 
             if (!receivedSignal)
@@ -864,20 +843,6 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 }
             }
-#if NETFX_CORE
-#pragma warning disable 0168
-            try
-            {
-                Windows.UI.Xaml.Application.Current.Suspending -= this.HandleApplicationSuspend;
-            }
-            catch (Exception ex)
-            {
-                // If called from a desktop app (i.e. unit tests), then there is no current application
-            }
-#pragma warning restore 0168
-#else
-            AppDomain.CurrentDomain.DomainUnload -= HandleDomainUnload;
-#endif
         }
 
         public void Open(bool insist)
@@ -995,8 +960,8 @@ entry.ToString());
         {
             if (Heartbeat != 0)
             {
-                _heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback);
-                _heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback);
+                _heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback, null, 200, m_heartbeatTimeSpan.Milliseconds);
+                _heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback, null, 200, m_heartbeatTimeSpan.Milliseconds);
 #if NETFX_CORE
                 _heartbeatWriteTimer.Change(200, m_heartbeatTimeSpan.Milliseconds);
                 _heartbeatReadTimer.Change(200, m_heartbeatTimeSpan.Milliseconds);

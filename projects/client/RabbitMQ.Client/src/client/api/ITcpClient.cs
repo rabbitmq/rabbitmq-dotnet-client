@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 using System.Net.Sockets;
 
@@ -14,11 +15,9 @@ namespace RabbitMQ.Client
 
         int ReceiveTimeout { get; set; }
 
-        Socket Client { get; set; }
+        Socket Client { get; }
 
-        IAsyncResult BeginConnect(string host, int port, AsyncCallback requestCallback, object state);
-
-        void EndConnect(IAsyncResult asyncResult);
+        void Connect(string host, int port);
 
         NetworkStream GetStream();
 

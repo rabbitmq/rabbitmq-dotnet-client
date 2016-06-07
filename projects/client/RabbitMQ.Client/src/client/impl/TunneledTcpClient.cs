@@ -425,7 +425,6 @@ namespace RabbitMQ.Client
         /// <summary>
         /// This exception is thrown when a general, unexpected proxy error.   
         /// </summary>
-        [Serializable()]
         public class ProxyException : Exception
         {
             /// <summary>
