@@ -124,18 +124,22 @@ Target "UpdateAssemblyInfos"
         ReplaceAssemblyInfoVersionsBulk assemblyInfos (fun f -> 
             { f with AssemblyVersion = version }))    
 
-let test w =
+let test ``where`` =
     setRabbitMqCtlPath ()
-    //TODO reimplement fixure selection
-    let fixture = getBuildParamOrDefault "fixture" ""
-    trace <| sprintf "fixture %s" fixture
+    let w =
+        match ``where``, getBuildParamOrDefault "where" "" with
+        | (""|null), w -> w
+        | _, (""|null) -> ``where``
+        | w, x ->
+            sprintf "(%s) & (%s)" w x
+    trace <| sprintf "where %s" w 
     !! ("./projects/client/**/build/**/unit-tests.dll")
     |> Testing.NUnit3.NUnit3 (fun p ->
         { p with
             Labels = Testing.NUnit3.LabelsLevel.All
             ProcessModel = Testing.NUnit3.SingleProcessModel
             TimeOut = TimeSpan.FromMinutes 30.
-            Where = w
+            Where = w 
             OutputDir = "test-output.log"})
         
 Target "Test" (fun _ ->  
@@ -158,7 +162,7 @@ Target "TestQuick" (fun _ ->
             TimeOut = TimeSpan.FromMinutes 30.
             Where = ``where``
             OutputDir = "test-output.log"}))
-    
+
 Target "AppVeyorTest" (fun _ ->  
     test "cat != RequireSMP & cat != LongRunning & cat != GCTest")
 
