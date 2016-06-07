@@ -20,7 +20,9 @@ TestResult.xml
 rabbit-mock.snk
 test.sh
 *.VisualState.xml
-
+test-output.log
+InternalTrace*
+nunit-agent*
 #################
 ## Visual Studio
 #################

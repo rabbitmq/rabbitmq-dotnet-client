@@ -82,7 +82,7 @@ namespace RabbitMQ.Client.Unit
             {
                 if (!_notified)
                 {
-                    Monitor.Wait(_lockObject, TimeSpan.FromSeconds(8));
+                    Monitor.Wait(_lockObject, TimeSpan.FromSeconds(15));
                 }
             }
             if (!_notified)
