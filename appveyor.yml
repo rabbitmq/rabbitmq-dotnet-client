@@ -43,5 +43,7 @@ after_build:
 
 artifacts:
   - path: '*.nupkg'
+  - path: '*.log'
+    name: Logs
 
 deploy: off

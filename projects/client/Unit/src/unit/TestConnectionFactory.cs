@@ -71,25 +71,29 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        [ExpectedException(typeof(BrokerUnreachableException))]
         public void TestCreateConnectionUsesSpecifiedPort()
         {
             var cf = new ConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
             cf.HostName = "localhost";
             cf.Port = 1234;
-            using(var conn = cf.CreateConnection());
+            Assert.That(() =>
+                    {
+                        using(var conn = cf.CreateConnection());
+                    }, Throws.TypeOf<BrokerUnreachableException>());
         }
 
         [Test]
-        [ExpectedException(typeof(BrokerUnreachableException))]
         public void TestCreateConnectionWithClientProvidedNameUsesSpecifiedPort()
         {
             var cf = new ConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
             cf.HostName = "localhost";
             cf.Port = 1234;
-            using(var conn = cf.CreateConnection("some_name"));
+            Assert.That(() =>
+                    {
+                        using(var conn = cf.CreateConnection("some_name"));
+                    }, Throws.TypeOf<BrokerUnreachableException>());
         }
 
         [Test]
@@ -149,13 +153,15 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        [ExpectedException(typeof(BrokerUnreachableException))]
         public void TestCreateConnectionWithAutoRecoveryUsesInvalidAmqpTcpEndpoint()
         {
             var cf = new ConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
             var ep = new AmqpTcpEndpoint("localhost", 1234);
-            using(var conn = cf.CreateConnection(new System.Collections.Generic.List<AmqpTcpEndpoint> { ep }));
+            Assert.That(() =>
+                    {
+                        using(var conn = cf.CreateConnection(new System.Collections.Generic.List<AmqpTcpEndpoint> { ep }));
+                    }, Throws.TypeOf<BrokerUnreachableException>());
         }
 
         [Test]
@@ -169,12 +175,14 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        [ExpectedException(typeof(BrokerUnreachableException))]
         public void TestCreateConnectionUsesInvalidAmqpTcpEndpoint()
         {
             var cf = new ConnectionFactory();
             var ep = new AmqpTcpEndpoint("localhost", 1234);
-            using(var conn = cf.CreateConnection(new System.Collections.Generic.List<AmqpTcpEndpoint> { ep }));
+            Assert.That(() =>
+                    {
+                        using(var conn = cf.CreateConnection(new System.Collections.Generic.List<AmqpTcpEndpoint> { ep }));
+                    }, Throws.TypeOf<BrokerUnreachableException>());
         }
     }
 }

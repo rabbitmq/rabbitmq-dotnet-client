@@ -498,7 +498,7 @@ namespace RabbitMQ.Client.Unit
         {
             ExecRabbitMQCtl("set_vm_memory_high_watermark 0.000000001");
             // give rabbitmqctl some time to do its job
-            Thread.Sleep(800);
+            Thread.Sleep(1200);
             Publish(Conn);
         }
 

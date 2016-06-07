@@ -48,22 +48,21 @@ namespace RabbitMQ.Client.Unit
     {
         private readonly string[] IPv6Loopbacks = { "[0000:0000:0000:0000:0000:0000:0000:0001]", "[::1]" };
 
-        [Test]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test, Category("MonoBug")]
         public void TestAmqpUriParseFail()
         {
             /* Various failure cases */
-            ParseFail("http://www.rabbitmq.com");
-            ParseFail("amqp://foo:bar:baz");
-            ParseFail("amqp://foo[::1]");
-            ParseFail("amqp://foo:[::1]");
-            ParseFail("amqp://foo:1000xyz");
-            ParseFail("amqp://foo:1000000");
-            ParseFail("amqp://foo/bar/baz");
+            ParseFailWith<ArgumentException>("http://www.rabbitmq.com");
+            ParseFailWith<UriFormatException>("amqp://foo:bar:baz");
+            ParseFailWith<UriFormatException>("amqp://foo[::1]");
+            ParseFailWith<UriFormatException>("amqp://foo:[::1]");
+            ParseFailWith<UriFormatException>("amqp://foo:1000xyz");
+            ParseFailWith<UriFormatException>("amqp://foo:1000000");
+            ParseFailWith<ArgumentException>("amqp://foo/bar/baz");
 
-            ParseFail("amqp://foo%1");
-            ParseFail("amqp://foo%1x");
-            ParseFail("amqp://foo%xy");
+            ParseFailWith<UriFormatException>("amqp://foo%1");
+            ParseFailWith<UriFormatException>("amqp://foo%1x");
+            ParseFailWith<UriFormatException>("amqp://foo%xy");
         }
 
         [Test, Category("MonoBug")]
@@ -139,10 +138,10 @@ namespace RabbitMQ.Client.Unit
             Assert.AreEqual(vhost, cf.VirtualHost);
         }
 
-        private void ParseFail(string uri)
+        private void ParseFailWith<T>(string uri)
         {
             var cf = new ConnectionFactory();
-            cf.Uri = uri;
+            Assert.That(() => cf.Uri = uri, Throws.TypeOf<T>());
         }
 
         private void ParseSuccess(string uri, string user, string password, string host, int port, string vhost)
