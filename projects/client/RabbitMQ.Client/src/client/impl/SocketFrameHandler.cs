@@ -190,13 +190,13 @@ namespace RabbitMQ.Client.Impl
                         try
                         {
                             
-                        } catch (ArgumentException _)
+                        } catch (ArgumentException)
                         {
                             // ignore, we are closing anyway
                         };
                         m_socket.Close();
                     }
-                    catch (Exception _)
+                    catch (Exception)
                     {
                         // ignore, we are closing anyway
                     }
@@ -288,10 +288,13 @@ namespace RabbitMQ.Client.Impl
             {
                 throw new ConnectFailureException("Connection failed", e);
             } 
-            catch (TimeoutException)
+            catch (NotSupportedException e)
             {
-                socket.Close();
-                throw new TimeoutException("Connection to " + endpoint + " timed out");;
+                throw new ConnectFailureException("Connection failed", e);
+            } 
+            catch (TimeoutException e)
+            {
+                throw new ConnectFailureException("Connection failed", e);
             }
         }
     }

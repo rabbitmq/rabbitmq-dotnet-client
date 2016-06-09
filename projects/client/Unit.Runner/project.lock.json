@@ -296,27 +296,6 @@
           "System.Xml.XDocument": "4.0.11-rc2-24027"
         }
       },
-      "NUnit/3.2.1": {
-        "type": "package",
-        "compile": {
-          "lib/dotnet/nunit.framework.dll": {}
-        },
-        "runtime": {
-          "lib/dotnet/nunit.framework.dll": {}
-        }
-      },
-      "NUnitLite/3.2.1": {
-        "type": "package",
-        "dependencies": {
-          "NUnit": "[3.2.1]"
-        },
-        "compile": {
-          "lib/dotnet/nunitlite.dll": {}
-        },
-        "runtime": {
-          "lib/dotnet/nunitlite.dll": {}
-        }
-      },
       "runtime.native.System/4.0.0-rc2-24027": {
         "type": "package"
       },
@@ -354,7 +333,7 @@
           "lib/netstandard1.1/System.Buffers.dll": {}
         },
         "runtime": {
-          "lib/netstandard1.1/_._": {}
+          "lib/netstandard1.1/System.Buffers.dll": {}
         }
       },
       "System.Collections/4.0.11-rc2-24027": {
@@ -523,7 +502,7 @@
           "lib/netstandard1.3/System.Diagnostics.DiagnosticSource.dll": {}
         },
         "runtime": {
-          "lib/netstandard1.3/_._": {}
+          "lib/netstandard1.3/System.Diagnostics.DiagnosticSource.dll": {}
         }
       },
       "System.Diagnostics.FileVersionInfo/4.0.0-rc2-24027": {
@@ -711,9 +690,13 @@
           "ref/netstandard1.3/System.IO.Compression.dll": {}
         },
         "runtimeTargets": {
-          "runtimes/unix/lib/netstandard1.3/_._": {
+          "runtimes/unix/lib/netstandard1.3/System.IO.Compression.dll": {
             "assetType": "runtime",
             "rid": "unix"
+          },
+          "runtimes/win7/lib/netstandard1.3/System.IO.Compression.dll": {
+            "assetType": "runtime",
+            "rid": "win7"
           }
         }
       },
@@ -734,7 +717,7 @@
           "ref/netstandard1.3/System.IO.Compression.ZipFile.dll": {}
         },
         "runtime": {
-          "lib/netstandard1.3/_._": {}
+          "lib/netstandard1.3/System.IO.Compression.ZipFile.dll": {}
         }
       },
       "System.IO.FileSystem/4.0.1-rc2-24027": {
@@ -959,10 +942,10 @@
           "ref/netstandard1.1/System.Net.Http.dll": {}
         },
         "runtime": {
-          "lib/netstandard1.4/_._": {}
+          "lib/netstandard1.4/System.Net.Http.dll": {}
         },
         "runtimeTargets": {
-          "runtimes/win7/lib/netstandard1.3/_._": {
+          "runtimes/win7/lib/netstandard1.3/System.Net.Http.dll": {
             "assetType": "runtime",
             "rid": "win7"
           }
@@ -1129,7 +1112,7 @@
           "ref/netstandard1.3/System.ObjectModel.dll": {}
         },
         "runtime": {
-          "lib/netstandard1.3/_._": {}
+          "lib/netstandard1.3/System.ObjectModel.dll": {}
         }
       },
       "System.Reflection/4.1.0-rc2-24027": {
@@ -1991,26 +1974,18 @@
       },
       "RabbitMQ.Client/1.0.0": {
         "type": "project",
-        "framework": ".NETCoreApp,Version=v1.0",
+        "framework": ".NETStandard,Version=v1.5",
         "dependencies": {
-          "Microsoft.NETCore.App": "1.0.0-rc2-3002702",
-          "System.ComponentModel.EventBasedAsync": "4.0.11-rc2-24027",
+          "NETStandard.Library": "1.5.0-rc2-24027",
           "System.Net.Security": "4.0.0-rc2-24027",
-          "System.Net.Sockets": "4.1.0-rc2-24027",
-          "System.Runtime": "4.1.0-rc2-24027",
-          "System.Runtime.Serialization.Primitives": "4.1.1-rc2-24027",
-          "System.Threading": "4.0.11-rc2-24027",
-          "System.Threading.Tasks": "4.0.11-rc2-24027",
-          "System.Xml.ReaderWriter": "4.0.11-rc2-24027",
-          "System.Xml.XDocument": "4.0.11-rc2-24027",
-          "System.Xml.XmlDocument": "4.0.1-rc2-24027",
-          "System.Xml.XmlSerializer": "4.0.11-rc2-24027"
+          "System.Threading.Thread": "4.0.0-rc2-24027"
         }
       },
       "Unit/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v1.0",
         "dependencies": {
+          "Microsoft.DiaSymReader": "1.0.8-rc2-60325",
           "Microsoft.NETCore.App": "1.0.0-rc2-3002702",
           "NUnit": "3.2.1",
           "RabbitMQ.Client": "1.0.0",
@@ -2026,7 +2001,8 @@
           "System.Xml.ReaderWriter": "4.0.11-rc2-24027",
           "System.Xml.XDocument": "4.0.11-rc2-24027",
           "System.Xml.XmlDocument": "4.0.1-rc2-24027",
-          "System.Xml.XmlSerializer": "4.0.11-rc2-24027"
+          "System.Xml.XmlSerializer": "4.0.11-rc2-24027",
+          "dotnet-test-nunit": "3.3.0.49-CI"
         }
       }
     }
@@ -2359,61 +2335,13 @@
       ]
     },
     "NETStandard.Library/1.5.0-rc2-24027": {
-      "sha512": "4f0PviqALhzt6cOGUFibsaXKN+Rh/lwF95LXH9sYURkGjrn28NvkbK18Zw5BXLIL2v2TqzPgaSKsKhUniNMtXA==",
+      "sha512": "SD27bvP2gNnlpC7HZUbnPOXS1M7VbBZoi0bdlqe5tj7weJQ2EyGDGw8mi7K1yUmeqjL6jPWBLSC28TDaLnyqwA==",
       "type": "package",
       "files": [
         "NETStandard.Library.1.5.0-rc2-24027.nupkg.sha512",
         "NETStandard.Library.nuspec",
         "ThirdPartyNotices.txt",
         "dotnet_library_license.txt"
-      ]
-    },
-    "NUnit/3.2.1": {
-      "sha512": "tBlwEclR6C6+rNSOA+vbwR0SkfLJPgF5Fm0YYNtpgfzkXhZT/rpqAWmo2Y4wn4R6ueRrUE793fR0xCJlbyAKOQ==",
-      "type": "package",
-      "files": [
-        "CHANGES.txt",
-        "LICENSE.txt",
-        "NOTICES.txt",
-        "NUnit.3.2.1.nupkg.sha512",
-        "NUnit.nuspec",
-        "lib/dotnet/nunit.framework.dll",
-        "lib/dotnet/nunit.framework.xml",
-        "lib/net20/nunit.framework.dll",
-        "lib/net20/nunit.framework.xml",
-        "lib/net35/nunit.framework.dll",
-        "lib/net35/nunit.framework.xml",
-        "lib/net40/nunit.framework.dll",
-        "lib/net40/nunit.framework.xml",
-        "lib/net45/nunit.framework.dll",
-        "lib/net45/nunit.framework.xml",
-        "lib/portable-net45+win8+wp8+wpa81+Xamarin.Mac+MonoAndroid10+MonoTouch10+Xamarin.iOS10/nunit.framework.dll",
-        "lib/portable-net45+win8+wp8+wpa81+Xamarin.Mac+MonoAndroid10+MonoTouch10+Xamarin.iOS10/nunit.framework.xml"
-      ]
-    },
-    "NUnitLite/3.2.1": {
-      "sha512": "Y/eVXlf6gpX6WuUQGrShVs9AxhItqU1IhXNu4Gs1+aEpQ+HaZwiJUWZDEuUcu/mvqD7W9FDB5ODdG8uwbPoohg==",
-      "type": "package",
-      "files": [
-        "CHANGES.txt",
-        "LICENSE.txt",
-        "NOTICES.txt",
-        "NUnitLite.3.2.1.nupkg.sha512",
-        "NUnitLite.nuspec",
-        "content/Program.cs",
-        "content/Program.vb",
-        "lib/dotnet/nunitlite.dll",
-        "lib/net20/nunitlite.dll",
-        "lib/net35/nunitlite.dll",
-        "lib/net40/nunitlite.dll",
-        "lib/net45/nunitlite.dll",
-        "lib/portable-net45+win8+wp8+wpa81+Xamarin.Mac/nunitlite.dll",
-        "tools/install.ps1",
-        "tools/net20/nunitlite-runner.exe",
-        "tools/net35/nunitlite-runner.exe",
-        "tools/net40/nunitlite-runner.exe",
-        "tools/net45/nunitlite-runner.exe",
-        "tools/portable/nunitlite-runner.exe"
       ]
     },
     "runtime.native.System/4.0.0-rc2-24027": {

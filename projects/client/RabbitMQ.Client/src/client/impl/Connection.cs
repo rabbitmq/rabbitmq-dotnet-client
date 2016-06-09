@@ -109,8 +109,6 @@ namespace RabbitMQ.Client.Framing.Impl
         // true if we haven't finished connection negotiation.
         // In this state socket exceptions are treated as fatal connection
         // errors, otherwise as read timeouts
-        private bool m_inConnectionNegotiation;
-
         public ConsumerWorkService ConsumerWorkService { get; private set; }
 
         public Connection(IConnectionFactory factory, bool insist, IFrameHandler frameHandler, string clientProvidedName = null)
@@ -1026,7 +1024,7 @@ entry.ToString());
                 {
                     _heartbeatReadTimer.Change(Heartbeat * 1000, Timeout.Infinite);
                 }
-            } catch (ObjectDisposedException ignored)
+            } catch (ObjectDisposedException)
             {
                 // timer is already disposed,
                 // e.g. due to shutdown
@@ -1061,7 +1059,7 @@ entry.ToString());
                     TerminateMainloop();
                     FinishClose();
                 }
-            } catch (ObjectDisposedException ignored)
+            } catch (ObjectDisposedException)
             {
                 // timer is already disposed,
                 // e.g. due to shutdown
@@ -1082,7 +1080,7 @@ entry.ToString());
                 {
                     timer.Change(Timeout.Infinite, Timeout.Infinite);
                     timer.Dispose();
-                } catch (ObjectDisposedException ignored)
+                } catch (ObjectDisposedException)
                 {
                     // we are shutting down, ignore
                 }
@@ -1191,7 +1189,7 @@ entry.ToString());
             {
                 Abort();
             }
-            catch (OperationInterruptedException ignored)
+            catch (OperationInterruptedException)
             {
                 // ignored, see rabbitmq/rabbitmq-dotnet-client#133
             }
@@ -1211,7 +1209,6 @@ entry.ToString());
 
         protected void StartAndTune()
         {
-            m_inConnectionNegotiation = true;
             var connectionStartCell = new BlockingCell();
             m_model0.m_connectionStartCell = connectionStartCell;
             m_model0.HandshakeContinuationTimeout = m_factory.HandshakeContinuationTimeout;
@@ -1313,7 +1310,6 @@ entry.ToString());
                 frameMax,
                 heartbeat);
 
-            m_inConnectionNegotiation = false;
             // now we can start heartbeat timers
             MaybeStartHeartbeatTimers();
         }

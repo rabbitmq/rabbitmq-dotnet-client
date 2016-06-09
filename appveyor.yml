@@ -1,4 +1,4 @@
-version: "3.6.3.{build}"
+version: "4.0.0.{build}"
 
 platform: Any CPU
 configuration: Release
@@ -13,6 +13,7 @@ environment:
 init:
   - echo %APPVEYOR_BUILD_VERSION%
   - choco install -y rabbitmq
+  - choco install -y dotnetcore-sdk -pre
 
 install:
   - IF DEFINED SNKSECRET (nuget install secure-file -ExcludeVersion)
@@ -30,20 +31,30 @@ install:
 
 before_build:
 
-build_script: fake.bat AppVeyor
+build_script: 
+    - ps: .\fake.bat GenerateApi
+    - ps: dotnet restore "projects\client\RabbitMQ.Client"
+    - ps: dotnet build "projects\client\RabbitMQ.Client"
+    - ps: dotnet pack "projects\client\RabbitMQ.Client" -c Release --version-suffix=build-$env:APPVEYOR_BUILD_NUMBER
 
 test: off
 
 after_build:
-  - ps: |
-      $semver = ${env:APPVEYOR_BUILD_VERSION} -ireplace '(\d+.\d+.\d+).(\d+)', "`$1-ci`$2-${env:APPVEYOR_REPO_BRANCH}"
-      $semver = $semver.Substring(0, [System.Math]::Min(20, $semver.Length))
-      nuget pack RabbitMQ.Client.nuspec -version $semver -symbols
-      nuget pack RabbitMQ.ServiceModel.nuspec -version $semver -symbols
 
 artifacts:
   - path: '*.nupkg'
+  - path: 'projects\client\RabbitMQ.Client\bin\Release\*.nupkg'
   - path: '*.log'
     name: Logs
 
 deploy: off
+
+nuget:
+  account_feed: true
+  project_feed: true
+  disable_publish_on_pr: true
+
+branches:
+    only:
+    - master
+    - stable

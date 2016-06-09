@@ -1,7 +1,7 @@
 {
-  "version": "1.0.0-*",
+  "version": "4.0.0-*",
   "buildOptions": {
-    "emitEntryPoint": true,
+    "emitEntryPoint": false,
     "compile": {
       "exclude": [
         "build",
@@ -13,18 +13,35 @@
     }
   },
   "dependencies": {
-    "Microsoft.NETCore.App": {
-      "type": "platform",
-      "version": "1.0.0-rc2-3002702"
-    }
   },
   "frameworks": {
-    "netcoreapp1.0": {
+    "net45": {},
+    /*
+    ".NETPortable,Version=v4.0,Profile=Profile32":{
+     "buildOptions": {
+      "define": [ "PORTABLE32", "NETFX_CORE" ] }, 
+      "frameworkAssemblies":{ 
+      	"mscorlib":"", 
+	"System":"", 
+	"System.Core":"", 
+	"System.Net":"",
+	"System.Net.Sockets":"",
+	"System.Threading":""
+	 }
+	},
+	*/
+    //"netcore45": {},
+    "netstandard1.5": {
       "buildOptions": {
         "define": [ "CORECLR" ]
       },
-      "imports": "dnxcore50",
+      "imports": ["dnxcore50", "portable-net45+win81"],
       "dependencies": {
+       "NETStandard.Library": "1.5.0-rc2-24027",
+       "System.Net.Security": "4.0.0-rc2-24027",
+       "System.Net.NameResolution": "4.0.0-rc2-24027",
+       "System.Threading.Thread": "4.0.0-rc2-24027"
+       /*
        "System.Runtime": "4.1.0-rc2-24027",
        "System.Runtime.Serialization.Primitives":  "4.1.1-rc2-24027",
        "System.ComponentModel.EventBasedAsync":  "4.0.11-rc2-24027",
@@ -32,10 +49,10 @@
        "System.Xml.XDocument": "4.0.11-rc2-24027",
        "System.Xml.XmlDocument": "4.0.1-rc2-24027",
        "System.Xml.XmlSerializer": "4.0.11-rc2-24027",
-       "System.Net.Security": "4.0.0-rc2-24027",
        "System.Net.Sockets": "4.1.0-rc2-24027",
        "System.Threading": "4.0.11-rc2-24027",
        "System.Threading.Tasks": "4.0.11-rc2-24027"
+       */
       }
     }
   }

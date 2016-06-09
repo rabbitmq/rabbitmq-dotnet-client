@@ -333,7 +333,7 @@
           "lib/netstandard1.1/System.Buffers.dll": {}
         },
         "runtime": {
-          "lib/netstandard1.1/_._": {}
+          "lib/netstandard1.1/System.Buffers.dll": {}
         }
       },
       "System.Collections/4.0.11-rc2-24027": {
@@ -454,21 +454,6 @@
           "lib/netstandard1.4/_._": {}
         }
       },
-      "System.ComponentModel.EventBasedAsync/4.0.11-rc2-24027": {
-        "type": "package",
-        "dependencies": {
-          "System.Resources.ResourceManager": "4.0.1-rc2-24027",
-          "System.Runtime": "4.1.0-rc2-24027",
-          "System.Threading": "4.0.11-rc2-24027",
-          "System.Threading.Tasks": "4.0.11-rc2-24027"
-        },
-        "compile": {
-          "ref/netstandard1.3/System.ComponentModel.EventBasedAsync.dll": {}
-        },
-        "runtime": {
-          "lib/netstandard1.3/System.ComponentModel.EventBasedAsync.dll": {}
-        }
-      },
       "System.Console/4.0.0-rc2-24027": {
         "type": "package",
         "dependencies": {
@@ -502,7 +487,7 @@
           "lib/netstandard1.3/System.Diagnostics.DiagnosticSource.dll": {}
         },
         "runtime": {
-          "lib/netstandard1.3/_._": {}
+          "lib/netstandard1.3/System.Diagnostics.DiagnosticSource.dll": {}
         }
       },
       "System.Diagnostics.FileVersionInfo/4.0.0-rc2-24027": {
@@ -690,9 +675,13 @@
           "ref/netstandard1.3/System.IO.Compression.dll": {}
         },
         "runtimeTargets": {
-          "runtimes/unix/lib/netstandard1.3/_._": {
+          "runtimes/unix/lib/netstandard1.3/System.IO.Compression.dll": {
             "assetType": "runtime",
             "rid": "unix"
+          },
+          "runtimes/win7/lib/netstandard1.3/System.IO.Compression.dll": {
+            "assetType": "runtime",
+            "rid": "win7"
           }
         }
       },
@@ -713,7 +702,7 @@
           "ref/netstandard1.3/System.IO.Compression.ZipFile.dll": {}
         },
         "runtime": {
-          "lib/netstandard1.3/_._": {}
+          "lib/netstandard1.3/System.IO.Compression.ZipFile.dll": {}
         }
       },
       "System.IO.FileSystem/4.0.1-rc2-24027": {
@@ -938,10 +927,10 @@
           "ref/netstandard1.1/System.Net.Http.dll": {}
         },
         "runtime": {
-          "lib/netstandard1.4/_._": {}
+          "lib/netstandard1.4/System.Net.Http.dll": {}
         },
         "runtimeTargets": {
-          "runtimes/win7/lib/netstandard1.3/_._": {
+          "runtimes/win7/lib/netstandard1.3/System.Net.Http.dll": {
             "assetType": "runtime",
             "rid": "win7"
           }
@@ -967,9 +956,13 @@
           "ref/netstandard1.3/System.Net.NameResolution.dll": {}
         },
         "runtimeTargets": {
-          "runtimes/unix/lib/netstandard1.3/_._": {
+          "runtimes/unix/lib/netstandard1.3/System.Net.NameResolution.dll": {
             "assetType": "runtime",
             "rid": "unix"
+          },
+          "runtimes/win7/lib/netstandard1.3/System.Net.NameResolution.dll": {
+            "assetType": "runtime",
+            "rid": "win7"
           }
         }
       },
@@ -1108,7 +1101,7 @@
           "ref/netstandard1.3/System.ObjectModel.dll": {}
         },
         "runtime": {
-          "lib/netstandard1.3/_._": {}
+          "lib/netstandard1.3/System.ObjectModel.dll": {}
         }
       },
       "System.Reflection/4.1.0-rc2-24027": {
@@ -1156,7 +1149,7 @@
           "ref/netstandard1.1/_._": {}
         },
         "runtime": {
-          "lib/netstandard1.3/System.Reflection.Emit.dll": {}
+          "lib/netstandard1.3/_._": {}
         }
       },
       "System.Reflection.Emit.ILGeneration/4.0.1-rc2-24027": {
@@ -1170,7 +1163,7 @@
           "ref/netstandard1.0/_._": {}
         },
         "runtime": {
-          "lib/netstandard1.3/System.Reflection.Emit.ILGeneration.dll": {}
+          "lib/netstandard1.3/_._": {}
         }
       },
       "System.Reflection.Emit.Lightweight/4.0.1-rc2-24027": {
@@ -1243,7 +1236,7 @@
           "ref/netstandard1.5/System.Reflection.TypeExtensions.dll": {}
         },
         "runtime": {
-          "lib/netstandard1.5/System.Reflection.TypeExtensions.dll": {}
+          "lib/netstandard1.5/_._": {}
         }
       },
       "System.Resources.Reader/4.0.0-rc2-24027": {
@@ -1359,19 +1352,6 @@
         },
         "runtime": {
           "lib/netstandard1.3/System.Runtime.Numerics.dll": {}
-        }
-      },
-      "System.Runtime.Serialization.Primitives/4.1.1-rc2-24027": {
-        "type": "package",
-        "dependencies": {
-          "System.Resources.ResourceManager": "4.0.1-rc2-24027",
-          "System.Runtime": "4.1.0-rc2-24027"
-        },
-        "compile": {
-          "ref/netstandard1.3/System.Runtime.Serialization.Primitives.dll": {}
-        },
-        "runtime": {
-          "lib/netstandard1.3/System.Runtime.Serialization.Primitives.dll": {}
         }
       },
       "System.Security.Claims/4.0.1-rc2-24027": {
@@ -1630,7 +1610,11 @@
           "ref/netstandard1.3/_._": {}
         },
         "runtimeTargets": {
-          "runtimes/win/lib/netstandard1.3/_._": {
+          "runtimes/unix/lib/netstandard1.3/System.Security.Principal.Windows.dll": {
+            "assetType": "runtime",
+            "rid": "unix"
+          },
+          "runtimes/win/lib/netstandard1.3/System.Security.Principal.Windows.dll": {
             "assetType": "runtime",
             "rid": "win"
           }
@@ -1893,39 +1877,10 @@
           "System.Xml.ReaderWriter": "4.0.11-rc2-24027"
         },
         "compile": {
-          "ref/netstandard1.3/System.Xml.XmlDocument.dll": {}
+          "ref/netstandard1.3/_._": {}
         },
         "runtime": {
-          "lib/netstandard1.3/System.Xml.XmlDocument.dll": {}
-        }
-      },
-      "System.Xml.XmlSerializer/4.0.11-rc2-24027": {
-        "type": "package",
-        "dependencies": {
-          "System.Collections": "4.0.11-rc2-24027",
-          "System.Diagnostics.Debug": "4.0.11-rc2-24027",
-          "System.Globalization": "4.0.11-rc2-24027",
-          "System.IO": "4.1.0-rc2-24027",
-          "System.Linq": "4.1.0-rc2-24027",
-          "System.Reflection": "4.1.0-rc2-24027",
-          "System.Reflection.Emit": "4.0.1-rc2-24027",
-          "System.Reflection.Emit.ILGeneration": "4.0.1-rc2-24027",
-          "System.Reflection.Extensions": "4.0.1-rc2-24027",
-          "System.Reflection.Primitives": "4.0.1-rc2-24027",
-          "System.Reflection.TypeExtensions": "4.1.0-rc2-24027",
-          "System.Resources.ResourceManager": "4.0.1-rc2-24027",
-          "System.Runtime": "4.1.0-rc2-24027",
-          "System.Runtime.Extensions": "4.1.0-rc2-24027",
-          "System.Text.RegularExpressions": "4.0.12-rc2-24027",
-          "System.Threading": "4.0.11-rc2-24027",
-          "System.Xml.ReaderWriter": "4.0.11-rc2-24027",
-          "System.Xml.XmlDocument": "4.0.1-rc2-24027"
-        },
-        "compile": {
-          "ref/netstandard1.3/System.Xml.XmlSerializer.dll": {}
-        },
-        "runtime": {
-          "lib/netstandard1.3/System.Xml.XmlSerializer.dll": {}
+          "lib/netstandard1.3/_._": {}
         }
       },
       "System.Xml.XPath/4.0.1-rc2-24027": {
@@ -1968,22 +1923,14 @@
           "lib/netstandard1.3/_._": {}
         }
       },
-      "RabbitMQ.Client/1.0.0": {
+      "RabbitMQ.Client/4.0.0": {
         "type": "project",
-        "framework": ".NETCoreApp,Version=v1.0",
+        "framework": ".NETStandard,Version=v1.5",
         "dependencies": {
-          "Microsoft.NETCore.App": "1.0.0-rc2-3002702",
-          "System.ComponentModel.EventBasedAsync": "4.0.11-rc2-24027",
+          "NETStandard.Library": "1.5.0-rc2-24027",
+          "System.Net.NameResolution": "4.0.0-rc2-24027",
           "System.Net.Security": "4.0.0-rc2-24027",
-          "System.Net.Sockets": "4.1.0-rc2-24027",
-          "System.Runtime": "4.1.0-rc2-24027",
-          "System.Runtime.Serialization.Primitives": "4.1.1-rc2-24027",
-          "System.Threading": "4.0.11-rc2-24027",
-          "System.Threading.Tasks": "4.0.11-rc2-24027",
-          "System.Xml.ReaderWriter": "4.0.11-rc2-24027",
-          "System.Xml.XDocument": "4.0.11-rc2-24027",
-          "System.Xml.XmlDocument": "4.0.1-rc2-24027",
-          "System.Xml.XmlSerializer": "4.0.11-rc2-24027"
+          "System.Threading.Thread": "4.0.0-rc2-24027"
         }
       }
     }
@@ -2776,73 +2723,6 @@
         "ref/netstandard1.4/zh-hant/System.ComponentModel.Annotations.xml",
         "ref/portable-net45+win8/_._",
         "ref/win8/_._",
-        "ref/xamarinios10/_._",
-        "ref/xamarinmac20/_._",
-        "ref/xamarintvos10/_._",
-        "ref/xamarinwatchos10/_._"
-      ]
-    },
-    "System.ComponentModel.EventBasedAsync/4.0.11-rc2-24027": {
-      "sha512": "p5TJru6LAzk+1XQ4v85+uLVh4EeewzwnuIorRQECbngusdVH6kRlCOCSmll65mjdSbTT5VUyvXBAhzzBqdvziw==",
-      "type": "package",
-      "files": [
-        "System.ComponentModel.EventBasedAsync.4.0.11-rc2-24027.nupkg.sha512",
-        "System.ComponentModel.EventBasedAsync.nuspec",
-        "ThirdPartyNotices.txt",
-        "dotnet_library_license.txt",
-        "lib/MonoAndroid10/_._",
-        "lib/MonoTouch10/_._",
-        "lib/net45/_._",
-        "lib/netcore50/System.ComponentModel.EventBasedAsync.dll",
-        "lib/netstandard1.3/System.ComponentModel.EventBasedAsync.dll",
-        "lib/portable-net45+win8+wp8+wpa81/_._",
-        "lib/win8/_._",
-        "lib/wp80/_._",
-        "lib/wpa81/_._",
-        "lib/xamarinios10/_._",
-        "lib/xamarinmac20/_._",
-        "lib/xamarintvos10/_._",
-        "lib/xamarinwatchos10/_._",
-        "ref/MonoAndroid10/_._",
-        "ref/MonoTouch10/_._",
-        "ref/net45/_._",
-        "ref/netcore50/System.ComponentModel.EventBasedAsync.dll",
-        "ref/netcore50/System.ComponentModel.EventBasedAsync.xml",
-        "ref/netcore50/de/System.ComponentModel.EventBasedAsync.xml",
-        "ref/netcore50/es/System.ComponentModel.EventBasedAsync.xml",
-        "ref/netcore50/fr/System.ComponentModel.EventBasedAsync.xml",
-        "ref/netcore50/it/System.ComponentModel.EventBasedAsync.xml",
-        "ref/netcore50/ja/System.ComponentModel.EventBasedAsync.xml",
-        "ref/netcore50/ko/System.ComponentModel.EventBasedAsync.xml",
-        "ref/netcore50/ru/System.ComponentModel.EventBasedAsync.xml",
-        "ref/netcore50/zh-hans/System.ComponentModel.EventBasedAsync.xml",
-        "ref/netcore50/zh-hant/System.ComponentModel.EventBasedAsync.xml",
-        "ref/netstandard1.0/System.ComponentModel.EventBasedAsync.dll",
-        "ref/netstandard1.0/System.ComponentModel.EventBasedAsync.xml",
-        "ref/netstandard1.0/de/System.ComponentModel.EventBasedAsync.xml",
-        "ref/netstandard1.0/es/System.ComponentModel.EventBasedAsync.xml",
-        "ref/netstandard1.0/fr/System.ComponentModel.EventBasedAsync.xml",
-        "ref/netstandard1.0/it/System.ComponentModel.EventBasedAsync.xml",
-        "ref/netstandard1.0/ja/System.ComponentModel.EventBasedAsync.xml",
-        "ref/netstandard1.0/ko/System.ComponentModel.EventBasedAsync.xml",
-        "ref/netstandard1.0/ru/System.ComponentModel.EventBasedAsync.xml",
-        "ref/netstandard1.0/zh-hans/System.ComponentModel.EventBasedAsync.xml",
-        "ref/netstandard1.0/zh-hant/System.ComponentModel.EventBasedAsync.xml",
-        "ref/netstandard1.3/System.ComponentModel.EventBasedAsync.dll",
-        "ref/netstandard1.3/System.ComponentModel.EventBasedAsync.xml",
-        "ref/netstandard1.3/de/System.ComponentModel.EventBasedAsync.xml",
-        "ref/netstandard1.3/es/System.ComponentModel.EventBasedAsync.xml",
-        "ref/netstandard1.3/fr/System.ComponentModel.EventBasedAsync.xml",
-        "ref/netstandard1.3/it/System.ComponentModel.EventBasedAsync.xml",
-        "ref/netstandard1.3/ja/System.ComponentModel.EventBasedAsync.xml",
-        "ref/netstandard1.3/ko/System.ComponentModel.EventBasedAsync.xml",
-        "ref/netstandard1.3/ru/System.ComponentModel.EventBasedAsync.xml",
-        "ref/netstandard1.3/zh-hans/System.ComponentModel.EventBasedAsync.xml",
-        "ref/netstandard1.3/zh-hant/System.ComponentModel.EventBasedAsync.xml",
-        "ref/portable-net45+win8+wp8+wpa81/_._",
-        "ref/win8/_._",
-        "ref/wp80/_._",
-        "ref/wpa81/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
         "ref/xamarintvos10/_._",
@@ -5366,76 +5246,6 @@
         "ref/xamarinwatchos10/_._"
       ]
     },
-    "System.Runtime.Serialization.Primitives/4.1.1-rc2-24027": {
-      "sha512": "CatEVkKtMZlBrsdboi2RNediIXkYaiKtseORboHASI96mYtlPvivmHr/nw+pKx7s7enaFvs5Ovfbc8uXs5Qt7Q==",
-      "type": "package",
-      "files": [
-        "System.Runtime.Serialization.Primitives.4.1.1-rc2-24027.nupkg.sha512",
-        "System.Runtime.Serialization.Primitives.nuspec",
-        "ThirdPartyNotices.txt",
-        "dotnet_library_license.txt",
-        "lib/MonoAndroid10/_._",
-        "lib/MonoTouch10/_._",
-        "lib/net45/_._",
-        "lib/net46/System.Runtime.Serialization.Primitives.dll",
-        "lib/netcore50/System.Runtime.Serialization.Primitives.dll",
-        "lib/netstandard1.3/System.Runtime.Serialization.Primitives.dll",
-        "lib/portable-net45+win8+wp8+wpa81/_._",
-        "lib/win8/_._",
-        "lib/wp80/_._",
-        "lib/wpa81/_._",
-        "lib/xamarinios10/_._",
-        "lib/xamarinmac20/_._",
-        "lib/xamarintvos10/_._",
-        "lib/xamarinwatchos10/_._",
-        "ref/MonoAndroid10/_._",
-        "ref/MonoTouch10/_._",
-        "ref/net45/_._",
-        "ref/net46/System.Runtime.Serialization.Primitives.dll",
-        "ref/netcore50/System.Runtime.Serialization.Primitives.dll",
-        "ref/netcore50/System.Runtime.Serialization.Primitives.xml",
-        "ref/netcore50/de/System.Runtime.Serialization.Primitives.xml",
-        "ref/netcore50/es/System.Runtime.Serialization.Primitives.xml",
-        "ref/netcore50/fr/System.Runtime.Serialization.Primitives.xml",
-        "ref/netcore50/it/System.Runtime.Serialization.Primitives.xml",
-        "ref/netcore50/ja/System.Runtime.Serialization.Primitives.xml",
-        "ref/netcore50/ko/System.Runtime.Serialization.Primitives.xml",
-        "ref/netcore50/ru/System.Runtime.Serialization.Primitives.xml",
-        "ref/netcore50/zh-hans/System.Runtime.Serialization.Primitives.xml",
-        "ref/netcore50/zh-hant/System.Runtime.Serialization.Primitives.xml",
-        "ref/netstandard1.0/System.Runtime.Serialization.Primitives.dll",
-        "ref/netstandard1.0/System.Runtime.Serialization.Primitives.xml",
-        "ref/netstandard1.0/de/System.Runtime.Serialization.Primitives.xml",
-        "ref/netstandard1.0/es/System.Runtime.Serialization.Primitives.xml",
-        "ref/netstandard1.0/fr/System.Runtime.Serialization.Primitives.xml",
-        "ref/netstandard1.0/it/System.Runtime.Serialization.Primitives.xml",
-        "ref/netstandard1.0/ja/System.Runtime.Serialization.Primitives.xml",
-        "ref/netstandard1.0/ko/System.Runtime.Serialization.Primitives.xml",
-        "ref/netstandard1.0/ru/System.Runtime.Serialization.Primitives.xml",
-        "ref/netstandard1.0/zh-hans/System.Runtime.Serialization.Primitives.xml",
-        "ref/netstandard1.0/zh-hant/System.Runtime.Serialization.Primitives.xml",
-        "ref/netstandard1.3/System.Runtime.Serialization.Primitives.dll",
-        "ref/netstandard1.3/System.Runtime.Serialization.Primitives.xml",
-        "ref/netstandard1.3/de/System.Runtime.Serialization.Primitives.xml",
-        "ref/netstandard1.3/es/System.Runtime.Serialization.Primitives.xml",
-        "ref/netstandard1.3/fr/System.Runtime.Serialization.Primitives.xml",
-        "ref/netstandard1.3/it/System.Runtime.Serialization.Primitives.xml",
-        "ref/netstandard1.3/ja/System.Runtime.Serialization.Primitives.xml",
-        "ref/netstandard1.3/ko/System.Runtime.Serialization.Primitives.xml",
-        "ref/netstandard1.3/ru/System.Runtime.Serialization.Primitives.xml",
-        "ref/netstandard1.3/zh-hans/System.Runtime.Serialization.Primitives.xml",
-        "ref/netstandard1.3/zh-hant/System.Runtime.Serialization.Primitives.xml",
-        "ref/portable-net45+win8+wp8+wpa81/_._",
-        "ref/win8/_._",
-        "ref/wp80/_._",
-        "ref/wpa81/_._",
-        "ref/xamarinios10/_._",
-        "ref/xamarinmac20/_._",
-        "ref/xamarintvos10/_._",
-        "ref/xamarinwatchos10/_._",
-        "runtimes/aot/lib/netcore50/System.Runtime.Serialization.Primitives.dll"
-      ]
-    },
     "System.Security.Claims/4.0.1-rc2-24027": {
       "sha512": "9oxucsKjs8q2UZHHx6tQm78uXzAiCWE7MVbxUmLlVzCRXLKtzjWCgZqHzCjg37GHMvi326PhblnOI222CGW2GA==",
       "type": "package",
@@ -6525,74 +6335,6 @@
         "ref/xamarinwatchos10/_._"
       ]
     },
-    "System.Xml.XmlSerializer/4.0.11-rc2-24027": {
-      "sha512": "pbajpRk7iPkxSCrrjzVFpWGk54uBUu4BqrOFtUNXR5pqwKkGtW/8xeHDXnFW7RiP6wKO57cmkOlb7+PxCTpTPw==",
-      "type": "package",
-      "files": [
-        "System.Xml.XmlSerializer.4.0.11-rc2-24027.nupkg.sha512",
-        "System.Xml.XmlSerializer.nuspec",
-        "ThirdPartyNotices.txt",
-        "dotnet_library_license.txt",
-        "lib/MonoAndroid10/_._",
-        "lib/MonoTouch10/_._",
-        "lib/net45/_._",
-        "lib/netcore50/System.Xml.XmlSerializer.dll",
-        "lib/netstandard1.3/System.Xml.XmlSerializer.dll",
-        "lib/portable-net45+win8+wp8+wpa81/_._",
-        "lib/win8/_._",
-        "lib/wp80/_._",
-        "lib/wpa81/_._",
-        "lib/xamarinios10/_._",
-        "lib/xamarinmac20/_._",
-        "lib/xamarintvos10/_._",
-        "lib/xamarinwatchos10/_._",
-        "ref/MonoAndroid10/_._",
-        "ref/MonoTouch10/_._",
-        "ref/net45/_._",
-        "ref/netcore50/System.Xml.XmlSerializer.dll",
-        "ref/netcore50/System.Xml.XmlSerializer.xml",
-        "ref/netcore50/de/System.Xml.XmlSerializer.xml",
-        "ref/netcore50/es/System.Xml.XmlSerializer.xml",
-        "ref/netcore50/fr/System.Xml.XmlSerializer.xml",
-        "ref/netcore50/it/System.Xml.XmlSerializer.xml",
-        "ref/netcore50/ja/System.Xml.XmlSerializer.xml",
-        "ref/netcore50/ko/System.Xml.XmlSerializer.xml",
-        "ref/netcore50/ru/System.Xml.XmlSerializer.xml",
-        "ref/netcore50/zh-hans/System.Xml.XmlSerializer.xml",
-        "ref/netcore50/zh-hant/System.Xml.XmlSerializer.xml",
-        "ref/netstandard1.0/System.Xml.XmlSerializer.dll",
-        "ref/netstandard1.0/System.Xml.XmlSerializer.xml",
-        "ref/netstandard1.0/de/System.Xml.XmlSerializer.xml",
-        "ref/netstandard1.0/es/System.Xml.XmlSerializer.xml",
-        "ref/netstandard1.0/fr/System.Xml.XmlSerializer.xml",
-        "ref/netstandard1.0/it/System.Xml.XmlSerializer.xml",
-        "ref/netstandard1.0/ja/System.Xml.XmlSerializer.xml",
-        "ref/netstandard1.0/ko/System.Xml.XmlSerializer.xml",
-        "ref/netstandard1.0/ru/System.Xml.XmlSerializer.xml",
-        "ref/netstandard1.0/zh-hans/System.Xml.XmlSerializer.xml",
-        "ref/netstandard1.0/zh-hant/System.Xml.XmlSerializer.xml",
-        "ref/netstandard1.3/System.Xml.XmlSerializer.dll",
-        "ref/netstandard1.3/System.Xml.XmlSerializer.xml",
-        "ref/netstandard1.3/de/System.Xml.XmlSerializer.xml",
-        "ref/netstandard1.3/es/System.Xml.XmlSerializer.xml",
-        "ref/netstandard1.3/fr/System.Xml.XmlSerializer.xml",
-        "ref/netstandard1.3/it/System.Xml.XmlSerializer.xml",
-        "ref/netstandard1.3/ja/System.Xml.XmlSerializer.xml",
-        "ref/netstandard1.3/ko/System.Xml.XmlSerializer.xml",
-        "ref/netstandard1.3/ru/System.Xml.XmlSerializer.xml",
-        "ref/netstandard1.3/zh-hans/System.Xml.XmlSerializer.xml",
-        "ref/netstandard1.3/zh-hant/System.Xml.XmlSerializer.xml",
-        "ref/portable-net45+win8+wp8+wpa81/_._",
-        "ref/win8/_._",
-        "ref/wp80/_._",
-        "ref/wpa81/_._",
-        "ref/xamarinios10/_._",
-        "ref/xamarinmac20/_._",
-        "ref/xamarintvos10/_._",
-        "ref/xamarinwatchos10/_._",
-        "runtimes/aot/lib/netcore50/System.Xml.XmlSerializer.dll"
-      ]
-    },
     "System.Xml.XPath/4.0.1-rc2-24027": {
       "sha512": "HlYEV5eowxhA9GQHC0sIAKo7Hhpa2soYkBezc1/7qK1bt0bNnXDdNQXqaSDklxpAJz3xvpkOgdeid44Z/nrGxA==",
       "type": "package",
@@ -6665,7 +6407,7 @@
         "ref/xamarinwatchos10/_._"
       ]
     },
-    "RabbitMQ.Client/1.0.0": {
+    "RabbitMQ.Client/4.0.0": {
       "type": "project",
       "path": "../RabbitMQ.Client/project.json"
     }

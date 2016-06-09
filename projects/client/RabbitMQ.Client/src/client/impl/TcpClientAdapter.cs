@@ -24,13 +24,15 @@ namespace RabbitMQ.Client
             this.sock = socket;
         }
 
-        public virtual Task ConnectAsync(string host, int port)
+        public virtual async Task ConnectAsync(string host, int port)
         {
+            var adds = await System.Net.Dns.GetHostAddressesAsync(host);
+            var ep = adds.First();
             #if CORECLR
-            return sock.ConnectAsync(host, port);
+            await sock.ConnectAsync(ep, port);
             #else
-            sock.Connect(host, port);
-            return System.Threading.Tasks.Task.FromResult (false);
+            sock.Connect(ep, port);
+            await System.Threading.Tasks.Task.FromResult (false);
             #endif
         }
 

@@ -45,7 +45,7 @@ namespace RabbitMQ.Client.Exceptions
     /// <summary>
     /// Thrown when the model receives an RPC reply that it wasn't expecting.
     /// </summary>
-    public class UnexpectedMethodException : Exception
+    public class UnexpectedMethodException : ProtocolViolationException
     {
         public UnexpectedMethodException(IMethod method)
         {

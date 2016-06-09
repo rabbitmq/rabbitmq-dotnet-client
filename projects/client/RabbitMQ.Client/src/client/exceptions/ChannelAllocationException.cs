@@ -45,7 +45,7 @@ namespace RabbitMQ.Client.Exceptions
     /// <summary> Thrown when a SessionManager cannot allocate a new
     /// channel number, or the requested channel number is already in
     /// use. </summary>
-    public class ChannelAllocationException : Exception
+    public class ChannelAllocationException : ProtocolViolationException
     {
         /// <summary>
         /// Indicates that there are no more free channels.
