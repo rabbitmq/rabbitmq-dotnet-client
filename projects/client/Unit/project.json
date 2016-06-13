@@ -1,23 +1,26 @@
 {
   "version": "1.0.0-*",
   "buildOptions": {
-    "emitEntryPoint": true
+    "emitEntryPoint": false
   },
   "dependencies": {
-    "Microsoft.NETCore.App": {
-      "type": "platform",
-      "version": "1.0.0-rc2-3002702"
-    },
-    "RabbitMQ.Client": "*",
-    "Microsoft.DiaSymReader": "1.0.8-rc2-60325",
-    "dotnet-test-nunit": "3.3.0.49-CI"
   },
   "testRunner": "nunit",
   "code": ["**/*.cs"],
   "frameworks": {
+    "net45": {
+      "dependencies": {
+       "NUnit": "3.2.1",
+       "RabbitMQ.Client": "*"
+      }
+    },
     "netcoreapp1.0": {
       "imports": "dnxcore50",
       "dependencies": {
+       "Microsoft.NETCore.App": {
+         "type": "platform",
+         "version": "1.0.0-rc2-3002702"
+       },
        "System.Runtime": "4.1.0-rc2-24027",
        "System.Collections": "4.0.11-rc2-24027",
        "System.Collections.NonGeneric": "4.0.1-rc2-24027",
@@ -31,7 +34,10 @@
        "System.Net.Sockets": "4.1.0-rc2-24027",
        "System.Threading": "4.0.11-rc2-24027",
        "System.Threading.Tasks": "4.0.11-rc2-24027",
-       "NUnit": "3.2.1"
+       "NUnit": "3.2.1",
+       "RabbitMQ.Client": "*",
+       "Microsoft.DiaSymReader": "1.0.8-rc2-60325",
+       "dotnet-test-nunit": "3.3.0.49-CI"
       }
     }
   }
