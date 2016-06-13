@@ -7,4 +7,5 @@ It can be obtained for your chosen platform [here](https://www.microsoft.com/net
  * Run `dotnet build`
  * To run the tests cd into `projects/client/Unit.Runner`
  * Run `dotnet restore`
- * Run `dotnet run`. This will run the entire test suite. There is currently no way to only run a subset of tests.
+ * Run `dotnet run`. This will run the entire test suite. There is currently no way to only run a subset of tests. 
+ If you get a warning saying `rabbitmqctl` cannot be found please set the `RABBITMQ_RABBITMQCLT_PATH` environment variable to point to where `rabbitmqctl` can be located.
