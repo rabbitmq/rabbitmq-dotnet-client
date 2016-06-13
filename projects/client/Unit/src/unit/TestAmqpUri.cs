@@ -51,83 +51,89 @@ namespace RabbitMQ.Client.Unit
         [Test, Category("MonoBug")]
         public void TestAmqpUriParseFail()
         {
-            /* Various failure cases */
-            ParseFailWith<ArgumentException>("http://www.rabbitmq.com");
-            ParseFailWith<UriFormatException>("amqp://foo:bar:baz");
-            ParseFailWith<UriFormatException>("amqp://foo[::1]");
-            ParseFailWith<UriFormatException>("amqp://foo:[::1]");
-            ParseFailWith<UriFormatException>("amqp://foo:1000xyz");
-            ParseFailWith<UriFormatException>("amqp://foo:1000000");
-            ParseFailWith<ArgumentException>("amqp://foo/bar/baz");
+            if(IsRunningOnMono() == false)
+            {
+                /* Various failure cases */
+                ParseFailWith<ArgumentException>("http://www.rabbitmq.com");
+                ParseFailWith<UriFormatException>("amqp://foo:bar:baz");
+                ParseFailWith<UriFormatException>("amqp://foo[::1]");
+                ParseFailWith<UriFormatException>("amqp://foo:[::1]");
+                ParseFailWith<UriFormatException>("amqp://foo:1000xyz");
+                ParseFailWith<UriFormatException>("amqp://foo:1000000");
+                ParseFailWith<ArgumentException>("amqp://foo/bar/baz");
 
-            ParseFailWith<UriFormatException>("amqp://foo%1");
-            ParseFailWith<UriFormatException>("amqp://foo%1x");
-            ParseFailWith<UriFormatException>("amqp://foo%xy");
+                ParseFailWith<UriFormatException>("amqp://foo%1");
+                ParseFailWith<UriFormatException>("amqp://foo%1x");
+                ParseFailWith<UriFormatException>("amqp://foo%xy");
+            }
         }
 
         [Test, Category("MonoBug")]
         public void TestAmqpUriParseSucceed()
         {
-            /* From the spec */
-            ParseSuccess("amqp://user:pass@host:10000/vhost",
-                "user", "pass", "host", 10000, "vhost");
-            ParseSuccess("aMQps://user%61:%61pass@host:10000/v%2fhost",
-                "usera", "apass", "host", 10000, "v/host");
-            ParseSuccess("amqp://localhost", "guest", "guest", "localhost", 5672, "/");
-            ParseSuccess("amqp://:@localhost/", "", "", "localhost", 5672, "/");
-            ParseSuccess("amqp://user@localhost",
-                "user", "guest", "localhost", 5672, "/");
-            ParseSuccess("amqp://user:pass@localhost",
-                "user", "pass", "localhost", 5672, "/");
-            ParseSuccess("amqp://host", "guest", "guest", "host", 5672, "/");
-            ParseSuccess("amqp://localhost:10000",
-                "guest", "guest", "localhost", 10000, "/");
-            ParseSuccess("amqp://localhost/vhost",
-                "guest", "guest", "localhost", 5672, "vhost");
-            ParseSuccess("amqp://host/", "guest", "guest", "host", 5672, "/");
-            ParseSuccess("amqp://host/%2f",
-                "guest", "guest", "host", 5672, "/");
-            ParseSuccess("amqp://[::1]", "guest", "guest",
-                IPv6Loopbacks,
-                5672, "/");
+            if(IsRunningOnMono() == false)
+            {
+                /* From the spec */
+                ParseSuccess("amqp://user:pass@host:10000/vhost",
+                    "user", "pass", "host", 10000, "vhost");
+                ParseSuccess("aMQps://user%61:%61pass@host:10000/v%2fhost",
+                    "usera", "apass", "host", 10000, "v/host");
+                ParseSuccess("amqp://localhost", "guest", "guest", "localhost", 5672, "/");
+                ParseSuccess("amqp://:@localhost/", "", "", "localhost", 5672, "/");
+                ParseSuccess("amqp://user@localhost",
+                    "user", "guest", "localhost", 5672, "/");
+                ParseSuccess("amqp://user:pass@localhost",
+                    "user", "pass", "localhost", 5672, "/");
+                ParseSuccess("amqp://host", "guest", "guest", "host", 5672, "/");
+                ParseSuccess("amqp://localhost:10000",
+                    "guest", "guest", "localhost", 10000, "/");
+                ParseSuccess("amqp://localhost/vhost",
+                    "guest", "guest", "localhost", 5672, "vhost");
+                ParseSuccess("amqp://host/", "guest", "guest", "host", 5672, "/");
+                ParseSuccess("amqp://host/%2f",
+                    "guest", "guest", "host", 5672, "/");
+                ParseSuccess("amqp://[::1]", "guest", "guest",
+                    IPv6Loopbacks,
+                    5672, "/");
 
-            /* Various other success cases */
-            ParseSuccess("amqp://host:100",
-                "guest", "guest", "host", 100, "/");
-            ParseSuccess("amqp://[::1]:100",
-                "guest", "guest",
-                IPv6Loopbacks,
-                100, "/");
+                /* Various other success cases */
+                ParseSuccess("amqp://host:100",
+                    "guest", "guest", "host", 100, "/");
+                ParseSuccess("amqp://[::1]:100",
+                    "guest", "guest",
+                    IPv6Loopbacks,
+                    100, "/");
 
-            ParseSuccess("amqp://host/blah",
-                "guest", "guest", "host", 5672, "blah");
-            ParseSuccess("amqp://host:100/blah",
-                "guest", "guest", "host", 100, "blah");
-            ParseSuccess("amqp://localhost:100/blah",
-                "guest", "guest", "localhost", 100, "blah");
-            ParseSuccess("amqp://[::1]/blah",
-                "guest", "guest",
-                IPv6Loopbacks,
-                5672, "blah");
-            ParseSuccess("amqp://[::1]:100/blah",
-                "guest", "guest",
-                IPv6Loopbacks,
-                100, "blah");
+                ParseSuccess("amqp://host/blah",
+                    "guest", "guest", "host", 5672, "blah");
+                ParseSuccess("amqp://host:100/blah",
+                    "guest", "guest", "host", 100, "blah");
+                ParseSuccess("amqp://localhost:100/blah",
+                    "guest", "guest", "localhost", 100, "blah");
+                ParseSuccess("amqp://[::1]/blah",
+                    "guest", "guest",
+                    IPv6Loopbacks,
+                    5672, "blah");
+                ParseSuccess("amqp://[::1]:100/blah",
+                    "guest", "guest",
+                    IPv6Loopbacks,
+                    100, "blah");
 
-            ParseSuccess("amqp://user:pass@host",
-                "user", "pass", "host", 5672, "/");
-            ParseSuccess("amqp://user:pass@host:100",
-                "user", "pass", "host", 100, "/");
-            ParseSuccess("amqp://user:pass@localhost:100",
-                "user", "pass", "localhost", 100, "/");
-            ParseSuccess("amqp://user:pass@[::1]",
-                "user", "pass",
-                IPv6Loopbacks,
-                5672, "/");
-            ParseSuccess("amqp://user:pass@[::1]:100",
-                "user", "pass",
-                IPv6Loopbacks,
-                100, "/");
+                ParseSuccess("amqp://user:pass@host",
+                    "user", "pass", "host", 5672, "/");
+                ParseSuccess("amqp://user:pass@host:100",
+                    "user", "pass", "host", 100, "/");
+                ParseSuccess("amqp://user:pass@localhost:100",
+                    "user", "pass", "localhost", 100, "/");
+                ParseSuccess("amqp://user:pass@[::1]",
+                    "user", "pass",
+                    IPv6Loopbacks,
+                    5672, "/");
+                ParseSuccess("amqp://user:pass@[::1]:100",
+                    "user", "pass",
+                    IPv6Loopbacks,
+                    100, "/");
+            }
         }
 
         private static void AssertUriPartEquivalence(string user, string password, int port, string vhost, ConnectionFactory cf)
@@ -157,6 +163,14 @@ namespace RabbitMQ.Client.Unit
             var factory = new ConnectionFactory { Uri = uri };
             AssertUriPartEquivalence(user, password, port, vhost, factory);
             Assert.IsTrue((Array.IndexOf(hosts, factory.HostName)) != -1);
+        }
+        public static bool IsRunningOnMono()
+        {
+            #if CORECLR
+            return false;
+            #else
+            return Type.GetType("Mono.Runtime") != null;
+            #endif
         }
     }
 }

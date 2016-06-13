@@ -43,7 +43,7 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Timers;
+//using System.Timers;
 using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Unit
@@ -75,11 +75,12 @@ namespace RabbitMQ.Client.Unit
             };
 
             bool elapsed = false;
-            var t = new System.Timers.Timer(1000 * 185);
+            var t = new System.Threading.Timer((_obj) => { elapsed = true; }, null, 1000 * 185, -1);
+            /*
             t.Elapsed += (_sender, _args) => { elapsed = true; };
             t.AutoReset = false;
             t.Start();
-
+*/
             while (!elapsed)
             {
                 Model.BasicPublish("", "", null, new byte[2048]);

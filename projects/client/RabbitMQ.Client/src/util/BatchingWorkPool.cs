@@ -64,7 +64,7 @@ namespace RabbitMQ.Util
                 {
                     q = this.pool[key];
                 }
-                catch (KeyNotFoundException knfe)
+                catch (KeyNotFoundException)
                 {
                     return false;
                 }
@@ -77,7 +77,7 @@ namespace RabbitMQ.Util
             {
                 q.Add(item);
             }
-            catch (ThreadInterruptedException tie)
+            catch (Exception)
             {
                 // most likely due to shutdown. ok.
             }

@@ -99,7 +99,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestTableLengthWrite()
         {
-            Hashtable t = new Hashtable();
+            var t = new Hashtable();
             t["abc"] = "def";
             m_w.WriteTable(t);
             Check(m_w, new byte[] { 0x00, 0x00, 0x00, 0x0C,

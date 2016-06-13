@@ -150,7 +150,7 @@ namespace RabbitMQ.Util
             {
                 Type t = value.GetType();
                 writer.WriteLine(t.FullName);
-#if !(NETFX_CORE)
+#if !(CORECLR)
                 foreach (PropertyInfo pi in t.GetProperties(BindingFlags.Instance
                                                             | BindingFlags.Public
                                                             | BindingFlags.DeclaredOnly))

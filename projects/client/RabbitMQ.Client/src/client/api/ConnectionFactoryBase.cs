@@ -74,11 +74,11 @@ namespace RabbitMQ.Client
 #else
         public static ITcpClient DefaultSocketFactory(AddressFamily addressFamily)
         {
-            var tcpClient = new TcpClient(addressFamily)
+            var socket = new Socket(addressFamily, SocketType.Stream, ProtocolType.Tcp)
             {
                 NoDelay = true
             };
-            return new TcpClientAdapter(tcpClient);
+            return new TcpClientAdapter(socket);
         }
 #endif
     }

@@ -1,4 +1,4 @@
-﻿// This source code is dual-licensed under the Apache License, version
+// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 1.1.
 //
 // The APL v2.0:
@@ -38,22 +38,19 @@
 //  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+namespace RabbitMQ.Client
+{
+    public class ProtocolViolationException : System.Exception
+    {
+        public ProtocolViolationException(string message) : base(message)
+        {
+        }
+        public ProtocolViolationException(string message, System.Exception inner) : base(message, inner)
+        {
+        }
+        public ProtocolViolationException() 
+        {
+        }
 
-[assembly: AssemblyTitle("RabbitMQ Client Library for .NET")]
-[assembly: AssemblyDescription("See http://rabbitmq.com")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Pivotal Software, Inc.")]
-[assembly: AssemblyProduct("RabbitMQ")]
-[assembly: AssemblyCopyright("Copyright © 2007-2016 Pivotal Software, Inc.")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
-
-[assembly: ComVisible(true)]
-
-[assembly: Guid("32a32ed8-c871-45ad-86b3-f50723a7434b")]
-
-[assembly: AssemblyVersion("0.0.0.0")]
-
+    } 
+}

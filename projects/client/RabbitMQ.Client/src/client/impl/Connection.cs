@@ -109,8 +109,6 @@ namespace RabbitMQ.Client.Framing.Impl
         // true if we haven't finished connection negotiation.
         // In this state socket exceptions are treated as fatal connection
         // errors, otherwise as read timeouts
-        private bool m_inConnectionNegotiation;
-
         public ConsumerWorkService ConsumerWorkService { get; private set; }
 
         public Connection(IConnectionFactory factory, bool insist, IFrameHandler frameHandler, string clientProvidedName = null)
@@ -128,21 +126,6 @@ namespace RabbitMQ.Client.Framing.Impl
 
             StartMainLoop(factory.UseBackgroundThreadsForIO);
             Open(insist);
-
-#if NETFX_CORE
-#pragma warning disable 0168
-            try
-            {
-                Windows.UI.Xaml.Application.Current.Suspending += this.HandleApplicationSuspend;
-            }
-            catch (Exception ex)
-            {
-                // If called from a desktop app (i.e. unit tests), then there is no current application
-            }
-#pragma warning restore 0168
-#else
-            AppDomain.CurrentDomain.DomainUnload += HandleDomainUnload;
-#endif
         }
 
         public event EventHandler<CallbackExceptionEventArgs> CallbackException
@@ -323,14 +306,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public static IDictionary<string, object> DefaultClientProperties()
         {
-            Assembly assembly =
-#if NETFX_CORE
- System.Reflection.IntrospectionExtensions.GetTypeInfo(typeof(Connection)).Assembly;
-#else
-                System.Reflection.Assembly.GetAssembly(typeof(Connection));
-#endif
 
-            string version = assembly.GetName().Version.ToString();
+            string version = "0.0.0.0";// assembly.GetName().Version.ToString();
             //TODO: Get the rest of this data from the Assembly Attributes
             IDictionary<string, object> table = new Dictionary<string, object>();
             table["product"] = Encoding.UTF8.GetBytes("RabbitMQ");
@@ -428,7 +405,7 @@ namespace RabbitMQ.Client.Framing.Impl
 #if NETFX_CORE
             var receivedSignal = m_appContinuation.WaitOne(BlockingCell.validatedTimeout(timeout));
 #else
-            var receivedSignal = m_appContinuation.WaitOne(BlockingCell.validatedTimeout(timeout), true);
+            var receivedSignal = m_appContinuation.WaitOne(BlockingCell.validatedTimeout(timeout));
 #endif
 
             if (!receivedSignal)
@@ -864,20 +841,6 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 }
             }
-#if NETFX_CORE
-#pragma warning disable 0168
-            try
-            {
-                Windows.UI.Xaml.Application.Current.Suspending -= this.HandleApplicationSuspend;
-            }
-            catch (Exception ex)
-            {
-                // If called from a desktop app (i.e. unit tests), then there is no current application
-            }
-#pragma warning restore 0168
-#else
-            AppDomain.CurrentDomain.DomainUnload -= HandleDomainUnload;
-#endif
         }
 
         public void Open(bool insist)
@@ -995,8 +958,8 @@ entry.ToString());
         {
             if (Heartbeat != 0)
             {
-                _heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback);
-                _heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback);
+                _heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback, null, 200, m_heartbeatTimeSpan.Milliseconds);
+                _heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback, null, 200, m_heartbeatTimeSpan.Milliseconds);
 #if NETFX_CORE
                 _heartbeatWriteTimer.Change(200, (int)m_heartbeatTimeSpan.TotalMilliseconds);
                 _heartbeatReadTimer.Change(200, (int)m_heartbeatTimeSpan.TotalMilliseconds);
@@ -1061,7 +1024,7 @@ entry.ToString());
                 {
                     _heartbeatReadTimer.Change(Heartbeat * 1000, Timeout.Infinite);
                 }
-            } catch (ObjectDisposedException ignored)
+            } catch (ObjectDisposedException)
             {
                 // timer is already disposed,
                 // e.g. due to shutdown
@@ -1096,7 +1059,7 @@ entry.ToString());
                     TerminateMainloop();
                     FinishClose();
                 }
-            } catch (ObjectDisposedException ignored)
+            } catch (ObjectDisposedException)
             {
                 // timer is already disposed,
                 // e.g. due to shutdown
@@ -1117,7 +1080,7 @@ entry.ToString());
                 {
                     timer.Change(Timeout.Infinite, Timeout.Infinite);
                     timer.Dispose();
-                } catch (ObjectDisposedException ignored)
+                } catch (ObjectDisposedException)
                 {
                     // we are shutting down, ignore
                 }
@@ -1226,7 +1189,7 @@ entry.ToString());
             {
                 Abort();
             }
-            catch (OperationInterruptedException ignored)
+            catch (OperationInterruptedException)
             {
                 // ignored, see rabbitmq/rabbitmq-dotnet-client#133
             }
@@ -1246,7 +1209,6 @@ entry.ToString());
 
         protected void StartAndTune()
         {
-            m_inConnectionNegotiation = true;
             var connectionStartCell = new BlockingCell();
             m_model0.m_connectionStartCell = connectionStartCell;
             m_model0.HandshakeContinuationTimeout = m_factory.HandshakeContinuationTimeout;
@@ -1348,7 +1310,6 @@ entry.ToString());
                 frameMax,
                 heartbeat);
 
-            m_inConnectionNegotiation = false;
             // now we can start heartbeat timers
             MaybeStartHeartbeatTimers();
         }

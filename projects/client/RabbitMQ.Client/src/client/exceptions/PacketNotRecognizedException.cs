@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.Exceptions
     ///The peer's {'A','M','Q','P',txHi,txLo,major,minor} packet is
     ///decoded into instances of this class.
     ///</remarks>
-    public class PacketNotRecognizedException : ProtocolViolationException
+    public class PacketNotRecognizedException : Exception
     {
         ///<summary>Fills the new instance's properties with the values passed in.</summary>
         public PacketNotRecognizedException(int transportHigh,

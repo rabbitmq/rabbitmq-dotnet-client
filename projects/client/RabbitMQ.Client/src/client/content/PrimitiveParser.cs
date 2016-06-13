@@ -54,10 +54,10 @@ namespace RabbitMQ.Client.Content
         /// <param name="targetType">Type of the target.</param>
         /// <param name="source">The source.</param>
         /// <returns>Instance of the <see cref="ProtocolViolationException" />.</returns>
-        public static ProtocolViolationException CreateProtocolViolationException(string targetType, object source)
+        public static Exception CreateProtocolViolationException(string targetType, object source)
         {
             string message = string.Format("Invalid conversion to {0}: {1}", targetType, source);
-            return new ProtocolViolationException(message);
+            return new Exception(message);
         }
 
         /// <summary>

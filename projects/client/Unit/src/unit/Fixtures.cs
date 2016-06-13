@@ -411,13 +411,13 @@ namespace RabbitMQ.Client.Unit
             {
                 rabbitmqctlPath = envVariable;
             }
-            else if (IsRunningOnMono())
+            else if (IsRunningOnMonoOrDotNetCore())
             {
-                rabbitmqctlPath = "../../../../../../rabbit/scripts/rabbitmqctl";
+                rabbitmqctlPath = "../../../../rabbit/scripts/rabbitmqctl";
             }
             else
             {
-                rabbitmqctlPath = @"..\..\..\..\..\..\rabbit\scripts\rabbitmqctl.bat";
+                rabbitmqctlPath = @"..\..\..\..\rabbit\scripts\rabbitmqctl.bat";
             }
 
             return ExecCommand(rabbitmqctlPath, args);
@@ -449,7 +449,7 @@ namespace RabbitMQ.Client.Unit
             }
 
             string cmd;
-            if(IsRunningOnMono()) {
+            if(IsRunningOnMonoOrDotNetCore()) {
                 cmd  = ctl;
             } else {
                 cmd  = "cmd.exe";
@@ -485,9 +485,13 @@ namespace RabbitMQ.Client.Unit
             Console.WriteLine("Failure while running " + cmd + " " + args + ":\n" + msg);
         }
 
-        public static bool IsRunningOnMono()
+        public static bool IsRunningOnMonoOrDotNetCore()
         {
+            #if CORECLR
+            return true;
+            #else
             return Type.GetType("Mono.Runtime") != null;
+            #endif
         }
 
         //

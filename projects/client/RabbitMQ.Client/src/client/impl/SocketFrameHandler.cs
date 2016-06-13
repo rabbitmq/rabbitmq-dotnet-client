@@ -46,9 +46,21 @@ using System.Net;
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
+    static class TaskExtensions 
+    {
+        public static async Task TimeoutAfter(this Task task, int millisecondsTimeout)
+        {
+            if (task == await Task.WhenAny(task, Task.Delay(millisecondsTimeout))) 
+                await task;
+            else
+                throw new TimeoutException();
+        }
+    }
+
     public class SocketFrameHandler : IFrameHandler
     {
         // Timeout in seconds to wait for a clean socket close.
@@ -178,13 +190,13 @@ namespace RabbitMQ.Client.Impl
                         try
                         {
                             
-                        } catch (ArgumentException _)
+                        } catch (ArgumentException)
                         {
                             // ignore, we are closing anyway
                         };
                         m_socket.Close();
                     }
-                    catch (Exception _)
+                    catch (Exception)
                     {
                         // ignore, we are closing anyway
                     }
@@ -260,16 +272,13 @@ namespace RabbitMQ.Client.Impl
 
         private void Connect(ITcpClient socket, AmqpTcpEndpoint endpoint, int timeout)
         {
-            IAsyncResult ar = null;
             try
             {
-                ar = socket.BeginConnect(endpoint.HostName, endpoint.Port, null, null);
-                if (!ar.AsyncWaitHandle.WaitOne(timeout, false))
-                {
-                    socket.Close();
-                    throw new TimeoutException("Connection to " + endpoint + " timed out");
-                }
-                socket.EndConnect(ar);
+                socket.ConnectAsync(endpoint.HostName, endpoint.Port)
+                            .TimeoutAfter(timeout)
+                            .ConfigureAwait(false)
+                            .GetAwaiter()//this ensures exceptions aren't wrapped in an AggregateException
+                            .GetResult();
             }
             catch (ArgumentException e)
             {
@@ -278,13 +287,14 @@ namespace RabbitMQ.Client.Impl
             catch (SocketException e)
             {
                 throw new ConnectFailureException("Connection failed", e);
-            }
-            finally
+            } 
+            catch (NotSupportedException e)
             {
-                if (ar != null)
-                {
-                    ar.AsyncWaitHandle.Close();
-                }
+                throw new ConnectFailureException("Connection failed", e);
+            } 
+            catch (TimeoutException e)
+            {
+                throw new ConnectFailureException("Connection failed", e);
             }
         }
     }

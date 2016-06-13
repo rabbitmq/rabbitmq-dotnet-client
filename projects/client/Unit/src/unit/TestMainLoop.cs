@@ -62,7 +62,7 @@ namespace RabbitMQ.Client.Unit {
                                                IBasicProperties properties,
                                                byte[] body)
             {
-                throw new SystemException("I am a bad consumer");
+                throw new Exception("I am a bad consumer");
             }
         }
 

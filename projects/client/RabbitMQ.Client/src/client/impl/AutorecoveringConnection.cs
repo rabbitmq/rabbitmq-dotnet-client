@@ -816,7 +816,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     m_delegate = new Connection(m_factory, false, fh, this.ClientProvidedName);
                     recovering = false;
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
 #if NETFX_CORE
                     System.Threading.Tasks.Task.Delay(m_factory.NetworkRecoveryInterval).Wait();

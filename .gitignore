@@ -18,6 +18,8 @@ TestResult.xml
 .paket/paket.exe
 /NuGet
 rabbit-mock.snk
+.vscode/
+
 test.sh
 *.VisualState.xml
 test-output.log
