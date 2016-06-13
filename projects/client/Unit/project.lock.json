@@ -2268,7 +2268,7 @@
           "lib/netstandard1.3/System.Xml.XPath.XDocument.dll": {}
         }
       },
-      "RabbitMQ.Client/1.0.0": {
+      "RabbitMQ.Client/4.0.0": {
         "type": "project",
         "framework": ".NETStandard,Version=v1.5",
         "dependencies": {
@@ -7178,7 +7178,7 @@
         "ref/xamarinwatchos10/_._"
       ]
     },
-    "RabbitMQ.Client/1.0.0": {
+    "RabbitMQ.Client/4.0.0": {
       "type": "project",
       "path": "../RabbitMQ.Client/project.json"
     }

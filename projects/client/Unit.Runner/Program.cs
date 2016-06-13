@@ -14,10 +14,8 @@ namespace ConsoleApplication
             Console.WriteLine("netfx");
             //#endif
 
-            var arguments = new [] {"where=test =~ /TestMessagePatternsSubscription/" };
-
             var writter = new ExtendedTextWrapper(Console.Out);
-            new AutoRun(typeof(TestAmqpUri).GetTypeInfo().Assembly).Execute(arguments, writter, Console.In);
+            new AutoRun(typeof(TestAmqpUri).GetTypeInfo().Assembly).Execute(args, writter, Console.In);
         }
     }
 }
