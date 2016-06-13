@@ -86,7 +86,7 @@ namespace RabbitMQ.Client.Impl
             bool multiple)
         {
             ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
-            if (realTag > 0)
+            if (realTag > 0 && realTag <= deliveryTag)
             {
                 base.BasicAck(realTag, multiple);
             }
@@ -97,7 +97,7 @@ namespace RabbitMQ.Client.Impl
             bool requeue)
         {
             ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
-            if (realTag > 0)
+            if (realTag > 0 && realTag <= deliveryTag)
             {
                 base.BasicNack(realTag, multiple, requeue);
             }
@@ -107,7 +107,7 @@ namespace RabbitMQ.Client.Impl
             bool requeue)
         {
             ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
-            if (realTag > 0)
+            if (realTag > 0 && realTag <= deliveryTag)
             {
                 base.BasicReject(realTag, requeue);
             }
