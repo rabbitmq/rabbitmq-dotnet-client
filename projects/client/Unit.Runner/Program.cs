@@ -10,12 +10,8 @@ namespace ConsoleApplication
     {
         public static void Main(string[] args)
         {
-            //#if NETFX_CORE
-            Console.WriteLine("netfx");
-            //#endif
-
             var writter = new ExtendedTextWrapper(Console.Out);
-            new AutoRun(typeof(TestAmqpUri).GetTypeInfo().Assembly).Execute(args, writter, Console.In);
+            new AutoRun(typeof(TestAmqpUri).GetTypeInfo().Assembly).Execute(args, writter, null);
         }
     }
 }
