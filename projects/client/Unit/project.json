@@ -8,10 +8,11 @@
   "testRunner": "nunit",
   "code": ["**/*.cs"],
   "frameworks": {
-    "net45": {
+    "net451": {
       "dependencies": {
        "NUnit": "3.2.1",
-       "RabbitMQ.Client": "*"
+       "RabbitMQ.Client": "*",
+       "dotnet-test-nunit": "3.4.0-alpha-1"
       }
     },
     "netcoreapp1.0": {
@@ -40,7 +41,7 @@
        "NUnit": "3.2.1",
        "RabbitMQ.Client": "*",
        "Microsoft.DiaSymReader": "1.0.8-rc2-60325",
-       "dotnet-test-nunit": "3.3.0.49-CI"
+       "dotnet-test-nunit": "3.4.0-alpha-1"
       }
     }
   }

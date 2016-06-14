@@ -7,7 +7,7 @@
     "Unit": "*"
   },
   "frameworks": {
-    "net45": {
+    "net451": {
       "dependencies": {
         "NUnit": "*",
         "NUnitLite": "*",

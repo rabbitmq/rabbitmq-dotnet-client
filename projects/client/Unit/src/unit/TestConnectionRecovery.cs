@@ -247,7 +247,7 @@ namespace RabbitMQ.Client.Unit
             m.BasicConsume(q, true, cons);
             AssertConsumerCount(m, q, 1);
 
-            CloseAndWaitForRecovery();
+            CloseAndWaitForRecovery(c);
 
             Assert.IsTrue(m.IsOpen);
             var latch = new ManualResetEvent(false);
@@ -257,6 +257,7 @@ namespace RabbitMQ.Client.Unit
             Wait(latch);
 
             m.QueueDelete(q);
+            c.Close();
         }
 
         [Test]
@@ -288,6 +289,7 @@ namespace RabbitMQ.Client.Unit
             Wait(latch);
 
             m.QueueDelete(q);
+            c.Close();
         }
 
         [Test]
