@@ -50,6 +50,8 @@ using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Util;
 
+#pragma warning disable 0618
+
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]

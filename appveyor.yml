@@ -32,10 +32,12 @@ install:
 before_build:
 
 build_script: 
-    - ps: .\fake.bat GenerateApi
-    - ps: dotnet restore "projects\client\RabbitMQ.Client"
-    - ps: dotnet build "projects\client\RabbitMQ.Client"
-    - ps: dotnet pack "projects\client\RabbitMQ.Client" -c Release --version-suffix=build-$env:APPVEYOR_BUILD_NUMBER
+    - cmd: .\build.bat
+    - cmd: .\run-test.bat
+    - ps: |
+        $suffix = Get-Date -format "yyyyMMddhhss"
+        Write-Host $suffix
+        dotnet pack "projects\client\RabbitMQ.Client" -c Release --version-suffix=ci-$suffix
 
 test: off
 

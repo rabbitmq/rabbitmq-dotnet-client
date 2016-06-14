@@ -39,7 +39,6 @@
 //---------------------------------------------------------------------------
 
 using NUnit.Framework;
-using RabbitMQ.Client.Impl;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -107,7 +106,6 @@ namespace RabbitMQ.Client.Unit
                 var conn = cf.CreateConnection();
                 xs.Add(conn);
                 var ch = conn.CreateModel();
-                bool wasShutdown = false;
 
                 conn.ConnectionShutdown += (sender, evt) =>
                     {
