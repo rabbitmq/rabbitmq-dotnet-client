@@ -79,7 +79,7 @@ namespace RabbitMQ.Client.Unit
             cf.Port = 1234;
             Assert.That(() =>
                     {
-                        using(var conn = cf.CreateConnection());
+                        using(var conn = cf.CreateConnection()) {}
                     }, Throws.TypeOf<BrokerUnreachableException>());
         }
 
@@ -92,7 +92,7 @@ namespace RabbitMQ.Client.Unit
             cf.Port = 1234;
             Assert.That(() =>
                     {
-                        using(var conn = cf.CreateConnection("some_name"));
+                        using(var conn = cf.CreateConnection("some_name")) {}
                     }, Throws.TypeOf<BrokerUnreachableException>());
         }
 
@@ -125,7 +125,9 @@ namespace RabbitMQ.Client.Unit
             var cf = new ConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
             cf.HostName = "localhost";
-            using(var conn = cf.CreateConnection());
+            using(var conn = cf.CreateConnection()){
+                Assert.AreEqual(5672, conn.Endpoint.Port);
+            }
         }
 
         [Test]
@@ -149,7 +151,7 @@ namespace RabbitMQ.Client.Unit
             cf.HostName = "not_localhost";
             cf.Port = 1234 ;
             var ep = new AmqpTcpEndpoint("localhost");
-            using(var conn = cf.CreateConnection(new System.Collections.Generic.List<AmqpTcpEndpoint> { ep }));
+            using(var conn = cf.CreateConnection(new System.Collections.Generic.List<AmqpTcpEndpoint> { ep })) {}
         }
 
         [Test]
@@ -160,7 +162,7 @@ namespace RabbitMQ.Client.Unit
             var ep = new AmqpTcpEndpoint("localhost", 1234);
             Assert.That(() =>
                     {
-                        using(var conn = cf.CreateConnection(new System.Collections.Generic.List<AmqpTcpEndpoint> { ep }));
+                        using(var conn = cf.CreateConnection(new System.Collections.Generic.List<AmqpTcpEndpoint> { ep })){}
                     }, Throws.TypeOf<BrokerUnreachableException>());
         }
 
@@ -171,7 +173,7 @@ namespace RabbitMQ.Client.Unit
             cf.HostName = "not_localhost";
             cf.Port = 1234 ;
             var ep = new AmqpTcpEndpoint("localhost");
-            using(var conn = cf.CreateConnection(new System.Collections.Generic.List<AmqpTcpEndpoint> { ep }));
+            using(var conn = cf.CreateConnection(new System.Collections.Generic.List<AmqpTcpEndpoint> { ep })) {}
         }
 
         [Test]
@@ -181,7 +183,7 @@ namespace RabbitMQ.Client.Unit
             var ep = new AmqpTcpEndpoint("localhost", 1234);
             Assert.That(() =>
                     {
-                        using(var conn = cf.CreateConnection(new System.Collections.Generic.List<AmqpTcpEndpoint> { ep }));
+                        using(var conn = cf.CreateConnection(new System.Collections.Generic.List<AmqpTcpEndpoint> { ep })) {}
                     }, Throws.TypeOf<BrokerUnreachableException>());
         }
     }

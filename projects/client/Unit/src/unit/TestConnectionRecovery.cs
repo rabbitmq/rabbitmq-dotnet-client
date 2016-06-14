@@ -47,7 +47,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
-#pragma warning disable 0168
+#pragma warning disable 0618
 
 namespace RabbitMQ.Client.Unit
 {
@@ -327,7 +327,7 @@ namespace RabbitMQ.Client.Unit
                 c.CreateModel();
                 Assert.Fail("Expected an exception");
             }
-            catch (AlreadyClosedException ace)
+            catch (AlreadyClosedException)
             {
                 // expected
             }
@@ -604,7 +604,7 @@ namespace RabbitMQ.Client.Unit
                 ch.QueueDeclarePassive(s);
                 Assert.Fail("Expected an exception");
             }
-            catch (OperationInterruptedException e)
+            catch (OperationInterruptedException)
             {
                 // expected
             }
