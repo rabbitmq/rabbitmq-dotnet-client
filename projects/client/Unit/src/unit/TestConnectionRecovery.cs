@@ -65,9 +65,28 @@ namespace RabbitMQ.Client.Unit
         public void TestBasicAckAfterChannelRecovery()
         {
             var latch = new ManualResetEvent(false);
-            var cons = new AckingBasicConsumer(Model, latch, () => { CloseAndWaitForRecovery(); });
+            var cons = new AckingBasicConsumer(Model, latch, CloseAndWaitForRecovery);
 
             TestDelayedBasicAckNackAfterChannelRecovery(cons, latch);
+        }
+
+        [Test]
+        public void TestBasicAckAfterBasicGetAndChannelRecovery()
+        {
+            var q = GenerateQueueName();
+            Model.QueueDeclare(q, false, false, false, null);
+            // create an offset
+            var bp = Model.CreateBasicProperties();
+            Model.BasicPublish("", q, bp, new byte [] {});
+            Thread.Sleep(50);
+            var g = Model.BasicGet(q, false);
+            CloseAndWaitForRecovery();
+            Assert.IsTrue(Conn.IsOpen);
+            Assert.IsTrue(Model.IsOpen);
+            // ack the message after recovery - this should be out of range and ignored
+            Model.BasicAck(g.DeliveryTag, false);
+            // do a sync operation to 'check' there is no channel exception 
+            Model.BasicGet(q, false);
         }
 
         [Test]
@@ -173,7 +192,7 @@ namespace RabbitMQ.Client.Unit
         public void TestBasicNackAfterChannelRecovery()
         {
             var latch = new ManualResetEvent(false);
-            var cons = new NackingBasicConsumer(Model, latch, () => { CloseAndWaitForRecovery(); });
+            var cons = new NackingBasicConsumer(Model, latch, CloseAndWaitForRecovery);
 
             TestDelayedBasicAckNackAfterChannelRecovery(cons, latch);
         }
@@ -182,7 +201,7 @@ namespace RabbitMQ.Client.Unit
         public void TestBasicRejectAfterChannelRecovery()
         {
             var latch = new ManualResetEvent(false);
-            var cons = new RejectingBasicConsumer(Model, latch, () => { CloseAndWaitForRecovery(); });
+            var cons = new RejectingBasicConsumer(Model, latch, CloseAndWaitForRecovery);
 
             TestDelayedBasicAckNackAfterChannelRecovery(cons, latch);
         }
