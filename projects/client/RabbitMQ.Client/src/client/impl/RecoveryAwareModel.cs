@@ -60,6 +60,29 @@ namespace RabbitMQ.Client.Impl
             MaxSeenDeliveryTag = 0;
         }
 
+        public override void HandleBasicGetOk(ulong deliveryTag,
+            bool redelivered,
+            string exchange,
+            string routingKey,
+            uint messageCount,
+            IBasicProperties basicProperties,
+            byte[] body)
+        {
+            if (deliveryTag > MaxSeenDeliveryTag)
+            {
+                MaxSeenDeliveryTag = deliveryTag;
+            }
+
+            base.HandleBasicGetOk(
+                OffsetDeliveryTag(deliveryTag),
+                redelivered,
+                exchange,
+                routingKey,
+                messageCount,
+                basicProperties,
+                body);
+        }
+
         public override void HandleBasicDeliver(string consumerTag,
             ulong deliveryTag,
             bool redelivered,

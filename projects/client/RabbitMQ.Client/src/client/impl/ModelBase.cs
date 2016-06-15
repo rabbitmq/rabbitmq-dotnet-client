@@ -809,7 +809,7 @@ namespace RabbitMQ.Client.Impl
             k.HandleCommand(null); // release the continuation.
         }
 
-        public void HandleBasicGetOk(ulong deliveryTag,
+        public virtual void HandleBasicGetOk(ulong deliveryTag,
             bool redelivered,
             string exchange,
             string routingKey,
