@@ -157,7 +157,6 @@ function src-dist {
     cp -r projects tmp/srcdist/
     rm -f tmp/srcdist/projects/README
     cp -r docs/specs/*.xml tmp/srcdist/docs/specs/
-    cp -r lib/nunit tmp/srcdist/lib/
     cp README.in tmp/srcdist/README
     if [ -n "$NO_LINKS" ]; then
         touch tmp/srcdist/README
