@@ -95,7 +95,7 @@ namespace RabbitMQ.Client.Unit
             RunSingleConnectionTest(cf);
         }
 
-        [Test, Category("LongRunning"), Timeout(65000)]
+        [Test, Category("LongRunning"), Timeout(90000)]
         public void TestHundredsOfConnectionsWithRandomHeartbeatInterval()
         {
             var rnd = new Random();
