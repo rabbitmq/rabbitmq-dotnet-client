@@ -94,7 +94,7 @@ namespace RabbitMQ.Client.Unit
             RunSingleConnectionTest(cf);
         }
 
-        [Test, Category("LongRunning"), MaxTimeAttribute(65000)]
+        [Test, Category("LongRunning"), MaxTimeAttribute(90000)]
         public void TestHundredsOfConnectionsWithRandomHeartbeatInterval()
         {
             var rnd = new Random();
