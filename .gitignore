@@ -43,6 +43,7 @@ x64/
 build/
 [Bb]in/
 [Oo]bj/
+*.lock.json
 
 # Visual Studio profiler
 *.psess
