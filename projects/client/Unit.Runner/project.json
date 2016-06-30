@@ -19,9 +19,9 @@
       "dependencies": {
           "Microsoft.NETCore.App": {
             "type": "platform",
-            "version": "1.0.0-rc2-3002702"
+            "version": "1.0.0"
           },
-          "System.Runtime": "4.1.0-rc2-24027",
+          "System.Runtime": "4.1.0",
           "NUnit": "*",
           "NUnitLite": "*",
           "Unit": "*"
