@@ -11,9 +11,12 @@ environment:
     secure: C8FL0UTKVN8YcMW1wdssabbkSWMIrpJTqgUNeI2NfQw=
 
 init:
+  - appveyor DownloadFile https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0-preview2/scripts/obtain/dotnet-install.ps1
+  - ps: |
+      & .\dotnet-install.ps1 -Channel "preview" -Version "1.0.0-preview2-003121"
+      Remove-Item .\dotnet-install.ps1
   - echo %APPVEYOR_BUILD_VERSION%
   - choco install -y rabbitmq
-  - choco install -y dotnetcore-sdk -pre
 
 install:
   - IF DEFINED SNKSECRET (nuget install secure-file -ExcludeVersion)
