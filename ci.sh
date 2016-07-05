@@ -20,7 +20,7 @@ make start-background-broker
 set +e
 
 cd $UNIT_DIR
-dotnet test -f netcoreapp1.0 --where='cat != RequireSMP & cat != LongRunning & cat != GCTest'
+dotnet test -f netcoreapp1.0 --where='cat != RequireSMP & cat != GCTest'
 EXIT_CODE=$?
 
 set -e
