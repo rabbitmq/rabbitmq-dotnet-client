@@ -2,6 +2,7 @@
 
 set -e
 
+SCRIPT=$0
 SCRIPT_DIR=$(cd $(dirname "$SCRIPT") && pwd)
 RABBIT_DIR=$SCRIPT_DIR/../rabbit
 
