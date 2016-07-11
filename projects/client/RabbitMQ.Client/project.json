@@ -12,8 +12,7 @@
       ]
     }
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "frameworks": {
     "net451": {},
     /*
@@ -32,14 +31,30 @@
 	*/
     "netstandard1.5": {
       "buildOptions": {
-        "define": [ "CORECLR" ]
+        "define": [
+          "CORECLR"
+        ]
       },
-      "imports": ["dnxcore50", "portable-net45+win81"],
+      "imports": [
+        "dnxcore50",
+        "portable-net45+win81"
+      ],
       "dependencies": {
-       "NETStandard.Library": "1.6.0",
-       "System.Net.Security": "4.0.0",
-       "System.Net.NameResolution": "4.0.0",
-       "System.Threading.Thread": "4.0.0"
+        "System.Collections.Concurrent": "4.0.12",
+        "System.Console": "4.0.0",
+        "System.Diagnostics.Debug": "4.0.11",
+        "System.IO": "4.1.0",
+        "System.Linq": "4.1.0",
+        "System.Net.NameResolution": "4.0.0",
+        "System.Net.Security": "4.0.0",
+        "System.Net.Sockets": "4.1.0",
+        "System.Reflection.Extensions": "4.0.1",
+        "System.Runtime.Extensions": "4.1.0",
+        "System.Runtime.InteropServices": "4.1.0",
+        "System.Text.RegularExpressions": "4.1.0",
+        "System.Threading": "4.0.11",
+        "System.Threading.Thread": "4.0.0",
+        "System.Threading.Timer": "4.0.1"
       }
     }
   }
