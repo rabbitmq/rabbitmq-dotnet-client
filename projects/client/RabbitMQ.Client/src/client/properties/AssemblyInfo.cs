@@ -40,7 +40,6 @@
 
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("RabbitMQ Client Library for .NET")]
 [assembly: AssemblyDescription("See http://rabbitmq.com")]
@@ -50,10 +49,6 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCopyright("Copyright © 2007-2016 Pivotal Software, Inc.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
-
-[assembly: ComVisible(true)]
-
-[assembly: Guid("32a32ed8-c871-45ad-86b3-f50723a7434b")]
 
 [assembly: AssemblyVersion("0.0.0.0")]
 
