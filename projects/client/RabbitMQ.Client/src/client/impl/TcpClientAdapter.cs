@@ -1,15 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
 namespace RabbitMQ.Client
 {
+    static class IPAddressExt
+    {
+        // TODO: This method should already exist on IPAddress
+        // but for some reason this does to compile against mono 4.4.1
+        public static IPAddress MapToIPv6(this IPAddress addr)
+        {
+            var bytes = addr.GetAddressBytes();
+            var bytes6 = new byte []
+                { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xFF, 0xFF,
+                  bytes [0], bytes [1], bytes [2], bytes [3] };
 
+            return new IPAddress (bytes6);
+        }
+    }
 
     /// <summary>
-    /// Simple wrapper around TcpClient. 
+    /// Simple wrapper around TcpClient.
     /// </summary>
     public class TcpClientAdapter : ITcpClient
     {
@@ -24,8 +38,13 @@ namespace RabbitMQ.Client
         public virtual IAsyncResult BeginConnect(string host, int port, AsyncCallback requestCallback, object state)
         {
             assertTcpClient();
-            
-            return _tcpClient.BeginConnect(host, port, requestCallback, state);
+            var endpoints = Dns.GetHostAddresses(host);
+            if(_tcpClient.Client.AddressFamily == AddressFamily.InterNetworkV6)
+            {
+                endpoints = endpoints.Select(a => a.MapToIPv6()).ToArray();
+            }
+
+            return _tcpClient.BeginConnect(endpoints, port, requestCallback, state);
         }
 
         private void assertTcpClient()
