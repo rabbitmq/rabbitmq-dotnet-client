@@ -1024,8 +1024,10 @@ entry.ToString());
                 {
                     _heartbeatReadTimer.Change(Heartbeat * 1000, Timeout.Infinite);
                 }
-            } catch (ObjectDisposedException)
+            }
+            catch (ObjectDisposedException ignored)
             {
+
                 // timer is already disposed,
                 // e.g. due to shutdown
             }
@@ -1059,7 +1061,8 @@ entry.ToString());
                     TerminateMainloop();
                     FinishClose();
                 }
-            } catch (ObjectDisposedException)
+            }
+            catch (ObjectDisposedException ignored)
             {
                 // timer is already disposed,
                 // e.g. due to shutdown
@@ -1068,11 +1071,11 @@ entry.ToString());
 
         protected void MaybeStopHeartbeatTimers()
         {
-            MaybeDisposeTimer(_heartbeatReadTimer);
-            MaybeDisposeTimer(_heartbeatWriteTimer);
+            MaybeDisposeTimer(ref _heartbeatReadTimer);
+            MaybeDisposeTimer(ref _heartbeatWriteTimer);
         }
 
-        private void MaybeDisposeTimer(Timer timer)
+        private void MaybeDisposeTimer(ref Timer timer)
         {
             if (timer != null)
             {
@@ -1080,9 +1083,10 @@ entry.ToString());
                 {
                     timer.Change(Timeout.Infinite, Timeout.Infinite);
                     timer.Dispose();
-                } catch (ObjectDisposedException)
+                }
+                catch (ObjectDisposedException ignored)
                 {
-                    // we are shutting down, ignore
+                    timer = null;
                 }
             }
         }
