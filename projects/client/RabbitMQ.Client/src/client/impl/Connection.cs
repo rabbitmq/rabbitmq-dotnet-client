@@ -1025,7 +1025,7 @@ entry.ToString());
                     _heartbeatReadTimer.Change(Heartbeat * 1000, Timeout.Infinite);
                 }
             }
-            catch (ObjectDisposedException ignored)
+            catch (ObjectDisposedException)
             {
 
                 // timer is already disposed,
@@ -1062,7 +1062,7 @@ entry.ToString());
                     FinishClose();
                 }
             }
-            catch (ObjectDisposedException ignored)
+            catch (ObjectDisposedException)
             {
                 // timer is already disposed,
                 // e.g. due to shutdown
@@ -1084,7 +1084,7 @@ entry.ToString());
                     timer.Change(Timeout.Infinite, Timeout.Infinite);
                     timer.Dispose();
                 }
-                catch (ObjectDisposedException ignored)
+                catch (ObjectDisposedException)
                 {
                     timer = null;
                 }
