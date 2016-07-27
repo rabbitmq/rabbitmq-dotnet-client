@@ -757,32 +757,8 @@ namespace RabbitMQ.Client.Impl
             m_delegate.BasicCancel(consumerTag);
         }
 
-        public string BasicConsume(string queue,
-            bool noAck,
-            IBasicConsumer consumer)
-        {
-            return BasicConsume(queue, noAck, "", consumer);
-        }
-
-        public string BasicConsume(string queue,
-            bool noAck,
-            string consumerTag,
-            IBasicConsumer consumer)
-        {
-            return BasicConsume(queue, noAck, consumerTag, null, consumer);
-        }
-
-        public string BasicConsume(string queue,
-            bool noAck,
-            string consumerTag,
-            IDictionary<string, object> arguments,
-            IBasicConsumer consumer)
-        {
-            return BasicConsume(queue, noAck, consumerTag, false, false,
-                arguments, consumer);
-        }
-
-        public string BasicConsume(string queue,
+        public string BasicConsume(
+            string queue,
             bool noAck,
             string consumerTag,
             bool noLocal,
@@ -813,27 +789,6 @@ namespace RabbitMQ.Client.Impl
             bool requeue)
         {
             m_delegate.BasicNack(deliveryTag, multiple, requeue);
-        }
-
-        public void BasicPublish(PublicationAddress addr,
-            IBasicProperties basicProperties,
-            byte[] body)
-        {
-            m_delegate.BasicPublish(addr.ExchangeName,
-                addr.RoutingKey,
-                basicProperties,
-                body);
-        }
-
-        public void BasicPublish(string exchange,
-            string routingKey,
-            IBasicProperties basicProperties,
-            byte[] body)
-        {
-            m_delegate.BasicPublish(exchange,
-                routingKey,
-                basicProperties,
-                body);
         }
 
         public void BasicPublish(string exchange,
@@ -917,13 +872,6 @@ namespace RabbitMQ.Client.Impl
 
         public void ExchangeBind(string destination,
             string source,
-            string routingKey)
-        {
-            ExchangeBind(destination, source, routingKey, null);
-        }
-
-        public void ExchangeBind(string destination,
-            string source,
             string routingKey,
             IDictionary<string, object> arguments)
         {
@@ -942,16 +890,6 @@ namespace RabbitMQ.Client.Impl
             IDictionary<string, object> arguments)
         {
             m_delegate.ExchangeBindNoWait(destination, source, routingKey, arguments);
-        }
-
-        public void ExchangeDeclare(string exchange, string type, bool durable)
-        {
-            ExchangeDeclare(exchange, type, durable, false, null);
-        }
-
-        public void ExchangeDeclare(string exchange, string type)
-        {
-            ExchangeDeclare(exchange, type, false, false, null);
         }
 
         public void ExchangeDeclare(string exchange, string type, bool durable,
@@ -995,11 +933,6 @@ namespace RabbitMQ.Client.Impl
             m_connection.DeleteRecordedExchange(exchange);
         }
 
-        public void ExchangeDelete(string exchange)
-        {
-            ExchangeDelete(exchange, false);
-        }
-
         public void ExchangeDeleteNoWait(string exchange,
             bool ifUnused)
         {
@@ -1020,13 +953,6 @@ namespace RabbitMQ.Client.Impl
             m_connection.DeleteRecordedBinding(eb);
             m_delegate.ExchangeUnbind(destination, source, routingKey, arguments);
             m_connection.MaybeDeleteRecordedAutoDeleteExchange(source);
-        }
-
-        public void ExchangeUnbind(string destination,
-            string source,
-            string routingKey)
-        {
-            ExchangeUnbind(destination, source, routingKey, null);
         }
 
         public void ExchangeUnbindNoWait(string destination,
@@ -1051,13 +977,6 @@ namespace RabbitMQ.Client.Impl
             m_delegate.QueueBind(queue, exchange, routingKey, arguments);
         }
 
-        public void QueueBind(string queue,
-            string exchange,
-            string routingKey)
-        {
-            QueueBind(queue, exchange, routingKey, null);
-        }
-
         public void QueueBindNoWait(string queue,
             string exchange,
             string routingKey,
@@ -1066,13 +985,9 @@ namespace RabbitMQ.Client.Impl
             m_delegate.QueueBind(queue, exchange, routingKey, arguments);
         }
 
-        public QueueDeclareOk QueueDeclare()
-        {
-            return QueueDeclare("", false, true, true, null);
-        }
-
-        public QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive,
-            bool autoDelete, IDictionary<string, object> arguments)
+        public QueueDeclareOk QueueDeclare(string queue, bool durable,
+                                           bool exclusive, bool autoDelete,
+                                           IDictionary<string, object> arguments)
         {
             var result = m_delegate.QueueDeclare(queue, durable, exclusive,
                 autoDelete, arguments);
@@ -1086,8 +1001,9 @@ namespace RabbitMQ.Client.Impl
             return result;
         }
 
-        public void QueueDeclareNoWait(string queue, bool durable, bool exclusive,
-            bool autoDelete, IDictionary<string, object> arguments)
+        public void QueueDeclareNoWait(string queue, bool durable,
+                                       bool exclusive, bool autoDelete,
+                                       IDictionary<string, object> arguments)
         {
             m_delegate.QueueDeclareNoWait(queue, durable, exclusive,
                 autoDelete, arguments);
@@ -1122,11 +1038,6 @@ namespace RabbitMQ.Client.Impl
             var result = m_delegate.QueueDelete(queue, ifUnused, ifEmpty);
             m_connection.DeleteRecordedQueue(queue);
             return result;
-        }
-
-        public uint QueueDelete(string queue)
-        {
-            return QueueDelete(queue, false, false);
         }
 
         public void QueueDeleteNoWait(string queue,
