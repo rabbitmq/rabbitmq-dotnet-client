@@ -150,28 +150,27 @@ namespace RabbitMQ.Client
         /// <summary>
         ///  SASL auth mechanisms to use.
         /// </summary>
-        public IList<AuthMechanismFactory> AuthMechanisms = DefaultAuthMechanisms;
+        public IList<AuthMechanismFactory> AuthMechanisms { get; set; } = DefaultAuthMechanisms;
 
         /// <summary>
         /// Set to true to enable automatic connection recovery.
         /// </summary>
-        public bool AutomaticRecoveryEnabled;
+        public bool AutomaticRecoveryEnabled { get; set; }
 
         /// <summary>
         /// Used to select next hostname to try when performing
         /// connection recovery (re-connecting). Is not used for
         /// non-recovering connections.
         /// </summary>
-        public IHostnameSelector HostnameSelector = new RandomHostnameSelector();
+        public IHostnameSelector HostnameSelector { get; set; } = new RandomHostnameSelector();
 
         /// <summary>The host to connect to.</summary>
-        public String HostName = "localhost";
+        public string HostName { get; set; } = "localhost";
 
         /// <summary>
         /// Amount of time client will wait for before re-trying  to recover connection.
         /// </summary>
-        public TimeSpan NetworkRecoveryInterval = TimeSpan.FromSeconds(5);
-
+        public TimeSpan NetworkRecoveryInterval { get; set; } = TimeSpan.FromSeconds(5);
         private TimeSpan m_handshakeContinuationTimeout = TimeSpan.FromSeconds(10);
         private TimeSpan m_continuationTimeout = TimeSpan.FromSeconds(20);
 
@@ -199,58 +198,50 @@ namespace RabbitMQ.Client
         /// The port to connect on. <see cref="AmqpTcpEndpoint.UseDefaultPort"/>
         ///  indicates the default for the protocol should be used.
         /// </summary>
-        public int Port = AmqpTcpEndpoint.UseDefaultPort;
+        public int Port { get; set; } = AmqpTcpEndpoint.UseDefaultPort;
 
         /// <summary>
         /// Protocol used, only AMQP 0-9-1 is supported in modern versions.
         /// </summary>
-        public IProtocol Protocol = Protocols.DefaultProtocol;
+        public IProtocol Protocol { get; set; } = Protocols.DefaultProtocol;
 
         /// <summary>
         /// Timeout setting for connection attempts (in milliseconds).
         /// </summary>
-        public int RequestedConnectionTimeout = DefaultConnectionTimeout;
+        public int RequestedConnectionTimeout { get; set; } = DefaultConnectionTimeout;
 
         /// <summary>
         /// Timeout setting for socket read operations (in milliseconds).
         /// </summary>
-        public int SocketReadTimeout = DefaultConnectionTimeout;
+        public int SocketReadTimeout { get; set; } = DefaultConnectionTimeout;
 
         /// <summary>
         /// Timeout setting for socket write operations (in milliseconds).
         /// </summary>
-        public int SocketWriteTimeout = DefaultConnectionTimeout;
+        public int SocketWriteTimeout { get; set; } = DefaultConnectionTimeout;
 
         /// <summary>
         /// Ssl options setting.
         /// </summary>
-        public SslOption Ssl = new SslOption();
+        public SslOption Ssl { get; set; } = new SslOption();
 
         /// <summary>
         /// Set to true to make automatic connection recovery also recover topology (exchanges, queues, bindings, etc).
         /// </summary>
-        public bool TopologyRecoveryEnabled = true;
+        public bool TopologyRecoveryEnabled { get; set; } = true;
 
         /// <summary>
         /// Task scheduler connections created by this factory will use when
         /// dispatching consumer operations, such as message deliveries.
         /// </summary>
-        public TaskScheduler TaskScheduler { get; set; }
+        public TaskScheduler TaskScheduler { get; set; } = TaskScheduler.Default;
 
         /// <summary>
         /// Construct a fresh instance, with all fields set to their respective defaults.
         /// </summary>
         public ConnectionFactory()
         {
-            this.TaskScheduler = TaskScheduler.Default;
-            VirtualHost = DefaultVHost;
-            UserName = DefaultUser;
-            RequestedHeartbeat = DefaultHeartbeat;
-            RequestedFrameMax = DefaultFrameMax;
-            RequestedChannelMax = DefaultChannelMax;
-            Password = DefaultPass;
             ClientProperties = Connection.DefaultClientProperties();
-            UseBackgroundThreadsForIO = false;
         }
 
         /// <summary>
@@ -291,22 +282,22 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Password to use when authenticating to the server.
         /// </summary>
-        public string Password { get; set; }
+        public string Password { get; set; } = DefaultPass;
 
         /// <summary>
         /// Maximum channel number to ask for.
         /// </summary>
-        public ushort RequestedChannelMax { get; set; }
+        public ushort RequestedChannelMax { get; set; } = DefaultChannelMax;
 
         /// <summary>
         /// Frame-max parameter to ask for (in bytes).
         /// </summary>
-        public uint RequestedFrameMax { get; set; }
+        public uint RequestedFrameMax { get; set; } = DefaultFrameMax;
 
         /// <summary>
         /// Heartbeat timeout to use when negotiating with the server (in seconds).
         /// </summary>
-        public ushort RequestedHeartbeat { get; set; }
+        public ushort RequestedHeartbeat { get; set; } = DefaultHeartbeat;
 
         /// <summary>
         /// When set to true, background thread will be used for the I/O loop.
@@ -316,12 +307,12 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Username to use when authenticating to the server.
         /// </summary>
-        public string UserName { get; set; }
+        public string UserName { get; set; } = DefaultUser;
 
         /// <summary>
         /// Virtual host to access during this connection.
         /// </summary>
-        public string VirtualHost { get; set; }
+        public string VirtualHost { get; set; } = DefaultVHost;
 
         /// <summary>
         /// Given a list of mechanism names supported by the server, select a preferred mechanism,
