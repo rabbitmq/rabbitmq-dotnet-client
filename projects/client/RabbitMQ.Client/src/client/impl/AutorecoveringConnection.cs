@@ -56,10 +56,12 @@ namespace RabbitMQ.Client.Framing.Impl
         protected Connection m_delegate;
         protected ConnectionFactory m_factory;
 
+        //retained for compatibility
+        protected IList<string> hostnames;
         // list of endpoints provided on initial connection.
         // on re-connection, the next host in the line is chosen using
         // IHostnameSelector
-        private IEndpointSelector endpoints;
+        private IList<AmqpTcpEndpoint> endpoints;
 
         public readonly object m_recordedEntitiesLock = new object();
         protected readonly TaskFactory recoveryTaskFactory = new TaskFactory();
@@ -536,7 +538,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override string ToString()
         {
-            return string.Format("AutorecoveringConnection({0},{1},{2})", m_delegate.Id, Endpoint, GetHashCode());
+            return string.Format("AutorecoveringConnection({0},{1},{2})", m_delegate.m_id, Endpoint, GetHashCode());
         }
 
         public void UnregisterModel(AutorecoveringModel model)
@@ -549,25 +551,51 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void Init()
         {
-            this.Init(new DefaultEndpointSelector());
+            this.Init(m_factory.HostName);
         }
 
         public void Init(IList<string> hostnames)
         {
-            this.Init(new DefaultEndpointSelector(hostnames.Select(m_factory.Endpoint.CloneWithHostname).ToList()));
+            this.Init(hostnames.Select(m_factory.Endpoint.CloneWithHostname).ToList());
         }
 
-        public void Init(IEndpointSelector endpoints)
+        public void Init(IList<AmqpTcpEndpoint> endpoints)
         {
             this.endpoints = endpoints;
-            var fh = endpoints.SelectOne(m_factory.CreateFrameHandler);
-            this.Init(fh);
+            this.hostnames = endpoints.Select(ep => ep.HostName).ToList();
+            AmqpTcpEndpoint reachableEndpoint = null;
+            IFrameHandler fh = null;
+            Exception e = null;
+            foreach (var ep in endpoints)
+            {
+                try
+                {
+                    fh = m_factory.CreateFrameHandler(ep);
+                    reachableEndpoint = ep;
+                } 
+                catch (Exception caught)
+                {
+                    e = caught;
+                }
+            }
+            if (reachableEndpoint == null)
+            {
+                throw e;
+            }
+
+            this.Init(reachableEndpoint);
         }
 
-        private void Init(IFrameHandler fh)
+        protected void Init(string hostname)
+        {
+            this.Init(m_factory.Endpoint.CloneWithHostname(hostname));
+        }
+
+        private void Init(AmqpTcpEndpoint endpoint)
         {
             m_delegate = new Connection(m_factory, false,
-                fh, this.ClientProvidedName);
+                m_factory.CreateFrameHandler(endpoint),
+                this.ClientProvidedName);
 
             AutorecoveringConnection self = this;
             EventHandler<ShutdownEventArgs> recoveryListener = (_, args) =>
@@ -782,7 +810,9 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 try
                 {
-                    var fh = endpoints.SelectOne(m_factory.CreateFrameHandler);
+                    var nextHostname = m_factory.HostnameSelector.NextFrom(this.hostnames);
+                    var endpoint = this.endpoints.First((e) => e.HostName == nextHostname);
+                    var fh = m_factory.CreateFrameHandler(endpoint);
                     m_delegate = new Connection(m_factory, false, fh, this.ClientProvidedName);
                     recovering = false;
                 }

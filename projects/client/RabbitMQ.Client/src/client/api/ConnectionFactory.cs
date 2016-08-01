@@ -157,6 +157,13 @@ namespace RabbitMQ.Client
         /// </summary>
         public bool AutomaticRecoveryEnabled { get; set; }
 
+        /// <summary>
+        /// Used to select next hostname to try when performing
+        /// connection recovery (re-connecting). Is not used for
+        /// non-recovering connections.
+        /// </summary>
+        public IHostnameSelector HostnameSelector { get; set; } = new RandomHostnameSelector();
+
         /// <summary>The host to connect to.</summary>
         public string HostName { get; set; } = "localhost";
 
@@ -392,7 +399,7 @@ namespace RabbitMQ.Client
         /// </exception>
         public IConnection CreateConnection(IList<string> hostnames, String clientProvidedName)
         {
-            return CreateConnection(new DefaultEndpointSelector(hostnames.Select(Endpoint.CloneWithHostname).ToList()), clientProvidedName);
+            return CreateConnection(hostnames.Select(Endpoint.CloneWithHostname).ToList(), clientProvidedName);
         }
 
         /// <summary>
@@ -410,7 +417,7 @@ namespace RabbitMQ.Client
         /// </exception>
         public IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints)
         {
-            return CreateConnection(new DefaultEndpointSelector(endpoints), null);
+            return CreateConnection(endpoints, null);
         }
 
         /// <summary>
@@ -432,28 +439,32 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public IConnection CreateConnection(IEndpointSelector endpoints, String clientProvidedName)
+        public IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints, String clientProvidedName)
         {
+            var eps = endpoints.ToList();
             IConnection conn;
             try
             {
                 if (AutomaticRecoveryEnabled)
                 {
                     var autorecoveringConnection = new AutorecoveringConnection(this, clientProvidedName);
-                    autorecoveringConnection.Init(endpoints);
+                    autorecoveringConnection.Init(eps);
                     conn = autorecoveringConnection;
                 }
                 else
                 {
                     IProtocol protocol = Protocols.DefaultProtocol;
-                    conn = protocol.CreateConnection(this, false, endpoints.SelectOne(this.CreateFrameHandler), clientProvidedName);
+                    //We can't make this more elegant without changing the contract of the IHostnameSelector
+                    //if there are endpoints with the same hostname but different ports the first match is selected 
+                    var selectedHost = HostnameSelector.NextFrom(eps.Select(ep => ep.HostName).ToList());
+                    var selectedEndpoint = eps.First(ep => ep.HostName == selectedHost);
+                    conn = protocol.CreateConnection(this, false, CreateFrameHandler(selectedEndpoint), clientProvidedName);
                 }
             }
             catch (Exception e)
             {
                 throw new BrokerUnreachableException(e);
             }
-
             return conn;
         }
 

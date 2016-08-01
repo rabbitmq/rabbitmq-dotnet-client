@@ -162,25 +162,10 @@ namespace RabbitMQ.Client.Framing.Impl
             return ac;
         }
 
-
-        public IModel CreateModel(ISession session)
-        {
-            return new Model(session);
-        }
-
-        public IModel CreateModel(ISession session, ConsumerWorkService workService)
-        {
-            return new Model(session, workService);
-        }
-    }
-
-    public static class IProtocolExtensions
-    {
-        public static IFrameHandler CreateFrameHandler(
-            this IProtocol protocol,
+        public IFrameHandler CreateFrameHandler(
             AmqpTcpEndpoint endpoint,
 #if !NETFX_CORE
-            Func<AddressFamily, ITcpClient> socketFactory,
+            Func<AddressFamily, ITcpClient> socketFactory, 
 #else
             Func<StreamSocket> socketFactory,
 #endif
@@ -190,6 +175,16 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             return new SocketFrameHandler(endpoint, socketFactory,
                 connectionTimeout, readTimeout, writeTimeout);
+        }
+
+        public IModel CreateModel(ISession session)
+        {
+            return new Model(session);
+        }
+
+        public IModel CreateModel(ISession session, ConsumerWorkService workService)
+        {
+            return new Model(session, workService);
         }
     }
 }
