@@ -108,22 +108,22 @@ namespace RabbitMQ.Client
         /// </summary>
         IConnection CreateConnection(ConnectionFactory factory, IFrameHandler frameHandler, bool automaticRecoveryEnabled, String clientProvidedName);
 
-        /// <summary>
-        ///  Construct a frame handler for a given endpoint.
-        ///  </summary>
-        /// <param name="socketFactory">Socket factory method.</param>
-        /// <param name="connectionTimeout">Timeout in milliseconds.</param>
-        /// <param name="endpoint">Represents a TCP-addressable AMQP peer: a host name and port number.</param>
-        IFrameHandler CreateFrameHandler(
-            AmqpTcpEndpoint endpoint, 
-#if !NETFX_CORE
-            Func<AddressFamily, ITcpClient> socketFactory, 
-#else
-            Func<StreamSocket> socketFactory,
-#endif
-            int connectionTimeout,
-            int readTimeout,
-            int writeTimeout);
+//         /// <summary>
+//         ///  Construct a frame handler for a given endpoint.
+//         ///  </summary>
+//         /// <param name="socketFactory">Socket factory method.</param>
+//         /// <param name="connectionTimeout">Timeout in milliseconds.</param>
+//         /// <param name="endpoint">Represents a TCP-addressable AMQP peer: a host name and port number.</param>
+//         IFrameHandler CreateFrameHandler(
+//             AmqpTcpEndpoint endpoint, 
+// #if !NETFX_CORE
+//             Func<AddressFamily, ITcpClient> socketFactory, 
+// #else
+//             Func<StreamSocket> socketFactory,
+// #endif
+//             int connectionTimeout,
+//             int readTimeout,
+//             int writeTimeout);
         /// <summary>
         /// Construct a protocol model atop a given session.
         /// </summary>

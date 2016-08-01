@@ -39,18 +39,17 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
+using RabbitMQ.Client.Impl;
+using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client
 {
-    public interface IHostnameSelector
+    public interface IEndpointSelector
     {
-        /// <summary>
-        /// Picks a hostname from a list of options that should be used
-        /// by <see cref="IConnectionFactory"/>.
-        /// </summary>
-        /// <param name="options"></param>
-        /// <returns></returns>
-        string NextFrom(IList<string> options);
+        /// Selector can either throw or return null to indicate not found
+        T SelectOne<T>(Func<AmqpTcpEndpoint, T> selector);
+        AmqpTcpEndpoint Current { get; }
     }
 }
