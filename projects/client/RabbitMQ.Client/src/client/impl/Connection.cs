@@ -1114,17 +1114,23 @@ entry.ToString());
 
         private void MaybeDisposeTimer(ref Timer timer)
         {
-            if (timer != null)
+            // capture the timer to reduce chance of a null ref exception
+            var captured = timer;
+            if (captured != null)
             {
                 try
                 {
-                    timer.Change(Timeout.Infinite, Timeout.Infinite);
-                    timer.Dispose();
+                    captured.Change(Timeout.Infinite, Timeout.Infinite);
+                    captured.Dispose();
                     timer = null;
                 }
-                catch (ObjectDisposedException ignored)
+                catch (ObjectDisposedException)
                 {
                     // we are shutting down, ignore
+                }
+                catch(NullReferenceException)
+                {
+                    // this should be very rare but could occur from a race condition
                 }
             }
         }
