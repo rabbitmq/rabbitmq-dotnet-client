@@ -38,13 +38,10 @@
 //  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using RabbitMQ.Client;
 using RabbitMQ.Client.Apigen.Attributes;
 using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Impl;
 using System;
 using System.Collections.Generic;
-using System.IO;
 
 namespace RabbitMQ.Client
 {
@@ -196,37 +193,9 @@ namespace RabbitMQ.Client
         void BasicCancel(string consumerTag);
 
         /// <summary>Start a Basic content-class consumer.</summary>
-        /// <remarks>
-        /// The consumer is started with noAck=false (i.e. BasicAck is required),
-        /// an empty consumer tag (i.e. the server creates and returns a fresh consumer tag),
-        /// noLocal=false and exclusive=false.
-        /// </remarks>
         [AmqpMethodDoNotImplement(null)]
-        string BasicConsume(string queue, bool noAck, IBasicConsumer consumer);
-
-        /// <summary>Start a Basic content-class consumer.</summary>
-        /// <remarks>
-        /// The consumer is started with
-        /// an empty consumer tag (i.e. the server creates and returns a fresh consumer tag),
-        /// noLocal=false and exclusive=false.
-        /// </remarks>
-        [AmqpMethodDoNotImplement(null)]
-        string BasicConsume(string queue, bool noAck, string consumerTag, IBasicConsumer consumer);
-
-        /// <summary>Start a Basic content-class consumer.</summary>
-        /// <remarks>
-        /// The consumer is started with noLocal=false and exclusive=false.
-        /// </remarks>
-        [AmqpMethodDoNotImplement(null)]
-        string BasicConsume(string queue,
-            bool noAck,
-            string consumerTag,
-            IDictionary<string, object> arguments,
-            IBasicConsumer consumer);
-
-        /// <summary>Start a Basic content-class consumer.</summary>
-        [AmqpMethodDoNotImplement(null)]
-        string BasicConsume(string queue,
+        string BasicConsume(
+            string queue,
             bool noAck,
             string consumerTag,
             bool noLocal,
@@ -246,25 +215,7 @@ namespace RabbitMQ.Client
         void BasicNack(ulong deliveryTag, bool multiple, bool requeue);
 
         /// <summary>
-        /// (Spec method) Convenience overload of BasicPublish.
-        /// </summary>
-        /// <remarks>
-        /// The publication occurs with mandatory=false and immediate=false.
-        /// </remarks>
-        [AmqpMethodDoNotImplement(null)]
-        void BasicPublish(PublicationAddress addr, IBasicProperties basicProperties, byte[] body);
-
-        /// <summary>
-        /// (Spec method) Convenience overload of BasicPublish.
-        /// </summary>
-        /// <remarks>
-        /// The publication occurs with mandatory=false
-        /// </remarks>
-        [AmqpMethodDoNotImplement(null)]
-        void BasicPublish(string exchange, string routingKey, IBasicProperties basicProperties, byte[] body);
-
-        /// <summary>
-        /// (Spec method) Convenience overload of BasicPublish.
+        /// (Spec method) Publishes a message.
         /// </summary>
         [AmqpMethodDoNotImplement(null)]
         void BasicPublish(string exchange, string routingKey, bool mandatory,
@@ -333,12 +284,6 @@ namespace RabbitMQ.Client
         void ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments);
 
         /// <summary>
-        /// (Extension method) Bind an exchange to an exchange.
-        /// </summary>
-        [AmqpMethodDoNotImplement(null)]
-        void ExchangeBind(string destination, string source, string routingKey);
-
-        /// <summary>
         ///Like ExchangeBind but sets nowait to true.
         /// </summary>
         void ExchangeBindNoWait(string destination, string source, string routingKey,
@@ -352,26 +297,6 @@ namespace RabbitMQ.Client
         [AmqpMethodDoNotImplement(null)]
         void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete,
             IDictionary<string, object> arguments);
-
-        /// <summary>
-        /// (Spec method) Declare an exchange.
-        /// </summary>
-        /// <remarks>
-        /// The exchange is declared non-passive, non-autodelete, and
-        /// non-internal, with no arguments. The "nowait" option is not exercised.
-        /// </remarks>
-        [AmqpMethodDoNotImplement(null)]
-        void ExchangeDeclare(string exchange, string type, bool durable);
-
-        /// <summary>
-        /// (Spec method) Declare an exchange.
-        /// </summary>
-        /// <remarks>
-        /// The exchange is declared non-passive, non-durable, non-autodelete, and
-        /// non-internal, with no arguments. The "nowait" option is not exercised.
-        /// </remarks>
-        [AmqpMethodDoNotImplement(null)]
-        void ExchangeDeclare(string exchange, string type);
 
         /// <summary>
         /// Same as ExchangeDeclare but sets nowait to true and returns void (as there
@@ -395,13 +320,6 @@ namespace RabbitMQ.Client
         [AmqpMethodDoNotImplement(null)]
         void ExchangeDelete(string exchange, bool ifUnused);
 
-        /// <summary>(Spec method) Delete an exchange.</summary>
-        /// <remarks>
-        /// The exchange is deleted regardless of any queue bindings.
-        /// </remarks>
-        [AmqpMethodDoNotImplement(null)]
-        void ExchangeDelete(string exchange);
-
         /// <summary>
         ///Like ExchangeDelete but sets nowait to true.
         /// </summary>
@@ -417,12 +335,6 @@ namespace RabbitMQ.Client
             IDictionary<string, object> arguments);
 
         /// <summary>
-        /// (Extension method) Unbind an exchange from an exchange.
-        /// </summary>
-        [AmqpMethodDoNotImplement(null)]
-        void ExchangeUnbind(string destination, string source, string routingKey);
-
-        /// <summary>
         /// Like ExchangeUnbind but sets nowait to true.
         /// </summary>
         [AmqpMethodDoNotImplement(null)]
@@ -435,21 +347,8 @@ namespace RabbitMQ.Client
         [AmqpMethodDoNotImplement(null)]
         void QueueBind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
 
-        /// <summary>(Spec method) Bind a queue to an exchange.</summary>
-        [AmqpMethodDoNotImplement(null)]
-        void QueueBind(string queue, string exchange, string routingKey);
-
         /// <summary>Same as QueueBind but sets nowait parameter to true.</summary>
         void QueueBindNoWait(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
-
-        /// <summary>(Spec method) Declare a queue.</summary>
-        /// <remarks>
-        /// The queue is declared non-passive, non-durable,
-        /// but exclusive and autodelete, with no arguments. The
-        /// server autogenerates a name for the queue - the generated name is the return value of this method.
-        /// </remarks>
-        [AmqpMethodDoNotImplement(null)]
-        QueueDeclareOk QueueDeclare();
 
         /// <summary>(Spec method) Declare a queue.</summary>
         [AmqpMethodDoNotImplement(null)]
@@ -460,8 +359,9 @@ namespace RabbitMQ.Client
         /// Same as QueueDeclare but sets nowait to true and returns void (as there
         /// will be no response from the server).
         /// </summary>
-        void QueueDeclareNoWait(string queue, bool durable, bool exclusive,
-            bool autoDelete, IDictionary<string, object> arguments);
+        void QueueDeclareNoWait(string queue, bool durable,
+                                bool exclusive, bool autoDelete,
+                                IDictionary<string, object> arguments);
 
         /// <summary>Declare a queue passively.</summary>
         /// <remarks>
@@ -499,15 +399,6 @@ namespace RabbitMQ.Client
         /// </remarks>
         [AmqpMethodDoNotImplement(null)]
         uint QueueDelete(string queue, bool ifUnused, bool ifEmpty);
-
-        /// <summary>
-        /// (Spec method) Delete a queue.
-        /// </summary>
-        /// <remarks>
-        ///Returns the number of messages purged during queue deletion.
-        /// </remarks>
-        [AmqpMethodDoNotImplement(null)]
-        uint QueueDelete(string queue);
 
         /// <summary>
         ///Same as QueueDelete but sets nowait parameter to true
