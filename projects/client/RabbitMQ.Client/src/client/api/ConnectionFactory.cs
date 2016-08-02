@@ -157,13 +157,6 @@ namespace RabbitMQ.Client
         /// </summary>
         public bool AutomaticRecoveryEnabled { get; set; }
 
-        /// <summary>
-        /// Used to select next hostname to try when performing
-        /// connection recovery (re-connecting). Is not used for
-        /// non-recovering connections.
-        /// </summary>
-        public IHostnameSelector HostnameSelector { get; set; } = new RandomHostnameSelector();
-
         /// <summary>The host to connect to.</summary>
         public string HostName { get; set; } = "localhost";
 
@@ -193,6 +186,17 @@ namespace RabbitMQ.Client
             get { return m_continuationTimeout; }
             set { m_continuationTimeout = value; }
         }
+
+        /// <summary>
+        /// Factory function for creating the <see cref="IEndpointResolver">
+        /// used to generate a list of endpoints for the ConnectionFactory
+        /// to try in order.
+        /// The default value creates an instance of the <see cref="DefaultEndpointResolver">
+        /// using the list of endpoints passed in. The DefaultEndpointResolver shuffles the
+        /// provided list each time it is requested.
+        /// </summary>
+        public Func<IEnumerable<AmqpTcpEndpoint>, IEndpointResolver> EndpointResolverFactory { get; set; } =
+            endpoints => new DefaultEndpointResolver(endpoints);
 
         /// <summary>
         /// The port to connect on. <see cref="AmqpTcpEndpoint.UseDefaultPort"/>
@@ -257,6 +261,7 @@ namespace RabbitMQ.Client
                 Ssl = value.Ssl;
             }
         }
+
 
         /// <summary>
         /// Set connection parameters using the amqp or amqps scheme.
@@ -333,18 +338,22 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// Create a connection to the specified endpoint.
+        /// Create a connection to one of the endpoints provided by the IEndpointResolver
+        /// returned by the EndpointResolverFactory. By default the configured
+        /// hostname and port are used.
         /// </summary>
         /// <exception cref="BrokerUnreachableException">
         /// When the configured hostname was not reachable.
         /// </exception>
         public virtual IConnection CreateConnection()
         {
-            return CreateConnection(new List<string> { HostName }, null);
+            return CreateConnection(this.EndpointResolverFactory(LocalEndpoints()), null);
         }
 
         /// <summary>
-        /// Create a connection to the specified endpoint.
+        /// Create a connection to one of the endpoints provided by the IEndpointResolver
+        /// returned by the EndpointResolverFactory. By default the configured
+        /// hostname and port are used.
         /// </summary>
         /// <param name="clientProvidedName">
         /// Application-specific connection name, will be displayed in the management UI
@@ -357,13 +366,14 @@ namespace RabbitMQ.Client
         /// </exception>
         public IConnection CreateConnection(String clientProvidedName)
         {
-            return CreateConnection(new List<string> { HostName }, clientProvidedName);
+            return CreateConnection(EndpointResolverFactory(LocalEndpoints()), clientProvidedName);
         }
 
         /// <summary>
-        /// Create a connection using a list of hostnames. The first reachable
-        /// hostname will be used initially. Subsequent hostname picks are determined
-        /// by the <see cref="IHostnameSelector" /> configured.
+        /// Create a connection using a list of hostnames using the configured port.
+        /// By default each hostname is tried in a random order until a successful connection is
+        /// found or the list is exhausted using the DefaultEndpointResolver.
+        /// The selection behaviour can be overriden by configuring the EndpointResolverFactory.
         /// </summary>
         /// <param name="hostnames">
         /// List of hostnames to use for the initial
@@ -379,9 +389,10 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// Create a connection using a list of hostnames. The first reachable
-        /// hostname will be used initially. Subsequent hostname picks are determined
-        /// by the <see cref="IHostnameSelector" /> configured.
+        /// Create a connection using a list of hostnames using the configured port.
+        /// By default each endpoint is tried in a random order until a successful connection is
+        /// found or the list is exhausted.
+        /// The selection behaviour can be overriden by configuring the EndpointResolverFactory.
         /// </summary>
         /// <param name="hostnames">
         /// List of hostnames to use for the initial
@@ -399,13 +410,14 @@ namespace RabbitMQ.Client
         /// </exception>
         public IConnection CreateConnection(IList<string> hostnames, String clientProvidedName)
         {
-            return CreateConnection(hostnames.Select(Endpoint.CloneWithHostname).ToList(), clientProvidedName);
+            var endpoints = hostnames.Select(h => new AmqpTcpEndpoint(h, this.Port, this.Ssl));
+            return CreateConnection(new DefaultEndpointResolver(endpoints), clientProvidedName);
         }
 
         /// <summary>
-        /// Create a connection using a list of hostnames. The first reachable
-        /// hostname will be used initially. Subsequent hostname picks are determined
-        /// by the <see cref="IHostnameSelector" /> configured.
+        /// Create a connection using a list of endpoints. By default each endpoint will be tried
+        /// in a random order until a successful connection is found or the list is exhausted.
+        /// The selection behaviour can be overriden by configuring the EndpointResolverFactory.
         /// </summary>
         /// <param name="endpoints">
         /// List of endpoints to use for the initial
@@ -417,17 +429,14 @@ namespace RabbitMQ.Client
         /// </exception>
         public IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints)
         {
-            return CreateConnection(endpoints, null);
+            return CreateConnection(new DefaultEndpointResolver(endpoints), null);
         }
 
         /// <summary>
-        /// Create a connection using a list of hostnames. The first reachable
-        /// hostname will be used initially. Subsequent hostname picks are determined
-        /// by the <see cref="IHostnameSelector" /> configured.
+        /// Create a connection using an IEndpointResolver.
         /// </summary>
-        /// <param name="endpoints">
-        /// List of endpoints to use for the initial
-        /// connection and recovery.
+        /// <param name="endpointResolver">
+        /// The endpointResolver that returns the endpoints to use for the connection attempt.
         /// </param>
         /// <param name="clientProvidedName">
         /// Application-specific connection name, will be displayed in the management UI
@@ -439,32 +448,28 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints, String clientProvidedName)
+        public IConnection CreateConnection(IEndpointResolver endpointResolver, String clientProvidedName)
         {
-            var eps = endpoints.ToList();
             IConnection conn;
             try
             {
                 if (AutomaticRecoveryEnabled)
                 {
                     var autorecoveringConnection = new AutorecoveringConnection(this, clientProvidedName);
-                    autorecoveringConnection.Init(eps);
+                    autorecoveringConnection.Init(endpointResolver);
                     conn = autorecoveringConnection;
                 }
                 else
                 {
                     IProtocol protocol = Protocols.DefaultProtocol;
-                    //We can't make this more elegant without changing the contract of the IHostnameSelector
-                    //if there are endpoints with the same hostname but different ports the first match is selected 
-                    var selectedHost = HostnameSelector.NextFrom(eps.Select(ep => ep.HostName).ToList());
-                    var selectedEndpoint = eps.First(ep => ep.HostName == selectedHost);
-                    conn = protocol.CreateConnection(this, false, CreateFrameHandler(selectedEndpoint), clientProvidedName);
+                    conn = protocol.CreateConnection(this, false, endpointResolver.SelectOne(this.CreateFrameHandler), clientProvidedName);
                 }
             }
             catch (Exception e)
             {
                 throw new BrokerUnreachableException(e);
             }
+
             return conn;
         }
 
@@ -565,6 +570,11 @@ namespace RabbitMQ.Client
         private static string UriDecode(string uri)
         {
             return System.Uri.UnescapeDataString(uri.Replace("+", "%2B"));
+        }
+
+        private List<AmqpTcpEndpoint> LocalEndpoints ()
+        {
+            return new List<AmqpTcpEndpoint> { this.Endpoint };
         }
     }
 }

@@ -65,45 +65,45 @@ namespace RabbitMQ.Client.Framing.Impl
 {
     public class Connection : IConnection
     {
-        public readonly object m_eventLock = new object();
+        private readonly object m_eventLock = new object();
 
         ///<summary>Heartbeat frame for transmission. Reusable across connections.</summary>
-        public readonly Frame m_heartbeatFrame = new Frame(Constants.FrameHeartbeat, 0, new byte[0]);
+        private readonly Frame m_heartbeatFrame = new Frame(Constants.FrameHeartbeat, 0, new byte[0]);
 
-        public ManualResetEvent m_appContinuation = new ManualResetEvent(false);
-        public EventHandler<CallbackExceptionEventArgs> m_callbackException;
+        private ManualResetEvent m_appContinuation = new ManualResetEvent(false);
+        private EventHandler<CallbackExceptionEventArgs> m_callbackException;
 
-        public IDictionary<string, object> m_clientProperties;
+        private IDictionary<string, object> m_clientProperties;
 
-        public volatile ShutdownEventArgs m_closeReason = null;
-        public volatile bool m_closed = false;
+        private volatile ShutdownEventArgs m_closeReason = null;
+        private volatile bool m_closed = false;
 
-        public EventHandler<ConnectionBlockedEventArgs> m_connectionBlocked;
-        public EventHandler<ShutdownEventArgs> m_connectionShutdown;
-        public EventHandler<EventArgs> m_connectionUnblocked;
-        public IConnectionFactory m_factory;
-        public IFrameHandler m_frameHandler;
+        private EventHandler<ConnectionBlockedEventArgs> m_connectionBlocked;
+        private EventHandler<ShutdownEventArgs> m_connectionShutdown;
+        private EventHandler<EventArgs> m_connectionUnblocked;
+        private IConnectionFactory m_factory;
+        private IFrameHandler m_frameHandler;
 
-        public Guid m_id = Guid.NewGuid();
-        public ModelBase m_model0;
-        public volatile bool m_running = true;
-        public MainSession m_session0;
-        public SessionManager m_sessionManager;
+        private Guid m_id = Guid.NewGuid();
+        private ModelBase m_model0;
+        private volatile bool m_running = true;
+        private MainSession m_session0;
+        private SessionManager m_sessionManager;
 
-        public IList<ShutdownReportEntry> m_shutdownReport = new SynchronizedList<ShutdownReportEntry>(new List<ShutdownReportEntry>());
+        private IList<ShutdownReportEntry> m_shutdownReport = new SynchronizedList<ShutdownReportEntry>(new List<ShutdownReportEntry>());
 
         //
         // Heartbeats
         //
 
-        public ushort m_heartbeat = 0;
-        public TimeSpan m_heartbeatTimeSpan = TimeSpan.FromSeconds(0);
-        public int m_missedHeartbeats = 0;
+        private ushort m_heartbeat = 0;
+        private TimeSpan m_heartbeatTimeSpan = TimeSpan.FromSeconds(0);
+        private int m_missedHeartbeats = 0;
 
         private Timer _heartbeatWriteTimer;
         private Timer _heartbeatReadTimer;
-        public AutoResetEvent m_heartbeatRead = new AutoResetEvent(false);
-        public AutoResetEvent m_heartbeatWrite = new AutoResetEvent(false);
+        private AutoResetEvent m_heartbeatRead = new AutoResetEvent(false);
+        private AutoResetEvent m_heartbeatWrite = new AutoResetEvent(false);
 
 
         // true if we haven't finished connection negotiation.
@@ -127,6 +127,8 @@ namespace RabbitMQ.Client.Framing.Impl
             StartMainLoop(factory.UseBackgroundThreadsForIO);
             Open(insist);
         }
+
+        public Guid Id { get { return m_id; } }
 
         public event EventHandler<CallbackExceptionEventArgs> CallbackException
         {

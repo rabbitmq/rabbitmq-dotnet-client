@@ -38,19 +38,15 @@
 //  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 
 namespace RabbitMQ.Client
 {
-    public interface IHostnameSelector
+    public interface IEndpointResolver
     {
         /// <summary>
-        /// Picks a hostname from a list of options that should be used
-        /// by <see cref="IConnectionFactory"/>.
+        /// Return all AmqpTcpEndpoints in the order they should be tried.
         /// </summary>
-        /// <param name="options"></param>
-        /// <returns></returns>
-        string NextFrom(IList<string> options);
+        IEnumerable<AmqpTcpEndpoint> All();
     }
 }

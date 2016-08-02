@@ -162,20 +162,6 @@ namespace RabbitMQ.Client.Framing.Impl
             return ac;
         }
 
-        public IFrameHandler CreateFrameHandler(
-            AmqpTcpEndpoint endpoint,
-#if !NETFX_CORE
-            Func<AddressFamily, ITcpClient> socketFactory, 
-#else
-            Func<StreamSocket> socketFactory,
-#endif
-            int connectionTimeout,
-            int readTimeout,
-            int writeTimeout)
-        {
-            return new SocketFrameHandler(endpoint, socketFactory,
-                connectionTimeout, readTimeout, writeTimeout);
-        }
 
         public IModel CreateModel(ISession session)
         {
