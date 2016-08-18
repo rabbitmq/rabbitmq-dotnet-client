@@ -50,5 +50,6 @@ using System.Runtime.CompilerServices;
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
-[assembly: AssemblyVersion("0.0.0.0")]
+[assembly: AssemblyVersion("4.0.0")]
+[assembly: AssemblyInformationalVersion("4.0.0-rc.1")]
 
