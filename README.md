@@ -20,7 +20,14 @@ There are two ways to consume the client:
 
 ## Supported Platforms and .NET Releases
 
-The client requires .NET 4.5 or later. It supports Linux and OS X on [Mono](http://www.mono-project.com/).
+The client requires .NET 4.5 or later and as of `4.0.0`, supports and primarily
+targets .NET Core.
+
+`3.6.x` releases support Linux and OS X on [Mono](http://www.mono-project.com/).
+
+## Change Log
+
+See [ChangeLog.md](https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/ChangeLog.md).
 
 
 ## Contributing
