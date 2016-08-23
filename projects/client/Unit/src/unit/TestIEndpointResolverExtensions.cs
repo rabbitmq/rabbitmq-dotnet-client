@@ -1,4 +1,4 @@
-﻿// This source code is dual-licensed under the Apache License, version
+// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 1.1.
 //
 // The APL v2.0:
@@ -38,40 +38,55 @@
 //  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using NUnit.Framework;
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Threading;
 
-namespace RabbitMQ.Client
+namespace RabbitMQ.Client.Unit
 {
-    public static class EndpointResolverExtensions
+    public class TestEndpointResolver : IEndpointResolver
     {
-        public static T SelectOne<T>(this IEndpointResolver resolver, Func<AmqpTcpEndpoint, T> selector)
+        private IEnumerable<AmqpTcpEndpoint> endpoints;
+        public TestEndpointResolver (IEnumerable<AmqpTcpEndpoint> endpoints)
         {
-            var t = default(T);
-            Exception exception = null;
-            foreach(var ep in resolver.All())
-            {
-                try
-                {
-                    t = selector(ep);
-                    if(t.Equals(default(T)) == false)
-                    {
-                        return t;
-                    }
-                }
-                catch (Exception e)
-                {
-                    exception = e;
-                }
-            }
+            this.endpoints = endpoints;
+        }
 
-            if(Object.Equals(t, default(T)) && exception != null)
-            {
-                throw exception;
-            }
+        public IEnumerable<AmqpTcpEndpoint> All()
+        {
+            return endpoints;
+        }
+    }
 
-            return t;
+    class TestEndpointException : Exception
+    {
+        public TestEndpointException(string message) : base(message)
+        {
+        }
+    }
+
+    public class TestIEndpointResolverExtensions
+    {
+        [Test]
+        public void SelectOneShouldReturnDefaultWhenThereAreNoEndpoints()
+        {
+            var ep = new TestEndpointResolver(new List<AmqpTcpEndpoint>());
+            Assert.IsNull(ep.SelectOne<AmqpTcpEndpoint>((x) => null));
+        }
+
+        [Test]
+        public void SelectOneShouldRaiseThrownExceptionWhenThereAreOnlyInaccessibleEndpoints()
+        {
+            var ep = new TestEndpointResolver(new List<AmqpTcpEndpoint> { new AmqpTcpEndpoint()});
+            Assert.Throws<TestEndpointException>(() => ep.SelectOne<AmqpTcpEndpoint>((x) => { throw new TestEndpointException("bananas"); }));
+        }
+
+        [Test]
+        public void SelectOneShouldReturnFoundEndpoint()
+        {
+            var ep = new TestEndpointResolver(new List<AmqpTcpEndpoint> { new AmqpTcpEndpoint()});
+            Assert.IsNotNull(ep.SelectOne<AmqpTcpEndpoint>((e) => e));
         }
     }
 }
