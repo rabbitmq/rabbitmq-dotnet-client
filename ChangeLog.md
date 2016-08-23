@@ -6,6 +6,6 @@
 
 GH issue: [rabbitmq-dotnet-client#239](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/239).
 
-Occasional NullReferenceException when unable to resolve any endpoints/
+### Occasional `NullReferenceException` in Endpoint Resolution
 
 GH issue: [rabbitmq-dotnet-client#238](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/238)
