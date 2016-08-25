@@ -2,11 +2,11 @@
   "version": "4.0.0-*",
   "description": "The RabbitMQ .NET client is the official client library for C# (and, implicitly, other .NET languages)",
   "packOptions": {
-      "projectUrl": "http://www.rabbitmq.com/dotnet.html",
-      "licenseUrl": "http://www.rabbitmq.com/dotnet.html",
-      "iconUrl": "https://en.gravatar.com/userimage/10048884/0ea8846e080980f705da081be53599ce.png?size=100",
-      "owners": ["Pivotal"],
-      "tags": ["RabbitMQ"]
+    "projectUrl": "http://www.rabbitmq.com/dotnet.html",
+    "licenseUrl": "http://www.rabbitmq.com/dotnet.html",
+    "iconUrl": "https://en.gravatar.com/userimage/10048884/0ea8846e080980f705da081be53599ce.png?size=100",
+    "owners": [ "Pivotal" ],
+    "tags": [ "RabbitMQ" ]
   },
   "configurations": {
     "SignedRelease": {
@@ -39,10 +39,7 @@
           "CORECLR"
         ]
       },
-      "imports": [
-        "dnxcore50",
-        "portable-net45+win81"
-      ],
+      "imports": "dnxcore50",
       "dependencies": {
         "System.Collections.Concurrent": "4.0.12",
         "System.Console": "4.0.0",
