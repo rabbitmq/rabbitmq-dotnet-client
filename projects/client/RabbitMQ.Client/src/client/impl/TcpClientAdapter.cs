@@ -1,13 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
-
 namespace RabbitMQ.Client
 {
+
+
     /// <summary>
-    /// Simple wrapper around TcpClient.
+    /// Simple wrapper around TcpClient. 
     /// </summary>
     public class TcpClientAdapter : ITcpClient
     {
@@ -17,18 +20,14 @@ namespace RabbitMQ.Client
         {
             if (socket == null)
                 throw new InvalidOperationException("socket must not be null");
-
+        
             this.sock = socket;
         }
 
         public virtual async Task ConnectAsync(string host, int port)
         {
             var adds = await Dns.GetHostAddressesAsync(host).ConfigureAwait(false);
-            var ep = adds.FirstOrDefault(a => a.AddressFamily == sock.AddressFamily);
-            if(ep == default(IPAddress))
-            {
-                throw new ArgumentException("No ip address could be resolved for " + host);
-            }
+            var ep = adds.First();
             #if CORECLR
             await sock.ConnectAsync(ep, port);
             #else
