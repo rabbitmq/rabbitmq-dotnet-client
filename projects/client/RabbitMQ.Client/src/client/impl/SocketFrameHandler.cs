@@ -38,6 +38,7 @@
 //  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+#if !NETFX_CORE
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
 using System;
@@ -50,7 +51,7 @@ using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
-    static class TaskExtensions 
+    static class TaskExtensions
     {
         public static async Task TimeoutAfter(this Task task, int millisecondsTimeout)
         {
@@ -157,7 +158,7 @@ namespace RabbitMQ.Client.Impl
                 try
                 {
                     if (m_socket.Connected)
-                    {                        
+                    {
                         m_socket.ReceiveTimeout = value;
                     }
                 }
@@ -189,7 +190,7 @@ namespace RabbitMQ.Client.Impl
                     {
                         try
                         {
-                            
+
                         } catch (ArgumentException)
                         {
                             // ignore, we are closing anyway
@@ -287,11 +288,11 @@ namespace RabbitMQ.Client.Impl
             catch (SocketException e)
             {
                 throw new ConnectFailureException("Connection failed", e);
-            } 
+            }
             catch (NotSupportedException e)
             {
                 throw new ConnectFailureException("Connection failed", e);
-            } 
+            }
             catch (TimeoutException e)
             {
                 throw new ConnectFailureException("Connection failed", e);
@@ -299,3 +300,4 @@ namespace RabbitMQ.Client.Impl
         }
     }
 }
+#endif

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !NETFX_CORE
+using System;
 using System.Linq;
 using System.Net.Sockets;
 using System.Net;
@@ -73,3 +74,4 @@ namespace RabbitMQ.Client
         }
     }
 }
+#endif

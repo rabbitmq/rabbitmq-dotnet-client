@@ -50,6 +50,7 @@
         "System.Net.Security": "4.0.0",
         "System.Net.Sockets": "4.1.0",
         "System.Reflection.Extensions": "4.0.1",
+        "System.Reflection.TypeExtensions": "4.1.0",
         "System.Runtime.Extensions": "4.1.0",
         "System.Text.RegularExpressions": "4.1.0",
         "System.Threading": "4.0.11",

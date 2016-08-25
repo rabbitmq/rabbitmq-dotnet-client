@@ -38,6 +38,7 @@
 //  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+#if NETFX_CORE
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
 using System;
@@ -268,3 +269,4 @@ namespace RabbitMQ.Client.Impl
         }
     }
 }
+#endif
