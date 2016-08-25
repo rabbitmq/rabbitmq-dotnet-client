@@ -1,3 +1,8 @@
+## Changes Between 4.0.1 and 4.0.2
+
+No changes yet.
+
+
 ## Changes Between 4.0.0 and 4.0.1
 
 ### `ConnectionFactory#CreateConnection` Deadlock
