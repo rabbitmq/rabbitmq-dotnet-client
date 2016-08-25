@@ -7,7 +7,6 @@
   },
   "testRunner": "nunit",
   "frameworks": {
-    "net451": {},
     "netcoreapp1.0": {
       "imports": "portable-net45+win8",
       "buildOptions": {
@@ -20,6 +19,7 @@
         },
         "System.Collections.NonGeneric": "4.0.1"
       }
-    }
+    },
+    "net451": {}
   }
 }
