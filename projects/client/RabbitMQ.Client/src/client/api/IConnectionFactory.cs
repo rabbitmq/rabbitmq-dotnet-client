@@ -129,13 +129,6 @@ namespace RabbitMQ.Client
         IConnection CreateConnection(IList<string> hostnames, String clientProvidedName);
 
         /// <summary>
-        /// Advanced option.
-        ///
-        /// What task scheduler should consumer dispatcher use.
-        /// </summary>
-        TaskScheduler TaskScheduler { get; set; }
-
-        /// <summary>
         /// Amount of time protocol handshake operations are allowed to take before
         /// timing out.
         /// </summary>
