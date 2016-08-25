@@ -39,7 +39,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using NUnit.Framework;
 using RabbitMQ.Client.Exceptions;
 
@@ -108,7 +107,7 @@ namespace RabbitMQ.Client.Unit
                 Assert.AreEqual("some_name", conn.ClientProperties["connection_name"]);
             }
         }
-
+        
         [Test]
         public void TestCreateConnectionWithClientProvidedNameAndAutorecoveryUsesName()
         {
@@ -186,15 +185,6 @@ namespace RabbitMQ.Client.Unit
                     {
                         using(var conn = cf.CreateConnection(new System.Collections.Generic.List<AmqpTcpEndpoint> { ep })) {}
                     }, Throws.TypeOf<BrokerUnreachableException>());
-        }
-
-        [Test]
-        public void TestCreateConnectioUsesValidEndpointWhenMultipleSupplied()
-        {
-            var cf = new ConnectionFactory();
-            var invalidEp = new AmqpTcpEndpoint("not_localhost");
-            var ep = new AmqpTcpEndpoint("localhost");
-            using(var conn = cf.CreateConnection(new List<AmqpTcpEndpoint> { invalidEp, ep })) {};
         }
     }
 }
