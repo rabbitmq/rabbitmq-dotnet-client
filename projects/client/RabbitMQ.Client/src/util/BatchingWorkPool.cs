@@ -38,204 +38,117 @@
 //  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Threading;
 
 namespace RabbitMQ.Util
 {
     public class BatchingWorkPool<K, V>
     {
-        private object lockObject = new object();
-        private IDictionary<K, BlockingCollection<V>> pool =
-            new Dictionary<K, BlockingCollection<V>>();
-        private SetQueue<K> ready = new SetQueue<K>();
-        private HashSet<K> inProgress = new HashSet<K>();
-
-        public BatchingWorkPool() {}
+        private ConcurrentDictionary<K, ConcurrentQueue<V>> pool = new ConcurrentDictionary<K, ConcurrentQueue<V>>();
+        private ConcurrentQueue<K> ready = new ConcurrentQueue<K>();
 
         public bool AddWorkItem(K key, V item)
         {
-            BlockingCollection<V> q;
-            lock(lockObject)
+            ConcurrentQueue<V> q;
+
+            if (!pool.TryGetValue(key, out q))
             {
-                try
-                {
-                    q = this.pool[key];
-                }
-                catch (KeyNotFoundException)
-                {
-                    return false;
-                }
+                return false;
             }
 
-#if NETFX_CORE
-            q.Add(item);
-#else
-            try
-            {
-                q.Add(item);
-            }
-            catch (Exception)
-            {
-                // most likely due to shutdown. ok.
-            }
-#endif
+            q.Enqueue(item);
+            ready.Enqueue(key);
 
-            lock (lockObject)
-            {
-                if (IsDormant(key))
-                {
-                    DormantToReady(key);
-                    return true;
-                }
-            }
-            return false;
+            return true;
         }
 
         public void RegisterKey(K key)
         {
-            lock(lockObject)
-            {
-                var q = new BlockingCollection<V>(new ConcurrentQueue<V>());
-                this.pool.Add(key, q);
-            }
+            var q = new ConcurrentQueue<V>();
+            pool.TryAdd(key, q);
         }
 
         public void UnregisterKey(K key)
         {
-            lock (lockObject)
-            {
-                this.pool.Remove(key);
-                this.ready.Remove(key);
-                this.inProgress.Remove(key);
-            }
+            ConcurrentQueue<V> value;
+            pool.TryRemove(key, out value);
         }
 
         public void UnregisterAllKeys()
         {
-            lock(lockObject)
-            {
-                this.pool.Clear();
-                this.ready.Clear();
-                this.inProgress.Clear();
-            }
+            pool.Clear();
         }
 
         public K NextWorkBlock(ref List<V> to, int size)
         {
-            lock(lockObject)
+            K nextKey;
+            K result = default(K);
+            var dequeue = true;
+
+            while (dequeue)
             {
-                K nextKey = this.ReadyToInProgress();
-                if(nextKey != null)
+                dequeue = ready.TryDequeue(out nextKey);
+
+                if (dequeue)
                 {
-                    var q = this.pool[nextKey];
-                    DrainTo(q, ref to, size);
+                    ConcurrentQueue<V> q;
+
+                    if (!pool.TryGetValue(nextKey, out q))
+                    {
+                        continue;
+                    }
+
+                    dequeue = false;
+
+                    var count = DrainTo(q, ref to, size);
+
+                    if (count != 0)
+                    {
+                        result = nextKey;
+                    }
                 }
-                return nextKey;
             }
+
+            return result;
         }
 
         public bool FinishWorkBlock(K key)
         {
-            lock (lockObject)
-            {
-                if (!this.IsRegistered(key))
-                {
-                    return false;
-                }
-                if (!this.inProgress.Contains(key))
-                {
-                    throw new ArgumentException(String.Format("Client {0} not in progress"));
-                }
+            ConcurrentQueue<V> q;
 
-                if (MoreWorkItems(key))
-                {
-                    InProgressToReady(key);
-                    return true;
-                }
-                else
-                {
-                    InProgressToDormant(key);
-                    return false;
-                }
+            if (!pool.TryGetValue(key, out q))
+            {
+                return false;
             }
+
+            if (!q.IsEmpty)
+            {
+                ready.Enqueue(key);
+                return true;
+            }
+
+            return false;
         }
 
-        private int DrainTo(BlockingCollection<V> from, ref List<V> to, int maxElements)
+        private int DrainTo(ConcurrentQueue<V> from, ref List<V> to, int maxElements)
         {
             int n = 0;
-            while(n < maxElements)
+
+            while (n < maxElements)
             {
                 V item;
-                if(!from.TryTake(out item))
+
+                if (!from.TryDequeue(out item))
                 {
                     break;
                 }
-                else
-                {
-                    to.Add(item);
-                    ++n;
-                }
+
+                to.Add(item);
+                ++n;
             }
+
             return n;
-        }
-
-        private bool IsReady(K key)
-        {
-            return this.ready.Contains(key);
-        }
-
-        private bool IsInProgress(K key)
-        {
-            return this.inProgress.Contains(key);
-        }
-
-        private bool IsRegistered(K key)
-        {
-            return this.pool.ContainsKey(key);
-        }
-
-        private bool IsDormant(K key)
-        {
-            return IsRegistered(key) && !IsInProgress(key) && !IsReady(key);
-        }
-
-        private K ReadyToInProgress()
-        {
-            K key = this.ready.Dequeue();
-            if(key == null)
-            {
-                return default(K);
-            } 
-            else
-            {
-                this.inProgress.Add(key);
-                return key;
-            }
-        }
-
-        private void InProgressToReady(K key)
-        {
-            this.inProgress.Remove(key);
-            this.ready.Enqueue(key);
-        }
-
-        private void DormantToReady(K key)
-        {
-            this.ready.Enqueue(key);
-        }
-
-        private void InProgressToDormant(K key)
-        {
-            this.inProgress.Remove(key);
-        }
-
-        private bool MoreWorkItems(K key)
-        {
-            var xs = this.pool[key];
-            return ((xs != null) && !(xs.Count == 0));
         }
     }
 }
