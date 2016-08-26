@@ -62,7 +62,7 @@
     <Compile Include="..\RabbitMQ.Client\src\client\**\*.cs">
       <Link>src\client\%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Compile>
-    <Compile Include="..\RabbitMQ.Client\src\util\**\*.cs" Exclude="..\RabbitMQ.Client\src\util\**\XmlUtil.cs">
+    <Compile Include="..\RabbitMQ.Client\src\util\**\*.cs">
       <Link>src\util\%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Compile>
     <Compile Include="src\client\impl\SocketFrameHandlerWinRT.cs" />
