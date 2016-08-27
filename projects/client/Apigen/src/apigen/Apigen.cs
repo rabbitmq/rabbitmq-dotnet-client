@@ -358,6 +358,13 @@ namespace RabbitMQ.Client.Apigen
         {
             Console.WriteLine("* Generating code into '" + m_outputFilename + "'");
 
+            var directory = Path.GetDirectoryName(m_outputFilename);
+
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
             using (var stream = new FileStream(m_outputFilename, FileMode.Create, FileAccess.Write))
             {
                 m_outputFile = new StreamWriter(stream);
