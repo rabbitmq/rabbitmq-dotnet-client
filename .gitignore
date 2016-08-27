@@ -2,10 +2,7 @@
 ## Generated files
 ###################
 
-gensrc/*dll*
-gensrc/*exe*
-gensrc/*pdb*
-gensrc/RabbitMQ.Client.WinRT/*
+gensrc/
 [Ll]ocal.props
 [Ll]ocal.dist
 
