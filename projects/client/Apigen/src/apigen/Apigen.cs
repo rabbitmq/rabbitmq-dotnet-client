@@ -203,9 +203,9 @@ namespace RabbitMQ.Client.Apigen {
         }
 
         public void HandleOption(string opt) {
-            if (opt.StartsWith("/apiName:")) {
+            if (opt.StartsWith("--apiName:")) {
                 m_apiName = opt.Substring(9);
-            } else if (opt == "/c") {
+            } else if (opt == "-c") {
                 m_emitComments = true;
             } else {
                 Console.Error.WriteLine("Unsupported command-line option: " + opt);
@@ -216,13 +216,13 @@ namespace RabbitMQ.Client.Apigen {
         public void Usage() {
             Console.Error.WriteLine("Usage: Apigen.exe [options ...] <input-spec-xml> <output-csharp-file>");
             Console.Error.WriteLine("  Options include:");
-            Console.Error.WriteLine("    /apiName:<identifier>");
+            Console.Error.WriteLine("    --apiName:<identifier>");
             Console.Error.WriteLine("  The apiName option is required.");
             Environment.Exit(1);
         }
 
         public Apigen(IList<string> args) {
-            while (args.Count > 0 && ((string) args[0]).StartsWith("/")) {
+            while (args.Count > 0 && ((string) args[0]).StartsWith("--")) {
                 HandleOption((string) args[0]);
                 args.RemoveAt(0);
             }
