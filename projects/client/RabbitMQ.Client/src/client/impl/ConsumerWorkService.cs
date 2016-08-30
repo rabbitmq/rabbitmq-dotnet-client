@@ -62,25 +62,11 @@ namespace RabbitMQ.Client
 
         public void RegisterKey(IModel model)
         {
-            //special connection model 0 should never have consumers,
-            //so no need to register it
-            if (model.ChannelNumber == 0)
-            {
-                return;
-            }
-
             this.workPool.RegisterKey(model);
         }
 
         public void StopWork(IModel model)
         {
-            //special connection model 0 should never have consumers,
-            //so it won't be registered
-            if (model.ChannelNumber == 0)
-            {
-                return;
-            }
-
             this.workPool.UnregisterKey(model);
         }
 
