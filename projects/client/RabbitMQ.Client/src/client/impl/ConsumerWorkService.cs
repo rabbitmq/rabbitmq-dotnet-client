@@ -10,35 +10,27 @@ namespace RabbitMQ.Client
 
         public void AddWork(IModel model, Action fn)
         {
+            // two step approach is taken, as TryGetValue does not aquire locks
+            // if this fails, GetOrAdd is called, which takes a lock
+
             WorkPool workPool;
-            if (workPools.TryGetValue(model, out workPool))
+            if (workPools.TryGetValue(model, out workPool) == false)
             {
-                workPool.Enqueue(fn);
-            }
-        }
+                var newWorkPool = new WorkPool(model);
+                workPool = workPools.GetOrAdd(model, newWorkPool);
 
-        public void RegisterKey(IModel model)
-        {
-            // the main model can be skipped, as it will not use CWS anyway
-            if (model.ChannelNumber == 0)
-            {
-                return;
+                // start if it's only the workpool that has been just created
+                if (newWorkPool == workPool)
+                {
+                    newWorkPool.Start();
+                }
             }
 
-            var workPool = new WorkPool(model);
-            if (workPools.TryAdd(model, workPool))
-            {
-                workPool.Start();
-            }
+            workPool.Enqueue(fn);
         }
 
         public void StopWork(IModel model)
         {
-            if (model.ChannelNumber == 0)
-            {
-                return;
-            }
-
             WorkPool workPool;
             if (workPools.TryRemove(model, out workPool))
             {
@@ -53,7 +45,6 @@ namespace RabbitMQ.Client
                 StopWork(model);
             }
         }
-
 
         class WorkPool
         {

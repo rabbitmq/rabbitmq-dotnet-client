@@ -13,7 +13,6 @@ namespace RabbitMQ.Client.Impl
         {
             this.model = model;
             this.workService = ws;
-            this.workService.RegisterKey(model);
             this.IsShutdown = false;
         }
 
