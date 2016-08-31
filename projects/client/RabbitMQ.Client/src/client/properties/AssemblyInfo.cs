@@ -39,7 +39,6 @@
 //---------------------------------------------------------------------------
 
 using System.Reflection;
-using System.Runtime.CompilerServices;
 
 [assembly: AssemblyTitle("RabbitMQ Client Library for .NET")]
 [assembly: AssemblyDescription("See http://rabbitmq.com")]
@@ -51,5 +50,3 @@ using System.Runtime.CompilerServices;
 [assembly: AssemblyCulture("")]
 
 [assembly: AssemblyVersion("4.0.0")]
-[assembly: AssemblyInformationalVersion("4.0.0-pre.1")]
-

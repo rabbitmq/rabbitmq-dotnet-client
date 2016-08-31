@@ -1,43 +1,25 @@
 {
   "version": "1.0.0-*",
-  "buildOptions": {
-    "emitEntryPoint": false
-  },
   "dependencies": {
+    "NUnit": "3.4.1",
+    "RabbitMQ.Client": "*",
+    "dotnet-test-nunit": "3.4.0-beta-2"
   },
   "testRunner": "nunit",
-  "code": ["**/*.cs"],
   "frameworks": {
-    "net451": {
-      "dependencies": {
-       "NUnit": "3.4.0",
-       "RabbitMQ.Client": "*",
-       "dotnet-test-nunit": "3.4.0-beta-1"
-      }
-    },
     "netcoreapp1.0": {
-      "imports": [
-        "netcoreapp1.0",
-        "portable-net45+win8"
-      ],
+      "imports": "portable-net45+win8",
       "buildOptions": {
         "define": [ "CORECLR" ]
       },
       "dependencies": {
-       "Microsoft.NETCore.App": {
-         "type": "platform",
-         "version": "1.0.0"
-       },
-       "RabbitMQ.Client": {
-           "target": "project"
-       },
-       "System.Collections.NonGeneric": "4.0.1",
-       "System.Net.Security": "4.0.0",
-       "System.Net.NameResolution": "4.0.0",
-       "System.Threading.Thread": "4.0.0",
-       "NUnit": "3.4.0",
-       "dotnet-test-nunit": "3.4.0-beta-1"
+        "Microsoft.NETCore.App": {
+          "type": "platform",
+          "version": "1.0.0"
+        },
+        "System.Collections.NonGeneric": "4.0.1"
       }
-    }
+    },
+    "net451": {}
   }
 }

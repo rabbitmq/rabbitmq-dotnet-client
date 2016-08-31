@@ -2,9 +2,7 @@
 ## Generated files
 ###################
 
-gensrc/*dll*
-gensrc/*exe*
-gensrc/RabbitMQ.Client.WinRT/*
+gensrc/
 [Ll]ocal.props
 [Ll]ocal.dist
 
@@ -49,6 +47,9 @@ build/
 [Bb]in/
 [Oo]bj/
 *.lock.json
+
+# Visual Studio 2015 cache/options directory
+.vs/
 
 # Visual Studio profiler
 *.psess

@@ -39,8 +39,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.CodeDom;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -49,12 +47,15 @@ using System.Xml;
 
 using RabbitMQ.Client.Apigen.Attributes;
 
-namespace RabbitMQ.Client.Apigen {
-    public class Apigen {
+namespace RabbitMQ.Client.Apigen
+{
+    public class Apigen
+    {
         ///////////////////////////////////////////////////////////////////////////
         // Entry point
 
-        public static void Main(string[] args) {
+        public static void Main(string[] args)
+        {
             Apigen instance = new Apigen(new List<string>(args));
             instance.Generate();
         }
@@ -62,30 +63,36 @@ namespace RabbitMQ.Client.Apigen {
         ///////////////////////////////////////////////////////////////////////////
         // XML utilities
 
-        public static XmlNodeList GetNodes(XmlNode n0, string path) {
+        public static XmlNodeList GetNodes(XmlNode n0, string path)
+        {
             return n0.SelectNodes(path);
         }
 
-        public static string GetString(XmlNode n0, string path, string d) {
+        public static string GetString(XmlNode n0, string path, string d)
+        {
             XmlNode n = n0.SelectSingleNode(path);
             string pathOrDefault = (n == null) ? d : n.InnerText;
             return xmlStringMapper(pathOrDefault);
         }
 
-        public static string GetString(XmlNode n0, string path) {
+        public static string GetString(XmlNode n0, string path)
+        {
             string s = GetString(n0, path, null);
-            if (s == null) {
+            if (s == null)
+            {
                 throw new Exception("Missing spec XML node: " + path);
             }
             return s;
         }
 
-        public static int GetInt(XmlNode n0, string path, int d) {
+        public static int GetInt(XmlNode n0, string path, int d)
+        {
             string s = GetString(n0, path, null);
             return (s == null) ? d : int.Parse(s);
         }
 
-        public static int GetInt(XmlNode n0, string path) {
+        public static int GetInt(XmlNode n0, string path)
+        {
             return int.Parse(GetString(n0, path));
         }
 
@@ -108,7 +115,8 @@ namespace RabbitMQ.Client.Apigen {
         ///////////////////////////////////////////////////////////////////////////
         // Name manipulation and mangling for C#
 
-        public static string MangleConstant(string name) {
+        public static string MangleConstant(string name)
+        {
             // Previously, we used C_STYLE_CONSTANT_NAMES:
             /*
               return name
@@ -120,31 +128,41 @@ namespace RabbitMQ.Client.Apigen {
             return MangleClass(name);
         }
 
-        public static IList<string> IdentifierParts(string name) {
+        public static IList<string> IdentifierParts(string name)
+        {
             IList<string> result = new List<string>();
-            foreach (String s1 in name.Split(new Char[] { '-' })) {
-                foreach (String s2 in s1.Split(new Char[] { ' ' })) {
+            foreach (String s1 in name.Split(new Char[] { '-' }))
+            {
+                foreach (String s2 in s1.Split(new Char[] { ' ' }))
+                {
                     result.Add(s2);
                 }
             }
             return result;
         }
 
-        public static string MangleClass(string name) {
+        public static string MangleClass(string name)
+        {
             StringBuilder sb = new StringBuilder();
-            foreach (String s in IdentifierParts(name)) {
+            foreach (String s in IdentifierParts(name))
+            {
                 sb.Append(Char.ToUpperInvariant(s[0]) + s.Substring(1).ToLowerInvariant());
             }
             return sb.ToString();
         }
 
-        public static string MangleMethod(string name) {
+        public static string MangleMethod(string name)
+        {
             StringBuilder sb = new StringBuilder();
             bool useUpper = false;
-            foreach (String s in IdentifierParts(name)) {
-                if (useUpper) {
+            foreach (String s in IdentifierParts(name))
+            {
+                if (useUpper)
+                {
                     sb.Append(Char.ToUpperInvariant(s[0]) + s.Substring(1).ToLowerInvariant());
-                } else {
+                }
+                else
+                {
                     sb.Append(s.ToLowerInvariant());
                     useUpper = true;
                 }
@@ -152,7 +170,8 @@ namespace RabbitMQ.Client.Apigen {
             return sb.ToString();
         }
 
-        public static string MangleMethodClass(AmqpClass c, AmqpMethod m) {
+        public static string MangleMethodClass(AmqpClass c, AmqpMethod m)
+        {
             return MangleClass(c.Name) + MangleClass(m.Name);
         }
 
@@ -179,9 +198,8 @@ namespace RabbitMQ.Client.Apigen {
         public static IDictionary<string, string> m_primitiveTypeMap;
         public static IDictionary<string, bool> m_primitiveTypeFlagMap;
 
-        private CodeDomProvider m_csharpProvider;
-
-        static Apigen() {
+        static Apigen()
+        {
             m_primitiveTypeMap = new Dictionary<string, string>();
             m_primitiveTypeFlagMap = new Dictionary<string, bool>();
             InitPrimitiveType("octet", "byte", false);
@@ -202,18 +220,25 @@ namespace RabbitMQ.Client.Apigen {
             m_primitiveTypeFlagMap[amqpType] = isReference;
         }
 
-        public void HandleOption(string opt) {
-            if (opt.StartsWith("--apiName:")) {
+        public void HandleOption(string opt)
+        {
+            if (opt.StartsWith("--apiName:"))
+            {
                 m_apiName = opt.Substring(9);
-            } else if (opt == "-c") {
+            }
+            else if (opt == "-c")
+            {
                 m_emitComments = true;
-            } else {
+            }
+            else
+            {
                 Console.Error.WriteLine("Unsupported command-line option: " + opt);
                 Usage();
             }
         }
 
-        public void Usage() {
+        public void Usage()
+        {
             Console.Error.WriteLine("Usage: Apigen.exe [options ...] <input-spec-xml> <output-csharp-file>");
             Console.Error.WriteLine("  Options include:");
             Console.Error.WriteLine("    --apiName:<identifier>");
@@ -221,9 +246,11 @@ namespace RabbitMQ.Client.Apigen {
             Environment.Exit(1);
         }
 
-        public Apigen(IList<string> args) {
-            while (args.Count > 0 && ((string) args[0]).StartsWith("--")) {
-                HandleOption((string) args[0]);
+        public Apigen(IList<string> args)
+        {
+            while (args.Count > 0 && ((string)args[0]).StartsWith("--"))
+            {
+                HandleOption((string)args[0]);
                 args.RemoveAt(0);
             }
             if ((args.Count < 2)
@@ -231,69 +258,85 @@ namespace RabbitMQ.Client.Apigen {
             {
                 Usage();
             }
-            m_inputXmlFilename = (string) args[0];
-            m_outputFilename = (string) args[1];
-            this.m_csharpProvider = CodeDomProvider.CreateProvider("C#");
+            m_inputXmlFilename = (string)args[0];
+            m_outputFilename = (string)args[1];
         }
 
         ///////////////////////////////////////////////////////////////////////////
 
-        public string ApiNamespaceBase {
-            get {
+        public string ApiNamespaceBase
+        {
+            get
+            {
                 return "RabbitMQ.Client.Framing";
             }
         }
 
-        public string ImplNamespaceBase {
-            get {
+        public string ImplNamespaceBase
+        {
+            get
+            {
                 return "RabbitMQ.Client.Framing.Impl";
             }
         }
 
-        public void Generate() {
+        public void Generate()
+        {
             LoadSpec();
             ParseSpec();
             ReflectModel();
             GenerateOutput();
         }
 
-        public void LoadSpec() {
+        public void LoadSpec()
+        {
             Console.WriteLine("* Loading spec from '" + m_inputXmlFilename + "'");
             m_spec = new XmlDocument();
-            m_spec.Load(m_inputXmlFilename);
+
+            using (var stream = new FileStream(m_inputXmlFilename, FileMode.Open, FileAccess.Read))
+            {
+                m_spec.Load(stream);
+            }
         }
 
-        public void ParseSpec() {
+        public void ParseSpec()
+        {
             m_majorVersion = GetInt(m_spec, "/amqp/@major");
             m_minorVersion = GetInt(m_spec, "/amqp/@minor");
             m_revision = GetInt(m_spec, "/amqp/@revision");
 
             Console.WriteLine("* Parsing spec for version {0}.{1}.{2}", m_majorVersion, m_minorVersion, m_revision);
-            foreach (XmlNode n in m_spec.SelectNodes("/amqp/constant")) {
+            foreach (XmlNode n in m_spec.SelectNodes("/amqp/constant"))
+            {
                 m_constants.Add(new KeyValuePair<string, int>(GetString(n, "@name"), GetInt(n, "@value")));
             }
-            foreach (XmlNode n in m_spec.SelectNodes("/amqp/class")) {
+            foreach (XmlNode n in m_spec.SelectNodes("/amqp/class"))
+            {
                 m_classes.Add(new AmqpClass(n));
             }
-            foreach (XmlNode n in m_spec.SelectNodes("/amqp/domain")) {
+            foreach (XmlNode n in m_spec.SelectNodes("/amqp/domain"))
+            {
                 m_domains[GetString(n, "@name")] = GetString(n, "@type");
             }
         }
 
-        public void ReflectModel() {
+        public void ReflectModel()
+        {
             m_modelTypes.Add(m_modelType);
             for (int i = 0; i < m_modelTypes.Count; i++)
             {
-                foreach (Type intf in ((Type) m_modelTypes[i]).GetInterfaces())
+                foreach (Type intf in ((Type)m_modelTypes[i]).GetInterfaces())
                 {
                     m_modelTypes.Add(intf);
                 }
             }
         }
 
-        public string ResolveDomain(string d) {
-            while (m_domains.ContainsKey(d)) {
-                string newD = (string) m_domains[d];
+        public string ResolveDomain(string d)
+        {
+            while (m_domains.ContainsKey(d))
+            {
+                string newD = (string)m_domains[d];
                 if (d.Equals(newD))
                     break;
                 d = newD;
@@ -301,37 +344,55 @@ namespace RabbitMQ.Client.Apigen {
             return d;
         }
 
-        public string MapDomain(string d) {
-            return (string) m_primitiveTypeMap[ResolveDomain(d)];
+        public string MapDomain(string d)
+        {
+            return (string)m_primitiveTypeMap[ResolveDomain(d)];
         }
 
-        public string VersionToken() {
+        public string VersionToken()
+        {
             return "v" + m_majorVersion + "_" + m_minorVersion;
         }
 
-        public void GenerateOutput() {
+        public void GenerateOutput()
+        {
             Console.WriteLine("* Generating code into '" + m_outputFilename + "'");
-            m_outputFile = new StreamWriter(m_outputFilename);
-            EmitPrelude();
-            EmitPublic();
-            EmitPrivate();
-            m_outputFile.Close();
+
+            var directory = Path.GetDirectoryName(m_outputFilename);
+
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            using (var stream = new FileStream(m_outputFilename, FileMode.Create, FileAccess.Write))
+            {
+                m_outputFile = new StreamWriter(stream);
+                EmitPrelude();
+                EmitPublic();
+                EmitPrivate();
+                m_outputFile.Dispose();
+            }
         }
 
-        public void Emit(object o) {
+        public void Emit(object o)
+        {
             m_outputFile.Write(o);
         }
 
-        public void EmitLine(object o) {
+        public void EmitLine(object o)
+        {
             m_outputFile.WriteLine(o);
         }
 
-        public void EmitSpecComment(object o) {
+        public void EmitSpecComment(object o)
+        {
             if (m_emitComments)
                 EmitLine(o);
         }
 
-        public void EmitPrelude() {
+        public void EmitPrelude()
+        {
             EmitLine("// Autogenerated code. Do not edit.");
             EmitLine("");
             EmitLine("// This source code is dual-licensed under the Apache License, version");
@@ -379,19 +440,20 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("");
         }
 
-        public void EmitPublic() {
-            EmitLine("namespace "+ApiNamespaceBase+" {");
-            EmitLine("  public class Protocol: "+ImplNamespaceBase+".ProtocolBase {");
-            EmitLine("    ///<summary>Protocol major version (= "+m_majorVersion+")</summary>");
+        public void EmitPublic()
+        {
+            EmitLine("namespace " + ApiNamespaceBase + " {");
+            EmitLine("  public class Protocol: " + ImplNamespaceBase + ".ProtocolBase {");
+            EmitLine("    ///<summary>Protocol major version (= " + m_majorVersion + ")</summary>");
             EmitLine("    public override int MajorVersion { get { return " + m_majorVersion + "; } }");
-            EmitLine("    ///<summary>Protocol minor version (= "+m_minorVersion+")</summary>");
+            EmitLine("    ///<summary>Protocol minor version (= " + m_minorVersion + ")</summary>");
             EmitLine("    public override int MinorVersion { get { return " + m_minorVersion + "; } }");
             EmitLine("    ///<summary>Protocol revision (= " + m_revision + ")</summary>");
             EmitLine("    public override int Revision { get { return " + m_revision + "; } }");
-            EmitLine("    ///<summary>Protocol API name (= "+m_apiName+")</summary>");
+            EmitLine("    ///<summary>Protocol API name (= " + m_apiName + ")</summary>");
             EmitLine("    public override string ApiName { get { return \"" + m_apiName + "\"; } }");
             int port = GetInt(m_spec, "/amqp/@port");
-            EmitLine("    ///<summary>Default TCP port (= "+port+")</summary>");
+            EmitLine("    ///<summary>Default TCP port (= " + port + ")</summary>");
             EmitLine("    public override int DefaultPort { get { return " + port + "; } }");
             EmitLine("");
             EmitMethodArgumentReader();
@@ -399,46 +461,58 @@ namespace RabbitMQ.Client.Apigen {
             EmitContentHeaderReader();
             EmitLine("  }");
             EmitLine("  public class Constants {");
-            foreach (KeyValuePair<string, int> de in m_constants) {
-                EmitLine("    ///<summary>(= "+de.Value+")</summary>");
-                EmitLine("    public const int "+MangleConstant((string) de.Key)+" = "+de.Value+";");
+            foreach (KeyValuePair<string, int> de in m_constants)
+            {
+                EmitLine("    ///<summary>(= " + de.Value + ")</summary>");
+                EmitLine("    public const int " + MangleConstant((string)de.Key) + " = " + de.Value + ";");
             }
             EmitLine("  }");
-            foreach (AmqpClass c in m_classes) {
+            foreach (AmqpClass c in m_classes)
+            {
                 EmitClassMethods(c);
             }
-            foreach (AmqpClass c in m_classes) {
-                if (c.NeedsProperties) {
+            foreach (AmqpClass c in m_classes)
+            {
+                if (c.NeedsProperties)
+                {
                     EmitClassProperties(c);
                 }
             }
             EmitLine("}");
         }
 
-        public void EmitAutogeneratedSummary(string prefixSpaces, string extra) {
-            EmitLine(prefixSpaces+"/// <summary>Autogenerated type. "+extra+"</summary>");
+        public void EmitAutogeneratedSummary(string prefixSpaces, string extra)
+        {
+            EmitLine(prefixSpaces + "/// <summary>Autogenerated type. " + extra + "</summary>");
         }
 
-        public void EmitClassMethods(AmqpClass c) {
-            foreach (AmqpMethod m in c.m_Methods) {
+        public void EmitClassMethods(AmqpClass c)
+        {
+            foreach (AmqpMethod m in c.m_Methods)
+            {
                 EmitAutogeneratedSummary("  ",
-                                         "AMQP specification method \""+c.Name+"."+m.Name+"\".");
+                                         "AMQP specification method \"" + c.Name + "." + m.Name + "\".");
                 EmitSpecComment(m.DocumentationCommentVariant("  ", "remarks"));
-                EmitLine("  public interface I"+MangleMethodClass(c, m)+": IMethod {");
-                foreach (AmqpField f in m.m_Fields) {
+                EmitLine("  public interface I" + MangleMethodClass(c, m) + ": IMethod {");
+                foreach (AmqpField f in m.m_Fields)
+                {
                     EmitSpecComment(f.DocumentationComment("    "));
-                    EmitLine("    "+MapDomain(f.Domain)+" "+MangleClass(f.Name)+" { get; }");
+                    EmitLine("    " + MapDomain(f.Domain) + " " + MangleClass(f.Name) + " { get; }");
                 }
                 EmitLine("  }");
             }
         }
 
-        public bool HasFactoryMethod(AmqpClass c) {
-            foreach (Type t in m_modelTypes) {
-                foreach (MethodInfo method in t.GetMethods()) {
+        public bool HasFactoryMethod(AmqpClass c)
+        {
+            foreach (Type t in m_modelTypes)
+            {
+                foreach (MethodInfo method in t.GetMethods())
+                {
                     AmqpContentHeaderFactoryAttribute f = (AmqpContentHeaderFactoryAttribute)
                         Attribute(method, typeof(AmqpContentHeaderFactoryAttribute));
-                    if (f != null && MangleClass(f.m_contentClass) == MangleClass(c.Name)) {
+                    if (f != null && MangleClass(f.m_contentClass) == MangleClass(c.Name))
+                    {
                         return true;
                     }
                 }
@@ -446,69 +520,76 @@ namespace RabbitMQ.Client.Apigen {
             return false;
         }
 
-        public bool IsBoolean(AmqpField f) {
+        public bool IsBoolean(AmqpField f)
+        {
             return ResolveDomain(f.Domain) == "bit";
         }
 
-        public bool IsReferenceType(AmqpField f) {
-            return (bool) m_primitiveTypeFlagMap[ResolveDomain(f.Domain)];
-        }
-
-    public bool IsAmqpClass(Type t)
-    {
-        foreach (AmqpClass c in m_classes)
+        public bool IsReferenceType(AmqpField f)
         {
-            if (c.Name == t.Name)
-                return true;
+            return (bool)m_primitiveTypeFlagMap[ResolveDomain(f.Domain)];
         }
-        return false;
-    }
 
-        public void EmitClassProperties(AmqpClass c) {
+        public bool IsAmqpClass(Type t)
+        {
+            foreach (AmqpClass c in m_classes)
+            {
+                if (c.Name == t.Name)
+                    return true;
+            }
+            return false;
+        }
+
+        public void EmitClassProperties(AmqpClass c)
+        {
             bool hasCommonApi = HasFactoryMethod(c);
             string propertiesBaseClass =
                 hasCommonApi
-                ? "RabbitMQ.Client.Impl."+MangleClass(c.Name)+"Properties"
+                ? "RabbitMQ.Client.Impl." + MangleClass(c.Name) + "Properties"
                 : "RabbitMQ.Client.Impl.ContentHeaderBase";
             string maybeOverride = hasCommonApi ? "override " : "";
 
             EmitAutogeneratedSummary("  ",
-                                     "AMQP specification content header properties for "+
-                                     "content class \""+c.Name+"\"");
+                                     "AMQP specification content header properties for " +
+                                     "content class \"" + c.Name + "\"");
             EmitSpecComment(c.DocumentationCommentVariant("  ", "remarks"));
-            EmitLine("  public class "+MangleClass(c.Name)
-                     +"Properties: "+propertiesBaseClass+" {");
-            foreach (AmqpField f in c.m_Fields) {
-                EmitLine("    private "+MapDomain(f.Domain)+" m_"+MangleMethod(f.Name)+";");
+            EmitLine("  public class " + MangleClass(c.Name)
+                     + "Properties: " + propertiesBaseClass + " {");
+            foreach (AmqpField f in c.m_Fields)
+            {
+                EmitLine("    private " + MapDomain(f.Domain) + " m_" + MangleMethod(f.Name) + ";");
             }
             EmitLine("");
             foreach (AmqpField f in c.m_Fields)
             {
-                if (!IsBoolean(f)) {
-                    EmitLine("    private bool m_"+MangleMethod(f.Name)+"_present = false;");
+                if (!IsBoolean(f))
+                {
+                    EmitLine("    private bool m_" + MangleMethod(f.Name) + "_present = false;");
                 }
             }
             EmitLine("");
             foreach (AmqpField f in c.m_Fields)
             {
                 EmitSpecComment(f.DocumentationComment("    ", "@label"));
-                EmitLine("    public "+maybeOverride+MapDomain(f.Domain)+" "+MangleClass(f.Name)+" {");
+                EmitLine("    public " + maybeOverride + MapDomain(f.Domain) + " " + MangleClass(f.Name) + " {");
                 EmitLine("      get {");
-                EmitLine("        return m_"+MangleMethod(f.Name)+";");
+                EmitLine("        return m_" + MangleMethod(f.Name) + ";");
                 EmitLine("      }");
                 EmitLine("      set {");
-                if (!IsBoolean(f)) {
-                    EmitLine("        m_"+MangleMethod(f.Name)+"_present = true;");
+                if (!IsBoolean(f))
+                {
+                    EmitLine("        m_" + MangleMethod(f.Name) + "_present = true;");
                 }
-                EmitLine("        m_"+MangleMethod(f.Name)+" = value;");
+                EmitLine("        m_" + MangleMethod(f.Name) + " = value;");
                 EmitLine("      }");
                 EmitLine("    }");
             }
             EmitLine("");
             foreach (AmqpField f in c.m_Fields)
             {
-                if (!IsBoolean(f)) {
-                    EmitLine("    public "+maybeOverride+"void Clear"+MangleClass(f.Name)+"() { m_"+MangleMethod(f.Name)+"_present = false; }");
+                if (!IsBoolean(f))
+                {
+                    EmitLine("    public " + maybeOverride + "void Clear" + MangleClass(f.Name) + "() { m_" + MangleMethod(f.Name) + "_present = false; }");
                 }
             }
 
@@ -520,24 +601,28 @@ namespace RabbitMQ.Client.Apigen {
             }
 
             EmitLine("");
-            EmitLine("    public "+MangleClass(c.Name)+"Properties() {}");
-            EmitLine("    public override int ProtocolClassId { get { return "+c.Index+"; } }");
-            EmitLine("    public override string ProtocolClassName { get { return \""+c.Name+"\"; } }");
+            EmitLine("    public " + MangleClass(c.Name) + "Properties() {}");
+            EmitLine("    public override int ProtocolClassId { get { return " + c.Index + "; } }");
+            EmitLine("    public override string ProtocolClassName { get { return \"" + c.Name + "\"; } }");
             EmitLine("");
             EmitLine("    public override void ReadPropertiesFrom(RabbitMQ.Client.Impl.ContentHeaderPropertyReader reader) {");
             foreach (AmqpField f in c.m_Fields)
             {
-                if (IsBoolean(f)) {
-                    EmitLine("      m_"+MangleMethod(f.Name)+" = reader.ReadBit();");
-                } else {
-                    EmitLine("      m_"+MangleMethod(f.Name)+"_present = reader.ReadPresence();");
+                if (IsBoolean(f))
+                {
+                    EmitLine("      m_" + MangleMethod(f.Name) + " = reader.ReadBit();");
+                }
+                else
+                {
+                    EmitLine("      m_" + MangleMethod(f.Name) + "_present = reader.ReadPresence();");
                 }
             }
             EmitLine("      reader.FinishPresence();");
-        foreach (AmqpField f in c.m_Fields)
-        {
-                if (!IsBoolean(f)) {
-                    EmitLine("      if (m_"+MangleMethod(f.Name)+"_present) { m_"+MangleMethod(f.Name)+" = reader.Read"+MangleClass(ResolveDomain(f.Domain))+"(); }");
+            foreach (AmqpField f in c.m_Fields)
+            {
+                if (!IsBoolean(f))
+                {
+                    EmitLine("      if (m_" + MangleMethod(f.Name) + "_present) { m_" + MangleMethod(f.Name) + " = reader.Read" + MangleClass(ResolveDomain(f.Domain)) + "(); }");
                 }
             }
             EmitLine("    }");
@@ -545,17 +630,21 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("    public override void WritePropertiesTo(RabbitMQ.Client.Impl.ContentHeaderPropertyWriter writer) {");
             foreach (AmqpField f in c.m_Fields)
             {
-                if (IsBoolean(f)) {
-                    EmitLine("      writer.WriteBit(m_"+MangleMethod(f.Name)+");");
-                } else {
-                    EmitLine("      writer.WritePresence(m_"+MangleMethod(f.Name)+"_present);");
+                if (IsBoolean(f))
+                {
+                    EmitLine("      writer.WriteBit(m_" + MangleMethod(f.Name) + ");");
+                }
+                else
+                {
+                    EmitLine("      writer.WritePresence(m_" + MangleMethod(f.Name) + "_present);");
                 }
             }
             EmitLine("      writer.FinishPresence();");
-        foreach (AmqpField f in c.m_Fields)
-        {
-                if (!IsBoolean(f)) {
-                    EmitLine("      if (m_"+MangleMethod(f.Name)+"_present) { writer.Write"+MangleClass(ResolveDomain(f.Domain))+"(m_"+MangleMethod(f.Name)+"); }");
+            foreach (AmqpField f in c.m_Fields)
+            {
+                if (!IsBoolean(f))
+                {
+                    EmitLine("      if (m_" + MangleMethod(f.Name) + "_present) { writer.Write" + MangleClass(ResolveDomain(f.Domain)) + "(m_" + MangleMethod(f.Name) + "); }");
                 }
             }
             EmitLine("    }");
@@ -566,21 +655,30 @@ namespace RabbitMQ.Client.Apigen {
                 int remaining = c.m_Fields.Count;
                 foreach (AmqpField f in c.m_Fields)
                 {
-                    Emit("      sb.Append(\""+f.Name+"=\");");
-                    if (IsBoolean(f)) {
-                        Emit(" sb.Append(m_"+MangleMethod(f.Name)+");");
-                    } else {
+                    Emit("      sb.Append(\"" + f.Name + "=\");");
+                    if (IsBoolean(f))
+                    {
+                        Emit(" sb.Append(m_" + MangleMethod(f.Name) + ");");
+                    }
+                    else
+                    {
                         string x = MangleMethod(f.Name);
-                        if (IsReferenceType(f)) {
-                            Emit(" sb.Append(m_"+x+"_present ? (m_"+x+" == null ? \"(null)\" : m_"+x+".ToString()) : \"_\");");
-                        } else {
-                            Emit(" sb.Append(m_"+x+"_present ? m_"+x+".ToString() : \"_\");");
+                        if (IsReferenceType(f))
+                        {
+                            Emit(" sb.Append(m_" + x + "_present ? (m_" + x + " == null ? \"(null)\" : m_" + x + ".ToString()) : \"_\");");
+                        }
+                        else
+                        {
+                            Emit(" sb.Append(m_" + x + "_present ? m_" + x + ".ToString() : \"_\");");
                         }
                     }
                     remaining--;
-                    if (remaining > 0) {
+                    if (remaining > 0)
+                    {
                         EmitLine(" sb.Append(\", \");");
-                    } else {
+                    }
+                    else
+                    {
                         EmitLine("");
                     }
                 }
@@ -590,16 +688,19 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("  }");
         }
 
-        public void EmitPrivate() {
-            EmitLine("namespace "+ImplNamespaceBase+" {");
-            EmitLine("  using "+ApiNamespaceBase+";");
+        public void EmitPrivate()
+        {
+            EmitLine("namespace " + ImplNamespaceBase + " {");
+            EmitLine("  using " + ApiNamespaceBase + ";");
             EmitLine("  public enum ClassId {");
-            foreach (AmqpClass c in m_classes) {
-                EmitLine("    "+MangleConstant(c.Name)+" = "+c.Index+",");
+            foreach (AmqpClass c in m_classes)
+            {
+                EmitLine("    " + MangleConstant(c.Name) + " = " + c.Index + ",");
             }
             EmitLine("    Invalid = -1");
             EmitLine("  }");
-            foreach (AmqpClass c in m_classes) {
+            foreach (AmqpClass c in m_classes)
+            {
                 EmitClassMethodImplementations(c);
             }
             EmitLine("");
@@ -607,40 +708,42 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("}");
         }
 
-        public void EmitClassMethodImplementations(AmqpClass c) {
+        public void EmitClassMethodImplementations(AmqpClass c)
+        {
             foreach (AmqpMethod m in c.m_Methods)
             {
                 EmitAutogeneratedSummary("  ",
                                          "Private implementation class - do not use directly.");
-                EmitLine("  public class "+MangleMethodClass(c,m)
-                         +": RabbitMQ.Client.Impl.MethodBase, I"+MangleMethodClass(c,m)+" {");
-                EmitLine("    public const int ClassId = "+c.Index+";");
-                EmitLine("    public const int MethodId = "+m.Index+";");
+                EmitLine("  public class " + MangleMethodClass(c, m)
+                         + ": RabbitMQ.Client.Impl.MethodBase, I" + MangleMethodClass(c, m) + " {");
+                EmitLine("    public const int ClassId = " + c.Index + ";");
+                EmitLine("    public const int MethodId = " + m.Index + ";");
                 EmitLine("");
                 foreach (AmqpField f in m.m_Fields)
                 {
-                    EmitLine("    public "+MapDomain(f.Domain)+" m_"+MangleMethod(f.Name)+";");
+                    EmitLine("    public " + MapDomain(f.Domain) + " m_" + MangleMethod(f.Name) + ";");
                 }
                 EmitLine("");
                 foreach (AmqpField f in m.m_Fields)
                 {
-                    EmitLine("    "+MapDomain(f.Domain)+" I"+MangleMethodClass(c,m)+
-                             "."+MangleClass(f.Name)+" { get {"
+                    EmitLine("    " + MapDomain(f.Domain) + " I" + MangleMethodClass(c, m) +
+                             "." + MangleClass(f.Name) + " { get {"
                              + " return m_" + MangleMethod(f.Name) + "; } }");
                 }
                 EmitLine("");
                 if (m.m_Fields.Count > 0)
                 {
-                    EmitLine("    public "+MangleMethodClass(c,m)+"() {}");
+                    EmitLine("    public " + MangleMethodClass(c, m) + "() {}");
                 }
-                EmitLine("    public "+MangleMethodClass(c,m)+"(");
+                EmitLine("    public " + MangleMethodClass(c, m) + "(");
                 {
                     int remaining = m.m_Fields.Count;
                     foreach (AmqpField f in m.m_Fields)
                     {
-                        Emit("      "+MapDomain(f.Domain)+" init"+MangleClass(f.Name));
+                        Emit("      " + MapDomain(f.Domain) + " init" + MangleClass(f.Name));
                         remaining--;
-                        if (remaining > 0) {
+                        if (remaining > 0)
+                        {
                             EmitLine(",");
                         }
                     }
@@ -653,11 +756,11 @@ namespace RabbitMQ.Client.Apigen {
                 }
                 EmitLine("    }");
                 EmitLine("");
-                EmitLine("    public override int ProtocolClassId { get { return "+c.Index+"; } }");
-                EmitLine("    public override int ProtocolMethodId { get { return "+m.Index+"; } }");
-                EmitLine("    public override string ProtocolMethodName { get { return \""+c.Name+"."+m.Name+"\"; } }");
+                EmitLine("    public override int ProtocolClassId { get { return " + c.Index + "; } }");
+                EmitLine("    public override int ProtocolMethodId { get { return " + m.Index + "; } }");
+                EmitLine("    public override string ProtocolMethodName { get { return \"" + c.Name + "." + m.Name + "\"; } }");
                 EmitLine("    public override bool HasContent { get { return "
-                         +(m.HasContent ? "true" : "false")+"; } }");
+                         + (m.HasContent ? "true" : "false") + "; } }");
                 EmitLine("");
                 EmitLine("    public override void ReadArgumentsFrom(RabbitMQ.Client.Impl.MethodArgumentReader reader) {");
                 foreach (AmqpField f in m.m_Fields)
@@ -669,7 +772,7 @@ namespace RabbitMQ.Client.Apigen {
                 EmitLine("    public override void WriteArgumentsTo(RabbitMQ.Client.Impl.MethodArgumentWriter writer) {");
                 foreach (AmqpField f in m.m_Fields)
                 {
-                    EmitLine("      writer.Write"+MangleClass(ResolveDomain(f.Domain))
+                    EmitLine("      writer.Write" + MangleClass(ResolveDomain(f.Domain))
                              + "(m_" + MangleMethod(f.Name) + ");");
                 }
                 EmitLine("    }");
@@ -682,9 +785,12 @@ namespace RabbitMQ.Client.Apigen {
                     {
                         Emit("      sb.Append(m_" + MangleMethod(f.Name) + ");");
                         remaining--;
-                        if (remaining > 0) {
+                        if (remaining > 0)
+                        {
                             EmitLine(" sb.Append(\",\");");
-                        } else {
+                        }
+                        else
+                        {
                             EmitLine("");
                         }
                     }
@@ -695,19 +801,21 @@ namespace RabbitMQ.Client.Apigen {
             }
         }
 
-        public void EmitMethodArgumentReader() {
+        public void EmitMethodArgumentReader()
+        {
             EmitLine("    public override RabbitMQ.Client.Impl.MethodBase DecodeMethodFrom(RabbitMQ.Util.NetworkBinaryReader reader) {");
             EmitLine("      ushort classId = reader.ReadUInt16();");
             EmitLine("      ushort methodId = reader.ReadUInt16();");
             EmitLine("");
             EmitLine("      switch (classId) {");
-            foreach (AmqpClass c in m_classes) {
-                EmitLine("        case "+c.Index+": {");
+            foreach (AmqpClass c in m_classes)
+            {
+                EmitLine("        case " + c.Index + ": {");
                 EmitLine("          switch (methodId) {");
                 foreach (AmqpMethod m in c.m_Methods)
                 {
-                    EmitLine("            case "+m.Index+": {");
-                    EmitLine("              "+ImplNamespaceBase+"."+MangleMethodClass(c,m)+" result = new "+ImplNamespaceBase+"."+MangleMethodClass(c,m)+"();");
+                    EmitLine("            case " + m.Index + ": {");
+                    EmitLine("              " + ImplNamespaceBase + "." + MangleMethodClass(c, m) + " result = new " + ImplNamespaceBase + "." + MangleMethodClass(c, m) + "();");
                     EmitLine("              result.ReadArgumentsFrom(new RabbitMQ.Client.Impl.MethodArgumentReader(reader));");
                     EmitLine("              return result;");
                     EmitLine("            }");
@@ -723,15 +831,18 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("    }");
         }
 
-        public void EmitContentHeaderReader() {
+        public void EmitContentHeaderReader()
+        {
             EmitLine("    public override RabbitMQ.Client.Impl.ContentHeaderBase DecodeContentHeaderFrom(RabbitMQ.Util.NetworkBinaryReader reader) {");
             EmitLine("      ushort classId = reader.ReadUInt16();");
             EmitLine("");
             EmitLine("      switch (classId) {");
-            foreach (AmqpClass c in m_classes) {
-                if (c.NeedsProperties) {
-                    EmitLine("        case "+c.Index+": return new "
-                             +MangleClass(c.Name)+"Properties();");
+            foreach (AmqpClass c in m_classes)
+            {
+                if (c.NeedsProperties)
+                {
+                    EmitLine("        case " + c.Index + ": return new "
+                             + MangleClass(c.Name) + "Properties();");
                 }
             }
             EmitLine("        default: break;");
@@ -740,55 +851,74 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("    }");
         }
 
-        public Attribute Attribute(MemberInfo mi, Type t) {
+        public Attribute Attribute(MemberInfo mi, Type t)
+        {
             return Attribute(mi.GetCustomAttributes(t, false), t);
         }
 
-        public Attribute Attribute(ParameterInfo pi, Type t) {
+        public Attribute Attribute(ParameterInfo pi, Type t)
+        {
             return Attribute(pi.GetCustomAttributes(t, false), t);
         }
 
-        public Attribute Attribute(ICustomAttributeProvider p, Type t) {
+        public Attribute Attribute(ICustomAttributeProvider p, Type t)
+        {
             return Attribute(p.GetCustomAttributes(t, false), t);
         }
 
-        public Attribute Attribute(IEnumerable<object> attributes, Type t) {
-            if (t.IsSubclassOf(typeof(AmqpApigenAttribute))) {
+        public Attribute Attribute(IEnumerable<object> attributes, Type t)
+        {
+            var typeInfo = t.GetTypeInfo();
+
+            if (typeInfo.IsSubclassOf(typeof(AmqpApigenAttribute)))
+            {
                 AmqpApigenAttribute result = null;
-                foreach (AmqpApigenAttribute candidate in attributes) {
-                    if (candidate.m_namespaceName == null && result == null) {
+                foreach (AmqpApigenAttribute candidate in attributes)
+                {
+                    if (candidate.m_namespaceName == null && result == null)
+                    {
                         result = candidate;
                     }
-                    if (candidate.m_namespaceName == ApiNamespaceBase) {
+                    if (candidate.m_namespaceName == ApiNamespaceBase)
+                    {
                         result = candidate;
                     }
                 }
                 return result;
-            } else {
-                foreach (Attribute attribute in attributes) {
+            }
+            else
+            {
+                foreach (Attribute attribute in attributes)
+                {
                     return attribute;
                 }
                 return null;
             }
         }
 
-        public void EmitModelImplementation() {
+        public void EmitModelImplementation()
+        {
             EmitLine("  public class Model: RabbitMQ.Client.Impl.ModelBase {");
             EmitLine("    public Model(RabbitMQ.Client.Impl.ISession session): base(session) {}");
             EmitLine("    public Model(RabbitMQ.Client.Impl.ISession session, RabbitMQ.Client.ConsumerWorkService workService): base(session, workService) {}");
             IList<MethodInfo> asynchronousHandlers = new List<MethodInfo>();
-            foreach (Type t in m_modelTypes) {
-                foreach (MethodInfo method in t.GetMethods()) {
+            foreach (Type t in m_modelTypes)
+            {
+                foreach (MethodInfo method in t.GetMethods())
+                {
                     if (method.DeclaringType.Namespace != null &&
-                        method.DeclaringType.Namespace.StartsWith("RabbitMQ.Client")) {
+                        method.DeclaringType.Namespace.StartsWith("RabbitMQ.Client"))
+                    {
                         if (method.Name.StartsWith("Handle") ||
                             (Attribute(method, typeof(AmqpAsynchronousHandlerAttribute)) != null))
-                            {
+                        {
                             if ((Attribute(method, typeof(AmqpMethodDoNotImplementAttribute)) == null) && Attribute(method, typeof(AmqpUnsupportedAttribute)) == null)
                             {
                                 asynchronousHandlers.Add(method);
                             }
-                        } else {
+                        }
+                        else
+                        {
                             MaybeEmitModelMethod(method);
                         }
                     }
@@ -798,7 +928,8 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("  }");
         }
 
-        public void EmitContentHeaderFactory(MethodInfo method) {
+        public void EmitContentHeaderFactory(MethodInfo method)
+        {
             AmqpContentHeaderFactoryAttribute factoryAnnotation = (AmqpContentHeaderFactoryAttribute)
                 Attribute(method, typeof(AmqpContentHeaderFactoryAttribute));
             string contentClass = factoryAnnotation.m_contentClass;
@@ -815,51 +946,107 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("    }");
         }
 
-        public void MaybeEmitModelMethod(MethodInfo method) {
-            if (method.IsSpecialName) {
+        public void MaybeEmitModelMethod(MethodInfo method)
+        {
+            if (method.IsSpecialName)
+            {
                 // It's some kind of event- or property-related method.
                 // It shouldn't be autogenerated.
-            } else if (method.Name.EndsWith("NoWait")) {
+            }
+            else if (method.Name.EndsWith("NoWait"))
+            {
                 // Skip *Nowait versions
-            } else if (Attribute(method, typeof(AmqpMethodDoNotImplementAttribute)) != null) {
+            }
+            else if (Attribute(method, typeof(AmqpMethodDoNotImplementAttribute)) != null)
+            {
                 // Skip this method, by request (AmqpMethodDoNotImplement)
-            } else if (Attribute(method, typeof(AmqpContentHeaderFactoryAttribute)) != null) {
+            }
+            else if (Attribute(method, typeof(AmqpContentHeaderFactoryAttribute)) != null)
+            {
                 EmitContentHeaderFactory(method);
-            } else if (Attribute(method, typeof(AmqpUnsupportedAttribute)) != null) {
+            }
+            else if (Attribute(method, typeof(AmqpUnsupportedAttribute)) != null)
+            {
                 EmitModelMethodPreamble(method);
                 EmitLine("    {");
-                EmitLine("      throw new UnsupportedMethodException(\""+method.Name+"\");");
+                EmitLine("      throw new UnsupportedMethodException(\"" + method.Name + "\");");
                 EmitLine("    }");
-            } else {
+            }
+            else
+            {
                 EmitModelMethod(method);
             }
         }
 
-        public string SanitisedFullName(Type t) {
-            CodeTypeReferenceExpression tre = new CodeTypeReferenceExpression(t.FullName);
-            StringBuilder sb = new StringBuilder();
-            using (StringWriter writer = new StringWriter(sb))
+        public string SanitisedFullName(Type t)
+        {
+            string name;
+
+            switch (t.FullName)
             {
-                this.m_csharpProvider.GenerateCodeFromExpression(tre, writer, new CodeGeneratorOptions());
+                case "System.Boolean":
+                    name = "bool";
+                    break;
+
+                case "System.Byte[]":
+                    name = "byte[]";
+                    break;
+
+                case "System.String":
+                    name = "string";
+                    break;
+
+                case "System.UInt16":
+                    name = "ushort";
+                    break;
+
+                case "System.UInt32":
+                    name = "uint";
+                    break;
+
+                case "System.UInt64":
+                    name = "ulong";
+                    break;
+
+                case "System.Void":
+                    name = "void";
+                    break;
+
+                default:
+                    name = t.FullName;
+                    break;
             }
 
-            return sb.ToString().Trim(' ', '\t', '\r', '\n');
+            if (name.StartsWith("System.Collections.Generic.IDictionary`2[[System.String"))
+            {
+                name = "System.Collections.Generic.IDictionary<string, object>";
+            }
+
+            return name;
         }
 
-        public void EmitModelMethodPreamble(MethodInfo method) {
-            Emit("    public override "+SanitisedFullName(method.ReturnType)+" "+method.Name);
+        public void EmitModelMethodPreamble(MethodInfo method)
+        {
+            Emit("    public override " + SanitisedFullName(method.ReturnType) + " " + method.Name);
             ParameterInfo[] parameters = method.GetParameters();
             int remaining = parameters.Length;
-            if (remaining == 0) {
+            if (remaining == 0)
+            {
                 EmitLine("()");
-            } else {
+            }
+            else
+            {
                 EmitLine("(");
-                foreach (ParameterInfo pi in parameters) {
-                    Emit("      "+SanitisedFullName(pi.ParameterType)+" @"+pi.Name);
+                foreach (ParameterInfo pi in parameters)
+                {
+                    Emit("      " + SanitisedFullName(pi.ParameterType) + " @" + pi.Name);
                     remaining--;
-                    if (remaining > 0) {
+                    if (remaining > 0)
+                    {
                         EmitLine(",");
-                    } else {
+                    }
+                    else
+                    {
                         EmitLine(")");
                     }
                 }
@@ -877,10 +1064,12 @@ namespace RabbitMQ.Client.Apigen {
             // First, try autodetecting the class/method via the
             // IModel method name.
 
-            foreach (AmqpClass c in m_classes) {
+            foreach (AmqpClass c in m_classes)
+            {
                 foreach (AmqpMethod m in c.m_Methods)
                 {
-                    if (methodName.Equals(MangleMethodClass(c,m))) {
+                    if (methodName.Equals(MangleMethodClass(c, m)))
+                    {
                         amqpClass = c;
                         amqpMethod = m;
                         goto stopSearching; // wheee
@@ -896,10 +1085,13 @@ namespace RabbitMQ.Client.Apigen {
             {
                 AmqpMethodMappingAttribute methodMapping =
                     Attribute(method, typeof(AmqpMethodMappingAttribute)) as AmqpMethodMappingAttribute;
-                if (methodMapping != null) {
+                if (methodMapping != null)
+                {
                     amqpClass = null;
-                    foreach (AmqpClass c in m_classes) {
-                        if (c.Name == methodMapping.m_className) {
+                    foreach (AmqpClass c in m_classes)
+                    {
+                        if (c.Name == methodMapping.m_className)
+                        {
                             amqpClass = c;
                             break;
                         }
@@ -911,12 +1103,14 @@ namespace RabbitMQ.Client.Apigen {
             // At this point, if can't find either the class or the
             // method, we can't proceed. Complain.
 
-            if (amqpClass == null || amqpMethod == null) {
+            if (amqpClass == null || amqpMethod == null)
+            {
                 throw new Exception("Could not find AMQP class or method for IModel method " + method.Name);
             }
         }
 
-        public void EmitModelMethod(MethodInfo method) {
+        public void EmitModelMethod(MethodInfo method)
+        {
             ParameterInfo[] parameters = method.GetParameters();
 
             AmqpClass amqpClass = null;
@@ -938,9 +1132,10 @@ namespace RabbitMQ.Client.Apigen {
                 // We're not forcing oneway, and either are a simple
                 // RPC request, or have an explicit replyMapping
                 amqpReplyMethod = amqpClass.MethodNamed(replyMapping == null
-                                                        ? (string) amqpMethod.m_ResponseMethods[0]
+                                                        ? (string)amqpMethod.m_ResponseMethods[0]
                                                         : replyMapping.m_methodName);
-                if (amqpReplyMethod == null) {
+                if (amqpReplyMethod == null)
+                {
                     throw new Exception("Could not find AMQP reply method for IModel method " + method.Name);
                 }
             }
@@ -958,19 +1153,24 @@ namespace RabbitMQ.Client.Apigen {
             string nowaitExpression = "null";
             ParameterInfo contentHeaderParameter = null;
             ParameterInfo contentBodyParameter = null;
-            foreach (ParameterInfo pi in parameters) {
+            foreach (ParameterInfo pi in parameters)
+            {
                 AmqpNowaitArgumentAttribute nwAttr =
                     Attribute(pi, typeof(AmqpNowaitArgumentAttribute)) as AmqpNowaitArgumentAttribute;
-                if (nwAttr != null) {
+                if (nwAttr != null)
+                {
                     nowaitParameter = pi;
-                    if (nwAttr.m_replacementExpression != null) {
+                    if (nwAttr.m_replacementExpression != null)
+                    {
                         nowaitExpression = nwAttr.m_replacementExpression;
                     }
                 }
-                if (Attribute(pi, typeof(AmqpContentHeaderMappingAttribute)) != null) {
+                if (Attribute(pi, typeof(AmqpContentHeaderMappingAttribute)) != null)
+                {
                     contentHeaderParameter = pi;
                 }
-                if (Attribute(pi, typeof(AmqpContentBodyMappingAttribute)) != null) {
+                if (Attribute(pi, typeof(AmqpContentBodyMappingAttribute)) != null)
+                {
                     contentBodyParameter = pi;
                 }
             }
@@ -980,7 +1180,7 @@ namespace RabbitMQ.Client.Apigen {
             string contentHeaderExpr =
                 contentHeaderParameter == null
                 ? "null"
-                : " ("+MangleClass(amqpClass.Name)+"Properties) "+contentHeaderParameter.Name;
+                : " (" + MangleClass(amqpClass.Name) + "Properties) " + contentHeaderParameter.Name;
             string contentBodyExpr =
                 contentBodyParameter == null ? "null" : contentBodyParameter.Name;
 
@@ -991,22 +1191,29 @@ namespace RabbitMQ.Client.Apigen {
 
             // Emit the code to build the request.
 
-            EmitLine("      "+requestImplClass+" __req = new "+requestImplClass+"();");
-            foreach (ParameterInfo pi in parameters) {
+            EmitLine("      " + requestImplClass + " __req = new " + requestImplClass + "();");
+            foreach (ParameterInfo pi in parameters)
+            {
                 if (pi != contentHeaderParameter &&
                     pi != contentBodyParameter)
                 {
-                    if (Attribute(pi, typeof(AmqpUnsupportedAttribute)) != null) {
-                        EmitLine("      if (@"+pi.Name+" != null) {");
-                        EmitLine("        throw new UnsupportedMethodFieldException(\""+method.Name+"\",\""+pi.Name+"\");");
+                    if (Attribute(pi, typeof(AmqpUnsupportedAttribute)) != null)
+                    {
+                        EmitLine("      if (@" + pi.Name + " != null) {");
+                        EmitLine("        throw new UnsupportedMethodFieldException(\"" + method.Name + "\",\"" + pi.Name + "\");");
                         EmitLine("      }");
-                    } else {
+                    }
+                    else
+                    {
                         AmqpFieldMappingAttribute fieldMapping =
                             Attribute(pi, typeof(AmqpFieldMappingAttribute)) as AmqpFieldMappingAttribute;
-                        if (fieldMapping != null) {
-                            EmitLine("      __req.m_"+fieldMapping.m_fieldName+" = @" + pi.Name + ";");
-                        } else {
-                            EmitLine("      __req.m_"+pi.Name+" = @" + pi.Name + ";");
+                        if (fieldMapping != null)
+                        {
+                            EmitLine("      __req.m_" + fieldMapping.m_fieldName + " = @" + pi.Name + ";");
+                        }
+                        else
+                        {
+                            EmitLine("      __req.m_" + pi.Name + " = @" + pi.Name + ";");
                         }
                     }
                 }
@@ -1015,13 +1222,17 @@ namespace RabbitMQ.Client.Apigen {
             // If we have a nowait parameter, sometimes that can turn
             // a ModelRpc call into a ModelSend call.
 
-            if (nowaitParameter != null) {
-                EmitLine("      if ("+nowaitParameter.Name+") {");
-                EmitLine("        ModelSend(__req,"+contentHeaderExpr+","+contentBodyExpr+");");
-                if (method.ReturnType == typeof(void)) {
+            if (nowaitParameter != null)
+            {
+                EmitLine("      if (" + nowaitParameter.Name + ") {");
+                EmitLine("        ModelSend(__req," + contentHeaderExpr + "," + contentBodyExpr + ");");
+                if (method.ReturnType == typeof(void))
+                {
                     EmitLine("        return;");
-                } else {
-                    EmitLine("        return "+nowaitExpression+";");
+                }
+                else
+                {
+                    EmitLine("        return " + nowaitExpression + ";");
                 }
                 EmitLine("      }");
             }
@@ -1029,40 +1240,53 @@ namespace RabbitMQ.Client.Apigen {
             // At this point, perform either a ModelRpc or a
             // ModelSend.
 
-            if (amqpReplyMethod == null) {
-                EmitLine("      ModelSend(__req,"+contentHeaderExpr+","+contentBodyExpr+");");
-            } else {
+            if (amqpReplyMethod == null)
+            {
+                EmitLine("      ModelSend(__req," + contentHeaderExpr + "," + contentBodyExpr + ");");
+            }
+            else
+            {
                 string replyImplClass = MangleMethodClass(amqpClass, amqpReplyMethod);
 
-                EmitLine("      RabbitMQ.Client.Impl.MethodBase __repBase = ModelRpc(__req,"+contentHeaderExpr+","+contentBodyExpr+");");
-                EmitLine("      "+replyImplClass+" __rep = __repBase as "+replyImplClass+";");
+                EmitLine("      RabbitMQ.Client.Impl.MethodBase __repBase = ModelRpc(__req," + contentHeaderExpr + "," + contentBodyExpr + ");");
+                EmitLine("      " + replyImplClass + " __rep = __repBase as " + replyImplClass + ";");
                 EmitLine("      if (__rep == null) throw new UnexpectedMethodException(__repBase);");
 
-                if (method.ReturnType == typeof(void)) {
+                if (method.ReturnType == typeof(void))
+                {
                     // No need to further examine the reply.
-                } else {
+                }
+                else
+                {
                     // At this point, we have the reply method. Extract values from it.
                     AmqpFieldMappingAttribute returnMapping =
                         Attribute(method.ReturnTypeCustomAttributes, typeof(AmqpFieldMappingAttribute))
                         as AmqpFieldMappingAttribute;
-                    if (returnMapping == null) {
+                    if (returnMapping == null)
+                    {
                         string fieldPrefix = IsAmqpClass(method.ReturnType) ? "m_" : "";
 
                         // No field mapping --> it's assumed to be a struct to fill in.
-                        EmitLine("      "+method.ReturnType+" __result = new "+method.ReturnType+"();");
-                        foreach (FieldInfo fi in method.ReturnType.GetFields()) {
+                        EmitLine("      " + method.ReturnType + " __result = new " + method.ReturnType + "();");
+                        foreach (FieldInfo fi in method.ReturnType.GetFields())
+                        {
                             AmqpFieldMappingAttribute returnFieldMapping =
                                 Attribute(fi, typeof(AmqpFieldMappingAttribute)) as AmqpFieldMappingAttribute;
-                            if (returnFieldMapping != null) {
+                            if (returnFieldMapping != null)
+                            {
                                 EmitLine("      __result." + fi.Name + " = __rep." + fieldPrefix + returnFieldMapping.m_fieldName + ";");
-                            } else {
+                            }
+                            else
+                            {
                                 EmitLine("      __result." + fi.Name + " = __rep." + fieldPrefix + fi.Name + ";");
                             }
                         }
                         EmitLine("      return __result;");
-                    } else {
+                    }
+                    else
+                    {
                         // Field mapping --> return just the field we're interested in.
-                        EmitLine("      return __rep.m_"+returnMapping.m_fieldName+";");
+                        EmitLine("      return __rep.m_" + returnMapping.m_fieldName + ";");
                     }
                 }
             }
@@ -1073,13 +1297,16 @@ namespace RabbitMQ.Client.Apigen {
             EmitLine("    }");
         }
 
-        public void EmitAsynchronousHandlers(IList<MethodInfo> asynchronousHandlers) {
+        public void EmitAsynchronousHandlers(IList<MethodInfo> asynchronousHandlers)
+        {
             EmitLine("    public override bool DispatchAsynchronous(RabbitMQ.Client.Impl.Command cmd) {");
             EmitLine("      RabbitMQ.Client.Impl.MethodBase __method = (RabbitMQ.Client.Impl.MethodBase) cmd.Method;");
             EmitLine("      switch ((__method.ProtocolClassId << 16) | __method.ProtocolMethodId) {");
-            foreach (MethodInfo method in asynchronousHandlers) {
+            foreach (MethodInfo method in asynchronousHandlers)
+            {
                 string methodName = method.Name;
-                if (methodName.StartsWith("Handle")) {
+                if (methodName.StartsWith("Handle"))
+                {
                     methodName = methodName.Substring(6);
                 }
 
@@ -1089,32 +1316,42 @@ namespace RabbitMQ.Client.Apigen {
 
                 string implClass = MangleMethodClass(amqpClass, amqpMethod);
 
-                EmitLine("        case "+((amqpClass.Index << 16) | amqpMethod.Index)+": {");
+                EmitLine("        case " + ((amqpClass.Index << 16) | amqpMethod.Index) + ": {");
                 ParameterInfo[] parameters = method.GetParameters();
-                if (parameters.Length > 0) {
-                    EmitLine("          "+implClass+" __impl = ("+implClass+") __method;");
-                    EmitLine("          "+method.Name+"(");
+                if (parameters.Length > 0)
+                {
+                    EmitLine("          " + implClass + " __impl = (" + implClass + ") __method;");
+                    EmitLine("          " + method.Name + "(");
                     int remaining = parameters.Length;
-                    foreach (ParameterInfo pi in parameters) {
-                        if (Attribute(pi, typeof(AmqpContentHeaderMappingAttribute)) != null) {
-                            Emit("            ("+pi.ParameterType+") cmd.Header");
-                        } else if (Attribute(pi, typeof(AmqpContentBodyMappingAttribute)) != null) {
+                    foreach (ParameterInfo pi in parameters)
+                    {
+                        if (Attribute(pi, typeof(AmqpContentHeaderMappingAttribute)) != null)
+                        {
+                            Emit("            (" + pi.ParameterType + ") cmd.Header");
+                        }
+                        else if (Attribute(pi, typeof(AmqpContentBodyMappingAttribute)) != null)
+                        {
                             Emit("            cmd.Body");
-                        } else {
+                        }
+                        else
+                        {
                             AmqpFieldMappingAttribute fieldMapping =
                                 Attribute(pi, typeof(AmqpFieldMappingAttribute)) as AmqpFieldMappingAttribute;
-                            Emit("            __impl.m_"+(fieldMapping == null
+                            Emit("            __impl.m_" + (fieldMapping == null
                                                           ? pi.Name
                                                           : fieldMapping.m_fieldName));
                         }
                         remaining--;
-                        if (remaining > 0) {
+                        if (remaining > 0)
+                        {
                             EmitLine(",");
                         }
                     }
                     EmitLine(");");
-                } else {
-                    EmitLine("          "+method.Name+"();");
+                }
+                else
+                {
+                    EmitLine("          " + method.Name + "();");
                 }
                 EmitLine("          return true;");
                 EmitLine("        }");

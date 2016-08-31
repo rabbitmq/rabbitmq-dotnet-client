@@ -960,12 +960,14 @@ entry.ToString());
         {
             if (Heartbeat != 0)
             {
-                _heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback, null, 200, m_heartbeatTimeSpan.Milliseconds);
-                _heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback, null, 200, m_heartbeatTimeSpan.Milliseconds);
 #if NETFX_CORE
+                _heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback);
+                _heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback);
                 _heartbeatWriteTimer.Change(200, (int)m_heartbeatTimeSpan.TotalMilliseconds);
                 _heartbeatReadTimer.Change(200, (int)m_heartbeatTimeSpan.TotalMilliseconds);
 #else
+                _heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback, null, 200, m_heartbeatTimeSpan.Milliseconds);
+                _heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback, null, 200, m_heartbeatTimeSpan.Milliseconds);
                 _heartbeatWriteTimer.Change(TimeSpan.FromMilliseconds(200), m_heartbeatTimeSpan);
                 _heartbeatReadTimer.Change(TimeSpan.FromMilliseconds(200), m_heartbeatTimeSpan);
 #endif
