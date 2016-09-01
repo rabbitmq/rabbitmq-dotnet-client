@@ -71,8 +71,8 @@ namespace RabbitMQ.Client.Unit
             var k = "TestBasicInOut";
 
             this.workPool.RegisterKey(k);
-            Assert.IsTrue(this.workPool.AddWorkItem(k, one), "AddWorkItem should return true for new registered keys");
-            Assert.IsFalse(this.workPool.AddWorkItem(k, two), "AddWorkItem should return false for existent keys");
+            Assert.IsTrue(this.workPool.AddWorkItem(k, one), "AddWorkItem should return true for registered keys");
+            Assert.IsTrue(this.workPool.AddWorkItem(k, two), "AddWorkItem should return true for registered keys");
 
             var workList = new List<object>(16);
             var key = this.workPool.NextWorkBlock(ref workList, 1);
@@ -107,7 +107,7 @@ namespace RabbitMQ.Client.Unit
             Assert.AreEqual(1, workList.Count, "Work list length should be 1");
             Assert.AreEqual(one, workList[0]);
 
-            Assert.IsFalse(this.workPool.AddWorkItem(k, two));
+            Assert.IsTrue(this.workPool.AddWorkItem(k, two));
             Assert.IsTrue(workPool.FinishWorkBlock(key));
 
             workList.Clear();
@@ -132,7 +132,7 @@ namespace RabbitMQ.Client.Unit
 
             Assert.IsTrue(this.workPool.AddWorkItem(k1, one));
             Assert.IsTrue(this.workPool.AddWorkItem(k2, two));
-            Assert.IsFalse(this.workPool.AddWorkItem(k1, three));
+            Assert.IsTrue(this.workPool.AddWorkItem(k1, three));
 
             var workList = new List<object>(16);
             var key = this.workPool.NextWorkBlock(ref workList, 3);
@@ -163,7 +163,7 @@ namespace RabbitMQ.Client.Unit
 
             Assert.IsTrue(this.workPool.AddWorkItem(k1, one));
             Assert.IsTrue(this.workPool.AddWorkItem(k2, two));
-            Assert.IsFalse(this.workPool.AddWorkItem(k1, three));
+            Assert.IsTrue(this.workPool.AddWorkItem(k1, three));
 
             this.workPool.UnregisterKey(k1);
 
@@ -188,7 +188,7 @@ namespace RabbitMQ.Client.Unit
 
             Assert.IsTrue(this.workPool.AddWorkItem(k1, one));
             Assert.IsTrue(this.workPool.AddWorkItem(k2, two));
-            Assert.IsFalse(this.workPool.AddWorkItem(k1, three));
+            Assert.IsTrue(this.workPool.AddWorkItem(k1, three));
 
             this.workPool.UnregisterAllKeys();
 

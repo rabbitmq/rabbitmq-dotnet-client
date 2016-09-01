@@ -1,7 +1,6 @@
 ﻿using RabbitMQ.Util;
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace RabbitMQ.Client
@@ -48,12 +47,7 @@ namespace RabbitMQ.Client
             }
             catch (Exception)
             {
-#if NETFX_CORE
-                // To end a task, return
                 return;
-#else   
-                //Thread.CurrentThread.Interrupt(); //TODO: what to do?
-#endif
             }
         }
 
