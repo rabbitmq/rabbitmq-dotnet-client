@@ -238,6 +238,7 @@ namespace RabbitMQ.Client
         /// Task scheduler connections created by this factory will use when
         /// dispatching consumer operations, such as message deliveries.
         /// </summary>
+        [Obsolete("This scheduler is no longer used for dispatching consumer operations and will be removed in the next major version.", false)]
         public TaskScheduler TaskScheduler { get; set; } = TaskScheduler.Default;
 
         /// <summary>
