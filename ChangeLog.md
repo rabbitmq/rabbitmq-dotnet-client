@@ -14,6 +14,7 @@ Utility class changes:
 - `ConsumerWorkService.MAX_THUNK_EXECUTION_BATCH_SIZE` has been removed
 - `ConsumerWorkService` no longer has the `ExecuteThunk` or `RegisterKey` methods
 
+Contributed by Brandon Ording and Szymon Kulec.
 
 GH issue: [rabbitmq-dotnet-client#251](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/251)
 
