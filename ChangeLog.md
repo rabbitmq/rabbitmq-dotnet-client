@@ -1,6 +1,21 @@
 ## Changes Between 4.0.x and 4.1.0
 
-No changes yet.
+### No lock contention at consumer work service
+
+Switched to a "thread-per-model" approach in the `ConsumerWorkService`.
+
+The TaskScheduler property on `ConnectionFactory` has been obsoleted and can no
+longer be used to control concurrency.
+
+Utility class changes:
+
+- `BatchingWorkPool` has been removed
+- `ConsumerWorkService` no longer has a constructor that takes a `TaskScheduler`
+- `ConsumerWorkService.MAX_THUNK_EXECUTION_BATCH_SIZE` has been removed
+- `ConsumerWorkService` no longer has the `ExecuteThunk` or `RegisterKey` methods
+
+
+GH issue: [rabbitmq-dotnet-client#251](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/251)
 
 
 ## Changes Between 4.0.1 and 4.0.2 (September 1st, 2016)
