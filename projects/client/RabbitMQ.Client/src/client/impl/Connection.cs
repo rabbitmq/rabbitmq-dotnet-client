@@ -113,12 +113,12 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public Connection(IConnectionFactory factory, bool insist, IFrameHandler frameHandler, string clientProvidedName = null)
         {
-            this.ClientProvidedName = clientProvidedName;
+            ClientProvidedName = clientProvidedName;
             KnownHosts = null;
             FrameMax = 0;
             m_factory = factory;
             m_frameHandler = frameHandler;
-            this.ConsumerWorkService = new ConsumerWorkService(factory.TaskScheduler);
+            ConsumerWorkService = new ConsumerWorkService();
 
             m_sessionManager = new SessionManager(this, 0);
             m_session0 = new MainSession(this) { Handler = NotifyReceivedCloseOk };

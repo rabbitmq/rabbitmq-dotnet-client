@@ -133,6 +133,7 @@ namespace RabbitMQ.Client
         ///
         /// What task scheduler should consumer dispatcher use.
         /// </summary>
+        [Obsolete("This scheduler is no longer used for dispatching consumer operations and will be removed in the next major version.", false)]
         TaskScheduler TaskScheduler { get; set; }
 
         /// <summary>

@@ -1,84 +1,112 @@
-﻿using RabbitMQ.Util;
-using System;
-using System.Collections.Generic;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace RabbitMQ.Client
 {
     public class ConsumerWorkService
     {
-        public const int MAX_THUNK_EXECUTION_BATCH_SIZE = 16;
-        private TaskScheduler scheduler;
-        private BatchingWorkPool<IModel, Action> workPool;
-
-        public ConsumerWorkService() :
-            this(TaskScheduler.Default) { }
-
-        public ConsumerWorkService(TaskScheduler scheduler)
-        {
-            this.scheduler = scheduler;
-            this.workPool = new BatchingWorkPool<IModel, Action>();
-        }
-
-        public void ExecuteThunk()
-        {
-            var actions = new List<Action>(MAX_THUNK_EXECUTION_BATCH_SIZE);
-
-            try
-            {
-                IModel key = this.workPool.NextWorkBlock(ref actions, MAX_THUNK_EXECUTION_BATCH_SIZE);
-                if (key == null) { return; }
-
-                try
-                {
-                    foreach (var fn in actions)
-                    {
-                        fn();
-                    }
-                }
-                finally
-                {
-                    if (this.workPool.FinishWorkBlock(key))
-                    {
-                        var t = new Task(new Action(ExecuteThunk));
-                        t.Start(this.scheduler);
-                    }
-                }
-            }
-            catch (Exception)
-            {
-#if NETFX_CORE
-                // To end a task, return
-                return;
-#else   
-                //Thread.CurrentThread.Interrupt(); //TODO: what to do?
-#endif
-            }
-        }
+        readonly ConcurrentDictionary<IModel, WorkPool> workPools = new ConcurrentDictionary<IModel, WorkPool>();
 
         public void AddWork(IModel model, Action fn)
         {
-            if (this.workPool.AddWorkItem(model, fn))
-            {
-                var t = new Task(new Action(ExecuteThunk));
-                t.Start(this.scheduler);
-            }
-        }
+            // two step approach is taken, as TryGetValue does not aquire locks
+            // if this fails, GetOrAdd is called, which takes a lock
 
-        public void RegisterKey(IModel model)
-        {
-            this.workPool.RegisterKey(model);
+            WorkPool workPool;
+            if (workPools.TryGetValue(model, out workPool) == false)
+            {
+                var newWorkPool = new WorkPool(model);
+                workPool = workPools.GetOrAdd(model, newWorkPool);
+
+                // start if it's only the workpool that has been just created
+                if (newWorkPool == workPool)
+                {
+                    newWorkPool.Start();
+                }
+            }
+
+            workPool.Enqueue(fn);
         }
 
         public void StopWork(IModel model)
         {
-            this.workPool.UnregisterKey(model);
+            WorkPool workPool;
+            if (workPools.TryRemove(model, out workPool))
+            {
+                workPool.Stop();
+            }
         }
 
         public void StopWork()
         {
-            this.workPool.UnregisterAllKeys();
+            foreach (var model in workPools.Keys)
+            {
+                StopWork(model);
+            }
+        }
+
+        class WorkPool
+        {
+            readonly ConcurrentQueue<Action> actions;
+            readonly AutoResetEvent messageArrived;
+            readonly TimeSpan waitTime;
+            readonly CancellationTokenSource tokenSource;
+            readonly string name;
+
+            public WorkPool(IModel model)
+            {
+                name = model.ToString();
+                actions = new ConcurrentQueue<Action>();
+                messageArrived = new AutoResetEvent(false);
+                waitTime = TimeSpan.FromMilliseconds(100);
+                tokenSource = new CancellationTokenSource();
+            }
+
+            public void Start()
+            {
+#if NETFX_CORE
+                Task.Factory.StartNew(Loop, TaskCreationOptions.LongRunning);
+#else
+                var thread = new Thread(Loop)
+                {
+                    Name = "WorkPool-" + name,
+                    IsBackground = true
+                };
+                thread.Start();
+#endif
+            }
+
+            public void Enqueue(Action action)
+            {
+                actions.Enqueue(action);
+                messageArrived.Set();
+            }
+
+            void Loop()
+            {
+                while (tokenSource.IsCancellationRequested == false)
+                {
+                    Action action;
+                    while (actions.TryDequeue(out action))
+                    {
+                        try
+                        {
+                            action();
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+
+                    messageArrived.WaitOne(waitTime);
+                }
+            }
+
+            public void Stop()
+            {
+                tokenSource.Cancel();
+            }
         }
     }
 }
