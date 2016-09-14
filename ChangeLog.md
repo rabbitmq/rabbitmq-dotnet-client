@@ -1,4 +1,4 @@
-## Changes Between 4.0.2 and 4.1.1
+## Changes Between 4.0.2 and 4.1.0
 
 ### No lock contention at consumer work service
 
