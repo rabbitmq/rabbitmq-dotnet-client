@@ -1,4 +1,10 @@
+## Changes Between 4.1.0 and 4.1.1
+
+No changes yet.
+
 ## Changes Between 4.0.2 and 4.1.0
+
+`4.1.0` was released on **September 14th, 2016**.
 
 ### No lock contention at consumer work service
 
