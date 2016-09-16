@@ -1057,16 +1057,20 @@ entry.ToString());
                     TerminateMainloop();
                     FinishClose();
                 }
-                else
+                else if(_heartbeatReadTimer != null)
                 {
                     _heartbeatReadTimer.Change(Heartbeat * 1000, Timeout.Infinite);
                 }
             }
             catch (ObjectDisposedException ignored)
             {
-
                 // timer is already disposed,
                 // e.g. due to shutdown
+            }
+            catch (NullReferenceException)
+            {
+                // timer has already been disposed from a different thread after null check
+                // this event should be rare
             }
         }
 
