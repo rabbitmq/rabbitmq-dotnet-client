@@ -8,8 +8,10 @@ The client is maintained by the [RabbitMQ team at Pivotal](http://github.com/rab
 
 There are two ways to consume the client:
 
- * [Binary releases](http://www.rabbitmq.com/download.html)
- * [NuGet artifacts](https://www.nuget.org/packages/RabbitMQ.Client/)
+ * [NuGet artifacts](https://www.nuget.org/packages/RabbitMQ.Client/) (`4.x` and `3.6.x` series)
+ * [Binary releases](https://github.com/rabbitmq/rabbitmq-server/releases) (`3.6.x` series, distributed with RabbitMQ releases)
+
+[Release archive up to 3.4.3](https://bintray.com/rabbitmq/archive/rabbitmq-dotnet-client) is available from Bintray.
 
 
 ## Tutorials and Documentation
