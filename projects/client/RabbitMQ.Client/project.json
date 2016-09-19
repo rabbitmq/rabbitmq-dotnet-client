@@ -1,5 +1,5 @@
 {
-  "version": "4.0.0-*",
+  "version": "4.1.0-*",
   "description": "The RabbitMQ .NET client is the official client library for C# (and, implicitly, other .NET languages)",
   "packOptions": {
     "projectUrl": "http://www.rabbitmq.com/dotnet.html",
