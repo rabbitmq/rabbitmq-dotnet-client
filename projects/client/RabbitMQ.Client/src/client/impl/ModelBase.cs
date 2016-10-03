@@ -579,8 +579,11 @@ namespace RabbitMQ.Client.Impl
                     {
                         h(this, args);
                     }
-                    catch
+                    catch (Exception e)
                     {
+                        if (Object.ReferenceEquals(e, args.Exception)) {
+                            throw; // Exception was intentionally rethrown in callback -- propagate it further
+                        }
                         // Exception in
                         // Callback-exception-handler. That was the
                         // app's last chance. Swallow the exception.
