@@ -24,6 +24,7 @@ namespace RabbitMQ.Client
 
         public virtual async Task ConnectAsync(string host, int port)
         {
+            AssertSocket();
             var adds = await Dns.GetHostAddressesAsync(host).ConfigureAwait(false);
             var ep = adds.FirstOrDefault(a => a.AddressFamily == sock.AddressFamily);
             if(ep == default(IPAddress))
@@ -40,11 +41,14 @@ namespace RabbitMQ.Client
 
         public virtual void Close()
         {
-            sock.Dispose();
+            if(sock != null)
+                sock.Dispose();
+            sock = null;
         }
 
         public virtual NetworkStream GetStream()
         {
+            AssertSocket();
             return new NetworkStream(sock);
         }
 
@@ -58,18 +62,32 @@ namespace RabbitMQ.Client
 
         public virtual bool Connected
         {
-            get { return sock.Connected; }
+            get
+            {
+                if(sock == null) return false;
+                return sock.Connected;
+            }
         }
 
         public virtual int ReceiveTimeout
         {
             get
             {
+                AssertSocket();
                 return sock.ReceiveTimeout;
             }
             set
             {
+                AssertSocket();
                 sock.ReceiveTimeout = value;
+            }
+        }
+
+        private void AssertSocket()
+        {
+            if(sock == null)
+            {
+                throw new InvalidOperationException("Cannot perform operation as socket is null");
             }
         }
     }
