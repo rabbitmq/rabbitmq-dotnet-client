@@ -50,7 +50,6 @@ namespace RabbitMQ.Client.MessagePatterns
     /// This interface is provided to make creation of test doubles
     /// for <see cref="Subscription" /> easier.
     ///</para>
-    ///<para>
     ///</remarks>
     public interface ISubscription : IEnumerable, IEnumerator, IDisposable
     {

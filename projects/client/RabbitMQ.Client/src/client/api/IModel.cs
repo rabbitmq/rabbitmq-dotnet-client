@@ -160,7 +160,7 @@ namespace RabbitMQ.Client
         /// operation to complete. This method will not return to the
         /// caller until the shutdown is complete.
         /// In comparison to normal <see cref="Close()"/> method, <see cref="Abort()"/> will not throw
-        /// <see cref="Exceptions.AlreadyClosedException"/> or <see cref="IOException"/> or any other <see cref="Exception"/> during closing model.
+        /// <see cref="Exceptions.AlreadyClosedException"/> or <see cref="System.IO.IOException"/> or any other <see cref="Exception"/> during closing model.
         /// </remarks>
         [AmqpMethodDoNotImplement(null)]
         void Abort();

@@ -54,7 +54,6 @@ namespace RabbitMQ.Client
     /// This interface is provided to make creation of test doubles
     /// for <see cref="QueueingBasicConsumer" /> easier.
     ///</para>
-    ///<para>
     ///</remarks>
     public interface IQueueingBasicConsumer
     {
