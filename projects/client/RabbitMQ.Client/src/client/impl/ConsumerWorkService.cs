@@ -66,7 +66,7 @@ namespace RabbitMQ.Client
             public void Start()
             {
 #if NETFX_CORE
-                Task.Factory.StartNew(Loop, TaskCreationOptions.LongRunning);
+                System.Threading.Tasks.Task.Factory.StartNew(Loop, System.Threading.Tasks.TaskCreationOptions.LongRunning);
 #else
                 var thread = new Thread(Loop)
                 {
