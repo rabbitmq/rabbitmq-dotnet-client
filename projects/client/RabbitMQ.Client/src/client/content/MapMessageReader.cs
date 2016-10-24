@@ -65,7 +65,7 @@ namespace RabbitMQ.Client.Content
         ///<summary>
         /// Parses the message body into an <see cref="IDictionary{TKey,TValue}"/> instance.
         /// </summary>
-        /// <exception cref="System.Net.ProtocolViolationException"/>.
+        /// <exception cref="RabbitMQ.Client.ProtocolViolationException"/>.
         public IDictionary<string, object> Body
         {
             get

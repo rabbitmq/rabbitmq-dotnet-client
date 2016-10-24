@@ -59,12 +59,11 @@ namespace RabbitMQ.Client
         public Func<AddressFamily, ITcpClient> SocketFactory = DefaultSocketFactory;
 #endif
 
-        /// <summary>
-        /// Creates a new instance of the <see cref="TcpClient"/>.
-        /// </summary>
-        /// <param name="addressFamily">Specifies the addressing scheme.</param>
-        /// <returns>New instance of a <see cref="TcpClient"/>.</returns>
 #if NETFX_CORE
+        /// <summary>
+        /// Creates a new instance of the <see cref="StreamSocket"/>.
+        /// </summary>
+        /// <returns>New instance of a <see cref="StreamSocket"/>.</returns>
         public static StreamSocket DefaultSocketFactory()
         {
             StreamSocket tcpClient = new StreamSocket();
@@ -72,6 +71,11 @@ namespace RabbitMQ.Client
             return tcpClient;
         }
 #else
+        /// <summary>
+        /// Creates a new instance of the <see cref="TcpClient"/>.
+        /// </summary>
+        /// <param name="addressFamily">Specifies the addressing scheme.</param>
+        /// <returns>New instance of a <see cref="TcpClient"/>.</returns>
         public static ITcpClient DefaultSocketFactory(AddressFamily addressFamily)
         {
             var socket = new Socket(addressFamily, SocketType.Stream, ProtocolType.Tcp)

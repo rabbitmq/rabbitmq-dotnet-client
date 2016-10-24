@@ -188,10 +188,10 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// Factory function for creating the <see cref="IEndpointResolver">
+        /// Factory function for creating the <see cref="IEndpointResolver"/>
         /// used to generate a list of endpoints for the ConnectionFactory
         /// to try in order.
-        /// The default value creates an instance of the <see cref="DefaultEndpointResolver">
+        /// The default value creates an instance of the <see cref="DefaultEndpointResolver"/>
         /// using the list of endpoints passed in. The DefaultEndpointResolver shuffles the
         /// provided list each time it is requested.
         /// </summary>
