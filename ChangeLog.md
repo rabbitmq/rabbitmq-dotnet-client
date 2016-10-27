@@ -1,6 +1,25 @@
 ## Changes Between 4.1.0 and 4.1.1
 
-No changes yet.
+### Fixed XML Documentation Generation
+
+GitHub issue: [rabbitmq-dotnet-client#269](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/269)
+
+Contributed by Brandon Ording.
+
+### Fixed WinRT Project Build
+
+GitHub issue: [rabbitmq-dotnet-client#270](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/270)
+
+Contributed by Brandon Ording.
+
+### `TcpClientAdapter` Nullifies Socket Field on Close
+
+GitHub issue: [rabbitmq-dotnet-client#263](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/263)
+
+### `HeartbeatReadTimerCallback` Handles Potential `NullReferenceException`
+
+GitHub issue: [rabbitmq-dotnet-client#257](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/257)
+
 
 ## Changes Between 4.0.2 and 4.1.0
 
