@@ -158,7 +158,7 @@ namespace RabbitMQ.Client.Impl
 
             int channel = reader.ReadUInt16();
             int payloadSize = reader.ReadInt32(); // FIXME - throw exn on unreasonable value
-            byte[] payload = reader.ReadBytes(payloadSize);
+            byte[] payload = Frame.ReadPayload(reader, payloadSize);
             if (payload.Length != payloadSize)
             {
                 // Early EOF.
@@ -174,6 +174,28 @@ namespace RabbitMQ.Client.Impl
             }
 
             return new Frame(type, channel, payload);
+        }
+
+        public static byte[] ReadPayload(NetworkBinaryReader reader, int size)
+        {
+            var buf = new byte[size];
+            var read = reader.Read(buf, 0, size);
+            if(read != size)
+            {
+                // Enter loop to try to read the rest
+                while(read < size)
+                {
+                    var r = reader.Read(buf, read, size - read);
+                    if(r == 0)
+                    {
+                        throw new EndOfStreamException();
+                    }
+
+                    read += r;
+                }
+            }
+
+            return buf;
         }
 
         public void FinishWriting()
