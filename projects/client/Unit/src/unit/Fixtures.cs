@@ -149,6 +149,8 @@ namespace RabbitMQ.Client.Unit
         protected IConnection CreateNonRecoveringConnection()
         {
             var cf = new ConnectionFactory();
+            cf.AutomaticRecoveryEnabled = false;
+            cf.TopologyRecoveryEnabled = false;
             return cf.CreateConnection();
         }
 

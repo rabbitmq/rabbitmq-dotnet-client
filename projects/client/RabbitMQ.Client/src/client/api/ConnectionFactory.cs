@@ -153,9 +153,10 @@ namespace RabbitMQ.Client
         public IList<AuthMechanismFactory> AuthMechanisms { get; set; } = DefaultAuthMechanisms;
 
         /// <summary>
-        /// Set to true to enable automatic connection recovery.
+        /// Set to false to disable automatic connection recovery.
+        /// Defaults to true.
         /// </summary>
-        public bool AutomaticRecoveryEnabled { get; set; }
+        public bool AutomaticRecoveryEnabled { get; set; } = true;
 
         /// <summary>The host to connect to.</summary>
         public string HostName { get; set; } = "localhost";
@@ -230,7 +231,8 @@ namespace RabbitMQ.Client
         public SslOption Ssl { get; set; } = new SslOption();
 
         /// <summary>
-        /// Set to true to make automatic connection recovery also recover topology (exchanges, queues, bindings, etc).
+        /// Set to false to make automatic connection recovery not recover topology (exchanges, queues, bindings, etc).
+        /// Defaults to true.
         /// </summary>
         public bool TopologyRecoveryEnabled { get; set; } = true;
 
