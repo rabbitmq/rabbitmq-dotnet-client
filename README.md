@@ -31,6 +31,9 @@ targets .NET Core.
 
 See [ChangeLog.md](https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/ChangeLog.md).
 
+## Building from Source
+
+Please see [How to Run Tests](./RUNNING_TESTS.md) for build process overview.
 
 ## Contributing
 
