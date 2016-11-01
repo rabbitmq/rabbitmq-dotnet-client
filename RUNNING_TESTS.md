@@ -7,10 +7,12 @@ can control the running node: this is the case when all repositories are cloned 
 the [umbrella repository](https://github.com/rabbitmq/rabbitmq-public-umbrella).
 
 It is possible to use [Visual Studio 2015 Community Edition](https://www.visualstudio.com/en-us/products/visual-studio-community-vs.aspx),
-.NET 4.5 or later, and `msbuild.exe` in `PATH`, to build the client and run the test suite.
-
+.NET Core, and `dotnet.exe` in `PATH`, to build the client and run the test suite.
 
 ## Building
+
+Before this project can be opened in Visual Studio, it's necessary to pull down dependencies
+and perform protocol encoder/decoder code generation.
 
 On Windows run:
 
@@ -20,7 +22,7 @@ On osx/linux run:
 
     build.sh
 
-This will complete the code AMQP spec generation and build all projects. After this open the solution in Visual Studio.
+This will complete the code AMQP 0-9-1 protocol code generation and build all projects. After this open the solution in Visual Studio.
 
 
 ## Running Tests
