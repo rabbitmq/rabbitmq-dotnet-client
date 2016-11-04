@@ -172,6 +172,11 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
+        /// Used to force the address family of the endpoint
+        /// </summary>
+        public System.Net.Sockets.AddressFamily AddressFamily {get; set;}
+
+        /// <summary>
         /// Retrieve the SSL options for this AmqpTcpEndpoint. If not set, null is returned.
         /// </summary>
         public SslOption Ssl { get; set; }
