@@ -178,6 +178,17 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
+        public void TestCreateConnectionWithForcedAddressFamily()
+        {
+            var cf = new ConnectionFactory();
+            cf.HostName = "not_localhost";
+            var ep = new AmqpTcpEndpoint("localhost");
+            ep.AddressFamily = System.Net.Sockets.AddressFamily.InterNetwork;
+            cf.Endpoint = ep;
+            using(var conn = cf.CreateConnection());
+        }
+
+        [Test]
         public void TestCreateConnectionUsesInvalidAmqpTcpEndpoint()
         {
             var cf = new ConnectionFactory();

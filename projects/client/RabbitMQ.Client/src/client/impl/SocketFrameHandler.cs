@@ -83,7 +83,7 @@ namespace RabbitMQ.Client.Impl
         {
             Endpoint = endpoint;
             m_socket = null;
-            if (Socket.OSSupportsIPv6)
+            if (Socket.OSSupportsIPv6 && endpoint.AddressFamily != AddressFamily.InterNetwork)
             {
                 try
                 {
@@ -101,7 +101,7 @@ namespace RabbitMQ.Client.Impl
                     m_socket = null;
                 }
             }
-            if (m_socket == null)
+            if (m_socket == null && endpoint.AddressFamily != AddressFamily.InterNetworkV6)
             {
                 m_socket = socketFactory(AddressFamily.InterNetwork);
                 Connect(m_socket, endpoint, connectionTimeout);
