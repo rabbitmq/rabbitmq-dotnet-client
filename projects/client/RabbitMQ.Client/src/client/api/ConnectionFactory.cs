@@ -269,6 +269,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Set connection parameters using the amqp or amqps scheme.
         /// </summary>
+        [Obsolete("Deprecated: please use SetUri instead.")]
         public String Uri
         {
             set { SetUri(new Uri(value, UriKind.Absolute)); }
@@ -277,6 +278,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Set connection parameters using the amqp or amqps scheme.
         /// </summary>
+        [Obsolete("Deprecated: please use SetUri instead.")]
         public Uri uri
         {
             set { SetUri(value); }
@@ -505,7 +507,7 @@ namespace RabbitMQ.Client
             return fh;
         }
 
-        private void SetUri(Uri uri)
+        public void SetUri(Uri uri)
         {
             Endpoint = new AmqpTcpEndpoint();
 
