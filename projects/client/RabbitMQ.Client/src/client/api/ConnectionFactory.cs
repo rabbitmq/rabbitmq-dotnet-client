@@ -61,7 +61,7 @@ namespace RabbitMQ.Client
     /// A simple example of connecting to a broker:
     /// </para>
     /// <example><code>
-    ///     IConnectionFactory factory = new ConnectionFactory();
+    ///     ConnectionFactory factory = new ConnectionFactory();
     ///     //
     ///     // The next six lines are optional:
     ///     factory.UserName = ConnectionFactory.DefaultUser;
