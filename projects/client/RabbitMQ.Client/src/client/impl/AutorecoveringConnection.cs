@@ -53,6 +53,8 @@ namespace RabbitMQ.Client.Framing.Impl
     public class AutorecoveringConnection : IConnection, IRecoverable
     {
         public readonly object m_eventLock = new object();
+
+        public readonly object manuallyClosedLock = new object();
         protected Connection m_delegate;
         protected ConnectionFactory m_factory;
 
@@ -102,6 +104,23 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             m_factory = factory;
             this.ClientProvidedName = clientProvidedName;
+        }
+
+        private bool ManuallyClosed
+        {
+            get
+            {
+                lock(manuallyClosedLock)
+                {
+                    return manuallyClosed;
+                }
+            }
+            set
+            {
+                lock(manuallyClosedLock)
+                {
+                    manuallyClosed = value; }
+                }
         }
 
         public event EventHandler<CallbackExceptionEventArgs> CallbackException
@@ -341,7 +360,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
                     recoveryTaskFactory.StartNew(() =>
                     {
-                        if(!self.manuallyClosed)
+                        if(!self.ManuallyClosed)
                         {
                             try
                             {
@@ -633,56 +652,56 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection abort.</summary>
         public void Abort()
         {
-            this.manuallyClosed = true;
+            this.ManuallyClosed = true;
             m_delegate.Abort();
         }
 
         ///<summary>API-side invocation of connection abort.</summary>
         public void Abort(ushort reasonCode, string reasonText)
         {
-            this.manuallyClosed = true;
+            this.ManuallyClosed = true;
             m_delegate.Abort(reasonCode, reasonText);
         }
 
         ///<summary>API-side invocation of connection abort with timeout.</summary>
         public void Abort(int timeout)
         {
-            this.manuallyClosed = true;
+            this.ManuallyClosed = true;
             m_delegate.Abort(timeout);
         }
 
         ///<summary>API-side invocation of connection abort with timeout.</summary>
         public void Abort(ushort reasonCode, string reasonText, int timeout)
         {
-            this.manuallyClosed = true;
+            this.ManuallyClosed = true;
             m_delegate.Abort(reasonCode, reasonText, timeout);
         }
 
         ///<summary>API-side invocation of connection.close.</summary>
         public void Close()
         {
-            this.manuallyClosed = true;
+            this.ManuallyClosed = true;
             m_delegate.Close();
         }
 
         ///<summary>API-side invocation of connection.close.</summary>
         public void Close(ushort reasonCode, string reasonText)
         {
-            this.manuallyClosed = true;
+            this.ManuallyClosed = true;
             m_delegate.Close(reasonCode, reasonText);
         }
 
         ///<summary>API-side invocation of connection.close with timeout.</summary>
         public void Close(int timeout)
         {
-            this.manuallyClosed = true;
+            this.ManuallyClosed = true;
             m_delegate.Close(timeout);
         }
 
         ///<summary>API-side invocation of connection.close with timeout.</summary>
         public void Close(ushort reasonCode, string reasonText, int timeout)
         {
-            this.manuallyClosed = true;
+            this.ManuallyClosed = true;
             m_delegate.Close(reasonCode, reasonText, timeout);
         }
 
