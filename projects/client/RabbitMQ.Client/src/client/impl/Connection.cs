@@ -57,7 +57,6 @@ using System.Net;
 using System.Net.Sockets;
 #endif
 
-using System.Reflection;
 using System.Text;
 using System.Threading;
 
@@ -72,6 +71,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private ManualResetEvent m_appContinuation = new ManualResetEvent(false);
         private EventHandler<CallbackExceptionEventArgs> m_callbackException;
+        private EventHandler<EventArgs> m_recoverySucceeded;
+        private EventHandler<ConnectionRecoveryErrorEventArgs> connectionRecoveryFailure;
 
         private IDictionary<string, object> m_clientProperties;
 
@@ -81,6 +82,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private EventHandler<ConnectionBlockedEventArgs> m_connectionBlocked;
         private EventHandler<ShutdownEventArgs> m_connectionShutdown;
         private EventHandler<EventArgs> m_connectionUnblocked;
+
         private IConnectionFactory m_factory;
         private IFrameHandler m_frameHandler;
 
@@ -129,6 +131,24 @@ namespace RabbitMQ.Client.Framing.Impl
         }
 
         public Guid Id { get { return m_id; } }
+
+        public event EventHandler<EventArgs> RecoverySucceeded
+        {
+            add
+            {
+                lock (m_eventLock)
+                {
+                    m_recoverySucceeded += value;
+                }
+            }
+            remove
+            {
+                lock (m_eventLock)
+                {
+                    m_recoverySucceeded -= value;
+                }
+            }
+        }
 
         public event EventHandler<CallbackExceptionEventArgs> CallbackException
         {
@@ -211,6 +231,23 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
+        public event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError
+        {
+            add
+            {
+                lock (m_eventLock)
+                {
+                    connectionRecoveryFailure += value;
+                }
+            }
+            remove
+            {
+                lock (m_eventLock)
+                {
+                    connectionRecoveryFailure -= value;
+                }
+            }
+        }
         public string ClientProvidedName { get; private set; }
 
         public bool AutoClose

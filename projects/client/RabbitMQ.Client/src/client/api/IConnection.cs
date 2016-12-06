@@ -170,6 +170,9 @@ namespace RabbitMQ.Client
         /// of those event handlers throws an exception, as well.
         /// </remarks>
         event EventHandler<CallbackExceptionEventArgs> CallbackException;
+        event EventHandler<EventArgs> RecoverySucceeded;
+        event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError;
+
 
         event EventHandler<ConnectionBlockedEventArgs> ConnectionBlocked;
 

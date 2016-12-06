@@ -163,7 +163,7 @@ namespace RabbitMQ.Client.Unit
         {
             using(var c = CreateAutorecoveringConnection(
                         new List<AmqpTcpEndpoint> 
-                        { 
+                        {
                             new AmqpTcpEndpoint("127.0.0.1"), 
                             new AmqpTcpEndpoint("localhost") 
                         }))
@@ -172,6 +172,21 @@ namespace RabbitMQ.Client.Unit
                             CloseAndWaitForRecovery(c);
                             Assert.IsTrue(c.IsOpen);
                         }
+        }
+
+        [Test]
+        public void TestBasicConnectionRecoveryErrorEvent()
+        {
+            Assert.IsTrue(Conn.IsOpen);
+            using(var c = CreateAutorecoveringConnection())
+            {
+                var latch = new AutoResetEvent(false);
+                c.ConnectionRecoveryError += (o, _args) => latch.Set();
+                StopRabbitMQ();
+                latch.WaitOne(30000);
+                StartRabbitMQ();
+                WaitForRecovery(c);
+            }
         }
 
         [Test]
