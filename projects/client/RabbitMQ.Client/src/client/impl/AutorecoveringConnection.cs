@@ -98,6 +98,8 @@ namespace RabbitMQ.Client.Framing.Impl
         private EventHandler<QueueNameChangedAfterRecoveryEventArgs> m_queueNameChange;
         private EventHandler<EventArgs> m_recovery;
 
+        private EventHandler<ConnectionRecoveryErrorEventArgs> m_connectionRecoveryError;
+
         public AutorecoveringConnection(ConnectionFactory factory, string clientProvidedName = null)
         {
             m_factory = factory;
@@ -119,6 +121,42 @@ namespace RabbitMQ.Client.Framing.Impl
                 {
                     manuallyClosed = value; }
                 }
+        }
+
+        public event EventHandler<EventArgs> RecoverySucceeded
+        {
+            add
+            {
+                lock (m_eventLock)
+                {
+                    m_recovery += value;
+                }
+            }
+            remove
+            {
+                lock (m_eventLock)
+                {
+                    m_recovery -= value;
+                }
+            }
+        }
+
+        public event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError
+        {
+            add
+            {
+                lock (m_eventLock)
+                {
+                    m_connectionRecoveryError += value;
+                }
+            }
+            remove
+            {
+                lock (m_eventLock)
+                {
+                    m_connectionRecoveryError -= value;
+                }
+            }
         }
 
         public event EventHandler<CallbackExceptionEventArgs> CallbackException
@@ -235,6 +273,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
+        [Obsolete("Use RecoverySucceeded instead")]
         public event EventHandler<EventArgs> Recovery
         {
             add
@@ -798,14 +837,33 @@ namespace RabbitMQ.Client.Framing.Impl
                     m_delegate = new Connection(m_factory, false, fh, this.ClientProvidedName);
                     recovering = false;
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    // Trigger recovery error event
+                    var handler = m_connectionRecoveryError;
+                    if (handler != null)
+                    {
+                        var args = new ConnectionRecoveryErrorEventArgs(e);
+                        foreach (EventHandler<ConnectionRecoveryErrorEventArgs> h in handler.GetInvocationList())
+                        {
+                            try
+                            {
+                                h(this, args);
+                            }
+                            catch (Exception ex)
+                            {
+                                var a = new CallbackExceptionEventArgs(ex);
+                                a.Detail["context"] = "OnConnectionRecoveryError";
+                                m_delegate.OnCallbackException(a);
+                            }
+                        }
+                    }
 #if NETFX_CORE
                     System.Threading.Tasks.Task.Delay(m_factory.NetworkRecoveryInterval).Wait();
 #else
                     Thread.Sleep(m_factory.NetworkRecoveryInterval);
 #endif
-                    // TODO: provide a way to handle these exceptions                  
+                    // TODO: provide a way to handle these exceptions
                 }
             }
         }
