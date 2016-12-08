@@ -352,6 +352,7 @@ namespace RabbitMQ.Client
         /// </exception>
         public virtual IConnection CreateConnection()
         {
+            ESLog.Info("CreateConnection");
             return CreateConnection(this.EndpointResolverFactory(LocalEndpoints()), null);
         }
 

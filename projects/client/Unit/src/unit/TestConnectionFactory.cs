@@ -185,7 +185,7 @@ namespace RabbitMQ.Client.Unit
             var ep = new AmqpTcpEndpoint("localhost");
             ep.AddressFamily = System.Net.Sockets.AddressFamily.InterNetwork;
             cf.Endpoint = ep;
-            using(var conn = cf.CreateConnection());
+            using(var conn = cf.CreateConnection()){};
         }
 
         [Test]

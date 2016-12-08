@@ -420,6 +420,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         protected void PerformAutomaticRecovery()
         {
+            ESLog.Info("Performing automatic recovery");
             lock (recoveryLockTarget)
             {
                 if (RecoverConnectionDelegate())
@@ -435,7 +436,12 @@ namespace RabbitMQ.Client.Framing.Impl
                         RecoverConsumers();
                     }
 
+                    ESLog.Info("Connection recovery completed");
                     RunRecoveryEventHandlers();
+                }
+                else
+                {
+                    ESLog.Warn("Connection delegate was manually closed. Aborted recovery.");
                 }
             }
         }
@@ -636,13 +642,7 @@ namespace RabbitMQ.Client.Framing.Impl
                         }
                         catch (Exception e)
                         {
-                            // TODO: logging
-#if NETFX_CORE
-                            System.Diagnostics.Debug.WriteLine(
-#else
-                            Console.WriteLine(
-#endif
-"BeginAutomaticRecovery() failed: {0}", e);
+                            ESLog.Error("BeginAutomaticRecovery() failed.", e);
                         }
                     }
                 }
@@ -767,13 +767,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         protected void HandleTopologyRecoveryException(TopologyRecoveryException e)
         {
-            // TODO
-#if NETFX_CORE
-            System.Diagnostics.Debug.WriteLine(
-#else
-            Console.WriteLine(
-#endif
-                "Topology recovery exception: {0}", e);
+            ESLog.Error("Topology recovery exception", e);
         }
 
         protected void PropagateQueueNameChangeToBindings(string oldName, string newName)
@@ -842,7 +836,8 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
                 catch (Exception e)
                 {
-                    // Trigger recovery error event
+                    ESLog.Error("Connection recovery exception.", e);
+                    // Trigger recovery error events
                     var handler = m_connectionRecoveryError;
                     if (handler != null)
                     {
@@ -861,12 +856,12 @@ namespace RabbitMQ.Client.Framing.Impl
                             }
                         }
                     }
+
 #if NETFX_CORE
                     System.Threading.Tasks.Task.Delay(m_factory.NetworkRecoveryInterval).Wait();
 #else
                     Thread.Sleep(m_factory.NetworkRecoveryInterval);
 #endif
-                    // TODO: provide a way to handle these exceptions
                 }
             }
 
