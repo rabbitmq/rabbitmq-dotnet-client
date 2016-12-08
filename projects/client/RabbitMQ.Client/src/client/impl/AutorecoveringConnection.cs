@@ -750,21 +750,13 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 Abort();
             }
+            catch(Exception)
+            {
+                // TODO: log
+            }
             finally
             {
                 m_models.Clear();
-            }
-            if (ShutdownReport.Count > 0)
-            {
-                foreach (ShutdownReportEntry entry in ShutdownReport)
-                {
-                    if (entry.Exception != null)
-                    {
-                        throw entry.Exception;
-                    }
-                }
-
-                throw new OperationInterruptedException(null);
             }
         }
 
