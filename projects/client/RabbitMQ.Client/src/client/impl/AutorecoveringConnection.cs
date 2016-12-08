@@ -397,14 +397,14 @@ namespace RabbitMQ.Client.Framing.Impl
 
                     recoveryTaskFactory.StartNew(() =>
                     {
-                        if(!self.ManuallyClosed)
+                        if (!self.ManuallyClosed)
                         {
                             try
                             {
 #if NETFX_CORE
-                            System.Threading.Tasks.Task.Delay(m_factory.NetworkRecoveryInterval).Wait();
+                                System.Threading.Tasks.Task.Delay(m_factory.NetworkRecoveryInterval).Wait();
 #else
-                            Thread.Sleep(m_factory.NetworkRecoveryInterval);
+                                Thread.Sleep(m_factory.NetworkRecoveryInterval);
 #endif
                                 self.PerformAutomaticRecovery();
                             }
@@ -422,19 +422,21 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             lock (recoveryLockTarget)
             {
-                RecoverConnectionDelegate();
-                RecoverConnectionShutdownHandlers();
-                RecoverConnectionBlockedHandlers();
-                RecoverConnectionUnblockedHandlers();
-
-                RecoverModels();
-                if (m_factory.TopologyRecoveryEnabled)
+                if (RecoverConnectionDelegate())
                 {
-                    RecoverEntities();
-                    RecoverConsumers();
-                }
+                    RecoverConnectionShutdownHandlers();
+                    RecoverConnectionBlockedHandlers();
+                    RecoverConnectionUnblockedHandlers();
 
-                RunRecoveryEventHandlers();
+                    RecoverModels();
+                    if (m_factory.TopologyRecoveryEnabled)
+                    {
+                        RecoverEntities();
+                        RecoverConsumers();
+                    }
+
+                    RunRecoveryEventHandlers();
+                }
             }
         }
 
@@ -659,56 +661,64 @@ namespace RabbitMQ.Client.Framing.Impl
         public void Abort()
         {
             this.ManuallyClosed = true;
-            m_delegate.Abort();
+            if(m_delegate.IsOpen)
+                m_delegate.Abort();
         }
 
         ///<summary>API-side invocation of connection abort.</summary>
         public void Abort(ushort reasonCode, string reasonText)
         {
             this.ManuallyClosed = true;
-            m_delegate.Abort(reasonCode, reasonText);
+            if (m_delegate.IsOpen)
+                m_delegate.Abort(reasonCode, reasonText);
         }
 
         ///<summary>API-side invocation of connection abort with timeout.</summary>
         public void Abort(int timeout)
         {
             this.ManuallyClosed = true;
-            m_delegate.Abort(timeout);
+            if (m_delegate.IsOpen)
+                m_delegate.Abort(timeout);
         }
 
         ///<summary>API-side invocation of connection abort with timeout.</summary>
         public void Abort(ushort reasonCode, string reasonText, int timeout)
         {
             this.ManuallyClosed = true;
-            m_delegate.Abort(reasonCode, reasonText, timeout);
+            if (m_delegate.IsOpen)
+                m_delegate.Abort(reasonCode, reasonText, timeout);
         }
 
         ///<summary>API-side invocation of connection.close.</summary>
         public void Close()
         {
             this.ManuallyClosed = true;
-            m_delegate.Close();
+            if (m_delegate.IsOpen)
+                m_delegate.Close();
         }
 
         ///<summary>API-side invocation of connection.close.</summary>
         public void Close(ushort reasonCode, string reasonText)
         {
             this.ManuallyClosed = true;
-            m_delegate.Close(reasonCode, reasonText);
+            if (m_delegate.IsOpen)
+                m_delegate.Close(reasonCode, reasonText);
         }
 
         ///<summary>API-side invocation of connection.close with timeout.</summary>
         public void Close(int timeout)
         {
             this.ManuallyClosed = true;
-            m_delegate.Close(timeout);
+            if (m_delegate.IsOpen)
+                m_delegate.Close(timeout);
         }
 
         ///<summary>API-side invocation of connection.close with timeout.</summary>
         public void Close(ushort reasonCode, string reasonText, int timeout)
         {
             this.ManuallyClosed = true;
-            m_delegate.Close(reasonCode, reasonText, timeout);
+            if (m_delegate.IsOpen)
+                m_delegate.Close(reasonCode, reasonText, timeout);
         }
 
         public IModel CreateModel()
@@ -736,23 +746,17 @@ namespace RabbitMQ.Client.Framing.Impl
 
         void IDisposable.Dispose()
         {
-            try {
+            try
+            {
                 Abort();
+            }
+            catch(Exception)
+            {
+                // TODO: log
             }
             finally
             {
                 m_models.Clear();
-            }
-            if (ShutdownReport.Count > 0)
-            {
-                foreach (ShutdownReportEntry entry in ShutdownReport)
-                {
-                    if (entry.Exception != null)
-                    {
-                        throw entry.Exception;
-                    }
-                }
-                throw new OperationInterruptedException(null);
             }
         }
 
@@ -826,16 +830,15 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        protected void RecoverConnectionDelegate()
+        protected bool RecoverConnectionDelegate()
         {
-            bool recovering = true;
-            while (recovering)
+            while (!ManuallyClosed)
             {
                 try
                 {
                     var fh = endpoints.SelectOne(m_factory.CreateFrameHandler);
                     m_delegate = new Connection(m_factory, false, fh, this.ClientProvidedName);
-                    recovering = false;
+                    return true;
                 }
                 catch (Exception e)
                 {
@@ -866,6 +869,8 @@ namespace RabbitMQ.Client.Framing.Impl
                     // TODO: provide a way to handle these exceptions
                 }
             }
+
+            return false;
         }
 
         protected void RecoverConnectionShutdownHandlers()

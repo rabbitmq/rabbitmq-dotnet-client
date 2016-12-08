@@ -1240,9 +1240,9 @@ entry.ToString());
 
         void IDisposable.Dispose()
         {
-            MaybeStopHeartbeatTimers();
             try
             {
+                MaybeStopHeartbeatTimers();
                 Abort();
             }
             catch (OperationInterruptedException)

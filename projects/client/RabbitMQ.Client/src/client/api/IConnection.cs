@@ -194,7 +194,7 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// Note that all active channels, sessions, and models will be closed if this method is called.
         /// In comparison to normal <see cref="Close()"/> method, <see cref="Abort()"/> will not throw
-        /// <see cref="AlreadyClosedException"/> or <see cref="IOException"/> during closing connection.
+        /// <see cref="IOException"/> during closing connection.
         ///This method waits infinitely for the in-progress close operation to complete.
         /// </remarks>
         void Abort();
@@ -206,7 +206,7 @@ namespace RabbitMQ.Client
         /// The method behaves in the same way as <see cref="Abort()"/>, with the only
         /// difference that the connection is closed with the given connection close code and message.
         /// <para>
-        /// The close code (See under "Reply Codes" in the AMQP specification)
+        /// The close code (See under "Reply Codes" in the AMQP 0-9-1 specification)
         /// </para>
         /// <para>
         /// A message indicating the reason for closing the connection
@@ -253,7 +253,7 @@ namespace RabbitMQ.Client
         /// closed if this method is called. It will wait for the in-progress
         /// close operation to complete. This method will not return to the caller
         /// until the shutdown is complete. If the connection is already closed
-        /// (or closing), then this method will throw <see cref="AlreadyClosedException"/>.
+        /// (or closing), then this method will do nothing.
         /// It can also throw <see cref="IOException"/> when socket was closed unexpectedly.
         /// </remarks>
         void Close();
@@ -281,7 +281,7 @@ namespace RabbitMQ.Client
         /// Note that all active channels, sessions, and models will be
         /// closed if this method is called. It will wait for the in-progress
         /// close operation to complete with a timeout. If the connection is
-        /// already closed (or closing), then this method will throw <see cref="AlreadyClosedException"/>.
+        /// already closed (or closing), then this method will do nothing.
         /// It can also throw <see cref="IOException"/> when socket was closed unexpectedly.
         /// If timeout is reached and the close operations haven't finished, then socket is forced to close.
         /// <para>
@@ -298,7 +298,7 @@ namespace RabbitMQ.Client
         /// The method behaves in the same way as <see cref="Close(int)"/>, with the only
         /// difference that the connection is closed with the given connection close code and message.
         /// <para>
-        /// The close code (See under "Reply Codes" in the AMQP specification).
+        /// The close code (See under "Reply Codes" in the AMQP 0-9-1 specification).
         /// </para>
         /// <para>
         /// A message indicating the reason for closing the connection.
