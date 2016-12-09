@@ -542,7 +542,7 @@ namespace RabbitMQ.Client.Impl
         public void _Private_BasicConsume(string queue,
             string consumerTag,
             bool noLocal,
-            bool noAck,
+            bool autoAck,
             bool exclusive,
             bool nowait,
             IDictionary<string, object> arguments)
@@ -550,15 +550,15 @@ namespace RabbitMQ.Client.Impl
             m_delegate._Private_BasicConsume(queue,
                 consumerTag,
                 noLocal,
-                noAck,
+                autoAck,
                 exclusive,
                 nowait,
                 arguments);
         }
 
-        public void _Private_BasicGet(string queue, bool noAck)
+        public void _Private_BasicGet(string queue, bool autoAck)
         {
-            m_delegate._Private_BasicGet(queue, noAck);
+            m_delegate._Private_BasicGet(queue, autoAck);
         }
 
         public void _Private_BasicPublish(string exchange,
@@ -759,29 +759,29 @@ namespace RabbitMQ.Client.Impl
 
         public string BasicConsume(
             string queue,
-            bool noAck,
+            bool autoAck,
             string consumerTag,
             bool noLocal,
             bool exclusive,
             IDictionary<string, object> arguments,
             IBasicConsumer consumer)
         {
-            var result = m_delegate.BasicConsume(queue, noAck, consumerTag, noLocal,
+            var result = m_delegate.BasicConsume(queue, autoAck, consumerTag, noLocal,
                 exclusive, arguments, consumer);
             RecordedConsumer rc = new RecordedConsumer(this, queue).
                 WithConsumerTag(result).
                 WithConsumer(consumer).
                 WithExclusive(exclusive).
-                WithAutoAck(noAck).
+                WithAutoAck(autoAck).
                 WithArguments(arguments);
             m_connection.RecordConsumer(result, rc);
             return result;
         }
 
         public BasicGetResult BasicGet(string queue,
-            bool noAck)
+            bool autoAck)
         {
-            return m_delegate.BasicGet(queue, noAck);
+            return m_delegate.BasicGet(queue, autoAck);
         }
 
         public void BasicNack(ulong deliveryTag,

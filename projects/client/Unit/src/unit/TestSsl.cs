@@ -64,8 +64,8 @@ namespace RabbitMQ.Client.Unit
                 byte[] msgBytes = System.Text.Encoding.UTF8.GetBytes(message);
                 ch.BasicPublish("Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null, msgBytes);
 
-                bool noAck = false;
-                BasicGetResult result = ch.BasicGet(qName, noAck);
+                bool autoAck = false;
+                BasicGetResult result = ch.BasicGet(qName, autoAck);
                 byte[] body = result.Body;
                 string resultMessage = System.Text.Encoding.UTF8.GetString(body);
 

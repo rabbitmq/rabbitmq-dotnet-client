@@ -64,12 +64,12 @@ namespace RabbitMQ.Client.MessagePatterns
     /// IEnumerator in, for example, a foreach loop.
     ///</para>
     ///<para>
-    /// Note that if the "noAck" option is enabled (which it is by
+    /// Note that if the "autoAck" option is enabled (which it is by
     /// default), then received deliveries are automatically acked
     /// within the server before they are even transmitted across the
     /// network to us. Calling Ack() on received events will always do
-    /// the right thing: if "noAck" is enabled, nothing is done on an
-    /// Ack() call, and if "noAck" is disabled, IModel.BasicAck() is
+    /// the right thing: if "autoAck" is enabled, nothing is done on an
+    /// Ack() call, and if "autoAck" is disabled, IModel.BasicAck() is
     /// called with the correct parameters.
     ///</para>
     ///</remarks>
@@ -86,7 +86,7 @@ namespace RabbitMQ.Client.MessagePatterns
         private ConcurrentQueue<TaskCompletionSource<BasicDeliverEventArgs>> m_waiting = 
             new ConcurrentQueue<TaskCompletionSource<BasicDeliverEventArgs>>();
 #endif
-        ///<summary>Creates a new Subscription in "noAck" mode,
+        ///<summary>Creates a new Subscription in "autoAck" mode,
         ///consuming from a named queue.</summary>
         public Subscription(IModel model, string queueName)
             : this(model, queueName, true)
@@ -94,34 +94,34 @@ namespace RabbitMQ.Client.MessagePatterns
         }
 
         ///<summary>Creates a new Subscription, with full control over
-        ///both "noAck" mode and the name of the queue.</summary>
-        public Subscription(IModel model, string queueName, bool noAck)
+        ///both "autoAck" mode and the name of the queue.</summary>
+        public Subscription(IModel model, string queueName, bool autoAck)
         {
             Model = model;
             QueueName = queueName;
-            NoAck = noAck;
+            AutoAck = autoAck;
             m_consumer = new EventingBasicConsumer(Model);
 #if NETFX_CORE || NET4
             m_consumer.Received += (sender, args) => QueueAdd(args); 
 #else
             m_consumer.Received += (sender, args) => m_queue.Add(args); 
 #endif
-            ConsumerTag = Model.BasicConsume(QueueName, NoAck, m_consumer);
+            ConsumerTag = Model.BasicConsume(QueueName, AutoAck, m_consumer);
             m_consumer.ConsumerCancelled += HandleConsumerCancelled;
             LatestEvent = null;
         }
 
         ///<summary>Creates a new Subscription, with full control over
-        ///both "noAck" mode, the name of the queue, and the consumer tag.</summary>
-        public Subscription(IModel model, string queueName, bool noAck, string consumerTag)
+        ///both "autoAck" mode, the name of the queue, and the consumer tag.</summary>
+        public Subscription(IModel model, string queueName, bool autoAck, string consumerTag)
         {
             Model = model;
             QueueName = queueName;
-            NoAck = noAck;
+            AutoAck = autoAck;
             m_consumer = new EventingBasicConsumer(Model);
             m_consumer.ConsumerCancelled += HandleConsumerCancelled;
             m_consumer.Received += (sender, args) => m_queue.Add(args);
-            ConsumerTag = Model.BasicConsume(QueueName, NoAck, consumerTag, m_consumer);
+            ConsumerTag = Model.BasicConsume(QueueName, AutoAck, consumerTag, m_consumer);
             LatestEvent = null;
         }
 
@@ -149,13 +149,13 @@ namespace RabbitMQ.Client.MessagePatterns
         ///<summary>Retrieve the IModel our subscription is carried by.</summary>
         public IModel Model { get; protected set; }
 
-        ///<summary>Returns true if we are in "noAck" mode, where
+        ///<summary>Returns true if we are in "autoAck" mode, where
         ///calls to Ack() will be no-ops, and where the server acks
         ///messages before they are delivered to us. Returns false if
         ///we are in a mode where calls to Ack() are required, and
         ///where such calls will actually send an acknowledgement
         ///message across the network to the server.</summary>
-        public bool NoAck { get; protected set; }
+        public bool AutoAck { get; protected set; }
 
         ///<summary>Retrieve the queue name we have subscribed to.</summary>
         public string QueueName { get; protected set; }
@@ -193,7 +193,7 @@ namespace RabbitMQ.Client.MessagePatterns
             Ack(LatestEvent);
         }
 
-        ///<summary>If we are not in "noAck" mode, calls
+        ///<summary>If we are not in "autoAck" mode, calls
         ///IModel.BasicAck with the delivery-tag from <paramref name="evt"/>;
         ///otherwise, sends nothing to the server. if <paramref name="evt"/> is the same as LatestEvent
         ///by pointer comparison, sets LatestEvent to null.
@@ -209,7 +209,7 @@ namespace RabbitMQ.Client.MessagePatterns
                 return;
             }
 
-            if (!NoAck && Model.IsOpen)
+            if (!AutoAck && Model.IsOpen)
             {
                 Model.BasicAck(evt.DeliveryTag, false);
             }
@@ -279,7 +279,7 @@ namespace RabbitMQ.Client.MessagePatterns
             Nack(LatestEvent, multiple, requeue);
         }
 
-        ///<summary>If we are not in "noAck" mode, calls
+        ///<summary>If we are not in "autoAck" mode, calls
         ///IModel.BasicNack with the delivery-tag from <paramref name="evt"/>;
         ///otherwise, sends nothing to the server. if <paramref name="evt"/> is the same as LatestEvent
         ///by pointer comparison, sets LatestEvent to null.
@@ -295,7 +295,7 @@ namespace RabbitMQ.Client.MessagePatterns
                 return;
             }
 
-            if (!NoAck && Model.IsOpen)
+            if (!AutoAck && Model.IsOpen)
             {
                 Model.BasicNack(evt.DeliveryTag, multiple, requeue);
             }
@@ -319,7 +319,7 @@ namespace RabbitMQ.Client.MessagePatterns
         /// Updates LatestEvent to the value returned.
         ///</para>
         ///<para>
-        /// Does not acknowledge any deliveries at all (but in "noAck"
+        /// Does not acknowledge any deliveries at all (but in "autoAck"
         /// mode, the server will have auto-acknowledged each event
         /// before it is even sent across the wire to us).
         ///</para>
@@ -427,7 +427,7 @@ namespace RabbitMQ.Client.MessagePatterns
         ///</para>
         ///<para>
         /// This method does not acknowledge any deliveries at all
-        /// (but in "noAck" mode, the server will have
+        /// (but in "autoAck" mode, the server will have
         /// auto-acknowledged each event before it is even sent across
         /// the wire to us).
         ///</para>
