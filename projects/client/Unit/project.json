@@ -20,6 +20,10 @@
         "System.Collections.NonGeneric": "4.0.1"
       }
     },
-    "net451": {}
+    "net451": {
+      "dependencies": {
+        "Microsoft.Diagnostics.Tracing.EventSource.Redist": "1.1.*"
+      }
+    }
   }
 }

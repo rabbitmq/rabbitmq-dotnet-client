@@ -563,12 +563,12 @@ namespace RabbitMQ.Client.Framing.Impl
             if (!SetCloseReason(reason))
             {
                 LogCloseError("Unexpected Main Loop Exception while closing: "
-                              + reason, null);
+                              + reason, new Exception(reason.ToString()));
                 return;
             }
 
             OnShutdown();
-            LogCloseError("Unexpected connection closure: " + reason, null);
+            LogCloseError("Unexpected connection closure: " + reason, new Exception(reason.ToString()));
         }
 
         public bool HardProtocolExceptionHandler(HardProtocolException hpe)
@@ -616,6 +616,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void LogCloseError(String error, Exception ex)
         {
+            ESLog.Error(error, ex);
             m_shutdownReport.Add(new ShutdownReportEntry(error, ex));
         }
 
@@ -1049,6 +1050,7 @@ entry.ToString());
                     {
                         String description = String.Format("Heartbeat missing with heartbeat == {0} seconds", m_heartbeat);
                         var eose = new EndOfStreamException(description);
+                        ESLog.Error(description, eose);
                         m_shutdownReport.Add(new ShutdownReportEntry(description, eose));
                         HandleMainLoopException(
                             new ShutdownEventArgs(ShutdownInitiator.Library, 0, "End of stream", eose));
