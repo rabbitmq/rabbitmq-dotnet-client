@@ -48,38 +48,38 @@ namespace RabbitMQ.Client
         public static string BasicConsume(this IModel model,
             IBasicConsumer consumer,
             string queue,
-            bool noAck = false,
+            bool autoAck = false,
             string consumerTag = "",
             bool noLocal = false,
             bool exclusive = false,
             IDictionary<string, object> arguments = null)
             {
-                return model.BasicConsume(queue, noAck, consumerTag, noLocal, exclusive, arguments, consumer);
+                return model.BasicConsume(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer);
             }
 
         /// <summary>Start a Basic content-class consumer.</summary>
-        public static string BasicConsume(this IModel model, string queue, bool noAck, IBasicConsumer consumer)
+        public static string BasicConsume(this IModel model, string queue, bool autoAck, IBasicConsumer consumer)
         {
-            return model.BasicConsume(queue, noAck, "", false, false, null, consumer);
+            return model.BasicConsume(queue, autoAck, "", false, false, null, consumer);
         }
 
         /// <summary>Start a Basic content-class consumer.</summary>
         public static string BasicConsume(this IModel model, string queue,
-            bool noAck,
+            bool autoAck,
             string consumerTag,
             IBasicConsumer consumer)
         {
-            return model.BasicConsume(queue, noAck, consumerTag, false, false, null, consumer);
+            return model.BasicConsume(queue, autoAck, consumerTag, false, false, null, consumer);
         }
 
         /// <summary>Start a Basic content-class consumer.</summary>
         public static string BasicConsume(this IModel model, string queue,
-            bool noAck,
+            bool autoAck,
             string consumerTag,
             IDictionary<string, object> arguments,
             IBasicConsumer consumer)
         {
-            return model.BasicConsume(queue, noAck, consumerTag, false, false, arguments, consumer);
+            return model.BasicConsume(queue, autoAck, consumerTag, false, false, arguments, consumer);
         }
 
         /// <summary>

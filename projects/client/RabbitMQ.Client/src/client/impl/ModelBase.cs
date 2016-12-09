@@ -1029,13 +1029,13 @@ namespace RabbitMQ.Client.Impl
         public abstract void _Private_BasicConsume(string queue,
             string consumerTag,
             bool noLocal,
-            bool noAck,
+            bool autoAck,
             bool exclusive,
             bool nowait,
             IDictionary<string, object> arguments);
 
         public abstract void _Private_BasicGet(string queue,
-            bool noAck);
+            bool autoAck);
 
         public abstract void _Private_BasicPublish(string exchange,
             string routingKey,
@@ -1152,7 +1152,7 @@ namespace RabbitMQ.Client.Impl
         }
 
         public string BasicConsume(string queue,
-            bool noAck,
+            bool autoAck,
             string consumerTag,
             bool noLocal,
             bool exclusive,
@@ -1165,7 +1165,7 @@ namespace RabbitMQ.Client.Impl
             Enqueue(k);
             // Non-nowait. We have an unconventional means of getting
             // the RPC response, but a response is still expected.
-            _Private_BasicConsume(queue, consumerTag, noLocal, noAck, exclusive,
+            _Private_BasicConsume(queue, consumerTag, noLocal, autoAck, exclusive,
                 /*nowait:*/ false, arguments);
             k.GetReply(this.ContinuationTimeout);
             string actualConsumerTag = k.m_consumerTag;
@@ -1174,11 +1174,11 @@ namespace RabbitMQ.Client.Impl
         }
 
         public BasicGetResult BasicGet(string queue,
-            bool noAck)
+            bool autoAck)
         {
             var k = new BasicGetRpcContinuation();
             Enqueue(k);
-            _Private_BasicGet(queue, noAck);
+            _Private_BasicGet(queue, autoAck);
             k.GetReply(this.ContinuationTimeout);
             return k.m_result;
         }

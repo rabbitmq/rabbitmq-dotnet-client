@@ -65,7 +65,7 @@ namespace RabbitMQ.Client.MessagePatterns
         void Nack(bool requeue);
         BasicDeliverEventArgs Next();
         bool Next(int millisecondsTimeout, out BasicDeliverEventArgs result);
-        bool NoAck { get; }
+        bool AutoAck { get; }
         string QueueName { get; }
     }
 }

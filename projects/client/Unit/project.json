@@ -3,7 +3,7 @@
   "dependencies": {
     "NUnit": "3.4.1",
     "RabbitMQ.Client": "*",
-    "dotnet-test-nunit": "3.4.0-beta-2"
+    "dotnet-test-nunit": "3.4.0-beta-3"
   },
   "testRunner": "nunit",
   "frameworks": {

@@ -196,7 +196,7 @@ namespace RabbitMQ.Client
         [AmqpMethodDoNotImplement(null)]
         string BasicConsume(
             string queue,
-            bool noAck,
+            bool autoAck,
             string consumerTag,
             bool noLocal,
             bool exclusive,
@@ -209,7 +209,7 @@ namespace RabbitMQ.Client
         /// no messages are currently available. See also <see cref="IModel.BasicAck"/>.
         /// </summary>
         [AmqpMethodDoNotImplement(null)]
-        BasicGetResult BasicGet(string queue, bool noAck);
+        BasicGetResult BasicGet(string queue, bool autoAck);
 
         /// <summary>Reject one or more delivered message(s).</summary>
         void BasicNack(ulong deliveryTag, bool multiple, bool requeue);

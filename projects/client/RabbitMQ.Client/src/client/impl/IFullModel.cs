@@ -204,7 +204,7 @@ namespace RabbitMQ.Client.Impl
         void _Private_BasicConsume(string queue,
             string consumerTag,
             bool noLocal,
-            bool noAck,
+            [AmqpFieldMapping(null, "noAck")] bool autoAck,
             bool exclusive,
             bool nowait,
             IDictionary<string, object> arguments);
@@ -216,7 +216,7 @@ namespace RabbitMQ.Client.Impl
         [AmqpForceOneWay]
         [AmqpMethodMapping(null, "basic", "get")]
         void _Private_BasicGet(string queue,
-            bool noAck);
+            [AmqpFieldMapping(null, "noAck")] bool autoAck);
 
         ///<summary>Used to send a Basic.Publish method. Called by the
         ///public publish method after potential null-reference issues

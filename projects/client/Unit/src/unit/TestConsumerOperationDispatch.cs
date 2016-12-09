@@ -123,7 +123,7 @@ namespace RabbitMQ.Client.Unit
                 queues.Add(q);
                 var cons = new CollectingConsumer(ch);
                 consumers.Add(cons);
-                ch.BasicConsume(queue: q, noAck: false, consumer: cons);
+                ch.BasicConsume(queue: q, autoAck: false, consumer: cons);
             }
 
             for (int i = 0; i < n; i++)
@@ -207,7 +207,7 @@ namespace RabbitMQ.Client.Unit
             var q = this.Model.QueueDeclare().QueueName;
             var c = new ShutdownLatchConsumer(latch, duplicateLatch);
 
-            this.Model.BasicConsume(queue: q, noAck: true, consumer: c);
+            this.Model.BasicConsume(queue: q, autoAck: true, consumer: c);
             this.Model.Close();
             Wait(latch, TimeSpan.FromSeconds(5));
             Assert.IsFalse(duplicateLatch.WaitOne(TimeSpan.FromSeconds(5)),
