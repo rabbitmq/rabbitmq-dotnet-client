@@ -84,6 +84,12 @@ namespace RabbitMQ.Client.Unit
             Model = Conn.CreateModel();
         }
 
+        [TearDown]
+        public void CleanUp()
+        {
+            Conn.Close();
+        }
+
         [Test]
         public void TestBasicAckAfterChannelRecovery()
         {
@@ -190,7 +196,6 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        [Ignore("This test cause the test run to hang at the end.")]
         public void TestBasicConnectionRecoveryStopsAfterManualClose()
         {
             Assert.IsTrue(Conn.IsOpen);
