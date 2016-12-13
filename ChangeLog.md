@@ -1,3 +1,46 @@
+## Changes Between 4.1.1 and 5.0.0
+
+### noAck renamed to autoAck
+
+GitHub issue: [rabbitmq-dotnet-client#255](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/255)
+
+### Replace Console.WriteLine logging with EventSource
+
+GitHub issue: [rabbitmq-dotnet-client#94](https://github.com/rabbitmq/rabbitmq-dotnet-client/issue/94)
+
+### Ensure connection recovery does not keep going after the connection has been closed
+
+GitHub issue: [rabbitmq-dotnet-client#294](https://github.com/rabbitmq/rabbitmq-dotnet-client/issue/294)
+
+### Add events for connection recovery errors and connection success
+
+GitHub issue: [rabbitmq-dotnet-client#156](https://github.com/rabbitmq/rabbitmq-dotnet-client/issue/156)
+
+### Synchronize access to the manuallyClosed field in AutorecoveringConnection.
+
+GitHub issue: [rabbitmq-dotnet-client#291](https://github.com/rabbitmq/rabbitmq-dotnet-client/issue/291)
+
+### Use concurrent collections inside AutorecoveringConnection
+
+GitHub issue: [rabbitmq-dotnet-client#288](https://github.com/rabbitmq/rabbitmq-dotnet-client/issue/288)
+
+### Make uri and Uri setters in ConnectionFactory obsolete
+
+GitHub issue: [rabbitmq-dotnet-client#264](https://github.com/rabbitmq/rabbitmq-dotnet-client/issue/264)
+
+### Add property to allow an endpoint to specify the address family
+
+GitHub issue: [rabbitmq-dotnet-client#226](https://github.com/rabbitmq/rabbitmq-dotnet-client/issue/226)
+
+### Fix potential EventingBasicConsumer race condition
+
+GitHub issue: [rabbitmq-dotnet-client#242](https://github.com/rabbitmq/rabbitmq-dotnet-client/issue/242)
+
+### Enable connection recovery by default
+
+GitHub issue: [rabbitmq-dotnet-client#271](https://github.com/rabbitmq/rabbitmq-dotnet-client/issue/271)
+
+
 ## Changes Between 4.1.0 and 4.1.1
 
 ### Fixed XML Documentation Generation
