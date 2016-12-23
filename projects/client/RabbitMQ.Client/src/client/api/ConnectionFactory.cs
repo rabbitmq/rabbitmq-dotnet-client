@@ -142,6 +142,12 @@ namespace RabbitMQ.Client
         public const string DefaultVHost = "/";
 
         /// <summary>
+        /// Default capacity of the work pool buffer, with zero meaning unlimited (value: 100).
+        /// </summary>
+        /// <remarks> PLEASE KEEP THIS MATCHING THE DOC ABOVE.</remarks>
+        public const int DefaultWorkPoolCapacity = 100;
+
+        /// <summary>
         ///  Default SASL auth mechanisms to use.
         /// </summary>
         public static readonly IList<AuthMechanismFactory> DefaultAuthMechanisms =
@@ -187,6 +193,11 @@ namespace RabbitMQ.Client
             get { return m_continuationTimeout; }
             set { m_continuationTimeout = value; }
         }
+
+        /// <summary>
+        /// Amount of pending messages that can be buffered by the consumer work service before blocking.
+        /// </summary>
+        public int WorkPoolCapacity { get; set; } = DefaultWorkPoolCapacity;
 
         /// <summary>
         /// Factory function for creating the <see cref="IEndpointResolver"/>

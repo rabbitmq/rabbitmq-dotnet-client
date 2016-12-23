@@ -147,5 +147,10 @@ namespace RabbitMQ.Client
         /// timing out.
         /// </summary>
         TimeSpan ContinuationTimeout { get; set; }
+
+        /// <summary>
+        /// Amount of pending messages that can be buffered by the consumer work service before blocking.
+        /// </summary>
+        int WorkPoolCapacity { get; set; }
     }
 }
