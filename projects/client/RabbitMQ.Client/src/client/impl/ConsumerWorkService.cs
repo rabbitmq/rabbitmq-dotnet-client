@@ -6,7 +6,14 @@ namespace RabbitMQ.Client
 {
     public class ConsumerWorkService
     {
-        readonly ConcurrentDictionary<IModel, WorkPool> workPools = new ConcurrentDictionary<IModel, WorkPool>();
+        private readonly int workPoolCapacity;
+        private readonly ConcurrentDictionary<IModel, WorkPool> workPools;
+
+        public ConsumerWorkService(int workPoolCapacity)
+        {
+            this.workPoolCapacity = workPoolCapacity;
+            this.workPools = new ConcurrentDictionary<IModel, WorkPool>();
+        }
 
         public void AddWork(IModel model, Action fn)
         {
@@ -16,7 +23,7 @@ namespace RabbitMQ.Client
             WorkPool workPool;
             if (workPools.TryGetValue(model, out workPool) == false)
             {
-                var newWorkPool = new WorkPool(model);
+                var newWorkPool = new WorkPool(model, workPoolCapacity);
                 workPool = workPools.GetOrAdd(model, newWorkPool);
 
                 // start if it's only the workpool that has been just created
@@ -48,18 +55,21 @@ namespace RabbitMQ.Client
 
         class WorkPool
         {
-            readonly ConcurrentQueue<Action> actions;
-            readonly AutoResetEvent messageArrived;
-            readonly TimeSpan waitTime;
+            readonly BlockingCollection<Action> actions;
             readonly CancellationTokenSource tokenSource;
             readonly string name;
 
-            public WorkPool(IModel model)
+            public WorkPool(IModel model, int capacity)
             {
                 name = model.ToString();
-                actions = new ConcurrentQueue<Action>();
-                messageArrived = new AutoResetEvent(false);
-                waitTime = TimeSpan.FromMilliseconds(100);
+                if (capacity > 0)
+                {
+                    actions = new BlockingCollection<Action>(new ConcurrentQueue<Action>(), capacity);
+                }
+                else
+                {
+                    actions = new BlockingCollection<Action>(new ConcurrentQueue<Action>());
+                }
                 tokenSource = new CancellationTokenSource();
             }
 
@@ -79,16 +89,21 @@ namespace RabbitMQ.Client
 
             public void Enqueue(Action action)
             {
-                actions.Enqueue(action);
-                messageArrived.Set();
+                try
+                {
+                    actions.Add(action, tokenSource.Token);
+                }
+                catch (OperationCanceledException)
+                {
+
+                }
             }
 
             void Loop()
             {
-                while (tokenSource.IsCancellationRequested == false)
+                try
                 {
-                    Action action;
-                    while (actions.TryDequeue(out action))
+                    foreach (var action in actions.GetConsumingEnumerable(tokenSource.Token))
                     {
                         try
                         {
@@ -98,8 +113,9 @@ namespace RabbitMQ.Client
                         {
                         }
                     }
-
-                    messageArrived.WaitOne(waitTime);
+                }
+                catch (OperationCanceledException)
+                {
                 }
             }
 

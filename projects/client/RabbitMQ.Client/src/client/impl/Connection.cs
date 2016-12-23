@@ -120,7 +120,7 @@ namespace RabbitMQ.Client.Framing.Impl
             FrameMax = 0;
             m_factory = factory;
             m_frameHandler = frameHandler;
-            ConsumerWorkService = new ConsumerWorkService();
+            ConsumerWorkService = new ConsumerWorkService(factory.WorkPoolCapacity);
 
             m_sessionManager = new SessionManager(this, 0);
             m_session0 = new MainSession(this) { Handler = NotifyReceivedCloseOk };
