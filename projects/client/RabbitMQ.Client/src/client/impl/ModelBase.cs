@@ -96,7 +96,16 @@ namespace RabbitMQ.Client.Impl
 
         public ModelBase(ISession session, ConsumerWorkService workService)
         {
-            ConsumerDispatcher = new ConcurrentConsumerDispatcher(this, workService);
+            var asyncConnection = session.Connection as IAsyncConnection;
+            if (asyncConnection != null)
+            {
+                ConsumerDispatcher = new AsyncConsumerDispatcher(this, asyncConnection.AsyncConsumerWorkService);
+            }
+            else
+            {
+                ConsumerDispatcher = new ConcurrentConsumerDispatcher(this, workService);
+            }
+            
             Initialise(session);
         }
 
@@ -1159,6 +1168,16 @@ namespace RabbitMQ.Client.Impl
             IDictionary<string, object> arguments,
             IBasicConsumer consumer)
         {
+            var sessionConnection = Session.Connection as IAsyncConnection;
+            if (sessionConnection != null)
+            {
+                var asyncConsumer = consumer as IAsyncBasicConsumer;
+                if (asyncConsumer == null)
+                {
+                    // TODO: Friendly message
+                    throw new InvalidOperationException("In the async mode you have to use an async consumer");
+                }
+            }
 
             var k = new BasicConsumerRpcContinuation { m_consumer = consumer };
 

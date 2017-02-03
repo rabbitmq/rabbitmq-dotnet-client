@@ -158,6 +158,12 @@ namespace RabbitMQ.Client
         /// </summary>
         public bool AutomaticRecoveryEnabled { get; set; } = true;
 
+        /// <summary>
+        /// Set to true will enable a asynchronous consumer dispatcher which is compatible with <see cref="IAsyncBasicConsumer"/>.
+        /// Defaults to false.
+        /// </summary>
+        public bool DispatchConsumersAsync { get; set; } = false;
+
         /// <summary>The host to connect to.</summary>
         public string HostName { get; set; } = "localhost";
 
@@ -475,7 +481,7 @@ namespace RabbitMQ.Client
                 throw new BrokerUnreachableException(e);
             }
 
-            return conn;
+            return DispatchConsumersAsync ? new AsyncConnectionDecorator(conn) : conn;
         }
 
         public IFrameHandler CreateFrameHandler()
