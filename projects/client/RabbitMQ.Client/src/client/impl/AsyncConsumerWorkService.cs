@@ -10,7 +10,8 @@ namespace RabbitMQ.Client
     {
         readonly ConcurrentDictionary<IModel, WorkPool> workPools = new ConcurrentDictionary<IModel, WorkPool>();
 
-        public void Schedule(ModelBase model, Work work)
+        public void Schedule<TWork>(ModelBase model, TWork work)
+            where TWork : Work
         {
             // two step approach is taken, as TryGetValue does not aquire locks
             // if this fails, GetOrAdd is called, which takes a lock

@@ -69,7 +69,8 @@
             new ModelShutdown(consumer,reason).Execute(model).GetAwaiter().GetResult();
         }
 
-        private void ScheduleUnlessShuttingDown(Work work)
+        private void ScheduleUnlessShuttingDown<TWork>(TWork work) 
+            where TWork : Work
         {
             if (!this.IsShutdown)
             {
@@ -77,7 +78,8 @@
             }
         }
 
-        private void Schedule(Work work)
+        private void Schedule<TWork>(TWork work)
+            where TWork : Work
         {
             this.workService.Schedule(this.model, work);
         }
