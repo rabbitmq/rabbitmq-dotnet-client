@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using RabbitMQ.Client.Events;
-
-namespace RabbitMQ.Client.Impl
+﻿namespace RabbitMQ.Client.Impl
 {
     internal class AsyncConsumerDispatcher : IConsumerDispatcher
     {
-        private ModelBase model;
-        private AsyncConsumerWorkService workService;
+        private readonly ModelBase model;
+        private readonly AsyncConsumerWorkService workService;
 
         public AsyncConsumerDispatcher(ModelBase model, AsyncConsumerWorkService ws)
         {
@@ -43,22 +38,7 @@ namespace RabbitMQ.Client.Impl
         public void HandleBasicConsumeOk(IBasicConsumer consumer,
             string consumerTag)
         {
-            UnlessShuttingDown(async () =>
-            {
-                try
-                {
-                    await ((IAsyncBasicConsumer)consumer).HandleBasicConsumeOk(consumerTag).ConfigureAwait(false);
-                }
-                catch (Exception e)
-                {
-                    var details = new Dictionary<string, object>()
-                    {
-                        {"consumer", consumer},
-                        {"context",  "HandleBasicConsumeOk"}
-                    };
-                    model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
-                }
-            });
+            ScheduleUnlessShuttingDown(new BasicConsumeOk(consumer, consumerTag));
         }
 
         public void HandleBasicDeliver(IBasicConsumer consumer,
@@ -70,99 +50,36 @@ namespace RabbitMQ.Client.Impl
             IBasicProperties basicProperties,
             byte[] body)
         {
-            UnlessShuttingDown(async () =>
-            {
-                try
-                {
-                    await ((IAsyncBasicConsumer)consumer).HandleBasicDeliver(consumerTag,
-                        deliveryTag,
-                        redelivered,
-                        exchange,
-                        routingKey,
-                        basicProperties,
-                        body).ConfigureAwait(false);
-                }
-                catch (Exception e)
-                {
-                    var details = new Dictionary<string, object>()
-                    {
-                        {"consumer", consumer},
-                        {"context",  "HandleBasicDeliver"}
-                    };
-                    model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
-                }
-            });
+            ScheduleUnlessShuttingDown(new BasicDeliver(consumer, consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body));
         }
 
         public void HandleBasicCancelOk(IBasicConsumer consumer, string consumerTag)
         {
-            UnlessShuttingDown(async () =>
-            {
-                try
-                {
-                    await ((IAsyncBasicConsumer)consumer).HandleBasicCancelOk(consumerTag);
-                }
-                catch (Exception e)
-                {
-                    var details = new Dictionary<string, object>()
-                    {
-                        {"consumer", consumer},
-                        {"context",  "HandleBasicCancelOk"}
-                    };
-                    model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
-                }
-            });
+            ScheduleUnlessShuttingDown(new BasicCancelOk(consumer, consumerTag));
         }
 
         public void HandleBasicCancel(IBasicConsumer consumer, string consumerTag)
         {
-            UnlessShuttingDown(async () =>
-            {
-                try
-                {
-                    await ((IAsyncBasicConsumer)consumer).HandleBasicCancel(consumerTag).ConfigureAwait(false);
-                }
-                catch (Exception e)
-                {
-                    var details = new Dictionary<string, object>()
-                    {
-                        {"consumer", consumer},
-                        {"context",  "HandleBasicCancel"}
-                    };
-                    model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
-                }
-            });
+            ScheduleUnlessShuttingDown(new BasicCancel(consumer, consumerTag));
         }
 
         public void HandleModelShutdown(IBasicConsumer consumer, ShutdownEventArgs reason)
         {
             // the only case where we ignore the shutdown flag.
-            try
-            {
-                ((IAsyncBasicConsumer)consumer).HandleModelShutdown(model, reason).GetAwaiter().GetResult();
-            }
-            catch (Exception e)
-            {
-                var details = new Dictionary<string, object>()
-                {
-                    {"consumer", consumer},
-                    {"context",  "HandleModelShutdown"}
-                };
-                model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
-            };
+            new ModelShutdown(consumer,reason).Execute(model).GetAwaiter().GetResult();
         }
 
-        private void UnlessShuttingDown(Func<Task> fn)
+        private void ScheduleUnlessShuttingDown(Work work)
         {
             if (!this.IsShutdown)
             {
-                Execute(fn);
+                Schedule(work);
             }
         }
 
-        private void Execute(Func<Task> fn)
+        private void Schedule(Work work)
         {
-            this.workService.AddWork(this.model, fn);
+            this.workService.Schedule(this.model, work);
         }
     }
 }

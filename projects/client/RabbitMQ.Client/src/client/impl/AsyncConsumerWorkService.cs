@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
 {
@@ -9,7 +10,7 @@ namespace RabbitMQ.Client
     {
         readonly ConcurrentDictionary<IModel, WorkPool> workPools = new ConcurrentDictionary<IModel, WorkPool>();
 
-        public void AddWork(IModel model, Func<Task> fn)
+        public void Schedule(ModelBase model, Work work)
         {
             // two step approach is taken, as TryGetValue does not aquire locks
             // if this fails, GetOrAdd is called, which takes a lock
@@ -17,7 +18,7 @@ namespace RabbitMQ.Client
             WorkPool workPool;
             if (workPools.TryGetValue(model, out workPool) == false)
             {
-                var newWorkPool = new WorkPool();
+                var newWorkPool = new WorkPool(model);
                 workPool = workPools.GetOrAdd(model, newWorkPool);
 
                 // start if it's only the workpool that has been just created
@@ -27,7 +28,7 @@ namespace RabbitMQ.Client
                 }
             }
 
-            workPool.Enqueue(fn);
+            workPool.Enqueue(work);
         }
 
         public async Task StopWork(IModel model)
@@ -49,15 +50,17 @@ namespace RabbitMQ.Client
 
         class WorkPool
         {
-            readonly ConcurrentQueue<Func<Task>> actions;
+            readonly ConcurrentQueue<Work> workQueue;
             readonly TimeSpan waitTime;
             readonly CancellationTokenSource tokenSource;
+            readonly ModelBase model;
             TaskCompletionSource<bool> messageArrived;
             private Task task;
 
-            public WorkPool()
+            public WorkPool(ModelBase model)
             {
-                actions = new ConcurrentQueue<Func<Task>>();
+                this.model = model;
+                workQueue = new ConcurrentQueue<Work>();
                 messageArrived = new TaskCompletionSource<bool>();
                 waitTime = TimeSpan.FromMilliseconds(100);
                 tokenSource = new CancellationTokenSource();
@@ -68,9 +71,9 @@ namespace RabbitMQ.Client
                 task = Task.Run(Loop, CancellationToken.None);
             }
 
-            public void Enqueue(Func<Task> action)
+            public void Enqueue(Work work)
             {
-                actions.Enqueue(action);
+                workQueue.Enqueue(work);
                 messageArrived.TrySetResult(true);
             }
 
@@ -78,16 +81,10 @@ namespace RabbitMQ.Client
             {
                 while (tokenSource.IsCancellationRequested == false)
                 {
-                    Func<Task> action;
-                    while (actions.TryDequeue(out action))
+                    Work work;
+                    while (workQueue.TryDequeue(out work))
                     {
-                        try
-                        {
-                            await action().ConfigureAwait(false);
-                        }
-                        catch (Exception)
-                        {
-                        }
+                        await work.Execute(model).ConfigureAwait(false);
                     }
 
                     await Task.WhenAny(Task.Delay(waitTime, tokenSource.Token), messageArrived.Task).ConfigureAwait(false);
