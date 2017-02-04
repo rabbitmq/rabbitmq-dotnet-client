@@ -5,7 +5,7 @@ using TaskExtensions = RabbitMQ.Client.Impl.TaskExtensions;
 
 namespace RabbitMQ.Client
 {
-    public class AsyncDefaultBasicConsumer : IAsyncBasicConsumer
+    public class AsyncDefaultBasicConsumer : IBasicConsumer, IAsyncBasicConsumer
     {
         public readonly object m_eventLock = new object();
         public AsyncEventHandler<ConsumerEventArgs> m_consumerCancelled;
@@ -160,6 +160,37 @@ namespace RabbitMQ.Client
                     await h(this, new ConsumerEventArgs(ConsumerTag)).ConfigureAwait(false);
                 }
             }
+        }
+
+        event EventHandler<ConsumerEventArgs> IBasicConsumer.ConsumerCancelled
+        {
+            add { throw new InvalidOperationException("Should never be called."); }
+            remove { throw new InvalidOperationException("Should never be called."); }
+        }
+
+        void IBasicConsumer.HandleBasicCancelOk(string consumerTag)
+        {
+            throw new InvalidOperationException("Should never be called.");
+        }
+
+        void IBasicConsumer.HandleBasicConsumeOk(string consumerTag)
+        {
+            throw new InvalidOperationException("Should never be called.");
+        }
+
+        void IBasicConsumer.HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, IBasicProperties properties, byte[] body)
+        {
+            throw new InvalidOperationException("Should never be called.");
+        }
+
+        void IBasicConsumer.HandleModelShutdown(object model, ShutdownEventArgs reason)
+        {
+            throw new InvalidOperationException("Should never be called.");
+        }
+
+        void IBasicConsumer.HandleBasicCancel(string consumerTag)
+        {
+            throw new InvalidOperationException("Should never be called.");
         }
     }
 }
