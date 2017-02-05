@@ -7,9 +7,6 @@ namespace RabbitMQ.Client
 {
     public class AsyncDefaultBasicConsumer : IBasicConsumer, IAsyncBasicConsumer
     {
-        public readonly object m_eventLock = new object();
-        public AsyncEventHandler<ConsumerEventArgs> m_consumerCancelled;
-
         /// <summary>
         /// Creates a new instance of an <see cref="DefaultBasicConsumer"/>.
         /// </summary>
@@ -53,23 +50,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Signalled when the consumer gets cancelled.
         /// </summary>
-        public event AsyncEventHandler<ConsumerEventArgs> ConsumerCancelled
-        {
-            add
-            {
-                lock (m_eventLock)
-                {
-                    m_consumerCancelled += value;
-                }
-            }
-            remove
-            {
-                lock (m_eventLock)
-                {
-                    m_consumerCancelled -= value;
-                }
-            }
-        }
+        public event AsyncEventHandler<ConsumerEventArgs> ConsumerCancelled;
 
         /// <summary>
         /// Retrieve the <see cref="IModel"/> this consumer is associated with,
@@ -83,18 +64,18 @@ namespace RabbitMQ.Client
         ///  See <see cref="HandleBasicCancelOk"/> for notification of consumer cancellation due to basicCancel
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        public virtual async Task HandleBasicCancel(string consumerTag)
+        public virtual Task HandleBasicCancel(string consumerTag)
         {
-            await OnCancel().ConfigureAwait(false);
+            return OnCancel();
         }
 
         /// <summary>
         /// Called upon successful deregistration of the consumer from the broker.
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        public virtual async Task HandleBasicCancelOk(string consumerTag)
+        public virtual Task HandleBasicCancelOk(string consumerTag)
         {
-            await OnCancel().ConfigureAwait(false);
+            return OnCancel();
         }
 
         /// <summary>
@@ -133,10 +114,10 @@ namespace RabbitMQ.Client
         ///  </summary>
         ///  <param name="model"> Common AMQP model.</param>
         /// <param name="reason"> Information about the reason why a particular model, session, or connection was destroyed.</param>
-        public virtual async Task HandleModelShutdown(object model, ShutdownEventArgs reason)
+        public virtual Task HandleModelShutdown(object model, ShutdownEventArgs reason)
         {
             ShutdownReason = reason;
-            await OnCancel().ConfigureAwait(false);
+            return OnCancel();
         }
 
         /// <summary>
@@ -148,11 +129,7 @@ namespace RabbitMQ.Client
         public virtual async Task OnCancel()
         {
             IsRunning = false;
-            AsyncEventHandler<ConsumerEventArgs> handler;
-            lock (m_eventLock)
-            {
-                handler = m_consumerCancelled;
-            }
+            var handler = ConsumerCancelled;
             if (handler != null)
             {
                 foreach (AsyncEventHandler<ConsumerEventArgs> h in handler.GetInvocationList())
