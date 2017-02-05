@@ -120,7 +120,16 @@ namespace RabbitMQ.Client.Framing.Impl
             FrameMax = 0;
             m_factory = factory;
             m_frameHandler = frameHandler;
-            ConsumerWorkService = new ConsumerWorkService();
+
+            var asyncConnectionFactory = factory as IAsyncConnectionFactory;
+            if (asyncConnectionFactory != null && asyncConnectionFactory.DispatchConsumersAsync)
+            {
+                ConsumerWorkService = new AsyncConsumerWorkService();
+            }
+            else
+            {
+                ConsumerWorkService = new ConsumerWorkService();
+            }
 
             m_sessionManager = new SessionManager(this, 0);
             m_session0 = new MainSession(this) { Handler = NotifyReceivedCloseOk };

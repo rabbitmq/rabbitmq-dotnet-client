@@ -131,11 +131,6 @@ namespace RabbitMQ.Client.Framing.Impl
             bool insist,
             IFrameHandler frameHandler)
         {
-            var connectionFactory = factory as IAsyncConnectionFactory;
-            if (connectionFactory != null && connectionFactory.DispatchConsumersAsync)
-            {
-                return new AsyncConnection(factory, insist, frameHandler, null);
-            } 
             return new Connection(factory, insist, frameHandler, null);
         }
 
@@ -145,11 +140,6 @@ namespace RabbitMQ.Client.Framing.Impl
             IFrameHandler frameHandler,
             string clientProvidedName)
         {
-            var connectionFactory = factory as IAsyncConnectionFactory;
-            if (connectionFactory != null && connectionFactory.DispatchConsumersAsync)
-            {
-                return new AsyncConnection(factory, insist, frameHandler, clientProvidedName);
-            }
             return new Connection(factory, insist, frameHandler, clientProvidedName);
         }
 

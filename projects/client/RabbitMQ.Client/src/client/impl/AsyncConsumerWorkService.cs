@@ -6,7 +6,7 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
 {
-    internal class AsyncConsumerWorkService
+    internal class AsyncConsumerWorkService : ConsumerWorkService
     {
         readonly ConcurrentDictionary<IModel, WorkPool> workPools = new ConcurrentDictionary<IModel, WorkPool>();
 
@@ -32,7 +32,7 @@ namespace RabbitMQ.Client
             workPool.Enqueue(work);
         }
 
-        public async Task StopWork(IModel model)
+        public async Task Stop(IModel model)
         {
             WorkPool workPool;
             if (workPools.TryRemove(model, out workPool))
@@ -41,11 +41,11 @@ namespace RabbitMQ.Client
             }
         }
 
-        public async Task StopWork()
+        public async Task Stop()
         {
             foreach (var model in workPools.Keys)
             {
-                await StopWork(model).ConfigureAwait(false);
+                await Stop(model).ConfigureAwait(false);
             }
         }
 

@@ -20,13 +20,13 @@
         public void Shutdown()
         {
             // necessary evil
-            this.workService.StopWork().GetAwaiter().GetResult();
+            this.workService.Stop().GetAwaiter().GetResult();
         }
 
         public void Shutdown(IModel model)
         {
             // necessary evil
-            this.workService.StopWork(model).GetAwaiter().GetResult();
+            this.workService.Stop(model).GetAwaiter().GetResult();
         }
 
         public bool IsShutdown

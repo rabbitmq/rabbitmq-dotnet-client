@@ -12,15 +12,15 @@ namespace RabbitMQ.Client.Impl
             asyncConsumer = (IAsyncBasicConsumer)consumer;
         }
 
-        public Task Execute(ModelBase model)
+        public async Task Execute(ModelBase model)
         {
             try
             {
-                return Execute(model, asyncConsumer);
+                await Execute(model, asyncConsumer).ConfigureAwait(false);
             }
             catch (Exception)
             {
-                return TaskExtensions.CompletedTask;
+               // intentionally caught
             }
         }
 

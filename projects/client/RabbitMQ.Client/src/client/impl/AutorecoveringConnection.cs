@@ -626,8 +626,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void Init(IFrameHandler fh)
         {
-            m_delegate = m_factory.DispatchConsumersAsync ? new AsyncConnection(m_factory, false, fh, this.ClientProvidedName) 
-                : new Connection(m_factory, false, fh, this.ClientProvidedName);
+            m_delegate = new Connection(m_factory, false,
+                fh, this.ClientProvidedName);
 
             AutorecoveringConnection self = this;
             EventHandler<ShutdownEventArgs> recoveryListener = (_, args) =>
@@ -831,8 +831,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 try
                 {
                     var fh = endpoints.SelectOne(m_factory.CreateFrameHandler);
-                    m_delegate = m_factory.DispatchConsumersAsync ? new AsyncConnection(m_factory, false, fh, this.ClientProvidedName)
-                        : new Connection(m_factory, false, fh, this.ClientProvidedName);
+                    m_delegate = new Connection(m_factory, false, fh, this.ClientProvidedName);
                     return true;
                 }
                 catch (Exception e)

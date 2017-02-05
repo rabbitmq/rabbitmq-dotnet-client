@@ -96,10 +96,10 @@ namespace RabbitMQ.Client.Impl
 
         public ModelBase(ISession session, ConsumerWorkService workService)
         {
-            var asyncConnection = session.Connection as IAsyncConnection;
-            if (asyncConnection != null)
+            var asyncConsumerWorkService = workService as AsyncConsumerWorkService;
+            if (asyncConsumerWorkService != null)
             {
-                ConsumerDispatcher = new AsyncConsumerDispatcher(this, asyncConnection.AsyncConsumerWorkService);
+                ConsumerDispatcher = new AsyncConsumerDispatcher(this, asyncConsumerWorkService);
             }
             else
             {
@@ -1168,8 +1168,9 @@ namespace RabbitMQ.Client.Impl
             IDictionary<string, object> arguments,
             IBasicConsumer consumer)
         {
-            var sessionConnection = Session.Connection as IAsyncConnection;
-            if (sessionConnection != null)
+            // TODO: Replace with flag
+            var asyncDispatcher = ConsumerDispatcher as AsyncConsumerDispatcher;
+            if (asyncDispatcher != null)
             {
                 var asyncConsumer = consumer as IAsyncBasicConsumer;
                 if (asyncConsumer == null)
