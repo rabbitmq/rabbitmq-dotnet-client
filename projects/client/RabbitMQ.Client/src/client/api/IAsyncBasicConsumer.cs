@@ -12,11 +12,6 @@ namespace RabbitMQ.Client
         IModel Model { get; }
 
         /// <summary>
-        /// Signalled when the consumer gets cancelled.
-        /// </summary>
-        event AsyncEventHandler<ConsumerEventArgs> ConsumerCancelled;
-
-        /// <summary>
         ///  Called when the consumer is cancelled for reasons other than by a basicCancel:
         ///  e.g. the queue has been deleted (either by this channel or  by any other channel).
         ///  See <see cref="HandleBasicCancelOk"/> for notification of consumer cancellation due to basicCancel

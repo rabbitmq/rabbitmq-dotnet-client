@@ -10,36 +10,29 @@ namespace RabbitMQ.Client.Events
         ///given value.</summary>
         public AsyncEventingBasicConsumer(IModel model) : base(model)
         {
+            Received = (model1, args) => TaskExtensions.CompletedTask;
+            Registered = (model1, args) => TaskExtensions.CompletedTask;
+            Unregistered = (model1, args) => TaskExtensions.CompletedTask;
+            Shutdown = (model1, args) => TaskExtensions.CompletedTask;
         }
 
-        ///<summary>Event fired on HandleBasicDeliver.</summary>
-        public event AsyncEventHandler<BasicDeliverEventArgs> Received;
+        public Func<IModel, BasicDeliverEventArgs, Task> Received { get; set; }
 
-        ///<summary>Event fired on HandleBasicConsumeOk.</summary>
-        public event AsyncEventHandler<ConsumerEventArgs> Registered;
+        public Func<IModel, ConsumerEventArgs, Task> Registered { get; set; }
+        public Func<IModel, ConsumerEventArgs, Task> Unregistered { get; set; }
+        public Func<IModel, ShutdownEventArgs, Task> Shutdown { get; set; }
 
-        ///<summary>Event fired on HandleModelShutdown.</summary>
-        public event AsyncEventHandler<ShutdownEventArgs> Shutdown;
-
-        ///<summary>Event fired on HandleBasicCancelOk.</summary>
-        public event AsyncEventHandler<ConsumerEventArgs> Unregistered;
-
-        ///<summary>Fires the Unregistered event.</summary>
-        public override async Task HandleBasicCancelOk(string consumerTag)
+        public override Task HandleBasicCancelOk(string consumerTag)
         {
-            await base.HandleBasicCancelOk(consumerTag).ConfigureAwait(false);
-            await Raise(Unregistered, new ConsumerEventArgs(consumerTag)).ConfigureAwait(false);
+            return base.HandleBasicCancelOk(consumerTag).ContinueWith(t => Unregistered(Model, new ConsumerEventArgs(consumerTag))).Unwrap();
         }
 
-        ///<summary>Fires the Registered event.</summary>
-        public override async Task HandleBasicConsumeOk(string consumerTag)
+        public override Task HandleBasicConsumeOk(string consumerTag)
         {
-            await base.HandleBasicConsumeOk(consumerTag).ConfigureAwait(false);
-            await Raise(Registered, new ConsumerEventArgs(consumerTag)).ConfigureAwait(false);
+            return base.HandleBasicCancelOk(consumerTag).ContinueWith(t => Registered(Model, new ConsumerEventArgs(consumerTag))).Unwrap();
         }
 
-        ///<summary>Fires the Received event.</summary>
-        public override async Task HandleBasicDeliver(string consumerTag,
+        public override Task HandleBasicDeliver(string consumerTag,
             ulong deliveryTag,
             bool redelivered,
             string exchange,
@@ -47,38 +40,14 @@ namespace RabbitMQ.Client.Events
             IBasicProperties properties,
             byte[] body)
         {
-            await base.HandleBasicDeliver(consumerTag,
-                deliveryTag,
-                redelivered,
-                exchange,
-                routingKey,
-                properties,
-                body).ConfigureAwait(false);
-            await Raise(Received, new BasicDeliverEventArgs(consumerTag,
-                deliveryTag,
-                redelivered,
-                exchange,
-                routingKey,
-                properties,
-                body)).ConfigureAwait(false);
+            return base.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body)
+                .ContinueWith(t => Received(Model, new BasicDeliverEventArgs(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body)))
+                .Unwrap();
         }
 
-        ///<summary>Fires the Shutdown event.</summary>
-        public override async Task HandleModelShutdown(object model, ShutdownEventArgs reason)
+        public override Task HandleModelShutdown(object model, ShutdownEventArgs reason)
         {
-            await base.HandleModelShutdown(model, reason).ConfigureAwait(false);
-            await Raise(Shutdown, reason).ConfigureAwait(false);
-        }
-
-        private Task Raise<TEvent>(AsyncEventHandler<TEvent> eventHandler, TEvent evt) 
-            where TEvent : EventArgs
-        {
-            var handler = eventHandler;
-            if (handler != null)
-            {
-                return handler(this, evt);
-            }
-            return TaskExtensions.CompletedTask;
+            return base.HandleModelShutdown(model, reason).ContinueWith(t => Shutdown(Model, reason)).Unwrap();
         }
     }
 }

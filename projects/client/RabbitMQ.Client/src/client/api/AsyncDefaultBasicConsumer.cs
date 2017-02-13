@@ -8,7 +8,7 @@ namespace RabbitMQ.Client
     public class AsyncDefaultBasicConsumer : IBasicConsumer, IAsyncBasicConsumer
     {
         /// <summary>
-        /// Creates a new instance of an <see cref="DefaultBasicConsumer"/>.
+        /// Creates a new instance of an <see cref="AsyncDefaultBasicConsumer"/>.
         /// </summary>
         public AsyncDefaultBasicConsumer()
         {
@@ -34,7 +34,7 @@ namespace RabbitMQ.Client
         /// Retrieve the consumer tag this consumer is registered as; to be used when discussing this consumer
         /// with the server, for instance with <see cref="IModel.BasicCancel"/>.
         /// </summary>
-        public string ConsumerTag { get; set; }
+        public string ConsumerTag { get; protected set; }
 
         /// <summary>
         /// Returns true while the consumer is registered and expecting deliveries from the broker.
@@ -48,15 +48,10 @@ namespace RabbitMQ.Client
         public ShutdownEventArgs ShutdownReason { get; protected set; }
 
         /// <summary>
-        /// Signalled when the consumer gets cancelled.
-        /// </summary>
-        public event AsyncEventHandler<ConsumerEventArgs> ConsumerCancelled;
-
-        /// <summary>
         /// Retrieve the <see cref="IModel"/> this consumer is associated with,
         ///  for use in acknowledging received messages, for instance.
         /// </summary>
-        public IModel Model { get; set; }
+        public IModel Model { get; protected set; }
 
         /// <summary>
         ///  Called when the consumer is cancelled for reasons other than by a basicCancel:
@@ -66,7 +61,8 @@ namespace RabbitMQ.Client
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
         public virtual Task HandleBasicCancel(string consumerTag)
         {
-            return OnCancel();
+            IsRunning = false;
+            return TaskExtensions.CompletedTask;
         }
 
         /// <summary>
@@ -75,7 +71,8 @@ namespace RabbitMQ.Client
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
         public virtual Task HandleBasicCancelOk(string consumerTag)
         {
-            return OnCancel();
+            IsRunning = false;
+            return TaskExtensions.CompletedTask;
         }
 
         /// <summary>
@@ -97,15 +94,8 @@ namespace RabbitMQ.Client
         /// Note that in particular, some delivered messages may require acknowledgement via <see cref="IModel.BasicAck"/>.
         /// The implementation of this method in this class does NOT acknowledge such messages.
         /// </remarks>
-        public virtual Task HandleBasicDeliver(string consumerTag,
-            ulong deliveryTag,
-            bool redelivered,
-            string exchange,
-            string routingKey,
-            IBasicProperties properties,
-            byte[] body)
+        public virtual Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, IBasicProperties properties, byte[] body)
         {
-            // Nothing to do here.
             return TaskExtensions.CompletedTask;
         }
 
@@ -117,26 +107,7 @@ namespace RabbitMQ.Client
         public virtual Task HandleModelShutdown(object model, ShutdownEventArgs reason)
         {
             ShutdownReason = reason;
-            return OnCancel();
-        }
-
-        /// <summary>
-        /// Default implementation - overridable in subclasses.</summary>
-        /// <remarks>
-        /// This default implementation simply sets the <see cref="IsRunning"/> 
-        /// property to false, and takes no further action.
-        /// </remarks>
-        public virtual async Task OnCancel()
-        {
-            IsRunning = false;
-            var handler = ConsumerCancelled;
-            if (handler != null)
-            {
-                foreach (AsyncEventHandler<ConsumerEventArgs> h in handler.GetInvocationList())
-                {
-                    await h(this, new ConsumerEventArgs(ConsumerTag)).ConfigureAwait(false);
-                }
-            }
+            return TaskExtensions.CompletedTask;
         }
 
         event EventHandler<ConsumerEventArgs> IBasicConsumer.ConsumerCancelled
