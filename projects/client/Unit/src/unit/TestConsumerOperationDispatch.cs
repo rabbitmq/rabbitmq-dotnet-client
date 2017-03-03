@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using NUnit.Framework;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Framing;
 using System;
