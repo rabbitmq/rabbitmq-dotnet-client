@@ -1,6 +1,8 @@
 ## Changes Between 4.1.1 and 5.0.0
 
-GitHub issue: [rabbitmq-dotnet-client#242](https://github.com/rabbitmq/rabbitmq-dotnet-client/issue/242)
+### Async consumers
+
+GitHub PR: [rabbitmq-dotnet-client#307](https://github.com/rabbitmq/rabbitmq-dotnet-client/pulls/307)
 
 ### Enable connection recovery by default
 
