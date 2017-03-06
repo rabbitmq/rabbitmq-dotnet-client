@@ -60,7 +60,7 @@ namespace RabbitMQ.Client.Unit
     {
 
         [Test]
-        public async Task TestBasicRoundtrip()
+        public void TestBasicRoundtrip()
         {
             var cf = new ConnectionFactory{ DispatchConsumersAsync = true };
             using(var c = cf.CreateConnection())
@@ -71,20 +71,20 @@ namespace RabbitMQ.Client.Unit
                 var body = System.Text.Encoding.UTF8.GetBytes("async-hi");
                 m.BasicPublish("", q.QueueName, bp, body);
                 var consumer = new AsyncEventingBasicConsumer(m);
-                var sem = new SemaphoreSlim(0);
+                var are = new AutoResetEvent(false);
                 consumer.Received += async (o, a) =>
                     {
-                        sem.Release();
-                        await Task.FromResult(0);
+                        are.Set();
+                        await Task.Yield();
                     };
                 var tag = m.BasicConsume(q.QueueName, true, consumer);
                 // ensure we get a delivery
-                var waitRes = await sem.WaitAsync(2000);
+                var waitRes = are.WaitOne(2000);
                 Assert.IsTrue(waitRes);
                 // unsubscribe and ensure no further deliveries
                 m.BasicCancel(tag);
                 m.BasicPublish("", q.QueueName, bp, body);
-                var waitResFalse = await sem.WaitAsync(100);
+                var waitResFalse = are.WaitOne(2000);
                 Assert.IsFalse(waitResFalse);
             }
         }
