@@ -86,6 +86,13 @@ namespace RabbitMQ.Client
         /// </summary>
         string VirtualHost { get; set; }
 
+
+
+        /// <summary>
+        /// Sets the AMQP Uri to be used for connections.
+        /// </summary>
+        void SetUri(Uri uri);
+
         /// <summary>
         /// Given a list of mechanism names supported by the server, select a preferred mechanism,
         /// or null if we have none in common.

@@ -271,25 +271,6 @@ namespace RabbitMQ.Client
             }
         }
 
-
-        /// <summary>
-        /// Set connection parameters using the amqp or amqps scheme.
-        /// </summary>
-        [Obsolete("Deprecated: please use SetUri instead.")]
-        public String Uri
-        {
-            set { SetUri(new Uri(value, UriKind.Absolute)); }
-        }
-
-        /// <summary>
-        /// Set connection parameters using the amqp or amqps scheme.
-        /// </summary>
-        [Obsolete("Deprecated: please use SetUri instead.")]
-        public Uri uri
-        {
-            set { SetUri(value); }
-        }
-
         /// <summary>
         /// Dictionary of client properties to be sent to the server.
         /// </summary>
