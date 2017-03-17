@@ -463,7 +463,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             lock (m_recordedEntitiesLock)
             {
-                ((IDictionary<RecordedBinding, int>)m_recordedBindings).Remove(rb);
+                ((IDictionary<RecordedBinding, byte>)m_recordedBindings).Remove(rb);
             }
         }
 
