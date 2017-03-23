@@ -43,8 +43,8 @@ using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Impl;
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -53,6 +53,8 @@ namespace RabbitMQ.Client.Framing.Impl
     public class AutorecoveringConnection : IConnection, IRecoverable
     {
         public readonly object m_eventLock = new object();
+
+        public readonly object manuallyClosedLock = new object();
         protected Connection m_delegate;
         protected ConnectionFactory m_factory;
 
@@ -71,19 +73,20 @@ namespace RabbitMQ.Client.Framing.Impl
 
         protected List<AutorecoveringModel> m_models = new List<AutorecoveringModel>();
 
-        protected HashSet<RecordedBinding> m_recordedBindings = new HashSet<RecordedBinding>();
+        protected IDictionary<RecordedBinding, byte> m_recordedBindings =
+            new ConcurrentDictionary<RecordedBinding, byte>();
 
         protected List<EventHandler<ConnectionBlockedEventArgs>> m_recordedBlockedEventHandlers =
             new List<EventHandler<ConnectionBlockedEventArgs>>();
 
         protected IDictionary<string, RecordedConsumer> m_recordedConsumers =
-            new Dictionary<string, RecordedConsumer>();
+            new ConcurrentDictionary<string, RecordedConsumer>();
 
         protected IDictionary<string, RecordedExchange> m_recordedExchanges =
-            new Dictionary<string, RecordedExchange>();
+            new ConcurrentDictionary<string, RecordedExchange>();
 
         protected IDictionary<string, RecordedQueue> m_recordedQueues =
-            new Dictionary<string, RecordedQueue>();
+            new ConcurrentDictionary<string, RecordedQueue>();
 
         protected List<EventHandler<ShutdownEventArgs>> m_recordedShutdownEventHandlers =
             new List<EventHandler<ShutdownEventArgs>>();
@@ -99,6 +102,23 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             m_factory = factory;
             this.ClientProvidedName = clientProvidedName;
+        }
+
+        private bool ManuallyClosed
+        {
+            get
+            {
+                lock(manuallyClosedLock)
+                {
+                    return manuallyClosed;
+                }
+            }
+            set
+            {
+                lock(manuallyClosedLock)
+                {
+                    manuallyClosed = value; }
+                }
         }
 
         public event EventHandler<CallbackExceptionEventArgs> CallbackException
@@ -338,7 +358,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
                     recoveryTaskFactory.StartNew(() =>
                     {
-                        if(!self.manuallyClosed)
+                        if(!self.ManuallyClosed)
                         {
                             try
                             {
@@ -396,7 +416,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             lock (m_recordedEntitiesLock)
             {
-                m_recordedBindings.RemoveWhere(b => b.Equals(rb));
+                m_recordedBindings.Remove(rb);
             }
         }
 
@@ -423,11 +443,10 @@ namespace RabbitMQ.Client.Framing.Impl
 
                 // find bindings that need removal, check if some auto-delete exchanges
                 // might need the same
-                List<RecordedBinding> bs = m_recordedBindings.Where(b => name.Equals(b.Destination)).
-                                                              ToList();
-                m_recordedBindings.RemoveWhere(b => name.Equals(b.Destination));
+                var bs = m_recordedBindings.Keys.Where(b => name.Equals(b.Destination));
                 foreach (RecordedBinding b in bs)
                 {
+                    m_recordedBindings.Remove(b);
                     MaybeDeleteRecordedAutoDeleteExchange(b.Source);
                 }
             }
@@ -440,11 +459,10 @@ namespace RabbitMQ.Client.Framing.Impl
                 m_recordedQueues.Remove(name);
                 // find bindings that need removal, check if some auto-delete exchanges
                 // might need the same
-                List<RecordedBinding> bs = m_recordedBindings.Where(b => name.Equals(b.Destination)).
-                                                              ToList();
-                m_recordedBindings.RemoveWhere(b => name.Equals(b.Destination));
+                var bs = m_recordedBindings.Keys.Where(b => name.Equals(b.Destination));
                 foreach (RecordedBinding b in bs)
                 {
+                    m_recordedBindings.Remove(b);
                     MaybeDeleteRecordedAutoDeleteExchange(b.Source);
                 }
             }
@@ -466,7 +484,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             lock (m_recordedEntitiesLock)
             {
-                if (!HasMoreDestinationsBoundToExchange(m_recordedBindings, exchange))
+                if (!HasMoreDestinationsBoundToExchange(m_recordedBindings.Keys, exchange))
                 {
                     RecordedExchange rx;
                     m_recordedExchanges.TryGetValue(exchange, out rx);
@@ -503,7 +521,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             lock (m_recordedEntitiesLock)
             {
-                m_recordedBindings.Add(rb);
+                m_recordedBindings.Add(rb, 0);
             }
         }
 
@@ -601,56 +619,56 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection abort.</summary>
         public void Abort()
         {
-            this.manuallyClosed = true;
+            this.ManuallyClosed = true;
             m_delegate.Abort();
         }
 
         ///<summary>API-side invocation of connection abort.</summary>
         public void Abort(ushort reasonCode, string reasonText)
         {
-            this.manuallyClosed = true;
+            this.ManuallyClosed = true;
             m_delegate.Abort(reasonCode, reasonText);
         }
 
         ///<summary>API-side invocation of connection abort with timeout.</summary>
         public void Abort(int timeout)
         {
-            this.manuallyClosed = true;
+            this.ManuallyClosed = true;
             m_delegate.Abort(timeout);
         }
 
         ///<summary>API-side invocation of connection abort with timeout.</summary>
         public void Abort(ushort reasonCode, string reasonText, int timeout)
         {
-            this.manuallyClosed = true;
+            this.ManuallyClosed = true;
             m_delegate.Abort(reasonCode, reasonText, timeout);
         }
 
         ///<summary>API-side invocation of connection.close.</summary>
         public void Close()
         {
-            this.manuallyClosed = true;
+            this.ManuallyClosed = true;
             m_delegate.Close();
         }
 
         ///<summary>API-side invocation of connection.close.</summary>
         public void Close(ushort reasonCode, string reasonText)
         {
-            this.manuallyClosed = true;
+            this.ManuallyClosed = true;
             m_delegate.Close(reasonCode, reasonText);
         }
 
         ///<summary>API-side invocation of connection.close with timeout.</summary>
         public void Close(int timeout)
         {
-            this.manuallyClosed = true;
+            this.ManuallyClosed = true;
             m_delegate.Close(timeout);
         }
 
         ///<summary>API-side invocation of connection.close with timeout.</summary>
         public void Close(ushort reasonCode, string reasonText, int timeout)
         {
-            this.manuallyClosed = true;
+            this.ManuallyClosed = true;
             m_delegate.Close(reasonCode, reasonText, timeout);
         }
 
@@ -719,8 +737,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             lock (m_recordedBindings)
             {
-                IEnumerable<RecordedBinding> bs = m_recordedBindings.
-                    Where(b => b.Destination.Equals(oldName));
+                var bs = m_recordedBindings.Keys.Where(b => b.Destination.Equals(oldName));
                 foreach (RecordedBinding b in bs)
                 {
                     b.Destination = newName;
@@ -743,7 +760,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         protected void RecoverBindings()
         {
-            foreach (RecordedBinding b in m_recordedBindings)
+            foreach (var b in m_recordedBindings.Keys)
             {
                 try
                 {
@@ -815,8 +832,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         protected void RecoverConsumers()
         {
-            var dict = new Dictionary<string, RecordedConsumer>(m_recordedConsumers);
-            foreach (KeyValuePair<string, RecordedConsumer> pair in dict)
+            foreach (KeyValuePair<string, RecordedConsumer> pair in m_recordedConsumers)
             {
                 string tag = pair.Key;
                 RecordedConsumer cons = pair.Value;
@@ -903,8 +919,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             lock (m_recordedQueues)
             {
-                var rqs = new Dictionary<string, RecordedQueue>(m_recordedQueues);
-                foreach (KeyValuePair<string, RecordedQueue> pair in rqs)
+                foreach (KeyValuePair<string, RecordedQueue> pair in m_recordedQueues)
                 {
                     string oldName = pair.Key;
                     RecordedQueue rq = pair.Value;

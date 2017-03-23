@@ -68,22 +68,14 @@ namespace RabbitMQ.Client.Events
         public override void HandleBasicCancelOk(string consumerTag)
         {
             base.HandleBasicCancelOk(consumerTag);
-
-            if (Unregistered != null)
-            {
-                Unregistered(this, new ConsumerEventArgs(consumerTag));
-            }
+            Raise(Unregistered, new ConsumerEventArgs(consumerTag));
         }
 
         ///<summary>Fires the Registered event.</summary>
         public override void HandleBasicConsumeOk(string consumerTag)
         {
             base.HandleBasicConsumeOk(consumerTag);
-
-            if (Registered != null)
-            {
-                Registered(this, new ConsumerEventArgs(consumerTag));
-            }
+            Raise(Registered, new ConsumerEventArgs(consumerTag));
         }
 
         ///<summary>Fires the Received event.</summary>
@@ -102,26 +94,28 @@ namespace RabbitMQ.Client.Events
                 routingKey,
                 properties,
                 body);
-            if (Received != null)
-            {
-                Received(this, new BasicDeliverEventArgs(consumerTag,
-                    deliveryTag,
-                    redelivered,
-                    exchange,
-                    routingKey,
-                    properties,
-                    body));
-            }
+            Raise(Received, new BasicDeliverEventArgs(consumerTag,
+                                            deliveryTag,
+                                            redelivered,
+                                            exchange,
+                                            routingKey,
+                                            properties,
+                                            body));
         }
 
         ///<summary>Fires the Shutdown event.</summary>
         public override void HandleModelShutdown(object model, ShutdownEventArgs reason)
         {
             base.HandleModelShutdown(model, reason);
+            Raise(Shutdown, reason);
+        }
 
-            if (Shutdown != null)
+        private void Raise<TEvent>(EventHandler<TEvent> eventHandler, TEvent evt)
+        {
+            var handler = eventHandler;
+            if(handler != null)
             {
-                Shutdown(this, reason);
+                handler(this, evt);
             }
         }
     }
