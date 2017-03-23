@@ -1,3 +1,22 @@
+## Changes Between 4.1.1 and 4.1.2
+
+### Synchronize access to the manuallyClosed field in AutorecoveringConnection
+
+GitHub issue: [rabbitmq-dotnet-client#291](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/291)
+
+### Use concurrent collections inside AutorecoveringConnection
+
+GitHub issue: [rabbitmq-dotnet-client#288](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/288)
+
+### Handle potential NullReferenceException in HeartbeatReadTimerCallback
+
+GitHub issue: [rabbitmq-dotnet-client#257](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/257)
+
+### Fix potential EventingBasicConsumer race condition
+
+GitHub issue: [rabbitmq-dotnet-client#242](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/242)
+
+
 ## Changes Between 4.1.0 and 4.1.1
 
 ### Fixed XML Documentation Generation
