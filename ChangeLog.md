@@ -1,6 +1,6 @@
 ## Changes Between 4.1.2 and 4.1.3
 
-### Backport exchange bind fix from mastter
+### Backport exchange bind fix from master
 
 GitHub issue: [rabbitmq-dotnet-client#317](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/317)
 
