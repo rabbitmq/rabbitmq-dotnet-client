@@ -1,3 +1,9 @@
+## Changes Between 4.1.2 and 4.1.3
+
+### Backport exchange bind fix from mastter
+
+GitHub issue: [rabbitmq-dotnet-client#317](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/317)
+
 ## Changes Between 4.1.1 and 4.1.2
 
 ### Synchronize access to the manuallyClosed field in AutorecoveringConnection
