@@ -73,7 +73,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         protected List<AutorecoveringModel> m_models = new List<AutorecoveringModel>();
 
-        protected IDictionary<RecordedBinding, byte> m_recordedBindings =
+        protected ConcurrentDictionary<RecordedBinding, byte> m_recordedBindings =
             new ConcurrentDictionary<RecordedBinding, byte>();
 
         protected List<EventHandler<ConnectionBlockedEventArgs>> m_recordedBlockedEventHandlers =
@@ -416,7 +416,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             lock (m_recordedEntitiesLock)
             {
-                m_recordedBindings.Remove(rb);
+                ((IDictionary<RecordedBinding, byte>)m_recordedBindings).Remove(rb);
             }
         }
 
@@ -446,7 +446,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 var bs = m_recordedBindings.Keys.Where(b => name.Equals(b.Destination));
                 foreach (RecordedBinding b in bs)
                 {
-                    m_recordedBindings.Remove(b);
+                    DeleteRecordedBinding(b);
                     MaybeDeleteRecordedAutoDeleteExchange(b.Source);
                 }
             }
@@ -462,7 +462,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 var bs = m_recordedBindings.Keys.Where(b => name.Equals(b.Destination));
                 foreach (RecordedBinding b in bs)
                 {
-                    m_recordedBindings.Remove(b);
+                    DeleteRecordedBinding(b);
                     MaybeDeleteRecordedAutoDeleteExchange(b.Source);
                 }
             }
@@ -521,7 +521,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             lock (m_recordedEntitiesLock)
             {
-                m_recordedBindings.Add(rb, 0);
+                m_recordedBindings.TryAdd(rb, 0);
             }
         }
 
