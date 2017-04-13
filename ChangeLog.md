@@ -2,7 +2,7 @@
 
 ### Async consumers
 
-GitHub PR: [rabbitmq-dotnet-client#307](https://github.com/rabbitmq/rabbitmq-dotnet-client/pulls/307)
+GitHub PR: [rabbitmq-dotnet-client#307](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/307)
 
 ### Enable connection recovery by default
 
