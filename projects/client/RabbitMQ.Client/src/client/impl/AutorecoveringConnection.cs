@@ -940,9 +940,25 @@ namespace RabbitMQ.Client.Framing.Impl
             // 2. Recover queues
             // 3. Recover bindings
             // 4. Recover consumers
-            RecoverExchanges();
-            RecoverQueues();
-            RecoverBindings();
+
+            using (var recoveryModel = new AutorecoveringModel(this,CreateNonRecoveringModel()))
+            {
+                FixChannelOrphanedTopologyEntities(recoveryModel);
+
+                RecoverExchanges();
+                RecoverQueues();
+                RecoverBindings();
+            }
+        }
+
+        protected void FixChannelOrphanedTopologyEntities(AutorecoveringModel recoveryModel)
+        {
+            RecordedQueues.Values.Cast<RecordedEntity>()
+                .Union(RecordedExchanges.Values)
+                .Union(m_recordedBindings.Keys)
+                .Where(p => p.Model.IsClosed)
+                .ToList()
+                .ForEach(p => p.Model = recoveryModel);
         }
 
         protected void RecoverExchanges()
