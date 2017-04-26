@@ -941,9 +941,10 @@ namespace RabbitMQ.Client.Framing.Impl
             // 3. Recover bindings
             // 4. Recover consumers
 
-            using (var recoveryModel = new AutorecoveringModel(this,CreateNonRecoveringModel()))
+            using (var recoveryModel = new AutorecoveringModel(this, CreateNonRecoveringModel()))
             {
-                FixChannelOrphanedTopologyEntities(recoveryModel);
+                var consumerRequiredEntities = GetRecordedEntitiesRequiredForConsumers();
+                FixModelOrphanedEntities(consumerRequiredEntities, recoveryModel);
 
                 RecoverExchanges();
                 RecoverQueues();
@@ -951,14 +952,35 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        protected void FixChannelOrphanedTopologyEntities(AutorecoveringModel recoveryModel)
+        protected IList<RecordedEntity> GetRecordedEntitiesRequiredForConsumers()
         {
-            RecordedQueues.Values.Cast<RecordedEntity>()
-                .Union(RecordedExchanges.Values)
-                .Union(m_recordedBindings.Keys)
-                .Where(p => p.Model.IsClosed)
-                .ToList()
-                .ForEach(p => p.Model = recoveryModel);
+            var consumerQueues = m_recordedConsumers.Values
+                .Select(p => p.Queue)
+                .Distinct()
+                .Where(p => m_recordedQueues.ContainsKey(p))
+                .ToDictionary(p => p, p => m_recordedQueues[p]);
+
+            var consumerQueueBindings = m_recordedBindings.Keys
+                .Where(p => consumerQueues.ContainsKey(p.Destination))
+                .ToList();
+
+            var consumerExchanges = consumerQueueBindings
+                .Where(p => m_recordedExchanges.ContainsKey(p.Source))
+                .Select(p => m_recordedExchanges[p.Source])
+                .ToList();
+
+            return consumerQueues.Values.Cast<RecordedEntity>()
+                .Union(consumerExchanges)
+                .Union(consumerQueueBindings)
+                .ToList();
+        }
+
+        protected void FixModelOrphanedEntities(IList<RecordedEntity> recordedEntities, AutorecoveringModel recoveryModel)
+        {
+            foreach (var recordedEntity in recordedEntities.Where(p=>p.Model.IsClosed))
+            {
+                recordedEntity.Model = recoveryModel;
+            }
         }
 
         protected void RecoverExchanges()
