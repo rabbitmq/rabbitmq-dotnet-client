@@ -73,6 +73,7 @@ namespace RabbitMQ.Client.Unit
             string queue = Model.QueueDeclare();
 
             Model.ExchangeBind("dest", "src", String.Empty);
+            Model.ExchangeBind("dest", "src", String.Empty);
             Model.QueueBind(queue, "dest", String.Empty);
 
             Model.BasicPublish("src", String.Empty, null, new byte[] {});
