@@ -33,7 +33,8 @@ See [ChangeLog.md](https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/maste
 
 ## Building from Source
 
-Please see [How to Run Tests](./RUNNING_TESTS.md) for build process overview.
+Please see [How to Run Tests](./RUNNING_TESTS.md) and [Building .NET Core](./BUILD_DOTNET_CORE.md)
+for build process overview.
 
 ## Contributing
 

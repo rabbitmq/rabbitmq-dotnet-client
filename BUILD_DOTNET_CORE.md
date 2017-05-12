@@ -1,6 +1,8 @@
 To build the dotnet core components you need the `dotnet` command line utility installed.
 It can be obtained for your chosen platform [here](https://www.microsoft.com/net/core#macosx).
 
+You will also need [mono 5.x](http://www.mono-project.com/docs/about-mono/releases/).
+
  Run `./build.sh` (linux/osx) or `build.bat` (windows) to trigger code generation and complete a dotnet core build. 
 
  To run the tests simply run `run-tests.sh` (linux/osx) or `run-tests.bat` (windows). This will run the entire test suite. There is currently no way to only run a subset of tests. 
