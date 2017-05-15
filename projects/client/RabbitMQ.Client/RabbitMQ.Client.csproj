@@ -1,8 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <NuGetBuildTasksPackTargets>junk-value-to-avoid-conflicts</NuGetBuildTasksPackTargets>
+  </PropertyGroup>
 
   <PropertyGroup>
     <Description>The RabbitMQ .NET client is the official client library for C# (and, implicitly, other .NET languages)</Description>
-    <VersionPrefix>5.3.2</VersionPrefix>
+    <VersionPrefix>5.0.0</VersionPrefix>
     <TargetFrameworks>net451;netstandard1.5</TargetFrameworks>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -41,6 +44,7 @@
   <PropertyGroup Condition=" '$(Configuration)' == 'SignedRelease' ">
     <DelaySign>true</DelaySign>
     <OutputType>Library</OutputType>
+    <Optimize>true</Optimize>
     <AssemblyOriginatorKeyFile>../../../rabbit.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
@@ -64,4 +68,7 @@
     <PackageReference Include="System.Threading.Timer" Version="4.3.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="NuGet.Build.Tasks.Pack" Version="4.0.0" PrivateAssets="All" />
+  </ItemGroup>
 </Project>
