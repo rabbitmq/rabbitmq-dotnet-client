@@ -940,9 +940,47 @@ namespace RabbitMQ.Client.Framing.Impl
             // 2. Recover queues
             // 3. Recover bindings
             // 4. Recover consumers
-            RecoverExchanges();
-            RecoverQueues();
-            RecoverBindings();
+
+            using (var recoveryModel = new AutorecoveringModel(this, CreateNonRecoveringModel()))
+            {
+                var consumerRequiredEntities = GetRecordedEntitiesRequiredForConsumers();
+                FixModelOrphanedEntities(consumerRequiredEntities, recoveryModel);
+
+                RecoverExchanges();
+                RecoverQueues();
+                RecoverBindings();
+            }
+        }
+
+        protected IList<RecordedEntity> GetRecordedEntitiesRequiredForConsumers()
+        {
+            var consumerQueues = m_recordedConsumers.Values
+                .Select(p => p.Queue)
+                .Distinct()
+                .Where(p => m_recordedQueues.ContainsKey(p))
+                .ToDictionary(p => p, p => m_recordedQueues[p]);
+
+            var consumerQueueBindings = m_recordedBindings.Keys
+                .Where(p => consumerQueues.ContainsKey(p.Destination))
+                .ToList();
+
+            var consumerExchanges = consumerQueueBindings
+                .Where(p => m_recordedExchanges.ContainsKey(p.Source))
+                .Select(p => m_recordedExchanges[p.Source])
+                .ToList();
+
+            return consumerQueues.Values.Cast<RecordedEntity>()
+                .Union(consumerExchanges)
+                .Union(consumerQueueBindings)
+                .ToList();
+        }
+
+        protected void FixModelOrphanedEntities(IList<RecordedEntity> recordedEntities, AutorecoveringModel recoveryModel)
+        {
+            foreach (var recordedEntity in recordedEntities.Where(p=>p.Model.IsClosed))
+            {
+                recordedEntity.Model = recoveryModel;
+            }
         }
 
         protected void RecoverExchanges()

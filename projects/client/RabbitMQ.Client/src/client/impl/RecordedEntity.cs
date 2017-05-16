@@ -44,12 +44,12 @@ namespace RabbitMQ.Client.Impl
 {
     public abstract class RecordedEntity
     {
-        public RecordedEntity(AutorecoveringModel model)
+        protected RecordedEntity(AutorecoveringModel model)
         {
             Model = model;
         }
 
-        public AutorecoveringModel Model { get; protected set; }
+        public AutorecoveringModel Model { get; internal set; }
 
         protected IModel ModelDelegate
         {
