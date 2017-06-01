@@ -41,6 +41,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client
 {
@@ -134,6 +135,21 @@ namespace RabbitMQ.Client
         /// </param>
         /// <returns></returns>
         IConnection CreateConnection(IList<string> hostnames, String clientProvidedName);
+
+        /// <summary>
+        /// Create a connection using a list of endpoints. By default each endpoint will be tried
+        /// in a random order until a successful connection is found or the list is exhausted.
+        /// The selection behaviour can be overriden by configuring the EndpointResolverFactory.
+        /// </summary>
+        /// <param name="endpoints">
+        /// List of endpoints to use for the initial
+        /// connection and recovery.
+        /// </param>
+        /// <returns>Open connection</returns>
+        /// <exception cref="BrokerUnreachableException">
+        /// When no hostname was reachable.
+        /// </exception>
+        IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints);
 
         /// <summary>
         /// Advanced option.
