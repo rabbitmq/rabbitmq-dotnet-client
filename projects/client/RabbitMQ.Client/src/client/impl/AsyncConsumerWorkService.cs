@@ -52,7 +52,6 @@ namespace RabbitMQ.Client
         class WorkPool
         {
             readonly ConcurrentQueue<Work> workQueue;
-            readonly TimeSpan waitTime;
             readonly CancellationTokenSource tokenSource;
             readonly ModelBase model;
             TaskCompletionSource<bool> messageArrived;
@@ -63,7 +62,6 @@ namespace RabbitMQ.Client
                 this.model = model;
                 workQueue = new ConcurrentQueue<Work>();
                 messageArrived = new TaskCompletionSource<bool>();
-                waitTime = TimeSpan.FromMilliseconds(100);
                 tokenSource = new CancellationTokenSource();
             }
 
@@ -80,17 +78,19 @@ namespace RabbitMQ.Client
 
             async Task Loop()
             {
-                while (tokenSource.IsCancellationRequested == false)
+                using (tokenSource.Token.Register(() => messageArrived.TrySetResult(true)))
                 {
-                    Work work;
-                    while (workQueue.TryDequeue(out work))
+                    while (tokenSource.IsCancellationRequested == false)
                     {
-                        await work.Execute(model).ConfigureAwait(false);
-                    }
+                        Work work;
+                        while (workQueue.TryDequeue(out work))
+                        {
+                            await work.Execute(model).ConfigureAwait(false);
+                        }
 
-                    await Task.WhenAny(Task.Delay(waitTime, tokenSource.Token), messageArrived.Task).ConfigureAwait(false);
-                    messageArrived.TrySetResult(true);
-                    messageArrived = new TaskCompletionSource<bool>();
+                        await messageArrived.Task.ConfigureAwait(false);
+                        messageArrived = new TaskCompletionSource<bool>();
+                    }
                 }
             }
 
