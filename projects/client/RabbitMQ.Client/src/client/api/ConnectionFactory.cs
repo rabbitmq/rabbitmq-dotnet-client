@@ -145,7 +145,7 @@ namespace RabbitMQ.Client
         ///  Default SASL auth mechanisms to use.
         /// </summary>
         public static readonly IList<AuthMechanismFactory> DefaultAuthMechanisms =
-            new List<AuthMechanismFactory>(){ new PlainMechanismFactory() };
+            new List<AuthMechanismFactory>() { new PlainMechanismFactory() };
 
         /// <summary>
         ///  SASL auth mechanisms to use.
@@ -173,6 +173,9 @@ namespace RabbitMQ.Client
         public TimeSpan NetworkRecoveryInterval { get; set; } = TimeSpan.FromSeconds(5);
         private TimeSpan m_handshakeContinuationTimeout = TimeSpan.FromSeconds(10);
         private TimeSpan m_continuationTimeout = TimeSpan.FromSeconds(20);
+
+        // just here to hold the value that was set through the setter
+        private Uri uri;
 
         /// <summary>
         /// Amount of time protocol handshake operations are allowed to take before
@@ -310,6 +313,15 @@ namespace RabbitMQ.Client
         /// Virtual host to access during this connection.
         /// </summary>
         public string VirtualHost { get; set; } = DefaultVHost;
+
+        /// <summary>
+        /// Username to use when authenticating to the server.
+        /// </summary>
+        public Uri Uri
+        {
+            get { return uri; }
+            set { SetUri(value); }
+        }
 
         /// <summary>
         /// Given a list of mechanism names supported by the server, select a preferred mechanism,
@@ -488,13 +500,13 @@ namespace RabbitMQ.Client
         private IFrameHandler ConfigureFrameHandler(IFrameHandler fh)
         {
             // make sure socket timeouts are higher than heartbeat
-            fh.ReadTimeout  = Math.Max(SocketReadTimeout,  RequestedHeartbeat * 1000);
+            fh.ReadTimeout = Math.Max(SocketReadTimeout, RequestedHeartbeat * 1000);
             fh.WriteTimeout = Math.Max(SocketWriteTimeout, RequestedHeartbeat * 1000);
             // TODO: add user-provided configurator, like in the Java client
             return fh;
         }
 
-        public void SetUri(Uri uri)
+        private void SetUri(Uri uri)
         {
             Endpoint = new AmqpTcpEndpoint();
 
@@ -554,6 +566,8 @@ namespace RabbitMQ.Client
             {
                 VirtualHost = UriDecode(uri.Segments[1]);
             }
+
+            this.uri = uri;
         }
 
         ///<summary>
@@ -564,7 +578,7 @@ namespace RabbitMQ.Client
             return System.Uri.UnescapeDataString(uri.Replace("+", "%2B"));
         }
 
-        private List<AmqpTcpEndpoint> LocalEndpoints ()
+        private List<AmqpTcpEndpoint> LocalEndpoints()
         {
             return new List<AmqpTcpEndpoint> { this.Endpoint };
         }
