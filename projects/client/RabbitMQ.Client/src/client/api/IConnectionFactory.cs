@@ -106,7 +106,8 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Create a connection to the specified endpoint.
         /// </summary>
-        /// <param name="clientProvidedName">        /// Application-specific connection name, will be displayed in the management UI
+        /// <param name="clientProvidedName">
+        /// Application-specific connection name, will be displayed in the management UI
         /// if RabbitMQ server supports it. This value doesn't have to be unique and cannot
         /// be used as a connection identifier, e.g. in HTTP API requests.
         /// This value is supposed to be human-readable.
