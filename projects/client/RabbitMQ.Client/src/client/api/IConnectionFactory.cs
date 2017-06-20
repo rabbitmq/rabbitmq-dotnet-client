@@ -135,8 +135,7 @@ namespace RabbitMQ.Client
         IConnection CreateConnection(IList<string> hostnames, String clientProvidedName);
 
         /// <summary>
-        /// Create a connection using a list of endpoints. By default each endpoint will be tried
-        /// in a random order until a successful connection is found or the list is exhausted.
+        /// Create a connection using a list of endpoints.
         /// The selection behaviour can be overriden by configuring the EndpointResolverFactory.
         /// </summary>
         /// <param name="endpoints">
