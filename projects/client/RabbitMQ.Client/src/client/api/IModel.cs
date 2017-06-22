@@ -182,7 +182,7 @@ namespace RabbitMQ.Client
         void Abort(ushort replyCode, string replyText);
 
         /// <summary>
-        /// (Spec method) Acknowledge one or more delivered message(s).
+        /// Acknowledge one or more delivered message(s).
         /// </summary>
         void BasicAck(ulong deliveryTag, bool multiple);
 
@@ -204,7 +204,7 @@ namespace RabbitMQ.Client
             IBasicConsumer consumer);
 
         /// <summary>
-        /// (Spec method) Retrieve an individual message, if
+        /// Retrieve an individual message, if
         /// one is available; returns null if the server answers that
         /// no messages are currently available. See also <see cref="IModel.BasicAck"/>.
         /// </summary>
@@ -215,29 +215,36 @@ namespace RabbitMQ.Client
         void BasicNack(ulong deliveryTag, bool multiple, bool requeue);
 
         /// <summary>
-        /// (Spec method) Publishes a message.
+        /// Publishes a message.
         /// </summary>
+        /// <remarks>
+        ///   <para>
+        ///     Routing key must be shorter than 255 bytes.
+        ///   </para>
+        /// </remarks>
         [AmqpMethodDoNotImplement(null)]
         void BasicPublish(string exchange, string routingKey, bool mandatory,
             IBasicProperties basicProperties, byte[] body);
 
         /// <summary>
-        /// (Spec method) Configures QoS parameters of the Basic content-class.
+        /// Configures QoS parameters of the Basic content-class.
         /// </summary>
         void BasicQos(uint prefetchSize, ushort prefetchCount, bool global);
 
         /// <summary>
-        /// (Spec method).
+        /// Indicates that a consumer has recovered.
+        /// Deprecated. Should not be used.
         /// </summary>
         [AmqpMethodDoNotImplement(null)]
         void BasicRecover(bool requeue);
 
         /// <summary>
-        /// (Spec method).
+        /// Indicates that a consumer has recovered.
+        /// Deprecated. Should not be used.
         /// </summary>
         void BasicRecoverAsync(bool requeue);
 
-        /// <summary>(Spec method) Reject a delivered message.</summary>
+        /// <summary> Reject a delivered message.</summary>
         void BasicReject(ulong deliveryTag, bool requeue);
 
         /// <summary>Close this session.</summary>
@@ -278,18 +285,28 @@ namespace RabbitMQ.Client
         IBasicProperties CreateBasicProperties();
 
         /// <summary>
-        /// (Extension method) Bind an exchange to an exchange.
+        /// Bind an exchange to an exchange.
         /// </summary>
+        /// <remarks>
+        ///   <para>
+        ///     Routing key must be shorter than 255 bytes.
+        ///   </para>
+        /// </remarks>        
         [AmqpMethodDoNotImplement(null)]
         void ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments);
 
         /// <summary>
-        ///Like ExchangeBind but sets nowait to true.
+        /// Like ExchangeBind but sets nowait to true.
         /// </summary>
+        /// <remarks>
+        ///   <para>
+        ///     Routing key must be shorter than 255 bytes.
+        ///   </para>
+        /// </remarks>        
         void ExchangeBindNoWait(string destination, string source, string routingKey,
             IDictionary<string, object> arguments);
 
-        /// <summary>(Spec method) Declare an exchange.</summary>
+        /// <summary>Declare an exchange.</summary>
         /// <remarks>
         /// The exchange is declared non-passive and non-internal.
         /// The "nowait" option is not exercised.
@@ -306,28 +323,34 @@ namespace RabbitMQ.Client
             IDictionary<string, object> arguments);
 
         /// <summary>
-        /// (Spec method) Declare an exchange.
+        /// Do a passive exchange declaration.
         /// </summary>
         /// <remarks>
-        /// The exchange is declared passive.
+        /// This method performs a "passive declare" on an exchange,
+        /// which verifies whether .
+        /// It will do nothing if the exchange already exists and result
+        /// in a channel-level protocol exception (channel closure) if not.
         /// </remarks>
         [AmqpMethodDoNotImplement(null)]
         void ExchangeDeclarePassive(string exchange);
 
         /// <summary>
-        /// (Spec method) Delete an exchange.
+        /// Delete an exchange.
         /// </summary>
         [AmqpMethodDoNotImplement(null)]
         void ExchangeDelete(string exchange, bool ifUnused);
 
         /// <summary>
-        ///Like ExchangeDelete but sets nowait to true.
+        /// Like ExchangeDelete but sets nowait to true.
         /// </summary>
         void ExchangeDeleteNoWait(string exchange, bool ifUnused);
 
         /// <summary>
-        /// (Extension method) Unbind an exchange from an exchange.
+        /// Unbind an exchange from an exchange.
         /// </summary>
+        /// <remarks>
+        /// Routing key must be shorter than 255 bytes.
+        /// </remarks>
         [AmqpMethodDoNotImplement(null)]
         void ExchangeUnbind(string destination,
             string source,
@@ -337,20 +360,35 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Like ExchangeUnbind but sets nowait to true.
         /// </summary>
+        /// <remarks>
+        ///   <para>
+        ///     Routing key must be shorter than 255 bytes.
+        ///   </para>
+        /// </remarks>
         [AmqpMethodDoNotImplement(null)]
         void ExchangeUnbindNoWait(string destination, string source, string routingKey,
             IDictionary<string, object> arguments);
 
         /// <summary>
-        /// (Spec method) Bind a queue to an exchange.
+        /// Bind a queue to an exchange.
         /// </summary>
+        /// <remarks>
+        ///   <para>
+        ///     Routing key must be shorter than 255 bytes.
+        ///   </para>
+        /// </remarks>        
         [AmqpMethodDoNotImplement(null)]
         void QueueBind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
 
         /// <summary>Same as QueueBind but sets nowait parameter to true.</summary>
+        /// <remarks>
+        ///   <para>
+        ///     Routing key must be shorter than 255 bytes.
+        ///   </para>
+        /// </remarks>        
         void QueueBindNoWait(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
 
-        /// <summary>(Spec method) Declare a queue.</summary>
+        /// <summary> Declare a queue.</summary>
         [AmqpMethodDoNotImplement(null)]
         QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive,
             bool autoDelete, IDictionary<string, object> arguments);
@@ -391,7 +429,7 @@ namespace RabbitMQ.Client
         uint ConsumerCount(string queue);
 
         /// <summary>
-        /// (Spec method) Delete a queue.
+        /// Delete a queue.
         /// </summary>
         /// <remarks>
         ///Returns the number of messages purged during queue deletion.
@@ -407,7 +445,7 @@ namespace RabbitMQ.Client
         void QueueDeleteNoWait(string queue, bool ifUnused, bool ifEmpty);
 
         /// <summary>
-        /// (Spec method) Purge a queue of messages.
+        /// Purge a queue of messages.
         /// </summary>
         /// <remarks>
         /// Returns the number of messages purged.
@@ -416,22 +454,27 @@ namespace RabbitMQ.Client
         uint QueuePurge(string queue);
 
         /// <summary>
-        /// (Spec method) Unbind a queue from an exchange.
+        /// Unbind a queue from an exchange.
         /// </summary>
+        /// <remarks>
+        ///   <para>
+        ///     Routing key must be shorter than 255 bytes.
+        ///   </para>
+        /// </remarks>        
         void QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
 
         /// <summary>
-        /// (Spec method) Commit this session's active TX transaction.
+        /// Commit this session's active TX transaction.
         /// </summary>
         void TxCommit();
 
         /// <summary>
-        /// (Spec method) Roll back this session's active TX transaction.
+        /// Roll back this session's active TX transaction.
         /// </summary>
         void TxRollback();
 
         /// <summary>
-        /// (Spec method) Enable TX mode for this session.
+        /// Enable TX mode for this session.
         /// </summary>
         void TxSelect();
 
