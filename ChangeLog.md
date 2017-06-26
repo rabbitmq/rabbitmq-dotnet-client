@@ -1,4 +1,4 @@
-## Changes Between 4.1.x and 5.0.0
+## Changes Between 4.1.x and 5.0.1
 
 ### Async consumers
 
@@ -42,6 +42,13 @@ GitHub issue: [rabbitmq-dotnet-client#226](https://github.com/rabbitmq/rabbitmq-
 
 ### Fix potential EventingBasicConsumer race condition
 
+### Re-introduce a Uri property on IConnectionFactory
+
+GitHub issue: [rabbitmq-dotnet-client#330](https://github.com/rabbitmq/rabbitmq-dotnet-client/issue/330)
+
+### Add CreateConnection overload to IConnectionFactory
+
+GitHub PR: [rabbitmq-dotnet-client#325](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/325)
 
 ## Changes Between 4.1.0 and 4.1.1
 
