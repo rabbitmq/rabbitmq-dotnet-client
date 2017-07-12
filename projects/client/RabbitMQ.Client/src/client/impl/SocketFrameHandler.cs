@@ -89,9 +89,7 @@ namespace RabbitMQ.Client.Impl
             {
                 try {
                     m_socket = ConnectUsingIPv6(endpoint, socketFactory, connectionTimeout);
-                #pragma warning disable 0168
-                } catch (ConnectFailureException cfe)
-                #pragma warning restore 0168
+                } catch (ConnectFailureException)
                 {
                     m_socket = null;
                 }
