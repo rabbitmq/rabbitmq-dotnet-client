@@ -87,7 +87,14 @@ namespace RabbitMQ.Client.Impl
 
             if (Socket.OSSupportsIPv6 && endpoint.AddressFamily != AddressFamily.InterNetwork)
             {
-                m_socket = ConnectUsingIPv6(endpoint, socketFactory, connectionTimeout);
+                try {
+                    m_socket = ConnectUsingIPv6(endpoint, socketFactory, connectionTimeout);
+                #pragma warning disable 0168
+                } catch (ConnectFailureException cfe)
+                #pragma warning restore 0168
+                {
+                    m_socket = null;
+                }
             }
 
             if (m_socket == null && endpoint.AddressFamily != AddressFamily.InterNetworkV6)
