@@ -85,7 +85,7 @@ namespace RabbitMQ.Client.Impl
         {
             Endpoint = endpoint;
 
-            if (Socket.OSSupportsIPv6 && endpoint.AddressFamily != AddressFamily.InterNetwork)
+            if (ShouldTryIPV6(endpoint))
             {
                 try {
                     m_socket = ConnectUsingIPv6(endpoint, socketFactory, connectionTimeout);
@@ -155,12 +155,10 @@ namespace RabbitMQ.Client.Impl
                         m_socket.ReceiveTimeout = value;
                     }
                 }
-#pragma warning disable 0168
-                catch (SocketException _)
+                catch (SocketException)
                 {
                     // means that the socket is already closed
                 }
-#pragma warning restore 0168
             }
         }
 
@@ -181,13 +179,6 @@ namespace RabbitMQ.Client.Impl
                 {
                     try
                     {
-                        try
-                        {
-
-                        } catch (ArgumentException)
-                        {
-                            // ignore, we are closing anyway
-                        };
                         m_socket.Close();
                     }
                     catch (Exception)
@@ -262,6 +253,11 @@ namespace RabbitMQ.Client.Impl
             {
                 m_writer.Flush();
             }
+        }
+
+        private bool ShouldTryIPV6(AmqpTcpEndpoint endpoint)
+        {
+            return (Socket.OSSupportsIPv6 && endpoint.AddressFamily != AddressFamily.InterNetwork)
         }
 
         private ITcpClient ConnectUsingIPv6(AmqpTcpEndpoint endpoint,
