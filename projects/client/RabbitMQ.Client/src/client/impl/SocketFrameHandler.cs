@@ -85,7 +85,7 @@ namespace RabbitMQ.Client.Impl
         {
             Endpoint = endpoint;
 
-            if (ShouldTryIPV6(endpoint))
+            if (ShouldTryIPv6(endpoint))
             {
                 try {
                     m_socket = ConnectUsingIPv6(endpoint, socketFactory, connectionTimeout);
@@ -255,7 +255,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        private bool ShouldTryIPV6(AmqpTcpEndpoint endpoint)
+        private bool ShouldTryIPv6(AmqpTcpEndpoint endpoint)
         {
             return (Socket.OSSupportsIPv6 && endpoint.AddressFamily != AddressFamily.InterNetwork);
         }
