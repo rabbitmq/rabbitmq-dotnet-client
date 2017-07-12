@@ -284,23 +284,9 @@ namespace RabbitMQ.Client.Impl
                                                     Func<AddressFamily, ITcpClient> socketFactory,
                                                     int timeout, AddressFamily family)
         {
-            ITcpClient socket;
-            try
-            {
-                socket = socketFactory(family);
-                ConnectOrFail(socket, endpoint, timeout);
-                return socket;
-            }
-            catch (ConnectFailureException) // could not connect using IPv6
-            {
-                return null;
-            }
-            // Mono might raise a SocketException when using IPv4 addresses on
-            // an OS that supports IPv6
-            catch (SocketException)
-            {
-                return null;
-            }
+            var socket = socketFactory(family);
+            ConnectOrFail(socket, endpoint, timeout);
+            return socket;
         }
 
         private void ConnectOrFail(ITcpClient socket, AmqpTcpEndpoint endpoint, int timeout)
