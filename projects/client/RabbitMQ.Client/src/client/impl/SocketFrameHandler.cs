@@ -257,7 +257,7 @@ namespace RabbitMQ.Client.Impl
 
         private bool ShouldTryIPV6(AmqpTcpEndpoint endpoint)
         {
-            return (Socket.OSSupportsIPv6 && endpoint.AddressFamily != AddressFamily.InterNetwork)
+            return (Socket.OSSupportsIPv6 && endpoint.AddressFamily != AddressFamily.InterNetwork);
         }
 
         private ITcpClient ConnectUsingIPv6(AmqpTcpEndpoint endpoint,
@@ -278,9 +278,14 @@ namespace RabbitMQ.Client.Impl
                                                     Func<AddressFamily, ITcpClient> socketFactory,
                                                     int timeout, AddressFamily family)
         {
-            var socket = socketFactory(family);
-            ConnectOrFail(socket, endpoint, timeout);
-            return socket;
+            ITcpClient socket = socketFactory(family);
+            try {
+                ConnectOrFail(socket, endpoint, timeout);
+                return socket;
+            } catch (ConnectFailureException e) {
+                socket.Dispose();
+                throw e;
+            }
         }
 
         private void ConnectOrFail(ITcpClient socket, AmqpTcpEndpoint endpoint, int timeout)
