@@ -41,8 +41,15 @@ namespace RabbitMQ.Client
 
         public virtual void Close()
         {
-            if(sock != null)
+            this.Dispose();
+        }
+
+        public virtual void Dispose()
+        {
+            if (sock != null)
+            {
                 sock.Dispose();
+            }
             sock = null;
         }
 

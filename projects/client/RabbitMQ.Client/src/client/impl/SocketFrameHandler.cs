@@ -84,29 +84,20 @@ namespace RabbitMQ.Client.Impl
             int connectionTimeout, int readTimeout, int writeTimeout)
         {
             Endpoint = endpoint;
-            m_socket = null;
-            if (Socket.OSSupportsIPv6 && endpoint.AddressFamily != AddressFamily.InterNetwork)
+
+            if (ShouldTryIPv6(endpoint))
             {
-                try
-                {
-                    m_socket = socketFactory(AddressFamily.InterNetworkV6);
-                    Connect(m_socket, endpoint, connectionTimeout);
-                }
-                catch (ConnectFailureException) // could not connect using IPv6
-                {
-                    m_socket = null;
-                }
-                // Mono might raise a SocketException when using IPv4 addresses on
-                // an OS that supports IPv6
-                catch (SocketException)
+                try {
+                    m_socket = ConnectUsingIPv6(endpoint, socketFactory, connectionTimeout);
+                } catch (ConnectFailureException)
                 {
                     m_socket = null;
                 }
             }
+
             if (m_socket == null && endpoint.AddressFamily != AddressFamily.InterNetworkV6)
             {
-                m_socket = socketFactory(AddressFamily.InterNetwork);
-                Connect(m_socket, endpoint, connectionTimeout);
+                m_socket = ConnectUsingIPv4(endpoint, socketFactory, connectionTimeout);
             }
 
             Stream netstream = m_socket.GetStream();
@@ -164,12 +155,10 @@ namespace RabbitMQ.Client.Impl
                         m_socket.ReceiveTimeout = value;
                     }
                 }
-#pragma warning disable 0168
-                catch (SocketException _)
+                catch (SocketException)
                 {
                     // means that the socket is already closed
                 }
-#pragma warning restore 0168
             }
         }
 
@@ -190,13 +179,6 @@ namespace RabbitMQ.Client.Impl
                 {
                     try
                     {
-                        try
-                        {
-
-                        } catch (ArgumentException)
-                        {
-                            // ignore, we are closing anyway
-                        };
                         m_socket.Close();
                     }
                     catch (Exception)
@@ -273,14 +255,48 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        private void Connect(ITcpClient socket, AmqpTcpEndpoint endpoint, int timeout)
+        private bool ShouldTryIPv6(AmqpTcpEndpoint endpoint)
+        {
+            return (Socket.OSSupportsIPv6 && endpoint.AddressFamily != AddressFamily.InterNetwork);
+        }
+
+        private ITcpClient ConnectUsingIPv6(AmqpTcpEndpoint endpoint,
+                                            Func<AddressFamily, ITcpClient> socketFactory,
+                                            int timeout)
+        {
+            return ConnectUsingAddressFamily(endpoint, socketFactory, timeout, AddressFamily.InterNetworkV6);
+        }
+
+        private ITcpClient ConnectUsingIPv4(AmqpTcpEndpoint endpoint,
+                                            Func<AddressFamily, ITcpClient> socketFactory,
+                                            int timeout)
+        {
+            return ConnectUsingAddressFamily(endpoint, socketFactory, timeout, AddressFamily.InterNetwork);
+        }
+
+        private ITcpClient ConnectUsingAddressFamily(AmqpTcpEndpoint endpoint,
+                                                    Func<AddressFamily, ITcpClient> socketFactory,
+                                                    int timeout, AddressFamily family)
+        {
+            ITcpClient socket = socketFactory(family);
+            try {
+                ConnectOrFail(socket, endpoint, timeout);
+                return socket;
+            } catch (ConnectFailureException e) {
+                socket.Dispose();
+                throw e;
+            }
+        }
+
+        private void ConnectOrFail(ITcpClient socket, AmqpTcpEndpoint endpoint, int timeout)
         {
             try
             {
                 socket.ConnectAsync(endpoint.HostName, endpoint.Port)
                             .TimeoutAfter(timeout)
                             .ConfigureAwait(false)
-                            .GetAwaiter()//this ensures exceptions aren't wrapped in an AggregateException
+                            // this ensures exceptions aren't wrapped in an AggregateException
+                            .GetAwaiter()
                             .GetResult();
             }
             catch (ArgumentException e)
