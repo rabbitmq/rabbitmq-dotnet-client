@@ -41,7 +41,6 @@ namespace RabbitMQ.Client
 
         public virtual void Close()
         {
-            // TODO: Socket.Close() would be a better option here. MK.
             this.Dispose();
         }
 
