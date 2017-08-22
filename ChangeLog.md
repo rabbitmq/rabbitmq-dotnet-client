@@ -6,15 +6,15 @@ GitHub PR: [rabbitmq-dotnet-client#307](https://github.com/rabbitmq/rabbitmq-dot
 
 ### Enable connection recovery by default
 
-GitHub issue: [rabbitmq-dotnet-client#271](https://github.com/rabbitmq/rabbitmq-dotnet-client/issue/271)
+GitHub issue: [rabbitmq-dotnet-client#271](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/271)
 
 ### Replace Console.WriteLine logging with EventSource
 
-GitHub issue: [rabbitmq-dotnet-client#94](https://github.com/rabbitmq/rabbitmq-dotnet-client/issue/94)
+GitHub issue: [rabbitmq-dotnet-client#94](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/94)
 
 ### Add events for connection recovery errors and connection success
 
-GitHub issue: [rabbitmq-dotnet-client#156](https://github.com/rabbitmq/rabbitmq-dotnet-client/issue/156)
+GitHub issue: [rabbitmq-dotnet-client#156](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/156)
 
 ### noAck renamed to autoAck
 
@@ -22,29 +22,29 @@ GitHub issue: [rabbitmq-dotnet-client#255](https://github.com/rabbitmq/rabbitmq-
 
 ### Make uri and Uri setters in ConnectionFactory obsolete
 
-GitHub issue: [rabbitmq-dotnet-client#264](https://github.com/rabbitmq/rabbitmq-dotnet-client/issue/264)
+GitHub issue: [rabbitmq-dotnet-client#264](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/264)
 
 ### Ensure connection recovery does not keep going after the connection has been closed
 
-GitHub issue: [rabbitmq-dotnet-client#294](https://github.com/rabbitmq/rabbitmq-dotnet-client/issue/294)
+GitHub issue: [rabbitmq-dotnet-client#294](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/294)
 
 ### Synchronize access to the manuallyClosed field in AutorecoveringConnection.
 
-GitHub issue: [rabbitmq-dotnet-client#291](https://github.com/rabbitmq/rabbitmq-dotnet-client/issue/291)
+GitHub issue: [rabbitmq-dotnet-client#291](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/291)
 
 ### Use concurrent collections inside AutorecoveringConnection
 
-GitHub issue: [rabbitmq-dotnet-client#288](https://github.com/rabbitmq/rabbitmq-dotnet-client/issue/288)
+GitHub issue: [rabbitmq-dotnet-client#288](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/288)
 
 ### Add property to allow an endpoint to specify the address family
 
-GitHub issue: [rabbitmq-dotnet-client#226](https://github.com/rabbitmq/rabbitmq-dotnet-client/issue/226)
+GitHub issue: [rabbitmq-dotnet-client#226](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/226)
 
 ### Fix potential EventingBasicConsumer race condition
 
 ### Re-introduce a Uri property on IConnectionFactory
 
-GitHub issue: [rabbitmq-dotnet-client#330](https://github.com/rabbitmq/rabbitmq-dotnet-client/issue/330)
+GitHub issue: [rabbitmq-dotnet-client#330](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/330)
 
 ### Add CreateConnection overload to IConnectionFactory
 
