@@ -32,7 +32,7 @@ namespace RabbitMQ.Client
                 throw new ArgumentException("No ip address could be resolved for " + host);
             }
             #if CORECLR
-            await sock.ConnectAsync(ep, port).ConfigureAwait(false);
+            await sock.ConnectAsync(ep, port);
             #else
             sock.Connect(ep, port);
             await Task.FromResult(false);

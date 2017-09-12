@@ -65,14 +65,14 @@ namespace RabbitMQ.Client.Impl
         public MainSession(Connection connection) : base(connection, 0)
         {
             Command request;
-            connection.Protocol.CreateConnectionClose(0, "", out request, out m_closeOkClassId, out m_closeOkMethodId);
+            connection.Protocol.CreateConnectionClose(0, string.Empty, out request, out m_closeOkClassId, out m_closeOkMethodId);
             m_closeClassId = request.Method.ProtocolClassId;
             m_closeMethodId = request.Method.ProtocolMethodId;
         }
 
         public Action Handler { get; set; }
 
-        public override void HandleFrame(Frame frame)
+        public override void HandleFrame(ReadFrame frame)
         {
             lock (_closingLock)
             {
@@ -83,7 +83,7 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            if (!m_closeServerInitiated && (frame.Type == Constants.FrameMethod))
+            if (!m_closeServerInitiated && (frame.IsMethod()))
             {
                 MethodBase method = Connection.Protocol.DecodeMethodFrom(frame.GetReader());
                 if ((method.ProtocolClassId == m_closeClassId)
