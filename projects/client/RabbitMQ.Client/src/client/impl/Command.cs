@@ -55,10 +55,8 @@ namespace RabbitMQ.Client.Impl
         // - 2 bytes of channel number
         // - 4 bytes of frame payload length
         // - 1 byte of payload trailer FrameEnd byte
-        public const int EmptyFrameSize = 8;
-
-        public byte[] m_body0;
-        public IList<byte[]> m_bodyN;
+        private const int EmptyFrameSize = 8;
+        private readonly MemoryStream m_body;
         private static readonly byte[] m_emptyByteArray = new byte[0];
 
         static Command()
@@ -68,18 +66,22 @@ namespace RabbitMQ.Client.Impl
 
         public Command() : this(null, null, null)
         {
+             m_body= new MemoryStream();
         }
 
         public Command(MethodBase method) : this(method, null, null)
         {
+            m_body = new MemoryStream();
         }
 
         public Command(MethodBase method, ContentHeaderBase header, byte[] body)
         {
             Method = method;
             Header = header;
-            m_body0 = body;
-            m_bodyN = null;
+            if (body != null)
+                m_body = new MemoryStream(body);
+            else
+                m_body = new MemoryStream();
         }
 
         public byte[] Body
@@ -93,7 +95,7 @@ namespace RabbitMQ.Client.Impl
 
         public static void CheckEmptyFrameSize()
         {
-            var f = new Frame(Constants.FrameBody, 0, m_emptyByteArray);
+            var f = new EmptyWriteFrame();
             var stream = new MemoryStream();
             var writer = new NetworkBinaryWriter(stream);
             f.WriteTo(writer);
@@ -111,45 +113,13 @@ namespace RabbitMQ.Client.Impl
 
         public void AppendBodyFragment(byte[] fragment)
         {
-            if (m_body0 == null)
-            {
-                m_body0 = fragment;
-            }
-            else
-            {
-                if (m_bodyN == null)
-                {
-                    m_bodyN = new List<byte[]>();
-                }
-                m_bodyN.Add(fragment);
-            }
+            if(fragment !=null)
+                m_body.Write(fragment, 0, fragment.Length);
         }
 
         public byte[] ConsolidateBody()
         {
-            if (m_bodyN == null)
-            {
-                return m_body0 ?? m_emptyByteArray;
-            }
-            else
-            {
-                int totalSize = m_body0.Length;
-                foreach (byte[] fragment in m_bodyN)
-                {
-                    totalSize += fragment.Length;
-                }
-                var result = new byte[totalSize];
-                Array.Copy(m_body0, 0, result, 0, m_body0.Length);
-                int offset = m_body0.Length;
-                foreach (byte[] fragment in m_bodyN)
-                {
-                    Array.Copy(fragment, 0, result, offset, fragment.Length);
-                    offset += fragment.Length;
-                }
-                m_body0 = result;
-                m_bodyN = null;
-                return m_body0;
-            }
+            return m_body.Length == 0 ? m_emptyByteArray : m_body.ToArray();
         }
 
         public void Transmit(int channelNumber, Connection connection)
@@ -164,54 +134,27 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public void TransmitAsSingleFrame(int channelNumber, Connection connection)
+        private void TransmitAsSingleFrame(int channelNumber, Connection connection)
         {
-            var frame = new Frame(Constants.FrameMethod, channelNumber);
-            NetworkBinaryWriter writer = frame.GetWriter();
-            writer.Write((ushort)Method.ProtocolClassId);
-            writer.Write((ushort)Method.ProtocolMethodId);
-            var argWriter = new MethodArgumentWriter(writer);
-            Method.WriteArgumentsTo(argWriter);
-            argWriter.Flush();
-            connection.WriteFrame(frame);
+            connection.WriteFrame(new MethodWriteFrame(channelNumber, Method));
         }
 
-        public void TransmitAsFrameSet(int channelNumber, Connection connection)
+        private void TransmitAsFrameSet(int channelNumber, Connection connection)
         {
-            var frame = new Frame(Constants.FrameMethod, channelNumber);
-            NetworkBinaryWriter writer = frame.GetWriter();
-            writer.Write((ushort)Method.ProtocolClassId);
-            writer.Write((ushort)Method.ProtocolMethodId);
-            var argWriter = new MethodArgumentWriter(writer);
-            Method.WriteArgumentsTo(argWriter);
-            argWriter.Flush();
-
-            var frames = new List<Frame>();
-            frames.Add(frame);
-
+            var frames = new List<WriteFrame>();
+            frames.Add(new MethodWriteFrame(channelNumber, Method));
             if (Method.HasContent)
             {
-                byte[] body = Body;
+                var body = ConsolidateBody(); // Cache, since the property is compiled.
 
-                frame = new Frame(Constants.FrameHeader, channelNumber);
-                writer = frame.GetWriter();
-                writer.Write((ushort)Header.ProtocolClassId);
-                Header.WriteTo(writer, (ulong)body.Length);
-                frames.Add(frame);
-
-                var frameMax = (int)Math.Min(int.MaxValue, connection.FrameMax);
-                int bodyPayloadMax = (frameMax == 0)
-                    ? body.Length
-                    : frameMax - EmptyFrameSize;
+                frames.Add(new HeaderWriteFrame(channelNumber, Header, body.Length));
+                var frameMax = (int) Math.Min(int.MaxValue, connection.FrameMax);
+                var bodyPayloadMax = (frameMax == 0) ? body.Length : frameMax - EmptyFrameSize;
                 for (int offset = 0; offset < body.Length; offset += bodyPayloadMax)
                 {
-                    int remaining = body.Length - offset;
-
-                    frame = new Frame(Constants.FrameBody, channelNumber);
-                    writer = frame.GetWriter();
-                    writer.Write(body, offset,
-                        (remaining < bodyPayloadMax) ? remaining : bodyPayloadMax);
-                    frames.Add(frame);
+                    var remaining = body.Length - offset;
+                    var count = (remaining < bodyPayloadMax) ? remaining : bodyPayloadMax;
+                    frames.Add(new BodySegmentWriteFrame(channelNumber, body, offset, count));
                 }
             }
 
