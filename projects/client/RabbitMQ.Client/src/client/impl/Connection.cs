@@ -363,7 +363,7 @@ namespace RabbitMQ.Client.Framing.Impl
             table["platform"] = Encoding.UTF8.GetBytes(".NET");
             table["copyright"] = Encoding.UTF8.GetBytes("Copyright (c) 2007-2016 Pivotal Software, Inc.");
             table["information"] = Encoding.UTF8.GetBytes("Licensed under the MPL.  " +
-                                                          "See http://www.RabbitMQ.com/");
+                                                          "See http://www.rabbitMQ.com/");
             return table;
         }
 
@@ -1258,7 +1258,7 @@ entry.ToString());
             }
             catch (OperationInterruptedException)
             {
-                // ignored, see RabbitMQ/RabbitMQ-dotnet-client#133
+                // ignored, see rabbitMQ/rabbitMQ-dotnet-client#133
             }
         }
 
