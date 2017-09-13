@@ -1131,7 +1131,7 @@ entry.ToString());
             MaybeDisposeTimer(ref _heartbeatWriteTimer);
         }
 
-        public void MaybeDisposeTimer(ref Timer timer)
+        private void MaybeDisposeTimer(ref Timer timer)
         {
             // capture the timer to reduce chance of a null ref exception
             var captured = timer;
