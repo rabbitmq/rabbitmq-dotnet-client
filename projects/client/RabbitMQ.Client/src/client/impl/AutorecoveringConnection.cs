@@ -994,7 +994,7 @@ namespace RabbitMQ.Client.Framing.Impl
                         // anything to recover. MK.
                         PropagateQueueNameChangeToBindings(oldName, newName);
                         PropagateQueueNameChangeToConsumers(oldName, newName);
-                        // see RabbitMQ/RabbitMQ-dotnet-client#43
+                        // see rabbitMQ/rabbitMQ-dotnet-client#43
                         if (rq.IsServerNamed)
                         {
                             DeleteRecordedQueue(oldName);
