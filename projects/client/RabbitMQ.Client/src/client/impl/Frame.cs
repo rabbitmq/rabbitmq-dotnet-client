@@ -54,7 +54,8 @@ using System.Net.Sockets;
 
 namespace RabbitMQ.Client.Impl
 {
-    public class HeaderWriteFrame : WriteFrame {
+    public class HeaderWriteFrame : WriteFrame 
+    {
         public HeaderWriteFrame(int channel, ContentHeaderBase header, int bodyLength) : base(FrameType.FrameHeader, channel)
         {
             NetworkBinaryWriter writer = base.GetWriter();
