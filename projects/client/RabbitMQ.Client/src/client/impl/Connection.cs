@@ -257,7 +257,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
             }
         }
-        public string ClientProvidedName { get; set; }
+        public string ClientProvidedName { get; private set; }
 
         public bool AutoClose
         {
