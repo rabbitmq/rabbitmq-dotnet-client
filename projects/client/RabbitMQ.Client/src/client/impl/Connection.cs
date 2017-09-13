@@ -339,7 +339,7 @@ namespace RabbitMQ.Client.Framing.Impl
             get { return m_frameHandler.RemotePort; }
         }
 
-        public IDictionary<string, object> ServerProperties { get; private set; }
+        public IDictionary<string, object> ServerProperties { get; set; }
 
         public IList<ShutdownReportEntry> ShutdownReport
         {
@@ -1258,7 +1258,7 @@ entry.ToString());
             }
             catch (OperationInterruptedException)
             {
-                // ignored, see rabbitMQ/rabbitMQ-dotnet-client#133
+                // ignored, see rabbitmq/rabbitmq-dotnet-client#133
             }
         }
 
