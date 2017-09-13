@@ -79,9 +79,13 @@ namespace RabbitMQ.Client.Impl
             Method = method;
             Header = header;
             if (body != null)
+            {
                 m_body = new MemoryStream(body);
+            }
             else
+            {
                 m_body = new MemoryStream();
+            }
         }
 
         public byte[] Body
@@ -114,7 +118,9 @@ namespace RabbitMQ.Client.Impl
         public void AppendBodyFragment(byte[] fragment)
         {
             if(fragment !=null)
+            {
                 m_body.Write(fragment, 0, fragment.Length);
+            }
         }
 
         public byte[] ConsolidateBody()
