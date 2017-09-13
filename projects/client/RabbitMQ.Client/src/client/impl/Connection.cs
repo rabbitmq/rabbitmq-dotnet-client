@@ -273,7 +273,7 @@ namespace RabbitMQ.Client.Framing.Impl
         public IDictionary<string, object> ClientProperties
         {
             get { return m_clientProperties; }
-            private set { m_clientProperties = value; }
+            set { m_clientProperties = value; }
         }
 
         public ShutdownEventArgs CloseReason
@@ -465,7 +465,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<remarks>
         /// Loop only used while quiescing. Use only to cleanly close connection
         ///</remarks>
-        private void ClosingLoop()
+        public void ClosingLoop()
         {
             try
             {
@@ -533,7 +533,7 @@ namespace RabbitMQ.Client.Framing.Impl
         }
 
         // Only call at the end of the Mainloop or HeartbeatLoop
-        private void FinishClose()
+        public void FinishClose()
         {
             // Notify hearbeat loops that they can leave
             m_heartbeatRead.Set();
@@ -561,13 +561,13 @@ namespace RabbitMQ.Client.Framing.Impl
         /// We need to close the socket, otherwise attempting to unload the domain
         /// could cause a CannotUnloadAppDomainException
         /// </remarks>
-        private void HandleDomainUnload(object sender, EventArgs ea)
+        public void HandleDomainUnload(object sender, EventArgs ea)
         {
             Abort(Constants.InternalError, "Domain Unload");
         }
 #endif
 
-        private void HandleMainLoopException(ShutdownEventArgs reason)
+        public void HandleMainLoopException(ShutdownEventArgs reason)
         {
             if (!SetCloseReason(reason))
             {
@@ -580,7 +580,7 @@ namespace RabbitMQ.Client.Framing.Impl
             LogCloseError("Unexpected connection closure: " + reason, new Exception(reason.ToString()));
         }
 
-        private bool HardProtocolExceptionHandler(HardProtocolException hpe)
+        public bool HardProtocolExceptionHandler(HardProtocolException hpe)
         {
             if (SetCloseReason(hpe.ShutdownReason))
             {
@@ -623,13 +623,13 @@ namespace RabbitMQ.Client.Framing.Impl
             TerminateMainloop();
         }
 
-        private void LogCloseError(String error, Exception ex)
+        public void LogCloseError(String error, Exception ex)
         {
             ESLog.Error(error, ex);
             m_shutdownReport.Add(new ShutdownReportEntry(error, ex));
         }
 
-        private void MainLoop()
+        public void MainLoop()
         {
             try
             {
@@ -714,7 +714,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void MainLoopIteration()
+        public void MainLoopIteration()
         {
             ReadFrame frame = m_frameHandler.ReadFrame();
 
@@ -767,7 +767,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private  void NotifyHeartbeatListener()
+        public  void NotifyHeartbeatListener()
         {
             if (m_heartbeat != 0)
             {
@@ -775,7 +775,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void NotifyReceivedCloseOk()
+        public void NotifyReceivedCloseOk()
         {
             TerminateMainloop();
             m_closed = true;
@@ -807,7 +807,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void OnConnectionBlocked(ConnectionBlockedEventArgs args)
+        public void OnConnectionBlocked(ConnectionBlockedEventArgs args)
         {
             EventHandler<ConnectionBlockedEventArgs> handler;
             lock (m_eventLock)
@@ -834,7 +834,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void OnConnectionUnblocked()
+        public void OnConnectionUnblocked()
         {
             EventHandler<EventArgs> handler;
             lock (m_eventLock)
@@ -862,7 +862,7 @@ namespace RabbitMQ.Client.Framing.Impl
         }
 
         ///<summary>Broadcasts notification of the final shutdown of the connection.</summary>
-        private void OnShutdown()
+        public void OnShutdown()
         {
             EventHandler<ShutdownEventArgs> handler;
             ShutdownEventArgs reason;
@@ -892,13 +892,13 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void Open(bool insist)
+        public void Open(bool insist)
         {
             StartAndTune();
             m_model0.ConnectionOpen(m_factory.VirtualHost, String.Empty, false);
         }
 
-        private void PrettyPrintShutdownReport()
+        public void PrettyPrintShutdownReport()
         {
             if (ShutdownReport.Count == 0)
             {
@@ -958,7 +958,7 @@ entry.ToString());
         /// to do to clean up and shut down the channel.
         ///</para>
         ///</remarks>
-        private void QuiesceChannel(SoftProtocolException pe)
+        public void QuiesceChannel(SoftProtocolException pe)
         {
             // Construct the QuiescingSession that we'll use during
             // the quiesce process.
@@ -987,7 +987,7 @@ entry.ToString());
             newSession.Transmit(ChannelCloseWrapper(pe.ReplyCode, pe.Message));
         }
 
-        private bool SetCloseReason(ShutdownEventArgs reason)
+        public bool SetCloseReason(ShutdownEventArgs reason)
         {
             lock (m_eventLock)
             {
@@ -1003,7 +1003,7 @@ entry.ToString());
             }
         }
 
-        private void MaybeStartHeartbeatTimers()
+        public void MaybeStartHeartbeatTimers()
         {
             if (Heartbeat != 0)
             {
@@ -1021,7 +1021,7 @@ entry.ToString());
             }
         }
 
-        private void StartMainLoop(bool useBackgroundThread)
+        public void StartMainLoop(bool useBackgroundThread)
         {
             var taskName = "AMQP Connection " + Endpoint;
 
@@ -1035,7 +1035,7 @@ entry.ToString());
 #endif
         }
 
-        private void HeartbeatReadTimerCallback(object state)
+        public void HeartbeatReadTimerCallback(object state)
         {
             bool shouldTerminate = false;
             try
@@ -1089,7 +1089,7 @@ entry.ToString());
             }
         }
 
-        private void HeartbeatWriteTimerCallback(object state)
+        public void HeartbeatWriteTimerCallback(object state)
         {
             bool shouldTerminate = false;
             try
@@ -1131,7 +1131,7 @@ entry.ToString());
             MaybeDisposeTimer(ref _heartbeatWriteTimer);
         }
 
-        private void MaybeDisposeTimer(ref Timer timer)
+        public void MaybeDisposeTimer(ref Timer timer)
         {
             // capture the timer to reduce chance of a null ref exception
             var captured = timer;
@@ -1157,7 +1157,7 @@ entry.ToString());
         ///<remarks>
         /// May be called more than once. Should therefore be idempotent.
         ///</remarks>
-        private void TerminateMainloop()
+        public void TerminateMainloop()
         {
             MaybeStopHeartbeatTimers();
             m_running = false;
