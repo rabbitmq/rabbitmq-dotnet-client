@@ -56,7 +56,7 @@ namespace RabbitMQ.Client.Impl
         public IBasicConsumer Consumer { get; set; }
         public string ConsumerTag { get; set; }
         public bool Exclusive { get; set; }
-        public string Queue { get;set; }
+        public string Queue { get; set; }
 
         public string Recover()
         {
