@@ -140,12 +140,12 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        private void TransmitAsSingleFrame(int channelNumber, Connection connection)
+        public void TransmitAsSingleFrame(int channelNumber, Connection connection)
         {
             connection.WriteFrame(new MethodWriteFrame(channelNumber, Method));
         }
 
-        private void TransmitAsFrameSet(int channelNumber, Connection connection)
+        public void TransmitAsFrameSet(int channelNumber, Connection connection)
         {
             var frames = new List<WriteFrame>();
             frames.Add(new MethodWriteFrame(channelNumber, Method));
