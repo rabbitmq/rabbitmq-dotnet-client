@@ -18,7 +18,7 @@ namespace RabbitMQ.Client.Impl
             {
                 await Execute(model, asyncConsumer).ConfigureAwait(false);
             }
-            catch
+            catch (Exception)
             {
                // intentionally caught
             }
