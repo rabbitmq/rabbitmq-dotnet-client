@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Impl;
@@ -51,19 +50,15 @@ namespace RabbitMQ.Client
 
         class WorkPool
         {
-            readonly ConcurrentQueue<Work> workQueue;
-            readonly TimeSpan waitTime;
+            readonly BlockingCollection<Work> workQueue;
             readonly CancellationTokenSource tokenSource;
             readonly ModelBase model;
-            TaskCompletionSource<bool> messageArrived;
             private Task task;
 
             public WorkPool(ModelBase model)
             {
                 this.model = model;
-                workQueue = new ConcurrentQueue<Work>();
-                messageArrived = new TaskCompletionSource<bool>();
-                waitTime = TimeSpan.FromMilliseconds(100);
+                workQueue = new BlockingCollection<Work>();
                 tokenSource = new CancellationTokenSource();
             }
 
@@ -74,23 +69,14 @@ namespace RabbitMQ.Client
 
             public void Enqueue(Work work)
             {
-                workQueue.Enqueue(work);
-                messageArrived.TrySetResult(true);
+                workQueue.Add(work);
             }
 
             async Task Loop()
             {
-                while (tokenSource.IsCancellationRequested == false)
+                foreach (var work in workQueue.GetConsumingEnumerable(tokenSource.Token))
                 {
-                    Work work;
-                    while (workQueue.TryDequeue(out work))
-                    {
-                        await work.Execute(model).ConfigureAwait(false);
-                    }
-
-                    await Task.WhenAny(Task.Delay(waitTime, tokenSource.Token), messageArrived.Task).ConfigureAwait(false);
-                    messageArrived.TrySetResult(true);
-                    messageArrived = new TaskCompletionSource<bool>();
+                    await work.Execute(model).ConfigureAwait(false);
                 }
             }
 
