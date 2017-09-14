@@ -66,7 +66,7 @@ namespace RabbitMQ.Client.Impl
 
         public Command() : this(null, null, null)
         {
-             m_body= new MemoryStream();
+            m_body = new MemoryStream();
         }
 
         public Command(MethodBase method) : this(method, null, null)
@@ -117,7 +117,7 @@ namespace RabbitMQ.Client.Impl
 
         public void AppendBodyFragment(byte[] fragment)
         {
-            if(fragment !=null)
+            if (fragment != null)
             {
                 m_body.Write(fragment, 0, fragment.Length);
             }
@@ -130,7 +130,7 @@ namespace RabbitMQ.Client.Impl
 
         public void Transmit(int channelNumber, Connection connection)
         {
-            if(Method.HasContent)
+            if (Method.HasContent)
             {
                 TransmitAsFrameSet(channelNumber, connection);
             }
@@ -154,7 +154,7 @@ namespace RabbitMQ.Client.Impl
                 var body = ConsolidateBody(); // Cache, since the property is compiled.
 
                 frames.Add(new HeaderWriteFrame(channelNumber, Header, body.Length));
-                var frameMax = (int) Math.Min(int.MaxValue, connection.FrameMax);
+                var frameMax = (int)Math.Min(int.MaxValue, connection.FrameMax);
                 var bodyPayloadMax = (frameMax == 0) ? body.Length : frameMax - EmptyFrameSize;
                 for (int offset = 0; offset < body.Length; offset += bodyPayloadMax)
                 {
