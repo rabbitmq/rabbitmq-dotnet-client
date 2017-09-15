@@ -181,21 +181,6 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestBasicConnectionRecoveryErrorEvent()
-        {
-            Assert.IsTrue(Conn.IsOpen);
-            using(var c = CreateAutorecoveringConnection())
-            {
-                var latch = new AutoResetEvent(false);
-                c.ConnectionRecoveryError += (o, _args) => latch.Set();
-                StopRabbitMQ();
-                latch.WaitOne(30000);
-                StartRabbitMQ();
-                WaitForRecovery(c);
-            }
-        }
-
-        [Test]
         public void TestBasicConnectionRecoveryStopsAfterManualClose()
         {
             Assert.IsTrue(Conn.IsOpen);
