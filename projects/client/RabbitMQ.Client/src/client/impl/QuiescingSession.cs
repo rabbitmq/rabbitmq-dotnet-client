@@ -60,9 +60,9 @@ namespace RabbitMQ.Client.Impl
             m_reason = reason;
         }
 
-        public override void HandleFrame(Frame frame)
+        public override void HandleFrame(ReadFrame frame)
         {
-            if (frame.Type == Constants.FrameMethod)
+            if (frame.IsMethod())
             {
                 MethodBase method = Connection.Protocol.DecodeMethodFrom(frame.GetReader());
                 if ((method.ProtocolClassId == ChannelCloseOk.ClassId)

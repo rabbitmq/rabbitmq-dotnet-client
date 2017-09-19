@@ -67,7 +67,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private readonly object m_eventLock = new object();
 
         ///<summary>Heartbeat frame for transmission. Reusable across connections.</summary>
-        private readonly Frame m_heartbeatFrame = new Frame(Constants.FrameHeartbeat, 0, new byte[0]);
+        private readonly EmptyWriteFrame m_heartbeatFrame = new EmptyWriteFrame();
 
         private ManualResetEvent m_appContinuation = new ManualResetEvent(false);
         private EventHandler<CallbackExceptionEventArgs> m_callbackException;
@@ -716,11 +716,11 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void MainLoopIteration()
         {
-            Frame frame = m_frameHandler.ReadFrame();
+            ReadFrame frame = m_frameHandler.ReadFrame();
 
             NotifyHeartbeatListener();
             // We have received an actual frame.
-            if (frame.Type == Constants.FrameHeartbeat)
+            if (frame.IsHeartbeat())
             {
                 // Ignore it: we've already just reset the heartbeat
                 // latch.
@@ -767,7 +767,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public void NotifyHeartbeatListener()
+        public  void NotifyHeartbeatListener()
         {
             if (m_heartbeat != 0)
             {
@@ -1099,7 +1099,7 @@ entry.ToString());
                     if (!m_closed)
                     {
                         WriteFrame(m_heartbeatFrame);
-                        m_frameHandler.Flush();
+                        //m_frameHandler.Flush();
                     }
                 }
                 catch (Exception e)
@@ -1168,13 +1168,13 @@ entry.ToString());
             return string.Format("Connection({0},{1})", m_id, Endpoint);
         }
 
-        public void WriteFrame(Frame f)
+        public void WriteFrame(WriteFrame f)
         {
             m_frameHandler.WriteFrame(f);
             m_heartbeatWrite.Set();
         }
 
-        public void WriteFrameSet(IList<Frame> f)
+        public void WriteFrameSet(IList<WriteFrame> f)
         {
             m_frameHandler.WriteFrameSet(f);
             m_heartbeatWrite.Set();

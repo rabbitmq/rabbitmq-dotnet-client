@@ -68,13 +68,13 @@ namespace RabbitMQ.Client.Impl
             Reset();
         }
 
-        public Command HandleFrame(Frame f)
+        public Command HandleFrame(ReadFrame f)
         {
             switch (m_state)
             {
                 case AssemblyState.ExpectingMethod:
                 {
-                    if (f.Type != Constants.FrameMethod)
+                    if (!f.IsMethod())
                     {
                         throw new UnexpectedFrameException(f);
                     }
@@ -86,7 +86,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 case AssemblyState.ExpectingContentHeader:
                 {
-                    if (f.Type != Constants.FrameHeader)
+                    if (!f.IsHeader())
                     {
                         throw new UnexpectedFrameException(f);
                     }
@@ -98,20 +98,19 @@ namespace RabbitMQ.Client.Impl
                 }
                 case AssemblyState.ExpectingContentBody:
                 {
-                    if (f.Type != Constants.FrameBody)
+                    if (!f.IsBody())
                     {
                         throw new UnexpectedFrameException(f);
                     }
-                    byte[] fragment = f.Payload;
-                    m_command.AppendBodyFragment(fragment);
-                    if ((ulong)fragment.Length > m_remainingBodyBytes)
+                    m_command.AppendBodyFragment(f.Payload);
+                    if ((ulong)f.Payload.Length > m_remainingBodyBytes)
                     {
                         throw new MalformedFrameException
                             (string.Format("Overlong content body received - {0} bytes remaining, {1} bytes received",
                                 m_remainingBodyBytes,
-                                fragment.Length));
+                                f.Payload.Length));
                     }
-                    m_remainingBodyBytes -= (ulong)fragment.Length;
+                    m_remainingBodyBytes -= (ulong)f.Payload.Length;
                     UpdateContentBodyState();
                     return CompletedCommand();
                 }
