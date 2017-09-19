@@ -70,25 +70,18 @@ namespace RabbitMQ.Client.Unit {
         [Test]
         public void TestConcurrentChannelOpenWithPublishing()
         {
-            foreach (var i in Enumerable.Range(0, threads))
-            {
-                var t = new Thread(() => {
-                    // publishing on a shared channel is not supported
-                    // and would missing the point of this test anyway
-                    var ch = Conn.CreateModel();
-                    ch.ConfirmSelect();
-                    foreach (var j in Enumerable.Range(0, 10000))
-                    {
-                        var body = Encoding.ASCII.GetBytes(string.Empty);
-                        ch.BasicPublish(exchange: "", routingKey: "_______", basicProperties: ch.CreateBasicProperties(), body: body);
-                    }
-                    ch.WaitForConfirms(TimeSpan.FromSeconds(40));
-                    latch.Signal();
-                });
-                t.Start();                
-            }
-
-            Assert.IsTrue(latch.Wait(TimeSpan.FromSeconds(90)));
+            TestConcurrentChannelOperations((conn) => {
+                // publishing on a shared channel is not supported
+                // and would missing the point of this test anyway
+                var ch = Conn.CreateModel();
+                ch.ConfirmSelect();
+                foreach (var j in Enumerable.Range(0, 500))
+                {
+                    var body = Encoding.ASCII.GetBytes(string.Empty);
+                    ch.BasicPublish(exchange: "", routingKey: "_______", basicProperties: ch.CreateBasicProperties(), body: body);
+                }
+                ch.WaitForConfirms(TimeSpan.FromSeconds(40));
+            }, 30);
         }
 
         // note: refactoring this further to use an Action causes .NET Core 1.x
@@ -99,7 +92,7 @@ namespace RabbitMQ.Client.Unit {
             TestConcurrentChannelOperations((conn) => {
                 var ch = conn.CreateModel();
                 ch.Close();
-            }, 100);
+            }, 50);
         }
 
         protected void TestConcurrentChannelOperations(Action<IConnection> actions,
