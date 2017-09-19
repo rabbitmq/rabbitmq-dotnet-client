@@ -76,5 +76,26 @@ namespace RabbitMQ.Client.Unit {
 
             Assert.IsTrue(latch.Wait(TimeSpan.FromSeconds(90)));
         }
+
+        [Test]
+        public void TestConcurrentChannelOpenCloseLoop()
+        {
+            var n = 32;
+            var latch = new CountdownEvent(n);
+            foreach (var i in Enumerable.Range(0, n))
+            {
+                var t = new Thread(() => {
+                    foreach (var j in Enumerable.Range(0, 100))
+                    {
+                        var ch = Conn.CreateModel();
+                        ch.Close();
+                    }
+                    latch.Signal();
+                });
+                t.Start();
+            }
+
+            Assert.IsTrue(latch.Wait(TimeSpan.FromSeconds(90)));
+        }
     }
 }
