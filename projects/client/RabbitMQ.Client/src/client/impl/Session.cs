@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Impl
             m_assembler = new CommandAssembler(connection.Protocol);
         }
 
-        public override void HandleFrame(Frame frame)
+        public override void HandleFrame(ReadFrame frame)
         {
             Command cmd = m_assembler.HandleFrame(frame);
             if (cmd != null)
