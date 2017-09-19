@@ -53,6 +53,7 @@ namespace RabbitMQ.Client.Unit {
 
         protected const int threads = 32;
         protected CountdownEvent latch;
+        protected TimeSpan completionTimeout = TimeSpan.FromSeconds(90);
 
         [SetUp]
         public void Init()
@@ -95,20 +96,38 @@ namespace RabbitMQ.Client.Unit {
         [Test]
         public void TestConcurrentChannelOpenCloseLoop()
         {
+            TestConcurrentChannelOperations((conn) => {
+                var ch = conn.CreateModel();
+                ch.Close();
+            }, 100);
+        }
+
+        protected void TestConcurrentChannelOperations(Action<IConnection> actions,
+            int iterations)
+        {
+            TestConcurrentChannelOperations(actions, iterations, completionTimeout);
+        }
+
+        protected void TestConcurrentChannelOperations(Action<IConnection> actions,
+            int iterations, TimeSpan timeout)
+        {
             foreach (var i in Enumerable.Range(0, threads))
             {
                 var t = new Thread(() => {
-                    foreach (var j in Enumerable.Range(0, 100))
+                    foreach (var j in Enumerable.Range(0, iterations))
                     {
-                        var ch = Conn.CreateModel();
-                        ch.Close();
+                        actions(Conn);
                     }
                     latch.Signal();
                 });
                 t.Start();
             }
 
-            Assert.IsTrue(latch.Wait(TimeSpan.FromSeconds(90)));
+            Assert.IsTrue(latch.Wait(timeout));
+            // incorrect frame interleaving in these tests will result
+            // in an unrecoverable connection-level exception, thus
+            // closing the connection
+            Assert.IsTrue(Conn.IsOpen);
         }
     }
 }
