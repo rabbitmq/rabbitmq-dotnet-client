@@ -51,12 +51,25 @@ namespace RabbitMQ.Client.Unit {
     [TestFixture]
     public class TestConcurrentAccessWithSharedConnection : IntegrationFixture {
 
+        protected const int threads = 32;
+        protected CountdownEvent latch;
+
+        [SetUp]
+        public void Init()
+        {
+            latch = new CountdownEvent(threads);
+        }
+
+        [TearDown]
+        public void Dispose()
+        {
+            latch.Dispose();
+        }
+
         [Test]
         public void TestConcurrentChannelOpenWithPublishing()
         {
-            var n = 32;
-            var latch = new CountdownEvent(n);
-            foreach (var i in Enumerable.Range(0, n))
+            foreach (var i in Enumerable.Range(0, threads))
             {
                 var t = new Thread(() => {
                     // publishing on a shared channel is not supported
@@ -77,12 +90,12 @@ namespace RabbitMQ.Client.Unit {
             Assert.IsTrue(latch.Wait(TimeSpan.FromSeconds(90)));
         }
 
+        // note: refactoring this further to use an Action causes .NET Core 1.x
+        //       to segfault on OS X for no obvious reason
         [Test]
         public void TestConcurrentChannelOpenCloseLoop()
         {
-            var n = 32;
-            var latch = new CountdownEvent(n);
-            foreach (var i in Enumerable.Range(0, n))
+            foreach (var i in Enumerable.Range(0, threads))
             {
                 var t = new Thread(() => {
                     foreach (var j in Enumerable.Range(0, 100))
