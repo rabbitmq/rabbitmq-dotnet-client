@@ -65,12 +65,15 @@ namespace RabbitMQ.Client.Impl
             add
             {
                 bool ok = false;
-                lock (_shutdownLock)
+                if (CloseReason == null)
                 {
-                    if (CloseReason == null)
+                    lock (_shutdownLock)
                     {
-                        _sessionShutdown += value;
-                        ok = true;
+                        if (CloseReason == null)
+                        {
+                            _sessionShutdown += value;
+                            ok = true;
+                        }
                     }
                 }
                 if (!ok)
@@ -104,10 +107,9 @@ namespace RabbitMQ.Client.Impl
 
         public virtual void OnCommandReceived(Command cmd)
         {
-            Action<ISession, Command> handler = CommandReceived;
-            if (handler != null)
+            if (CommandReceived != null)
             {
-                handler(this, cmd);
+                CommandReceived(this, cmd);
             }
         }
 
@@ -143,11 +145,14 @@ namespace RabbitMQ.Client.Impl
 
         public void Close(ShutdownEventArgs reason, bool notify)
         {
-            lock (_shutdownLock)
+            if (CloseReason == null)
             {
-                if (CloseReason == null)
+                lock (_shutdownLock)
                 {
-                    CloseReason = reason;
+                    if (CloseReason == null)
+                    {
+                        CloseReason = reason;
+                    }
                 }
             }
             if (notify)
@@ -156,17 +161,20 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public abstract void HandleFrame(Frame frame);
+        public abstract void HandleFrame(InboundFrame frame);
 
         public void Notify()
         {
             // Ensure that we notify only when session is already closed
             // If not, throw exception, since this is a serious bug in the library
-            lock (_shutdownLock)
+            if (CloseReason == null)
             {
-                if (CloseReason == null)
+                lock (_shutdownLock)
                 {
-                    throw new Exception("Internal Error in Session.Close");
+                    if (CloseReason == null)
+                    {
+                        throw new Exception("Internal Error in Session.Close");
+                    }
                 }
             }
             OnSessionShutdown(CloseReason);
@@ -174,19 +182,22 @@ namespace RabbitMQ.Client.Impl
 
         public virtual void Transmit(Command cmd)
         {
-            lock (_shutdownLock)
+            if (CloseReason != null)
             {
-                if (CloseReason != null)
+                lock (_shutdownLock)
                 {
-                    if (!Connection.Protocol.CanSendWhileClosed(cmd))
+                    if (CloseReason != null)
                     {
-                        throw new AlreadyClosedException(CloseReason);
+                        if (!Connection.Protocol.CanSendWhileClosed(cmd))
+                        {
+                            throw new AlreadyClosedException(CloseReason);
+                        }
                     }
                 }
-                // We transmit *inside* the lock to avoid interleaving
-                // of frames within a channel.
-                cmd.Transmit(ChannelNumber, Connection);
             }
+            // We used to transmit *inside* the lock to avoid interleaving
+            // of frames within a channel.  But that is fixed in socket frame handler instead, so no need to lock.
+            cmd.Transmit(ChannelNumber, Connection);
         }
     }
 }

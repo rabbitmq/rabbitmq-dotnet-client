@@ -66,15 +66,14 @@ namespace RabbitMQ.Client.Impl
         private TimeSpan m_handshakeContinuationTimeout = TimeSpan.FromSeconds(10);
         private TimeSpan m_continuationTimeout = TimeSpan.FromSeconds(20);
 
-        public RpcContinuationQueue m_continuationQueue = new RpcContinuationQueue();
-        public ManualResetEvent m_flowControlBlock = new ManualResetEvent(true);
+        private RpcContinuationQueue m_continuationQueue = new RpcContinuationQueue();
+        private ManualResetEvent m_flowControlBlock = new ManualResetEvent(true);
 
         private readonly object m_eventLock = new object();
         private readonly object m_flowSendLock = new object();
         private readonly object m_shutdownLock = new object();
 
-        private readonly SynchronizedList<ulong> m_unconfirmedSet =
-            new SynchronizedList<ulong>();
+        private readonly SynchronizedList<ulong> m_unconfirmedSet = new SynchronizedList<ulong>();
 
         private EventHandler<BasicAckEventArgs> m_basicAck;
         private EventHandler<BasicNackEventArgs> m_basicNack;
@@ -105,7 +104,7 @@ namespace RabbitMQ.Client.Impl
             {
                 ConsumerDispatcher = new ConcurrentConsumerDispatcher(this, workService);
             }
-            
+
             Initialise(session);
         }
 
@@ -243,12 +242,15 @@ namespace RabbitMQ.Client.Impl
             add
             {
                 bool ok = false;
-                lock (m_shutdownLock)
+                if (CloseReason == null)
                 {
-                    if (CloseReason == null)
+                    lock (m_shutdownLock)
                     {
-                        m_modelShutdown += value;
-                        ok = true;
+                        if (CloseReason == null)
+                        {
+                            m_modelShutdown += value;
+                            ok = true;
+                        }
                     }
                 }
                 if (!ok)
@@ -288,7 +290,7 @@ namespace RabbitMQ.Client.Impl
             get { return ((Session)Session).ChannelNumber; }
         }
 
-        public ShutdownEventArgs CloseReason { get; set; }
+        public ShutdownEventArgs CloseReason { get; private set; }
 
         public IBasicConsumer DefaultConsumer { get; set; }
 
@@ -304,7 +306,7 @@ namespace RabbitMQ.Client.Impl
 
         public ulong NextPublishSeqNo { get; private set; }
 
-        public ISession Session { get; set; }
+        public ISession Session { get; private set; }
 
         public void Close(ushort replyCode, string replyText, bool abort)
         {
@@ -416,12 +418,15 @@ namespace RabbitMQ.Client.Impl
         public void Enqueue(IRpcContinuation k)
         {
             bool ok = false;
-            lock (m_shutdownLock)
+            if (CloseReason == null)
             {
-                if (CloseReason == null)
+                lock (m_shutdownLock)
                 {
-                    m_continuationQueue.Enqueue(k);
-                    ok = true;
+                    if (CloseReason == null)
+                    {
+                        m_continuationQueue.Enqueue(k);
+                        ok = true;
+                    }
                 }
             }
             if (!ok)
@@ -444,14 +449,8 @@ namespace RabbitMQ.Client.Impl
 
         public void HandleCommand(ISession session, Command cmd)
         {
-            if (DispatchAsynchronous(cmd))
-            {
-                // Was asynchronous. Already processed. No need to process further.
-            }
-            else
-            {
+            if (!DispatchAsynchronous(cmd))// Was asynchronous. Already processed. No need to process further.
                 m_continuationQueue.Next().HandleCommand(cmd);
-            }
         }
 
         public MethodBase ModelRpc(MethodBase method, ContentHeaderBase header, byte[] body)
@@ -465,11 +464,8 @@ namespace RabbitMQ.Client.Impl
         {
             if (method.HasContent)
             {
-                lock (m_flowSendLock)
-                {
-                    m_flowControlBlock.WaitOne();
-                    Session.Transmit(new Command(method, header, body));
-                }
+                m_flowControlBlock.WaitOne();
+                Session.Transmit(new Command(method, header, body));
             }
             else
             {
@@ -681,18 +677,23 @@ namespace RabbitMQ.Client.Impl
 
         public bool SetCloseReason(ShutdownEventArgs reason)
         {
-            lock (m_shutdownLock)
+            if (CloseReason == null)
             {
-                if (CloseReason == null)
+                lock (m_shutdownLock)
                 {
-                    CloseReason = reason;
-                    return true;
-                }
-                else
-                {
-                    return false;
+                    if (CloseReason == null)
+                    {
+                        CloseReason = reason;
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
             }
+            else
+                return false;
         }
 
         public override string ToString()
@@ -908,11 +909,8 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                lock (m_flowSendLock)
-                {
-                    m_flowControlBlock.Reset();
-                    _Private_ChannelFlowOk(active);
-                }
+                m_flowControlBlock.Reset();
+                _Private_ChannelFlowOk(active);
             }
             OnFlowControl(new FlowControlEventArgs(active));
         }

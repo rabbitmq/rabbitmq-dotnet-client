@@ -54,37 +54,109 @@ using System.Net.Sockets;
 
 namespace RabbitMQ.Client.Impl
 {
-    public class Frame
+    public class HeaderOutboundFrame : OutboundFrame
     {
-        public MemoryStream m_accumulator;
-
-        public Frame()
+        public HeaderOutboundFrame(int channel, ContentHeaderBase header, int bodyLength) : base(FrameType.FrameHeader, channel)
         {
+            NetworkBinaryWriter writer = base.GetWriter();
+
+            writer.Write((ushort)header.ProtocolClassId);
+            header.WriteTo(writer, (ulong)bodyLength);
+        }
+    }
+
+    public class BodySegmentOutboundFrame : OutboundFrame
+    {
+        public BodySegmentOutboundFrame(int channel, byte[] body, int offset, int count) : base(FrameType.FrameBody, channel)
+        {
+            NetworkBinaryWriter writer = base.GetWriter();
+
+            writer.Write(body, offset, count);
+        }
+    }
+
+    public class MethodOutboundFrame : OutboundFrame
+    {
+        public MethodOutboundFrame(int channel, MethodBase method) : base(FrameType.FrameMethod, channel)
+        {
+            NetworkBinaryWriter writer = base.GetWriter();
+
+            writer.Write((ushort)method.ProtocolClassId);
+            writer.Write((ushort)method.ProtocolMethodId);
+
+            var argWriter = new MethodArgumentWriter(writer);
+
+            method.WriteArgumentsTo(argWriter);
+
+            argWriter.Flush();
+        }
+    }
+
+    public class EmptyOutboundFrame : OutboundFrame
+    {
+        private static readonly byte[] m_emptyByteArray = new byte[0];
+
+        public EmptyOutboundFrame() : base(FrameType.FrameHeartbeat, 0)
+        {
+            base.GetWriter().Write(m_emptyByteArray);
         }
 
-        public Frame(int type, int channel)
+        public override string ToString()
         {
-            Type = type;
-            Channel = channel;
-            Payload = null;
+            return base.ToString() + string.Format("(type={0}, channel={1}, {2} bytes of payload)",
+                Type,
+                Channel,
+                Payload == null
+                    ? "(null)"
+                    : Payload.Length.ToString());
+        }
+    }
+
+    public class OutboundFrame : Frame
+    {
+        private readonly MemoryStream m_accumulator;
+        private readonly NetworkBinaryWriter writer;
+
+        public OutboundFrame(FrameType type, int channel) : base(type, channel)
+        {
             m_accumulator = new MemoryStream();
+            writer = new NetworkBinaryWriter(m_accumulator);
         }
 
-        public Frame(int type, int channel, byte[] payload)
+        public NetworkBinaryWriter GetWriter()
         {
-            Type = type;
-            Channel = channel;
-            Payload = payload;
-            m_accumulator = null;
+            return writer;
         }
 
-        public int Channel { get; set; }
+        public override string ToString()
+        {
+            return base.ToString() + string.Format("(type={0}, channel={1}, {2} bytes of payload)",
+                Type,
+                Channel,
+                Payload == null
+                    ? "(null)"
+                    : Payload.Length.ToString());
+        }
 
-        public byte[] Payload { get; set; }
+        public void WriteTo(NetworkBinaryWriter writer)
+        {
+            var payload = m_accumulator.ToArray();
 
-        public int Type { get; set; }
+            writer.Write((byte)Type);
+            writer.Write((ushort)Channel);
+            writer.Write((uint)payload.Length);
+            writer.Write(payload);
+            writer.Write((byte)Constants.FrameEnd);
+        }
+    }
 
-        public static void ProcessProtocolHeader(NetworkBinaryReader reader)
+    public class InboundFrame : Frame
+    {
+        private InboundFrame(FrameType type, int channel, byte[] payload) : base(type, channel, payload)
+        {
+        }
+
+        private static void ProcessProtocolHeader(NetworkBinaryReader reader)
         {
             try
             {
@@ -118,7 +190,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public static Frame ReadFrom(NetworkBinaryReader reader)
+        public static InboundFrame ReadFrom(NetworkBinaryReader reader)
         {
             int type;
 
@@ -173,27 +245,46 @@ namespace RabbitMQ.Client.Impl
                 throw new MalformedFrameException("Bad frame end marker: " + frameEndMarker);
             }
 
-            return new Frame(type, channel, payload);
-        }
-
-        public void FinishWriting()
-        {
-            if (m_accumulator != null)
-            {
-                Payload = m_accumulator.ToArray();
-                m_accumulator = null;
-            }
+            return new InboundFrame((FrameType)type, channel, payload);
         }
 
         public NetworkBinaryReader GetReader()
         {
-            return new NetworkBinaryReader(new MemoryStream(Payload));
+            return new NetworkBinaryReader(new MemoryStream(base.Payload));
         }
 
-        public NetworkBinaryWriter GetWriter()
+        public override string ToString()
         {
-            return new NetworkBinaryWriter(m_accumulator);
+            return base.ToString() + string.Format("(type={0}, channel={1}, {2} bytes of payload)",
+                base.Type,
+                base.Channel,
+                base.Payload == null
+                    ? "(null)"
+                    : base.Payload.Length.ToString());
         }
+    }
+
+    public class Frame
+    {
+        public Frame(FrameType type, int channel)
+        {
+            Type = type;
+            Channel = channel;
+            Payload = null;
+        }
+
+        public Frame(FrameType type, int channel, byte[] payload)
+        {
+            Type = type;
+            Channel = channel;
+            Payload = payload;
+        }
+
+        public int Channel { get; private set; }
+
+        public byte[] Payload { get; private set; }
+
+        public FrameType Type { get; private set; }
 
         public override string ToString()
         {
@@ -205,14 +296,32 @@ namespace RabbitMQ.Client.Impl
                     : Payload.Length.ToString());
         }
 
-        public void WriteTo(NetworkBinaryWriter writer)
+        public bool IsMethod()
         {
-            FinishWriting();
-            writer.Write((byte)Type);
-            writer.Write((ushort)Channel);
-            writer.Write((uint)Payload.Length);
-            writer.Write(Payload);
-            writer.Write((byte)Constants.FrameEnd);
+            return this.Type == FrameType.FrameMethod;
+        }
+        public bool IsHeader()
+        {
+            return this.Type == FrameType.FrameHeader;
+        }
+        public bool IsBody()
+        {
+            return this.Type == FrameType.FrameBody;
+        }
+        public bool IsHeartbeat()
+        {
+            return this.Type == FrameType.FrameHeartbeat;
         }
     }
+
+    public enum FrameType : int
+    {
+        FrameMethod = 1,
+        FrameHeader = 2,
+        FrameBody = 3,
+        FrameHeartbeat = 8,
+        FrameEnd = 206,
+        FrameMinSize = 4096
+    }
+
 }
