@@ -56,13 +56,14 @@ namespace RabbitMQ.Client.Unit {
         protected TimeSpan completionTimeout = TimeSpan.FromSeconds(90);
 
         [SetUp]
-        public void Init()
+        public override void Init()
         {
+            base.Init();
             latch = new CountdownEvent(threads);
         }
 
         [TearDown]
-        public void Dispose()
+        protected override void ReleaseResources()
         {
             latch.Dispose();
         }
