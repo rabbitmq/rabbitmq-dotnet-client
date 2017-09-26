@@ -110,29 +110,6 @@ namespace RabbitMQ.Client.Unit
             SendReceive(cf);
         }
 
-#if !NETFX_CORE
-        [Test]
-        public void TestVersionVerified()
-        {
-            string sslDir = IntegrationFixture.CertificatesDirectory();
-            if (null == sslDir)
-            {
-                Console.WriteLine("SSL_CERT_DIR is not configured, skipping test");
-                return;
-            }
-
-            ConnectionFactory cf = new ConnectionFactory();
-            cf.Ssl.Version = SslProtocols.Ssl2;
-            cf.Ssl.AcceptablePolicyErrors = (SslPolicyErrors)~0;
-            cf.Ssl.ServerName = "*";
-            cf.Ssl.Enabled = true;
-            Assert.Throws<BrokerUnreachableException>(() => SendReceive(cf));
-
-            cf.Ssl.Version = SslProtocols.Tls12;
-            Assert.DoesNotThrow(() => SendReceive(cf));
-        }
-#endif
-
         [Test]
         public void TestClientAndServerVerified()
         {
