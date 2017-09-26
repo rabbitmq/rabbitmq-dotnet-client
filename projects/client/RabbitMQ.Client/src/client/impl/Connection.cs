@@ -767,7 +767,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public  void NotifyHeartbeatListener()
+        public void NotifyHeartbeatListener()
         {
             if (m_heartbeat != 0)
             {
@@ -1099,7 +1099,6 @@ entry.ToString());
                     if (!m_closed)
                     {
                         WriteFrame(m_heartbeatFrame);
-                        //m_frameHandler.Flush();
                     }
                 }
                 catch (Exception e)

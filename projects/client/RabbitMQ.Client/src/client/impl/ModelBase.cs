@@ -87,7 +87,7 @@ namespace RabbitMQ.Client.Impl
 
         private EventHandler<EventArgs> m_recovery;
 
-        public  IConsumerDispatcher ConsumerDispatcher { get; private set; }
+        public IConsumerDispatcher ConsumerDispatcher { get; private set; }
 
         public ModelBase(ISession session)
             : this(session, session.Connection.ConsumerWorkService)
@@ -104,7 +104,7 @@ namespace RabbitMQ.Client.Impl
             {
                 ConsumerDispatcher = new ConcurrentConsumerDispatcher(this, workService);
             }
-            
+
             Initialise(session);
         }
 
@@ -464,11 +464,8 @@ namespace RabbitMQ.Client.Impl
         {
             if (method.HasContent)
             {
-                //lock (m_flowSendLock)
-                //{
-                    m_flowControlBlock.WaitOne();
-                    Session.Transmit(new Command(method, header, body));
-                //}
+                m_flowControlBlock.WaitOne();
+                Session.Transmit(new Command(method, header, body));
             }
             else
             {
@@ -912,11 +909,8 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                //lock (m_flowSendLock)
-                //{
-                    m_flowControlBlock.Reset();
-                    _Private_ChannelFlowOk(active);
-                //}
+                m_flowControlBlock.Reset();
+                _Private_ChannelFlowOk(active);
             }
             OnFlowControl(new FlowControlEventArgs(active));
         }
