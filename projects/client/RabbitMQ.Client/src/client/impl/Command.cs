@@ -99,7 +99,7 @@ namespace RabbitMQ.Client.Impl
 
         public static void CheckEmptyFrameSize()
         {
-            var f = new EmptyWriteFrame();
+            var f = new EmptyOutboundFrame();
             var stream = new MemoryStream();
             var writer = new NetworkBinaryWriter(stream);
             f.WriteTo(writer);
@@ -142,25 +142,25 @@ namespace RabbitMQ.Client.Impl
 
         public void TransmitAsSingleFrame(int channelNumber, Connection connection)
         {
-            connection.WriteFrame(new MethodWriteFrame(channelNumber, Method));
+            connection.WriteFrame(new MethodOutboundFrame(channelNumber, Method));
         }
 
         public void TransmitAsFrameSet(int channelNumber, Connection connection)
         {
-            var frames = new List<WriteFrame>();
-            frames.Add(new MethodWriteFrame(channelNumber, Method));
+            var frames = new List<OutboundFrame>();
+            frames.Add(new MethodOutboundFrame(channelNumber, Method));
             if (Method.HasContent)
             {
                 var body = ConsolidateBody(); // Cache, since the property is compiled.
 
-                frames.Add(new HeaderWriteFrame(channelNumber, Header, body.Length));
+                frames.Add(new HeaderOutboundFrame(channelNumber, Header, body.Length));
                 var frameMax = (int)Math.Min(int.MaxValue, connection.FrameMax);
                 var bodyPayloadMax = (frameMax == 0) ? body.Length : frameMax - EmptyFrameSize;
                 for (int offset = 0; offset < body.Length; offset += bodyPayloadMax)
                 {
                     var remaining = body.Length - offset;
                     var count = (remaining < bodyPayloadMax) ? remaining : bodyPayloadMax;
-                    frames.Add(new BodySegmentWriteFrame(channelNumber, body, offset, count));
+                    frames.Add(new BodySegmentOutboundFrame(channelNumber, body, offset, count));
                 }
             }
 

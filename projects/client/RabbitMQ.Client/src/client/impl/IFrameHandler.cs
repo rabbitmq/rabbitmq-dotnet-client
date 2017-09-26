@@ -71,14 +71,12 @@ namespace RabbitMQ.Client.Impl
         ///<summary>Read a frame from the underlying
         ///transport. Returns null if the read operation timed out
         ///(see Timeout property).</summary>
-        ReadFrame ReadFrame();
+        InboundFrame ReadFrame();
 
         void SendHeader();
 
-        void WriteFrame(WriteFrame frame);
+        void WriteFrame(OutboundFrame frame);
 
-        void WriteFrameSet(IList<WriteFrame> frames);
-
-        //void Flush();
+        void WriteFrameSet(IList<OutboundFrame> frames);
     }
 }

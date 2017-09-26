@@ -191,9 +191,9 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public ReadFrame ReadFrame()
+        public InboundFrame ReadFrame()
         {
-            return RabbitMQ.Client.Impl.ReadFrame.ReadFrom(m_reader);
+            return RabbitMQ.Client.Impl.InboundFrame.ReadFrom(m_reader);
         }
 
         private static readonly byte[] amqp = Encoding.ASCII.GetBytes("AMQP");
@@ -220,7 +220,7 @@ namespace RabbitMQ.Client.Impl
             m_writer.Write(ms.ToArray());
         }
 
-        public void WriteFrame(WriteFrame frame)
+        public void WriteFrame(OutboundFrame frame)
         {
             var ms = new MemoryStream();
             var nbw = new NetworkBinaryWriter(ms);
@@ -229,7 +229,7 @@ namespace RabbitMQ.Client.Impl
             m_writer.Write(ms.ToArray());
         }
 
-        public void WriteFrameSet(IList<WriteFrame> frames)
+        public void WriteFrameSet(IList<OutboundFrame> frames)
         {
             var ms = new MemoryStream();
             var nbw = new NetworkBinaryWriter(ms);

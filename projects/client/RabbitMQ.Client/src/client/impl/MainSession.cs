@@ -72,7 +72,7 @@ namespace RabbitMQ.Client.Impl
 
         public Action Handler { get; set; }
 
-        public override void HandleFrame(ReadFrame frame)
+        public override void HandleFrame(InboundFrame frame)
         {
             lock (_closingLock)
             {

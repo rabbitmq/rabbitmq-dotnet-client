@@ -67,7 +67,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private readonly object m_eventLock = new object();
 
         ///<summary>Heartbeat frame for transmission. Reusable across connections.</summary>
-        private readonly EmptyWriteFrame m_heartbeatFrame = new EmptyWriteFrame();
+        private readonly EmptyOutboundFrame m_heartbeatFrame = new EmptyOutboundFrame();
 
         private ManualResetEvent m_appContinuation = new ManualResetEvent(false);
         private EventHandler<CallbackExceptionEventArgs> m_callbackException;
@@ -716,7 +716,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void MainLoopIteration()
         {
-            ReadFrame frame = m_frameHandler.ReadFrame();
+            InboundFrame frame = m_frameHandler.ReadFrame();
 
             NotifyHeartbeatListener();
             // We have received an actual frame.
@@ -1168,13 +1168,13 @@ entry.ToString());
             return string.Format("Connection({0},{1})", m_id, Endpoint);
         }
 
-        public void WriteFrame(WriteFrame f)
+        public void WriteFrame(OutboundFrame f)
         {
             m_frameHandler.WriteFrame(f);
             m_heartbeatWrite.Set();
         }
 
-        public void WriteFrameSet(IList<WriteFrame> f)
+        public void WriteFrameSet(IList<OutboundFrame> f)
         {
             m_frameHandler.WriteFrameSet(f);
             m_heartbeatWrite.Set();

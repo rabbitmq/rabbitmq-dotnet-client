@@ -68,7 +68,7 @@ namespace RabbitMQ.Client.Impl
             Reset();
         }
 
-        public Command HandleFrame(ReadFrame f)
+        public Command HandleFrame(InboundFrame f)
         {
             switch (m_state)
             {

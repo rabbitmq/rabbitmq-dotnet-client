@@ -54,9 +54,9 @@ using System.Net.Sockets;
 
 namespace RabbitMQ.Client.Impl
 {
-    public class HeaderWriteFrame : WriteFrame
+    public class HeaderOutboundFrame : OutboundFrame
     {
-        public HeaderWriteFrame(int channel, ContentHeaderBase header, int bodyLength) : base(FrameType.FrameHeader, channel)
+        public HeaderOutboundFrame(int channel, ContentHeaderBase header, int bodyLength) : base(FrameType.FrameHeader, channel)
         {
             NetworkBinaryWriter writer = base.GetWriter();
 
@@ -65,9 +65,9 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    public class BodySegmentWriteFrame : WriteFrame
+    public class BodySegmentOutboundFrame : OutboundFrame
     {
-        public BodySegmentWriteFrame(int channel, byte[] body, int offset, int count) : base(FrameType.FrameBody, channel)
+        public BodySegmentOutboundFrame(int channel, byte[] body, int offset, int count) : base(FrameType.FrameBody, channel)
         {
             NetworkBinaryWriter writer = base.GetWriter();
 
@@ -75,9 +75,9 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    public class MethodWriteFrame : WriteFrame
+    public class MethodOutboundFrame : OutboundFrame
     {
-        public MethodWriteFrame(int channel, MethodBase method) : base(FrameType.FrameMethod, channel)
+        public MethodOutboundFrame(int channel, MethodBase method) : base(FrameType.FrameMethod, channel)
         {
             NetworkBinaryWriter writer = base.GetWriter();
 
@@ -92,11 +92,11 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    public class EmptyWriteFrame : WriteFrame
+    public class EmptyOutboundFrame : OutboundFrame
     {
         private static readonly byte[] m_emptyByteArray = new byte[0];
 
-        public EmptyWriteFrame() : base(FrameType.FrameHeartbeat, 0)
+        public EmptyOutboundFrame() : base(FrameType.FrameHeartbeat, 0)
         {
             base.GetWriter().Write(m_emptyByteArray);
         }
@@ -112,12 +112,12 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    public class WriteFrame : Frame
+    public class OutboundFrame : Frame
     {
         private readonly MemoryStream m_accumulator;
         private readonly NetworkBinaryWriter writer;
 
-        public WriteFrame(FrameType type, int channel) : base(type, channel)
+        public OutboundFrame(FrameType type, int channel) : base(type, channel)
         {
             m_accumulator = new MemoryStream();
             writer = new NetworkBinaryWriter(m_accumulator);
@@ -150,9 +150,9 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    public class ReadFrame : Frame
+    public class InboundFrame : Frame
     {
-        private ReadFrame(FrameType type, int channel, byte[] payload) : base(type, channel, payload)
+        private InboundFrame(FrameType type, int channel, byte[] payload) : base(type, channel, payload)
         {
         }
 
@@ -190,7 +190,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public static ReadFrame ReadFrom(NetworkBinaryReader reader)
+        public static InboundFrame ReadFrom(NetworkBinaryReader reader)
         {
             int type;
 
@@ -245,7 +245,7 @@ namespace RabbitMQ.Client.Impl
                 throw new MalformedFrameException("Bad frame end marker: " + frameEndMarker);
             }
 
-            return new ReadFrame((FrameType)type, channel, payload);
+            return new InboundFrame((FrameType)type, channel, payload);
         }
 
         public NetworkBinaryReader GetReader()
