@@ -80,6 +80,8 @@ namespace RabbitMQ.Client
         {
             var socket = new Socket(addressFamily, SocketType.Stream, ProtocolType.Tcp)
             {
+                SendBufferSize = 128 * 1024,
+                ReceiveBufferSize = 128 * 1024,
                 NoDelay = true
             };
             return new TcpClientAdapter(socket);

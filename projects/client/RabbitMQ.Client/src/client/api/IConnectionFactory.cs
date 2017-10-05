@@ -102,6 +102,7 @@ namespace RabbitMQ.Client
         /// Create a connection to the specified endpoint.
         /// </summary>
         IConnection CreateConnection();
+        Task<IConnection> CreateConnectionAsync();
 
         /// <summary>
         /// Create a connection to the specified endpoint.
@@ -114,6 +115,7 @@ namespace RabbitMQ.Client
         /// </param>
         /// <returns></returns>
         IConnection CreateConnection(String clientProvidedName);
+        Task<IConnection> CreateConnectionAsync(String clientProvidedName);
 
         /// <summary>
         /// Connects to the first reachable hostname from the list.
@@ -121,6 +123,7 @@ namespace RabbitMQ.Client
         /// <param name="hostnames">List of host names to use</param>
         /// <returns></returns>
         IConnection CreateConnection(IList<string> hostnames);
+        Task<IConnection> CreateConnectionAsync(IList<string> hostnames);
 
         /// <summary>
         /// Connects to the first reachable hostname from the list.
@@ -134,6 +137,7 @@ namespace RabbitMQ.Client
         /// </param>
         /// <returns></returns>
         IConnection CreateConnection(IList<string> hostnames, String clientProvidedName);
+        Task<IConnection> CreateConnectionAsync(IList<string> hostnames, String clientProvidedName);
 
         /// <summary>
         /// Create a connection using a list of endpoints.
@@ -148,6 +152,7 @@ namespace RabbitMQ.Client
         /// When no hostname was reachable.
         /// </exception>
         IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints);
+        Task<IConnection> CreateConnectionAsync(IList<AmqpTcpEndpoint> endpoints);
 
         /// <summary>
         /// Advanced option.

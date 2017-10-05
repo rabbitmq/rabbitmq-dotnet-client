@@ -353,6 +353,10 @@ namespace RabbitMQ.Client
         {
             return CreateConnection(this.EndpointResolverFactory(LocalEndpoints()), null);
         }
+        public virtual Task<IConnection> CreateConnectionAsync()
+        {
+            return CreateConnectionAsync(this.EndpointResolverFactory(LocalEndpoints()), null);
+        }
 
         /// <summary>
         /// Create a connection to one of the endpoints provided by the IEndpointResolver
@@ -372,6 +376,10 @@ namespace RabbitMQ.Client
         {
             return CreateConnection(EndpointResolverFactory(LocalEndpoints()), clientProvidedName);
         }
+        public Task<IConnection> CreateConnectionAsync(String clientProvidedName)
+        {
+            return CreateConnectionAsync(EndpointResolverFactory(LocalEndpoints()), clientProvidedName);
+        }
 
         /// <summary>
         /// Create a connection using a list of hostnames using the configured port.
@@ -390,6 +398,10 @@ namespace RabbitMQ.Client
         public IConnection CreateConnection(IList<string> hostnames)
         {
             return CreateConnection(hostnames, null);
+        }
+        public Task<IConnection> CreateConnectionAsync(IList<string> hostnames)
+        {
+            return CreateConnectionAsync(hostnames, null);
         }
 
         /// <summary>
@@ -417,6 +429,11 @@ namespace RabbitMQ.Client
             var endpoints = hostnames.Select(h => new AmqpTcpEndpoint(h, this.Port, this.Ssl));
             return CreateConnection(new DefaultEndpointResolver(endpoints), clientProvidedName);
         }
+        public async Task<IConnection> CreateConnectionAsync(IList<string> hostnames, String clientProvidedName)
+        {
+            var endpoints = hostnames.Select(h => new AmqpTcpEndpoint(h, this.Port, this.Ssl));
+            return await CreateConnectionAsync(new DefaultEndpointResolver(endpoints), clientProvidedName);
+        }
 
         /// <summary>
         /// Create a connection using a list of endpoints. By default each endpoint will be tried
@@ -434,6 +451,10 @@ namespace RabbitMQ.Client
         public IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints)
         {
             return CreateConnection(new DefaultEndpointResolver(endpoints), null);
+        }
+        public Task<IConnection> CreateConnectionAsync(IList<AmqpTcpEndpoint> endpoints)
+        {
+            return CreateConnectionAsync(new DefaultEndpointResolver(endpoints), null);
         }
 
         /// <summary>
@@ -467,6 +488,30 @@ namespace RabbitMQ.Client
                 {
                     IProtocol protocol = Protocols.DefaultProtocol;
                     conn = protocol.CreateConnection(this, false, endpointResolver.SelectOne(this.CreateFrameHandler), clientProvidedName);
+                }
+            }
+            catch (Exception e)
+            {
+                throw new BrokerUnreachableException(e);
+            }
+
+            return conn;
+        }
+        public async Task<IConnection> CreateConnectionAsync(IEndpointResolver endpointResolver, String clientProvidedName)
+        {
+            IConnection conn;
+            try
+            {
+                if (AutomaticRecoveryEnabled)
+                {
+                    var autorecoveringConnection = new AutorecoveringConnection(this, clientProvidedName);
+                    await autorecoveringConnection.InitAsync(endpointResolver);
+                    conn = autorecoveringConnection;
+                }
+                else
+                {
+                    IProtocol protocol = Protocols.DefaultProtocol;
+                    conn = await protocol.CreateConnectionAsync(this, false, endpointResolver.SelectOne(this.CreateFrameHandler), clientProvidedName);
                 }
             }
             catch (Exception e)

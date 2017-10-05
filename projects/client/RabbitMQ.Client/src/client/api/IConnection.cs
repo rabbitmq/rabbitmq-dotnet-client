@@ -44,6 +44,7 @@ using System.IO;
 using System.Threading;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client
 {
@@ -172,8 +173,6 @@ namespace RabbitMQ.Client
         event EventHandler<CallbackExceptionEventArgs> CallbackException;
         event EventHandler<EventArgs> RecoverySucceeded;
         event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError;
-
-
         event EventHandler<ConnectionBlockedEventArgs> ConnectionBlocked;
 
         /// <summary>
@@ -310,6 +309,7 @@ namespace RabbitMQ.Client
         /// Create and return a fresh channel, session, and model.
         /// </summary>
         IModel CreateModel();
+        Task<IModel> CreateModelAsync();
 
         /// <summary>
         /// Handle incoming Connection.Blocked methods.
