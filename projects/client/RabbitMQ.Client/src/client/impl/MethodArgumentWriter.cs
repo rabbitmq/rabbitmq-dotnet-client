@@ -54,15 +54,15 @@ namespace RabbitMQ.Client.Impl
         public MethodArgumentWriter(NetworkBinaryWriter writer)
         {
             BaseWriter = writer;
-            if (!BaseWriter.BaseStream.CanSeek)
-            {
-                //FIXME: Consider throwing System.IO.IOException
-                // with message indicating that the specified writer does not support Seeking
+            //if (!BaseWriter.BaseStream.CanSeek)
+            //{
+            //    //FIXME: Consider throwing System.IO.IOException
+            //    // with message indicating that the specified writer does not support Seeking
 
-                // Only really a problem if we try to write a table,
-                // but complain anyway. See WireFormatting.WriteTable
-                throw new NotSupportedException("Cannot write method arguments to non-positionable stream");
-            }
+            //    // Only really a problem if we try to write a table,
+            //    // but complain anyway. See WireFormatting.WriteTable
+            //    throw new NotSupportedException("Cannot write method arguments to non-positionable stream");
+            //}
             ResetBitAccumulator();
         }
 
@@ -155,7 +155,7 @@ namespace RabbitMQ.Client.Impl
         {
             if (m_needBitFlush)
             {
-                BaseWriter.Write(m_bitAccumulator);
+                BaseWriter.WriteByte(m_bitAccumulator);
                 ResetBitAccumulator();
             }
         }

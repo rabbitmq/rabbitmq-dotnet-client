@@ -49,6 +49,7 @@ using Windows.Networking.Sockets;
 
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Util;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -133,6 +134,12 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             return new Connection(factory, insist, frameHandler, null);
         }
+        public async Task<IConnection> CreateConnectionAsync (IConnectionFactory factory,
+            bool insist,
+            IFrameHandler frameHandler)
+        {
+            return await Connection.CreateConnectionAsync(factory, insist, frameHandler, null);
+        }
 
 
         public IConnection CreateConnection(IConnectionFactory factory,
@@ -141,6 +148,13 @@ namespace RabbitMQ.Client.Framing.Impl
             string clientProvidedName)
         {
             return new Connection(factory, insist, frameHandler, clientProvidedName);
+        }
+        public async Task<IConnection> CreateConnectionAsync(IConnectionFactory factory,
+           bool insist,
+           IFrameHandler frameHandler,
+           string clientProvidedName)
+        {
+            return await Connection.CreateConnectionAsync(factory, insist, frameHandler, clientProvidedName);
         }
 
         public IConnection CreateConnection(ConnectionFactory factory,
@@ -151,6 +165,15 @@ namespace RabbitMQ.Client.Framing.Impl
             ac.Init();
             return ac;
         }
+        
+        public async Task<IConnection> CreateConnectionAsync(ConnectionFactory factory,
+     IFrameHandler frameHandler,
+     bool automaticRecoveryEnabled)
+        {
+            var ac = new AutorecoveringConnection(factory, null);
+            await ac.InitAsync();
+            return ac;
+        }
 
         public IConnection CreateConnection(ConnectionFactory factory,
             IFrameHandler frameHandler,
@@ -159,6 +182,16 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             var ac = new AutorecoveringConnection(factory, clientProvidedName);
             ac.Init();
+            return ac;
+        }
+
+        public async Task<IConnection> CreateConnectionAsync(ConnectionFactory factory,
+     IFrameHandler frameHandler,
+     bool automaticRecoveryEnabled,
+     string clientProvidedName)
+        {
+            var ac = new AutorecoveringConnection(factory, clientProvidedName);
+            await ac.InitAsync();
             return ac;
         }
 

@@ -45,6 +45,7 @@ using System.Net;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Framing;
 using RabbitMQ.Util;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -139,10 +140,25 @@ namespace RabbitMQ.Client.Impl
                 TransmitAsSingleFrame(channelNumber, connection);
             }
         }
+        public async Task TransmitAsync(int channelNumber, Connection connection)
+        {
+            if (Method.HasContent)
+            {
+                await TransmitAsFrameSetAsync(channelNumber, connection);
+            }
+            else
+            {
+                await TransmitAsSingleFrameAsync(channelNumber, connection);
+            }
+        }
 
         public void TransmitAsSingleFrame(int channelNumber, Connection connection)
         {
             connection.WriteFrame(new MethodOutboundFrame(channelNumber, Method));
+        }
+        public Task TransmitAsSingleFrameAsync(int channelNumber, Connection connection)
+        {
+            return connection.WriteFrameAsync(new MethodOutboundFrame(channelNumber, Method));
         }
 
         public void TransmitAsFrameSet(int channelNumber, Connection connection)
@@ -165,6 +181,27 @@ namespace RabbitMQ.Client.Impl
             }
 
             connection.WriteFrameSet(frames);
+        }
+        public async Task TransmitAsFrameSetAsync(int channelNumber, Connection connection)
+        {
+            var frames = new List<OutboundFrame>();
+            frames.Add(new MethodOutboundFrame(channelNumber, Method));
+            if (Method.HasContent)
+            {
+                var body = ConsolidateBody(); // Cache, since the property is compiled.
+
+                frames.Add(new HeaderOutboundFrame(channelNumber, Header, body.Length));
+                var frameMax = (int)Math.Min(int.MaxValue, connection.FrameMax);
+                var bodyPayloadMax = (frameMax == 0) ? body.Length : frameMax - EmptyFrameSize;
+                for (int offset = 0; offset < body.Length; offset += bodyPayloadMax)
+                {
+                    var remaining = body.Length - offset;
+                    var count = (remaining < bodyPayloadMax) ? remaining : bodyPayloadMax;
+                    frames.Add(new BodySegmentOutboundFrame(channelNumber, body, offset, count));
+                }
+            }
+
+            await connection.WriteFrameSetAsync(frames);
         }
     }
 }

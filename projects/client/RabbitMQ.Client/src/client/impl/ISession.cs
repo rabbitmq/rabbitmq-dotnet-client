@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -79,5 +80,6 @@ namespace RabbitMQ.Client.Impl
         void HandleFrame(InboundFrame frame);
         void Notify();
         void Transmit(Command cmd);
+        Task TransmitAsync(Command cmd);
     }
 }

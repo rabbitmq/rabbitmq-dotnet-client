@@ -49,6 +49,7 @@ using Windows.Networking.Sockets;
 #else
 
 using System.Net.Sockets;
+using System.Threading.Tasks;
 
 #endif
 
@@ -60,7 +61,7 @@ namespace RabbitMQ.Client.Impl
         {
             NetworkBinaryWriter writer = base.GetWriter();
 
-            writer.Write((ushort)header.ProtocolClassId);
+            writer.WriteUInt16((ushort)header.ProtocolClassId);
             header.WriteTo(writer, (ulong)bodyLength);
         }
     }
@@ -81,8 +82,8 @@ namespace RabbitMQ.Client.Impl
         {
             NetworkBinaryWriter writer = base.GetWriter();
 
-            writer.Write((ushort)method.ProtocolClassId);
-            writer.Write((ushort)method.ProtocolMethodId);
+            writer.WriteUInt16((ushort)method.ProtocolClassId);
+            writer.WriteUInt16((ushort)method.ProtocolMethodId);
 
             var argWriter = new MethodArgumentWriter(writer);
 
@@ -98,7 +99,7 @@ namespace RabbitMQ.Client.Impl
 
         public EmptyOutboundFrame() : base(FrameType.FrameHeartbeat, 0)
         {
-            base.GetWriter().Write(m_emptyByteArray);
+            base.GetWriter().Write(m_emptyByteArray, 0, m_emptyByteArray.Length);
         }
 
         public override string ToString()
@@ -142,11 +143,11 @@ namespace RabbitMQ.Client.Impl
         {
             var payload = m_accumulator.ToArray();
 
-            writer.Write((byte)Type);
-            writer.Write((ushort)Channel);
-            writer.Write((uint)payload.Length);
-            writer.Write(payload);
-            writer.Write((byte)Constants.FrameEnd);
+            writer.WriteByte((byte)Type);
+            writer.WriteUInt16((ushort)Channel);
+            writer.WriteUInt32((uint)payload.Length);
+            writer.Write(payload, 0, payload.Length);
+            writer.WriteByte((byte)Constants.FrameEnd);
         }
     }
 
@@ -160,9 +161,9 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
-                byte b1 = reader.ReadByte();
-                byte b2 = reader.ReadByte();
-                byte b3 = reader.ReadByte();
+                byte b1 =(byte) reader.ReadByte();
+                byte b2 =(byte) reader.ReadByte();
+                byte b3 =(byte) reader.ReadByte();
                 if (b1 != 'M' || b2 != 'Q' || b3 != 'P')
                 {
                     throw new MalformedFrameException("Invalid AMQP protocol header from server");
@@ -230,8 +231,67 @@ namespace RabbitMQ.Client.Impl
 
             int channel = reader.ReadUInt16();
             int payloadSize = reader.ReadInt32(); // FIXME - throw exn on unreasonable value
-            byte[] payload = reader.ReadBytes(payloadSize);
-            if (payload.Length != payloadSize)
+            byte[] payload = new byte[payloadSize];
+            int read = reader.Read(payload, 0, payloadSize);
+            if (read != payloadSize)
+            {
+                // Early EOF.
+                throw new MalformedFrameException("Short frame - expected " +
+                                                  payloadSize + " bytes, got " +
+                                                  payload.Length + " bytes");
+            }
+
+            int frameEndMarker = reader.ReadByte();
+            if (frameEndMarker != Constants.FrameEnd)
+            {
+                throw new MalformedFrameException("Bad frame end marker: " + frameEndMarker);
+            }
+
+            return new InboundFrame((FrameType)type, channel, payload);
+        }
+        public static async Task<InboundFrame> ReadFromAsync(NetworkBinaryReader reader)
+        {
+            int type;
+
+            try
+            {
+                type = reader.ReadByte();
+            }
+            catch (IOException ioe)
+            {
+#if NETFX_CORE
+                if (ioe.InnerException != null
+                    && SocketError.GetStatus(ioe.InnerException.HResult) == SocketErrorStatus.ConnectionTimedOut)
+                {
+                    throw ioe.InnerException;
+                }
+
+                throw;
+#else
+                // If it's a WSAETIMEDOUT SocketException, unwrap it.
+                // This might happen when the limit of half-open connections is
+                // reached.
+                if (ioe.InnerException == null ||
+                    !(ioe.InnerException is SocketException) ||
+                    ((SocketException)ioe.InnerException).SocketErrorCode != SocketError.TimedOut)
+                {
+                    throw ioe;
+                }
+                throw ioe.InnerException;
+#endif
+            }
+
+            if (type == 'A')
+            {
+                // Probably an AMQP protocol header, otherwise meaningless
+                ProcessProtocolHeader(reader);
+            }
+
+            int channel = await reader.ReadUInt16Async();
+            int payloadSize = await reader.ReadInt32Async(); // FIXME - throw exn on unreasonable value
+            byte[] payload = new byte[payloadSize];
+            int read = await reader.ReadAsync(payload, 0, payloadSize);
+            if (read != payloadSize)
             {
                 // Early EOF.
                 throw new MalformedFrameException("Short frame - expected " +

@@ -44,6 +44,7 @@ using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Framing;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -79,6 +80,31 @@ namespace RabbitMQ.Client.Impl
                     // We're already shutting down the channel, so
                     // just send back an ok.
                     Transmit(CreateChannelCloseOk());
+                }
+            }
+
+            // Either a non-method frame, or not what we were looking
+            // for. Ignore it - we're quiescing.
+        }
+        public async Task HandleFrameAsync(InboundFrame frame)
+        {
+            if (frame.IsMethod())
+            {
+                MethodBase method = Connection.Protocol.DecodeMethodFrom(frame.GetReader());
+                if ((method.ProtocolClassId == ChannelCloseOk.ClassId)
+                    && (method.ProtocolMethodId == ChannelCloseOk.MethodId))
+                {
+                    // This is the reply we were looking for. Release
+                    // the channel with the reason we were passed in
+                    // our constructor.
+                    Close(m_reason);
+                }
+                else if ((method.ProtocolClassId == ChannelClose.ClassId)
+                         && (method.ProtocolMethodId == ChannelClose.MethodId))
+                {
+                    // We're already shutting down the channel, so
+                    // just send back an ok.
+                    await TransmitAsync(CreateChannelCloseOk());
                 }
             }
 

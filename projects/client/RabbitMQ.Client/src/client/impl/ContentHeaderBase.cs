@@ -79,8 +79,8 @@ namespace RabbitMQ.Client.Impl
 
         public void WriteTo(NetworkBinaryWriter writer, ulong bodySize)
         {
-            writer.Write((ushort) 0); // weight - not currently used
-            writer.Write(bodySize);
+            writer.WriteUInt16(0); // weight - not currently used
+            writer.WriteUInt64(bodySize);
             WritePropertiesTo(new ContentHeaderPropertyWriter(writer));
         }
     }

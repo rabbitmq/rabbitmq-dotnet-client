@@ -46,6 +46,7 @@
 using System;
 using RabbitMQ.Client.Framing;
 using RabbitMQ.Client.Framing.Impl;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -146,6 +147,33 @@ namespace RabbitMQ.Client.Impl
                     ))
             {
                 base.Transmit(cmd);
+            }
+        }
+        public override async Task TransmitAsync(Command cmd)
+        {
+            if (!m_closing)
+            {
+                lock (_closingLock)
+                {
+                    if (!m_closing)
+                    {
+                        base.Transmit(cmd);
+                        return;
+                    }
+                }
+            }
+
+            // Allow always for sending close ok
+            // Or if application initiated, allow also for sending close
+            MethodBase method = cmd.Method;
+            if (((method.ProtocolClassId == m_closeOkClassId)
+                 && (method.ProtocolMethodId == m_closeOkMethodId))
+                || (!m_closeServerInitiated && (
+                    (method.ProtocolClassId == m_closeClassId) &&
+                    (method.ProtocolMethodId == m_closeMethodId))
+                    ))
+            {
+                await base.TransmitAsync(cmd);
             }
         }
     }
