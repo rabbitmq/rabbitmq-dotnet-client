@@ -43,12 +43,12 @@ namespace RabbitMQ.Client.Content
     /// <summary>
     /// Analyzes AMQP Basic-class messages binary-compatible with QPid's "BytesMessage" wire encoding.
     /// </summary>
-    public class BytesMessageReader : BasicMessageReader, IBytesMessageReader
+    public class BytesMessageReader : BasicMessageReader//, IBytesMessageReader
     {
         /// <summary>
         /// MIME type associated with QPid BytesMessages.
         /// </summary>
-        public static readonly string MimeType = BytesMessageBuilder.MimeType;
+        public static readonly string MimeType = "application/octet-stream";
 
         // ^ repeated here for convenience
 
@@ -60,85 +60,86 @@ namespace RabbitMQ.Client.Content
         {
         }
 
-        /// <summary>
-        /// Reads a given number ("count") of bytes from the message body,
-        /// placing them into "target", starting at "offset".
-        /// </summary>
-        public int Read(byte[] target, int offset, int count)
-        {
-            return BytesWireFormatting.Read(Reader, target, offset, count);
-        }
+        ///// <summary>
+        ///// Reads a given number ("count") of bytes from the message body,
+        ///// placing them into "target", starting at "offset".
+        ///// </summary>
+        //public int Read(byte[] target, int offset, int count)
+        //{
+        //    return reader.Read(Reader, target, offset, count);
+        //}
 
         /// <summary>
         /// Reads a <see cref="byte"/> from the message body.
         /// </summary>
-        public byte ReadByte()
-        {
-            return BytesWireFormatting.ReadByte(Reader);
-        }
+        //public byte ReadByte()
+        //{
+        //    return reader.ReadByte(Reader);
+        //}
 
         /// <summary>
         /// Reads a given number of bytes from the message body.
         /// </summary>
-        public byte[] ReadBytes(int count)
-        {
-            return BytesWireFormatting.ReadBytes(Reader, count);
-        }
+        //public byte[] ReadBytes(int count)
+        //{
+
+        //    return reader.ReadBytes(Reader, count);
+        //}
 
         /// <summary>
         /// Reads a <see cref="char"/> from the message body.
         /// </summary>
-        public char ReadChar()
-        {
-            return BytesWireFormatting.ReadChar(Reader);
-        }
+        //public char ReadChar()
+        //{
+        //    return Reader.ReadChar();
+        //}
 
-        /// <summary>
-        /// Reads a <see cref="double"/> from the message body.
-        /// </summary>
-        public double ReadDouble()
-        {
-            return BytesWireFormatting.ReadDouble(Reader);
-        }
+        ///// <summary>
+        ///// Reads a <see cref="double"/> from the message body.
+        ///// </summary>
+        //public double ReadDouble()
+        //{
+        //    return Reader.ReadDouble();
+        //}
 
-        /// <summary>
-        /// Reads a <see cref="short"/> from the message body.
-        /// </summary>
-        public short ReadInt16()
-        {
-            return BytesWireFormatting.ReadInt16(Reader);
-        }
+        ///// <summary>
+        ///// Reads a <see cref="short"/> from the message body.
+        ///// </summary>
+        //public short ReadInt16()
+        //{
+        //    return Reader.ReadInt16();
+        //}
 
-        /// <summary>
-        /// Reads an <see cref="int"/> from the message body.
-        /// </summary>
-        public int ReadInt32()
-        {
-            return BytesWireFormatting.ReadInt32(Reader);
-        }
+        ///// <summary>
+        ///// Reads an <see cref="int"/> from the message body.
+        ///// </summary>
+        //public int ReadInt32()
+        //{
+        //    return Reader.ReadInt32();
+        //}
 
-        /// <summary>
-        /// Reads a <see cref="long"/> from the message body.
-        /// </summary>
-        public long ReadInt64()
-        {
-            return BytesWireFormatting.ReadInt64(Reader);
-        }
+        ///// <summary>
+        ///// Reads a <see cref="long"/> from the message body.
+        ///// </summary>
+        //public long ReadInt64()
+        //{
+        //    return Reader.ReadInt64();
+        //}
 
-        /// <summary>
-        /// Reads a <see cref="float"/> from the message body.
-        /// </summary>
-        public float ReadSingle()
-        {
-            return BytesWireFormatting.ReadSingle(Reader);
-        }
+        ///// <summary>
+        ///// Reads a <see cref="float"/> from the message body.
+        ///// </summary>
+        //public float ReadSingle()
+        //{
+        //    return Reader.ReadSingle();
+        //}
 
         /// <summary>
         /// Reads a <see cref="string"/> from the message body.
         /// </summary>
-        public string ReadString()
-        {
-            return BytesWireFormatting.ReadString(Reader);
-        }
+        //public string ReadString()
+        //{
+        //    return reader.ReadString(Reader);
+        //}
     }
 }
