@@ -41,6 +41,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Util
 {
@@ -53,147 +54,207 @@ namespace RabbitMQ.Util
     /// Relies on BinaryReader always being little-endian.
     /// </para>
     /// </remarks>
-    public class NetworkBinaryReader : BinaryReader
+    public class NetworkBinaryReader 
     {
-        // Not particularly efficient. To be more efficient, we could
-        // reuse BinaryReader's implementation details: m_buffer and
-        // FillBuffer, if they weren't private
-        // members. Private/protected claim yet another victim, film
-        // at 11. (I could simply cut-n-paste all that good code from
-        // BinaryReader, but two wrongs do not make a right)
+        private readonly Stream input;
 
-        /// <summary>
-        /// Construct a NetworkBinaryReader over the given input stream.
-        /// </summary>
-        public NetworkBinaryReader(Stream input) : base(input)
+        public long Position { get { return input.Position; } }
+
+        public NetworkBinaryReader(Stream input) 
         {
+            this.input = input;
+        }
+        
+        #region Sync
+
+        public double ReadDouble()
+        {
+            byte[] bytes = new byte[8];
+            input.Read(bytes, 0, 8);
+            return BitConverter.ToDouble(BitConverter.IsLittleEndian ? new byte[8] { bytes[7], bytes[6], bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0] } : bytes, 0);
         }
 
-        /// <summary>
-        /// Construct a NetworkBinaryReader over the given input
-        /// stream, reading strings using the given encoding.
-        /// </summary>
-        public NetworkBinaryReader(Stream input, Encoding encoding) : base(input, encoding)
+        public short ReadInt16()
         {
+            byte[] bytes = new byte[2];
+            input.Read(bytes, 0, 2);
+            return BitConverter.ToInt16(BitConverter.IsLittleEndian ? new byte[2] { bytes[1], bytes[0] } : bytes, 0);
         }
 
-        ///<summary>Helper method for constructing a temporary
-        ///BinaryReader over a byte[].</summary>
-        public static BinaryReader TemporaryBinaryReader(byte[] bytes)
+        public byte[] ReadBytes(int size)
         {
-            return new BinaryReader(new MemoryStream(bytes));
+            byte[] bytes = new byte[size];
+            input.Read(bytes, 0, size);
+            return bytes;
+        }
+
+        public int ReadInt32()
+        {
+            byte[] bytes = new byte[4];
+            input.Read(bytes, 0, 4);
+            return BitConverter.ToInt32(BitConverter.IsLittleEndian ? new byte[4] { bytes[3], bytes[2], bytes[1], bytes[0] } : bytes, 0);
+        }
+
+        public long ReadInt64()
+        {
+            byte[] bytes = new byte[8];
+            input.Read(bytes, 0, 8);
+            return BitConverter.ToInt64(BitConverter.IsLittleEndian ? new byte[8] { bytes[7], bytes[6], bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0] } : bytes, 0);
+        }
+
+        public int ReadByte()
+        {
+            return input.ReadByte();
+        }
+
+        public float ReadSingle()
+        {
+            byte[] bytes = new byte[4];
+            input.Read(bytes, 0, 4);
+            return BitConverter.ToSingle(BitConverter.IsLittleEndian ? new byte[4] { bytes[3], bytes[2], bytes[1], bytes[0] } : bytes, 0);
+        }
+
+        public ushort ReadUInt16()
+        {
+            byte[] bytes = new byte[2];
+            input.Read(bytes, 0, 2);
+            return BitConverter.ToUInt16(BitConverter.IsLittleEndian ? new byte[2] { bytes[1], bytes[0] } : bytes, 0);
+        }
+        public char ReadChar()
+        {
+            byte[] bytes = new byte[2];
+            input.Read(bytes, 0, 2);
+            return BitConverter.ToChar(BitConverter.IsLittleEndian ? new byte[2] { bytes[1], bytes[0] } : bytes, 0);
+        }
+
+        public uint ReadUInt32()
+        {
+            byte[] bytes = new byte[4];
+            input.Read(bytes, 0, 4);
+            return BitConverter.ToUInt32(BitConverter.IsLittleEndian ? new byte[4] { bytes[3], bytes[2], bytes[1], bytes[0] } : bytes, 0);
+        }
+
+        public ulong ReadUInt64()
+        {
+            byte[] bytes = new byte[8];
+            input.Read(bytes, 0, 8);
+            return BitConverter.ToUInt64(BitConverter.IsLittleEndian ? new byte[8] { bytes[7], bytes[6], bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0] } : bytes, 0);
+        }
+
+        public int Read(byte[] target, int offset, int count)
+        {
+            return input.Read(target, offset, count);   
+        }
+
+        #endregion
+
+        #region A-Sync
+
+        /// <summary>
+        /// Override BinaryReader's method for network-order.
+        /// </summary>
+        public async Task<double> ReadDoubleAsync()
+        {
+            byte[] bytes = new byte[8];
+            await input.ReadAsync(bytes, 0, 8);
+            return BitConverter.ToDouble(BitConverter.IsLittleEndian ? new byte[8] { bytes[7], bytes[6], bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0] } : bytes, 0);
         }
 
         /// <summary>
         /// Override BinaryReader's method for network-order.
         /// </summary>
-        public override double ReadDouble()
+        public async Task<short> ReadInt16Async()
         {
-            byte[] bytes = ReadBytes(8);
-            byte temp = bytes[0];
-            bytes[0] = bytes[7];
-            bytes[7] = temp;
-            temp = bytes[1];
-            bytes[1] = bytes[6];
-            bytes[6] = temp;
-            temp = bytes[2];
-            bytes[2] = bytes[5];
-            bytes[5] = temp;
-            temp = bytes[3];
-            bytes[3] = bytes[4];
-            bytes[4] = temp;
-            return TemporaryBinaryReader(bytes).ReadDouble();
+            byte[] bytes = new byte[2];
+            await input.ReadAsync(bytes, 0, 2);
+            return BitConverter.ToInt16(BitConverter.IsLittleEndian ? new byte[2] { bytes[1], bytes[0] } : bytes, 0);
+        }
+        public async Task<char> ReadCharAsync()
+        {
+            byte[] bytes = new byte[2];
+            await input.ReadAsync(bytes, 0, 2);
+            return BitConverter.ToChar(BitConverter.IsLittleEndian ? new byte[2] { bytes[1], bytes[0] } : bytes, 0);
+        }
+
+        public async Task<byte[]> ReadBytesAsync(int size)
+        {
+            byte[] bytes = new byte[size];
+            await input.ReadAsync(bytes, 0, size);
+            return bytes;
         }
 
         /// <summary>
         /// Override BinaryReader's method for network-order.
         /// </summary>
-        public override short ReadInt16()
+        public async Task<int> ReadInt32Async()
         {
-            uint i = base.ReadUInt16();
-            return (short)(((i & 0xFF00) >> 8) |
-                           ((i & 0x00FF) << 8));
+            byte[] bytes = new byte[4];
+            await input.ReadAsync(bytes, 0, 4);
+            return BitConverter.ToInt32(BitConverter.IsLittleEndian ? new byte[4] { bytes[3], bytes[2], bytes[1], bytes[0] } : bytes, 0);
         }
 
         /// <summary>
         /// Override BinaryReader's method for network-order.
         /// </summary>
-        public override int ReadInt32()
+        public async Task<long> ReadInt64Async()
         {
-            uint i = base.ReadUInt32();
-            return (int)(((i & 0xFF000000) >> 24) |
-                         ((i & 0x00FF0000) >> 8) |
-                         ((i & 0x0000FF00) << 8) |
-                         ((i & 0x000000FF) << 24));
+            byte[] bytes = new byte[8];
+            await input.ReadAsync(bytes, 0, 8);
+            return BitConverter.ToInt64(BitConverter.IsLittleEndian ? new byte[8] { bytes[7], bytes[6], bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0] } : bytes, 0);
+        }
+
+        internal async Task<sbyte> ReadSByteAsync()
+        {
+            byte[] bytes = new byte[1];
+            await input.ReadAsync(bytes, 0, 1);
+            return (sbyte)bytes[0];
         }
 
         /// <summary>
         /// Override BinaryReader's method for network-order.
         /// </summary>
-        public override long ReadInt64()
+        public async Task<float> ReadSingleAsync()
         {
-            ulong i = base.ReadUInt64();
-            return (long)(((i & 0xFF00000000000000) >> 56) |
-                          ((i & 0x00FF000000000000) >> 40) |
-                          ((i & 0x0000FF0000000000) >> 24) |
-                          ((i & 0x000000FF00000000) >> 8) |
-                          ((i & 0x00000000FF000000) << 8) |
-                          ((i & 0x0000000000FF0000) << 24) |
-                          ((i & 0x000000000000FF00) << 40) |
-                          ((i & 0x00000000000000FF) << 56));
+            byte[] bytes = new byte[4];
+            await input.ReadAsync(bytes, 0, 4);
+            return BitConverter.ToSingle(BitConverter.IsLittleEndian ? new byte[4] { bytes[3], bytes[2], bytes[1], bytes[0] } : bytes, 0);
         }
 
         /// <summary>
         /// Override BinaryReader's method for network-order.
         /// </summary>
-        public override float ReadSingle()
+        public async Task<ushort> ReadUInt16Async()
         {
-            byte[] bytes = ReadBytes(4);
-            byte temp = bytes[0];
-            bytes[0] = bytes[3];
-            bytes[3] = temp;
-            temp = bytes[1];
-            bytes[1] = bytes[2];
-            bytes[2] = temp;
-            return TemporaryBinaryReader(bytes).ReadSingle();
+            byte[] bytes = new byte[2];
+            await input.ReadAsync(bytes, 0, 2);
+            return BitConverter.ToUInt16(BitConverter.IsLittleEndian ? new byte[2] { bytes[1], bytes[0] } : bytes, 0);
         }
 
         /// <summary>
         /// Override BinaryReader's method for network-order.
         /// </summary>
-        public override ushort ReadUInt16()
+        public async Task<uint> ReadUInt32Async()
         {
-            uint i = base.ReadUInt16();
-            return (ushort)(((i & 0xFF00) >> 8) |
-                            ((i & 0x00FF) << 8));
+            byte[] bytes = new byte[4];
+            await input.ReadAsync(bytes, 0, 4);
+            return BitConverter.ToUInt32(BitConverter.IsLittleEndian ? new byte[4] { bytes[3], bytes[2], bytes[1], bytes[0] } : bytes, 0);
         }
 
         /// <summary>
         /// Override BinaryReader's method for network-order.
         /// </summary>
-        public override uint ReadUInt32()
+        public async Task<ulong> ReadUInt64Async()
         {
-            uint i = base.ReadUInt32();
-            return (((i & 0xFF000000) >> 24) |
-                    ((i & 0x00FF0000) >> 8) |
-                    ((i & 0x0000FF00) << 8) |
-                    ((i & 0x000000FF) << 24));
+            byte[] bytes = new byte[8];
+            await input.ReadAsync(bytes, 0, 8);
+            return BitConverter.ToUInt64(BitConverter.IsLittleEndian ? new byte[8] { bytes[7], bytes[6], bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0] } : bytes, 0);
         }
 
-        /// <summary>
-        /// Override BinaryReader's method for network-order.
-        /// </summary>
-        public override ulong ReadUInt64()
+        public Task<int> ReadAsync(byte[] target, int offset, int count)
         {
-            ulong i = base.ReadUInt64();
-            return (((i & 0xFF00000000000000) >> 56) |
-                    ((i & 0x00FF000000000000) >> 40) |
-                    ((i & 0x0000FF0000000000) >> 24) |
-                    ((i & 0x000000FF00000000) >> 8) |
-                    ((i & 0x00000000FF000000) << 8) |
-                    ((i & 0x0000000000FF0000) << 24) |
-                    ((i & 0x000000000000FF00) << 40) |
-                    ((i & 0x00000000000000FF) << 56));
+            return input.ReadAsync(target, offset, count);
         }
+
+        #endregion
     }
 }
