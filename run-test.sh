@@ -8,8 +8,7 @@ dotnet restore ./projects/client/Unit
 dotnet build ./projects/client/Unit
 # export RABBITMQ_RABBITMQCTL_PATH=$(pwd)/../rabbit/scripts/rabbitmqctl
 cd ./projects/client/Unit
-# dotnet test -f netcoreapp1.0 -- --where='cat != RequireSMP & cat != LongRunning & cat != GCTest'
 
-dotnet test -f netcoreapp1.0
+dotnet test -f netcoreapp2.0
 
 
