@@ -144,7 +144,7 @@ namespace RabbitMQ.Client.Unit
             Assert.AreEqual(vhost, cf.VirtualHost);
         }
 
-        private void ParseFailWith<T>(string uri)
+        private void ParseFailWith<T>(string uri) where T : Exception
         {
             var cf = new ConnectionFactory();
             Assert.That(() => cf.Uri = new Uri(uri), Throws.TypeOf<T>());
