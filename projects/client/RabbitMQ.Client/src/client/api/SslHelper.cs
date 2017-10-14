@@ -44,6 +44,7 @@ using System;
 using System.IO;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client
 {
@@ -75,6 +76,22 @@ namespace RabbitMQ.Client
             var sslStream = new SslStream(tcpStream, false, remoteCertValidator, localCertSelector);
 
             sslStream.AuthenticateAsClientAsync(sslOption.ServerName, sslOption.Certs, sslOption.Version, false).GetAwaiter().GetResult();
+
+            return sslStream;
+        }
+
+        public static async Task<Stream> TcpUpgradeAsync(Stream tcpStream, SslOption sslOption)
+        {
+            var helper = new SslHelper(sslOption);
+
+            RemoteCertificateValidationCallback remoteCertValidator =
+                sslOption.CertificateValidationCallback ?? helper.CertificateValidationCallback;
+            LocalCertificateSelectionCallback localCertSelector =
+                sslOption.CertificateSelectionCallback ?? helper.CertificateSelectionCallback;
+
+            var sslStream = new SslStream(tcpStream, false, remoteCertValidator, localCertSelector);
+
+            await sslStream.AuthenticateAsClientAsync(sslOption.ServerName, sslOption.Certs, sslOption.Version, false);
 
             return sslStream;
         }

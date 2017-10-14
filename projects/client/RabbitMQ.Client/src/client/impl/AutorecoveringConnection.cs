@@ -459,6 +459,16 @@ namespace RabbitMQ.Client.Framing.Impl
             return result;
         }
 
+
+        public async Task<RecoveryAwareModel> CreateNonRecoveringModelAsync()
+        {
+            ISession session = m_delegate.CreateSession();
+            var result = new RecoveryAwareModel(session);
+            await result._Private_ChannelOpenAsync("");
+            return result;
+        }
+
+
         public void DeleteRecordedBinding(RecordedBinding rb)
         {
             lock (m_recordedEntitiesLock)
@@ -616,6 +626,10 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             this.Init(m_factory.EndpointResolverFactory(new List<AmqpTcpEndpoint> { m_factory.Endpoint }));
         }
+        public Task InitAsync()
+        {
+            return this.InitAsync(m_factory.EndpointResolverFactory(new List<AmqpTcpEndpoint> { m_factory.Endpoint }));
+        }
 
         public void Init(IEndpointResolver endpoints)
         {
@@ -623,11 +637,49 @@ namespace RabbitMQ.Client.Framing.Impl
             var fh = endpoints.SelectOne(m_factory.CreateFrameHandler);
             this.Init(fh);
         }
+        public async Task InitAsync(IEndpointResolver endpoints)
+        {
+            this.endpoints = endpoints;
+            var fh = endpoints.SelectOne(m_factory.CreateFrameHandler);
+            await this.InitAsync(fh);
+        }
 
         private void Init(IFrameHandler fh)
         {
             m_delegate = new Connection(m_factory, false,
                 fh, this.ClientProvidedName);
+
+            AutorecoveringConnection self = this;
+            EventHandler<ShutdownEventArgs> recoveryListener = (_, args) =>
+            {
+                lock (recoveryLockTarget)
+                {
+                    if (ShouldTriggerConnectionRecovery(args))
+                    {
+                        try
+                        {
+                            self.BeginAutomaticRecovery();
+                        }
+                        catch (Exception e)
+                        {
+                            ESLog.Error("BeginAutomaticRecovery() failed.", e);
+                        }
+                    }
+                }
+            };
+            lock (m_eventLock)
+            {
+                ConnectionShutdown += recoveryListener;
+                if (!m_recordedShutdownEventHandlers.Contains(recoveryListener))
+                {
+                    m_recordedShutdownEventHandlers.Add(recoveryListener);
+                }
+            }
+        }
+
+        private async Task InitAsync(IFrameHandler fh)
+        {
+            m_delegate = await Connection.CreateConnectionAsync(m_factory, false, fh, this.ClientProvidedName);
 
             AutorecoveringConnection self = this;
             EventHandler<ShutdownEventArgs> recoveryListener = (_, args) =>
@@ -696,6 +748,12 @@ namespace RabbitMQ.Client.Framing.Impl
             if (m_delegate.IsOpen)
                 m_delegate.Close();
         }
+        public async Task CloseAsync()
+        {
+            this.ManuallyClosed = true;
+            if (m_delegate.IsOpen)
+                await m_delegate.CloseAsync();
+        }
 
         ///<summary>API-side invocation of connection.close.</summary>
         public void Close(ushort reasonCode, string reasonText)
@@ -703,6 +761,13 @@ namespace RabbitMQ.Client.Framing.Impl
             this.ManuallyClosed = true;
             if (m_delegate.IsOpen)
                 m_delegate.Close(reasonCode, reasonText);
+        }
+
+        public async Task CloseAsync(ushort reasonCode, string reasonText)
+        {
+            this.ManuallyClosed = true;
+            if (m_delegate.IsOpen)
+                await m_delegate.CloseAsync(reasonCode, reasonText);
         }
 
         ///<summary>API-side invocation of connection.close with timeout.</summary>
@@ -713,6 +778,13 @@ namespace RabbitMQ.Client.Framing.Impl
                 m_delegate.Close(timeout);
         }
 
+        public async Task CloseAsync(int timeout)
+        {
+            this.ManuallyClosed = true;
+            if (m_delegate.IsOpen)
+                await m_delegate.CloseAsync(timeout);
+        }
+
         ///<summary>API-side invocation of connection.close with timeout.</summary>
         public void Close(ushort reasonCode, string reasonText, int timeout)
         {
@@ -721,12 +793,32 @@ namespace RabbitMQ.Client.Framing.Impl
                 m_delegate.Close(reasonCode, reasonText, timeout);
         }
 
+        public async Task CloseAsync(ushort reasonCode, string reasonText, int timeout)
+        {
+            this.ManuallyClosed = true;
+            if (m_delegate.IsOpen)
+                await m_delegate.CloseAsync(reasonCode, reasonText, timeout);
+        }
+
         public IModel CreateModel()
         {
             EnsureIsOpen();
             AutorecoveringModel m;
             m = new AutorecoveringModel(this,
                 CreateNonRecoveringModel());
+            lock (m_models)
+            {
+                m_models.Add(m);
+            }
+            return m;
+        }
+
+        public async Task<IModel> CreateModelAsync()
+        {
+            EnsureIsOpen();
+            AutorecoveringModel m;
+            m = new AutorecoveringModel(this,
+                await CreateNonRecoveringModelAsync());
             lock (m_models)
             {
                 m_models.Add(m);

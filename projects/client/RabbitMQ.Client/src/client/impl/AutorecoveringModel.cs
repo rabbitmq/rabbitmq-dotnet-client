@@ -42,6 +42,7 @@ using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Framing.Impl;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -299,12 +300,34 @@ namespace RabbitMQ.Client.Impl
                 m_connection.UnregisterModel(this);
             }
         }
+        public async Task CloseAsync(ushort replyCode, string replyText, bool abort)
+        {
+            try
+            {
+                await m_delegate.CloseAsync(replyCode, replyText, abort);
+            }
+            finally
+            {
+                m_connection.UnregisterModel(this);
+            }
+        }
 
         public void Close(ShutdownEventArgs reason, bool abort)
         {
             try
             {
                 m_delegate.Close(reason, abort);
+            }
+            finally
+            {
+                m_connection.UnregisterModel(this);
+            }
+        }
+        public async Task CloseAsync(ShutdownEventArgs reason, bool abort)
+        {
+            try
+            {
+                await m_delegate.CloseAsync(reason, abort);
             }
             finally
             {
@@ -388,12 +411,19 @@ namespace RabbitMQ.Client.Impl
         {
             m_delegate.ConnectionTuneOk(channelMax, frameMax, heartbeat);
         }
+        public Task ConnectionTuneOkAsync(ushort channelMax,
+            uint frameMax,
+            ushort heartbeat)
+        {
+            return m_delegate.ConnectionTuneOkAsync(channelMax, frameMax, heartbeat);
+        }
 
         public void HandleBasicAck(ulong deliveryTag,
             bool multiple)
         {
             m_delegate.HandleBasicAck(deliveryTag, multiple);
         }
+
 
         public void HandleBasicCancel(string consumerTag, bool nowait)
         {
@@ -421,7 +451,7 @@ namespace RabbitMQ.Client.Impl
             m_delegate.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange,
                 routingKey, basicProperties, body);
         }
-
+        
         public void HandleBasicGetEmpty()
         {
             m_delegate.HandleBasicGetEmpty();
@@ -538,6 +568,12 @@ namespace RabbitMQ.Client.Impl
             m_delegate._Private_BasicCancel(consumerTag,
                 nowait);
         }
+        public Task _Private_BasicCancelAsync(string consumerTag,
+            bool nowait)
+        {
+            return m_delegate._Private_BasicCancelAsync(consumerTag,
+                nowait);
+        }
 
         public void _Private_BasicConsume(string queue,
             string consumerTag,
@@ -556,9 +592,30 @@ namespace RabbitMQ.Client.Impl
                 arguments);
         }
 
+        public Task _Private_BasicConsumeAsync(string queue,
+    string consumerTag,
+    bool noLocal,
+    bool autoAck,
+    bool exclusive,
+    bool nowait,
+    IDictionary<string, object> arguments)
+        {
+            return m_delegate._Private_BasicConsumeAsync(queue,
+                consumerTag,
+                noLocal,
+                autoAck,
+                exclusive,
+                nowait,
+                arguments);
+        }
+
         public void _Private_BasicGet(string queue, bool autoAck)
         {
             m_delegate._Private_BasicGet(queue, autoAck);
+        }
+        public Task _Private_BasicGetAsync(string queue, bool autoAck)
+        {
+            return m_delegate._Private_BasicGetAsync(queue, autoAck);
         }
 
         public void _Private_BasicPublish(string exchange,
@@ -571,9 +628,24 @@ namespace RabbitMQ.Client.Impl
                 basicProperties, body);
         }
 
+        public Task _Private_BasicPublishAsync(string exchange,
+    string routingKey,
+    bool mandatory,
+    IBasicProperties basicProperties,
+    byte[] body)
+        {
+            return m_delegate._Private_BasicPublishAsync(exchange, routingKey, mandatory,
+                basicProperties, body);
+        }
+
+
         public void _Private_BasicRecover(bool requeue)
         {
             m_delegate._Private_BasicRecover(requeue);
+        }
+        public Task _Private_BasicRecoverAsync(bool requeue)
+        {
+            return m_delegate._Private_BasicRecoverAsync(requeue);
         }
 
         public void _Private_ChannelClose(ushort replyCode,
@@ -585,25 +657,52 @@ namespace RabbitMQ.Client.Impl
                 classId, methodId);
         }
 
+        public Task _Private_ChannelCloseAsync(ushort replyCode,
+    string replyText,
+    ushort classId,
+    ushort methodId)
+        {
+            return m_delegate._Private_ChannelCloseAsync(replyCode, replyText,
+                classId, methodId);
+        }
+
+
         public void _Private_ChannelCloseOk()
         {
             m_delegate._Private_ChannelCloseOk();
+        }
+        public Task _Private_ChannelCloseOkAsync()
+        {
+           return m_delegate._Private_ChannelCloseOkAsync();
         }
 
         public void _Private_ChannelFlowOk(bool active)
         {
             m_delegate._Private_ChannelFlowOk(active);
         }
+        public Task _Private_ChannelFlowOkAsync(bool active)
+        {
+            return m_delegate._Private_ChannelFlowOkAsync(active);
+        }
 
         public void _Private_ChannelOpen(string outOfBand)
         {
             m_delegate._Private_ChannelOpen(outOfBand);
+        }
+        public Task _Private_ChannelOpenAsync(string outOfBand)
+        {
+            return m_delegate._Private_ChannelOpenAsync(outOfBand);
         }
 
         public void _Private_ConfirmSelect(bool nowait)
         {
             m_delegate._Private_ConfirmSelect(nowait);
         }
+        public Task _Private_ConfirmSelectAsync(bool nowait)
+        {
+            return m_delegate._Private_ConfirmSelectAsync(nowait);
+        }
+
 
         public void _Private_ConnectionClose(ushort replyCode,
             string replyText,
@@ -614,9 +713,23 @@ namespace RabbitMQ.Client.Impl
                 classId, methodId);
         }
 
+        public Task _Private_ConnectionCloseAsync(ushort replyCode,
+    string replyText,
+    ushort classId,
+    ushort methodId)
+        {
+            return m_delegate._Private_ConnectionCloseAsync(replyCode, replyText,
+                classId, methodId);
+        }
+
+
         public void _Private_ConnectionCloseOk()
         {
             m_delegate._Private_ConnectionCloseOk();
+        }
+        public Task _Private_ConnectionCloseOkAsync()
+        {
+            return m_delegate._Private_ConnectionCloseOkAsync();
         }
 
         public void _Private_ConnectionOpen(string virtualHost,
@@ -626,15 +739,34 @@ namespace RabbitMQ.Client.Impl
             m_delegate._Private_ConnectionOpen(virtualHost, capabilities, insist);
         }
 
+        public Task _Private_ConnectionOpenAsync(string virtualHost,
+    string capabilities,
+    bool insist)
+        {
+            return m_delegate._Private_ConnectionOpenAsync(virtualHost, capabilities, insist);
+        }
+
+
         public void _Private_ConnectionSecureOk(byte[] response)
         {
             m_delegate._Private_ConnectionSecureOk(response);
+        }
+        public Task _Private_ConnectionSecureOkAsync(byte[] response)
+        {
+            return m_delegate._Private_ConnectionSecureOkAsync(response);
         }
 
         public void _Private_ConnectionStartOk(IDictionary<string, object> clientProperties,
             string mechanism, byte[] response, string locale)
         {
-            m_delegate._Private_ConnectionStartOk(clientProperties, mechanism,
+             m_delegate._Private_ConnectionStartOk(clientProperties, mechanism,
+                response, locale);
+        }
+
+        public Task _Private_ConnectionStartOkAsync(IDictionary<string, object> clientProperties,
+            string mechanism, byte[] response, string locale)
+        {
+            return m_delegate._Private_ConnectionStartOkAsync(clientProperties, mechanism,
                 response, locale);
         }
 
@@ -647,6 +779,17 @@ namespace RabbitMQ.Client.Impl
             _Private_ExchangeBind(destination, source, routingKey,
                 nowait, arguments);
         }
+
+        public Task _Private_ExchangeBindAsync(string destination,
+    string source,
+    string routingKey,
+    bool nowait,
+    IDictionary<string, object> arguments)
+        {
+            return _Private_ExchangeBindAsync(destination, source, routingKey,
+                nowait, arguments);
+        }
+
 
         public void _Private_ExchangeDeclare(string exchange,
             string type,
@@ -662,11 +805,33 @@ namespace RabbitMQ.Client.Impl
                 nowait, arguments);
         }
 
+        public Task _Private_ExchangeDeclareAsync(string exchange,
+       string type,
+       bool passive,
+       bool durable,
+       bool autoDelete,
+       bool @internal,
+       bool nowait,
+       IDictionary<string, object> arguments)
+        {
+            return _Private_ExchangeDeclareAsync(exchange, type, passive,
+                durable, autoDelete, @internal,
+                nowait, arguments);
+        }
+
+
         public void _Private_ExchangeDelete(string exchange,
             bool ifUnused,
             bool nowait)
         {
             _Private_ExchangeDelete(exchange, ifUnused, nowait);
+        }
+
+        public Task _Private_ExchangeDeleteAsync(string exchange,
+    bool ifUnused,
+    bool nowait)
+        {
+            return _Private_ExchangeDeleteAsync(exchange, ifUnused, nowait);
         }
 
         public void _Private_ExchangeUnbind(string destination,
@@ -679,6 +844,16 @@ namespace RabbitMQ.Client.Impl
                 nowait, arguments);
         }
 
+        public Task _Private_ExchangeUnbindAsync(string destination,
+    string source,
+    string routingKey,
+    bool nowait,
+    IDictionary<string, object> arguments)
+        {
+            return m_delegate._Private_ExchangeUnbindAsync(destination, source, routingKey,
+                nowait, arguments);
+        }
+
         public void _Private_QueueBind(string queue,
             string exchange,
             string routingKey,
@@ -688,6 +863,18 @@ namespace RabbitMQ.Client.Impl
             _Private_QueueBind(queue, exchange, routingKey,
                 nowait, arguments);
         }
+
+
+        public Task _Private_QueueBindAsync(string queue,
+    string exchange,
+    string routingKey,
+    bool nowait,
+    IDictionary<string, object> arguments)
+        {
+            return _Private_QueueBindAsync(queue, exchange, routingKey,
+                nowait, arguments);
+        }
+
 
         public void _Private_QueueDeclare(string queue,
             bool passive,
@@ -702,6 +889,21 @@ namespace RabbitMQ.Client.Impl
                 nowait, arguments);
         }
 
+        public Task _Private_QueueDeclareAsync(string queue,
+    bool passive,
+    bool durable,
+    bool exclusive,
+    bool autoDelete,
+    bool nowait,
+    IDictionary<string, object> arguments)
+        {
+            return m_delegate._Private_QueueDeclareAsync(queue, passive,
+                durable, exclusive, autoDelete,
+                nowait, arguments);
+        }
+
+
+
         public uint _Private_QueueDelete(string queue,
             bool ifUnused,
             bool ifEmpty,
@@ -711,10 +913,25 @@ namespace RabbitMQ.Client.Impl
                 ifEmpty, nowait);
         }
 
+        public Task<uint> _Private_QueueDeleteAsync(string queue,
+    bool ifUnused,
+    bool ifEmpty,
+    bool nowait)
+        {
+            return m_delegate._Private_QueueDeleteAsync(queue, ifUnused,
+                ifEmpty, nowait);
+        }
+
         public uint _Private_QueuePurge(string queue,
             bool nowait)
         {
             return m_delegate._Private_QueuePurge(queue, nowait);
+        }
+
+        public Task<uint> _Private_QueuePurgeAsync(string queue,
+    bool nowait)
+        {
+            return m_delegate._Private_QueuePurgeAsync(queue, nowait);
         }
 
         public void Abort()
@@ -722,6 +939,17 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 m_delegate.Abort();
+            }
+            finally
+            {
+                m_connection.UnregisterModel(this);
+            }
+        }
+        public async Task AbortAsync()
+        {
+            try
+            {
+                await m_delegate.AbortAsync();
             }
             finally
             {
@@ -741,10 +969,28 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public async Task AbortAsync(ushort replyCode, string replyText)
+        {
+            try
+            {
+                await m_delegate.AbortAsync(replyCode, replyText);
+            }
+            finally
+            {
+                m_connection.UnregisterModel(this);
+            }
+        }
+
         public void BasicAck(ulong deliveryTag,
             bool multiple)
         {
             m_delegate.BasicAck(deliveryTag, multiple);
+        }
+
+        public Task BasicAckAsync(ulong deliveryTag,
+    bool multiple)
+        {
+            return m_delegate.BasicAckAsync(deliveryTag, multiple);
         }
 
         public void BasicCancel(string consumerTag)
@@ -755,6 +1001,16 @@ namespace RabbitMQ.Client.Impl
                 m_connection.MaybeDeleteRecordedAutoDeleteQueue(cons.Queue);
             }
             m_delegate.BasicCancel(consumerTag);
+        }
+
+        public async Task BasicCancelAsync(string consumerTag)
+        {
+            RecordedConsumer cons = m_connection.DeleteRecordedConsumer(consumerTag);
+            if (cons != null)
+            {
+                m_connection.MaybeDeleteRecordedAutoDeleteQueue(cons.Queue);
+            }
+            await m_delegate.BasicCancelAsync(consumerTag);
         }
 
         public string BasicConsume(
@@ -778,11 +1034,41 @@ namespace RabbitMQ.Client.Impl
             return result;
         }
 
+        public async Task<string> BasicConsumeAsync(
+    string queue,
+    bool autoAck,
+    string consumerTag,
+    bool noLocal,
+    bool exclusive,
+    IDictionary<string, object> arguments,
+    IBasicConsumer consumer)
+        {
+            var result = await m_delegate.BasicConsumeAsync(queue, autoAck, consumerTag, noLocal,
+                exclusive, arguments, consumer);
+            RecordedConsumer rc = new RecordedConsumer(this, queue).
+                WithConsumerTag(result).
+                WithConsumer(consumer).
+                WithExclusive(exclusive).
+                WithAutoAck(autoAck).
+                WithArguments(arguments);
+            m_connection.RecordConsumer(result, rc);
+            return result;
+        }
+
+
         public BasicGetResult BasicGet(string queue,
             bool autoAck)
         {
             return m_delegate.BasicGet(queue, autoAck);
         }
+
+        public Task<BasicGetResult> BasicGetAsync(string queue,
+            bool autoAck)
+        {
+            return m_delegate.BasicGetAsync(queue, autoAck);
+        }
+
+
 
         public void BasicNack(ulong deliveryTag,
             bool multiple,
@@ -791,6 +1077,14 @@ namespace RabbitMQ.Client.Impl
             m_delegate.BasicNack(deliveryTag, multiple, requeue);
         }
 
+        public Task BasicNackAsync(ulong deliveryTag,
+    bool multiple,
+    bool requeue)
+        {
+            return m_delegate.BasicNackAsync(deliveryTag, multiple, requeue);
+        }
+
+
         public void BasicPublish(string exchange,
             string routingKey,
             bool mandatory,
@@ -798,6 +1092,18 @@ namespace RabbitMQ.Client.Impl
             byte[] body)
         {
             m_delegate.BasicPublish(exchange,
+                routingKey,
+                mandatory,
+                basicProperties,
+                body);
+        }
+        public Task BasicPublishAsync(string exchange,
+          string routingKey,
+          bool mandatory,
+          IBasicProperties basicProperties,
+          byte[] body)
+        {
+            return m_delegate.BasicPublishAsync(exchange,
                 routingKey,
                 mandatory,
                 basicProperties,
@@ -819,20 +1125,48 @@ namespace RabbitMQ.Client.Impl
             m_delegate.BasicQos(prefetchSize, prefetchCount, global);
         }
 
+        public async Task BasicQosAsync(uint prefetchSize,
+    ushort prefetchCount,
+    bool global)
+        {
+            if (global)
+            {
+                prefetchCountGlobal = prefetchCount;
+            }
+            else
+            {
+                prefetchCountConsumer = prefetchCount;
+            }
+            await m_delegate.BasicQosAsync(prefetchSize, prefetchCount, global);
+        }
+
+
         public void BasicRecover(bool requeue)
         {
             m_delegate.BasicRecover(requeue);
         }
-
+     
         public void BasicRecoverAsync(bool requeue)
         {
             m_delegate.BasicRecoverAsync(requeue);
         }
 
+        public Task BasicRecoverAsyncAsync(bool requeue)
+        {
+           return m_delegate._Private_BasicRecoverAsync(requeue);
+        }
+
+
         public void BasicReject(ulong deliveryTag,
             bool requeue)
         {
             m_delegate.BasicReject(deliveryTag, requeue);
+        }
+
+        public Task BasicRejectAsync(ulong deliveryTag,
+    bool requeue)
+        {
+            return m_delegate.BasicRejectAsync(deliveryTag, requeue);
         }
 
         public void Close()
@@ -847,6 +1181,19 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public async Task CloseAsync()
+        {
+            try
+            {
+                await m_delegate.CloseAsync();
+            }
+            finally
+            {
+                m_connection.UnregisterModel(this);
+            }
+        }
+
+
         public void Close(ushort replyCode, string replyText)
         {
             try
@@ -859,10 +1206,27 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public async Task CloseAsync(ushort replyCode, string replyText)
+        {
+            try
+            {
+                await m_delegate.CloseAsync(replyCode, replyText);
+            }
+            finally
+            {
+                m_connection.UnregisterModel(this);
+            }
+        }
+
         public void ConfirmSelect()
         {
             usesPublisherConfirms = true;
             m_delegate.ConfirmSelect();
+        }
+        public async Task ConfirmSelectAsync()
+        {
+            usesPublisherConfirms = true;
+            await m_delegate.ConfirmSelectAsync();
         }
 
         public IBasicProperties CreateBasicProperties()
@@ -884,6 +1248,22 @@ namespace RabbitMQ.Client.Impl
             m_delegate.ExchangeBind(destination, source, routingKey, arguments);
         }
 
+
+        public async Task ExchangeBindAsync(string destination,
+    string source,
+    string routingKey,
+    IDictionary<string, object> arguments)
+        {
+            RecordedBinding eb = new RecordedExchangeBinding(this).
+                WithSource(source).
+                WithDestination(destination).
+                WithRoutingKey(routingKey).
+                WithArguments(arguments);
+            m_connection.RecordBinding(eb);
+            await m_delegate.ExchangeBindAsync(destination, source, routingKey, arguments);
+        }
+
+
         public void ExchangeBindNoWait(string destination,
             string source,
             string routingKey,
@@ -891,6 +1271,16 @@ namespace RabbitMQ.Client.Impl
         {
             m_delegate.ExchangeBindNoWait(destination, source, routingKey, arguments);
         }
+
+        public Task ExchangeBindNoWaitAsync(string destination,
+    string source,
+    string routingKey,
+    IDictionary<string, object> arguments)
+        {
+            return m_delegate.ExchangeBindNoWaitAsync(destination, source, routingKey, arguments);
+        }
+
+
 
         public void ExchangeDeclare(string exchange, string type, bool durable,
             bool autoDelete, IDictionary<string, object> arguments)
@@ -904,6 +1294,22 @@ namespace RabbitMQ.Client.Impl
                 autoDelete, arguments);
             m_connection.RecordExchange(exchange, rx);
         }
+
+
+        public async Task ExchangeDeclareAsync(string exchange, string type, bool durable,
+    bool autoDelete, IDictionary<string, object> arguments)
+        {
+            RecordedExchange rx = new RecordedExchange(this, exchange).
+                WithType(type).
+                WithDurable(durable).
+                WithAutoDelete(autoDelete).
+                WithArguments(arguments);
+            await m_delegate.ExchangeDeclareAsync(exchange, type, durable,
+                autoDelete, arguments);
+            m_connection.RecordExchange(exchange, rx);
+        }
+
+
 
         public void ExchangeDeclareNoWait(string exchange,
             string type,
@@ -921,9 +1327,33 @@ namespace RabbitMQ.Client.Impl
             m_connection.RecordExchange(exchange, rx);
         }
 
+
+
+        public async Task ExchangeDeclareNoWaitAsync(string exchange,
+            string type,
+            bool durable,
+            bool autoDelete,
+            IDictionary<string, object> arguments)
+        {
+            RecordedExchange rx = new RecordedExchange(this, exchange).
+                WithType(type).
+                WithDurable(durable).
+                WithAutoDelete(autoDelete).
+                WithArguments(arguments);
+            await m_delegate.ExchangeDeclareNoWaitAsync(exchange, type, durable,
+                autoDelete, arguments);
+            m_connection.RecordExchange(exchange, rx);
+        }
+
+
         public void ExchangeDeclarePassive(string exchange)
         {
             m_delegate.ExchangeDeclarePassive(exchange);
+        }
+
+        public Task ExchangeDeclarePassiveAsync(string exchange)
+        {
+            return m_delegate.ExchangeDeclarePassiveAsync(exchange);
         }
 
         public void ExchangeDelete(string exchange,
@@ -933,12 +1363,28 @@ namespace RabbitMQ.Client.Impl
             m_connection.DeleteRecordedExchange(exchange);
         }
 
+
+        public async Task ExchangeDeleteAsync(string exchange,
+            bool ifUnused)
+        {
+            await m_delegate.ExchangeDeleteAsync(exchange, ifUnused);
+            m_connection.DeleteRecordedExchange(exchange);
+        }
+
         public void ExchangeDeleteNoWait(string exchange,
             bool ifUnused)
         {
             m_delegate.ExchangeDeleteNoWait(exchange, ifUnused);
             m_connection.DeleteRecordedExchange(exchange);
         }
+
+        public async Task ExchangeDeleteNoWaitAsync(string exchange,
+    bool ifUnused)
+        {
+            await m_delegate.ExchangeDeleteNoWaitAsync(exchange, ifUnused);
+            m_connection.DeleteRecordedExchange(exchange);
+        }
+
 
         public void ExchangeUnbind(string destination,
             string source,
@@ -955,12 +1401,36 @@ namespace RabbitMQ.Client.Impl
             m_connection.MaybeDeleteRecordedAutoDeleteExchange(source);
         }
 
+        public async Task ExchangeUnbindAsync(string destination,
+    string source,
+    string routingKey,
+    IDictionary<string, object> arguments)
+        {
+            RecordedBinding eb = new RecordedExchangeBinding(this).
+                WithSource(source).
+                WithDestination(destination).
+                WithRoutingKey(routingKey).
+                WithArguments(arguments);
+            m_connection.DeleteRecordedBinding(eb);
+            await m_delegate.ExchangeUnbindAsync(destination, source, routingKey, arguments);
+            m_connection.MaybeDeleteRecordedAutoDeleteExchange(source);
+        }
+
+
         public void ExchangeUnbindNoWait(string destination,
             string source,
             string routingKey,
             IDictionary<string, object> arguments)
         {
             m_delegate.ExchangeUnbind(destination, source, routingKey, arguments);
+        }
+
+        public Task ExchangeUnbindNoWaitAsync(string destination,
+    string source,
+    string routingKey,
+    IDictionary<string, object> arguments)
+        {
+            return m_delegate.ExchangeUnbindAsync(destination, source, routingKey, arguments);
         }
 
         public void QueueBind(string queue,
@@ -977,12 +1447,34 @@ namespace RabbitMQ.Client.Impl
             m_delegate.QueueBind(queue, exchange, routingKey, arguments);
         }
 
+        public async Task QueueBindAsync(string queue,
+    string exchange,
+    string routingKey,
+    IDictionary<string, object> arguments)
+        {
+            RecordedBinding qb = new RecordedQueueBinding(this).
+                WithSource(exchange).
+                WithDestination(queue).
+                WithRoutingKey(routingKey).
+                WithArguments(arguments);
+            m_connection.RecordBinding(qb);
+            await m_delegate.QueueBindAsync(queue, exchange, routingKey, arguments);
+        }
+
         public void QueueBindNoWait(string queue,
             string exchange,
             string routingKey,
             IDictionary<string, object> arguments)
         {
             m_delegate.QueueBind(queue, exchange, routingKey, arguments);
+        }
+
+        public Task QueueBindNoWaitAsync(string queue,
+    string exchange,
+    string routingKey,
+    IDictionary<string, object> arguments)
+        {
+            return m_delegate.QueueBindAsync(queue, exchange, routingKey, arguments);
         }
 
         public QueueDeclareOk QueueDeclare(string queue, bool durable,
@@ -1001,6 +1493,24 @@ namespace RabbitMQ.Client.Impl
             return result;
         }
 
+        public async Task<QueueDeclareOk> QueueDeclareAsync(string queue, bool durable,
+                                           bool exclusive, bool autoDelete,
+                                           IDictionary<string, object> arguments)
+        {
+            var result = await m_delegate.QueueDeclareAsync(queue, durable, exclusive,
+                autoDelete, arguments);
+            RecordedQueue rq = new RecordedQueue(this, result.QueueName).
+                Durable(durable).
+                Exclusive(exclusive).
+                AutoDelete(autoDelete).
+                Arguments(arguments).
+                ServerNamed(string.Empty.Equals(queue));
+            m_connection.RecordQueue(result.QueueName, rq);
+            return result;
+        }
+
+
+
         public void QueueDeclareNoWait(string queue, bool durable,
                                        bool exclusive, bool autoDelete,
                                        IDictionary<string, object> arguments)
@@ -1015,20 +1525,49 @@ namespace RabbitMQ.Client.Impl
                 ServerNamed(string.Empty.Equals(queue));
             m_connection.RecordQueue(queue, rq);
         }
+        public async Task QueueDeclareNoWaitAsync(string queue, bool durable,
+                                       bool exclusive, bool autoDelete,
+                                       IDictionary<string, object> arguments)
+        {
+            await m_delegate.QueueDeclareNoWaitAsync(queue, durable, exclusive,
+                autoDelete, arguments);
+            RecordedQueue rq = new RecordedQueue(this, queue).
+                Durable(durable).
+                Exclusive(exclusive).
+                AutoDelete(autoDelete).
+                Arguments(arguments).
+                ServerNamed(string.Empty.Equals(queue));
+            m_connection.RecordQueue(queue, rq);
+        }
+
 
         public QueueDeclareOk QueueDeclarePassive(string queue)
         {
             return m_delegate.QueueDeclarePassive(queue);
         }
+        public Task<QueueDeclareOk> QueueDeclarePassiveAsync(string queue)
+        {
+            return m_delegate.QueueDeclarePassiveAsync(queue);
+        }
+
 
         public uint MessageCount(string queue)
         {
             return m_delegate.MessageCount(queue);
         }
 
+        public Task<uint> MessageCountAsync(string queue)
+        {
+            return m_delegate.MessageCountAsync(queue);
+        }
+
         public uint ConsumerCount(string queue)
         {
             return m_delegate.ConsumerCount(queue);
+        }
+        public Task<uint> ConsumerCountAsync(string queue)
+        {
+            return m_delegate.ConsumerCountAsync(queue);
         }
 
         public uint QueueDelete(string queue,
@@ -1040,6 +1579,16 @@ namespace RabbitMQ.Client.Impl
             return result;
         }
 
+        public async Task<uint> QueueDeleteAsync(string queue,
+    bool ifUnused,
+    bool ifEmpty)
+        {
+            var result = await m_delegate.QueueDeleteAsync(queue, ifUnused, ifEmpty);
+            m_connection.DeleteRecordedQueue(queue);
+            return result;
+        }
+
+
         public void QueueDeleteNoWait(string queue,
             bool ifUnused,
             bool ifEmpty)
@@ -1048,9 +1597,22 @@ namespace RabbitMQ.Client.Impl
             m_connection.DeleteRecordedQueue(queue);
         }
 
+        public async Task QueueDeleteNoWaitAsync(string queue,
+    bool ifUnused,
+    bool ifEmpty)
+        {
+            await m_delegate.QueueDeleteNoWaitAsync(queue, ifUnused, ifEmpty);
+            m_connection.DeleteRecordedQueue(queue);
+        }
+
         public uint QueuePurge(string queue)
         {
             return m_delegate.QueuePurge(queue);
+        }
+
+        public Task<uint> QueuePurgeAsync(string queue)
+        {
+            return m_delegate.QueuePurgeAsync(queue);
         }
 
         public void QueueUnbind(string queue,
@@ -1068,20 +1630,48 @@ namespace RabbitMQ.Client.Impl
             m_connection.MaybeDeleteRecordedAutoDeleteExchange(exchange);
         }
 
+        public async Task QueueUnbindAsync(string queue,
+    string exchange,
+    string routingKey,
+    IDictionary<string, object> arguments)
+        {
+            RecordedBinding qb = new RecordedQueueBinding(this).
+                WithSource(exchange).
+                WithDestination(queue).
+                WithRoutingKey(routingKey).
+                WithArguments(arguments);
+            m_connection.DeleteRecordedBinding(qb);
+            await m_delegate.QueueUnbindAsync(queue, exchange, routingKey, arguments);
+            m_connection.MaybeDeleteRecordedAutoDeleteExchange(exchange);
+        }
+
         public void TxCommit()
         {
             m_delegate.TxCommit();
+        }
+        public Task TxCommitAsync()
+        {
+            return m_delegate.TxCommitAsync();
         }
 
         public void TxRollback()
         {
             m_delegate.TxRollback();
         }
+        public Task TxRollbackAsync()
+        {
+            return m_delegate.TxRollbackAsync();
+        }
 
         public void TxSelect()
         {
             usesTransactions = true;
             m_delegate.TxSelect();
+        }
+        public async Task TxSelectAsync()
+        {
+            usesTransactions = true;
+            await m_delegate.TxSelectAsync();
         }
 
         public bool WaitForConfirms(TimeSpan timeout, out bool timedOut)
@@ -1103,10 +1693,18 @@ namespace RabbitMQ.Client.Impl
         {
             m_delegate.WaitForConfirmsOrDie();
         }
-
+        public Task WaitForConfirmsOrDieAsync()
+        {
+            return m_delegate.WaitForConfirmsOrDieAsync();
+        }
         public void WaitForConfirmsOrDie(TimeSpan timeout)
         {
             m_delegate.WaitForConfirmsOrDie(timeout);
+        }
+
+        public Task WaitForConfirmsOrDieAsync(TimeSpan timeout)
+        {
+            return m_delegate.WaitForConfirmsOrDieAsync(timeout);
         }
 
         protected void RecoverBasicAckHandlers()

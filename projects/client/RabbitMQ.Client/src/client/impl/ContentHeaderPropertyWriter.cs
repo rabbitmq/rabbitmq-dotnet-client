@@ -125,7 +125,7 @@ namespace RabbitMQ.Client.Impl
 
         private void EmitFlagWord(bool continuationBit)
         {
-            BaseWriter.Write((ushort)(continuationBit ? (m_flagWord | 1) : m_flagWord));
+            BaseWriter.WriteUInt16((ushort)(continuationBit ? (m_flagWord | 1) : m_flagWord));
             m_flagWord = 0;
             m_bitCount = 0;
         }

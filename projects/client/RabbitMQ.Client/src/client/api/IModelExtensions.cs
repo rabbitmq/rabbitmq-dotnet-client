@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client
 {
@@ -53,14 +54,14 @@ namespace RabbitMQ.Client
             bool noLocal = false,
             bool exclusive = false,
             IDictionary<string, object> arguments = null)
-            {
-                return model.BasicConsume(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer);
-            }
+        {
+            return model.BasicConsume(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer);
+        }
 
         /// <summary>Start a Basic content-class consumer.</summary>
         public static string BasicConsume(this IModel model, string queue, bool autoAck, IBasicConsumer consumer)
         {
-            return model.BasicConsume(queue, autoAck, "", false, false, null, consumer);
+            return model.BasicConsume(queue, autoAck, string.Empty, false, false, null, consumer);
         }
 
         /// <summary>Start a Basic content-class consumer.</summary>
@@ -117,9 +118,9 @@ namespace RabbitMQ.Client
         /// </summary>
         public static QueueDeclareOk QueueDeclare(this IModel model, string queue = "", bool durable = false, bool exclusive = true,
             bool autoDelete = true, IDictionary<string, object> arguments = null)
-            {
-                return model.QueueDeclare(queue, durable, exclusive, autoDelete, arguments);
-            }
+        {
+            return model.QueueDeclare(queue, durable, exclusive, autoDelete, arguments);
+        }
 
         /// <summary>
         /// (Extension method) Bind an exchange to an exchange.
@@ -142,18 +143,18 @@ namespace RabbitMQ.Client
         /// </summary>
         public static void ExchangeDeclare(this IModel model, string exchange, string type, bool durable = false, bool autoDelete = false,
             IDictionary<string, object> arguments = null)
-            {
-                model.ExchangeDeclare(exchange, type, durable, autoDelete, arguments);
-            }
+        {
+            model.ExchangeDeclare(exchange, type, durable, autoDelete, arguments);
+        }
 
         /// <summary>
         /// (Extension method) Like ExchangeDeclare but sets nowait to true. 
         /// </summary>
         public static void ExchangeDeclareNoWait(this IModel model, string exchange, string type, bool durable = false, bool autoDelete = false,
             IDictionary<string, object> arguments = null)
-            {
-                model.ExchangeDeclareNoWait(exchange, type, durable, autoDelete, arguments);
-            }
+        {
+            model.ExchangeDeclareNoWait(exchange, type, durable, autoDelete, arguments);
+        }
 
         /// <summary>
         /// (Spec method) Unbinds an exchange.
@@ -162,9 +163,9 @@ namespace RabbitMQ.Client
             string source,
             string routingKey,
             IDictionary<string, object> arguments = null)
-            {
-                model.ExchangeUnbind(destination, source, routingKey, arguments);
-            }
+        {
+            model.ExchangeUnbind(destination, source, routingKey, arguments);
+        }
 
         /// <summary>
         /// (Spec method) Deletes an exchange.
@@ -214,4 +215,119 @@ namespace RabbitMQ.Client
             model.QueueUnbind(queue, exchange, routingKey, arguments);
         }
     }
+    public static class IModelAsyncExensions
+    {
+        public static Task<string> BasicConsumeAsync(this IModel model,
+        IBasicConsumer consumer,
+        string queue,
+        bool autoAck = false,
+        string consumerTag = "",
+        bool noLocal = false,
+        bool exclusive = false,
+        IDictionary<string, object> arguments = null)
+        {
+            return model.BasicConsumeAsync(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer);
+        }
+
+        /// <summary>Start a Basic content-class consumer.</summary>
+        public static Task<string> BasicConsumeAsync(this IModel model, string queue, bool autoAck, IBasicConsumer consumer)
+        {
+            return model.BasicConsumeAsync(queue, autoAck, string.Empty, false, false, null, consumer);
+        }
+
+        /// <summary>Start a Basic content-class consumer.</summary>
+        public static Task<string> BasicConsumeAsync(this IModel model, string queue,
+            bool autoAck,
+            string consumerTag,
+            IBasicConsumer consumer)
+        {
+            return model.BasicConsumeAsync(queue, autoAck, consumerTag, false, false, null, consumer);
+        }
+
+        /// <summary>Start a Basic content-class consumer.</summary>
+        public static Task<string> BasicConsumeAsync(this IModel model, string queue,
+            bool autoAck,
+            string consumerTag,
+            IDictionary<string, object> arguments,
+            IBasicConsumer consumer)
+        {
+            return model.BasicConsumeAsync(queue, autoAck, consumerTag, false, false, arguments, consumer);
+        }
+
+        /// <summary>
+        /// (Extension method) Convenience overload of BasicPublish.
+        /// </summary>
+        /// <remarks>
+        /// The publication occurs with mandatory=false and immediate=false.
+        /// </remarks>
+        public static Task BasicPublishAsync(this IModel model, PublicationAddress addr, IBasicProperties basicProperties, byte[] body)
+        {
+            return model.BasicPublishAsync(addr.ExchangeName, addr.RoutingKey, basicProperties: basicProperties, body: body);
+        }
+
+        /// <summary>
+        /// (Extension method) Convenience overload of BasicPublish.
+        /// </summary>
+        /// <remarks>
+        /// The publication occurs with mandatory=false
+        /// </remarks>
+        public static Task BasicPublishAsync(this IModel model, string exchange, string routingKey, IBasicProperties basicProperties, byte[] body)
+        {
+            return model.BasicPublishAsync(exchange, routingKey, false, basicProperties, body);
+        }
+
+        /// <summary>
+        /// (Spec method) Convenience overload of BasicPublish.
+        /// </summary>
+        public static Task BasicPublishAsync(this IModel model, string exchange, string routingKey, bool mandatory = false, IBasicProperties basicProperties = null, byte[] body = null)
+        {
+            return model.BasicPublishAsync(exchange, routingKey, mandatory, basicProperties, body);
+        }
+
+        /// <summary>
+        /// (Spec method) Declare a queue.
+        /// </summary>
+        public static Task<QueueDeclareOk> QueueDeclareAsync(this IModel model, string queue = "", bool durable = false, bool exclusive = true,
+            bool autoDelete = true, IDictionary<string, object> arguments = null)
+        {
+            return model.QueueDeclareAsync(queue, durable, exclusive, autoDelete, arguments);
+        }
+
+        /// <summary>
+        /// (Extension method) Bind an exchange to an exchange.
+        /// </summary>
+        public static Task ExchangeBindAsync(this IModel model, string destination, string source, string routingKey, IDictionary<string, object> arguments = null)
+        {
+            return model.ExchangeBindAsync(destination, source, routingKey, arguments);
+        }
+
+        /// <summary>
+        /// (Extension method) Like exchange bind but sets nowait to true. 
+        /// </summary>
+        public static Task ExchangeBindNoWaitAsync(this IModel model, string destination, string source, string routingKey, IDictionary<string, object> arguments = null)
+        {
+            return model.ExchangeBindNoWaitAsync(destination, source, routingKey, arguments);
+        }
+
+        /// <summary>
+        /// (Spec method) Declare an exchange.
+        /// </summary>
+        public static Task ExchangeDeclareAsync(this IModel model, string exchange, string type, bool durable = false, bool autoDelete = false,
+            IDictionary<string, object> arguments = null)
+        {
+            return model.ExchangeDeclareAsync(exchange, type, durable, autoDelete, arguments);
+        }
+
+        /// <summary>
+        /// (Extension method) Like ExchangeDeclare but sets nowait to true. 
+        /// </summary>
+        public static Task ExchangeDeclareNoWaitAsync(this IModel model, string exchange, string type, bool durable = false, bool autoDelete = false,
+            IDictionary<string, object> arguments = null)
+        {
+            return model.ExchangeDeclareNoWaitAsync(exchange, type, durable, autoDelete, arguments);
+        }
+
+
+    }
+
 }

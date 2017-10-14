@@ -42,6 +42,7 @@ using RabbitMQ.Client.Apigen.Attributes;
 using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client
 {
@@ -185,12 +186,15 @@ namespace RabbitMQ.Client
         /// Acknowledge one or more delivered message(s).
         /// </summary>
         void BasicAck(ulong deliveryTag, bool multiple);
+        Task BasicAckAsync(ulong deliveryTag, bool multiple);
 
         /// <summary>
         /// Delete a Basic content-class consumer.
         /// </summary>
         [AmqpMethodDoNotImplement(null)]
         void BasicCancel(string consumerTag);
+        [AmqpMethodDoNotImplement(null)]
+        Task BasicCancelAsync(string consumerTag);
 
         /// <summary>Start a Basic content-class consumer.</summary>
         [AmqpMethodDoNotImplement(null)]
@@ -202,6 +206,15 @@ namespace RabbitMQ.Client
             bool exclusive,
             IDictionary<string, object> arguments,
             IBasicConsumer consumer);
+        [AmqpMethodDoNotImplement(null)]
+        Task<string> BasicConsumeAsync(
+           string queue,
+           bool autoAck,
+           string consumerTag,
+           bool noLocal,
+           bool exclusive,
+           IDictionary<string, object> arguments,
+           IBasicConsumer consumer);
 
         /// <summary>
         /// Retrieve an individual message, if
@@ -210,9 +223,12 @@ namespace RabbitMQ.Client
         /// </summary>
         [AmqpMethodDoNotImplement(null)]
         BasicGetResult BasicGet(string queue, bool autoAck);
+        [AmqpMethodDoNotImplement(null)]
+        Task<BasicGetResult> BasicGetAsync(string queue, bool autoAck);
 
         /// <summary>Reject one or more delivered message(s).</summary>
         void BasicNack(ulong deliveryTag, bool multiple, bool requeue);
+        Task BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue);
 
         /// <summary>
         /// Publishes a message.
@@ -227,9 +243,22 @@ namespace RabbitMQ.Client
             IBasicProperties basicProperties, byte[] body);
 
         /// <summary>
+        /// Publishes a message.
+        /// </summary>
+        /// <remarks>
+        ///   <para>
+        ///     Routing key must be shorter than 255 bytes.
+        ///   </para>
+        /// </remarks>
+        [AmqpMethodDoNotImplement(null)]
+        Task BasicPublishAsync(string exchange, string routingKey, bool mandatory,
+            IBasicProperties basicProperties, byte[] body);
+
+        /// <summary>
         /// Configures QoS parameters of the Basic content-class.
         /// </summary>
         void BasicQos(uint prefetchSize, ushort prefetchCount, bool global);
+        Task BasicQosAsync(uint prefetchSize, ushort prefetchCount, bool global);
 
         /// <summary>
         /// Indicates that a consumer has recovered.
@@ -294,6 +323,8 @@ namespace RabbitMQ.Client
         /// </remarks>        
         [AmqpMethodDoNotImplement(null)]
         void ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments);
+        [AmqpMethodDoNotImplement(null)]
+        Task ExchangeBindAsync(string destination, string source, string routingKey, IDictionary<string, object> arguments);
 
         /// <summary>
         /// Like ExchangeBind but sets nowait to true.
@@ -305,6 +336,8 @@ namespace RabbitMQ.Client
         /// </remarks>        
         void ExchangeBindNoWait(string destination, string source, string routingKey,
             IDictionary<string, object> arguments);
+        Task ExchangeBindNoWaitAsync(string destination, string source, string routingKey,
+            IDictionary<string, object> arguments);
 
         /// <summary>Declare an exchange.</summary>
         /// <remarks>
@@ -314,12 +347,17 @@ namespace RabbitMQ.Client
         [AmqpMethodDoNotImplement(null)]
         void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete,
             IDictionary<string, object> arguments);
+        [AmqpMethodDoNotImplement(null)]
+        Task ExchangeDeclareAsync(string exchange, string type, bool durable, bool autoDelete,
+            IDictionary<string, object> arguments);
 
         /// <summary>
         /// Same as ExchangeDeclare but sets nowait to true and returns void (as there
         /// will be no response from the server).
         /// </summary>
         void ExchangeDeclareNoWait(string exchange, string type, bool durable, bool autoDelete,
+            IDictionary<string, object> arguments);
+        Task ExchangeDeclareNoWaitAsync(string exchange, string type, bool durable, bool autoDelete,
             IDictionary<string, object> arguments);
 
         /// <summary>
@@ -333,17 +371,22 @@ namespace RabbitMQ.Client
         /// </remarks>
         [AmqpMethodDoNotImplement(null)]
         void ExchangeDeclarePassive(string exchange);
+        [AmqpMethodDoNotImplement(null)]
+        Task ExchangeDeclarePassiveAsync(string exchange);
 
         /// <summary>
         /// Delete an exchange.
         /// </summary>
         [AmqpMethodDoNotImplement(null)]
         void ExchangeDelete(string exchange, bool ifUnused);
+        [AmqpMethodDoNotImplement(null)]
+        Task ExchangeDeleteAsync(string exchange, bool ifUnused);
 
         /// <summary>
         /// Like ExchangeDelete but sets nowait to true.
         /// </summary>
         void ExchangeDeleteNoWait(string exchange, bool ifUnused);
+        Task ExchangeDeleteNoWaitAsync(string exchange, bool ifUnused);
 
         /// <summary>
         /// Unbind an exchange from an exchange.
@@ -368,6 +411,9 @@ namespace RabbitMQ.Client
         [AmqpMethodDoNotImplement(null)]
         void ExchangeUnbindNoWait(string destination, string source, string routingKey,
             IDictionary<string, object> arguments);
+        [AmqpMethodDoNotImplement(null)]
+        Task ExchangeUnbindNoWaitAsync(string destination, string source, string routingKey,
+            IDictionary<string, object> arguments);
 
         /// <summary>
         /// Bind a queue to an exchange.
@@ -379,6 +425,8 @@ namespace RabbitMQ.Client
         /// </remarks>        
         [AmqpMethodDoNotImplement(null)]
         void QueueBind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
+        [AmqpMethodDoNotImplement(null)]
+        Task QueueBindAsync(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
 
         /// <summary>Same as QueueBind but sets nowait parameter to true.</summary>
         /// <remarks>
@@ -387,10 +435,14 @@ namespace RabbitMQ.Client
         ///   </para>
         /// </remarks>        
         void QueueBindNoWait(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
+        Task QueueBindNoWaitAsync(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
 
         /// <summary> Declare a queue.</summary>
         [AmqpMethodDoNotImplement(null)]
         QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive,
+            bool autoDelete, IDictionary<string, object> arguments);
+        [AmqpMethodDoNotImplement(null)]
+        Task<QueueDeclareOk> QueueDeclareAsync(string queue, bool durable, bool exclusive,
             bool autoDelete, IDictionary<string, object> arguments);
 
         /// <summary>
@@ -398,6 +450,10 @@ namespace RabbitMQ.Client
         /// will be no response from the server).
         /// </summary>
         void QueueDeclareNoWait(string queue, bool durable,
+                                bool exclusive, bool autoDelete,
+                                IDictionary<string, object> arguments);
+
+        Task QueueDeclareNoWaitAsync(string queue, bool durable,
                                 bool exclusive, bool autoDelete,
                                 IDictionary<string, object> arguments);
 
@@ -410,6 +466,9 @@ namespace RabbitMQ.Client
         [AmqpMethodDoNotImplement(null)]
         QueueDeclareOk QueueDeclarePassive(string queue);
 
+        [AmqpMethodDoNotImplement(null)]
+        Task<QueueDeclareOk> QueueDeclarePassiveAsync(string queue);
+
         /// <summary>
         /// Returns the number of messages in a queue ready to be delivered
         /// to consumers. This method assumes the queue exists. If it doesn't,
@@ -418,6 +477,8 @@ namespace RabbitMQ.Client
         /// <param name="queue">The name of the queue</param>
         [AmqpMethodDoNotImplement(null)]
         uint MessageCount(string queue);
+        [AmqpMethodDoNotImplement(null)]
+        Task<uint> MessageCountAsync(string queue);
 
         /// <summary>
         /// Returns the number of consumers on a queue.
@@ -427,6 +488,8 @@ namespace RabbitMQ.Client
         /// <param name="queue">The name of the queue</param>
         [AmqpMethodDoNotImplement(null)]
         uint ConsumerCount(string queue);
+        [AmqpMethodDoNotImplement(null)]
+        Task<uint> ConsumerCountAsync(string queue);
 
         /// <summary>
         /// Delete a queue.
@@ -438,11 +501,15 @@ namespace RabbitMQ.Client
         [AmqpMethodDoNotImplement(null)]
         uint QueueDelete(string queue, bool ifUnused, bool ifEmpty);
 
+        [AmqpMethodDoNotImplement(null)]
+        Task<uint> QueueDeleteAsync(string queue, bool ifUnused, bool ifEmpty);
+
         /// <summary>
         ///Same as QueueDelete but sets nowait parameter to true
         ///and returns void (as there will be no response from the server)
         /// </summary>
         void QueueDeleteNoWait(string queue, bool ifUnused, bool ifEmpty);
+        Task QueueDeleteNoWaitAsync(string queue, bool ifUnused, bool ifEmpty);
 
         /// <summary>
         /// Purge a queue of messages.
@@ -452,6 +519,8 @@ namespace RabbitMQ.Client
         /// </remarks>
         [AmqpMethodDoNotImplement(null)]
         uint QueuePurge(string queue);
+        [AmqpMethodDoNotImplement(null)]
+        Task<uint> QueuePurgeAsync(string queue);
 
         /// <summary>
         /// Unbind a queue from an exchange.
@@ -462,21 +531,25 @@ namespace RabbitMQ.Client
         ///   </para>
         /// </remarks>        
         void QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
+        Task QueueUnbindAsync(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
 
         /// <summary>
         /// Commit this session's active TX transaction.
         /// </summary>
         void TxCommit();
+        Task TxCommitAsync();
 
         /// <summary>
         /// Roll back this session's active TX transaction.
         /// </summary>
         void TxRollback();
+        Task TxRollbackAsync();
 
         /// <summary>
         /// Enable TX mode for this session.
         /// </summary>
         void TxSelect();
+        Task TxSelectAsync();
 
         /// <summary>Wait until all published messages have been confirmed.
         /// </summary>
@@ -534,6 +607,8 @@ namespace RabbitMQ.Client
         /// </remarks>
         [AmqpMethodDoNotImplement(null)]
         void WaitForConfirmsOrDie();
+        [AmqpMethodDoNotImplement(null)]
+        Task WaitForConfirmsOrDieAsync();
 
         /// <summary>
         /// Wait until all published messages have been confirmed.
@@ -546,6 +621,8 @@ namespace RabbitMQ.Client
         [AmqpMethodDoNotImplement(null)]
         void WaitForConfirmsOrDie(TimeSpan timeout);
 
+        [AmqpMethodDoNotImplement(null)]
+        Task WaitForConfirmsOrDieAsync(TimeSpan timeout);
         /// <summary>
         /// Amount of time protocol  operations (e.g. <code>queue.declare</code>) are allowed to take before
         /// timing out.

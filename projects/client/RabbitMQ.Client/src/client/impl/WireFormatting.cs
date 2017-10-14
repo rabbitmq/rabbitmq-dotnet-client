@@ -91,9 +91,9 @@ namespace RabbitMQ.Client.Impl
         {
             IList array = new List<object>();
             long arrayLength = reader.ReadUInt32();
-            Stream backingStream = reader.BaseStream;
-            long startPosition = backingStream.Position;
-            while ((backingStream.Position - startPosition) < arrayLength)
+            //Stream backingStream = reader.BaseStream;
+            long startPosition = reader.Position;
+            while ((reader.Position - startPosition) < arrayLength)
             {
                 object value = ReadFieldValue(reader);
                 array.Add(value);
@@ -111,7 +111,7 @@ namespace RabbitMQ.Client.Impl
         public static object ReadFieldValue(NetworkBinaryReader reader)
         {
             object value = null;
-            byte discriminator = reader.ReadByte();
+            int discriminator = reader.ReadByte();
             switch ((char)discriminator)
             {
                 case 'S':
@@ -134,7 +134,7 @@ namespace RabbitMQ.Client.Impl
                     value = ReadArray(reader);
                     break;
                 case 'b':
-                    value = reader.ReadSByte();
+                    value = reader.ReadByte();
                     break;
                 case 'd':
                     value = reader.ReadDouble();
@@ -159,8 +159,7 @@ namespace RabbitMQ.Client.Impl
                     break;
 
                 default:
-                    throw new SyntaxError("Unrecognised type in table: " +
-                                          (char)discriminator);
+                    throw new SyntaxError("Unrecognised type in table: " + (char)discriminator);
             }
             return value;
         }
@@ -183,12 +182,14 @@ namespace RabbitMQ.Client.Impl
                 throw new SyntaxError("Long string too long; " +
                                       "byte length=" + byteCount + ", max=" + int.MaxValue);
             }
-            return reader.ReadBytes((int)byteCount);
+            byte[] bytes = new byte[byteCount];
+            reader.Read(bytes, 0, (int)byteCount);
+            return bytes;// reader.ReadBytes((int)byteCount);
         }
 
         public static byte ReadOctet(NetworkBinaryReader reader)
         {
-            return reader.ReadByte();
+            return (byte) reader.ReadByte();
         }
 
         public static ushort ReadShort(NetworkBinaryReader reader)
@@ -199,7 +200,8 @@ namespace RabbitMQ.Client.Impl
         public static string ReadShortstr(NetworkBinaryReader reader)
         {
             int byteCount = reader.ReadByte();
-            byte[] readBytes = reader.ReadBytes(byteCount);
+            byte[] readBytes = new byte[byteCount];
+            reader.Read(readBytes, 0, byteCount);
             return Encoding.UTF8.GetString(readBytes, 0, readBytes.Length);
         }
 
@@ -215,9 +217,9 @@ namespace RabbitMQ.Client.Impl
             IDictionary<string, object> table = new Dictionary<string, object>();
             long tableLength = reader.ReadUInt32();
 
-            Stream backingStream = reader.BaseStream;
-            long startPosition = backingStream.Position;
-            while ((backingStream.Position - startPosition) < tableLength)
+            //Stream backingStream = reader.BaseStream;
+            long startPosition = reader.Position;
+            while ((reader.Position - startPosition) < tableLength)
             {
                 string key = ReadShortstr(reader);
                 object value = ReadFieldValue(reader);
@@ -243,22 +245,22 @@ namespace RabbitMQ.Client.Impl
         {
             if (val == null)
             {
-                writer.Write((uint)0);
+                writer.WriteUInt32(0);
             }
             else
             {
-                Stream backingStream = writer.BaseStream;
-                long patchPosition = backingStream.Position;
-                writer.Write((uint)0); // length of table - will be backpatched
+                //Stream backingStream = writer.BaseStream;
+                long patchPosition = writer.Position;
+                writer.WriteUInt32(0); // length of table - will be backpatched
                 foreach (object entry in val)
                 {
                     WriteFieldValue(writer, entry);
                 }
-                long savedPosition = backingStream.Position;
+                long savedPosition = writer.Position;
                 long tableLength = savedPosition - patchPosition - 4; // offset for length word
-                backingStream.Seek(patchPosition, SeekOrigin.Begin);
-                writer.Write((uint)tableLength);
-                backingStream.Seek(savedPosition, SeekOrigin.Begin);
+                writer.Seek(patchPosition, SeekOrigin.Begin);
+                writer.WriteUInt32((uint)tableLength);
+                writer.Seek(savedPosition, SeekOrigin.Begin);
             }
         }
 
@@ -290,7 +292,7 @@ namespace RabbitMQ.Client.Impl
             else if (value is int)
             {
                 WriteOctet(writer, (byte)'I');
-                writer.Write((int)value);
+                writer.WriteInt32((int)value);
             }
             else if (value is decimal)
             {
@@ -315,27 +317,27 @@ namespace RabbitMQ.Client.Impl
             else if (value is sbyte)
             {
                 WriteOctet(writer, (byte)'b');
-                writer.Write((sbyte)value);
+                writer.WriteSByte((sbyte)value);
             }
             else if (value is double)
             {
                 WriteOctet(writer, (byte)'d');
-                writer.Write((double)value);
+                writer.WriteDouble((double)value);
             }
             else if (value is float)
             {
                 WriteOctet(writer, (byte)'f');
-                writer.Write((float)value);
+                writer.WriteSingle((float)value);
             }
             else if (value is long)
             {
                 WriteOctet(writer, (byte)'l');
-                writer.Write((long)value);
+                writer.WriteInt64((long)value);
             }
             else if (value is short)
             {
                 WriteOctet(writer, (byte)'s');
-                writer.Write((short)value);
+                writer.WriteInt16((short)value);
             }
             else if (value is bool)
             {
@@ -356,28 +358,28 @@ namespace RabbitMQ.Client.Impl
 
         public static void WriteLong(NetworkBinaryWriter writer, uint val)
         {
-            writer.Write(val);
+            writer.WriteUInt32(val);
         }
 
         public static void WriteLonglong(NetworkBinaryWriter writer, ulong val)
         {
-            writer.Write(val);
+            writer.WriteUInt64(val);
         }
 
         public static void WriteLongstr(NetworkBinaryWriter writer, byte[] val)
         {
             WriteLong(writer, (uint)val.Length);
-            writer.Write(val);
+            writer.Write(val, 0, val.Length);
         }
 
         public static void WriteOctet(NetworkBinaryWriter writer, byte val)
         {
-            writer.Write(val);
+            writer.WriteByte(val);
         }
 
         public static void WriteShort(NetworkBinaryWriter writer, ushort val)
         {
-            writer.Write(val);
+            writer.WriteUInt16(val);
         }
 
         public static void WriteShortstr(NetworkBinaryWriter writer, string val)
@@ -389,8 +391,8 @@ namespace RabbitMQ.Client.Impl
                 throw new WireFormattingException("Short string too long; " +
                                                   "UTF-8 encoded length=" + len + ", max=255");
             }
-            writer.Write((byte)len);
-            writer.Write(bytes);
+            writer.WriteByte((byte)len);
+            writer.Write(bytes, 0, len);
         }
 
         ///<summary>Writes an AMQP "table" to the writer.</summary>
@@ -411,13 +413,13 @@ namespace RabbitMQ.Client.Impl
         {
             if (val == null)
             {
-                writer.Write((uint)0);
+                writer.WriteUInt32(0);
             }
             else
             {
-                Stream backingStream = writer.BaseStream;
-                long patchPosition = backingStream.Position;
-                writer.Write((uint)0); // length of table - will be backpatched
+                //Stream backingStream = writer.BaseStream;
+                long patchPosition = writer.Position;
+                writer.WriteUInt32(0); // length of table - will be backpatched
 
                 foreach (DictionaryEntry entry in val)
                 {
@@ -427,11 +429,11 @@ namespace RabbitMQ.Client.Impl
                 }
 
                 // Now, backpatch the table length.
-                long savedPosition = backingStream.Position;
+                long savedPosition = writer.Position;
                 long tableLength = savedPosition - patchPosition - 4; // offset for length word
-                backingStream.Seek(patchPosition, SeekOrigin.Begin);
-                writer.Write((uint)tableLength);
-                backingStream.Seek(savedPosition, SeekOrigin.Begin);
+                writer.Seek(patchPosition, SeekOrigin.Begin);
+                writer.WriteUInt32((uint)tableLength);
+                writer.Seek(savedPosition, SeekOrigin.Begin);
             }
         }
 
@@ -453,13 +455,13 @@ namespace RabbitMQ.Client.Impl
         {
             if (val == null)
             {
-                writer.Write((uint)0);
+                writer.WriteUInt32(0);
             }
             else
             {
-                Stream backingStream = writer.BaseStream;
-                long patchPosition = backingStream.Position;
-                writer.Write((uint)0); // length of table - will be backpatched
+                //Stream backingStream = writer.BaseStream;
+                long patchPosition = writer.Position;
+                writer.WriteUInt32(0); // length of table - will be backpatched
 
                 foreach (KeyValuePair<string, object> entry in val)
                 {
@@ -469,11 +471,11 @@ namespace RabbitMQ.Client.Impl
                 }
 
                 // Now, backpatch the table length.
-                long savedPosition = backingStream.Position;
+                long savedPosition = writer.Position;
                 long tableLength = savedPosition - patchPosition - 4; // offset for length word
-                backingStream.Seek(patchPosition, SeekOrigin.Begin);
-                writer.Write((uint)tableLength);
-                backingStream.Seek(savedPosition, SeekOrigin.Begin);
+                writer.Seek(patchPosition, SeekOrigin.Begin);
+                writer.WriteUInt32((uint)tableLength);
+                writer.Seek(savedPosition, SeekOrigin.Begin);
             }
         }
 

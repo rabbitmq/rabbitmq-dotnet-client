@@ -41,6 +41,7 @@
 using System;
 using System.Collections.Generic;
 using RabbitMQ.Client.Apigen.Attributes;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -255,6 +256,9 @@ namespace RabbitMQ.Client.Impl
         ///initialisation.</summary>
         [AmqpMethodMapping(null, "channel", "open")]
         void _Private_ChannelOpen([AmqpFieldMapping("RabbitMQ.Client.Framing",
+            "reserved1")] string outOfBand);
+        [AmqpMethodMapping(null, "channel", "open")]
+        Task _Private_ChannelOpenAsync([AmqpFieldMapping("RabbitMQ.Client.Framing",
             "reserved1")] string outOfBand);
 
         ///<summary>Used to send a Confirm.Select method. The public

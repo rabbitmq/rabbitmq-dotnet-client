@@ -50,6 +50,7 @@ using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Util;
 using RabbitMQ.Client.Framing;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -95,6 +96,10 @@ namespace RabbitMQ.Client.Impl
         {
             m_connection.Abort(Constants.ReplySuccess, "AutoClose", ShutdownInitiator.Library, Timeout.Infinite);
         }
+        public Task AutoCloseConnectionAsync()
+        {
+            return m_connection.AbortAsync(Constants.ReplySuccess, "AutoClose", ShutdownInitiator.Library, Timeout.Infinite);
+        }
 
         ///<summary>If m_autoClose and there are no active sessions
         ///remaining, Close()s the connection with reason code
@@ -117,9 +122,10 @@ namespace RabbitMQ.Client.Impl
                         // blocking waiting for its own mainloop to
                         // reply to it.
 #if NETFX_CORE
-                        Task.Factory.StartNew(AutoCloseConnection, TaskCreationOptions.LongRunning);
+                        Task.Factory.StartNew(AutoCloseConnectionAsync, TaskCreationOptions.LongRunning);
 #else
-                        new Thread(AutoCloseConnection).Start();
+                        Task.Factory.StartNew(AutoCloseConnectionAsync, TaskCreationOptions.LongRunning);
+//                        new Thread(AutoCloseConnection).Start();
 #endif
                     }
                 }

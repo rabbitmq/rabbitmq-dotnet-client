@@ -55,131 +55,131 @@ namespace RabbitMQ.Util
     /// See also NetworkBinaryReader.
     /// </p>
     /// </remarks>
-    public class NetworkBinaryWriter : BinaryWriter
+    public class NetworkBinaryWriter 
     {
+        private readonly Stream output;
         /// <summary>
         /// Construct a NetworkBinaryWriter over the given input stream.
         /// </summary>
-        public NetworkBinaryWriter(Stream output) : base(output)
+        public NetworkBinaryWriter(Stream output) //: base(output)
         {
+            this.output = output;
+        }
+
+        public long Position { get { return output.Position; } }
+
+        internal void Flush()
+        {
+            output.Flush();
         }
 
         /// <summary>
         /// Construct a NetworkBinaryWriter over the given input
         /// stream, reading strings using the given encoding.
         /// </summary>
-        public NetworkBinaryWriter(Stream output, Encoding encoding) : base(output, encoding)
-        {
-        }
+        //public NetworkBinaryWriter(Stream output, Encoding encoding) : base(output, encoding)
+        //{
+        //}
 
-        ///<summary>Helper method for constructing a temporary
-        ///BinaryWriter streaming into a fresh MemoryStream
-        ///provisioned with the given initialSize.</summary>
-        public static BinaryWriter TemporaryBinaryWriter(int initialSize)
+        /// <summary>
+        /// Override BinaryWriter's method for network-order.
+        /// </summary>
+        public void WriteInt16(short i)
         {
-            return new BinaryWriter(new MemoryStream(initialSize));
+            byte[] bytes = BitConverter.GetBytes(i);
+            output.Write(BitConverter.IsLittleEndian ? new byte[2] { bytes[1], bytes[0] } : bytes, 0, 2);
         }
-
-        ///<summary>Helper method for extracting the byte[] contents
-        ///of a BinaryWriter over a MemoryStream, such as constructed
-        ///by TemporaryBinaryWriter.</summary>
-        public static byte[] TemporaryContents(BinaryWriter w)
+        public void Write(byte[] i, int offset, int length)
         {
-            return ((MemoryStream)w.BaseStream).ToArray();
+            output.Write(i, offset, length);
         }
 
         /// <summary>
         /// Override BinaryWriter's method for network-order.
         /// </summary>
-        public override void Write(short i)
+        public void WriteUShort(ushort i)
         {
-            Write((byte)((i & 0xFF00) >> 8));
-            Write((byte)(i & 0x00FF));
+            byte[] bytes = BitConverter.GetBytes(i);
+            output.Write(BitConverter.IsLittleEndian ? new byte[2] { bytes[1], bytes[0] } : bytes, 0, 2);
         }
 
         /// <summary>
         /// Override BinaryWriter's method for network-order.
         /// </summary>
-        public override void Write(ushort i)
+        public void WriteInt32(int i)
         {
-            Write((byte)((i & 0xFF00) >> 8));
-            Write((byte)(i & 0x00FF));
+            byte[] bytes = BitConverter.GetBytes(i);
+            output.Write(BitConverter.IsLittleEndian ? new byte[4] { bytes[3], bytes[2], bytes[1], bytes[0] } : bytes, 0, 4);
         }
 
         /// <summary>
         /// Override BinaryWriter's method for network-order.
         /// </summary>
-        public override void Write(int i)
+        public void WriteUInt32(uint i)
         {
-            Write((byte)((i & 0xFF000000) >> 24));
-            Write((byte)((i & 0x00FF0000) >> 16));
-            Write((byte)((i & 0x0000FF00) >> 8));
-            Write((byte)(i & 0x000000FF));
+            byte[] bytes = BitConverter.GetBytes(i);
+            output.Write(BitConverter.IsLittleEndian ? new byte[4] { bytes[3], bytes[2], bytes[1], bytes[0] } : bytes, 0, 4);
         }
 
         /// <summary>
         /// Override BinaryWriter's method for network-order.
         /// </summary>
-        public override void Write(uint i)
+        public void WriteInt64(long i)
         {
-            Write((byte)((i & 0xFF000000) >> 24));
-            Write((byte)((i & 0x00FF0000) >> 16));
-            Write((byte)((i & 0x0000FF00) >> 8));
-            Write((byte)(i & 0x000000FF));
+            byte[] bytes = BitConverter.GetBytes(i);
+            output.Write(BitConverter.IsLittleEndian ? new byte[8] { bytes[7], bytes[6], bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0] } : bytes, 0, 8);
         }
 
         /// <summary>
         /// Override BinaryWriter's method for network-order.
         /// </summary>
-        public override void Write(long i)
+        public void WriteUInt64(ulong i)
         {
-            var i1 = (uint)(i >> 32);
-            var i2 = (uint)i;
-            Write(i1);
-            Write(i2);
+            byte[] bytes = BitConverter.GetBytes(i);
+            output.Write(BitConverter.IsLittleEndian ? new byte[8] { bytes[7], bytes[6], bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0] } : bytes, 0, 8);
         }
 
         /// <summary>
         /// Override BinaryWriter's method for network-order.
         /// </summary>
-        public override void Write(ulong i)
+        public void WriteSingle(float i)
         {
-            var i1 = (uint)(i >> 32);
-            var i2 = (uint)i;
-            Write(i1);
-            Write(i2);
+            byte[] bytes = BitConverter.GetBytes(i);
+            output.Write(BitConverter.IsLittleEndian ? new byte[4] { bytes[3], bytes[2], bytes[1], bytes[0] } : bytes, 0, 4);
         }
-
         /// <summary>
         /// Override BinaryWriter's method for network-order.
         /// </summary>
-        public override void Write(float f)
+        public void WriteDouble(double i)
         {
-            BinaryWriter w = TemporaryBinaryWriter(4);
-            w.Write(f);
-            byte[] wrongBytes = TemporaryContents(w);
-            Write(wrongBytes[3]);
-            Write(wrongBytes[2]);
-            Write(wrongBytes[1]);
-            Write(wrongBytes[0]);
+            byte[] bytes = BitConverter.GetBytes(i);
+            output.Write(BitConverter.IsLittleEndian ? new byte[8] { bytes[7], bytes[6], bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0] } : bytes, 0, 8);
         }
 
-        /// <summary>
-        /// Override BinaryWriter's method for network-order.
-        /// </summary>
-        public override void Write(double d)
+        internal void Seek(long patchPosition, SeekOrigin begin)
         {
-            BinaryWriter w = TemporaryBinaryWriter(8);
-            w.Write(d);
-            byte[] wrongBytes = TemporaryContents(w);
-            Write(wrongBytes[7]);
-            Write(wrongBytes[6]);
-            Write(wrongBytes[5]);
-            Write(wrongBytes[4]);
-            Write(wrongBytes[3]);
-            Write(wrongBytes[2]);
-            Write(wrongBytes[1]);
-            Write(wrongBytes[0]);
+            output.Seek(patchPosition, begin);
+        }
+
+        internal void WriteSByte(sbyte value)
+        {
+            output.WriteByte((byte)value);
+        }
+
+        internal void WriteByte(byte val)
+        {
+            output.WriteByte(val);
+        }
+
+        internal void WriteUInt16(ushort i)
+        {
+            byte[] bytes = BitConverter.GetBytes(i);
+            output.Write(BitConverter.IsLittleEndian ? new byte[2] { bytes[1], bytes[0] } : bytes, 0, 2);
+        }
+        internal void WriteChar(char i)
+        {
+            byte[] bytes = BitConverter.GetBytes(i);
+            output.Write(BitConverter.IsLittleEndian ? new byte[2] { bytes[1], bytes[0] } : bytes, 0, 2);
         }
     }
 }

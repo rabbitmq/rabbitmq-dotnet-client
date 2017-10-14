@@ -59,6 +59,7 @@ using System.Net.Sockets;
 
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -137,6 +138,37 @@ namespace RabbitMQ.Client.Framing.Impl
 
             StartMainLoop(factory.UseBackgroundThreadsForIO);
             Open(insist);
+        }
+
+        private Connection(IConnectionFactory factory, IFrameHandler frameHandler, string clientProvidedName = null)
+        {
+            ClientProvidedName = clientProvidedName;
+            KnownHosts = null;
+            FrameMax = 0;
+            m_factory = factory;
+            m_frameHandler = frameHandler;
+
+            var asyncConnectionFactory = factory as IAsyncConnectionFactory;
+            if (asyncConnectionFactory != null && asyncConnectionFactory.DispatchConsumersAsync)
+            {
+                ConsumerWorkService = new AsyncConsumerWorkService();
+            }
+            else
+            {
+                ConsumerWorkService = new ConsumerWorkService();
+            }
+
+            m_sessionManager = new SessionManager(this, 0);
+            m_session0 = new MainSession(this) { Handler = NotifyReceivedCloseOk };
+            m_model0 = (ModelBase)Protocol.CreateModel(m_session0);
+
+            StartMainLoop(factory.UseBackgroundThreadsForIO);
+        }
+        public static async Task<Connection> CreateConnectionAsync(IConnectionFactory factory, bool insist, IFrameHandler frameHandler, string clientProvidedName = null)
+        {
+            Connection c = new Impl.Connection(factory, frameHandler, clientProvidedName);
+            await c.OpenAsync(insist);
+            return c;
         }
 
         public Guid Id { get { return m_id; } }
@@ -373,10 +405,19 @@ namespace RabbitMQ.Client.Framing.Impl
             Close(new ShutdownEventArgs(initiator, reasonCode, reasonText),
                 true, timeout);
         }
+        public Task AbortAsync(ushort reasonCode, string reasonText, ShutdownInitiator initiator, int timeout)
+        {
+            return CloseAsync(new ShutdownEventArgs(initiator, reasonCode, reasonText), true, timeout);
+        }
 
         public void Close(ShutdownEventArgs reason)
         {
             Close(reason, false, Timeout.Infinite);
+        }
+
+        public Task CloseAsync(ShutdownEventArgs reason)
+        {
+            return CloseAsync(reason, false, Timeout.Infinite);
         }
 
         ///<summary>Try to close connection in a graceful way</summary>
@@ -461,6 +502,75 @@ namespace RabbitMQ.Client.Framing.Impl
                 m_frameHandler.Close();
             }
         }
+
+        public async Task CloseAsync(ShutdownEventArgs reason, bool abort, int timeout)
+        {
+            if (!SetCloseReason(reason))
+            {
+                if (!abort)
+                {
+                    throw new AlreadyClosedException(m_closeReason);
+                }
+            }
+            else
+            {
+                OnShutdown();
+                m_session0.SetSessionClosing(false);
+
+                try
+                {
+                    // Try to send connection.close
+                    // Wait for CloseOk in the MainLoop
+                    await m_session0.TransmitAsync(ConnectionCloseWrapper(reason.ReplyCode,
+                        reason.ReplyText));
+                }
+                catch (AlreadyClosedException ace)
+                {
+                    if (!abort)
+                    {
+                        throw ace;
+                    }
+                }
+#pragma warning disable 0168
+                catch (NotSupportedException nse)
+                {
+                    // buffered stream had unread data in it and Flush()
+                    // was called, ignore to not confuse the user
+                }
+#pragma warning restore 0168
+                catch (IOException ioe)
+                {
+                    if (m_model0.CloseReason == null)
+                    {
+                        if (!abort)
+                        {
+                            throw ioe;
+                        }
+                        else
+                        {
+                            LogCloseError("Couldn't close connection cleanly. "
+                                          + "Socket closed unexpectedly", ioe);
+                        }
+                    }
+                }
+                finally
+                {
+                    TerminateMainloop();
+                }
+            }
+
+#if NETFX_CORE
+            var receivedSignal = m_appContinuation.WaitOne(BlockingCell.validatedTimeout(timeout));
+#else
+            var receivedSignal = m_appContinuation.WaitOne(BlockingCell.validatedTimeout(timeout));
+#endif
+
+            if (!receivedSignal)
+            {
+                m_frameHandler.Close();
+            }
+        }
+
 
         ///<remarks>
         /// Loop only used while quiescing. Use only to cleanly close connection
@@ -606,6 +716,32 @@ namespace RabbitMQ.Client.Framing.Impl
 
             return false;
         }
+        public async Task<bool> HardProtocolExceptionHandlerAsync(HardProtocolException hpe)
+        {
+            if (SetCloseReason(hpe.ShutdownReason))
+            {
+                OnShutdown();
+                m_session0.SetSessionClosing(false);
+                try
+                {
+                    await m_session0.TransmitAsync(ConnectionCloseWrapper(
+                        hpe.ShutdownReason.ReplyCode,
+                        hpe.ShutdownReason.ReplyText));
+                    return true;
+                }
+                catch (IOException ioe)
+                {
+                    LogCloseError("Broker closed socket unexpectedly", ioe);
+                }
+            }
+            else
+            {
+                LogCloseError("Hard Protocol Exception occured "
+                              + "while closing the connection", hpe);
+            }
+
+            return false;
+        }
 
         public void InternalClose(ShutdownEventArgs reason)
         {
@@ -629,6 +765,7 @@ namespace RabbitMQ.Client.Framing.Impl
             m_shutdownReport.Add(new ShutdownReportEntry(error, ex));
         }
 
+        [Obsolete("Please use MainLoopAsync", true)]
         public void MainLoop()
         {
             try
@@ -713,10 +850,146 @@ namespace RabbitMQ.Client.Framing.Impl
                 m_appContinuation.Set();
             }
         }
+        public async Task MainLoopAsync()
+        {
+            try
+            {
+                bool shutdownCleanly = false;
+                try
+                {
+                    while (m_running)
+                    {
+                        try
+                        {
+                            await MainLoopIterationAsync();
+                        }
+                        catch (SoftProtocolException spe)
+                        {
+                            await QuiesceChannelAsync(spe);
+                        }
+                    }
+                    shutdownCleanly = true;
+                }
+                catch (EndOfStreamException eose)
+                {
+                    // Possible heartbeat exception
+                    HandleMainLoopException(new ShutdownEventArgs(
+                        ShutdownInitiator.Library,
+                        0,
+                        "End of stream",
+                        eose));
+                }
+                catch (HardProtocolException hpe)
+                {
+                    shutdownCleanly = await HardProtocolExceptionHandlerAsync(hpe);
+                }
+#if !NETFX_CORE
+                catch (Exception ex)
+                {
+                    HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library,
+                        Constants.InternalError,
+                        "Unexpected Exception",
+                        ex));
+                }
+#endif
 
+                // If allowed for clean shutdown, run main loop until the
+                // connection closes.
+                if (shutdownCleanly)
+                {
+#pragma warning disable 0168
+                    try
+                    {
+                        ClosingLoop();
+                    }
+#if NETFX_CORE
+                    catch (Exception ex)
+                    {
+                        if (SocketError.GetStatus(ex.HResult) != SocketErrorStatus.Unknown)
+                        {
+                            // means that socket was closed when frame handler
+                            // attempted to use it. Since we are shutting down,
+                            // ignore it.
+                        }
+                        else
+                        {
+                            throw ex;
+                        }
+                    }
+#else
+                    catch (SocketException se)
+                    {
+                        // means that socket was closed when frame handler
+                        // attempted to use it. Since we are shutting down,
+                        // ignore it.
+                    }
+#endif
+#pragma warning restore 0168
+                }
+
+                FinishClose();
+            }
+            finally
+            {
+                m_appContinuation.Set();
+            }
+        }
         public void MainLoopIteration()
         {
             InboundFrame frame = m_frameHandler.ReadFrame();
+
+            NotifyHeartbeatListener();
+            // We have received an actual frame.
+            if (frame.IsHeartbeat())
+            {
+                // Ignore it: we've already just reset the heartbeat
+                // latch.
+                return;
+            }
+
+            if (frame.Channel == 0)
+            {
+                // In theory, we could get non-connection.close-ok
+                // frames here while we're quiescing (m_closeReason !=
+                // null). In practice, there's a limited number of
+                // things the server can ask of us on channel 0 -
+                // essentially, just connection.close. That, combined
+                // with the restrictions on pipelining, mean that
+                // we're OK here to handle channel 0 traffic in a
+                // quiescing situation, even though technically we
+                // should be ignoring everything except
+                // connection.close-ok.
+                m_session0.HandleFrame(frame);
+            }
+            else
+            {
+                // If we're still m_running, but have a m_closeReason,
+                // then we must be quiescing, which means any inbound
+                // frames for non-zero channels (and any inbound
+                // commands on channel zero that aren't
+                // Connection.CloseOk) must be discarded.
+                if (m_closeReason == null)
+                {
+                    // No close reason, not quiescing the
+                    // connection. Handle the frame. (Of course, the
+                    // Session itself may be quiescing this particular
+                    // channel, but that's none of our concern.)
+                    ISession session = m_sessionManager.Lookup(frame.Channel);
+                    if (session == null)
+                    {
+                        throw new ChannelErrorException(frame.Channel);
+                    }
+                    else
+                    {
+                        session.HandleFrame(frame);
+                    }
+                }
+            }
+        }
+
+        public async Task MainLoopIterationAsync()
+        {
+            InboundFrame frame = await m_frameHandler.ReadFrameAsync();
 
             NotifyHeartbeatListener();
             // We have received an actual frame.
@@ -897,6 +1170,11 @@ namespace RabbitMQ.Client.Framing.Impl
             StartAndTune();
             m_model0.ConnectionOpen(m_factory.VirtualHost, String.Empty, false);
         }
+        public async Task OpenAsync(bool insist)
+        {
+            await StartAndTuneAsync();
+            await m_model0.ConnectionOpenAsync(m_factory.VirtualHost, String.Empty, false);
+        }
 
         public void PrettyPrintShutdownReport()
         {
@@ -986,6 +1264,34 @@ entry.ToString());
             // installed above.
             newSession.Transmit(ChannelCloseWrapper(pe.ReplyCode, pe.Message));
         }
+        public async Task QuiesceChannelAsync(SoftProtocolException pe)
+        {
+            // Construct the QuiescingSession that we'll use during
+            // the quiesce process.
+
+            ISession newSession = new QuiescingSession(this,
+                pe.Channel,
+                pe.ShutdownReason);
+
+            // Here we detach the session from the connection. It's
+            // still alive: it just won't receive any further frames
+            // from the mainloop (once we return to the mainloop, of
+            // course). Instead, those frames will be directed at the
+            // new QuiescingSession.
+            ISession oldSession = m_sessionManager.Swap(pe.Channel, newSession);
+
+            // Now we have all the information we need, and the event
+            // flow of the *lower* layers is set up properly for
+            // shutdown. Signal channel closure *up* the stack, toward
+            // the model and application.
+            oldSession.Close(pe.ShutdownReason);
+
+            // The upper layers have been signalled. Now we can tell
+            // our peer. The peer will respond through the lower
+            // layers - specifically, through the QuiescingSession we
+            // installed above.
+            await newSession.TransmitAsync(ChannelCloseWrapper(pe.ReplyCode, pe.Message));
+        }
 
         public bool SetCloseReason(ShutdownEventArgs reason)
         {
@@ -1026,12 +1332,13 @@ entry.ToString());
             var taskName = "AMQP Connection " + Endpoint;
 
 #if NETFX_CORE
-            Task.Factory.StartNew(this.MainLoop, TaskCreationOptions.LongRunning);
+            Task.Factory.StartNew(this.MainLoopAsync, TaskCreationOptions.LongRunning);
 #else
-            var mainLoopThread = new Thread(MainLoop);
-            mainLoopThread.Name = taskName;
-            mainLoopThread.IsBackground = useBackgroundThread;
-            mainLoopThread.Start();
+            Task.Factory.StartNew(this.MainLoopAsync, TaskCreationOptions.LongRunning);
+            //var mainLoopThread = new Thread(MainLoop);
+            //mainLoopThread.Name = taskName;
+            //mainLoopThread.IsBackground = useBackgroundThread;
+            //mainLoopThread.Start();
 #endif
         }
 
@@ -1179,10 +1486,26 @@ entry.ToString());
             m_heartbeatWrite.Set();
         }
 
+        public async Task WriteFrameAsync(OutboundFrame f)
+        {
+            await m_frameHandler.WriteFrameAsync(f);
+            m_heartbeatWrite.Set();
+        }
+
+        public async Task WriteFrameSetAsync(IList<OutboundFrame> f)
+        {
+            await m_frameHandler.WriteFrameSetAsync(f);
+            m_heartbeatWrite.Set();
+        }
+
         ///<summary>API-side invocation of connection abort.</summary>
         public void Abort()
         {
             Abort(Timeout.Infinite);
+        }
+        public Task AbortAsync()
+        {
+            return AbortAsync(Timeout.Infinite);
         }
 
         ///<summary>API-side invocation of connection abort.</summary>
@@ -1190,11 +1513,19 @@ entry.ToString());
         {
             Abort(reasonCode, reasonText, Timeout.Infinite);
         }
+        public Task AbortAsync(ushort reasonCode, string reasonText)
+        {
+            return AbortAsync(reasonCode, reasonText, Timeout.Infinite);
+        }
 
         ///<summary>API-side invocation of connection abort with timeout.</summary>
         public void Abort(int timeout)
         {
             Abort(Constants.ReplySuccess, "Connection close forced", timeout);
+        }
+        public Task AbortAsync(int timeout)
+        {
+            return AbortAsync(Constants.ReplySuccess, "Connection close forced", timeout);
         }
 
         ///<summary>API-side invocation of connection abort with timeout.</summary>
@@ -1203,10 +1534,19 @@ entry.ToString());
             Abort(reasonCode, reasonText, ShutdownInitiator.Application, timeout);
         }
 
+        public Task AbortAsync(ushort reasonCode, string reasonText, int timeout)
+        {
+            return AbortAsync(reasonCode, reasonText, ShutdownInitiator.Application, timeout);
+        }
+
         ///<summary>API-side invocation of connection.close.</summary>
         public void Close()
         {
             Close(Constants.ReplySuccess, "Goodbye", Timeout.Infinite);
+        }
+        public Task CloseAsync()
+        {
+            return CloseAsync(Constants.ReplySuccess, "Goodbye", Timeout.Infinite);
         }
 
         ///<summary>API-side invocation of connection.close.</summary>
@@ -1214,17 +1554,30 @@ entry.ToString());
         {
             Close(reasonCode, reasonText, Timeout.Infinite);
         }
+        public Task CloseAsync(ushort reasonCode, string reasonText)
+        {
+            return CloseAsync(reasonCode, reasonText, Timeout.Infinite);
+        }
 
         ///<summary>API-side invocation of connection.close with timeout.</summary>
         public void Close(int timeout)
         {
             Close(Constants.ReplySuccess, "Goodbye", timeout);
         }
+        ///<summary>API-side invocation of connection.close with timeout.</summary>
+        public Task CloseAsync(int timeout)
+        {
+            return CloseAsync(Constants.ReplySuccess, "Goodbye", timeout);
+        }
 
         ///<summary>API-side invocation of connection.close with timeout.</summary>
         public void Close(ushort reasonCode, string reasonText, int timeout)
         {
             Close(new ShutdownEventArgs(ShutdownInitiator.Application, reasonCode, reasonText), false, timeout);
+        }
+        public Task CloseAsync(ushort reasonCode, string reasonText, int timeout)
+        {
+            return CloseAsync(new ShutdownEventArgs(ShutdownInitiator.Application, reasonCode, reasonText), false, timeout);
         }
 
         public IModel CreateModel()
@@ -1233,7 +1586,16 @@ entry.ToString());
             ISession session = CreateSession();
             var model = (IFullModel)Protocol.CreateModel(session, this.ConsumerWorkService);
             model.ContinuationTimeout = m_factory.ContinuationTimeout;
-            model._Private_ChannelOpen("");
+            model._Private_ChannelOpen(string.Empty);
+            return model;
+        }
+        public async Task<IModel> CreateModelAsync()
+        {
+            EnsureIsOpen();
+            ISession session = CreateSession();
+            var model = (IFullModel)Protocol.CreateModel(session, this.ConsumerWorkService);
+            model.ContinuationTimeout = m_factory.ContinuationTimeout;
+            await model._Private_ChannelOpenAsync(string.Empty);
             return model;
         }
 
@@ -1373,6 +1735,112 @@ entry.ToString());
             Heartbeat = heartbeat;
 
             m_model0.ConnectionTuneOk(channelMax,
+                frameMax,
+                heartbeat);
+
+            // now we can start heartbeat timers
+            MaybeStartHeartbeatTimers();
+        }
+        protected async Task StartAndTuneAsync()
+        {
+            var connectionStartCell = new BlockingCell();
+            m_model0.m_connectionStartCell = connectionStartCell;
+            m_model0.HandshakeContinuationTimeout = m_factory.HandshakeContinuationTimeout;
+            m_frameHandler.ReadTimeout = m_factory.HandshakeContinuationTimeout.Milliseconds;
+            await m_frameHandler.SendHeaderAsync();
+
+            var connectionStart = (ConnectionStartDetails)
+                connectionStartCell.Value;
+
+            if (connectionStart == null)
+            {
+                throw new IOException("connection.start was never received, likely due to a network timeout");
+            }
+
+            ServerProperties = connectionStart.m_serverProperties;
+
+            var serverVersion = new AmqpVersion(connectionStart.m_versionMajor,
+                connectionStart.m_versionMinor);
+            if (!serverVersion.Equals(Protocol.Version))
+            {
+                TerminateMainloop();
+                FinishClose();
+                throw new ProtocolVersionMismatchException(Protocol.MajorVersion,
+                    Protocol.MinorVersion,
+                    serverVersion.Major,
+                    serverVersion.Minor);
+            }
+
+            m_clientProperties = new Dictionary<string, object>(m_factory.ClientProperties);
+            m_clientProperties["capabilities"] = Protocol.Capabilities;
+            m_clientProperties["connection_name"] = this.ClientProvidedName;
+
+            // FIXME: parse out locales properly!
+            ConnectionTuneDetails connectionTune = default(ConnectionTuneDetails);
+            bool tuned = false;
+            try
+            {
+                string mechanismsString = Encoding.UTF8.GetString(connectionStart.m_mechanisms, 0, connectionStart.m_mechanisms.Length);
+                string[] mechanisms = mechanismsString.Split(' ');
+                AuthMechanismFactory mechanismFactory = m_factory.AuthMechanismFactory(mechanisms);
+                if (mechanismFactory == null)
+                {
+                    throw new IOException("No compatible authentication mechanism found - " +
+                                          "server offered [" + mechanismsString + "]");
+                }
+                AuthMechanism mechanism = mechanismFactory.GetInstance();
+                byte[] challenge = null;
+                do
+                {
+                    byte[] response = mechanism.handleChallenge(challenge, m_factory);
+                    ConnectionSecureOrTune res;
+                    if (challenge == null)
+                    {
+                        res = await m_model0.ConnectionStartOkAsync(m_clientProperties,
+                            mechanismFactory.Name,
+                            response,
+                            "en_US");
+                    }
+                    else
+                    {
+                        res = await m_model0.ConnectionSecureOkAsync(response);
+                    }
+
+                    if (res.m_challenge == null)
+                    {
+                        connectionTune = res.m_tuneDetails;
+                        tuned = true;
+                    }
+                    else
+                    {
+                        challenge = res.m_challenge;
+                    }
+                }
+                while (!tuned);
+            }
+            catch (OperationInterruptedException e)
+            {
+                if (e.ShutdownReason != null && e.ShutdownReason.ReplyCode == Constants.AccessRefused)
+                {
+                    throw new AuthenticationFailureException(e.ShutdownReason.ReplyText);
+                }
+                throw new PossibleAuthenticationFailureException(
+                    "Possibly caused by authentication failure", e);
+            }
+
+            var channelMax = (ushort)NegotiatedMaxValue(m_factory.RequestedChannelMax,
+                connectionTune.m_channelMax);
+            m_sessionManager = new SessionManager(this, channelMax);
+
+            uint frameMax = NegotiatedMaxValue(m_factory.RequestedFrameMax,
+                connectionTune.m_frameMax);
+            FrameMax = frameMax;
+
+            var heartbeat = (ushort)NegotiatedMaxValue(m_factory.RequestedHeartbeat,
+                connectionTune.m_heartbeat);
+            Heartbeat = heartbeat;
+
+            await m_model0.ConnectionTuneOkAsync(channelMax,
                 frameMax,
                 heartbeat);
 

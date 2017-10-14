@@ -48,6 +48,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 
 #if (NETFX_CORE)
 using Trace = System.Diagnostics.Debug;
@@ -314,6 +315,12 @@ namespace RabbitMQ.Client.Impl
                 replyCode, replyText),
                 abort);
         }
+        public Task CloseAsync(ushort replyCode, string replyText, bool abort)
+        {
+            return CloseAsync(new ShutdownEventArgs(ShutdownInitiator.Application,
+                replyCode, replyText),
+                abort);
+        }
 
         public void Close(ShutdownEventArgs reason, bool abort)
         {
@@ -327,6 +334,43 @@ namespace RabbitMQ.Client.Impl
                 {
                     _Private_ChannelClose(reason.ReplyCode, reason.ReplyText, 0, 0);
                 }                
+                k.Wait(TimeSpan.FromMilliseconds(10000));
+                ConsumerDispatcher.Shutdown(this);
+            }
+            catch (AlreadyClosedException)
+            {
+                if (!abort)
+                {
+                    throw;
+                }
+            }
+            catch (IOException)
+            {
+                if (!abort)
+                {
+                    throw;
+                }
+            }
+            catch (Exception)
+            {
+                if (!abort)
+                {
+                    throw;
+                }
+            }
+        }
+        public async Task CloseAsync(ShutdownEventArgs reason, bool abort)
+        {
+            var k = new ShutdownContinuation();
+            ModelShutdown += k.OnConnectionShutdown;
+
+            try
+            {
+                ConsumerDispatcher.Quiesce();
+                if (SetCloseReason(reason))
+                {
+                    await _Private_ChannelCloseAsync(reason.ReplyCode, reason.ReplyText, 0, 0);
+                }
                 k.Wait(TimeSpan.FromMilliseconds(10000));
                 ConsumerDispatcher.Shutdown(this);
             }
@@ -372,6 +416,25 @@ namespace RabbitMQ.Client.Impl
             k.GetReply(HandshakeContinuationTimeout);
             return k.m_knownHosts;
         }
+        public async Task<string> ConnectionOpenAsync(string virtualHost,
+    string capabilities,
+    bool insist)
+        {
+            var k = new ConnectionOpenContinuation();
+            Enqueue(k);
+            try
+            {
+                await _Private_ConnectionOpenAsync(virtualHost, capabilities, insist);
+            }
+            catch (AlreadyClosedException)
+            {
+                // let continuation throw OperationInterruptedException,
+                // which is a much more suitable exception before connection
+                // negotiation finishes
+            }
+            k.GetReply(HandshakeContinuationTimeout);
+            return k.m_knownHosts;
+        }
 
         public ConnectionSecureOrTune ConnectionSecureOk(byte[] response)
         {
@@ -380,6 +443,23 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 _Private_ConnectionSecureOk(response);
+            }
+            catch (AlreadyClosedException)
+            {
+                // let continuation throw OperationInterruptedException,
+                // which is a much more suitable exception before connection
+                // negotiation finishes
+            }
+            k.GetReply(HandshakeContinuationTimeout);
+            return k.m_result;
+        }
+        public async Task<ConnectionSecureOrTune> ConnectionSecureOkAsync(byte[] response)
+        {
+            var k = new ConnectionStartRpcContinuation();
+            Enqueue(k);
+            try
+            {
+                await _Private_ConnectionSecureOkAsync(response);
             }
             catch (AlreadyClosedException)
             {
@@ -401,6 +481,28 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 _Private_ConnectionStartOk(clientProperties, mechanism,
+                    response, locale);
+            }
+            catch (AlreadyClosedException)
+            {
+                // let continuation throw OperationInterruptedException,
+                // which is a much more suitable exception before connection
+                // negotiation finishes
+            }
+            k.GetReply(HandshakeContinuationTimeout);
+            return k.m_result;
+        }
+
+        public async Task<ConnectionSecureOrTune> ConnectionStartOkAsync(IDictionary<string, object> clientProperties,
+    string mechanism,
+    byte[] response,
+    string locale)
+        {
+            var k = new ConnectionStartRpcContinuation();
+            Enqueue(k);
+            try
+            {
+                await _Private_ConnectionStartOkAsync(clientProperties, mechanism,
                     response, locale);
             }
             catch (AlreadyClosedException)
@@ -459,6 +561,12 @@ namespace RabbitMQ.Client.Impl
             TransmitAndEnqueue(new Command(method, header, body), k);
             return k.GetReply(this.ContinuationTimeout).Method;
         }
+        public async Task<MethodBase> ModelRpcAsync(MethodBase method, ContentHeaderBase header, byte[] body)
+        {
+            var k = new SimpleBlockingRpcContinuation();
+            await TransmitAndEnqueueAsync(new Command(method, header, body), k);
+            return k.GetReply(this.ContinuationTimeout).Method;
+        }
 
         public void ModelSend(MethodBase method, ContentHeaderBase header, byte[] body)
         {
@@ -470,6 +578,19 @@ namespace RabbitMQ.Client.Impl
             else
             {
                 Session.Transmit(new Command(method, header, body));
+            }
+        }
+
+        public async Task ModelSendAsync(MethodBase method, ContentHeaderBase header, byte[] body)
+        {
+            if (method.HasContent)
+            {
+                m_flowControlBlock.WaitOne();
+                await Session.TransmitAsync(new Command(method, header, body));
+            }
+            else
+            {
+                await Session.TransmitAsync(new Command(method, header, body));
             }
         }
 
@@ -707,12 +828,21 @@ namespace RabbitMQ.Client.Impl
             Session.Transmit(cmd);
         }
 
+        public async Task TransmitAndEnqueueAsync(Command cmd, IRpcContinuation k)
+        {
+            Enqueue(k);
+            await Session.TransmitAsync(cmd);
+        }
+
         void IDisposable.Dispose()
         {
             Abort();
         }
 
         public abstract void ConnectionTuneOk(ushort channelMax,
+            uint frameMax,
+            ushort heartbeat);
+        public abstract Task ConnectionTuneOkAsync(ushort channelMax,
             uint frameMax,
             ushort heartbeat);
 
@@ -895,6 +1025,28 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public async Task HandleChannelCloseAsync(ushort replyCode,
+           string replyText,
+           ushort classId,
+           ushort methodId)
+        {
+            SetCloseReason(new ShutdownEventArgs(ShutdownInitiator.Peer,
+                replyCode,
+                replyText,
+                classId,
+                methodId));
+
+            Session.Close(CloseReason, false);
+            try
+            {
+                await _Private_ChannelCloseOkAsync();
+            }
+            finally
+            {
+                Session.Notify();
+            }
+        }
+
         public void HandleChannelCloseOk()
         {
             FinishClose();
@@ -914,12 +1066,24 @@ namespace RabbitMQ.Client.Impl
             }
             OnFlowControl(new FlowControlEventArgs(active));
         }
+        public async Task HandleChannelFlowAsync(bool active)
+        {
+            if (active)
+            {
+                m_flowControlBlock.Set();
+                await _Private_ChannelFlowOkAsync(active);
+            }
+            else
+            {
+                m_flowControlBlock.Reset();
+                await _Private_ChannelFlowOkAsync(active);
+            }
+            OnFlowControl(new FlowControlEventArgs(active));
+        }
 
         public void HandleConnectionBlocked(string reason)
         {
-            var cb = ((Connection)Session.Connection);
-
-            cb.HandleConnectionBlocked(reason);
+            Session.Connection.HandleConnectionBlocked(reason);
         }
 
         public void HandleConnectionClose(ushort replyCode,
@@ -936,6 +1100,34 @@ namespace RabbitMQ.Client.Impl
             {
                 ((Connection)Session.Connection).InternalClose(reason);
                 _Private_ConnectionCloseOk();
+                SetCloseReason((Session.Connection).CloseReason);
+            }
+            catch (IOException)
+            {
+                // Ignored. We're only trying to be polite by sending
+                // the close-ok, after all.
+            }
+            catch (AlreadyClosedException)
+            {
+                // Ignored. We're only trying to be polite by sending
+                // the close-ok, after all.
+            }
+        }
+
+        public async Task HandleConnectionCloseAsync(ushort replyCode,
+    string replyText,
+    ushort classId,
+    ushort methodId)
+        {
+            var reason = new ShutdownEventArgs(ShutdownInitiator.Peer,
+                replyCode,
+                replyText,
+                classId,
+                methodId);
+            try
+            {
+                ((Connection)Session.Connection).InternalClose(reason);
+                await _Private_ConnectionCloseOkAsync();
                 SetCloseReason((Session.Connection).CloseReason);
             }
             catch (IOException)
@@ -1032,8 +1224,17 @@ namespace RabbitMQ.Client.Impl
 
         public abstract void _Private_BasicCancel(string consumerTag,
             bool nowait);
+        public abstract Task _Private_BasicCancelAsync(string consumerTag,
+            bool nowait);
 
         public abstract void _Private_BasicConsume(string queue,
+            string consumerTag,
+            bool noLocal,
+            bool autoAck,
+            bool exclusive,
+            bool nowait,
+            IDictionary<string, object> arguments);
+        public abstract Task _Private_BasicConsumeAsync(string queue, 
             string consumerTag,
             bool noLocal,
             bool autoAck,
@@ -1043,42 +1244,71 @@ namespace RabbitMQ.Client.Impl
 
         public abstract void _Private_BasicGet(string queue,
             bool autoAck);
+        public abstract Task _Private_BasicGetAsync(string queue,
+            bool autoAck);
 
         public abstract void _Private_BasicPublish(string exchange,
             string routingKey,
             bool mandatory,
             IBasicProperties basicProperties,
             byte[] body);
+        public abstract Task _Private_BasicPublishAsync(string exchange,
+            string routingKey,
+            bool mandatory,
+            IBasicProperties basicProperties,
+            byte[] body);
 
         public abstract void _Private_BasicRecover(bool requeue);
+        public abstract Task _Private_BasicRecoverAsync(bool requeue);
 
         public abstract void _Private_ChannelClose(ushort replyCode,
             string replyText,
             ushort classId,
             ushort methodId);
+        public abstract Task _Private_ChannelCloseAsync(ushort replyCode,
+            string replyText,
+            ushort classId,
+            ushort methodId);
 
         public abstract void _Private_ChannelCloseOk();
+        public abstract Task _Private_ChannelCloseOkAsync();
 
         public abstract void _Private_ChannelFlowOk(bool active);
+        public abstract Task _Private_ChannelFlowOkAsync(bool active);
 
         public abstract void _Private_ChannelOpen(string outOfBand);
+        public abstract Task _Private_ChannelOpenAsync(string outOfBand);
 
         public abstract void _Private_ConfirmSelect(bool nowait);
+        public abstract Task _Private_ConfirmSelectAsync(bool nowait);
 
         public abstract void _Private_ConnectionClose(ushort replyCode,
             string replyText,
             ushort classId,
             ushort methodId);
+        public abstract Task _Private_ConnectionCloseAsync(ushort replyCode,
+            string replyText,
+            ushort classId,
+            ushort methodId);
 
         public abstract void _Private_ConnectionCloseOk();
+        public abstract Task _Private_ConnectionCloseOkAsync();
 
         public abstract void _Private_ConnectionOpen(string virtualHost,
             string capabilities,
             bool insist);
+        public abstract Task _Private_ConnectionOpenAsync(string virtualHost,
+            string capabilities,
+            bool insist);
 
         public abstract void _Private_ConnectionSecureOk(byte[] response);
+        public abstract Task _Private_ConnectionSecureOkAsync(byte[] response);
 
         public abstract void _Private_ConnectionStartOk(IDictionary<string, object> clientProperties,
+            string mechanism,
+            byte[] response,
+            string locale);
+        public abstract Task _Private_ConnectionStartOkAsync(IDictionary<string, object> clientProperties,
             string mechanism,
             byte[] response,
             string locale);
@@ -1088,6 +1318,12 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             bool nowait,
             IDictionary<string, object> arguments);
+        public abstract Task _Private_ExchangeBindAsync(string destination,
+            string source,
+            string routingKey,
+            bool nowait,
+            IDictionary<string, object> arguments);
+
 
         public abstract void _Private_ExchangeDeclare(string exchange,
             string type,
@@ -1098,7 +1334,20 @@ namespace RabbitMQ.Client.Impl
             bool nowait,
             IDictionary<string, object> arguments);
 
+        public abstract Task _Private_ExchangeDeclareAsync(string exchange,
+    string type,
+    bool passive,
+    bool durable,
+    bool autoDelete,
+    bool @internal,
+    bool nowait,
+    IDictionary<string, object> arguments);
+
+
         public abstract void _Private_ExchangeDelete(string exchange,
+            bool ifUnused,
+            bool nowait);
+        public abstract Task _Private_ExchangeDeleteAsync(string exchange,
             bool ifUnused,
             bool nowait);
 
@@ -1107,8 +1356,18 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             bool nowait,
             IDictionary<string, object> arguments);
+        public abstract Task _Private_ExchangeUnbindAsync(string destination,
+            string source,
+            string routingKey,
+            bool nowait,
+            IDictionary<string, object> arguments);
 
         public abstract void _Private_QueueBind(string queue,
+            string exchange,
+            string routingKey,
+            bool nowait,
+            IDictionary<string, object> arguments);
+        public abstract Task _Private_QueueBindAsync(string queue,
             string exchange,
             string routingKey,
             bool nowait,
@@ -1121,13 +1380,26 @@ namespace RabbitMQ.Client.Impl
             bool autoDelete,
             bool nowait,
             IDictionary<string, object> arguments);
+        public abstract Task _Private_QueueDeclareAsync(string queue,
+            bool passive,
+            bool durable,
+            bool exclusive,
+            bool autoDelete,
+            bool nowait,
+            IDictionary<string, object> arguments);
 
         public abstract uint _Private_QueueDelete(string queue,
             bool ifUnused,
             bool ifEmpty,
             bool nowait);
+        public abstract Task<uint> _Private_QueueDeleteAsync(string queue,
+            bool ifUnused,
+            bool ifEmpty,
+            bool nowait);
 
         public abstract uint _Private_QueuePurge(string queue,
+            bool nowait);
+        public abstract Task<uint> _Private_QueuePurgeAsync(string queue,
             bool nowait);
 
         public void Abort()
@@ -1135,12 +1407,22 @@ namespace RabbitMQ.Client.Impl
             Abort(Constants.ReplySuccess, "Goodbye");
         }
 
+        public Task AbortAsync()
+        {
+            return AbortAsync(Constants.ReplySuccess, "Goodbye");
+        }
+
         public void Abort(ushort replyCode, string replyText)
         {
             Close(replyCode, replyText, true);
         }
+        public Task AbortAsync(ushort replyCode, string replyText)
+        {
+            return CloseAsync(replyCode, replyText, true);
+        }
 
         public abstract void BasicAck(ulong deliveryTag, bool multiple);
+        public abstract Task BasicAckAsync(ulong deliveryTag, bool multiple);
 
         public void BasicCancel(string consumerTag)
         {
@@ -1157,7 +1439,54 @@ namespace RabbitMQ.Client.Impl
 
             ModelShutdown -= k.m_consumer.HandleModelShutdown;
         }
+        public async Task BasicCancelAsync(string consumerTag)
+        {
+            var k = new BasicConsumerRpcContinuation { m_consumerTag = consumerTag };
 
+            Enqueue(k);
+
+            await _Private_BasicCancelAsync(consumerTag, false);
+            k.GetReply(this.ContinuationTimeout);
+            lock (m_consumers)
+            {
+                m_consumers.Remove(consumerTag);
+            }
+
+            ModelShutdown -= k.m_consumer.HandleModelShutdown;
+        }
+
+        public async Task<string> BasicConsumeAsync(string queue,
+            bool autoAck,
+            string consumerTag,
+            bool noLocal,
+            bool exclusive,
+            IDictionary<string, object> arguments,
+            IBasicConsumer consumer)
+        {
+            // TODO: Replace with flag
+            var asyncDispatcher = ConsumerDispatcher as AsyncConsumerDispatcher;
+            if (asyncDispatcher != null)
+            {
+                var asyncConsumer = consumer as IAsyncBasicConsumer;
+                if (asyncConsumer == null)
+                {
+                    // TODO: Friendly message
+                    throw new InvalidOperationException("In the async mode you have to use an async consumer");
+                }
+            }
+
+            var k = new BasicConsumerRpcContinuation { m_consumer = consumer };
+
+            Enqueue(k);
+            // Non-nowait. We have an unconventional means of getting
+            // the RPC response, but a response is still expected.
+            await _Private_BasicConsumeAsync(queue, consumerTag, noLocal, autoAck, exclusive,
+                /*nowait:*/ false, arguments);
+            k.GetReply(this.ContinuationTimeout);
+            string actualConsumerTag = k.m_consumerTag;
+
+            return actualConsumerTag;
+        }
         public string BasicConsume(string queue,
             bool autoAck,
             string consumerTag,
@@ -1190,7 +1519,6 @@ namespace RabbitMQ.Client.Impl
 
             return actualConsumerTag;
         }
-
         public BasicGetResult BasicGet(string queue,
             bool autoAck)
         {
@@ -1200,8 +1528,21 @@ namespace RabbitMQ.Client.Impl
             k.GetReply(this.ContinuationTimeout);
             return k.m_result;
         }
+        public async Task<BasicGetResult> BasicGetAsync(string queue,
+    bool autoAck)
+        {
+            var k = new BasicGetRpcContinuation();
+            Enqueue(k);
+            await _Private_BasicGetAsync(queue, autoAck);
+            k.GetReply(this.ContinuationTimeout);
+            return k.m_result;
+        }
 
         public abstract void BasicNack(ulong deliveryTag,
+            bool multiple,
+            bool requeue);
+
+        public abstract Task BasicNackAsync(ulong deliveryTag,
             bool multiple,
             bool requeue);
 
@@ -1233,7 +1574,39 @@ namespace RabbitMQ.Client.Impl
                 body);
         }
 
+        public async Task BasicPublishAsync(string exchange,
+    string routingKey,
+    bool mandatory,
+    IBasicProperties basicProperties,
+    byte[] body)
+        {
+            if (basicProperties == null)
+            {
+                basicProperties = CreateBasicProperties();
+            }
+            if (NextPublishSeqNo > 0)
+            {
+                lock (m_unconfirmedSet.SyncRoot)
+                {
+                    if (!m_unconfirmedSet.Contains(NextPublishSeqNo))
+                    {
+                        m_unconfirmedSet.Add(NextPublishSeqNo);
+                    }
+                    NextPublishSeqNo++;
+                }
+            }
+            await _Private_BasicPublishAsync(exchange,
+                routingKey,
+                mandatory,
+                basicProperties,
+                body);
+        }
+
         public abstract void BasicQos(uint prefetchSize,
+            ushort prefetchCount,
+            bool global);
+
+        public abstract Task BasicQosAsync(uint prefetchSize,
             ushort prefetchCount,
             bool global);
 
@@ -1245,20 +1618,31 @@ namespace RabbitMQ.Client.Impl
             _Private_BasicRecover(requeue);
             k.GetReply(this.ContinuationTimeout);
         }
-
+        
         public abstract void BasicRecoverAsync(bool requeue);
+        public abstract Task BasicRecoverAsyncAsync(bool requeue);
 
         public abstract void BasicReject(ulong deliveryTag,
+            bool requeue);
+        public abstract Task BasicRejectAsync(ulong deliveryTag,
             bool requeue);
 
         public void Close()
         {
             Close(Constants.ReplySuccess, "Goodbye");
         }
+        public Task CloseAsync()
+        {
+            return CloseAsync(Constants.ReplySuccess, "Goodbye");
+        }
 
         public void Close(ushort replyCode, string replyText)
         {
             Close(replyCode, replyText, false);
+        }
+        public Task CloseAsync(ushort replyCode, string replyText)
+        {
+            return CloseAsync(replyCode, replyText, false);
         }
 
         public void ConfirmSelect()
@@ -1268,6 +1652,14 @@ namespace RabbitMQ.Client.Impl
                 NextPublishSeqNo = 1;
             }
             _Private_ConfirmSelect(false);
+        }
+        public async Task ConfirmSelectAsync()
+        {
+            if (NextPublishSeqNo == 0UL)
+            {
+                NextPublishSeqNo = 1;
+            }
+            await _Private_ConfirmSelectAsync(false);
         }
 
         ///////////////////////////////////////////////////////////////////////////
@@ -1282,6 +1674,13 @@ namespace RabbitMQ.Client.Impl
         {
             _Private_ExchangeBind(destination, source, routingKey, false, arguments);
         }
+        public Task ExchangeBindAsync(string destination,
+    string source,
+    string routingKey,
+    IDictionary<string, object> arguments)
+        {
+            return _Private_ExchangeBindAsync(destination, source, routingKey, false, arguments);
+        }
 
         public void ExchangeBindNoWait(string destination,
             string source,
@@ -1290,10 +1689,21 @@ namespace RabbitMQ.Client.Impl
         {
             _Private_ExchangeBind(destination, source, routingKey, true, arguments);
         }
+        public Task ExchangeBindNoWaitAsync(string destination,
+    string source,
+    string routingKey,
+    IDictionary<string, object> arguments)
+        {
+            return _Private_ExchangeBindAsync(destination, source, routingKey, true, arguments);
+        }
 
         public void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
         {
             _Private_ExchangeDeclare(exchange, type, false, durable, autoDelete, false, false, arguments);
+        }
+        public Task ExchangeDeclareAsync(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
+        {
+            return _Private_ExchangeDeclareAsync(exchange, type, false, durable, autoDelete, false, false, arguments);
         }
 
         public void ExchangeDeclareNoWait(string exchange,
@@ -1304,10 +1714,22 @@ namespace RabbitMQ.Client.Impl
         {
             _Private_ExchangeDeclare(exchange, type, false, durable, autoDelete, false, true, arguments);
         }
+        public Task ExchangeDeclareNoWaitAsync(string exchange,
+    string type,
+    bool durable,
+    bool autoDelete,
+    IDictionary<string, object> arguments)
+        {
+            return _Private_ExchangeDeclareAsync(exchange, type, false, durable, autoDelete, false, true, arguments);
+        }
 
         public void ExchangeDeclarePassive(string exchange)
         {
-            _Private_ExchangeDeclare(exchange, "", true, false, false, false, false, null);
+            _Private_ExchangeDeclare(exchange, string.Empty, true, false, false, false, false, null);
+        }
+        public Task ExchangeDeclarePassiveAsync(string exchange)
+        {
+            return _Private_ExchangeDeclareAsync(exchange, string.Empty, true, false, false, false, false, null);
         }
 
         public void ExchangeDelete(string exchange,
@@ -1315,11 +1737,21 @@ namespace RabbitMQ.Client.Impl
         {
             _Private_ExchangeDelete(exchange, ifUnused, false);
         }
+        public Task ExchangeDeleteAsync(string exchange,
+    bool ifUnused)
+        {
+            return _Private_ExchangeDeleteAsync(exchange, ifUnused, false);
+        }
 
         public void ExchangeDeleteNoWait(string exchange,
             bool ifUnused)
         {
             _Private_ExchangeDelete(exchange, ifUnused, false);
+        }
+        public Task ExchangeDeleteNoWaitAsync(string exchange,
+    bool ifUnused)
+        {
+            return _Private_ExchangeDeleteAsync(exchange, ifUnused, false);
         }
 
         public void ExchangeUnbind(string destination,
@@ -1329,6 +1761,13 @@ namespace RabbitMQ.Client.Impl
         {
             _Private_ExchangeUnbind(destination, source, routingKey, false, arguments);
         }
+        public Task ExchangeUnbindAsync(string destination,
+    string source,
+    string routingKey,
+    IDictionary<string, object> arguments)
+        {
+            return _Private_ExchangeUnbindAsync(destination, source, routingKey, false, arguments);
+        }
 
         public void ExchangeUnbindNoWait(string destination,
             string source,
@@ -1336,6 +1775,13 @@ namespace RabbitMQ.Client.Impl
             IDictionary<string, object> arguments)
         {
             _Private_ExchangeUnbind(destination, source, routingKey, true, arguments);
+        }
+        public Task ExchangeUnbindNoWaitAsync(string destination,
+                   string source,
+                   string routingKey,
+                   IDictionary<string, object> arguments)
+        {
+            return _Private_ExchangeUnbindAsync(destination, source, routingKey, true, arguments);
         }
 
         public void QueueBind(string queue,
@@ -1345,6 +1791,13 @@ namespace RabbitMQ.Client.Impl
         {
             _Private_QueueBind(queue, exchange, routingKey, false, arguments);
         }
+        public Task QueueBindAsync(string queue,
+    string exchange,
+    string routingKey,
+    IDictionary<string, object> arguments)
+        {
+            return _Private_QueueBindAsync(queue, exchange, routingKey, false, arguments);
+        }
 
         public void QueueBindNoWait(string queue,
             string exchange,
@@ -1352,6 +1805,13 @@ namespace RabbitMQ.Client.Impl
             IDictionary<string, object> arguments)
         {
             _Private_QueueBind(queue, exchange, routingKey, true, arguments);
+        }
+        public Task QueueBindNoWaitAsync(string queue,
+    string exchange,
+    string routingKey,
+    IDictionary<string, object> arguments)
+        {
+            return _Private_QueueBindAsync(queue, exchange, routingKey, true, arguments);
         }
 
         public QueueDeclareOk QueueDeclare(string queue, bool durable,
@@ -1361,15 +1821,31 @@ namespace RabbitMQ.Client.Impl
             return QueueDeclare(queue, false, durable, exclusive, autoDelete, arguments);
         }
 
+        public Task<QueueDeclareOk> QueueDeclareAsync(string queue, bool durable,
+                                           bool exclusive, bool autoDelete,
+                                           IDictionary<string, object> arguments)
+        {
+            return QueueDeclareAsync(queue, false, durable, exclusive, autoDelete, arguments);
+        }
+
         public void QueueDeclareNoWait(string queue, bool durable, bool exclusive,
             bool autoDelete, IDictionary<string, object> arguments)
         {
             _Private_QueueDeclare(queue, false, durable, exclusive, autoDelete, true, arguments);
         }
+        public Task QueueDeclareNoWaitAsync(string queue, bool durable, bool exclusive,
+    bool autoDelete, IDictionary<string, object> arguments)
+        {
+           return _Private_QueueDeclareAsync(queue, false, durable, exclusive, autoDelete, true, arguments);
+        }
 
         public QueueDeclareOk QueueDeclarePassive(string queue)
         {
             return QueueDeclare(queue, true, false, false, false, null);
+        }
+        public Task<QueueDeclareOk> QueueDeclarePassiveAsync(string queue)
+        {
+            return QueueDeclareAsync(queue, true, false, false, false, null);
         }
 
         public uint MessageCount(string queue)
@@ -1377,10 +1853,20 @@ namespace RabbitMQ.Client.Impl
             var ok = QueueDeclarePassive(queue);
             return ok.MessageCount;
         }
+        public async Task<uint> MessageCountAsync(string queue)
+        {
+            var ok = await QueueDeclarePassiveAsync(queue);
+            return ok.MessageCount;
+        }
 
         public uint ConsumerCount(string queue)
         {
             var ok = QueueDeclarePassive(queue);
+            return ok.ConsumerCount;
+        }
+        public async Task<uint> ConsumerCountAsync(string queue)
+        {
+            var ok = await QueueDeclarePassiveAsync(queue);
             return ok.ConsumerCount;
         }
 
@@ -1390,6 +1876,12 @@ namespace RabbitMQ.Client.Impl
         {
             return _Private_QueueDelete(queue, ifUnused, ifEmpty, false);
         }
+        public Task<uint> QueueDeleteAsync(string queue,
+            bool ifUnused,
+            bool ifEmpty)
+        {
+            return _Private_QueueDeleteAsync(queue, ifUnused, ifEmpty, false);
+        }
 
         public void QueueDeleteNoWait(string queue,
             bool ifUnused,
@@ -1397,10 +1889,20 @@ namespace RabbitMQ.Client.Impl
         {
             _Private_QueueDelete(queue, ifUnused, ifEmpty, true);
         }
+        public Task QueueDeleteNoWaitAsync(string queue,
+    bool ifUnused,
+    bool ifEmpty)
+        {
+            return _Private_QueueDeleteAsync(queue, ifUnused, ifEmpty, true);
+        }
 
         public uint QueuePurge(string queue)
         {
             return _Private_QueuePurge(queue, false);
+        }
+        public Task<uint> QueuePurgeAsync(string queue)
+        {
+            return _Private_QueuePurgeAsync(queue, false);
         }
 
         public abstract void QueueUnbind(string queue,
@@ -1408,11 +1910,19 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             IDictionary<string, object> arguments);
 
+        public abstract Task QueueUnbindAsync(string queue,
+            string exchange,
+            string routingKey,
+            IDictionary<string, object> arguments);
+
         public abstract void TxCommit();
+        public abstract Task TxCommitAsync();
 
         public abstract void TxRollback();
+        public abstract Task TxRollbackAsync();
 
         public abstract void TxSelect();
+        public abstract Task TxSelectAsync();
 
         public bool WaitForConfirms(TimeSpan timeout, out bool timedOut)
         {
@@ -1473,6 +1983,11 @@ namespace RabbitMQ.Client.Impl
             WaitForConfirmsOrDie(TimeSpan.FromMilliseconds(Timeout.Infinite));
         }
 
+        public Task WaitForConfirmsOrDieAsync()
+        {
+            return WaitForConfirmsOrDieAsync(TimeSpan.FromMilliseconds(Timeout.Infinite));
+        }
+
         public void WaitForConfirmsOrDie(TimeSpan timeout)
         {
             bool timedOut;
@@ -1488,6 +2003,28 @@ namespace RabbitMQ.Client.Impl
             if (timedOut)
             {
                 Close(new ShutdownEventArgs(ShutdownInitiator.Application,
+                    Constants.ReplySuccess,
+                    "Timed out waiting for acks",
+                    new IOException("timed out waiting for acks")),
+                    false);
+                throw new IOException("Timed out waiting for acks");
+            }
+        }
+        public async Task WaitForConfirmsOrDieAsync(TimeSpan timeout)
+        {
+            bool timedOut;
+            bool onlyAcksReceived = WaitForConfirms(timeout, out timedOut);
+            if (!onlyAcksReceived)
+            {
+                await CloseAsync(new ShutdownEventArgs(ShutdownInitiator.Application,
+                    Constants.ReplySuccess,
+                    "Nacks Received", new IOException("nack received")),
+                    false);
+                throw new IOException("Nacks Received");
+            }
+            if (timedOut)
+            {
+                await CloseAsync(new ShutdownEventArgs(ShutdownInitiator.Application,
                     Constants.ReplySuccess,
                     "Timed out waiting for acks",
                     new IOException("timed out waiting for acks")),
@@ -1530,6 +2067,16 @@ namespace RabbitMQ.Client.Impl
             var k = new QueueDeclareRpcContinuation();
             Enqueue(k);
             _Private_QueueDeclare(queue, passive, durable, exclusive, autoDelete, false, arguments);
+            k.GetReply(this.ContinuationTimeout);
+            return k.m_result;
+        }
+
+        private async Task<QueueDeclareOk> QueueDeclareAsync(string queue, bool passive, bool durable, bool exclusive,
+    bool autoDelete, IDictionary<string, object> arguments)
+        {
+            var k = new QueueDeclareRpcContinuation();
+            Enqueue(k);
+            await _Private_QueueDeclareAsync(queue, passive, durable, exclusive, autoDelete, false, arguments);
             k.GetReply(this.ContinuationTimeout);
             return k.m_result;
         }

@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 
 #if !NETFX_CORE
 using System.Net.Sockets;
@@ -101,12 +102,14 @@ namespace RabbitMQ.Client
         /// The "insist" parameter is passed on to the AMQP connection.open method.
         /// </summary>
         IConnection CreateConnection(IConnectionFactory factory, bool insist, IFrameHandler frameHandler, String clientProvidedName);
+        Task<IConnection> CreateConnectionAsync(IConnectionFactory factory, bool insist, IFrameHandler frameHandler, String clientProvidedName);
 
         /// <summary>
         /// Construct a connection from a given set of parameters,
         /// a frame handler, a client-provided name, and automatic recovery settings.
         /// </summary>
         IConnection CreateConnection(ConnectionFactory factory, IFrameHandler frameHandler, bool automaticRecoveryEnabled, String clientProvidedName);
+        Task<IConnection> CreateConnectionAsync(ConnectionFactory factory, IFrameHandler frameHandler, bool automaticRecoveryEnabled, String clientProvidedName);
 
         /// <summary>
         /// Construct a protocol model atop a given session.

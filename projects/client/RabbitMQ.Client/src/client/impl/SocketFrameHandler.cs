@@ -75,9 +75,11 @@ namespace RabbitMQ.Client.Impl
         private int m_writeableStateTimeout = 30000;
         private readonly NetworkBinaryReader m_reader;
         private readonly ITcpClient m_socket;
-        private readonly NetworkBinaryWriter m_writer;
+        private readonly Stream m_writer;
         private readonly object _semaphore = new object();
         private bool _closed;
+
+         
         public SocketFrameHandler(AmqpTcpEndpoint endpoint,
             Func<AddressFamily, ITcpClient> socketFactory,
             int connectionTimeout, int readTimeout, int writeTimeout)
@@ -116,10 +118,11 @@ namespace RabbitMQ.Client.Impl
                 }
             }
             m_reader = new NetworkBinaryReader(new BufferedStream(netstream, m_socket.Client.ReceiveBufferSize));
-            m_writer = new NetworkBinaryWriter(netstream);
+            m_writer = netstream;
 
             m_writeableStateTimeout = writeTimeout;
         }
+
         public AmqpTcpEndpoint Endpoint { get; set; }
 
         public EndPoint LocalEndPoint
@@ -195,29 +198,57 @@ namespace RabbitMQ.Client.Impl
         {
             return RabbitMQ.Client.Impl.InboundFrame.ReadFrom(m_reader);
         }
+        public Task< InboundFrame> ReadFrameAsync()
+        {
+            return RabbitMQ.Client.Impl.InboundFrame.ReadFromAsync(m_reader);
+        }
 
         private static readonly byte[] amqp = Encoding.ASCII.GetBytes("AMQP");
         public void SendHeader()
         {
             var ms = new MemoryStream();
             var nbw = new NetworkBinaryWriter(ms);
-            nbw.Write(amqp);
+            nbw.Write(amqp, 0, 4);
             byte one = (byte)1;
             if (Endpoint.Protocol.Revision != 0)
             {
-                nbw.Write((byte)0);
-                nbw.Write((byte)Endpoint.Protocol.MajorVersion);
-                nbw.Write((byte)Endpoint.Protocol.MinorVersion);
-                nbw.Write((byte)Endpoint.Protocol.Revision);
+                nbw.WriteByte(0);
+                nbw.WriteByte((byte)Endpoint.Protocol.MajorVersion);
+                nbw.WriteByte((byte)Endpoint.Protocol.MinorVersion);
+                nbw.WriteByte((byte)Endpoint.Protocol.Revision);
             }
             else
             {
-                nbw.Write(one);
-                nbw.Write(one);
-                nbw.Write((byte)Endpoint.Protocol.MajorVersion);
-                nbw.Write((byte)Endpoint.Protocol.MinorVersion);
+                nbw.WriteByte(one);
+                nbw.WriteByte(one);
+                nbw.WriteByte((byte)Endpoint.Protocol.MajorVersion);
+                nbw.WriteByte((byte)Endpoint.Protocol.MinorVersion);
             }
-            m_writer.Write(ms.ToArray());
+            byte[] data = ms.ToArray();
+            m_writer.Write(data, 0, data.Length);
+        }
+        public async Task SendHeaderAsync()
+        {
+            var ms = new MemoryStream();
+            var nbw = new NetworkBinaryWriter(ms);
+            nbw.Write(amqp,0,4);
+            byte one = (byte)1;
+            if (Endpoint.Protocol.Revision != 0)
+            {
+                nbw.WriteByte(0);
+                nbw.WriteByte((byte)Endpoint.Protocol.MajorVersion);
+                nbw.WriteByte((byte)Endpoint.Protocol.MinorVersion);
+                nbw.WriteByte((byte)Endpoint.Protocol.Revision);
+            }
+            else
+            {
+                nbw.WriteByte(one);
+                nbw.WriteByte(one);
+                nbw.WriteByte((byte)Endpoint.Protocol.MajorVersion);
+                nbw.WriteByte((byte)Endpoint.Protocol.MinorVersion);
+            }
+            byte[] data = ms.ToArray();
+            await m_writer.WriteAsync(data, 0, data.Length);
         }
 
         public void WriteFrame(OutboundFrame frame)
@@ -226,7 +257,8 @@ namespace RabbitMQ.Client.Impl
             var nbw = new NetworkBinaryWriter(ms);
             frame.WriteTo(nbw);
             m_socket.Client.Poll(m_writeableStateTimeout, SelectMode.SelectWrite);
-            m_writer.Write(ms.ToArray());
+            byte[] data = ms.ToArray();
+            m_writer.Write(data, 0, data.Length);
         }
 
         public void WriteFrameSet(IList<OutboundFrame> frames)
@@ -235,9 +267,30 @@ namespace RabbitMQ.Client.Impl
             var nbw = new NetworkBinaryWriter(ms);
             foreach (var f in frames) f.WriteTo(nbw);
             m_socket.Client.Poll(m_writeableStateTimeout, SelectMode.SelectWrite);
-            m_writer.Write(ms.ToArray());
+            byte[] data = ms.ToArray();
+            m_writer.Write(data, 0, data.Length);
         }
 
+        public async Task WriteFrameAsync(OutboundFrame frame)
+        {
+            var ms = new MemoryStream();
+            var nbw = new NetworkBinaryWriter(ms);
+            frame.WriteTo(nbw);
+            m_socket.Client.Poll(m_writeableStateTimeout, SelectMode.SelectWrite);
+            byte[] data = ms.ToArray();
+            await m_writer.WriteAsync(data, 0, data.Length);
+        }
+
+        public async Task WriteFrameSetAsync(IList<OutboundFrame> frames)
+        {
+            var ms = new MemoryStream();
+            var nbw = new NetworkBinaryWriter(ms);
+            foreach (var f in frames) f.WriteTo(nbw);
+            m_socket.Client.Poll(m_writeableStateTimeout, SelectMode.SelectWrite);
+            byte[] data = ms.ToArray();
+            await m_writer.WriteAsync(data, 0, data.Length);
+        }
+        
         private bool ShouldTryIPv6(AmqpTcpEndpoint endpoint)
         {
             return (Socket.OSSupportsIPv6 && endpoint.AddressFamily != AddressFamily.InterNetwork);
@@ -249,12 +302,23 @@ namespace RabbitMQ.Client.Impl
         {
             return ConnectUsingAddressFamily(endpoint, socketFactory, timeout, AddressFamily.InterNetworkV6);
         }
-
+        private Task<ITcpClient> ConnectUsingIPv6Async(AmqpTcpEndpoint endpoint,
+                                            Func<AddressFamily, ITcpClient> socketFactory,
+                                            int timeout)
+        {
+            return ConnectUsingAddressFamilyAsync(endpoint, socketFactory, timeout, AddressFamily.InterNetworkV6);
+        }
         private ITcpClient ConnectUsingIPv4(AmqpTcpEndpoint endpoint,
                                             Func<AddressFamily, ITcpClient> socketFactory,
                                             int timeout)
         {
             return ConnectUsingAddressFamily(endpoint, socketFactory, timeout, AddressFamily.InterNetwork);
+        }
+        private Task<ITcpClient> ConnectUsingIPv4Async(AmqpTcpEndpoint endpoint,
+                                            Func<AddressFamily, ITcpClient> socketFactory,
+                                            int timeout)
+        {
+            return ConnectUsingAddressFamilyAsync(endpoint, socketFactory, timeout, AddressFamily.InterNetwork);
         }
 
         private ITcpClient ConnectUsingAddressFamily(AmqpTcpEndpoint endpoint,
@@ -270,6 +334,22 @@ namespace RabbitMQ.Client.Impl
                 throw e;
             }
         }
+        private async Task<ITcpClient> ConnectUsingAddressFamilyAsync(AmqpTcpEndpoint endpoint,
+                                                    Func<AddressFamily, ITcpClient> socketFactory,
+                                                    int timeout, AddressFamily family)
+        {
+            ITcpClient socket = socketFactory(family);
+            try
+            {
+                await ConnectOrFailAsync(socket, endpoint, timeout);
+                return socket;
+            }
+            catch (ConnectFailureException e)
+            {
+                socket.Dispose();
+                throw e;
+            }
+        }
 
         private void ConnectOrFail(ITcpClient socket, AmqpTcpEndpoint endpoint, int timeout)
         {
@@ -281,6 +361,29 @@ namespace RabbitMQ.Client.Impl
                             // this ensures exceptions aren't wrapped in an AggregateException
                             .GetAwaiter()
                             .GetResult();
+            }
+            catch (ArgumentException e)
+            {
+                throw new ConnectFailureException("Connection failed", e);
+            }
+            catch (SocketException e)
+            {
+                throw new ConnectFailureException("Connection failed", e);
+            }
+            catch (NotSupportedException e)
+            {
+                throw new ConnectFailureException("Connection failed", e);
+            }
+            catch (TimeoutException e)
+            {
+                throw new ConnectFailureException("Connection failed", e);
+            }
+        }
+        private async Task ConnectOrFailAsync(ITcpClient socket, AmqpTcpEndpoint endpoint, int timeout)
+        {
+            try
+            {
+                await socket.ConnectAsync(endpoint.HostName, endpoint.Port).TimeoutAfter(timeout);
             }
             catch (ArgumentException e)
             {

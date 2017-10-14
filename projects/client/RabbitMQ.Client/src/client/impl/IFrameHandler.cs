@@ -41,6 +41,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -72,11 +73,17 @@ namespace RabbitMQ.Client.Impl
         ///transport. Returns null if the read operation timed out
         ///(see Timeout property).</summary>
         InboundFrame ReadFrame();
+        Task<InboundFrame> ReadFrameAsync();
 
         void SendHeader();
+        Task SendHeaderAsync();
 
         void WriteFrame(OutboundFrame frame);
 
         void WriteFrameSet(IList<OutboundFrame> frames);
+
+        Task WriteFrameAsync(OutboundFrame frame);
+
+        Task WriteFrameSetAsync(IList<OutboundFrame> frames);
     }
 }

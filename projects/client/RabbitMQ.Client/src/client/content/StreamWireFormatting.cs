@@ -42,6 +42,8 @@ using System.IO;
 using System.Net;
 using System.Text;
 using RabbitMQ.Util;
+using System;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Content
 {
@@ -50,6 +52,7 @@ namespace RabbitMQ.Client.Content
     /// </summary>
     public enum StreamWireFormattingTag
     {
+        EndOfStream = -1,
         Bool = 0x01,
         Byte = 0x02,
         Bytes = 0x03,
@@ -194,15 +197,14 @@ namespace RabbitMQ.Client.Content
         /// <exception cref="ProtocolViolationException"/>
         public static object ReadObject(NetworkBinaryReader reader)
         {
-            int typeTag = reader.ReadByte();
+            StreamWireFormattingTag typeTag = (StreamWireFormattingTag)reader.ReadByte();
             switch (typeTag)
             {
-                case -1:
+                case StreamWireFormattingTag.EndOfStream:
                     throw new EndOfStreamException("End of StreamMessage reached");
-
-                case (int) StreamWireFormattingTag.Bool:
+                case StreamWireFormattingTag.Bool:
                 {
-                    byte value = reader.ReadByte();
+                    int value = reader.ReadByte();
                     switch (value)
                     {
                         case 0x00:
@@ -218,41 +220,42 @@ namespace RabbitMQ.Client.Content
                     }
                 }
 
-                case (int) StreamWireFormattingTag.Byte:
+                case StreamWireFormattingTag.Byte:
                     return reader.ReadByte();
 
-                case (int) StreamWireFormattingTag.Bytes:
+                case StreamWireFormattingTag.Bytes:
                 {
                     int length = reader.ReadInt32();
                     if (length == -1)
                     {
                         return null;
                     }
-                    return reader.ReadBytes(length);
+                    byte[] bytes = new byte[length];
+                    reader.Read(bytes, 0, length);
+                    return bytes;
                 }
-
-                case (int) StreamWireFormattingTag.Int16:
+                case StreamWireFormattingTag.Int16:
                     return reader.ReadInt16();
 
-                case (int) StreamWireFormattingTag.Char:
-                    return (char) reader.ReadUInt16();
+                case StreamWireFormattingTag.Char:
+                    return reader.ReadChar();
 
-                case (int) StreamWireFormattingTag.Int32:
+                case StreamWireFormattingTag.Int32:
                     return reader.ReadInt32();
 
-                case (int) StreamWireFormattingTag.Int64:
+                case StreamWireFormattingTag.Int64:
                     return reader.ReadInt64();
 
-                case (int) StreamWireFormattingTag.Single:
+                case StreamWireFormattingTag.Single:
                     return reader.ReadSingle();
 
-                case (int) StreamWireFormattingTag.Double:
+                case StreamWireFormattingTag.Double:
                     return reader.ReadDouble();
 
-                case (int) StreamWireFormattingTag.String:
+                case StreamWireFormattingTag.String:
                     return ReadUntypedString(reader);
 
-                case (int) StreamWireFormattingTag.Null:
+                case StreamWireFormattingTag.Null:
                     return null;
 
                 default:
@@ -260,6 +263,75 @@ namespace RabbitMQ.Client.Content
                     string message = string.Format("Invalid type tag in StreamMessage: {0}", typeTag);
                     throw new ProtocolViolationException(message);
                 }
+            }
+        }
+        public static async Task<object> ReadObjectAsync(NetworkBinaryReader reader)
+        {
+            StreamWireFormattingTag typeTag = (StreamWireFormattingTag)reader.ReadByte();
+            switch (typeTag)
+            {
+                case StreamWireFormattingTag.EndOfStream:
+                    throw new EndOfStreamException("End of StreamMessage reached");
+                case StreamWireFormattingTag.Bool:
+                    {
+                        int value = reader.ReadByte();
+                        switch (value)
+                        {
+                            case 0x00:
+                                return false;
+                            case 0x01:
+                                return true;
+                            default:
+                                {
+                                    string message =
+                                        string.Format("Invalid boolean value in StreamMessage: {0}", value);
+                                    throw new ProtocolViolationException(message);
+                                }
+                        }
+                    }
+
+                case StreamWireFormattingTag.Byte:
+                    return reader.ReadByte();
+
+                case StreamWireFormattingTag.Bytes:
+                    {
+                        int length = await reader.ReadInt32Async();
+                        if (length == -1)
+                        {
+                            return null;
+                        }
+                        byte[] bytes = new byte[length];
+                        reader.Read(bytes, 0, length);
+                        return bytes;
+                    }
+                case StreamWireFormattingTag.Int16:
+                    return reader.ReadInt16Async();
+
+                case StreamWireFormattingTag.Char:
+                    return reader.ReadCharAsync();
+
+                case StreamWireFormattingTag.Int32:
+                    return reader.ReadInt32Async();
+
+                case StreamWireFormattingTag.Int64:
+                    return reader.ReadInt64Async();
+
+                case StreamWireFormattingTag.Single:
+                    return reader.ReadSingleAsync();
+
+                case StreamWireFormattingTag.Double:
+                    return reader.ReadDoubleAsync();
+
+                case StreamWireFormattingTag.String:
+                    return ReadUntypedString(reader);
+
+                case StreamWireFormattingTag.Null:
+                    return null;
+                default:
+                    {
+                        string message = string.Format("Invalid type tag in StreamMessage: {0}", typeTag);
+                        throw new ProtocolViolationException(message);
+                    }
             }
         }
 
@@ -293,29 +365,26 @@ namespace RabbitMQ.Client.Content
 
         public static string ReadUntypedString(NetworkBinaryReader reader)
         {
-            BinaryWriter buffer = NetworkBinaryWriter.TemporaryBinaryWriter(256);
-            while (true)
-            {
-                byte b = reader.ReadByte();
-                if (b == 0)
-                {
-                    byte[] temporaryContents = NetworkBinaryWriter.TemporaryContents(buffer);
-                    return Encoding.UTF8.GetString(temporaryContents, 0, temporaryContents.Length);
-                }
-                buffer.Write(b);
+            MemoryStream stream = new MemoryStream(256);
+            int b = reader.ReadByte();
+            while (b > 0)
+            {  
+                stream.WriteByte((byte)b);
+                b = reader.ReadByte();
             }
+            return Encoding.UTF8.GetString(stream.ToArray(), 0, Convert.ToInt32( stream.Length));
         }
 
         public static void WriteBool(NetworkBinaryWriter writer, bool value)
         {
-            writer.Write((byte) StreamWireFormattingTag.Bool);
-            writer.Write(value ? (byte) 0x01 : (byte) 0x00);
+            writer.WriteByte((byte) StreamWireFormattingTag.Bool);
+            writer.WriteByte(value ? (byte) 0x01 : (byte) 0x00);
         }
 
         public static void WriteByte(NetworkBinaryWriter writer, byte value)
         {
-            writer.Write((byte) StreamWireFormattingTag.Byte);
-            writer.Write(value);
+            writer.WriteByte((byte) StreamWireFormattingTag.Byte);
+            writer.WriteByte(value);
         }
 
         public static void WriteBytes(NetworkBinaryWriter writer,
@@ -323,8 +392,8 @@ namespace RabbitMQ.Client.Content
             int offset,
             int length)
         {
-            writer.Write((byte) StreamWireFormattingTag.Bytes);
-            writer.Write(length);
+            writer.WriteByte((byte) StreamWireFormattingTag.Bytes);
+            writer.WriteInt32(length);
             writer.Write(value, offset, length);
         }
 
@@ -335,32 +404,32 @@ namespace RabbitMQ.Client.Content
 
         public static void WriteChar(NetworkBinaryWriter writer, char value)
         {
-            writer.Write((byte) StreamWireFormattingTag.Char);
-            writer.Write((ushort) value);
+            writer.WriteByte((byte) StreamWireFormattingTag.Char);
+            writer.WriteChar(value);
         }
 
         public static void WriteDouble(NetworkBinaryWriter writer, double value)
         {
-            writer.Write((byte) StreamWireFormattingTag.Double);
-            writer.Write(value);
+            writer.WriteByte((byte) StreamWireFormattingTag.Double);
+            writer.WriteDouble(value);
         }
 
         public static void WriteInt16(NetworkBinaryWriter writer, short value)
         {
-            writer.Write((byte) StreamWireFormattingTag.Int16);
-            writer.Write(value);
+            writer.WriteByte((byte) StreamWireFormattingTag.Int16);
+            writer.WriteInt16(value);
         }
 
         public static void WriteInt32(NetworkBinaryWriter writer, int value)
         {
-            writer.Write((byte) StreamWireFormattingTag.Int32);
-            writer.Write(value);
+            writer.WriteByte((byte) StreamWireFormattingTag.Int32);
+            writer.WriteInt32(value);
         }
 
         public static void WriteInt64(NetworkBinaryWriter writer, long value)
         {
-            writer.Write((byte) StreamWireFormattingTag.Int64);
-            writer.Write(value);
+            writer.WriteByte((byte) StreamWireFormattingTag.Int64);
+            writer.WriteInt64(value);
         }
 
         /// <exception cref="ProtocolViolationException"/>
@@ -420,20 +489,21 @@ namespace RabbitMQ.Client.Content
 
         public static void WriteSingle(NetworkBinaryWriter writer, float value)
         {
-            writer.Write((byte) StreamWireFormattingTag.Single);
-            writer.Write(value);
+            writer.WriteByte((byte) StreamWireFormattingTag.Single);
+            writer.WriteSingle(value);
         }
 
         public static void WriteString(NetworkBinaryWriter writer, string value)
         {
-            writer.Write((byte) StreamWireFormattingTag.String);
+            writer.WriteByte((byte) StreamWireFormattingTag.String);
             WriteUntypedString(writer, value);
         }
 
         public static void WriteUntypedString(NetworkBinaryWriter writer, string value)
         {
-            writer.Write(Encoding.UTF8.GetBytes(value));
-            writer.Write((byte) 0);
+            byte[] bytes = Encoding.UTF8.GetBytes(value);
+            writer.Write(bytes, 0, bytes.Length);
+            writer.WriteByte(0);
         }
     }
 }
