@@ -472,6 +472,19 @@ namespace RabbitMQ.Client.Impl
                 Session.Transmit(new Command(method, header, body));
             }
         }
+        public void ModelSend(MethodBase method, IEnumerable<BatchMessage> messages)
+        {
+            if (method.HasContent)
+            {
+                m_flowControlBlock.WaitOne();
+            }
+            List<Command> commands = new List<Impl.Command>();
+            foreach (var message in messages)
+            {
+                commands.Add(new Command(method, (ContentHeaderBase)message.basicProperties, message.Body));
+            }
+            Session.Transmit(commands);
+        }
 
         public virtual void OnBasicAck(BasicAckEventArgs args)
         {
@@ -1050,6 +1063,12 @@ namespace RabbitMQ.Client.Impl
             IBasicProperties basicProperties,
             byte[] body);
 
+        //public abstract void _Private_BasicBatchPublish(string exchange,
+        //    string routingKey,
+        //    bool mandatory,
+        //    IEnumerable<BatchMessage> messages);
+
+
         public abstract void _Private_BasicRecover(bool requeue);
 
         public abstract void _Private_ChannelClose(ushort replyCode,
@@ -1233,6 +1252,50 @@ namespace RabbitMQ.Client.Impl
                 body);
         }
 
+        public void BasicBatchPublish(string exchange,
+    string routingKey,
+    bool mandatory,
+    IEnumerable<BatchMessage> messages)
+        {
+            foreach (var message in messages)
+            {
+                if (message.basicProperties == null)
+                {
+                    message.basicProperties = CreateBasicProperties();
+                }
+
+                if (NextPublishSeqNo > 0)
+                {
+                    lock (m_unconfirmedSet.SyncRoot)
+                    {
+                        if (!m_unconfirmedSet.Contains(NextPublishSeqNo))
+                        {
+                            m_unconfirmedSet.Add(NextPublishSeqNo);
+                        }
+                        NextPublishSeqNo++;
+                    }
+                }
+            }
+
+            _Private_BasicBatchPublish(exchange,
+                routingKey,
+                mandatory,
+                messages);
+        }
+        public void _Private_BasicBatchPublish(
+string @exchange,
+string @routingKey,
+bool @mandatory,
+//bool @immediate,
+IEnumerable<BatchMessage> messages)
+        {
+            BasicPublish __req = new BasicPublish();
+            __req.m_exchange = @exchange;
+            __req.m_routingKey = @routingKey;
+            __req.m_mandatory = @mandatory;
+            //__req.m_immediate = @immediate;
+            ModelSend(__req, messages);
+        }
         public abstract void BasicQos(uint prefetchSize,
             ushort prefetchCount,
             bool global);

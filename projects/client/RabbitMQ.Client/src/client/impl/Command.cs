@@ -140,6 +140,8 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+
+
         public void TransmitAsSingleFrame(int channelNumber, Connection connection)
         {
             connection.WriteFrame(new MethodOutboundFrame(channelNumber, Method));
@@ -165,6 +167,32 @@ namespace RabbitMQ.Client.Impl
             }
 
             connection.WriteFrameSet(frames);
+        }
+
+
+        public static IList<OutboundFrame> CalculateFrames(int channelNumber, Connection connection, IEnumerable<Command> commands)
+        {
+            List<OutboundFrame> frames = new List<Impl.OutboundFrame>();
+
+            foreach (var cmd in commands)
+            {
+                frames.Add(new MethodOutboundFrame(channelNumber, cmd.Method));
+                if (cmd.Method.HasContent)
+                {
+                    var body = cmd.Body;// var body = ConsolidateBody(); // Cache, since the property is compiled.
+
+                    frames.Add(new HeaderOutboundFrame(channelNumber, cmd.Header, body.Length));
+                    var frameMax = (int)Math.Min(int.MaxValue, connection.FrameMax);
+                    var bodyPayloadMax = (frameMax == 0) ? body.Length : frameMax - EmptyFrameSize;
+                    for (int offset = 0; offset < body.Length; offset += bodyPayloadMax)
+                    {
+                        var remaining = body.Length - offset;
+                        var count = (remaining < bodyPayloadMax) ? remaining : bodyPayloadMax;
+                        frames.Add(new BodySegmentOutboundFrame(channelNumber, body, offset, count));
+                    }
+                }
+            }
+            return frames;
         }
     }
 }
