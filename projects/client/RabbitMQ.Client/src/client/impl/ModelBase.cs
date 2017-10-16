@@ -1246,10 +1246,8 @@ namespace RabbitMQ.Client.Impl
                 body);
         }
 
-        public void BasicBatchPublish(string exchange,
-    string routingKey,
-    bool mandatory,
-    IEnumerable<BatchMessage> messages)
+        public void BasicBatchPublish(string exchange, 
+            string routingKey, bool mandatory, IEnumerable<BatchMessage> messages)
         {
             foreach (var message in messages)
             {
@@ -1277,11 +1275,10 @@ namespace RabbitMQ.Client.Impl
                 messages);
         }
         public void _Private_BasicBatchPublish(
-string @exchange,
-string @routingKey,
-bool @mandatory,
-//bool @immediate,
-IEnumerable<BatchMessage> messages)
+            string @exchange,
+            string @routingKey,
+            bool @mandatory,
+            IEnumerable<BatchMessage> messages)
         {
             BasicPublish __req = new BasicPublish();
             __req.m_exchange = @exchange;
