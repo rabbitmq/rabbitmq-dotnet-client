@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -79,5 +80,6 @@ namespace RabbitMQ.Client.Impl
         void HandleFrame(InboundFrame frame);
         void Notify();
         void Transmit(Command cmd);
+        void Transmit(IEnumerable<Command> cmd);
     }
 }
