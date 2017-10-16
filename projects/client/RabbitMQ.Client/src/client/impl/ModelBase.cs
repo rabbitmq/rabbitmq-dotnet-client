@@ -1063,6 +1063,12 @@ namespace RabbitMQ.Client.Impl
             IBasicProperties basicProperties,
             byte[] body);
 
+        //public abstract void _Private_BasicBatchPublish(string exchange,
+        //    string routingKey,
+        //    bool mandatory,
+        //    IEnumerable<BatchMessage> messages);
+
+
         public abstract void _Private_BasicRecover(bool requeue);
 
         public abstract void _Private_ChannelClose(ushort replyCode,
@@ -1246,8 +1252,10 @@ namespace RabbitMQ.Client.Impl
                 body);
         }
 
-        public void BasicBatchPublish(string exchange, 
-            string routingKey, bool mandatory, IEnumerable<BatchMessage> messages)
+        public void BasicBatchPublish(string exchange,
+    string routingKey,
+    bool mandatory,
+    IEnumerable<BatchMessage> messages)
         {
             foreach (var message in messages)
             {
@@ -1275,10 +1283,11 @@ namespace RabbitMQ.Client.Impl
                 messages);
         }
         public void _Private_BasicBatchPublish(
-            string @exchange,
-            string @routingKey,
-            bool @mandatory,
-            IEnumerable<BatchMessage> messages)
+string @exchange,
+string @routingKey,
+bool @mandatory,
+//bool @immediate,
+IEnumerable<BatchMessage> messages)
         {
             BasicPublish __req = new BasicPublish();
             __req.m_exchange = @exchange;
