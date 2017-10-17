@@ -1063,12 +1063,6 @@ namespace RabbitMQ.Client.Impl
             IBasicProperties basicProperties,
             byte[] body);
 
-        //public abstract void _Private_BasicBatchPublish(string exchange,
-        //    string routingKey,
-        //    bool mandatory,
-        //    IEnumerable<BatchMessage> messages);
-
-
         public abstract void _Private_BasicRecover(bool requeue);
 
         public abstract void _Private_ChannelClose(ushort replyCode,
