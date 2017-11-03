@@ -59,6 +59,7 @@ using System.Net.Sockets;
 
 using System.Text;
 using System.Threading;
+using System.Reflection;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -106,6 +107,16 @@ namespace RabbitMQ.Client.Framing.Impl
         private Timer _heartbeatReadTimer;
         private AutoResetEvent m_heartbeatRead = new AutoResetEvent(false);
         private AutoResetEvent m_heartbeatWrite = new AutoResetEvent(false);
+
+#if CORECLR
+        private static string version = typeof(Connection).GetTypeInfo().Assembly
+                                                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+                                                .InformationalVersion;
+#else
+        private static string version = typeof(Connection).Assembly
+                                            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+                                            .InformationalVersion;
+#endif
 
 
         // true if we haven't finished connection negotiation.
@@ -354,9 +365,6 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public static IDictionary<string, object> DefaultClientProperties()
         {
-
-            string version = "0.0.0.0";// assembly.GetName().Version.ToString();
-            //TODO: Get the rest of this data from the Assembly Attributes
             IDictionary<string, object> table = new Dictionary<string, object>();
             table["product"] = Encoding.UTF8.GetBytes("RabbitMQ");
             table["version"] = Encoding.UTF8.GetBytes(version);
