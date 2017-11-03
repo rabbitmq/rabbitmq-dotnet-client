@@ -226,6 +226,11 @@ namespace RabbitMQ.Client
         void BasicPublish(string exchange, string routingKey, bool mandatory,
             IBasicProperties basicProperties, byte[] body);
 
+        [AmqpMethodDoNotImplement(null)]
+        void BasicBatchPublish(string exchange, string routingKey, bool mandatory,
+           IEnumerable<BatchMessage> messages);
+
+
         /// <summary>
         /// Configures QoS parameters of the Basic content-class.
         /// </summary>
@@ -552,4 +557,8 @@ namespace RabbitMQ.Client
         /// </summary>
         TimeSpan ContinuationTimeout { get; set; }
     }
+    public class BatchMessage{
+        public byte[] Body { get; set; }
+        public IBasicProperties basicProperties { get; set; }
+        }
 }
