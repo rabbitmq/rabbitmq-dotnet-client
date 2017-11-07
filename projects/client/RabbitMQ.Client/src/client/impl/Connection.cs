@@ -105,8 +105,6 @@ namespace RabbitMQ.Client.Framing.Impl
         private Timer _heartbeatWriteTimer;
         private Timer _heartbeatReadTimer;
         private AutoResetEvent m_heartbeatRead = new AutoResetEvent(false);
-        private AutoResetEvent m_heartbeatWrite = new AutoResetEvent(false);
-
 
         // true if we haven't finished connection negotiation.
         // In this state socket exceptions are treated as fatal connection
@@ -537,7 +535,6 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             // Notify hearbeat loops that they can leave
             m_heartbeatRead.Set();
-            m_heartbeatWrite.Set();
             m_closed = true;
             MaybeStopHeartbeatTimers();
 
@@ -1170,13 +1167,11 @@ entry.ToString());
         public void WriteFrame(OutboundFrame f)
         {
             m_frameHandler.WriteFrame(f);
-            m_heartbeatWrite.Set();
         }
 
         public void WriteFrameSet(IList<OutboundFrame> f)
         {
             m_frameHandler.WriteFrameSet(f);
-            m_heartbeatWrite.Set();
         }
 
         ///<summary>API-side invocation of connection abort.</summary>

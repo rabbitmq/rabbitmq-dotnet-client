@@ -472,19 +472,6 @@ namespace RabbitMQ.Client.Impl
                 Session.Transmit(new Command(method, header, body));
             }
         }
-        public void ModelSend(MethodBase method, IEnumerable<BatchMessage> messages)
-        {
-            if (method.HasContent)
-            {
-                m_flowControlBlock.WaitOne();
-            }
-            List<Command> commands = new List<Impl.Command>();
-            foreach (var message in messages)
-            {
-                commands.Add(new Command(method, (ContentHeaderBase)message.basicProperties, message.Body));
-            }
-            Session.Transmit(commands);
-        }
 
         public virtual void OnBasicAck(BasicAckEventArgs args)
         {
@@ -1218,6 +1205,26 @@ namespace RabbitMQ.Client.Impl
             bool multiple,
             bool requeue);
 
+        internal void AllocatatePublishSeqNos(int count)
+        {
+            var c = 0;
+            lock (m_unconfirmedSet.SyncRoot)
+            {
+                while(c < count)
+                {
+                    if (NextPublishSeqNo > 0)
+                    {
+                            if (!m_unconfirmedSet.Contains(NextPublishSeqNo))
+                            {
+                                m_unconfirmedSet.Add(NextPublishSeqNo);
+                            }
+                            NextPublishSeqNo++;
+                    }
+                    c++;
+                }
+            }
+        }
+
         public void BasicPublish(string exchange,
             string routingKey,
             bool mandatory,
@@ -1246,50 +1253,6 @@ namespace RabbitMQ.Client.Impl
                 body);
         }
 
-        public void BasicBatchPublish(string exchange,
-    string routingKey,
-    bool mandatory,
-    IEnumerable<BatchMessage> messages)
-        {
-            foreach (var message in messages)
-            {
-                if (message.basicProperties == null)
-                {
-                    message.basicProperties = CreateBasicProperties();
-                }
-
-                if (NextPublishSeqNo > 0)
-                {
-                    lock (m_unconfirmedSet.SyncRoot)
-                    {
-                        if (!m_unconfirmedSet.Contains(NextPublishSeqNo))
-                        {
-                            m_unconfirmedSet.Add(NextPublishSeqNo);
-                        }
-                        NextPublishSeqNo++;
-                    }
-                }
-            }
-
-            _Private_BasicBatchPublish(exchange,
-                routingKey,
-                mandatory,
-                messages);
-        }
-        public void _Private_BasicBatchPublish(
-string @exchange,
-string @routingKey,
-bool @mandatory,
-//bool @immediate,
-IEnumerable<BatchMessage> messages)
-        {
-            BasicPublish __req = new BasicPublish();
-            __req.m_exchange = @exchange;
-            __req.m_routingKey = @routingKey;
-            __req.m_mandatory = @mandatory;
-            //__req.m_immediate = @immediate;
-            ModelSend(__req, messages);
-        }
         public abstract void BasicQos(uint prefetchSize,
             ushort prefetchCount,
             bool global);
@@ -1330,6 +1293,10 @@ IEnumerable<BatchMessage> messages)
         ///////////////////////////////////////////////////////////////////////////
 
         public abstract IBasicProperties CreateBasicProperties();
+        public IMessageBatch CreateMessageBatch()
+        {
+            return new MessageBatch(this);
+        }
 
 
         public void ExchangeBind(string destination,
@@ -1553,6 +1520,13 @@ IEnumerable<BatchMessage> messages)
             }
         }
 
+        internal void SendCommands(IList<Command> commands)
+        {
+            m_flowControlBlock.WaitOne();
+            AllocatatePublishSeqNos(commands.Count);
+            Session.Transmit(commands);
+        }
+
         protected virtual void handleAckNack(ulong deliveryTag, bool multiple, bool isNack)
         {
             lock (m_unconfirmedSet.SyncRoot)
@@ -1590,6 +1564,7 @@ IEnumerable<BatchMessage> messages)
             k.GetReply(this.ContinuationTimeout);
             return k.m_result;
         }
+
 
         public class BasicConsumerRpcContinuation : SimpleBlockingRpcContinuation
         {

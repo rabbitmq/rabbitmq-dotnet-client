@@ -1212,5 +1212,10 @@ namespace RabbitMQ.Client.Impl
                 }
             }
         }
+
+        public IMessageBatch CreateMessageBatch()
+        {
+            return ((IFullModel)m_delegate).CreateMessageBatch();
+        }
     }
 }

@@ -40,6 +40,7 @@
 
 using RabbitMQ.Client.Apigen.Attributes;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client;
 using System;
 using System.Collections.Generic;
 
@@ -226,11 +227,6 @@ namespace RabbitMQ.Client
         void BasicPublish(string exchange, string routingKey, bool mandatory,
             IBasicProperties basicProperties, byte[] body);
 
-        [AmqpMethodDoNotImplement(null)]
-        void BasicBatchPublish(string exchange, string routingKey, bool mandatory,
-           IEnumerable<BatchMessage> messages);
-
-
         /// <summary>
         /// Configures QoS parameters of the Basic content-class.
         /// </summary>
@@ -282,6 +278,12 @@ namespace RabbitMQ.Client
         /// </summary>
         [AmqpMethodDoNotImplement(null)]
         void ConfirmSelect();
+
+        /// <summary>
+        ///  Creates a MessagBatch instance
+        /// </summary>
+        [AmqpMethodDoNotImplement(null)]
+        IMessageBatch CreateMessageBatch();
 
         /// <summary>
         /// Construct a completely empty content header for use with the Basic content class.
@@ -557,8 +559,4 @@ namespace RabbitMQ.Client
         /// </summary>
         TimeSpan ContinuationTimeout { get; set; }
     }
-    public class BatchMessage{
-        public byte[] Body { get; set; }
-        public IBasicProperties basicProperties { get; set; }
-        }
 }

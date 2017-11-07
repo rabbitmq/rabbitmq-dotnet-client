@@ -103,10 +103,6 @@ namespace RabbitMQ.Client
         {
             model.BasicPublish(exchange, routingKey, false, basicProperties, body);
         }
-        public static void BasicBatchPublish(this IModel model, string exchange, string routingKey, IEnumerable<BatchMessage> messages)
-        {
-            model.BasicBatchPublish(exchange, routingKey, false, messages);
-        }
 
         /// <summary>
         /// (Spec method) Convenience overload of BasicPublish.
