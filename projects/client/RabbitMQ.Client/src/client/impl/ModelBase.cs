@@ -1293,9 +1293,9 @@ namespace RabbitMQ.Client.Impl
         ///////////////////////////////////////////////////////////////////////////
 
         public abstract IBasicProperties CreateBasicProperties();
-        public IMessageBatch CreateMessageBatch()
+        public IBasicPublishBatch CreateBasicPublishBatch()
         {
-            return new MessageBatch(this);
+            return new BasicPublishBatch(this);
         }
 
 

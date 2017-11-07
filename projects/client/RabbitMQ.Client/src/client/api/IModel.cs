@@ -280,10 +280,10 @@ namespace RabbitMQ.Client
         void ConfirmSelect();
 
         /// <summary>
-        ///  Creates a MessagBatch instance
+        ///  Creates a BasicPublishBatch instance
         /// </summary>
         [AmqpMethodDoNotImplement(null)]
-        IMessageBatch CreateMessageBatch();
+        IBasicPublishBatch CreateBasicPublishBatch();
 
         /// <summary>
         /// Construct a completely empty content header for use with the Basic content class.

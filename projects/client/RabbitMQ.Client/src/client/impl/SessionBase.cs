@@ -200,7 +200,7 @@ namespace RabbitMQ.Client.Impl
             // of frames within a channel.  But that is fixed in socket frame handler instead, so no need to lock.
             cmd.Transmit(ChannelNumber, Connection);
         }
-        public virtual void Transmit(IEnumerable<Command> commands)
+        public virtual void Transmit(IList<Command> commands)
         {
             Connection.WriteFrameSet(Command.CalculateFrames(ChannelNumber, Connection, commands));
         }

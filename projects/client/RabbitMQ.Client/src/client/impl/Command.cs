@@ -170,9 +170,9 @@ namespace RabbitMQ.Client.Impl
         }
 
 
-        public static IList<OutboundFrame> CalculateFrames(int channelNumber, Connection connection, IEnumerable<Command> commands)
+        public static List<OutboundFrame> CalculateFrames(int channelNumber, Connection connection, IList<Command> commands)
         {
-            List<OutboundFrame> frames = new List<Impl.OutboundFrame>();
+            var frames = new List<OutboundFrame>();
 
             foreach (var cmd in commands)
             {
@@ -192,6 +192,7 @@ namespace RabbitMQ.Client.Impl
                     }
                 }
             }
+
             return frames;
         }
     }

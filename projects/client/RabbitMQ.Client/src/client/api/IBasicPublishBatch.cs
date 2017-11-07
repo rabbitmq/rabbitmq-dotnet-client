@@ -1,4 +1,4 @@
-﻿// This source code is dual-licensed under the Apache License, version
+// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 1.1.
 //
 // The APL v2.0:
@@ -37,29 +37,11 @@
 //  The Initial Developer of the Original Code is Pivotal Software, Inc.
 //  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
-
-using NUnit.Framework;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Impl;
-using System;
-
-namespace RabbitMQ.Client.Unit
+namespace RabbitMQ.Client
 {
-    internal class TestMessageBatch : IntegrationFixture
+    public interface IBasicPublishBatch
     {
-        [Test]
-        public void TestMessageBatchSend()
-        {
-            Model.QueueDeclare(queue: "test-message-batch-a", durable: false);
-            Model.QueueDeclare(queue: "test-message-batch-b", durable: false);
-            var batch = Model.CreateMessageBatch();
-            batch.Add("", "test-message-batch-a", false, null, new byte [] {});
-            batch.Add("", "test-message-batch-b", false, null, new byte [] {});
-            batch.Publish();
-            var resultA = Model.BasicGet("test-message-batch-a", true);
-            Assert.NotNull(resultA);
-            var resultB = Model.BasicGet("test-message-batch-b", true);
-            Assert.NotNull(resultB);
-        }
+        void Add(string exchange, string routingKey, bool mandatory, IBasicProperties properties, byte[] body);
+        void Publish();
     }
 }

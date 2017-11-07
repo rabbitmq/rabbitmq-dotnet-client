@@ -45,11 +45,11 @@ namespace RabbitMQ.Client.Impl
     using RabbitMQ.Client.Framing.Impl;
     using RabbitMQ.Client.Impl;
 
-    public class MessageBatch : IMessageBatch
+    public class BasicPublishBatch : IBasicPublishBatch
     {
         private List<Command> commands = new List<Command>();
         private ModelBase model;
-        internal MessageBatch(ModelBase model)
+        internal BasicPublishBatch (ModelBase model)
         {
             this.model = model;
         }
