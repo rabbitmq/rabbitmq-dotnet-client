@@ -1205,6 +1205,26 @@ namespace RabbitMQ.Client.Impl
             bool multiple,
             bool requeue);
 
+        internal void AllocatatePublishSeqNos(int count)
+        {
+            var c = 0;
+            lock (m_unconfirmedSet.SyncRoot)
+            {
+                while(c < count)
+                {
+                    if (NextPublishSeqNo > 0)
+                    {
+                            if (!m_unconfirmedSet.Contains(NextPublishSeqNo))
+                            {
+                                m_unconfirmedSet.Add(NextPublishSeqNo);
+                            }
+                            NextPublishSeqNo++;
+                    }
+                    c++;
+                }
+            }
+        }
+
         public void BasicPublish(string exchange,
             string routingKey,
             bool mandatory,
@@ -1273,6 +1293,10 @@ namespace RabbitMQ.Client.Impl
         ///////////////////////////////////////////////////////////////////////////
 
         public abstract IBasicProperties CreateBasicProperties();
+        public IBasicPublishBatch CreateBasicPublishBatch()
+        {
+            return new BasicPublishBatch(this);
+        }
 
 
         public void ExchangeBind(string destination,
@@ -1496,6 +1520,13 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        internal void SendCommands(IList<Command> commands)
+        {
+            m_flowControlBlock.WaitOne();
+            AllocatatePublishSeqNos(commands.Count);
+            Session.Transmit(commands);
+        }
+
         protected virtual void handleAckNack(ulong deliveryTag, bool multiple, bool isNack)
         {
             lock (m_unconfirmedSet.SyncRoot)
@@ -1533,6 +1564,7 @@ namespace RabbitMQ.Client.Impl
             k.GetReply(this.ContinuationTimeout);
             return k.m_result;
         }
+
 
         public class BasicConsumerRpcContinuation : SimpleBlockingRpcContinuation
         {

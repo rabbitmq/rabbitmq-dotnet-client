@@ -38,48 +38,38 @@
 //  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-
 namespace RabbitMQ.Client.Impl
 {
-    public interface ISession
+    using System.Collections.Generic;
+    using RabbitMQ.Client;
+    using RabbitMQ.Client.Framing.Impl;
+    using RabbitMQ.Client.Impl;
+
+    public class BasicPublishBatch : IBasicPublishBatch
     {
-        /// <summary>
-        /// Gets the channel number.
-        /// </summary>
-        int ChannelNumber { get; }
+        private List<Command> commands = new List<Command>();
+        private ModelBase model;
+        internal BasicPublishBatch (ModelBase model)
+        {
+            this.model = model;
+        }
 
-        /// <summary>
-        /// Gets the close reason.
-        /// </summary>
-        ShutdownEventArgs CloseReason { get; }
+        public void Add(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, byte[] body)
+        {
+            var bp = basicProperties == null ? model.CreateBasicProperties() : basicProperties;
+            var method = new BasicPublish
+            {
+                m_exchange = exchange,
+                m_routingKey = routingKey,
+                m_mandatory = mandatory
+            };
 
-        ///<summary>
-        /// Single recipient - no need for multiple handlers to be informed of arriving commands.
-        ///</summary>
-        Action<ISession, Command> CommandReceived { get; set; }
+            commands.Add(new Command(method, (ContentHeaderBase)bp, body));
+        }
 
-        /// <summary>
-        /// Gets the connection.
-        /// </summary>
-        IConnection Connection { get; }
-
-        /// <summary>
-        /// Gets a value indicating whether this session is open.
-        /// </summary>
-        bool IsOpen { get; }
-
-        ///<summary>
-        /// Multicast session shutdown event.
-        ///</summary>
-        event EventHandler<ShutdownEventArgs> SessionShutdown;
-
-        void Close(ShutdownEventArgs reason);
-        void Close(ShutdownEventArgs reason, bool notify);
-        void HandleFrame(InboundFrame frame);
-        void Notify();
-        void Transmit(Command cmd);
-        void Transmit(IList<Command> cmd);
+        public void Publish()
+        {
+            model.SendCommands(commands);
+        }
     }
 }

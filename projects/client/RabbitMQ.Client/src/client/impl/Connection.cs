@@ -106,7 +106,16 @@ namespace RabbitMQ.Client.Framing.Impl
         private Timer _heartbeatWriteTimer;
         private Timer _heartbeatReadTimer;
         private AutoResetEvent m_heartbeatRead = new AutoResetEvent(false);
-        private AutoResetEvent m_heartbeatWrite = new AutoResetEvent(false);
+
+#if CORECLR
+        private static string version = typeof(Connection).GetTypeInfo().Assembly
+                                                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+                                                .InformationalVersion;
+#else
+        private static string version = typeof(Connection).Assembly
+                                            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+                                            .InformationalVersion;
+#endif
 
 #if CORECLR
         private static string version = typeof(Connection).GetTypeInfo().Assembly
@@ -545,7 +554,6 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             // Notify hearbeat loops that they can leave
             m_heartbeatRead.Set();
-            m_heartbeatWrite.Set();
             m_closed = true;
             MaybeStopHeartbeatTimers();
 
@@ -1178,13 +1186,11 @@ entry.ToString());
         public void WriteFrame(OutboundFrame f)
         {
             m_frameHandler.WriteFrame(f);
-            m_heartbeatWrite.Set();
         }
 
         public void WriteFrameSet(IList<OutboundFrame> f)
         {
             m_frameHandler.WriteFrameSet(f);
-            m_heartbeatWrite.Set();
         }
 
         ///<summary>API-side invocation of connection abort.</summary>

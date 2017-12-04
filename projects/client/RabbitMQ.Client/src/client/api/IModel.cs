@@ -40,6 +40,7 @@
 
 using RabbitMQ.Client.Apigen.Attributes;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client;
 using System;
 using System.Collections.Generic;
 
@@ -277,6 +278,12 @@ namespace RabbitMQ.Client
         /// </summary>
         [AmqpMethodDoNotImplement(null)]
         void ConfirmSelect();
+
+        /// <summary>
+        ///  Creates a BasicPublishBatch instance
+        /// </summary>
+        [AmqpMethodDoNotImplement(null)]
+        IBasicPublishBatch CreateBasicPublishBatch();
 
         /// <summary>
         /// Construct a completely empty content header for use with the Basic content class.

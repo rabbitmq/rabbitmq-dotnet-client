@@ -1,4 +1,4 @@
-// This source code is dual-licensed under the Apache License, version
+﻿// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 1.1.
 //
 // The APL v2.0:
@@ -38,48 +38,30 @@
 //  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using NUnit.Framework;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Impl;
 using System;
-using System.Collections.Generic;
 
-namespace RabbitMQ.Client.Impl
+namespace RabbitMQ.Client.Unit
 {
-    public interface ISession
+    internal class TestBasicPublishBatch : IntegrationFixture
     {
-        /// <summary>
-        /// Gets the channel number.
-        /// </summary>
-        int ChannelNumber { get; }
-
-        /// <summary>
-        /// Gets the close reason.
-        /// </summary>
-        ShutdownEventArgs CloseReason { get; }
-
-        ///<summary>
-        /// Single recipient - no need for multiple handlers to be informed of arriving commands.
-        ///</summary>
-        Action<ISession, Command> CommandReceived { get; set; }
-
-        /// <summary>
-        /// Gets the connection.
-        /// </summary>
-        IConnection Connection { get; }
-
-        /// <summary>
-        /// Gets a value indicating whether this session is open.
-        /// </summary>
-        bool IsOpen { get; }
-
-        ///<summary>
-        /// Multicast session shutdown event.
-        ///</summary>
-        event EventHandler<ShutdownEventArgs> SessionShutdown;
-
-        void Close(ShutdownEventArgs reason);
-        void Close(ShutdownEventArgs reason, bool notify);
-        void HandleFrame(InboundFrame frame);
-        void Notify();
-        void Transmit(Command cmd);
-        void Transmit(IList<Command> cmd);
+        [Test]
+        public void TestBasicPublishBatchSend()
+        {
+            Model.ConfirmSelect();
+            Model.QueueDeclare(queue: "test-message-batch-a", durable: false);
+            Model.QueueDeclare(queue: "test-message-batch-b", durable: false);
+            var batch = Model.CreateBasicPublishBatch();
+            batch.Add("", "test-message-batch-a", false, null, new byte [] {});
+            batch.Add("", "test-message-batch-b", false, null, new byte [] {});
+            batch.Publish();
+            Model.WaitForConfirmsOrDie(TimeSpan.FromSeconds(15));
+            var resultA = Model.BasicGet("test-message-batch-a", true);
+            Assert.NotNull(resultA);
+            var resultB = Model.BasicGet("test-message-batch-b", true);
+            Assert.NotNull(resultB);
+        }
     }
 }

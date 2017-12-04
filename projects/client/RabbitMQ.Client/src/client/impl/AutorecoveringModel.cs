@@ -1212,5 +1212,10 @@ namespace RabbitMQ.Client.Impl
                 }
             }
         }
+
+        public IBasicPublishBatch CreateBasicPublishBatch()
+        {
+            return ((IFullModel)m_delegate).CreateBasicPublishBatch();
+        }
     }
 }
