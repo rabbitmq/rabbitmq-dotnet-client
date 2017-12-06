@@ -117,17 +117,6 @@ namespace RabbitMQ.Client.Framing.Impl
                                             .InformationalVersion;
 #endif
 
-#if CORECLR
-        private static string version = typeof(Connection).GetTypeInfo().Assembly
-                                                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
-                                                .InformationalVersion;
-#else
-        private static string version = typeof(Connection).Assembly
-                                            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
-                                            .InformationalVersion;
-#endif
-
-
         // true if we haven't finished connection negotiation.
         // In this state socket exceptions are treated as fatal connection
         // errors, otherwise as read timeouts

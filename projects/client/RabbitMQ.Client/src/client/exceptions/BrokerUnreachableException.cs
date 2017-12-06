@@ -47,8 +47,8 @@ namespace RabbitMQ.Client.Exceptions
     ///ConnectionFactory.CreateConnection attempt.</summary>
     public class BrokerUnreachableException : IOException
     {
-        ///<summary>Construct a BrokerUnreachableException. The inner exception is associated
-        ///with only one connection attempt.</summary>
+        ///<summary>Construct a BrokerUnreachableException. The inner exception is
+        ///an AggregateException holding the errors from multiple connection attempts.</summary>
         public BrokerUnreachableException(Exception Inner)
             : base("None of the specified endpoints were reachable", Inner)
         {
