@@ -79,7 +79,8 @@ namespace RabbitMQ.Client.Unit
         public void SelectOneShouldRaiseThrownExceptionWhenThereAreOnlyInaccessibleEndpoints()
         {
             var ep = new TestEndpointResolver(new List<AmqpTcpEndpoint> { new AmqpTcpEndpoint()});
-            Assert.Throws<TestEndpointException>(() => ep.SelectOne<AmqpTcpEndpoint>((x) => { throw new TestEndpointException("bananas"); }));
+            var thrown = Assert.Throws<AggregateException>(() => ep.SelectOne<AmqpTcpEndpoint>((x) => { throw new TestEndpointException("bananas"); }));
+            Assert.That(thrown.InnerExceptions, Has.Exactly(1).TypeOf<TestEndpointException>());
         }
 
         [Test]
