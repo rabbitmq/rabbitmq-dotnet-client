@@ -16,7 +16,9 @@ TestResults.xml
 TestResult.xml
 /packages
 /.fake
+.paket/*
 .paket/paket.exe
+/paket-files/*
 /NuGet
 rabbit-mock.snk
 .vscode/
