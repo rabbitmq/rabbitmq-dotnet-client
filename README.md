@@ -6,10 +6,14 @@ The client is maintained by the [RabbitMQ team at Pivotal](http://github.com/rab
 
 ## Dependency (Binaries and Nuget Artifact)
 
-There are two ways to consume the client:
+### Modern Versions
 
- * [NuGet artifacts](https://www.nuget.org/packages/RabbitMQ.Client/) (`4.x` and `3.6.x` series)
- * [Binary releases](https://github.com/rabbitmq/rabbitmq-server/releases) (`3.6.x` series, distributed with RabbitMQ releases)
+The client is [distributed via NuGet](https://www.nuget.org/packages/RabbitMQ.Client/) (`5.x` and `4.x` release series).
+
+### Legacy Versions
+
+`3.6.x` and earlier releases were distributed [together with RabbitMQ server 3.6.x](https://github.com/rabbitmq/rabbitmq-server/releases/)
+as archives.
 
 [Release archive up to 3.4.3](https://bintray.com/rabbitmq/archive/rabbitmq-dotnet-client) is available from Bintray.
 
@@ -22,8 +26,8 @@ There are two ways to consume the client:
 
 ## Supported Platforms and .NET Releases
 
-The client requires .NET 4.5 or later and as of `4.0.0`, supports and primarily
-targets .NET Core.
+`4.x` and `5.x` versions of the library require .NET 4.5.1 or later or .NET Core.
+For .NET Core users, 2.0 is the minimum supported version for `5.x` series.
 
 `3.6.x` releases support Linux and OS X on [Mono](http://www.mono-project.com/).
 
