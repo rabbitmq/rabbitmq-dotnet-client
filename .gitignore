@@ -2,6 +2,8 @@
 ## Generated files
 ###################
 
+api/
+_site/
 gensrc/
 [Ll]ocal.props
 [Ll]ocal.dist
