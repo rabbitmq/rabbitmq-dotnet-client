@@ -966,8 +966,8 @@ entry.ToString());
                 _heartbeatWriteTimer.Change(200, (int)m_heartbeatTimeSpan.TotalMilliseconds);
                 _heartbeatReadTimer.Change(200, (int)m_heartbeatTimeSpan.TotalMilliseconds);
 #else
-                _heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback, null, 200, m_heartbeatTimeSpan.Milliseconds);
-                _heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback, null, 200, m_heartbeatTimeSpan.Milliseconds);
+                _heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback, null, 200, (int)m_heartbeatTimeSpan.TotalMilliseconds);
+                _heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback, null, 200, (int)m_heartbeatTimeSpan.TotalMilliseconds);
                 _heartbeatWriteTimer.Change(TimeSpan.FromMilliseconds(200), m_heartbeatTimeSpan);
                 _heartbeatReadTimer.Change(TimeSpan.FromMilliseconds(200), m_heartbeatTimeSpan);
 #endif
@@ -1024,7 +1024,7 @@ entry.ToString());
                     TerminateMainloop();
                     FinishClose();
                 }
-                else if(_heartbeatReadTimer != null)
+                else if (_heartbeatReadTimer != null)
                 {
                     _heartbeatReadTimer.Change(Heartbeat * 1000, Timeout.Infinite);
                 }
@@ -1099,7 +1099,7 @@ entry.ToString());
                 {
                     // we are shutting down, ignore
                 }
-                catch(NullReferenceException)
+                catch (NullReferenceException)
                 {
                     // this should be very rare but could occur from a race condition
                 }
@@ -1231,7 +1231,7 @@ entry.ToString());
             var connectionStartCell = new BlockingCell();
             m_model0.m_connectionStartCell = connectionStartCell;
             m_model0.HandshakeContinuationTimeout = m_factory.HandshakeContinuationTimeout;
-            m_frameHandler.ReadTimeout = m_factory.HandshakeContinuationTimeout.Milliseconds;
+            m_frameHandler.ReadTimeout = (int)m_factory.HandshakeContinuationTimeout.TotalMilliseconds;
             m_frameHandler.SendHeader();
 
             var connectionStart = (ConnectionStartDetails)
