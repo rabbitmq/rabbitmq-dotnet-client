@@ -517,6 +517,7 @@ namespace RabbitMQ.Client
             else if (string.Equals("amqps", uri.Scheme, StringComparison.OrdinalIgnoreCase))
             {
                 Ssl.Enabled = true;
+                Ssl.Version = AmqpTcpEndpoint.DefaultAmqpSslProtocols;
 #if !(NETFX_CORE)
                 Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNameMismatch;
 #endif
