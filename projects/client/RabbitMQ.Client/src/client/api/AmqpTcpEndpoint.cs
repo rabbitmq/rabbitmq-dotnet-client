@@ -40,7 +40,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Security.Authentication;
 using System.Text.RegularExpressions;
 
 namespace RabbitMQ.Client
@@ -62,7 +61,6 @@ namespace RabbitMQ.Client
         /// Default Amqp ssl port.
         /// </summary>
         public const int DefaultAmqpSslPort = 5671;
-
 
         /// <summary>
         /// Indicates that the default port for the protocol should be used.
@@ -141,11 +139,6 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// The default Amqp SSL protocols.
-        /// </summary>
-        public static SslProtocols DefaultAmqpSslProtocols { get; set; } = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
-
-        /// <summary>
         /// Retrieve or set the hostname of this <see cref="AmqpTcpEndpoint"/>.
         /// </summary>
         public string HostName { get; set; }
@@ -181,7 +174,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Used to force the address family of the endpoint
         /// </summary>
-        public System.Net.Sockets.AddressFamily AddressFamily { get; set; }
+        public System.Net.Sockets.AddressFamily AddressFamily {get; set;}
 
         /// <summary>
         /// Retrieve the SSL options for this AmqpTcpEndpoint. If not set, null is returned.
@@ -235,7 +228,7 @@ namespace RabbitMQ.Client
         /// </remarks>
         public static AmqpTcpEndpoint[] ParseMultiple(string addresses)
         {
-            string[] partsArr = addresses.Split(new[] { ',' });
+            string[] partsArr = addresses.Split(new[] {','});
             var results = new List<AmqpTcpEndpoint>();
             foreach (string partRaw in partsArr)
             {
