@@ -1,0 +1,138 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Overview </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Overview ">
+    <meta name="generator" content="docfx 2.31.0.0">
+    
+    <link rel="shortcut icon" href="favicon.ico">
+    <link rel="stylesheet" href="styles/docfx.vendor.css">
+    <link rel="stylesheet" href="styles/docfx.css">
+    <link rel="stylesheet" href="styles/main.css">
+    <meta property="docfx:navrel" content="toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="index.html">
+                <img id="logo" class="svg" src="logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        <div class="article row grid">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h2 id="overview">Overview</h2>
+
+<p>.NET client&#39;s test suite assumes there&#39;s a RabbitMQ node listening on localhost:5672
+(the default settings). SSL tests require a broker listening on the default
+SSL port. Connection recovery tests assume <code>rabbitmqctl</code> at <code>../rabbitmq-server/scripts/rabbitmqctl</code>
+can control the running node: this is the case when all repositories are cloned using
+the <a href="https://github.com/rabbitmq/rabbitmq-public-umbrella">umbrella repository</a>.</p>
+<p>It is possible to use <a href="https://www.visualstudio.com/en-us/products/visual-studio-community-vs.aspx">Visual Studio 2015 Community Edition</a>,
+.NET Core, and <code>dotnet.exe</code> in <code>PATH</code>, to build the client and run the test suite.</p>
+<h2 id="building">Building</h2>
+<p>Before this project can be opened in Visual Studio, it&#39;s necessary to pull down dependencies
+and perform protocol encoder/decoder code generation.</p>
+<p>On Windows run:</p>
+<pre><code>build.bat
+</code></pre><p>On osx/linux run:</p>
+<pre><code>build.sh
+</code></pre><p>This will complete the code AMQP 0-9-1 protocol code generation and build all projects. After this open the solution in Visual Studio.</p>
+<h2 id="running-tests">Running Tests</h2>
+<p>Tests can be run from Visual Studio using <a href="https://visualstudiogallery.msdn.microsoft.com/6ab922d0-21c0-4f06-ab5f-4ecd1fe7175d">NUnit Test Adapter</a>.
+Note that it may take some time for the adapter to discover tests in the assemblies.</p>
+<p>The test suite assumes there&#39;s a RabbitMQ node <a href="http://www.rabbitmq.com/build-server.html">built from source</a> running locally
+with all defaults. Team RabbitMQ uses <a href="https://github.com/rabbitmq/rabbitmq-public-umbrella">rabbitmq-public-umbrella</a> to
+do that:</p>
+<pre><code>git clone https://github.com/rabbitmq/rabbitmq-public-umbrella umbrella
+cd umbrella
+make co
+cd deps/rabbit
+make
+make run-broker
+</code></pre><p>Then, to run the tests on Windows use:</p>
+<pre><code>run-test.bat
+</code></pre><p>On MacOS, Linux, BSD use:</p>
+<pre><code>run-test.sh
+</code></pre><p>Running individual tests and fixtures on Windows is trivial using the Visual Studio test runner.
+To run a specific tests fixture on osx/linux you can use nunit3 where expressions to select the tests
+to be run:</p>
+<pre><code>./fake.sh Test where=&quot;test =~ /SomeTest/&quot;
+</code></pre></article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/RUNNING_TESTS.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Copyright © 2015-2017 Microsoft<br>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="styles/docfx.js"></script>
+    <script type="text/javascript" src="styles/main.js"></script>
+  </body>
+</html>

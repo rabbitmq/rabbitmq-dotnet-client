@@ -1,0 +1,1092 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class SimpleRpcClient
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class SimpleRpcClient
+   ">
+    <meta name="generator" content="docfx 2.31.0.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient">
+  
+  
+  <h1 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient" class="text-break">Class SimpleRpcClient
+  </h1>
+  <div class="markdown level0 summary"><p>Implements a simple RPC client.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">SimpleRpcClient</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><span class="xref">System.IDisposable</span></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="RabbitMQ.Client.MessagePatterns.html">RabbitMQ.Client.MessagePatterns</a></h6>
+  <h6><strong>Assembly</strong>: RabbitMQ.Client.WinRT.dll</h6>
+  <h5 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class SimpleRpcClient : IDisposable</code></pre>
+  </div>
+  <h5 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>
+ This class sends requests that can be processed by remote
+ SimpleRpcServer instances.
+</p>
+<p>
+ The basic pattern for accessing a remote service is to
+ determine the exchange name and routing key needed for
+ submissions of service requests, and to construct a
+ SimpleRpcClient instance using that address. Once constructed,
+ the various Call() and Cast() overloads can be used to send
+ requests and receive the corresponding replies.
+</p>
+<example><pre><code>    string queueName = &quot;ServiceRequestQueue&quot;; // See also Subscription ctors
+    using (IConnection conn = new ConnectionFactory()
+                                    .CreateConnection(serverAddress)) {
+        using (IModel ch = conn.CreateModel()) {
+            SimpleRpcClient client =
+                new SimpleRpcClient(ch, queueName);
+            client.TimeoutMilliseconds = 5000; // optional
+
+            /// ... make use of the various Call() overloads
+        }
+    }</code></pre></example>
+<p>
+ Instances of this class declare a queue, so it is the user&apos;s
+ responsibility to ensure that the exchange concerned exists
+ (using IModel.ExchangeDeclare) before invoking Call() or
+ Cast().
+</p>
+<p>
+ This class implements only a few basic RPC message formats -
+ to extend it with support for more formats, either subclass,
+ or transcode the messages before transmission using the
+ built-in byte[] format.
+</p>
+</div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_SimpleRpcClient__ctor_RabbitMQ_Client_IModel_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.SimpleRpcClient.%23ctor(RabbitMQ.Client.IModel)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/SimpleRpcClient.cs/#L95">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient__ctor_" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.#ctor*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient__ctor_RabbitMQ_Client_IModel_" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.#ctor(RabbitMQ.Client.IModel)">SimpleRpcClient(IModel)</h4>
+  <div class="markdown level1 summary"><p>Construct an instance with no configured
+Address. The Address property must be set before Call() or
+Cast() are called.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SimpleRpcClient(IModel model)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
+        <td><span class="parametername">model</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_SimpleRpcClient__ctor_RabbitMQ_Client_IModel_RabbitMQ_Client_PublicationAddress_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.SimpleRpcClient.%23ctor(RabbitMQ.Client.IModel%2CRabbitMQ.Client.PublicationAddress)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/SimpleRpcClient.cs/#L120">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient__ctor_" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.#ctor*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient__ctor_RabbitMQ_Client_IModel_RabbitMQ_Client_PublicationAddress_" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.#ctor(RabbitMQ.Client.IModel,RabbitMQ.Client.PublicationAddress)">SimpleRpcClient(IModel, PublicationAddress)</h4>
+  <div class="markdown level1 summary"><p>Construct an instance that will deliver to the
+given address.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SimpleRpcClient(IModel model, PublicationAddress address)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
+        <td><span class="parametername">model</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.PublicationAddress.html">PublicationAddress</a></td>
+        <td><span class="parametername">address</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_SimpleRpcClient__ctor_RabbitMQ_Client_IModel_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.SimpleRpcClient.%23ctor(RabbitMQ.Client.IModel%2CSystem.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/SimpleRpcClient.cs/#L104">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient__ctor_" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.#ctor*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient__ctor_RabbitMQ_Client_IModel_System_String_" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.#ctor(RabbitMQ.Client.IModel,System.String)">SimpleRpcClient(IModel, String)</h4>
+  <div class="markdown level1 summary"><p>Construct an instance that will deliver to the
+default exchange (&quot;&quot;), with routing key equal to the passed
+in queueName, thereby delivering directly to a named queue
+on the AMQP server.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SimpleRpcClient(IModel model, string queueName)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
+        <td><span class="parametername">model</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">queueName</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_SimpleRpcClient__ctor_RabbitMQ_Client_IModel_System_String_System_String_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.SimpleRpcClient.%23ctor(RabbitMQ.Client.IModel%2CSystem.String%2CSystem.String%2CSystem.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/SimpleRpcClient.cs/#L112">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient__ctor_" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.#ctor*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient__ctor_RabbitMQ_Client_IModel_System_String_System_String_System_String_" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.#ctor(RabbitMQ.Client.IModel,System.String,System.String,System.String)">SimpleRpcClient(IModel, String, String, String)</h4>
+  <div class="markdown level1 summary"><p>Construct an instance that will deliver to the
+named and typed exchange, with the given routing
+key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SimpleRpcClient(IModel model, string exchange, string exchangeType, string routingKey)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
+        <td><span class="parametername">model</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">exchange</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">exchangeType</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">routingKey</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Address.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.SimpleRpcClient.Address%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/SimpleRpcClient.cs/#L155">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Address_" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.Address*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Address" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.Address">Address</h4>
+  <div class="markdown level1 summary"><p>Retrieve or modify the address that will be used
+for the next Call() or Cast().</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public PublicationAddress Address { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.PublicationAddress.html">PublicationAddress</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Address_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This address represents the service, i.e. the destination
+service requests should be published to. It can be changed
+at any time before a Call() or Cast() request is sent -
+the value at the time of the call is used by Call() and
+Cast().</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Model.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.SimpleRpcClient.Model%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/SimpleRpcClient.cs/#L158">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Model_" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.Model*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Model" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.Model">Model</h4>
+  <div class="markdown level1 summary"><p>Retrieve the IModel this instance uses to communicate.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IModel Model { get; protected set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Subscription.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.SimpleRpcClient.Subscription%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/SimpleRpcClient.cs/#L172">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Subscription_" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.Subscription*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Subscription" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.Subscription">Subscription</h4>
+  <div class="markdown level1 summary"><p>Retrieve the Subscription that is used to receive
+RPC replies corresponding to Call() RPC requests. May be
+null.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Subscription Subscription { get; protected set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.MessagePatterns.Subscription.html">Subscription</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Subscription_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+ Upon construction, this property will be null. It is
+ initialised by the protected virtual method
+ EnsureSubscription upon the first call to Call(). Calls to
+ Cast() do not initialise the subscription, since no
+ replies are expected or possible when using Cast().
+</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_SimpleRpcClient_TimeoutMilliseconds.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.SimpleRpcClient.TimeoutMilliseconds%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/SimpleRpcClient.cs/#L188">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_TimeoutMilliseconds_" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.TimeoutMilliseconds*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_TimeoutMilliseconds" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.TimeoutMilliseconds">TimeoutMilliseconds</h4>
+  <div class="markdown level1 summary"><p>Retrieve or modify the timeout (in milliseconds)
+that will be used for the next Call().</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int TimeoutMilliseconds { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_TimeoutMilliseconds_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+ This property defaults to
+ System.Threading.Timeout.Infinite (i.e. -1). If it is set
+ to any other value, Call() will only wait for the
+ specified amount of time before returning indicating a
+ timeout.
+</p>
+<p>
+ See also TimedOut event and OnTimedOut().
+</p>
+</div>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Call_RabbitMQ_Client_IBasicProperties_System_Byte___.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.SimpleRpcClient.Call(RabbitMQ.Client.IBasicProperties%2CSystem.Byte%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/SimpleRpcClient.cs/#L333">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Call_" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.Call*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Call_RabbitMQ_Client_IBasicProperties_System_Byte___" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.Call(RabbitMQ.Client.IBasicProperties,System.Byte[])">Call(IBasicProperties, Byte[])</h4>
+  <div class="markdown level1 summary"><p>Sends a byte[]/IBasicProperties RPC request,
+returning full information about the delivered reply as a
+BasicDeliverEventArgs.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual BasicDeliverEventArgs Call(IBasicProperties requestProperties, byte[] body)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IBasicProperties.html">IBasicProperties</a></td>
+        <td><span class="parametername">requestProperties</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td><span class="parametername">body</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Events.BasicDeliverEventArgs.html">BasicDeliverEventArgs</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Call_RabbitMQ_Client_IBasicProperties_System_Byte____remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+ This is the most general/lowest-level Call()-style method
+ on SimpleRpcClient. It sets CorrelationId and ReplyTo on
+ the request message&apos;s headers before transmitting the
+ request to the service via the AMQP server. If the reply&apos;s
+ CorrelationId does not match the request&apos;s CorrelationId,
+ ProtocolViolationException will be thrown.
+</p>
+<p>
+ Calls OnTimedOut() and OnDisconnected() when a timeout or
+ disconnection, respectively, is detected when waiting for
+ our reply.
+</p>
+<p>
+ Returns null if the request timed out or if we were
+ disconnected before a reply arrived.
+</p>
+<p>
+ The reply message, if any, is acknowledged to the AMQP
+ server via Subscription.Ack().
+</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Call_RabbitMQ_Client_IBasicProperties_System_Byte___RabbitMQ_Client_IBasicProperties__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.SimpleRpcClient.Call(RabbitMQ.Client.IBasicProperties%2CSystem.Byte%5B%5D%2CRabbitMQ.Client.IBasicProperties%40)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/SimpleRpcClient.cs/#L289">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Call_" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.Call*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Call_RabbitMQ_Client_IBasicProperties_System_Byte___RabbitMQ_Client_IBasicProperties__" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.Call(RabbitMQ.Client.IBasicProperties,System.Byte[],RabbitMQ.Client.IBasicProperties@)">Call(IBasicProperties, Byte[], out IBasicProperties)</h4>
+  <div class="markdown level1 summary"><p>Sends a byte[] message and IBasicProperties
+header, returning both the body and headers of the received
+reply.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual byte[] Call(IBasicProperties requestProperties, byte[] body, out IBasicProperties replyProperties)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IBasicProperties.html">IBasicProperties</a></td>
+        <td><span class="parametername">requestProperties</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td><span class="parametername">body</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IBasicProperties.html">IBasicProperties</a></td>
+        <td><span class="parametername">replyProperties</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Call_RabbitMQ_Client_IBasicProperties_System_Byte___RabbitMQ_Client_IBasicProperties___remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+ Sets the &quot;replyProperties&quot; outbound parameter to the
+ properties of the received reply, and returns the byte[]
+ body of the reply.
+</p>
+<p>
+ Calls OnTimedOut() and OnDisconnected() when a timeout or
+ disconnection, respectively, is detected when waiting for
+ our reply.
+</p>
+<p>
+ Both sets &quot;replyProperties&quot; to null and returns null when
+ either the request timed out or we were disconnected
+ before a reply arrived.
+</p>
+<p>
+ The reply message, if any, is acknowledged to the AMQP
+ server via Subscription.Ack().
+</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Call_System_Byte___.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.SimpleRpcClient.Call(System.Byte%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/SimpleRpcClient.cs/#L259">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Call_" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.Call*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Call_System_Byte___" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.Call(System.Byte[])">Call(Byte[])</h4>
+  <div class="markdown level1 summary"><p>Sends a simple byte[] message, without any custom
+headers or properties.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual byte[] Call(byte[] body)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td><span class="parametername">body</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Call_System_Byte____remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+ Delegates directly to Call(IBasicProperties, byte[]), and
+ discards the properties of the received reply, returning
+ only the body of the reply.
+</p>
+<p>
+ Calls OnTimedOut() and OnDisconnected() when a timeout or
+ disconnection, respectively, is detected when waiting for
+ our reply.
+</p>
+<p>
+ Returns null if the request timed out or if we were
+ disconnected before a reply arrived.
+</p>
+<p>
+ The reply message, if any, is acknowledged to the AMQP
+ server via Subscription.Ack().
+</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Call_System_Object___.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.SimpleRpcClient.Call(System.Object%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/SimpleRpcClient.cs/#L214">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Call_" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.Call*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Call_System_Object___" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.Call(System.Object[])">Call(Object[])</h4>
+  <div class="markdown level1 summary"><p>Sends a &quot;jms/stream-message&quot;-encoded RPC request,
+and expects an RPC reply in the same format.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object[] Call(params object[] args)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span>[]</td>
+        <td><span class="parametername">args</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span>[]</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Call_System_Object____remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+ The arguments passed in must be of types that are
+ representable as JMS StreamMessage values, and so must the
+ results returned from the service in its reply message.
+</p>
+<p>
+ Calls OnTimedOut() and OnDisconnected() when a timeout or
+ disconnection, respectively, is detected when waiting for
+ our reply.
+</p>
+<p>
+ Returns null if the request timed out or if we were
+ disconnected before a reply arrived.
+</p>
+<p>
+ The reply message, if any, is acknowledged to the AMQP
+ server via Subscription.Ack().
+</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Cast_RabbitMQ_Client_IBasicProperties_System_Byte___.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.SimpleRpcClient.Cast(RabbitMQ.Client.IBasicProperties%2CSystem.Byte%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/SimpleRpcClient.cs/#L350">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Cast_" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.Cast*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Cast_RabbitMQ_Client_IBasicProperties_System_Byte___" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.Cast(RabbitMQ.Client.IBasicProperties,System.Byte[])">Cast(IBasicProperties, Byte[])</h4>
+  <div class="markdown level1 summary"><p>Sends an asynchronous/one-way message to the
+service.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Cast(IBasicProperties requestProperties, byte[] body)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IBasicProperties.html">IBasicProperties</a></td>
+        <td><span class="parametername">requestProperties</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td><span class="parametername">body</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Close.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.SimpleRpcClient.Close%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/SimpleRpcClient.cs/#L365">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Close_" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.Close*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Close" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.Close">Close()</h4>
+  <div class="markdown level1 summary"><p>Close the reply subscription associated with this instance, if any.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Close()</code></pre>
+  </div>
+  <h5 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Close_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Simply delegates to calling Subscription.Close(). Clears
+the Subscription property, so that subsequent Call()s, if
+any, will re-initialize it to a fresh Subscription
+instance.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_SimpleRpcClient_EnsureSubscription.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.SimpleRpcClient.EnsureSubscription%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/SimpleRpcClient.cs/#L412">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_EnsureSubscription_" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.EnsureSubscription*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_EnsureSubscription" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.EnsureSubscription">EnsureSubscription()</h4>
+  <div class="markdown level1 summary"><p>Should initialise m_subscription to be non-null
+and usable for fetching RPC replies from the service
+through the AMQP server.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void EnsureSubscription()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_SimpleRpcClient_OnDisconnected.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.SimpleRpcClient.OnDisconnected%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/SimpleRpcClient.cs/#L380">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_OnDisconnected_" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.OnDisconnected*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_OnDisconnected" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.OnDisconnected">OnDisconnected()</h4>
+  <div class="markdown level1 summary"><p>Signals that the Subscription we use for receiving
+our RPC replies was disconnected while we were
+waiting.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void OnDisconnected()</code></pre>
+  </div>
+  <h5 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_OnDisconnected_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Fires the Disconnected event.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_SimpleRpcClient_OnTimedOut.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.SimpleRpcClient.OnTimedOut%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/SimpleRpcClient.cs/#L393">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_OnTimedOut_" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.OnTimedOut*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_OnTimedOut" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.OnTimedOut">OnTimedOut()</h4>
+  <div class="markdown level1 summary"><p>Signals that the configured timeout fired while
+waiting for an RPC reply.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void OnTimedOut()</code></pre>
+  </div>
+  <h5 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_OnTimedOut_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Fires the TimedOut event.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_SimpleRpcClient_RetrieveReply_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.SimpleRpcClient.RetrieveReply(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/SimpleRpcClient.cs/#L428">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_RetrieveReply_" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.RetrieveReply*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_RetrieveReply_System_String_" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.RetrieveReply(System.String)">RetrieveReply(String)</h4>
+  <div class="markdown level1 summary"><p>Retrieves the reply for the request with the given
+correlation ID from our internal Subscription.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual BasicDeliverEventArgs RetrieveReply(string correlationId)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">correlationId</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Events.BasicDeliverEventArgs.html">BasicDeliverEventArgs</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_RetrieveReply_System_String__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Currently requires replies to arrive in the same order as
+the requests were sent out. Subclasses may override this
+to provide more sophisticated behaviour.</p>
+</div>
+  <h3 id="events">Events
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Disconnected.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.SimpleRpcClient.Disconnected%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/SimpleRpcClient.cs/#L136">View Source</a>
+  </span>
+  <h4 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Disconnected" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.Disconnected">Disconnected</h4>
+  <div class="markdown level1 summary"><p>This event is fired whenever Call() detects the
+disconnection of the underlying Subscription while waiting
+for a reply from the service.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public event EventHandler Disconnected</code></pre>
+  </div>
+  <h5 class="eventType">Event Type</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.EventHandler</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_Disconnected_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>See also OnDisconnected(). Note that the sending of a
+request may result in OperationInterruptedException before
+the request is even sent.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_SimpleRpcClient_TimedOut.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.SimpleRpcClient.TimedOut%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/SimpleRpcClient.cs/#L144">View Source</a>
+  </span>
+  <h4 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_TimedOut" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.TimedOut">TimedOut</h4>
+  <div class="markdown level1 summary"><p>This event is fired whenever Call() decides that a
+timeout has occurred while waiting for a reply from the
+service.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public event EventHandler TimedOut</code></pre>
+  </div>
+  <h5 class="eventType">Event Type</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.EventHandler</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_TimedOut_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>See also OnTimedOut().</p>
+</div>
+  <h3 id="eii">Explicit Interface Implementations
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_SimpleRpcClient_System_IDisposable_Dispose.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.SimpleRpcClient.System%23IDisposable%23Dispose%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/SimpleRpcClient.cs/#L404">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_System_IDisposable_Dispose_" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.System#IDisposable#Dispose*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_SimpleRpcClient_System_IDisposable_Dispose" data-uid="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.System#IDisposable#Dispose">IDisposable.Dispose()</h4>
+  <div class="markdown level1 summary"><p>Implement the IDisposable interface, permitting
+SimpleRpcClient instances to be used in using
+statements.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void IDisposable.Dispose()</code></pre>
+  </div>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <span class="xref">System.IDisposable</span>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_SimpleRpcClient.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.SimpleRpcClient%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/SimpleRpcClient.cs/#L90" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Copyright © 2015-2017 Microsoft<br>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

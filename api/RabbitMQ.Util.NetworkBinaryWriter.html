@@ -1,0 +1,684 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class NetworkBinaryWriter
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class NetworkBinaryWriter
+   ">
+    <meta name="generator" content="docfx 2.31.0.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="RabbitMQ.Util.NetworkBinaryWriter">
+  
+  
+  <h1 id="RabbitMQ_Util_NetworkBinaryWriter" data-uid="RabbitMQ.Util.NetworkBinaryWriter" class="text-break">Class NetworkBinaryWriter
+  </h1>
+  <div class="markdown level0 summary"><p>Subclass of BinaryWriter that writes integers etc in correct network order.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">System.IO.BinaryWriter</span></div>
+    <div class="level2"><span class="xref">NetworkBinaryWriter</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><span class="xref">System.IDisposable</span></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Null</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.OutStream</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Close()</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Dispose(System.Boolean)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Dispose()</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Flush()</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Seek(System.Int32, System.IO.SeekOrigin)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Write(System.Boolean)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Write(System.Byte)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Write(System.SByte)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Write(System.Byte[])</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Write(System.Byte[], System.Int32, System.Int32)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Write(System.Char)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Write(System.Char[])</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Write(System.Char[], System.Int32, System.Int32)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Write(System.Decimal)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Write(System.String)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Write7BitEncodedInt(System.Int32)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.BaseStream</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="RabbitMQ.Util.html">RabbitMQ.Util</a></h6>
+  <h6><strong>Assembly</strong>: RabbitMQ.Client.WinRT.dll</h6>
+  <h5 id="RabbitMQ_Util_NetworkBinaryWriter_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class NetworkBinaryWriter : BinaryWriter, IDisposable</code></pre>
+  </div>
+  <h5 id="RabbitMQ_Util_NetworkBinaryWriter_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>
+Kludge to compensate for .NET&apos;s broken little-endian-only BinaryWriter.
+</p><p>
+See also NetworkBinaryReader.
+</p>
+</div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_NetworkBinaryWriter__ctor_System_IO_Stream_.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.NetworkBinaryWriter.%23ctor(System.IO.Stream)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/NetworkBinaryWriter.cs/#L63">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_NetworkBinaryWriter__ctor_" data-uid="RabbitMQ.Util.NetworkBinaryWriter.#ctor*"></a>
+  <h4 id="RabbitMQ_Util_NetworkBinaryWriter__ctor_System_IO_Stream_" data-uid="RabbitMQ.Util.NetworkBinaryWriter.#ctor(System.IO.Stream)">NetworkBinaryWriter(Stream)</h4>
+  <div class="markdown level1 summary"><p>Construct a NetworkBinaryWriter over the given input stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetworkBinaryWriter(Stream output)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.Stream</span></td>
+        <td><span class="parametername">output</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_NetworkBinaryWriter__ctor_System_IO_Stream_System_Text_Encoding_.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.NetworkBinaryWriter.%23ctor(System.IO.Stream%2CSystem.Text.Encoding)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/NetworkBinaryWriter.cs/#L71">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_NetworkBinaryWriter__ctor_" data-uid="RabbitMQ.Util.NetworkBinaryWriter.#ctor*"></a>
+  <h4 id="RabbitMQ_Util_NetworkBinaryWriter__ctor_System_IO_Stream_System_Text_Encoding_" data-uid="RabbitMQ.Util.NetworkBinaryWriter.#ctor(System.IO.Stream,System.Text.Encoding)">NetworkBinaryWriter(Stream, Encoding)</h4>
+  <div class="markdown level1 summary"><p>Construct a NetworkBinaryWriter over the given input
+stream, reading strings using the given encoding.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetworkBinaryWriter(Stream output, Encoding encoding)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.Stream</span></td>
+        <td><span class="parametername">output</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Text.Encoding</span></td>
+        <td><span class="parametername">encoding</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_NetworkBinaryWriter_TemporaryBinaryWriter_System_Int32_.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.NetworkBinaryWriter.TemporaryBinaryWriter(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/NetworkBinaryWriter.cs/#L78">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_NetworkBinaryWriter_TemporaryBinaryWriter_" data-uid="RabbitMQ.Util.NetworkBinaryWriter.TemporaryBinaryWriter*"></a>
+  <h4 id="RabbitMQ_Util_NetworkBinaryWriter_TemporaryBinaryWriter_System_Int32_" data-uid="RabbitMQ.Util.NetworkBinaryWriter.TemporaryBinaryWriter(System.Int32)">TemporaryBinaryWriter(Int32)</h4>
+  <div class="markdown level1 summary"><p>Helper method for constructing a temporary
+BinaryWriter streaming into a fresh MemoryStream
+provisioned with the given initialSize.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static BinaryWriter TemporaryBinaryWriter(int initialSize)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">initialSize</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.BinaryWriter</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_NetworkBinaryWriter_TemporaryContents_System_IO_BinaryWriter_.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.NetworkBinaryWriter.TemporaryContents(System.IO.BinaryWriter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/NetworkBinaryWriter.cs/#L86">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_NetworkBinaryWriter_TemporaryContents_" data-uid="RabbitMQ.Util.NetworkBinaryWriter.TemporaryContents*"></a>
+  <h4 id="RabbitMQ_Util_NetworkBinaryWriter_TemporaryContents_System_IO_BinaryWriter_" data-uid="RabbitMQ.Util.NetworkBinaryWriter.TemporaryContents(System.IO.BinaryWriter)">TemporaryContents(BinaryWriter)</h4>
+  <div class="markdown level1 summary"><p>Helper method for extracting the byte[] contents
+of a BinaryWriter over a MemoryStream, such as constructed
+by TemporaryBinaryWriter.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static byte[] TemporaryContents(BinaryWriter w)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.BinaryWriter</span></td>
+        <td><span class="parametername">w</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_NetworkBinaryWriter_Write_System_Double_.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.NetworkBinaryWriter.Write(System.Double)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/NetworkBinaryWriter.cs/#L170">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_NetworkBinaryWriter_Write_" data-uid="RabbitMQ.Util.NetworkBinaryWriter.Write*"></a>
+  <h4 id="RabbitMQ_Util_NetworkBinaryWriter_Write_System_Double_" data-uid="RabbitMQ.Util.NetworkBinaryWriter.Write(System.Double)">Write(Double)</h4>
+  <div class="markdown level1 summary"><p>Override BinaryWriter&apos;s method for network-order.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Write(double d)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Double</span></td>
+        <td><span class="parametername">d</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryWriter.Write(System.Double)</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_NetworkBinaryWriter_Write_System_Int16_.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.NetworkBinaryWriter.Write(System.Int16)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/NetworkBinaryWriter.cs/#L94">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_NetworkBinaryWriter_Write_" data-uid="RabbitMQ.Util.NetworkBinaryWriter.Write*"></a>
+  <h4 id="RabbitMQ_Util_NetworkBinaryWriter_Write_System_Int16_" data-uid="RabbitMQ.Util.NetworkBinaryWriter.Write(System.Int16)">Write(Int16)</h4>
+  <div class="markdown level1 summary"><p>Override BinaryWriter&apos;s method for network-order.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Write(short i)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int16</span></td>
+        <td><span class="parametername">i</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryWriter.Write(System.Int16)</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_NetworkBinaryWriter_Write_System_Int32_.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.NetworkBinaryWriter.Write(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/NetworkBinaryWriter.cs/#L112">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_NetworkBinaryWriter_Write_" data-uid="RabbitMQ.Util.NetworkBinaryWriter.Write*"></a>
+  <h4 id="RabbitMQ_Util_NetworkBinaryWriter_Write_System_Int32_" data-uid="RabbitMQ.Util.NetworkBinaryWriter.Write(System.Int32)">Write(Int32)</h4>
+  <div class="markdown level1 summary"><p>Override BinaryWriter&apos;s method for network-order.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Write(int i)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">i</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryWriter.Write(System.Int32)</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_NetworkBinaryWriter_Write_System_Int64_.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.NetworkBinaryWriter.Write(System.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/NetworkBinaryWriter.cs/#L134">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_NetworkBinaryWriter_Write_" data-uid="RabbitMQ.Util.NetworkBinaryWriter.Write*"></a>
+  <h4 id="RabbitMQ_Util_NetworkBinaryWriter_Write_System_Int64_" data-uid="RabbitMQ.Util.NetworkBinaryWriter.Write(System.Int64)">Write(Int64)</h4>
+  <div class="markdown level1 summary"><p>Override BinaryWriter&apos;s method for network-order.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Write(long i)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">i</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryWriter.Write(System.Int64)</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_NetworkBinaryWriter_Write_System_Single_.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.NetworkBinaryWriter.Write(System.Single)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/NetworkBinaryWriter.cs/#L156">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_NetworkBinaryWriter_Write_" data-uid="RabbitMQ.Util.NetworkBinaryWriter.Write*"></a>
+  <h4 id="RabbitMQ_Util_NetworkBinaryWriter_Write_System_Single_" data-uid="RabbitMQ.Util.NetworkBinaryWriter.Write(System.Single)">Write(Single)</h4>
+  <div class="markdown level1 summary"><p>Override BinaryWriter&apos;s method for network-order.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Write(float f)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Single</span></td>
+        <td><span class="parametername">f</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryWriter.Write(System.Single)</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_NetworkBinaryWriter_Write_System_UInt16_.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.NetworkBinaryWriter.Write(System.UInt16)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/NetworkBinaryWriter.cs/#L103">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_NetworkBinaryWriter_Write_" data-uid="RabbitMQ.Util.NetworkBinaryWriter.Write*"></a>
+  <h4 id="RabbitMQ_Util_NetworkBinaryWriter_Write_System_UInt16_" data-uid="RabbitMQ.Util.NetworkBinaryWriter.Write(System.UInt16)">Write(UInt16)</h4>
+  <div class="markdown level1 summary"><p>Override BinaryWriter&apos;s method for network-order.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Write(ushort i)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt16</span></td>
+        <td><span class="parametername">i</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryWriter.Write(System.UInt16)</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_NetworkBinaryWriter_Write_System_UInt32_.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.NetworkBinaryWriter.Write(System.UInt32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/NetworkBinaryWriter.cs/#L123">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_NetworkBinaryWriter_Write_" data-uid="RabbitMQ.Util.NetworkBinaryWriter.Write*"></a>
+  <h4 id="RabbitMQ_Util_NetworkBinaryWriter_Write_System_UInt32_" data-uid="RabbitMQ.Util.NetworkBinaryWriter.Write(System.UInt32)">Write(UInt32)</h4>
+  <div class="markdown level1 summary"><p>Override BinaryWriter&apos;s method for network-order.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Write(uint i)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt32</span></td>
+        <td><span class="parametername">i</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryWriter.Write(System.UInt32)</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_NetworkBinaryWriter_Write_System_UInt64_.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.NetworkBinaryWriter.Write(System.UInt64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/NetworkBinaryWriter.cs/#L145">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_NetworkBinaryWriter_Write_" data-uid="RabbitMQ.Util.NetworkBinaryWriter.Write*"></a>
+  <h4 id="RabbitMQ_Util_NetworkBinaryWriter_Write_System_UInt64_" data-uid="RabbitMQ.Util.NetworkBinaryWriter.Write(System.UInt64)">Write(UInt64)</h4>
+  <div class="markdown level1 summary"><p>Override BinaryWriter&apos;s method for network-order.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Write(ulong i)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td><span class="parametername">i</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryWriter.Write(System.UInt64)</span></div>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <span class="xref">System.IDisposable</span>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_NetworkBinaryWriter.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.NetworkBinaryWriter%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/NetworkBinaryWriter.cs/#L58" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Copyright © 2015-2017 Microsoft<br>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

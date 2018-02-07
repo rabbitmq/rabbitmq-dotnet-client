@@ -1,0 +1,1154 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class Subscription
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class Subscription
+   ">
+    <meta name="generator" content="docfx 2.31.0.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="RabbitMQ.Client.MessagePatterns.Subscription">
+  
+  
+  <h1 id="RabbitMQ_Client_MessagePatterns_Subscription" data-uid="RabbitMQ.Client.MessagePatterns.Subscription" class="text-break">Class Subscription
+  </h1>
+  <div class="markdown level0 summary"><p>Manages a subscription to a queue.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">Subscription</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="RabbitMQ.Client.MessagePatterns.ISubscription.html">ISubscription</a></div>
+    <div><span class="xref">System.Collections.IEnumerable</span></div>
+    <div><span class="xref">System.Collections.IEnumerator</span></div>
+    <div><span class="xref">System.IDisposable</span></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="RabbitMQ.Client.MessagePatterns.html">RabbitMQ.Client.MessagePatterns</a></h6>
+  <h6><strong>Assembly</strong>: RabbitMQ.Client.WinRT.dll</h6>
+  <h5 id="RabbitMQ_Client_MessagePatterns_Subscription_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class Subscription : ISubscription, IEnumerable, IEnumerator, IDisposable</code></pre>
+  </div>
+  <h5 id="RabbitMQ_Client_MessagePatterns_Subscription_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>
+ This convenience class abstracts away from much of the detail
+ involved in receiving messages from a queue.
+</p>
+<p>
+ Once created, the Subscription consumes from a queue (using a
+ EventingBasicConsumer). Received deliveries can be retrieved
+ by calling Next(), or by using the Subscription as an
+ IEnumerator in, for example, a foreach loop.
+</p>
+<p>
+ Note that if the &quot;autoAck&quot; option is enabled (which it is by
+ default), then received deliveries are automatically acked
+ within the server before they are even transmitted across the
+ network to us. Calling Ack() on received events will always do
+ the right thing: if &quot;autoAck&quot; is enabled, nothing is done on an
+ Ack() call, and if &quot;autoAck&quot; is disabled, IModel.BasicAck() is
+ called with the correct parameters.
+</p>
+</div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_Subscription__ctor_RabbitMQ_Client_IModel_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.Subscription.%23ctor(RabbitMQ.Client.IModel%2CSystem.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/Subscription.cs/#L91">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_Subscription__ctor_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.#ctor*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_Subscription__ctor_RabbitMQ_Client_IModel_System_String_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.#ctor(RabbitMQ.Client.IModel,System.String)">Subscription(IModel, String)</h4>
+  <div class="markdown level1 summary"><p>Creates a new Subscription in &quot;autoAck&quot; mode,
+consuming from a named queue.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Subscription(IModel model, string queueName)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
+        <td><span class="parametername">model</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">queueName</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_Subscription__ctor_RabbitMQ_Client_IModel_System_String_System_Boolean_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.Subscription.%23ctor(RabbitMQ.Client.IModel%2CSystem.String%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/Subscription.cs/#L98">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_Subscription__ctor_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.#ctor*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_Subscription__ctor_RabbitMQ_Client_IModel_System_String_System_Boolean_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.#ctor(RabbitMQ.Client.IModel,System.String,System.Boolean)">Subscription(IModel, String, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Creates a new Subscription, with full control over
+both &quot;autoAck&quot; mode and the name of the queue.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Subscription(IModel model, string queueName, bool autoAck)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
+        <td><span class="parametername">model</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">queueName</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">autoAck</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_Subscription__ctor_RabbitMQ_Client_IModel_System_String_System_Boolean_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.Subscription.%23ctor(RabbitMQ.Client.IModel%2CSystem.String%2CSystem.Boolean%2CSystem.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/Subscription.cs/#L116">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_Subscription__ctor_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.#ctor*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_Subscription__ctor_RabbitMQ_Client_IModel_System_String_System_Boolean_System_String_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.#ctor(RabbitMQ.Client.IModel,System.String,System.Boolean,System.String)">Subscription(IModel, String, Boolean, String)</h4>
+  <div class="markdown level1 summary"><p>Creates a new Subscription, with full control over
+both &quot;autoAck&quot; mode, the name of the queue, and the consumer tag.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Subscription(IModel model, string queueName, bool autoAck, string consumerTag)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
+        <td><span class="parametername">model</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">queueName</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">autoAck</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">consumerTag</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="fields">Fields
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_Subscription_m_consumer.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.Subscription.m_consumer%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/Subscription.cs/#L79">View Source</a>
+  </span>
+  <h4 id="RabbitMQ_Client_MessagePatterns_Subscription_m_consumer" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.m_consumer">m_consumer</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected volatile EventingBasicConsumer m_consumer</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Events.EventingBasicConsumer.html">EventingBasicConsumer</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_Subscription_m_eventLock.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.Subscription.m_eventLock%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/Subscription.cs/#L78">View Source</a>
+  </span>
+  <h4 id="RabbitMQ_Client_MessagePatterns_Subscription_m_eventLock" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.m_eventLock">m_eventLock</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected readonly object m_eventLock</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_Subscription_AutoAck.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.Subscription.AutoAck%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/Subscription.cs/#L158">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_Subscription_AutoAck_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.AutoAck*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_Subscription_AutoAck" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.AutoAck">AutoAck</h4>
+  <div class="markdown level1 summary"><p>Returns true if we are in &quot;autoAck&quot; mode, where
+calls to Ack() will be no-ops, and where the server acks
+messages before they are delivered to us. Returns false if
+we are in a mode where calls to Ack() are required, and
+where such calls will actually send an acknowledgement
+message across the network to the server.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool AutoAck { get; protected set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_Subscription_Consumer.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.Subscription.Consumer%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/Subscription.cs/#L132">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_Subscription_Consumer_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.Consumer*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_Subscription_Consumer" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.Consumer">Consumer</h4>
+  <div class="markdown level1 summary"><p>Retrieve the IBasicConsumer that is receiving the
+messages from the server for us. Normally, you will not
+need to access this property - use Next() and friends
+instead.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IBasicConsumer Consumer { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IBasicConsumer.html">IBasicConsumer</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_Subscription_ConsumerTag.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.Subscription.ConsumerTag%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/Subscription.cs/#L140">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_Subscription_ConsumerTag_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.ConsumerTag*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_Subscription_ConsumerTag" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.ConsumerTag">ConsumerTag</h4>
+  <div class="markdown level1 summary"><p>Retrieve the consumer-tag that this subscription
+is using. Will usually be a server-generated
+name.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string ConsumerTag { get; protected set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_Subscription_LatestEvent.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.Subscription.LatestEvent%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/Subscription.cs/#L147">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_Subscription_LatestEvent_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.LatestEvent*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_Subscription_LatestEvent" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.LatestEvent">LatestEvent</h4>
+  <div class="markdown level1 summary"><p>Returns the most recent value returned by Next(),
+or null when either no values have been retrieved yet, the
+end of the subscription has been reached, or the most
+recent value has already been Ack()ed. See also the
+documentation for Ack().</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public BasicDeliverEventArgs LatestEvent { get; protected set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Events.BasicDeliverEventArgs.html">BasicDeliverEventArgs</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_Subscription_Model.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.Subscription.Model%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/Subscription.cs/#L150">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_Subscription_Model_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.Model*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_Subscription_Model" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.Model">Model</h4>
+  <div class="markdown level1 summary"><p>Retrieve the IModel our subscription is carried by.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IModel Model { get; protected set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_Subscription_QueueName.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.Subscription.QueueName%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/Subscription.cs/#L161">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_Subscription_QueueName_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.QueueName*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_Subscription_QueueName" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.QueueName">QueueName</h4>
+  <div class="markdown level1 summary"><p>Retrieve the queue name we have subscribed to.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string QueueName { get; protected set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_Subscription_Ack.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.Subscription.Ack%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/Subscription.cs/#L191">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_Subscription_Ack_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.Ack*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_Subscription_Ack" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.Ack">Ack()</h4>
+  <div class="markdown level1 summary"><p>If LatestEvent is non-null, passes it to
+Ack(BasicDeliverEventArgs). Causes LatestEvent to become
+null.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Ack()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_Subscription_Ack_RabbitMQ_Client_Events_BasicDeliverEventArgs_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.Subscription.Ack(RabbitMQ.Client.Events.BasicDeliverEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/Subscription.cs/#L205">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_Subscription_Ack_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.Ack*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_Subscription_Ack_RabbitMQ_Client_Events_BasicDeliverEventArgs_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.Ack(RabbitMQ.Client.Events.BasicDeliverEventArgs)">Ack(BasicDeliverEventArgs)</h4>
+  <div class="markdown level1 summary"><p>If we are not in &quot;autoAck&quot; mode, calls
+IModel.BasicAck with the delivery-tag from <code data-dev-comment-type="paramref" class="paramref">evt</code>;
+otherwise, sends nothing to the server. if <code data-dev-comment-type="paramref" class="paramref">evt</code> is the same as LatestEvent
+by pointer comparison, sets LatestEvent to null.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Ack(BasicDeliverEventArgs evt)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Events.BasicDeliverEventArgs.html">BasicDeliverEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_MessagePatterns_Subscription_Ack_RabbitMQ_Client_Events_BasicDeliverEventArgs__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Passing an event that did not originate with this Subscription&apos;s
+channel, will lead to unpredictable behaviour</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_Subscription_Close.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.Subscription.Close%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/Subscription.cs/#L225">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_Subscription_Close_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.Close*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_Subscription_Close" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.Close">Close()</h4>
+  <div class="markdown level1 summary"><p>Closes this Subscription, cancelling the consumer
+record in the server.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Close()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_Subscription_MutateLatestEvent_RabbitMQ_Client_Events_BasicDeliverEventArgs_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.Subscription.MutateLatestEvent(RabbitMQ.Client.Events.BasicDeliverEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/Subscription.cs/#L516">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_Subscription_MutateLatestEvent_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.MutateLatestEvent*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_Subscription_MutateLatestEvent_RabbitMQ_Client_Events_BasicDeliverEventArgs_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.MutateLatestEvent(RabbitMQ.Client.Events.BasicDeliverEventArgs)">MutateLatestEvent(BasicDeliverEventArgs)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected void MutateLatestEvent(BasicDeliverEventArgs value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Events.BasicDeliverEventArgs.html">BasicDeliverEventArgs</a></td>
+        <td><span class="parametername">value</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_Subscription_Nack_RabbitMQ_Client_Events_BasicDeliverEventArgs_System_Boolean_System_Boolean_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.Subscription.Nack(RabbitMQ.Client.Events.BasicDeliverEventArgs%2CSystem.Boolean%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/Subscription.cs/#L291">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_Subscription_Nack_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.Nack*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_Subscription_Nack_RabbitMQ_Client_Events_BasicDeliverEventArgs_System_Boolean_System_Boolean_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.Nack(RabbitMQ.Client.Events.BasicDeliverEventArgs,System.Boolean,System.Boolean)">Nack(BasicDeliverEventArgs, Boolean, Boolean)</h4>
+  <div class="markdown level1 summary"><p>If we are not in &quot;autoAck&quot; mode, calls
+IModel.BasicNack with the delivery-tag from <code data-dev-comment-type="paramref" class="paramref">evt</code>;
+otherwise, sends nothing to the server. if <code data-dev-comment-type="paramref" class="paramref">evt</code> is the same as LatestEvent
+by pointer comparison, sets LatestEvent to null.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Nack(BasicDeliverEventArgs evt, bool multiple, bool requeue)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Events.BasicDeliverEventArgs.html">BasicDeliverEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">multiple</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">requeue</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_MessagePatterns_Subscription_Nack_RabbitMQ_Client_Events_BasicDeliverEventArgs_System_Boolean_System_Boolean__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Passing an event that did not originate with this Subscription&apos;s
+channel, will lead to unpredictable behaviour</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_Subscription_Nack_System_Boolean_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.Subscription.Nack(System.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/Subscription.cs/#L269">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_Subscription_Nack_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.Nack*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_Subscription_Nack_System_Boolean_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.Nack(System.Boolean)">Nack(Boolean)</h4>
+  <div class="markdown level1 summary"><p>If LatestEvent is non-null, passes it to
+Nack(BasicDeliverEventArgs, false, requeue). Causes LatestEvent to become
+null.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Nack(bool requeue)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">requeue</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_Subscription_Nack_System_Boolean_System_Boolean_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.Subscription.Nack(System.Boolean%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/Subscription.cs/#L277">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_Subscription_Nack_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.Nack*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_Subscription_Nack_System_Boolean_System_Boolean_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.Nack(System.Boolean,System.Boolean)">Nack(Boolean, Boolean)</h4>
+  <div class="markdown level1 summary"><p>If LatestEvent is non-null, passes it to
+Nack(BasicDeliverEventArgs, multiple, requeue). Causes LatestEvent to become
+null.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Nack(bool multiple, bool requeue)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">multiple</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">requeue</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_Subscription_Next.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.Subscription.Next%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/Subscription.cs/#L327">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_Subscription_Next_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.Next*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_Subscription_Next" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.Next">Next()</h4>
+  <div class="markdown level1 summary"><p>Retrieves the next incoming delivery in our
+subscription queue.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public BasicDeliverEventArgs Next()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Events.BasicDeliverEventArgs.html">BasicDeliverEventArgs</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_MessagePatterns_Subscription_Next_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+ Returns null when the end of the stream is reached and on
+ every subsequent call. End-of-stream can arise through the
+ action of the Subscription.Close() method, or through the
+ closure of the IModel or its underlying IConnection.
+</p>
+<p>
+ Updates LatestEvent to the value returned.
+</p>
+<p>
+ Does not acknowledge any deliveries at all (but in &quot;autoAck&quot;
+ mode, the server will have auto-acknowledged each event
+ before it is even sent across the wire to us).
+</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_Subscription_Next_System_Int32_RabbitMQ_Client_Events_BasicDeliverEventArgs__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.Subscription.Next(System.Int32%2CRabbitMQ.Client.Events.BasicDeliverEventArgs%40)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/Subscription.cs/#L443">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_Subscription_Next_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.Next*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_Subscription_Next_System_Int32_RabbitMQ_Client_Events_BasicDeliverEventArgs__" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.Next(System.Int32,RabbitMQ.Client.Events.BasicDeliverEventArgs@)">Next(Int32, out BasicDeliverEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Retrieves the next incoming delivery in our
+subscription queue, or times out after a specified number
+of milliseconds.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool Next(int millisecondsTimeout, out BasicDeliverEventArgs result)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">millisecondsTimeout</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Events.BasicDeliverEventArgs.html">BasicDeliverEventArgs</a></td>
+        <td><span class="parametername">result</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_MessagePatterns_Subscription_Next_System_Int32_RabbitMQ_Client_Events_BasicDeliverEventArgs___remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+ Returns false only if the timeout expires before either a
+ delivery appears or the end-of-stream is reached. If false
+ is returned, the out parameter &quot;result&quot; is set to null,
+ but LatestEvent is not updated.
+</p>
+<p>
+ Returns true to indicate a delivery or the end-of-stream.
+</p>
+<p>
+ If a delivery is already waiting in the queue, or one
+ arrives before the timeout expires, it is removed from the
+ queue and placed in the &quot;result&quot; out parameter. If the
+ end-of-stream is detected before the timeout expires,
+ &quot;result&quot; is set to null.
+</p>
+<p>
+ Whenever this method returns true, it updates LatestEvent
+ to the value placed in &quot;result&quot; before returning.
+</p>
+<p>
+ End-of-stream can arise through the action of the
+ Subscription.Close() method, or through the closure of the
+ IModel or its underlying IConnection.
+</p>
+<p>
+ This method does not acknowledge any deliveries at all
+ (but in &quot;autoAck&quot; mode, the server will have
+ auto-acknowledged each event before it is even sent across
+ the wire to us).
+</p>
+<p>
+ A timeout of -1 (i.e. System.Threading.Timeout.Infinite)
+ will be interpreted as a command to wait for an
+ indefinitely long period of time for an item or the end of
+ the stream to become available. Usage of such a timeout is
+ equivalent to calling Next() with no arguments (modulo
+ predictable method signature differences).
+</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_Subscription_NextAsync.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.Subscription.NextAsync%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/Subscription.cs/#L353">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_Subscription_NextAsync_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.NextAsync*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_Subscription_NextAsync" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.NextAsync">NextAsync()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;BasicDeliverEventArgs&gt; NextAsync()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="RabbitMQ.Client.Events.BasicDeliverEventArgs.html">BasicDeliverEventArgs</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="eii">Explicit Interface Implementations
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_Subscription_System_Collections_IEnumerable_GetEnumerator.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.Subscription.System%23Collections%23IEnumerable%23GetEnumerator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/Subscription.cs/#L487">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_Subscription_System_Collections_IEnumerable_GetEnumerator_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.System#Collections#IEnumerable#GetEnumerator*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_Subscription_System_Collections_IEnumerable_GetEnumerator" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.System#Collections#IEnumerable#GetEnumerator">IEnumerable.GetEnumerator()</h4>
+  <div class="markdown level1 summary"><p>Implementation of the IEnumerable interface, for
+permitting Subscription to be used in foreach
+loops.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IEnumerator IEnumerable.GetEnumerator()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IEnumerator</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_Subscription_System_Collections_IEnumerator_Current.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.Subscription.System%23Collections%23IEnumerator%23Current%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/Subscription.cs/#L176">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_Subscription_System_Collections_IEnumerator_Current_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.System#Collections#IEnumerator#Current*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_Subscription_System_Collections_IEnumerator_Current" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.System#Collections#IEnumerator#Current">IEnumerator.Current</h4>
+  <div class="markdown level1 summary"><p>Implementation of the IEnumerator interface, for
+permitting Subscription to be used in foreach
+loops.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">object IEnumerator.Current { get; }</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_MessagePatterns_Subscription_System_Collections_IEnumerator_Current_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+ As per the IEnumerator interface definition, throws
+ InvalidOperationException if LatestEvent is null.
+</p>
+<p>
+ Does not acknowledge any deliveries at all. Ack() must be
+ called explicitly on received deliveries.
+</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_Subscription_System_Collections_IEnumerator_MoveNext.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.Subscription.System%23Collections%23IEnumerator%23MoveNext%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/Subscription.cs/#L501">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_Subscription_System_Collections_IEnumerator_MoveNext_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.System#Collections#IEnumerator#MoveNext*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_Subscription_System_Collections_IEnumerator_MoveNext" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.System#Collections#IEnumerator#MoveNext">IEnumerator.MoveNext()</h4>
+  <div class="markdown level1 summary"><p>Implementation of the IEnumerator interface, for
+permitting Subscription to be used in foreach
+loops.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IEnumerator.MoveNext()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_MessagePatterns_Subscription_System_Collections_IEnumerator_MoveNext_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+ Does not acknowledge any deliveries at all. Ack() must be
+ called explicitly on received deliveries.
+</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_Subscription_System_Collections_IEnumerator_Reset.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.Subscription.System%23Collections%23IEnumerator%23Reset%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/Subscription.cs/#L510">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_Subscription_System_Collections_IEnumerator_Reset_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.System#Collections#IEnumerator#Reset*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_Subscription_System_Collections_IEnumerator_Reset" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.System#Collections#IEnumerator#Reset">IEnumerator.Reset()</h4>
+  <div class="markdown level1 summary"><p>Dummy implementation of the IEnumerator interface,
+for permitting Subscription to be used in foreach loops;
+Reset()ting a Subscription doesn&apos;t make sense, so this
+method always throws InvalidOperationException.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void IEnumerator.Reset()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_Subscription_System_IDisposable_Dispose.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.Subscription.System%23IDisposable%23Dispose%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/Subscription.cs/#L479">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_MessagePatterns_Subscription_System_IDisposable_Dispose_" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.System#IDisposable#Dispose*"></a>
+  <h4 id="RabbitMQ_Client_MessagePatterns_Subscription_System_IDisposable_Dispose" data-uid="RabbitMQ.Client.MessagePatterns.Subscription.System#IDisposable#Dispose">IDisposable.Dispose()</h4>
+  <div class="markdown level1 summary"><p>Implementation of the IDisposable interface,
+permitting Subscription to be used in using
+statements. Simply calls Close().</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void IDisposable.Dispose()</code></pre>
+  </div>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="RabbitMQ.Client.MessagePatterns.ISubscription.html">ISubscription</a>
+  </div>
+  <div>
+      <span class="xref">System.Collections.IEnumerable</span>
+  </div>
+  <div>
+      <span class="xref">System.Collections.IEnumerator</span>
+  </div>
+  <div>
+      <span class="xref">System.IDisposable</span>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_MessagePatterns_Subscription.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.MessagePatterns.Subscription%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/messagepatterns/Subscription.cs/#L76" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Copyright © 2015-2017 Microsoft<br>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

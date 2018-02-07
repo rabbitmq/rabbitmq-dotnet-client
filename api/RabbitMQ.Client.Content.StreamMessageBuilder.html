@@ -1,0 +1,984 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class StreamMessageBuilder
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class StreamMessageBuilder
+   ">
+    <meta name="generator" content="docfx 2.31.0.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder">
+  
+  
+  <h1 id="RabbitMQ_Client_Content_StreamMessageBuilder" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder" class="text-break">Class StreamMessageBuilder
+  </h1>
+  <div class="markdown level0 summary"><p>Constructs AMQP Basic-class messages binary-compatible with QPid&apos;s &quot;StreamMessage&quot; wire encoding.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="RabbitMQ.Client.Content.BasicMessageBuilder.html">BasicMessageBuilder</a></div>
+    <div class="level2"><span class="xref">StreamMessageBuilder</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="RabbitMQ.Client.Content.IStreamMessageBuilder.html">IStreamMessageBuilder</a></div>
+    <div><a class="xref" href="RabbitMQ.Client.Content.IMessageBuilder.html">IMessageBuilder</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Content.BasicMessageBuilder.html#RabbitMQ_Client_Content_BasicMessageBuilder_DefaultAccumulatorSize">BasicMessageBuilder.DefaultAccumulatorSize</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Content.BasicMessageBuilder.html#RabbitMQ_Client_Content_BasicMessageBuilder_m_accumulator">BasicMessageBuilder.m_accumulator</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Content.BasicMessageBuilder.html#RabbitMQ_Client_Content_BasicMessageBuilder_m_writer">BasicMessageBuilder.m_writer</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Content.BasicMessageBuilder.html#RabbitMQ_Client_Content_BasicMessageBuilder_Properties">BasicMessageBuilder.Properties</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Content.BasicMessageBuilder.html#RabbitMQ_Client_Content_BasicMessageBuilder_Writer">BasicMessageBuilder.Writer</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Content.BasicMessageBuilder.html#RabbitMQ_Client_Content_BasicMessageBuilder_BodyStream">BasicMessageBuilder.BodyStream</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Content.BasicMessageBuilder.html#RabbitMQ_Client_Content_BasicMessageBuilder_Headers">BasicMessageBuilder.Headers</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Content.BasicMessageBuilder.html#RabbitMQ_Client_Content_BasicMessageBuilder_GetContentBody">BasicMessageBuilder.GetContentBody()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Content.BasicMessageBuilder.html#RabbitMQ_Client_Content_BasicMessageBuilder_GetContentHeader">BasicMessageBuilder.GetContentHeader()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Content.BasicMessageBuilder.html#RabbitMQ_Client_Content_BasicMessageBuilder_RawWrite_System_Byte_">BasicMessageBuilder.RawWrite(Byte)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Content.BasicMessageBuilder.html#RabbitMQ_Client_Content_BasicMessageBuilder_RawWrite_System_Byte___">BasicMessageBuilder.RawWrite(Byte[])</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Content.BasicMessageBuilder.html#RabbitMQ_Client_Content_BasicMessageBuilder_RawWrite_System_Byte___System_Int32_System_Int32_">BasicMessageBuilder.RawWrite(Byte[], Int32, Int32)</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="RabbitMQ.Client.Content.html">RabbitMQ.Client.Content</a></h6>
+  <h6><strong>Assembly</strong>: RabbitMQ.Client.WinRT.dll</h6>
+  <h5 id="RabbitMQ_Client_Content_StreamMessageBuilder_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class StreamMessageBuilder : BasicMessageBuilder, IStreamMessageBuilder, IMessageBuilder</code></pre>
+  </div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Content_StreamMessageBuilder__ctor_RabbitMQ_Client_IModel_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Content.StreamMessageBuilder.%23ctor(RabbitMQ.Client.IModel)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/content/StreamMessageBuilder.cs/#L56">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Content_StreamMessageBuilder__ctor_" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.#ctor*"></a>
+  <h4 id="RabbitMQ_Client_Content_StreamMessageBuilder__ctor_RabbitMQ_Client_IModel_" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.#ctor(RabbitMQ.Client.IModel)">StreamMessageBuilder(IModel)</h4>
+  <div class="markdown level1 summary"><p>Construct an instance for writing. See <a class="xref" href="RabbitMQ.Client.Content.BasicMessageBuilder.html">BasicMessageBuilder</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public StreamMessageBuilder(IModel model)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
+        <td><span class="parametername">model</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Content_StreamMessageBuilder__ctor_RabbitMQ_Client_IModel_System_Int32_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Content.StreamMessageBuilder.%23ctor(RabbitMQ.Client.IModel%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/content/StreamMessageBuilder.cs/#L64">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Content_StreamMessageBuilder__ctor_" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.#ctor*"></a>
+  <h4 id="RabbitMQ_Client_Content_StreamMessageBuilder__ctor_RabbitMQ_Client_IModel_System_Int32_" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.#ctor(RabbitMQ.Client.IModel,System.Int32)">StreamMessageBuilder(IModel, Int32)</h4>
+  <div class="markdown level1 summary"><p>Construct an instance for writing. See <a class="xref" href="RabbitMQ.Client.Content.BasicMessageBuilder.html">BasicMessageBuilder</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public StreamMessageBuilder(IModel model, int initialAccumulatorSize)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
+        <td><span class="parametername">model</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">initialAccumulatorSize</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="fields">Fields
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Content_StreamMessageBuilder_MimeType.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Content.StreamMessageBuilder.MimeType%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/content/StreamMessageBuilder.cs/#L51">View Source</a>
+  </span>
+  <h4 id="RabbitMQ_Client_Content_StreamMessageBuilder_MimeType" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.MimeType">MimeType</h4>
+  <div class="markdown level1 summary"><p>MIME type associated with QPid StreamMessages.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const string MimeType = &quot;jms/stream-message&quot;</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Content_StreamMessageBuilder_GetDefaultContentType.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Content.StreamMessageBuilder.GetDefaultContentType%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/content/StreamMessageBuilder.cs/#L73">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Content_StreamMessageBuilder_GetDefaultContentType_" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.GetDefaultContentType*"></a>
+  <h4 id="RabbitMQ_Client_Content_StreamMessageBuilder_GetDefaultContentType" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.GetDefaultContentType">GetDefaultContentType()</h4>
+  <div class="markdown level1 summary"><p>Returns the default MIME content type for messages this instance constructs,
+or null if none is available or relevant.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string GetDefaultContentType()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="RabbitMQ.Client.Content.BasicMessageBuilder.html#RabbitMQ_Client_Content_BasicMessageBuilder_GetDefaultContentType">BasicMessageBuilder.GetDefaultContentType()</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Content_StreamMessageBuilder_WriteBool_System_Boolean_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Content.StreamMessageBuilder.WriteBool(System.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/content/StreamMessageBuilder.cs/#L81">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Content_StreamMessageBuilder_WriteBool_" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.WriteBool*"></a>
+  <h4 id="RabbitMQ_Client_Content_StreamMessageBuilder_WriteBool_System_Boolean_" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.WriteBool(System.Boolean)">WriteBool(Boolean)</h4>
+  <div class="markdown level1 summary"><p>Writes a <span class="xref">System.Boolean</span> value into the message body being assembled.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IStreamMessageBuilder WriteBool(bool value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">value</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Content.IStreamMessageBuilder.html">IStreamMessageBuilder</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Content_StreamMessageBuilder_WriteByte_System_Byte_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Content.StreamMessageBuilder.WriteByte(System.Byte)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/content/StreamMessageBuilder.cs/#L90">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Content_StreamMessageBuilder_WriteByte_" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.WriteByte*"></a>
+  <h4 id="RabbitMQ_Client_Content_StreamMessageBuilder_WriteByte_System_Byte_" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.WriteByte(System.Byte)">WriteByte(Byte)</h4>
+  <div class="markdown level1 summary"><p>Writes a <span class="xref">System.Byte</span> value into the message body being assembled.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IStreamMessageBuilder WriteByte(byte value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span></td>
+        <td><span class="parametername">value</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Content.IStreamMessageBuilder.html">IStreamMessageBuilder</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Content_StreamMessageBuilder_WriteBytes_System_Byte___.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Content.StreamMessageBuilder.WriteBytes(System.Byte%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/content/StreamMessageBuilder.cs/#L108">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Content_StreamMessageBuilder_WriteBytes_" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.WriteBytes*"></a>
+  <h4 id="RabbitMQ_Client_Content_StreamMessageBuilder_WriteBytes_System_Byte___" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.WriteBytes(System.Byte[])">WriteBytes(Byte[])</h4>
+  <div class="markdown level1 summary"><p>Writes a <span class="xref">System.Byte</span> array into the message body being assembled.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IStreamMessageBuilder WriteBytes(byte[] source)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td><span class="parametername">source</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Content.IStreamMessageBuilder.html">IStreamMessageBuilder</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Content_StreamMessageBuilder_WriteBytes_System_Byte___System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Content.StreamMessageBuilder.WriteBytes(System.Byte%5B%5D%2CSystem.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/content/StreamMessageBuilder.cs/#L99">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Content_StreamMessageBuilder_WriteBytes_" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.WriteBytes*"></a>
+  <h4 id="RabbitMQ_Client_Content_StreamMessageBuilder_WriteBytes_System_Byte___System_Int32_System_Int32_" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.WriteBytes(System.Byte[],System.Int32,System.Int32)">WriteBytes(Byte[], Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Writes a section of a byte array into the message body being assembled.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IStreamMessageBuilder WriteBytes(byte[] source, int offset, int count)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td><span class="parametername">source</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">offset</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">count</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Content.IStreamMessageBuilder.html">IStreamMessageBuilder</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Content_StreamMessageBuilder_WriteChar_System_Char_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Content.StreamMessageBuilder.WriteChar(System.Char)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/content/StreamMessageBuilder.cs/#L117">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Content_StreamMessageBuilder_WriteChar_" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.WriteChar*"></a>
+  <h4 id="RabbitMQ_Client_Content_StreamMessageBuilder_WriteChar_System_Char_" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.WriteChar(System.Char)">WriteChar(Char)</h4>
+  <div class="markdown level1 summary"><p>Writes a <span class="xref">System.Char</span> value into the message body being assembled.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IStreamMessageBuilder WriteChar(char value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Char</span></td>
+        <td><span class="parametername">value</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Content.IStreamMessageBuilder.html">IStreamMessageBuilder</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Content_StreamMessageBuilder_WriteDouble_System_Double_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Content.StreamMessageBuilder.WriteDouble(System.Double)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/content/StreamMessageBuilder.cs/#L126">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Content_StreamMessageBuilder_WriteDouble_" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.WriteDouble*"></a>
+  <h4 id="RabbitMQ_Client_Content_StreamMessageBuilder_WriteDouble_System_Double_" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.WriteDouble(System.Double)">WriteDouble(Double)</h4>
+  <div class="markdown level1 summary"><p>Writes a <span class="xref">System.Double</span> value into the message body being assembled.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IStreamMessageBuilder WriteDouble(double value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Double</span></td>
+        <td><span class="parametername">value</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Content.IStreamMessageBuilder.html">IStreamMessageBuilder</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Content_StreamMessageBuilder_WriteInt16_System_Int16_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Content.StreamMessageBuilder.WriteInt16(System.Int16)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/content/StreamMessageBuilder.cs/#L135">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Content_StreamMessageBuilder_WriteInt16_" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.WriteInt16*"></a>
+  <h4 id="RabbitMQ_Client_Content_StreamMessageBuilder_WriteInt16_System_Int16_" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.WriteInt16(System.Int16)">WriteInt16(Int16)</h4>
+  <div class="markdown level1 summary"><p>Writes a <span class="xref">System.Int16</span> value into the message body being assembled.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IStreamMessageBuilder WriteInt16(short value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int16</span></td>
+        <td><span class="parametername">value</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Content.IStreamMessageBuilder.html">IStreamMessageBuilder</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Content_StreamMessageBuilder_WriteInt32_System_Int32_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Content.StreamMessageBuilder.WriteInt32(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/content/StreamMessageBuilder.cs/#L144">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Content_StreamMessageBuilder_WriteInt32_" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.WriteInt32*"></a>
+  <h4 id="RabbitMQ_Client_Content_StreamMessageBuilder_WriteInt32_System_Int32_" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.WriteInt32(System.Int32)">WriteInt32(Int32)</h4>
+  <div class="markdown level1 summary"><p>Writes an <span class="xref">System.Int32</span> value into the message body being assembled.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IStreamMessageBuilder WriteInt32(int value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">value</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Content.IStreamMessageBuilder.html">IStreamMessageBuilder</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Content_StreamMessageBuilder_WriteInt64_System_Int64_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Content.StreamMessageBuilder.WriteInt64(System.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/content/StreamMessageBuilder.cs/#L153">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Content_StreamMessageBuilder_WriteInt64_" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.WriteInt64*"></a>
+  <h4 id="RabbitMQ_Client_Content_StreamMessageBuilder_WriteInt64_System_Int64_" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.WriteInt64(System.Int64)">WriteInt64(Int64)</h4>
+  <div class="markdown level1 summary"><p>Writes a <span class="xref">System.Int64</span> value into the message body being assembled.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IStreamMessageBuilder WriteInt64(long value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">value</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Content.IStreamMessageBuilder.html">IStreamMessageBuilder</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Content_StreamMessageBuilder_WriteObject_System_Object_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Content.StreamMessageBuilder.WriteObject(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/content/StreamMessageBuilder.cs/#L166">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Content_StreamMessageBuilder_WriteObject_" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.WriteObject*"></a>
+  <h4 id="RabbitMQ_Client_Content_StreamMessageBuilder_WriteObject_System_Object_" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.WriteObject(System.Object)">WriteObject(Object)</h4>
+  <div class="markdown level1 summary"><p>Writes an <span class="xref">System.Object</span> value into the message body being assembled.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IStreamMessageBuilder WriteObject(object value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">value</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Content.IStreamMessageBuilder.html">IStreamMessageBuilder</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_Content_StreamMessageBuilder_WriteObject_System_Object__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The only permitted types are bool, int, short, byte, char,
+long, float, double, byte[] and string.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Content_StreamMessageBuilder_WriteObjects_System_Object___.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Content.StreamMessageBuilder.WriteObjects(System.Object%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/content/StreamMessageBuilder.cs/#L176">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Content_StreamMessageBuilder_WriteObjects_" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.WriteObjects*"></a>
+  <h4 id="RabbitMQ_Client_Content_StreamMessageBuilder_WriteObjects_System_Object___" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.WriteObjects(System.Object[])">WriteObjects(Object[])</h4>
+  <div class="markdown level1 summary"><p>Writes objects using WriteObject(), one after the other. No length indicator is written.
+See also <a class="xref" href="RabbitMQ.Client.Content.IStreamMessageReader.html#RabbitMQ_Client_Content_IStreamMessageReader_ReadObjects">ReadObjects()</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IStreamMessageBuilder WriteObjects(params object[] values)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span>[]</td>
+        <td><span class="parametername">values</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Content.IStreamMessageBuilder.html">IStreamMessageBuilder</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Content_StreamMessageBuilder_WriteSingle_System_Single_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Content.StreamMessageBuilder.WriteSingle(System.Single)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/content/StreamMessageBuilder.cs/#L188">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Content_StreamMessageBuilder_WriteSingle_" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.WriteSingle*"></a>
+  <h4 id="RabbitMQ_Client_Content_StreamMessageBuilder_WriteSingle_System_Single_" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.WriteSingle(System.Single)">WriteSingle(Single)</h4>
+  <div class="markdown level1 summary"><p>Writes a <span class="xref">System.Single</span> value into the message body being assembled.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IStreamMessageBuilder WriteSingle(float value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Single</span></td>
+        <td><span class="parametername">value</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Content.IStreamMessageBuilder.html">IStreamMessageBuilder</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Content_StreamMessageBuilder_WriteString_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Content.StreamMessageBuilder.WriteString(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/content/StreamMessageBuilder.cs/#L197">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Content_StreamMessageBuilder_WriteString_" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.WriteString*"></a>
+  <h4 id="RabbitMQ_Client_Content_StreamMessageBuilder_WriteString_System_String_" data-uid="RabbitMQ.Client.Content.StreamMessageBuilder.WriteString(System.String)">WriteString(String)</h4>
+  <div class="markdown level1 summary"><p>Writes a <span class="xref">System.Single</span>string value into the message body being assembled.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IStreamMessageBuilder WriteString(string value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">value</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Content.IStreamMessageBuilder.html">IStreamMessageBuilder</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="RabbitMQ.Client.Content.IStreamMessageBuilder.html">IStreamMessageBuilder</a>
+  </div>
+  <div>
+      <a class="xref" href="RabbitMQ.Client.Content.IMessageBuilder.html">IMessageBuilder</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Content_StreamMessageBuilder.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Content.StreamMessageBuilder%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/content/StreamMessageBuilder.cs/#L46" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Copyright © 2015-2017 Microsoft<br>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

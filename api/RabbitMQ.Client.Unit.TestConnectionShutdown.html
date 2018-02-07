@@ -1,0 +1,376 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class TestConnectionShutdown
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class TestConnectionShutdown
+   ">
+    <meta name="generator" content="docfx 2.31.0.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="RabbitMQ.Client.Unit.TestConnectionShutdown">
+  
+  
+  <h1 id="RabbitMQ_Client_Unit_TestConnectionShutdown" data-uid="RabbitMQ.Client.Unit.TestConnectionShutdown" class="text-break">Class TestConnectionShutdown
+  </h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html">IntegrationFixture</a></div>
+    <div class="level2"><span class="xref">TestConnectionShutdown</span></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_Conn">IntegrationFixture.Conn</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_Model">IntegrationFixture.Model</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_encoding">IntegrationFixture.encoding</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_RECOVERY_INTERVAL">IntegrationFixture.RECOVERY_INTERVAL</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_Init">IntegrationFixture.Init()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_Dispose">IntegrationFixture.Dispose()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_ReleaseResources">IntegrationFixture.ReleaseResources()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_CreateAutorecoveringConnection">IntegrationFixture.CreateAutorecoveringConnection()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_CreateAutorecoveringConnection_System_Collections_Generic_IList_System_String__">IntegrationFixture.CreateAutorecoveringConnection(IList&lt;String&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_CreateAutorecoveringConnection_System_TimeSpan_">IntegrationFixture.CreateAutorecoveringConnection(TimeSpan)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_CreateAutorecoveringConnection_System_TimeSpan_System_Collections_Generic_IList_System_String__">IntegrationFixture.CreateAutorecoveringConnection(TimeSpan, IList&lt;String&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_CreateAutorecoveringConnection_System_Collections_Generic_IList_RabbitMQ_Client_AmqpTcpEndpoint__">IntegrationFixture.CreateAutorecoveringConnection(IList&lt;AmqpTcpEndpoint&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_CreateAutorecoveringConnectionWithTopologyRecoveryDisabled">IntegrationFixture.CreateAutorecoveringConnectionWithTopologyRecoveryDisabled()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_CreateNonRecoveringConnection">IntegrationFixture.CreateNonRecoveringConnection()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WithTemporaryAutorecoveringConnection_System_Action_RabbitMQ_Client_Framing_Impl_AutorecoveringConnection__">IntegrationFixture.WithTemporaryAutorecoveringConnection(Action&lt;AutorecoveringConnection&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WithTemporaryModel_RabbitMQ_Client_IConnection_System_Action_RabbitMQ_Client_IModel__">IntegrationFixture.WithTemporaryModel(IConnection, Action&lt;IModel&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WithTemporaryModel_System_Action_RabbitMQ_Client_IModel__">IntegrationFixture.WithTemporaryModel(Action&lt;IModel&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WithClosedModel_System_Action_RabbitMQ_Client_IModel__">IntegrationFixture.WithClosedModel(Action&lt;IModel&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WaitForConfirms_RabbitMQ_Client_IModel_">IntegrationFixture.WaitForConfirms(IModel)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_GenerateExchangeName">IntegrationFixture.GenerateExchangeName()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_RandomMessageBody">IntegrationFixture.RandomMessageBody()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_DeclareNonDurableExchange_RabbitMQ_Client_IModel_System_String_">IntegrationFixture.DeclareNonDurableExchange(IModel, String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_DeclareNonDurableExchangeNoWait_RabbitMQ_Client_IModel_System_String_">IntegrationFixture.DeclareNonDurableExchangeNoWait(IModel, String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_GenerateQueueName">IntegrationFixture.GenerateQueueName()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WithTemporaryQueue_System_Action_RabbitMQ_Client_IModel_System_String__">IntegrationFixture.WithTemporaryQueue(Action&lt;IModel, String&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WithTemporaryNonExclusiveQueue_System_Action_RabbitMQ_Client_IModel_System_String__">IntegrationFixture.WithTemporaryNonExclusiveQueue(Action&lt;IModel, String&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WithTemporaryQueue_RabbitMQ_Client_IModel_System_Action_RabbitMQ_Client_IModel_System_String__">IntegrationFixture.WithTemporaryQueue(IModel, Action&lt;IModel, String&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WithTemporaryNonExclusiveQueue_RabbitMQ_Client_IModel_System_Action_RabbitMQ_Client_IModel_System_String__">IntegrationFixture.WithTemporaryNonExclusiveQueue(IModel, Action&lt;IModel, String&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WithTemporaryQueue_System_Action_RabbitMQ_Client_IModel_System_String__System_String_">IntegrationFixture.WithTemporaryQueue(Action&lt;IModel, String&gt;, String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WithTemporaryQueue_RabbitMQ_Client_IModel_System_Action_RabbitMQ_Client_IModel_System_String__System_String_">IntegrationFixture.WithTemporaryQueue(IModel, Action&lt;IModel, String&gt;, String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WithTemporaryNonExclusiveQueue_RabbitMQ_Client_IModel_System_Action_RabbitMQ_Client_IModel_System_String__System_String_">IntegrationFixture.WithTemporaryNonExclusiveQueue(IModel, Action&lt;IModel, String&gt;, String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WithTemporaryQueueNoWait_RabbitMQ_Client_IModel_System_Action_RabbitMQ_Client_IModel_System_String__System_String_">IntegrationFixture.WithTemporaryQueueNoWait(IModel, Action&lt;IModel, String&gt;, String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_EnsureNotEmpty_System_String_">IntegrationFixture.EnsureNotEmpty(String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_EnsureNotEmpty_System_String_System_String_">IntegrationFixture.EnsureNotEmpty(String, String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WithNonEmptyQueue_System_Action_RabbitMQ_Client_IModel_System_String__">IntegrationFixture.WithNonEmptyQueue(Action&lt;IModel, String&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WithNonEmptyQueue_System_Action_RabbitMQ_Client_IModel_System_String__System_String_">IntegrationFixture.WithNonEmptyQueue(Action&lt;IModel, String&gt;, String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WithEmptyQueue_System_Action_RabbitMQ_Client_IModel_System_String__">IntegrationFixture.WithEmptyQueue(Action&lt;IModel, String&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_AssertMessageCount_System_String_System_Int32_">IntegrationFixture.AssertMessageCount(String, Int32)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_AssertConsumerCount_System_String_System_Int32_">IntegrationFixture.AssertConsumerCount(String, Int32)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_AssertConsumerCount_RabbitMQ_Client_IModel_System_String_System_Int32_">IntegrationFixture.AssertConsumerCount(IModel, String, Int32)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_AssertShutdownError_RabbitMQ_Client_ShutdownEventArgs_System_Int32_">IntegrationFixture.AssertShutdownError(ShutdownEventArgs, Int32)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_AssertPreconditionFailed_RabbitMQ_Client_ShutdownEventArgs_">IntegrationFixture.AssertPreconditionFailed(ShutdownEventArgs)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_InitiatedByPeerOrLibrary_RabbitMQ_Client_ShutdownEventArgs_">IntegrationFixture.InitiatedByPeerOrLibrary(ShutdownEventArgs)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WaitOn_System_Object_">IntegrationFixture.WaitOn(Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_ExecRabbitMQCtl_System_String_">IntegrationFixture.ExecRabbitMQCtl(String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_ExecCommand_System_String_">IntegrationFixture.ExecCommand(String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_ExecCommand_System_String_System_String_">IntegrationFixture.ExecCommand(String, String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_ExecCommand_System_String_System_String_System_String_">IntegrationFixture.ExecCommand(String, String, String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_ReportExecFailure_System_String_System_String_System_String_">IntegrationFixture.ReportExecFailure(String, String, String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_IsRunningOnMonoOrDotNetCore">IntegrationFixture.IsRunningOnMonoOrDotNetCore()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_Block">IntegrationFixture.Block()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_Unblock">IntegrationFixture.Unblock()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_Publish_RabbitMQ_Client_IConnection_">IntegrationFixture.Publish(IConnection)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_ListConnections">IntegrationFixture.ListConnections()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_CloseConnection_RabbitMQ_Client_IConnection_">IntegrationFixture.CloseConnection(IConnection)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_CloseAllConnections">IntegrationFixture.CloseAllConnections()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_CloseConnection_System_String_">IntegrationFixture.CloseConnection(String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_RestartRabbitMQ">IntegrationFixture.RestartRabbitMQ()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_StopRabbitMQ">IntegrationFixture.StopRabbitMQ()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_StartRabbitMQ">IntegrationFixture.StartRabbitMQ()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_Wait_System_Threading_ManualResetEvent_">IntegrationFixture.Wait(ManualResetEvent)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_Wait_System_Threading_ManualResetEvent_System_TimeSpan_">IntegrationFixture.Wait(ManualResetEvent, TimeSpan)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_CertificatesDirectory">IntegrationFixture.CertificatesDirectory()</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="RabbitMQ.Client.Unit.html">RabbitMQ.Client.Unit</a></h6>
+  <h6><strong>Assembly</strong>: unit-tests.dll</h6>
+  <h5 id="RabbitMQ_Client_Unit_TestConnectionShutdown_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class TestConnectionShutdown : IntegrationFixture</code></pre>
+  </div>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionShutdown_TestConsumerDispatcherShutdown.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionShutdown.TestConsumerDispatcherShutdown%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/TestConnectionShutdown.cs/#L65">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Unit_TestConnectionShutdown_TestConsumerDispatcherShutdown_" data-uid="RabbitMQ.Client.Unit.TestConnectionShutdown.TestConsumerDispatcherShutdown*"></a>
+  <h4 id="RabbitMQ_Client_Unit_TestConnectionShutdown_TestConsumerDispatcherShutdown" data-uid="RabbitMQ.Client.Unit.TestConnectionShutdown.TestConsumerDispatcherShutdown">TestConsumerDispatcherShutdown()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void TestConsumerDispatcherShutdown()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionShutdown_TestShutdownSignalPropagationToChannels.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionShutdown.TestShutdownSignalPropagationToChannels%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/TestConnectionShutdown.cs/#L52">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Unit_TestConnectionShutdown_TestShutdownSignalPropagationToChannels_" data-uid="RabbitMQ.Client.Unit.TestConnectionShutdown.TestShutdownSignalPropagationToChannels*"></a>
+  <h4 id="RabbitMQ_Client_Unit_TestConnectionShutdown_TestShutdownSignalPropagationToChannels" data-uid="RabbitMQ.Client.Unit.TestConnectionShutdown.TestShutdownSignalPropagationToChannels">TestShutdownSignalPropagationToChannels()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void TestShutdownSignalPropagationToChannels()</code></pre>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionShutdown.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionShutdown%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/TestConnectionShutdown.cs/#L49" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Copyright © 2015-2017 Microsoft<br>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,170 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Namespace RabbitMQ.Client.Apigen.Attributes
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Namespace RabbitMQ.Client.Apigen.Attributes
+   ">
+    <meta name="generator" content="docfx 2.31.0.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="RabbitMQ.Client.Apigen.Attributes">
+  
+  <h1 id="RabbitMQ_Client_Apigen_Attributes" data-uid="RabbitMQ.Client.Apigen.Attributes" class="text-break">Namespace RabbitMQ.Client.Apigen.Attributes
+  </h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="markdown level0 remarks"></div>
+    <h3 id="classes">Classes
+  </h3>
+      <h4><a class="xref" href="RabbitMQ.Client.Apigen.Attributes.AmqpApigenAttribute.html">AmqpApigenAttribute</a></h4>
+      <section><p>Base class for attributes for controlling the API
+autogeneration process.</p>
+</section>
+      <h4><a class="xref" href="RabbitMQ.Client.Apigen.Attributes.AmqpAsynchronousHandlerAttribute.html">AmqpAsynchronousHandlerAttribute</a></h4>
+      <section><p>Causes the API generator to generate asynchronous
+receive code for the attributed method.</p>
+</section>
+      <h4><a class="xref" href="RabbitMQ.Client.Apigen.Attributes.AmqpContentBodyMappingAttribute.html">AmqpContentBodyMappingAttribute</a></h4>
+      <section><p>This attribute, if placed on a parameter in a
+content-carrying IModel method, causes it to be sent as part of
+the content body frame.</p>
+</section>
+      <h4><a class="xref" href="RabbitMQ.Client.Apigen.Attributes.AmqpContentHeaderFactoryAttribute.html">AmqpContentHeaderFactoryAttribute</a></h4>
+      <section><p>This attribute, if placed on a method in IModel,
+causes the method to be interpreted as a factory method
+producing a protocol-specific implementation of a common
+content header interface.</p>
+</section>
+      <h4><a class="xref" href="RabbitMQ.Client.Apigen.Attributes.AmqpContentHeaderMappingAttribute.html">AmqpContentHeaderMappingAttribute</a></h4>
+      <section><p>This attribute, if placed on a parameter in a
+content-carrying IModel method, causes it to be sent as part of
+the content header frame.</p>
+</section>
+      <h4><a class="xref" href="RabbitMQ.Client.Apigen.Attributes.AmqpFieldMappingAttribute.html">AmqpFieldMappingAttribute</a></h4>
+      <section><p>Informs the API generator which AMQP method field to
+use for either a parameter in a request, or for a simple result
+in a reply.</p>
+</section>
+      <h4><a class="xref" href="RabbitMQ.Client.Apigen.Attributes.AmqpForceOneWayAttribute.html">AmqpForceOneWayAttribute</a></h4>
+      <section><p>This attribute, placed on an IModel method, causes
+what would normally be an RPC, sent with ModelRpc, to be sent
+as if it were oneway, with ModelSend. The assumption that this
+is for a custom continuation (e.g. for BasicConsume/BasicCancel
+etc.)</p>
+</section>
+      <h4><a class="xref" href="RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute.html">AmqpMethodDoNotImplementAttribute</a></h4>
+      <section><p>Causes the API generator to ignore the attributed method.</p>
+</section>
+      <h4><a class="xref" href="RabbitMQ.Client.Apigen.Attributes.AmqpMethodMappingAttribute.html">AmqpMethodMappingAttribute</a></h4>
+      <section><p>Informs the API generator which AMQP method to use for
+either a request (if applied to an IModel method) or a reply
+(if applied to an IModel method result).</p>
+</section>
+      <h4><a class="xref" href="RabbitMQ.Client.Apigen.Attributes.AmqpNowaitArgumentAttribute.html">AmqpNowaitArgumentAttribute</a></h4>
+      <section><p>This attribute, if placed on a parameter in an IModel
+method, causes it to be interpreted as a &quot;nowait&quot; parameter for
+the purposes of autogenerated RPC reply continuation management
+and control.</p>
+</section>
+      <h4><a class="xref" href="RabbitMQ.Client.Apigen.Attributes.AmqpUnsupportedAttribute.html">AmqpUnsupportedAttribute</a></h4>
+      <section><p>Causes the API generator to generate
+exception-throwing code for, instead of simply ignoring, the
+attributed method.</p>
+</section>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Copyright © 2015-2017 Microsoft<br>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

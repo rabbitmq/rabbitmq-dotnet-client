@@ -1,0 +1,1356 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Interface IBasicProperties
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Interface IBasicProperties
+   ">
+    <meta name="generator" content="docfx 2.31.0.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="RabbitMQ.Client.IBasicProperties">
+  
+  
+  <h1 id="RabbitMQ_Client_IBasicProperties" data-uid="RabbitMQ.Client.IBasicProperties" class="text-break">Interface IBasicProperties
+  </h1>
+  <div class="markdown level0 summary"><p>Common AMQP Basic content-class headers interface,
+spanning the union of the functionality offered by versions
+0-8, 0-8qpid, 0-9 and 0-9-1 of AMQP.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.IContentHeader.html#RabbitMQ_Client_IContentHeader_ProtocolClassId">IContentHeader.ProtocolClassId</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.IContentHeader.html#RabbitMQ_Client_IContentHeader_ProtocolClassName">IContentHeader.ProtocolClassName</a>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="RabbitMQ.Client.html">RabbitMQ.Client</a></h6>
+  <h6><strong>Assembly</strong>: RabbitMQ.Client.WinRT.dll</h6>
+  <h5 id="RabbitMQ_Client_IBasicProperties_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IBasicProperties : IContentHeader</code></pre>
+  </div>
+  <h5 id="RabbitMQ_Client_IBasicProperties_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>
+The specification code generator provides
+protocol-version-specific implementations of this interface. To
+obtain an implementation of this interface in a
+protocol-version-neutral way, use <a class="xref" href="RabbitMQ.Client.IModel.html#RabbitMQ_Client_IModel_CreateBasicProperties">CreateBasicProperties()</a>.
+</p>
+<p>
+Each property is readable, writable and clearable: a cleared
+property will not be transmitted over the wire. Properties on a
+fresh instance are clear by default.
+</p>
+</div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_AppId.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.AppId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L67">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_AppId_" data-uid="RabbitMQ.Client.IBasicProperties.AppId*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_AppId" data-uid="RabbitMQ.Client.IBasicProperties.AppId">AppId</h4>
+  <div class="markdown level1 summary"><p>Application Id.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string AppId { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_ClusterId.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.ClusterId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L72">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_ClusterId_" data-uid="RabbitMQ.Client.IBasicProperties.ClusterId*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_ClusterId" data-uid="RabbitMQ.Client.IBasicProperties.ClusterId">ClusterId</h4>
+  <div class="markdown level1 summary"><p>Intra-cluster routing identifier (cluster id is deprecated in AMQP 0-9-1).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string ClusterId { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_ContentEncoding.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.ContentEncoding%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L77">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_ContentEncoding_" data-uid="RabbitMQ.Client.IBasicProperties.ContentEncoding*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_ContentEncoding" data-uid="RabbitMQ.Client.IBasicProperties.ContentEncoding">ContentEncoding</h4>
+  <div class="markdown level1 summary"><p>MIME content encoding.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string ContentEncoding { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_ContentType.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.ContentType%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L82">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_ContentType_" data-uid="RabbitMQ.Client.IBasicProperties.ContentType*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_ContentType" data-uid="RabbitMQ.Client.IBasicProperties.ContentType">ContentType</h4>
+  <div class="markdown level1 summary"><p>MIME content type.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string ContentType { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_CorrelationId.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.CorrelationId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L87">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_CorrelationId_" data-uid="RabbitMQ.Client.IBasicProperties.CorrelationId*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_CorrelationId" data-uid="RabbitMQ.Client.IBasicProperties.CorrelationId">CorrelationId</h4>
+  <div class="markdown level1 summary"><p>Application correlation identifier.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string CorrelationId { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_DeliveryMode.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.DeliveryMode%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L92">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_DeliveryMode_" data-uid="RabbitMQ.Client.IBasicProperties.DeliveryMode*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_DeliveryMode" data-uid="RabbitMQ.Client.IBasicProperties.DeliveryMode">DeliveryMode</h4>
+  <div class="markdown level1 summary"><p>Non-persistent (1) or persistent (2).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">byte DeliveryMode { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_Expiration.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.Expiration%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L97">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_Expiration_" data-uid="RabbitMQ.Client.IBasicProperties.Expiration*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_Expiration" data-uid="RabbitMQ.Client.IBasicProperties.Expiration">Expiration</h4>
+  <div class="markdown level1 summary"><p>Message expiration specification.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string Expiration { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_Headers.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.Headers%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L102">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_Headers_" data-uid="RabbitMQ.Client.IBasicProperties.Headers*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_Headers" data-uid="RabbitMQ.Client.IBasicProperties.Headers">Headers</h4>
+  <div class="markdown level1 summary"><p>Message header field table. Is of type <span class="xref">System.Collections.Generic.IDictionary&lt;TKey, TValue&gt;</span>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IDictionary&lt;string, object&gt; Headers { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IDictionary</span>&lt;<span class="xref">System.String</span>, <span class="xref">System.Object</span>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_MessageId.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.MessageId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L107">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_MessageId_" data-uid="RabbitMQ.Client.IBasicProperties.MessageId*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_MessageId" data-uid="RabbitMQ.Client.IBasicProperties.MessageId">MessageId</h4>
+  <div class="markdown level1 summary"><p>Application message Id.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string MessageId { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_Persistent.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.Persistent%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L112">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_Persistent_" data-uid="RabbitMQ.Client.IBasicProperties.Persistent*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_Persistent" data-uid="RabbitMQ.Client.IBasicProperties.Persistent">Persistent</h4>
+  <div class="markdown level1 summary"><p>Sets <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_DeliveryMode">DeliveryMode</a> to either persistent (2) or non-persistent (1).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool Persistent { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_Priority.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.Priority%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L117">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_Priority_" data-uid="RabbitMQ.Client.IBasicProperties.Priority*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_Priority" data-uid="RabbitMQ.Client.IBasicProperties.Priority">Priority</h4>
+  <div class="markdown level1 summary"><p>Message priority, 0 to 9.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">byte Priority { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_ReplyTo.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.ReplyTo%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L122">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_ReplyTo_" data-uid="RabbitMQ.Client.IBasicProperties.ReplyTo*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_ReplyTo" data-uid="RabbitMQ.Client.IBasicProperties.ReplyTo">ReplyTo</h4>
+  <div class="markdown level1 summary"><p>Destination to reply to.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string ReplyTo { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_ReplyToAddress.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.ReplyToAddress%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L129">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_ReplyToAddress_" data-uid="RabbitMQ.Client.IBasicProperties.ReplyToAddress*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_ReplyToAddress" data-uid="RabbitMQ.Client.IBasicProperties.ReplyToAddress">ReplyToAddress</h4>
+  <div class="markdown level1 summary"><p>Convenience property; parses <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_ReplyTo">ReplyTo</a> property using <a class="xref" href="RabbitMQ.Client.PublicationAddress.html#RabbitMQ_Client_PublicationAddress_Parse_System_String_">Parse(String)</a>,
+and serializes it using <a class="xref" href="RabbitMQ.Client.PublicationAddress.html#RabbitMQ_Client_PublicationAddress_ToString">ToString()</a>.
+Returns null if <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_ReplyTo">ReplyTo</a> property cannot be parsed by <a class="xref" href="RabbitMQ.Client.PublicationAddress.html#RabbitMQ_Client_PublicationAddress_Parse_System_String_">Parse(String)</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">PublicationAddress ReplyToAddress { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.PublicationAddress.html">PublicationAddress</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_Timestamp.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.Timestamp%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L134">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_Timestamp_" data-uid="RabbitMQ.Client.IBasicProperties.Timestamp*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_Timestamp" data-uid="RabbitMQ.Client.IBasicProperties.Timestamp">Timestamp</h4>
+  <div class="markdown level1 summary"><p>Message timestamp.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">AmqpTimestamp Timestamp { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.AmqpTimestamp.html">AmqpTimestamp</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_Type.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.Type%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L139">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_Type_" data-uid="RabbitMQ.Client.IBasicProperties.Type*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_Type" data-uid="RabbitMQ.Client.IBasicProperties.Type">Type</h4>
+  <div class="markdown level1 summary"><p>Message type name.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string Type { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_UserId.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.UserId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L144">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_UserId_" data-uid="RabbitMQ.Client.IBasicProperties.UserId*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_UserId" data-uid="RabbitMQ.Client.IBasicProperties.UserId">UserId</h4>
+  <div class="markdown level1 summary"><p>User Id.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string UserId { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_ClearAppId.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.ClearAppId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L149">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_ClearAppId_" data-uid="RabbitMQ.Client.IBasicProperties.ClearAppId*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_ClearAppId" data-uid="RabbitMQ.Client.IBasicProperties.ClearAppId">ClearAppId()</h4>
+  <div class="markdown level1 summary"><p>Clear the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_AppId">AppId</a> property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void ClearAppId()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_ClearClusterId.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.ClearClusterId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L154">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_ClearClusterId_" data-uid="RabbitMQ.Client.IBasicProperties.ClearClusterId*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_ClearClusterId" data-uid="RabbitMQ.Client.IBasicProperties.ClearClusterId">ClearClusterId()</h4>
+  <div class="markdown level1 summary"><p>Clear the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_ClusterId">ClusterId</a> property (cluster id is deprecated in AMQP 0-9-1).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void ClearClusterId()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_ClearContentEncoding.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.ClearContentEncoding%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L159">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_ClearContentEncoding_" data-uid="RabbitMQ.Client.IBasicProperties.ClearContentEncoding*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_ClearContentEncoding" data-uid="RabbitMQ.Client.IBasicProperties.ClearContentEncoding">ClearContentEncoding()</h4>
+  <div class="markdown level1 summary"><p>Clear the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_ContentEncoding">ContentEncoding</a> property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void ClearContentEncoding()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_ClearContentType.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.ClearContentType%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L164">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_ClearContentType_" data-uid="RabbitMQ.Client.IBasicProperties.ClearContentType*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_ClearContentType" data-uid="RabbitMQ.Client.IBasicProperties.ClearContentType">ClearContentType()</h4>
+  <div class="markdown level1 summary"><p>Clear the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_ContentType">ContentType</a> property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void ClearContentType()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_ClearCorrelationId.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.ClearCorrelationId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L169">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_ClearCorrelationId_" data-uid="RabbitMQ.Client.IBasicProperties.ClearCorrelationId*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_ClearCorrelationId" data-uid="RabbitMQ.Client.IBasicProperties.ClearCorrelationId">ClearCorrelationId()</h4>
+  <div class="markdown level1 summary"><p>Clear the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_CorrelationId">CorrelationId</a> property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void ClearCorrelationId()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_ClearDeliveryMode.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.ClearDeliveryMode%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L174">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_ClearDeliveryMode_" data-uid="RabbitMQ.Client.IBasicProperties.ClearDeliveryMode*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_ClearDeliveryMode" data-uid="RabbitMQ.Client.IBasicProperties.ClearDeliveryMode">ClearDeliveryMode()</h4>
+  <div class="markdown level1 summary"><p>Clear the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_DeliveryMode">DeliveryMode</a> property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void ClearDeliveryMode()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_ClearExpiration.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.ClearExpiration%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L179">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_ClearExpiration_" data-uid="RabbitMQ.Client.IBasicProperties.ClearExpiration*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_ClearExpiration" data-uid="RabbitMQ.Client.IBasicProperties.ClearExpiration">ClearExpiration()</h4>
+  <div class="markdown level1 summary"><p>Clear the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_Expiration">Expiration</a> property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void ClearExpiration()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_ClearHeaders.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.ClearHeaders%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L184">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_ClearHeaders_" data-uid="RabbitMQ.Client.IBasicProperties.ClearHeaders*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_ClearHeaders" data-uid="RabbitMQ.Client.IBasicProperties.ClearHeaders">ClearHeaders()</h4>
+  <div class="markdown level1 summary"><p>Clear the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_Headers">Headers</a> property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void ClearHeaders()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_ClearMessageId.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.ClearMessageId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L189">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_ClearMessageId_" data-uid="RabbitMQ.Client.IBasicProperties.ClearMessageId*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_ClearMessageId" data-uid="RabbitMQ.Client.IBasicProperties.ClearMessageId">ClearMessageId()</h4>
+  <div class="markdown level1 summary"><p>Clear the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_MessageId">MessageId</a> property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void ClearMessageId()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_ClearPriority.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.ClearPriority%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L194">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_ClearPriority_" data-uid="RabbitMQ.Client.IBasicProperties.ClearPriority*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_ClearPriority" data-uid="RabbitMQ.Client.IBasicProperties.ClearPriority">ClearPriority()</h4>
+  <div class="markdown level1 summary"><p>Clear the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_Priority">Priority</a> property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void ClearPriority()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_ClearReplyTo.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.ClearReplyTo%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L199">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_ClearReplyTo_" data-uid="RabbitMQ.Client.IBasicProperties.ClearReplyTo*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_ClearReplyTo" data-uid="RabbitMQ.Client.IBasicProperties.ClearReplyTo">ClearReplyTo()</h4>
+  <div class="markdown level1 summary"><p>Clear the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_ReplyTo">ReplyTo</a> property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void ClearReplyTo()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_ClearTimestamp.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.ClearTimestamp%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L204">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_ClearTimestamp_" data-uid="RabbitMQ.Client.IBasicProperties.ClearTimestamp*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_ClearTimestamp" data-uid="RabbitMQ.Client.IBasicProperties.ClearTimestamp">ClearTimestamp()</h4>
+  <div class="markdown level1 summary"><p>Clear the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_Timestamp">Timestamp</a> property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void ClearTimestamp()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_ClearType.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.ClearType%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L209">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_ClearType_" data-uid="RabbitMQ.Client.IBasicProperties.ClearType*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_ClearType" data-uid="RabbitMQ.Client.IBasicProperties.ClearType">ClearType()</h4>
+  <div class="markdown level1 summary"><p>Clear the Type property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void ClearType()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_ClearUserId.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.ClearUserId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L214">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_ClearUserId_" data-uid="RabbitMQ.Client.IBasicProperties.ClearUserId*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_ClearUserId" data-uid="RabbitMQ.Client.IBasicProperties.ClearUserId">ClearUserId()</h4>
+  <div class="markdown level1 summary"><p>Clear the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_UserId">UserId</a> property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void ClearUserId()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_IsAppIdPresent.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.IsAppIdPresent%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L219">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_IsAppIdPresent_" data-uid="RabbitMQ.Client.IBasicProperties.IsAppIdPresent*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_IsAppIdPresent" data-uid="RabbitMQ.Client.IBasicProperties.IsAppIdPresent">IsAppIdPresent()</h4>
+  <div class="markdown level1 summary"><p>Returns true if the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_AppId">AppId</a> property is present.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsAppIdPresent()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_IsClusterIdPresent.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.IsClusterIdPresent%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L224">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_IsClusterIdPresent_" data-uid="RabbitMQ.Client.IBasicProperties.IsClusterIdPresent*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_IsClusterIdPresent" data-uid="RabbitMQ.Client.IBasicProperties.IsClusterIdPresent">IsClusterIdPresent()</h4>
+  <div class="markdown level1 summary"><p>Returns true if the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_ClusterId">ClusterId</a> property is present (cluster id is deprecated in AMQP 0-9-1).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsClusterIdPresent()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_IsContentEncodingPresent.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.IsContentEncodingPresent%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L229">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_IsContentEncodingPresent_" data-uid="RabbitMQ.Client.IBasicProperties.IsContentEncodingPresent*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_IsContentEncodingPresent" data-uid="RabbitMQ.Client.IBasicProperties.IsContentEncodingPresent">IsContentEncodingPresent()</h4>
+  <div class="markdown level1 summary"><p>Returns true if the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_ContentEncoding">ContentEncoding</a> property is present.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsContentEncodingPresent()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_IsContentTypePresent.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.IsContentTypePresent%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L234">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_IsContentTypePresent_" data-uid="RabbitMQ.Client.IBasicProperties.IsContentTypePresent*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_IsContentTypePresent" data-uid="RabbitMQ.Client.IBasicProperties.IsContentTypePresent">IsContentTypePresent()</h4>
+  <div class="markdown level1 summary"><p>Returns true if the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_ContentType">ContentType</a> property is present.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsContentTypePresent()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_IsCorrelationIdPresent.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.IsCorrelationIdPresent%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L239">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_IsCorrelationIdPresent_" data-uid="RabbitMQ.Client.IBasicProperties.IsCorrelationIdPresent*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_IsCorrelationIdPresent" data-uid="RabbitMQ.Client.IBasicProperties.IsCorrelationIdPresent">IsCorrelationIdPresent()</h4>
+  <div class="markdown level1 summary"><p>Returns true if the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_CorrelationId">CorrelationId</a> property is present.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsCorrelationIdPresent()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_IsDeliveryModePresent.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.IsDeliveryModePresent%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L244">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_IsDeliveryModePresent_" data-uid="RabbitMQ.Client.IBasicProperties.IsDeliveryModePresent*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_IsDeliveryModePresent" data-uid="RabbitMQ.Client.IBasicProperties.IsDeliveryModePresent">IsDeliveryModePresent()</h4>
+  <div class="markdown level1 summary"><p>Returns true if the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_DeliveryMode">DeliveryMode</a> property is present.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsDeliveryModePresent()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_IsExpirationPresent.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.IsExpirationPresent%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L249">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_IsExpirationPresent_" data-uid="RabbitMQ.Client.IBasicProperties.IsExpirationPresent*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_IsExpirationPresent" data-uid="RabbitMQ.Client.IBasicProperties.IsExpirationPresent">IsExpirationPresent()</h4>
+  <div class="markdown level1 summary"><p>Returns true if the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_Expiration">Expiration</a> property is present.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsExpirationPresent()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_IsHeadersPresent.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.IsHeadersPresent%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L254">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_IsHeadersPresent_" data-uid="RabbitMQ.Client.IBasicProperties.IsHeadersPresent*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_IsHeadersPresent" data-uid="RabbitMQ.Client.IBasicProperties.IsHeadersPresent">IsHeadersPresent()</h4>
+  <div class="markdown level1 summary"><p>Returns true if the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_Headers">Headers</a> property is present.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsHeadersPresent()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_IsMessageIdPresent.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.IsMessageIdPresent%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L259">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_IsMessageIdPresent_" data-uid="RabbitMQ.Client.IBasicProperties.IsMessageIdPresent*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_IsMessageIdPresent" data-uid="RabbitMQ.Client.IBasicProperties.IsMessageIdPresent">IsMessageIdPresent()</h4>
+  <div class="markdown level1 summary"><p>Returns true if the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_MessageId">MessageId</a> property is present.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsMessageIdPresent()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_IsPriorityPresent.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.IsPriorityPresent%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L264">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_IsPriorityPresent_" data-uid="RabbitMQ.Client.IBasicProperties.IsPriorityPresent*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_IsPriorityPresent" data-uid="RabbitMQ.Client.IBasicProperties.IsPriorityPresent">IsPriorityPresent()</h4>
+  <div class="markdown level1 summary"><p>Returns true if the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_Priority">Priority</a> property is present.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsPriorityPresent()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_IsReplyToPresent.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.IsReplyToPresent%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L269">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_IsReplyToPresent_" data-uid="RabbitMQ.Client.IBasicProperties.IsReplyToPresent*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_IsReplyToPresent" data-uid="RabbitMQ.Client.IBasicProperties.IsReplyToPresent">IsReplyToPresent()</h4>
+  <div class="markdown level1 summary"><p>Returns true if the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_ReplyTo">ReplyTo</a> property is present.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsReplyToPresent()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_IsTimestampPresent.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.IsTimestampPresent%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L274">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_IsTimestampPresent_" data-uid="RabbitMQ.Client.IBasicProperties.IsTimestampPresent*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_IsTimestampPresent" data-uid="RabbitMQ.Client.IBasicProperties.IsTimestampPresent">IsTimestampPresent()</h4>
+  <div class="markdown level1 summary"><p>Returns true if the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_Timestamp">Timestamp</a> property is present.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsTimestampPresent()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_IsTypePresent.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.IsTypePresent%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L279">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_IsTypePresent_" data-uid="RabbitMQ.Client.IBasicProperties.IsTypePresent*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_IsTypePresent" data-uid="RabbitMQ.Client.IBasicProperties.IsTypePresent">IsTypePresent()</h4>
+  <div class="markdown level1 summary"><p>Returns true if the Type property is present.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsTypePresent()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_IsUserIdPresent.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.IsUserIdPresent%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L284">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_IsUserIdPresent_" data-uid="RabbitMQ.Client.IBasicProperties.IsUserIdPresent*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_IsUserIdPresent" data-uid="RabbitMQ.Client.IBasicProperties.IsUserIdPresent">IsUserIdPresent()</h4>
+  <div class="markdown level1 summary"><p>Returns true if the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_UserId">UserId</a> UserId property is present.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsUserIdPresent()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties_SetPersistent_System_Boolean_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties.SetPersistent(System.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L299">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IBasicProperties_SetPersistent_" data-uid="RabbitMQ.Client.IBasicProperties.SetPersistent*"></a>
+  <h4 id="RabbitMQ_Client_IBasicProperties_SetPersistent_System_Boolean_" data-uid="RabbitMQ.Client.IBasicProperties.SetPersistent(System.Boolean)">SetPersistent(Boolean)</h4>
+  <div class="markdown level1 summary"><p>Sets <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_DeliveryMode">DeliveryMode</a> to either persistent (2) or non-persistent (1).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[Obsolete(&quot;Usage of this setter method is deprecated. Use the Persistent property instead.&quot;)]
+void SetPersistent(bool persistent)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">persistent</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_IBasicProperties_SetPersistent_System_Boolean__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+The numbers 1 and 2 for delivery mode are &quot;magic&quot; in that
+they appear in the AMQP 0-8 and 0-9 specifications as part
+of the definition of the DeliveryMode Basic-class property,
+without being defined as named constants.
+</p>
+<p>
+Calling this method causes <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_DeliveryMode">DeliveryMode</a> to take on a  value.
+In order to reset <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_DeliveryMode">DeliveryMode</a> to the default empty condition, call <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_ClearDeliveryMode">ClearDeliveryMode()</a> .
+</p>
+</div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IBasicProperties.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicProperties%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IBasicProperties.cs/#L62" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Copyright © 2015-2017 Microsoft<br>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,630 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class SocketFrameHandler
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class SocketFrameHandler
+   ">
+    <meta name="generator" content="docfx 2.31.0.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="RabbitMQ.Client.Impl.SocketFrameHandler">
+  
+  
+  <h1 id="RabbitMQ_Client_Impl_SocketFrameHandler" data-uid="RabbitMQ.Client.Impl.SocketFrameHandler" class="text-break">Class SocketFrameHandler
+  </h1>
+  <div class="markdown level0 summary"><p>Implement <a class="xref" href="RabbitMQ.Client.Impl.IFrameHandler.html">IFrameHandler</a> for WinRT.  The significant
+difference is that TcpClient is not available and the new
+<see cref="!:StreamSocket"></see> needs to be used.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">SocketFrameHandler</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="RabbitMQ.Client.Impl.IFrameHandler.html">IFrameHandler</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="RabbitMQ.Client.Impl.html">RabbitMQ.Client.Impl</a></h6>
+  <h6><strong>Assembly</strong>: RabbitMQ.Client.WinRT.dll</h6>
+  <h5 id="RabbitMQ_Client_Impl_SocketFrameHandler_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class SocketFrameHandler : IFrameHandler</code></pre>
+  </div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Impl_SocketFrameHandler__ctor_RabbitMQ_Client_AmqpTcpEndpoint_System_Func_StreamSocket__System_Int32_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Impl.SocketFrameHandler.%23ctor(RabbitMQ.Client.AmqpTcpEndpoint%2CSystem.Func%7BStreamSocket%7D%2CSystem.Int32%2CSystem.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client.WinRT/src/client/impl/SocketFrameHandlerWinRT.cs/#L73">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Impl_SocketFrameHandler__ctor_" data-uid="RabbitMQ.Client.Impl.SocketFrameHandler.#ctor*"></a>
+  <h4 id="RabbitMQ_Client_Impl_SocketFrameHandler__ctor_RabbitMQ_Client_AmqpTcpEndpoint_System_Func_StreamSocket__System_Int32_System_Int32_System_Int32_" data-uid="RabbitMQ.Client.Impl.SocketFrameHandler.#ctor(RabbitMQ.Client.AmqpTcpEndpoint,System.Func{StreamSocket},System.Int32,System.Int32,System.Int32)">SocketFrameHandler(AmqpTcpEndpoint, Func&lt;StreamSocket&gt;, Int32, Int32, Int32)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SocketFrameHandler(AmqpTcpEndpoint endpoint, Func&lt;StreamSocket&gt; socketFactory, int connectionTimeout, int _readTimeout, int _writeTimeout)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html">AmqpTcpEndpoint</a></td>
+        <td><span class="parametername">endpoint</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Func</span>&lt;<span class="xref">StreamSocket</span>&gt;</td>
+        <td><span class="parametername">socketFactory</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">connectionTimeout</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">_readTimeout</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">_writeTimeout</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="fields">Fields
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Impl_SocketFrameHandler_m_reader.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Impl.SocketFrameHandler.m_reader%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client.WinRT/src/client/impl/SocketFrameHandlerWinRT.cs/#L66">View Source</a>
+  </span>
+  <h4 id="RabbitMQ_Client_Impl_SocketFrameHandler_m_reader" data-uid="RabbitMQ.Client.Impl.SocketFrameHandler.m_reader">m_reader</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetworkBinaryReader m_reader</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Util.NetworkBinaryReader.html">NetworkBinaryReader</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Impl_SocketFrameHandler_m_socket.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Impl.SocketFrameHandler.m_socket%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client.WinRT/src/client/impl/SocketFrameHandlerWinRT.cs/#L65">View Source</a>
+  </span>
+  <h4 id="RabbitMQ_Client_Impl_SocketFrameHandler_m_socket" data-uid="RabbitMQ.Client.Impl.SocketFrameHandler.m_socket">m_socket</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public StreamSocket m_socket</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">StreamSocket</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Impl_SocketFrameHandler_m_writer.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Impl.SocketFrameHandler.m_writer%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client.WinRT/src/client/impl/SocketFrameHandlerWinRT.cs/#L67">View Source</a>
+  </span>
+  <h4 id="RabbitMQ_Client_Impl_SocketFrameHandler_m_writer" data-uid="RabbitMQ.Client.Impl.SocketFrameHandler.m_writer">m_writer</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetworkBinaryWriter m_writer</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Util.NetworkBinaryWriter.html">NetworkBinaryWriter</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Impl_SocketFrameHandler_SOCKET_CLOSING_TIMEOUT.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Impl.SocketFrameHandler.SOCKET_CLOSING_TIMEOUT%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client.WinRT/src/client/impl/SocketFrameHandlerWinRT.cs/#L63">View Source</a>
+  </span>
+  <h4 id="RabbitMQ_Client_Impl_SocketFrameHandler_SOCKET_CLOSING_TIMEOUT" data-uid="RabbitMQ.Client.Impl.SocketFrameHandler.SOCKET_CLOSING_TIMEOUT">SOCKET_CLOSING_TIMEOUT</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int SOCKET_CLOSING_TIMEOUT = 1</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Impl_SocketFrameHandler_Endpoint.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Impl.SocketFrameHandler.Endpoint%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client.WinRT/src/client/impl/SocketFrameHandlerWinRT.cs/#L113">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Impl_SocketFrameHandler_Endpoint_" data-uid="RabbitMQ.Client.Impl.SocketFrameHandler.Endpoint*"></a>
+  <h4 id="RabbitMQ_Client_Impl_SocketFrameHandler_Endpoint" data-uid="RabbitMQ.Client.Impl.SocketFrameHandler.Endpoint">Endpoint</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public AmqpTcpEndpoint Endpoint { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html">AmqpTcpEndpoint</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Impl_SocketFrameHandler_LocalPort.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Impl.SocketFrameHandler.LocalPort%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client.WinRT/src/client/impl/SocketFrameHandlerWinRT.cs/#L115">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Impl_SocketFrameHandler_LocalPort_" data-uid="RabbitMQ.Client.Impl.SocketFrameHandler.LocalPort*"></a>
+  <h4 id="RabbitMQ_Client_Impl_SocketFrameHandler_LocalPort" data-uid="RabbitMQ.Client.Impl.SocketFrameHandler.LocalPort">LocalPort</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int LocalPort { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Impl_SocketFrameHandler_ReadTimeout.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Impl.SocketFrameHandler.ReadTimeout%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client.WinRT/src/client/impl/SocketFrameHandlerWinRT.cs/#L137">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Impl_SocketFrameHandler_ReadTimeout_" data-uid="RabbitMQ.Client.Impl.SocketFrameHandler.ReadTimeout*"></a>
+  <h4 id="RabbitMQ_Client_Impl_SocketFrameHandler_ReadTimeout" data-uid="RabbitMQ.Client.Impl.SocketFrameHandler.ReadTimeout">ReadTimeout</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int ReadTimeout { set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Impl_SocketFrameHandler_RemotePort.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Impl.SocketFrameHandler.RemotePort%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client.WinRT/src/client/impl/SocketFrameHandlerWinRT.cs/#L126">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Impl_SocketFrameHandler_RemotePort_" data-uid="RabbitMQ.Client.Impl.SocketFrameHandler.RemotePort*"></a>
+  <h4 id="RabbitMQ_Client_Impl_SocketFrameHandler_RemotePort" data-uid="RabbitMQ.Client.Impl.SocketFrameHandler.RemotePort">RemotePort</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int RemotePort { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Impl_SocketFrameHandler_WriteTimeout.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Impl.SocketFrameHandler.WriteTimeout%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client.WinRT/src/client/impl/SocketFrameHandlerWinRT.cs/#L148">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Impl_SocketFrameHandler_WriteTimeout_" data-uid="RabbitMQ.Client.Impl.SocketFrameHandler.WriteTimeout*"></a>
+  <h4 id="RabbitMQ_Client_Impl_SocketFrameHandler_WriteTimeout" data-uid="RabbitMQ.Client.Impl.SocketFrameHandler.WriteTimeout">WriteTimeout</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int WriteTimeout { set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Impl_SocketFrameHandler_Close.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Impl.SocketFrameHandler.Close%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client.WinRT/src/client/impl/SocketFrameHandlerWinRT.cs/#L157">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Impl_SocketFrameHandler_Close_" data-uid="RabbitMQ.Client.Impl.SocketFrameHandler.Close*"></a>
+  <h4 id="RabbitMQ_Client_Impl_SocketFrameHandler_Close" data-uid="RabbitMQ.Client.Impl.SocketFrameHandler.Close">Close()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Close()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Impl_SocketFrameHandler_Flush.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Impl.SocketFrameHandler.Flush%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client.WinRT/src/client/impl/SocketFrameHandlerWinRT.cs/#L223">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Impl_SocketFrameHandler_Flush_" data-uid="RabbitMQ.Client.Impl.SocketFrameHandler.Flush*"></a>
+  <h4 id="RabbitMQ_Client_Impl_SocketFrameHandler_Flush" data-uid="RabbitMQ.Client.Impl.SocketFrameHandler.Flush">Flush()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Flush()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Impl_SocketFrameHandler_ReadFrame.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Impl.SocketFrameHandler.ReadFrame%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client.WinRT/src/client/impl/SocketFrameHandlerWinRT.cs/#L171">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Impl_SocketFrameHandler_ReadFrame_" data-uid="RabbitMQ.Client.Impl.SocketFrameHandler.ReadFrame*"></a>
+  <h4 id="RabbitMQ_Client_Impl_SocketFrameHandler_ReadFrame" data-uid="RabbitMQ.Client.Impl.SocketFrameHandler.ReadFrame">ReadFrame()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Frame ReadFrame()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Impl.Frame.html">Frame</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Impl_SocketFrameHandler_SendHeader.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Impl.SocketFrameHandler.SendHeader%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client.WinRT/src/client/impl/SocketFrameHandlerWinRT.cs/#L179">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Impl_SocketFrameHandler_SendHeader_" data-uid="RabbitMQ.Client.Impl.SocketFrameHandler.SendHeader*"></a>
+  <h4 id="RabbitMQ_Client_Impl_SocketFrameHandler_SendHeader" data-uid="RabbitMQ.Client.Impl.SocketFrameHandler.SendHeader">SendHeader()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void SendHeader()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Impl_SocketFrameHandler_WriteFrame_RabbitMQ_Client_Impl_Frame_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Impl.SocketFrameHandler.WriteFrame(RabbitMQ.Client.Impl.Frame)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client.WinRT/src/client/impl/SocketFrameHandlerWinRT.cs/#L202">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Impl_SocketFrameHandler_WriteFrame_" data-uid="RabbitMQ.Client.Impl.SocketFrameHandler.WriteFrame*"></a>
+  <h4 id="RabbitMQ_Client_Impl_SocketFrameHandler_WriteFrame_RabbitMQ_Client_Impl_Frame_" data-uid="RabbitMQ.Client.Impl.SocketFrameHandler.WriteFrame(RabbitMQ.Client.Impl.Frame)">WriteFrame(Frame)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteFrame(Frame frame)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Impl.Frame.html">Frame</a></td>
+        <td><span class="parametername">frame</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Impl_SocketFrameHandler_WriteFrameSet_System_Collections_Generic_IList_RabbitMQ_Client_Impl_Frame__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Impl.SocketFrameHandler.WriteFrameSet(System.Collections.Generic.IList%7BRabbitMQ.Client.Impl.Frame%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client.WinRT/src/client/impl/SocketFrameHandlerWinRT.cs/#L211">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Impl_SocketFrameHandler_WriteFrameSet_" data-uid="RabbitMQ.Client.Impl.SocketFrameHandler.WriteFrameSet*"></a>
+  <h4 id="RabbitMQ_Client_Impl_SocketFrameHandler_WriteFrameSet_System_Collections_Generic_IList_RabbitMQ_Client_Impl_Frame__" data-uid="RabbitMQ.Client.Impl.SocketFrameHandler.WriteFrameSet(System.Collections.Generic.IList{RabbitMQ.Client.Impl.Frame})">WriteFrameSet(IList&lt;Frame&gt;)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteFrameSet(IList&lt;Frame&gt; frames)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IList</span>&lt;<a class="xref" href="RabbitMQ.Client.Impl.Frame.html">Frame</a>&gt;</td>
+        <td><span class="parametername">frames</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="RabbitMQ.Client.Impl.IFrameHandler.html">IFrameHandler</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Impl_SocketFrameHandler.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Impl.SocketFrameHandler%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client.WinRT/src/client/impl/SocketFrameHandlerWinRT.cs/#L60" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Copyright © 2015-2017 Microsoft<br>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,613 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class NetworkBinaryReader
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class NetworkBinaryReader
+   ">
+    <meta name="generator" content="docfx 2.31.0.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="RabbitMQ.Util.NetworkBinaryReader">
+  
+  
+  <h1 id="RabbitMQ_Util_NetworkBinaryReader" data-uid="RabbitMQ.Util.NetworkBinaryReader" class="text-break">Class NetworkBinaryReader
+  </h1>
+  <div class="markdown level0 summary"><p>Subclass of BinaryReader that reads integers etc in correct network order.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">System.IO.BinaryReader</span></div>
+    <div class="level2"><span class="xref">NetworkBinaryReader</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><span class="xref">System.IDisposable</span></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.IO.BinaryReader.Close()</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.Dispose(System.Boolean)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.Dispose()</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.PeekChar()</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.Read()</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.ReadBoolean()</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.ReadByte()</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.ReadSByte()</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.ReadChar()</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.ReadDecimal()</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.ReadString()</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.Read(System.Char[], System.Int32, System.Int32)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.ReadChars(System.Int32)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.Read(System.Byte[], System.Int32, System.Int32)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.ReadBytes(System.Int32)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.FillBuffer(System.Int32)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.Read7BitEncodedInt()</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.BaseStream</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="RabbitMQ.Util.html">RabbitMQ.Util</a></h6>
+  <h6><strong>Assembly</strong>: RabbitMQ.Client.WinRT.dll</h6>
+  <h5 id="RabbitMQ_Util_NetworkBinaryReader_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class NetworkBinaryReader : BinaryReader, IDisposable</code></pre>
+  </div>
+  <h5 id="RabbitMQ_Util_NetworkBinaryReader_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>
+Kludge to compensate for .NET&apos;s broken little-endian-only BinaryReader.
+Relies on BinaryReader always being little-endian.
+</p>
+</div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_NetworkBinaryReader__ctor_System_IO_Stream_.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.NetworkBinaryReader.%23ctor(System.IO.Stream)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/NetworkBinaryReader.cs/#L68">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_NetworkBinaryReader__ctor_" data-uid="RabbitMQ.Util.NetworkBinaryReader.#ctor*"></a>
+  <h4 id="RabbitMQ_Util_NetworkBinaryReader__ctor_System_IO_Stream_" data-uid="RabbitMQ.Util.NetworkBinaryReader.#ctor(System.IO.Stream)">NetworkBinaryReader(Stream)</h4>
+  <div class="markdown level1 summary"><p>Construct a NetworkBinaryReader over the given input stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetworkBinaryReader(Stream input)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.Stream</span></td>
+        <td><span class="parametername">input</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_NetworkBinaryReader__ctor_System_IO_Stream_System_Text_Encoding_.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.NetworkBinaryReader.%23ctor(System.IO.Stream%2CSystem.Text.Encoding)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/NetworkBinaryReader.cs/#L76">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_NetworkBinaryReader__ctor_" data-uid="RabbitMQ.Util.NetworkBinaryReader.#ctor*"></a>
+  <h4 id="RabbitMQ_Util_NetworkBinaryReader__ctor_System_IO_Stream_System_Text_Encoding_" data-uid="RabbitMQ.Util.NetworkBinaryReader.#ctor(System.IO.Stream,System.Text.Encoding)">NetworkBinaryReader(Stream, Encoding)</h4>
+  <div class="markdown level1 summary"><p>Construct a NetworkBinaryReader over the given input
+stream, reading strings using the given encoding.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetworkBinaryReader(Stream input, Encoding encoding)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.Stream</span></td>
+        <td><span class="parametername">input</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Text.Encoding</span></td>
+        <td><span class="parametername">encoding</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_NetworkBinaryReader_ReadDouble.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.NetworkBinaryReader.ReadDouble%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/NetworkBinaryReader.cs/#L90">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_NetworkBinaryReader_ReadDouble_" data-uid="RabbitMQ.Util.NetworkBinaryReader.ReadDouble*"></a>
+  <h4 id="RabbitMQ_Util_NetworkBinaryReader_ReadDouble" data-uid="RabbitMQ.Util.NetworkBinaryReader.ReadDouble">ReadDouble()</h4>
+  <div class="markdown level1 summary"><p>Override BinaryReader&apos;s method for network-order.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override double ReadDouble()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Double</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryReader.ReadDouble()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_NetworkBinaryReader_ReadInt16.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.NetworkBinaryReader.ReadInt16%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/NetworkBinaryReader.cs/#L111">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_NetworkBinaryReader_ReadInt16_" data-uid="RabbitMQ.Util.NetworkBinaryReader.ReadInt16*"></a>
+  <h4 id="RabbitMQ_Util_NetworkBinaryReader_ReadInt16" data-uid="RabbitMQ.Util.NetworkBinaryReader.ReadInt16">ReadInt16()</h4>
+  <div class="markdown level1 summary"><p>Override BinaryReader&apos;s method for network-order.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override short ReadInt16()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int16</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryReader.ReadInt16()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_NetworkBinaryReader_ReadInt32.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.NetworkBinaryReader.ReadInt32%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/NetworkBinaryReader.cs/#L121">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_NetworkBinaryReader_ReadInt32_" data-uid="RabbitMQ.Util.NetworkBinaryReader.ReadInt32*"></a>
+  <h4 id="RabbitMQ_Util_NetworkBinaryReader_ReadInt32" data-uid="RabbitMQ.Util.NetworkBinaryReader.ReadInt32">ReadInt32()</h4>
+  <div class="markdown level1 summary"><p>Override BinaryReader&apos;s method for network-order.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override int ReadInt32()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryReader.ReadInt32()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_NetworkBinaryReader_ReadInt64.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.NetworkBinaryReader.ReadInt64%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/NetworkBinaryReader.cs/#L133">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_NetworkBinaryReader_ReadInt64_" data-uid="RabbitMQ.Util.NetworkBinaryReader.ReadInt64*"></a>
+  <h4 id="RabbitMQ_Util_NetworkBinaryReader_ReadInt64" data-uid="RabbitMQ.Util.NetworkBinaryReader.ReadInt64">ReadInt64()</h4>
+  <div class="markdown level1 summary"><p>Override BinaryReader&apos;s method for network-order.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override long ReadInt64()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryReader.ReadInt64()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_NetworkBinaryReader_ReadSingle.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.NetworkBinaryReader.ReadSingle%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/NetworkBinaryReader.cs/#L149">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_NetworkBinaryReader_ReadSingle_" data-uid="RabbitMQ.Util.NetworkBinaryReader.ReadSingle*"></a>
+  <h4 id="RabbitMQ_Util_NetworkBinaryReader_ReadSingle" data-uid="RabbitMQ.Util.NetworkBinaryReader.ReadSingle">ReadSingle()</h4>
+  <div class="markdown level1 summary"><p>Override BinaryReader&apos;s method for network-order.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override float ReadSingle()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Single</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryReader.ReadSingle()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_NetworkBinaryReader_ReadUInt16.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.NetworkBinaryReader.ReadUInt16%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/NetworkBinaryReader.cs/#L164">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_NetworkBinaryReader_ReadUInt16_" data-uid="RabbitMQ.Util.NetworkBinaryReader.ReadUInt16*"></a>
+  <h4 id="RabbitMQ_Util_NetworkBinaryReader_ReadUInt16" data-uid="RabbitMQ.Util.NetworkBinaryReader.ReadUInt16">ReadUInt16()</h4>
+  <div class="markdown level1 summary"><p>Override BinaryReader&apos;s method for network-order.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override ushort ReadUInt16()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt16</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryReader.ReadUInt16()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_NetworkBinaryReader_ReadUInt32.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.NetworkBinaryReader.ReadUInt32%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/NetworkBinaryReader.cs/#L174">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_NetworkBinaryReader_ReadUInt32_" data-uid="RabbitMQ.Util.NetworkBinaryReader.ReadUInt32*"></a>
+  <h4 id="RabbitMQ_Util_NetworkBinaryReader_ReadUInt32" data-uid="RabbitMQ.Util.NetworkBinaryReader.ReadUInt32">ReadUInt32()</h4>
+  <div class="markdown level1 summary"><p>Override BinaryReader&apos;s method for network-order.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override uint ReadUInt32()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryReader.ReadUInt32()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_NetworkBinaryReader_ReadUInt64.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.NetworkBinaryReader.ReadUInt64%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/NetworkBinaryReader.cs/#L186">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_NetworkBinaryReader_ReadUInt64_" data-uid="RabbitMQ.Util.NetworkBinaryReader.ReadUInt64*"></a>
+  <h4 id="RabbitMQ_Util_NetworkBinaryReader_ReadUInt64" data-uid="RabbitMQ.Util.NetworkBinaryReader.ReadUInt64">ReadUInt64()</h4>
+  <div class="markdown level1 summary"><p>Override BinaryReader&apos;s method for network-order.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override ulong ReadUInt64()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryReader.ReadUInt64()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_NetworkBinaryReader_TemporaryBinaryReader_System_Byte___.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.NetworkBinaryReader.TemporaryBinaryReader(System.Byte%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/NetworkBinaryReader.cs/#L82">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_NetworkBinaryReader_TemporaryBinaryReader_" data-uid="RabbitMQ.Util.NetworkBinaryReader.TemporaryBinaryReader*"></a>
+  <h4 id="RabbitMQ_Util_NetworkBinaryReader_TemporaryBinaryReader_System_Byte___" data-uid="RabbitMQ.Util.NetworkBinaryReader.TemporaryBinaryReader(System.Byte[])">TemporaryBinaryReader(Byte[])</h4>
+  <div class="markdown level1 summary"><p>Helper method for constructing a temporary
+BinaryReader over a byte[].</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static BinaryReader TemporaryBinaryReader(byte[] bytes)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td><span class="parametername">bytes</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.BinaryReader</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <span class="xref">System.IDisposable</span>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_NetworkBinaryReader.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.NetworkBinaryReader%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/NetworkBinaryReader.cs/#L56" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Copyright © 2015-2017 Microsoft<br>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,631 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class SharedQueue&lt;T&gt;
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class SharedQueue&lt;T&gt;
+   ">
+    <meta name="generator" content="docfx 2.31.0.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="RabbitMQ.Util.SharedQueue`1">
+  
+  
+  <h1 id="RabbitMQ_Util_SharedQueue_1" data-uid="RabbitMQ.Util.SharedQueue`1" class="text-break">Class SharedQueue&lt;T&gt;
+  </h1>
+  <div class="markdown level0 summary"><p>A thread-safe shared queue implementation.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">SharedQueue&lt;T&gt;</span></div>
+      <div class="level2"><a class="xref" href="RabbitMQ.Util.SharedQueue.html">SharedQueue</a></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><span class="xref">System.Collections.Generic.IEnumerable</span>&lt;T&gt;</div>
+    <div><span class="xref">System.Collections.IEnumerable</span></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="RabbitMQ.Util.html">RabbitMQ.Util</a></h6>
+  <h6><strong>Assembly</strong>: RabbitMQ.Client.WinRT.dll</h6>
+  <h5 id="RabbitMQ_Util_SharedQueue_1_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class SharedQueue&lt;T&gt; : IEnumerable&lt;T&gt;, IEnumerable</code></pre>
+  </div>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">T</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="fields">Fields
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_SharedQueue_1_m_isOpen.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.SharedQueue%601.m_isOpen%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/SharedQueue.cs/#L63">View Source</a>
+  </span>
+  <h4 id="RabbitMQ_Util_SharedQueue_1_m_isOpen" data-uid="RabbitMQ.Util.SharedQueue`1.m_isOpen">m_isOpen</h4>
+  <div class="markdown level1 summary"><p>Flag holding our current status.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected bool m_isOpen</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_SharedQueue_1_m_queue.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.SharedQueue%601.m_queue%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/SharedQueue.cs/#L71">View Source</a>
+  </span>
+  <h4 id="RabbitMQ_Util_SharedQueue_1_m_queue" data-uid="RabbitMQ.Util.SharedQueue`1.m_queue">m_queue</h4>
+  <div class="markdown level1 summary"><p>The shared queue.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected Queue&lt;T&gt; m_queue</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Queue</span>&lt;T&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Util_SharedQueue_1_m_queue_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Subclasses must ensure appropriate locking discipline when
+accessing this field. See the implementation of Enqueue,
+Dequeue.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_SharedQueue_1_m_waiting.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.SharedQueue%601.m_waiting%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/SharedQueue.cs/#L74">View Source</a>
+  </span>
+  <h4 id="RabbitMQ_Util_SharedQueue_1_m_waiting" data-uid="RabbitMQ.Util.SharedQueue`1.m_waiting">m_waiting</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected Queue&lt;TaskCompletionSource&lt;T&gt;&gt; m_waiting</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Queue</span>&lt;<span class="xref">System.Threading.Tasks.TaskCompletionSource</span>&lt;T&gt;&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_SharedQueue_1_Close.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.SharedQueue%601.Close%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/SharedQueue.cs/#L81">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_SharedQueue_1_Close_" data-uid="RabbitMQ.Util.SharedQueue`1.Close*"></a>
+  <h4 id="RabbitMQ_Util_SharedQueue_1_Close" data-uid="RabbitMQ.Util.SharedQueue`1.Close">Close()</h4>
+  <div class="markdown level1 summary"><p>Close the queue. Causes all further Enqueue()
+operations to throw EndOfStreamException, and all pending
+or subsequent Dequeue() operations to throw an
+EndOfStreamException once the queue is empty.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Close()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_SharedQueue_1_Dequeue.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.SharedQueue%601.Dequeue%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/SharedQueue.cs/#L114">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_SharedQueue_1_Dequeue_" data-uid="RabbitMQ.Util.SharedQueue`1.Dequeue*"></a>
+  <h4 id="RabbitMQ_Util_SharedQueue_1_Dequeue" data-uid="RabbitMQ.Util.SharedQueue`1.Dequeue">Dequeue()</h4>
+  <div class="markdown level1 summary"><p>Retrieve the first item from the queue, or block if none available</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public T Dequeue()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Util_SharedQueue_1_Dequeue_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Callers of Dequeue() will block if no items are available
+until some other thread calls Enqueue() or the queue is
+closed. In the latter case this method will throw
+EndOfStreamException.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_SharedQueue_1_Dequeue_System_Int32__0__.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.SharedQueue%601.Dequeue(System.Int32%2C%600%40)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/SharedQueue.cs/#L186">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_SharedQueue_1_Dequeue_" data-uid="RabbitMQ.Util.SharedQueue`1.Dequeue*"></a>
+  <h4 id="RabbitMQ_Util_SharedQueue_1_Dequeue_System_Int32__0__" data-uid="RabbitMQ.Util.SharedQueue`1.Dequeue(System.Int32,`0@)">Dequeue(Int32, out T)</h4>
+  <div class="markdown level1 summary"><p>Retrieve the first item from the queue, or return
+nothing if no items are available after the given
+timeout</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool Dequeue(int millisecondsTimeout, out T result)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">millisecondsTimeout</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">result</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Util_SharedQueue_1_Dequeue_System_Int32__0___remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+ If one or more items are present on the queue at the time
+ the call is made, the call will return
+ immediately. Otherwise, the calling thread blocks until
+ either an item appears on the queue, or
+ millisecondsTimeout milliseconds have elapsed.
+</p>
+<p>
+ Returns true in the case that an item was available before
+ the timeout, in which case the out parameter &quot;result&quot; is
+ set to the item itself.
+</p>
+<p>
+ If no items were available before the timeout, returns
+ false, and sets &quot;result&quot; to null.
+</p>
+<p>
+ A timeout of -1 (i.e. System.Threading.Timeout.Infinite)
+ will be interpreted as a command to wait for an
+ indefinitely long period of time for an item to become
+ available. Usage of such a timeout is equivalent to
+ calling Dequeue() with no arguments. See also the MSDN
+ documentation for
+ System.Threading.Monitor.Wait(object,int).
+</p>
+<p>
+ If no items are present and the queue is in a closed
+ state, or if at any time while waiting the queue
+ transitions to a closed state (by a call to Close()), this
+ method will throw EndOfStreamException.
+</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_SharedQueue_1_DequeueAsync.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.SharedQueue%601.DequeueAsync%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/SharedQueue.cs/#L131">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_SharedQueue_1_DequeueAsync_" data-uid="RabbitMQ.Util.SharedQueue`1.DequeueAsync*"></a>
+  <h4 id="RabbitMQ_Util_SharedQueue_1_DequeueAsync" data-uid="RabbitMQ.Util.SharedQueue`1.DequeueAsync">DequeueAsync()</h4>
+  <div class="markdown level1 summary"><p>Asynchronously retrieves the first item from the queue.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;T&gt; DequeueAsync()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;T&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_SharedQueue_1_DequeueNoWait__0_.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.SharedQueue%601.DequeueNoWait(%600)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/SharedQueue.cs/#L237">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_SharedQueue_1_DequeueNoWait_" data-uid="RabbitMQ.Util.SharedQueue`1.DequeueNoWait*"></a>
+  <h4 id="RabbitMQ_Util_SharedQueue_1_DequeueNoWait__0_" data-uid="RabbitMQ.Util.SharedQueue`1.DequeueNoWait(`0)">DequeueNoWait(T)</h4>
+  <div class="markdown level1 summary"><p>Retrieve the first item from the queue, or return
+defaultValue immediately if no items are
+available</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public T DequeueNoWait(T defaultValue)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">defaultValue</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Util_SharedQueue_1_DequeueNoWait__0__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+ If one or more objects are present in the queue at the
+ time of the call, the first item is removed from the queue
+ and returned. Otherwise, the defaultValue that was passed
+ in is returned immediately. This defaultValue may be null,
+ or in cases where null is part of the range of the queue,
+ may be some other sentinel object. The difference between
+ DequeueNoWait() and Dequeue() is that DequeueNoWait() will
+ not block when no items are available in the queue,
+ whereas Dequeue() will.
+</p>
+<p>
+ If at the time of call the queue is empty and in a
+ closed state (following a call to Close()), then this
+ method will throw EndOfStreamException.
+</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_SharedQueue_1_Enqueue__0_.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.SharedQueue%601.Enqueue(%600)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/SharedQueue.cs/#L260">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_SharedQueue_1_Enqueue_" data-uid="RabbitMQ.Util.SharedQueue`1.Enqueue*"></a>
+  <h4 id="RabbitMQ_Util_SharedQueue_1_Enqueue__0_" data-uid="RabbitMQ.Util.SharedQueue`1.Enqueue(`0)">Enqueue(T)</h4>
+  <div class="markdown level1 summary"><p>Place an item at the end of the queue.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Enqueue(T o)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">o</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Util_SharedQueue_1_Enqueue__0__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>If there is a thread waiting for an item to arrive, the
+waiting thread will be woken, and the newly Enqueued item
+will be passed to it. If the queue is closed on entry to
+this method, EndOfStreamException will be thrown.</p>
+</div>
+  <h3 id="eii">Explicit Interface Implementations
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_SharedQueue_1_System_Collections_Generic_IEnumerable_T__GetEnumerator.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.SharedQueue%601.System%23Collections%23Generic%23IEnumerable%7BT%7D%23GetEnumerator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/SharedQueue.cs/#L295">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_SharedQueue_1_System_Collections_Generic_IEnumerable_T__GetEnumerator_" data-uid="RabbitMQ.Util.SharedQueue`1.System#Collections#Generic#IEnumerable{T}#GetEnumerator*"></a>
+  <h4 id="RabbitMQ_Util_SharedQueue_1_System_Collections_Generic_IEnumerable_T__GetEnumerator" data-uid="RabbitMQ.Util.SharedQueue`1.System#Collections#Generic#IEnumerable{T}#GetEnumerator">IEnumerable&lt;T&gt;.GetEnumerator()</h4>
+  <div class="markdown level1 summary"><p>Implementation of the IEnumerable interface, for
+permitting SharedQueue to be used in foreach
+loops.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IEnumerator&lt;T&gt; IEnumerable&lt;T&gt;.GetEnumerator()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IEnumerator</span>&lt;T&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_SharedQueue_1_System_Collections_IEnumerable_GetEnumerator.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.SharedQueue%601.System%23Collections%23IEnumerable%23GetEnumerator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/SharedQueue.cs/#L287">View Source</a>
+  </span>
+  <a id="RabbitMQ_Util_SharedQueue_1_System_Collections_IEnumerable_GetEnumerator_" data-uid="RabbitMQ.Util.SharedQueue`1.System#Collections#IEnumerable#GetEnumerator*"></a>
+  <h4 id="RabbitMQ_Util_SharedQueue_1_System_Collections_IEnumerable_GetEnumerator" data-uid="RabbitMQ.Util.SharedQueue`1.System#Collections#IEnumerable#GetEnumerator">IEnumerable.GetEnumerator()</h4>
+  <div class="markdown level1 summary"><p>Implementation of the IEnumerable interface, for
+permitting SharedQueue to be used in foreach
+loops.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IEnumerator IEnumerable.GetEnumerator()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IEnumerator</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <span class="xref">System.Collections.Generic.IEnumerable&lt;T&gt;</span>
+  </div>
+  <div>
+      <span class="xref">System.Collections.IEnumerable</span>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Util_SharedQueue_1.md&amp;value=---%0Auid%3A%20RabbitMQ.Util.SharedQueue%601%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/util/SharedQueue.cs/#L60" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Copyright © 2015-2017 Microsoft<br>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,163 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Changes Between 4.1.x and 5.0.1 </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Changes Between 4.1.x and 5.0.1 ">
+    <meta name="generator" content="docfx 2.31.0.0">
+    
+    <link rel="shortcut icon" href="favicon.ico">
+    <link rel="stylesheet" href="styles/docfx.vendor.css">
+    <link rel="stylesheet" href="styles/docfx.css">
+    <link rel="stylesheet" href="styles/main.css">
+    <meta property="docfx:navrel" content="toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="index.html">
+                <img id="logo" class="svg" src="logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        <div class="article row grid">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h2 id="changes-between-41x-and-501">Changes Between 4.1.x and 5.0.1</h2>
+
+<h3 id="async-consumers">Async consumers</h3>
+<p>GitHub PR: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/307">rabbitmq-dotnet-client#307</a></p>
+<h3 id="enable-connection-recovery-by-default">Enable connection recovery by default</h3>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/271">rabbitmq-dotnet-client#271</a></p>
+<h3 id="replace-consolewriteline-logging-with-eventsource">Replace Console.WriteLine logging with EventSource</h3>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/94">rabbitmq-dotnet-client#94</a></p>
+<h3 id="add-events-for-connection-recovery-errors-and-connection-success">Add events for connection recovery errors and connection success</h3>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/156">rabbitmq-dotnet-client#156</a></p>
+<h3 id="noack-renamed-to-autoack">noAck renamed to autoAck</h3>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/255">rabbitmq-dotnet-client#255</a></p>
+<h3 id="make-uri-and-uri-setters-in-connectionfactory-obsolete">Make uri and Uri setters in ConnectionFactory obsolete</h3>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/264">rabbitmq-dotnet-client#264</a></p>
+<h3 id="ensure-connection-recovery-does-not-keep-going-after-the-connection-has-been-closed">Ensure connection recovery does not keep going after the connection has been closed</h3>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/294">rabbitmq-dotnet-client#294</a></p>
+<h3 id="synchronize-access-to-the-manuallyclosed-field-in-autorecoveringconnection">Synchronize access to the manuallyClosed field in AutorecoveringConnection.</h3>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/291">rabbitmq-dotnet-client#291</a></p>
+<h3 id="use-concurrent-collections-inside-autorecoveringconnection">Use concurrent collections inside AutorecoveringConnection</h3>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/288">rabbitmq-dotnet-client#288</a></p>
+<h3 id="add-property-to-allow-an-endpoint-to-specify-the-address-family">Add property to allow an endpoint to specify the address family</h3>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/226">rabbitmq-dotnet-client#226</a></p>
+<h3 id="fix-potential-eventingbasicconsumer-race-condition">Fix potential EventingBasicConsumer race condition</h3>
+<h3 id="re-introduce-a-uri-property-on-iconnectionfactory">Re-introduce a Uri property on IConnectionFactory</h3>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/330">rabbitmq-dotnet-client#330</a></p>
+<h3 id="add-createconnection-overload-to-iconnectionfactory">Add CreateConnection overload to IConnectionFactory</h3>
+<p>GitHub PR: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/325">rabbitmq-dotnet-client#325</a></p>
+<h2 id="changes-between-410-and-411">Changes Between 4.1.0 and 4.1.1</h2>
+<h3 id="fixed-xml-documentation-generation">Fixed XML Documentation Generation</h3>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/269">rabbitmq-dotnet-client#269</a></p>
+<p>Contributed by Brandon Ording.</p>
+<h3 id="fixed-winrt-project-build">Fixed WinRT Project Build</h3>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/270">rabbitmq-dotnet-client#270</a></p>
+<p>Contributed by Brandon Ording.</p>
+<h3 id="tcpclientadapter-nullifies-socket-field-on-close"><code>TcpClientAdapter</code> Nullifies Socket Field on Close</h3>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/263">rabbitmq-dotnet-client#263</a></p>
+<h3 id="heartbeatreadtimercallback-handles-potential-nullreferenceexception"><code>HeartbeatReadTimerCallback</code> Handles Potential <code>NullReferenceException</code></h3>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/257">rabbitmq-dotnet-client#257</a></p>
+<h2 id="changes-between-402-and-410">Changes Between 4.0.2 and 4.1.0</h2>
+<p><code>4.1.0</code> was released on <strong>September 14th, 2016</strong>.</p>
+<h3 id="no-lock-contention-at-consumer-work-service">No lock contention at consumer work service</h3>
+<p>Switched to a &quot;thread-per-model&quot; approach in the <code>ConsumerWorkService</code>.</p>
+<p>The TaskScheduler property on <code>ConnectionFactory</code> has been obsoleted and can no
+longer be used to control concurrency.</p>
+<p>Utility class changes:</p>
+<ul>
+<li><code>BatchingWorkPool</code> has been removed</li>
+<li><code>ConsumerWorkService</code> no longer has a constructor that takes a <code>TaskScheduler</code></li>
+<li><code>ConsumerWorkService.MAX_THUNK_EXECUTION_BATCH_SIZE</code> has been removed</li>
+<li><code>ConsumerWorkService</code> no longer has the <code>ExecuteThunk</code> or <code>RegisterKey</code> methods</li>
+</ul>
+<p>Contributed by Brandon Ording and Szymon Kulec.</p>
+<p>GH issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/251">rabbitmq-dotnet-client#251</a></p>
+<h2 id="changes-between-401-and-402-september-1st-2016">Changes Between 4.0.1 and 4.0.2 (September 1st, 2016)</h2>
+<h3 id="tcpclientadapter-didnt-respect-ip-address-family">TcpClientAdapter Didn&#39;t Respect IP Address Family</h3>
+<p>GH issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/244">rabbitmq-dotnet-client#244</a></p>
+<h2 id="changes-between-400-and-401-august-25th-2016">Changes Between 4.0.0 and 4.0.1 (August 25th, 2016)</h2>
+<h3 id="connectionfactorycreateconnection-deadlock"><code>ConnectionFactory#CreateConnection</code> Deadlock</h3>
+<p><code>ConnectionFactory#CreateConnection</code> could deadlock in some circumstances.</p>
+<p>GH issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/239">rabbitmq-dotnet-client#239</a>.</p>
+<h3 id="occasional-nullreferenceexception-in-endpoint-resolution">Occasional <code>NullReferenceException</code> in Endpoint Resolution</h3>
+<p>GH issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/238">rabbitmq-dotnet-client#238</a></p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/ChangeLog.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Copyright © 2015-2017 Microsoft<br>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="styles/docfx.js"></script>
+    <script type="text/javascript" src="styles/main.js"></script>
+  </body>
+</html>

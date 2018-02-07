@@ -1,0 +1,858 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class TestConcurrentAccessWithSharedConnection
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class TestConcurrentAccessWithSharedConnection
+   ">
+    <meta name="generator" content="docfx 2.31.0.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection">
+  
+  
+  <h1 id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection" class="text-break">Class TestConcurrentAccessWithSharedConnection
+  </h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html">IntegrationFixture</a></div>
+    <div class="level2"><span class="xref">TestConcurrentAccessWithSharedConnection</span></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_Conn">IntegrationFixture.Conn</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_Model">IntegrationFixture.Model</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_encoding">IntegrationFixture.encoding</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_RECOVERY_INTERVAL">IntegrationFixture.RECOVERY_INTERVAL</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_Dispose">IntegrationFixture.Dispose()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_CreateAutorecoveringConnection">IntegrationFixture.CreateAutorecoveringConnection()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_CreateAutorecoveringConnection_System_Collections_Generic_IList_System_String__">IntegrationFixture.CreateAutorecoveringConnection(IList&lt;String&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_CreateAutorecoveringConnection_System_TimeSpan_">IntegrationFixture.CreateAutorecoveringConnection(TimeSpan)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_CreateAutorecoveringConnection_System_TimeSpan_System_Collections_Generic_IList_System_String__">IntegrationFixture.CreateAutorecoveringConnection(TimeSpan, IList&lt;String&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_CreateAutorecoveringConnection_System_Collections_Generic_IList_RabbitMQ_Client_AmqpTcpEndpoint__">IntegrationFixture.CreateAutorecoveringConnection(IList&lt;AmqpTcpEndpoint&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_CreateAutorecoveringConnectionWithTopologyRecoveryDisabled">IntegrationFixture.CreateAutorecoveringConnectionWithTopologyRecoveryDisabled()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_CreateNonRecoveringConnection">IntegrationFixture.CreateNonRecoveringConnection()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WithTemporaryAutorecoveringConnection_System_Action_RabbitMQ_Client_Framing_Impl_AutorecoveringConnection__">IntegrationFixture.WithTemporaryAutorecoveringConnection(Action&lt;AutorecoveringConnection&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WithTemporaryModel_RabbitMQ_Client_IConnection_System_Action_RabbitMQ_Client_IModel__">IntegrationFixture.WithTemporaryModel(IConnection, Action&lt;IModel&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WithTemporaryModel_System_Action_RabbitMQ_Client_IModel__">IntegrationFixture.WithTemporaryModel(Action&lt;IModel&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WithClosedModel_System_Action_RabbitMQ_Client_IModel__">IntegrationFixture.WithClosedModel(Action&lt;IModel&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WaitForConfirms_RabbitMQ_Client_IModel_">IntegrationFixture.WaitForConfirms(IModel)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_GenerateExchangeName">IntegrationFixture.GenerateExchangeName()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_RandomMessageBody">IntegrationFixture.RandomMessageBody()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_DeclareNonDurableExchange_RabbitMQ_Client_IModel_System_String_">IntegrationFixture.DeclareNonDurableExchange(IModel, String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_DeclareNonDurableExchangeNoWait_RabbitMQ_Client_IModel_System_String_">IntegrationFixture.DeclareNonDurableExchangeNoWait(IModel, String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_GenerateQueueName">IntegrationFixture.GenerateQueueName()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WithTemporaryQueue_System_Action_RabbitMQ_Client_IModel_System_String__">IntegrationFixture.WithTemporaryQueue(Action&lt;IModel, String&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WithTemporaryNonExclusiveQueue_System_Action_RabbitMQ_Client_IModel_System_String__">IntegrationFixture.WithTemporaryNonExclusiveQueue(Action&lt;IModel, String&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WithTemporaryQueue_RabbitMQ_Client_IModel_System_Action_RabbitMQ_Client_IModel_System_String__">IntegrationFixture.WithTemporaryQueue(IModel, Action&lt;IModel, String&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WithTemporaryNonExclusiveQueue_RabbitMQ_Client_IModel_System_Action_RabbitMQ_Client_IModel_System_String__">IntegrationFixture.WithTemporaryNonExclusiveQueue(IModel, Action&lt;IModel, String&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WithTemporaryQueue_System_Action_RabbitMQ_Client_IModel_System_String__System_String_">IntegrationFixture.WithTemporaryQueue(Action&lt;IModel, String&gt;, String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WithTemporaryQueue_RabbitMQ_Client_IModel_System_Action_RabbitMQ_Client_IModel_System_String__System_String_">IntegrationFixture.WithTemporaryQueue(IModel, Action&lt;IModel, String&gt;, String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WithTemporaryNonExclusiveQueue_RabbitMQ_Client_IModel_System_Action_RabbitMQ_Client_IModel_System_String__System_String_">IntegrationFixture.WithTemporaryNonExclusiveQueue(IModel, Action&lt;IModel, String&gt;, String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WithTemporaryQueueNoWait_RabbitMQ_Client_IModel_System_Action_RabbitMQ_Client_IModel_System_String__System_String_">IntegrationFixture.WithTemporaryQueueNoWait(IModel, Action&lt;IModel, String&gt;, String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_EnsureNotEmpty_System_String_">IntegrationFixture.EnsureNotEmpty(String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_EnsureNotEmpty_System_String_System_String_">IntegrationFixture.EnsureNotEmpty(String, String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WithNonEmptyQueue_System_Action_RabbitMQ_Client_IModel_System_String__">IntegrationFixture.WithNonEmptyQueue(Action&lt;IModel, String&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WithNonEmptyQueue_System_Action_RabbitMQ_Client_IModel_System_String__System_String_">IntegrationFixture.WithNonEmptyQueue(Action&lt;IModel, String&gt;, String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WithEmptyQueue_System_Action_RabbitMQ_Client_IModel_System_String__">IntegrationFixture.WithEmptyQueue(Action&lt;IModel, String&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_AssertMessageCount_System_String_System_Int32_">IntegrationFixture.AssertMessageCount(String, Int32)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_AssertConsumerCount_System_String_System_Int32_">IntegrationFixture.AssertConsumerCount(String, Int32)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_AssertConsumerCount_RabbitMQ_Client_IModel_System_String_System_Int32_">IntegrationFixture.AssertConsumerCount(IModel, String, Int32)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_AssertShutdownError_RabbitMQ_Client_ShutdownEventArgs_System_Int32_">IntegrationFixture.AssertShutdownError(ShutdownEventArgs, Int32)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_AssertPreconditionFailed_RabbitMQ_Client_ShutdownEventArgs_">IntegrationFixture.AssertPreconditionFailed(ShutdownEventArgs)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_InitiatedByPeerOrLibrary_RabbitMQ_Client_ShutdownEventArgs_">IntegrationFixture.InitiatedByPeerOrLibrary(ShutdownEventArgs)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_WaitOn_System_Object_">IntegrationFixture.WaitOn(Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_ExecRabbitMQCtl_System_String_">IntegrationFixture.ExecRabbitMQCtl(String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_ExecCommand_System_String_">IntegrationFixture.ExecCommand(String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_ExecCommand_System_String_System_String_">IntegrationFixture.ExecCommand(String, String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_ExecCommand_System_String_System_String_System_String_">IntegrationFixture.ExecCommand(String, String, String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_ReportExecFailure_System_String_System_String_System_String_">IntegrationFixture.ReportExecFailure(String, String, String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_IsRunningOnMonoOrDotNetCore">IntegrationFixture.IsRunningOnMonoOrDotNetCore()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_Block">IntegrationFixture.Block()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_Unblock">IntegrationFixture.Unblock()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_Publish_RabbitMQ_Client_IConnection_">IntegrationFixture.Publish(IConnection)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_ListConnections">IntegrationFixture.ListConnections()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_CloseConnection_RabbitMQ_Client_IConnection_">IntegrationFixture.CloseConnection(IConnection)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_CloseAllConnections">IntegrationFixture.CloseAllConnections()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_CloseConnection_System_String_">IntegrationFixture.CloseConnection(String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_RestartRabbitMQ">IntegrationFixture.RestartRabbitMQ()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_StopRabbitMQ">IntegrationFixture.StopRabbitMQ()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_StartRabbitMQ">IntegrationFixture.StartRabbitMQ()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_Wait_System_Threading_ManualResetEvent_">IntegrationFixture.Wait(ManualResetEvent)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_Wait_System_Threading_ManualResetEvent_System_TimeSpan_">IntegrationFixture.Wait(ManualResetEvent, TimeSpan)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_CertificatesDirectory">IntegrationFixture.CertificatesDirectory()</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="RabbitMQ.Client.Unit.html">RabbitMQ.Client.Unit</a></h6>
+  <h6><strong>Assembly</strong>: unit-tests.dll</h6>
+  <h5 id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class TestConcurrentAccessWithSharedConnection : IntegrationFixture</code></pre>
+  </div>
+  <h3 id="fields">Fields
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_completionTimeout.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.completionTimeout%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/TestConcurrentAccessWithSharedConnection.cs/#L56">View Source</a>
+  </span>
+  <h4 id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_completionTimeout" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.completionTimeout">completionTimeout</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected TimeSpan completionTimeout</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.TimeSpan</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_latch.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.latch%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/TestConcurrentAccessWithSharedConnection.cs/#L55">View Source</a>
+  </span>
+  <h4 id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_latch" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.latch">latch</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected CountdownEvent latch</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.CountdownEvent</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_threads.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.threads%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/TestConcurrentAccessWithSharedConnection.cs/#L54">View Source</a>
+  </span>
+  <h4 id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_threads" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.threads">threads</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected const int threads = 32</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_Init.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.Init%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/TestConcurrentAccessWithSharedConnection.cs/#L58">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_Init_" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.Init*"></a>
+  <h4 id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_Init" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.Init">Init()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Init()</code></pre>
+  </div>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_Init">IntegrationFixture.Init()</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_ReleaseResources.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.ReleaseResources%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/TestConcurrentAccessWithSharedConnection.cs/#L65">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_ReleaseResources_" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.ReleaseResources*"></a>
+  <h4 id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_ReleaseResources" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.ReleaseResources">ReleaseResources()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void ReleaseResources()</code></pre>
+  </div>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_ReleaseResources">IntegrationFixture.ReleaseResources()</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase1.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase1%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/TestConcurrentAccessWithSharedConnection.cs/#L77">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase1_" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase1*"></a>
+  <h4 id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase1" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase1">TestConcurrentChannelOpenAndPublishingCase1()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void TestConcurrentChannelOpenAndPublishingCase1()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase10.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase10%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/TestConcurrentAccessWithSharedConnection.cs/#L132">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase10_" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase10*"></a>
+  <h4 id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase10" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase10">TestConcurrentChannelOpenAndPublishingCase10()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void TestConcurrentChannelOpenAndPublishingCase10()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase11.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase11%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/TestConcurrentAccessWithSharedConnection.cs/#L138">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase11_" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase11*"></a>
+  <h4 id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase11" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase11">TestConcurrentChannelOpenAndPublishingCase11()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void TestConcurrentChannelOpenAndPublishingCase11()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase12.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase12%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/TestConcurrentAccessWithSharedConnection.cs/#L144">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase12_" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase12*"></a>
+  <h4 id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase12" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase12">TestConcurrentChannelOpenAndPublishingCase12()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void TestConcurrentChannelOpenAndPublishingCase12()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase2.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase2%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/TestConcurrentAccessWithSharedConnection.cs/#L83">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase2_" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase2*"></a>
+  <h4 id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase2" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase2">TestConcurrentChannelOpenAndPublishingCase2()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void TestConcurrentChannelOpenAndPublishingCase2()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase3.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase3%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/TestConcurrentAccessWithSharedConnection.cs/#L89">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase3_" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase3*"></a>
+  <h4 id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase3" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase3">TestConcurrentChannelOpenAndPublishingCase3()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void TestConcurrentChannelOpenAndPublishingCase3()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase4.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase4%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/TestConcurrentAccessWithSharedConnection.cs/#L95">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase4_" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase4*"></a>
+  <h4 id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase4" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase4">TestConcurrentChannelOpenAndPublishingCase4()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void TestConcurrentChannelOpenAndPublishingCase4()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase5.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase5%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/TestConcurrentAccessWithSharedConnection.cs/#L101">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase5_" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase5*"></a>
+  <h4 id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase5" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase5">TestConcurrentChannelOpenAndPublishingCase5()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void TestConcurrentChannelOpenAndPublishingCase5()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase6.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase6%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/TestConcurrentAccessWithSharedConnection.cs/#L107">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase6_" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase6*"></a>
+  <h4 id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase6" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase6">TestConcurrentChannelOpenAndPublishingCase6()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void TestConcurrentChannelOpenAndPublishingCase6()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase7.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase7%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/TestConcurrentAccessWithSharedConnection.cs/#L113">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase7_" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase7*"></a>
+  <h4 id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase7" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase7">TestConcurrentChannelOpenAndPublishingCase7()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void TestConcurrentChannelOpenAndPublishingCase7()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase8.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase8%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/TestConcurrentAccessWithSharedConnection.cs/#L120">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase8_" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase8*"></a>
+  <h4 id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase8" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase8">TestConcurrentChannelOpenAndPublishingCase8()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void TestConcurrentChannelOpenAndPublishingCase8()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase9.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase9%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/TestConcurrentAccessWithSharedConnection.cs/#L126">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase9_" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase9*"></a>
+  <h4 id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingCase9" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingCase9">TestConcurrentChannelOpenAndPublishingCase9()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void TestConcurrentChannelOpenAndPublishingCase9()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingWithBlankMessages.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingWithBlankMessages%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/TestConcurrentAccessWithSharedConnection.cs/#L71">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingWithBlankMessages_" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingWithBlankMessages*"></a>
+  <h4 id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingWithBlankMessages" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingWithBlankMessages">TestConcurrentChannelOpenAndPublishingWithBlankMessages()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void TestConcurrentChannelOpenAndPublishingWithBlankMessages()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingWithBody_System_Byte___System_Int32_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingWithBody(System.Byte%5B%5D%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/TestConcurrentAccessWithSharedConnection.cs/#L175">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingWithBody_" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingWithBody*"></a>
+  <h4 id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingWithBody_System_Byte___System_Int32_" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingWithBody(System.Byte[],System.Int32)">TestConcurrentChannelOpenAndPublishingWithBody(Byte[], Int32)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected void TestConcurrentChannelOpenAndPublishingWithBody(byte[] body, int iterations)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td><span class="parametername">body</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">iterations</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingWithBodyOfSize_System_Int32_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingWithBodyOfSize(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/TestConcurrentAccessWithSharedConnection.cs/#L159">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingWithBodyOfSize_" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingWithBodyOfSize*"></a>
+  <h4 id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingWithBodyOfSize_System_Int32_" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingWithBodyOfSize(System.Int32)">TestConcurrentChannelOpenAndPublishingWithBodyOfSize(Int32)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected void TestConcurrentChannelOpenAndPublishingWithBodyOfSize(int length)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">length</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingWithBodyOfSize_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingWithBodyOfSize(System.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/TestConcurrentAccessWithSharedConnection.cs/#L164">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingWithBodyOfSize_" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingWithBodyOfSize*"></a>
+  <h4 id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenAndPublishingWithBodyOfSize_System_Int32_System_Int32_" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenAndPublishingWithBodyOfSize(System.Int32,System.Int32)">TestConcurrentChannelOpenAndPublishingWithBodyOfSize(Int32, Int32)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected void TestConcurrentChannelOpenAndPublishingWithBodyOfSize(int length, int iterations)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">length</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">iterations</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenCloseLoop.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenCloseLoop%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/TestConcurrentAccessWithSharedConnection.cs/#L150">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenCloseLoop_" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenCloseLoop*"></a>
+  <h4 id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOpenCloseLoop" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOpenCloseLoop">TestConcurrentChannelOpenCloseLoop()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void TestConcurrentChannelOpenCloseLoop()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOperations_System_Action_RabbitMQ_Client_IConnection__System_Int32_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOperations(System.Action%7BRabbitMQ.Client.IConnection%7D%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/TestConcurrentAccessWithSharedConnection.cs/#L190">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOperations_" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOperations*"></a>
+  <h4 id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOperations_System_Action_RabbitMQ_Client_IConnection__System_Int32_" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOperations(System.Action{RabbitMQ.Client.IConnection},System.Int32)">TestConcurrentChannelOperations(Action&lt;IConnection&gt;, Int32)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected void TestConcurrentChannelOperations(Action&lt;IConnection&gt; actions, int iterations)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Action</span>&lt;<a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a>&gt;</td>
+        <td><span class="parametername">actions</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">iterations</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOperations_System_Action_RabbitMQ_Client_IConnection__System_Int32_System_TimeSpan_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOperations(System.Action%7BRabbitMQ.Client.IConnection%7D%2CSystem.Int32%2CSystem.TimeSpan)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/TestConcurrentAccessWithSharedConnection.cs/#L196">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOperations_" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOperations*"></a>
+  <h4 id="RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection_TestConcurrentChannelOperations_System_Action_RabbitMQ_Client_IConnection__System_Int32_System_TimeSpan_" data-uid="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.TestConcurrentChannelOperations(System.Action{RabbitMQ.Client.IConnection},System.Int32,System.TimeSpan)">TestConcurrentChannelOperations(Action&lt;IConnection&gt;, Int32, TimeSpan)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected void TestConcurrentChannelOperations(Action&lt;IConnection&gt; actions, int iterations, TimeSpan timeout)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Action</span>&lt;<a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a>&gt;</td>
+        <td><span class="parametername">actions</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">iterations</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.TimeSpan</span></td>
+        <td><span class="parametername">timeout</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConcurrentAccessWithSharedConnection.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/TestConcurrentAccessWithSharedConnection.cs/#L51" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Copyright © 2015-2017 Microsoft<br>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

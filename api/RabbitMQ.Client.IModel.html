@@ -1,0 +1,2660 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Interface IModel
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Interface IModel
+   ">
+    <meta name="generator" content="docfx 2.31.0.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="RabbitMQ.Client.IModel">
+  
+  
+  <h1 id="RabbitMQ_Client_IModel" data-uid="RabbitMQ.Client.IModel" class="text-break">Interface IModel
+  </h1>
+  <div class="markdown level0 summary"><p>Common AMQP model, spanning the union of the
+functionality offered by versions 0-8, 0-8qpid, 0-9 and 0-9-1 of AMQP.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.IDisposable.Dispose()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="RabbitMQ.Client.html">RabbitMQ.Client</a></h6>
+  <h6><strong>Assembly</strong>: RabbitMQ.Client.WinRT.dll</h6>
+  <h5 id="RabbitMQ_Client_IModel_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IModel : IDisposable</code></pre>
+  </div>
+  <h5 id="RabbitMQ_Client_IModel_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>Extends the <span class="xref">System.IDisposable</span> interface, so that the &quot;using&quot;
+statement can be used to scope the lifetime of a channel when appropriate.</p>
+</div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_ChannelNumber.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.ChannelNumber%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L62">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_ChannelNumber_" data-uid="RabbitMQ.Client.IModel.ChannelNumber*"></a>
+  <h4 id="RabbitMQ_Client_IModel_ChannelNumber" data-uid="RabbitMQ.Client.IModel.ChannelNumber">ChannelNumber</h4>
+  <div class="markdown level1 summary"><p>Channel number, unique per connections.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">int ChannelNumber { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_CloseReason.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.CloseReason%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L68">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_CloseReason_" data-uid="RabbitMQ.Client.IModel.CloseReason*"></a>
+  <h4 id="RabbitMQ_Client_IModel_CloseReason" data-uid="RabbitMQ.Client.IModel.CloseReason">CloseReason</h4>
+  <div class="markdown level1 summary"><p>Returns null if the session is still in a state where it can be used,
+or the cause of its closure otherwise.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">ShutdownEventArgs CloseReason { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.ShutdownEventArgs.html">ShutdownEventArgs</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_ContinuationTimeout.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.ContinuationTimeout%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L560">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_ContinuationTimeout_" data-uid="RabbitMQ.Client.IModel.ContinuationTimeout*"></a>
+  <h4 id="RabbitMQ_Client_IModel_ContinuationTimeout" data-uid="RabbitMQ.Client.IModel.ContinuationTimeout">ContinuationTimeout</h4>
+  <div class="markdown level1 summary"><p>Amount of time protocol  operations (e.g. <pre><code>queue.declare</code></pre>) are allowed to take before
+timing out.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">TimeSpan ContinuationTimeout { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.TimeSpan</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_DefaultConsumer.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.DefaultConsumer%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L92">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_DefaultConsumer_" data-uid="RabbitMQ.Client.IModel.DefaultConsumer*"></a>
+  <h4 id="RabbitMQ_Client_IModel_DefaultConsumer" data-uid="RabbitMQ.Client.IModel.DefaultConsumer">DefaultConsumer</h4>
+  <div class="markdown level1 summary"><p>Signalled when an unexpected message is delivered</p>
+<p>Under certain circumstances it is possible for a channel to receive a
+message delivery which does not match any consumer which is currently
+set up via basicConsume(). This will occur after the following sequence
+of events:</p>
+<p>ctag = basicConsume(queue, consumer); // i.e. with explicit acks
+// some deliveries take place but are not acked
+basicCancel(ctag);
+basicRecover(false);</p>
+<p>Since requeue is specified to be false in the basicRecover, the spec
+states that the message must be redelivered to &quot;the original recipient&quot;</p>
+<ul>
+<li>i.e. the same channel / consumer-tag. But the consumer is no longer
+active.</li>
+</ul>
+<p>In these circumstances, you can register a default consumer to handle
+such deliveries. If no default consumer is registered an
+InvalidOperationException will be thrown when such a delivery arrives.</p>
+<p>Most people will not need to use this.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IBasicConsumer DefaultConsumer { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IBasicConsumer.html">IBasicConsumer</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_IsClosed.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.IsClosed%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L97">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_IsClosed_" data-uid="RabbitMQ.Client.IModel.IsClosed*"></a>
+  <h4 id="RabbitMQ_Client_IModel_IsClosed" data-uid="RabbitMQ.Client.IModel.IsClosed">IsClosed</h4>
+  <div class="markdown level1 summary"><p>Returns true if the model is no longer in a state where it can be used.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsClosed { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_IsOpen.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.IsOpen%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L102">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_IsOpen_" data-uid="RabbitMQ.Client.IModel.IsOpen*"></a>
+  <h4 id="RabbitMQ_Client_IModel_IsOpen" data-uid="RabbitMQ.Client.IModel.IsOpen">IsOpen</h4>
+  <div class="markdown level1 summary"><p>Returns true if the model is still in a state where it can be used.
+Identical to checking if <a class="xref" href="RabbitMQ.Client.IModel.html#RabbitMQ_Client_IModel_CloseReason">CloseReason</a> equals null.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsOpen { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_NextPublishSeqNo.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.NextPublishSeqNo%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L107">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_NextPublishSeqNo_" data-uid="RabbitMQ.Client.IModel.NextPublishSeqNo*"></a>
+  <h4 id="RabbitMQ_Client_IModel_NextPublishSeqNo" data-uid="RabbitMQ.Client.IModel.NextPublishSeqNo">NextPublishSeqNo</h4>
+  <div class="markdown level1 summary"><p>When in confirm mode, return the sequence number of the next message to be published.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">ulong NextPublishSeqNo { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_Abort.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.Abort%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L166">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_Abort_" data-uid="RabbitMQ.Client.IModel.Abort*"></a>
+  <h4 id="RabbitMQ_Client_IModel_Abort" data-uid="RabbitMQ.Client.IModel.Abort">Abort()</h4>
+  <div class="markdown level1 summary"><p>Abort this session.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[AmqpMethodDoNotImplement(null)]
+void Abort()</code></pre>
+  </div>
+  <h5 id="RabbitMQ_Client_IModel_Abort_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>If the session is already closed (or closing), then this
+method does nothing but wait for the in-progress close
+operation to complete. This method will not return to the
+caller until the shutdown is complete.
+In comparison to normal <a class="xref" href="RabbitMQ.Client.IModel.html#RabbitMQ_Client_IModel_Close">Close()</a> method, <a class="xref" href="RabbitMQ.Client.IModel.html#RabbitMQ_Client_IModel_Abort">Abort()</a> will not throw
+<a class="xref" href="RabbitMQ.Client.Exceptions.AlreadyClosedException.html">AlreadyClosedException</a> or <span class="xref">System.IO.IOException</span> or any other <span class="xref">System.Exception</span> during closing model.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_Abort_System_UInt16_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.Abort(System.UInt16%2CSystem.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L182">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_Abort_" data-uid="RabbitMQ.Client.IModel.Abort*"></a>
+  <h4 id="RabbitMQ_Client_IModel_Abort_System_UInt16_System_String_" data-uid="RabbitMQ.Client.IModel.Abort(System.UInt16,System.String)">Abort(UInt16, String)</h4>
+  <div class="markdown level1 summary"><p>Abort this session.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[AmqpMethodDoNotImplement(null)]
+void Abort(ushort replyCode, string replyText)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt16</span></td>
+        <td><span class="parametername">replyCode</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">replyText</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_IModel_Abort_System_UInt16_System_String__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The method behaves in the same way as <a class="xref" href="RabbitMQ.Client.IModel.html#RabbitMQ_Client_IModel_Abort">Abort()</a>, with the only
+difference that the model is closed with the given model close code and message.
+<p>
+The close code (See under &quot;Reply Codes&quot; in the AMQP specification)
+</p>
+<p>
+A message indicating the reason for closing the model
+</p></p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_BasicAck_System_UInt64_System_Boolean_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.BasicAck(System.UInt64%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L188">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_BasicAck_" data-uid="RabbitMQ.Client.IModel.BasicAck*"></a>
+  <h4 id="RabbitMQ_Client_IModel_BasicAck_System_UInt64_System_Boolean_" data-uid="RabbitMQ.Client.IModel.BasicAck(System.UInt64,System.Boolean)">BasicAck(UInt64, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Acknowledge one or more delivered message(s).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void BasicAck(ulong deliveryTag, bool multiple)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td><span class="parametername">deliveryTag</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">multiple</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_BasicCancel_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.BasicCancel(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L193">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_BasicCancel_" data-uid="RabbitMQ.Client.IModel.BasicCancel*"></a>
+  <h4 id="RabbitMQ_Client_IModel_BasicCancel_System_String_" data-uid="RabbitMQ.Client.IModel.BasicCancel(System.String)">BasicCancel(String)</h4>
+  <div class="markdown level1 summary"><p>Delete a Basic content-class consumer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[AmqpMethodDoNotImplement(null)]
+void BasicCancel(string consumerTag)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">consumerTag</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_BasicConsume_System_String_System_Boolean_System_String_System_Boolean_System_Boolean_System_Collections_Generic_IDictionary_System_String_System_Object__RabbitMQ_Client_IBasicConsumer_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.BasicConsume(System.String%2CSystem.Boolean%2CSystem.String%2CSystem.Boolean%2CSystem.Boolean%2CSystem.Collections.Generic.IDictionary%7BSystem.String%2CSystem.Object%7D%2CRabbitMQ.Client.IBasicConsumer)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L197">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_BasicConsume_" data-uid="RabbitMQ.Client.IModel.BasicConsume*"></a>
+  <h4 id="RabbitMQ_Client_IModel_BasicConsume_System_String_System_Boolean_System_String_System_Boolean_System_Boolean_System_Collections_Generic_IDictionary_System_String_System_Object__RabbitMQ_Client_IBasicConsumer_" data-uid="RabbitMQ.Client.IModel.BasicConsume(System.String,System.Boolean,System.String,System.Boolean,System.Boolean,System.Collections.Generic.IDictionary{System.String,System.Object},RabbitMQ.Client.IBasicConsumer)">BasicConsume(String, Boolean, String, Boolean, Boolean, IDictionary&lt;String, Object&gt;, IBasicConsumer)</h4>
+  <div class="markdown level1 summary"><p>Start a Basic content-class consumer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[AmqpMethodDoNotImplement(null)]
+string BasicConsume(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, IDictionary&lt;string, object&gt; arguments, IBasicConsumer consumer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">queue</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">autoAck</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">consumerTag</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">noLocal</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">exclusive</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IDictionary</span>&lt;<span class="xref">System.String</span>, <span class="xref">System.Object</span>&gt;</td>
+        <td><span class="parametername">arguments</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IBasicConsumer.html">IBasicConsumer</a></td>
+        <td><span class="parametername">consumer</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_BasicGet_System_String_System_Boolean_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.BasicGet(System.String%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L212">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_BasicGet_" data-uid="RabbitMQ.Client.IModel.BasicGet*"></a>
+  <h4 id="RabbitMQ_Client_IModel_BasicGet_System_String_System_Boolean_" data-uid="RabbitMQ.Client.IModel.BasicGet(System.String,System.Boolean)">BasicGet(String, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Retrieve an individual message, if
+one is available; returns null if the server answers that
+no messages are currently available. See also <a class="xref" href="RabbitMQ.Client.IModel.html#RabbitMQ_Client_IModel_BasicAck_System_UInt64_System_Boolean_">BasicAck(UInt64, Boolean)</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[AmqpMethodDoNotImplement(null)]
+BasicGetResult BasicGet(string queue, bool autoAck)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">queue</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">autoAck</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.BasicGetResult.html">BasicGetResult</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_BasicNack_System_UInt64_System_Boolean_System_Boolean_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.BasicNack(System.UInt64%2CSystem.Boolean%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L216">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_BasicNack_" data-uid="RabbitMQ.Client.IModel.BasicNack*"></a>
+  <h4 id="RabbitMQ_Client_IModel_BasicNack_System_UInt64_System_Boolean_System_Boolean_" data-uid="RabbitMQ.Client.IModel.BasicNack(System.UInt64,System.Boolean,System.Boolean)">BasicNack(UInt64, Boolean, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Reject one or more delivered message(s).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void BasicNack(ulong deliveryTag, bool multiple, bool requeue)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td><span class="parametername">deliveryTag</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">multiple</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">requeue</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_BasicPublish_System_String_System_String_System_Boolean_RabbitMQ_Client_IBasicProperties_System_Byte___.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.BasicPublish(System.String%2CSystem.String%2CSystem.Boolean%2CRabbitMQ.Client.IBasicProperties%2CSystem.Byte%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L226">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_BasicPublish_" data-uid="RabbitMQ.Client.IModel.BasicPublish*"></a>
+  <h4 id="RabbitMQ_Client_IModel_BasicPublish_System_String_System_String_System_Boolean_RabbitMQ_Client_IBasicProperties_System_Byte___" data-uid="RabbitMQ.Client.IModel.BasicPublish(System.String,System.String,System.Boolean,RabbitMQ.Client.IBasicProperties,System.Byte[])">BasicPublish(String, String, Boolean, IBasicProperties, Byte[])</h4>
+  <div class="markdown level1 summary"><p>Publishes a message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[AmqpMethodDoNotImplement(null)]
+void BasicPublish(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, byte[] body)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">exchange</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">routingKey</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">mandatory</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IBasicProperties.html">IBasicProperties</a></td>
+        <td><span class="parametername">basicProperties</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td><span class="parametername">body</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_IModel_BasicPublish_System_String_System_String_System_Boolean_RabbitMQ_Client_IBasicProperties_System_Byte____remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+  Routing key must be shorter than 255 bytes.
+</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_BasicQos_System_UInt32_System_UInt16_System_Boolean_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.BasicQos(System.UInt32%2CSystem.UInt16%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L233">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_BasicQos_" data-uid="RabbitMQ.Client.IModel.BasicQos*"></a>
+  <h4 id="RabbitMQ_Client_IModel_BasicQos_System_UInt32_System_UInt16_System_Boolean_" data-uid="RabbitMQ.Client.IModel.BasicQos(System.UInt32,System.UInt16,System.Boolean)">BasicQos(UInt32, UInt16, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Configures QoS parameters of the Basic content-class.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void BasicQos(uint prefetchSize, ushort prefetchCount, bool global)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt32</span></td>
+        <td><span class="parametername">prefetchSize</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.UInt16</span></td>
+        <td><span class="parametername">prefetchCount</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">global</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_BasicRecover_System_Boolean_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.BasicRecover(System.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L239">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_BasicRecover_" data-uid="RabbitMQ.Client.IModel.BasicRecover*"></a>
+  <h4 id="RabbitMQ_Client_IModel_BasicRecover_System_Boolean_" data-uid="RabbitMQ.Client.IModel.BasicRecover(System.Boolean)">BasicRecover(Boolean)</h4>
+  <div class="markdown level1 summary"><p>Indicates that a consumer has recovered.
+Deprecated. Should not be used.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[AmqpMethodDoNotImplement(null)]
+void BasicRecover(bool requeue)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">requeue</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_BasicRecoverAsync_System_Boolean_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.BasicRecoverAsync(System.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L246">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_BasicRecoverAsync_" data-uid="RabbitMQ.Client.IModel.BasicRecoverAsync*"></a>
+  <h4 id="RabbitMQ_Client_IModel_BasicRecoverAsync_System_Boolean_" data-uid="RabbitMQ.Client.IModel.BasicRecoverAsync(System.Boolean)">BasicRecoverAsync(Boolean)</h4>
+  <div class="markdown level1 summary"><p>Indicates that a consumer has recovered.
+Deprecated. Should not be used.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void BasicRecoverAsync(bool requeue)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">requeue</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_BasicReject_System_UInt64_System_Boolean_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.BasicReject(System.UInt64%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L249">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_BasicReject_" data-uid="RabbitMQ.Client.IModel.BasicReject*"></a>
+  <h4 id="RabbitMQ_Client_IModel_BasicReject_System_UInt64_System_Boolean_" data-uid="RabbitMQ.Client.IModel.BasicReject(System.UInt64,System.Boolean)">BasicReject(UInt64, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Reject a delivered message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void BasicReject(ulong deliveryTag, bool requeue)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td><span class="parametername">deliveryTag</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">requeue</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_Close.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.Close%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L258">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_Close_" data-uid="RabbitMQ.Client.IModel.Close*"></a>
+  <h4 id="RabbitMQ_Client_IModel_Close" data-uid="RabbitMQ.Client.IModel.Close">Close()</h4>
+  <div class="markdown level1 summary"><p>Close this session.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[AmqpMethodDoNotImplement(null)]
+void Close()</code></pre>
+  </div>
+  <h5 id="RabbitMQ_Client_IModel_Close_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>If the session is already closed (or closing), then this
+method does nothing but wait for the in-progress close
+operation to complete. This method will not return to the
+caller until the shutdown is complete.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_Close_System_UInt16_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.Close(System.UInt16%2CSystem.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L273">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_Close_" data-uid="RabbitMQ.Client.IModel.Close*"></a>
+  <h4 id="RabbitMQ_Client_IModel_Close_System_UInt16_System_String_" data-uid="RabbitMQ.Client.IModel.Close(System.UInt16,System.String)">Close(UInt16, String)</h4>
+  <div class="markdown level1 summary"><p>Close this session.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[AmqpMethodDoNotImplement(null)]
+void Close(ushort replyCode, string replyText)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt16</span></td>
+        <td><span class="parametername">replyCode</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">replyText</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_IModel_Close_System_UInt16_System_String__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The method behaves in the same way as Close(), with the only
+difference that the model is closed with the given model
+close code and message.
+<p>
+The close code (See under &quot;Reply Codes&quot; in the AMQP specification)
+</p>
+<p>
+A message indicating the reason for closing the model
+</p></p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_ConfirmSelect.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.ConfirmSelect%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L279">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_ConfirmSelect_" data-uid="RabbitMQ.Client.IModel.ConfirmSelect*"></a>
+  <h4 id="RabbitMQ_Client_IModel_ConfirmSelect" data-uid="RabbitMQ.Client.IModel.ConfirmSelect">ConfirmSelect()</h4>
+  <div class="markdown level1 summary"><p>Enable publisher acknowledgements.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[AmqpMethodDoNotImplement(null)]
+void ConfirmSelect()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_ConsumerCount_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.ConsumerCount(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L435">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_ConsumerCount_" data-uid="RabbitMQ.Client.IModel.ConsumerCount*"></a>
+  <h4 id="RabbitMQ_Client_IModel_ConsumerCount_System_String_" data-uid="RabbitMQ.Client.IModel.ConsumerCount(System.String)">ConsumerCount(String)</h4>
+  <div class="markdown level1 summary"><p>Returns the number of consumers on a queue.
+This method assumes the queue exists. If it doesn&apos;t,
+an exception will be closed with an exception.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[AmqpMethodDoNotImplement(null)]
+uint ConsumerCount(string queue)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">queue</span></td>
+        <td><p>The name of the queue</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_CreateBasicProperties.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.CreateBasicProperties%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L291">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_CreateBasicProperties_" data-uid="RabbitMQ.Client.IModel.CreateBasicProperties*"></a>
+  <h4 id="RabbitMQ_Client_IModel_CreateBasicProperties" data-uid="RabbitMQ.Client.IModel.CreateBasicProperties">CreateBasicProperties()</h4>
+  <div class="markdown level1 summary"><p>Construct a completely empty content header for use with the Basic content class.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[AmqpContentHeaderFactory(&quot;basic&quot;)]
+IBasicProperties CreateBasicProperties()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IBasicProperties.html">IBasicProperties</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_CreateBasicPublishBatch.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.CreateBasicPublishBatch%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L285">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_CreateBasicPublishBatch_" data-uid="RabbitMQ.Client.IModel.CreateBasicPublishBatch*"></a>
+  <h4 id="RabbitMQ_Client_IModel_CreateBasicPublishBatch" data-uid="RabbitMQ.Client.IModel.CreateBasicPublishBatch">CreateBasicPublishBatch()</h4>
+  <div class="markdown level1 summary"><p>Creates a BasicPublishBatch instance</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[AmqpMethodDoNotImplement(null)]
+IBasicPublishBatch CreateBasicPublishBatch()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IBasicPublishBatch.html">IBasicPublishBatch</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_ExchangeBind_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.ExchangeBind(System.String%2CSystem.String%2CSystem.String%2CSystem.Collections.Generic.IDictionary%7BSystem.String%2CSystem.Object%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L302">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_ExchangeBind_" data-uid="RabbitMQ.Client.IModel.ExchangeBind*"></a>
+  <h4 id="RabbitMQ_Client_IModel_ExchangeBind_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.IModel.ExchangeBind(System.String,System.String,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">ExchangeBind(String, String, String, IDictionary&lt;String, Object&gt;)</h4>
+  <div class="markdown level1 summary"><p>Bind an exchange to an exchange.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[AmqpMethodDoNotImplement(null)]
+void ExchangeBind(string destination, string source, string routingKey, IDictionary&lt;string, object&gt; arguments)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">destination</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">source</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">routingKey</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IDictionary</span>&lt;<span class="xref">System.String</span>, <span class="xref">System.Object</span>&gt;</td>
+        <td><span class="parametername">arguments</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_IModel_ExchangeBind_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object___remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+  Routing key must be shorter than 255 bytes.
+</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_ExchangeBindNoWait_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.ExchangeBindNoWait(System.String%2CSystem.String%2CSystem.String%2CSystem.Collections.Generic.IDictionary%7BSystem.String%2CSystem.Object%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L313">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_ExchangeBindNoWait_" data-uid="RabbitMQ.Client.IModel.ExchangeBindNoWait*"></a>
+  <h4 id="RabbitMQ_Client_IModel_ExchangeBindNoWait_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.IModel.ExchangeBindNoWait(System.String,System.String,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">ExchangeBindNoWait(String, String, String, IDictionary&lt;String, Object&gt;)</h4>
+  <div class="markdown level1 summary"><p>Like ExchangeBind but sets nowait to true.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void ExchangeBindNoWait(string destination, string source, string routingKey, IDictionary&lt;string, object&gt; arguments)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">destination</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">source</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">routingKey</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IDictionary</span>&lt;<span class="xref">System.String</span>, <span class="xref">System.Object</span>&gt;</td>
+        <td><span class="parametername">arguments</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_IModel_ExchangeBindNoWait_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object___remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+  Routing key must be shorter than 255 bytes.
+</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_ExchangeDeclare_System_String_System_String_System_Boolean_System_Boolean_System_Collections_Generic_IDictionary_System_String_System_Object__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.ExchangeDeclare(System.String%2CSystem.String%2CSystem.Boolean%2CSystem.Boolean%2CSystem.Collections.Generic.IDictionary%7BSystem.String%2CSystem.Object%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L321">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_ExchangeDeclare_" data-uid="RabbitMQ.Client.IModel.ExchangeDeclare*"></a>
+  <h4 id="RabbitMQ_Client_IModel_ExchangeDeclare_System_String_System_String_System_Boolean_System_Boolean_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.IModel.ExchangeDeclare(System.String,System.String,System.Boolean,System.Boolean,System.Collections.Generic.IDictionary{System.String,System.Object})">ExchangeDeclare(String, String, Boolean, Boolean, IDictionary&lt;String, Object&gt;)</h4>
+  <div class="markdown level1 summary"><p>Declare an exchange.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[AmqpMethodDoNotImplement(null)]
+void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, IDictionary&lt;string, object&gt; arguments)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">exchange</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">type</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">durable</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">autoDelete</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IDictionary</span>&lt;<span class="xref">System.String</span>, <span class="xref">System.Object</span>&gt;</td>
+        <td><span class="parametername">arguments</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_IModel_ExchangeDeclare_System_String_System_String_System_Boolean_System_Boolean_System_Collections_Generic_IDictionary_System_String_System_Object___remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The exchange is declared non-passive and non-internal.
+The &quot;nowait&quot; option is not exercised.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_ExchangeDeclareNoWait_System_String_System_String_System_Boolean_System_Boolean_System_Collections_Generic_IDictionary_System_String_System_Object__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.ExchangeDeclareNoWait(System.String%2CSystem.String%2CSystem.Boolean%2CSystem.Boolean%2CSystem.Collections.Generic.IDictionary%7BSystem.String%2CSystem.Object%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L329">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_ExchangeDeclareNoWait_" data-uid="RabbitMQ.Client.IModel.ExchangeDeclareNoWait*"></a>
+  <h4 id="RabbitMQ_Client_IModel_ExchangeDeclareNoWait_System_String_System_String_System_Boolean_System_Boolean_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.IModel.ExchangeDeclareNoWait(System.String,System.String,System.Boolean,System.Boolean,System.Collections.Generic.IDictionary{System.String,System.Object})">ExchangeDeclareNoWait(String, String, Boolean, Boolean, IDictionary&lt;String, Object&gt;)</h4>
+  <div class="markdown level1 summary"><p>Same as ExchangeDeclare but sets nowait to true and returns void (as there
+will be no response from the server).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void ExchangeDeclareNoWait(string exchange, string type, bool durable, bool autoDelete, IDictionary&lt;string, object&gt; arguments)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">exchange</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">type</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">durable</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">autoDelete</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IDictionary</span>&lt;<span class="xref">System.String</span>, <span class="xref">System.Object</span>&gt;</td>
+        <td><span class="parametername">arguments</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_ExchangeDeclarePassive_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.ExchangeDeclarePassive(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L341">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_ExchangeDeclarePassive_" data-uid="RabbitMQ.Client.IModel.ExchangeDeclarePassive*"></a>
+  <h4 id="RabbitMQ_Client_IModel_ExchangeDeclarePassive_System_String_" data-uid="RabbitMQ.Client.IModel.ExchangeDeclarePassive(System.String)">ExchangeDeclarePassive(String)</h4>
+  <div class="markdown level1 summary"><p>Do a passive exchange declaration.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[AmqpMethodDoNotImplement(null)]
+void ExchangeDeclarePassive(string exchange)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">exchange</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_IModel_ExchangeDeclarePassive_System_String__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method performs a &quot;passive declare&quot; on an exchange,
+which verifies whether .
+It will do nothing if the exchange already exists and result
+in a channel-level protocol exception (channel closure) if not.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_ExchangeDelete_System_String_System_Boolean_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.ExchangeDelete(System.String%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L347">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_ExchangeDelete_" data-uid="RabbitMQ.Client.IModel.ExchangeDelete*"></a>
+  <h4 id="RabbitMQ_Client_IModel_ExchangeDelete_System_String_System_Boolean_" data-uid="RabbitMQ.Client.IModel.ExchangeDelete(System.String,System.Boolean)">ExchangeDelete(String, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Delete an exchange.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[AmqpMethodDoNotImplement(null)]
+void ExchangeDelete(string exchange, bool ifUnused)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">exchange</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">ifUnused</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_ExchangeDeleteNoWait_System_String_System_Boolean_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.ExchangeDeleteNoWait(System.String%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L353">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_ExchangeDeleteNoWait_" data-uid="RabbitMQ.Client.IModel.ExchangeDeleteNoWait*"></a>
+  <h4 id="RabbitMQ_Client_IModel_ExchangeDeleteNoWait_System_String_System_Boolean_" data-uid="RabbitMQ.Client.IModel.ExchangeDeleteNoWait(System.String,System.Boolean)">ExchangeDeleteNoWait(String, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Like ExchangeDelete but sets nowait to true.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void ExchangeDeleteNoWait(string exchange, bool ifUnused)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">exchange</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">ifUnused</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_ExchangeUnbind_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.ExchangeUnbind(System.String%2CSystem.String%2CSystem.String%2CSystem.Collections.Generic.IDictionary%7BSystem.String%2CSystem.Object%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L361">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_ExchangeUnbind_" data-uid="RabbitMQ.Client.IModel.ExchangeUnbind*"></a>
+  <h4 id="RabbitMQ_Client_IModel_ExchangeUnbind_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.IModel.ExchangeUnbind(System.String,System.String,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">ExchangeUnbind(String, String, String, IDictionary&lt;String, Object&gt;)</h4>
+  <div class="markdown level1 summary"><p>Unbind an exchange from an exchange.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[AmqpMethodDoNotImplement(null)]
+void ExchangeUnbind(string destination, string source, string routingKey, IDictionary&lt;string, object&gt; arguments)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">destination</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">source</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">routingKey</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IDictionary</span>&lt;<span class="xref">System.String</span>, <span class="xref">System.Object</span>&gt;</td>
+        <td><span class="parametername">arguments</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_IModel_ExchangeUnbind_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object___remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Routing key must be shorter than 255 bytes.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_ExchangeUnbindNoWait_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.ExchangeUnbindNoWait(System.String%2CSystem.String%2CSystem.String%2CSystem.Collections.Generic.IDictionary%7BSystem.String%2CSystem.Object%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L375">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_ExchangeUnbindNoWait_" data-uid="RabbitMQ.Client.IModel.ExchangeUnbindNoWait*"></a>
+  <h4 id="RabbitMQ_Client_IModel_ExchangeUnbindNoWait_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.IModel.ExchangeUnbindNoWait(System.String,System.String,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">ExchangeUnbindNoWait(String, String, String, IDictionary&lt;String, Object&gt;)</h4>
+  <div class="markdown level1 summary"><p>Like ExchangeUnbind but sets nowait to true.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[AmqpMethodDoNotImplement(null)]
+void ExchangeUnbindNoWait(string destination, string source, string routingKey, IDictionary&lt;string, object&gt; arguments)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">destination</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">source</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">routingKey</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IDictionary</span>&lt;<span class="xref">System.String</span>, <span class="xref">System.Object</span>&gt;</td>
+        <td><span class="parametername">arguments</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_IModel_ExchangeUnbindNoWait_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object___remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+  Routing key must be shorter than 255 bytes.
+</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_MessageCount_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.MessageCount(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L426">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_MessageCount_" data-uid="RabbitMQ.Client.IModel.MessageCount*"></a>
+  <h4 id="RabbitMQ_Client_IModel_MessageCount_System_String_" data-uid="RabbitMQ.Client.IModel.MessageCount(System.String)">MessageCount(String)</h4>
+  <div class="markdown level1 summary"><p>Returns the number of messages in a queue ready to be delivered
+to consumers. This method assumes the queue exists. If it doesn&apos;t,
+an exception will be closed with an exception.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[AmqpMethodDoNotImplement(null)]
+uint MessageCount(string queue)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">queue</span></td>
+        <td><p>The name of the queue</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_QueueBind_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.QueueBind(System.String%2CSystem.String%2CSystem.String%2CSystem.Collections.Generic.IDictionary%7BSystem.String%2CSystem.Object%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L387">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_QueueBind_" data-uid="RabbitMQ.Client.IModel.QueueBind*"></a>
+  <h4 id="RabbitMQ_Client_IModel_QueueBind_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.IModel.QueueBind(System.String,System.String,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">QueueBind(String, String, String, IDictionary&lt;String, Object&gt;)</h4>
+  <div class="markdown level1 summary"><p>Bind a queue to an exchange.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[AmqpMethodDoNotImplement(null)]
+void QueueBind(string queue, string exchange, string routingKey, IDictionary&lt;string, object&gt; arguments)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">queue</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">exchange</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">routingKey</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IDictionary</span>&lt;<span class="xref">System.String</span>, <span class="xref">System.Object</span>&gt;</td>
+        <td><span class="parametername">arguments</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_IModel_QueueBind_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object___remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+  Routing key must be shorter than 255 bytes.
+</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_QueueBindNoWait_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.QueueBindNoWait(System.String%2CSystem.String%2CSystem.String%2CSystem.Collections.Generic.IDictionary%7BSystem.String%2CSystem.Object%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L396">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_QueueBindNoWait_" data-uid="RabbitMQ.Client.IModel.QueueBindNoWait*"></a>
+  <h4 id="RabbitMQ_Client_IModel_QueueBindNoWait_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.IModel.QueueBindNoWait(System.String,System.String,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">QueueBindNoWait(String, String, String, IDictionary&lt;String, Object&gt;)</h4>
+  <div class="markdown level1 summary"><p>Same as QueueBind but sets nowait parameter to true.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void QueueBindNoWait(string queue, string exchange, string routingKey, IDictionary&lt;string, object&gt; arguments)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">queue</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">exchange</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">routingKey</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IDictionary</span>&lt;<span class="xref">System.String</span>, <span class="xref">System.Object</span>&gt;</td>
+        <td><span class="parametername">arguments</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_IModel_QueueBindNoWait_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object___remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+  Routing key must be shorter than 255 bytes.
+</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_QueueDeclare_System_String_System_Boolean_System_Boolean_System_Boolean_System_Collections_Generic_IDictionary_System_String_System_Object__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.QueueDeclare(System.String%2CSystem.Boolean%2CSystem.Boolean%2CSystem.Boolean%2CSystem.Collections.Generic.IDictionary%7BSystem.String%2CSystem.Object%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L399">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_QueueDeclare_" data-uid="RabbitMQ.Client.IModel.QueueDeclare*"></a>
+  <h4 id="RabbitMQ_Client_IModel_QueueDeclare_System_String_System_Boolean_System_Boolean_System_Boolean_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.IModel.QueueDeclare(System.String,System.Boolean,System.Boolean,System.Boolean,System.Collections.Generic.IDictionary{System.String,System.Object})">QueueDeclare(String, Boolean, Boolean, Boolean, IDictionary&lt;String, Object&gt;)</h4>
+  <div class="markdown level1 summary"><p>Declare a queue.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[AmqpMethodDoNotImplement(null)]
+QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary&lt;string, object&gt; arguments)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">queue</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">durable</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">exclusive</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">autoDelete</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IDictionary</span>&lt;<span class="xref">System.String</span>, <span class="xref">System.Object</span>&gt;</td>
+        <td><span class="parametername">arguments</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.QueueDeclareOk.html">QueueDeclareOk</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_QueueDeclareNoWait_System_String_System_Boolean_System_Boolean_System_Boolean_System_Collections_Generic_IDictionary_System_String_System_Object__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.QueueDeclareNoWait(System.String%2CSystem.Boolean%2CSystem.Boolean%2CSystem.Boolean%2CSystem.Collections.Generic.IDictionary%7BSystem.String%2CSystem.Object%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L407">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_QueueDeclareNoWait_" data-uid="RabbitMQ.Client.IModel.QueueDeclareNoWait*"></a>
+  <h4 id="RabbitMQ_Client_IModel_QueueDeclareNoWait_System_String_System_Boolean_System_Boolean_System_Boolean_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.IModel.QueueDeclareNoWait(System.String,System.Boolean,System.Boolean,System.Boolean,System.Collections.Generic.IDictionary{System.String,System.Object})">QueueDeclareNoWait(String, Boolean, Boolean, Boolean, IDictionary&lt;String, Object&gt;)</h4>
+  <div class="markdown level1 summary"><p>Same as QueueDeclare but sets nowait to true and returns void (as there
+will be no response from the server).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary&lt;string, object&gt; arguments)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">queue</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">durable</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">exclusive</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">autoDelete</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IDictionary</span>&lt;<span class="xref">System.String</span>, <span class="xref">System.Object</span>&gt;</td>
+        <td><span class="parametername">arguments</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_QueueDeclarePassive_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.QueueDeclarePassive(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L417">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_QueueDeclarePassive_" data-uid="RabbitMQ.Client.IModel.QueueDeclarePassive*"></a>
+  <h4 id="RabbitMQ_Client_IModel_QueueDeclarePassive_System_String_" data-uid="RabbitMQ.Client.IModel.QueueDeclarePassive(System.String)">QueueDeclarePassive(String)</h4>
+  <div class="markdown level1 summary"><p>Declare a queue passively.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[AmqpMethodDoNotImplement(null)]
+QueueDeclareOk QueueDeclarePassive(string queue)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">queue</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.QueueDeclareOk.html">QueueDeclareOk</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_IModel_QueueDeclarePassive_System_String__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The queue is declared passive, non-durable,
+non-exclusive, and non-autodelete, with no arguments.
+The queue is declared passively; i.e. only check if it exists.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_QueueDelete_System_String_System_Boolean_System_Boolean_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.QueueDelete(System.String%2CSystem.Boolean%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L445">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_QueueDelete_" data-uid="RabbitMQ.Client.IModel.QueueDelete*"></a>
+  <h4 id="RabbitMQ_Client_IModel_QueueDelete_System_String_System_Boolean_System_Boolean_" data-uid="RabbitMQ.Client.IModel.QueueDelete(System.String,System.Boolean,System.Boolean)">QueueDelete(String, Boolean, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Delete a queue.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[AmqpMethodDoNotImplement(null)]
+uint QueueDelete(string queue, bool ifUnused, bool ifEmpty)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">queue</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">ifUnused</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">ifEmpty</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_IModel_QueueDelete_System_String_System_Boolean_System_Boolean__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Returns the number of messages purged during queue deletion.</p>
+<pre><code>uint.MaxValue</code></pre>.
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_QueueDeleteNoWait_System_String_System_Boolean_System_Boolean_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.QueueDeleteNoWait(System.String%2CSystem.Boolean%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L452">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_QueueDeleteNoWait_" data-uid="RabbitMQ.Client.IModel.QueueDeleteNoWait*"></a>
+  <h4 id="RabbitMQ_Client_IModel_QueueDeleteNoWait_System_String_System_Boolean_System_Boolean_" data-uid="RabbitMQ.Client.IModel.QueueDeleteNoWait(System.String,System.Boolean,System.Boolean)">QueueDeleteNoWait(String, Boolean, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Same as QueueDelete but sets nowait parameter to true
+and returns void (as there will be no response from the server)</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void QueueDeleteNoWait(string queue, bool ifUnused, bool ifEmpty)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">queue</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">ifUnused</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">ifEmpty</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_QueuePurge_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.QueuePurge(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L460">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_QueuePurge_" data-uid="RabbitMQ.Client.IModel.QueuePurge*"></a>
+  <h4 id="RabbitMQ_Client_IModel_QueuePurge_System_String_" data-uid="RabbitMQ.Client.IModel.QueuePurge(System.String)">QueuePurge(String)</h4>
+  <div class="markdown level1 summary"><p>Purge a queue of messages.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[AmqpMethodDoNotImplement(null)]
+uint QueuePurge(string queue)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">queue</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_IModel_QueuePurge_System_String__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Returns the number of messages purged.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_QueueUnbind_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.QueueUnbind(System.String%2CSystem.String%2CSystem.String%2CSystem.Collections.Generic.IDictionary%7BSystem.String%2CSystem.Object%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L471">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_QueueUnbind_" data-uid="RabbitMQ.Client.IModel.QueueUnbind*"></a>
+  <h4 id="RabbitMQ_Client_IModel_QueueUnbind_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.IModel.QueueUnbind(System.String,System.String,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">QueueUnbind(String, String, String, IDictionary&lt;String, Object&gt;)</h4>
+  <div class="markdown level1 summary"><p>Unbind a queue from an exchange.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void QueueUnbind(string queue, string exchange, string routingKey, IDictionary&lt;string, object&gt; arguments)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">queue</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">exchange</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">routingKey</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IDictionary</span>&lt;<span class="xref">System.String</span>, <span class="xref">System.Object</span>&gt;</td>
+        <td><span class="parametername">arguments</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_IModel_QueueUnbind_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object___remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+  Routing key must be shorter than 255 bytes.
+</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_TxCommit.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.TxCommit%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L476">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_TxCommit_" data-uid="RabbitMQ.Client.IModel.TxCommit*"></a>
+  <h4 id="RabbitMQ_Client_IModel_TxCommit" data-uid="RabbitMQ.Client.IModel.TxCommit">TxCommit()</h4>
+  <div class="markdown level1 summary"><p>Commit this session&apos;s active TX transaction.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void TxCommit()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_TxRollback.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.TxRollback%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L481">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_TxRollback_" data-uid="RabbitMQ.Client.IModel.TxRollback*"></a>
+  <h4 id="RabbitMQ_Client_IModel_TxRollback" data-uid="RabbitMQ.Client.IModel.TxRollback">TxRollback()</h4>
+  <div class="markdown level1 summary"><p>Roll back this session&apos;s active TX transaction.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void TxRollback()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_TxSelect.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.TxSelect%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L486">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_TxSelect_" data-uid="RabbitMQ.Client.IModel.TxSelect*"></a>
+  <h4 id="RabbitMQ_Client_IModel_TxSelect" data-uid="RabbitMQ.Client.IModel.TxSelect">TxSelect()</h4>
+  <div class="markdown level1 summary"><p>Enable TX mode for this session.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void TxSelect()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_WaitForConfirms.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.WaitForConfirms%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L496">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_WaitForConfirms_" data-uid="RabbitMQ.Client.IModel.WaitForConfirms*"></a>
+  <h4 id="RabbitMQ_Client_IModel_WaitForConfirms" data-uid="RabbitMQ.Client.IModel.WaitForConfirms">WaitForConfirms()</h4>
+  <div class="markdown level1 summary"><p>Wait until all published messages have been confirmed.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[AmqpMethodDoNotImplement(null)]
+bool WaitForConfirms()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_IModel_WaitForConfirms_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Waits until all messages published since the last call have
+been either ack&apos;d or nack&apos;d by the broker.  Returns whether
+all the messages were ack&apos;d (and none were nack&apos;d). Note,
+throws an exception when called on a non-Confirm channel.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_WaitForConfirms_System_TimeSpan_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.WaitForConfirms(System.TimeSpan)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L512">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_WaitForConfirms_" data-uid="RabbitMQ.Client.IModel.WaitForConfirms*"></a>
+  <h4 id="RabbitMQ_Client_IModel_WaitForConfirms_System_TimeSpan_" data-uid="RabbitMQ.Client.IModel.WaitForConfirms(System.TimeSpan)">WaitForConfirms(TimeSpan)</h4>
+  <div class="markdown level1 summary"><p>Wait until all published messages have been confirmed.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[AmqpMethodDoNotImplement(null)]
+bool WaitForConfirms(TimeSpan timeout)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.TimeSpan</span></td>
+        <td><span class="parametername">timeout</span></td>
+        <td><p>How long to wait (at most) before returning
+whether or not any nacks were returned.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>True if no nacks were received within the timeout, otherwise false.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_IModel_WaitForConfirms_System_TimeSpan__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Waits until all messages published since the last call have
+been either ack&apos;d or nack&apos;d by the broker.  Returns whether
+all the messages were ack&apos;d (and none were nack&apos;d). Note,
+throws an exception when called on a non-Confirm channel.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_WaitForConfirms_System_TimeSpan_System_Boolean__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.WaitForConfirms(System.TimeSpan%2CSystem.Boolean%40)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L531">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_WaitForConfirms_" data-uid="RabbitMQ.Client.IModel.WaitForConfirms*"></a>
+  <h4 id="RabbitMQ_Client_IModel_WaitForConfirms_System_TimeSpan_System_Boolean__" data-uid="RabbitMQ.Client.IModel.WaitForConfirms(System.TimeSpan,System.Boolean@)">WaitForConfirms(TimeSpan, out Boolean)</h4>
+  <div class="markdown level1 summary"><p>Wait until all published messages have been confirmed.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[AmqpMethodDoNotImplement(null)]
+bool WaitForConfirms(TimeSpan timeout, out bool timedOut)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.TimeSpan</span></td>
+        <td><span class="parametername">timeout</span></td>
+        <td><p>How long to wait (at most) before returning
+whether or not any nacks were returned.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">timedOut</span></td>
+        <td><p>True if the method returned because
+the timeout elapsed, not because all messages were ack&apos;d or at least one nack&apos;d.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>True if no nacks were received within the timeout, otherwise false.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_IModel_WaitForConfirms_System_TimeSpan_System_Boolean___remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Waits until all messages published since the last call have
+been either ack&apos;d or nack&apos;d by the broker.  Returns whether
+all the messages were ack&apos;d (and none were nack&apos;d). Note,
+throws an exception when called on a non-Confirm channel.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_WaitForConfirmsOrDie.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.WaitForConfirmsOrDie%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L542">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_WaitForConfirmsOrDie_" data-uid="RabbitMQ.Client.IModel.WaitForConfirmsOrDie*"></a>
+  <h4 id="RabbitMQ_Client_IModel_WaitForConfirmsOrDie" data-uid="RabbitMQ.Client.IModel.WaitForConfirmsOrDie">WaitForConfirmsOrDie()</h4>
+  <div class="markdown level1 summary"><p>Wait until all published messages have been confirmed.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[AmqpMethodDoNotImplement(null)]
+void WaitForConfirmsOrDie()</code></pre>
+  </div>
+  <h5 id="RabbitMQ_Client_IModel_WaitForConfirmsOrDie_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Waits until all messages published since the last call have
+been ack&apos;d by the broker.  If a nack is received, throws an
+OperationInterrupedException exception immediately.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_WaitForConfirmsOrDie_System_TimeSpan_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.WaitForConfirmsOrDie(System.TimeSpan)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L553">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IModel_WaitForConfirmsOrDie_" data-uid="RabbitMQ.Client.IModel.WaitForConfirmsOrDie*"></a>
+  <h4 id="RabbitMQ_Client_IModel_WaitForConfirmsOrDie_System_TimeSpan_" data-uid="RabbitMQ.Client.IModel.WaitForConfirmsOrDie(System.TimeSpan)">WaitForConfirmsOrDie(TimeSpan)</h4>
+  <div class="markdown level1 summary"><p>Wait until all published messages have been confirmed.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[AmqpMethodDoNotImplement(null)]
+void WaitForConfirmsOrDie(TimeSpan timeout)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.TimeSpan</span></td>
+        <td><span class="parametername">timeout</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_IModel_WaitForConfirmsOrDie_System_TimeSpan__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Waits until all messages published since the last call have
+been ack&apos;d by the broker.  If a nack is received or the timeout
+elapses, throws an OperationInterrupedException exception immediately.</p>
+</div>
+  <h3 id="events">Events
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_BasicAcks.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.BasicAcks%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L112">View Source</a>
+  </span>
+  <h4 id="RabbitMQ_Client_IModel_BasicAcks" data-uid="RabbitMQ.Client.IModel.BasicAcks">BasicAcks</h4>
+  <div class="markdown level1 summary"><p>Signalled when a Basic.Ack command arrives from the broker.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">event EventHandler&lt;BasicAckEventArgs&gt; BasicAcks</code></pre>
+  </div>
+  <h5 class="eventType">Event Type</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.EventHandler</span>&lt;<a class="xref" href="RabbitMQ.Client.Events.BasicAckEventArgs.html">BasicAckEventArgs</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_BasicNacks.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.BasicNacks%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L117">View Source</a>
+  </span>
+  <h4 id="RabbitMQ_Client_IModel_BasicNacks" data-uid="RabbitMQ.Client.IModel.BasicNacks">BasicNacks</h4>
+  <div class="markdown level1 summary"><p>Signalled when a Basic.Nack command arrives from the broker.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">event EventHandler&lt;BasicNackEventArgs&gt; BasicNacks</code></pre>
+  </div>
+  <h5 class="eventType">Event Type</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.EventHandler</span>&lt;<a class="xref" href="RabbitMQ.Client.Events.BasicNackEventArgs.html">BasicNackEventArgs</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_BasicRecoverOk.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.BasicRecoverOk%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L128">View Source</a>
+  </span>
+  <h4 id="RabbitMQ_Client_IModel_BasicRecoverOk" data-uid="RabbitMQ.Client.IModel.BasicRecoverOk">BasicRecoverOk</h4>
+  <div class="markdown level1 summary"><p>All messages received before this fires that haven&apos;t been ack&apos;ed will be redelivered.
+All messages received afterwards won&apos;t be.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">event EventHandler&lt;EventArgs&gt; BasicRecoverOk</code></pre>
+  </div>
+  <h5 class="eventType">Event Type</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.EventHandler</span>&lt;<span class="xref">System.EventArgs</span>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_IModel_BasicRecoverOk_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Handlers for this event are invoked by the connection thread.
+It is sometimes useful to allow that thread to know that a recover-ok
+has been received, rather than the thread that invoked <a class="xref" href="RabbitMQ.Client.IModel.html#RabbitMQ_Client_IModel_BasicRecover_System_Boolean_">BasicRecover(Boolean)</a>.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_BasicReturn.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.BasicReturn%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L133">View Source</a>
+  </span>
+  <h4 id="RabbitMQ_Client_IModel_BasicReturn" data-uid="RabbitMQ.Client.IModel.BasicReturn">BasicReturn</h4>
+  <div class="markdown level1 summary"><p>Signalled when a Basic.Return command arrives from the broker.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">event EventHandler&lt;BasicReturnEventArgs&gt; BasicReturn</code></pre>
+  </div>
+  <h5 class="eventType">Event Type</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.EventHandler</span>&lt;<a class="xref" href="RabbitMQ.Client.Events.BasicReturnEventArgs.html">BasicReturnEventArgs</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_CallbackException.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.CallbackException%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L142">View Source</a>
+  </span>
+  <h4 id="RabbitMQ_Client_IModel_CallbackException" data-uid="RabbitMQ.Client.IModel.CallbackException">CallbackException</h4>
+  <div class="markdown level1 summary"><p>Signalled when an exception occurs in a callback invoked by the model.</p>
+<p>Examples of cases where this event will be signalled
+include exceptions thrown in <a class="xref" href="RabbitMQ.Client.IBasicConsumer.html">IBasicConsumer</a> methods, or
+exceptions thrown in <a class="xref" href="RabbitMQ.Client.IModel.html#RabbitMQ_Client_IModel_ModelShutdown">ModelShutdown</a> delegates etc.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">event EventHandler&lt;CallbackExceptionEventArgs&gt; CallbackException</code></pre>
+  </div>
+  <h5 class="eventType">Event Type</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.EventHandler</span>&lt;<a class="xref" href="RabbitMQ.Client.Events.CallbackExceptionEventArgs.html">CallbackExceptionEventArgs</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_FlowControl.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.FlowControl%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L144">View Source</a>
+  </span>
+  <h4 id="RabbitMQ_Client_IModel_FlowControl" data-uid="RabbitMQ.Client.IModel.FlowControl">FlowControl</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">event EventHandler&lt;FlowControlEventArgs&gt; FlowControl</code></pre>
+  </div>
+  <h5 class="eventType">Event Type</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.EventHandler</span>&lt;<a class="xref" href="RabbitMQ.Client.Events.FlowControlEventArgs.html">FlowControlEventArgs</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel_ModelShutdown.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel.ModelShutdown%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L153">View Source</a>
+  </span>
+  <h4 id="RabbitMQ_Client_IModel_ModelShutdown" data-uid="RabbitMQ.Client.IModel.ModelShutdown">ModelShutdown</h4>
+  <div class="markdown level1 summary"><p>Notifies the destruction of the model.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">event EventHandler&lt;ShutdownEventArgs&gt; ModelShutdown</code></pre>
+  </div>
+  <h5 class="eventType">Event Type</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.EventHandler</span>&lt;<a class="xref" href="RabbitMQ.Client.ShutdownEventArgs.html">ShutdownEventArgs</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="RabbitMQ_Client_IModel_ModelShutdown_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>If the model is already destroyed at the time an event
+handler is added to this event, the event handler will be fired immediately.</p>
+</div>
+  <h3 id="extensionmethods">Extension Methods</h3>
+  <div>
+      <a class="xref" href="RabbitMQ.Client.IModelExensions.html#RabbitMQ_Client_IModelExensions_BasicConsume_RabbitMQ_Client_IModel_RabbitMQ_Client_IBasicConsumer_System_String_System_Boolean_System_String_System_Boolean_System_Boolean_System_Collections_Generic_IDictionary_System_String_System_Object__">IModelExensions.BasicConsume(IModel, IBasicConsumer, String, Boolean, String, Boolean, Boolean, IDictionary&lt;String, Object&gt;)</a>
+  </div>
+  <div>
+      <a class="xref" href="RabbitMQ.Client.IModelExensions.html#RabbitMQ_Client_IModelExensions_BasicConsume_RabbitMQ_Client_IModel_System_String_System_Boolean_RabbitMQ_Client_IBasicConsumer_">IModelExensions.BasicConsume(IModel, String, Boolean, IBasicConsumer)</a>
+  </div>
+  <div>
+      <a class="xref" href="RabbitMQ.Client.IModelExensions.html#RabbitMQ_Client_IModelExensions_BasicConsume_RabbitMQ_Client_IModel_System_String_System_Boolean_System_String_RabbitMQ_Client_IBasicConsumer_">IModelExensions.BasicConsume(IModel, String, Boolean, String, IBasicConsumer)</a>
+  </div>
+  <div>
+      <a class="xref" href="RabbitMQ.Client.IModelExensions.html#RabbitMQ_Client_IModelExensions_BasicConsume_RabbitMQ_Client_IModel_System_String_System_Boolean_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__RabbitMQ_Client_IBasicConsumer_">IModelExensions.BasicConsume(IModel, String, Boolean, String, IDictionary&lt;String, Object&gt;, IBasicConsumer)</a>
+  </div>
+  <div>
+      <a class="xref" href="RabbitMQ.Client.IModelExensions.html#RabbitMQ_Client_IModelExensions_BasicPublish_RabbitMQ_Client_IModel_RabbitMQ_Client_PublicationAddress_RabbitMQ_Client_IBasicProperties_System_Byte___">IModelExensions.BasicPublish(IModel, PublicationAddress, IBasicProperties, Byte[])</a>
+  </div>
+  <div>
+      <a class="xref" href="RabbitMQ.Client.IModelExensions.html#RabbitMQ_Client_IModelExensions_BasicPublish_RabbitMQ_Client_IModel_System_String_System_String_RabbitMQ_Client_IBasicProperties_System_Byte___">IModelExensions.BasicPublish(IModel, String, String, IBasicProperties, Byte[])</a>
+  </div>
+  <div>
+      <a class="xref" href="RabbitMQ.Client.IModelExensions.html#RabbitMQ_Client_IModelExensions_BasicPublish_RabbitMQ_Client_IModel_System_String_System_String_System_Boolean_RabbitMQ_Client_IBasicProperties_System_Byte___">IModelExensions.BasicPublish(IModel, String, String, Boolean, IBasicProperties, Byte[])</a>
+  </div>
+  <div>
+      <a class="xref" href="RabbitMQ.Client.IModelExensions.html#RabbitMQ_Client_IModelExensions_QueueDeclare_RabbitMQ_Client_IModel_System_String_System_Boolean_System_Boolean_System_Boolean_System_Collections_Generic_IDictionary_System_String_System_Object__">IModelExensions.QueueDeclare(IModel, String, Boolean, Boolean, Boolean, IDictionary&lt;String, Object&gt;)</a>
+  </div>
+  <div>
+      <a class="xref" href="RabbitMQ.Client.IModelExensions.html#RabbitMQ_Client_IModelExensions_ExchangeBind_RabbitMQ_Client_IModel_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__">IModelExensions.ExchangeBind(IModel, String, String, String, IDictionary&lt;String, Object&gt;)</a>
+  </div>
+  <div>
+      <a class="xref" href="RabbitMQ.Client.IModelExensions.html#RabbitMQ_Client_IModelExensions_ExchangeBindNoWait_RabbitMQ_Client_IModel_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__">IModelExensions.ExchangeBindNoWait(IModel, String, String, String, IDictionary&lt;String, Object&gt;)</a>
+  </div>
+  <div>
+      <a class="xref" href="RabbitMQ.Client.IModelExensions.html#RabbitMQ_Client_IModelExensions_ExchangeDeclare_RabbitMQ_Client_IModel_System_String_System_String_System_Boolean_System_Boolean_System_Collections_Generic_IDictionary_System_String_System_Object__">IModelExensions.ExchangeDeclare(IModel, String, String, Boolean, Boolean, IDictionary&lt;String, Object&gt;)</a>
+  </div>
+  <div>
+      <a class="xref" href="RabbitMQ.Client.IModelExensions.html#RabbitMQ_Client_IModelExensions_ExchangeDeclareNoWait_RabbitMQ_Client_IModel_System_String_System_String_System_Boolean_System_Boolean_System_Collections_Generic_IDictionary_System_String_System_Object__">IModelExensions.ExchangeDeclareNoWait(IModel, String, String, Boolean, Boolean, IDictionary&lt;String, Object&gt;)</a>
+  </div>
+  <div>
+      <a class="xref" href="RabbitMQ.Client.IModelExensions.html#RabbitMQ_Client_IModelExensions_ExchangeUnbind_RabbitMQ_Client_IModel_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__">IModelExensions.ExchangeUnbind(IModel, String, String, String, IDictionary&lt;String, Object&gt;)</a>
+  </div>
+  <div>
+      <a class="xref" href="RabbitMQ.Client.IModelExensions.html#RabbitMQ_Client_IModelExensions_ExchangeDelete_RabbitMQ_Client_IModel_System_String_System_Boolean_">IModelExensions.ExchangeDelete(IModel, String, Boolean)</a>
+  </div>
+  <div>
+      <a class="xref" href="RabbitMQ.Client.IModelExensions.html#RabbitMQ_Client_IModelExensions_ExchangeDeleteNoWait_RabbitMQ_Client_IModel_System_String_System_Boolean_">IModelExensions.ExchangeDeleteNoWait(IModel, String, Boolean)</a>
+  </div>
+  <div>
+      <a class="xref" href="RabbitMQ.Client.IModelExensions.html#RabbitMQ_Client_IModelExensions_QueueBind_RabbitMQ_Client_IModel_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__">IModelExensions.QueueBind(IModel, String, String, String, IDictionary&lt;String, Object&gt;)</a>
+  </div>
+  <div>
+      <a class="xref" href="RabbitMQ.Client.IModelExensions.html#RabbitMQ_Client_IModelExensions_QueueDelete_RabbitMQ_Client_IModel_System_String_System_Boolean_System_Boolean_">IModelExensions.QueueDelete(IModel, String, Boolean, Boolean)</a>
+  </div>
+  <div>
+      <a class="xref" href="RabbitMQ.Client.IModelExensions.html#RabbitMQ_Client_IModelExensions_QueueDeleteNoWait_RabbitMQ_Client_IModel_System_String_System_Boolean_System_Boolean_">IModelExensions.QueueDeleteNoWait(IModel, String, Boolean, Boolean)</a>
+  </div>
+  <div>
+      <a class="xref" href="RabbitMQ.Client.IModelExensions.html#RabbitMQ_Client_IModelExensions_QueueUnbind_RabbitMQ_Client_IModel_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__">IModelExensions.QueueUnbind(IModel, String, String, String, IDictionary&lt;String, Object&gt;)</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IModel.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModel%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IModel.cs/#L57" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Copyright © 2015-2017 Microsoft<br>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

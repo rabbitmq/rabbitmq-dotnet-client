@@ -1,0 +1,601 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class AsyncEventingBasicConsumer
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class AsyncEventingBasicConsumer
+   ">
+    <meta name="generator" content="docfx 2.31.0.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="RabbitMQ.Client.Events.AsyncEventingBasicConsumer">
+  
+  
+  <h1 id="RabbitMQ_Client_Events_AsyncEventingBasicConsumer" data-uid="RabbitMQ.Client.Events.AsyncEventingBasicConsumer" class="text-break">Class AsyncEventingBasicConsumer
+  </h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="RabbitMQ.Client.AsyncDefaultBasicConsumer.html">AsyncDefaultBasicConsumer</a></div>
+    <div class="level2"><span class="xref">AsyncEventingBasicConsumer</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="RabbitMQ.Client.IBasicConsumer.html">IBasicConsumer</a></div>
+    <div><a class="xref" href="RabbitMQ.Client.IAsyncBasicConsumer.html">IAsyncBasicConsumer</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.AsyncDefaultBasicConsumer.html#RabbitMQ_Client_AsyncDefaultBasicConsumer_ConsumerTag">AsyncDefaultBasicConsumer.ConsumerTag</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.AsyncDefaultBasicConsumer.html#RabbitMQ_Client_AsyncDefaultBasicConsumer_IsRunning">AsyncDefaultBasicConsumer.IsRunning</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.AsyncDefaultBasicConsumer.html#RabbitMQ_Client_AsyncDefaultBasicConsumer_ShutdownReason">AsyncDefaultBasicConsumer.ShutdownReason</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.AsyncDefaultBasicConsumer.html#RabbitMQ_Client_AsyncDefaultBasicConsumer_ConsumerCancelled">AsyncDefaultBasicConsumer.ConsumerCancelled</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.AsyncDefaultBasicConsumer.html#RabbitMQ_Client_AsyncDefaultBasicConsumer_Model">AsyncDefaultBasicConsumer.Model</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.AsyncDefaultBasicConsumer.html#RabbitMQ_Client_AsyncDefaultBasicConsumer_HandleBasicCancel_System_String_">AsyncDefaultBasicConsumer.HandleBasicCancel(String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.AsyncDefaultBasicConsumer.html#RabbitMQ_Client_AsyncDefaultBasicConsumer_OnCancel">AsyncDefaultBasicConsumer.OnCancel()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.AsyncDefaultBasicConsumer.html#RabbitMQ_Client_AsyncDefaultBasicConsumer_RabbitMQ_Client_IBasicConsumer_ConsumerCancelled">AsyncDefaultBasicConsumer.IBasicConsumer.ConsumerCancelled</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.AsyncDefaultBasicConsumer.html#RabbitMQ_Client_AsyncDefaultBasicConsumer_RabbitMQ_Client_IBasicConsumer_HandleBasicCancelOk_System_String_">AsyncDefaultBasicConsumer.IBasicConsumer.HandleBasicCancelOk(String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.AsyncDefaultBasicConsumer.html#RabbitMQ_Client_AsyncDefaultBasicConsumer_RabbitMQ_Client_IBasicConsumer_HandleBasicConsumeOk_System_String_">AsyncDefaultBasicConsumer.IBasicConsumer.HandleBasicConsumeOk(String)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.AsyncDefaultBasicConsumer.html#RabbitMQ_Client_AsyncDefaultBasicConsumer_RabbitMQ_Client_IBasicConsumer_HandleBasicDeliver_System_String_System_UInt64_System_Boolean_System_String_System_String_RabbitMQ_Client_IBasicProperties_System_Byte___">AsyncDefaultBasicConsumer.IBasicConsumer.HandleBasicDeliver(String, UInt64, Boolean, String, String, IBasicProperties, Byte[])</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.AsyncDefaultBasicConsumer.html#RabbitMQ_Client_AsyncDefaultBasicConsumer_RabbitMQ_Client_IBasicConsumer_HandleModelShutdown_System_Object_RabbitMQ_Client_ShutdownEventArgs_">AsyncDefaultBasicConsumer.IBasicConsumer.HandleModelShutdown(Object, ShutdownEventArgs)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.AsyncDefaultBasicConsumer.html#RabbitMQ_Client_AsyncDefaultBasicConsumer_RabbitMQ_Client_IBasicConsumer_HandleBasicCancel_System_String_">AsyncDefaultBasicConsumer.IBasicConsumer.HandleBasicCancel(String)</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="RabbitMQ.Client.Events.html">RabbitMQ.Client.Events</a></h6>
+  <h6><strong>Assembly</strong>: RabbitMQ.Client.WinRT.dll</h6>
+  <h5 id="RabbitMQ_Client_Events_AsyncEventingBasicConsumer_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class AsyncEventingBasicConsumer : AsyncDefaultBasicConsumer, IBasicConsumer, IAsyncBasicConsumer</code></pre>
+  </div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Events_AsyncEventingBasicConsumer__ctor_RabbitMQ_Client_IModel_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Events.AsyncEventingBasicConsumer.%23ctor(RabbitMQ.Client.IModel)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/events/AsyncEventingBasicConsumer.cs/#L11">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Events_AsyncEventingBasicConsumer__ctor_" data-uid="RabbitMQ.Client.Events.AsyncEventingBasicConsumer.#ctor*"></a>
+  <h4 id="RabbitMQ_Client_Events_AsyncEventingBasicConsumer__ctor_RabbitMQ_Client_IModel_" data-uid="RabbitMQ.Client.Events.AsyncEventingBasicConsumer.#ctor(RabbitMQ.Client.IModel)">AsyncEventingBasicConsumer(IModel)</h4>
+  <div class="markdown level1 summary"><p>Constructor which sets the Model property to the
+given value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public AsyncEventingBasicConsumer(IModel model)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
+        <td><span class="parametername">model</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Events_AsyncEventingBasicConsumer_HandleBasicCancelOk_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Events.AsyncEventingBasicConsumer.HandleBasicCancelOk(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/events/AsyncEventingBasicConsumer.cs/#L28">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Events_AsyncEventingBasicConsumer_HandleBasicCancelOk_" data-uid="RabbitMQ.Client.Events.AsyncEventingBasicConsumer.HandleBasicCancelOk*"></a>
+  <h4 id="RabbitMQ_Client_Events_AsyncEventingBasicConsumer_HandleBasicCancelOk_System_String_" data-uid="RabbitMQ.Client.Events.AsyncEventingBasicConsumer.HandleBasicCancelOk(System.String)">HandleBasicCancelOk(String)</h4>
+  <div class="markdown level1 summary"><p>Fires the Unregistered event.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override Task HandleBasicCancelOk(string consumerTag)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">consumerTag</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="RabbitMQ.Client.AsyncDefaultBasicConsumer.html#RabbitMQ_Client_AsyncDefaultBasicConsumer_HandleBasicCancelOk_System_String_">AsyncDefaultBasicConsumer.HandleBasicCancelOk(String)</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Events_AsyncEventingBasicConsumer_HandleBasicConsumeOk_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Events.AsyncEventingBasicConsumer.HandleBasicConsumeOk(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/events/AsyncEventingBasicConsumer.cs/#L35">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Events_AsyncEventingBasicConsumer_HandleBasicConsumeOk_" data-uid="RabbitMQ.Client.Events.AsyncEventingBasicConsumer.HandleBasicConsumeOk*"></a>
+  <h4 id="RabbitMQ_Client_Events_AsyncEventingBasicConsumer_HandleBasicConsumeOk_System_String_" data-uid="RabbitMQ.Client.Events.AsyncEventingBasicConsumer.HandleBasicConsumeOk(System.String)">HandleBasicConsumeOk(String)</h4>
+  <div class="markdown level1 summary"><p>Fires the Registered event.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override Task HandleBasicConsumeOk(string consumerTag)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">consumerTag</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="RabbitMQ.Client.AsyncDefaultBasicConsumer.html#RabbitMQ_Client_AsyncDefaultBasicConsumer_HandleBasicConsumeOk_System_String_">AsyncDefaultBasicConsumer.HandleBasicConsumeOk(String)</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Events_AsyncEventingBasicConsumer_HandleBasicDeliver_System_String_System_UInt64_System_Boolean_System_String_System_String_RabbitMQ_Client_IBasicProperties_System_Byte___.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Events.AsyncEventingBasicConsumer.HandleBasicDeliver(System.String%2CSystem.UInt64%2CSystem.Boolean%2CSystem.String%2CSystem.String%2CRabbitMQ.Client.IBasicProperties%2CSystem.Byte%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/events/AsyncEventingBasicConsumer.cs/#L42">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Events_AsyncEventingBasicConsumer_HandleBasicDeliver_" data-uid="RabbitMQ.Client.Events.AsyncEventingBasicConsumer.HandleBasicDeliver*"></a>
+  <h4 id="RabbitMQ_Client_Events_AsyncEventingBasicConsumer_HandleBasicDeliver_System_String_System_UInt64_System_Boolean_System_String_System_String_RabbitMQ_Client_IBasicProperties_System_Byte___" data-uid="RabbitMQ.Client.Events.AsyncEventingBasicConsumer.HandleBasicDeliver(System.String,System.UInt64,System.Boolean,System.String,System.String,RabbitMQ.Client.IBasicProperties,System.Byte[])">HandleBasicDeliver(String, UInt64, Boolean, String, String, IBasicProperties, Byte[])</h4>
+  <div class="markdown level1 summary"><p>Fires the Received event.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, IBasicProperties properties, byte[] body)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">consumerTag</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td><span class="parametername">deliveryTag</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">redelivered</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">exchange</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">routingKey</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IBasicProperties.html">IBasicProperties</a></td>
+        <td><span class="parametername">properties</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td><span class="parametername">body</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="RabbitMQ.Client.AsyncDefaultBasicConsumer.html#RabbitMQ_Client_AsyncDefaultBasicConsumer_HandleBasicDeliver_System_String_System_UInt64_System_Boolean_System_String_System_String_RabbitMQ_Client_IBasicProperties_System_Byte___">AsyncDefaultBasicConsumer.HandleBasicDeliver(String, UInt64, Boolean, String, String, IBasicProperties, Byte[])</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Events_AsyncEventingBasicConsumer_HandleModelShutdown_System_Object_RabbitMQ_Client_ShutdownEventArgs_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Events.AsyncEventingBasicConsumer.HandleModelShutdown(System.Object%2CRabbitMQ.Client.ShutdownEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/events/AsyncEventingBasicConsumer.cs/#L67">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_Events_AsyncEventingBasicConsumer_HandleModelShutdown_" data-uid="RabbitMQ.Client.Events.AsyncEventingBasicConsumer.HandleModelShutdown*"></a>
+  <h4 id="RabbitMQ_Client_Events_AsyncEventingBasicConsumer_HandleModelShutdown_System_Object_RabbitMQ_Client_ShutdownEventArgs_" data-uid="RabbitMQ.Client.Events.AsyncEventingBasicConsumer.HandleModelShutdown(System.Object,RabbitMQ.Client.ShutdownEventArgs)">HandleModelShutdown(Object, ShutdownEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Fires the Shutdown event.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override Task HandleModelShutdown(object model, ShutdownEventArgs reason)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">model</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.ShutdownEventArgs.html">ShutdownEventArgs</a></td>
+        <td><span class="parametername">reason</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="RabbitMQ.Client.AsyncDefaultBasicConsumer.html#RabbitMQ_Client_AsyncDefaultBasicConsumer_HandleModelShutdown_System_Object_RabbitMQ_Client_ShutdownEventArgs_">AsyncDefaultBasicConsumer.HandleModelShutdown(Object, ShutdownEventArgs)</a></div>
+  <h3 id="events">Events
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Events_AsyncEventingBasicConsumer_Received.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Events.AsyncEventingBasicConsumer.Received%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/events/AsyncEventingBasicConsumer.cs/#L16">View Source</a>
+  </span>
+  <h4 id="RabbitMQ_Client_Events_AsyncEventingBasicConsumer_Received" data-uid="RabbitMQ.Client.Events.AsyncEventingBasicConsumer.Received">Received</h4>
+  <div class="markdown level1 summary"><p>Event fired on HandleBasicDeliver.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public event AsyncEventHandler&lt;BasicDeliverEventArgs&gt; Received</code></pre>
+  </div>
+  <h5 class="eventType">Event Type</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Events.AsyncEventHandler-1.html">AsyncEventHandler</a>&lt;<a class="xref" href="RabbitMQ.Client.Events.BasicDeliverEventArgs.html">BasicDeliverEventArgs</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Events_AsyncEventingBasicConsumer_Registered.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Events.AsyncEventingBasicConsumer.Registered%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/events/AsyncEventingBasicConsumer.cs/#L19">View Source</a>
+  </span>
+  <h4 id="RabbitMQ_Client_Events_AsyncEventingBasicConsumer_Registered" data-uid="RabbitMQ.Client.Events.AsyncEventingBasicConsumer.Registered">Registered</h4>
+  <div class="markdown level1 summary"><p>Event fired on HandleBasicConsumeOk.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public event AsyncEventHandler&lt;ConsumerEventArgs&gt; Registered</code></pre>
+  </div>
+  <h5 class="eventType">Event Type</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Events.AsyncEventHandler-1.html">AsyncEventHandler</a>&lt;<a class="xref" href="RabbitMQ.Client.Events.ConsumerEventArgs.html">ConsumerEventArgs</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Events_AsyncEventingBasicConsumer_Shutdown.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Events.AsyncEventingBasicConsumer.Shutdown%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/events/AsyncEventingBasicConsumer.cs/#L22">View Source</a>
+  </span>
+  <h4 id="RabbitMQ_Client_Events_AsyncEventingBasicConsumer_Shutdown" data-uid="RabbitMQ.Client.Events.AsyncEventingBasicConsumer.Shutdown">Shutdown</h4>
+  <div class="markdown level1 summary"><p>Event fired on HandleModelShutdown.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public event AsyncEventHandler&lt;ShutdownEventArgs&gt; Shutdown</code></pre>
+  </div>
+  <h5 class="eventType">Event Type</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Events.AsyncEventHandler-1.html">AsyncEventHandler</a>&lt;<a class="xref" href="RabbitMQ.Client.ShutdownEventArgs.html">ShutdownEventArgs</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Events_AsyncEventingBasicConsumer_Unregistered.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Events.AsyncEventingBasicConsumer.Unregistered%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/events/AsyncEventingBasicConsumer.cs/#L25">View Source</a>
+  </span>
+  <h4 id="RabbitMQ_Client_Events_AsyncEventingBasicConsumer_Unregistered" data-uid="RabbitMQ.Client.Events.AsyncEventingBasicConsumer.Unregistered">Unregistered</h4>
+  <div class="markdown level1 summary"><p>Event fired on HandleBasicCancelOk.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public event AsyncEventHandler&lt;ConsumerEventArgs&gt; Unregistered</code></pre>
+  </div>
+  <h5 class="eventType">Event Type</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Events.AsyncEventHandler-1.html">AsyncEventHandler</a>&lt;<a class="xref" href="RabbitMQ.Client.Events.ConsumerEventArgs.html">ConsumerEventArgs</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="RabbitMQ.Client.IBasicConsumer.html">IBasicConsumer</a>
+  </div>
+  <div>
+      <a class="xref" href="RabbitMQ.Client.IAsyncBasicConsumer.html">IAsyncBasicConsumer</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Events_AsyncEventingBasicConsumer.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Events.AsyncEventingBasicConsumer%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/events/AsyncEventingBasicConsumer.cs/#L7" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Copyright © 2015-2017 Microsoft<br>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

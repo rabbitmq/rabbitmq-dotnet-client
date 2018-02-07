@@ -1,0 +1,587 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Interface IProtocol
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Interface IProtocol
+   ">
+    <meta name="generator" content="docfx 2.31.0.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="RabbitMQ.Client.IProtocol">
+  
+  
+  <h1 id="RabbitMQ_Client_IProtocol" data-uid="RabbitMQ.Client.IProtocol" class="text-break">Interface IProtocol
+  </h1>
+  <div class="markdown level0 summary"><p>Object describing various overarching parameters
+associated with a particular AMQP protocol variant.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="RabbitMQ.Client.html">RabbitMQ.Client</a></h6>
+  <h6><strong>Assembly</strong>: RabbitMQ.Client.WinRT.dll</h6>
+  <h5 id="RabbitMQ_Client_IProtocol_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IProtocol</code></pre>
+  </div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IProtocol_ApiName.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IProtocol.ApiName%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IProtocol.cs/#L63">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IProtocol_ApiName_" data-uid="RabbitMQ.Client.IProtocol.ApiName*"></a>
+  <h4 id="RabbitMQ_Client_IProtocol_ApiName" data-uid="RabbitMQ.Client.IProtocol.ApiName">ApiName</h4>
+  <div class="markdown level1 summary"><p>Retrieve the protocol&apos;s API name, used for printing,
+configuration properties, IDE integration, Protocols.cs etc.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string ApiName { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IProtocol_DefaultPort.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IProtocol.DefaultPort%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IProtocol.cs/#L68">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IProtocol_DefaultPort_" data-uid="RabbitMQ.Client.IProtocol.DefaultPort*"></a>
+  <h4 id="RabbitMQ_Client_IProtocol_DefaultPort" data-uid="RabbitMQ.Client.IProtocol.DefaultPort">DefaultPort</h4>
+  <div class="markdown level1 summary"><p>Retrieve the protocol&apos;s default TCP port.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">int DefaultPort { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IProtocol_MajorVersion.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IProtocol.MajorVersion%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IProtocol.cs/#L73">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IProtocol_MajorVersion_" data-uid="RabbitMQ.Client.IProtocol.MajorVersion*"></a>
+  <h4 id="RabbitMQ_Client_IProtocol_MajorVersion" data-uid="RabbitMQ.Client.IProtocol.MajorVersion">MajorVersion</h4>
+  <div class="markdown level1 summary"><p>Retrieve the protocol&apos;s major version number.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">int MajorVersion { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IProtocol_MinorVersion.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IProtocol.MinorVersion%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IProtocol.cs/#L78">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IProtocol_MinorVersion_" data-uid="RabbitMQ.Client.IProtocol.MinorVersion*"></a>
+  <h4 id="RabbitMQ_Client_IProtocol_MinorVersion" data-uid="RabbitMQ.Client.IProtocol.MinorVersion">MinorVersion</h4>
+  <div class="markdown level1 summary"><p>Retrieve the protocol&apos;s minor version number.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">int MinorVersion { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IProtocol_Revision.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IProtocol.Revision%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IProtocol.cs/#L83">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IProtocol_Revision_" data-uid="RabbitMQ.Client.IProtocol.Revision*"></a>
+  <h4 id="RabbitMQ_Client_IProtocol_Revision" data-uid="RabbitMQ.Client.IProtocol.Revision">Revision</h4>
+  <div class="markdown level1 summary"><p>Retrieve the protocol&apos;s revision (if specified).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">int Revision { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IProtocol_CreateConnection_RabbitMQ_Client_ConnectionFactory_RabbitMQ_Client_Impl_IFrameHandler_System_Boolean_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IProtocol.CreateConnection(RabbitMQ.Client.ConnectionFactory%2CRabbitMQ.Client.Impl.IFrameHandler%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IProtocol.cs/#L96">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IProtocol_CreateConnection_" data-uid="RabbitMQ.Client.IProtocol.CreateConnection*"></a>
+  <h4 id="RabbitMQ_Client_IProtocol_CreateConnection_RabbitMQ_Client_ConnectionFactory_RabbitMQ_Client_Impl_IFrameHandler_System_Boolean_" data-uid="RabbitMQ.Client.IProtocol.CreateConnection(RabbitMQ.Client.ConnectionFactory,RabbitMQ.Client.Impl.IFrameHandler,System.Boolean)">CreateConnection(ConnectionFactory, IFrameHandler, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Construct a connection from a given set of parameters,
+a frame handler, and automatic recovery settings.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IConnection CreateConnection(ConnectionFactory factory, IFrameHandler frameHandler, bool automaticRecoveryEnabled)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.ConnectionFactory.html">ConnectionFactory</a></td>
+        <td><span class="parametername">factory</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Impl.IFrameHandler.html">IFrameHandler</a></td>
+        <td><span class="parametername">frameHandler</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">automaticRecoveryEnabled</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IProtocol_CreateConnection_RabbitMQ_Client_ConnectionFactory_RabbitMQ_Client_Impl_IFrameHandler_System_Boolean_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IProtocol.CreateConnection(RabbitMQ.Client.ConnectionFactory%2CRabbitMQ.Client.Impl.IFrameHandler%2CSystem.Boolean%2CSystem.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IProtocol.cs/#L109">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IProtocol_CreateConnection_" data-uid="RabbitMQ.Client.IProtocol.CreateConnection*"></a>
+  <h4 id="RabbitMQ_Client_IProtocol_CreateConnection_RabbitMQ_Client_ConnectionFactory_RabbitMQ_Client_Impl_IFrameHandler_System_Boolean_System_String_" data-uid="RabbitMQ.Client.IProtocol.CreateConnection(RabbitMQ.Client.ConnectionFactory,RabbitMQ.Client.Impl.IFrameHandler,System.Boolean,System.String)">CreateConnection(ConnectionFactory, IFrameHandler, Boolean, String)</h4>
+  <div class="markdown level1 summary"><p>Construct a connection from a given set of parameters,
+a frame handler, a client-provided name, and automatic recovery settings.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IConnection CreateConnection(ConnectionFactory factory, IFrameHandler frameHandler, bool automaticRecoveryEnabled, string clientProvidedName)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.ConnectionFactory.html">ConnectionFactory</a></td>
+        <td><span class="parametername">factory</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Impl.IFrameHandler.html">IFrameHandler</a></td>
+        <td><span class="parametername">frameHandler</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">automaticRecoveryEnabled</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">clientProvidedName</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IProtocol_CreateConnection_RabbitMQ_Client_IConnectionFactory_System_Boolean_RabbitMQ_Client_Impl_IFrameHandler_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IProtocol.CreateConnection(RabbitMQ.Client.IConnectionFactory%2CSystem.Boolean%2CRabbitMQ.Client.Impl.IFrameHandler)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IProtocol.cs/#L90">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IProtocol_CreateConnection_" data-uid="RabbitMQ.Client.IProtocol.CreateConnection*"></a>
+  <h4 id="RabbitMQ_Client_IProtocol_CreateConnection_RabbitMQ_Client_IConnectionFactory_System_Boolean_RabbitMQ_Client_Impl_IFrameHandler_" data-uid="RabbitMQ.Client.IProtocol.CreateConnection(RabbitMQ.Client.IConnectionFactory,System.Boolean,RabbitMQ.Client.Impl.IFrameHandler)">CreateConnection(IConnectionFactory, Boolean, IFrameHandler)</h4>
+  <div class="markdown level1 summary"><p>Construct a connection from a given set of parameters,
+a frame handler, and no automatic recovery.
+The &quot;insist&quot; parameter is passed on to the AMQP connection.open method.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IConnection CreateConnection(IConnectionFactory factory, bool insist, IFrameHandler frameHandler)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IConnectionFactory.html">IConnectionFactory</a></td>
+        <td><span class="parametername">factory</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">insist</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Impl.IFrameHandler.html">IFrameHandler</a></td>
+        <td><span class="parametername">frameHandler</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IProtocol_CreateConnection_RabbitMQ_Client_IConnectionFactory_System_Boolean_RabbitMQ_Client_Impl_IFrameHandler_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IProtocol.CreateConnection(RabbitMQ.Client.IConnectionFactory%2CSystem.Boolean%2CRabbitMQ.Client.Impl.IFrameHandler%2CSystem.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IProtocol.cs/#L103">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IProtocol_CreateConnection_" data-uid="RabbitMQ.Client.IProtocol.CreateConnection*"></a>
+  <h4 id="RabbitMQ_Client_IProtocol_CreateConnection_RabbitMQ_Client_IConnectionFactory_System_Boolean_RabbitMQ_Client_Impl_IFrameHandler_System_String_" data-uid="RabbitMQ.Client.IProtocol.CreateConnection(RabbitMQ.Client.IConnectionFactory,System.Boolean,RabbitMQ.Client.Impl.IFrameHandler,System.String)">CreateConnection(IConnectionFactory, Boolean, IFrameHandler, String)</h4>
+  <div class="markdown level1 summary"><p>Construct a connection from a given set of parameters,
+a frame handler, a client-provided name, and no automatic recovery.
+The &quot;insist&quot; parameter is passed on to the AMQP connection.open method.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IConnection CreateConnection(IConnectionFactory factory, bool insist, IFrameHandler frameHandler, string clientProvidedName)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IConnectionFactory.html">IConnectionFactory</a></td>
+        <td><span class="parametername">factory</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">insist</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Impl.IFrameHandler.html">IFrameHandler</a></td>
+        <td><span class="parametername">frameHandler</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">clientProvidedName</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IProtocol_CreateModel_RabbitMQ_Client_Impl_ISession_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IProtocol.CreateModel(RabbitMQ.Client.Impl.ISession)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IProtocol.cs/#L114">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IProtocol_CreateModel_" data-uid="RabbitMQ.Client.IProtocol.CreateModel*"></a>
+  <h4 id="RabbitMQ_Client_IProtocol_CreateModel_RabbitMQ_Client_Impl_ISession_" data-uid="RabbitMQ.Client.IProtocol.CreateModel(RabbitMQ.Client.Impl.ISession)">CreateModel(ISession)</h4>
+  <div class="markdown level1 summary"><p>Construct a protocol model atop a given session.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IModel CreateModel(ISession session)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Impl.ISession.html">ISession</a></td>
+        <td><span class="parametername">session</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="extensionmethods">Extension Methods</h3>
+  <div>
+      <a class="xref" href="RabbitMQ.Client.Framing.Impl.IProtocolExtensions.html#RabbitMQ_Client_Framing_Impl_IProtocolExtensions_CreateFrameHandler_RabbitMQ_Client_IProtocol_RabbitMQ_Client_AmqpTcpEndpoint_System_Func_StreamSocket__System_Int32_System_Int32_System_Int32_">IProtocolExtensions.CreateFrameHandler(IProtocol, AmqpTcpEndpoint, Func&lt;StreamSocket&gt;, Int32, Int32, Int32)</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IProtocol.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IProtocol%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IProtocol.cs/#L57" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Copyright © 2015-2017 Microsoft<br>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

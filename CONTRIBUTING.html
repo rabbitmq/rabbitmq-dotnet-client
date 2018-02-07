@@ -1,0 +1,181 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Overview </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Overview ">
+    <meta name="generator" content="docfx 2.31.0.0">
+    
+    <link rel="shortcut icon" href="favicon.ico">
+    <link rel="stylesheet" href="styles/docfx.vendor.css">
+    <link rel="stylesheet" href="styles/docfx.css">
+    <link rel="stylesheet" href="styles/main.css">
+    <meta property="docfx:navrel" content="toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="index.html">
+                <img id="logo" class="svg" src="logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        <div class="article row grid">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+
+<p>Thank you for using RabbitMQ and for taking the time to contribute to the project.
+This document has two main parts:</p>
+<ul>
+<li>when and how to file GitHub issues for RabbitMQ projects</li>
+<li>how to submit pull requests</li>
+</ul>
+<p>They intend to save you and RabbitMQ maintainers some time, so please
+take a moment to read through them.</p>
+<h2 id="overview">Overview</h2>
+<h3 id="github-issues">GitHub issues</h3>
+<p>The RabbitMQ team uses GitHub issues for <em>specific actionable items</em> that
+engineers can work on. This assumes the following:</p>
+<ul>
+<li>GitHub issues are not used for questions, investigations, root cause
+analysis, discussions of potential issues, etc (as defined by this team)</li>
+<li>Enough information is provided by the reporter for maintainers to work with</li>
+</ul>
+<p>The team receives many questions through various venues every single
+day. Frequently, these questions do not include the necessary details
+the team needs to begin useful work. GitHub issues can very quickly
+turn into a something impossible to navigate and make sense
+of. Because of this, questions, investigations, root cause analysis,
+and discussions of potential features are all considered to be
+<a href="https://groups.google.com/forum/#!forum/rabbitmq-users">mailing list</a> material. If you are unsure where to begin,
+the <a href="https://groups.google.com/forum/#!forum/rabbitmq-users">RabbitMQ users mailing list</a> is the right place.</p>
+<p>Getting all the details necessary to reproduce an issue, make a
+conclusion or even form a hypothesis about what&#39;s happening can take a
+fair amount of time. Please help others help you by providing a way to
+reproduce the behavior you&#39;re observing, or at least sharing as much
+relevant information as possible on the <a href="https://groups.google.com/forum/#!forum/rabbitmq-users">RabbitMQ users mailing
+list</a>.</p>
+<p>Please provide versions of the software used:</p>
+<ul>
+<li>RabbitMQ server</li>
+<li>Erlang</li>
+<li>Operating system version (and distribution, if applicable)</li>
+<li>All client libraries used</li>
+<li>RabbitMQ plugins (if applicable)</li>
+</ul>
+<p>The following information greatly helps in investigating and reproducing issues:</p>
+<ul>
+<li>RabbitMQ server logs</li>
+<li>A code example or terminal transcript that can be used to reproduce</li>
+<li>Full exception stack traces (a single line message is not enough!)</li>
+<li><code>rabbitmqctl report</code> and <code>rabbitmqctl environment</code> output</li>
+<li>Other relevant details about the environment and workload, e.g. a traffic capture</li>
+<li>Feel free to edit out hostnames and other potentially sensitive information.</li>
+</ul>
+<p>To make collecting much of this and other environment information, use
+the <a href="https://github.com/rabbitmq/support-tools/blob/master/scripts/rabbitmq-collect-env"><code>rabbitmq-collect-env</code></a> script. It will produce an archive with
+server logs, operating system logs, output of certain diagnostics commands and so on.
+Please note that <strong>no effort is made to scrub any information that may be sensitive</strong>.</p>
+<h3 id="pull-requests">Pull Requests</h3>
+<p>RabbitMQ projects use pull requests to discuss, collaborate on and accept code contributions.
+Pull requests is the primary place of discussing code changes.</p>
+<p>Here&#39;s the recommended workflow:</p>
+<ul>
+<li><a href="https://help.github.com/articles/fork-a-repo/">Fork the repository</a> or repositories you plan on contributing to. If multiple
+repositories are involved in addressing the same issue, please use the same branch name
+in each repository</li>
+<li>Create a branch with a descriptive name in the relevant repositories</li>
+<li>Make your changes, run tests (usually with <code>make tests</code>), commit with a
+<a href="https://goo.gl/xwWq">descriptive message</a>, push to your fork</li>
+<li>Submit pull requests with an explanation what has been changed and <strong>why</strong></li>
+<li>Submit a filled out and signed <a href="https://cla.pivotal.io/sign/rabbitmq">Contributor Agreement</a> if needed (see below)</li>
+<li>Be patient. We will get to your pull request eventually</li>
+</ul>
+<p>If what you are going to work on is a substantial change, please first
+ask the core team for their opinion on the <a href="https://groups.google.com/forum/#!forum/rabbitmq-users">RabbitMQ users mailing list</a>.</p>
+<h2 id="code-of-conduct">Code of Conduct</h2>
+<p>See <a href="CODE_OF_CONDUCT.html">CODE_OF_CONDUCT.md</a>.</p>
+<h2 id="contributor-agreement">Contributor Agreement</h2>
+<p>If you want to contribute a non-trivial change, please submit a signed
+copy of our <a href="https://cla.pivotal.io/sign/rabbitmq">Contributor Agreement</a> around the time you
+submit your pull request. This will make it much easier (in some
+cases, possible) for the RabbitMQ team at Pivotal to merge your
+contribution.</p>
+<h2 id="where-to-ask-questions">Where to Ask Questions</h2>
+<p>If something isn&#39;t clear, feel free to ask on our <a href="https://groups.google.com/forum/#!forum/rabbitmq-users">mailing list</a>.</p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/CONTRIBUTING.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Copyright © 2015-2017 Microsoft<br>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="styles/docfx.js"></script>
+    <script type="text/javascript" src="styles/main.js"></script>
+  </body>
+</html>
