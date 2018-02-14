@@ -66,8 +66,9 @@ namespace RabbitMQ.Client
 
         public override string ToString()
         {
-            string output = "Message: " + Description;
-            return (Exception != null) ? output + " Exception: " + Exception : output;
+            return (this.Exception != null)
+                ? $"Message: {this.Description} Exception: {this.Exception}"
+                : $"Message: {this.Description}";
         }
     }
 }

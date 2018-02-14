@@ -38,7 +38,6 @@
 //  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -54,8 +53,7 @@ namespace RabbitMQ.Client.Impl
         {
             if (scale > 28)
             {
-                throw new SyntaxError("Unrepresentable AMQP decimal table field: " +
-                                      "scale=" + scale);
+                throw new SyntaxError($"Unrepresentable AMQP decimal table field: scale={scale}");
             }
             return new decimal((int)(unsignedMantissa & 0x7FFFFFFF),
                 0,
@@ -159,8 +157,7 @@ namespace RabbitMQ.Client.Impl
                     break;
 
                 default:
-                    throw new SyntaxError("Unrecognised type in table: " +
-                                          (char)discriminator);
+                    throw new SyntaxError($"Unrecognised type in table: {(char)discriminator}");
             }
             return value;
         }
@@ -180,8 +177,7 @@ namespace RabbitMQ.Client.Impl
             uint byteCount = reader.ReadUInt32();
             if (byteCount > int.MaxValue)
             {
-                throw new SyntaxError("Long string too long; " +
-                                      "byte length=" + byteCount + ", max=" + int.MaxValue);
+                throw new SyntaxError($"Long string too long; byte length={byteCount}, max={int.MaxValue}");
             }
             return reader.ReadBytes((int)byteCount);
         }
@@ -386,8 +382,7 @@ namespace RabbitMQ.Client.Impl
             int len = bytes.Length;
             if (len > 255)
             {
-                throw new WireFormattingException("Short string too long; " +
-                                                  "UTF-8 encoded length=" + len + ", max=255");
+                throw new WireFormattingException($"Short string too long; UTF-8 encoded length={len}, max=255");
             }
             writer.Write((byte)len);
             writer.Write(bytes);

@@ -39,7 +39,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Net;
 
 namespace RabbitMQ.Client.Exceptions
 {
@@ -58,8 +57,7 @@ namespace RabbitMQ.Client.Exceptions
             int transportLow,
             int serverMajor,
             int serverMinor)
-            : base("AMQP server protocol version " + serverMajor + "-" + serverMinor +
-                   ", transport parameters " + transportHigh + ":" + transportLow)
+            : base($"AMQP server protocol version {serverMajor}-{serverMinor}, transport parameters {transportHigh}:{transportLow}")
         {
             TransportHigh = transportHigh;
             TransportLow = transportLow;

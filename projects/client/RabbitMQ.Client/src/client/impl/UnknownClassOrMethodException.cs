@@ -38,8 +38,6 @@
 //  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -71,11 +69,11 @@ namespace RabbitMQ.Client.Impl
         {
             if (MethodId == 0)
             {
-                return base.ToString() + "<" + ClassId + ">";
+                return $"{base.ToString()}<{ClassId}>";
             }
             else
             {
-                return base.ToString() + "<" + ClassId + "." + MethodId + ">";
+                return $"{base.ToString()}<{ClassId}.{MethodId}>";
             }
         }
     }
