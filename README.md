@@ -22,6 +22,7 @@ as archives.
 
  * [Tutorials](http://www.rabbitmq.com/getstarted.html)
  * [Documentation guide](http://www.rabbitmq.com/dotnet.html)
+ * [API Documentation](https://rabbitmq.github.io/rabbitmq-dotnet-client/index.html
 
 
 ## Supported Platforms and .NET Releases

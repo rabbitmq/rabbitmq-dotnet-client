@@ -1,0 +1,4 @@
+[submodule "_site"]
+	path = _site
+	url = https://github.com/rabbitmq/rabbitmq-dotnet-client.git
+	branch = gh-pages
