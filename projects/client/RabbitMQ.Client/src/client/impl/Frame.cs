@@ -39,9 +39,7 @@
 //---------------------------------------------------------------------------
 
 using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Client.Framing;
 using RabbitMQ.Util;
-using System;
 using System.IO;
 
 #if NETFX_CORE
@@ -234,9 +232,7 @@ namespace RabbitMQ.Client.Impl
             if (payload.Length != payloadSize)
             {
                 // Early EOF.
-                throw new MalformedFrameException("Short frame - expected " +
-                                                  payloadSize + " bytes, got " +
-                                                  payload.Length + " bytes");
+                throw new MalformedFrameException($"Short frame - expected {payloadSize} bytes, got {payload.Length} bytes");
             }
 
             int frameEndMarker = reader.ReadByte();
