@@ -45,6 +45,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Security.Authentication;
 
 #if !NETFX_CORE
 
@@ -140,6 +141,18 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <remarks> PLEASE KEEP THIS MATCHING THE DOC ABOVE.</remarks>
         public const string DefaultVHost = "/";
+
+        /// <summary>
+        /// The default AMQP URI SSL protocols.
+        /// </summary>
+        public static SslProtocols DefaultAmqpUriSslProtocols { get; set; } =
+            SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
+
+        /// <summary>
+        /// The AMQP URI SSL protocols.
+        /// </summary>
+        public SslProtocols AmqpUriSslProtocols { get; set; } =
+            DefaultAmqpUriSslProtocols;
 
         /// <summary>
         ///  Default SASL auth mechanisms to use.
@@ -517,6 +530,7 @@ namespace RabbitMQ.Client
             else if (string.Equals("amqps", uri.Scheme, StringComparison.OrdinalIgnoreCase))
             {
                 Ssl.Enabled = true;
+                Ssl.Version = AmqpUriSslProtocols;
 #if !(NETFX_CORE)
                 Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNameMismatch;
 #endif
