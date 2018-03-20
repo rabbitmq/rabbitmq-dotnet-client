@@ -1,3 +1,22 @@
+## Changes Between 5.0.x and 5.1.0
+
+### Batch publish
+
+GitHub PR: [rabbitmq-dotnet-client#368](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/368)
+
+### Add a static property to AmqpTcpEndpoint to specify the default SSL protocol versions
+
+GitHub PR: [rabbitmq-dotnet-client#389](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/389)
+
+### Collect all exceptions when selecting an endpoint
+
+GitHub PR: [rabbitmq-dotnet-client#377](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/377)
+
+### Reduce lock contention for frame writes
+
+GitHub PR: [rabbitmq-dotnet-client#354](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/354)
+
+
 ## Changes Between 4.1.x and 5.0.1
 
 ### Async consumers
