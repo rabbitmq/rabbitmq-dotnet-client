@@ -1012,6 +1012,8 @@ entry.ToString());
         {
             if (Heartbeat != 0)
             {
+                IsDisposedHeartBeatReadTimer = false;
+                IsDisposedHeartBeatWriteTimer = false;
 #if NETFX_CORE
                 _heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback);
                 _heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback);
@@ -1040,99 +1042,127 @@ entry.ToString());
 #endif
         }
 
+        private readonly object heartBeatReadLock = new object();
+        private readonly object heartBeatWriteLock = new object();
+        public bool IsDisposedHeartBeatReadTimer { get; set; }
+        public bool IsDisposedHeartBeatWriteTimer { get; set; }
+
         public void HeartbeatReadTimerCallback(object state)
         {
-            bool shouldTerminate = false;
-            try
+            lock (heartBeatReadLock)
             {
-                if (!m_closed)
+                if (IsDisposedHeartBeatReadTimer)
                 {
-                    if (!m_heartbeatRead.WaitOne(0))
+                    return;
+                }
+                bool shouldTerminate = false;
+                try
+                {
+                    if (!m_closed)
                     {
-                        m_missedHeartbeats++;
-                    }
-                    else
-                    {
-                        m_missedHeartbeats = 0;
+                        if (!m_heartbeatRead.WaitOne(0))
+                        {
+                            m_missedHeartbeats++;
+                        }
+                        else
+                        {
+                            m_missedHeartbeats = 0;
+                        }
+
+                        // We check against 8 = 2 * 4 because we need to wait for at
+                        // least two complete heartbeat setting intervals before
+                        // complaining, and we've set the socket timeout to a quarter
+                        // of the heartbeat setting in setHeartbeat above.
+                        if (m_missedHeartbeats > 2 * 4)
+                        {
+                            String description = String.Format("Heartbeat missing with heartbeat == {0} seconds", m_heartbeat);
+                            var eose = new EndOfStreamException(description);
+                            ESLog.Error(description, eose);
+                            m_shutdownReport.Add(new ShutdownReportEntry(description, eose));
+                            HandleMainLoopException(
+                                new ShutdownEventArgs(ShutdownInitiator.Library, 0, "End of stream", eose));
+                            shouldTerminate = true;
+                        }
                     }
 
-                    // We check against 8 = 2 * 4 because we need to wait for at
-                    // least two complete heartbeat setting intervals before
-                    // complaining, and we've set the socket timeout to a quarter
-                    // of the heartbeat setting in setHeartbeat above.
-                    if (m_missedHeartbeats > 2 * 4)
+                    if (shouldTerminate)
                     {
-                        String description = String.Format("Heartbeat missing with heartbeat == {0} seconds", m_heartbeat);
-                        var eose = new EndOfStreamException(description);
-                        ESLog.Error(description, eose);
-                        m_shutdownReport.Add(new ShutdownReportEntry(description, eose));
-                        HandleMainLoopException(
-                            new ShutdownEventArgs(ShutdownInitiator.Library, 0, "End of stream", eose));
-                        shouldTerminate = true;
+                        TerminateMainloop();
+                        FinishClose();
+                    }
+                    else if (_heartbeatReadTimer != null)
+                    {
+                        _heartbeatReadTimer.Change(Heartbeat * 1000, Timeout.Infinite);
                     }
                 }
-
-                if (shouldTerminate)
+                catch (ObjectDisposedException)
                 {
-                    TerminateMainloop();
-                    FinishClose();
+                    // timer is already disposed,
+                    // e.g. due to shutdown
                 }
-                else if (_heartbeatReadTimer != null)
+                catch (NullReferenceException)
                 {
-                    _heartbeatReadTimer.Change(Heartbeat * 1000, Timeout.Infinite);
+                    // timer has already been disposed from a different thread after null check
+                    // this event should be rare
                 }
-            }
-            catch (ObjectDisposedException)
-            {
-                // timer is already disposed,
-                // e.g. due to shutdown
-            }
-            catch (NullReferenceException)
-            {
-                // timer has already been disposed from a different thread after null check
-                // this event should be rare
             }
         }
 
         public void HeartbeatWriteTimerCallback(object state)
         {
-            bool shouldTerminate = false;
-            try
+            lock (heartBeatWriteLock)
             {
+                if (IsDisposedHeartBeatWriteTimer)
+                {
+                    return;
+                }
+                bool shouldTerminate = false;
                 try
                 {
-                    if (!m_closed)
+                    try
                     {
-                        WriteFrame(m_heartbeatFrame);
+                        if (!m_closed)
+                        {
+                            WriteFrame(m_heartbeatFrame);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        HandleMainLoopException(new ShutdownEventArgs(
+                            ShutdownInitiator.Library,
+                            0,
+                            "End of stream",
+                            e));
+                        shouldTerminate = true;
+                    }
+
+                    if (m_closed || shouldTerminate)
+                    {
+                        TerminateMainloop();
+                        FinishClose();
                     }
                 }
-                catch (Exception e)
+                catch (ObjectDisposedException)
                 {
-                    HandleMainLoopException(new ShutdownEventArgs(
-                        ShutdownInitiator.Library,
-                        0,
-                        "End of stream",
-                        e));
-                    shouldTerminate = true;
-                }
-
-                if (m_closed || shouldTerminate)
-                {
-                    TerminateMainloop();
-                    FinishClose();
-                }
-            }
-            catch (ObjectDisposedException)
-            {
-                // timer is already disposed,
-                // e.g. due to shutdown
+                    // timer is already disposed,
+                    // e.g. due to shutdown
+                } /**/
             }
         }
 
         protected void MaybeStopHeartbeatTimers()
         {
-            MaybeDisposeTimer(ref _heartbeatReadTimer);
-            MaybeDisposeTimer(ref _heartbeatWriteTimer);
+            lock (heartBeatReadLock)
+            {
+                MaybeDisposeTimer(ref _heartbeatReadTimer);
+                IsDisposedHeartBeatReadTimer = true;
+            }
+
+            lock (heartBeatWriteLock)
+            {
+                MaybeDisposeTimer(ref _heartbeatWriteTimer);
+                IsDisposedHeartBeatWriteTimer = true;
+            }
         }
 
         private void MaybeDisposeTimer(ref Timer timer)
