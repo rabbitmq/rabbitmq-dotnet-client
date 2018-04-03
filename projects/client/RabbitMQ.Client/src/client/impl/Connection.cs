@@ -107,6 +107,11 @@ namespace RabbitMQ.Client.Framing.Impl
         private Timer _heartbeatReadTimer;
         private AutoResetEvent m_heartbeatRead = new AutoResetEvent(false);
 
+        private readonly object _heartBeatReadLock = new object();
+        private readonly object _heartBeatWriteLock = new object();
+        private bool m_hasDisposedHeartBeatReadTimer;
+        private bool m_hasDisposedHeartBeatWriteTimer;
+
 #if CORECLR
         private static string version = typeof(Connection).GetTypeInfo().Assembly
                                                 .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
@@ -1012,8 +1017,8 @@ entry.ToString());
         {
             if (Heartbeat != 0)
             {
-                IsDisposedHeartBeatReadTimer = false;
-                IsDisposedHeartBeatWriteTimer = false;
+                m_hasDisposedHeartBeatReadTimer = false;
+                m_hasDisposedHeartBeatWriteTimer = false;
 #if NETFX_CORE
                 _heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback);
                 _heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback);
@@ -1042,16 +1047,11 @@ entry.ToString());
 #endif
         }
 
-        private readonly object heartBeatReadLock = new object();
-        private readonly object heartBeatWriteLock = new object();
-        public bool IsDisposedHeartBeatReadTimer { get; set; }
-        public bool IsDisposedHeartBeatWriteTimer { get; set; }
-
         public void HeartbeatReadTimerCallback(object state)
         {
-            lock (heartBeatReadLock)
+            lock (_heartBeatReadLock)
             {
-                if (IsDisposedHeartBeatReadTimer)
+                if (m_hasDisposedHeartBeatReadTimer)
                 {
                     return;
                 }
@@ -1110,9 +1110,9 @@ entry.ToString());
 
         public void HeartbeatWriteTimerCallback(object state)
         {
-            lock (heartBeatWriteLock)
+            lock (_heartBeatWriteLock)
             {
-                if (IsDisposedHeartBeatWriteTimer)
+                if (m_hasDisposedHeartBeatWriteTimer)
                 {
                     return;
                 }
@@ -1152,16 +1152,16 @@ entry.ToString());
 
         protected void MaybeStopHeartbeatTimers()
         {
-            lock (heartBeatReadLock)
+            lock (_heartBeatReadLock)
             {
                 MaybeDisposeTimer(ref _heartbeatReadTimer);
-                IsDisposedHeartBeatReadTimer = true;
+                m_hasDisposedHeartBeatReadTimer = true;
             }
 
-            lock (heartBeatWriteLock)
+            lock (_heartBeatWriteLock)
             {
                 MaybeDisposeTimer(ref _heartbeatWriteTimer);
-                IsDisposedHeartBeatWriteTimer = true;
+                m_hasDisposedHeartBeatWriteTimer = true;
             }
         }
 
