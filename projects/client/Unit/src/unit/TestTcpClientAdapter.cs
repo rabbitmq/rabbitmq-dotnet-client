@@ -55,7 +55,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TcpClientAdapterHelperGetMatchingHostReturnNoAddressIfFamilyDoesNotMatch()
         {
-            var address = IPAddress.Parse("1.1.1.1");
+            var address = IPAddress.Parse("127.0.0.1");
             var matchingAddress = TcpClientAdapterHelper.GetMatchingHost(new[] { address }, AddressFamily.InterNetworkV6);
             Assert.IsNull(matchingAddress);
         }
