@@ -49,7 +49,7 @@ namespace RabbitMQ.Client.Impl
     public class ChannelErrorException : HardProtocolException
     {
         public ChannelErrorException(int channel)
-            : base(string.Format("Frame received for invalid channel {0}", channel))
+            : base($"Frame received for invalid channel {channel}")
         {
             Channel = channel;
         }

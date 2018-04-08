@@ -44,7 +44,7 @@ namespace RabbitMQ.Client.Exceptions
 {
     /// <summary> Thrown when the likely cause is  an
     /// authentication failure. </summary>
-    public class PossibleAuthenticationFailureException : Exception
+    public class PossibleAuthenticationFailureException : RabbitMQClientException
     {
         public PossibleAuthenticationFailureException(String msg, Exception inner) : base(msg, inner)
         {

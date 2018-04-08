@@ -51,14 +51,13 @@ namespace RabbitMQ.Client.Exceptions
     /// </summary>
     public class OperationInterruptedException
         // TODO: inherit from OperationCanceledException
-        : Exception
+        : RabbitMQClientException
     {
         ///<summary>Construct an OperationInterruptedException with
         ///the passed-in explanation, if any.</summary>
         public OperationInterruptedException(ShutdownEventArgs reason)
             : base(reason == null ? "The AMQP operation was interrupted" :
-                string.Format("The AMQP operation was interrupted: {0}",
-                    reason))
+                $"The AMQP operation was interrupted: {reason}")
         {
             ShutdownReason = reason;
         }
@@ -66,9 +65,8 @@ namespace RabbitMQ.Client.Exceptions
         ///<summary>Construct an OperationInterruptedException with
         ///the passed-in explanation and prefix, if any.</summary>
         public OperationInterruptedException(ShutdownEventArgs reason, String prefix)
-            : base(reason == null ? (prefix + ": The AMQP operation was interrupted") :
-                string.Format("{0}: The AMQP operation was interrupted: {1}",
-                    prefix, reason))
+            : base(reason == null ? ($"{prefix}: The AMQP operation was interrupted") :
+                $"{prefix}: The AMQP operation was interrupted: {reason}")
         {
             ShutdownReason = reason;
         }

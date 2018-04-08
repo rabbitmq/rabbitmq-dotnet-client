@@ -40,6 +40,7 @@
 
 using System;
 using System.Net;
+using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -47,7 +48,7 @@ namespace RabbitMQ.Client.Impl
     /// HardProtocolException and SoftProtocolException are thrown in
     /// situations when we detect a problem with the connection-,
     /// channel- or wire-level parts of the AMQP protocol. </summary>
-    public abstract class ProtocolException : Exception
+    public abstract class ProtocolException : RabbitMQClientException
     {
         protected ProtocolException(string message) : base(message)
         {

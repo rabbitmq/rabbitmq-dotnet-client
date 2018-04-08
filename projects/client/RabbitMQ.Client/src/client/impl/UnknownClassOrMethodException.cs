@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.Impl
     public class UnknownClassOrMethodException : HardProtocolException
     {
         public UnknownClassOrMethodException(ushort classId, ushort methodId)
-            : base(string.Format("The Class or Method <{0}.{1}> is unknown", classId, methodId))
+            : base($"The Class or Method <{classId}.{methodId}> is unknown")
         {
             ClassId = classId;
             MethodId = methodId;
@@ -69,14 +69,9 @@ namespace RabbitMQ.Client.Impl
 
         public override string ToString()
         {
-            if (MethodId == 0)
-            {
-                return base.ToString() + "<" + ClassId + ">";
-            }
-            else
-            {
-                return base.ToString() + "<" + ClassId + "." + MethodId + ">";
-            }
+            return MethodId == 0
+                ? $"{base.ToString()}<{this.ClassId}>"
+                : $"{base.ToString()}<{this.ClassId}.{this.MethodId}>";
         }
     }
 }
