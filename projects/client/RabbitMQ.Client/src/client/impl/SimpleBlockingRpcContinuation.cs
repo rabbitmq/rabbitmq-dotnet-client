@@ -47,17 +47,17 @@ namespace RabbitMQ.Client.Impl
 {
     public class SimpleBlockingRpcContinuation : IRpcContinuation
     {
-        public readonly BlockingCell m_cell = new BlockingCell();
+        public readonly BlockingCell<Either<Command, ShutdownEventArgs>> m_cell = new BlockingCell<Either<Command, ShutdownEventArgs>>();
 
         public virtual Command GetReply()
         {
-            var result = (Either)m_cell.Value;
+            var result = m_cell.WaitForValue();
             switch (result.Alternative)
             {
                 case EitherAlternative.Left:
-                    return (Command)result.Value;
+                    return result.LeftValue;
                 case EitherAlternative.Right:
-                    throw new OperationInterruptedException((ShutdownEventArgs)result.Value);
+                    throw new OperationInterruptedException(result.RightValue);
                 default:
                     string error = "Illegal EitherAlternative " + result.Alternative;
 #if !(NETFX_CORE)
@@ -71,20 +71,20 @@ namespace RabbitMQ.Client.Impl
 
         public virtual Command GetReply(TimeSpan timeout)
         {
-            var result = (Either)m_cell.GetValue(timeout);
+            var result = m_cell.WaitForValue(timeout);
             switch (result.Alternative)
             {
                 case EitherAlternative.Left:
-                    return (Command)result.Value;
+                    return result.LeftValue;
                 case EitherAlternative.Right:
-                    throw new OperationInterruptedException((ShutdownEventArgs)result.Value);
+                    throw new OperationInterruptedException(result.RightValue);
                 default:
                     ReportInvalidInvariant(result);
                     return null;
             }
         }
 
-        private static void ReportInvalidInvariant(Either result)
+        private static void ReportInvalidInvariant(Either<Command,ShutdownEventArgs> result)
         {
             string error = "Illegal EitherAlternative " + result.Alternative;
 #if !(NETFX_CORE)
@@ -96,12 +96,12 @@ namespace RabbitMQ.Client.Impl
 
         public virtual void HandleCommand(Command cmd)
         {
-            m_cell.Value = Either.Left(cmd);
+            m_cell.ContinueWithValue(Either<Command,ShutdownEventArgs>.Left(cmd));
         }
 
         public virtual void HandleModelShutdown(ShutdownEventArgs reason)
         {
-            m_cell.Value = Either.Right(reason);
+            m_cell.ContinueWithValue(Either<Command,ShutdownEventArgs>.Right(reason));
         }
     }
 }

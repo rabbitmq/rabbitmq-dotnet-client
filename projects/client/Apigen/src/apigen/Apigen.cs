@@ -602,7 +602,7 @@ namespace RabbitMQ.Client.Apigen
 
             EmitLine("");
             EmitLine("    public " + MangleClass(c.Name) + "Properties() {}");
-            EmitLine("    public override int ProtocolClassId { get { return " + c.Index + "; } }");
+            EmitLine("    public override ushort ProtocolClassId { get { return " + c.Index + "; } }");
             EmitLine("    public override string ProtocolClassName { get { return \"" + c.Name + "\"; } }");
             EmitLine("");
             EmitLine("    public override void ReadPropertiesFrom(RabbitMQ.Client.Impl.ContentHeaderPropertyReader reader) {");
@@ -716,8 +716,8 @@ namespace RabbitMQ.Client.Apigen
                                          "Private implementation class - do not use directly.");
                 EmitLine("  public class " + MangleMethodClass(c, m)
                          + ": RabbitMQ.Client.Impl.MethodBase, I" + MangleMethodClass(c, m) + " {");
-                EmitLine("    public const int ClassId = " + c.Index + ";");
-                EmitLine("    public const int MethodId = " + m.Index + ";");
+                EmitLine("    public const ushort ClassId = " + c.Index + ";");
+                EmitLine("    public const ushort MethodId = " + m.Index + ";");
                 EmitLine("");
                 foreach (AmqpField f in m.m_Fields)
                 {
@@ -756,8 +756,8 @@ namespace RabbitMQ.Client.Apigen
                 }
                 EmitLine("    }");
                 EmitLine("");
-                EmitLine("    public override int ProtocolClassId { get { return " + c.Index + "; } }");
-                EmitLine("    public override int ProtocolMethodId { get { return " + m.Index + "; } }");
+                EmitLine("    public override ushort ProtocolClassId { get { return " + c.Index + "; } }");
+                EmitLine("    public override ushort ProtocolMethodId { get { return " + m.Index + "; } }");
                 EmitLine("    public override string ProtocolMethodName { get { return \"" + c.Name + "." + m.Name + "\"; } }");
                 EmitLine("    public override bool HasContent { get { return "
                          + (m.HasContent ? "true" : "false") + "; } }");

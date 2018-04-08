@@ -457,9 +457,9 @@ namespace RabbitMQ.Client.Framing.Impl
             }
 
 #if NETFX_CORE
-            var receivedSignal = m_appContinuation.WaitOne(BlockingCell.validatedTimeout(timeout));
+            var receivedSignal = m_appContinuation.WaitOne(BlockingCell<object>.validatedTimeout(timeout));
 #else
-            var receivedSignal = m_appContinuation.WaitOne(BlockingCell.validatedTimeout(timeout));
+            var receivedSignal = m_appContinuation.WaitOne(BlockingCell<object>.validatedTimeout(timeout));
 #endif
 
             if (!receivedSignal)
@@ -511,7 +511,8 @@ namespace RabbitMQ.Client.Framing.Impl
         public Command ConnectionCloseWrapper(ushort reasonCode, string reasonText)
         {
             Command request;
-            int replyClassId, replyMethodId;
+            ushort replyClassId;
+            ushort replyMethodId;
             Protocol.CreateConnectionClose(reasonCode,
                 reasonText,
                 out request,
@@ -1267,7 +1268,8 @@ entry.ToString());
         protected Command ChannelCloseWrapper(ushort reasonCode, string reasonText)
         {
             Command request;
-            int replyClassId, replyMethodId;
+            ushort replyClassId;
+            ushort replyMethodId;
             Protocol.CreateChannelClose(reasonCode,
                 reasonText,
                 out request,
@@ -1278,14 +1280,13 @@ entry.ToString());
 
         protected void StartAndTune()
         {
-            var connectionStartCell = new BlockingCell();
+            var connectionStartCell = new BlockingCell<ConnectionStartDetails>();
             m_model0.m_connectionStartCell = connectionStartCell;
             m_model0.HandshakeContinuationTimeout = m_factory.HandshakeContinuationTimeout;
             m_frameHandler.ReadTimeout = (int)m_factory.HandshakeContinuationTimeout.TotalMilliseconds;
             m_frameHandler.SendHeader();
 
-            var connectionStart = (ConnectionStartDetails)
-                connectionStartCell.Value;
+            var connectionStart = connectionStartCell.WaitForValue();
 
             if (connectionStart == null)
             {

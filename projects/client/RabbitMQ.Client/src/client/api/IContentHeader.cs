@@ -50,7 +50,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Retrieve the AMQP class ID of this content header.
         /// </summary>
-        int ProtocolClassId { get; }
+        ushort ProtocolClassId { get; }
 
         /// <summary>
         /// Retrieve the AMQP class name of this content header.
