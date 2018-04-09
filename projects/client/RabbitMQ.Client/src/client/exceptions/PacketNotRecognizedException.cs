@@ -51,15 +51,14 @@ namespace RabbitMQ.Client.Exceptions
     ///The peer's {'A','M','Q','P',txHi,txLo,major,minor} packet is
     ///decoded into instances of this class.
     ///</remarks>
-    public class PacketNotRecognizedException : Exception
+    public class PacketNotRecognizedException : RabbitMQClientException
     {
         ///<summary>Fills the new instance's properties with the values passed in.</summary>
         public PacketNotRecognizedException(int transportHigh,
             int transportLow,
             int serverMajor,
             int serverMinor)
-            : base("AMQP server protocol version " + serverMajor + "-" + serverMinor +
-                   ", transport parameters " + transportHigh + ":" + transportLow)
+            : base($"AMQP server protocol version {serverMajor}-{serverMinor}, transport parameters {transportHigh}:{transportLow}")
         {
             TransportHigh = transportHigh;
             TransportLow = transportLow;

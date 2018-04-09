@@ -61,15 +61,15 @@ namespace RabbitMQ.Client.Exceptions
         /// </summary>
         /// <param name="channel">The requested channel number</param>
         public ChannelAllocationException(int channel)
-            : base(string.Format("The Requested Channel ({0}) is already in use.", channel))
+            : base($"The Requested Channel ({channel}) is already in use.")
         {
             Channel = channel;
         }
 
         ///<summary>Retrieves the channel number concerned; will
         ///return -1 in the case where "no more free channels" is
-        ///being signalled, or a non-negative integer when "channel is
-        ///in use" is being signalled.</summary>
+        ///being signaled, or a non-negative integer when "channel is
+        ///in use" is being signaled.</summary>
         public int Channel { get; private set; }
     }
 }

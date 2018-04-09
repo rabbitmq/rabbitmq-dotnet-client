@@ -38,14 +38,17 @@
 //  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+using RabbitMQ.Client.Exceptions;
+
 namespace RabbitMQ.Client
 {
-    public class ProtocolViolationException : System.Exception
+    public class ProtocolViolationException : RabbitMQClientException
     {
         public ProtocolViolationException(string message) : base(message)
         {
         }
-        public ProtocolViolationException(string message, System.Exception inner) : base(message, inner)
+        public ProtocolViolationException(string message, Exception inner) : base(message, inner)
         {
         }
         public ProtocolViolationException() 
