@@ -74,6 +74,7 @@ namespace RabbitMQ.Client
         /// DON'T set AutoClose to true before opening the first
         /// channel, because the connection will be immediately closed if you do!
         /// </remarks>
+        [Obsolete("Please explicitly close connections instead.")]
         bool AutoClose { get; set; }
 
         /// <summary>
