@@ -40,6 +40,7 @@
 
 #if !NETFX_CORE
 using System;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using NUnit.Framework;
@@ -52,14 +53,28 @@ namespace RabbitMQ.Client.Unit
     public class TestTcpClientAdapter
     {
         [Test]
-        public void ConnectAsyncThrowsArgumentExceptionWhenNoAddressForAddressFamilyCanBeFound()
+        public void TcpClientAdapterHelperGetMatchingHostReturnNoAddressIfFamilyDoesNotMatch()
         {
-            var socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
-            var sut = new TcpClientAdapter(socket);
-            Assert.Throws<ArgumentException>(() =>
-            {
-                sut.ConnectAsync("localhost", 5672).GetAwaiter().GetResult();
-            });
+            var address = IPAddress.Parse("127.0.0.1");
+            var matchingAddress = TcpClientAdapterHelper.GetMatchingHost(new[] { address }, AddressFamily.InterNetworkV6);
+            Assert.IsNull(matchingAddress);
+        }
+
+        [Test]
+        public void TcpClientAdapterHelperGetMatchingHostReturnsSingleAddressIfFamilyIsUnspecified()
+        {
+            var address = IPAddress.Parse("1.1.1.1");
+            var matchingAddress = TcpClientAdapterHelper.GetMatchingHost(new[] { address }, AddressFamily.Unspecified);
+            Assert.AreEqual(address, matchingAddress);
+        }
+
+        [Test]
+        public void TcpClientAdapterHelperGetMatchingHostReturnNoAddressIfFamilyIsUnspecifiedAndThereIsNoSingleMatch()
+        {
+            var address = IPAddress.Parse("1.1.1.1");
+            var address2 = IPAddress.Parse("2.2.2.2");
+            var matchingAddress = TcpClientAdapterHelper.GetMatchingHost(new[] { address, address2 }, AddressFamily.Unspecified);
+            Assert.IsNull(matchingAddress);
         }
     }
 }

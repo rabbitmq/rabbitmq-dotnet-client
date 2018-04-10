@@ -26,8 +26,8 @@ namespace RabbitMQ.Client
         {
             AssertSocket();
             var adds = await Dns.GetHostAddressesAsync(host).ConfigureAwait(false);
-            var ep = adds.FirstOrDefault(a => a.AddressFamily == sock.AddressFamily);
-            if(ep == default(IPAddress))
+            var ep = TcpClientAdapterHelper.GetMatchingHost(adds, sock.AddressFamily);
+            if (ep == default(IPAddress))
             {
                 throw new ArgumentException("No ip address could be resolved for " + host);
             }
