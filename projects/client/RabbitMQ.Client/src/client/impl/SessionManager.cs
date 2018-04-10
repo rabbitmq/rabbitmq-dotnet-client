@@ -68,6 +68,7 @@ namespace RabbitMQ.Client.Impl
             Ints = new IntAllocator(1, ChannelMax);
         }
 
+        [Obsolete("Please explicitly close connections instead.")]
         public bool AutoClose
         {
             get { return m_autoClose; }
