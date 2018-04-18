@@ -32,8 +32,6 @@ ensure-deliverables: rabbit-vsn
 	file ${RELEASE_DIR}/${NAME_VSN}-client-htmldoc.zip
 	file ${RELEASE_DIR}/${NAME_VSN}-client-htmldoc
 	file ${RELEASE_DIR}/${NAME_VSN}-dotnet-4.5.zip
-	file ${RELEASE_DIR}/${NAME_VSN}-wcf-htmldoc.zip
-	file ${RELEASE_DIR}/${NAME_VSN}-wcf-htmldoc
 
 ensure-release-dir: rabbit-vsn
 	touch ${RELEASE_DIR}/
@@ -49,9 +47,7 @@ doc: rabbit-vsn ensure-release-dir ensure-docs
 	unzip -q -j ${RELEASE_DIR}/${NAME_VSN}-tmp-xmldoc.zip -d build/tmpdoc/xml
 	cd ${RELEASE_DIR} && \
 	  rm -rf ${NAME_VSN}-htmldoc && \
-	  unzip -q ${NAME_VSN}-client-htmldoc.zip -d ${NAME_VSN}-client-htmldoc && \
-	  rm -rf ${NAME_VSN}-wcf-htmldoc && \
-	  unzip -q ${NAME_VSN}-wcf-htmldoc.zip -d ${NAME_VSN}-wcf-htmldoc
+	  unzip -q ${NAME_VSN}-client-htmldoc.zip -d ${NAME_VSN}-client-htmldoc
 
 clean:
 	rm -rf $(GENSRC_DIR) $(RELEASE_DIR)/*

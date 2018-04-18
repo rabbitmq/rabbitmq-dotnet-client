@@ -71,11 +71,9 @@ NAME=rabbitmq-dotnet-client
 NAME_VSN=$NAME-$RABBIT_VSN
 RELEASE_DIR=release
 if [ "$MONO_DIST" ] ; then
-    INCLUDE_WCF=true
     BUILD=build.sh
     DOTNET_PROGRAM_PREPEND="mono"
 else
-    INCLUDE_WCF=true
     BUILD=build.bat
     DOTNET_PROGRAM_PREPEND=
 fi
@@ -129,17 +127,6 @@ function dist-zips {
         $NAME_VSN-tmp-xmldoc.zip \
 	projects/client/RabbitMQ.Client \
         ../../..
-
-    if [ -z "$MONO_DIST" ]; then
-        ### HTML documentation for the WCF bindings library dist
-        gendoc-dist \
-            build/bin/RabbitMQ.ServiceModel.xml \
-            $NAME_VSN-wcf-htmldoc.zip \
-            "" \
-            "" \
-            projects/wcf/RabbitMQ.ServiceModel \
-            ../../..
-    fi
 }
 
 
@@ -182,9 +169,6 @@ function src-dist {
 
 function dist-target-framework {
     TARGET_FRAMEWORK="$1"
-    BUILD_WCF=
-    test -z "$MONO_DIST" && BUILD_WCF="true"
-
 
     mkdir -p tmp/dist/bin
 
@@ -207,7 +191,6 @@ function dist-target-framework {
     ### Copy bin files to be zipped to tmp/dist/
     cp projects/client/RabbitMQ.Client/build/bin/RabbitMQ.Client.xml tmp/dist/bin/
     cp projects/client/RabbitMQ.Client/build/bin/RabbitMQ.Client.dll tmp/dist/bin/
-    test "$BUILD_WCF" && cp projects/wcf/RabbitMQ.ServiceModel/build/bin/RabbitMQ.ServiceModel.dll tmp/dist/bin/
     cp-license-to tmp/dist/
 
     ### Zip tmp/dist
