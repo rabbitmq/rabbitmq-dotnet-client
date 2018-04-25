@@ -77,7 +77,7 @@ namespace RabbitMQ.Client.Impl
         private readonly ITcpClient m_socket;
         private readonly NetworkBinaryWriter m_writer;
         private readonly object _semaphore = new object();
-        private readonly object _sslLock = new object();
+        private readonly object _sslStreamLock = new object();
         private bool _closed;
         private bool _ssl = false;
         public SocketFrameHandler(AmqpTcpEndpoint endpoint,
@@ -245,7 +245,7 @@ namespace RabbitMQ.Client.Impl
         {
             if(_ssl)
             {
-                lock (_sslLock)
+                lock (_sslStreamLock)
                 {
                     m_writer.Write(buffer);
                 }
