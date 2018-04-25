@@ -1,8 +1,9 @@
-version: "4.1.0.{build}"
+version: "5.1.0.{build}"
 
 platform: Any CPU
 configuration: Release
 skip_tags: true
+image: Visual Studio 2017
 
 environment:
   BUILDWINRT: true
@@ -10,56 +11,27 @@ environment:
   SNKSECRET:
     secure: C8FL0UTKVN8YcMW1wdssabbkSWMIrpJTqgUNeI2NfQw=
 
-init:
-  - appveyor DownloadFile https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0-preview2/scripts/obtain/dotnet-install.ps1
-  - ps: |
-      & .\dotnet-install.ps1 -Channel "preview" -Version "1.0.0-preview2-003121"
-      Remove-Item .\dotnet-install.ps1
-  - echo %APPVEYOR_BUILD_VERSION%
-  - choco install -y rabbitmq
+cache:
+  # Note: this must match the $rabbitmq_installer_path value in
+  # tools\appveyor\install.ps1
+  - "%HOMEDRIVE%%HOMEPATH%\rabbitmq-server-3.7.4.exe"
 
 install:
   - IF DEFINED SNKSECRET (nuget install secure-file -ExcludeVersion)
   - IF DEFINED SNKSECRET (secure-file\tools\secure-file -decrypt %APPVEYOR_BUILD_FOLDER%\rabbit.snk.enc -secret %SNKSECRET%) ELSE (ECHO This Is A Pull Request Build)
   - IF NOT DEFINED SNKSECRET (copy "rabbit.snk.prbuilds" "rabbit.snk") ELSE (ECHO Using The Release Key File)
-  - ps: |
-      $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\RabbitMQ"
-      if (Test-Path "HKLM:\SOFTWARE\Wow6432Node\") { $regPath = "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\RabbitMQ" }
-      $path = Split-Path -Parent (Get-ItemProperty $regPath "UninstallString").UninstallString
-      $version = (Get-ItemProperty $regPath "DisplayVersion").DisplayVersion
-      [Environment]::SetEnvironmentVariable("RABBITMQ_HOME", "$path\rabbitmq_server-$version", "Machine")
-      $env:RABBITMQ_HOME = "$path\rabbitmq_server-$version"
-      [Environment]::SetEnvironmentVariable("RABBITMQ_RABBITMQCTL_PATH", "$path\rabbitmq_server-$version\sbin\rabbitmqctl.bat", "Machine")
-      $env:RABBITMQ_RABBITMQCTL_PATH = "$path\rabbitmq_server-$version\sbin\rabbitmqctl.bat"
-
-before_build:
+  - ps: .\tools\appveyor\install.ps1
 
 build_script: 
-    - cmd: .\build.bat
-    - cmd: .\run-test.bat
-    - ps: |
-        $suffix = Get-Date -format "yyyyMMddhhss"
-        Write-Host $suffix
-        dotnet pack "projects\client\RabbitMQ.Client" -c Release --version-suffix=ci-$suffix
+  - cmd: .\build.bat
 
-test: off
-
-after_build:
-
-artifacts:
-  - path: '*.nupkg'
-  - path: 'projects\client\RabbitMQ.Client\bin\Release\*.nupkg'
-  - path: '*.log'
-    name: Logs
-
-deploy: off
+test_script:
+  - cmd: .\run-test.bat
 
 nuget:
-  account_feed: true
-  project_feed: true
   disable_publish_on_pr: true
 
 branches:
     only:
-    - master
-    - stable
+      - master
+      - stable

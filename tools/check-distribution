@@ -118,7 +118,6 @@ done
 NET11ZIP=$(ls rabbitmq-dotnet-*-net-1.1.zip)
 NET20ZIP=$(ls rabbitmq-dotnet-*-net-2.0.zip)
 COREDOCZIP=$(ls rabbitmq-dotnet-*-net-2.0-htmldoc.zip)
-WCFDOCZIP=$(ls rabbitmq-dotnet-*-net-2.0-wcf-htmldoc.zip)
 SRCZIP=$(ls rabbitmq-dotnet-*.zip | grep -v '.*-net-')
 
 if [ $(echo $NET11ZIP | wc -w) != 1 ]; then
@@ -131,10 +130,6 @@ if [ $(echo $NET20ZIP | wc -w) != 1 ]; then
 fi
 if [ $(echo $COREDOCZIP | wc -w) != 1 ]; then
     echo Expected exactly one core documentation zip.
-    exit 2
-fi
-if [ $(echo $WCFDOCZIP | wc -w) != 1 ]; then
-    echo Expected exactly one WCF documentation zip.
     exit 2
 fi
 if [ $(echo $SRCZIP | wc -w) != 1 ]; then
@@ -162,14 +157,13 @@ if ! mkdir $TMPDIRNAME 2>/dev/null; then
     exit 3
 fi
 
-cp $NET11ZIP $NET20ZIP $COREDOCZIP $WCFDOCZIP $SRCZIP $TMPDIRNAME
+cp $NET11ZIP $NET20ZIP $COREDOCZIP $SRCZIP $TMPDIRNAME
 cp bundle/user-guide.pdf $TMPDIRNAME/rabbitmq-dotnet-$BUILD_TAG-user-guide.pdf
 cp bundle/api-guide.pdf $TMPDIRNAME/rabbitmq-dotnet-$BUILD_TAG-api-guide.pdf
-cp bundle/"RabbitMQ Service Model.pdf" $TMPDIRNAME/rabbitmq-dotnet-$BUILD_TAG-wcf-service-model.pdf
 
 if [ "x$SIGNING_KEY" != "x" ]; then
     echo "Signing zips with SIGNING_KEY $SIGNING_KEY"
-    for z in $NET11ZIP $NET20ZIP $COREDOCZIP $WCFDOCZIP $SRCZIP; do
+    for z in $NET11ZIP $NET20ZIP $COREDOCZIP $SRCZIP; do
 	if ! (HOME=$GNUPG_PATH gpg \
 	    --default-key $SIGNING_KEY \
 	    -abs \
@@ -192,10 +186,9 @@ mkdir -p $UPLOAD_ROOT/releases/source
 mkdir -p $UPLOAD_ROOT/releases/doc/rabbitmq-dotnet-$RELEASE_TAG
 mv $NET11ZIP $NET11ZIP.asc $NET20ZIP $NET20ZIP.asc $UPLOAD_ROOT/releases/binary
 mv $SRCZIP $SRCZIP.asc $UPLOAD_ROOT/releases/source
-mv *.pdf $COREDOCZIP $COREDOCZIP.asc $WCFDOCZIP $WCFDOCZIP.asc $UPLOAD_ROOT/releases/doc/rabbitmq-dotnet-$RELEASE_TAG
+mv *.pdf $COREDOCZIP $COREDOCZIP.asc $UPLOAD_ROOT/releases/doc/rabbitmq-dotnet-$RELEASE_TAG
 cd $UPLOAD_ROOT/releases/doc/rabbitmq-dotnet-$RELEASE_TAG
 unzip -q $COREDOCZIP
-unzip -q $WCFDOCZIP
 cd /tmp
 rm $TMPDIRNAME/installfiles
 rmdir $TMPDIRNAME

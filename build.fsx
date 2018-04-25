@@ -97,7 +97,6 @@ let appRefs =
     let main =
         !! "./projects/client/RabbitMQ.Client/**/*.csproj" 
         ++ "./projects/client/Unit/**/*.csproj" 
-        ++ "./projects/wcf/**/*.csproj" 
     match buildEnv with
     | Windows8Plus | AppVeyor -> 
         !! "./projects/**/*.csproj" 
