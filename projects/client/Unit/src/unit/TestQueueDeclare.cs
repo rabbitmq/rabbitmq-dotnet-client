@@ -83,7 +83,7 @@ namespace RabbitMQ.Client.Unit {
                 t.Join();
             }
 
-            Assert.IsNotNull(nse);
+            Assert.IsNull(nse);
             Model.QueueDelete(q);
         }
     }

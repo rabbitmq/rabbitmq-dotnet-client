@@ -77,7 +77,9 @@ namespace RabbitMQ.Client.Impl
         private readonly ITcpClient m_socket;
         private readonly NetworkBinaryWriter m_writer;
         private readonly object _semaphore = new object();
+        private readonly object _sslStreamLock = new object();
         private bool _closed;
+        private bool _ssl = false;
         public SocketFrameHandler(AmqpTcpEndpoint endpoint,
             Func<AddressFamily, ITcpClient> socketFactory,
             int connectionTimeout, int readTimeout, int writeTimeout)
@@ -108,6 +110,7 @@ namespace RabbitMQ.Client.Impl
                 try
                 {
                     netstream = SslHelper.TcpUpgrade(netstream, endpoint.Ssl);
+                    _ssl = true;
                 }
                 catch (Exception)
                 {
@@ -217,7 +220,7 @@ namespace RabbitMQ.Client.Impl
                 nbw.Write((byte)Endpoint.Protocol.MajorVersion);
                 nbw.Write((byte)Endpoint.Protocol.MinorVersion);
             }
-            m_writer.Write(ms.ToArray());
+            Write(ms.ToArray());
         }
 
         public void WriteFrame(OutboundFrame frame)
@@ -226,7 +229,7 @@ namespace RabbitMQ.Client.Impl
             var nbw = new NetworkBinaryWriter(ms);
             frame.WriteTo(nbw);
             m_socket.Client.Poll(m_writeableStateTimeout, SelectMode.SelectWrite);
-            m_writer.Write(ms.ToArray());
+            Write(ms.ToArray());
         }
 
         public void WriteFrameSet(IList<OutboundFrame> frames)
@@ -235,7 +238,22 @@ namespace RabbitMQ.Client.Impl
             var nbw = new NetworkBinaryWriter(ms);
             foreach (var f in frames) f.WriteTo(nbw);
             m_socket.Client.Poll(m_writeableStateTimeout, SelectMode.SelectWrite);
-            m_writer.Write(ms.ToArray());
+            Write(ms.ToArray());
+        }
+
+        private void Write(byte [] buffer)
+        {
+            if(_ssl)
+            {
+                lock (_sslStreamLock)
+                {
+                    m_writer.Write(buffer);
+                }
+            }
+            else
+            {
+                m_writer.Write(buffer);
+            }
         }
 
         private bool ShouldTryIPv6(AmqpTcpEndpoint endpoint)

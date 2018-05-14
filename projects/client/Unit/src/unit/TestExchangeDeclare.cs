@@ -52,7 +52,7 @@ namespace RabbitMQ.Client.Unit {
 
         [Test]
         [Category("RequireSMP")]
-        public void TestConcurrentQueueDeclare()
+        public void TestConcurrentExchangeDeclare()
         {
             string x = GenerateExchangeName();
             Random rnd = new Random();
@@ -83,7 +83,7 @@ namespace RabbitMQ.Client.Unit {
                 t.Join();
             }
 
-            Assert.IsNotNull(nse);
+            Assert.IsNull(nse);
             Model.ExchangeDelete(x);
         }
     }
