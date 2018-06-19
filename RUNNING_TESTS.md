@@ -50,8 +50,10 @@ On MacOS, Linux, BSD use:
     run-test.sh
 
 Running individual tests and fixtures on Windows is trivial using the Visual Studio test runner.
-To run a specific tests fixture on osx/linux you can use nunit3 where expressions to select the tests
+To run a specific tests fixture on MacOS or Linux, use the NUnit filter expressions to select the tests
 to be run:
-    
-    ./fake.sh Test where="test =~ /SomeTest/"
 
+    dotnet test projects/client/Unit --filter "Name~TestAmqpUriParseFail"
+
+
+    dotnet test projects/client/Unit --filter "FullyQualifiedName~RabbitMQ.Client.Unit.TestHeartbeats"
