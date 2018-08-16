@@ -3,6 +3,7 @@ using System;
 using System.Linq;
 using System.Net.Sockets;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RabbitMQ.Client
@@ -22,20 +23,28 @@ namespace RabbitMQ.Client
             this.sock = socket;
         }
 
-        public virtual async Task ConnectAsync(string host, int port)
+        public virtual async Task ConnectAsync(string host, int port, CancellationToken cancellationToken)
         {
             AssertSocket();
-            var adds = await Dns.GetHostAddressesAsync(host).ConfigureAwait(false);
-            var ep = TcpClientAdapterHelper.GetMatchingHost(adds, sock.AddressFamily);
-            if (ep == default(IPAddress))
+            try
             {
-                throw new ArgumentException("No ip address could be resolved for " + host);
-            }
-            #if CORECLR
-            await sock.ConnectAsync(ep, port).ConfigureAwait(false);
-            #else
+                var adds = await Dns.GetHostAddressesAsync(host).ConfigureAwait(false);
+                var ep = TcpClientAdapterHelper.GetMatchingHost(adds, sock.AddressFamily);
+                if (ep == default(IPAddress))
+                {
+                    throw new ArgumentException("No ip address could be resolved for " + host);
+                }
+#if CORECLR
+                await sock.ConnectAsync(ep, port).ConfigureAwait(false);
+#else
             sock.Connect(ep, port);
-            #endif
+#endif
+            }
+            catch (Exception)
+            {
+                if (!cancellationToken.IsCancellationRequested)
+                    throw;
+            }
         }
 
         public virtual void Close()
