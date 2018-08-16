@@ -56,12 +56,15 @@ namespace RabbitMQ.Client.Impl
     {
         public static Task CompletedTask = Task.FromResult(0);
 
-        public static async Task TimeoutAfter(this Task task, int millisecondsTimeout)
+        public static async Task TimeoutAfter(this Task task, int millisecondsTimeout, CancellationTokenSource cancellationToken)
         {
-            if (task == await Task.WhenAny(task, Task.Delay(millisecondsTimeout)).ConfigureAwait(false))
+            if (task == await Task.WhenAny(task, Task.Delay(millisecondsTimeout, cancellationToken.Token)).ConfigureAwait(false))
                 await task;
             else
+            {
+                cancellationToken.Cancel();
                 throw new TimeoutException();
+            }
         }
     }
 
@@ -293,12 +296,15 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
-                socket.ConnectAsync(endpoint.HostName, endpoint.Port)
-                            .TimeoutAfter(timeout)
-                            .ConfigureAwait(false)
-                            // this ensures exceptions aren't wrapped in an AggregateException
-                            .GetAwaiter()
-                            .GetResult();
+                using (var cancellationToken = new CancellationTokenSource())
+                {
+                    socket.ConnectAsync(endpoint.HostName, endpoint.Port, cancellationToken.Token)
+                        .TimeoutAfter(timeout, cancellationToken)
+                        .ConfigureAwait(false)
+                        // this ensures exceptions aren't wrapped in an AggregateException
+                        .GetAwaiter()
+                        .GetResult();
+                }
             }
             catch (ArgumentException e)
             {
