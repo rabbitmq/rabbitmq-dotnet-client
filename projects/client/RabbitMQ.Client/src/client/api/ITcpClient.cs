@@ -19,7 +19,7 @@ namespace RabbitMQ.Client
 
         Socket Client { get; }
 
-        Task ConnectAsync(string host, int port, CancellationToken cancellationToken);
+        Task ConnectAsync(string host, int port);
 
         NetworkStream GetStream();
 

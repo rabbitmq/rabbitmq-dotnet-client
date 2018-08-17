@@ -23,28 +23,20 @@ namespace RabbitMQ.Client
             this.sock = socket;
         }
 
-        public virtual async Task ConnectAsync(string host, int port, CancellationToken cancellationToken)
+        public virtual async Task ConnectAsync(string host, int port)
         {
             AssertSocket();
-            try
+            var adds = await Dns.GetHostAddressesAsync(host).ConfigureAwait(false);
+            var ep = TcpClientAdapterHelper.GetMatchingHost(adds, sock.AddressFamily);
+            if (ep == default(IPAddress))
             {
-                var adds = await Dns.GetHostAddressesAsync(host).ConfigureAwait(false);
-                var ep = TcpClientAdapterHelper.GetMatchingHost(adds, sock.AddressFamily);
-                if (ep == default(IPAddress))
-                {
-                    throw new ArgumentException("No ip address could be resolved for " + host);
-                }
+                throw new ArgumentException("No ip address could be resolved for " + host);
+            }
 #if CORECLR
                 await sock.ConnectAsync(ep, port).ConfigureAwait(false);
 #else
             sock.Connect(ep, port);
 #endif
-            }
-            catch (Exception)
-            {
-                if (!cancellationToken.IsCancellationRequested)
-                    throw;
-            }
         }
 
         public virtual void Close()
