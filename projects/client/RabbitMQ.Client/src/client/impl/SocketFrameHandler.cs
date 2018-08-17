@@ -48,7 +48,6 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using System.Threading;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -56,13 +55,13 @@ namespace RabbitMQ.Client.Impl
     {
         public static Task CompletedTask = Task.FromResult(0);
 
-        public static async Task TimeoutAfter(this Task task, int millisecondsTimeout, CancellationTokenSource cancellationToken)
+        public static async Task TimeoutAfter(this Task task, int millisecondsTimeout)
         {
-            if (task == await Task.WhenAny(task, Task.Delay(millisecondsTimeout, cancellationToken.Token)).ConfigureAwait(false))
+            if (task == await Task.WhenAny(task, Task.Delay(millisecondsTimeout)).ConfigureAwait(false))
                 await task;
             else
             {
-                cancellationToken.Cancel();
+                task.ContinueWith(t => t.Exception.Handle(e => true), TaskContinuationOptions.OnlyOnFaulted).Start();
                 throw new TimeoutException();
             }
         }
@@ -296,15 +295,12 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
-                using (var cancellationToken = new CancellationTokenSource())
-                {
-                    socket.ConnectAsync(endpoint.HostName, endpoint.Port, cancellationToken.Token)
-                        .TimeoutAfter(timeout, cancellationToken)
-                        .ConfigureAwait(false)
-                        // this ensures exceptions aren't wrapped in an AggregateException
-                        .GetAwaiter()
-                        .GetResult();
-                }
+                socket.ConnectAsync(endpoint.HostName, endpoint.Port)
+                      .TimeoutAfter(timeout)
+                      .ConfigureAwait(false)
+                      // this ensures exceptions aren't wrapped in an AggregateException
+                      .GetAwaiter()
+                      .GetResult();
             }
             catch (ArgumentException e)
             {
