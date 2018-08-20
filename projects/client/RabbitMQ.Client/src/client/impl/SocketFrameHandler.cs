@@ -61,7 +61,7 @@ namespace RabbitMQ.Client.Impl
                 await task;
             else
             {
-                task.ContinueWith(t => t.Exception.Handle(e => true), TaskContinuationOptions.OnlyOnFaulted).Start();
+                var supressErrorTask = task.ContinueWith(t => t.Exception.Handle(e => true), TaskContinuationOptions.OnlyOnFaulted);
                 throw new TimeoutException();
             }
         }
