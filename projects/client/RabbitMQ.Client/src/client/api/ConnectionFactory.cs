@@ -328,7 +328,7 @@ namespace RabbitMQ.Client
         public string VirtualHost { get; set; } = DefaultVHost;
 
         /// <summary>
-        /// Username to use when authenticating to the server.
+        /// The uri to use for the connection.
         /// </summary>
         public Uri Uri
         {
