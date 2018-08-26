@@ -76,8 +76,7 @@ namespace RabbitMQ.Client.Framing.Impl
         protected ConcurrentDictionary<RecordedBinding, byte> m_recordedBindings =
             new ConcurrentDictionary<RecordedBinding, byte>();
 
-        protected List<EventHandler<ConnectionBlockedEventArgs>> m_recordedBlockedEventHandlers =
-            new List<EventHandler<ConnectionBlockedEventArgs>>();
+        protected EventHandler<ConnectionBlockedEventArgs> m_recordedBlockedEventHandlers;
 
         protected IDictionary<string, RecordedConsumer> m_recordedConsumers =
             new ConcurrentDictionary<string, RecordedConsumer>();
@@ -88,11 +87,9 @@ namespace RabbitMQ.Client.Framing.Impl
         protected IDictionary<string, RecordedQueue> m_recordedQueues =
             new ConcurrentDictionary<string, RecordedQueue>();
 
-        protected List<EventHandler<ShutdownEventArgs>> m_recordedShutdownEventHandlers =
-            new List<EventHandler<ShutdownEventArgs>>();
+        protected EventHandler<ShutdownEventArgs> m_recordedShutdownEventHandlers;
 
-        protected List<EventHandler<EventArgs>> m_recordedUnblockedEventHandlers =
-            new List<EventHandler<EventArgs>>();
+        protected EventHandler<EventArgs> m_recordedUnblockedEventHandlers;
 
         private EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> m_consumerTagChange;
         private EventHandler<QueueNameChangedAfterRecoveryEventArgs> m_queueNameChange;
@@ -183,7 +180,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 lock (m_eventLock)
                 {
-                    m_recordedBlockedEventHandlers.Add(value);
+                    m_recordedBlockedEventHandlers += value;
                     m_delegate.ConnectionBlocked += value;
                 }
             }
@@ -191,7 +188,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 lock (m_eventLock)
                 {
-                    m_recordedBlockedEventHandlers.Remove(value);
+                    m_recordedBlockedEventHandlers -= value;
                     m_delegate.ConnectionBlocked -= value;
                 }
             }
@@ -203,7 +200,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 lock (m_eventLock)
                 {
-                    m_recordedShutdownEventHandlers.Add(value);
+                    m_recordedShutdownEventHandlers += value;
                     m_delegate.ConnectionShutdown += value;
                 }
             }
@@ -211,7 +208,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 lock (m_eventLock)
                 {
-                    m_recordedShutdownEventHandlers.Remove(value);
+                    m_recordedShutdownEventHandlers -= value;
                     m_delegate.ConnectionShutdown -= value;
                 }
             }
@@ -223,7 +220,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 lock (m_eventLock)
                 {
-                    m_recordedUnblockedEventHandlers.Add(value);
+                    m_recordedUnblockedEventHandlers += value;
                     m_delegate.ConnectionUnblocked += value;
                 }
             }
@@ -231,7 +228,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 lock (m_eventLock)
                 {
-                    m_recordedUnblockedEventHandlers.Remove(value);
+                    m_recordedUnblockedEventHandlers -= value;
                     m_delegate.ConnectionUnblocked -= value;
                 }
             }
@@ -492,7 +489,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 // find bindings that need removal, check if some auto-delete exchanges
                 // might need the same
                 var bs = m_recordedBindings.Keys.Where(b => name.Equals(b.Destination));
-                foreach (RecordedBinding b in bs)
+                foreach (var b in bs)
                 {
                     DeleteRecordedBinding(b);
                     MaybeDeleteRecordedAutoDeleteExchange(b.Source);
@@ -508,7 +505,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 // find bindings that need removal, check if some auto-delete exchanges
                 // might need the same
                 var bs = m_recordedBindings.Keys.Where(b => name.Equals(b.Destination));
-                foreach (RecordedBinding b in bs)
+                foreach (var b in bs)
                 {
                     DeleteRecordedBinding(b);
                     MaybeDeleteRecordedAutoDeleteExchange(b.Source);
@@ -651,10 +648,7 @@ namespace RabbitMQ.Client.Framing.Impl
             lock (m_eventLock)
             {
                 ConnectionShutdown += recoveryListener;
-                if (!m_recordedShutdownEventHandlers.Contains(recoveryListener))
-                {
-                    m_recordedShutdownEventHandlers.Add(recoveryListener);
-                }
+                m_recordedShutdownEventHandlers += recoveryListener;
             }
         }
 
@@ -747,18 +741,33 @@ namespace RabbitMQ.Client.Framing.Impl
 
         void IDisposable.Dispose()
         {
-            try
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
             {
-                Abort();
+                // dispose managed resources
+                try
+                {
+                    Abort();
+                }
+                catch (Exception)
+                {
+                    // TODO: log
+                }
+                finally
+                {
+                    m_models.Clear();
+                    m_recordedBlockedEventHandlers = null;
+                    m_recordedShutdownEventHandlers = null;
+                    m_recordedUnblockedEventHandlers = null;
+                }
             }
-            catch(Exception)
-            {
-                // TODO: log
-            }
-            finally
-            {
-                m_models.Clear();
-            }
+
+            // dispose unmanaged resources
         }
 
         protected void EnsureIsOpen()
@@ -815,13 +824,9 @@ namespace RabbitMQ.Client.Framing.Impl
 
         protected void RecoverConnectionBlockedHandlers()
         {
-            List<EventHandler<ConnectionBlockedEventArgs>> handler = m_recordedBlockedEventHandlers;
-            if (handler != null)
+            lock (m_eventLock)
             {
-                foreach (EventHandler<ConnectionBlockedEventArgs> eh in handler)
-                {
-                    m_delegate.ConnectionBlocked += eh;
-                }
+                m_delegate.ConnectionBlocked += m_recordedBlockedEventHandlers;
             }
         }
 
@@ -871,22 +876,12 @@ namespace RabbitMQ.Client.Framing.Impl
 
         protected void RecoverConnectionShutdownHandlers()
         {
-            foreach (EventHandler<ShutdownEventArgs> eh in m_recordedShutdownEventHandlers)
-            {
-                m_delegate.ConnectionShutdown += eh;
-            }
+            m_delegate.ConnectionShutdown += m_recordedShutdownEventHandlers;
         }
 
         protected void RecoverConnectionUnblockedHandlers()
         {
-            List<EventHandler<EventArgs>> handler = m_recordedUnblockedEventHandlers;
-            if (handler != null)
-            {
-                foreach (EventHandler<EventArgs> eh in handler)
-                {
-                    m_delegate.ConnectionUnblocked += eh;
-                }
-            }
+            m_delegate.ConnectionUnblocked += m_recordedUnblockedEventHandlers;
         }
 
         protected void RecoverConsumers()
@@ -1054,8 +1049,8 @@ namespace RabbitMQ.Client.Framing.Impl
         protected bool ShouldTriggerConnectionRecovery(ShutdownEventArgs args)
         {
             return (args.Initiator == ShutdownInitiator.Peer ||
-                // happens when EOF is reached, e.g. due to RabbitMQ node
-                // connectivity loss or abrupt shutdown
+                    // happens when EOF is reached, e.g. due to RabbitMQ node
+                    // connectivity loss or abrupt shutdown
                     args.Initiator == ShutdownInitiator.Library);
         }
     }

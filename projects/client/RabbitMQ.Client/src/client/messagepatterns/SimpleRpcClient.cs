@@ -258,7 +258,7 @@ namespace RabbitMQ.Client.MessagePatterns
         ///</remarks>
         public virtual byte[] Call(byte[] body)
         {
-            BasicDeliverEventArgs reply = Call(null, body);
+            var reply = Call(null, body);
             return reply == null ? null : reply.Body;
         }
 
@@ -290,7 +290,7 @@ namespace RabbitMQ.Client.MessagePatterns
             byte[] body,
             out IBasicProperties replyProperties)
         {
-            BasicDeliverEventArgs reply = Call(requestProperties, body);
+            var reply = Call(requestProperties, body);
             if (reply == null)
             {
                 replyProperties = null;
@@ -403,7 +403,19 @@ namespace RabbitMQ.Client.MessagePatterns
         ///statements.</summary>
         void IDisposable.Dispose()
         {
-            Close();
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // dispose managed resources
+                Close();
+            }
+
+            // dispose unmanaged resources
         }
 
         ///<summary>Should initialise m_subscription to be non-null
@@ -427,8 +439,7 @@ namespace RabbitMQ.Client.MessagePatterns
         ///</remarks>
         protected virtual BasicDeliverEventArgs RetrieveReply(string correlationId)
         {
-            BasicDeliverEventArgs reply;
-            if (!Subscription.Next(TimeoutMilliseconds, out reply))
+            if (!Subscription.Next(TimeoutMilliseconds, out var reply))
             {
                 OnTimedOut();
                 return null;

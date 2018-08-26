@@ -425,7 +425,19 @@ namespace RabbitMQ.Client.MessagePatterns
         ///statements.</summary>
         void IDisposable.Dispose()
         {
-            Close();
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // dispose managed resources
+                Close();
+            }
+
+            // dispose unmanaged resources
         }
     }
 }

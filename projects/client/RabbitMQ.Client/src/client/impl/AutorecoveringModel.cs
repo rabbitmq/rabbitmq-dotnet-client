@@ -51,20 +51,15 @@ namespace RabbitMQ.Client.Impl
         protected AutorecoveringConnection m_connection;
         protected RecoveryAwareModel m_delegate;
 
-        protected List<EventHandler<BasicAckEventArgs>> m_recordedBasicAckEventHandlers =
-            new List<EventHandler<BasicAckEventArgs>>();
+        protected EventHandler<BasicAckEventArgs> m_recordedBasicAckEventHandlers;
 
-        protected List<EventHandler<BasicNackEventArgs>> m_recordedBasicNackEventHandlers =
-            new List<EventHandler<BasicNackEventArgs>>();
+        protected EventHandler<BasicNackEventArgs> m_recordedBasicNackEventHandlers;
 
-        protected List<EventHandler<BasicReturnEventArgs>> m_recordedBasicReturnEventHandlers =
-            new List<EventHandler<BasicReturnEventArgs>>();
+        protected EventHandler<BasicReturnEventArgs> m_recordedBasicReturnEventHandlers;
 
-        protected List<EventHandler<CallbackExceptionEventArgs>> m_recordedCallbackExceptionEventHandlers =
-            new List<EventHandler<CallbackExceptionEventArgs>>();
+        protected EventHandler<CallbackExceptionEventArgs> m_recordedCallbackExceptionEventHandlers;
 
-        protected List<EventHandler<ShutdownEventArgs>> m_recordedShutdownEventHandlers =
-            new List<EventHandler<ShutdownEventArgs>>();
+        protected EventHandler<ShutdownEventArgs> m_recordedShutdownEventHandlers;
 
         protected ushort prefetchCountConsumer = 0;
         protected ushort prefetchCountGlobal = 0;
@@ -95,7 +90,7 @@ namespace RabbitMQ.Client.Impl
             {
                 lock (m_eventLock)
                 {
-                    m_recordedBasicAckEventHandlers.Add(value);
+                    m_recordedBasicAckEventHandlers += value;
                     m_delegate.BasicAcks += value;
                 }
             }
@@ -103,7 +98,7 @@ namespace RabbitMQ.Client.Impl
             {
                 lock (m_eventLock)
                 {
-                    m_recordedBasicAckEventHandlers.Remove(value);
+                    m_recordedBasicAckEventHandlers -= value;
                     m_delegate.BasicAcks -= value;
                 }
             }
@@ -115,7 +110,7 @@ namespace RabbitMQ.Client.Impl
             {
                 lock (m_eventLock)
                 {
-                    m_recordedBasicNackEventHandlers.Add(value);
+                    m_recordedBasicNackEventHandlers += value;
                     m_delegate.BasicNacks += value;
                 }
             }
@@ -123,7 +118,7 @@ namespace RabbitMQ.Client.Impl
             {
                 lock (m_eventLock)
                 {
-                    m_recordedBasicNackEventHandlers.Remove(value);
+                    m_recordedBasicNackEventHandlers -= value;
                     m_delegate.BasicNacks -= value;
                 }
             }
@@ -145,7 +140,7 @@ namespace RabbitMQ.Client.Impl
             {
                 lock (m_eventLock)
                 {
-                    m_recordedBasicReturnEventHandlers.Add(value);
+                    m_recordedBasicReturnEventHandlers += value;
                     m_delegate.BasicReturn += value;
                 }
             }
@@ -153,7 +148,7 @@ namespace RabbitMQ.Client.Impl
             {
                 lock (m_eventLock)
                 {
-                    m_recordedBasicReturnEventHandlers.Remove(value);
+                    m_recordedBasicReturnEventHandlers -= value;
                     m_delegate.BasicReturn -= value;
                 }
             }
@@ -165,7 +160,7 @@ namespace RabbitMQ.Client.Impl
             {
                 lock (m_eventLock)
                 {
-                    m_recordedCallbackExceptionEventHandlers.Add(value);
+                    m_recordedCallbackExceptionEventHandlers += value;
                     m_delegate.CallbackException += value;
                 }
             }
@@ -173,7 +168,7 @@ namespace RabbitMQ.Client.Impl
             {
                 lock (m_eventLock)
                 {
-                    m_recordedCallbackExceptionEventHandlers.Remove(value);
+                    m_recordedCallbackExceptionEventHandlers -= value;
                     m_delegate.CallbackException -= value;
                 }
             }
@@ -195,7 +190,7 @@ namespace RabbitMQ.Client.Impl
             {
                 lock (m_eventLock)
                 {
-                    m_recordedShutdownEventHandlers.Add(value);
+                    m_recordedShutdownEventHandlers += value;
                     m_delegate.ModelShutdown += value;
                 }
             }
@@ -203,7 +198,7 @@ namespace RabbitMQ.Client.Impl
             {
                 lock (m_eventLock)
                 {
-                    m_recordedShutdownEventHandlers.Remove(value);
+                    m_recordedShutdownEventHandlers -= value;
                     m_delegate.ModelShutdown -= value;
                 }
             }
@@ -379,7 +374,27 @@ namespace RabbitMQ.Client.Impl
 
         void IDisposable.Dispose()
         {
-            Abort();
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // dispose managed resources
+                Abort();
+
+                m_connection = null;
+                m_delegate = null;
+                m_recordedBasicAckEventHandlers = null;
+                m_recordedBasicNackEventHandlers = null;
+                m_recordedBasicReturnEventHandlers = null;
+                m_recordedCallbackExceptionEventHandlers = null;
+                m_recordedShutdownEventHandlers = null;
+            }
+
+            // dispose unmanaged resources
         }
 
         public void ConnectionTuneOk(ushort channelMax,
@@ -422,10 +437,7 @@ namespace RabbitMQ.Client.Impl
                 routingKey, basicProperties, body);
         }
 
-        public void HandleBasicGetEmpty()
-        {
-            m_delegate.HandleBasicGetEmpty();
-        }
+        public void HandleBasicGetEmpty() => m_delegate.HandleBasicGetEmpty();
 
         public void HandleBasicGetOk(ulong deliveryTag,
             bool redelivered,
@@ -968,7 +980,7 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             IDictionary<string, object> arguments)
         {
-            RecordedBinding qb = new RecordedQueueBinding(this).
+            var qb = new RecordedQueueBinding(this).
                 WithSource(exchange).
                 WithDestination(queue).
                 WithRoutingKey(routingKey).
@@ -1111,61 +1123,41 @@ namespace RabbitMQ.Client.Impl
 
         protected void RecoverBasicAckHandlers()
         {
-            List<EventHandler<BasicAckEventArgs>> handler = m_recordedBasicAckEventHandlers;
-            if (handler != null)
+            lock (m_eventLock)
             {
-                foreach (EventHandler<BasicAckEventArgs> eh in handler)
-                {
-                    m_delegate.BasicAcks += eh;
-                }
+                m_delegate.BasicAcks += m_recordedBasicAckEventHandlers;
             }
         }
 
         protected void RecoverBasicNackHandlers()
         {
-            List<EventHandler<BasicNackEventArgs>> handler = m_recordedBasicNackEventHandlers;
-            if (handler != null)
+            lock (m_eventLock)
             {
-                foreach (EventHandler<BasicNackEventArgs> eh in handler)
-                {
-                    m_delegate.BasicNacks += eh;
-                }
+                m_delegate.BasicNacks += m_recordedBasicNackEventHandlers;
             }
         }
 
         protected void RecoverBasicReturnHandlers()
         {
-            List<EventHandler<BasicReturnEventArgs>> handler = m_recordedBasicReturnEventHandlers;
-            if (handler != null)
+            lock (m_eventLock)
             {
-                foreach (EventHandler<BasicReturnEventArgs> eh in handler)
-                {
-                    m_delegate.BasicReturn += eh;
-                }
+                m_delegate.BasicReturn += m_recordedBasicReturnEventHandlers;
             }
         }
 
         protected void RecoverCallbackExceptionHandlers()
         {
-            List<EventHandler<CallbackExceptionEventArgs>> handler = m_recordedCallbackExceptionEventHandlers;
-            if (handler != null)
+            lock (m_eventLock)
             {
-                foreach (EventHandler<CallbackExceptionEventArgs> eh in handler)
-                {
-                    m_delegate.CallbackException += eh;
-                }
+                m_delegate.CallbackException += m_recordedCallbackExceptionEventHandlers;
             }
         }
 
         protected void RecoverModelShutdownHandlers()
         {
-            List<EventHandler<ShutdownEventArgs>> handler = m_recordedShutdownEventHandlers;
-            if (handler != null)
+            lock (m_eventLock)
             {
-                foreach (EventHandler<ShutdownEventArgs> eh in handler)
-                {
-                    m_delegate.ModelShutdown += eh;
-                }
+                m_delegate.ModelShutdown += m_recordedShutdownEventHandlers;
             }
         }
 

@@ -31,25 +31,38 @@ namespace RabbitMQ.Client
             {
                 throw new ArgumentException("No ip address could be resolved for " + host);
             }
-            #if CORECLR
+#if CORECLR
             await sock.ConnectAsync(ep, port).ConfigureAwait(false);
-            #else
+#else
             sock.Connect(ep, port);
-            #endif
+#endif
         }
 
         public virtual void Close()
-        {
-            this.Dispose();
-        }
-
-        public virtual void Dispose()
         {
             if (sock != null)
             {
                 sock.Dispose();
             }
             sock = null;
+        }
+
+        [Obsolete("Override Dispose(bool) instead.")]
+        public virtual void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // dispose managed resources
+                Close();
+            }
+
+            // dispose unmanaged resources
         }
 
         public virtual NetworkStream GetStream()

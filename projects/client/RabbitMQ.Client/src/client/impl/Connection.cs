@@ -1284,15 +1284,34 @@ entry.ToString());
 
         void IDisposable.Dispose()
         {
-            try
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (disposing)
             {
-                MaybeStopHeartbeatTimers();
-                Abort();
+                // dispose managed resources
+                try
+                {
+                    MaybeStopHeartbeatTimers();
+                    Abort();
+                }
+                catch (OperationInterruptedException)
+                {
+                    // ignored, see rabbitmq/rabbitmq-dotnet-client#133
+                }
+                finally
+                {
+                    m_callbackException = null;
+                    m_recoverySucceeded = null;
+                    m_connectionShutdown = null;
+                    m_connectionUnblocked = null;
+                }
             }
-            catch (OperationInterruptedException)
-            {
-                // ignored, see rabbitmq/rabbitmq-dotnet-client#133
-            }
+
+            // dispose unmanaged resources
         }
 
         protected Command ChannelCloseWrapper(ushort reasonCode, string reasonText)

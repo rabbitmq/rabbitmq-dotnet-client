@@ -44,7 +44,6 @@ using System.Collections.Concurrent;
 using System.IO;
 
 using System.Threading;
-using System.Threading.Tasks;
 
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
@@ -77,7 +76,7 @@ namespace RabbitMQ.Client.MessagePatterns
     {
         protected readonly object m_eventLock = new object();
         protected volatile EventingBasicConsumer m_consumer;
-        private BlockingCollection<BasicDeliverEventArgs> m_queue = 
+        private BlockingCollection<BasicDeliverEventArgs> m_queue =
             new BlockingCollection<BasicDeliverEventArgs>(new ConcurrentQueue<BasicDeliverEventArgs>());
 
         private CancellationTokenSource m_queueCts = new CancellationTokenSource();
@@ -104,7 +103,7 @@ namespace RabbitMQ.Client.MessagePatterns
 #if NETFX_CORE || NET4
             m_consumer.Received += (sender, args) => QueueAdd(args); 
 #else
-            m_consumer.Received += (sender, args) => m_queue.Add(args); 
+            m_consumer.Received += (sender, args) => m_queue.Add(args);
 #endif
             ConsumerTag = Model.BasicConsume(QueueName, AutoAck, m_consumer);
             m_consumer.ConsumerCancelled += HandleConsumerCancelled;
@@ -478,7 +477,19 @@ namespace RabbitMQ.Client.MessagePatterns
         ///statements. Simply calls Close().</summary>
         void IDisposable.Dispose()
         {
-            Close();
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // dispose managed resources
+                Close();
+            }
+
+            // dispose unmanaged resources
         }
 
         ///<summary>Implementation of the IEnumerable interface, for
