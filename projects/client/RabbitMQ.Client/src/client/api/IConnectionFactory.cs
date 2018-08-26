@@ -93,6 +93,11 @@ namespace RabbitMQ.Client
         Uri Uri { get; set; }
 
         /// <summary>
+        /// Default client provided name to be used for connections.
+        /// </summary>
+        string ClientProvidedName { get; set; }
+
+        /// <summary>
         /// Given a list of mechanism names supported by the server, select a preferred mechanism,
         /// or null if we have none in common.
         /// </summary>
