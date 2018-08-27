@@ -27,10 +27,17 @@ namespace RabbitMQ.Client
             AssertSocket();
             var adds = await Dns.GetHostAddressesAsync(host).ConfigureAwait(false);
             var ep = TcpClientAdapterHelper.GetMatchingHost(adds, sock.AddressFamily);
-            if (ep == default(IPAddress))
+
+            if (ep == null)
             {
+                if (adds.Length != 0)
+                {
+                    throw new NotSupportedException("Resolved ip address doesn't support " + sock.AddressFamily);
+                }
+
                 throw new ArgumentException("No ip address could be resolved for " + host);
             }
+
             #if CORECLR
             await sock.ConnectAsync(ep, port).ConfigureAwait(false);
             #else
