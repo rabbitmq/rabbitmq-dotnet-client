@@ -49,7 +49,7 @@ namespace RabbitMQ.Client.Impl
         ///<summary>
         /// Retrieve the AMQP class ID of this content header.
         ///</summary>
-        public abstract int ProtocolClassId { get; }
+        public abstract ushort ProtocolClassId { get; }
 
         ///<summary>
         /// Retrieve the AMQP class name of this content header.
@@ -77,9 +77,11 @@ namespace RabbitMQ.Client.Impl
         public abstract void ReadPropertiesFrom(ContentHeaderPropertyReader reader);
         public abstract void WritePropertiesTo(ContentHeaderPropertyWriter writer);
 
+        private const ushort ZERO = 0;
+
         public void WriteTo(NetworkBinaryWriter writer, ulong bodySize)
         {
-            writer.Write((ushort) 0); // weight - not currently used
+            writer.Write(ZERO); // weight - not currently used
             writer.Write(bodySize);
             WritePropertiesTo(new ContentHeaderPropertyWriter(writer));
         }

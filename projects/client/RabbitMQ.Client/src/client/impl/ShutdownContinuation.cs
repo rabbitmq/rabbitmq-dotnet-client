@@ -45,7 +45,7 @@ namespace RabbitMQ.Client.Impl
 {
     public class ShutdownContinuation
     {
-        public readonly BlockingCell m_cell = new BlockingCell();
+        public readonly BlockingCell<ShutdownEventArgs> m_cell = new BlockingCell<ShutdownEventArgs>();
 
         // You will note there are two practically identical overloads
         // of OnShutdown() here. This is because Microsoft's C#
@@ -64,22 +64,22 @@ namespace RabbitMQ.Client.Impl
 
         public virtual void OnConnectionShutdown(object sender, ShutdownEventArgs reason)
         {
-            m_cell.Value = reason;
+            m_cell.ContinueWithValue(reason);
         }
 
         public virtual void OnModelShutdown(IModel sender, ShutdownEventArgs reason)
         {
-            m_cell.Value = reason;
+            m_cell.ContinueWithValue(reason);
         }
 
         public virtual ShutdownEventArgs Wait()
         {
-            return (ShutdownEventArgs)m_cell.Value;
+            return m_cell.WaitForValue();
         }
 
         public ShutdownEventArgs Wait(TimeSpan timeout)
         {
-            return (ShutdownEventArgs)m_cell.GetValue(timeout);
+            return m_cell.WaitForValue(timeout);
         }
     }
 }

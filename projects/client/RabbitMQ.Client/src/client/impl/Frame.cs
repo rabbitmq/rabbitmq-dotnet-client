@@ -60,7 +60,7 @@ namespace RabbitMQ.Client.Impl
         {
             NetworkBinaryWriter writer = base.GetWriter();
 
-            writer.Write((ushort)header.ProtocolClassId);
+            writer.Write(header.ProtocolClassId);
             header.WriteTo(writer, (ulong)bodyLength);
         }
     }
@@ -81,8 +81,8 @@ namespace RabbitMQ.Client.Impl
         {
             NetworkBinaryWriter writer = base.GetWriter();
 
-            writer.Write((ushort)method.ProtocolClassId);
-            writer.Write((ushort)method.ProtocolMethodId);
+            writer.Write(method.ProtocolClassId);
+            writer.Write(method.ProtocolMethodId);
 
             var argWriter = new MethodArgumentWriter(writer);
 

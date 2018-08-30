@@ -60,12 +60,12 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Retrieves the class ID number of this method, as defined in the AMQP specification XML.
         /// </summary>
-        int ProtocolClassId { get; }
+        ushort ProtocolClassId { get; }
 
         /// <summary>
         /// Retrieves the method ID number of this method, as defined in the AMQP specification XML.
         /// </summary>
-        int ProtocolMethodId { get; }
+        ushort ProtocolMethodId { get; }
 
         /// <summary>
         /// Retrieves the name of this method - for debugging use.

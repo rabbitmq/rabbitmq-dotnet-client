@@ -86,8 +86,8 @@ namespace RabbitMQ.Client.Framing.Impl
         public void CreateChannelClose(ushort reasonCode,
             string reasonText,
             out Command request,
-            out int replyClassId,
-            out int replyMethodId)
+            out ushort replyClassId,
+            out ushort replyMethodId)
         {
             request = new Command(new Impl.ChannelClose(reasonCode,
                 reasonText,
@@ -99,8 +99,8 @@ namespace RabbitMQ.Client.Framing.Impl
         public void CreateConnectionClose(ushort reasonCode,
             string reasonText,
             out Command request,
-            out int replyClassId,
-            out int replyMethodId)
+            out ushort replyClassId,
+            out ushort replyMethodId)
         {
             request = new Command(new Impl.ConnectionClose(reasonCode,
                 reasonText,
