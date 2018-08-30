@@ -1152,7 +1152,7 @@ entry.ToString());
             }
         }
 
-        protected void MaybeStopHeartbeatTimers()
+        void MaybeStopHeartbeatTimers()
         {
             lock (_heartBeatReadLock)
             {
@@ -1296,7 +1296,7 @@ entry.ToString());
             }
         }
 
-        protected Command ChannelCloseWrapper(ushort reasonCode, string reasonText)
+        Command ChannelCloseWrapper(ushort reasonCode, string reasonText)
         {
             Command request;
             ushort replyClassId;
@@ -1309,7 +1309,7 @@ entry.ToString());
             return request;
         }
 
-        protected void StartAndTune()
+        void StartAndTune()
         {
             var connectionStartCell = new BlockingCell<ConnectionStartDetails>();
             m_model0.m_connectionStartCell = connectionStartCell;

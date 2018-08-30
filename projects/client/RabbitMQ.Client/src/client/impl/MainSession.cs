@@ -54,13 +54,13 @@ namespace RabbitMQ.Client.Impl
     {
         private readonly object _closingLock = new object();
 
-        public ushort m_closeClassId;
-        public ushort m_closeMethodId;
-        public ushort m_closeOkClassId;
-        public ushort m_closeOkMethodId;
+        private ushort m_closeClassId;
+        private ushort m_closeMethodId;
+        private ushort m_closeOkClassId;
+        private ushort m_closeOkMethodId;
 
-        public bool m_closeServerInitiated;
-        public bool m_closing;
+        private bool m_closeServerInitiated;
+        private bool m_closing;
 
         public MainSession(Connection connection) : base(connection, 0)
         {
