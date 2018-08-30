@@ -48,7 +48,6 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using System.Threading;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -61,7 +60,10 @@ namespace RabbitMQ.Client.Impl
             if (task == await Task.WhenAny(task, Task.Delay(millisecondsTimeout)).ConfigureAwait(false))
                 await task;
             else
+            {
+                var supressErrorTask = task.ContinueWith(t => t.Exception.Handle(e => true), TaskContinuationOptions.OnlyOnFaulted);
                 throw new TimeoutException();
+            }
         }
     }
 
@@ -294,11 +296,11 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 socket.ConnectAsync(endpoint.HostName, endpoint.Port)
-                            .TimeoutAfter(timeout)
-                            .ConfigureAwait(false)
-                            // this ensures exceptions aren't wrapped in an AggregateException
-                            .GetAwaiter()
-                            .GetResult();
+                      .TimeoutAfter(timeout)
+                      .ConfigureAwait(false)
+                      // this ensures exceptions aren't wrapped in an AggregateException
+                      .GetAwaiter()
+                      .GetResult();
             }
             catch (ArgumentException e)
             {

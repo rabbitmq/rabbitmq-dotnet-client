@@ -3,6 +3,7 @@ using System;
 using System.Linq;
 using System.Net.Sockets;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RabbitMQ.Client
@@ -31,11 +32,11 @@ namespace RabbitMQ.Client
             {
                 throw new ArgumentException("No ip address could be resolved for " + host);
             }
-            #if CORECLR
-            await sock.ConnectAsync(ep, port).ConfigureAwait(false);
-            #else
+#if CORECLR
+                await sock.ConnectAsync(ep, port).ConfigureAwait(false);
+#else
             sock.Connect(ep, port);
-            #endif
+#endif
         }
 
         public virtual void Close()
