@@ -46,7 +46,7 @@ namespace RabbitMQ.Client.Impl
     ///<summary>Normal ISession implementation used during normal channel operation.</summary>
     public class Session : SessionBase
     {
-        public CommandAssembler m_assembler;
+        private CommandAssembler m_assembler;
 
         public Session(Connection connection, int channelNumber)
             : base(connection, channelNumber)

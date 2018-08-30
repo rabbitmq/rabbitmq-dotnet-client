@@ -48,28 +48,28 @@ namespace RabbitMQ.Client.Impl
     public class AutorecoveringModel : IFullModel, IRecoverable
     {
         public readonly object m_eventLock = new object();
-        protected AutorecoveringConnection m_connection;
-        protected RecoveryAwareModel m_delegate;
+        private AutorecoveringConnection m_connection;
+        private RecoveryAwareModel m_delegate;
 
-        protected List<EventHandler<BasicAckEventArgs>> m_recordedBasicAckEventHandlers =
+        private List<EventHandler<BasicAckEventArgs>> m_recordedBasicAckEventHandlers =
             new List<EventHandler<BasicAckEventArgs>>();
 
-        protected List<EventHandler<BasicNackEventArgs>> m_recordedBasicNackEventHandlers =
+        private List<EventHandler<BasicNackEventArgs>> m_recordedBasicNackEventHandlers =
             new List<EventHandler<BasicNackEventArgs>>();
 
-        protected List<EventHandler<BasicReturnEventArgs>> m_recordedBasicReturnEventHandlers =
+        private List<EventHandler<BasicReturnEventArgs>> m_recordedBasicReturnEventHandlers =
             new List<EventHandler<BasicReturnEventArgs>>();
 
-        protected List<EventHandler<CallbackExceptionEventArgs>> m_recordedCallbackExceptionEventHandlers =
+        private List<EventHandler<CallbackExceptionEventArgs>> m_recordedCallbackExceptionEventHandlers =
             new List<EventHandler<CallbackExceptionEventArgs>>();
 
-        protected List<EventHandler<ShutdownEventArgs>> m_recordedShutdownEventHandlers =
+        private List<EventHandler<ShutdownEventArgs>> m_recordedShutdownEventHandlers =
             new List<EventHandler<ShutdownEventArgs>>();
 
-        protected ushort prefetchCountConsumer = 0;
-        protected ushort prefetchCountGlobal = 0;
-        protected bool usesPublisherConfirms = false;
-        protected bool usesTransactions = false;
+        private ushort prefetchCountConsumer = 0;
+        private ushort prefetchCountGlobal = 0;
+        private bool usesPublisherConfirms = false;
+        private bool usesTransactions = false;
         private EventHandler<EventArgs> m_recovery;
 
         public IConsumerDispatcher ConsumerDispatcher
@@ -1109,7 +1109,7 @@ namespace RabbitMQ.Client.Impl
             m_delegate.WaitForConfirmsOrDie(timeout);
         }
 
-        protected void RecoverBasicAckHandlers()
+        private void RecoverBasicAckHandlers()
         {
             List<EventHandler<BasicAckEventArgs>> handler = m_recordedBasicAckEventHandlers;
             if (handler != null)
@@ -1121,7 +1121,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        protected void RecoverBasicNackHandlers()
+        private void RecoverBasicNackHandlers()
         {
             List<EventHandler<BasicNackEventArgs>> handler = m_recordedBasicNackEventHandlers;
             if (handler != null)
@@ -1133,7 +1133,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        protected void RecoverBasicReturnHandlers()
+        private void RecoverBasicReturnHandlers()
         {
             List<EventHandler<BasicReturnEventArgs>> handler = m_recordedBasicReturnEventHandlers;
             if (handler != null)
@@ -1145,7 +1145,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        protected void RecoverCallbackExceptionHandlers()
+        private void RecoverCallbackExceptionHandlers()
         {
             List<EventHandler<CallbackExceptionEventArgs>> handler = m_recordedCallbackExceptionEventHandlers;
             if (handler != null)
@@ -1157,7 +1157,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        protected void RecoverModelShutdownHandlers()
+        private void RecoverModelShutdownHandlers()
         {
             List<EventHandler<ShutdownEventArgs>> handler = m_recordedShutdownEventHandlers;
             if (handler != null)
@@ -1169,7 +1169,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        protected void RecoverState()
+        private void RecoverState()
         {
             if (prefetchCountConsumer != 0)
             {
@@ -1192,7 +1192,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        protected void RunRecoveryEventHandlers()
+        private void RunRecoveryEventHandlers()
         {
             EventHandler<EventArgs> handler = m_recovery;
             if (handler != null)

@@ -64,34 +64,34 @@ namespace RabbitMQ.Client.Framing.Impl
         private IEndpointResolver endpoints;
 
         public readonly object m_recordedEntitiesLock = new object();
-        protected readonly TaskFactory recoveryTaskFactory = new TaskFactory();
-        protected readonly object recoveryLockTarget = new object();
+        private readonly TaskFactory recoveryTaskFactory = new TaskFactory();
+        private readonly object recoveryLockTarget = new object();
         // used to block connection recovery attempts after Close() is unvoked
-        protected bool manuallyClosed = false;
-        protected bool performingRecovery = false;
+        private bool manuallyClosed = false;
+        private bool performingRecovery = false;
 
 
-        protected List<AutorecoveringModel> m_models = new List<AutorecoveringModel>();
+        private List<AutorecoveringModel> m_models = new List<AutorecoveringModel>();
 
-        protected ConcurrentDictionary<RecordedBinding, byte> m_recordedBindings =
+        private ConcurrentDictionary<RecordedBinding, byte> m_recordedBindings =
             new ConcurrentDictionary<RecordedBinding, byte>();
 
-        protected List<EventHandler<ConnectionBlockedEventArgs>> m_recordedBlockedEventHandlers =
+        private List<EventHandler<ConnectionBlockedEventArgs>> m_recordedBlockedEventHandlers =
             new List<EventHandler<ConnectionBlockedEventArgs>>();
 
-        protected IDictionary<string, RecordedConsumer> m_recordedConsumers =
+        private IDictionary<string, RecordedConsumer> m_recordedConsumers =
             new ConcurrentDictionary<string, RecordedConsumer>();
 
-        protected IDictionary<string, RecordedExchange> m_recordedExchanges =
+        private IDictionary<string, RecordedExchange> m_recordedExchanges =
             new ConcurrentDictionary<string, RecordedExchange>();
 
-        protected IDictionary<string, RecordedQueue> m_recordedQueues =
+        private IDictionary<string, RecordedQueue> m_recordedQueues =
             new ConcurrentDictionary<string, RecordedQueue>();
 
-        protected List<EventHandler<ShutdownEventArgs>> m_recordedShutdownEventHandlers =
+        private List<EventHandler<ShutdownEventArgs>> m_recordedShutdownEventHandlers =
             new List<EventHandler<ShutdownEventArgs>>();
 
-        protected List<EventHandler<EventArgs>> m_recordedUnblockedEventHandlers =
+        private List<EventHandler<EventArgs>> m_recordedUnblockedEventHandlers =
             new List<EventHandler<EventArgs>>();
 
         private EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> m_consumerTagChange;

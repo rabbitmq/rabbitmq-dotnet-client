@@ -13,7 +13,7 @@ namespace RabbitMQ.Client
     /// </summary>
     public class TcpClientAdapter : ITcpClient
     {
-        protected Socket sock;
+        private Socket sock;
 
         public TcpClientAdapter(Socket socket)
         {
