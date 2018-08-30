@@ -98,6 +98,19 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
+        public void TestCreateConnectionWithClientProvidedNameUsesDefaultName()
+        {
+            var cf = new ConnectionFactory();
+            cf.AutomaticRecoveryEnabled = false;
+            cf.ClientProvidedName = "some_name";
+            using (var conn = cf.CreateConnection())
+            {
+                Assert.AreEqual("some_name", conn.ClientProvidedName);
+                Assert.AreEqual("some_name", conn.ClientProperties["connection_name"]);
+            }
+        }
+
+        [Test]
         public void TestCreateConnectionWithClientProvidedNameUsesName()
         {
             var cf = new ConnectionFactory();

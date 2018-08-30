@@ -337,6 +337,11 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
+        /// Default client provided name to be used for connections.
+        /// </summary>
+        public string ClientProvidedName { get; set; }
+
+        /// <summary>
         /// Given a list of mechanism names supported by the server, select a preferred mechanism,
         ///  or null if we have none in common.
         /// </summary>
@@ -364,7 +369,7 @@ namespace RabbitMQ.Client
         /// </exception>
         public virtual IConnection CreateConnection()
         {
-            return CreateConnection(this.EndpointResolverFactory(LocalEndpoints()), null);
+            return CreateConnection(this.EndpointResolverFactory(LocalEndpoints()), ClientProvidedName);
         }
 
         /// <summary>
@@ -402,7 +407,7 @@ namespace RabbitMQ.Client
         /// </exception>
         public IConnection CreateConnection(IList<string> hostnames)
         {
-            return CreateConnection(hostnames, null);
+            return CreateConnection(hostnames, ClientProvidedName);
         }
 
         /// <summary>
@@ -446,7 +451,7 @@ namespace RabbitMQ.Client
         /// </exception>
         public IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints)
         {
-            return CreateConnection(new DefaultEndpointResolver(endpoints), null);
+            return CreateConnection(new DefaultEndpointResolver(endpoints), ClientProvidedName);
         }
 
         /// <summary>
