@@ -66,12 +66,10 @@ namespace RabbitMQ.Client.Impl
 
         public Command() : this(null, null, null)
         {
-            m_body = new MemoryStream();
         }
 
         public Command(MethodBase method) : this(method, null, null)
         {
-            m_body = new MemoryStream();
         }
 
         public Command(MethodBase method, ContentHeaderBase header, byte[] body)
