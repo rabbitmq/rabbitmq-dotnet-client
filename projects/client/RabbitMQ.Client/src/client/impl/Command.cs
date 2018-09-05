@@ -56,16 +56,11 @@ namespace RabbitMQ.Client.Impl
         // - 4 bytes of frame payload length
         // - 1 byte of payload trailer FrameEnd byte
         private const int EmptyFrameSize = 8;
-        private readonly MemoryStream m_body;
         private static readonly byte[] m_emptyByteArray = new byte[0];
 
         static Command()
         {
             CheckEmptyFrameSize();
-        }
-
-        public Command() : this(null, null, null)
-        {
         }
 
         public Command(MethodBase method) : this(method, null, null)
@@ -76,24 +71,14 @@ namespace RabbitMQ.Client.Impl
         {
             Method = method;
             Header = header;
-            if (body != null)
-            {
-                m_body = new MemoryStream(body);
-            }
-            else
-            {
-                m_body = new MemoryStream();
-            }
+            Body = body ?? m_emptyByteArray;
         }
 
-        public byte[] Body
-        {
-            get { return ConsolidateBody(); }
-        }
+        public byte[] Body { get; private set; }
 
-        public ContentHeaderBase Header { get; set; }
+        public ContentHeaderBase Header { get; private set; }
 
-        public MethodBase Method { get; set; }
+        public MethodBase Method { get; private set; }
 
         public static void CheckEmptyFrameSize()
         {
@@ -113,19 +98,6 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public void AppendBodyFragment(byte[] fragment)
-        {
-            if (fragment != null)
-            {
-                m_body.Write(fragment, 0, fragment.Length);
-            }
-        }
-
-        public byte[] ConsolidateBody()
-        {
-            return m_body.Length == 0 ? m_emptyByteArray : m_body.ToArray();
-        }
-
         public void Transmit(int channelNumber, Connection connection)
         {
             if (Method.HasContent)
@@ -138,8 +110,6 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-
-
         public void TransmitAsSingleFrame(int channelNumber, Connection connection)
         {
             connection.WriteFrame(new MethodOutboundFrame(channelNumber, Method));
@@ -151,7 +121,7 @@ namespace RabbitMQ.Client.Impl
             frames.Add(new MethodOutboundFrame(channelNumber, Method));
             if (Method.HasContent)
             {
-                var body = ConsolidateBody(); // Cache, since the property is compiled.
+                var body = Body;
 
                 frames.Add(new HeaderOutboundFrame(channelNumber, Header, body.Length));
                 var frameMax = (int)Math.Min(int.MaxValue, connection.FrameMax);
@@ -177,7 +147,7 @@ namespace RabbitMQ.Client.Impl
                 frames.Add(new MethodOutboundFrame(channelNumber, cmd.Method));
                 if (cmd.Method.HasContent)
                 {
-                    var body = cmd.Body;// var body = ConsolidateBody(); // Cache, since the property is compiled.
+                    var body = cmd.Body;
 
                     frames.Add(new HeaderOutboundFrame(channelNumber, cmd.Header, body.Length));
                     var frameMax = (int)Math.Min(int.MaxValue, connection.FrameMax);
