@@ -65,7 +65,7 @@ namespace RabbitMQ.Client.Impl
             return list.ElementAt<T>(hashCode % n);
         }
 
-        public static ArraySegment<byte> GetBufferSegment(this MemoryStream ms)
+        internal static ArraySegment<byte> GetBufferSegment(this MemoryStream ms)
         {
 #if CORECLR15
             var payload = ms.ToArray();
