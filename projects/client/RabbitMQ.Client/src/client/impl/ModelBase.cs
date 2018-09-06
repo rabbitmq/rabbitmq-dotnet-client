@@ -327,7 +327,7 @@ namespace RabbitMQ.Client.Impl
                 if (SetCloseReason(reason))
                 {
                     _Private_ChannelClose(reason.ReplyCode, reason.ReplyText, 0, 0);
-                }                
+                }
                 k.Wait(TimeSpan.FromMilliseconds(10000));
                 ConsumerDispatcher.Shutdown(this);
             }
@@ -359,7 +359,7 @@ namespace RabbitMQ.Client.Impl
             bool insist)
         {
             var k = new ConnectionOpenContinuation();
-            lock(_rpcLock)
+            lock (_rpcLock)
             {
                 Enqueue(k);
                 try
@@ -669,6 +669,7 @@ namespace RabbitMQ.Client.Impl
             }
             lock (m_unconfirmedSet.SyncRoot)
                 Monitor.Pulse(m_unconfirmedSet.SyncRoot);
+
             m_flowControlBlock.Set();
         }
 
@@ -723,7 +724,32 @@ namespace RabbitMQ.Client.Impl
 
         void IDisposable.Dispose()
         {
-            Abort();
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // dispose managed resources
+                try
+                {
+                    Abort();
+                }
+                finally
+                {
+                    m_basicAck = null;
+                    m_basicNack = null;
+                    m_basicRecoverOk = null;
+                    m_basicReturn = null;
+                    m_callbackException = null;
+                    m_flowControl = null;
+                    m_modelShutdown = null;
+                    m_recovery = null;
+                }
+            }
+
+            // dispose unmanaged resources
         }
 
         public abstract void ConnectionTuneOk(ushort channelMax,
@@ -760,13 +786,13 @@ namespace RabbitMQ.Client.Impl
         {
             var k =
                 (BasicConsumerRpcContinuation)m_continuationQueue.Next();
-/*
-            Trace.Assert(k.m_consumerTag == consumerTag, string.Format(
-                "Consumer tag mismatch during cancel: {0} != {1}",
-                k.m_consumerTag,
-                consumerTag
-                ));
-*/
+            /*
+                        Trace.Assert(k.m_consumerTag == consumerTag, string.Format(
+                            "Consumer tag mismatch during cancel: {0} != {1}",
+                            k.m_consumerTag,
+                            consumerTag
+                            ));
+            */
             lock (m_consumers)
             {
                 k.m_consumer = m_consumers[consumerTag];
@@ -1237,11 +1263,11 @@ namespace RabbitMQ.Client.Impl
                 {
                     if (NextPublishSeqNo > 0)
                     {
-                            if (!m_unconfirmedSet.Contains(NextPublishSeqNo))
-                            {
-                                m_unconfirmedSet.Add(NextPublishSeqNo);
-                            }
-                            NextPublishSeqNo++;
+                        if (!m_unconfirmedSet.Contains(NextPublishSeqNo))
+                        {
+                            m_unconfirmedSet.Add(NextPublishSeqNo);
+                        }
+                        NextPublishSeqNo++;
                     }
                     c++;
                 }
