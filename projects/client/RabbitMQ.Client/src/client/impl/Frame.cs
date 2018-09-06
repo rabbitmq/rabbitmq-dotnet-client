@@ -56,98 +56,103 @@ namespace RabbitMQ.Client.Impl
 {
     public class HeaderOutboundFrame : OutboundFrame
     {
+        private readonly ContentHeaderBase header;
+        private readonly int bodyLength;
+
         public HeaderOutboundFrame(int channel, ContentHeaderBase header, int bodyLength) : base(FrameType.FrameHeader, channel)
         {
-            NetworkBinaryWriter writer = base.GetWriter();
+            this.header = header;
+            this.bodyLength = bodyLength;
+        }
 
-            writer.Write(header.ProtocolClassId);
-            header.WriteTo(writer, (ulong)bodyLength);
+        public override void WritePayload(NetworkBinaryWriter writer)
+        {
+            var ms = new MemoryStream();
+            var nw = new NetworkBinaryWriter(ms);
+
+            nw.Write(header.ProtocolClassId);
+            header.WriteTo(nw, (ulong)bodyLength);
+
+            var bufferSegment = ms.GetBufferSegment();
+            writer.Write((uint)bufferSegment.Count);
+            writer.Write(bufferSegment.Array, bufferSegment.Offset, bufferSegment.Count);
         }
     }
 
     public class BodySegmentOutboundFrame : OutboundFrame
     {
+        private readonly byte[] body;
+        private readonly int offset;
+        private readonly int count;
+
         public BodySegmentOutboundFrame(int channel, byte[] body, int offset, int count) : base(FrameType.FrameBody, channel)
         {
-            NetworkBinaryWriter writer = base.GetWriter();
+            this.body = body;
+            this.offset = offset;
+            this.count = count;
+        }
 
+        public override void WritePayload(NetworkBinaryWriter writer)
+        {
+            writer.Write((uint)count);
             writer.Write(body, offset, count);
         }
     }
 
     public class MethodOutboundFrame : OutboundFrame
     {
+        private readonly MethodBase method;
+
         public MethodOutboundFrame(int channel, MethodBase method) : base(FrameType.FrameMethod, channel)
         {
-            NetworkBinaryWriter writer = base.GetWriter();
+            this.method = method;
+        }
 
-            writer.Write(method.ProtocolClassId);
-            writer.Write(method.ProtocolMethodId);
+        public override void WritePayload(NetworkBinaryWriter writer)
+        {
+            var ms = new MemoryStream();
+            var nw = new NetworkBinaryWriter(ms);
 
-            var argWriter = new MethodArgumentWriter(writer);
+            nw.Write(method.ProtocolClassId);
+            nw.Write(method.ProtocolMethodId);
 
+            var argWriter = new MethodArgumentWriter(nw);
             method.WriteArgumentsTo(argWriter);
-
             argWriter.Flush();
+
+            var bufferSegment = ms.GetBufferSegment();
+            writer.Write((uint)bufferSegment.Count);
+            writer.Write(bufferSegment.Array, bufferSegment.Offset, bufferSegment.Count);
         }
     }
 
     public class EmptyOutboundFrame : OutboundFrame
     {
-        private static readonly byte[] m_emptyByteArray = new byte[0];
-
         public EmptyOutboundFrame() : base(FrameType.FrameHeartbeat, 0)
         {
-            base.GetWriter().Write(m_emptyByteArray);
         }
 
-        public override string ToString()
+        public override void WritePayload(NetworkBinaryWriter writer)
         {
-            return base.ToString() + string.Format("(type={0}, channel={1}, {2} bytes of payload)",
-                Type,
-                Channel,
-                Payload == null
-                    ? "(null)"
-                    : Payload.Length.ToString());
+            writer.Write((uint)0);
         }
     }
 
-    public class OutboundFrame : Frame
+    public abstract class OutboundFrame : Frame
     {
-        private readonly MemoryStream m_accumulator;
-        private readonly NetworkBinaryWriter writer;
-
         public OutboundFrame(FrameType type, int channel) : base(type, channel)
         {
-            m_accumulator = new MemoryStream();
-            writer = new NetworkBinaryWriter(m_accumulator);
-        }
-
-        public NetworkBinaryWriter GetWriter()
-        {
-            return writer;
-        }
-
-        public override string ToString()
-        {
-            return base.ToString() + string.Format("(type={0}, channel={1}, {2} bytes of payload)",
-                Type,
-                Channel,
-                Payload == null
-                    ? "(null)"
-                    : Payload.Length.ToString());
         }
 
         public void WriteTo(NetworkBinaryWriter writer)
         {
-            var payload = m_accumulator.ToArray();
-
             writer.Write((byte)Type);
             writer.Write((ushort)Channel);
-            writer.Write((uint)payload.Length);
-            writer.Write(payload);
+            WritePayload(writer);
             writer.Write((byte)Constants.FrameEnd);
         }
+
+        public abstract void WritePayload(NetworkBinaryWriter writer);
     }
 
     public class InboundFrame : Frame
@@ -252,16 +257,6 @@ namespace RabbitMQ.Client.Impl
         {
             return new NetworkBinaryReader(new MemoryStream(base.Payload));
         }
-
-        public override string ToString()
-        {
-            return base.ToString() + string.Format("(type={0}, channel={1}, {2} bytes of payload)",
-                base.Type,
-                base.Channel,
-                base.Payload == null
-                    ? "(null)"
-                    : base.Payload.Length.ToString());
-        }
     }
 
     public class Frame
@@ -288,7 +283,7 @@ namespace RabbitMQ.Client.Impl
 
         public override string ToString()
         {
-            return base.ToString() + string.Format("(type={0}, channel={1}, {2} bytes of payload)",
+            return string.Format("(type={0}, channel={1}, {2} bytes of payload)",
                 Type,
                 Channel,
                 Payload == null

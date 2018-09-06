@@ -222,7 +222,7 @@ namespace RabbitMQ.Client.Impl
                 nbw.Write((byte)Endpoint.Protocol.MajorVersion);
                 nbw.Write((byte)Endpoint.Protocol.MinorVersion);
             }
-            Write(ms.ToArray());
+            Write(ms.GetBufferSegment());
         }
 
         public void WriteFrame(OutboundFrame frame)
@@ -231,7 +231,7 @@ namespace RabbitMQ.Client.Impl
             var nbw = new NetworkBinaryWriter(ms);
             frame.WriteTo(nbw);
             m_socket.Client.Poll(m_writeableStateTimeout, SelectMode.SelectWrite);
-            Write(ms.ToArray());
+            Write(ms.GetBufferSegment());
         }
 
         public void WriteFrameSet(IList<OutboundFrame> frames)
@@ -240,21 +240,21 @@ namespace RabbitMQ.Client.Impl
             var nbw = new NetworkBinaryWriter(ms);
             foreach (var f in frames) f.WriteTo(nbw);
             m_socket.Client.Poll(m_writeableStateTimeout, SelectMode.SelectWrite);
-            Write(ms.ToArray());
+            Write(ms.GetBufferSegment());
         }
 
-        private void Write(byte [] buffer)
+        private void Write(ArraySegment<byte> bufferSegment)
         {
             if(_ssl)
             {
                 lock (_sslStreamLock)
                 {
-                    m_writer.Write(buffer);
+                    m_writer.Write(bufferSegment.Array, bufferSegment.Offset, bufferSegment.Count);
                 }
             }
             else
             {
-                m_writer.Write(buffer);
+                m_writer.Write(bufferSegment.Array, bufferSegment.Offset, bufferSegment.Count);
             }
         }
 

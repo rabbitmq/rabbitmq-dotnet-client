@@ -40,6 +40,10 @@
     <DefineConstants>$(DefineConstants);CORECLR</DefineConstants>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.5'">
+    <DefineConstants>$(DefineConstants);CORECLR15</DefineConstants>
+  </PropertyGroup>
+
   <PropertyGroup Condition=" '$(Configuration)' == 'SignedRelease' ">
     <DelaySign>true</DelaySign>
     <OutputType>Library</OutputType>
