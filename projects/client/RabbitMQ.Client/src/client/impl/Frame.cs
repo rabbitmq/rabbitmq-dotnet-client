@@ -73,15 +73,9 @@ namespace RabbitMQ.Client.Impl
             nw.Write(header.ProtocolClassId);
             header.WriteTo(nw, (ulong)bodyLength);
 
-#if CORECLR15
-            var payload = ms.ToArray();
-            writer.Write((uint)payload.Length);
-            writer.Write(payload);
-#else
-            var buffer = ms.GetBuffer();
-            writer.Write((uint)ms.Position);
-            writer.Write(buffer, 0, (int)ms.Position);
-#endif
+            var bufferSegment = ms.GetBufferSegment();
+            writer.Write((uint)bufferSegment.Count);
+            writer.Write(bufferSegment.Array, bufferSegment.Offset, bufferSegment.Count);
         }
     }
 
@@ -126,15 +120,9 @@ namespace RabbitMQ.Client.Impl
             method.WriteArgumentsTo(argWriter);
             argWriter.Flush();
 
-#if CORECLR15
-            var payload = ms.ToArray();
-            writer.Write((uint)payload.Length);
-            writer.Write(payload);
-#else
-            var buffer = ms.GetBuffer();
-            writer.Write((uint)ms.Position);
-            writer.Write(buffer, 0, (int)ms.Position);
-#endif
+            var bufferSegment = ms.GetBufferSegment();
+            writer.Write((uint)bufferSegment.Count);
+            writer.Write(bufferSegment.Array, bufferSegment.Offset, bufferSegment.Count);
         }
     }
 
