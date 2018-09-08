@@ -55,7 +55,7 @@ namespace RabbitMQ.Client
     /// </remarks>
     public class DefaultBasicConsumer : IBasicConsumer
     {
-        public readonly object m_eventLock = new object();
+        private readonly object m_eventLock = new object();
         public EventHandler<ConsumerEventArgs> m_consumerCancelled;
 
         /// <summary>
