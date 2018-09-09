@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -53,8 +54,18 @@ namespace RabbitMQ.Client.Impl
     ///</remarks>
     public class RpcContinuationQueue
     {
-        public IRpcContinuation m_outstandingRpc = null;
-        private readonly object m_outstandingRpcLock = new object();
+        private class EmptyRpcContinuation : IRpcContinuation
+        {
+            public void HandleCommand(Command cmd)
+            {
+            }
+
+            public void HandleModelShutdown(ShutdownEventArgs reason)
+            {
+            }
+        }
+        static readonly EmptyRpcContinuation tmp = new EmptyRpcContinuation();
+        public IRpcContinuation m_outstandingRpc = tmp;
 
         ///<summary>Enqueue a continuation, marking a pending RPC.</summary>
         ///<remarks>
@@ -70,13 +81,10 @@ namespace RabbitMQ.Client.Impl
         ///</remarks>
         public void Enqueue(IRpcContinuation k)
         {
-            lock (m_outstandingRpcLock)
+            var result = Interlocked.CompareExchange(ref this.m_outstandingRpc, k, tmp);
+            if (!(result is EmptyRpcContinuation))
             {
-                if (m_outstandingRpc != null)
-                {
-                    throw new NotSupportedException("Pipelining of requests forbidden");
-                }
-                m_outstandingRpc = k;
+                throw new NotSupportedException("Pipelining of requests forbidden");
             }
         }
 
@@ -89,11 +97,7 @@ namespace RabbitMQ.Client.Impl
         ///</remarks>
         public void HandleModelShutdown(ShutdownEventArgs reason)
         {
-            IRpcContinuation k = Next();
-            if (k != null)
-            {
-                k.HandleModelShutdown(reason);
-            }
+            Next()?.HandleModelShutdown(reason);
         }
 
         ///<summary>Retrieve the next waiting continuation.</summary>
@@ -110,12 +114,7 @@ namespace RabbitMQ.Client.Impl
         ///</remarks>
         public IRpcContinuation Next()
         {
-            lock (m_outstandingRpcLock)
-            {
-                IRpcContinuation result = m_outstandingRpc;
-                m_outstandingRpc = null;
-                return result;
-            }
+            return Interlocked.Exchange(ref m_outstandingRpc, tmp);
         }
     }
 }
