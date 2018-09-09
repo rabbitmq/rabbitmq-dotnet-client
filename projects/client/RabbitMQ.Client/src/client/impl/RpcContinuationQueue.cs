@@ -65,7 +65,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
         static readonly EmptyRpcContinuation tmp = new EmptyRpcContinuation();
-        public IRpcContinuation m_outstandingRpc = tmp;
+        IRpcContinuation m_outstandingRpc = tmp;
 
         ///<summary>Enqueue a continuation, marking a pending RPC.</summary>
         ///<remarks>
@@ -97,7 +97,7 @@ namespace RabbitMQ.Client.Impl
         ///</remarks>
         public void HandleModelShutdown(ShutdownEventArgs reason)
         {
-            Next()?.HandleModelShutdown(reason);
+            Next().HandleModelShutdown(reason);
         }
 
         ///<summary>Retrieve the next waiting continuation.</summary>
