@@ -47,7 +47,7 @@ namespace RabbitMQ.Client.Impl
 {
     public class AutorecoveringModel : IFullModel, IRecoverable
     {
-        public readonly object m_eventLock = new object();
+        private readonly object m_eventLock = new object();
         private AutorecoveringConnection m_connection;
         private RecoveryAwareModel m_delegate;
 
