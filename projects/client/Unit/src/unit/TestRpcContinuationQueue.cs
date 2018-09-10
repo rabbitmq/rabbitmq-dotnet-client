@@ -45,7 +45,8 @@ using System;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestRpcContinuationQueue {
+    public class TestRpcContinuationQueue
+    {
         [Test]
         public void TestRpcContinuationQueueEnqueueAndRelease()
         {
@@ -55,6 +56,7 @@ namespace RabbitMQ.Client.Unit
             var outputContinuation = queue.Next();
             Assert.AreEqual(outputContinuation, inputContinuation);
         }
+
         [Test]
         public void TestRpcContinuationQueueEnqueueAndRelease2()
         {
@@ -66,6 +68,7 @@ namespace RabbitMQ.Client.Unit
             var outputContinuation1 = queue.Next();
             Assert.AreNotEqual(outputContinuation1, inputContinuation);
         }
+
         [Test]
         public void TestRpcContinuationQueueEnqueue2()
         {
@@ -73,12 +76,11 @@ namespace RabbitMQ.Client.Unit
             var inputContinuation = new SimpleBlockingRpcContinuation();
             var inputContinuation1 = new SimpleBlockingRpcContinuation();
             queue.Enqueue(inputContinuation);
-            Assert.Throws(typeof(NotSupportedException), () => {
+            Assert.Throws(typeof(NotSupportedException), () => 
+            {
                 queue.Enqueue(inputContinuation1);
             });
         }
-
-
 
     }
 }
