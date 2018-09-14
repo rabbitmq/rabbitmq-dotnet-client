@@ -228,11 +228,6 @@ namespace RabbitMQ.Client
         public int Port { get; set; } = AmqpTcpEndpoint.UseDefaultPort;
 
         /// <summary>
-        /// Protocol used, only AMQP 0-9-1 is supported in modern versions.
-        /// </summary>
-        public IProtocol Protocol { get; set; } = Protocols.DefaultProtocol;
-
-        /// <summary>
         /// Timeout setting for connection attempts (in milliseconds).
         /// </summary>
         public int RequestedConnectionTimeout { get; set; } = DefaultConnectionTimeout;
