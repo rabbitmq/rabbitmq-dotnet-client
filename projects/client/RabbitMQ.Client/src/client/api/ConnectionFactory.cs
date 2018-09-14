@@ -96,7 +96,7 @@ namespace RabbitMQ.Client
     ///Note that the Uri property takes a string representation of an
     ///AMQP URI.  Omitted URI parts will take default values.  The
     ///host part of the URI cannot be omitted and URIs of the form
-    ///"amqp://foo/" (note the trailling slash) also represent the
+    ///"amqp://foo/" (note the trailing slash) also represent the
     ///default virtual host.  The latter issue means that virtual
     ///hosts with an empty name are not addressable. </para></remarks>
     public class ConnectionFactory : ConnectionFactoryBase, IAsyncConnectionFactory
@@ -381,7 +381,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When the configured hostname was not reachable.
         /// </exception>
-        public IConnection CreateConnection(String clientProvidedName)
+        public IConnection CreateConnection(string clientProvidedName)
         {
             return CreateConnection(EndpointResolverFactory(LocalEndpoints()), clientProvidedName);
         }
@@ -390,7 +390,7 @@ namespace RabbitMQ.Client
         /// Create a connection using a list of hostnames using the configured port.
         /// By default each hostname is tried in a random order until a successful connection is
         /// found or the list is exhausted using the DefaultEndpointResolver.
-        /// The selection behaviour can be overriden by configuring the EndpointResolverFactory.
+        /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
         /// </summary>
         /// <param name="hostnames">
         /// List of hostnames to use for the initial
@@ -409,7 +409,7 @@ namespace RabbitMQ.Client
         /// Create a connection using a list of hostnames using the configured port.
         /// By default each endpoint is tried in a random order until a successful connection is
         /// found or the list is exhausted.
-        /// The selection behaviour can be overriden by configuring the EndpointResolverFactory.
+        /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
         /// </summary>
         /// <param name="hostnames">
         /// List of hostnames to use for the initial
@@ -425,7 +425,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public IConnection CreateConnection(IList<string> hostnames, String clientProvidedName)
+        public IConnection CreateConnection(IList<string> hostnames, string clientProvidedName)
         {
             var endpoints = hostnames.Select(h => new AmqpTcpEndpoint(h, this.Port, this.Ssl));
             return CreateConnection(new DefaultEndpointResolver(endpoints), clientProvidedName);
@@ -434,7 +434,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Create a connection using a list of endpoints. By default each endpoint will be tried
         /// in a random order until a successful connection is found or the list is exhausted.
-        /// The selection behaviour can be overriden by configuring the EndpointResolverFactory.
+        /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
         /// </summary>
         /// <param name="endpoints">
         /// List of endpoints to use for the initial
@@ -446,7 +446,31 @@ namespace RabbitMQ.Client
         /// </exception>
         public IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints)
         {
-            return CreateConnection(new DefaultEndpointResolver(endpoints), ClientProvidedName);
+            return CreateConnection(endpoints, ClientProvidedName);
+        }
+
+        /// <summary>
+        /// Create a connection using a list of endpoints. By default each endpoint will be tried
+        /// in a random order until a successful connection is found or the list is exhausted.
+        /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
+        /// </summary>
+        /// <param name="endpoints">
+        /// List of endpoints to use for the initial
+        /// connection and recovery.
+        /// </param>
+        /// <param name="clientProvidedName">
+        /// Application-specific connection name, will be displayed in the management UI
+        /// if RabbitMQ server supports it. This value doesn't have to be unique and cannot
+        /// be used as a connection identifier, e.g. in HTTP API requests.
+        /// This value is supposed to be human-readable.
+        /// </param>
+        /// <returns>Open connection</returns>
+        /// <exception cref="BrokerUnreachableException">
+        /// When no hostname was reachable.
+        /// </exception>
+        public IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints, string clientProvidedName)
+        {
+            return CreateConnection(new DefaultEndpointResolver(endpoints), clientProvidedName);
         }
 
         /// <summary>
@@ -465,7 +489,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public IConnection CreateConnection(IEndpointResolver endpointResolver, String clientProvidedName)
+        public IConnection CreateConnection(IEndpointResolver endpointResolver, string clientProvidedName)
         {
             IConnection conn;
             try
