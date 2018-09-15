@@ -50,7 +50,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Dictionary of client properties to be sent to the server.
         /// </summary>
-        IDictionary<String, object> ClientProperties { get; set; }
+        IDictionary<string, object> ClientProperties { get; set; }
 
         /// <summary>
         /// Password to use when authenticating to the server.
@@ -117,14 +117,14 @@ namespace RabbitMQ.Client
         /// be used as a connection identifier, e.g. in HTTP API requests.
         /// This value is supposed to be human-readable.
         /// </param>
-        /// <returns></returns>
-        IConnection CreateConnection(String clientProvidedName);
+        /// <returns>Open connection</returns>
+        IConnection CreateConnection(string clientProvidedName);
 
         /// <summary>
         /// Connects to the first reachable hostname from the list.
         /// </summary>
         /// <param name="hostnames">List of host names to use</param>
-        /// <returns></returns>
+        /// <returns>Open connection</returns>
         IConnection CreateConnection(IList<string> hostnames);
 
         /// <summary>
@@ -137,12 +137,12 @@ namespace RabbitMQ.Client
         /// be used as a connection identifier, e.g. in HTTP API requests.
         /// This value is supposed to be human-readable.
         /// </param>
-        /// <returns></returns>
-        IConnection CreateConnection(IList<string> hostnames, String clientProvidedName);
+        /// <returns>Open connection</returns>
+        IConnection CreateConnection(IList<string> hostnames, string clientProvidedName);
 
         /// <summary>
         /// Create a connection using a list of endpoints.
-        /// The selection behaviour can be overriden by configuring the EndpointResolverFactory.
+        /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
         /// </summary>
         /// <param name="endpoints">
         /// List of endpoints to use for the initial
@@ -153,6 +153,26 @@ namespace RabbitMQ.Client
         /// When no hostname was reachable.
         /// </exception>
         IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints);
+
+        /// <summary>
+        /// Create a connection using a list of endpoints.
+        /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
+        /// </summary>
+        /// <param name="endpoints">
+        /// List of endpoints to use for the initial
+        /// connection and recovery.
+        /// </param>
+        /// <param name="clientProvidedName">
+        /// Application-specific connection name, will be displayed in the management UI
+        /// if RabbitMQ server supports it. This value doesn't have to be unique and cannot
+        /// be used as a connection identifier, e.g. in HTTP API requests.
+        /// This value is supposed to be human-readable.
+        /// </param>
+        /// <returns>Open connection</returns>
+        /// <exception cref="BrokerUnreachableException">
+        /// When no hostname was reachable.
+        /// </exception>
+        IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints, string clientProvidedName);
 
         /// <summary>
         /// Advanced option.
