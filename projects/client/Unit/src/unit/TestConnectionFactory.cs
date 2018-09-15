@@ -46,7 +46,7 @@ using RabbitMQ.Client.Exceptions;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    class TestConnectionFactory 
+    class TestConnectionFactory
     {
         [Test]
         public void TestProperties()
@@ -111,7 +111,7 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestCreateConnectionWithClientProvidedNameUsesName()
+        public void TestCreateConnectionWithClientProvidedNameUsesNameArgumentValue()
         {
             var cf = new ConnectionFactory();
             cf.AutomaticRecoveryEnabled = false;
@@ -123,7 +123,7 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestCreateConnectionWithClientProvidedNameAndAutorecoveryUsesName()
+        public void TestCreateConnectionWithClientProvidedNameAndAutorecoveryUsesNameArgumentValue()
         {
             var cf = new ConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
@@ -133,6 +133,20 @@ namespace RabbitMQ.Client.Unit
                 Assert.AreEqual("some_name", conn.ClientProperties["connection_name"]);
             }
         }
+
+        [Test]
+        public void TestCreateConnectionAmqpTcpEndpointListAndClientProvidedName()
+        {
+            var cf = new ConnectionFactory();
+            cf.AutomaticRecoveryEnabled = true;
+            var xs = new System.Collections.Generic.List<AmqpTcpEndpoint> { new AmqpTcpEndpoint("localhost") };
+            using(var conn = cf.CreateConnection(xs, "some_name"))
+            {
+              Assert.AreEqual("some_name", conn.ClientProvidedName);
+              Assert.AreEqual("some_name", conn.ClientProperties["connection_name"]);
+            }
+        }
+
         [Test]
         public void TestCreateConnectionUsesDefaultPort()
         {
@@ -154,7 +168,7 @@ namespace RabbitMQ.Client.Unit
             conn.Close();
             conn.Dispose();
             Assert.AreEqual("not_localhost", cf.HostName);
-            Assert.AreEqual("localhost", conn.Endpoint.HostName);       
+            Assert.AreEqual("localhost", conn.Endpoint.HostName);
         }
 
         [Test]
