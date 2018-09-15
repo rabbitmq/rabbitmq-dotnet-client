@@ -75,7 +75,7 @@ namespace RabbitMQ.Client.Impl
         }
 
         public byte[] Body { get; private set; }
-        
+
         public ContentHeaderBase Header { get; private set; }
 
         public MethodBase Method { get; private set; }

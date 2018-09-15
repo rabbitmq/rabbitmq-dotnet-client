@@ -67,12 +67,10 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-
     public class SocketFrameHandler : IFrameHandler
     {
         // Timeout in seconds to wait for a clean socket close.
         private const int SOCKET_CLOSING_TIMEOUT = 1;
-
         // Socket poll timeout in ms. If the socket does not
         // become writeable in this amount of time, we throw
         // an exception.
@@ -84,7 +82,6 @@ namespace RabbitMQ.Client.Impl
         private readonly object _sslStreamLock = new object();
         private bool _closed;
         private bool _ssl = false;
-
         public SocketFrameHandler(AmqpTcpEndpoint endpoint,
             Func<AddressFamily, ITcpClient> socketFactory,
             int connectionTimeout, int readTimeout, int writeTimeout)
@@ -109,7 +106,7 @@ namespace RabbitMQ.Client.Impl
             }
 
             Stream netstream = m_socket.GetStream();
-            netstream.ReadTimeout = readTimeout;
+            netstream.ReadTimeout  = readTimeout;
             netstream.WriteTimeout = writeTimeout;
 
             if (endpoint.Ssl.Enabled)
@@ -125,13 +122,11 @@ namespace RabbitMQ.Client.Impl
                     throw;
                 }
             }
-
             m_reader = new NetworkBinaryReader(new BufferedStream(netstream, m_socket.Client.ReceiveBufferSize));
             m_writer = new NetworkBinaryWriter(netstream);
 
             m_writeableStateTimeout = writeTimeout;
         }
-
         public AmqpTcpEndpoint Endpoint { get; set; }
 
         public EndPoint LocalEndPoint
@@ -209,7 +204,6 @@ namespace RabbitMQ.Client.Impl
         }
 
         private static readonly byte[] amqp = Encoding.ASCII.GetBytes("AMQP");
-
         public void SendHeader()
         {
             using (var ms = new PooledMemoryStream())
