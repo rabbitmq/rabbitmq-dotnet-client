@@ -8,7 +8,7 @@ The client is maintained by the [RabbitMQ team at Pivotal](http://github.com/rab
 
 ### Modern Versions
 
-The client is [distributed via NuGet](https://www.nuget.org/packages/RabbitMQ.Client/) (`5.x` and `4.x` release series).
+The client is [distributed via NuGet](https://www.nuget.org/packages/RabbitMQ.Client/).
 
 ### Legacy Versions
 
