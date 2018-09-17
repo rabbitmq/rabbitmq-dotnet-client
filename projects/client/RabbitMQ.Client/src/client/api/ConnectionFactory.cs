@@ -99,7 +99,7 @@ namespace RabbitMQ.Client
     ///"amqp://foo/" (note the trailing slash) also represent the
     ///default virtual host.  The latter issue means that virtual
     ///hosts with an empty name are not addressable. </para></remarks>
-    public class ConnectionFactory : ConnectionFactoryBase, IAsyncConnectionFactory
+    public sealed class ConnectionFactory : ConnectionFactoryBase, IAsyncConnectionFactory
     {
         /// <summary>
         /// Default value for the desired maximum channel number, with zero meaning unlimited (value: 0).
@@ -362,7 +362,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When the configured hostname was not reachable.
         /// </exception>
-        public virtual IConnection CreateConnection()
+        public IConnection CreateConnection()
         {
             return CreateConnection(this.EndpointResolverFactory(LocalEndpoints()), ClientProvidedName);
         }
@@ -514,21 +514,21 @@ namespace RabbitMQ.Client
             return conn;
         }
 
-        public IFrameHandler CreateFrameHandler()
+        private IFrameHandler CreateFrameHandler()
         {
             var fh = Protocols.DefaultProtocol.CreateFrameHandler(Endpoint, SocketFactory,
                 RequestedConnectionTimeout, SocketReadTimeout, SocketWriteTimeout);
             return ConfigureFrameHandler(fh);
         }
 
-        public IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint)
+        internal IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint)
         {
             var fh = Protocols.DefaultProtocol.CreateFrameHandler(endpoint, SocketFactory,
                 RequestedConnectionTimeout, SocketReadTimeout, SocketWriteTimeout);
             return ConfigureFrameHandler(fh);
         }
 
-        public IFrameHandler CreateFrameHandlerForHostname(string hostname)
+        private IFrameHandler CreateFrameHandlerForHostname(string hostname)
         {
             return CreateFrameHandler(this.Endpoint.CloneWithHostname(hostname));
         }
