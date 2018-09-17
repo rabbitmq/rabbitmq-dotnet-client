@@ -74,7 +74,7 @@ namespace RabbitMQ.Client.Impl
                 nw.Write(header.ProtocolClassId);
                 header.WriteTo(nw, (ulong)bodyLength);
 
-                var bufferSegment = ms.GetSegment();
+                var bufferSegment = ms.GetBufferSegment();
                 writer.Write((uint)bufferSegment.Count);
                 writer.Write(bufferSegment.Array, bufferSegment.Offset, bufferSegment.Count);
             }
@@ -123,7 +123,7 @@ namespace RabbitMQ.Client.Impl
                 method.WriteArgumentsTo(argWriter);
                 argWriter.Flush();
 
-                var bufferSegment = ms.GetSegment();
+                var bufferSegment = ms.GetBufferSegment();
                 writer.Write((uint)bufferSegment.Count);
                 writer.Write(bufferSegment.Array, bufferSegment.Offset, bufferSegment.Count);
             }

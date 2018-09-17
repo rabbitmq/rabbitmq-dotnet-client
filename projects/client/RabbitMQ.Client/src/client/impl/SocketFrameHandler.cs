@@ -226,7 +226,7 @@ namespace RabbitMQ.Client.Impl
                     nbw.Write((byte)Endpoint.Protocol.MinorVersion);
                 }
 
-                Write(ms.GetSegment());
+                Write(ms.GetBufferSegment());
             }
         }
 
@@ -237,7 +237,7 @@ namespace RabbitMQ.Client.Impl
                 var nbw = new NetworkBinaryWriter(ms);
                 frame.WriteTo(nbw);
                 m_socket.Client.Poll(m_writeableStateTimeout, SelectMode.SelectWrite);
-                Write(ms.GetSegment());
+                Write(ms.GetBufferSegment());
             }
         }
 
@@ -251,7 +251,7 @@ namespace RabbitMQ.Client.Impl
                     frames[i].WriteTo(nbw);
                 }
                 m_socket.Client.Poll(m_writeableStateTimeout, SelectMode.SelectWrite);
-                Write(ms.GetSegment());
+                Write(ms.GetBufferSegment());
             }
         }
 
