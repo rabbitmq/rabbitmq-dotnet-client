@@ -254,13 +254,6 @@ namespace RabbitMQ.Client
         public bool TopologyRecoveryEnabled { get; set; } = true;
 
         /// <summary>
-        /// Task scheduler connections created by this factory will use when
-        /// dispatching consumer operations, such as message deliveries.
-        /// </summary>
-        [Obsolete("This scheduler is no longer used for dispatching consumer operations and will be removed in the next major version.", false)]
-        public TaskScheduler TaskScheduler { get; set; } = TaskScheduler.Default;
-
-        /// <summary>
         /// Construct a fresh instance, with all fields set to their respective defaults.
         /// </summary>
         public ConnectionFactory()
