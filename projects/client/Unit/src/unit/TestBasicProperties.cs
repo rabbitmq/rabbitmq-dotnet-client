@@ -73,37 +73,5 @@ namespace RabbitMQ.Client.Unit
             Assert.AreEqual(1, subject.DeliveryMode);
             Assert.AreEqual(false, subject.Persistent);
         }
-
-
-#pragma warning disable CS0618 // Type or member is obsolete
-        [Test]
-        public void TestSetPersistentMethodChangesDeliveryMode_PersistentTrueDelivery2()
-        {
-            // Arrange
-            var subject = new Framing.BasicProperties();
-
-            // Act
-            subject.SetPersistent(true);
-
-            // Assert
-            Assert.AreEqual(2, subject.DeliveryMode);
-            Assert.AreEqual(true, subject.Persistent);
-        }
-
-
-        [Test]
-        public void TestSetPersistentMethodChangesDeliveryMode_PersistentFalseDelivery1()
-        {
-            // Arrange
-            var subject = new Framing.BasicProperties();
-
-            // Act
-            subject.SetPersistent(false);
-
-            // Assert
-            Assert.AreEqual(1, subject.DeliveryMode);
-            Assert.AreEqual(false, subject.Persistent);
-        }
-#pragma warning restore CS0618 // Type or member is obsolete
     }
 }
