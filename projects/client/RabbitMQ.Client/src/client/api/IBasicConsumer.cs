@@ -51,7 +51,7 @@ namespace RabbitMQ.Client
     /// </para>
     /// <para>
     /// Note that the "Handle*" methods run in the connection's
-    /// thread! Consider using QueueingBasicConsumer, which uses a
+    /// thread! Consider using <see cref="EventingBasicConsumer"/>, which uses a
     /// SharedQueue instance to safely pass received messages across
     /// to user threads.
     /// </para>
