@@ -632,7 +632,7 @@ namespace RabbitMQ.Client.Unit
         public void TestRecoveryEventHandlersOnConnection()
         {
             Int32 counter = 0;
-            ((AutorecoveringConnection)Conn).Recovery += (source, ea) => Interlocked.Increment(ref counter);
+            ((AutorecoveringConnection)Conn).RecoverySucceeded += (source, ea) => Interlocked.Increment(ref counter);
 
             CloseAndWaitForRecovery();
             CloseAndWaitForRecovery();
@@ -698,7 +698,7 @@ namespace RabbitMQ.Client.Unit
 
             var latch = new ManualResetEvent(false);
             var connection = ((AutorecoveringConnection)Conn);
-            connection.Recovery += (source, ea) => latch.Set();
+            connection.RecoverySucceeded += (source, ea) => latch.Set();
             connection.QueueNameChangeAfterRecovery += (source, ea) => { nameAfter = ea.NameAfter; };
 
             CloseAndWaitForRecovery();
@@ -972,7 +972,7 @@ namespace RabbitMQ.Client.Unit
         protected ManualResetEvent PrepareForRecovery(AutorecoveringConnection conn)
         {
             var latch = new ManualResetEvent(false);
-            conn.Recovery += (source, ea) => latch.Set();
+            conn.RecoverySucceeded += (source, ea) => latch.Set();
 
             return latch;
         }
