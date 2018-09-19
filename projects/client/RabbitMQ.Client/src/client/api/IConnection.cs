@@ -67,17 +67,6 @@ namespace RabbitMQ.Client
     public interface IConnection : NetworkConnection, IDisposable
     {
         /// <summary>
-        /// If true, will close the whole connection as soon as there are no channels open on it;
-        /// if false, manual connection closure will be required.
-        /// </summary>
-        /// <remarks>
-        /// DON'T set AutoClose to true before opening the first
-        /// channel, because the connection will be immediately closed if you do!
-        /// </remarks>
-        [Obsolete("Please explicitly close connections instead.")]
-        bool AutoClose { get; set; }
-
-        /// <summary>
         /// The maximum channel number this connection supports (0 if unlimited).
         /// Usable channel numbers range from 1 to this number, inclusive.
         /// </summary>
