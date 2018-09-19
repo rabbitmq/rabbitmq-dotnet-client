@@ -133,7 +133,7 @@ namespace RabbitMQ.Client.Unit
                     basicProperties: new BasicProperties(),
                     body: encoding.GetBytes("msg"));
             }
-            counter.Wait(TimeSpan.FromSeconds(30));
+            counter.Wait(TimeSpan.FromSeconds(120));
 
             foreach (var cons in consumers)
             {
