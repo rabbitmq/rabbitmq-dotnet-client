@@ -84,16 +84,20 @@ namespace RabbitMQ.Client.Unit
         {
             UTF8Encoding enc = new UTF8Encoding();
             Channel.BasicPublish("", Queue, null, enc.GetBytes("message"));
-            QueueingBasicConsumer Consumer = new QueueingBasicConsumer(Channel);
+            EventingBasicConsumer Consumer = new EventingBasicConsumer(Channel);
+            SharedQueue<BasicDeliverEventArgs> EventQueue = new SharedQueue<BasicDeliverEventArgs>();
+            Consumer.Received += (_, e) => EventQueue.Enqueue(e);
 
             String CTag = Channel.BasicConsume(Queue, false, Consumer);
-            BasicDeliverEventArgs Event = (BasicDeliverEventArgs) Consumer.Queue.Dequeue();
+            BasicDeliverEventArgs Event = EventQueue.Dequeue();
             Channel.BasicCancel(CTag);
             Channel.BasicRecover(true);
 
-            QueueingBasicConsumer Consumer2 = new QueueingBasicConsumer(Channel);
+            EventingBasicConsumer Consumer2 = new EventingBasicConsumer(Channel);
+            SharedQueue<BasicDeliverEventArgs> EventQueue2 = new SharedQueue<BasicDeliverEventArgs>();
+            Consumer2.Received += (_, e) => EventQueue2.Enqueue(e);
             Channel.BasicConsume(Queue, false, Consumer2);
-            BasicDeliverEventArgs Event2 = (BasicDeliverEventArgs)Consumer2.Queue.Dequeue();
+            BasicDeliverEventArgs Event2 = EventQueue2.Dequeue();
 
             Assert.AreEqual(Event.Body, Event2.Body);
             Assert.IsFalse(Event.Redelivered);
