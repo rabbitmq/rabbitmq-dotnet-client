@@ -273,13 +273,6 @@ namespace RabbitMQ.Client.Framing.Impl
         }
         public string ClientProvidedName { get; private set; }
 
-        [Obsolete("Please explicitly close connections instead.")]
-        public bool AutoClose
-        {
-            get { return m_sessionManager.AutoClose; }
-            set { m_sessionManager.AutoClose = value; }
-        }
-
         public ushort ChannelMax
         {
             get { return m_sessionManager.ChannelMax; }
