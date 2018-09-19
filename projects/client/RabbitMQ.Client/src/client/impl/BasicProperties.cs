@@ -275,25 +275,6 @@ namespace RabbitMQ.Client.Impl
         /// </summary>
         public abstract bool IsUserIdPresent();
 
-        /// <summary>Sets <see cref="DeliveryMode"/> to either persistent (2) or non-persistent (1).</summary>
-        /// <remarks>
-        /// <para>
-        /// The numbers 1 and 2 for delivery mode are "magic" in that
-        /// they appear in the AMQP 0-8 and 0-9 specifications as part
-        /// of the definition of the DeliveryMode Basic-class property,
-        /// without being defined as named constants.
-        /// </para>
-        /// <para>
-        /// Calling this method causes <see cref="DeliveryMode"/> to take on a  value.
-        /// In order to reset <see cref="DeliveryMode"/> to the default empty condition, call <see cref="ClearDeliveryMode"/> .
-        /// </para>
-        /// </remarks>
-        [Obsolete("Usage of this setter method is deprecated. Use the Persistent property instead.")]
-        public void SetPersistent(bool persistent)
-        {
-            Persistent = persistent;
-        }
-
         public override object Clone()
         {
             var clone = MemberwiseClone() as BasicProperties;
