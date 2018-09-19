@@ -50,7 +50,7 @@ using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    public class AutorecoveringConnection : IConnection, IRecoverable
+    public class AutorecoveringConnection : IConnection
     {
         private readonly object m_eventLock = new object();
 
@@ -263,25 +263,6 @@ namespace RabbitMQ.Client.Framing.Impl
                 lock (m_eventLock)
                 {
                     m_queueNameChange -= value;
-                }
-            }
-        }
-
-        [Obsolete("Use RecoverySucceeded instead")]
-        public event EventHandler<EventArgs> Recovery
-        {
-            add
-            {
-                lock (m_eventLock)
-                {
-                    m_recovery += value;
-                }
-            }
-            remove
-            {
-                lock (m_eventLock)
-                {
-                    m_recovery -= value;
                 }
             }
         }
