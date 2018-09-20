@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Framing.Impl
     {
         private readonly object m_eventLock = new object();
 
-        public readonly object manuallyClosedLock = new object();
+        private readonly object manuallyClosedLock = new object();
         protected Connection m_delegate;
         protected ConnectionFactory m_factory;
 
@@ -63,7 +63,7 @@ namespace RabbitMQ.Client.Framing.Impl
         // IHostnameSelector
         private IEndpointResolver endpoints;
 
-        public readonly object m_recordedEntitiesLock = new object();
+        private readonly object m_recordedEntitiesLock = new object();
         private readonly TaskFactory recoveryTaskFactory = new TaskFactory();
         private readonly object recoveryLockTarget = new object();
         // used to block connection recovery attempts after Close() is unvoked
