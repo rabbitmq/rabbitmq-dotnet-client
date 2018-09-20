@@ -38,7 +38,6 @@
 //  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.IO;
 using System.Text;
 
@@ -57,10 +56,12 @@ namespace RabbitMQ.Util
     /// </remarks>
     public class NetworkBinaryWriter : BinaryWriter
     {
+        private static readonly Encoding encoding = new UTF8Encoding(false, true);
+
         /// <summary>
         /// Construct a NetworkBinaryWriter over the given input stream.
         /// </summary>
-        public NetworkBinaryWriter(Stream output) : base(output)
+        public NetworkBinaryWriter(Stream output) : base(output, encoding)
         {
         }
 

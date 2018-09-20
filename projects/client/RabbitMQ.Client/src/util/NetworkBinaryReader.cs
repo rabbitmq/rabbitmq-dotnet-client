@@ -38,7 +38,6 @@
 //  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.IO;
 using System.Text;
 
@@ -55,6 +54,8 @@ namespace RabbitMQ.Util
     /// </remarks>
     public class NetworkBinaryReader : BinaryReader
     {
+        private static readonly Encoding encoding = new UTF8Encoding();
+
         // Not particularly efficient. To be more efficient, we could
         // reuse BinaryReader's implementation details: m_buffer and
         // FillBuffer, if they weren't private
@@ -65,7 +66,7 @@ namespace RabbitMQ.Util
         /// <summary>
         /// Construct a NetworkBinaryReader over the given input stream.
         /// </summary>
-        public NetworkBinaryReader(Stream input) : base(input)
+        public NetworkBinaryReader(Stream input) : base(input, encoding)
         {
         }
 

@@ -238,7 +238,10 @@ namespace RabbitMQ.Client.Impl
         {
             var ms = new MemoryStream();
             var nbw = new NetworkBinaryWriter(ms);
-            foreach (var f in frames) f.WriteTo(nbw);
+            for (var i = 0; i < frames.Count; ++i)
+            {
+                frames[i].WriteTo(nbw);
+            }
             m_socket.Client.Poll(m_writeableStateTimeout, SelectMode.SelectWrite);
             Write(ms.GetBufferSegment());
         }
