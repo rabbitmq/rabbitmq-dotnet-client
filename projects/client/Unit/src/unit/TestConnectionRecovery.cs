@@ -894,7 +894,7 @@ namespace RabbitMQ.Client.Unit
             Wait(latch);
         }
 
-        protected void AssertExchangeRecovery(IModel m, string x)
+        internal void AssertExchangeRecovery(IModel m, string x)
         {
             m.ConfirmSelect();
             WithTemporaryNonExclusiveQueue(m, (_, q) =>
@@ -909,12 +909,12 @@ namespace RabbitMQ.Client.Unit
             });
         }
 
-        protected void AssertQueueRecovery(IModel m, string q)
+        internal void AssertQueueRecovery(IModel m, string q)
         {
             AssertQueueRecovery(m, q, true);
         }
 
-        protected void AssertQueueRecovery(IModel m, string q, bool exclusive)
+        internal void AssertQueueRecovery(IModel m, string q, bool exclusive)
         {
             m.ConfirmSelect();
             m.QueueDeclarePassive(q);
@@ -926,34 +926,34 @@ namespace RabbitMQ.Client.Unit
             Assert.AreEqual(ok2.MessageCount, 1);
         }
 
-        protected void AssertRecordedExchanges(AutorecoveringConnection c, int n)
+        internal void AssertRecordedExchanges(AutorecoveringConnection c, int n)
         {
             Assert.AreEqual(n, c.RecordedExchanges.Count);
         }
 
-        protected void AssertRecordedQueues(AutorecoveringConnection c, int n)
+        internal void AssertRecordedQueues(AutorecoveringConnection c, int n)
         {
             Assert.AreEqual(n, c.RecordedQueues.Count);
         }
 
-        protected void CloseAllAndWaitForRecovery()
+        internal void CloseAllAndWaitForRecovery()
         {
             CloseAllAndWaitForRecovery((AutorecoveringConnection)Conn);
         }
 
-        protected void CloseAllAndWaitForRecovery(AutorecoveringConnection conn)
+        internal void CloseAllAndWaitForRecovery(AutorecoveringConnection conn)
         {
             ManualResetEvent rl = PrepareForRecovery(conn);
             CloseAllConnections();
             Wait(rl);
         }
 
-        protected void CloseAndWaitForRecovery()
+        internal void CloseAndWaitForRecovery()
         {
             CloseAndWaitForRecovery((AutorecoveringConnection)Conn);
         }
 
-        protected void CloseAndWaitForRecovery(AutorecoveringConnection conn)
+        internal void CloseAndWaitForRecovery(AutorecoveringConnection conn)
         {
             ManualResetEvent sl = PrepareForShutdown(conn);
             ManualResetEvent rl = PrepareForRecovery(conn);
@@ -962,14 +962,14 @@ namespace RabbitMQ.Client.Unit
             Wait(rl);
         }
 
-        protected void CloseAndWaitForShutdown(AutorecoveringConnection conn)
+        internal void CloseAndWaitForShutdown(AutorecoveringConnection conn)
         {
             ManualResetEvent sl = PrepareForShutdown(conn);
             CloseConnection(conn);
             Wait(sl);
         }
 
-        protected ManualResetEvent PrepareForRecovery(AutorecoveringConnection conn)
+        internal ManualResetEvent PrepareForRecovery(AutorecoveringConnection conn)
         {
             var latch = new ManualResetEvent(false);
             conn.RecoverySucceeded += (source, ea) => latch.Set();
@@ -977,7 +977,7 @@ namespace RabbitMQ.Client.Unit
             return latch;
         }
 
-        protected ManualResetEvent PrepareForShutdown(IConnection conn)
+        internal ManualResetEvent PrepareForShutdown(IConnection conn)
         {
             var latch = new ManualResetEvent(false);
             conn.ConnectionShutdown += (c, args) => latch.Set();
@@ -990,12 +990,12 @@ namespace RabbitMQ.Client.Unit
             Unblock();
         }
 
-        protected void RestartServerAndWaitForRecovery()
+        internal void RestartServerAndWaitForRecovery()
         {
             RestartServerAndWaitForRecovery((AutorecoveringConnection)Conn);
         }
 
-        protected void RestartServerAndWaitForRecovery(AutorecoveringConnection conn)
+        internal void RestartServerAndWaitForRecovery(AutorecoveringConnection conn)
         {
             ManualResetEvent sl = PrepareForShutdown(conn);
             ManualResetEvent rl = PrepareForRecovery(conn);
@@ -1004,7 +1004,7 @@ namespace RabbitMQ.Client.Unit
             Wait(rl);
         }
 
-        protected void TestDelayedBasicAckNackAfterChannelRecovery(TestBasicConsumer1 cons, ManualResetEvent latch)
+        internal void TestDelayedBasicAckNackAfterChannelRecovery(TestBasicConsumer1 cons, ManualResetEvent latch)
         {
             string q = Model.QueueDeclare(GenerateQueueName(), false, false, false, null).QueueName;
             int n = 30;
@@ -1025,22 +1025,22 @@ namespace RabbitMQ.Client.Unit
             publishingConn.Close();
         }
 
-        protected void WaitForRecovery()
+        internal void WaitForRecovery()
         {
             Wait(PrepareForRecovery((AutorecoveringConnection)Conn));
         }
 
-        protected void WaitForRecovery(AutorecoveringConnection conn)
+        internal void WaitForRecovery(AutorecoveringConnection conn)
         {
             Wait(PrepareForRecovery(conn));
         }
 
-        protected void WaitForShutdown()
+        internal void WaitForShutdown()
         {
             Wait(PrepareForShutdown(Conn));
         }
 
-        protected void WaitForShutdown(IConnection conn)
+        internal void WaitForShutdown(IConnection conn)
         {
             Wait(PrepareForShutdown(conn));
         }

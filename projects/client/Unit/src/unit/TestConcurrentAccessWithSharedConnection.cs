@@ -51,9 +51,9 @@ namespace RabbitMQ.Client.Unit {
     [TestFixture]
     public class TestConcurrentAccessWithSharedConnection : IntegrationFixture {
 
-        protected const int threads = 32;
-        protected CountdownEvent latch;
-        protected TimeSpan completionTimeout = TimeSpan.FromSeconds(90);
+        internal const int threads = 32;
+        internal CountdownEvent latch;
+        internal TimeSpan completionTimeout = TimeSpan.FromSeconds(90);
 
         [SetUp]
         public override void Init()
@@ -156,12 +156,12 @@ namespace RabbitMQ.Client.Unit {
             }, 50);
         }
 
-        protected void TestConcurrentChannelOpenAndPublishingWithBodyOfSize(int length)
+        internal void TestConcurrentChannelOpenAndPublishingWithBodyOfSize(int length)
         {
             TestConcurrentChannelOpenAndPublishingWithBodyOfSize(length, 30);
         }
 
-        protected void TestConcurrentChannelOpenAndPublishingWithBodyOfSize(int length, int iterations)
+        internal void TestConcurrentChannelOpenAndPublishingWithBodyOfSize(int length, int iterations)
         {
             string s = "payload";
             if(length > s.Length)
@@ -172,7 +172,7 @@ namespace RabbitMQ.Client.Unit {
             TestConcurrentChannelOpenAndPublishingWithBody(Encoding.ASCII.GetBytes(s), iterations);
         }
 
-        protected void TestConcurrentChannelOpenAndPublishingWithBody(byte[] body, int iterations)
+        internal void TestConcurrentChannelOpenAndPublishingWithBody(byte[] body, int iterations)
         {
             TestConcurrentChannelOperations((conn) => {
                 // publishing on a shared channel is not supported
@@ -187,13 +187,13 @@ namespace RabbitMQ.Client.Unit {
             }, iterations);
         }
 
-        protected void TestConcurrentChannelOperations(Action<IConnection> actions,
+        internal void TestConcurrentChannelOperations(Action<IConnection> actions,
             int iterations)
         {
             TestConcurrentChannelOperations(actions, iterations, completionTimeout);
         }
 
-        protected void TestConcurrentChannelOperations(Action<IConnection> actions,
+        internal void TestConcurrentChannelOperations(Action<IConnection> actions,
             int iterations, TimeSpan timeout)
         {
             foreach (var i in Enumerable.Range(0, threads))

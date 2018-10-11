@@ -1,6 +1,6 @@
 ﻿namespace RabbitMQ.Client.Impl
 {
-    internal class AsyncConsumerDispatcher : IConsumerDispatcher
+    internal sealed class AsyncConsumerDispatcher : IConsumerDispatcher
     {
         private readonly ModelBase model;
         private readonly AsyncConsumerWorkService workService;

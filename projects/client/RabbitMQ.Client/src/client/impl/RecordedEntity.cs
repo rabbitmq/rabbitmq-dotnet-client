@@ -42,7 +42,7 @@ using System;
 
 namespace RabbitMQ.Client.Impl
 {
-    public abstract class RecordedEntity
+    internal abstract class RecordedEntity
     {
         public RecordedEntity(AutorecoveringModel model)
         {

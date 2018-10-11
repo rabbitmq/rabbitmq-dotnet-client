@@ -43,7 +43,7 @@ using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
 {
-    public class RecordedExchange : RecordedNamedEntity
+    internal class RecordedExchange : RecordedNamedEntity
     {
         private string type;
 
