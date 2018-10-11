@@ -573,7 +573,7 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             bool mandatory,
             IBasicProperties basicProperties,
-            byte[] body)
+            ArraySegment<byte> body)
         {
             m_delegate._Private_BasicPublish(exchange, routingKey, mandatory,
                 basicProperties, body);
@@ -810,6 +810,23 @@ namespace RabbitMQ.Client.Impl
                 mandatory,
                 basicProperties,
                 body);
+        }
+
+        public void BasicPublish(string exchange,
+            string routingKey,
+            bool mandatory,
+            IBasicProperties basicProperties,
+            byte[] body,
+            int offset,
+            int count)
+        {
+            m_delegate.BasicPublish(exchange,
+                routingKey,
+                mandatory,
+                basicProperties,
+                body,
+                offset,
+                count);
         }
 
         public void BasicQos(uint prefetchSize,

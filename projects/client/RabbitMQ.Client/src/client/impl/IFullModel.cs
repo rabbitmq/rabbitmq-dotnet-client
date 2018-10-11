@@ -226,7 +226,7 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             bool mandatory,
             [AmqpContentHeaderMapping] IBasicProperties basicProperties,
-            [AmqpContentBodyMapping] byte[] body);
+            [AmqpContentBodyMapping] ArraySegment<byte> body);
 
         [AmqpForceOneWay]
         [AmqpMethodMapping(null, "basic", "recover")]

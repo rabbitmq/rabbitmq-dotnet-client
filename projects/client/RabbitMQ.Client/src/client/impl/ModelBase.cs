@@ -487,6 +487,19 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public void ModelSend(MethodBase method, ContentHeaderBase header, ArraySegment<byte> body)
+        {
+            if (method.HasContent)
+            {
+                m_flowControlBlock.WaitOne();
+                Session.Transmit(new Command(method, header, body));
+            }
+            else
+            {
+                Session.Transmit(new Command(method, header, body));
+            }
+        }
+
         public virtual void OnBasicAck(BasicAckEventArgs args)
         {
             EventHandler<BasicAckEventArgs> handler;
@@ -1088,7 +1101,7 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             bool mandatory,
             IBasicProperties basicProperties,
-            byte[] body);
+            ArraySegment<byte> body);
 
         public abstract void _Private_BasicRecover(bool requeue);
 
@@ -1279,6 +1292,26 @@ namespace RabbitMQ.Client.Impl
             bool mandatory,
             IBasicProperties basicProperties,
             byte[] body)
+        {
+            BasicPublish(exchange, routingKey, mandatory, basicProperties, body.GetBufferSegment());
+        }
+
+        public void BasicPublish(string exchange,
+            string routingKey,
+            bool mandatory,
+            IBasicProperties basicProperties,
+            byte[] body,
+            int offset,
+            int count)
+        {
+            BasicPublish(exchange, routingKey, mandatory, basicProperties, body.GetBufferSegment(offset, count));
+        }
+
+        private void BasicPublish(string exchange,
+            string routingKey,
+            bool mandatory,
+            IBasicProperties basicProperties,
+            ArraySegment<byte> body)
         {
             if (basicProperties == null)
             {

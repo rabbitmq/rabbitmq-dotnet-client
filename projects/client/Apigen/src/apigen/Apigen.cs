@@ -1022,6 +1022,11 @@ namespace RabbitMQ.Client.Apigen
                 name = "System.Collections.Generic.IDictionary<string, object>";
             }
 
+            if (name.StartsWith("System.ArraySegment`1[[System.Byte"))
+            {
+                name = "System.ArraySegment<byte>";
+            }
+
             return name;
         }
 

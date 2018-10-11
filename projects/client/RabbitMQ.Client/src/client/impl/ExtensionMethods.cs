@@ -47,6 +47,8 @@ namespace RabbitMQ.Client.Impl
 {
     public static class ExtensionMethods
     {
+        private static readonly ArraySegment<byte> m_emptyByteArray = new ArraySegment<byte>(new byte[0], 0, 0);
+
         /// <summary>
         /// Returns a random item from the list.
         /// </summary>
@@ -63,6 +65,26 @@ namespace RabbitMQ.Client.Impl
 
             var hashCode = Math.Abs(Guid.NewGuid().GetHashCode());
             return list.ElementAt<T>(hashCode % n);
+        }
+
+        internal static ArraySegment<byte> GetBufferSegment(this byte[] data)
+        {
+            if (data == null)
+            {
+                return m_emptyByteArray;
+            }
+
+            return new ArraySegment<byte>(data, 0, data.Length);
+        }
+
+        internal static ArraySegment<byte> GetBufferSegment(this byte[] data, int offset, int count)
+        {
+            if (data == null)
+            {
+                return m_emptyByteArray;
+            }
+
+            return new ArraySegment<byte>(data, offset, count);
         }
 
         internal static ArraySegment<byte> GetBufferSegment(this MemoryStream ms)
