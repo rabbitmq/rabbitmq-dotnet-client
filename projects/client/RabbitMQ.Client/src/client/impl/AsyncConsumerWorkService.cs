@@ -6,7 +6,7 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
 {
-    internal class AsyncConsumerWorkService : ConsumerWorkService
+    internal sealed class AsyncConsumerWorkService : ConsumerWorkService
     {
         readonly ConcurrentDictionary<IModel, WorkPool> workPools = new ConcurrentDictionary<IModel, WorkPool>();
 

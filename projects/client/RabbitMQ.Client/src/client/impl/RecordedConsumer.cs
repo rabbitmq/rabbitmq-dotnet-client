@@ -44,7 +44,7 @@ using RabbitMQ.Client;
 
 namespace RabbitMQ.Client.Impl
 {
-    public class RecordedConsumer : RecordedEntity
+    internal class RecordedConsumer : RecordedEntity
     {
         public RecordedConsumer(AutorecoveringModel model, string queue) : base(model)
         {

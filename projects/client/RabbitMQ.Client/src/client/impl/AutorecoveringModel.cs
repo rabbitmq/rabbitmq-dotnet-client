@@ -45,7 +45,7 @@ using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
 {
-    public class AutorecoveringModel : IFullModel, IRecoverable
+    internal sealed class AutorecoveringModel : IFullModel, IRecoverable
     {
         private readonly object m_eventLock = new object();
         private AutorecoveringConnection m_connection;
@@ -319,37 +319,37 @@ namespace RabbitMQ.Client.Impl
             m_delegate.HandleCommand(session, cmd);
         }
 
-        public virtual void OnBasicAck(BasicAckEventArgs args)
+        public void OnBasicAck(BasicAckEventArgs args)
         {
             m_delegate.OnBasicAck(args);
         }
 
-        public virtual void OnBasicNack(BasicNackEventArgs args)
+        public void OnBasicNack(BasicNackEventArgs args)
         {
             m_delegate.OnBasicNack(args);
         }
 
-        public virtual void OnBasicRecoverOk(EventArgs args)
+        public void OnBasicRecoverOk(EventArgs args)
         {
             m_delegate.OnBasicRecoverOk(args);
         }
 
-        public virtual void OnBasicReturn(BasicReturnEventArgs args)
+        public void OnBasicReturn(BasicReturnEventArgs args)
         {
             m_delegate.OnBasicReturn(args);
         }
 
-        public virtual void OnCallbackException(CallbackExceptionEventArgs args)
+        public void OnCallbackException(CallbackExceptionEventArgs args)
         {
             m_delegate.OnCallbackException(args);
         }
 
-        public virtual void OnFlowControl(FlowControlEventArgs args)
+        public void OnFlowControl(FlowControlEventArgs args)
         {
             m_delegate.OnFlowControl(args);
         }
 
-        public virtual void OnModelShutdown(ShutdownEventArgs reason)
+        public void OnModelShutdown(ShutdownEventArgs reason)
         {
             m_delegate.OnModelShutdown(reason);
         }
@@ -374,7 +374,7 @@ namespace RabbitMQ.Client.Impl
             Dispose(true);
         }
 
-        protected virtual void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (disposing)
             {

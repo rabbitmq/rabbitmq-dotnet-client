@@ -50,13 +50,13 @@ using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    public class AutorecoveringConnection : IConnection
+    internal sealed class AutorecoveringConnection : IConnection
     {
         private readonly object m_eventLock = new object();
 
         private readonly object manuallyClosedLock = new object();
-        protected Connection m_delegate;
-        protected ConnectionFactory m_factory;
+        private Connection m_delegate;
+        private ConnectionFactory m_factory;
 
         // list of endpoints provided on initial connection.
         // on re-connection, the next host in the line is chosen using
@@ -66,7 +66,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private readonly object m_recordedEntitiesLock = new object();
         private readonly TaskFactory recoveryTaskFactory = new TaskFactory();
         private readonly object recoveryLockTarget = new object();
-        // used to block connection recovery attempts after Close() is unvoked
+        // used to block connection recovery attempts after Close() is invoked
         private bool manuallyClosed = false;
         private bool performingRecovery = false;
 
@@ -387,7 +387,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        protected void PerformAutomaticRecovery()
+        private void PerformAutomaticRecovery()
         {
             ESLog.Info("Performing automatic recovery");
             lock (recoveryLockTarget)
@@ -715,7 +715,7 @@ namespace RabbitMQ.Client.Framing.Impl
             Dispose(true);
         }
 
-        protected virtual void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (disposing)
             {
@@ -740,17 +740,17 @@ namespace RabbitMQ.Client.Framing.Impl
             // dispose unmanaged resources
         }
 
-        protected void EnsureIsOpen()
+        private void EnsureIsOpen()
         {
             m_delegate.EnsureIsOpen();
         }
 
-        protected void HandleTopologyRecoveryException(TopologyRecoveryException e)
+        private void HandleTopologyRecoveryException(TopologyRecoveryException e)
         {
             ESLog.Error("Topology recovery exception", e);
         }
 
-        protected void PropagateQueueNameChangeToBindings(string oldName, string newName)
+        private void PropagateQueueNameChangeToBindings(string oldName, string newName)
         {
             lock (m_recordedBindings)
             {
@@ -762,7 +762,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        protected void PropagateQueueNameChangeToConsumers(string oldName, string newName)
+        private void PropagateQueueNameChangeToConsumers(string oldName, string newName)
         {
             lock (m_recordedBindings)
             {
@@ -775,7 +775,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        protected void RecoverBindings()
+        private void RecoverBindings()
         {
             foreach (var b in m_recordedBindings.Keys)
             {
@@ -792,7 +792,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        protected void RecoverConnectionBlockedHandlers()
+        private void RecoverConnectionBlockedHandlers()
         {
             lock (m_eventLock)
             {
@@ -800,7 +800,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        protected bool RecoverConnectionDelegate()
+        private bool RecoverConnectionDelegate()
         {
             while (!ManuallyClosed)
             {
@@ -844,17 +844,17 @@ namespace RabbitMQ.Client.Framing.Impl
             return false;
         }
 
-        protected void RecoverConnectionShutdownHandlers()
+        private void RecoverConnectionShutdownHandlers()
         {
             m_delegate.ConnectionShutdown += m_recordedShutdownEventHandlers;
         }
 
-        protected void RecoverConnectionUnblockedHandlers()
+        private void RecoverConnectionUnblockedHandlers()
         {
             m_delegate.ConnectionUnblocked += m_recordedUnblockedEventHandlers;
         }
 
-        protected void RecoverConsumers()
+        private void RecoverConsumers()
         {
             foreach (KeyValuePair<string, RecordedConsumer> pair in m_recordedConsumers)
             {
@@ -898,7 +898,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        protected void RecoverEntities()
+        private void RecoverEntities()
         {
             // The recovery sequence is the following:
             //
@@ -911,7 +911,7 @@ namespace RabbitMQ.Client.Framing.Impl
             RecoverBindings();
         }
 
-        protected void RecoverExchanges()
+        private void RecoverExchanges()
         {
             foreach (RecordedExchange rx in m_recordedExchanges.Values)
             {
@@ -928,7 +928,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        protected void RecoverModels()
+        private void RecoverModels()
         {
             lock (m_models)
             {
@@ -939,7 +939,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        protected void RecoverQueues()
+        private void RecoverQueues()
         {
             lock (m_recordedQueues)
             {
@@ -995,7 +995,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        protected void RunRecoveryEventHandlers()
+        private void RunRecoveryEventHandlers()
         {
             EventHandler<EventArgs> handler = m_recovery;
             if (handler != null)
@@ -1016,7 +1016,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        protected bool ShouldTriggerConnectionRecovery(ShutdownEventArgs args)
+        private bool ShouldTriggerConnectionRecovery(ShutdownEventArgs args)
         {
             return (args.Initiator == ShutdownInitiator.Peer ||
                     // happens when EOF is reached, e.g. due to RabbitMQ node
