@@ -143,10 +143,11 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// Attempts to enforce CRL validation for the certificate. Default is false. True if CRL should be validated, false otherwise.
+        /// Attempts to check certificate revocation status. Default is false. True if peer certificate should be
+        /// checked for revocation, false otherwise.
         /// </summary>
-        /// <remarks>Uses the built-in .NET mechanics for validation the certificates against the CRL.</remarks>
-        public bool EnforceCertificateRevocationListValidation { get; set; }
+        /// <remarks>Uses the built-in .NET mechanics for checking a certificate against CRLs.</remarks>
+        public bool CheckCertificateRevocation { get; set; }
 #endif
 
         /// <summary>
