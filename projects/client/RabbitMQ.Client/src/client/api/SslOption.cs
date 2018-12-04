@@ -38,7 +38,6 @@
 //  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 
 #if !NETFX_CORE
 using System.Net.Security;
@@ -142,6 +141,12 @@ namespace RabbitMQ.Client
             }
             set { _certificateCollection = value; }
         }
+
+        /// <summary>
+        /// Attempts to enforce CRL validation for the certificate. Default is false. True if CRL should be validated, false otherwise.
+        /// </summary>
+        /// <remarks>Uses the built-in .NET mechanics for validation the certificates against the CRL.</remarks>
+        public bool EnforceCertificateRevocationListValidation { get; set; }
 #endif
 
         /// <summary>
