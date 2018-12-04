@@ -38,7 +38,6 @@
 //  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 
 #if !NETFX_CORE
 using System.Net.Security;
@@ -142,6 +141,13 @@ namespace RabbitMQ.Client
             }
             set { _certificateCollection = value; }
         }
+
+        /// <summary>
+        /// Attempts to check certificate revocation status. Default is false. True if peer certificate should be
+        /// checked for revocation, false otherwise.
+        /// </summary>
+        /// <remarks>Uses the built-in .NET mechanics for checking a certificate against CRLs.</remarks>
+        public bool CheckCertificateRevocation { get; set; }
 #endif
 
         /// <summary>
