@@ -549,7 +549,7 @@ namespace RabbitMQ.Client.Unit
 
         internal List<ConnectionInfo> ListConnections()
         {
-            Process proc  = ExecRabbitMQCtl("list_connections -q pid peer_port");
+            Process proc  = ExecRabbitMQCtl("list_connections -q --no-table-headers pid peer_port");
             String stdout = proc.StandardOutput.ReadToEnd();
 
             try
@@ -568,7 +568,7 @@ namespace RabbitMQ.Client.Unit
             }
             catch (Exception)
             {
-                Console.WriteLine("Bad response from rabbitmqctl list_connections -q pid peer_port:" + Environment.NewLine + stdout);
+                Console.WriteLine("Bad response from rabbitmqctl list_connections -q --no-table-headers pid peer_port:" + Environment.NewLine + stdout);
                 throw;
             }
         }
