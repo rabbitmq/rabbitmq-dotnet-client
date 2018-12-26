@@ -577,7 +577,7 @@ namespace RabbitMQ.Client.Impl
         {
             if (routingKey == null)
             {
-                throw new ArgumentNullException("routingKey");
+                throw new ArgumentNullException(nameof(routingKey));
             }
 
             m_delegate._Private_BasicPublish(exchange, routingKey, mandatory,
@@ -812,7 +812,7 @@ namespace RabbitMQ.Client.Impl
         {
             if (routingKey == null)
             {
-                throw new ArgumentNullException("routingKey");
+                throw new ArgumentNullException(nameof(routingKey));
             }
 
             m_delegate.BasicPublish(exchange,

@@ -1282,7 +1282,7 @@ namespace RabbitMQ.Client.Impl
         {
             if (routingKey == null)
             {
-                throw new ArgumentNullException("routingKey");
+                throw new ArgumentNullException(nameof(routingKey));
             }
 
             if (basicProperties == null)
