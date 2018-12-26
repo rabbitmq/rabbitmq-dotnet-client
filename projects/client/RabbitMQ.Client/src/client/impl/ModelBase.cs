@@ -1295,8 +1295,9 @@ namespace RabbitMQ.Client.Impl
                     NextPublishSeqNo++;
                 }
             }
-            _Private_BasicPublish(exchange,
-                routingKey,
+            _Private_BasicPublish(
+                exchange,
+                routingKey ?? string.Empty,
                 mandatory,
                 basicProperties,
                 body);

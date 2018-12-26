@@ -575,8 +575,12 @@ namespace RabbitMQ.Client.Impl
             IBasicProperties basicProperties,
             byte[] body)
         {
-            m_delegate._Private_BasicPublish(exchange, routingKey, mandatory,
-                basicProperties, body);
+            m_delegate._Private_BasicPublish(
+                exchange,
+                routingKey ?? string.Empty,
+                mandatory,
+                basicProperties,
+                body);
         }
 
         public void _Private_BasicRecover(bool requeue)
@@ -805,8 +809,9 @@ namespace RabbitMQ.Client.Impl
             IBasicProperties basicProperties,
             byte[] body)
         {
-            m_delegate.BasicPublish(exchange,
-                routingKey,
+            m_delegate.BasicPublish(
+                exchange,
+                routingKey ?? string.Empty,
                 mandatory,
                 basicProperties,
                 body);
