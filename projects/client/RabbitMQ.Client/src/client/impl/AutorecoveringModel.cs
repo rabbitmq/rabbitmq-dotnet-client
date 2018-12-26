@@ -575,6 +575,11 @@ namespace RabbitMQ.Client.Impl
             IBasicProperties basicProperties,
             byte[] body)
         {
+            if (routingKey == null)
+            {
+                throw new ArgumentNullException(nameof(routingKey));
+            }
+
             m_delegate._Private_BasicPublish(exchange, routingKey, mandatory,
                 basicProperties, body);
         }
@@ -805,6 +810,11 @@ namespace RabbitMQ.Client.Impl
             IBasicProperties basicProperties,
             byte[] body)
         {
+            if (routingKey == null)
+            {
+                throw new ArgumentNullException(nameof(routingKey));
+            }
+
             m_delegate.BasicPublish(exchange,
                 routingKey,
                 mandatory,
