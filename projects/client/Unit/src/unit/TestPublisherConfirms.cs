@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Unit
             TestWaitForConfirms(200, (ch) =>
             {
                 Assert.IsTrue(ch.WaitForConfirms());
-            });;
+            });
         }
 
         [Test]
@@ -63,7 +63,7 @@ namespace RabbitMQ.Client.Unit
             TestWaitForConfirms(200, (ch) =>
             {
                 Assert.IsTrue(ch.WaitForConfirms(TimeSpan.FromSeconds(4)));
-            }); ;
+            });
         }
 
         [Test]
