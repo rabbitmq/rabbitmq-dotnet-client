@@ -1280,6 +1280,11 @@ namespace RabbitMQ.Client.Impl
             IBasicProperties basicProperties,
             byte[] body)
         {
+            if (routingKey)
+            {
+                throw new ArgumentNullException("routingKey");
+            }
+
             if (basicProperties == null)
             {
                 basicProperties = CreateBasicProperties();
