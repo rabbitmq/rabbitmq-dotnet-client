@@ -23,7 +23,8 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
     <PackageReference Include="NUnit" Version="3.11.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.11.2" />
-    <PackageReference Include="PublicApiGenerator" Version="8.1.0" />
+    <!--<PackageReference Include="PublicApiGenerator" Version="8.1.0" />-->
+    <PackageReference Include="Mono.Cecil" Version="0.10.3" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.0' ">
