@@ -63,6 +63,50 @@ using System.Reflection;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
+#if !NETFX_CORE
+    public class Timer : IDisposable {
+        private bool _isRunning;
+        private Thread _thread;
+        private TimeSpan _dueTime, _period;
+        private readonly string _name;
+        private readonly Action<object> _callback;
+
+        public Timer(string name, Action<object> callback, TimeSpan dueTime, TimeSpan period) {
+            _name = name;
+            _callback = callback;
+            _dueTime = dueTime;
+            _period = period;
+
+            _isRunning = true;
+            _thread = new Thread(Worker) { IsBackground = true };
+            _thread.Start();
+        }
+
+        public void Dispose() {
+            _isRunning = false;
+        }
+
+        private void Worker() {
+            try {
+                ESLog.Info("[{0}] Starting '{1}'", nameof(Timer), _name);
+                if (_dueTime > TimeSpan.Zero)
+                    Thread.Sleep(_dueTime);
+                while (_isRunning) {
+                    try {
+                        _callback(null);
+                        if (_isRunning && _period > TimeSpan.Zero)
+                            Thread.Sleep(_period);
+                    } catch (Exception innerEx) {
+                        ESLog.Error("[{0}] '{1}' callback error - {2}", innerEx, nameof(Timer), _name, innerEx.Message);
+                    }
+                }
+            } catch (Exception ex) {
+                ESLog.Error("[{0}] '{1}' error - {2}", ex, nameof(Timer), _name, ex.Message);
+            }
+        }
+    }
+#endif
+
     public class Connection : IConnection
     {
         private readonly object m_eventLock = new object();
@@ -1020,10 +1064,8 @@ entry.ToString());
                 _heartbeatWriteTimer.Change(200, (int)m_heartbeatTimeSpan.TotalMilliseconds);
                 _heartbeatReadTimer.Change(200, (int)m_heartbeatTimeSpan.TotalMilliseconds);
 #else
-                _heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback, null, 200, (int)m_heartbeatTimeSpan.TotalMilliseconds);
-                _heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback, null, 200, (int)m_heartbeatTimeSpan.TotalMilliseconds);
-                _heartbeatWriteTimer.Change(TimeSpan.FromMilliseconds(200), m_heartbeatTimeSpan);
-                _heartbeatReadTimer.Change(TimeSpan.FromMilliseconds(200), m_heartbeatTimeSpan);
+                _heartbeatWriteTimer = new Timer("HeartbeatWriter", HeartbeatWriteTimerCallback, TimeSpan.FromMilliseconds(200), m_heartbeatTimeSpan);
+                _heartbeatReadTimer = new Timer("HeartbeatReader", HeartbeatReadTimerCallback, TimeSpan.FromMilliseconds(200), m_heartbeatTimeSpan);
 #endif
             }
         }
@@ -1085,10 +1127,12 @@ entry.ToString());
                         TerminateMainloop();
                         FinishClose();
                     }
+#if NETFX_CORE
                     else if (_heartbeatReadTimer != null)
                     {
                         _heartbeatReadTimer.Change(Heartbeat * 1000, Timeout.Infinite);
                     }
+#endif
                 }
                 catch (ObjectDisposedException)
                 {
@@ -1168,7 +1212,9 @@ entry.ToString());
             {
                 try
                 {
+#if NETFX_CORE
                     captured.Change(Timeout.Infinite, Timeout.Infinite);
+#endif
                     captured.Dispose();
                     timer = null;
                 }
