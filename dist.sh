@@ -61,7 +61,7 @@ fi
 ### Overrideable vars
 test "$KEYFILE" || KEYFILE=rabbit-mock.snk
 test "$RABBIT_VSN" || RABBIT_VSN=0.0.0.0
-test "$WEB_URL" || WEB_URL=http://stage.rabbitmq.com/
+test "$WEB_URL" || WEB_URL=https://stage.rabbitmq.com/
 test "$UNOFFICIAL_RELEASE" || UNOFFICIAL_RELEASE=
 test "$MONO_DIST" || MONO_DIST=
 test "$BUILD_WINRT" || BUILD_WINRT=false
