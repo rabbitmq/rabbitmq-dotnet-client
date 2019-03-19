@@ -84,7 +84,7 @@ namespace RabbitMQ.Client
     public sealed class ConnectionFactory : RabbitMQ.Client.ConnectionFactoryBase, RabbitMQ.Client.IAsyncConnectionFactory, RabbitMQ.Client.IConnectionFactory
     {
         public static readonly System.Collections.Generic.IList<RabbitMQ.Client.AuthMechanismFactory> DefaultAuthMechanisms;
-        public const ushort DefaultChannelMax = 0;
+        public const ushort DefaultChannelMax = 2047;
         public const int DefaultConnectionTimeout = 30000;
         public const uint DefaultFrameMax = 0u;
         public const ushort DefaultHeartbeat = 60;
