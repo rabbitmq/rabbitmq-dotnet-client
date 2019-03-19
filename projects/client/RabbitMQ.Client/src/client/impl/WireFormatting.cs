@@ -57,11 +57,17 @@ namespace RabbitMQ.Client.Impl
                 throw new SyntaxError("Unrepresentable AMQP decimal table field: " +
                                       "scale=" + scale);
             }
-            return new decimal((int)(unsignedMantissa & 0x7FFFFFFF),
-                0,
-                0,
-                ((unsignedMantissa & 0x80000000) == 0) ? false : true,
-                scale);
+
+            return new decimal(
+                // The low 32 bits of a 96-bit integer
+                lo: (int)(unsignedMantissa & 0x7FFFFFFF),
+                // The middle 32 bits of a 96-bit integer.
+                mid: 0,
+                // The high 32 bits of a 96-bit integer.
+                hi: 0,
+                isNegative: (unsignedMantissa & 0x80000000) != 0,
+                // A power of 10 ranging from 0 to 28.
+                scale: scale);
         }
 
         public static void DecimalToAmqp(decimal value, out byte scale, out int mantissa)
@@ -91,7 +97,7 @@ namespace RabbitMQ.Client.Impl
         {
             IList array = new List<object>();
             long arrayLength = reader.ReadUInt32();
-            Stream backingStream = reader.BaseStream;
+            var backingStream = reader.BaseStream;
             long startPosition = backingStream.Position;
             while ((backingStream.Position - startPosition) < arrayLength)
             {
@@ -129,7 +135,6 @@ namespace RabbitMQ.Client.Impl
                 case 'F':
                     value = ReadTable(reader);
                     break;
-
                 case 'A':
                     value = ReadArray(reader);
                     break;
@@ -215,7 +220,7 @@ namespace RabbitMQ.Client.Impl
             IDictionary<string, object> table = new Dictionary<string, object>();
             long tableLength = reader.ReadUInt32();
 
-            Stream backingStream = reader.BaseStream;
+            var backingStream = reader.BaseStream;
             long startPosition = backingStream.Position;
             while ((backingStream.Position - startPosition) < tableLength)
             {
@@ -247,7 +252,7 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                Stream backingStream = writer.BaseStream;
+                var backingStream = writer.BaseStream;
                 long patchPosition = backingStream.Position;
                 writer.Write((uint)0); // length of table - will be backpatched
                 foreach (object entry in val)
@@ -264,93 +269,82 @@ namespace RabbitMQ.Client.Impl
 
         public static void WriteDecimal(NetworkBinaryWriter writer, decimal value)
         {
-            byte scale;
-            int mantissa;
-            DecimalToAmqp(value, out scale, out mantissa);
+            DecimalToAmqp(value, out var scale, out var mantissa);
             WriteOctet(writer, scale);
             WriteLong(writer, (uint)mantissa);
         }
 
         public static void WriteFieldValue(NetworkBinaryWriter writer, object value)
         {
-            if (value == null)
+            switch (value)
             {
-                WriteOctet(writer, (byte)'V');
-            }
-            else if (value is string)
-            {
-                WriteOctet(writer, (byte)'S');
-                WriteLongstr(writer, Encoding.UTF8.GetBytes((string)value));
-            }
-            else if (value is byte[])
-            {
-                WriteOctet(writer, (byte)'S');
-                WriteLongstr(writer, (byte[])value);
-            }
-            else if (value is int)
-            {
-                WriteOctet(writer, (byte)'I');
-                writer.Write((int)value);
-            }
-            else if (value is decimal)
-            {
-                WriteOctet(writer, (byte)'D');
-                WriteDecimal(writer, (decimal)value);
-            }
-            else if (value is AmqpTimestamp)
-            {
-                WriteOctet(writer, (byte)'T');
-                WriteTimestamp(writer, (AmqpTimestamp)value);
-            }
-            else if (value is IDictionary)
-            {
-                WriteOctet(writer, (byte)'F');
-                WriteTable(writer, (IDictionary)value);
-            }
-            else if (value is IList)
-            {
-                WriteOctet(writer, (byte)'A');
-                WriteArray(writer, (IList)value);
-            }
-            else if (value is sbyte)
-            {
-                WriteOctet(writer, (byte)'b');
-                writer.Write((sbyte)value);
-            }
-            else if (value is double)
-            {
-                WriteOctet(writer, (byte)'d');
-                writer.Write((double)value);
-            }
-            else if (value is float)
-            {
-                WriteOctet(writer, (byte)'f');
-                writer.Write((float)value);
-            }
-            else if (value is long)
-            {
-                WriteOctet(writer, (byte)'l');
-                writer.Write((long)value);
-            }
-            else if (value is short)
-            {
-                WriteOctet(writer, (byte)'s');
-                writer.Write((short)value);
-            }
-            else if (value is bool)
-            {
-                WriteOctet(writer, (byte)'t');
-                WriteOctet(writer, (byte)(((bool)value) ? 1 : 0));
-            }
-            else if (value is BinaryTableValue)
-            {
-                WriteOctet(writer, (byte)'x');
-                WriteLongstr(writer, ((BinaryTableValue)value).Bytes);
-            }
-            else
-            {
-                throw new WireFormattingException("Value cannot appear as table value",
-                    value);
+                case null:
+                    WriteOctet(writer, (byte)'V');
+                    break;
+                case string val:
+                    WriteOctet(writer, (byte)'S');
+                    WriteLongstr(writer, Encoding.UTF8.GetBytes(val));
+                    break;
+                case byte[] val:
+                    WriteOctet(writer, (byte)'S');
+                    WriteLongstr(writer, val);
+                    break;
+                case int val:
+                    WriteOctet(writer, (byte)'I');
+                    writer.Write(val);
+                    break;
+                case decimal val:
+                    WriteOctet(writer, (byte)'D');
+                    WriteDecimal(writer, val);
+                    break;
+                case AmqpTimestamp val:
+                    WriteOctet(writer, (byte)'T');
+                    WriteTimestamp(writer, val);
+                    break;
+                case IDictionary val:
+                    WriteOctet(writer, (byte)'F');
+                    WriteTable(writer, val);
+                    break;
+                case IList val:
+                    WriteOctet(writer, (byte)'A');
+                    WriteArray(writer, val);
+                    break;
+                case byte val:
+                    WriteOctet(writer, (byte)'b');
+                    writer.Write(val);
+                    break;
+                case sbyte val:
+                    WriteOctet(writer, (byte)'b');
+                    writer.Write(val);
+                    break;
+                case double val:
+                    WriteOctet(writer, (byte)'d');
+                    writer.Write(val);
+                    break;
+                case float val:
+                    WriteOctet(writer, (byte)'f');
+                    writer.Write(val);
+                    break;
+                case long val:
+                    WriteOctet(writer, (byte)'l');
+                    writer.Write(val);
+                    break;
+                case short val:
+                    WriteOctet(writer, (byte)'s');
+                    writer.Write(val);
+                    break;
+                case bool val:
+                    WriteOctet(writer, (byte)'t');
+                    WriteOctet(writer, (byte)(val ? 1 : 0));
+                    break;
+                case BinaryTableValue val:
+                    WriteOctet(writer, (byte)'x');
+                    WriteLongstr(writer, val.Bytes);
+                    break;
+                default:
+                    throw new WireFormattingException(
+                        $"Value of type '{value.GetType().Name}' cannot appear as table value",
+                        value);
             }
         }
 
@@ -382,14 +376,16 @@ namespace RabbitMQ.Client.Impl
 
         public static void WriteShortstr(NetworkBinaryWriter writer, string val)
         {
-            byte[] bytes = Encoding.UTF8.GetBytes(val);
-            int len = bytes.Length;
-            if (len > 255)
+            var bytes = Encoding.UTF8.GetBytes(val);
+            var length = bytes.Length;
+            
+            if (length > 255)
             {
                 throw new WireFormattingException("Short string too long; " +
-                                                  "UTF-8 encoded length=" + len + ", max=255");
+                                                  "UTF-8 encoded length=" + length + ", max=255");
             }
-            writer.Write((byte)len);
+
+            writer.Write((byte)length);
             writer.Write(bytes);
         }
 
@@ -415,15 +411,14 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                Stream backingStream = writer.BaseStream;
+                var backingStream = writer.BaseStream;
                 long patchPosition = backingStream.Position;
                 writer.Write((uint)0); // length of table - will be backpatched
 
                 foreach (DictionaryEntry entry in val)
                 {
                     WriteShortstr(writer, entry.Key.ToString());
-                    object value = entry.Value;
-                    WriteFieldValue(writer, value);
+                    WriteFieldValue(writer, entry.Value);
                 }
 
                 // Now, backpatch the table length.
@@ -457,15 +452,14 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                Stream backingStream = writer.BaseStream;
+                var backingStream = writer.BaseStream;
                 long patchPosition = backingStream.Position;
                 writer.Write((uint)0); // length of table - will be backpatched
 
-                foreach (KeyValuePair<string, object> entry in val)
+                foreach (var entry in val)
                 {
                     WriteShortstr(writer, entry.Key);
-                    object value = entry.Value;
-                    WriteFieldValue(writer, value);
+                    WriteFieldValue(writer, entry.Value);
                 }
 
                 // Now, backpatch the table length.
