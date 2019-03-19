@@ -644,7 +644,7 @@ namespace RabbitMQ.Client.Impl
             bool nowait,
             IDictionary<string, object> arguments)
         {
-            _Private_ExchangeBind(destination, source, routingKey,
+            m_delegate._Private_ExchangeBind(destination, source, routingKey,
                 nowait, arguments);
         }
 
@@ -657,7 +657,7 @@ namespace RabbitMQ.Client.Impl
             bool nowait,
             IDictionary<string, object> arguments)
         {
-            _Private_ExchangeDeclare(exchange, type, passive,
+            m_delegate._Private_ExchangeDeclare(exchange, type, passive,
                 durable, autoDelete, @internal,
                 nowait, arguments);
         }
@@ -666,7 +666,7 @@ namespace RabbitMQ.Client.Impl
             bool ifUnused,
             bool nowait)
         {
-            _Private_ExchangeDelete(exchange, ifUnused, nowait);
+            m_delegate._Private_ExchangeDelete(exchange, ifUnused, nowait);
         }
 
         public void _Private_ExchangeUnbind(string destination,
@@ -685,7 +685,7 @@ namespace RabbitMQ.Client.Impl
             bool nowait,
             IDictionary<string, object> arguments)
         {
-            _Private_QueueBind(queue, exchange, routingKey,
+            m_delegate._Private_QueueBind(queue, exchange, routingKey,
                 nowait, arguments);
         }
 
