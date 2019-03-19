@@ -138,6 +138,9 @@ namespace RabbitMQ.Client.Impl
                 case 'A':
                     value = ReadArray(reader);
                     break;
+                case 'B':
+                    value = reader.ReadByte();
+                    break;
                 case 'b':
                     value = reader.ReadSByte();
                     break;
@@ -310,7 +313,7 @@ namespace RabbitMQ.Client.Impl
                     WriteArray(writer, val);
                     break;
                 case byte val:
-                    WriteOctet(writer, (byte)'b');
+                    WriteOctet(writer, (byte)'B');
                     writer.Write(val);
                     break;
                 case sbyte val:
