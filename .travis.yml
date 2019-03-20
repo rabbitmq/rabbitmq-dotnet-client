@@ -22,7 +22,7 @@ env:
 
 otp_release:
   - "20.3"
-  - "21.2"
+  - "21.3"
 
 before_script:
   - elixir --version
