@@ -119,6 +119,7 @@ namespace RabbitMQ.Client.Unit
         {
             NetworkBinaryWriter w = Writer();
             IDictionary<string, object> t = new Dictionary<string, object>();
+            t["B"] = (byte)255;
             t["b"] = (sbyte)-128;
             t["d"] = (double)123;
             t["f"] = (float)123;
@@ -130,6 +131,7 @@ namespace RabbitMQ.Client.Unit
             t["V"] = null;
             WireFormatting.WriteTable(w, t);
             IDictionary nt = (IDictionary)WireFormatting.ReadTable(Reader(Contents(w)));
+            Assert.AreEqual(typeof(byte), nt["B"].GetType()); Assert.AreEqual((byte)255, nt["B"]);
             Assert.AreEqual(typeof(sbyte), nt["b"].GetType()); Assert.AreEqual((sbyte)-128, nt["b"]);
             Assert.AreEqual(typeof(double), nt["d"].GetType()); Assert.AreEqual((double)123, nt["d"]);
             Assert.AreEqual(typeof(float), nt["f"].GetType()); Assert.AreEqual((float)123, nt["f"]);

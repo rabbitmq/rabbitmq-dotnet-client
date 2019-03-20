@@ -117,17 +117,19 @@ namespace RabbitMQ.Client.Unit
         {
             NetworkBinaryWriter w = Writer();
             Hashtable t = new Hashtable();
+            t["B"] = (byte)255;
             t["b"] = (sbyte)-128;
             t["d"] = (double)123;
             t["f"] = (float)123;
             t["l"] = (long)123;
             t["s"] = (short)123;
             t["t"] = true;
-            byte[] xbytes = new byte[] { 0xaa, 0x55 };
+            byte[] xbytes = { 0xaa, 0x55 };
             t["x"] = new BinaryTableValue(xbytes);
             t["V"] = null;
             WireFormatting.WriteTable(w, t);
             IDictionary nt = (IDictionary)WireFormatting.ReadTable(Reader(Contents(w)));
+            Assert.AreEqual(typeof(byte), nt["B"].GetType()); Assert.AreEqual((byte)255, nt["B"]);
             Assert.AreEqual(typeof(sbyte), nt["b"].GetType()); Assert.AreEqual((sbyte)-128, nt["b"]);
             Assert.AreEqual(typeof(double), nt["d"].GetType()); Assert.AreEqual((double)123, nt["d"]);
             Assert.AreEqual(typeof(float), nt["f"].GetType()); Assert.AreEqual((float)123, nt["f"]);
