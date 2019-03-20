@@ -1,7 +1,7 @@
 ## RabbitMQ .NET Client [![Build status](https://ci.appveyor.com/api/projects/status/33srpo7owl1h3y4e?svg=true)](https://ci.appveyor.com/project/rabbitmq/rabbitmq-dotnet-client)
 
-This repository contains source code of the [RabbitMQ .NET client](http://www.rabbitmq.com/dotnet.html).
-The client is maintained by the [RabbitMQ team at Pivotal](http://github.com/rabbitmq/).
+This repository contains source code of the [RabbitMQ .NET client](https://www.rabbitmq.com/dotnet.html).
+The client is maintained by the [RabbitMQ team at Pivotal](https://github.com/rabbitmq/).
 
 
 ## Dependency (Binaries and Nuget Artifact)
@@ -20,8 +20,8 @@ as archives.
 
 ## Tutorials and Documentation
 
- * [Tutorials](http://www.rabbitmq.com/getstarted.html)
- * [Documentation guide](http://www.rabbitmq.com/dotnet.html)
+ * [Tutorials](https://www.rabbitmq.com/getstarted.html)
+ * [Documentation guide](https://www.rabbitmq.com/dotnet.html)
  * [API Documentation](https://rabbitmq.github.io/rabbitmq-dotnet-client/index.html)
 
 
@@ -30,7 +30,7 @@ as archives.
 `4.x` and `5.x` versions of the library require .NET 4.5.1 or later or .NET Core.
 For .NET Core users, 2.0 is the minimum supported version for `5.x` series.
 
-`3.6.x` releases support Linux and OS X on [Mono](http://www.mono-project.com/).
+`3.6.x` releases support Linux and OS X on [Mono](https://www.mono-project.com/).
 
 ## Change Log
 

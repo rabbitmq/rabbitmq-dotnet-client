@@ -14,8 +14,8 @@
     <PackageId>RabbitMQ.Client</PackageId>
     <PackageTags>RabbitMQ</PackageTags>
     <PackageIconUrl>https://en.gravatar.com/userimage/10048884/0ea8846e080980f705da081be53599ce.png?size=100</PackageIconUrl>
-    <PackageProjectUrl>http://www.rabbitmq.com/dotnet.html</PackageProjectUrl>
-    <PackageLicenseUrl>http://www.rabbitmq.com/dotnet.html</PackageLicenseUrl>
+    <PackageProjectUrl>https://www.rabbitmq.com/dotnet.html</PackageProjectUrl>
+    <PackageLicenseUrl>https://www.rabbitmq.com/dotnet.html</PackageLicenseUrl>
     <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netstandard1.5' ">$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
     <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>

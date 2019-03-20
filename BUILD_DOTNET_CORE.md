@@ -1,7 +1,7 @@
 To build the dotnet core components you need the `dotnet` command line utility installed.
 It can be obtained for your chosen platform [here](https://www.microsoft.com/net/core#macosx).
 
-You will also need [mono 5.x](http://www.mono-project.com/docs/about-mono/releases/).
+You will also need [mono 5.x](https://www.mono-project.com/docs/about-mono/releases/).
 
  Run `./build.sh` (linux/osx) or `build.bat` (windows) to trigger code generation and complete a dotnet core build. 
 
