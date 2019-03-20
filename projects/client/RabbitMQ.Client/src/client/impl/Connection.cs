@@ -25,7 +25,7 @@
 //  The contents of this file are subject to the Mozilla Public License
 //  Version 1.1 (the "License"); you may not use this file except in
 //  compliance with the License. You may obtain a copy of the License
-//  at http://www.mozilla.org/MPL/
+//  at https://www.mozilla.org/MPL/
 //
 //  Software distributed under the License is distributed on an "AS IS"
 //  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
@@ -368,7 +368,7 @@ namespace RabbitMQ.Client.Framing.Impl
             table["platform"] = Encoding.UTF8.GetBytes(".NET");
             table["copyright"] = Encoding.UTF8.GetBytes("Copyright (c) 2007-2016 Pivotal Software, Inc.");
             table["information"] = Encoding.UTF8.GetBytes("Licensed under the MPL.  " +
-                                                          "See http://www.rabbitmq.com/");
+                                                          "See https://www.rabbitmq.com/");
             return table;
         }
 

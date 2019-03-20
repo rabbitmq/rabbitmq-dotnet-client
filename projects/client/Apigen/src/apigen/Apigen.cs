@@ -25,7 +25,7 @@
 //  The contents of this file are subject to the Mozilla Public License
 //  Version 1.1 (the "License"); you may not use this file except in
 //  compliance with the License. You may obtain a copy of the License
-//  at http://www.mozilla.org/MPL/
+//  at https://www.mozilla.org/MPL/
 //
 //  Software distributed under the License is distributed on an "AS IS"
 //  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
@@ -422,7 +422,7 @@ namespace RabbitMQ.Client.Apigen
             EmitLine("//   The contents of this file are subject to the Mozilla Public License");
             EmitLine("//   Version 1.1 (the \"License\"); you may not use this file except in");
             EmitLine("//   compliance with the License. You may obtain a copy of the License at");
-            EmitLine("//   http://www.rabbitmq.com/mpl.html");
+            EmitLine("//   https://www.rabbitmq.com/mpl.html");
             EmitLine("//");
             EmitLine("//   Software distributed under the License is distributed on an \"AS IS\"");
             EmitLine("//   basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the");
