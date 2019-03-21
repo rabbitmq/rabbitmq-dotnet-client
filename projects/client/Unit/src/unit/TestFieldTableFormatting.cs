@@ -60,6 +60,7 @@ namespace RabbitMQ.Client.Unit
             Hashtable t = new Hashtable();
             t["string"] = "Hello";
             t["int"] = 1234;
+            t["uint"] = 1234u;
             t["decimal"] = 12.34m;
             t["timestamp"] = new AmqpTimestamp(0);
             Hashtable t2 = new Hashtable();
@@ -73,6 +74,7 @@ namespace RabbitMQ.Client.Unit
             IDictionary nt = (IDictionary)WireFormatting.ReadTable(Reader(Contents(w)));
             Assert.AreEqual(Encoding.UTF8.GetBytes("Hello"), nt["string"]);
             Assert.AreEqual(1234, nt["int"]);
+            Assert.AreEqual(1234u, nt["uint"]);
             Assert.AreEqual(12.34m, nt["decimal"]);
             Assert.AreEqual(0, ((AmqpTimestamp)nt["timestamp"]).UnixTime);
             IDictionary nt2 = (IDictionary)nt["fieldtable"];
