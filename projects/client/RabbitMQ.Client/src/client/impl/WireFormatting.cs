@@ -126,6 +126,9 @@ namespace RabbitMQ.Client.Impl
                 case 'I':
                     value = reader.ReadInt32();
                     break;
+                case 'i':
+                    value = reader.ReadUInt32();
+                    break;
                 case 'D':
                     value = ReadDecimal(reader);
                     break;
@@ -294,6 +297,10 @@ namespace RabbitMQ.Client.Impl
                     break;
                 case int val:
                     WriteOctet(writer, (byte)'I');
+                    writer.Write(val);
+                    break;
+                case uint val:
+                    WriteOctet(writer, (byte)'i');
                     writer.Write(val);
                     break;
                 case decimal val:
