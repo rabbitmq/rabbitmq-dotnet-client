@@ -1021,15 +1021,32 @@ entry.ToString());
                 m_hasDisposedHeartBeatReadTimer = false;
                 m_hasDisposedHeartBeatWriteTimer = false;
 #if NETFX_CORE
-                _heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback);
-                _heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback);
-                _heartbeatWriteTimer.Change(200, (int)m_heartbeatTimeSpan.TotalMilliseconds);
-                _heartbeatReadTimer.Change(200, (int)m_heartbeatTimeSpan.TotalMilliseconds);
+                lock(_heartBeatWriteLock)
+                {
+                    _heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback);
+                    _heartbeatWriteTimer.Change(200, Timeout.Infinite);
+                }
+
+                lock (_heartBeatReadLock)
+                {
+                    _heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback);
+
+                    _heartbeatReadTimer.Change(300, Timeout.Infinite);
+                }
 #else
-                _heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback, null, 200, (int)m_heartbeatTimeSpan.TotalMilliseconds);
-                _heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback, null, 200, (int)m_heartbeatTimeSpan.TotalMilliseconds);
-                _heartbeatWriteTimer.Change(TimeSpan.FromMilliseconds(200), m_heartbeatTimeSpan);
-                _heartbeatReadTimer.Change(TimeSpan.FromMilliseconds(200), m_heartbeatTimeSpan);
+                lock (_heartBeatWriteLock)
+                {
+                    _heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback, null, Timeout.Infinite, Timeout.Infinite);
+
+                    _heartbeatWriteTimer.Change(200, Timeout.Infinite);
+                }
+
+                lock (_heartBeatReadLock)
+                {
+                    _heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback, null, Timeout.Infinite, Timeout.Infinite);
+
+                    _heartbeatReadTimer.Change(300, Timeout.Infinite);
+                }
 #endif
             }
         }
@@ -1056,7 +1073,9 @@ entry.ToString());
                 {
                     return;
                 }
+
                 bool shouldTerminate = false;
+
                 try
                 {
                     if (!m_closed)
@@ -1117,37 +1136,47 @@ entry.ToString());
                 {
                     return;
                 }
-                bool shouldTerminate = false;
+            }
+
+            bool shouldTerminate = false;
+
+            try
+            {
                 try
                 {
-                    try
+                    if (!m_closed)
                     {
-                        if (!m_closed)
-                        {
-                            WriteFrame(m_heartbeatFrame);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        HandleMainLoopException(new ShutdownEventArgs(
-                            ShutdownInitiator.Library,
-                            0,
-                            "End of stream",
-                            e));
-                        shouldTerminate = true;
-                    }
-
-                    if (m_closed || shouldTerminate)
-                    {
-                        TerminateMainloop();
-                        FinishClose();
+                        WriteFrame(m_heartbeatFrame);
                     }
                 }
-                catch (ObjectDisposedException)
+                catch (Exception e)
                 {
-                    // timer is already disposed,
-                    // e.g. due to shutdown
-                } /**/
+                    HandleMainLoopException(new ShutdownEventArgs(
+                        ShutdownInitiator.Library,
+                        0,
+                        "End of stream",
+                        e));
+                    shouldTerminate = true;
+                }
+
+                if (m_closed || shouldTerminate)
+                {
+                    TerminateMainloop();
+                    FinishClose();
+                }
+            }
+            catch (ObjectDisposedException)
+            {
+                // timer is already disposed,
+                // e.g. due to shutdown
+            }
+
+            lock(_heartBeatWriteLock)
+            {
+                if(m_closed == false && shouldTerminate == false && _heartbeatWriteTimer != null)
+                {
+                    _heartbeatWriteTimer.Change((int)m_heartbeatTimeSpan.TotalMilliseconds, Timeout.Infinite);
+                }
             }
         }
 
