@@ -1069,7 +1069,7 @@ entry.ToString());
                 }
 
                 bool shouldTerminate = false;
-                
+
                 try
                 {
                     if (!m_closed)
@@ -1163,7 +1163,7 @@ entry.ToString());
             {
                 // timer is already disposed,
                 // e.g. due to shutdown
-            } /**/
+            }
 
             lock(_heartBeatWriteLock)
             {
