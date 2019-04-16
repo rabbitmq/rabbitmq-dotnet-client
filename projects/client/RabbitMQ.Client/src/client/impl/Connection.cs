@@ -1146,7 +1146,7 @@ entry.ToString());
             }
             catch (Exception)
             {
-                // ignore, let the read callback detected
+                // ignore, let the read callback detect
                 // peer unavailability. See rabbitmq/rabbitmq-dotnet-client#638 for details.
             }
 
