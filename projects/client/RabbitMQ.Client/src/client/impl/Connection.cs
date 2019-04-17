@@ -1138,31 +1138,11 @@ entry.ToString());
                 }
             }
 
-            bool shouldTerminate = false;
-
             try
             {
-                try
+                if (!m_closed)
                 {
-                    if (!m_closed)
-                    {
-                        WriteFrame(m_heartbeatFrame);
-                    }
-                }
-                catch (Exception e)
-                {
-                    HandleMainLoopException(new ShutdownEventArgs(
-                        ShutdownInitiator.Library,
-                        0,
-                        "End of stream",
-                        e));
-                    shouldTerminate = true;
-                }
-
-                if (m_closed || shouldTerminate)
-                {
-                    TerminateMainloop();
-                    FinishClose();
+                    WriteFrame(m_heartbeatFrame);
                 }
             }
             catch (ObjectDisposedException)
@@ -1170,10 +1150,15 @@ entry.ToString());
                 // timer is already disposed,
                 // e.g. due to shutdown
             }
+            catch (Exception)
+            {
+                // ignore, let the read callback detect
+                // peer unavailability. See rabbitmq/rabbitmq-dotnet-client#638 for details.
+            }
 
             lock(_heartBeatWriteLock)
             {
-                if(m_closed == false && shouldTerminate == false && _heartbeatWriteTimer != null)
+                if(m_closed == false && _heartbeatWriteTimer != null)
                 {
                     _heartbeatWriteTimer.Change((int)m_heartbeatTimeSpan.TotalMilliseconds, Timeout.Infinite);
                 }
