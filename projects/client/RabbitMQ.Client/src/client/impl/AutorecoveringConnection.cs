@@ -44,7 +44,6 @@ using RabbitMQ.Client.Impl;
 using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -66,12 +65,11 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public readonly object m_recordedEntitiesLock = new object();
         protected readonly TaskFactory recoveryTaskFactory = new TaskFactory();
-
         protected readonly object recoveryLockTarget = new object();
-
         // used to block connection recovery attempts after Close() is unvoked
         protected bool manuallyClosed = false;
         protected bool performingRecovery = false;
+
 
         protected List<AutorecoveringModel> m_models = new List<AutorecoveringModel>();
 
@@ -112,18 +110,17 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             get
             {
-                lock (manuallyClosedLock)
+                lock(manuallyClosedLock)
                 {
                     return manuallyClosed;
                 }
             }
             set
             {
-                lock (manuallyClosedLock)
+                lock(manuallyClosedLock)
                 {
-                    manuallyClosed = value;
+                    manuallyClosed = value; }
                 }
-            }
         }
 
         public event EventHandler<EventArgs> RecoverySucceeded
@@ -630,16 +627,14 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void Init(IFrameHandler fh)
         {
-            m_delegate = new Connection(m_factory,
-                false,
-                fh,
-                this.ClientProvidedName);
+            m_delegate = new Connection(m_factory, false,
+                fh, this.ClientProvidedName);
 
             AutorecoveringConnection self = this;
             EventHandler<ShutdownEventArgs> recoveryListener = (_, args) =>
             {
                 lock (recoveryLockTarget)
-                {
+                { 
                     var condition = m_factory.ConnectionRecoveryTriggeringCondition ?? ShouldTriggerConnectionRecovery;
 
                     if (condition(args))
@@ -669,7 +664,7 @@ namespace RabbitMQ.Client.Framing.Impl
         public void Abort()
         {
             this.ManuallyClosed = true;
-            if (m_delegate.IsOpen)
+            if(m_delegate.IsOpen)
                 m_delegate.Abort();
         }
 
@@ -739,7 +734,6 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 m_models.Add(m);
             }
-
             return m;
         }
 
@@ -759,7 +753,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 Abort();
             }
-            catch (Exception)
+            catch(Exception)
             {
                 // TODO: log
             }
@@ -795,7 +789,8 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             lock (m_recordedBindings)
             {
-                IEnumerable<KeyValuePair<string, RecordedConsumer>> cs = m_recordedConsumers.Where(pair => pair.Value.Queue.Equals(oldName));
+                IEnumerable<KeyValuePair<string, RecordedConsumer>> cs = m_recordedConsumers.
+                    Where(pair => pair.Value.Queue.Equals(oldName));
                 foreach (KeyValuePair<string, RecordedConsumer> c in cs)
                 {
                     c.Value.Queue = newName;
@@ -814,9 +809,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 catch (Exception cause)
                 {
                     string s = String.Format("Caught an exception while recovering binding between {0} and {1}: {2}",
-                        b.Source,
-                        b.Destination,
-                        cause.Message);
+                        b.Source, b.Destination, cause.Message);
                     HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
                 }
             }
@@ -936,9 +929,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 catch (Exception cause)
                 {
                     string s = String.Format("Caught an exception while recovering consumer {0} on queue {1}: {2}",
-                        tag,
-                        cons.Queue,
-                        cause.Message);
+                        tag, cons.Queue, cause.Message);
                     HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
                 }
             }
@@ -968,8 +959,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 catch (Exception cause)
                 {
                     string s = String.Format("Caught an exception while recovering exchange {0}: {1}",
-                        rx.Name,
-                        cause.Message);
+                        rx.Name, cause.Message);
                     HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
                 }
             }
@@ -1012,7 +1002,6 @@ namespace RabbitMQ.Client.Framing.Impl
                         {
                             DeleteRecordedQueue(oldName);
                         }
-
                         RecordQueue(newName, rq);
 
                         if (m_queueNameChange != null)
@@ -1036,8 +1025,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     catch (Exception cause)
                     {
                         string s = String.Format("Caught an exception while recovering queue {0}: {1}",
-                            oldName,
-                            cause.Message);
+                            oldName, cause.Message);
                         HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
                     }
                 }
@@ -1068,8 +1056,8 @@ namespace RabbitMQ.Client.Framing.Impl
         protected bool ShouldTriggerConnectionRecovery(ShutdownEventArgs args)
         {
             return (args.Initiator == ShutdownInitiator.Peer ||
-                    // happens when EOF is reached, e.g. due to RabbitMQ node
-                    // connectivity loss or abrupt shutdown
+                // happens when EOF is reached, e.g. due to RabbitMQ node
+                // connectivity loss or abrupt shutdown
                     args.Initiator == ShutdownInitiator.Library);
         }
     }
