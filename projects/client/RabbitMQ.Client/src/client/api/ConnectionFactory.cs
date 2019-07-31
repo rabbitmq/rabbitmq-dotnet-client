@@ -187,6 +187,8 @@ namespace RabbitMQ.Client
         private TimeSpan m_handshakeContinuationTimeout = TimeSpan.FromSeconds(10);
         private TimeSpan m_continuationTimeout = TimeSpan.FromSeconds(20);
 
+        public Predicate<ShutdownEventArgs> ConnectionRecoveryTriggeringCondition { get; set; }
+
         // just here to hold the value that was set through the setter
         private Uri uri;
 
