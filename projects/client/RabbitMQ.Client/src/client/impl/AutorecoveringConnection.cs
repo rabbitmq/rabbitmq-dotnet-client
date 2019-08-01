@@ -342,7 +342,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
             // find bindings that need removal, check if some auto-delete exchanges
             // might need the same
-            foreach (var b in bindings.Where(b => name.Equals(b.Destination)))
+            foreach (var b in bindings.Where(b => name.Equals(b.Destination)).ToArray())
             {
                 DeleteRecordedBinding(b);
                 MaybeDeleteRecordedAutoDeleteExchange(b.Source);
@@ -351,14 +351,12 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public bool HasMoreConsumersOnQueue(ICollection<RecordedConsumer> consumers, string queue)
         {
-            var cs = new List<RecordedConsumer>(consumers);
-            return cs.Exists(c => c.Queue.Equals(queue));
+            return consumers.Any(c => c.Queue.Equals(queue));
         }
 
         public bool HasMoreDestinationsBoundToExchange(ICollection<RecordedBinding> bindings, string exchange)
         {
-            var bs = new List<RecordedBinding>(bindings);
-            return bs.Exists(b => b.Source.Equals(exchange));
+            return bindings.Any(b => b.Source.Equals(exchange));
         }
 
         public void MaybeDeleteRecordedAutoDeleteExchange(string exchange)
@@ -446,7 +444,10 @@ namespace RabbitMQ.Client.Framing.Impl
                 fh,
                 this.ClientProvidedName);
 
-            m_recoveryThread = new Thread(MainRecoveryLoop);
+            m_recoveryThread = new Thread(MainRecoveryLoop)
+            {
+                IsBackground = true
+            };
             m_recoveryThread.Start();
 
             EventHandler<ShutdownEventArgs> recoveryListener = (_, args) =>
@@ -683,6 +684,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
         protected void RecoverConsumers()
         {
+            // Copy dictionary into array before iterating through it when we plan to update
+            //   the dictionary contents.
             foreach (KeyValuePair<string, RecordedConsumer> pair in m_recordedConsumers.ToArray())
             {
                 string tag = pair.Key;
@@ -766,55 +769,54 @@ namespace RabbitMQ.Client.Framing.Impl
 
         protected void RecoverQueues()
         {
-            lock (m_recordedQueues)
+            // Copy dictionary into array before iterating through it when we plan to update
+            //   the dictionary contents.
+            foreach (KeyValuePair<string, RecordedQueue> pair in m_recordedQueues.ToArray())
             {
-                foreach (KeyValuePair<string, RecordedQueue> pair in m_recordedQueues.ToArray())
+                string oldName = pair.Key;
+                RecordedQueue rq = pair.Value;
+
+                try
                 {
-                    string oldName = pair.Key;
-                    RecordedQueue rq = pair.Value;
+                    rq.Recover();
+                    string newName = rq.Name;
 
-                    try
+                    // Make sure server-named queues are re-added with
+                    // their new names.
+                    // We only remove old name after we've updated the bindings and consumers,
+                    // plus only for server-named queues, both to make sure we don't lose
+                    // anything to recover. MK.
+                    PropagateQueueNameChangeToBindings(oldName, newName);
+                    PropagateQueueNameChangeToConsumers(oldName, newName);
+                    // see rabbitmq/rabbitmq-dotnet-client#43
+                    if (rq.IsServerNamed)
                     {
-                        rq.Recover();
-                        string newName = rq.Name;
+                        DeleteRecordedQueue(oldName);
+                    }
 
-                        // Make sure server-named queues are re-added with
-                        // their new names.
-                        // We only remove old name after we've updated the bindings and consumers,
-                        // plus only for server-named queues, both to make sure we don't lose
-                        // anything to recover. MK.
-                        PropagateQueueNameChangeToBindings(oldName, newName);
-                        PropagateQueueNameChangeToConsumers(oldName, newName);
-                        // see rabbitmq/rabbitmq-dotnet-client#43
-                        if (rq.IsServerNamed)
+                    RecordQueue(newName, rq);
+
+                    foreach (EventHandler<QueueNameChangedAfterRecoveryEventArgs> h in QueueNameChangeAfterRecovery?.GetInvocationList() ?? new EventHandler<QueueNameChangedAfterRecoveryEventArgs>[] { })
+                    {
+                        try
                         {
-                            DeleteRecordedQueue(oldName);
+                            var eventArgs = new QueueNameChangedAfterRecoveryEventArgs(oldName, newName);
+                            h(this, eventArgs);
                         }
-
-                        RecordQueue(newName, rq);
-
-                        foreach (EventHandler<QueueNameChangedAfterRecoveryEventArgs> h in QueueNameChangeAfterRecovery?.GetInvocationList() ?? new EventHandler<QueueNameChangedAfterRecoveryEventArgs>[] { })
+                        catch (Exception e)
                         {
-                            try
-                            {
-                                var eventArgs = new QueueNameChangedAfterRecoveryEventArgs(oldName, newName);
-                                h(this, eventArgs);
-                            }
-                            catch (Exception e)
-                            {
-                                var args = new CallbackExceptionEventArgs(e);
-                                args.Detail["context"] = "OnQueueRecovery";
-                                m_delegate.OnCallbackException(args);
-                            }
+                            var args = new CallbackExceptionEventArgs(e);
+                            args.Detail["context"] = "OnQueueRecovery";
+                            m_delegate.OnCallbackException(args);
                         }
                     }
-                    catch (Exception cause)
-                    {
-                        string s = String.Format("Caught an exception while recovering queue {0}: {1}",
-                            oldName,
-                            cause.Message);
-                        HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
-                    }
+                }
+                catch (Exception cause)
+                {
+                    string s = String.Format("Caught an exception while recovering queue {0}: {1}",
+                        oldName,
+                        cause.Message);
+                    HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
                 }
             }
         }
