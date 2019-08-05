@@ -81,14 +81,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         protected ConcurrentDictionary<string, RecordedQueue> m_recordedQueues =
             new ConcurrentDictionary<string, RecordedQueue>();
-
-        //private EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> m_consumerTagChange;
-        //private EventHandler<QueueNameChangedAfterRecoveryEventArgs> m_queueNameChange;
-        //private EventHandler<EventArgs> m_recovery;
-        //private EventHandler<ConnectionRecoveryErrorEventArgs> m_connectionRecoveryError;
-
-        private Thread m_recoveryThread;
-
+        
         public AutorecoveringConnection(ConnectionFactory factory, string clientProvidedName = null)
         {
             m_factory = factory;
@@ -164,26 +157,44 @@ namespace RabbitMQ.Client.Framing.Impl
         public IList<ShutdownReportEntry> ShutdownReport => m_delegate.ShutdownReport;
 
         IProtocol IConnection.Protocol => Endpoint.Protocol;
-
-
+        
         private enum RecoveryCommand
         {
-            RecoverConnection
+            /// <summary>
+            /// Transition to auto-recovery state if not already in that state.
+            /// </summary>
+            BeginAutomaticRecovery,
+            /// <summary>
+            /// Attempt to recover connection. If connection is recovered, return
+            /// to connected state.
+            /// </summary>
+            PerformAutomaticRecovery
         }
 
 
         private enum RecoveryConnectionState
         {
+            /// <summary>
+            /// Underlying connection is open.
+            /// </summary>
             Connected,
+            /// <summary>
+            /// In the process of recovering underlying connection.
+            /// </summary>
             Recovering
         }
-
-
-        private BlockingCollection<RecoveryCommand> m_recoveryLoopCommandQueue = new BlockingCollection<RecoveryCommand>();
+        
+        
+        private Thread m_recoveryThread;
         private RecoveryConnectionState m_recoveryLoopState = RecoveryConnectionState.Connected;
-        private CancellationTokenSource m_recoveryCancellationToken = new CancellationTokenSource();
-        private TaskCompletionSource<int> m_recoveryLoopComplete = new TaskCompletionSource<int>();
 
+        private readonly BlockingCollection<RecoveryCommand> m_recoveryLoopCommandQueue = new BlockingCollection<RecoveryCommand>();
+        private readonly CancellationTokenSource m_recoveryCancellationToken = new CancellationTokenSource();
+        private readonly TaskCompletionSource<int> m_recoveryLoopComplete = new TaskCompletionSource<int>();
+
+        /// <summary>
+        /// This is the main loop for the auto-recovery thread.
+        /// </summary>
         private void MainRecoveryLoop()
         {
             while (m_recoveryLoopCommandQueue.TryTake(out var command, 0, m_recoveryCancellationToken.Token))
@@ -205,6 +216,10 @@ namespace RabbitMQ.Client.Framing.Impl
             m_recoveryLoopComplete.SetResult(0);
         }
 
+        /// <summary>
+        /// Cancels the main recovery loop and will block until the loop finishes, or the timeout
+        /// expires, to prevent Close operations overlapping with recovery operations.
+        /// </summary>
         private void StopRecoveryLoop()
         {
             m_recoveryCancellationToken.Cancel();
@@ -214,18 +229,25 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
+        /// <summary>
+        /// Handles commands when in the Recovering state.
+        /// </summary>
+        /// <param name="command"></param>
         private void RecoveryLoopRecoveringHandler(RecoveryCommand command)
         {
             switch (command)
             {
-                case RecoveryCommand.RecoverConnection:
+                case RecoveryCommand.BeginAutomaticRecovery:
+                    ESLog.Info("Received request to BeginAutomaticRecovery, but already in Recovering state.");
+                    break;
+                case RecoveryCommand.PerformAutomaticRecovery:
                     if (TryRecoverConnection())
                     {
                         m_recoveryLoopState = RecoveryConnectionState.Connected;
                     }
                     else
                     {
-                        Task.Delay(m_factory.NetworkRecoveryInterval).ContinueWith(t => { m_recoveryLoopCommandQueue.TryAdd(RecoveryCommand.RecoverConnection); });
+                        Task.Delay(m_factory.NetworkRecoveryInterval).ContinueWith(t => { m_recoveryLoopCommandQueue.TryAdd(RecoveryCommand.PerformAutomaticRecovery); });
                     }
 
                     break;
@@ -235,13 +257,20 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
+        /// <summary>
+        /// Handles commands when in the Connected state.
+        /// </summary>
+        /// <param name="command"></param>
         private void RecoveryLoopConnectedHandler(RecoveryCommand command)
         {
             switch (command)
             {
-                case RecoveryCommand.RecoverConnection:
+                case RecoveryCommand.PerformAutomaticRecovery:
+                    ESLog.Warn("Not expecting PerformAutomaticRecovery commands while in the connected state.");
+                    break;
+                case RecoveryCommand.BeginAutomaticRecovery:
                     m_recoveryLoopState = RecoveryConnectionState.Recovering;
-                    Task.Delay(m_factory.NetworkRecoveryInterval).ContinueWith(t => { m_recoveryLoopCommandQueue.TryAdd(RecoveryCommand.RecoverConnection); });
+                    Task.Delay(m_factory.NetworkRecoveryInterval).ContinueWith(t => { m_recoveryLoopCommandQueue.TryAdd(RecoveryCommand.PerformAutomaticRecovery); });
                     break;
                 default:
                     ESLog.Warn($"RecoveryLoop command {command} is out of range.");
@@ -249,6 +278,10 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
+        /// <summary>
+        /// Attempt to recover the connection. Should not throw Exceptions.
+        /// </summary>
+        /// <returns>True if the recovery operation succeeded.</returns>
         private bool TryRecoverConnection()
         {
             ESLog.Info("Performing automatic recovery");
@@ -275,7 +308,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             catch (Exception e)
             {
-                ESLog.Error("Exception when recovering connection.", e);
+                ESLog.Error("Exception when recovering connection. Will try again after retry interval.", e);
             }
 
             return false;
@@ -456,9 +489,9 @@ namespace RabbitMQ.Client.Framing.Impl
 
                 if (condition(args))
                 {
-                    if (!m_recoveryLoopCommandQueue.TryAdd(RecoveryCommand.RecoverConnection))
+                    if (!m_recoveryLoopCommandQueue.TryAdd(RecoveryCommand.BeginAutomaticRecovery))
                     {
-                        ESLog.Warn("Failed to notify RecoveryLoop to RecoverConnection.");
+                        ESLog.Warn("Failed to notify RecoveryLoop to BeginAutomaticRecovery.");
                     }
                 }
             };
