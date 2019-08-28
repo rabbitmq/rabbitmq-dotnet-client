@@ -298,7 +298,7 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
-                socket.ConnectAsync(endpoint.HostName, endpoint.Port)
+                Task.Run(() => socket.ConnectAsync(endpoint.HostName, endpoint.Port))
                       .TimeoutAfter(timeout)
                       .ConfigureAwait(false)
                       // this ensures exceptions aren't wrapped in an AggregateException
