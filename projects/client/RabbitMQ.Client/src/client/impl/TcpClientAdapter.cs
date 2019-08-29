@@ -35,7 +35,7 @@ namespace RabbitMQ.Client
 #if CORECLR
             await sock.ConnectAsync(ep, port).ConfigureAwait(false);
 #else
-            sock.Connect(ep, port);
+            await Task.Run(() => sock.Connect(ep, port));
 #endif
         }
 

@@ -298,12 +298,12 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
-                Task.Run(() => socket.ConnectAsync(endpoint.HostName, endpoint.Port))
-                      .TimeoutAfter(timeout)
-                      .ConfigureAwait(false)
-                      // this ensures exceptions aren't wrapped in an AggregateException
-                      .GetAwaiter()
-                      .GetResult();
+               socket.ConnectAsync(endpoint.HostName, endpoint.Port)
+                    .TimeoutAfter(timeout)
+                    .ConfigureAwait(false)
+                    // this ensures exceptions aren't wrapped in an AggregateException
+                    .GetAwaiter()
+                    .GetResult();
             }
             catch (ArgumentException e)
             {
