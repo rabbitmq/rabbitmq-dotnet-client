@@ -25,7 +25,7 @@
 //  The contents of this file are subject to the Mozilla Public License
 //  Version 1.1 (the "License"); you may not use this file except in
 //  compliance with the License. You may obtain a copy of the License
-//  at http://www.mozilla.org/MPL/
+//  at https://www.mozilla.org/MPL/
 //
 //  Software distributed under the License is distributed on an "AS IS"
 //  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
@@ -50,7 +50,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Dictionary of client properties to be sent to the server.
         /// </summary>
-        IDictionary<String, object> ClientProperties { get; set; }
+        IDictionary<string, object> ClientProperties { get; set; }
 
         /// <summary>
         /// Password to use when authenticating to the server.
@@ -93,6 +93,11 @@ namespace RabbitMQ.Client
         Uri Uri { get; set; }
 
         /// <summary>
+        /// Default client provided name to be used for connections.
+        /// </summary>
+        string ClientProvidedName { get; set; }
+
+        /// <summary>
         /// Given a list of mechanism names supported by the server, select a preferred mechanism,
         /// or null if we have none in common.
         /// </summary>
@@ -112,14 +117,14 @@ namespace RabbitMQ.Client
         /// be used as a connection identifier, e.g. in HTTP API requests.
         /// This value is supposed to be human-readable.
         /// </param>
-        /// <returns></returns>
-        IConnection CreateConnection(String clientProvidedName);
+        /// <returns>Open connection</returns>
+        IConnection CreateConnection(string clientProvidedName);
 
         /// <summary>
         /// Connects to the first reachable hostname from the list.
         /// </summary>
         /// <param name="hostnames">List of host names to use</param>
-        /// <returns></returns>
+        /// <returns>Open connection</returns>
         IConnection CreateConnection(IList<string> hostnames);
 
         /// <summary>
@@ -132,12 +137,12 @@ namespace RabbitMQ.Client
         /// be used as a connection identifier, e.g. in HTTP API requests.
         /// This value is supposed to be human-readable.
         /// </param>
-        /// <returns></returns>
-        IConnection CreateConnection(IList<string> hostnames, String clientProvidedName);
+        /// <returns>Open connection</returns>
+        IConnection CreateConnection(IList<string> hostnames, string clientProvidedName);
 
         /// <summary>
         /// Create a connection using a list of endpoints.
-        /// The selection behaviour can be overriden by configuring the EndpointResolverFactory.
+        /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
         /// </summary>
         /// <param name="endpoints">
         /// List of endpoints to use for the initial
@@ -150,12 +155,24 @@ namespace RabbitMQ.Client
         IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints);
 
         /// <summary>
-        /// Advanced option.
-        ///
-        /// What task scheduler should consumer dispatcher use.
+        /// Create a connection using a list of endpoints.
+        /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
         /// </summary>
-        [Obsolete("This scheduler is no longer used for dispatching consumer operations and will be removed in the next major version.", false)]
-        TaskScheduler TaskScheduler { get; set; }
+        /// <param name="endpoints">
+        /// List of endpoints to use for the initial
+        /// connection and recovery.
+        /// </param>
+        /// <param name="clientProvidedName">
+        /// Application-specific connection name, will be displayed in the management UI
+        /// if RabbitMQ server supports it. This value doesn't have to be unique and cannot
+        /// be used as a connection identifier, e.g. in HTTP API requests.
+        /// This value is supposed to be human-readable.
+        /// </param>
+        /// <returns>Open connection</returns>
+        /// <exception cref="BrokerUnreachableException">
+        /// When no hostname was reachable.
+        /// </exception>
+        IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints, string clientProvidedName);
 
         /// <summary>
         /// Amount of time protocol handshake operations are allowed to take before

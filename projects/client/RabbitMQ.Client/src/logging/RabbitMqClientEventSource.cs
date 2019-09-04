@@ -25,7 +25,7 @@
 //  The contents of this file are subject to the Mozilla Public License
 //  Version 1.1 (the "License"); you may not use this file except in
 //  compliance with the License. You may obtain a copy of the License
-//  at http://www.mozilla.org/MPL/
+//  at https://www.mozilla.org/MPL/
 //
 //  Software distributed under the License is distributed on an "AS IS"
 //  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
@@ -41,11 +41,7 @@
 namespace RabbitMQ.Client.Logging
 {
     using System;
-#if NET451
-    using Microsoft.Diagnostics.Tracing;
-#else
     using System.Diagnostics.Tracing;
-#endif
 
     [EventSource(Name="rabbitmq-dotnet-client")]
     public sealed class RabbitMqClientEventSource : EventSource
@@ -54,10 +50,16 @@ namespace RabbitMQ.Client.Logging
         {
             public const EventKeywords Log = (EventKeywords)1;
         }
+#if NET451
+        public RabbitMqClientEventSource() : base()
+        {
 
+        }
+#else
         public RabbitMqClientEventSource() : base(EventSourceSettings.EtwSelfDescribingEventFormat)
         {
         }
+#endif
 
         public static RabbitMqClientEventSource Log = new RabbitMqClientEventSource ();
 
@@ -74,18 +76,31 @@ namespace RabbitMQ.Client.Logging
             if(IsEnabled())
                 this.WriteEvent(2, message);
         }
-
+#if NET451
+        [Event(3, Message = "ERROR", Keywords = Keywords.Log, Level = EventLevel.Error)]
+        public void Error(string message, string detail)
+        {
+            if(IsEnabled())
+                this.WriteEvent(3, message, detail);
+        }
+#else
         [Event(3, Message = "ERROR", Keywords = Keywords.Log, Level = EventLevel.Error)]
         public void Error(string message,  RabbitMqExceptionDetail ex)
         {
             if(IsEnabled())
                 this.WriteEvent(3, message, ex);
         }
+#endif
 
         [NonEvent]
         public void Error(string message, Exception ex)
         {
+
+#if NET451
+            Error(message, ex.ToString());
+#else
             Error(message, new RabbitMqExceptionDetail(ex));
+#endif
         }
     }
 }

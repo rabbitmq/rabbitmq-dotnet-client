@@ -25,7 +25,7 @@
 //  The contents of this file are subject to the Mozilla Public License
 //  Version 1.1 (the "License"); you may not use this file except in
 //  compliance with the License. You may obtain a copy of the License
-//  at http://www.mozilla.org/MPL/
+//  at https://www.mozilla.org/MPL/
 //
 //  Software distributed under the License is distributed on an "AS IS"
 //  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
@@ -273,13 +273,6 @@ namespace RabbitMQ.Client.Framing.Impl
         }
         public string ClientProvidedName { get; private set; }
 
-        [Obsolete("Please explicitly close connections instead.")]
-        public bool AutoClose
-        {
-            get { return m_sessionManager.AutoClose; }
-            set { m_sessionManager.AutoClose = value; }
-        }
-
         public ushort ChannelMax
         {
             get { return m_sessionManager.ChannelMax; }
@@ -375,7 +368,7 @@ namespace RabbitMQ.Client.Framing.Impl
             table["platform"] = Encoding.UTF8.GetBytes(".NET");
             table["copyright"] = Encoding.UTF8.GetBytes("Copyright (c) 2007-2016 Pivotal Software, Inc.");
             table["information"] = Encoding.UTF8.GetBytes("Licensed under the MPL.  " +
-                                                          "See http://www.rabbitmq.com/");
+                                                          "See https://www.rabbitmq.com/");
             return table;
         }
 
@@ -463,9 +456,9 @@ namespace RabbitMQ.Client.Framing.Impl
             }
 
 #if NETFX_CORE
-            var receivedSignal = m_appContinuation.WaitOne(BlockingCell.validatedTimeout(timeout));
+            var receivedSignal = m_appContinuation.WaitOne(BlockingCell<object>.validatedTimeout(timeout));
 #else
-            var receivedSignal = m_appContinuation.WaitOne(BlockingCell.validatedTimeout(timeout));
+            var receivedSignal = m_appContinuation.WaitOne(BlockingCell<object>.validatedTimeout(timeout));
 #endif
 
             if (!receivedSignal)
@@ -517,7 +510,8 @@ namespace RabbitMQ.Client.Framing.Impl
         public Command ConnectionCloseWrapper(ushort reasonCode, string reasonText)
         {
             Command request;
-            int replyClassId, replyMethodId;
+            ushort replyClassId;
+            ushort replyMethodId;
             Protocol.CreateConnectionClose(reasonCode,
                 reasonText,
                 out request,
@@ -1165,7 +1159,7 @@ entry.ToString());
             }
         }
 
-        protected void MaybeStopHeartbeatTimers()
+        void MaybeStopHeartbeatTimers()
         {
             lock (_heartBeatReadLock)
             {
@@ -1298,21 +1292,40 @@ entry.ToString());
 
         void IDisposable.Dispose()
         {
-            try
-            {
-                MaybeStopHeartbeatTimers();
-                Abort();
-            }
-            catch (OperationInterruptedException)
-            {
-                // ignored, see rabbitmq/rabbitmq-dotnet-client#133
-            }
+            Dispose(true);
         }
 
-        protected Command ChannelCloseWrapper(ushort reasonCode, string reasonText)
+        private void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // dispose managed resources
+                try
+                {
+                    MaybeStopHeartbeatTimers();
+                    Abort();
+                }
+                catch (OperationInterruptedException)
+                {
+                    // ignored, see rabbitmq/rabbitmq-dotnet-client#133
+                }
+                finally
+                {
+                    m_callbackException = null;
+                    m_recoverySucceeded = null;
+                    m_connectionShutdown = null;
+                    m_connectionUnblocked = null;
+                }
+            }
+
+            // dispose unmanaged resources
+        }
+
+        Command ChannelCloseWrapper(ushort reasonCode, string reasonText)
         {
             Command request;
-            int replyClassId, replyMethodId;
+            ushort replyClassId;
+            ushort replyMethodId;
             Protocol.CreateChannelClose(reasonCode,
                 reasonText,
                 out request,
@@ -1321,16 +1334,15 @@ entry.ToString());
             return request;
         }
 
-        protected void StartAndTune()
+        void StartAndTune()
         {
-            var connectionStartCell = new BlockingCell();
+            var connectionStartCell = new BlockingCell<ConnectionStartDetails>();
             m_model0.m_connectionStartCell = connectionStartCell;
             m_model0.HandshakeContinuationTimeout = m_factory.HandshakeContinuationTimeout;
             m_frameHandler.ReadTimeout = (int)m_factory.HandshakeContinuationTimeout.TotalMilliseconds;
             m_frameHandler.SendHeader();
 
-            var connectionStart = (ConnectionStartDetails)
-                connectionStartCell.Value;
+            var connectionStart = connectionStartCell.WaitForValue();
 
             if (connectionStart == null)
             {

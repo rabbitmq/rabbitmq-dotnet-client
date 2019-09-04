@@ -25,7 +25,7 @@
 //  The contents of this file are subject to the Mozilla Public License
 //  Version 1.1 (the "License"); you may not use this file except in
 //  compliance with the License. You may obtain a copy of the License
-//  at http://www.mozilla.org/MPL/
+//  at https://www.mozilla.org/MPL/
 //
 //  Software distributed under the License is distributed on an "AS IS"
 //  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
@@ -40,6 +40,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace RabbitMQ.Client.Impl
@@ -62,6 +63,17 @@ namespace RabbitMQ.Client.Impl
 
             var hashCode = Math.Abs(Guid.NewGuid().GetHashCode());
             return list.ElementAt<T>(hashCode % n);
+        }
+
+        internal static ArraySegment<byte> GetBufferSegment(this MemoryStream ms)
+        {
+#if CORECLR15
+            var payload = ms.ToArray();
+            return new ArraySegment<byte>(payload, 0, payload.Length);
+#else
+            var buffer = ms.GetBuffer();
+            return new ArraySegment<byte>(buffer, 0, (int)ms.Position);
+#endif
         }
     }
 }

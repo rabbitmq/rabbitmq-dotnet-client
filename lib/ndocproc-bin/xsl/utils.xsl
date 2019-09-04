@@ -245,7 +245,7 @@ THE SOFTWARE.
           <xsl:choose>
             <xsl:when test="$googleNonlocalTypes = 'true'">
               <code>
-	            <a class="nonlocalTypeLink" title="{$name}" href="http://www.google.com/search?q={$queryparam}&amp;btnI=I'm Feeling Lucky">
+	            <a class="nonlocalTypeLink" title="{$name}" href="https://www.google.com/search?q={$queryparam}&amp;btnI=I'm Feeling Lucky">
 	              <xsl:call-template name="type-alias-impl">
 	                <xsl:with-param name="name" select="$name"/>
 	                <xsl:with-param name="leaf" select="$leaf"/>

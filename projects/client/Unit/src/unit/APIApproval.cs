@@ -25,7 +25,7 @@
 //  The contents of this file are subject to the Mozilla Public License
 //  Version 1.1 (the "License"); you may not use this file except in
 //  compliance with the License. You may obtain a copy of the License
-//  at http://www.mozilla.org/MPL/
+//  at https://www.mozilla.org/MPL/
 //
 //  Software distributed under the License is distributed on an "AS IS"
 //  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
@@ -38,27 +38,23 @@
 //  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+using ApprovalTests;
+using ApprovalTests.Reporters;
+using NUnit.Framework;
+using PublicApiGenerator;
 
-// General Information about an assembly is controlled through the following
-// set of attributes. Change these attribute values to modify the information
-// associated with an assembly.
-[assembly: AssemblyTitle("ApiGenBootstrap")]
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Pivotal Software, Inc.")]
-[assembly: AssemblyProduct("ApiGenBootstrap")]
-[assembly: AssemblyCopyright("Copyright © 2007-2016 Pivotal Software, Inc.")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
-
-// Setting ComVisible to false makes the types in this assembly not visible
-// to COM components.  If you need to access a type in this assembly from
-// COM, set the ComVisible attribute to true on that type.
-[assembly: ComVisible(false)]
-
-// The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("05f5847b-268e-471f-8aa1-2276ef73bd48")]
+namespace RabbitMQ.Client.Unit
+{
+    [TestFixture]
+    [UseReporter(typeof(QuietReporter))]
+    public class APIApproval
+    {
+        [Test]
+        public void Approve()
+        {
+            var publicApi = ApiGenerator.GeneratePublicApi(typeof(ConnectionFactory).Assembly, excludeAttributes: new[] { "System.Runtime.Versioning.TargetFrameworkAttribute" });
+            Approvals.Verify(publicApi);
+        }
+    }
+}
 

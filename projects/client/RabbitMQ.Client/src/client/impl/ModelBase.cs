@@ -25,7 +25,7 @@
 //  The contents of this file are subject to the Mozilla Public License
 //  Version 1.1 (the "License"); you may not use this file except in
 //  compliance with the License. You may obtain a copy of the License
-//  at http://www.mozilla.org/MPL/
+//  at https://www.mozilla.org/MPL/
 //
 //  Software distributed under the License is distributed on an "AS IS"
 //  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
@@ -61,7 +61,7 @@ namespace RabbitMQ.Client.Impl
 
         ///<summary>Only used to kick-start a connection open
         ///sequence. See <see cref="Connection.Open"/> </summary>
-        public BlockingCell m_connectionStartCell = null;
+        public BlockingCell<ConnectionStartDetails> m_connectionStartCell = null;
 
         private TimeSpan m_handshakeContinuationTimeout = TimeSpan.FromSeconds(10);
         private TimeSpan m_continuationTimeout = TimeSpan.FromSeconds(20);
@@ -327,7 +327,7 @@ namespace RabbitMQ.Client.Impl
                 if (SetCloseReason(reason))
                 {
                     _Private_ChannelClose(reason.ReplyCode, reason.ReplyText, 0, 0);
-                }                
+                }
                 k.Wait(TimeSpan.FromMilliseconds(10000));
                 ConsumerDispatcher.Shutdown(this);
             }
@@ -359,7 +359,7 @@ namespace RabbitMQ.Client.Impl
             bool insist)
         {
             var k = new ConnectionOpenContinuation();
-            lock(_rpcLock)
+            lock (_rpcLock)
             {
                 Enqueue(k);
                 try
@@ -454,7 +454,7 @@ namespace RabbitMQ.Client.Impl
             }
             if (m_connectionStartCell != null)
             {
-                m_connectionStartCell.Value = null;
+                m_connectionStartCell.ContinueWithValue(null);
             }
         }
 
@@ -669,6 +669,7 @@ namespace RabbitMQ.Client.Impl
             }
             lock (m_unconfirmedSet.SyncRoot)
                 Monitor.Pulse(m_unconfirmedSet.SyncRoot);
+
             m_flowControlBlock.Set();
         }
 
@@ -723,7 +724,32 @@ namespace RabbitMQ.Client.Impl
 
         void IDisposable.Dispose()
         {
-            Abort();
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // dispose managed resources
+                try
+                {
+                    Abort();
+                }
+                finally
+                {
+                    m_basicAck = null;
+                    m_basicNack = null;
+                    m_basicRecoverOk = null;
+                    m_basicReturn = null;
+                    m_callbackException = null;
+                    m_flowControl = null;
+                    m_modelShutdown = null;
+                    m_recovery = null;
+                }
+            }
+
+            // dispose unmanaged resources
         }
 
         public abstract void ConnectionTuneOk(ushort channelMax,
@@ -760,13 +786,13 @@ namespace RabbitMQ.Client.Impl
         {
             var k =
                 (BasicConsumerRpcContinuation)m_continuationQueue.Next();
-/*
-            Trace.Assert(k.m_consumerTag == consumerTag, string.Format(
-                "Consumer tag mismatch during cancel: {0} != {1}",
-                k.m_consumerTag,
-                consumerTag
-                ));
-*/
+            /*
+                        Trace.Assert(k.m_consumerTag == consumerTag, string.Format(
+                            "Consumer tag mismatch during cancel: {0} != {1}",
+                            k.m_consumerTag,
+                            consumerTag
+                            ));
+            */
             lock (m_consumers)
             {
                 k.m_consumer = m_consumers[consumerTag];
@@ -1005,7 +1031,7 @@ namespace RabbitMQ.Client.Impl
                 m_mechanisms = mechanisms,
                 m_locales = locales
             };
-            m_connectionStartCell.Value = details;
+            m_connectionStartCell.ContinueWithValue(details);
             m_connectionStartCell = null;
         }
 
@@ -1237,11 +1263,11 @@ namespace RabbitMQ.Client.Impl
                 {
                     if (NextPublishSeqNo > 0)
                     {
-                            if (!m_unconfirmedSet.Contains(NextPublishSeqNo))
-                            {
-                                m_unconfirmedSet.Add(NextPublishSeqNo);
-                            }
-                            NextPublishSeqNo++;
+                        if (!m_unconfirmedSet.Contains(NextPublishSeqNo))
+                        {
+                            m_unconfirmedSet.Add(NextPublishSeqNo);
+                        }
+                        NextPublishSeqNo++;
                     }
                     c++;
                 }
@@ -1254,6 +1280,11 @@ namespace RabbitMQ.Client.Impl
             IBasicProperties basicProperties,
             byte[] body)
         {
+            if (routingKey == null)
+            {
+                throw new ArgumentNullException(nameof(routingKey));
+            }
+
             if (basicProperties == null)
             {
                 basicProperties = CreateBasicProperties();

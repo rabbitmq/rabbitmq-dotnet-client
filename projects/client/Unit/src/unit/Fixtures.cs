@@ -25,7 +25,7 @@
 //  The contents of this file are subject to the Mozilla Public License
 //  Version 1.1 (the "License"); you may not use this file except in
 //  compliance with the License. You may obtain a copy of the License
-//  at http://www.mozilla.org/MPL/
+//  at https://www.mozilla.org/MPL/
 //
 //  Software distributed under the License is distributed on an "AS IS"
 //  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
@@ -59,10 +59,10 @@ namespace RabbitMQ.Client.Unit
 
     public class IntegrationFixture
     {
-        protected IConnection Conn;
-        protected IModel Model;
+        internal IConnection Conn;
+        internal IModel Model;
 
-        protected Encoding encoding = new UTF8Encoding();
+        internal Encoding encoding = new UTF8Encoding();
         public static TimeSpan RECOVERY_INTERVAL = TimeSpan.FromSeconds(2);
 
         [SetUp]
@@ -97,17 +97,17 @@ namespace RabbitMQ.Client.Unit
         // Connections
         //
 
-        protected AutorecoveringConnection CreateAutorecoveringConnection()
+        internal AutorecoveringConnection CreateAutorecoveringConnection()
         {
             return CreateAutorecoveringConnection(RECOVERY_INTERVAL);
         }
 
-        protected AutorecoveringConnection CreateAutorecoveringConnection(IList<string> hostnames)
+        internal AutorecoveringConnection CreateAutorecoveringConnection(IList<string> hostnames)
         {
             return CreateAutorecoveringConnection(RECOVERY_INTERVAL, hostnames);
         }
 
-        protected AutorecoveringConnection CreateAutorecoveringConnection(TimeSpan interval)
+        internal AutorecoveringConnection CreateAutorecoveringConnection(TimeSpan interval)
         {
             var cf = new ConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
@@ -115,7 +115,7 @@ namespace RabbitMQ.Client.Unit
             return (AutorecoveringConnection)cf.CreateConnection(clientProvidedName:$"UNIT_CONN:{Guid.NewGuid()}");
         }
 
-        protected AutorecoveringConnection CreateAutorecoveringConnection(TimeSpan interval, IList<string> hostnames)
+        internal AutorecoveringConnection CreateAutorecoveringConnection(TimeSpan interval, IList<string> hostnames)
         {
             var cf = new ConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
@@ -126,7 +126,7 @@ namespace RabbitMQ.Client.Unit
             return (AutorecoveringConnection)cf.CreateConnection(hostnames, clientProvidedName:$"UNIT_CONN:{Guid.NewGuid()}");
         }
 
-        protected AutorecoveringConnection CreateAutorecoveringConnection(IList<AmqpTcpEndpoint> endpoints)
+        internal AutorecoveringConnection CreateAutorecoveringConnection(IList<AmqpTcpEndpoint> endpoints)
         {
             var cf = new ConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
@@ -138,7 +138,7 @@ namespace RabbitMQ.Client.Unit
             return (AutorecoveringConnection)cf.CreateConnection(endpoints);
         }
 
-        protected AutorecoveringConnection CreateAutorecoveringConnectionWithTopologyRecoveryDisabled()
+        internal AutorecoveringConnection CreateAutorecoveringConnectionWithTopologyRecoveryDisabled()
         {
             var cf = new ConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
@@ -147,7 +147,7 @@ namespace RabbitMQ.Client.Unit
             return (AutorecoveringConnection)cf.CreateConnection(clientProvidedName:$"UNIT_CONN:{Guid.NewGuid()}");
         }
 
-        protected IConnection CreateNonRecoveringConnection()
+        internal IConnection CreateNonRecoveringConnection()
         {
             var cf = new ConnectionFactory();
             cf.AutomaticRecoveryEnabled = false;
@@ -159,7 +159,7 @@ namespace RabbitMQ.Client.Unit
         // Channels
         //
 
-        protected void WithTemporaryAutorecoveringConnection(Action<AutorecoveringConnection> action)
+        internal void WithTemporaryAutorecoveringConnection(Action<AutorecoveringConnection> action)
         {
             var factory = new ConnectionFactory
             {
@@ -177,7 +177,7 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        protected void WithTemporaryModel(IConnection connection, Action<IModel> action)
+        internal void WithTemporaryModel(IConnection connection, Action<IModel> action)
         {
             IModel model = connection.CreateModel();
 
@@ -191,7 +191,7 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        protected void WithTemporaryModel(Action<IModel> action)
+        internal void WithTemporaryModel(Action<IModel> action)
         {
             IModel model = Conn.CreateModel();
 
@@ -205,7 +205,7 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        protected void WithClosedModel(Action<IModel> action)
+        internal void WithClosedModel(Action<IModel> action)
         {
             IModel model = Conn.CreateModel();
             model.Close();
@@ -213,7 +213,7 @@ namespace RabbitMQ.Client.Unit
             action(model);
         }
 
-        protected bool WaitForConfirms(IModel m)
+        internal bool WaitForConfirms(IModel m)
         {
             return m.WaitForConfirms(TimeSpan.FromSeconds(4));
         }
@@ -222,23 +222,23 @@ namespace RabbitMQ.Client.Unit
         // Exchanges
         //
 
-        protected string GenerateExchangeName()
+        internal string GenerateExchangeName()
         {
             return "exchange" + Guid.NewGuid().ToString();
         }
 
-        protected byte[] RandomMessageBody()
+        internal byte[] RandomMessageBody()
         {
             return encoding.GetBytes(Guid.NewGuid().ToString());
         }
 
-        protected string DeclareNonDurableExchange(IModel m, string x)
+        internal string DeclareNonDurableExchange(IModel m, string x)
         {
             m.ExchangeDeclare(x, "fanout", false);
             return x;
         }
 
-        protected string DeclareNonDurableExchangeNoWait(IModel m, string x)
+        internal string DeclareNonDurableExchangeNoWait(IModel m, string x)
         {
             m.ExchangeDeclareNoWait(x, "fanout", false, false, null);
             return x;
@@ -248,37 +248,37 @@ namespace RabbitMQ.Client.Unit
         // Queues
         //
 
-        protected string GenerateQueueName()
+        internal string GenerateQueueName()
         {
             return "queue" + Guid.NewGuid().ToString();
         }
 
-        protected void WithTemporaryQueue(Action<IModel, string> action)
+        internal void WithTemporaryQueue(Action<IModel, string> action)
         {
             WithTemporaryQueue(Model, action);
         }
 
-        protected void WithTemporaryNonExclusiveQueue(Action<IModel, string> action)
+        internal void WithTemporaryNonExclusiveQueue(Action<IModel, string> action)
         {
             WithTemporaryNonExclusiveQueue(Model, action);
         }
 
-        protected void WithTemporaryQueue(IModel model, Action<IModel, string> action)
+        internal void WithTemporaryQueue(IModel model, Action<IModel, string> action)
         {
             WithTemporaryQueue(model, action, GenerateQueueName());
         }
 
-        protected void WithTemporaryNonExclusiveQueue(IModel model, Action<IModel, string> action)
+        internal void WithTemporaryNonExclusiveQueue(IModel model, Action<IModel, string> action)
         {
             WithTemporaryNonExclusiveQueue(model, action, GenerateQueueName());
         }
 
-        protected void WithTemporaryQueue(Action<IModel, string> action, string q)
+        internal void WithTemporaryQueue(Action<IModel, string> action, string q)
         {
             WithTemporaryQueue(Model, action, q);
         }
 
-        protected void WithTemporaryQueue(IModel model, Action<IModel, string> action, string queue)
+        internal void WithTemporaryQueue(IModel model, Action<IModel, string> action, string queue)
         {
             try
             {
@@ -290,7 +290,7 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        protected void WithTemporaryNonExclusiveQueue(IModel model, Action<IModel, string> action, string queue)
+        internal void WithTemporaryNonExclusiveQueue(IModel model, Action<IModel, string> action, string queue)
         {
             try
             {
@@ -302,7 +302,7 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        protected void WithTemporaryQueueNoWait(IModel model, Action<IModel, string> action, string queue)
+        internal void WithTemporaryQueueNoWait(IModel model, Action<IModel, string> action, string queue)
         {
             try
             {
@@ -314,22 +314,22 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        protected void EnsureNotEmpty(string q)
+        internal void EnsureNotEmpty(string q)
         {
             EnsureNotEmpty(q, "msg");
         }
 
-        protected void EnsureNotEmpty(string q, string body)
+        internal void EnsureNotEmpty(string q, string body)
         {
             WithTemporaryModel(x => x.BasicPublish("", q, null, encoding.GetBytes(body)));
         }
 
-        protected void WithNonEmptyQueue(Action<IModel, string> action)
+        internal void WithNonEmptyQueue(Action<IModel, string> action)
         {
             WithNonEmptyQueue(action, "msg");
         }
 
-        protected void WithNonEmptyQueue(Action<IModel, string> action, string msg)
+        internal void WithNonEmptyQueue(Action<IModel, string> action, string msg)
         {
             WithTemporaryNonExclusiveQueue((m, q) =>
             {
@@ -338,7 +338,7 @@ namespace RabbitMQ.Client.Unit
             });
         }
 
-        protected void WithEmptyQueue(Action<IModel, string> action)
+        internal void WithEmptyQueue(Action<IModel, string> action)
         {
             WithTemporaryNonExclusiveQueue((model, queue) =>
             {
@@ -347,7 +347,7 @@ namespace RabbitMQ.Client.Unit
             });
         }
 
-        protected void AssertMessageCount(string q, int count)
+        internal void AssertMessageCount(string q, int count)
         {
             WithTemporaryModel((m) => {
                 QueueDeclareOk ok = m.QueueDeclarePassive(q);
@@ -355,7 +355,7 @@ namespace RabbitMQ.Client.Unit
             });
         }
 
-        protected void AssertConsumerCount(string q, int count)
+        internal void AssertConsumerCount(string q, int count)
         {
             WithTemporaryModel((m) => {
                 QueueDeclareOk ok = m.QueueDeclarePassive(q);
@@ -363,7 +363,7 @@ namespace RabbitMQ.Client.Unit
             });
         }
 
-        protected void AssertConsumerCount(IModel m, string q, int count)
+        internal void AssertConsumerCount(IModel m, string q, int count)
         {
             QueueDeclareOk ok = m.QueueDeclarePassive(q);
             Assert.AreEqual(count, ok.ConsumerCount);
@@ -373,17 +373,17 @@ namespace RabbitMQ.Client.Unit
         // Shutdown
         //
 
-        protected void AssertShutdownError(ShutdownEventArgs args, int code)
+        internal void AssertShutdownError(ShutdownEventArgs args, int code)
         {
             Assert.AreEqual(args.ReplyCode, code);
         }
 
-        protected void AssertPreconditionFailed(ShutdownEventArgs args)
+        internal void AssertPreconditionFailed(ShutdownEventArgs args)
         {
             AssertShutdownError(args, Constants.PreconditionFailed);
         }
 
-        protected bool InitiatedByPeerOrLibrary(ShutdownEventArgs evt)
+        internal bool InitiatedByPeerOrLibrary(ShutdownEventArgs evt)
         {
             return !(evt.Initiator == ShutdownInitiator.Application);
         }
@@ -392,7 +392,7 @@ namespace RabbitMQ.Client.Unit
         // Concurrency
         //
 
-        protected void WaitOn(object o)
+        internal void WaitOn(object o)
         {
             lock(o)
             {
@@ -404,7 +404,7 @@ namespace RabbitMQ.Client.Unit
         // Shelling Out
         //
 
-        protected Process ExecRabbitMQCtl(string args)
+        internal Process ExecRabbitMQCtl(string args)
         {
             // Allow the path to the rabbitmqctl.bat to be set per machine
             var envVariable = Environment.GetEnvironmentVariable("RABBITMQ_RABBITMQCTL_PATH");
@@ -426,17 +426,17 @@ namespace RabbitMQ.Client.Unit
             return ExecCommand(rabbitmqctlPath, args);
         }
 
-        protected Process ExecCommand(string command)
+        internal Process ExecCommand(string command)
         {
             return ExecCommand(command, "");
         }
 
-        protected Process ExecCommand(string command, string args)
+        internal Process ExecCommand(string command, string args)
         {
             return ExecCommand(command, args, null);
         }
 
-        protected Process ExecCommand(string ctl, string args, string changeDirTo)
+        internal Process ExecCommand(string ctl, string args, string changeDirTo)
         {
             var proc = new Process
             {
@@ -483,7 +483,7 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        protected void ReportExecFailure(String cmd, String args, String msg)
+        internal void ReportExecFailure(String cmd, String args, String msg)
         {
             Console.WriteLine("Failure while running " + cmd + " " + args + ":\n" + msg);
         }
@@ -501,7 +501,7 @@ namespace RabbitMQ.Client.Unit
         // Flow Control
         //
 
-        protected void Block()
+        internal void Block()
         {
             ExecRabbitMQCtl("set_vm_memory_high_watermark 0.000000001");
             // give rabbitmqctl some time to do its job
@@ -509,12 +509,12 @@ namespace RabbitMQ.Client.Unit
             Publish(Conn);
         }
 
-        protected void Unblock()
+        internal void Unblock()
         {
             ExecRabbitMQCtl("set_vm_memory_high_watermark 0.4");
         }
 
-        protected void Publish(IConnection conn)
+        internal void Publish(IConnection conn)
         {
             IModel ch = conn.CreateModel();
             ch.BasicPublish("amq.fanout", "", null, encoding.GetBytes("message"));
@@ -551,7 +551,7 @@ namespace RabbitMQ.Client.Unit
 
         private static readonly Regex GetConnectionName = new Regex(@"\{""connection_name"",""(?<connection_name>[^""]+)""\}");
 
-        protected List<ConnectionInfo> ListConnections()
+        internal List<ConnectionInfo> ListConnections()
         {
             Process proc  = ExecRabbitMQCtl("list_connections --silent pid client_properties");
             String stdout = proc.StandardOutput.ReadToEnd();
@@ -579,13 +579,13 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        protected void CloseConnection(IConnection conn)
+        internal void CloseConnection(IConnection conn)
         {
             var ci = ListConnections().First(x => conn.ClientProvidedName == x.Name);
             CloseConnection(ci.Pid);
         }
 
-        protected void CloseAllConnections()
+        internal void CloseAllConnections()
         {
             var cs = ListConnections();
             foreach(var c in cs)
@@ -594,26 +594,26 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        protected void CloseConnection(string pid)
+        internal void CloseConnection(string pid)
         {
             ExecRabbitMQCtl("close_connection \"" +
                             pid +
                             "\" \"Closed via rabbitmqctl\"");
         }
 
-        protected void RestartRabbitMQ()
+        internal void RestartRabbitMQ()
         {
             StopRabbitMQ();
             Thread.Sleep(500);
             StartRabbitMQ();
         }
 
-        protected void StopRabbitMQ()
+        internal void StopRabbitMQ()
         {
             ExecRabbitMQCtl("stop_app");
         }
 
-        protected void StartRabbitMQ()
+        internal void StartRabbitMQ()
         {
             ExecRabbitMQCtl("start_app");
         }
@@ -622,12 +622,12 @@ namespace RabbitMQ.Client.Unit
         // Concurrency and Coordination
         //
 
-        protected void Wait(ManualResetEvent latch)
+        internal void Wait(ManualResetEvent latch)
         {
             Assert.IsTrue(latch.WaitOne(TimeSpan.FromSeconds(10)), "waiting on a latch timed out");
         }
 
-        protected void Wait(ManualResetEvent latch, TimeSpan timeSpan)
+        internal void Wait(ManualResetEvent latch, TimeSpan timeSpan)
         {
             Assert.IsTrue(latch.WaitOne(timeSpan), "waiting on a latch timed out");
         }

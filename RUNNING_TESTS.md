@@ -30,7 +30,7 @@ This will complete the code AMQP 0-9-1 protocol code generation and build all pr
 Tests can be run from Visual Studio using [NUnit Test Adapter](https://visualstudiogallery.msdn.microsoft.com/6ab922d0-21c0-4f06-ab5f-4ecd1fe7175d).
 Note that it may take some time for the adapter to discover tests in the assemblies.
 
-The test suite assumes there's a RabbitMQ node [built from source](http://www.rabbitmq.com/build-server.html) running locally
+The test suite assumes there's a RabbitMQ node [built from source](https://www.rabbitmq.com/build-server.html) running locally
 with all defaults. Team RabbitMQ uses [rabbitmq-public-umbrella](https://github.com/rabbitmq/rabbitmq-public-umbrella) to
 do that:
 

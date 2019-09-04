@@ -25,7 +25,7 @@
 //  The contents of this file are subject to the Mozilla Public License
 //  Version 1.1 (the "License"); you may not use this file except in
 //  compliance with the License. You may obtain a copy of the License
-//  at http://www.mozilla.org/MPL/
+//  at https://www.mozilla.org/MPL/
 //
 //  Software distributed under the License is distributed on an "AS IS"
 //  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
@@ -222,7 +222,7 @@ namespace RabbitMQ.Client.Impl
                 nbw.Write((byte)Endpoint.Protocol.MajorVersion);
                 nbw.Write((byte)Endpoint.Protocol.MinorVersion);
             }
-            Write(ms.ToArray());
+            Write(ms.GetBufferSegment());
         }
 
         public void WriteFrame(OutboundFrame frame)
@@ -231,30 +231,33 @@ namespace RabbitMQ.Client.Impl
             var nbw = new NetworkBinaryWriter(ms);
             frame.WriteTo(nbw);
             m_socket.Client.Poll(m_writeableStateTimeout, SelectMode.SelectWrite);
-            Write(ms.ToArray());
+            Write(ms.GetBufferSegment());
         }
 
         public void WriteFrameSet(IList<OutboundFrame> frames)
         {
             var ms = new MemoryStream();
             var nbw = new NetworkBinaryWriter(ms);
-            foreach (var f in frames) f.WriteTo(nbw);
+            for (var i = 0; i < frames.Count; ++i)
+            {
+                frames[i].WriteTo(nbw);
+            }
             m_socket.Client.Poll(m_writeableStateTimeout, SelectMode.SelectWrite);
-            Write(ms.ToArray());
+            Write(ms.GetBufferSegment());
         }
 
-        private void Write(byte [] buffer)
+        private void Write(ArraySegment<byte> bufferSegment)
         {
             if(_ssl)
             {
                 lock (_sslStreamLock)
                 {
-                    m_writer.Write(buffer);
+                    m_writer.Write(bufferSegment.Array, bufferSegment.Offset, bufferSegment.Count);
                 }
             }
             else
             {
-                m_writer.Write(buffer);
+                m_writer.Write(bufferSegment.Array, bufferSegment.Offset, bufferSegment.Count);
             }
         }
 

@@ -25,7 +25,7 @@
 //  The contents of this file are subject to the Mozilla Public License
 //  Version 1.1 (the "License"); you may not use this file except in
 //  compliance with the License. You may obtain a copy of the License
-//  at http://www.mozilla.org/MPL/
+//  at https://www.mozilla.org/MPL/
 //
 //  Software distributed under the License is distributed on an "AS IS"
 //  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
@@ -54,13 +54,13 @@ namespace RabbitMQ.Client.Impl
     {
         private readonly object _closingLock = new object();
 
-        public int m_closeClassId;
-        public int m_closeMethodId;
-        public int m_closeOkClassId;
-        public int m_closeOkMethodId;
+        private ushort m_closeClassId;
+        private ushort m_closeMethodId;
+        private ushort m_closeOkClassId;
+        private ushort m_closeOkMethodId;
 
-        public bool m_closeServerInitiated;
-        public bool m_closing;
+        private bool m_closeServerInitiated;
+        private bool m_closing;
 
         public MainSession(Connection connection) : base(connection, 0)
         {

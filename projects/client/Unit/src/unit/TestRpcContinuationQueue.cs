@@ -38,48 +38,49 @@
 //  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using NUnit.Framework;
+using RabbitMQ.Client.Impl;
 using System;
-using RabbitMQ.Util;
 
-namespace RabbitMQ.Client.Impl
+namespace RabbitMQ.Client.Unit
 {
-    public class ShutdownContinuation
+    [TestFixture]
+    public class TestRpcContinuationQueue
     {
-        public readonly BlockingCell<ShutdownEventArgs> m_cell = new BlockingCell<ShutdownEventArgs>();
-
-        // You will note there are two practically identical overloads
-        // of OnShutdown() here. This is because Microsoft's C#
-        // compilers do not consistently support the Liskov
-        // substitutability principle. When I use
-        // OnShutdown(object,ShutdownEventArgs), the compilers
-        // complain that OnShutdown can't be placed into a
-        // ConnectionShutdownEventHandler because object doesn't
-        // "match" IConnection, even though there's no context in
-        // which the program could Go Wrong were it to accept the
-        // code. The same problem appears for
-        // ModelShutdownEventHandler. The .NET 1.1 compiler complains
-        // about these two cases, and the .NET 2.0 compiler does not -
-        // presumably they improved the type checker with the new
-        // release of the compiler.
-
-        public virtual void OnConnectionShutdown(object sender, ShutdownEventArgs reason)
+        [Test]
+        public void TestRpcContinuationQueueEnqueueAndRelease()
         {
-            m_cell.ContinueWithValue(reason);
+            RpcContinuationQueue queue = new RpcContinuationQueue();
+            var inputContinuation = new SimpleBlockingRpcContinuation();
+            queue.Enqueue(inputContinuation);
+            var outputContinuation = queue.Next();
+            Assert.AreEqual(outputContinuation, inputContinuation);
         }
 
-        public virtual void OnModelShutdown(IModel sender, ShutdownEventArgs reason)
+        [Test]
+        public void TestRpcContinuationQueueEnqueueAndRelease2()
         {
-            m_cell.ContinueWithValue(reason);
+            RpcContinuationQueue queue = new RpcContinuationQueue();
+            var inputContinuation = new SimpleBlockingRpcContinuation();
+            queue.Enqueue(inputContinuation);
+            var outputContinuation = queue.Next();
+            Assert.AreEqual(outputContinuation, inputContinuation);
+            var outputContinuation1 = queue.Next();
+            Assert.AreNotEqual(outputContinuation1, inputContinuation);
         }
 
-        public virtual ShutdownEventArgs Wait()
+        [Test]
+        public void TestRpcContinuationQueueEnqueue2()
         {
-            return m_cell.WaitForValue();
+            RpcContinuationQueue queue = new RpcContinuationQueue();
+            var inputContinuation = new SimpleBlockingRpcContinuation();
+            var inputContinuation1 = new SimpleBlockingRpcContinuation();
+            queue.Enqueue(inputContinuation);
+            Assert.Throws(typeof(NotSupportedException), () => 
+            {
+                queue.Enqueue(inputContinuation1);
+            });
         }
 
-        public ShutdownEventArgs Wait(TimeSpan timeout)
-        {
-            return m_cell.WaitForValue(timeout);
-        }
     }
 }

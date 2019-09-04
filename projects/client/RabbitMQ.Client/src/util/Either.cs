@@ -25,7 +25,7 @@
 //  The contents of this file are subject to the Mozilla Public License
 //  Version 1.1 (the "License"); you may not use this file except in
 //  compliance with the License. You may obtain a copy of the License
-//  at http://www.mozilla.org/MPL/
+//  at https://www.mozilla.org/MPL/
 //
 //  Software distributed under the License is distributed on an "AS IS"
 //  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
@@ -53,31 +53,33 @@ namespace RabbitMQ.Util
     ///<summary>Models the disjoint union of two alternatives, a
     ///"left" alternative and a "right" alternative.</summary>
     ///<remarks>Borrowed from ML, Haskell etc.</remarks>
-    public class Either
+    public class Either<L, R>
     {
         ///<summary>Private constructor. Use the static methods Left, Right instead.</summary>
-        private Either(EitherAlternative alternative, object value)
+        private Either(EitherAlternative alternative, L valueL, R valueR)
         {
             Alternative = alternative;
-            Value = value;
+            LeftValue = valueL;
+            RightValue = valueR;
         }
 
         ///<summary>Retrieve the alternative represented by this instance.</summary>
         public EitherAlternative Alternative { get; private set; }
 
         ///<summary>Retrieve the value carried by this instance.</summary>
-        public object Value { get; private set; }
+        public L LeftValue { get; private set; }
+        public R RightValue { get; private set; }
 
         ///<summary>Constructs an Either instance representing a Left alternative.</summary>
-        public static Either Left(object value)
+        public static Either<L, R> Left(L value)
         {
-            return new Either(EitherAlternative.Left, value);
+            return new Either<L, R>(EitherAlternative.Left, value, default(R));
         }
 
         ///<summary>Constructs an Either instance representing a Right alternative.</summary>
-        public static Either Right(object value)
+        public static Either<L, R> Right(R value)
         {
-            return new Either(EitherAlternative.Right, value);
+            return new Either<L, R>(EitherAlternative.Right, default(L), value);
         }
     }
 }

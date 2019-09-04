@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal class ConcurrentConsumerDispatcher : IConsumerDispatcher
+    internal sealed class ConcurrentConsumerDispatcher : IConsumerDispatcher
     {
         private ModelBase model;
         private ConsumerWorkService workService;

@@ -25,7 +25,7 @@
 //  The contents of this file are subject to the Mozilla Public License
 //  Version 1.1 (the "License"); you may not use this file except in
 //  compliance with the License. You may obtain a copy of the License
-//  at http://www.mozilla.org/MPL/
+//  at https://www.mozilla.org/MPL/
 //
 //  Software distributed under the License is distributed on an "AS IS"
 //  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
@@ -38,7 +38,6 @@
 //  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.IO;
 using System.Text;
 
@@ -55,6 +54,8 @@ namespace RabbitMQ.Util
     /// </remarks>
     public class NetworkBinaryReader : BinaryReader
     {
+        private static readonly Encoding encoding = new UTF8Encoding();
+
         // Not particularly efficient. To be more efficient, we could
         // reuse BinaryReader's implementation details: m_buffer and
         // FillBuffer, if they weren't private
@@ -65,7 +66,7 @@ namespace RabbitMQ.Util
         /// <summary>
         /// Construct a NetworkBinaryReader over the given input stream.
         /// </summary>
-        public NetworkBinaryReader(Stream input) : base(input)
+        public NetworkBinaryReader(Stream input) : base(input, encoding)
         {
         }
 

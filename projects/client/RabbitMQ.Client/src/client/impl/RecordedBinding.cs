@@ -25,7 +25,7 @@
 //  The contents of this file are subject to the Mozilla Public License
 //  Version 1.1 (the "License"); you may not use this file except in
 //  compliance with the License. You may obtain a copy of the License
-//  at http://www.mozilla.org/MPL/
+//  at https://www.mozilla.org/MPL/
 //
 //  Software distributed under the License is distributed on an "AS IS"
 //  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
@@ -43,7 +43,7 @@ using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
 {
-    public abstract class RecordedBinding : RecordedEntity
+    internal abstract class RecordedBinding : RecordedEntity
     {
         public RecordedBinding(AutorecoveringModel model) : base(model)
         {
@@ -124,7 +124,7 @@ namespace RabbitMQ.Client.Impl
     }
 
 
-    public class RecordedQueueBinding : RecordedBinding
+    internal sealed class RecordedQueueBinding : RecordedBinding
     {
         public RecordedQueueBinding(AutorecoveringModel model) : base(model)
         {
@@ -137,7 +137,7 @@ namespace RabbitMQ.Client.Impl
     }
 
 
-    public class RecordedExchangeBinding : RecordedBinding
+    internal sealed class RecordedExchangeBinding : RecordedBinding
     {
         public RecordedExchangeBinding(AutorecoveringModel model) : base(model)
         {

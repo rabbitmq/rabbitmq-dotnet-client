@@ -25,7 +25,7 @@
 //  The contents of this file are subject to the Mozilla Public License
 //  Version 1.1 (the "License"); you may not use this file except in
 //  compliance with the License. You may obtain a copy of the License
-//  at http://www.mozilla.org/MPL/
+//  at https://www.mozilla.org/MPL/
 //
 //  Software distributed under the License is distributed on an "AS IS"
 //  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
@@ -96,16 +96,15 @@ namespace RabbitMQ.Client
     ///Note that the Uri property takes a string representation of an
     ///AMQP URI.  Omitted URI parts will take default values.  The
     ///host part of the URI cannot be omitted and URIs of the form
-    ///"amqp://foo/" (note the trailling slash) also represent the
+    ///"amqp://foo/" (note the trailing slash) also represent the
     ///default virtual host.  The latter issue means that virtual
     ///hosts with an empty name are not addressable. </para></remarks>
-    public class ConnectionFactory : ConnectionFactoryBase, IAsyncConnectionFactory
+    public sealed class ConnectionFactory : ConnectionFactoryBase, IAsyncConnectionFactory
     {
         /// <summary>
-        /// Default value for the desired maximum channel number, with zero meaning unlimited (value: 0).
+        /// Default value for the desired maximum channel number. Default: 2047.
         /// </summary>
-        /// <remarks>PLEASE KEEP THIS MATCHING THE DOC ABOVE.</remarks>
-        public const ushort DefaultChannelMax = 0;
+        public const ushort DefaultChannelMax = 2047;
 
         /// <summary>
         /// Default value for connection attempt timeout, in milliseconds.
@@ -113,37 +112,33 @@ namespace RabbitMQ.Client
         public const int DefaultConnectionTimeout = 30 * 1000;
 
         /// <summary>
-        /// Default value for the desired maximum frame size, with zero meaning unlimited (value: 0).
+        /// Default value for the desired maximum frame size. Default is 0 ("no limit").
         /// </summary>
-        /// <remarks>PLEASE KEEP THIS MATCHING THE DOC ABOVE.</remarks>
         public const uint DefaultFrameMax = 0;
 
         /// <summary>
-        /// Default value for desired heartbeat interval, in seconds, with zero meaning none (value: 60).
+        /// Default value for desired heartbeat interval, in seconds. Default is 60,
+        /// 0 means "heartbeats are disabled".
         /// </summary>
-        /// <remarks>PLEASE KEEP THIS MATCHING THE DOC ABOVE.</remarks>
         public const ushort DefaultHeartbeat = 60; //
 
         /// <summary>
         /// Default password (value: "guest").
         /// </summary>
-        /// <remarks>PLEASE KEEP THIS MATCHING THE DOC ABOVE.</remarks>
         public const string DefaultPass = "guest";
 
         /// <summary>
         /// Default user name (value: "guest").
         /// </summary>
-        /// <remarks>PLEASE KEEP THIS MATCHING THE DOC ABOVE.</remarks>
         public const string DefaultUser = "guest";
 
         /// <summary>
         /// Default virtual host (value: "/").
         /// </summary>
-        /// <remarks> PLEASE KEEP THIS MATCHING THE DOC ABOVE.</remarks>
         public const string DefaultVHost = "/";
 
         /// <summary>
-        /// The default AMQP URI SSL protocols.
+        /// TLS versions enabled by default: TLSv1.2, v1.1, v1.0.
         /// </summary>
         public static SslProtocols DefaultAmqpUriSslProtocols { get; set; } =
             SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
@@ -230,11 +225,6 @@ namespace RabbitMQ.Client
         public int Port { get; set; } = AmqpTcpEndpoint.UseDefaultPort;
 
         /// <summary>
-        /// Protocol used, only AMQP 0-9-1 is supported in modern versions.
-        /// </summary>
-        public IProtocol Protocol { get; set; } = Protocols.DefaultProtocol;
-
-        /// <summary>
         /// Timeout setting for connection attempts (in milliseconds).
         /// </summary>
         public int RequestedConnectionTimeout { get; set; } = DefaultConnectionTimeout;
@@ -259,13 +249,6 @@ namespace RabbitMQ.Client
         /// Defaults to true.
         /// </summary>
         public bool TopologyRecoveryEnabled { get; set; } = true;
-
-        /// <summary>
-        /// Task scheduler connections created by this factory will use when
-        /// dispatching consumer operations, such as message deliveries.
-        /// </summary>
-        [Obsolete("This scheduler is no longer used for dispatching consumer operations and will be removed in the next major version.", false)]
-        public TaskScheduler TaskScheduler { get; set; } = TaskScheduler.Default;
 
         /// <summary>
         /// Construct a fresh instance, with all fields set to their respective defaults.
@@ -339,6 +322,11 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
+        /// Default client provided name to be used for connections.
+        /// </summary>
+        public string ClientProvidedName { get; set; }
+
+        /// <summary>
         /// Given a list of mechanism names supported by the server, select a preferred mechanism,
         ///  or null if we have none in common.
         /// </summary>
@@ -364,9 +352,9 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When the configured hostname was not reachable.
         /// </exception>
-        public virtual IConnection CreateConnection()
+        public IConnection CreateConnection()
         {
-            return CreateConnection(this.EndpointResolverFactory(LocalEndpoints()), null);
+            return CreateConnection(this.EndpointResolverFactory(LocalEndpoints()), ClientProvidedName);
         }
 
         /// <summary>
@@ -383,7 +371,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When the configured hostname was not reachable.
         /// </exception>
-        public IConnection CreateConnection(String clientProvidedName)
+        public IConnection CreateConnection(string clientProvidedName)
         {
             return CreateConnection(EndpointResolverFactory(LocalEndpoints()), clientProvidedName);
         }
@@ -392,7 +380,7 @@ namespace RabbitMQ.Client
         /// Create a connection using a list of hostnames using the configured port.
         /// By default each hostname is tried in a random order until a successful connection is
         /// found or the list is exhausted using the DefaultEndpointResolver.
-        /// The selection behaviour can be overriden by configuring the EndpointResolverFactory.
+        /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
         /// </summary>
         /// <param name="hostnames">
         /// List of hostnames to use for the initial
@@ -404,14 +392,14 @@ namespace RabbitMQ.Client
         /// </exception>
         public IConnection CreateConnection(IList<string> hostnames)
         {
-            return CreateConnection(hostnames, null);
+            return CreateConnection(hostnames, ClientProvidedName);
         }
 
         /// <summary>
         /// Create a connection using a list of hostnames using the configured port.
         /// By default each endpoint is tried in a random order until a successful connection is
         /// found or the list is exhausted.
-        /// The selection behaviour can be overriden by configuring the EndpointResolverFactory.
+        /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
         /// </summary>
         /// <param name="hostnames">
         /// List of hostnames to use for the initial
@@ -427,7 +415,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public IConnection CreateConnection(IList<string> hostnames, String clientProvidedName)
+        public IConnection CreateConnection(IList<string> hostnames, string clientProvidedName)
         {
             var endpoints = hostnames.Select(h => new AmqpTcpEndpoint(h, this.Port, this.Ssl));
             return CreateConnection(new DefaultEndpointResolver(endpoints), clientProvidedName);
@@ -436,7 +424,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Create a connection using a list of endpoints. By default each endpoint will be tried
         /// in a random order until a successful connection is found or the list is exhausted.
-        /// The selection behaviour can be overriden by configuring the EndpointResolverFactory.
+        /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
         /// </summary>
         /// <param name="endpoints">
         /// List of endpoints to use for the initial
@@ -448,7 +436,31 @@ namespace RabbitMQ.Client
         /// </exception>
         public IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints)
         {
-            return CreateConnection(new DefaultEndpointResolver(endpoints), null);
+            return CreateConnection(endpoints, ClientProvidedName);
+        }
+
+        /// <summary>
+        /// Create a connection using a list of endpoints. By default each endpoint will be tried
+        /// in a random order until a successful connection is found or the list is exhausted.
+        /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
+        /// </summary>
+        /// <param name="endpoints">
+        /// List of endpoints to use for the initial
+        /// connection and recovery.
+        /// </param>
+        /// <param name="clientProvidedName">
+        /// Application-specific connection name, will be displayed in the management UI
+        /// if RabbitMQ server supports it. This value doesn't have to be unique and cannot
+        /// be used as a connection identifier, e.g. in HTTP API requests.
+        /// This value is supposed to be human-readable.
+        /// </param>
+        /// <returns>Open connection</returns>
+        /// <exception cref="BrokerUnreachableException">
+        /// When no hostname was reachable.
+        /// </exception>
+        public IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints, string clientProvidedName)
+        {
+            return CreateConnection(new DefaultEndpointResolver(endpoints), clientProvidedName);
         }
 
         /// <summary>
@@ -467,7 +479,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public IConnection CreateConnection(IEndpointResolver endpointResolver, String clientProvidedName)
+        public IConnection CreateConnection(IEndpointResolver endpointResolver, string clientProvidedName)
         {
             IConnection conn;
             try
@@ -492,21 +504,21 @@ namespace RabbitMQ.Client
             return conn;
         }
 
-        public IFrameHandler CreateFrameHandler()
+        private IFrameHandler CreateFrameHandler()
         {
             var fh = Protocols.DefaultProtocol.CreateFrameHandler(Endpoint, SocketFactory,
                 RequestedConnectionTimeout, SocketReadTimeout, SocketWriteTimeout);
             return ConfigureFrameHandler(fh);
         }
 
-        public IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint)
+        internal IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint)
         {
             var fh = Protocols.DefaultProtocol.CreateFrameHandler(endpoint, SocketFactory,
                 RequestedConnectionTimeout, SocketReadTimeout, SocketWriteTimeout);
             return ConfigureFrameHandler(fh);
         }
 
-        public IFrameHandler CreateFrameHandlerForHostname(string hostname)
+        private IFrameHandler CreateFrameHandlerForHostname(string hostname)
         {
             return CreateFrameHandler(this.Endpoint.CloneWithHostname(hostname));
         }

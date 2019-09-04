@@ -25,7 +25,7 @@
 //  The contents of this file are subject to the Mozilla Public License
 //  Version 1.1 (the "License"); you may not use this file except in
 //  compliance with the License. You may obtain a copy of the License
-//  at http://www.mozilla.org/MPL/
+//  at https://www.mozilla.org/MPL/
 //
 //  Software distributed under the License is distributed on an "AS IS"
 //  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
@@ -53,43 +53,68 @@ namespace RabbitMQ.Util
     ///attempts to set Value result in a thrown
     ///InvalidOperationException.
     ///</remarks>
-    public class BlockingCell
+    public class BlockingCell<T>
     {
-        private readonly object _lock = new object();
-        private object m_value = null;
-        private bool m_valueSet = false;
+        private readonly ManualResetEventSlim manualResetEventSlim = new ManualResetEventSlim(false);
+        private T m_value = default(T);
+        public EventHandler<T> ContinueUsingValue;
 
+        public void ContinueWithValue(T value)
+        {
+            m_value = value;
+            manualResetEventSlim.Set();
+        }
+
+        ///<summary>Retrieve the cell's value, waiting for the given
+        ///timeout if no value is immediately available.</summary>
+        ///<remarks>
+        ///<para>
+        /// If a value is present in the cell at the time the call is
+        /// made, the call will return immediately. Otherwise, the
+        /// calling thread blocks until either a value appears, or
+        /// operation times out.
+        ///</para>
+        ///<para>
+        /// If no value was available before the timeout, an exception
+        /// is thrown.
+        ///</para>
+        ///</remarks>
+        /// <exception cref="TimeoutException" />
+        public T WaitForValue(TimeSpan timeout)
+        {
+            if (manualResetEventSlim.Wait(timeout))
+            {
+                if (ContinueUsingValue != null) ContinueUsingValue(this, m_value);
+                return m_value;
+            }
+            throw new TimeoutException();
+        }
+        ///<summary>Retrieve the cell's value, waiting for the given
+        ///timeout if no value is immediately available.</summary>
+        ///<remarks>
+        ///<para>
+        /// If a value is present in the cell at the time the call is
+        /// made, the call will return immediately. Otherwise, the
+        /// calling thread blocks until either a value appears, or
+        /// operation times out.
+        ///</para>
+        ///<para>
+        /// If no value was available before the timeout, an exception
+        /// is thrown.
+        ///</para>
+        ///</remarks>
+        /// <exception cref="TimeoutException" />
+        public T WaitForValue(int timeout)
+        {
+            return WaitForValue(TimeSpan.FromMilliseconds(timeout));
+        }
         ///<summary>Retrieve the cell's value, blocking if none exists
         ///at present, or supply a value to an empty cell, thereby
         ///filling it.</summary>
-        /// <exception cref="InvalidOperationException" />
-        public object Value
+        /// <exception cref="TimeoutException" />
+        public T WaitForValue()
         {
-            get
-            {
-                lock (_lock)
-                {
-                    while (!m_valueSet)
-                    {
-                        Monitor.Wait(_lock);
-                    }
-                    return m_value;
-                }
-            }
-
-            set
-            {
-                lock (_lock)
-                {
-                    if (m_valueSet)
-                    {
-                        throw new InvalidOperationException("Setting BlockingCell value twice forbidden");
-                    }
-                    m_value = value;
-                    m_valueSet = true;
-                    Monitor.PulseAll(_lock);
-                }
-            }
+            return WaitForValue(TimeSpan.FromMinutes(60));
         }
 
         ///<summary>Return valid timeout value</summary>
@@ -97,68 +122,7 @@ namespace RabbitMQ.Util
         ///to mean infinity</remarks>
         public static int validatedTimeout(int timeout)
         {
-            return (timeout != Timeout.Infinite)
-                   && (timeout < 0) ? 0 : timeout;
-        }
-
-        ///<summary>Retrieve the cell's value, waiting for the given
-        ///timeout if no value is immediately available.</summary>
-        ///<remarks>
-        ///<para>
-        /// If a value is present in the cell at the time the call is
-        /// made, the call will return immediately. Otherwise, the
-        /// calling thread blocks until either a value appears, or
-        /// operation times out.
-        ///</para>
-        ///<para>
-        /// If no value was available before the timeout, an exception
-        /// is thrown.
-        ///</para>
-        ///</remarks>
-        public object GetValue(TimeSpan timeout)
-        {
-            lock (_lock)
-            {
-                if (!m_valueSet)
-                {
-                    Monitor.Wait(_lock, timeout);
-                    if (!m_valueSet)
-                    {
-                        throw new TimeoutException();
-                    }
-                }
-                return m_value;
-            }
-        }
-
-        ///<summary>Retrieve the cell's value, waiting for the given
-        ///timeout if no value is immediately available.</summary>
-        ///<remarks>
-        ///<para>
-        /// If a value is present in the cell at the time the call is
-        /// made, the call will return immediately. Otherwise, the
-        /// calling thread blocks until either a value appears, or
-        /// operation times out.
-        ///</para>
-        ///<para>
-        /// If no value was available before the timeout, an exception
-        /// is thrown.
-        ///</para>
-        ///</remarks>
-        public object GetValue(int timeout)
-        {
-            lock (_lock)
-            {
-                if (!m_valueSet)
-                {
-                    Monitor.Wait(_lock, validatedTimeout(timeout));
-                    if (!m_valueSet)
-                    {
-                        throw new TimeoutException();
-                    }
-                }
-                return m_value;
-            }
+            return (timeout != Timeout.Infinite) && (timeout < 0) ? 0 : timeout;
         }
     }
 }

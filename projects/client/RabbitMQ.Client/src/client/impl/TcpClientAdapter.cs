@@ -13,7 +13,7 @@ namespace RabbitMQ.Client
     /// </summary>
     public class TcpClientAdapter : ITcpClient
     {
-        protected Socket sock;
+        private Socket sock;
 
         public TcpClientAdapter(Socket socket)
         {
@@ -33,7 +33,7 @@ namespace RabbitMQ.Client
                 throw new ArgumentException("No ip address could be resolved for " + host);
             }
 #if CORECLR
-                await sock.ConnectAsync(ep, port).ConfigureAwait(false);
+            await sock.ConnectAsync(ep, port).ConfigureAwait(false);
 #else
             sock.Connect(ep, port);
 #endif
@@ -41,16 +41,28 @@ namespace RabbitMQ.Client
 
         public virtual void Close()
         {
-            this.Dispose();
-        }
-
-        public virtual void Dispose()
-        {
             if (sock != null)
             {
                 sock.Dispose();
             }
             sock = null;
+        }
+
+        [Obsolete("Override Dispose(bool) instead.")]
+        public virtual void Dispose()
+        {
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // dispose managed resources
+                Close();
+            }
+
+            // dispose unmanaged resources
         }
 
         public virtual NetworkStream GetStream()

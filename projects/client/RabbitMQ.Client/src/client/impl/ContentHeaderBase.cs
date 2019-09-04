@@ -25,7 +25,7 @@
 //  The contents of this file are subject to the Mozilla Public License
 //  Version 1.1 (the "License"); you may not use this file except in
 //  compliance with the License. You may obtain a copy of the License
-//  at http://www.mozilla.org/MPL/
+//  at https://www.mozilla.org/MPL/
 //
 //  Software distributed under the License is distributed on an "AS IS"
 //  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
@@ -49,7 +49,7 @@ namespace RabbitMQ.Client.Impl
         ///<summary>
         /// Retrieve the AMQP class ID of this content header.
         ///</summary>
-        public abstract int ProtocolClassId { get; }
+        public abstract ushort ProtocolClassId { get; }
 
         ///<summary>
         /// Retrieve the AMQP class name of this content header.
@@ -77,9 +77,11 @@ namespace RabbitMQ.Client.Impl
         public abstract void ReadPropertiesFrom(ContentHeaderPropertyReader reader);
         public abstract void WritePropertiesTo(ContentHeaderPropertyWriter writer);
 
+        private const ushort ZERO = 0;
+
         public void WriteTo(NetworkBinaryWriter writer, ulong bodySize)
         {
-            writer.Write((ushort) 0); // weight - not currently used
+            writer.Write(ZERO); // weight - not currently used
             writer.Write(bodySize);
             WritePropertiesTo(new ContentHeaderPropertyWriter(writer));
         }

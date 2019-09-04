@@ -25,7 +25,7 @@
 //  The contents of this file are subject to the Mozilla Public License
 //  Version 1.1 (the "License"); you may not use this file except in
 //  compliance with the License. You may obtain a copy of the License
-//  at http://www.mozilla.org/MPL/
+//  at https://www.mozilla.org/MPL/
 //
 //  Software distributed under the License is distributed on an "AS IS"
 //  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
@@ -60,12 +60,12 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Retrieves the class ID number of this method, as defined in the AMQP specification XML.
         /// </summary>
-        int ProtocolClassId { get; }
+        ushort ProtocolClassId { get; }
 
         /// <summary>
         /// Retrieves the method ID number of this method, as defined in the AMQP specification XML.
         /// </summary>
-        int ProtocolMethodId { get; }
+        ushort ProtocolMethodId { get; }
 
         /// <summary>
         /// Retrieves the name of this method - for debugging use.

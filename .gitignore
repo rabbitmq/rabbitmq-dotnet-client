@@ -2,7 +2,6 @@
 ## Generated files
 ###################
 
-api/
 gensrc/
 [Ll]ocal.props
 [Ll]ocal.dist
@@ -51,6 +50,8 @@ build/
 [Bb]in/
 [Oo]bj/
 *.lock.json
+
+APIApproval.Approve.received.txt
 
 # Visual Studio 2015 cache/options directory
 .vs/

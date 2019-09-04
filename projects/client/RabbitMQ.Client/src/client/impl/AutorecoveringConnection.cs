@@ -25,7 +25,7 @@
 //  The contents of this file are subject to the Mozilla Public License
 //  Version 1.1 (the "License"); you may not use this file except in
 //  compliance with the License. You may obtain a copy of the License
-//  at http://www.mozilla.org/MPL/
+//  at https://www.mozilla.org/MPL/
 //
 //  Software distributed under the License is distributed on an "AS IS"
 //  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
@@ -50,7 +50,7 @@ using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    public class AutorecoveringConnection : IConnection, IRecoverable
+    internal sealed class AutorecoveringConnection : IConnection
     {
         protected Connection m_delegate;
         protected ConnectionFactory m_factory;
@@ -642,17 +642,20 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        protected void EnsureIsOpen()
+            // dispose unmanaged resources
+        }
+
+        private void EnsureIsOpen()
         {
             m_delegate.EnsureIsOpen();
         }
 
-        protected void HandleTopologyRecoveryException(TopologyRecoveryException e)
+        private void HandleTopologyRecoveryException(TopologyRecoveryException e)
         {
             ESLog.Error("Topology recovery exception", e);
         }
 
-        protected void PropagateQueueNameChangeToBindings(string oldName, string newName)
+        private void PropagateQueueNameChangeToBindings(string oldName, string newName)
         {
             var bs = m_recordedBindings.Keys.Where(b => b.Destination.Equals(oldName));
 
@@ -662,7 +665,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        protected void PropagateQueueNameChangeToConsumers(string oldName, string newName)
+        private void PropagateQueueNameChangeToConsumers(string oldName, string newName)
         {
             var cs = m_recordedConsumers.Values.Where(c => c.Queue.Equals(oldName));
 
@@ -672,7 +675,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        protected void RecoverBindings()
+        private void RecoverBindings()
         {
             foreach (var b in m_recordedBindings.Keys)
             {
@@ -768,7 +771,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        protected void RecoverEntities()
+        private void RecoverEntities()
         {
             // The recovery sequence is the following:
             //
@@ -781,7 +784,7 @@ namespace RabbitMQ.Client.Framing.Impl
             RecoverBindings();
         }
 
-        protected void RecoverExchanges()
+        private void RecoverExchanges()
         {
             foreach (RecordedExchange rx in m_recordedExchanges.Values)
             {
@@ -799,7 +802,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        protected void RecoverModels()
+        private void RecoverModels()
         {
             lock (m_models)
             {
@@ -810,7 +813,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        protected void RecoverQueues()
+        private void RecoverQueues()
         {
             // Copy dictionary into array before iterating through it when we plan to update
             //   the dictionary contents.
@@ -864,7 +867,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        protected void RunRecoveryEventHandlers()
+        private void RunRecoveryEventHandlers()
         {
             foreach (EventHandler<EventArgs> reh in RecoverySucceeded?.GetInvocationList() ?? new EventHandler<EventArgs>[] { })
             {
@@ -881,7 +884,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        protected bool ShouldTriggerConnectionRecovery(ShutdownEventArgs args)
+        private bool ShouldTriggerConnectionRecovery(ShutdownEventArgs args)
         {
             return (args.Initiator == ShutdownInitiator.Peer ||
                     // happens when EOF is reached, e.g. due to RabbitMQ node

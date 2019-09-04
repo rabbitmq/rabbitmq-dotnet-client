@@ -25,7 +25,7 @@
 //  The contents of this file are subject to the Mozilla Public License
 //  Version 1.1 (the "License"); you may not use this file except in
 //  compliance with the License. You may obtain a copy of the License
-//  at http://www.mozilla.org/MPL/
+//  at https://www.mozilla.org/MPL/
 //
 //  Software distributed under the License is distributed on an "AS IS"
 //  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
@@ -46,7 +46,7 @@ using RabbitMQ.Client.Exceptions;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    class TestConnectionFactory 
+    class TestConnectionFactory
     {
         [Test]
         public void TestProperties()
@@ -98,7 +98,20 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestCreateConnectionWithClientProvidedNameUsesName()
+        public void TestCreateConnectionWithClientProvidedNameUsesDefaultName()
+        {
+            var cf = new ConnectionFactory();
+            cf.AutomaticRecoveryEnabled = false;
+            cf.ClientProvidedName = "some_name";
+            using (var conn = cf.CreateConnection())
+            {
+                Assert.AreEqual("some_name", conn.ClientProvidedName);
+                Assert.AreEqual("some_name", conn.ClientProperties["connection_name"]);
+            }
+        }
+
+        [Test]
+        public void TestCreateConnectionWithClientProvidedNameUsesNameArgumentValue()
         {
             var cf = new ConnectionFactory();
             cf.AutomaticRecoveryEnabled = false;
@@ -110,7 +123,7 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestCreateConnectionWithClientProvidedNameAndAutorecoveryUsesName()
+        public void TestCreateConnectionWithClientProvidedNameAndAutorecoveryUsesNameArgumentValue()
         {
             var cf = new ConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
@@ -120,6 +133,20 @@ namespace RabbitMQ.Client.Unit
                 Assert.AreEqual("some_name", conn.ClientProperties["connection_name"]);
             }
         }
+
+        [Test]
+        public void TestCreateConnectionAmqpTcpEndpointListAndClientProvidedName()
+        {
+            var cf = new ConnectionFactory();
+            cf.AutomaticRecoveryEnabled = true;
+            var xs = new System.Collections.Generic.List<AmqpTcpEndpoint> { new AmqpTcpEndpoint("localhost") };
+            using(var conn = cf.CreateConnection(xs, "some_name"))
+            {
+              Assert.AreEqual("some_name", conn.ClientProvidedName);
+              Assert.AreEqual("some_name", conn.ClientProperties["connection_name"]);
+            }
+        }
+
         [Test]
         public void TestCreateConnectionUsesDefaultPort()
         {
@@ -141,7 +168,7 @@ namespace RabbitMQ.Client.Unit
             conn.Close();
             conn.Dispose();
             Assert.AreEqual("not_localhost", cf.HostName);
-            Assert.AreEqual("localhost", conn.Endpoint.HostName);       
+            Assert.AreEqual("localhost", conn.Endpoint.HostName);
         }
 
         [Test]

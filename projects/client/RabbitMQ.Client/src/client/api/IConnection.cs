@@ -25,7 +25,7 @@
 //  The contents of this file are subject to the Mozilla Public License
 //  Version 1.1 (the "License"); you may not use this file except in
 //  compliance with the License. You may obtain a copy of the License
-//  at http://www.mozilla.org/MPL/
+//  at https://www.mozilla.org/MPL/
 //
 //  Software distributed under the License is distributed on an "AS IS"
 //  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
@@ -66,17 +66,6 @@ namespace RabbitMQ.Client
     /// </remarks>
     public interface IConnection : NetworkConnection, IDisposable
     {
-        /// <summary>
-        /// If true, will close the whole connection as soon as there are no channels open on it;
-        /// if false, manual connection closure will be required.
-        /// </summary>
-        /// <remarks>
-        /// DON'T set AutoClose to true before opening the first
-        /// channel, because the connection will be immediately closed if you do!
-        /// </remarks>
-        [Obsolete("Please explicitly close connections instead.")]
-        bool AutoClose { get; set; }
-
         /// <summary>
         /// The maximum channel number this connection supports (0 if unlimited).
         /// Usable channel numbers range from 1 to this number, inclusive.

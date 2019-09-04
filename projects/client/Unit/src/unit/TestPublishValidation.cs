@@ -1,4 +1,4 @@
-﻿// This source code is dual-licensed under the Apache License, version
+// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 1.1.
 //
 // The APL v2.0:
@@ -25,7 +25,7 @@
 //  The contents of this file are subject to the Mozilla Public License
 //  Version 1.1 (the "License"); you may not use this file except in
 //  compliance with the License. You may obtain a copy of the License
-//  at http://www.mozilla.org/MPL/
+//  at https://www.mozilla.org/MPL/
 //
 //  Software distributed under the License is distributed on an "AS IS"
 //  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
@@ -35,31 +35,25 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is Pivotal Software, Inc.
-//  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
+//  Copyright (c) 2007-2019 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using NUnit.Framework;
 using System;
-using RabbitMQ.Util;
+using System.Threading;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 
-namespace RabbitMQ.Client
+namespace RabbitMQ.Client.Unit
 {
-    /// <summary>
-    /// A <see cref="IBasicConsumer"/> implementation that
-    /// uses a <see cref="SharedQueue"/> to buffer incoming deliveries.
-    /// </summary>
-    ///<remarks>
-    ///<para>
-    /// This interface is provided to make creation of test doubles
-    /// for <see cref="QueueingBasicConsumer" /> easier.
-    ///</para>
-    ///</remarks>
-    public interface IQueueingBasicConsumer
+    [TestFixture]
+    public class TestPublishValidation : IntegrationFixture
     {
-        void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered,
-            string exchange, string routingKey, IBasicProperties properties, byte[] body);
-        void OnCancel();
-        SharedQueue<BasicDeliverEventArgs> Queue { get; }
+
+        [Test]
+        public void TestNullRoutingKeyIsRejected()
+        {
+            var ch = Conn.CreateModel();
+            Assert.Throws(typeof(ArgumentNullException), () => ch.BasicPublish("", null, null, encoding.GetBytes("msg")));
+        }
     }
 }

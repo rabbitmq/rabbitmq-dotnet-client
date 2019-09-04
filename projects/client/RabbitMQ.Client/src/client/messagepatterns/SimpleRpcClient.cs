@@ -25,7 +25,7 @@
 //  The contents of this file are subject to the Mozilla Public License
 //  Version 1.1 (the "License"); you may not use this file except in
 //  compliance with the License. You may obtain a copy of the License
-//  at http://www.mozilla.org/MPL/
+//  at https://www.mozilla.org/MPL/
 //
 //  Software distributed under the License is distributed on an "AS IS"
 //  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
@@ -258,7 +258,7 @@ namespace RabbitMQ.Client.MessagePatterns
         ///</remarks>
         public virtual byte[] Call(byte[] body)
         {
-            BasicDeliverEventArgs reply = Call(null, body);
+            var reply = Call(null, body);
             return reply == null ? null : reply.Body;
         }
 
@@ -290,7 +290,7 @@ namespace RabbitMQ.Client.MessagePatterns
             byte[] body,
             out IBasicProperties replyProperties)
         {
-            BasicDeliverEventArgs reply = Call(requestProperties, body);
+            var reply = Call(requestProperties, body);
             if (reply == null)
             {
                 replyProperties = null;
@@ -403,7 +403,18 @@ namespace RabbitMQ.Client.MessagePatterns
         ///statements.</summary>
         void IDisposable.Dispose()
         {
-            Close();
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // dispose managed resources
+                Close();
+            }
+
+            // dispose unmanaged resources
         }
 
         ///<summary>Should initialise m_subscription to be non-null
@@ -427,8 +438,7 @@ namespace RabbitMQ.Client.MessagePatterns
         ///</remarks>
         protected virtual BasicDeliverEventArgs RetrieveReply(string correlationId)
         {
-            BasicDeliverEventArgs reply;
-            if (!Subscription.Next(TimeoutMilliseconds, out reply))
+            if (!Subscription.Next(TimeoutMilliseconds, out var reply))
             {
                 OnTimedOut();
                 return null;
