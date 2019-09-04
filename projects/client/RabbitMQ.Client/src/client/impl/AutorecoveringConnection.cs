@@ -197,22 +197,32 @@ namespace RabbitMQ.Client.Framing.Impl
         /// </summary>
         private void MainRecoveryLoop()
         {
-            while (m_recoveryLoopCommandQueue.TryTake(out var command, 0, m_recoveryCancellationToken.Token))
+            try
             {
-                switch (m_recoveryLoopState)
+                while (m_recoveryLoopCommandQueue.TryTake(out var command, -1, m_recoveryCancellationToken.Token))
                 {
-                    case RecoveryConnectionState.Connected:
-                        RecoveryLoopConnectedHandler(command);
-                        break;
-                    case RecoveryConnectionState.Recovering:
-                        RecoveryLoopRecoveringHandler(command);
-                        break;
-                    default:
-                        ESLog.Warn("RecoveryLoop state is out of range.");
-                        break;
+                    switch (m_recoveryLoopState)
+                    {
+                        case RecoveryConnectionState.Connected:
+                            RecoveryLoopConnectedHandler(command);
+                            break;
+                        case RecoveryConnectionState.Recovering:
+                            RecoveryLoopRecoveringHandler(command);
+                            break;
+                        default:
+                            ESLog.Warn("RecoveryLoop state is out of range.");
+                            break;
+                    }
                 }
             }
-
+            catch (OperationCanceledException)
+            {
+                // expected when recovery cancellation token is set.
+            }
+            catch (Exception e)
+            {
+                ESLog.Error("Main recovery loop threw unexpected exception.", e);
+            }
             m_recoveryLoopComplete.SetResult(0);
         }
 
