@@ -52,34 +52,34 @@ namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class AutorecoveringConnection : IConnection
     {
-        protected Connection m_delegate;
-        protected ConnectionFactory m_factory;
+        private Connection m_delegate;
+        private ConnectionFactory m_factory;
 
         // list of endpoints provided on initial connection.
         // on re-connection, the next host in the line is chosen using
         // IHostnameSelector
         private IEndpointResolver endpoints;
 
-        protected List<AutorecoveringModel> m_models = new List<AutorecoveringModel>();
+        private List<AutorecoveringModel> m_models = new List<AutorecoveringModel>();
 
         // Notes on ConcurrentDictionary:
-        //   From MSDN: "All public and protected members of ConcurrentDictionary<TKey,TValue> are thread-safe
+        //   From MSDN: "All public and private members of ConcurrentDictionary<TKey,TValue> are thread-safe
         //   and may be used concurrently from multiple threads. However, members accessed through one of the
         //   interfaces the ConcurrentDictionary<TKey,TValue> implements, including extension methods, are not
         //   guaranteed to be thread safe and may need to be synchronized by the caller."
         // Take-away: When interacting with ConcurrentDictionary make sure to use its members and be wary of
         //   extension methods or casting it to an interface like IDictionary or ICollection.
 
-        protected ConcurrentDictionary<RecordedBinding, byte> m_recordedBindings =
+        private ConcurrentDictionary<RecordedBinding, byte> m_recordedBindings =
             new ConcurrentDictionary<RecordedBinding, byte>();
 
-        protected ConcurrentDictionary<string, RecordedConsumer> m_recordedConsumers =
+        private ConcurrentDictionary<string, RecordedConsumer> m_recordedConsumers =
             new ConcurrentDictionary<string, RecordedConsumer>();
 
-        protected ConcurrentDictionary<string, RecordedExchange> m_recordedExchanges =
+        private ConcurrentDictionary<string, RecordedExchange> m_recordedExchanges =
             new ConcurrentDictionary<string, RecordedExchange>();
 
-        protected ConcurrentDictionary<string, RecordedQueue> m_recordedQueues =
+        private ConcurrentDictionary<string, RecordedQueue> m_recordedQueues =
             new ConcurrentDictionary<string, RecordedQueue>();
         
         public AutorecoveringConnection(ConnectionFactory factory, string clientProvidedName = null)
@@ -112,13 +112,6 @@ namespace RabbitMQ.Client.Framing.Impl
         }
 
         public string ClientProvidedName { get; private set; }
-
-        [Obsolete("Please explicitly close connections instead.")]
-        public bool AutoClose
-        {
-            get => m_delegate.AutoClose;
-            set => m_delegate.AutoClose = value;
-        }
 
         public ushort ChannelMax => m_delegate.ChannelMax;
 
@@ -298,9 +291,9 @@ namespace RabbitMQ.Client.Framing.Impl
 
             try
             {
-                if (TryRecoverConnectionDelegate(out var connection))
+                if (TryRecoverConnectionDelegate())
                 {
-                    RegisterForConnectionEvents(connection);
+                    RegisterForConnectionEvents();
 
                     RecoverModels();
                     if (m_factory.TopologyRecoveryEnabled)
@@ -312,7 +305,6 @@ namespace RabbitMQ.Client.Framing.Impl
                     ESLog.Info("Connection recovery completed");
                     RunRecoveryEventHandlers();
 
-                    m_delegate = connection;
                     return true;
                 }
             }
@@ -507,15 +499,15 @@ namespace RabbitMQ.Client.Framing.Impl
             };
             ConnectionShutdown += recoveryListener;
 
-            RegisterForConnectionEvents(m_delegate);
+            RegisterForConnectionEvents();
         }
 
-        private void RegisterForConnectionEvents(Connection connection)
+        private void RegisterForConnectionEvents()
         {
-            connection.ConnectionShutdown += OnConnectionShutdown;
-            connection.CallbackException += OnCallbackException;
-            connection.ConnectionBlocked += OnConnectionBlocked;
-            connection.ConnectionUnblocked += OnConnectionUnblocked;
+            m_delegate.ConnectionShutdown += OnConnectionShutdown;
+            m_delegate.CallbackException += OnCallbackException;
+            m_delegate.ConnectionBlocked += OnConnectionBlocked;
+            m_delegate.ConnectionUnblocked += OnConnectionUnblocked;
         }
 
         private void OnConnectionUnblocked(object sender, EventArgs e)
@@ -642,9 +634,6 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-            // dispose unmanaged resources
-        }
-
         private void EnsureIsOpen()
         {
             m_delegate.EnsureIsOpen();
@@ -694,12 +683,12 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        protected bool TryRecoverConnectionDelegate(out Connection connection)
+        private bool TryRecoverConnectionDelegate()
         {
             try
             {
                 var fh = endpoints.SelectOne(m_factory.CreateFrameHandler);
-                connection = new Connection(m_factory, false, fh, this.ClientProvidedName);
+                m_delegate = new Connection(m_factory, false, fh, this.ClientProvidedName);
 
                 return true;
             }
@@ -724,11 +713,10 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
             }
 
-            connection = null;
             return false;
         }
 
-        protected void RecoverConsumers()
+        private void RecoverConsumers()
         {
             // Copy dictionary into array before iterating through it when we plan to update
             //   the dictionary contents.

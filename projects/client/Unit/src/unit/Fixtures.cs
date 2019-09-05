@@ -112,7 +112,7 @@ namespace RabbitMQ.Client.Unit
             var cf = new ConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
             cf.NetworkRecoveryInterval = interval;
-            return (AutorecoveringConnection)cf.CreateConnection(clientProvidedName:$"UNIT_CONN:{Guid.NewGuid()}");
+            return (AutorecoveringConnection)cf.CreateConnection($"UNIT_CONN:{Guid.NewGuid()}");
         }
 
         internal AutorecoveringConnection CreateAutorecoveringConnection(TimeSpan interval, IList<string> hostnames)
@@ -123,7 +123,7 @@ namespace RabbitMQ.Client.Unit
             // make sure we time out quickly on those
             cf.RequestedConnectionTimeout = 1000;
             cf.NetworkRecoveryInterval = interval;
-            return (AutorecoveringConnection)cf.CreateConnection(hostnames, clientProvidedName:$"UNIT_CONN:{Guid.NewGuid()}");
+            return (AutorecoveringConnection)cf.CreateConnection(hostnames, $"UNIT_CONN:{Guid.NewGuid()}");
         }
 
         internal AutorecoveringConnection CreateAutorecoveringConnection(IList<AmqpTcpEndpoint> endpoints)
@@ -134,8 +134,7 @@ namespace RabbitMQ.Client.Unit
             // make sure we time out quickly on those
             cf.RequestedConnectionTimeout = 1000;
             cf.NetworkRecoveryInterval = RECOVERY_INTERVAL;
-            // TODO: Why does Amqp version of CreateConnection not accept a client provided name?
-            return (AutorecoveringConnection)cf.CreateConnection(endpoints);
+            return (AutorecoveringConnection)cf.CreateConnection(endpoints, $"UNIT_CONN:{Guid.NewGuid()}");
         }
 
         internal AutorecoveringConnection CreateAutorecoveringConnectionWithTopologyRecoveryDisabled()
@@ -144,7 +143,7 @@ namespace RabbitMQ.Client.Unit
             cf.AutomaticRecoveryEnabled = true;
             cf.TopologyRecoveryEnabled = false;
             cf.NetworkRecoveryInterval = RECOVERY_INTERVAL;
-            return (AutorecoveringConnection)cf.CreateConnection(clientProvidedName:$"UNIT_CONN:{Guid.NewGuid()}");
+            return (AutorecoveringConnection)cf.CreateConnection($"UNIT_CONN:{Guid.NewGuid()}");
         }
 
         internal IConnection CreateNonRecoveringConnection()
@@ -152,7 +151,7 @@ namespace RabbitMQ.Client.Unit
             var cf = new ConnectionFactory();
             cf.AutomaticRecoveryEnabled = false;
             cf.TopologyRecoveryEnabled = false;
-            return cf.CreateConnection(clientProvidedName:$"UNIT_CONN:{Guid.NewGuid()}");
+            return cf.CreateConnection($"UNIT_CONN:{Guid.NewGuid()}");
         }
 
         //
@@ -523,7 +522,7 @@ namespace RabbitMQ.Client.Unit
         //
         // Connection Closure
         //
-
+        
         public class ConnectionInfo
         {
             public string Pid
@@ -547,7 +546,6 @@ namespace RabbitMQ.Client.Unit
                 return "pid = " + Pid + ", name: " + Name;
             }
         }
-
 
         private static readonly Regex GetConnectionName = new Regex(@"\{""connection_name"",""(?<connection_name>[^""]+)""\}");
 

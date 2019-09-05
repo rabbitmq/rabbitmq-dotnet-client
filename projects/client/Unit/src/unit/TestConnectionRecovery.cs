@@ -393,8 +393,9 @@ namespace RabbitMQ.Client.Unit
 
             try
             {
+                var shutdownEvent = PrepareForShutdown(c);
                 c.Close();
-                WaitForShutdown(c);
+                Wait(shutdownEvent);
                 Assert.IsFalse(c.IsOpen);
                 c.CreateModel();
                 Assert.Fail("Expected an exception");
