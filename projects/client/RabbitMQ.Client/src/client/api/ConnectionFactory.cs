@@ -161,6 +161,14 @@ namespace RabbitMQ.Client
         public IList<AuthMechanismFactory> AuthMechanisms { get; set; } = DefaultAuthMechanisms;
 
         /// <summary>
+        /// Address family used by default.
+        /// Use <see cref="System.Net.Sockets.AddressFamily.InterNetwork" /> to force to IPv4.
+        /// Use <see cref="System.Net.Sockets.AddressFamily.InterNetworkV6" /> to force to IPv6.
+        /// Or use <see cref="System.Net.Sockets.AddressFamily.Unknown" /> to attempt both IPv6 and IPv4.
+        /// </summary>
+        public static System.Net.Sockets.AddressFamily DefaultAddressFamily { get; set; }
+
+        /// <summary>
         /// Set to false to disable automatic connection recovery.
         /// Defaults to true.
         /// </summary>

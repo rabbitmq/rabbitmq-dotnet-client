@@ -172,17 +172,12 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// Address family used by default.
+        /// Used to force the address family of the endpoint.
         /// Use <see cref="System.Net.Sockets.AddressFamily.InterNetwork" /> to force to IPv4.
         /// Use <see cref="System.Net.Sockets.AddressFamily.InterNetworkV6" /> to force to IPv6.
         /// Or use <see cref="System.Net.Sockets.AddressFamily.Unknown" /> to attempt both IPv6 and IPv4.
         /// </summary>
-        public static System.Net.Sockets.AddressFamily DefaultAddressFamily { get; set; }
-
-        /// <summary>
-        /// Used to force the address family of the endpoint
-        /// </summary>
-        public System.Net.Sockets.AddressFamily AddressFamily { get; set; } = DefaultAddressFamily;
+        public System.Net.Sockets.AddressFamily AddressFamily { get; set; } = ConnectionFactory.DefaultAddressFamily;
 
         /// <summary>
         /// Retrieve the SSL options for this AmqpTcpEndpoint. If not set, null is returned.
