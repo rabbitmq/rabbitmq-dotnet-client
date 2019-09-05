@@ -49,7 +49,7 @@ using System.Text;
 using System.Threading;
 using System.Diagnostics;
 using System.Linq;
-using System.Text.RegularExpressions;
+
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing;
@@ -112,7 +112,7 @@ namespace RabbitMQ.Client.Unit
             var cf = new ConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
             cf.NetworkRecoveryInterval = interval;
-            return (AutorecoveringConnection)cf.CreateConnection($"UNIT_CONN:{Guid.NewGuid()}");
+            return (AutorecoveringConnection)cf.CreateConnection();
         }
 
         internal AutorecoveringConnection CreateAutorecoveringConnection(TimeSpan interval, IList<string> hostnames)
@@ -123,7 +123,7 @@ namespace RabbitMQ.Client.Unit
             // make sure we time out quickly on those
             cf.RequestedConnectionTimeout = 1000;
             cf.NetworkRecoveryInterval = interval;
-            return (AutorecoveringConnection)cf.CreateConnection(hostnames, $"UNIT_CONN:{Guid.NewGuid()}");
+            return (AutorecoveringConnection)cf.CreateConnection(hostnames);
         }
 
         internal AutorecoveringConnection CreateAutorecoveringConnection(IList<AmqpTcpEndpoint> endpoints)
@@ -134,7 +134,7 @@ namespace RabbitMQ.Client.Unit
             // make sure we time out quickly on those
             cf.RequestedConnectionTimeout = 1000;
             cf.NetworkRecoveryInterval = RECOVERY_INTERVAL;
-            return (AutorecoveringConnection)cf.CreateConnection(endpoints, $"UNIT_CONN:{Guid.NewGuid()}");
+            return (AutorecoveringConnection)cf.CreateConnection(endpoints);
         }
 
         internal AutorecoveringConnection CreateAutorecoveringConnectionWithTopologyRecoveryDisabled()
@@ -143,7 +143,7 @@ namespace RabbitMQ.Client.Unit
             cf.AutomaticRecoveryEnabled = true;
             cf.TopologyRecoveryEnabled = false;
             cf.NetworkRecoveryInterval = RECOVERY_INTERVAL;
-            return (AutorecoveringConnection)cf.CreateConnection($"UNIT_CONN:{Guid.NewGuid()}");
+            return (AutorecoveringConnection)cf.CreateConnection();
         }
 
         internal IConnection CreateNonRecoveringConnection()
@@ -151,7 +151,7 @@ namespace RabbitMQ.Client.Unit
             var cf = new ConnectionFactory();
             cf.AutomaticRecoveryEnabled = false;
             cf.TopologyRecoveryEnabled = false;
-            return cf.CreateConnection($"UNIT_CONN:{Guid.NewGuid()}");
+            return cf.CreateConnection();
         }
 
         //
@@ -165,7 +165,7 @@ namespace RabbitMQ.Client.Unit
                 AutomaticRecoveryEnabled = true
             };
 
-            var connection = (AutorecoveringConnection)factory.CreateConnection(clientProvidedName:$"UNIT_CONN:{Guid.NewGuid()}");
+            var connection = (AutorecoveringConnection)factory.CreateConnection();
             try
             {
                 action(connection);
@@ -459,8 +459,8 @@ namespace RabbitMQ.Client.Unit
             }
 
             try {
-              proc.StartInfo.FileName = "docker";
-              proc.StartInfo.Arguments = $"exec rabbitmq03 rabbitmqctl {args}";
+              proc.StartInfo.FileName = cmd;
+              proc.StartInfo.Arguments = args;
               proc.StartInfo.RedirectStandardError = true;
               proc.StartInfo.RedirectStandardOutput = true;
 
@@ -522,7 +522,7 @@ namespace RabbitMQ.Client.Unit
         //
         // Connection Closure
         //
-        
+
         public class ConnectionInfo
         {
             public string Pid
@@ -530,28 +530,26 @@ namespace RabbitMQ.Client.Unit
                 get; set;
             }
 
-            public string Name
+            public uint PeerPort
             {
                 get; set;
             }
 
-            public ConnectionInfo(string pid, string name)
+            public ConnectionInfo(string pid, uint peerPort)
             {
                 Pid = pid;
-                Name = name;
+                PeerPort = peerPort;
             }
 
             public override string ToString()
             {
-                return "pid = " + Pid + ", name: " + Name;
+                return "pid = " + Pid + ", peer port: " + PeerPort;
             }
         }
 
-        private static readonly Regex GetConnectionName = new Regex(@"\{""connection_name"",""(?<connection_name>[^""]+)""\}");
-
         internal List<ConnectionInfo> ListConnections()
         {
-            Process proc  = ExecRabbitMQCtl("list_connections --silent pid client_properties");
+            Process proc  = ExecRabbitMQCtl("list_connections --silent pid peer_port");
             String stdout = proc.StandardOutput.ReadToEnd();
 
             try
@@ -559,27 +557,25 @@ namespace RabbitMQ.Client.Unit
                 // {Environment.NewLine} is not sufficient
                 string[] splitOn = new string[] { "\r\n", "\n" };
                 string[] lines   = stdout.Split(splitOn, StringSplitOptions.RemoveEmptyEntries);
-                // line: <rabbit@mercurio.1.11491.0>	{.../*client_properties*/...}
+                // line: <rabbit@mercurio.1.11491.0>	58713
                 return lines.Select(s =>
                 {
                     var columns = s.Split('\t');
                     Debug.Assert(!string.IsNullOrEmpty(columns[0]), "columns[0] is null or empty!");
                     Debug.Assert(!string.IsNullOrEmpty(columns[1]), "columns[1] is null or empty!");
-                    var match = GetConnectionName.Match(columns[1]);
-                    Debug.Assert(match.Success, "columns[1] is not in expected format.");
-                    return new ConnectionInfo(columns[0], match.Groups["connection_name"].Value);
+                    return new ConnectionInfo(columns[0], Convert.ToUInt32(columns[1].Trim()));
                 }).ToList();
             }
             catch (Exception)
             {
-                Console.WriteLine("Bad response from rabbitmqctl list_connections --silent pid client_properties" + Environment.NewLine + stdout);
+                Console.WriteLine("Bad response from rabbitmqctl list_connections --silent pid peer_port:" + Environment.NewLine + stdout);
                 throw;
             }
         }
 
         internal void CloseConnection(IConnection conn)
         {
-            var ci = ListConnections().First(x => conn.ClientProvidedName == x.Name);
+            var ci = ListConnections().First(x => conn.LocalPort == x.PeerPort);
             CloseConnection(ci.Pid);
         }
 
