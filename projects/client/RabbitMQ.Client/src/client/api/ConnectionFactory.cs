@@ -181,6 +181,11 @@ namespace RabbitMQ.Client
         public TimeSpan NetworkRecoveryInterval { get; set; } = TimeSpan.FromSeconds(5);
         private TimeSpan m_handshakeContinuationTimeout = TimeSpan.FromSeconds(10);
         private TimeSpan m_continuationTimeout = TimeSpan.FromSeconds(20);
+        
+        /// <summary>
+        /// Allows client to override in what case AutoRecovery is invoked.
+        /// </summary>
+        public Predicate<ShutdownEventArgs> ConnectionRecoveryTriggeringCondition { get; set; }
 
         // just here to hold the value that was set through the setter
         private Uri uri;

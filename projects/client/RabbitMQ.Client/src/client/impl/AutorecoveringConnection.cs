@@ -52,9 +52,6 @@ namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class AutorecoveringConnection : IConnection
     {
-        private readonly object m_eventLock = new object();
-
-        private readonly object manuallyClosedLock = new object();
         private Connection m_delegate;
         private ConnectionFactory m_factory;
 
@@ -63,340 +60,233 @@ namespace RabbitMQ.Client.Framing.Impl
         // IHostnameSelector
         private IEndpointResolver endpoints;
 
-        private readonly object m_recordedEntitiesLock = new object();
-        private readonly TaskFactory recoveryTaskFactory = new TaskFactory();
-        private readonly object recoveryLockTarget = new object();
-        // used to block connection recovery attempts after Close() is invoked
-        private bool manuallyClosed = false;
-        private bool performingRecovery = false;
-
-
         private List<AutorecoveringModel> m_models = new List<AutorecoveringModel>();
+
+        // Notes on ConcurrentDictionary:
+        //   From MSDN: "All public and private members of ConcurrentDictionary<TKey,TValue> are thread-safe
+        //   and may be used concurrently from multiple threads. However, members accessed through one of the
+        //   interfaces the ConcurrentDictionary<TKey,TValue> implements, including extension methods, are not
+        //   guaranteed to be thread safe and may need to be synchronized by the caller."
+        // Take-away: When interacting with ConcurrentDictionary make sure to use its members and be wary of
+        //   extension methods or casting it to an interface like IDictionary or ICollection.
 
         private ConcurrentDictionary<RecordedBinding, byte> m_recordedBindings =
             new ConcurrentDictionary<RecordedBinding, byte>();
 
-        private EventHandler<ConnectionBlockedEventArgs> m_recordedBlockedEventHandlers;
-
-        private IDictionary<string, RecordedConsumer> m_recordedConsumers =
+        private ConcurrentDictionary<string, RecordedConsumer> m_recordedConsumers =
             new ConcurrentDictionary<string, RecordedConsumer>();
 
-        private IDictionary<string, RecordedExchange> m_recordedExchanges =
+        private ConcurrentDictionary<string, RecordedExchange> m_recordedExchanges =
             new ConcurrentDictionary<string, RecordedExchange>();
 
-        private IDictionary<string, RecordedQueue> m_recordedQueues =
+        private ConcurrentDictionary<string, RecordedQueue> m_recordedQueues =
             new ConcurrentDictionary<string, RecordedQueue>();
-
-        private EventHandler<ShutdownEventArgs> m_recordedShutdownEventHandlers;
-        private EventHandler<EventArgs> m_recordedUnblockedEventHandlers;
-        private EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> m_consumerTagChange;
-        private EventHandler<QueueNameChangedAfterRecoveryEventArgs> m_queueNameChange;
-        private EventHandler<EventArgs> m_recovery;
-        private EventHandler<ConnectionRecoveryErrorEventArgs> m_connectionRecoveryError;
-
+        
         public AutorecoveringConnection(ConnectionFactory factory, string clientProvidedName = null)
         {
             m_factory = factory;
             this.ClientProvidedName = clientProvidedName;
         }
 
-        private bool ManuallyClosed
-        {
-            get
-            {
-                lock(manuallyClosedLock)
-                {
-                    return manuallyClosed;
-                }
-            }
-            set
-            {
-                lock(manuallyClosedLock)
-                {
-                    manuallyClosed = value; }
-                }
-        }
+        public event EventHandler<EventArgs> RecoverySucceeded;
 
-        public event EventHandler<EventArgs> RecoverySucceeded
-        {
-            add
-            {
-                lock (m_eventLock)
-                {
-                    m_recovery += value;
-                }
-            }
-            remove
-            {
-                lock (m_eventLock)
-                {
-                    m_recovery -= value;
-                }
-            }
-        }
+        public event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError;
 
-        public event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError
-        {
-            add
-            {
-                lock (m_eventLock)
-                {
-                    m_connectionRecoveryError += value;
-                }
-            }
-            remove
-            {
-                lock (m_eventLock)
-                {
-                    m_connectionRecoveryError -= value;
-                }
-            }
-        }
+        public event EventHandler<CallbackExceptionEventArgs> CallbackException;
 
-        public event EventHandler<CallbackExceptionEventArgs> CallbackException
-        {
-            add
-            {
-                lock (m_eventLock)
-                {
-                    m_delegate.CallbackException += value;
-                }
-            }
-            remove
-            {
-                lock (m_eventLock)
-                {
-                    m_delegate.CallbackException -= value;
-                }
-            }
-        }
+        public event EventHandler<ConnectionBlockedEventArgs> ConnectionBlocked;
 
-        public event EventHandler<ConnectionBlockedEventArgs> ConnectionBlocked
-        {
-            add
-            {
-                lock (m_eventLock)
-                {
-                    m_recordedBlockedEventHandlers += value;
-                    m_delegate.ConnectionBlocked += value;
-                }
-            }
-            remove
-            {
-                lock (m_eventLock)
-                {
-                    m_recordedBlockedEventHandlers -= value;
-                    m_delegate.ConnectionBlocked -= value;
-                }
-            }
-        }
+        public event EventHandler<ShutdownEventArgs> ConnectionShutdown;
 
-        public event EventHandler<ShutdownEventArgs> ConnectionShutdown
-        {
-            add
-            {
-                lock (m_eventLock)
-                {
-                    m_recordedShutdownEventHandlers += value;
-                    m_delegate.ConnectionShutdown += value;
-                }
-            }
-            remove
-            {
-                lock (m_eventLock)
-                {
-                    m_recordedShutdownEventHandlers -= value;
-                    m_delegate.ConnectionShutdown -= value;
-                }
-            }
-        }
+        public event EventHandler<EventArgs> ConnectionUnblocked;
 
-        public event EventHandler<EventArgs> ConnectionUnblocked
-        {
-            add
-            {
-                lock (m_eventLock)
-                {
-                    m_recordedUnblockedEventHandlers += value;
-                    m_delegate.ConnectionUnblocked += value;
-                }
-            }
-            remove
-            {
-                lock (m_eventLock)
-                {
-                    m_recordedUnblockedEventHandlers -= value;
-                    m_delegate.ConnectionUnblocked -= value;
-                }
-            }
-        }
+        public event EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery;
 
-        public event EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery
-        {
-            add
-            {
-                lock (m_eventLock)
-                {
-                    m_consumerTagChange += value;
-                }
-            }
-            remove
-            {
-                lock (m_eventLock)
-                {
-                    m_consumerTagChange -= value;
-                }
-            }
-        }
-
-        public event EventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangeAfterRecovery
-        {
-            add
-            {
-                lock (m_eventLock)
-                {
-                    m_queueNameChange += value;
-                }
-            }
-            remove
-            {
-                lock (m_eventLock)
-                {
-                    m_queueNameChange -= value;
-                }
-            }
-        }
+        public event EventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangeAfterRecovery;
 
         public string ClientProvidedName { get; private set; }
 
-        public ushort ChannelMax
-        {
-            get { return m_delegate.ChannelMax; }
-        }
+        public ushort ChannelMax => m_delegate.ChannelMax;
 
-        public ConsumerWorkService ConsumerWorkService
-        {
-            get { return m_delegate.ConsumerWorkService; }
-        }
+        public ConsumerWorkService ConsumerWorkService => m_delegate.ConsumerWorkService;
 
-        public IDictionary<string, object> ClientProperties
-        {
-            get { return m_delegate.ClientProperties; }
-        }
+        public IDictionary<string, object> ClientProperties => m_delegate.ClientProperties;
 
-        public ShutdownEventArgs CloseReason
-        {
-            get { return m_delegate.CloseReason; }
-        }
+        public ShutdownEventArgs CloseReason => m_delegate.CloseReason;
 
-        public AmqpTcpEndpoint Endpoint
-        {
-            get { return m_delegate.Endpoint; }
-        }
+        public AmqpTcpEndpoint Endpoint => m_delegate.Endpoint;
 
-        public uint FrameMax
-        {
-            get { return m_delegate.FrameMax; }
-        }
+        public uint FrameMax => m_delegate.FrameMax;
 
-        public ushort Heartbeat
-        {
-            get { return m_delegate.Heartbeat; }
-        }
+        public ushort Heartbeat => m_delegate.Heartbeat;
 
-        public bool IsOpen
-        {
-            get { return m_delegate.IsOpen; }
-        }
+        public bool IsOpen => m_delegate.IsOpen;
 
         public AmqpTcpEndpoint[] KnownHosts
         {
-            get { return m_delegate.KnownHosts; }
-            set { m_delegate.KnownHosts = value; }
+            get => m_delegate.KnownHosts;
+            set => m_delegate.KnownHosts = value;
         }
 
-        public int LocalPort
+        public int LocalPort => m_delegate.LocalPort;
+
+        public ProtocolBase Protocol => m_delegate.Protocol;
+
+        public IDictionary<string, RecordedExchange> RecordedExchanges => m_recordedExchanges;
+
+        public IDictionary<string, RecordedQueue> RecordedQueues => m_recordedQueues;
+
+        public int RemotePort => m_delegate.RemotePort;
+
+        public IDictionary<string, object> ServerProperties => m_delegate.ServerProperties;
+
+        public IList<ShutdownReportEntry> ShutdownReport => m_delegate.ShutdownReport;
+
+        IProtocol IConnection.Protocol => Endpoint.Protocol;
+        
+        private enum RecoveryCommand
         {
-            get { return m_delegate.LocalPort; }
+            /// <summary>
+            /// Transition to auto-recovery state if not already in that state.
+            /// </summary>
+            BeginAutomaticRecovery,
+            /// <summary>
+            /// Attempt to recover connection. If connection is recovered, return
+            /// to connected state.
+            /// </summary>
+            PerformAutomaticRecovery
         }
 
-        public ProtocolBase Protocol
-        {
-            get { return m_delegate.Protocol; }
-        }
 
-        public IDictionary<string, RecordedExchange> RecordedExchanges
+        private enum RecoveryConnectionState
         {
-            get { return m_recordedExchanges; }
+            /// <summary>
+            /// Underlying connection is open.
+            /// </summary>
+            Connected,
+            /// <summary>
+            /// In the process of recovering underlying connection.
+            /// </summary>
+            Recovering
         }
+        
+        
+        private Thread m_recoveryThread;
+        private RecoveryConnectionState m_recoveryLoopState = RecoveryConnectionState.Connected;
 
-        public IDictionary<string, RecordedQueue> RecordedQueues
-        {
-            get { return m_recordedQueues; }
-        }
+        private readonly BlockingCollection<RecoveryCommand> m_recoveryLoopCommandQueue = new BlockingCollection<RecoveryCommand>();
+        private readonly CancellationTokenSource m_recoveryCancellationToken = new CancellationTokenSource();
+        private readonly TaskCompletionSource<int> m_recoveryLoopComplete = new TaskCompletionSource<int>();
 
-        public int RemotePort
+        /// <summary>
+        /// This is the main loop for the auto-recovery thread.
+        /// </summary>
+        private void MainRecoveryLoop()
         {
-            get { return m_delegate.RemotePort; }
-        }
-
-        public IDictionary<string, object> ServerProperties
-        {
-            get { return m_delegate.ServerProperties; }
-        }
-
-        public IList<ShutdownReportEntry> ShutdownReport
-        {
-            get { return m_delegate.ShutdownReport; }
-        }
-
-        IProtocol IConnection.Protocol
-        {
-            get { return Endpoint.Protocol; }
-        }
-
-        public void BeginAutomaticRecovery()
-        {
-            lock (recoveryLockTarget)
+            try
             {
-                if (!performingRecovery)
+                while (m_recoveryLoopCommandQueue.TryTake(out var command, -1, m_recoveryCancellationToken.Token))
                 {
-                    performingRecovery = true;
-                    var self = this;
-
-                    recoveryTaskFactory.StartNew(() =>
+                    switch (m_recoveryLoopState)
                     {
-                        if (!self.ManuallyClosed)
-                        {
-                            try
-                            {
-#if NETFX_CORE
-                                System.Threading.Tasks.Task.Delay(m_factory.NetworkRecoveryInterval).Wait();
-#else
-                                Thread.Sleep(m_factory.NetworkRecoveryInterval);
-#endif
-                                self.PerformAutomaticRecovery();
-                            }
-                            finally
-                            {
-                                performingRecovery = false;
-                            }
-                        }
-                    });
+                        case RecoveryConnectionState.Connected:
+                            RecoveryLoopConnectedHandler(command);
+                            break;
+                        case RecoveryConnectionState.Recovering:
+                            RecoveryLoopRecoveringHandler(command);
+                            break;
+                        default:
+                            ESLog.Warn("RecoveryLoop state is out of range.");
+                            break;
+                    }
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                // expected when recovery cancellation token is set.
+            }
+            catch (Exception e)
+            {
+                ESLog.Error("Main recovery loop threw unexpected exception.", e);
+            }
+            m_recoveryLoopComplete.SetResult(0);
+        }
+
+        /// <summary>
+        /// Cancels the main recovery loop and will block until the loop finishes, or the timeout
+        /// expires, to prevent Close operations overlapping with recovery operations.
+        /// </summary>
+        private void StopRecoveryLoop()
+        {
+            m_recoveryCancellationToken.Cancel();
+            if (!m_recoveryLoopComplete.Task.Wait(m_factory.RequestedConnectionTimeout))
+            {
+                ESLog.Warn("Timeout while trying to stop background AutorecoveringConnection recovery loop.");
             }
         }
 
-        private void PerformAutomaticRecovery()
+        /// <summary>
+        /// Handles commands when in the Recovering state.
+        /// </summary>
+        /// <param name="command"></param>
+        private void RecoveryLoopRecoveringHandler(RecoveryCommand command)
+        {
+            switch (command)
+            {
+                case RecoveryCommand.BeginAutomaticRecovery:
+                    ESLog.Info("Received request to BeginAutomaticRecovery, but already in Recovering state.");
+                    break;
+                case RecoveryCommand.PerformAutomaticRecovery:
+                    if (TryRecoverConnection())
+                    {
+                        m_recoveryLoopState = RecoveryConnectionState.Connected;
+                    }
+                    else
+                    {
+                        Task.Delay(m_factory.NetworkRecoveryInterval).ContinueWith(t => { m_recoveryLoopCommandQueue.TryAdd(RecoveryCommand.PerformAutomaticRecovery); });
+                    }
+
+                    break;
+                default:
+                    ESLog.Warn($"RecoveryLoop command {command} is out of range.");
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Handles commands when in the Connected state.
+        /// </summary>
+        /// <param name="command"></param>
+        private void RecoveryLoopConnectedHandler(RecoveryCommand command)
+        {
+            switch (command)
+            {
+                case RecoveryCommand.PerformAutomaticRecovery:
+                    ESLog.Warn("Not expecting PerformAutomaticRecovery commands while in the connected state.");
+                    break;
+                case RecoveryCommand.BeginAutomaticRecovery:
+                    m_recoveryLoopState = RecoveryConnectionState.Recovering;
+                    Task.Delay(m_factory.NetworkRecoveryInterval).ContinueWith(t => { m_recoveryLoopCommandQueue.TryAdd(RecoveryCommand.PerformAutomaticRecovery); });
+                    break;
+                default:
+                    ESLog.Warn($"RecoveryLoop command {command} is out of range.");
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Attempt to recover the connection. Should not throw Exceptions.
+        /// </summary>
+        /// <returns>True if the recovery operation succeeded.</returns>
+        private bool TryRecoverConnection()
         {
             ESLog.Info("Performing automatic recovery");
-            lock (recoveryLockTarget)
+
+            try
             {
-                if (RecoverConnectionDelegate())
+                if (TryRecoverConnectionDelegate())
                 {
-                    RecoverConnectionShutdownHandlers();
-                    RecoverConnectionBlockedHandlers();
-                    RecoverConnectionUnblockedHandlers();
+                    RegisterForConnectionEvents();
 
                     RecoverModels();
                     if (m_factory.TopologyRecoveryEnabled)
@@ -407,12 +297,16 @@ namespace RabbitMQ.Client.Framing.Impl
 
                     ESLog.Info("Connection recovery completed");
                     RunRecoveryEventHandlers();
-                }
-                else
-                {
-                    ESLog.Warn("Connection delegate was manually closed. Aborted recovery.");
+
+                    return true;
                 }
             }
+            catch (Exception e)
+            {
+                ESLog.Error("Exception when recovering connection. Will try again after retry interval.", e);
+            }
+
+            return false;
         }
 
         public void Close(ShutdownEventArgs reason)
@@ -430,86 +324,81 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void DeleteRecordedBinding(RecordedBinding rb)
         {
-            lock (m_recordedEntitiesLock)
+            if (!m_recordedBindings.TryRemove(rb, out var value))
             {
-                ((IDictionary<RecordedBinding, byte>)m_recordedBindings).Remove(rb);
+                ESLog.Warn($"Failed to remove RecordedBinding: {rb}");
             }
         }
 
         public RecordedConsumer DeleteRecordedConsumer(string consumerTag)
         {
-            RecordedConsumer rc = null;
-            lock (m_recordedEntitiesLock)
+            if (m_recordedConsumers.TryRemove(consumerTag, out var value))
             {
-                if (m_recordedConsumers.ContainsKey(consumerTag))
-                {
-                    rc = m_recordedConsumers[consumerTag];
-                    m_recordedConsumers.Remove(consumerTag);
-                }
+                return value;
             }
 
-            return rc;
+            return null;
         }
 
         public void DeleteRecordedExchange(string name)
         {
-            lock (m_recordedEntitiesLock)
+            if (m_recordedExchanges.TryRemove(name, out var exchange))
             {
-                m_recordedExchanges.Remove(name);
-
-                // find bindings that need removal, check if some auto-delete exchanges
-                // might need the same
-                var bs = m_recordedBindings.Keys.Where(b => name.Equals(b.Destination));
-                foreach (var b in bs)
-                {
-                    DeleteRecordedBinding(b);
-                    MaybeDeleteRecordedAutoDeleteExchange(b.Source);
-                }
+                DeleteBindings(name);
+            }
+            else
+            {
+                ESLog.Warn($"Failed to remove Exchange: {name}");
             }
         }
 
         public void DeleteRecordedQueue(string name)
         {
-            lock (m_recordedEntitiesLock)
+            if (m_recordedQueues.TryRemove(name, out var exchange))
             {
-                m_recordedQueues.Remove(name);
-                // find bindings that need removal, check if some auto-delete exchanges
-                // might need the same
-                var bs = m_recordedBindings.Keys.Where(b => name.Equals(b.Destination));
-                foreach (var b in bs)
-                {
-                    DeleteRecordedBinding(b);
-                    MaybeDeleteRecordedAutoDeleteExchange(b.Source);
-                }
+                DeleteBindings(name);
+            }
+            else
+            {
+                ESLog.Warn($"Failed to remove Queue: {name}");
+            }
+        }
+
+        public void DeleteBindings(string name)
+        {
+            var bindings = m_recordedBindings.Select(p => p.Key);
+
+            // find bindings that need removal, check if some auto-delete exchanges
+            // might need the same
+            foreach (var b in bindings.Where(b => name.Equals(b.Destination)).ToArray())
+            {
+                DeleteRecordedBinding(b);
+                MaybeDeleteRecordedAutoDeleteExchange(b.Source);
             }
         }
 
         public bool HasMoreConsumersOnQueue(ICollection<RecordedConsumer> consumers, string queue)
         {
-            var cs = new List<RecordedConsumer>(consumers);
-            return cs.Exists(c => c.Queue.Equals(queue));
+            return consumers.Any(c => c.Queue.Equals(queue));
         }
 
         public bool HasMoreDestinationsBoundToExchange(ICollection<RecordedBinding> bindings, string exchange)
         {
-            var bs = new List<RecordedBinding>(bindings);
-            return bs.Exists(b => b.Source.Equals(exchange));
+            return bindings.Any(b => b.Source.Equals(exchange));
         }
 
         public void MaybeDeleteRecordedAutoDeleteExchange(string exchange)
         {
-            lock (m_recordedEntitiesLock)
+            if (!HasMoreDestinationsBoundToExchange(m_recordedBindings.Keys, exchange))
             {
-                if (!HasMoreDestinationsBoundToExchange(m_recordedBindings.Keys, exchange))
+                if (m_recordedExchanges.TryGetValue(exchange, out var rx))
                 {
-                    RecordedExchange rx;
-                    m_recordedExchanges.TryGetValue(exchange, out rx);
                     // last binding where this exchange is the source is gone,
                     // remove recorded exchange
                     // if it is auto-deleted. See bug 26364.
                     if ((rx != null) && rx.IsAutoDelete)
                     {
-                        m_recordedExchanges.Remove(exchange);
+                        m_recordedExchanges.TryRemove(exchange, out var ex);
                     }
                 }
             }
@@ -517,17 +406,15 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void MaybeDeleteRecordedAutoDeleteQueue(string queue)
         {
-            lock (m_recordedEntitiesLock)
+            if (!HasMoreConsumersOnQueue(m_recordedConsumers.Values, queue))
             {
-                if (!HasMoreConsumersOnQueue(m_recordedConsumers.Values, queue))
+                if (m_recordedQueues.TryGetValue(queue, out var rq))
                 {
-                    RecordedQueue rq;
-                    m_recordedQueues.TryGetValue(queue, out rq);
                     // last consumer on this connection is gone, remove recorded queue
                     // if it is auto-deleted. See bug 26364.
                     if ((rq != null) && rq.IsAutoDelete)
                     {
-                        m_recordedQueues.Remove(queue);
+                        m_recordedQueues.TryRemove(queue, out var q);
                     }
                 }
             }
@@ -535,37 +422,22 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void RecordBinding(RecordedBinding rb)
         {
-            lock (m_recordedEntitiesLock)
-            {
-                m_recordedBindings.TryAdd(rb, 0);
-            }
+            m_recordedBindings.TryAdd(rb, 0);
         }
 
         public void RecordConsumer(string name, RecordedConsumer c)
         {
-            lock (m_recordedEntitiesLock)
-            {
-                if (!m_recordedConsumers.ContainsKey(name))
-                {
-                    m_recordedConsumers.Add(name, c);
-                }
-            }
+            m_recordedConsumers.TryAdd(name, c);
         }
 
         public void RecordExchange(string name, RecordedExchange x)
         {
-            lock (m_recordedEntitiesLock)
-            {
-                m_recordedExchanges[name] = x;
-            }
+            m_recordedExchanges.TryAdd(name, x);
         }
 
         public void RecordQueue(string name, RecordedQueue q)
         {
-            lock (m_recordedEntitiesLock)
-            {
-                m_recordedQueues[name] = q;
-            }
+            m_recordedQueues.TryAdd(name, q);
         }
 
         public override string ToString()
@@ -595,46 +467,74 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void Init(IFrameHandler fh)
         {
-            m_delegate = new Connection(m_factory, false,
-                fh, this.ClientProvidedName);
+            m_delegate = new Connection(m_factory,
+                false,
+                fh,
+                this.ClientProvidedName);
 
-            AutorecoveringConnection self = this;
+            m_recoveryThread = new Thread(MainRecoveryLoop)
+            {
+                IsBackground = true
+            };
+            m_recoveryThread.Start();
+
             EventHandler<ShutdownEventArgs> recoveryListener = (_, args) =>
             {
-                lock (recoveryLockTarget)
+                var condition = m_factory.ConnectionRecoveryTriggeringCondition ?? ShouldTriggerConnectionRecovery;
+
+                if (condition(args))
                 {
-                    if (ShouldTriggerConnectionRecovery(args))
+                    if (!m_recoveryLoopCommandQueue.TryAdd(RecoveryCommand.BeginAutomaticRecovery))
                     {
-                        try
-                        {
-                            self.BeginAutomaticRecovery();
-                        }
-                        catch (Exception e)
-                        {
-                            ESLog.Error("BeginAutomaticRecovery() failed.", e);
-                        }
+                        ESLog.Warn("Failed to notify RecoveryLoop to BeginAutomaticRecovery.");
                     }
                 }
             };
-            lock (m_eventLock)
-            {
-                ConnectionShutdown += recoveryListener;
-                m_recordedShutdownEventHandlers += recoveryListener;
-            }
+            ConnectionShutdown += recoveryListener;
+
+            RegisterForConnectionEvents();
+        }
+
+        private void RegisterForConnectionEvents()
+        {
+            m_delegate.ConnectionShutdown += OnConnectionShutdown;
+            m_delegate.CallbackException += OnCallbackException;
+            m_delegate.ConnectionBlocked += OnConnectionBlocked;
+            m_delegate.ConnectionUnblocked += OnConnectionUnblocked;
+        }
+
+        private void OnConnectionUnblocked(object sender, EventArgs e)
+        {
+            ConnectionUnblocked?.Invoke(sender, e);
+        }
+
+        private void OnConnectionBlocked(object sender, ConnectionBlockedEventArgs e)
+        {
+            ConnectionBlocked?.Invoke(sender, e);
+        }
+
+        private void OnCallbackException(object sender, CallbackExceptionEventArgs e)
+        {
+            CallbackException?.Invoke(sender, e);
+        }
+
+        private void OnConnectionShutdown(object sender, ShutdownEventArgs e)
+        {
+            ConnectionShutdown?.Invoke(sender, e);
         }
 
         ///<summary>API-side invocation of connection abort.</summary>
         public void Abort()
         {
-            this.ManuallyClosed = true;
-            if(m_delegate.IsOpen)
+            StopRecoveryLoop();
+            if (m_delegate.IsOpen)
                 m_delegate.Abort();
         }
 
         ///<summary>API-side invocation of connection abort.</summary>
         public void Abort(ushort reasonCode, string reasonText)
         {
-            this.ManuallyClosed = true;
+            StopRecoveryLoop();
             if (m_delegate.IsOpen)
                 m_delegate.Abort(reasonCode, reasonText);
         }
@@ -642,7 +542,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection abort with timeout.</summary>
         public void Abort(int timeout)
         {
-            this.ManuallyClosed = true;
+            StopRecoveryLoop();
             if (m_delegate.IsOpen)
                 m_delegate.Abort(timeout);
         }
@@ -650,7 +550,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection abort with timeout.</summary>
         public void Abort(ushort reasonCode, string reasonText, int timeout)
         {
-            this.ManuallyClosed = true;
+            StopRecoveryLoop();
             if (m_delegate.IsOpen)
                 m_delegate.Abort(reasonCode, reasonText, timeout);
         }
@@ -658,7 +558,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection.close.</summary>
         public void Close()
         {
-            this.ManuallyClosed = true;
+            StopRecoveryLoop();
             if (m_delegate.IsOpen)
                 m_delegate.Close();
         }
@@ -666,7 +566,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection.close.</summary>
         public void Close(ushort reasonCode, string reasonText)
         {
-            this.ManuallyClosed = true;
+            StopRecoveryLoop();
             if (m_delegate.IsOpen)
                 m_delegate.Close(reasonCode, reasonText);
         }
@@ -674,7 +574,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection.close with timeout.</summary>
         public void Close(int timeout)
         {
-            this.ManuallyClosed = true;
+            StopRecoveryLoop();
             if (m_delegate.IsOpen)
                 m_delegate.Close(timeout);
         }
@@ -682,7 +582,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection.close with timeout.</summary>
         public void Close(ushort reasonCode, string reasonText, int timeout)
         {
-            this.ManuallyClosed = true;
+            StopRecoveryLoop();
             if (m_delegate.IsOpen)
                 m_delegate.Close(reasonCode, reasonText, timeout);
         }
@@ -697,6 +597,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 m_models.Add(m);
             }
+
             return m;
         }
 
@@ -712,32 +613,18 @@ namespace RabbitMQ.Client.Framing.Impl
 
         void IDisposable.Dispose()
         {
-            Dispose(true);
-        }
-
-        private void Dispose(bool disposing)
-        {
-            if (disposing)
+            try
             {
-                // dispose managed resources
-                try
-                {
-                    Abort();
-                }
-                catch (Exception)
-                {
-                    // TODO: log
-                }
-                finally
-                {
-                    m_models.Clear();
-                    m_recordedBlockedEventHandlers = null;
-                    m_recordedShutdownEventHandlers = null;
-                    m_recordedUnblockedEventHandlers = null;
-                }
+                Abort((int)m_factory.HandshakeContinuationTimeout.TotalMilliseconds);
             }
-
-            // dispose unmanaged resources
+            catch (Exception e)
+            {
+                ESLog.Error("Unable to abort Connection on Dispose.", e);
+            }
+            finally
+            {
+                m_models.Clear();
+            }
         }
 
         private void EnsureIsOpen()
@@ -752,26 +639,21 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void PropagateQueueNameChangeToBindings(string oldName, string newName)
         {
-            lock (m_recordedBindings)
+            var bs = m_recordedBindings.Keys.Where(b => b.Destination.Equals(oldName));
+
+            foreach (RecordedBinding b in bs)
             {
-                var bs = m_recordedBindings.Keys.Where(b => b.Destination.Equals(oldName));
-                foreach (RecordedBinding b in bs)
-                {
-                    b.Destination = newName;
-                }
+                b.Destination = newName;
             }
         }
 
         private void PropagateQueueNameChangeToConsumers(string oldName, string newName)
         {
-            lock (m_recordedBindings)
+            var cs = m_recordedConsumers.Values.Where(c => c.Queue.Equals(oldName));
+
+            foreach (var c in cs)
             {
-                IEnumerable<KeyValuePair<string, RecordedConsumer>> cs = m_recordedConsumers.
-                    Where(pair => pair.Value.Queue.Equals(oldName));
-                foreach (KeyValuePair<string, RecordedConsumer> c in cs)
-                {
-                    c.Value.Queue = newName;
-                }
+                c.Queue = newName;
             }
         }
 
@@ -786,77 +668,52 @@ namespace RabbitMQ.Client.Framing.Impl
                 catch (Exception cause)
                 {
                     string s = String.Format("Caught an exception while recovering binding between {0} and {1}: {2}",
-                        b.Source, b.Destination, cause.Message);
+                        b.Source,
+                        b.Destination,
+                        cause.Message);
                     HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
                 }
             }
         }
 
-        private void RecoverConnectionBlockedHandlers()
+        private bool TryRecoverConnectionDelegate()
         {
-            lock (m_eventLock)
+            try
             {
-                m_delegate.ConnectionBlocked += m_recordedBlockedEventHandlers;
+                var fh = endpoints.SelectOne(m_factory.CreateFrameHandler);
+                m_delegate = new Connection(m_factory, false, fh, this.ClientProvidedName);
+
+                return true;
             }
-        }
-
-        private bool RecoverConnectionDelegate()
-        {
-            while (!ManuallyClosed)
+            catch (Exception e)
             {
-                try
-                {
-                    var fh = endpoints.SelectOne(m_factory.CreateFrameHandler);
-                    m_delegate = new Connection(m_factory, false, fh, this.ClientProvidedName);
-                    return true;
-                }
-                catch (Exception e)
-                {
-                    ESLog.Error("Connection recovery exception.", e);
-                    // Trigger recovery error events
-                    var handler = m_connectionRecoveryError;
-                    if (handler != null)
-                    {
-                        var args = new ConnectionRecoveryErrorEventArgs(e);
-                        foreach (EventHandler<ConnectionRecoveryErrorEventArgs> h in handler.GetInvocationList())
-                        {
-                            try
-                            {
-                                h(this, args);
-                            }
-                            catch (Exception ex)
-                            {
-                                var a = new CallbackExceptionEventArgs(ex);
-                                a.Detail["context"] = "OnConnectionRecoveryError";
-                                m_delegate.OnCallbackException(a);
-                            }
-                        }
-                    }
+                ESLog.Error("Connection recovery exception.", e);
+                // Trigger recovery error events
+                var args = new ConnectionRecoveryErrorEventArgs(e);
 
-#if NETFX_CORE
-                    System.Threading.Tasks.Task.Delay(m_factory.NetworkRecoveryInterval).Wait();
-#else
-                    Thread.Sleep(m_factory.NetworkRecoveryInterval);
-#endif
+                foreach (EventHandler<ConnectionRecoveryErrorEventArgs> h in ConnectionRecoveryError?.GetInvocationList() ?? new EventHandler<ConnectionRecoveryErrorEventArgs>[] { })
+                {
+                    try
+                    {
+                        h(this, args);
+                    }
+                    catch (Exception ex)
+                    {
+                        var a = new CallbackExceptionEventArgs(ex);
+                        a.Detail["context"] = "OnConnectionRecoveryError";
+                        m_delegate.OnCallbackException(a);
+                    }
                 }
             }
 
             return false;
         }
 
-        private void RecoverConnectionShutdownHandlers()
-        {
-            m_delegate.ConnectionShutdown += m_recordedShutdownEventHandlers;
-        }
-
-        private void RecoverConnectionUnblockedHandlers()
-        {
-            m_delegate.ConnectionUnblocked += m_recordedUnblockedEventHandlers;
-        }
-
         private void RecoverConsumers()
         {
-            foreach (KeyValuePair<string, RecordedConsumer> pair in m_recordedConsumers)
+            // Copy dictionary into array before iterating through it when we plan to update
+            //   the dictionary contents.
+            foreach (KeyValuePair<string, RecordedConsumer> pair in m_recordedConsumers.ToArray())
             {
                 string tag = pair.Key;
                 RecordedConsumer cons = pair.Value;
@@ -864,35 +721,32 @@ namespace RabbitMQ.Client.Framing.Impl
                 try
                 {
                     string newTag = cons.Recover();
-                    lock (m_recordedConsumers)
-                    {
-                        // make sure server-generated tags are re-added
-                        m_recordedConsumers.Remove(tag);
-                        m_recordedConsumers.Add(newTag, cons);
-                    }
 
-                    if (m_consumerTagChange != null)
+                    // make sure server-generated tags are re-added
+                    m_recordedConsumers.TryRemove(tag, out var old);
+                    m_recordedConsumers.TryAdd(newTag, cons);
+
+                    foreach (EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> h in ConsumerTagChangeAfterRecovery?.GetInvocationList() ?? new EventHandler<ConsumerTagChangedAfterRecoveryEventArgs>[] { })
                     {
-                        foreach (EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> h in m_consumerTagChange.GetInvocationList())
+                        try
                         {
-                            try
-                            {
-                                var eventArgs = new ConsumerTagChangedAfterRecoveryEventArgs(tag, newTag);
-                                h(this, eventArgs);
-                            }
-                            catch (Exception e)
-                            {
-                                var args = new CallbackExceptionEventArgs(e);
-                                args.Detail["context"] = "OnConsumerRecovery";
-                                m_delegate.OnCallbackException(args);
-                            }
+                            var eventArgs = new ConsumerTagChangedAfterRecoveryEventArgs(tag, newTag);
+                            h(this, eventArgs);
+                        }
+                        catch (Exception e)
+                        {
+                            var args = new CallbackExceptionEventArgs(e);
+                            args.Detail["context"] = "OnConsumerRecovery";
+                            m_delegate.OnCallbackException(args);
                         }
                     }
                 }
                 catch (Exception cause)
                 {
                     string s = String.Format("Caught an exception while recovering consumer {0} on queue {1}: {2}",
-                        tag, cons.Queue, cause.Message);
+                        tag,
+                        cons.Queue,
+                        cause.Message);
                     HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
                 }
             }
@@ -922,7 +776,8 @@ namespace RabbitMQ.Client.Framing.Impl
                 catch (Exception cause)
                 {
                     string s = String.Format("Caught an exception while recovering exchange {0}: {1}",
-                        rx.Name, cause.Message);
+                        rx.Name,
+                        cause.Message);
                     HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
                 }
             }
@@ -941,77 +796,71 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void RecoverQueues()
         {
-            lock (m_recordedQueues)
+            // Copy dictionary into array before iterating through it when we plan to update
+            //   the dictionary contents.
+            foreach (KeyValuePair<string, RecordedQueue> pair in m_recordedQueues.ToArray())
             {
-                foreach (KeyValuePair<string, RecordedQueue> pair in m_recordedQueues)
+                string oldName = pair.Key;
+                RecordedQueue rq = pair.Value;
+
+                try
                 {
-                    string oldName = pair.Key;
-                    RecordedQueue rq = pair.Value;
+                    rq.Recover();
+                    string newName = rq.Name;
 
-                    try
+                    // Make sure server-named queues are re-added with
+                    // their new names.
+                    // We only remove old name after we've updated the bindings and consumers,
+                    // plus only for server-named queues, both to make sure we don't lose
+                    // anything to recover. MK.
+                    PropagateQueueNameChangeToBindings(oldName, newName);
+                    PropagateQueueNameChangeToConsumers(oldName, newName);
+                    // see rabbitmq/rabbitmq-dotnet-client#43
+                    if (rq.IsServerNamed)
                     {
-                        rq.Recover();
-                        string newName = rq.Name;
+                        DeleteRecordedQueue(oldName);
+                    }
 
-                        // Make sure server-named queues are re-added with
-                        // their new names.
-                        // We only remove old name after we've updated the bindings and consumers,
-                        // plus only for server-named queues, both to make sure we don't lose
-                        // anything to recover. MK.
-                        PropagateQueueNameChangeToBindings(oldName, newName);
-                        PropagateQueueNameChangeToConsumers(oldName, newName);
-                        // see rabbitmq/rabbitmq-dotnet-client#43
-                        if (rq.IsServerNamed)
+                    RecordQueue(newName, rq);
+
+                    foreach (EventHandler<QueueNameChangedAfterRecoveryEventArgs> h in QueueNameChangeAfterRecovery?.GetInvocationList() ?? new EventHandler<QueueNameChangedAfterRecoveryEventArgs>[] { })
+                    {
+                        try
                         {
-                            DeleteRecordedQueue(oldName);
+                            var eventArgs = new QueueNameChangedAfterRecoveryEventArgs(oldName, newName);
+                            h(this, eventArgs);
                         }
-                        RecordQueue(newName, rq);
-
-                        if (m_queueNameChange != null)
+                        catch (Exception e)
                         {
-                            foreach (EventHandler<QueueNameChangedAfterRecoveryEventArgs> h in m_queueNameChange.GetInvocationList())
-                            {
-                                try
-                                {
-                                    var eventArgs = new QueueNameChangedAfterRecoveryEventArgs(oldName, newName);
-                                    h(this, eventArgs);
-                                }
-                                catch (Exception e)
-                                {
-                                    var args = new CallbackExceptionEventArgs(e);
-                                    args.Detail["context"] = "OnQueueRecovery";
-                                    m_delegate.OnCallbackException(args);
-                                }
-                            }
+                            var args = new CallbackExceptionEventArgs(e);
+                            args.Detail["context"] = "OnQueueRecovery";
+                            m_delegate.OnCallbackException(args);
                         }
                     }
-                    catch (Exception cause)
-                    {
-                        string s = String.Format("Caught an exception while recovering queue {0}: {1}",
-                            oldName, cause.Message);
-                        HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
-                    }
+                }
+                catch (Exception cause)
+                {
+                    string s = String.Format("Caught an exception while recovering queue {0}: {1}",
+                        oldName,
+                        cause.Message);
+                    HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
                 }
             }
         }
 
         private void RunRecoveryEventHandlers()
         {
-            EventHandler<EventArgs> handler = m_recovery;
-            if (handler != null)
+            foreach (EventHandler<EventArgs> reh in RecoverySucceeded?.GetInvocationList() ?? new EventHandler<EventArgs>[] { })
             {
-                foreach (EventHandler<EventArgs> reh in handler.GetInvocationList())
+                try
                 {
-                    try
-                    {
-                        reh(this, EventArgs.Empty);
-                    }
-                    catch (Exception e)
-                    {
-                        var args = new CallbackExceptionEventArgs(e);
-                        args.Detail["context"] = "OnConnectionRecovery";
-                        m_delegate.OnCallbackException(args);
-                    }
+                    reh(this, EventArgs.Empty);
+                }
+                catch (Exception e)
+                {
+                    var args = new CallbackExceptionEventArgs(e);
+                    args.Detail["context"] = "OnConnectionRecovery";
+                    m_delegate.OnCallbackException(args);
                 }
             }
         }
