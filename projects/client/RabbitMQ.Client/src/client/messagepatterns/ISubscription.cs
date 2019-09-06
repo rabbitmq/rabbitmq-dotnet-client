@@ -51,6 +51,7 @@ namespace RabbitMQ.Client.MessagePatterns
     /// for <see cref="Subscription" /> easier.
     ///</para>
     ///</remarks>
+    [Obsolete("Messaging patters are no longer recommended for use and will be removed.")]
     public interface ISubscription : IEnumerable, IEnumerator, IDisposable
     {
         void Ack();

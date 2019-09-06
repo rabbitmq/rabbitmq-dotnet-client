@@ -87,6 +87,7 @@ namespace RabbitMQ.Client.MessagePatterns
     ///</para>
     ///</remarks>
     ///<see cref="SimpleRpcServer"/>
+    [Obsolete("Messaging patters are no longer recommended for use and will be removed.")]
     public class SimpleRpcClient : IDisposable
     {
         ///<summary>Construct an instance with no configured

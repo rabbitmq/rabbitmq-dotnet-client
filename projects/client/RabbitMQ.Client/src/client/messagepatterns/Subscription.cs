@@ -73,6 +73,7 @@ namespace RabbitMQ.Client.MessagePatterns
     /// called with the correct parameters.
     ///</para>
     ///</remarks>
+    [Obsolete("Messaging patters are no longer recommended for use and will be removed.")]
     public class Subscription : ISubscription
     {
         protected readonly object m_eventLock = new object();
