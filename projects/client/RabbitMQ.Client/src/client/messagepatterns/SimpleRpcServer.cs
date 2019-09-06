@@ -113,7 +113,7 @@ namespace RabbitMQ.Client.MessagePatterns
     ///</para>
     ///</remarks>
     ///<see cref="SimpleRpcClient"/>
-    [Obsolete("Messaging patters are no longer recommended for use and will be removed.")]
+    [Obsolete("Messaging patterns are no longer recommended for use and will be removed.")]
     public class SimpleRpcServer : IDisposable
     {
         protected Subscription m_subscription;
