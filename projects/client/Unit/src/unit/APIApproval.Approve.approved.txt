@@ -98,6 +98,7 @@ namespace RabbitMQ.Client
         public System.Collections.Generic.IDictionary<string, object> ClientProperties { get; set; }
         public string ClientProvidedName { get; set; }
         public System.TimeSpan ContinuationTimeout { get; set; }
+        public static System.Net.Sockets.AddressFamily DefaultAddressFamily { get; set; }
         public static System.Security.Authentication.SslProtocols DefaultAmqpUriSslProtocols { get; set; }
         public bool DispatchConsumersAsync { get; set; }
         public RabbitMQ.Client.AmqpTcpEndpoint Endpoint { get; set; }
