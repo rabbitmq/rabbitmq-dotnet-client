@@ -362,11 +362,10 @@ namespace RabbitMQ.Client.Framing.Impl
                 if (!performingRecovery)
                 {
                     performingRecovery = true;
-                    var self = this;
 
                     recoveryTaskFactory.StartNew(() =>
                     {
-                        if (!self.ManuallyClosed)
+                        if (!this.ManuallyClosed)
                         {
                             try
                             {
@@ -375,7 +374,7 @@ namespace RabbitMQ.Client.Framing.Impl
 #else
                                 Thread.Sleep(m_factory.NetworkRecoveryInterval);
 #endif
-                                self.PerformAutomaticRecovery();
+                                this.PerformAutomaticRecovery();
                             }
                             finally
                             {
@@ -598,7 +597,6 @@ namespace RabbitMQ.Client.Framing.Impl
             m_delegate = new Connection(m_factory, false,
                 fh, this.ClientProvidedName);
 
-            AutorecoveringConnection self = this;
             EventHandler<ShutdownEventArgs> recoveryListener = (_, args) =>
             {
                 lock (recoveryLockTarget)
@@ -607,7 +605,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     {
                         try
                         {
-                            self.BeginAutomaticRecovery();
+                            this.BeginAutomaticRecovery();
                         }
                         catch (Exception e)
                         {
