@@ -1,3 +1,21 @@
+## Changes Between 5.1.0 and 5.1.1
+
+### Deprecate messaging patterns
+
+GitHub PR: [rabbitmq-dotnet-client#654](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/654)
+
+### Fix stack overflow
+
+GitHub PR: [rabbitmq-dotnet-client#578](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/578)
+
+### Byte conversion support
+
+GitHub PR: [rabbitmq-dotnet-client#579](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/579)
+
+### Heartbeat write deadlock fix
+
+GitHub PR: [rabbitmq-dotnet-client#636](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/636)
+
 ## Changes Between 5.0.x and 5.1.0
 
 ### Batch Publishing
