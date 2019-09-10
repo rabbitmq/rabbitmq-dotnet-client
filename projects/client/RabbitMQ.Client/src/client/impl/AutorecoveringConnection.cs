@@ -64,12 +64,6 @@ namespace RabbitMQ.Client.Framing.Impl
         private IEndpointResolver endpoints;
 
         private readonly object m_recordedEntitiesLock = new object();
-        private readonly TaskFactory recoveryTaskFactory = new TaskFactory();
-        private readonly object recoveryLockTarget = new object();
-        // used to block connection recovery attempts after Close() is invoked
-        private bool manuallyClosed = false;
-        private bool performingRecovery = false;
-
 
         private List<AutorecoveringModel> m_models = new List<AutorecoveringModel>();
 
@@ -99,24 +93,7 @@ namespace RabbitMQ.Client.Framing.Impl
             m_factory = factory;
             this.ClientProvidedName = clientProvidedName;
         }
-
-        private bool ManuallyClosed
-        {
-            get
-            {
-                lock(manuallyClosedLock)
-                {
-                    return manuallyClosed;
-                }
-            }
-            set
-            {
-                lock(manuallyClosedLock)
-                {
-                    manuallyClosed = value; }
-                }
-        }
-
+        
         public event EventHandler<EventArgs> RecoverySucceeded
         {
             add
@@ -355,43 +332,13 @@ namespace RabbitMQ.Client.Framing.Impl
             get { return Endpoint.Protocol; }
         }
 
-        public void BeginAutomaticRecovery()
-        {
-            lock (recoveryLockTarget)
-            {
-                if (!performingRecovery)
-                {
-                    performingRecovery = true;
-
-                    recoveryTaskFactory.StartNew(() =>
-                    {
-                        if (!this.ManuallyClosed)
-                        {
-                            try
-                            {
-#if NETFX_CORE
-                                System.Threading.Tasks.Task.Delay(m_factory.NetworkRecoveryInterval).Wait();
-#else
-                                Thread.Sleep(m_factory.NetworkRecoveryInterval);
-#endif
-                                this.PerformAutomaticRecovery();
-                            }
-                            finally
-                            {
-                                performingRecovery = false;
-                            }
-                        }
-                    });
-                }
-            }
-        }
-
-        private void PerformAutomaticRecovery()
+        private bool TryPerformAutomaticRecovery()
         {
             ESLog.Info("Performing automatic recovery");
-            lock (recoveryLockTarget)
+
+            try
             {
-                if (RecoverConnectionDelegate())
+                if (TryRecoverConnectionDelegate())
                 {
                     RecoverConnectionShutdownHandlers();
                     RecoverConnectionBlockedHandlers();
@@ -406,12 +353,20 @@ namespace RabbitMQ.Client.Framing.Impl
 
                     ESLog.Info("Connection recovery completed");
                     RunRecoveryEventHandlers();
+
+                    return true;
                 }
                 else
                 {
                     ESLog.Warn("Connection delegate was manually closed. Aborted recovery.");
                 }
             }
+            catch (Exception e)
+            {
+                ESLog.Error("Exception when recovering connection. Will try again after retry interval.", e);
+            }
+
+            return false;
         }
 
         public void Close(ShutdownEventArgs reason)
@@ -596,21 +551,20 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             m_delegate = new Connection(m_factory, false,
                 fh, this.ClientProvidedName);
+            
+            m_recoveryThread = new Thread(MainRecoveryLoop)
+            {
+                IsBackground = true
+            };
+            m_recoveryThread.Start();
 
             EventHandler<ShutdownEventArgs> recoveryListener = (_, args) =>
             {
-                lock (recoveryLockTarget)
+                if (ShouldTriggerConnectionRecovery(args))
                 {
-                    if (ShouldTriggerConnectionRecovery(args))
+                    if (!m_recoveryLoopCommandQueue.TryAdd(RecoveryCommand.BeginAutomaticRecovery))
                     {
-                        try
-                        {
-                            this.BeginAutomaticRecovery();
-                        }
-                        catch (Exception e)
-                        {
-                            ESLog.Error("BeginAutomaticRecovery() failed.", e);
-                        }
+                        ESLog.Warn("Failed to notify RecoveryLoop to BeginAutomaticRecovery.");
                     }
                 }
             };
@@ -624,7 +578,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection abort.</summary>
         public void Abort()
         {
-            this.ManuallyClosed = true;
+            StopRecoveryLoop();
             if(m_delegate.IsOpen)
                 m_delegate.Abort();
         }
@@ -632,7 +586,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection abort.</summary>
         public void Abort(ushort reasonCode, string reasonText)
         {
-            this.ManuallyClosed = true;
+            StopRecoveryLoop();
             if (m_delegate.IsOpen)
                 m_delegate.Abort(reasonCode, reasonText);
         }
@@ -640,7 +594,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection abort with timeout.</summary>
         public void Abort(int timeout)
         {
-            this.ManuallyClosed = true;
+            StopRecoveryLoop();
             if (m_delegate.IsOpen)
                 m_delegate.Abort(timeout);
         }
@@ -648,7 +602,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection abort with timeout.</summary>
         public void Abort(ushort reasonCode, string reasonText, int timeout)
         {
-            this.ManuallyClosed = true;
+            StopRecoveryLoop();
             if (m_delegate.IsOpen)
                 m_delegate.Abort(reasonCode, reasonText, timeout);
         }
@@ -656,7 +610,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection.close.</summary>
         public void Close()
         {
-            this.ManuallyClosed = true;
+            StopRecoveryLoop();
             if (m_delegate.IsOpen)
                 m_delegate.Close();
         }
@@ -664,7 +618,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection.close.</summary>
         public void Close(ushort reasonCode, string reasonText)
         {
-            this.ManuallyClosed = true;
+            StopRecoveryLoop();
             if (m_delegate.IsOpen)
                 m_delegate.Close(reasonCode, reasonText);
         }
@@ -672,7 +626,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection.close with timeout.</summary>
         public void Close(int timeout)
         {
-            this.ManuallyClosed = true;
+            StopRecoveryLoop();
             if (m_delegate.IsOpen)
                 m_delegate.Close(timeout);
         }
@@ -680,7 +634,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection.close with timeout.</summary>
         public void Close(ushort reasonCode, string reasonText, int timeout)
         {
-            this.ManuallyClosed = true;
+            StopRecoveryLoop();
             if (m_delegate.IsOpen)
                 m_delegate.Close(reasonCode, reasonText, timeout);
         }
@@ -798,44 +752,35 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private bool RecoverConnectionDelegate()
+        private bool TryRecoverConnectionDelegate()
         {
-            while (!ManuallyClosed)
+            try
             {
-                try
+                var fh = endpoints.SelectOne(m_factory.CreateFrameHandler);
+                m_delegate = new Connection(m_factory, false, fh, this.ClientProvidedName);
+                return true;
+            }
+            catch (Exception e)
+            {
+                ESLog.Error("Connection recovery exception.", e);
+                // Trigger recovery error events
+                var handler = m_connectionRecoveryError;
+                if (handler != null)
                 {
-                    var fh = endpoints.SelectOne(m_factory.CreateFrameHandler);
-                    m_delegate = new Connection(m_factory, false, fh, this.ClientProvidedName);
-                    return true;
-                }
-                catch (Exception e)
-                {
-                    ESLog.Error("Connection recovery exception.", e);
-                    // Trigger recovery error events
-                    var handler = m_connectionRecoveryError;
-                    if (handler != null)
+                    var args = new ConnectionRecoveryErrorEventArgs(e);
+                    foreach (EventHandler<ConnectionRecoveryErrorEventArgs> h in handler.GetInvocationList())
                     {
-                        var args = new ConnectionRecoveryErrorEventArgs(e);
-                        foreach (EventHandler<ConnectionRecoveryErrorEventArgs> h in handler.GetInvocationList())
+                        try
                         {
-                            try
-                            {
-                                h(this, args);
-                            }
-                            catch (Exception ex)
-                            {
-                                var a = new CallbackExceptionEventArgs(ex);
-                                a.Detail["context"] = "OnConnectionRecoveryError";
-                                m_delegate.OnCallbackException(a);
-                            }
+                            h(this, args);
+                        }
+                        catch (Exception ex)
+                        {
+                            var a = new CallbackExceptionEventArgs(ex);
+                            a.Detail["context"] = "OnConnectionRecoveryError";
+                            m_delegate.OnCallbackException(a);
                         }
                     }
-
-#if NETFX_CORE
-                    System.Threading.Tasks.Task.Delay(m_factory.NetworkRecoveryInterval).Wait();
-#else
-                    Thread.Sleep(m_factory.NetworkRecoveryInterval);
-#endif
                 }
             }
 
@@ -1020,6 +965,135 @@ namespace RabbitMQ.Client.Framing.Impl
                     // happens when EOF is reached, e.g. due to RabbitMQ node
                     // connectivity loss or abrupt shutdown
                     args.Initiator == ShutdownInitiator.Library);
+        }
+        
+        private enum RecoveryCommand
+        {
+            /// <summary>
+            /// Transition to auto-recovery state if not already in that state.
+            /// </summary>
+            BeginAutomaticRecovery,
+            /// <summary>
+            /// Attempt to recover connection. If connection is recovered, return
+            /// to connected state.
+            /// </summary>
+            PerformAutomaticRecovery
+        }
+
+
+        private enum RecoveryConnectionState
+        {
+            /// <summary>
+            /// Underlying connection is open.
+            /// </summary>
+            Connected,
+            /// <summary>
+            /// In the process of recovering underlying connection.
+            /// </summary>
+            Recovering
+        }
+
+        private Thread m_recoveryThread;
+        private RecoveryConnectionState m_recoveryLoopState = RecoveryConnectionState.Connected;
+
+        private readonly BlockingCollection<RecoveryCommand> m_recoveryLoopCommandQueue = new BlockingCollection<RecoveryCommand>();
+        private readonly CancellationTokenSource m_recoveryCancellationToken = new CancellationTokenSource();
+        private readonly TaskCompletionSource<int> m_recoveryLoopComplete = new TaskCompletionSource<int>();
+
+        /// <summary>
+        /// This is the main loop for the auto-recovery thread.
+        /// </summary>
+        private void MainRecoveryLoop()
+        {
+            try
+            {
+                while (m_recoveryLoopCommandQueue.TryTake(out var command, -1, m_recoveryCancellationToken.Token))
+                {
+                    switch (m_recoveryLoopState)
+                    {
+                        case RecoveryConnectionState.Connected:
+                            RecoveryLoopConnectedHandler(command);
+                            break;
+                        case RecoveryConnectionState.Recovering:
+                            RecoveryLoopRecoveringHandler(command);
+                            break;
+                        default:
+                            ESLog.Warn("RecoveryLoop state is out of range.");
+                            break;
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // expected when recovery cancellation token is set.
+            }
+            catch (Exception e)
+            {
+                ESLog.Error("Main recovery loop threw unexpected exception.", e);
+            }
+            m_recoveryLoopComplete.SetResult(0);
+        }
+
+        /// <summary>
+        /// Cancels the main recovery loop and will block until the loop finishes, or the timeout
+        /// expires, to prevent Close operations overlapping with recovery operations.
+        /// </summary>
+        private void StopRecoveryLoop()
+        {
+            m_recoveryCancellationToken.Cancel();
+            if (!m_recoveryLoopComplete.Task.Wait(m_factory.RequestedConnectionTimeout))
+            {
+                ESLog.Warn("Timeout while trying to stop background AutorecoveringConnection recovery loop.");
+            }
+        }
+
+        /// <summary>
+        /// Handles commands when in the Recovering state.
+        /// </summary>
+        /// <param name="command"></param>
+        private void RecoveryLoopRecoveringHandler(RecoveryCommand command)
+        {
+            switch (command)
+            {
+                case RecoveryCommand.BeginAutomaticRecovery:
+                    ESLog.Info("Received request to BeginAutomaticRecovery, but already in Recovering state.");
+                    break;
+                case RecoveryCommand.PerformAutomaticRecovery:
+                    if (TryPerformAutomaticRecovery())
+                    {
+                        m_recoveryLoopState = RecoveryConnectionState.Connected;
+                    }
+                    else
+                    {
+                        Task.Delay(m_factory.NetworkRecoveryInterval).ContinueWith(t => { m_recoveryLoopCommandQueue.TryAdd(RecoveryCommand.PerformAutomaticRecovery); });
+                    }
+
+                    break;
+                default:
+                    ESLog.Warn($"RecoveryLoop command {command} is out of range.");
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Handles commands when in the Connected state.
+        /// </summary>
+        /// <param name="command"></param>
+        private void RecoveryLoopConnectedHandler(RecoveryCommand command)
+        {
+            switch (command)
+            {
+                case RecoveryCommand.PerformAutomaticRecovery:
+                    ESLog.Warn("Not expecting PerformAutomaticRecovery commands while in the connected state.");
+                    break;
+                case RecoveryCommand.BeginAutomaticRecovery:
+                    m_recoveryLoopState = RecoveryConnectionState.Recovering;
+                    Task.Delay(m_factory.NetworkRecoveryInterval).ContinueWith(t => { m_recoveryLoopCommandQueue.TryAdd(RecoveryCommand.PerformAutomaticRecovery); });
+                    break;
+                default:
+                    ESLog.Warn($"RecoveryLoop command {command} is out of range.");
+                    break;
+            }
         }
     }
 }
