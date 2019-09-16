@@ -30,16 +30,22 @@ This will complete the code AMQP 0-9-1 protocol code generation and build all pr
 Tests can be run from Visual Studio using [NUnit Test Adapter](https://visualstudiogallery.msdn.microsoft.com/6ab922d0-21c0-4f06-ab5f-4ecd1fe7175d).
 Note that it may take some time for the adapter to discover tests in the assemblies.
 
-The test suite assumes there's a RabbitMQ node [built from source](https://www.rabbitmq.com/build-server.html) running locally
-with all defaults. Team RabbitMQ uses [rabbitmq-public-umbrella](https://github.com/rabbitmq/rabbitmq-public-umbrella) to
-do that:
+The test suite assumes there's a RabbitMQ node running locally with all defaults, and the tests will need to be able to run commands against the [rabbitmqctl](https://www.rabbitmq.com/rabbitmqctl.8.html) tool for that node. Two options to accomplish this are:
 
+1. Team RabbitMQ uses [rabbitmq-public-umbrella](https://github.com/rabbitmq/rabbitmq-public-umbrella), which sets up a local RabbitMQ server [built from source](https://www.rabbitmq.com/build-server.html):
+```
     git clone https://github.com/rabbitmq/rabbitmq-public-umbrella umbrella
     cd umbrella
     make co
     cd deps/rabbit
     make
     make run-broker
+```
+
+2. You can load a RabbitMQ node in a [docker](https://www.docker.com/) container. You will need to create an environment variable `RABBITMQ_RABBITMQCTL_PATH` and set it to `DOCKER:<container_name>` (for example `DOCKER:rabbitmq01`). This tells the unit tests to run the `rabbitmqctl` commands through docker, in the format `docker exec rabbitmq01 rabbitmqctl <args>`:
+```
+    docker run -d --hostname rabbitmq01 --name rabbitmq01 -p 15672:15672 -p 5672:5672 rabbitmq:3-management
+```
 
 Then, to run the tests on Windows use:
 
