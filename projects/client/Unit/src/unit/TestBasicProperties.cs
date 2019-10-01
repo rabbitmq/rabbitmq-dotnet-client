@@ -39,6 +39,8 @@
 //---------------------------------------------------------------------------
 
 using NUnit.Framework;
+using RabbitMQ.Util;
+using System.IO;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -72,6 +74,52 @@ namespace RabbitMQ.Client.Unit
             // Assert
             Assert.AreEqual(1, subject.DeliveryMode);
             Assert.AreEqual(false, subject.Persistent);
+        }
+
+        [Test]
+        public void TestNullableProperties_CanWrite(
+            [Values(null, "cluster1")] string clusterId,
+            [Values(null, "732E39DC-AF56-46E8-B8A9-079C4B991B2E")] string correlationId,
+            [Values(null, "7D221C7E-1788-4D11-9CA5-AC41425047CF")] string messageId
+            )
+        {
+            // Arrange
+            var subject = new Framing.BasicProperties();
+
+            // Act
+            subject.ClusterId = clusterId;
+            subject.CorrelationId = correlationId;
+            subject.MessageId = messageId;
+
+            // Assert
+            var isClusterIdPresent = clusterId != null;
+            Assert.AreEqual(isClusterIdPresent, subject.IsClusterIdPresent());
+
+            var isCorrelationIdPresent = correlationId != null;
+            Assert.AreEqual(isCorrelationIdPresent, subject.IsCorrelationIdPresent());
+
+            var isMessageIdPresent = messageId != null;
+            Assert.AreEqual(isMessageIdPresent, subject.IsMessageIdPresent());
+
+            using (var outputStream = new MemoryStream())
+            {
+                var binaryWriter = new NetworkBinaryWriter(outputStream);
+                var writer = new Impl.ContentHeaderPropertyWriter(binaryWriter);
+                subject.WritePropertiesTo(writer);
+
+                // Read from Stream
+                outputStream.Seek(0L, SeekOrigin.Begin);
+                var propertiesFromStream = new Framing.BasicProperties();
+                var reader = new Impl.ContentHeaderPropertyReader(new NetworkBinaryReader(outputStream));
+                propertiesFromStream.ReadPropertiesFrom(reader);
+
+                Assert.AreEqual(clusterId, propertiesFromStream.ClusterId);
+                Assert.AreEqual(correlationId, propertiesFromStream.CorrelationId);
+                Assert.AreEqual(messageId, propertiesFromStream.MessageId);
+                Assert.AreEqual(isClusterIdPresent, propertiesFromStream.IsClusterIdPresent());
+                Assert.AreEqual(isCorrelationIdPresent, propertiesFromStream.IsCorrelationIdPresent());
+                Assert.AreEqual(isMessageIdPresent, propertiesFromStream.IsMessageIdPresent());
+            }
         }
     }
 }
