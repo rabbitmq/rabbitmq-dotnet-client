@@ -1,3 +1,7 @@
+## Changes Between 5.1.1 and 5.1.2
+
+### Bump System.Net.Security to 4.3.2
+
 ## Changes Between 5.1.0 and 5.1.1
 
 ### Deprecate messaging patterns
