@@ -578,7 +578,15 @@ namespace RabbitMQ.Client.Apigen
                 EmitLine("      set {");
                 if (!IsBoolean(f))
                 {
-                    EmitLine("        m_" + MangleMethod(f.Name) + "_present = true;");
+                    if (IsReferenceType(f))
+                    {
+                        EmitLine("        m_" + MangleMethod(f.Name) + "_present = value != null;");
+
+                    }
+                    else
+                    {
+                        EmitLine("        m_" + MangleMethod(f.Name) + "_present = true;");
+                    }
                 }
                 EmitLine("        m_" + MangleMethod(f.Name) + " = value;");
                 EmitLine("      }");
