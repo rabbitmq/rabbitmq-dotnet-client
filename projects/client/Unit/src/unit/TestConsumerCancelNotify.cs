@@ -51,28 +51,30 @@ namespace RabbitMQ.Client.Unit
         protected readonly Object lockObject = new Object();
         protected bool notifiedCallback;
         protected bool notifiedEvent;
+        protected string consumerTag;
 
         [Test]
         public void TestConsumerCancelNotification()
         {
-            TestConsumerCancel("queue_consumer_cancel_notify", false, ref notifiedCallback);
+            TestConsumerCancel("queue_consumer_cancel_notify", false, ref notifiedCallback, ref consumerTag);
         }
 
         [Test]
         public void TestConsumerCancelEvent()
         {
-            TestConsumerCancel("queue_consumer_cancel_event", true, ref notifiedEvent);
+            TestConsumerCancel("queue_consumer_cancel_event", true, ref notifiedEvent, ref consumerTag);
         }
 
-        public void TestConsumerCancel(string queue, bool EventMode, ref bool notified)
+        public void TestConsumerCancel(string queue, bool EventMode, ref bool notified, ref string consumerTag)
         {
             Model.QueueDeclare(queue, false, true, false, null);
             IBasicConsumer consumer = new CancelNotificationConsumer(Model, this, EventMode);
-            Model.BasicConsume(queue, false, consumer);
+            var actualConsumerTag = Model.BasicConsume(queue, false, consumer);
 
             Model.QueueDelete(queue);
             WaitOn(lockObject);
             Assert.IsTrue(notified);
+            Assert.AreEqual(actualConsumerTag, consumerTag);
         }
 
         private class CancelNotificationConsumer : DefaultBasicConsumer
@@ -98,6 +100,7 @@ namespace RabbitMQ.Client.Unit
                     lock (testClass.lockObject)
                     {
                         testClass.notifiedCallback = true;
+                        testClass.consumerTag = consumerTag;
                         Monitor.PulseAll(testClass.lockObject);
                     }
                 }
@@ -109,6 +112,7 @@ namespace RabbitMQ.Client.Unit
                 lock (testClass.lockObject)
                 {
                     testClass.notifiedEvent = true;
+                    testClass.consumerTag = arg.ConsumerTags[0];
                     Monitor.PulseAll(testClass.lockObject);
                 }
             }

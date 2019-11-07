@@ -28,14 +28,14 @@ namespace RabbitMQ.Client.Events
         public override async Task HandleBasicCancelOk(string consumerTag)
         {
             await base.HandleBasicCancelOk(consumerTag).ConfigureAwait(false);
-            await Raise(Unregistered, new ConsumerEventArgs(consumerTag)).ConfigureAwait(false);
+            await Raise(Unregistered, new ConsumerEventArgs(new []{consumerTag})).ConfigureAwait(false);
         }
 
         ///<summary>Fires the Registered event.</summary>
         public override async Task HandleBasicConsumeOk(string consumerTag)
         {
             await base.HandleBasicConsumeOk(consumerTag).ConfigureAwait(false);
-            await Raise(Registered, new ConsumerEventArgs(consumerTag)).ConfigureAwait(false);
+            await Raise(Registered, new ConsumerEventArgs(new[] { consumerTag })).ConfigureAwait(false);
         }
 
         ///<summary>Fires the Received event.</summary>

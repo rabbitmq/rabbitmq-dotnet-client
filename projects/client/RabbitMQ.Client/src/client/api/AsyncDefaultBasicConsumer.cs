@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using TaskExtensions = RabbitMQ.Client.Impl.TaskExtensions;
@@ -7,6 +9,8 @@ namespace RabbitMQ.Client
 {
     public class AsyncDefaultBasicConsumer : IBasicConsumer, IAsyncBasicConsumer
     {
+        private readonly HashSet<string> m_consumerTags = new HashSet<string>();
+
         /// <summary>
         /// Creates a new instance of an <see cref="DefaultBasicConsumer"/>.
         /// </summary>
@@ -15,7 +19,6 @@ namespace RabbitMQ.Client
             ShutdownReason = null;
             Model = null;
             IsRunning = false;
-            ConsumerTag = null;
         }
 
         /// <summary>
@@ -26,15 +29,20 @@ namespace RabbitMQ.Client
         {
             ShutdownReason = null;
             IsRunning = false;
-            ConsumerTag = null;
             Model = model;
         }
 
         /// <summary>
-        /// Retrieve the consumer tag this consumer is registered as; to be used when discussing this consumer
+        /// Retrieve the consumer tags this consumer is registered as; to be used when discussing this consumer
         /// with the server, for instance with <see cref="IModel.BasicCancel"/>.
         /// </summary>
-        public string ConsumerTag { get; set; }
+        public string[] ConsumerTags
+        {
+            get
+            {
+                return m_consumerTags.ToArray();
+            }
+        }
 
         /// <summary>
         /// Returns true while the consumer is registered and expecting deliveries from the broker.
@@ -66,7 +74,7 @@ namespace RabbitMQ.Client
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
         public virtual Task HandleBasicCancel(string consumerTag)
         {
-            return OnCancel();
+            return OnCancel(consumerTag);
         }
 
         /// <summary>
@@ -75,7 +83,7 @@ namespace RabbitMQ.Client
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
         public virtual Task HandleBasicCancelOk(string consumerTag)
         {
-            return OnCancel();
+            return OnCancel(consumerTag);
         }
 
         /// <summary>
@@ -84,7 +92,7 @@ namespace RabbitMQ.Client
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
         public virtual Task HandleBasicConsumeOk(string consumerTag)
         {
-            ConsumerTag = consumerTag;
+            m_consumerTags.Add(consumerTag);
             IsRunning = true;
             return TaskExtensions.CompletedTask;
         }
@@ -117,16 +125,17 @@ namespace RabbitMQ.Client
         public virtual Task HandleModelShutdown(object model, ShutdownEventArgs reason)
         {
             ShutdownReason = reason;
-            return OnCancel();
+            return OnCancel(m_consumerTags.ToArray());
         }
 
         /// <summary>
         /// Default implementation - overridable in subclasses.</summary>
+        /// <param name="consumerTags">The set of consumer tags that where cancelled</param>
         /// <remarks>
         /// This default implementation simply sets the <see cref="IsRunning"/> 
         /// property to false, and takes no further action.
         /// </remarks>
-        public virtual async Task OnCancel()
+        public virtual async Task OnCancel(params string[] consumerTags)
         {
             IsRunning = false;
             var handler = ConsumerCancelled;
@@ -134,8 +143,13 @@ namespace RabbitMQ.Client
             {
                 foreach (AsyncEventHandler<ConsumerEventArgs> h in handler.GetInvocationList())
                 {
-                    await h(this, new ConsumerEventArgs(ConsumerTag)).ConfigureAwait(false);
+                    await h(this, new ConsumerEventArgs(consumerTags)).ConfigureAwait(false);
                 }
+            }
+
+            foreach (string consumerTag in consumerTags)
+            {
+                m_consumerTags.Remove(consumerTag);
             }
         }
 
