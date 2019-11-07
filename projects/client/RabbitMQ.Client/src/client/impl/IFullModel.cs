@@ -226,7 +226,9 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             bool mandatory,
             [AmqpContentHeaderMapping] IBasicProperties basicProperties,
-            [AmqpContentBodyMapping] byte[] body);
+            [AmqpContentBodyMapping] byte[] body,
+            [AmqpContentBodyStartMapping] int start,
+            [AmqpContentBodyLengthMapping] int len);
 
         [AmqpForceOneWay]
         [AmqpMethodMapping(null, "basic", "recover")]
@@ -556,7 +558,20 @@ namespace RabbitMQ.Client.Apigen.Attributes
     {
     }
 
+    ///<summary>This attribute, if placed on a parameter in a
+    ///content-carrying IModel method, causes it to be sent as part of
+    ///the content body frame start position.</summary>
+    public class AmqpContentBodyStartMappingAttribute : Attribute
+    {
+    }
 
+    ///<summary>This attribute, if placed on a parameter in a
+    ///content-carrying IModel method, causes it to be sent as part of
+    ///the content body frame length.</summary>
+    public class AmqpContentBodyLengthMappingAttribute : Attribute
+    {
+    }
+    
     ///<summary>This attribute, placed on an IModel method, causes
     ///what would normally be an RPC, sent with ModelRpc, to be sent
     ///as if it were oneway, with ModelSend. The assumption that this

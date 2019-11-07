@@ -63,18 +63,24 @@ namespace RabbitMQ.Client.Impl
             CheckEmptyFrameSize();
         }
 
-        public Command(MethodBase method) : this(method, null, null)
+        public Command(MethodBase method) : this(method, null, null, 0, -1)
         {
         }
 
-        public Command(MethodBase method, ContentHeaderBase header, byte[] body)
+        public Command(MethodBase method, ContentHeaderBase header, byte[] body, int start, int len = -1)
         {
             Method = method;
             Header = header;
             Body = body ?? m_emptyByteArray;
+            Start = Math.Min(start, Body.Length);
+            Length = Math.Min(Body.Length - Start, Math.Max(0, len < 0 ? Body.Length - Start : len));
         }
 
         public byte[] Body { get; private set; }
+
+        public int Start { get; private set; }
+
+        public int Length { get; private set; }
 
         public ContentHeaderBase Header { get; private set; }
 
@@ -122,15 +128,17 @@ namespace RabbitMQ.Client.Impl
             if (Method.HasContent)
             {
                 var body = Body;
+                var start = Start;
+                var len = Length;
 
-                frames.Add(new HeaderOutboundFrame(channelNumber, Header, body.Length));
+                frames.Add(new HeaderOutboundFrame(channelNumber, Header, len));
                 var frameMax = (int)Math.Min(int.MaxValue, connection.FrameMax);
-                var bodyPayloadMax = (frameMax == 0) ? body.Length : frameMax - EmptyFrameSize;
-                for (int offset = 0; offset < body.Length; offset += bodyPayloadMax)
+                var bodyPayloadMax = (frameMax == 0) ? len : frameMax - EmptyFrameSize;
+                for (int offset = 0; offset < len; offset += bodyPayloadMax)
                 {
-                    var remaining = body.Length - offset;
+                    var remaining = len - offset;
                     var count = (remaining < bodyPayloadMax) ? remaining : bodyPayloadMax;
-                    frames.Add(new BodySegmentOutboundFrame(channelNumber, body, offset, count));
+                    frames.Add(new BodySegmentOutboundFrame(channelNumber, body, offset + start, count));
                 }
             }
 
@@ -148,15 +156,17 @@ namespace RabbitMQ.Client.Impl
                 if (cmd.Method.HasContent)
                 {
                     var body = cmd.Body;
+                    var len = cmd.Length;
+                    var start = cmd.Start;
 
-                    frames.Add(new HeaderOutboundFrame(channelNumber, cmd.Header, body.Length));
+                    frames.Add(new HeaderOutboundFrame(channelNumber, cmd.Header, len));
                     var frameMax = (int)Math.Min(int.MaxValue, connection.FrameMax);
-                    var bodyPayloadMax = (frameMax == 0) ? body.Length : frameMax - EmptyFrameSize;
-                    for (int offset = 0; offset < body.Length; offset += bodyPayloadMax)
+                    var bodyPayloadMax = (frameMax == 0) ? len : frameMax - EmptyFrameSize;
+                    for (int offset = 0; offset < len; offset += bodyPayloadMax)
                     {
-                        var remaining = body.Length - offset;
+                        var remaining = len - offset;
                         var count = (remaining < bodyPayloadMax) ? remaining : bodyPayloadMax;
-                        frames.Add(new BodySegmentOutboundFrame(channelNumber, body, offset, count));
+                        frames.Add(new BodySegmentOutboundFrame(channelNumber, body, start + offset, count));
                     }
                 }
             }

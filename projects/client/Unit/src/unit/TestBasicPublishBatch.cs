@@ -63,5 +63,27 @@ namespace RabbitMQ.Client.Unit
             var resultB = Model.BasicGet("test-message-batch-b", true);
             Assert.NotNull(resultB);
         }
+
+        [Test]
+        [TestCase("This is my sentence", 0, -1, "This is my sentence")]
+        [TestCase("This is the first sentence", 12, 5, "first")]
+        [TestCase("This is the second sentence", 12, 6, "second")]
+        [TestCase("This is the second sentence", 12, -1, "second sentence")]
+        [TestCase("This is the another sentence", 255, -1, "")]
+        [TestCase("This is the another sentence!", 0, 255, "This is the another sentence!")]
+        public void TestBasicPublishWithBodyBatchSend(string bodyText, int start, int len, string expected)
+        {
+            Model.ConfirmSelect();
+            Model.QueueDeclare(queue: "test-message-batch-a", durable: false);
+            var batch = Model.CreateBasicPublishBatch();
+            var bodyA = System.Text.Encoding.ASCII.GetBytes(bodyText);
+            batch.Add("", "test-message-batch-a", false, null, bodyA, start, len);
+            batch.Publish();
+            Model.WaitForConfirmsOrDie(TimeSpan.FromSeconds(15));
+            var resultA = Model.BasicGet("test-message-batch-a", true);
+            Assert.NotNull(resultA);
+            Assert.AreEqual(expected, System.Text.Encoding.ASCII.GetString(resultA.Body));
+        }
+
     }
 }

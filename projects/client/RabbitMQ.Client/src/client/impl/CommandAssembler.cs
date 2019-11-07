@@ -141,7 +141,8 @@ namespace RabbitMQ.Client.Impl
         {
             if (m_state == AssemblyState.Complete)
             {
-                Command result = new Command(m_method, m_header, m_body);
+                var len = m_body == null ? -1 : m_body.Length;
+                Command result = new Command(m_method, m_header, m_body, 0, len);
                 Reset();
                 return result;
             }

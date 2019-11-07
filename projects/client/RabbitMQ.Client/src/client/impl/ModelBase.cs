@@ -464,26 +464,26 @@ namespace RabbitMQ.Client.Impl
                 m_continuationQueue.Next().HandleCommand(cmd);
         }
 
-        public MethodBase ModelRpc(MethodBase method, ContentHeaderBase header, byte[] body)
+        public MethodBase ModelRpc(MethodBase method, ContentHeaderBase header, byte[] body, int start, int len)
         {
             var k = new SimpleBlockingRpcContinuation();
             lock(_rpcLock)
             {
-                TransmitAndEnqueue(new Command(method, header, body), k);
+                TransmitAndEnqueue(new Command(method, header, body, start, len), k);
                 return k.GetReply(this.ContinuationTimeout).Method;
             }
         }
 
-        public void ModelSend(MethodBase method, ContentHeaderBase header, byte[] body)
+        public void ModelSend(MethodBase method, ContentHeaderBase header, byte[] body, int start, int len)
         {
             if (method.HasContent)
             {
                 m_flowControlBlock.WaitOne();
-                Session.Transmit(new Command(method, header, body));
+                Session.Transmit(new Command(method, header, body, start, len));
             }
             else
             {
-                Session.Transmit(new Command(method, header, body));
+                Session.Transmit(new Command(method, header, body, start, len));
             }
         }
 
@@ -1088,7 +1088,9 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             bool mandatory,
             IBasicProperties basicProperties,
-            byte[] body);
+            byte[] body, 
+            int start,
+            int len);
 
         public abstract void _Private_BasicRecover(bool requeue);
 
@@ -1278,7 +1280,9 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             bool mandatory,
             IBasicProperties basicProperties,
-            byte[] body)
+            byte[] body, 
+            int start,
+            int len)
         {
             if (routingKey == null)
             {
@@ -1304,7 +1308,9 @@ namespace RabbitMQ.Client.Impl
                 routingKey,
                 mandatory,
                 basicProperties,
-                body);
+                body, 
+                start,
+                len);
         }
 
         public abstract void BasicQos(uint prefetchSize,

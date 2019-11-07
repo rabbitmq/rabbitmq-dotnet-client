@@ -1161,6 +1161,8 @@ namespace RabbitMQ.Client.Apigen
             string nowaitExpression = "null";
             ParameterInfo contentHeaderParameter = null;
             ParameterInfo contentBodyParameter = null;
+            ParameterInfo contentBodyStartParameter = null;
+            ParameterInfo contentBodyLengthParameter = null;
             foreach (ParameterInfo pi in parameters)
             {
                 AmqpNowaitArgumentAttribute nwAttr =
@@ -1181,6 +1183,14 @@ namespace RabbitMQ.Client.Apigen
                 {
                     contentBodyParameter = pi;
                 }
+                if (Attribute(pi, typeof(AmqpContentBodyStartMappingAttribute)) != null)
+                {
+                    contentBodyStartParameter = pi;
+                }
+                if (Attribute(pi, typeof(AmqpContentBodyLengthMappingAttribute)) != null)
+                {
+                    contentBodyLengthParameter = pi;
+                }
             }
 
             // Compute expression text for the content header and body.
@@ -1192,6 +1202,12 @@ namespace RabbitMQ.Client.Apigen
             string contentBodyExpr =
                 contentBodyParameter == null ? "null" : contentBodyParameter.Name;
 
+            string contentBodyStartExpr =
+                contentBodyStartParameter == null ? "0" : contentBodyStartParameter.Name;
+
+            string contentBodyLengthExpr =
+                contentBodyLengthParameter == null ? "-1" : contentBodyLengthParameter.Name;
+            
             // Emit the method declaration and preamble.
 
             EmitModelMethodPreamble(method);
@@ -1203,7 +1219,9 @@ namespace RabbitMQ.Client.Apigen
             foreach (ParameterInfo pi in parameters)
             {
                 if (pi != contentHeaderParameter &&
-                    pi != contentBodyParameter)
+                    pi != contentBodyParameter && 
+                    pi != contentBodyStartParameter && 
+                    pi != contentBodyLengthParameter)
                 {
                     if (Attribute(pi, typeof(AmqpUnsupportedAttribute)) != null)
                     {
@@ -1233,7 +1251,7 @@ namespace RabbitMQ.Client.Apigen
             if (nowaitParameter != null)
             {
                 EmitLine("      if (" + nowaitParameter.Name + ") {");
-                EmitLine("        ModelSend(__req," + contentHeaderExpr + "," + contentBodyExpr + ");");
+                EmitLine("        ModelSend(__req," + contentHeaderExpr + "," + contentBodyExpr + "," + contentBodyStartExpr +  "," + contentBodyLengthExpr + ");");
                 if (method.ReturnType == typeof(void))
                 {
                     EmitLine("        return;");
@@ -1250,13 +1268,13 @@ namespace RabbitMQ.Client.Apigen
 
             if (amqpReplyMethod == null)
             {
-                EmitLine("      ModelSend(__req," + contentHeaderExpr + "," + contentBodyExpr + ");");
+                EmitLine("      ModelSend(__req," + contentHeaderExpr + "," + contentBodyExpr + "," + contentBodyStartExpr + "," + contentBodyLengthExpr + ");");
             }
             else
             {
                 string replyImplClass = MangleMethodClass(amqpClass, amqpReplyMethod);
 
-                EmitLine("      RabbitMQ.Client.Impl.MethodBase __repBase = ModelRpc(__req," + contentHeaderExpr + "," + contentBodyExpr + ");");
+                EmitLine("      RabbitMQ.Client.Impl.MethodBase __repBase = ModelRpc(__req," + contentHeaderExpr + "," + contentBodyExpr + "," + contentBodyStartExpr + "," + contentBodyLengthExpr + ");");
                 EmitLine("      " + replyImplClass + " __rep = __repBase as " + replyImplClass + ";");
                 EmitLine("      if (__rep == null) throw new UnexpectedMethodException(__repBase);");
 
@@ -1340,6 +1358,14 @@ namespace RabbitMQ.Client.Apigen
                         else if (Attribute(pi, typeof(AmqpContentBodyMappingAttribute)) != null)
                         {
                             Emit("            cmd.Body");
+                        }
+                        else if (Attribute(pi, typeof(AmqpContentBodyStartMappingAttribute)) != null)
+                        {
+                            Emit("            cmd.Start");
+                        }
+                        else if (Attribute(pi, typeof(AmqpContentBodyLengthMappingAttribute)) != null)
+                        {
+                            Emit("            cmd.Length");
                         }
                         else
                         {

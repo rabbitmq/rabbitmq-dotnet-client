@@ -573,7 +573,9 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             bool mandatory,
             IBasicProperties basicProperties,
-            byte[] body)
+            byte[] body, 
+            int start, 
+            int len)
         {
             if (routingKey == null)
             {
@@ -581,7 +583,7 @@ namespace RabbitMQ.Client.Impl
             }
 
             m_delegate._Private_BasicPublish(exchange, routingKey, mandatory,
-                basicProperties, body);
+                basicProperties, body, start, len);
         }
 
         public void _Private_BasicRecover(bool requeue)
@@ -808,7 +810,9 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             bool mandatory,
             IBasicProperties basicProperties,
-            byte[] body)
+            byte[] body, 
+            int start,
+            int len)
         {
             if (routingKey == null)
             {
@@ -819,7 +823,9 @@ namespace RabbitMQ.Client.Impl
                 routingKey,
                 mandatory,
                 basicProperties,
-                body);
+                body, 
+                start, 
+                len);
         }
 
         public void BasicQos(uint prefetchSize,
