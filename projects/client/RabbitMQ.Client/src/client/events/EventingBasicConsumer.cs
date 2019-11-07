@@ -68,14 +68,14 @@ namespace RabbitMQ.Client.Events
         public override void HandleBasicCancelOk(string consumerTag)
         {
             base.HandleBasicCancelOk(consumerTag);
-            Raise(Unregistered, new ConsumerEventArgs(consumerTag));
+            Raise(Unregistered, new ConsumerEventArgs(new[] { consumerTag }));
         }
 
         ///<summary>Fires the Registered event.</summary>
         public override void HandleBasicConsumeOk(string consumerTag)
         {
             base.HandleBasicConsumeOk(consumerTag);
-            Raise(Registered, new ConsumerEventArgs(consumerTag));
+            Raise(Registered, new ConsumerEventArgs(new[] { consumerTag }));
         }
 
         ///<summary>Fires the Received event.</summary>
