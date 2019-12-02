@@ -120,7 +120,7 @@ namespace RabbitMQ.Client
         /// x-single-active-consumer header.
         /// Available modes: true and false(default).
         /// Allows to have only one consumer at a time consuming from a queue
-        /// and to fail over to another registered consumer in case the active one is cancelled or dies.
+        /// and to fail over to another registered consumer in case the active one is cancelled or dies
         ///  </summary>
         public const string XSingleActiveConsumer = "x-single-active-consumer";
 
