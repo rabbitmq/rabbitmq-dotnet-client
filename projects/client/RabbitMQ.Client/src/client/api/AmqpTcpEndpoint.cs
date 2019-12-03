@@ -68,6 +68,8 @@ namespace RabbitMQ.Client
         public const int UseDefaultPort = -1;
 
         private int _port;
+        
+        private SslOption _ssl;
 
         /// <summary>
         /// Creates a new instance of the <see cref="AmqpTcpEndpoint"/>.
@@ -79,7 +81,7 @@ namespace RabbitMQ.Client
         {
             HostName = hostName;
             _port = portOrMinusOne;
-            Ssl = ssl;
+            Ssl = ssl ?? new SslOption();
         }
 
         /// <summary>
@@ -182,7 +184,16 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Retrieve the SSL options for this AmqpTcpEndpoint. If not set, null is returned.
         /// </summary>
-        public SslOption Ssl { get; set; }
+        public SslOption Ssl
+        {
+            get { return _ssl; }
+            set
+            {
+                if (_ssl == null)
+                    throw new ArgumentNullException("Ssl", "Ssl property must be and instance of SslOption (cannot be null)");
+                _ssl = value;
+            }
+        }
 
         /// <summary>
         /// Construct an instance from a protocol and an address in "hostname:port" format.
