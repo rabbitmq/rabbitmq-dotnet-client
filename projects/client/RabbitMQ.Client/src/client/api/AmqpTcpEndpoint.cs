@@ -182,7 +182,7 @@ namespace RabbitMQ.Client
         public System.Net.Sockets.AddressFamily AddressFamily { get; set; } = ConnectionFactory.DefaultAddressFamily;
 
         /// <summary>
-        /// Retrieve the SSL options for this AmqpTcpEndpoint. If not set, null is returned.
+        /// Retrieve the SSL options for this AmqpTcpEndpoint. If not set, a default SslOption instance is returned.
         /// </summary>
         public SslOption Ssl
         {
@@ -190,7 +190,7 @@ namespace RabbitMQ.Client
             set
             {
                 if (_ssl == null)
-                    throw new ArgumentNullException("Ssl", "Ssl property must be and instance of SslOption (cannot be null)");
+                    throw new ArgumentNullException("Ssl", "Ssl property must be an instance of SslOption (cannot be null)");
                 _ssl = value;
             }
         }
