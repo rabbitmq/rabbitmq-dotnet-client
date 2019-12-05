@@ -1240,9 +1240,21 @@ entry.ToString());
         }
 
         ///<summary>API-side invocation of connection abort with timeout.</summary>
+        public void Abort(TimeSpan timeout)
+        {
+            Abort(Constants.ReplySuccess, "Connection close forced", timeout.Milliseconds);
+        }
+
+        ///<summary>API-side invocation of connection abort with timeout.</summary>
         public void Abort(ushort reasonCode, string reasonText, int timeout)
         {
             Abort(reasonCode, reasonText, ShutdownInitiator.Application, timeout);
+        }
+
+        ///<summary>API-side invocation of connection abort with timeout.</summary>
+        public void Abort(ushort reasonCode, string reasonText, TimeSpan timeout)
+        {
+            Abort(reasonCode, reasonText, ShutdownInitiator.Application, timeout.Milliseconds);
         }
 
         ///<summary>API-side invocation of connection.close.</summary>

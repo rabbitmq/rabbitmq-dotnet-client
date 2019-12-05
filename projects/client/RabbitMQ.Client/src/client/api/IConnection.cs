@@ -225,6 +225,21 @@ namespace RabbitMQ.Client
         /// timeout for all the in-progress close operations to complete.
         /// </summary>
         /// <remarks>
+        /// This method, behaves in a similar way as method <see cref="Abort()"/> with the
+        /// only difference that it explictly specifies a timeout given
+        /// for all the in-progress close operations to complete.
+        /// If timeout is reached and the close operations haven't finished, then socket is forced to close.
+        /// <para>
+        /// To wait infinitely for the close operations to complete use <see cref="Timeout.Infinite"/>.
+        /// </para>
+        /// </remarks>
+        void Abort(TimeSpan timeout);
+
+        /// <summary>
+        /// Abort this connection and all its channels and wait with a
+        /// timeout for all the in-progress close operations to complete.
+        /// </summary>
+        /// <remarks>
         /// The method behaves in the same way as <see cref="Abort(int)"/>, with the only
         /// difference that the connection is closed with the given connection close code and message.
         /// <para>
@@ -238,6 +253,22 @@ namespace RabbitMQ.Client
         /// </para>
         /// </remarks>
         void Abort(ushort reasonCode, string reasonText, int timeout);
+
+        /// <summary>
+        /// Abort this connection and all its channels and wait with a
+        /// timeout for all the in-progress close operations to complete.
+        /// </summary>
+        /// <remarks>
+        /// The method behaves in the same way as <see cref="Abort(TimeSpan)"/>, with the only
+        /// difference that the connection is closed with the given connection close code and message.
+        /// <para>
+        /// The close code (See under "Reply Codes" in the AMQP 0-9-1 specification).
+        /// </para>
+        /// <para>
+        /// A message indicating the reason for closing the connection.
+        /// </para>
+        /// </remarks>
+        void Abort(ushort reasonCode, string reasonText, TimeSpan timeout);
 
         /// <summary>
         /// Close this connection and all its channels.
