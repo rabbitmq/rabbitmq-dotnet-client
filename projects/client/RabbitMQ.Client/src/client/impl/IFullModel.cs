@@ -299,6 +299,12 @@ namespace RabbitMQ.Client.Impl
             byte[] response,
             string locale);
 
+        ///<summary>Used to send a Conection.UpdateSecret method. Called by the
+        ///public UpdateSecret method.
+        ///</summary>
+        [AmqpMethodMapping(null, "connection", "update-secret")]
+        void _Private_UpdateSecret(byte[] newSecret, string reason);
+
         ///<summary>Used to send a Exchange.Bind method. Called by the
         ///public bind method.
         ///</summary>

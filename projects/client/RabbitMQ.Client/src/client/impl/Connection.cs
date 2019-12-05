@@ -1221,6 +1221,11 @@ entry.ToString());
             m_frameHandler.WriteFrameSet(f);
         }
 
+        public void UpdateSecret(string newSecret, string reason)
+        {
+            m_model0.UpdateSecret(newSecret, reason);
+        }
+
         ///<summary>API-side invocation of connection abort.</summary>
         public void Abort()
         {

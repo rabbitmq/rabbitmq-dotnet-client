@@ -47,6 +47,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Threading;
 
 #if (NETFX_CORE)
@@ -1123,6 +1124,10 @@ namespace RabbitMQ.Client.Impl
             byte[] response,
             string locale);
 
+        public abstract void _Private_UpdateSecret(
+            byte[] @newSecret,
+            string @reason);
+
         public abstract void _Private_ExchangeBind(string destination,
             string source,
             string routingKey,
@@ -1305,6 +1310,21 @@ namespace RabbitMQ.Client.Impl
                 mandatory,
                 basicProperties,
                 body);
+        }
+
+        public void UpdateSecret(string newSecret, string reason)
+        {
+            if (newSecret == null)
+            {
+                throw new ArgumentNullException(nameof(newSecret));
+            }
+
+            if (reason == null)
+            {
+                throw new ArgumentNullException(nameof(reason));
+            }
+
+            _Private_UpdateSecret(Encoding.UTF8.GetBytes(newSecret), reason);
         }
 
         public abstract void BasicQos(uint prefetchSize,

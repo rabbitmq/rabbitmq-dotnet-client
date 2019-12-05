@@ -321,6 +321,7 @@ namespace RabbitMQ.Client
         RabbitMQ.Client.IModel CreateModel();
         void HandleConnectionBlocked(string reason);
         void HandleConnectionUnblocked();
+        void UpdateSecret(string newSecret, string reason);
     }
     public interface IConnectionFactory
     {
@@ -1354,6 +1355,12 @@ namespace RabbitMQ.Client.Framing
         ushort Heartbeat { get; }
     }
     public interface IConnectionUnblocked : RabbitMQ.Client.IMethod { }
+    public interface IConnectionUpdateSecret : RabbitMQ.Client.IMethod
+    {
+        byte[] NewSecret { get; }
+        string Reason { get; }
+    }
+    public interface IConnectionUpdateSecretOk : RabbitMQ.Client.IMethod { }
     public interface IExchangeBind : RabbitMQ.Client.IMethod
     {
         System.Collections.Generic.IDictionary<string, object> Arguments { get; }
@@ -1544,6 +1551,7 @@ namespace RabbitMQ.Client.Framing.Impl
         public void StartMainLoop(bool useBackgroundThread) { }
         public void TerminateMainloop() { }
         public override string ToString() { }
+        public void UpdateSecret(string newSecret, string reason) { }
         public void WriteFrame(RabbitMQ.Client.Impl.OutboundFrame f) { }
         public void WriteFrameSet(System.Collections.Generic.IList<RabbitMQ.Client.Impl.OutboundFrame> f) { }
     }
@@ -1896,6 +1904,8 @@ namespace RabbitMQ.Client.Impl
         [RabbitMQ.Client.Apigen.Attributes.AmqpMethodMappingAttribute(null, "queue", "purge")]
         [return: RabbitMQ.Client.Apigen.Attributes.AmqpFieldMappingAttribute(null, "messageCount")]
         uint _Private_QueuePurge(string queue, [RabbitMQ.Client.Apigen.Attributes.AmqpNowaitArgumentAttribute(null, "0xFFFFFFFF")] bool nowait);
+        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodMappingAttribute(null, "connection", "update-secret")]
+        void _Private_UpdateSecret(byte[] newSecret, string reason);
     }
     public interface IRpcContinuation
     {
@@ -2094,6 +2104,7 @@ namespace RabbitMQ.Client.Impl
         public abstract void TxCommit();
         public abstract void TxRollback();
         public abstract void TxSelect();
+        public void UpdateSecret(string newSecret, string reason) { }
         public bool WaitForConfirms(System.TimeSpan timeout, out bool timedOut) { }
         public bool WaitForConfirms() { }
         public bool WaitForConfirms(System.TimeSpan timeout) { }
@@ -2122,6 +2133,7 @@ namespace RabbitMQ.Client.Impl
         public abstract void _Private_QueueDeclare(string queue, bool passive, bool durable, bool exclusive, bool autoDelete, bool nowait, System.Collections.Generic.IDictionary<string, object> arguments);
         public abstract uint _Private_QueueDelete(string queue, bool ifUnused, bool ifEmpty, bool nowait);
         public abstract uint _Private_QueuePurge(string queue, bool nowait);
+        public abstract void _Private_UpdateSecret(byte[] newSecret, string reason);
         protected virtual void handleAckNack(ulong deliveryTag, bool multiple, bool isNack) { }
         public class BasicConsumerRpcContinuation : RabbitMQ.Client.Impl.SimpleBlockingRpcContinuation
         {

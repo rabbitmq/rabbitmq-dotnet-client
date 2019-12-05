@@ -919,6 +919,29 @@
       <chassis name = "client" implement = "MUST" />
       <chassis name = "server" implement = "MUST" />
     </method>
+
+
+    <method name="update-secret" synchronous="1" index="70">
+      <doc>
+        Updates the secret used to authenticate this connection. 
+      </doc>
+
+      <chassis name="server" implement="MUST"/>
+      <chassis name="client" implement="MUST"/>
+      <response name="update-secret-ok"/>
+      <field name="new-secret" domain="longstr" />
+      <field name="reason" domain="shortstr" />
+    </method>
+
+    <method name="update-secret-ok" synchronous="1" index="71">
+      <doc>
+        This method confirms the updated secret is valid.
+      </doc>
+
+      <chassis name="client" implement="MUST"/>
+      <chassis name="server" implement="MUST"/>
+    </method>
+
   </class>
 
   <!-- ==  CHANNEL  ========================================================== -->
