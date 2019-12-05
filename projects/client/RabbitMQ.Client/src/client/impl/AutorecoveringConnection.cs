@@ -575,6 +575,14 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
+        ///<summary>API-side invocation of updating the secret.</summary>
+        public void UpdateSecret(string newSecret, string reason)
+        {
+            EnsureIsOpen();
+            m_delegate.UpdateSecret(newSecret, reason);
+            m_factory.Password = newSecret;
+        }
+
         ///<summary>API-side invocation of connection abort.</summary>
         public void Abort()
         {
