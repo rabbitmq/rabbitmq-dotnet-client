@@ -206,7 +206,12 @@ namespace RabbitMQ.Client
         public const string XMaxLengthInBytes = "x-max-length-bytes";
         public const string XMaxPriority = "x-max-priority";
         public const string XMessageTTL = "x-message-ttl";
+        public const string XOverflow = "x-overflow";
         public const string XPriority = "x-priority";
+        public const string XQueueMode = "x-queue-mode";
+        public const string XQueueType = "x-queue-type";
+        public const string XQuorumInitialGroupSize = "x-quorum-initial-group-size";
+        public const string XSingleActiveConsumer = "x-single-active-consumer";
     }
     public interface IAsyncBasicConsumer
     {
