@@ -313,7 +313,9 @@ namespace RabbitMQ.Client
         void Abort();
         void Abort(ushort reasonCode, string reasonText);
         void Abort(int timeout);
+        void Abort(System.TimeSpan timeout);
         void Abort(ushort reasonCode, string reasonText, int timeout);
+        void Abort(ushort reasonCode, string reasonText, System.TimeSpan timeout);
         void Close();
         void Close(ushort reasonCode, string reasonText);
         void Close(int timeout);
@@ -1504,7 +1506,9 @@ namespace RabbitMQ.Client.Framing.Impl
         public void Abort() { }
         public void Abort(ushort reasonCode, string reasonText) { }
         public void Abort(int timeout) { }
+        public void Abort(System.TimeSpan timeout) { }
         public void Abort(ushort reasonCode, string reasonText, int timeout) { }
+        public void Abort(ushort reasonCode, string reasonText, System.TimeSpan timeout) { }
         public void Close(RabbitMQ.Client.ShutdownEventArgs reason) { }
         public void Close(RabbitMQ.Client.ShutdownEventArgs reason, bool abort, int timeout) { }
         public void Close() { }

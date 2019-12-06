@@ -598,9 +598,25 @@ namespace RabbitMQ.Client.Framing.Impl
             if (m_delegate.IsOpen)
                 m_delegate.Abort(timeout);
         }
+        
+        ///<summary>API-side invocation of connection abort with timeout.</summary>
+        public void Abort(TimeSpan timeout)
+        {
+            StopRecoveryLoop();
+            if (m_delegate.IsOpen)
+                m_delegate.Abort(timeout);
+        }
 
         ///<summary>API-side invocation of connection abort with timeout.</summary>
         public void Abort(ushort reasonCode, string reasonText, int timeout)
+        {
+            StopRecoveryLoop();
+            if (m_delegate.IsOpen)
+                m_delegate.Abort(reasonCode, reasonText, timeout);
+        }
+        
+        ///<summary>API-side invocation of connection abort with timeout.</summary>
+        public void Abort(ushort reasonCode, string reasonText, TimeSpan timeout)
         {
             StopRecoveryLoop();
             if (m_delegate.IsOpen)
