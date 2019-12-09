@@ -920,7 +920,6 @@
       <chassis name = "server" implement = "MUST" />
     </method>
 
-
     <method name="update-secret" synchronous="1" index="70">
       <doc>
         Updates the secret used to authenticate this connection. 
