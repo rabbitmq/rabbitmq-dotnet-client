@@ -39,19 +39,42 @@
 //---------------------------------------------------------------------------
 
 using NUnit.Framework;
+using System;
+using System.Text;
 
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestUpdateSecret : IntegrationFixture
-    {
+    public class TestUpdateSecret : IntegrationFixture {
 
         [Test]
         public void TestUpdatingConnectionSecret()
         {
+            if (!this.RabbitMQ380OrHigher())
+            {
+                Console.WriteLine("Not connected to RabbitMQ 3.8 or higher, skipping test");
+                return;
+            }
+
             this.Conn.UpdateSecret("new-secret", "Test Case");
 
             Assert.AreEqual("new-secret", this.ConnFactory.Password);
+        }
+
+        private bool RabbitMQ380OrHigher()
+        {
+            var properties = this.Conn.ServerProperties;
+
+            if (properties.TryGetValue("version", out var versionVal))
+            {
+                var versionStr = Encoding.UTF8.GetString((byte[])versionVal);
+                if (Version.TryParse(versionStr, out var version))
+                {
+                    return version >= new Version(3, 8);
+                }
+            }
+
+            return false;
         }
     }
 }
