@@ -827,12 +827,6 @@ namespace RabbitMQ.Client.Impl
                 body);
         }
 
-        public void UpdateSecret(string newSecret, string reason)
-        {
-            m_delegate.BasicPublish(newSecret,
-                reason);
-        }
-
         public void BasicQos(uint prefetchSize,
             ushort prefetchCount,
             bool global)
