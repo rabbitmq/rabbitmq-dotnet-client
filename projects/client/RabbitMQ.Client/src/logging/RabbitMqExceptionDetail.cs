@@ -44,7 +44,7 @@ namespace RabbitMQ.Client.Logging
     using System.Collections.Generic;
     using System.Diagnostics.Tracing;
 
-#if NET451
+#if NET452
 #else
 [EventData]
 #endif

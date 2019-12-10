@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.Logging
         {
             public const EventKeywords Log = (EventKeywords)1;
         }
-#if NET451
+#if NET452
         public RabbitMqClientEventSource() : base()
         {
 
@@ -76,7 +76,7 @@ namespace RabbitMQ.Client.Logging
             if(IsEnabled())
                 this.WriteEvent(2, message);
         }
-#if NET451
+#if NET452
         [Event(3, Message = "ERROR", Keywords = Keywords.Log, Level = EventLevel.Error)]
         public void Error(string message, string detail)
         {
@@ -96,7 +96,7 @@ namespace RabbitMQ.Client.Logging
         public void Error(string message, Exception ex)
         {
 
-#if NET451
+#if NET452
             Error(message, ex.ToString());
 #else
             Error(message, new RabbitMqExceptionDetail(ex));
