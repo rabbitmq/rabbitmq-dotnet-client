@@ -651,6 +651,11 @@ namespace RabbitMQ.Client.Impl
                 response, locale);
         }
 
+        public void _Private_UpdateSecret(byte[] newSecret, string reason)
+        {
+            m_delegate._Private_UpdateSecret(newSecret, reason);
+        }
+
         public void _Private_ExchangeBind(string destination,
             string source,
             string routingKey,

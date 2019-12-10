@@ -59,6 +59,7 @@ namespace RabbitMQ.Client.Unit
 
     public class IntegrationFixture
     {
+        internal IConnectionFactory ConnFactory;
         internal IConnection Conn;
         internal IModel Model;
 
@@ -68,8 +69,8 @@ namespace RabbitMQ.Client.Unit
         [SetUp]
         public virtual void Init()
         {
-            var connFactory = new ConnectionFactory();
-            Conn = connFactory.CreateConnection();
+            ConnFactory = new ConnectionFactory();
+            Conn = ConnFactory.CreateConnection();
             Model = Conn.CreateModel();
         }
 

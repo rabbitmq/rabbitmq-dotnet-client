@@ -179,6 +179,15 @@ namespace RabbitMQ.Client
         event EventHandler<EventArgs> ConnectionUnblocked;
 
         /// <summary>
+        /// This method updates the secret used to authenticate this connection.
+        /// It is used when secrets have an expiration date and need to be renewed,
+        /// like OAuth 2 tokens.
+        /// </summary>
+        /// <param name="newSecret">The new secret.</param>
+        /// <param name="reason">The reason for the secret update.</param>
+        void UpdateSecret(string newSecret, string reason);
+
+        /// <summary>
         /// Abort this connection and all its channels.
         /// </summary>
         /// <remarks>

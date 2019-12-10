@@ -176,6 +176,17 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <chassis name="server" implement="MUST"/>
       <chassis name="client" implement="MUST"/>
     </method>
+    <method name="update-secret" synchronous="1" index="70">
+      <chassis name="server" implement="MUST"/>
+      <chassis name="client" implement="MUST"/>
+      <response name="update-secret-ok"/>
+      <field name="new-secret" domain="longstr" />
+      <field name="reason" domain="shortstr" />
+    </method>
+    <method name="update-secret-ok" synchronous="1" index="71">
+      <chassis name="client" implement="MUST"/>
+      <chassis name="server" implement="MUST"/>
+    </method>
   </class>
   <class name="channel" handler="channel" index="20">
     <chassis name="server" implement="MUST"/>
