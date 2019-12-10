@@ -1247,7 +1247,7 @@ entry.ToString());
         ///<summary>API-side invocation of connection abort with timeout.</summary>
         public void Abort(TimeSpan timeout)
         {
-            Abort(Constants.ReplySuccess, "Connection close forced", timeout.TotalMilliseconds);
+            Abort(Constants.ReplySuccess, "Connection close forced", Convert.ToInt32(timeout.TotalMilliseconds));
         }
 
         ///<summary>API-side invocation of connection abort with timeout.</summary>
@@ -1259,7 +1259,7 @@ entry.ToString());
         ///<summary>API-side invocation of connection abort with timeout.</summary>
         public void Abort(ushort reasonCode, string reasonText, TimeSpan timeout)
         {
-            Abort(reasonCode, reasonText, ShutdownInitiator.Application, timeout.TotalMilliseconds);
+            Abort(reasonCode, reasonText, ShutdownInitiator.Application, Convert.ToInt32(timeout.TotalMilliseconds));
         }
 
         ///<summary>API-side invocation of connection.close.</summary>
