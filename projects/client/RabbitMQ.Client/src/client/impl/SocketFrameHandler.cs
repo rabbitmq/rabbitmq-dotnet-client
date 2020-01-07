@@ -79,9 +79,8 @@ namespace RabbitMQ.Client.Impl
         private readonly ITcpClient m_socket;
         private readonly NetworkBinaryWriter m_writer;
         private readonly object _semaphore = new object();
-        private readonly object _sslStreamLock = new object();
+        private readonly object _streamLock = new object();
         private bool _closed;
-        private bool _ssl = false;
         public SocketFrameHandler(AmqpTcpEndpoint endpoint,
             Func<AddressFamily, ITcpClient> socketFactory,
             int connectionTimeout, int readTimeout, int writeTimeout)
@@ -112,7 +111,6 @@ namespace RabbitMQ.Client.Impl
                 try
                 {
                     netstream = SslHelper.TcpUpgrade(netstream, endpoint.Ssl);
-                    _ssl = true;
                 }
                 catch (Exception)
                 {
@@ -248,14 +246,7 @@ namespace RabbitMQ.Client.Impl
 
         private void Write(ArraySegment<byte> bufferSegment)
         {
-            if(_ssl)
-            {
-                lock (_sslStreamLock)
-                {
-                    m_writer.Write(bufferSegment.Array, bufferSegment.Offset, bufferSegment.Count);
-                }
-            }
-            else
+            lock (_streamLock)
             {
                 m_writer.Write(bufferSegment.Array, bufferSegment.Offset, bufferSegment.Count);
             }
