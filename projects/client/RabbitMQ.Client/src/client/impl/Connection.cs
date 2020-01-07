@@ -66,6 +66,7 @@ namespace RabbitMQ.Client.Framing.Impl
     public class Connection : IConnection
     {
         private readonly object m_eventLock = new object();
+        private object m_socketWriteLock = new object();
 
         ///<summary>Heartbeat frame for transmission. Reusable across connections.</summary>
         private readonly EmptyOutboundFrame m_heartbeatFrame = new EmptyOutboundFrame();
@@ -271,6 +272,11 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
             }
         }
+
+        public object SocketWriteLock {
+            get { return m_socketWriteLock; }
+        }
+
         public string ClientProvidedName { get; private set; }
 
         public ushort ChannelMax

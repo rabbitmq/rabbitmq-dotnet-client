@@ -134,7 +134,10 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            connection.WriteFrameSet(frames);
+            // synchronise multi-frame writes as particularly risky
+            lock(connection.SocketWriteLock) {
+                connection.WriteFrameSet(frames);
+            }
         }
 
 
