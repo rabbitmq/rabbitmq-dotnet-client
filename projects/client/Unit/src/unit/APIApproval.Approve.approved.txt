@@ -1503,6 +1503,7 @@ namespace RabbitMQ.Client.Framing.Impl
         public int RemotePort { get; }
         public System.Collections.Generic.IDictionary<string, object> ServerProperties { get; set; }
         public System.Collections.Generic.IList<RabbitMQ.Client.ShutdownReportEntry> ShutdownReport { get; }
+        public object SocketWriteLock { get; }
         public event System.EventHandler<RabbitMQ.Client.Events.CallbackExceptionEventArgs> CallbackException;
         public event System.EventHandler<RabbitMQ.Client.Events.ConnectionBlockedEventArgs> ConnectionBlocked;
         public event System.EventHandler<RabbitMQ.Client.Events.ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError;
