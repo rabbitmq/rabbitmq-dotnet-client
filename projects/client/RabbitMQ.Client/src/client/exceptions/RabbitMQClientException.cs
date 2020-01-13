@@ -1,4 +1,4 @@
-﻿// This source code is dual-licensed under the Apache License, version
+// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 1.1.
 //
 // The APL v2.0:
@@ -42,6 +42,9 @@ using System;
 
 namespace RabbitMQ.Client.Exceptions
 {
+#if !(NETSTANDARD1_5)
+    [Serializable]
+#endif
     public abstract class RabbitMQClientException : Exception
     {
         /// <summary>Initializes a new instance of the <see cref="RabbitMQClientException" /> class.</summary>

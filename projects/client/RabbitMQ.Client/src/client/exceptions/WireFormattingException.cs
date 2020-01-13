@@ -39,12 +39,14 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Net;
 
 namespace RabbitMQ.Client.Exceptions
 {
     /// <summary> Thrown when the wire-formatting code cannot encode a
     /// particular .NET value to AMQP protocol format.  </summary>
+#if !(NETSTANDARD1_5)
+    [Serializable]
+#endif
     public class WireFormattingException : ProtocolViolationException
     {
         ///<summary>Construct a WireFormattingException with no

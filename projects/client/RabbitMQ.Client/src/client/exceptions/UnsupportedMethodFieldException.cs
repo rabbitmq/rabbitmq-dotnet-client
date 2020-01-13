@@ -46,6 +46,9 @@ namespace RabbitMQ.Client.Exceptions
     /// because the version of the protocol the model is implementing
     /// does not contain a definition for the field in
     /// question.</summary>
+#if !(NETSTANDARD1_5)
+    [Serializable]
+#endif
     public class UnsupportedMethodFieldException : NotSupportedException
     {
         public UnsupportedMethodFieldException(string methodName, string fieldName)
