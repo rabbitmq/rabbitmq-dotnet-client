@@ -39,7 +39,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Net;
 
 namespace RabbitMQ.Client.Exceptions
 {
@@ -51,6 +50,9 @@ namespace RabbitMQ.Client.Exceptions
     ///The peer's {'A','M','Q','P',txHi,txLo,major,minor} packet is
     ///decoded into instances of this class.
     ///</remarks>
+#if !(NETSTANDARD1_5)
+    [Serializable]
+#endif
     public class PacketNotRecognizedException : RabbitMQClientException
     {
         ///<summary>Fills the new instance's properties with the values passed in.</summary>

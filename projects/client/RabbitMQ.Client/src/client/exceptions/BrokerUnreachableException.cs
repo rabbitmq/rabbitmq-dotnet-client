@@ -45,6 +45,9 @@ namespace RabbitMQ.Client.Exceptions
 {
     ///<summary>Thrown when no connection could be opened during a
     ///ConnectionFactory.CreateConnection attempt.</summary>
+#if !(NETSTANDARD1_5)
+    [Serializable]
+#endif
     public class BrokerUnreachableException : IOException
     {
         ///<summary>Construct a BrokerUnreachableException. The inner exception is
