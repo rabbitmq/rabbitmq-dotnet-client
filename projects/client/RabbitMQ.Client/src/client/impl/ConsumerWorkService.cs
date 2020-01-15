@@ -1,38 +1,29 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client
 {
     public class ConsumerWorkService
     {
-        readonly ConcurrentDictionary<IModel, WorkPool> workPools = new ConcurrentDictionary<IModel, WorkPool>();
+        private readonly ConcurrentDictionary<IModel, WorkPool> workPools = new ConcurrentDictionary<IModel, WorkPool>();
 
         public void AddWork(IModel model, Action fn)
         {
-            // two step approach is taken, as TryGetValue does not aquire locks
-            // if this fails, GetOrAdd is called, which takes a lock
+            workPools.GetOrAdd(model, StartNewWorkPool).Enqueue(fn);
+        }
 
-            WorkPool workPool;
-            if (workPools.TryGetValue(model, out workPool) == false)
-            {
-                var newWorkPool = new WorkPool(model);
-                workPool = workPools.GetOrAdd(model, newWorkPool);
-
-                // start if it's only the workpool that has been just created
-                if (newWorkPool == workPool)
-                {
-                    newWorkPool.Start();
-                }
-            }
-
-            workPool.Enqueue(fn);
+        private WorkPool StartNewWorkPool(IModel model)
+        {
+            var newWorkPool = new WorkPool(model);
+            newWorkPool.Start();
+            return newWorkPool;
         }
 
         public void StopWork(IModel model)
         {
-            WorkPool workPool;
-            if (workPools.TryRemove(model, out workPool))
+            if (workPools.TryRemove(model, out WorkPool workPool))
             {
                 workPool.Stop();
             }
@@ -40,7 +31,7 @@ namespace RabbitMQ.Client
 
         public void StopWork()
         {
-            foreach (var model in workPools.Keys)
+            foreach (IModel model in workPools.Keys)
             {
                 StopWork(model);
             }
@@ -49,46 +40,41 @@ namespace RabbitMQ.Client
         class WorkPool
         {
             readonly ConcurrentQueue<Action> actions;
-            readonly AutoResetEvent messageArrived;
-            readonly TimeSpan waitTime;
+            readonly SemaphoreSlim semaphore = new SemaphoreSlim(0);
             readonly CancellationTokenSource tokenSource;
-            readonly string name;
+            private Task worker;
 
             public WorkPool(IModel model)
             {
-                name = model.ToString();
                 actions = new ConcurrentQueue<Action>();
-                messageArrived = new AutoResetEvent(false);
-                waitTime = TimeSpan.FromMilliseconds(100);
                 tokenSource = new CancellationTokenSource();
             }
 
             public void Start()
             {
-#if NETFX_CORE
-                System.Threading.Tasks.Task.Factory.StartNew(Loop, System.Threading.Tasks.TaskCreationOptions.LongRunning);
-#else
-                var thread = new Thread(Loop)
-                {
-                    Name = "WorkPool-" + name,
-                    IsBackground = true
-                };
-                thread.Start();
-#endif
+                worker = Task.Run(Loop);
             }
 
             public void Enqueue(Action action)
             {
                 actions.Enqueue(action);
-                messageArrived.Set();
+                semaphore.Release();
             }
 
-            void Loop()
+            async Task Loop()
             {
                 while (tokenSource.IsCancellationRequested == false)
                 {
-                    Action action;
-                    while (actions.TryDequeue(out action))
+                    try
+                    {
+                        await semaphore.WaitAsync(tokenSource.Token).ConfigureAwait(false);
+                    }
+                    catch (TaskCanceledException)
+                    {
+                        // Swallowing the task cancellation exception for the semaphore in case we are stopping.
+                    }
+
+                    if (!tokenSource.IsCancellationRequested && actions.TryDequeue(out Action action))
                     {
                         try
                         {
@@ -99,7 +85,6 @@ namespace RabbitMQ.Client
                         }
                     }
 
-                    messageArrived.WaitOne(waitTime);
                 }
             }
 
