@@ -4,6 +4,27 @@ Set-StrictMode -Version 2.0
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor 'Tls12'
 
+Write-Host '[INFO] Removing all existing versions of Erlang...'
+Get-ChildItem -Path 'C:\Program Files\erl*\Uninstall.exe' | %{ Start-Process -Wait -NoNewWindow -FilePath $_ -ArgumentList '/S' }
+
+$erlang_download_url = 'http://erlang.org/download/otp_win64_22.2.exe'
+$erlang_installer_path = Join-Path -Path $HOME -ChildPath 'otp_win64_22.2.exe'
+$erlang_install_dir = Join-Path -Path $HOME -ChildPath 'erlang'
+
+Write-Host '[INFO] Downloading Erlang...'
+
+if (-Not (Test-Path $erlang_installer_path))
+{
+    Invoke-WebRequest -UseBasicParsing -Uri $erlang_download_url -OutFile $erlang_installer_path
+}
+else
+{
+    Write-Host "[INFO] Found" $erlang_installer_path "in cache."
+}
+
+Write-Host "[INFO] Installing Erlang to $erlang_install_dir..."
+& $erlang_installer_path '/S' "/D=$erlang_install_dir" | Out-Null
+
 $rabbitmq_installer_download_url = 'https://github.com/rabbitmq/rabbitmq-server/releases/download/v3.8.2/rabbitmq-server-3.8.2.exe'
 $rabbitmq_installer_path = Join-Path -Path $HOME -ChildPath 'rabbitmq-server-3.8.2.exe'
 
