@@ -1,69 +1,55 @@
-﻿using System;
+﻿using RabbitMQ.Client.Impl;
+
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
 {
     internal sealed class AsyncConsumerWorkService : ConsumerWorkService
     {
-        readonly ConcurrentDictionary<IModel, WorkPool> workPools = new ConcurrentDictionary<IModel, WorkPool>();
+        private readonly ConcurrentDictionary<IModel, WorkPool> workPools = new ConcurrentDictionary<IModel, WorkPool>();
 
-        public void Schedule<TWork>(ModelBase model, TWork work)
-            where TWork : Work
+        public void Schedule<TWork>(ModelBase model, TWork work) where TWork : Work
         {
-            // two step approach is taken, as TryGetValue does not aquire locks
-            // if this fails, GetOrAdd is called, which takes a lock
-
-            WorkPool workPool;
-            if (workPools.TryGetValue(model, out workPool) == false)
-            {
-                var newWorkPool = new WorkPool(model);
-                workPool = workPools.GetOrAdd(model, newWorkPool);
-
-                // start if it's only the workpool that has been just created
-                if (newWorkPool == workPool)
-                {
-                    newWorkPool.Start();
-                }
-            }
-
-            workPool.Enqueue(work);
+            workPools.GetOrAdd(model, StartNewWorkPool).Enqueue(work);
         }
 
-        public async Task Stop(IModel model)
+        private WorkPool StartNewWorkPool(IModel model)
         {
-            WorkPool workPool;
-            if (workPools.TryRemove(model, out workPool))
+            var newWorkPool = new WorkPool(model as ModelBase);
+            newWorkPool.Start();
+            return newWorkPool;
+        }
+
+        public void Stop(IModel model)
+        {
+            if (workPools.TryRemove(model, out WorkPool workPool))
             {
-                await workPool.Stop().ConfigureAwait(false);
+                workPool.Stop();
             }
         }
 
-        public async Task Stop()
+        public void Stop()
         {
-            foreach (var model in workPools.Keys)
+            foreach (IModel model in workPools.Keys)
             {
-                await Stop(model).ConfigureAwait(false);
+                Stop(model);
             }
         }
 
         class WorkPool
         {
             readonly ConcurrentQueue<Work> workQueue;
-            readonly TimeSpan waitTime;
             readonly CancellationTokenSource tokenSource;
             readonly ModelBase model;
-            TaskCompletionSource<bool> messageArrived;
+            readonly SemaphoreSlim semaphore = new SemaphoreSlim(0);
             private Task task;
 
             public WorkPool(ModelBase model)
             {
                 this.model = model;
                 workQueue = new ConcurrentQueue<Work>();
-                messageArrived = new TaskCompletionSource<bool>();
-                waitTime = TimeSpan.FromMilliseconds(100);
                 tokenSource = new CancellationTokenSource();
             }
 
@@ -75,29 +61,32 @@ namespace RabbitMQ.Client
             public void Enqueue(Work work)
             {
                 workQueue.Enqueue(work);
-                messageArrived.TrySetResult(true);
+                semaphore.Release();
             }
 
             async Task Loop()
             {
                 while (tokenSource.IsCancellationRequested == false)
                 {
-                    Work work;
-                    while (workQueue.TryDequeue(out work))
+                    try
+                    {
+                        await semaphore.WaitAsync(tokenSource.Token).ConfigureAwait(false);
+                    }
+                    catch (TaskCanceledException)
+                    {
+                        // Swallowing the task cancellation in case we are stopping work.
+                    }
+
+                    if (!tokenSource.IsCancellationRequested && workQueue.TryDequeue(out Work work))
                     {
                         await work.Execute(model).ConfigureAwait(false);
                     }
-
-                    await Task.WhenAny(Task.Delay(waitTime, tokenSource.Token), messageArrived.Task).ConfigureAwait(false);
-                    messageArrived.TrySetResult(true);
-                    messageArrived = new TaskCompletionSource<bool>();
                 }
             }
 
-            public Task Stop()
+            public void Stop()
             {
                 tokenSource.Cancel();
-                return task;
             }
         }
     }

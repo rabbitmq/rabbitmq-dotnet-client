@@ -98,6 +98,8 @@ namespace RabbitMQ.Client.Unit
         {
             var rnd = new Random();
             List<IConnection> xs = new List<IConnection>();
+            // Since we are using the ThreadPool, let's set MinThreads to a high-enough value.
+            ThreadPool.SetMinThreads(200, 200);
             for (var i = 0; i < 200; i++)
             {
                 var n = Convert.ToUInt16(rnd.Next(2, 6));
