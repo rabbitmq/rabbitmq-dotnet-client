@@ -14,7 +14,7 @@ environment:
 cache:
   # Note: this must match the $rabbitmq_installer_path value in
   # tools\appveyor\install.ps1
-  - "%HOMEDRIVE%%HOMEPATH%\rabbitmq-server-3.7.4.exe"
+  - "%HOMEDRIVE%%HOMEPATH%\rabbitmq-server-3.8.2.exe"
 
 install:
   - IF DEFINED SNKSECRET (nuget install secure-file -ExcludeVersion)
