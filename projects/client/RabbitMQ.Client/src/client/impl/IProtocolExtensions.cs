@@ -52,12 +52,11 @@ namespace RabbitMQ.Client.Framing.Impl
             this IProtocol protocol,
             AmqpTcpEndpoint endpoint,
             Func<AddressFamily, ITcpClient> socketFactory,
-            int connectionTimeout,
-            int readTimeout,
-            int writeTimeout)
+            TimeSpan connectionTimeout,
+            TimeSpan readTimeout,
+            TimeSpan writeTimeout)
         {
-            return new SocketFrameHandler(endpoint, socketFactory,
-                connectionTimeout, readTimeout, writeTimeout);
+            return new SocketFrameHandler(endpoint, socketFactory, connectionTimeout, readTimeout, writeTimeout);
         }
     }
 }

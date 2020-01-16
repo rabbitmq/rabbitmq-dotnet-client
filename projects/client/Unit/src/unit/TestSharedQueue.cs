@@ -95,9 +95,9 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        public static void EnqueueAfter(int delayMs, SharedQueue queue, object v)
+        public static void EnqueueAfter(TimeSpan delay, SharedQueue queue, object v)
         {
-            var enqueuer = new DelayedEnqueuer(queue, delayMs, v);
+            var enqueuer = new DelayedEnqueuer(queue, (int)delay.TotalMilliseconds, v);
             new Thread(enqueuer.EnqueueValue).Start();
         }
 
@@ -120,9 +120,9 @@ namespace RabbitMQ.Client.Unit
             m_startTime = DateTime.Now;
         }
 
-        public int ElapsedMs()
+        public TimeSpan ElapsedMs()
         {
-            return (int) ((DateTime.Now - m_startTime).TotalMilliseconds);
+            return DateTime.Now - m_startTime;
         }
 
         [Test]
@@ -133,7 +133,7 @@ namespace RabbitMQ.Client.Unit
 
             ResetTimer();
             object v;
-            bool r = q.Dequeue(TimingInterval, out v);
+            bool r = q.Dequeue((int)TimingInterval.TotalMilliseconds, out v);
             Assert.Greater(TimingInterval + SafetyMargin, ElapsedMs());
             Assert.IsTrue(!r);
             Assert.AreEqual(null, v);
@@ -147,7 +147,7 @@ namespace RabbitMQ.Client.Unit
 
             ResetTimer();
             object v;
-            bool r = q.Dequeue(TimingInterval*2, out v);
+            bool r = q.Dequeue((int)TimingInterval.TotalMilliseconds * 2, out v);
             Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.IsTrue(r);
             Assert.AreEqual(123, v);
@@ -244,13 +244,14 @@ namespace RabbitMQ.Client.Unit
             object v;
             bool r;
 
-            r = q.Dequeue(TimingInterval*2, out v);
+            // TODO LRB
+            r = q.Dequeue((int)TimingInterval.TotalMilliseconds * 2, out v);
             Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.Greater(TimingInterval + SafetyMargin, ElapsedMs());
             Assert.IsTrue(r);
             Assert.AreEqual(123, v);
 
-            r = q.Dequeue(TimingInterval*2, out v);
+            r = q.Dequeue((int)TimingInterval.TotalMilliseconds * 2, out v);
             Assert.Less(TimingInterval*2 - SafetyMargin, ElapsedMs());
             Assert.Greater(TimingInterval*2 + SafetyMargin, ElapsedMs());
             Assert.IsTrue(r);
@@ -267,13 +268,14 @@ namespace RabbitMQ.Client.Unit
             object v;
             bool r;
 
-            r = q.Dequeue(TimingInterval, out v);
+            // TODO LRB
+            r = q.Dequeue((int)TimingInterval.TotalMilliseconds, out v);
             Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.Greater(TimingInterval + SafetyMargin, ElapsedMs());
             Assert.IsTrue(!r);
             Assert.AreEqual(null, v);
 
-            r = q.Dequeue(TimingInterval*2, out v);
+            r = q.Dequeue((int)TimingInterval.TotalMilliseconds * 2, out v);
             Assert.Less(TimingInterval*2 - SafetyMargin, ElapsedMs());
             Assert.Greater(TimingInterval*2 + SafetyMargin, ElapsedMs());
             Assert.IsTrue(r);
@@ -320,7 +322,7 @@ namespace RabbitMQ.Client.Unit
 
             ResetTimer();
             object v;
-            bool r = q.Dequeue(TimingInterval, out v);
+            bool r = q.Dequeue((int)TimingInterval.TotalMilliseconds, out v);
             Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.IsTrue(!r);
             Assert.AreEqual(null, v);
@@ -347,7 +349,7 @@ namespace RabbitMQ.Client.Unit
 
             ResetTimer();
             object v;
-            bool r = q.Dequeue(TimingInterval, out v);
+            bool r = q.Dequeue((int)TimingInterval.TotalMilliseconds, out v);
             Assert.Greater(SafetyMargin, ElapsedMs());
             Assert.IsTrue(r);
             Assert.AreEqual(123, v);

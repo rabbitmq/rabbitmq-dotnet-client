@@ -89,7 +89,7 @@ namespace RabbitMQ.Client.Framing.Impl
         // Heartbeats
         //
 
-        private ushort m_heartbeat = 0;
+        private TimeSpan m_heartbeat = TimeSpan.Zero;
         private TimeSpan m_heartbeatTimeSpan = TimeSpan.FromSeconds(0);
         private int m_missedHeartbeats = 0;
 
@@ -280,7 +280,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public uint FrameMax { get; set; }
 
-        public ushort Heartbeat
+        public TimeSpan Heartbeat
         {
             get { return m_heartbeat; }
             set
@@ -288,8 +288,8 @@ namespace RabbitMQ.Client.Framing.Impl
                 m_heartbeat = value;
                 // timers fire at slightly below half the interval to avoid race
                 // conditions
-                m_heartbeatTimeSpan = TimeSpan.FromMilliseconds((value * 1000) / 4);
-                m_frameHandler.ReadTimeout = value * 1000 * 2;
+                m_heartbeatTimeSpan = TimeSpan.FromMilliseconds(m_heartbeat.TotalMilliseconds / 4);
+                m_frameHandler.ReadTimeout = TimeSpan.FromMilliseconds(m_heartbeat.TotalMilliseconds * 2);
             }
         }
 
@@ -352,16 +352,14 @@ namespace RabbitMQ.Client.Framing.Impl
             return table;
         }
 
-        public void Abort(ushort reasonCode, string reasonText,
-            ShutdownInitiator initiator, int timeout)
+        public void Abort(ushort reasonCode, string reasonText, ShutdownInitiator initiator, TimeSpan timeout)
         {
-            Close(new ShutdownEventArgs(initiator, reasonCode, reasonText),
-                true, timeout);
+            Close(new ShutdownEventArgs(initiator, reasonCode, reasonText), true, timeout);
         }
 
         public void Close(ShutdownEventArgs reason)
         {
-            Close(reason, false, Timeout.Infinite);
+            Close(reason, false, Timeout.InfiniteTimeSpan);
         }
 
         ///<summary>Try to close connection in a graceful way</summary>
@@ -376,10 +374,10 @@ namespace RabbitMQ.Client.Framing.Impl
         ///</para>
         ///<para>
         ///Timeout determines how much time internal close operations should be given
-        ///to complete. Negative or Timeout.Infinite value mean infinity.
+        ///to complete. System.Threading.Timeout.InfiniteTimeSpan value means infinity.
         ///</para>
         ///</remarks>
-        public void Close(ShutdownEventArgs reason, bool abort, int timeout)
+        public void Close(ShutdownEventArgs reason, bool abort, TimeSpan timeout)
         {
             if (!SetCloseReason(reason))
             {
@@ -397,8 +395,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 {
                     // Try to send connection.close
                     // Wait for CloseOk in the MainLoop
-                    m_session0.Transmit(ConnectionCloseWrapper(reason.ReplyCode,
-                        reason.ReplyText));
+                    m_session0.Transmit(ConnectionCloseWrapper(reason.ReplyCode, reason.ReplyText));
                 }
                 catch (AlreadyClosedException ace)
                 {
@@ -435,7 +432,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
             }
 
-            var receivedSignal = m_appContinuation.WaitOne(BlockingCell<object>.validatedTimeout(timeout));
+            var receivedSignal = m_appContinuation.WaitOne(timeout);
 
             if (!receivedSignal)
             {
@@ -450,7 +447,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             try
             {
-                m_frameHandler.ReadTimeout = 0;
+                m_frameHandler.ReadTimeout = TimeSpan.Zero;
                 // Wait for response/socket closure or timeout
                 while (!m_closed)
                 {
@@ -720,7 +717,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void NotifyHeartbeatListener()
         {
-            if (m_heartbeat != 0)
+            if (m_heartbeat != TimeSpan.Zero)
             {
                 m_heartbeatRead.Set();
             }
@@ -944,7 +941,7 @@ entry.ToString());
 
         public void MaybeStartHeartbeatTimers()
         {
-            if (Heartbeat != 0)
+            if (Heartbeat != TimeSpan.Zero)
             {
                 m_hasDisposedHeartBeatReadTimer = false;
                 m_hasDisposedHeartBeatWriteTimer = false;
@@ -1020,7 +1017,7 @@ entry.ToString());
                     }
                     else if (_heartbeatReadTimer != null)
                     {
-                        _heartbeatReadTimer.Change(Heartbeat * 1000, Timeout.Infinite);
+                        _heartbeatReadTimer.Change((int)Heartbeat.TotalMilliseconds, Timeout.Infinite);
                     }
                 }
                 catch (ObjectDisposedException)
@@ -1143,59 +1140,47 @@ entry.ToString());
         ///<summary>API-side invocation of connection abort.</summary>
         public void Abort()
         {
-            Abort(Timeout.Infinite);
+            Abort(Timeout.InfiniteTimeSpan);
         }
 
         ///<summary>API-side invocation of connection abort.</summary>
         public void Abort(ushort reasonCode, string reasonText)
         {
-            Abort(reasonCode, reasonText, Timeout.Infinite);
-        }
-
-        ///<summary>API-side invocation of connection abort with timeout.</summary>
-        public void Abort(int timeout)
-        {
-            Abort(Constants.ReplySuccess, "Connection close forced", timeout);
+            Abort(reasonCode, reasonText, Timeout.InfiniteTimeSpan);
         }
 
         ///<summary>API-side invocation of connection abort with timeout.</summary>
         public void Abort(TimeSpan timeout)
         {
-            Abort(Constants.ReplySuccess, "Connection close forced", Convert.ToInt32(timeout.TotalMilliseconds));
-        }
-
-        ///<summary>API-side invocation of connection abort with timeout.</summary>
-        public void Abort(ushort reasonCode, string reasonText, int timeout)
-        {
-            Abort(reasonCode, reasonText, ShutdownInitiator.Application, timeout);
+            Abort(Constants.ReplySuccess, "Connection close forced", timeout);
         }
 
         ///<summary>API-side invocation of connection abort with timeout.</summary>
         public void Abort(ushort reasonCode, string reasonText, TimeSpan timeout)
         {
-            Abort(reasonCode, reasonText, ShutdownInitiator.Application, Convert.ToInt32(timeout.TotalMilliseconds));
+            Abort(reasonCode, reasonText, ShutdownInitiator.Application, timeout);
         }
 
         ///<summary>API-side invocation of connection.close.</summary>
         public void Close()
         {
-            Close(Constants.ReplySuccess, "Goodbye", Timeout.Infinite);
+            Close(Constants.ReplySuccess, "Goodbye", Timeout.InfiniteTimeSpan);
         }
 
         ///<summary>API-side invocation of connection.close.</summary>
         public void Close(ushort reasonCode, string reasonText)
         {
-            Close(reasonCode, reasonText, Timeout.Infinite);
+            Close(reasonCode, reasonText, Timeout.InfiniteTimeSpan);
         }
 
         ///<summary>API-side invocation of connection.close with timeout.</summary>
-        public void Close(int timeout)
+        public void Close(TimeSpan timeout)
         {
             Close(Constants.ReplySuccess, "Goodbye", timeout);
         }
 
         ///<summary>API-side invocation of connection.close with timeout.</summary>
-        public void Close(ushort reasonCode, string reasonText, int timeout)
+        public void Close(ushort reasonCode, string reasonText, TimeSpan timeout)
         {
             Close(new ShutdownEventArgs(ShutdownInitiator.Application, reasonCode, reasonText), false, timeout);
         }
@@ -1270,7 +1255,7 @@ entry.ToString());
             var connectionStartCell = new BlockingCell<ConnectionStartDetails>();
             m_model0.m_connectionStartCell = connectionStartCell;
             m_model0.HandshakeContinuationTimeout = m_factory.HandshakeContinuationTimeout;
-            m_frameHandler.ReadTimeout = (int)m_factory.HandshakeContinuationTimeout.TotalMilliseconds;
+            m_frameHandler.ReadTimeout = m_factory.HandshakeContinuationTimeout;
             m_frameHandler.SendHeader();
 
             var connectionStart = connectionStartCell.WaitForValue();
@@ -1359,13 +1344,12 @@ entry.ToString());
                 connectionTune.m_frameMax);
             FrameMax = frameMax;
 
-            var heartbeat = (ushort)NegotiatedMaxValue(m_factory.RequestedHeartbeat,
-                connectionTune.m_heartbeat);
-            Heartbeat = heartbeat;
+            TimeSpan requestedHeartbeat = m_factory.RequestedHeartbeat; // TODO LRB
+            var heartbeatInSeconds = NegotiatedMaxValue((uint)requestedHeartbeat.TotalSeconds,
+                (uint)connectionTune.m_heartbeatInSeconds);
+            Heartbeat = TimeSpan.FromSeconds(heartbeatInSeconds);
 
-            m_model0.ConnectionTuneOk(channelMax,
-                frameMax,
-                heartbeat);
+            m_model0.ConnectionTuneOk(channelMax, frameMax, (ushort)Heartbeat.TotalSeconds);
 
             // now we can start heartbeat timers
             MaybeStartHeartbeatTimers();
