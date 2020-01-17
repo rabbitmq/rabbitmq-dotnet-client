@@ -48,15 +48,11 @@ namespace RabbitMQ.Client.Impl
     {
         AmqpTcpEndpoint Endpoint { get; }
 
-#if !NETFX_CORE
         EndPoint LocalEndPoint { get; }
-#endif
 
         int LocalPort { get; }
 
-#if !NETFX_CORE
         EndPoint RemoteEndPoint { get; }
-#endif
 
         int RemotePort { get; }
 

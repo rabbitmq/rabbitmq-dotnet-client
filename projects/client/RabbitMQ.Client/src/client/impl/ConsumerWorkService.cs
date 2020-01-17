@@ -65,16 +65,12 @@ namespace RabbitMQ.Client
 
             public void Start()
             {
-#if NETFX_CORE
-                System.Threading.Tasks.Task.Factory.StartNew(Loop, System.Threading.Tasks.TaskCreationOptions.LongRunning);
-#else
                 var thread = new Thread(Loop)
                 {
                     Name = "WorkPool-" + name,
                     IsBackground = true
                 };
                 thread.Start();
-#endif
             }
 
             public void Enqueue(Action action)

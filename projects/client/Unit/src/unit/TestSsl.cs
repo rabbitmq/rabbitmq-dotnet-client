@@ -85,11 +85,7 @@ namespace RabbitMQ.Client.Unit
 
             ConnectionFactory cf = new ConnectionFactory();
             cf.Ssl.ServerName = "*";
-
-#if !(NETFX_CORE)
             cf.Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNameMismatch;
-#endif
-
             cf.Ssl.Enabled = true;
             SendReceive(cf);
         }
@@ -149,11 +145,9 @@ namespace RabbitMQ.Client.Unit
                 Enabled = true,
             };
 
-#if !NETFX_CORE
             cf.Ssl.Version = SslProtocols.Tls;
             cf.Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNotAvailable |
                                         SslPolicyErrors.RemoteCertificateNameMismatch;
-#endif
 
             SendReceive(cf);
         }

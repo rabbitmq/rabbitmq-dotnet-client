@@ -43,7 +43,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
-#if !NETFX_CORE
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
@@ -175,4 +174,3 @@ namespace RabbitMQ.Client.Unit
         }
     }
 }
-#endif

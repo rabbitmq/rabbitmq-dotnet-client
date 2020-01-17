@@ -1,5 +1,4 @@
-﻿#if !NETFX_CORE
-using System;
+﻿using System;
 using System.Linq;
 using System.Net.Sockets;
 using System.Net;
@@ -32,6 +31,7 @@ namespace RabbitMQ.Client
             {
                 throw new ArgumentException("No ip address could be resolved for " + host);
             }
+
 #if CORECLR
             await sock.ConnectAsync(ep, port).ConfigureAwait(false);
 #else
@@ -111,4 +111,3 @@ namespace RabbitMQ.Client
         }
     }
 }
-#endif

@@ -50,10 +50,6 @@ using System.IO;
 using System.Text;
 using System.Threading;
 
-#if (NETFX_CORE)
-using Trace = System.Diagnostics.Debug;
-#endif
-
 namespace RabbitMQ.Client.Impl
 {
     public abstract class ModelBase : IFullModel, IRecoverable
