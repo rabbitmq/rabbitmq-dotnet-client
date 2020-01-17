@@ -67,13 +67,8 @@ namespace RabbitMQ.Client.Impl
 
         internal static ArraySegment<byte> GetBufferSegment(this MemoryStream ms)
         {
-#if CORECLR15
-            var payload = ms.ToArray();
-            return new ArraySegment<byte>(payload, 0, payload.Length);
-#else
             var buffer = ms.GetBuffer();
             return new ArraySegment<byte>(buffer, 0, (int)ms.Position);
-#endif
         }
     }
 }

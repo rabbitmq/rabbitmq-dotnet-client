@@ -38,8 +38,6 @@
 //  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-#if !NETFX_CORE
-
 using System;
 using System.IO;
 using System.Net.Security;
@@ -109,4 +107,3 @@ namespace RabbitMQ.Client
         }
     }
 }
-#endif

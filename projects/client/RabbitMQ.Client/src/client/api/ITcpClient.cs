@@ -1,9 +1,6 @@
-﻿#if !NETFX_CORE
-using System;
+﻿using System;
 using System.Threading.Tasks;
-
 using System.Net.Sockets;
-using System.Threading;
 
 namespace RabbitMQ.Client
 {
@@ -26,4 +23,3 @@ namespace RabbitMQ.Client
         void Close();
     }
 }
-#endif
