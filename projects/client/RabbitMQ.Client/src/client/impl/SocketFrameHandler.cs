@@ -54,9 +54,9 @@ namespace RabbitMQ.Client.Impl
     {
         public static Task CompletedTask = Task.FromResult(0);
 
-        public static async Task TimeoutAfter(this Task task, int millisecondsTimeout)
+        public static async Task TimeoutAfter(this Task task, TimeSpan timeout)
         {
-            if (task == await Task.WhenAny(task, Task.Delay(millisecondsTimeout)).ConfigureAwait(false))
+            if (task == await Task.WhenAny(task, Task.Delay(timeout)).ConfigureAwait(false))
                 await task;
             else
             {
@@ -73,7 +73,8 @@ namespace RabbitMQ.Client.Impl
         // Socket poll timeout in ms. If the socket does not
         // become writeable in this amount of time, we throw
         // an exception.
-        private int m_writeableStateTimeout = 30000;
+        private TimeSpan m_writeableStateTimeout = TimeSpan.FromSeconds(30);
+        private int m_writeableStateTimeoutMicroSeconds;
         private readonly NetworkBinaryReader m_reader;
         private readonly ITcpClient m_socket;
         private readonly NetworkBinaryWriter m_writer;
@@ -83,7 +84,7 @@ namespace RabbitMQ.Client.Impl
         private bool _ssl = false;
         public SocketFrameHandler(AmqpTcpEndpoint endpoint,
             Func<AddressFamily, ITcpClient> socketFactory,
-            int connectionTimeout, int readTimeout, int writeTimeout)
+            TimeSpan connectionTimeout, TimeSpan readTimeout, TimeSpan writeTimeout)
         {
             Endpoint = endpoint;
 
@@ -103,8 +104,8 @@ namespace RabbitMQ.Client.Impl
             }
 
             Stream netstream = m_socket.GetStream();
-            netstream.ReadTimeout  = readTimeout;
-            netstream.WriteTimeout = writeTimeout;
+            netstream.ReadTimeout  = (int)readTimeout.TotalMilliseconds;
+            netstream.WriteTimeout = (int)writeTimeout.TotalMilliseconds;
 
             if (endpoint.Ssl.Enabled)
             {
@@ -122,7 +123,7 @@ namespace RabbitMQ.Client.Impl
             m_reader = new NetworkBinaryReader(new BufferedStream(netstream, m_socket.Client.ReceiveBufferSize));
             m_writer = new NetworkBinaryWriter(netstream);
 
-            m_writeableStateTimeout = writeTimeout;
+            WriteTimeout = writeTimeout;
         }
         public AmqpTcpEndpoint Endpoint { get; set; }
 
@@ -146,7 +147,7 @@ namespace RabbitMQ.Client.Impl
             get { return ((IPEndPoint)LocalEndPoint).Port; }
         }
 
-        public int ReadTimeout
+        public TimeSpan ReadTimeout
         {
             set
             {
@@ -164,12 +165,13 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public int WriteTimeout
+        public TimeSpan WriteTimeout
         {
             set
             {
                 m_writeableStateTimeout = value;
-                m_socket.Client.SendTimeout = value;
+                m_socket.Client.SendTimeout = (int)m_writeableStateTimeout.TotalMilliseconds;
+                m_writeableStateTimeoutMicroSeconds = m_socket.Client.SendTimeout * 1000;
             }
         }
 
@@ -229,7 +231,7 @@ namespace RabbitMQ.Client.Impl
             var ms = new MemoryStream();
             var nbw = new NetworkBinaryWriter(ms);
             frame.WriteTo(nbw);
-            m_socket.Client.Poll(m_writeableStateTimeout, SelectMode.SelectWrite);
+            m_socket.Client.Poll(m_writeableStateTimeoutMicroSeconds, SelectMode.SelectWrite);
             Write(ms.GetBufferSegment());
         }
 
@@ -241,7 +243,7 @@ namespace RabbitMQ.Client.Impl
             {
                 frames[i].WriteTo(nbw);
             }
-            m_socket.Client.Poll(m_writeableStateTimeout, SelectMode.SelectWrite);
+            m_socket.Client.Poll(m_writeableStateTimeoutMicroSeconds, SelectMode.SelectWrite);
             Write(ms.GetBufferSegment());
         }
 
@@ -267,21 +269,21 @@ namespace RabbitMQ.Client.Impl
 
         private ITcpClient ConnectUsingIPv6(AmqpTcpEndpoint endpoint,
                                             Func<AddressFamily, ITcpClient> socketFactory,
-                                            int timeout)
+                                            TimeSpan timeout)
         {
             return ConnectUsingAddressFamily(endpoint, socketFactory, timeout, AddressFamily.InterNetworkV6);
         }
 
         private ITcpClient ConnectUsingIPv4(AmqpTcpEndpoint endpoint,
                                             Func<AddressFamily, ITcpClient> socketFactory,
-                                            int timeout)
+                                            TimeSpan timeout)
         {
             return ConnectUsingAddressFamily(endpoint, socketFactory, timeout, AddressFamily.InterNetwork);
         }
 
         private ITcpClient ConnectUsingAddressFamily(AmqpTcpEndpoint endpoint,
                                                     Func<AddressFamily, ITcpClient> socketFactory,
-                                                    int timeout, AddressFamily family)
+                                                    TimeSpan timeout, AddressFamily family)
         {
             ITcpClient socket = socketFactory(family);
             try {
@@ -293,7 +295,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        private void ConnectOrFail(ITcpClient socket, AmqpTcpEndpoint endpoint, int timeout)
+        private void ConnectOrFail(ITcpClient socket, AmqpTcpEndpoint endpoint, TimeSpan timeout)
         {
             try
             {

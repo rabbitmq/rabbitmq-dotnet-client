@@ -1034,9 +1034,7 @@ namespace RabbitMQ.Client.Impl
 
         ///<summary>Handle incoming Connection.Tune
         ///methods.</summary>
-        public void HandleConnectionTune(ushort channelMax,
-            uint frameMax,
-            ushort heartbeat)
+        public void HandleConnectionTune(ushort channelMax, uint frameMax, ushort heartbeatInSeconds)
         {
             var k = (ConnectionStartRpcContinuation)m_continuationQueue.Next();
             k.m_result = new ConnectionSecureOrTune
@@ -1045,7 +1043,7 @@ namespace RabbitMQ.Client.Impl
                 {
                     m_channelMax = channelMax,
                     m_frameMax = frameMax,
-                    m_heartbeat = heartbeat
+                    m_heartbeatInSeconds = heartbeatInSeconds
                 }
             };
             k.HandleCommand(null); // release the continuation.

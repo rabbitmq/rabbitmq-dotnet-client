@@ -396,7 +396,7 @@ namespace RabbitMQ.Client.Impl
         public uint m_frameMax;
 
         ///<summary>The peer's suggested heartbeat parameter.</summary>
-        public ushort m_heartbeat;
+        public ushort m_heartbeatInSeconds;
     }
 
 
