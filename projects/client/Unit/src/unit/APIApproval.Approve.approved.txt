@@ -2480,7 +2480,7 @@ namespace RabbitMQ.Util
         public SharedQueue() { }
         public void Close() { }
         public T Dequeue() { }
-        public bool Dequeue(int millisecondsTimeout, out T result) { }
+        public bool Dequeue(System.TimeSpan timeout, out T result) { }
         public T DequeueNoWait(T defaultValue) { }
         public void Enqueue(T o) { }
     }

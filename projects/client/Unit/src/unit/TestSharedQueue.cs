@@ -86,7 +86,7 @@ namespace RabbitMQ.Client.Unit
 
             public void DequeueAfterOneIntoV()
             {
-                m_q.Dequeue(1, out m_v);
+                m_q.Dequeue(TimeSpan.FromMilliseconds(1), out m_v);
             }
 
             public void BackgroundEofExpectingDequeue()
@@ -133,7 +133,7 @@ namespace RabbitMQ.Client.Unit
 
             ResetTimer();
             object v;
-            bool r = q.Dequeue((int)TimingInterval.TotalMilliseconds, out v);
+            bool r = q.Dequeue(TimingInterval, out v);
             Assert.Greater(TimingInterval + SafetyMargin, ElapsedMs());
             Assert.IsTrue(!r);
             Assert.AreEqual(null, v);
@@ -147,7 +147,7 @@ namespace RabbitMQ.Client.Unit
 
             ResetTimer();
             object v;
-            bool r = q.Dequeue((int)TimingInterval.TotalMilliseconds * 2, out v);
+            bool r = q.Dequeue(TimingInterval * 2, out v);
             Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.IsTrue(r);
             Assert.AreEqual(123, v);
@@ -177,7 +177,7 @@ namespace RabbitMQ.Client.Unit
             ExpectEof(de.EnqueueValue);
             Assert.AreEqual(1, q.Dequeue());
             Assert.AreEqual(2, q.DequeueNoWait(0));
-            bool r = q.Dequeue(1, out v);
+            bool r = q.Dequeue(TimeSpan.FromMilliseconds(1), out v);
             Assert.IsTrue(r);
             Assert.AreEqual(3, v);
             ExpectEof(de.Dequeue);
@@ -244,14 +244,13 @@ namespace RabbitMQ.Client.Unit
             object v;
             bool r;
 
-            // TODO LRB
-            r = q.Dequeue((int)TimingInterval.TotalMilliseconds * 2, out v);
+            r = q.Dequeue(TimingInterval * 2, out v);
             Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.Greater(TimingInterval + SafetyMargin, ElapsedMs());
             Assert.IsTrue(r);
             Assert.AreEqual(123, v);
 
-            r = q.Dequeue((int)TimingInterval.TotalMilliseconds * 2, out v);
+            r = q.Dequeue(TimingInterval * 2, out v);
             Assert.Less(TimingInterval*2 - SafetyMargin, ElapsedMs());
             Assert.Greater(TimingInterval*2 + SafetyMargin, ElapsedMs());
             Assert.IsTrue(r);
@@ -268,14 +267,13 @@ namespace RabbitMQ.Client.Unit
             object v;
             bool r;
 
-            // TODO LRB
-            r = q.Dequeue((int)TimingInterval.TotalMilliseconds, out v);
+            r = q.Dequeue(TimingInterval, out v);
             Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.Greater(TimingInterval + SafetyMargin, ElapsedMs());
             Assert.IsTrue(!r);
             Assert.AreEqual(null, v);
 
-            r = q.Dequeue((int)TimingInterval.TotalMilliseconds * 2, out v);
+            r = q.Dequeue(TimingInterval * 2, out v);
             Assert.Less(TimingInterval*2 - SafetyMargin, ElapsedMs());
             Assert.Greater(TimingInterval*2 + SafetyMargin, ElapsedMs());
             Assert.IsTrue(r);
@@ -309,7 +307,7 @@ namespace RabbitMQ.Client.Unit
 
             ResetTimer();
             object v;
-            bool r = q.Dequeue(Timeout.Infinite, out v);
+            bool r = q.Dequeue(Timeout.InfiniteTimeSpan, out v);
             Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.IsTrue(r);
             Assert.AreEqual(123, v);
@@ -322,7 +320,7 @@ namespace RabbitMQ.Client.Unit
 
             ResetTimer();
             object v;
-            bool r = q.Dequeue((int)TimingInterval.TotalMilliseconds, out v);
+            bool r = q.Dequeue(TimingInterval, out v);
             Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.IsTrue(!r);
             Assert.AreEqual(null, v);
@@ -335,7 +333,7 @@ namespace RabbitMQ.Client.Unit
 
             ResetTimer();
             object v;
-            bool r = q.Dequeue(-10000, out v);
+            bool r = q.Dequeue(TimeSpan.FromMilliseconds(-10000), out v);
             Assert.Greater(SafetyMargin, ElapsedMs());
             Assert.IsTrue(!r);
             Assert.AreEqual(null, v);
@@ -349,7 +347,7 @@ namespace RabbitMQ.Client.Unit
 
             ResetTimer();
             object v;
-            bool r = q.Dequeue((int)TimingInterval.TotalMilliseconds, out v);
+            bool r = q.Dequeue(TimingInterval, out v);
             Assert.Greater(SafetyMargin, ElapsedMs());
             Assert.IsTrue(r);
             Assert.AreEqual(123, v);

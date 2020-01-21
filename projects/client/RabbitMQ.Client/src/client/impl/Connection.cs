@@ -1344,7 +1344,7 @@ entry.ToString());
                 connectionTune.m_frameMax);
             FrameMax = frameMax;
 
-            TimeSpan requestedHeartbeat = m_factory.RequestedHeartbeat; // TODO LRB
+            TimeSpan requestedHeartbeat = m_factory.RequestedHeartbeat;
             var heartbeatInSeconds = NegotiatedMaxValue((uint)requestedHeartbeat.TotalSeconds,
                 (uint)connectionTune.m_heartbeatInSeconds);
             Heartbeat = TimeSpan.FromSeconds(heartbeatInSeconds);
