@@ -56,11 +56,11 @@ namespace RabbitMQ.Client.Impl
 
         int RemotePort { get; }
 
-        ///<summary>Socket read timeout, in milliseconds. Zero signals "infinity".</summary>
-        int ReadTimeout { set; }
+        ///<summary>Socket read timeout. System.Threading.Timeout.InfiniteTimeSpan signals "infinity".</summary>
+        TimeSpan ReadTimeout { set; }
 
-        ///<summary>Socket write timeout, in milliseconds. Zero signals "infinity".</summary>
-        int WriteTimeout { set; }
+        ///<summary>Socket write timeout. System.Threading.Timeout.InfiniteTimeSpan signals "infinity".</summary>
+        TimeSpan WriteTimeout { set; }
 
         void Close();
 

@@ -276,7 +276,7 @@ namespace RabbitMQ.Client.Framing.Impl
             get { return m_delegate.FrameMax; }
         }
 
-        public ushort Heartbeat
+        public TimeSpan Heartbeat
         {
             get { return m_delegate.Heartbeat; }
         }
@@ -596,27 +596,13 @@ namespace RabbitMQ.Client.Framing.Impl
         }
 
         ///<summary>API-side invocation of connection abort with timeout.</summary>
-        public void Abort(int timeout)
-        {
-            StopRecoveryLoop();
-            if (m_delegate.IsOpen)
-                m_delegate.Abort(timeout);
-        }
-
-        ///<summary>API-side invocation of connection abort with timeout.</summary>
         public void Abort(TimeSpan timeout)
         {
             StopRecoveryLoop();
             if (m_delegate.IsOpen)
+            {
                 m_delegate.Abort(timeout);
-        }
-
-        ///<summary>API-side invocation of connection abort with timeout.</summary>
-        public void Abort(ushort reasonCode, string reasonText, int timeout)
-        {
-            StopRecoveryLoop();
-            if (m_delegate.IsOpen)
-                m_delegate.Abort(reasonCode, reasonText, timeout);
+            }
         }
 
         ///<summary>API-side invocation of connection abort with timeout.</summary>
@@ -644,19 +630,23 @@ namespace RabbitMQ.Client.Framing.Impl
         }
 
         ///<summary>API-side invocation of connection.close with timeout.</summary>
-        public void Close(int timeout)
+        public void Close(TimeSpan timeout)
         {
             StopRecoveryLoop();
             if (m_delegate.IsOpen)
+            {
                 m_delegate.Close(timeout);
+            }
         }
 
         ///<summary>API-side invocation of connection.close with timeout.</summary>
-        public void Close(ushort reasonCode, string reasonText, int timeout)
+        public void Close(ushort reasonCode, string reasonText, TimeSpan timeout)
         {
             StopRecoveryLoop();
             if (m_delegate.IsOpen)
+            {
                 m_delegate.Close(reasonCode, reasonText, timeout);
+            }
         }
 
         public IModel CreateModel()

@@ -12,7 +12,7 @@ namespace RabbitMQ.Client
     {
         bool Connected { get; }
 
-        int ReceiveTimeout { get; set; }
+        TimeSpan ReceiveTimeout { get; set; }
 
         Socket Client { get; }
 

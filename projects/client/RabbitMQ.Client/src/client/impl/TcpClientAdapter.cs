@@ -88,17 +88,17 @@ namespace RabbitMQ.Client
             }
         }
 
-        public virtual int ReceiveTimeout
+        public virtual TimeSpan ReceiveTimeout
         {
             get
             {
                 AssertSocket();
-                return sock.ReceiveTimeout;
+                return TimeSpan.FromMilliseconds(sock.ReceiveTimeout);
             }
             set
             {
                 AssertSocket();
-                sock.ReceiveTimeout = value;
+                sock.ReceiveTimeout = (int)value.TotalMilliseconds;
             }
         }
 

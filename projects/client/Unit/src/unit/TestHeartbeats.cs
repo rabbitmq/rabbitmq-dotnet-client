@@ -48,7 +48,7 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     internal class TestHeartbeats : IntegrationFixture
     {
-        private const UInt16 heartbeatTimeout = 2;
+        private readonly TimeSpan heartbeatTimeout = TimeSpan.FromSeconds(2);
 
         [Test, Category("LongRunning"), MaxTimeAttribute(35000)]
         public void TestThatHeartbeatWriterUsesConfigurableInterval()
@@ -103,7 +103,11 @@ namespace RabbitMQ.Client.Unit
             for (var i = 0; i < 200; i++)
             {
                 var n = Convert.ToUInt16(rnd.Next(2, 6));
-                var cf = new ConnectionFactory() { RequestedHeartbeat = n, AutomaticRecoveryEnabled = false };
+                var cf = new ConnectionFactory()
+                {
+                    RequestedHeartbeat = TimeSpan.FromSeconds(n),
+                    AutomaticRecoveryEnabled = false
+                };
                 var conn = cf.CreateConnection();
                 xs.Add(conn);
                 var ch = conn.CreateModel();

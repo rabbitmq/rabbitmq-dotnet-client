@@ -56,7 +56,7 @@ namespace RabbitMQ.Client.Unit
         {
             var connFactory = new ConnectionFactory()
             {
-                RequestedHeartbeat = 60,
+                RequestedHeartbeat = TimeSpan.FromSeconds(60),
                 AutomaticRecoveryEnabled = false
             };
             Conn = connFactory.CreateConnection();

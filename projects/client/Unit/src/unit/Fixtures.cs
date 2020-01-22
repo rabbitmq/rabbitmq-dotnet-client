@@ -122,7 +122,7 @@ namespace RabbitMQ.Client.Unit
             cf.AutomaticRecoveryEnabled = true;
             // tests that use this helper will likely list unreachable hosts,
             // make sure we time out quickly on those
-            cf.RequestedConnectionTimeout = 1000;
+            cf.RequestedConnectionTimeout = TimeSpan.FromSeconds(1);
             cf.NetworkRecoveryInterval = interval;
             return (AutorecoveringConnection)cf.CreateConnection(hostnames, $"UNIT_CONN:{Guid.NewGuid()}");
         }
@@ -133,7 +133,7 @@ namespace RabbitMQ.Client.Unit
             cf.AutomaticRecoveryEnabled = true;
             // tests that use this helper will likely list unreachable hosts,
             // make sure we time out quickly on those
-            cf.RequestedConnectionTimeout = 1000;
+            cf.RequestedConnectionTimeout = TimeSpan.FromSeconds(1);
             cf.NetworkRecoveryInterval = RECOVERY_INTERVAL;
             return (AutorecoveringConnection)cf.CreateConnection(endpoints, $"UNIT_CONN:{Guid.NewGuid()}");
         }
@@ -689,8 +689,8 @@ namespace RabbitMQ.Client.Unit
 
     public class TimingFixture
     {
-        public static readonly int TimingInterval = 300;
-        public static readonly int SafetyMargin = 150;
-        public static readonly int TestTimeout = 5000;
+        public static readonly TimeSpan TimingInterval = TimeSpan.FromMilliseconds(300);
+        public static readonly TimeSpan SafetyMargin = TimeSpan.FromMilliseconds(150);
+        public static readonly TimeSpan TestTimeout = TimeSpan.FromSeconds(5);
     }
 }

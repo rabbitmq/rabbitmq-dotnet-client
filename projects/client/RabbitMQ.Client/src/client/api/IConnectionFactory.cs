@@ -68,9 +68,9 @@ namespace RabbitMQ.Client
         uint RequestedFrameMax { get; set; }
 
         /// <summary>
-        /// Heartbeat setting to request (in seconds).
+        /// Heartbeat setting to request.
         /// </summary>
-        ushort RequestedHeartbeat { get; set; }
+        TimeSpan RequestedHeartbeat { get; set; }
 
         /// <summary>
         /// When set to true, background threads will be used for I/O and heartbeats.
