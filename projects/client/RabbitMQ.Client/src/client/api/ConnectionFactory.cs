@@ -381,7 +381,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When the configured hostname was not reachable.
         /// </exception>
-        public IConnection CreateConnection(String clientProvidedName)
+        public IConnection CreateConnection(string clientProvidedName)
         {
             return CreateConnection(EndpointResolverFactory(LocalEndpoints()), clientProvidedName);
         }
@@ -425,7 +425,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public IConnection CreateConnection(IList<string> hostnames, String clientProvidedName)
+        public IConnection CreateConnection(IList<string> hostnames, string clientProvidedName)
         {
             var endpoints = hostnames.Select(h => new AmqpTcpEndpoint(h, this.Port, this.Ssl));
             return CreateConnection(new DefaultEndpointResolver(endpoints), clientProvidedName);
@@ -465,7 +465,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public IConnection CreateConnection(IEndpointResolver endpointResolver, String clientProvidedName)
+        public IConnection CreateConnection(IEndpointResolver endpointResolver, string clientProvidedName)
         {
             IConnection conn;
             try

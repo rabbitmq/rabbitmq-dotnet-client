@@ -42,6 +42,7 @@ using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Util;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -60,6 +61,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -107,10 +109,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private Timer _heartbeatReadTimer;
         private AutoResetEvent m_heartbeatRead = new AutoResetEvent(false);
 
-        private readonly object _heartBeatReadLock = new object();
-        private readonly object _heartBeatWriteLock = new object();
-        private bool m_hasDisposedHeartBeatReadTimer;
-        private bool m_hasDisposedHeartBeatWriteTimer;
+        private Task _mainLoopTask;
 
 #if CORECLR
         private static string version = typeof(Connection).GetTypeInfo().Assembly
@@ -548,8 +547,6 @@ namespace RabbitMQ.Client.Framing.Impl
         // Only call at the end of the Mainloop or HeartbeatLoop
         public void FinishClose()
         {
-            // Notify hearbeat loops that they can leave
-            m_heartbeatRead.Set();
             m_closed = true;
             MaybeStopHeartbeatTimers();
 
@@ -635,7 +632,7 @@ namespace RabbitMQ.Client.Framing.Impl
             TerminateMainloop();
         }
 
-        public void LogCloseError(String error, Exception ex)
+        public void LogCloseError(string error, Exception ex)
         {
             ESLog.Error(error, ex);
             m_shutdownReport.Add(new ShutdownReportEntry(error, ex));
@@ -907,7 +904,7 @@ namespace RabbitMQ.Client.Framing.Impl
         public void Open(bool insist)
         {
             StartAndTune();
-            m_model0.ConnectionOpen(m_factory.VirtualHost, String.Empty, false);
+            m_model0.ConnectionOpen(m_factory.VirtualHost, string.Empty, false);
         }
 
         public void PrettyPrintShutdownReport()
@@ -1019,8 +1016,6 @@ entry.ToString());
         {
             if (Heartbeat != 0)
             {
-                m_hasDisposedHeartBeatReadTimer = false;
-                m_hasDisposedHeartBeatWriteTimer = false;
 #if NETFX_CORE
                 lock(_heartBeatWriteLock)
                 {
@@ -1035,17 +1030,15 @@ entry.ToString());
                     _heartbeatReadTimer.Change(300, Timeout.Infinite);
                 }
 #else
-                lock (_heartBeatWriteLock)
+                if (_heartbeatWriteTimer == null)
                 {
                     _heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback, null, Timeout.Infinite, Timeout.Infinite);
-
                     _heartbeatWriteTimer.Change(200, Timeout.Infinite);
                 }
 
-                lock (_heartBeatReadLock)
+                if (_heartbeatReadTimer == null)
                 {
                     _heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback, null, Timeout.Infinite, Timeout.Infinite);
-
                     _heartbeatReadTimer.Change(300, Timeout.Infinite);
                 }
 #endif
@@ -1054,89 +1047,74 @@ entry.ToString());
 
         public void StartMainLoop(bool useBackgroundThread)
         {
-            var taskName = "AMQP Connection " + Endpoint;
-
-#if NETFX_CORE
-            Task.Factory.StartNew(this.MainLoop, TaskCreationOptions.LongRunning);
-#else
-            var mainLoopThread = new Thread(MainLoop);
-            mainLoopThread.Name = taskName;
-            mainLoopThread.IsBackground = useBackgroundThread;
-            mainLoopThread.Start();
-#endif
+            _mainLoopTask = Task.Run(MainLoop);
         }
 
         public void HeartbeatReadTimerCallback(object state)
         {
-            lock (_heartBeatReadLock)
+            if (_heartbeatReadTimer == null)
             {
-                if (m_hasDisposedHeartBeatReadTimer)
-                {
-                    return;
-                }
+                return;
+            }
 
-                bool shouldTerminate = false;
+            bool shouldTerminate = false;
 
-                try
+            try
+            {
+                if (!m_closed)
                 {
-                    if (!m_closed)
+                    if (!m_heartbeatRead.WaitOne(0))
                     {
-                        if (!m_heartbeatRead.WaitOne(0))
-                        {
-                            m_missedHeartbeats++;
-                        }
-                        else
-                        {
-                            m_missedHeartbeats = 0;
-                        }
-
-                        // We check against 8 = 2 * 4 because we need to wait for at
-                        // least two complete heartbeat setting intervals before
-                        // complaining, and we've set the socket timeout to a quarter
-                        // of the heartbeat setting in setHeartbeat above.
-                        if (m_missedHeartbeats > 2 * 4)
-                        {
-                            String description = String.Format("Heartbeat missing with heartbeat == {0} seconds", m_heartbeat);
-                            var eose = new EndOfStreamException(description);
-                            ESLog.Error(description, eose);
-                            m_shutdownReport.Add(new ShutdownReportEntry(description, eose));
-                            HandleMainLoopException(
-                                new ShutdownEventArgs(ShutdownInitiator.Library, 0, "End of stream", eose));
-                            shouldTerminate = true;
-                        }
+                        m_missedHeartbeats++;
+                    }
+                    else
+                    {
+                        m_missedHeartbeats = 0;
                     }
 
-                    if (shouldTerminate)
+                    // We check against 8 = 2 * 4 because we need to wait for at
+                    // least two complete heartbeat setting intervals before
+                    // complaining, and we've set the socket timeout to a quarter
+                    // of the heartbeat setting in setHeartbeat above.
+                    if (m_missedHeartbeats > 2 * 4)
                     {
-                        TerminateMainloop();
-                        FinishClose();
+                        string description = string.Format("Heartbeat missing with heartbeat == {0} seconds", m_heartbeat);
+                        var eose = new EndOfStreamException(description);
+                        ESLog.Error(description, eose);
+                        m_shutdownReport.Add(new ShutdownReportEntry(description, eose));
+                        HandleMainLoopException(
+                            new ShutdownEventArgs(ShutdownInitiator.Library, 0, "End of stream", eose));
+                        shouldTerminate = true;
                     }
-                    else if (_heartbeatReadTimer != null)
-                    {
-                        _heartbeatReadTimer.Change(Heartbeat * 1000, Timeout.Infinite);
-                    }
                 }
-                catch (ObjectDisposedException)
+
+                if (shouldTerminate)
                 {
-                    // timer is already disposed,
-                    // e.g. due to shutdown
+                    TerminateMainloop();
+                    FinishClose();
                 }
-                catch (NullReferenceException)
+                else if (_heartbeatReadTimer != null)
                 {
-                    // timer has already been disposed from a different thread after null check
-                    // this event should be rare
+                    _heartbeatReadTimer.Change(Heartbeat * 1000, Timeout.Infinite);
                 }
+            }
+            catch (ObjectDisposedException)
+            {
+                // timer is already disposed,
+                // e.g. due to shutdown
+            }
+            catch (NullReferenceException)
+            {
+                // timer has already been disposed from a different thread after null check
+                // this event should be rare
             }
         }
 
         public void HeartbeatWriteTimerCallback(object state)
         {
-            lock (_heartBeatWriteLock)
+            if (_heartbeatWriteTimer == null)
             {
-                if (m_hasDisposedHeartBeatWriteTimer)
-                {
-                    return;
-                }
+                return;
             }
 
             try
@@ -1157,51 +1135,17 @@ entry.ToString());
                 // peer unavailability. See rabbitmq/rabbitmq-dotnet-client#638 for details.
             }
 
-            lock(_heartBeatWriteLock)
+            if (m_closed == false)
             {
-                if(m_closed == false && _heartbeatWriteTimer != null)
-                {
-                    _heartbeatWriteTimer.Change((int)m_heartbeatTimeSpan.TotalMilliseconds, Timeout.Infinite);
-                }
+                _heartbeatWriteTimer?.Change((int)m_heartbeatTimeSpan.TotalMilliseconds, Timeout.Infinite);
             }
         }
 
         protected void MaybeStopHeartbeatTimers()
         {
-            lock (_heartBeatReadLock)
-            {
-                MaybeDisposeTimer(ref _heartbeatReadTimer);
-                m_hasDisposedHeartBeatReadTimer = true;
-            }
-
-            lock (_heartBeatWriteLock)
-            {
-                MaybeDisposeTimer(ref _heartbeatWriteTimer);
-                m_hasDisposedHeartBeatWriteTimer = true;
-            }
-        }
-
-        private void MaybeDisposeTimer(ref Timer timer)
-        {
-            // capture the timer to reduce chance of a null ref exception
-            var captured = timer;
-            if (captured != null)
-            {
-                try
-                {
-                    captured.Change(Timeout.Infinite, Timeout.Infinite);
-                    captured.Dispose();
-                    timer = null;
-                }
-                catch (ObjectDisposedException)
-                {
-                    // we are shutting down, ignore
-                }
-                catch (NullReferenceException)
-                {
-                    // this should be very rare but could occur from a race condition
-                }
-            }
+            NotifyHeartbeatListener();
+            _heartbeatReadTimer?.Dispose();
+            _heartbeatWriteTimer?.Dispose();
         }
 
         ///<remarks>
@@ -1303,6 +1247,7 @@ entry.ToString());
             {
                 MaybeStopHeartbeatTimers();
                 Abort();
+                _mainLoopTask.Wait();
             }
             catch (OperationInterruptedException)
             {
