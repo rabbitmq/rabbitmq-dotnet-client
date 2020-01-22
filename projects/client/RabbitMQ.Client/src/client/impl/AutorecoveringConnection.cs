@@ -39,11 +39,11 @@
 //---------------------------------------------------------------------------
 
 using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Impl;
+
 using System;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -93,7 +93,7 @@ namespace RabbitMQ.Client.Framing.Impl
             m_factory = factory;
             this.ClientProvidedName = clientProvidedName;
         }
-        
+
         public event EventHandler<EventArgs> RecoverySucceeded
         {
             add
@@ -551,12 +551,8 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             m_delegate = new Connection(m_factory, false,
                 fh, this.ClientProvidedName);
-            
-            m_recoveryThread = new Thread(MainRecoveryLoop)
-            {
-                IsBackground = true
-            };
-            m_recoveryThread.Start();
+
+            m_recoveryTask = Task.Run(MainRecoveryLoop);
 
             EventHandler<ShutdownEventArgs> recoveryListener = (_, args) =>
             {
@@ -587,7 +583,7 @@ namespace RabbitMQ.Client.Framing.Impl
         public void Abort()
         {
             StopRecoveryLoop();
-            if(m_delegate.IsOpen)
+            if (m_delegate.IsOpen)
                 m_delegate.Abort();
         }
 
@@ -608,7 +604,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 m_delegate.Abort(timeout);
             }
         }
-        
+
         ///<summary>API-side invocation of connection abort with timeout.</summary>
         public void Abort(ushort reasonCode, string reasonText, TimeSpan timeout)
         {
@@ -980,7 +976,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     // connectivity loss or abrupt shutdown
                     args.Initiator == ShutdownInitiator.Library);
         }
-        
+
         private enum RecoveryCommand
         {
             /// <summary>
@@ -1007,7 +1003,7 @@ namespace RabbitMQ.Client.Framing.Impl
             Recovering
         }
 
-        private Thread m_recoveryThread;
+        private Task m_recoveryTask;
         private RecoveryConnectionState m_recoveryLoopState = RecoveryConnectionState.Connected;
 
         private readonly BlockingCollection<RecoveryCommand> m_recoveryLoopCommandQueue = new BlockingCollection<RecoveryCommand>();
@@ -1017,7 +1013,7 @@ namespace RabbitMQ.Client.Framing.Impl
         /// <summary>
         /// This is the main loop for the auto-recovery thread.
         /// </summary>
-        private void MainRecoveryLoop()
+        private async Task MainRecoveryLoop()
         {
             try
             {
@@ -1026,10 +1022,10 @@ namespace RabbitMQ.Client.Framing.Impl
                     switch (m_recoveryLoopState)
                     {
                         case RecoveryConnectionState.Connected:
-                            RecoveryLoopConnectedHandler(command);
+                            await RecoveryLoopConnectedHandler(command).ConfigureAwait(false);
                             break;
                         case RecoveryConnectionState.Recovering:
-                            RecoveryLoopRecoveringHandler(command);
+                            await RecoveryLoopRecoveringHandler(command).ConfigureAwait(false);
                             break;
                         default:
                             ESLog.Warn("RecoveryLoop state is out of range.");
@@ -1045,6 +1041,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 ESLog.Error("Main recovery loop threw unexpected exception.", e);
             }
+
             m_recoveryLoopComplete.SetResult(0);
         }
 
@@ -1065,7 +1062,7 @@ namespace RabbitMQ.Client.Framing.Impl
         /// Handles commands when in the Recovering state.
         /// </summary>
         /// <param name="command"></param>
-        private void RecoveryLoopRecoveringHandler(RecoveryCommand command)
+        private async Task RecoveryLoopRecoveringHandler(RecoveryCommand command)
         {
             switch (command)
             {
@@ -1079,7 +1076,8 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                     else
                     {
-                        Task.Delay(m_factory.NetworkRecoveryInterval).ContinueWith(t => { m_recoveryLoopCommandQueue.TryAdd(RecoveryCommand.PerformAutomaticRecovery); });
+                        await Task.Delay(m_factory.NetworkRecoveryInterval);
+                        m_recoveryLoopCommandQueue.TryAdd(RecoveryCommand.PerformAutomaticRecovery);
                     }
 
                     break;
@@ -1093,7 +1091,7 @@ namespace RabbitMQ.Client.Framing.Impl
         /// Handles commands when in the Connected state.
         /// </summary>
         /// <param name="command"></param>
-        private void RecoveryLoopConnectedHandler(RecoveryCommand command)
+        private async Task RecoveryLoopConnectedHandler(RecoveryCommand command)
         {
             switch (command)
             {
@@ -1102,7 +1100,8 @@ namespace RabbitMQ.Client.Framing.Impl
                     break;
                 case RecoveryCommand.BeginAutomaticRecovery:
                     m_recoveryLoopState = RecoveryConnectionState.Recovering;
-                    Task.Delay(m_factory.NetworkRecoveryInterval).ContinueWith(t => { m_recoveryLoopCommandQueue.TryAdd(RecoveryCommand.PerformAutomaticRecovery); });
+                    await Task.Delay(m_factory.NetworkRecoveryInterval).ConfigureAwait(false);
+                    m_recoveryLoopCommandQueue.TryAdd(RecoveryCommand.PerformAutomaticRecovery);
                     break;
                 default:
                     ESLog.Warn($"RecoveryLoop command {command} is out of range.");

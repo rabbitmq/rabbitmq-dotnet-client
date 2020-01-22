@@ -41,15 +41,16 @@
 using NUnit.Framework;
 
 using System;
-using System.Text;
 using System.Linq;
+using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
-using RabbitMQ.Client;
-
-namespace RabbitMQ.Client.Unit {
+namespace RabbitMQ.Client.Unit
+{
     [TestFixture]
-    public class TestConcurrentAccessWithSharedConnection : IntegrationFixture {
+    public class TestConcurrentAccessWithSharedConnection : IntegrationFixture
+    {
 
         internal const int threads = 32;
         internal CountdownEvent latch;
@@ -59,6 +60,7 @@ namespace RabbitMQ.Client.Unit {
         public override void Init()
         {
             base.Init();
+            ThreadPool.SetMinThreads(threads, threads);
             latch = new CountdownEvent(threads);
         }
 
@@ -150,7 +152,8 @@ namespace RabbitMQ.Client.Unit {
         [Test]
         public void TestConcurrentChannelOpenCloseLoop()
         {
-            TestConcurrentChannelOperations((conn) => {
+            TestConcurrentChannelOperations((conn) =>
+            {
                 var ch = conn.CreateModel();
                 ch.Close();
             }, 50);
@@ -164,7 +167,7 @@ namespace RabbitMQ.Client.Unit {
         internal void TestConcurrentChannelOpenAndPublishingWithBodyOfSize(int length, int iterations)
         {
             string s = "payload";
-            if(length > s.Length)
+            if (length > s.Length)
             {
                 s.PadRight(length);
             }
@@ -174,7 +177,8 @@ namespace RabbitMQ.Client.Unit {
 
         internal void TestConcurrentChannelOpenAndPublishingWithBody(byte[] body, int iterations)
         {
-            TestConcurrentChannelOperations((conn) => {
+            TestConcurrentChannelOperations((conn) =>
+            {
                 // publishing on a shared channel is not supported
                 // and would missing the point of this test anyway
                 var ch = Conn.CreateModel();
@@ -196,17 +200,18 @@ namespace RabbitMQ.Client.Unit {
         internal void TestConcurrentChannelOperations(Action<IConnection> actions,
             int iterations, TimeSpan timeout)
         {
-            foreach (var i in Enumerable.Range(0, threads))
+            var tasks = Enumerable.Range(0, threads).Select(x =>
             {
-                var t = new Thread(() => {
+                return Task.Run(() =>
+                {
                     foreach (var j in Enumerable.Range(0, iterations))
                     {
                         actions(Conn);
                     }
+
                     latch.Signal();
                 });
-                t.Start();
-            }
+            }).ToArray();
 
             Assert.IsTrue(latch.Wait(timeout));
             // incorrect frame interleaving in these tests will result
