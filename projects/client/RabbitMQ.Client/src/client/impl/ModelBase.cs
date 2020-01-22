@@ -38,17 +38,19 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Util;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Text;
-using System.Threading;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -58,7 +60,8 @@ namespace RabbitMQ.Client.Impl
 
         ///<summary>Only used to kick-start a connection open
         ///sequence. See <see cref="Connection.Open"/> </summary>
-        public BlockingCell<ConnectionStartDetails> m_connectionStartCell = null;
+        //public BlockingCell<ConnectionStartDetails> m_connectionStartCell = null;
+        public TaskCompletionSource<ConnectionStartDetails> m_connectionStartCell;
 
         private TimeSpan m_handshakeContinuationTimeout = TimeSpan.FromSeconds(10);
         private TimeSpan m_continuationTimeout = TimeSpan.FromSeconds(20);
@@ -67,17 +70,19 @@ namespace RabbitMQ.Client.Impl
         private ManualResetEvent m_flowControlBlock = new ManualResetEvent(true);
 
         private readonly object m_eventLock = new object();
-        private readonly object m_flowSendLock = new object();
         private readonly object m_shutdownLock = new object();
         private readonly object _rpcLock = new object();
 
-        private readonly SynchronizedList<ulong> m_unconfirmedSet = new SynchronizedList<ulong>();
+        //private readonly SynchronizedList<ulong> m_unconfirmedSet = new SynchronizedList<ulong>();
+        private readonly ConcurrentDictionary<ulong, bool> m_unconfirmedSet = new ConcurrentDictionary<ulong, bool>();
+        private ulong _highestDeliveryTag = 0;
+        private Task _multipleConfirmCleanup;
+        private SemaphoreSlim _multipleConfirmLock = new SemaphoreSlim(1, 1);
+        private readonly CancellationTokenSource _connectionClosingCancellation = new CancellationTokenSource();
+        private readonly SemaphoreSlim _outstandingSemaphore = new SemaphoreSlim(0);
 
-        private EventHandler<BasicAckEventArgs> m_basicAck;
-        private EventHandler<BasicNackEventArgs> m_basicNack;
         private EventHandler<EventArgs> m_basicRecoverOk;
         private EventHandler<BasicReturnEventArgs> m_basicReturn;
-        private EventHandler<CallbackExceptionEventArgs> m_callbackException;
         private EventHandler<FlowControlEventArgs> m_flowControl;
         private EventHandler<ShutdownEventArgs> m_modelShutdown;
 
@@ -109,10 +114,11 @@ namespace RabbitMQ.Client.Impl
         protected void Initialise(ISession session)
         {
             CloseReason = null;
-            NextPublishSeqNo = 0;
+            _nextPublishSeqNo = 0;
             Session = session;
             Session.CommandReceived = HandleCommand;
             Session.SessionShutdown += OnSessionShutdown;
+            _multipleConfirmCleanup = Task.Run(CleanupUnconfirmedTagsAsync);
         }
 
         public TimeSpan HandshakeContinuationTimeout
@@ -127,42 +133,8 @@ namespace RabbitMQ.Client.Impl
             set { m_continuationTimeout = value; }
         }
 
-        public event EventHandler<BasicAckEventArgs> BasicAcks
-        {
-            add
-            {
-                lock (m_eventLock)
-                {
-                    m_basicAck += value;
-                }
-            }
-            remove
-            {
-                lock (m_eventLock)
-                {
-                    m_basicAck -= value;
-                }
-            }
-        }
-
-        public event EventHandler<BasicNackEventArgs> BasicNacks
-        {
-            add
-            {
-                lock (m_eventLock)
-                {
-                    m_basicNack += value;
-                }
-            }
-            remove
-            {
-                lock (m_eventLock)
-                {
-                    m_basicNack -= value;
-                }
-            }
-        }
-
+        public event EventHandler<BasicAckEventArgs> BasicAcks;
+        public event EventHandler<BasicNackEventArgs> BasicNacks;
         public event EventHandler<EventArgs> BasicRecoverOk
         {
             add
@@ -199,24 +171,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public event EventHandler<CallbackExceptionEventArgs> CallbackException
-        {
-            add
-            {
-                lock (m_eventLock)
-                {
-                    m_callbackException += value;
-                }
-            }
-            remove
-            {
-                lock (m_eventLock)
-                {
-                    m_callbackException -= value;
-                }
-            }
-        }
-
+        public event EventHandler<CallbackExceptionEventArgs> CallbackException;
         public event EventHandler<FlowControlEventArgs> FlowControl
         {
             add
@@ -302,7 +257,8 @@ namespace RabbitMQ.Client.Impl
             get { return CloseReason == null; }
         }
 
-        public ulong NextPublishSeqNo { get; private set; }
+        private ulong _nextPublishSeqNo;
+        public ulong NextPublishSeqNo => _nextPublishSeqNo;
 
         public ISession Session { get; private set; }
 
@@ -317,6 +273,7 @@ namespace RabbitMQ.Client.Impl
         {
             var k = new ShutdownContinuation();
             ModelShutdown += k.OnConnectionShutdown;
+            _connectionClosingCancellation.Cancel(false);
 
             try
             {
@@ -327,6 +284,11 @@ namespace RabbitMQ.Client.Impl
                 }
                 k.Wait(TimeSpan.FromMilliseconds(10000));
                 ConsumerDispatcher.Shutdown(this);
+                try
+                {
+                    _multipleConfirmCleanup.Wait();
+                }
+                catch (AggregateException) { }
             }
             catch (AlreadyClosedException)
             {
@@ -378,7 +340,7 @@ namespace RabbitMQ.Client.Impl
         public ConnectionSecureOrTune ConnectionSecureOk(byte[] response)
         {
             var k = new ConnectionStartRpcContinuation();
-            lock(_rpcLock)
+            lock (_rpcLock)
             {
                 Enqueue(k);
                 try
@@ -402,7 +364,7 @@ namespace RabbitMQ.Client.Impl
             string locale)
         {
             var k = new ConnectionStartRpcContinuation();
-            lock(_rpcLock)
+            lock (_rpcLock)
             {
                 Enqueue(k);
                 try
@@ -451,7 +413,7 @@ namespace RabbitMQ.Client.Impl
             }
             if (m_connectionStartCell != null)
             {
-                m_connectionStartCell.ContinueWithValue(null);
+                m_connectionStartCell.TrySetResult(null);
             }
         }
 
@@ -464,11 +426,18 @@ namespace RabbitMQ.Client.Impl
         public MethodBase ModelRpc(MethodBase method, ContentHeaderBase header, byte[] body)
         {
             var k = new SimpleBlockingRpcContinuation();
-            lock(_rpcLock)
+            lock (_rpcLock)
             {
                 TransmitAndEnqueue(new Command(method, header, body), k);
                 return k.GetReply(this.ContinuationTimeout).Method;
             }
+        }
+
+        public async ValueTask<MethodBase> ModelRpcAsync(MethodBase method, ContentHeaderBase header, byte[] body)
+        {
+            var k = new AsyncRpcContinuation();
+            TransmitAndEnqueue(new Command(method, header, body), k);
+            return (await k.GetReplyAsync(this.ContinuationTimeout).ConfigureAwait(false)).Method;
         }
 
         public void ModelSend(MethodBase method, ContentHeaderBase header, byte[] body)
@@ -486,14 +455,9 @@ namespace RabbitMQ.Client.Impl
 
         public virtual void OnBasicAck(BasicAckEventArgs args)
         {
-            EventHandler<BasicAckEventArgs> handler;
-            lock (m_eventLock)
+            if (BasicAcks != null)
             {
-                handler = m_basicAck;
-            }
-            if (handler != null)
-            {
-                foreach (EventHandler<BasicAckEventArgs> h in handler.GetInvocationList())
+                foreach (EventHandler<BasicAckEventArgs> h in BasicAcks.GetInvocationList())
                 {
                     try
                     {
@@ -511,14 +475,9 @@ namespace RabbitMQ.Client.Impl
 
         public virtual void OnBasicNack(BasicNackEventArgs args)
         {
-            EventHandler<BasicNackEventArgs> handler;
-            lock (m_eventLock)
+            if (BasicNacks != null)
             {
-                handler = m_basicNack;
-            }
-            if (handler != null)
-            {
-                foreach (EventHandler<BasicNackEventArgs> h in handler.GetInvocationList())
+                foreach (EventHandler<BasicNackEventArgs> h in BasicNacks.GetInvocationList())
                 {
                     try
                     {
@@ -582,14 +541,9 @@ namespace RabbitMQ.Client.Impl
 
         public virtual void OnCallbackException(CallbackExceptionEventArgs args)
         {
-            EventHandler<CallbackExceptionEventArgs> handler;
-            lock (m_eventLock)
+            if (CallbackException != null)
             {
-                handler = m_callbackException;
-            }
-            if (handler != null)
-            {
-                foreach (EventHandler<CallbackExceptionEventArgs> h in handler.GetInvocationList())
+                foreach (EventHandler<CallbackExceptionEventArgs> h in CallbackException.GetInvocationList())
                 {
                     try
                     {
@@ -664,8 +618,6 @@ namespace RabbitMQ.Client.Impl
                     }
                 }
             }
-            lock (m_unconfirmedSet.SyncRoot)
-                Monitor.Pulse(m_unconfirmedSet.SyncRoot);
 
             m_flowControlBlock.Set();
         }
@@ -735,11 +687,8 @@ namespace RabbitMQ.Client.Impl
                 }
                 finally
                 {
-                    m_basicAck = null;
-                    m_basicNack = null;
                     m_basicRecoverOk = null;
                     m_basicReturn = null;
-                    m_callbackException = null;
                     m_flowControl = null;
                     m_modelShutdown = null;
                     m_recovery = null;
@@ -1028,8 +977,7 @@ namespace RabbitMQ.Client.Impl
                 m_mechanisms = mechanisms,
                 m_locales = locales
             };
-            m_connectionStartCell.ContinueWithValue(details);
-            m_connectionStartCell = null;
+            m_connectionStartCell.TrySetResult(details);
         }
 
         ///<summary>Handle incoming Connection.Tune
@@ -1185,7 +1133,7 @@ namespace RabbitMQ.Client.Impl
         {
             var k = new BasicConsumerRpcContinuation { m_consumerTag = consumerTag };
 
-            lock(_rpcLock)
+            lock (_rpcLock)
             {
                 Enqueue(k);
                 _Private_BasicCancel(consumerTag, false);
@@ -1221,7 +1169,7 @@ namespace RabbitMQ.Client.Impl
 
             var k = new BasicConsumerRpcContinuation { m_consumer = consumer };
 
-            lock(_rpcLock)
+            lock (_rpcLock)
             {
                 Enqueue(k);
                 // Non-nowait. We have an unconventional means of getting
@@ -1239,7 +1187,7 @@ namespace RabbitMQ.Client.Impl
             bool autoAck)
         {
             var k = new BasicGetRpcContinuation();
-            lock(_rpcLock)
+            lock (_rpcLock)
             {
                 Enqueue(k);
                 _Private_BasicGet(queue, autoAck);
@@ -1255,20 +1203,11 @@ namespace RabbitMQ.Client.Impl
 
         internal void AllocatatePublishSeqNos(int count)
         {
-            var c = 0;
-            lock (m_unconfirmedSet.SyncRoot)
+            for (int i = 0; i < count; i++)
             {
-                while(c < count)
+                if (_nextPublishSeqNo > 0)
                 {
-                    if (NextPublishSeqNo > 0)
-                    {
-                        if (!m_unconfirmedSet.Contains(NextPublishSeqNo))
-                        {
-                            m_unconfirmedSet.Add(NextPublishSeqNo);
-                        }
-                        NextPublishSeqNo++;
-                    }
-                    c++;
+                    m_unconfirmedSet.TryAdd(InterlockedEx.Increment(ref _nextPublishSeqNo) - 1, true);
                 }
             }
         }
@@ -1288,16 +1227,9 @@ namespace RabbitMQ.Client.Impl
             {
                 basicProperties = CreateBasicProperties();
             }
-            if (NextPublishSeqNo > 0)
+            if (_nextPublishSeqNo > 0)
             {
-                lock (m_unconfirmedSet.SyncRoot)
-                {
-                    if (!m_unconfirmedSet.Contains(NextPublishSeqNo))
-                    {
-                        m_unconfirmedSet.Add(NextPublishSeqNo);
-                    }
-                    NextPublishSeqNo++;
-                }
+                m_unconfirmedSet.TryAdd(InterlockedEx.Increment(ref _nextPublishSeqNo) - 1, true);
             }
             _Private_BasicPublish(exchange,
                 routingKey,
@@ -1329,7 +1261,7 @@ namespace RabbitMQ.Client.Impl
         {
             var k = new SimpleBlockingRpcContinuation();
 
-            lock(_rpcLock)
+            lock (_rpcLock)
             {
                 Enqueue(k);
                 _Private_BasicRecover(requeue);
@@ -1354,12 +1286,13 @@ namespace RabbitMQ.Client.Impl
 
         public void ConfirmSelect()
         {
-            if (NextPublishSeqNo == 0UL)
+            if (_nextPublishSeqNo == 0UL)
             {
-                NextPublishSeqNo = 1;
+                InterlockedEx.Increment(ref _nextPublishSeqNo);
             }
             _Private_ConfirmSelect(false);
         }
+
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -1515,52 +1448,79 @@ namespace RabbitMQ.Client.Impl
             {
                 throw new InvalidOperationException("Confirms not selected");
             }
-            bool isWaitInfinite = (timeout.TotalMilliseconds == Timeout.Infinite);
-            Stopwatch stopwatch = Stopwatch.StartNew();
-            lock (m_unconfirmedSet.SyncRoot)
-            {
-                while (true)
-                {
-                    if (!IsOpen)
-                    {
-                        throw new AlreadyClosedException(CloseReason);
-                    }
 
-                    if (m_unconfirmedSet.Count == 0)
-                    {
-                        bool aux = m_onlyAcksReceived;
-                        m_onlyAcksReceived = true;
-                        timedOut = false;
-                        return aux;
-                    }
-                    if (isWaitInfinite)
-                    {
-                        Monitor.Wait(m_unconfirmedSet.SyncRoot);
-                    }
-                    else
-                    {
-                        TimeSpan elapsed = stopwatch.Elapsed;
-                        if (elapsed > timeout || !Monitor.Wait(
-                            m_unconfirmedSet.SyncRoot, timeout - elapsed))
-                        {
-                            timedOut = true;
-                            return m_onlyAcksReceived;
-                        }
-                    }
+            while (true)
+            {
+                if (!IsOpen)
+                {
+                    throw new AlreadyClosedException(CloseReason);
+                }
+
+                if (m_unconfirmedSet.Count == 0)
+                {
+                    bool aux = m_onlyAcksReceived;
+                    m_onlyAcksReceived = true;
+                    timedOut = false;
+                    return aux;
+                }
+
+                try
+                {
+                    _outstandingSemaphore.Wait(timeout);
+                }
+                catch (OperationCanceledException)
+                {
+                    timedOut = true;
+                    return true;
+                }
+            }
+        }
+
+        public async Task<(bool onlyAcksReceived, bool timedOut)> WaitForConfirmsAsync(TimeSpan timeout)
+        {
+            if (NextPublishSeqNo == 0UL)
+            {
+                throw new InvalidOperationException("Confirms not selected");
+            }
+
+            while (true)
+            {
+                if (!IsOpen)
+                {
+                    throw new AlreadyClosedException(CloseReason);
+                }
+
+                if (m_unconfirmedSet.Count == 0)
+                {
+                    bool aux = m_onlyAcksReceived;
+                    m_onlyAcksReceived = true;
+                    return (aux, false);
+                }
+
+                try
+                {
+                    await _outstandingSemaphore.WaitAsync(timeout).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    return (true, true);
                 }
             }
         }
 
         public bool WaitForConfirms()
         {
-            bool timedOut;
-            return WaitForConfirms(TimeSpan.FromMilliseconds(Timeout.Infinite), out timedOut);
+            return WaitForConfirms(TimeSpan.FromMilliseconds(Timeout.Infinite), out _);
+        }
+
+        public async Task<bool> WaitForConfirmsAsync()
+        {
+            return (await WaitForConfirmsAsync(TimeSpan.FromMilliseconds(Timeout.Infinite)).ConfigureAwait(false)).onlyAcksReceived;
         }
 
         public bool WaitForConfirms(TimeSpan timeout)
         {
-            bool timedOut;
-            return WaitForConfirms(timeout, out timedOut);
+            return WaitForConfirms(timeout, out _);
         }
 
         public void WaitForConfirmsOrDie()
@@ -1568,10 +1528,14 @@ namespace RabbitMQ.Client.Impl
             WaitForConfirmsOrDie(TimeSpan.FromMilliseconds(Timeout.Infinite));
         }
 
+        public Task WaitForConfirmsOrDieAsync()
+        {
+            return WaitForConfirmsOrDieAsync(TimeSpan.FromMilliseconds(Timeout.Infinite));
+        }
+
         public void WaitForConfirmsOrDie(TimeSpan timeout)
         {
-            bool timedOut;
-            bool onlyAcksReceived = WaitForConfirms(timeout, out timedOut);
+            bool onlyAcksReceived = WaitForConfirms(timeout, out bool timedOut);
             if (!onlyAcksReceived)
             {
                 Close(new ShutdownEventArgs(ShutdownInitiator.Application,
@@ -1580,6 +1544,30 @@ namespace RabbitMQ.Client.Impl
                     false);
                 throw new IOException("Nacks Received");
             }
+
+            if (timedOut)
+            {
+                Close(new ShutdownEventArgs(ShutdownInitiator.Application,
+                    Constants.ReplySuccess,
+                    "Timed out waiting for acks",
+                    new IOException("timed out waiting for acks")),
+                    false);
+                throw new IOException("Timed out waiting for acks");
+            }
+        }
+
+        public async Task WaitForConfirmsOrDieAsync(TimeSpan timeout)
+        {
+            (bool onlyAcksReceived, bool timedOut) = await WaitForConfirmsAsync(timeout).ConfigureAwait(false);
+            if (!onlyAcksReceived)
+            {
+                Close(new ShutdownEventArgs(ShutdownInitiator.Application,
+                    Constants.ReplySuccess,
+                    "Nacks Received", new IOException("nack received")),
+                    false);
+                throw new IOException("Nacks Received");
+            }
+
             if (timedOut)
             {
                 Close(new ShutdownEventArgs(ShutdownInitiator.Application,
@@ -1600,29 +1588,58 @@ namespace RabbitMQ.Client.Impl
 
         protected virtual void handleAckNack(ulong deliveryTag, bool multiple, bool isNack)
         {
-            lock (m_unconfirmedSet.SyncRoot)
+            if (multiple)
             {
-                if (multiple)
+                if (_highestDeliveryTag < deliveryTag)
                 {
-                    for (ulong i = m_unconfirmedSet[0]; i <= deliveryTag; i++)
+                    // Multiple confirms, let's trigger a cleanup of any older deliveries.
+                    _highestDeliveryTag = deliveryTag;
+                    try
                     {
-                        // removes potential duplicates
-                        while (m_unconfirmedSet.Remove(i))
-                        {
-                        }
+                        _multipleConfirmLock.Release();
+                    }
+                    catch (SemaphoreFullException)
+                    {
+                        // Ignore if we are trying to release often.
                     }
                 }
-                else
+            }
+
+            m_unconfirmedSet.TryRemove(deliveryTag, out _);
+
+            m_onlyAcksReceived = m_onlyAcksReceived && !isNack;
+            TriggerAllOutstandingCompleted();
+        }
+
+        private void TriggerAllOutstandingCompleted()
+        {
+            if (m_unconfirmedSet.Count == 0)
+            {
+                try
                 {
-                    while (m_unconfirmedSet.Remove(deliveryTag))
+                    _outstandingSemaphore.Release();
+                }
+                catch (SemaphoreFullException)
+                {
+                    // Swallow the semaphore full exception.
+                }
+            }
+        }
+
+        public async Task CleanupUnconfirmedTagsAsync()
+        {
+            while (!_connectionClosingCancellation.IsCancellationRequested)
+            {
+                await _multipleConfirmLock.WaitAsync(_connectionClosingCancellation.Token).ConfigureAwait(false);
+                foreach (ulong key in m_unconfirmedSet.Keys)
+                {
+                    if (key <= _highestDeliveryTag)
                     {
+                        m_unconfirmedSet.TryRemove(key, out _);
                     }
                 }
-                m_onlyAcksReceived = m_onlyAcksReceived && !isNack;
-                if (m_unconfirmedSet.Count == 0)
-                {
-                    Monitor.Pulse(m_unconfirmedSet.SyncRoot);
-                }
+
+                TriggerAllOutstandingCompleted();
             }
         }
 
@@ -1630,7 +1647,7 @@ namespace RabbitMQ.Client.Impl
             bool autoDelete, IDictionary<string, object> arguments)
         {
             var k = new QueueDeclareRpcContinuation();
-            lock(_rpcLock)
+            lock (_rpcLock)
             {
                 Enqueue(k);
                 _Private_QueueDeclare(queue, passive, durable, exclusive, autoDelete, false, arguments);

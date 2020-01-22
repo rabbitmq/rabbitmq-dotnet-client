@@ -40,10 +40,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Net;
+using System.IO.Pipelines;
+
 using RabbitMQ.Client.Framing.Impl;
-using RabbitMQ.Client.Framing;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
@@ -56,7 +55,6 @@ namespace RabbitMQ.Client.Impl
         // - 4 bytes of frame payload length
         // - 1 byte of payload trailer FrameEnd byte
         private const int EmptyFrameSize = 8;
-        private static readonly byte[] m_emptyByteArray = new byte[0];
 
         static Command()
         {
@@ -71,7 +69,7 @@ namespace RabbitMQ.Client.Impl
         {
             Method = method;
             Header = header;
-            Body = body ?? m_emptyByteArray;
+            Body = body ?? Array.Empty<byte>();
         }
 
         public byte[] Body { get; private set; }
@@ -83,18 +81,23 @@ namespace RabbitMQ.Client.Impl
         public static void CheckEmptyFrameSize()
         {
             var f = new EmptyOutboundFrame();
-            var stream = new MemoryStream();
-            var writer = new NetworkBinaryWriter(stream);
-            f.WriteTo(writer);
-            long actualLength = stream.Length;
-
-            if (EmptyFrameSize != actualLength)
+            using (var stream = PooledMemoryStream.GetMemoryStream())
             {
-                string message =
-                    string.Format("EmptyFrameSize is incorrect - defined as {0} where the computed value is in fact {1}.",
-                        EmptyFrameSize,
-                        actualLength);
-                throw new ProtocolViolationException(message);
+                var pipeWriter = PipeWriter.Create(stream);
+                var writer = new PipelineBinaryWriter(pipeWriter);
+                f.WriteTo(writer);
+                writer.Flush();
+
+                long actualLength = stream.Position;
+
+                if (EmptyFrameSize != actualLength)
+                {
+                    string message =
+                        string.Format("EmptyFrameSize is incorrect - defined as {0} where the computed value is in fact {1}.",
+                            EmptyFrameSize,
+                            actualLength);
+                    throw new ProtocolViolationException(message);
+                }
             }
         }
 

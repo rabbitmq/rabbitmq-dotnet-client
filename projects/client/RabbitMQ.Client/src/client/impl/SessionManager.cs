@@ -114,7 +114,7 @@ namespace RabbitMQ.Client.Impl
                         // we would suffer a deadlock as the connection thread 
                         // would be blocking waiting for its own mainloop
                         // to reply to it.
-                        Task.Run((Action)AutoCloseConnection).Wait();
+                        Task.Run(AutoCloseConnection).Wait();
                     }
                 }
             }

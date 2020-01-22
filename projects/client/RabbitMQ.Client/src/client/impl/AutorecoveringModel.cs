@@ -42,6 +42,7 @@ using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Framing.Impl;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -1112,6 +1113,11 @@ namespace RabbitMQ.Client.Impl
             return m_delegate.WaitForConfirms(timeout, out timedOut);
         }
 
+        public Task<(bool onlyAcksReceived, bool timedOut)> WaitForConfirmsAsync(TimeSpan timeout)
+        {
+            return m_delegate.WaitForConfirmsAsync(timeout);
+        }
+
         public bool WaitForConfirms(TimeSpan timeout)
         {
             return m_delegate.WaitForConfirms(timeout);
@@ -1122,14 +1128,29 @@ namespace RabbitMQ.Client.Impl
             return m_delegate.WaitForConfirms();
         }
 
+        public Task<bool> WaitForConfirmsAsync()
+        {
+            return m_delegate.WaitForConfirmsAsync();
+        }
+
         public void WaitForConfirmsOrDie()
         {
             m_delegate.WaitForConfirmsOrDie();
         }
 
+        public Task WaitForConfirmsOrDieAsync()
+        {
+            return m_delegate.WaitForConfirmsOrDieAsync();
+        }
+
         public void WaitForConfirmsOrDie(TimeSpan timeout)
         {
             m_delegate.WaitForConfirmsOrDie(timeout);
+        }
+
+        public Task WaitForConfirmsOrDieAsync(TimeSpan timeout)
+        {
+            return m_delegate.WaitForConfirmsOrDieAsync(timeout);
         }
 
         private void RecoverBasicAckHandlers()

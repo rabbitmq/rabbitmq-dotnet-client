@@ -112,7 +112,7 @@ namespace RabbitMQ.Client.Impl
         public void WriteLongstr(byte[] val)
         {
             BitFlush();
-            WireFormatting.WriteLongstr(BaseWriter, val);
+            WireFormatting.WriteLongstr(BaseWriter, val, val.Length);
         }
 
         public void WriteOctet(byte val)

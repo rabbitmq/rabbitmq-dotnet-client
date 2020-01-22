@@ -38,11 +38,16 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+using System.Buffers;
+using System.IO;
+using System.Net.Sockets;
+using System.Threading;
+using System.Threading.Tasks;
+
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing;
 using RabbitMQ.Util;
-using System.IO;
-using System.Net.Sockets;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -57,17 +62,20 @@ namespace RabbitMQ.Client.Impl
             this.bodyLength = bodyLength;
         }
 
-        public override void WritePayload(NetworkBinaryWriter writer)
+        public override void WritePayload(PipelineBinaryWriter writer)
         {
-            var ms = new MemoryStream();
-            var nw = new NetworkBinaryWriter(ms);
+            using (var ms = PooledMemoryStream.GetMemoryStream())
+            {
+                using (var nw = new NetworkBinaryWriter(ms))
+                {
+                    nw.Write(header.ProtocolClassId);
+                    header.WriteTo(nw, (ulong)bodyLength);
 
-            nw.Write(header.ProtocolClassId);
-            header.WriteTo(nw, (ulong)bodyLength);
-
-            var bufferSegment = ms.GetBufferSegment();
-            writer.Write((uint)bufferSegment.Count);
-            writer.Write(bufferSegment.Array, bufferSegment.Offset, bufferSegment.Count);
+                    var bufferSegment = ms.GetBufferSegment();
+                    writer.Write((uint)bufferSegment.Count);
+                    writer.Write(bufferSegment.Array, bufferSegment.Offset, bufferSegment.Count);
+                }
+            }
         }
     }
 
@@ -84,7 +92,7 @@ namespace RabbitMQ.Client.Impl
             this.count = count;
         }
 
-        public override void WritePayload(NetworkBinaryWriter writer)
+        public override void WritePayload(PipelineBinaryWriter writer)
         {
             writer.Write((uint)count);
             writer.Write(body, offset, count);
@@ -100,21 +108,24 @@ namespace RabbitMQ.Client.Impl
             this.method = method;
         }
 
-        public override void WritePayload(NetworkBinaryWriter writer)
+        public override void WritePayload(PipelineBinaryWriter writer)
         {
-            var ms = new MemoryStream();
-            var nw = new NetworkBinaryWriter(ms);
+            using (var ms = PooledMemoryStream.GetMemoryStream())
+            {
+                using (var nw = new NetworkBinaryWriter(ms))
+                {
+                    nw.Write(method.ProtocolClassId);
+                    nw.Write(method.ProtocolMethodId);
 
-            nw.Write(method.ProtocolClassId);
-            nw.Write(method.ProtocolMethodId);
+                    var argWriter = new MethodArgumentWriter(nw);
+                    method.WriteArgumentsTo(argWriter);
+                    argWriter.Flush();
 
-            var argWriter = new MethodArgumentWriter(nw);
-            method.WriteArgumentsTo(argWriter);
-            argWriter.Flush();
-
-            var bufferSegment = ms.GetBufferSegment();
-            writer.Write((uint)bufferSegment.Count);
-            writer.Write(bufferSegment.Array, bufferSegment.Offset, bufferSegment.Count);
+                    var bufferSegment = ms.GetBufferSegment();
+                    writer.Write((uint)bufferSegment.Count);
+                    writer.Write(bufferSegment.Array, bufferSegment.Offset, bufferSegment.Count);
+                }
+            }
         }
     }
 
@@ -124,7 +135,7 @@ namespace RabbitMQ.Client.Impl
         {
         }
 
-        public override void WritePayload(NetworkBinaryWriter writer)
+        public override void WritePayload(PipelineBinaryWriter writer)
         {
             writer.Write((uint)0);
         }
@@ -136,7 +147,7 @@ namespace RabbitMQ.Client.Impl
         {
         }
 
-        public void WriteTo(NetworkBinaryWriter writer)
+        public void WriteTo(PipelineBinaryWriter writer)
         {
             writer.Write((byte)Type);
             writer.Write((ushort)Channel);
@@ -144,31 +155,31 @@ namespace RabbitMQ.Client.Impl
             writer.Write((byte)Constants.FrameEnd);
         }
 
-        public abstract void WritePayload(NetworkBinaryWriter writer);
+        public abstract void WritePayload(PipelineBinaryWriter writer);
     }
 
     public class InboundFrame : Frame
     {
-        private InboundFrame(FrameType type, int channel, byte[] payload) : base(type, channel, payload)
+        private InboundFrame(FrameType type, int channel, byte[] payload, int payloadSize) : base(type, channel, payload, payloadSize)
         {
         }
 
-        private static void ProcessProtocolHeader(NetworkBinaryReader reader)
+        private static async ValueTask ProcessProtocolHeader(PipelineBinaryReader reader)
         {
             try
             {
-                byte b1 = reader.ReadByte();
-                byte b2 = reader.ReadByte();
-                byte b3 = reader.ReadByte();
+                byte b1 = await reader.ReadByteAsync();
+                byte b2 = await reader.ReadByteAsync();
+                byte b3 = await reader.ReadByteAsync();
                 if (b1 != 'M' || b2 != 'Q' || b3 != 'P')
                 {
                     throw new MalformedFrameException("Invalid AMQP protocol header from server");
                 }
 
-                int transportHigh = reader.ReadByte();
-                int transportLow = reader.ReadByte();
-                int serverMajor = reader.ReadByte();
-                int serverMinor = reader.ReadByte();
+                int transportHigh = await reader.ReadByteAsync();
+                int transportLow = await reader.ReadByteAsync();
+                int serverMajor = await reader.ReadByteAsync();
+                int serverMinor = await reader.ReadByteAsync();
                 throw new PacketNotRecognizedException(transportHigh,
                     transportLow,
                     serverMajor,
@@ -187,13 +198,20 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public static InboundFrame ReadFrom(NetworkBinaryReader reader)
+        public static async ValueTask<InboundFrame> ReadFromAsync(PipelineBinaryReader reader, CancellationToken cancellationToken = default)
         {
             int type;
 
+
+            // The header consists of
+            //
+            // [1 byte] [2 bytes (ushort)] [4 bytes (uint)]
+            // [type]   [channel]          [payloadSize]
+
             try
             {
-                type = reader.ReadByte();
+                // Let's read the header type
+                type = await reader.ReadByteAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (IOException ioe)
             {
@@ -212,12 +230,14 @@ namespace RabbitMQ.Client.Impl
             if (type == 'A')
             {
                 // Probably an AMQP protocol header, otherwise meaningless
-                ProcessProtocolHeader(reader);
+                await ProcessProtocolHeader(reader).ConfigureAwait(false);
             }
 
-            int channel = reader.ReadUInt16();
-            int payloadSize = reader.ReadInt32(); // FIXME - throw exn on unreasonable value
-            byte[] payload = reader.ReadBytes(payloadSize);
+            int channel = await reader.ReadUInt16BigEndianAsync(cancellationToken).ConfigureAwait(false);
+            int payloadSize = await reader.ReadInt32BigEndianAsync(cancellationToken).ConfigureAwait(false); // FIXME - throw exn on unreasonable value
+            byte[] payload = ArrayPool<byte>.Shared.Rent(payloadSize);
+            await reader.ReadBytesAsync(new Memory<byte>(payload, 0, payloadSize), cancellationToken).ConfigureAwait(false);
+            /*
             if (payload.Length != payloadSize)
             {
                 // Early EOF.
@@ -225,23 +245,24 @@ namespace RabbitMQ.Client.Impl
                                                   payloadSize + " bytes, got " +
                                                   payload.Length + " bytes");
             }
+            */
 
-            int frameEndMarker = reader.ReadByte();
+            int frameEndMarker = await reader.ReadByteAsync(cancellationToken).ConfigureAwait(false);
             if (frameEndMarker != Constants.FrameEnd)
             {
                 throw new MalformedFrameException("Bad frame end marker: " + frameEndMarker);
             }
 
-            return new InboundFrame((FrameType)type, channel, payload);
+            return new InboundFrame((FrameType)type, channel, payload, payloadSize);
         }
 
         public NetworkBinaryReader GetReader()
         {
-            return new NetworkBinaryReader(new MemoryStream(base.Payload));
+            return new NetworkBinaryReader(new MemoryStream(base.Payload, 0, PayloadSize));
         }
     }
 
-    public class Frame
+    public class Frame : IDisposable
     {
         public Frame(FrameType type, int channel)
         {
@@ -250,17 +271,18 @@ namespace RabbitMQ.Client.Impl
             Payload = null;
         }
 
-        public Frame(FrameType type, int channel, byte[] payload)
+        public Frame(FrameType type, int channel, byte[] payload, int payloadSize)
         {
             Type = type;
             Channel = channel;
             Payload = payload;
+            PayloadSize = payloadSize;
         }
 
         public int Channel { get; private set; }
 
         public byte[] Payload { get; private set; }
-
+        public int PayloadSize { get; }
         public FrameType Type { get; private set; }
 
         public override string ToString()
@@ -270,7 +292,7 @@ namespace RabbitMQ.Client.Impl
                 Channel,
                 Payload == null
                     ? "(null)"
-                    : Payload.Length.ToString());
+                    : PayloadSize.ToString());
         }
 
         public bool IsMethod()
@@ -288,6 +310,14 @@ namespace RabbitMQ.Client.Impl
         public bool IsHeartbeat()
         {
             return this.Type == FrameType.FrameHeartbeat;
+        }
+
+        public void Dispose()
+        {
+            if (Payload != null)
+            {
+                ArrayPool<byte>.Shared.Return(Payload);
+            }
         }
     }
 

@@ -38,11 +38,12 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
 
@@ -210,8 +211,11 @@ namespace RabbitMQ.Client.Impl
         public static string ReadShortstr(NetworkBinaryReader reader)
         {
             int byteCount = reader.ReadByte();
-            byte[] readBytes = reader.ReadBytes(byteCount);
-            return Encoding.UTF8.GetString(readBytes, 0, readBytes.Length);
+            byte[] readBytes = ArrayPool<byte>.Shared.Rent(byteCount);
+            reader.Read(readBytes, 0, byteCount);
+            string returnValue = Encoding.UTF8.GetString(readBytes, 0, byteCount);
+            ArrayPool<byte>.Shared.Return(readBytes);
+            return returnValue;
         }
 
         ///<summary>Reads an AMQP "table" definition from the reader.</summary>
@@ -289,11 +293,15 @@ namespace RabbitMQ.Client.Impl
                     break;
                 case string val:
                     WriteOctet(writer, (byte)'S');
-                    WriteLongstr(writer, Encoding.UTF8.GetBytes(val));
+                    int length = Encoding.UTF8.GetByteCount(val);
+                    byte[] bytes = ArrayPool<byte>.Shared.Rent(length);
+                    length = Encoding.UTF8.GetBytes(val, 0, val.Length, bytes, 0);
+                    WriteLongstr(writer, bytes, length);
+                    ArrayPool<byte>.Shared.Return(bytes);
                     break;
                 case byte[] val:
                     WriteOctet(writer, (byte)'S');
-                    WriteLongstr(writer, val);
+                    WriteLongstr(writer, val, val.Length);
                     break;
                 case int val:
                     WriteOctet(writer, (byte)'I');
@@ -349,7 +357,7 @@ namespace RabbitMQ.Client.Impl
                     break;
                 case BinaryTableValue val:
                     WriteOctet(writer, (byte)'x');
-                    WriteLongstr(writer, val.Bytes);
+                    WriteLongstr(writer, val.Bytes, val.Bytes.Length);
                     break;
                 default:
                     throw new WireFormattingException(
@@ -368,10 +376,10 @@ namespace RabbitMQ.Client.Impl
             writer.Write(val);
         }
 
-        public static void WriteLongstr(NetworkBinaryWriter writer, byte[] val)
+        public static void WriteLongstr(NetworkBinaryWriter writer, byte[] val, int length)
         {
-            WriteLong(writer, (uint)val.Length);
-            writer.Write(val);
+            WriteLong(writer, (uint)length);
+            writer.Write(val, 0, length);
         }
 
         public static void WriteOctet(NetworkBinaryWriter writer, byte val)
@@ -386,17 +394,18 @@ namespace RabbitMQ.Client.Impl
 
         public static void WriteShortstr(NetworkBinaryWriter writer, string val)
         {
-            var bytes = Encoding.UTF8.GetBytes(val);
-            var length = bytes.Length;
-            
+            var length = Encoding.UTF8.GetByteCount(val);
             if (length > 255)
             {
                 throw new WireFormattingException("Short string too long; " +
                                                   "UTF-8 encoded length=" + length + ", max=255");
             }
 
+            byte[] stringBytes = ArrayPool<byte>.Shared.Rent(length);
+            length = Encoding.UTF8.GetBytes(val, 0, val.Length, stringBytes, 0);
             writer.Write((byte)length);
-            writer.Write(bytes);
+            writer.Write(stringBytes, 0, length);
+            ArrayPool<byte>.Shared.Return(stringBytes);
         }
 
         ///<summary>Writes an AMQP "table" to the writer.</summary>

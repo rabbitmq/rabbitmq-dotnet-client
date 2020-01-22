@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Threading.Tasks;
+using System.IO;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client
 {
@@ -18,7 +19,7 @@ namespace RabbitMQ.Client
 
         Task ConnectAsync(string host, int port);
 
-        NetworkStream GetStream();
+        Stream GetStream();
 
         void Close();
     }

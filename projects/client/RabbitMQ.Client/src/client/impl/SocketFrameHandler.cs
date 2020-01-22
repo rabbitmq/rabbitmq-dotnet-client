@@ -38,15 +38,21 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Util;
 using System;
-using System.IO;
-using System.Net;
+using System.Buffers;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Pipelines;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+
+using Pipelines.Sockets.Unofficial;
+
+using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -68,19 +74,17 @@ namespace RabbitMQ.Client.Impl
 
     public class SocketFrameHandler : IFrameHandler
     {
-        // Timeout in seconds to wait for a clean socket close.
-        private const int SOCKET_CLOSING_TIMEOUT = 1;
         // Socket poll timeout in ms. If the socket does not
         // become writeable in this amount of time, we throw
         // an exception.
         private TimeSpan m_writeableStateTimeout = TimeSpan.FromSeconds(30);
-        private int m_writeableStateTimeoutMicroSeconds;
-        private readonly NetworkBinaryReader m_reader;
-        private readonly ITcpClient m_socket;
-        private readonly NetworkBinaryWriter m_writer;
-        private readonly object _semaphore = new object();
-        private readonly object _streamLock = new object();
-        private bool _closed;
+        private readonly ITcpClient _socket;
+        private readonly IDuplexPipe _duplexPipe;
+        private readonly SemaphoreSlim _writeSemaphore = new SemaphoreSlim(1);
+        private readonly PipelineBinaryReader _reader;
+        private readonly PipelineBinaryWriter _writer;
+        private readonly CancellationTokenSource _connectionCancellation = new CancellationTokenSource();
+
         public SocketFrameHandler(AmqpTcpEndpoint endpoint,
             Func<AddressFamily, ITcpClient> socketFactory,
             TimeSpan connectionTimeout, TimeSpan readTimeout, TimeSpan writeTimeout)
@@ -89,28 +93,30 @@ namespace RabbitMQ.Client.Impl
 
             if (ShouldTryIPv6(endpoint))
             {
-                try {
-                    m_socket = ConnectUsingIPv6(endpoint, socketFactory, connectionTimeout);
-                } catch (ConnectFailureException)
+                try
                 {
-                    m_socket = null;
+                    _socket = ConnectUsingIPv6(endpoint, socketFactory, connectionTimeout);
+                }
+                catch (ConnectFailureException)
+                {
+                    _socket = null;
                 }
             }
 
-            if (m_socket == null && endpoint.AddressFamily != AddressFamily.InterNetworkV6)
+            if (_socket == null && endpoint.AddressFamily != AddressFamily.InterNetworkV6)
             {
-                m_socket = ConnectUsingIPv4(endpoint, socketFactory, connectionTimeout);
+                _socket = ConnectUsingIPv4(endpoint, socketFactory, connectionTimeout);
             }
-
-            Stream netstream = m_socket.GetStream();
-            netstream.ReadTimeout  = (int)readTimeout.TotalMilliseconds;
-            netstream.WriteTimeout = (int)writeTimeout.TotalMilliseconds;
 
             if (endpoint.Ssl.Enabled)
             {
                 try
                 {
+                    Stream netstream = _socket.GetStream();
+                    netstream.ReadTimeout = (int)readTimeout.TotalMilliseconds;
+                    netstream.WriteTimeout = (int)writeTimeout.TotalMilliseconds;
                     netstream = SslHelper.TcpUpgrade(netstream, endpoint.Ssl);
+                    _duplexPipe = StreamConnection.GetDuplex(netstream);
                 }
                 catch (Exception)
                 {
@@ -118,16 +124,21 @@ namespace RabbitMQ.Client.Impl
                     throw;
                 }
             }
-            m_reader = new NetworkBinaryReader(new BufferedStream(netstream, m_socket.Client.ReceiveBufferSize));
-            m_writer = new NetworkBinaryWriter(netstream);
+            else
+            {
+                _duplexPipe = SocketConnection.Create(_socket.Client);
+            }
 
+            _reader = new PipelineBinaryReader(_duplexPipe.Input);
+            _writer = new PipelineBinaryWriter(_duplexPipe.Output);
             WriteTimeout = writeTimeout;
         }
+
         public AmqpTcpEndpoint Endpoint { get; set; }
 
         public EndPoint LocalEndPoint
         {
-            get { return m_socket.Client.LocalEndPoint; }
+            get { return _socket.Client.LocalEndPoint; }
         }
 
         public int LocalPort
@@ -137,7 +148,7 @@ namespace RabbitMQ.Client.Impl
 
         public EndPoint RemoteEndPoint
         {
-            get { return m_socket.Client.RemoteEndPoint; }
+            get { return _socket.Client.RemoteEndPoint; }
         }
 
         public int RemotePort
@@ -151,9 +162,9 @@ namespace RabbitMQ.Client.Impl
             {
                 try
                 {
-                    if (m_socket.Connected)
+                    if (_socket.Connected)
                     {
-                        m_socket.ReceiveTimeout = value;
+                        _socket.ReceiveTimeout = value;
                     }
                 }
                 catch (SocketException)
@@ -165,92 +176,71 @@ namespace RabbitMQ.Client.Impl
 
         public TimeSpan WriteTimeout
         {
+            get => m_writeableStateTimeout;
             set
             {
                 m_writeableStateTimeout = value;
-                m_socket.Client.SendTimeout = (int)m_writeableStateTimeout.TotalMilliseconds;
-                m_writeableStateTimeoutMicroSeconds = m_socket.Client.SendTimeout * 1000;
+                _socket.Client.SendTimeout = (int)m_writeableStateTimeout.TotalMilliseconds;
             }
         }
 
         public void Close()
         {
-            lock (_semaphore)
+            if (!_connectionCancellation.IsCancellationRequested)
             {
-                if (!_closed)
-                {
-                    try
-                    {
-                        m_socket.Close();
-                    }
-                    catch (Exception)
-                    {
-                        // ignore, we are closing anyway
-                    }
-                    finally
-                    {
-                        _closed = true;
-                    }
-                }
+                _connectionCancellation.Cancel();
             }
+
+            _socket.Close();
+            _connectionCancellation.Dispose();
         }
 
-        public InboundFrame ReadFrame()
+        public ValueTask<InboundFrame> ReadFrameAsync()
         {
-            return RabbitMQ.Client.Impl.InboundFrame.ReadFrom(m_reader);
+            return InboundFrame.ReadFromAsync(_reader, _connectionCancellation.Token);
         }
 
         private static readonly byte[] amqp = Encoding.ASCII.GetBytes("AMQP");
         public void SendHeader()
         {
-            var ms = new MemoryStream();
-            var nbw = new NetworkBinaryWriter(ms);
-            nbw.Write(amqp);
-            byte one = (byte)1;
+            byte[] versionArray = ArrayPool<byte>.Shared.Rent(4);
             if (Endpoint.Protocol.Revision != 0)
             {
-                nbw.Write((byte)0);
-                nbw.Write((byte)Endpoint.Protocol.MajorVersion);
-                nbw.Write((byte)Endpoint.Protocol.MinorVersion);
-                nbw.Write((byte)Endpoint.Protocol.Revision);
+                versionArray[0] = 0;
+                versionArray[1] = (byte)Endpoint.Protocol.MajorVersion;
+                versionArray[2] = (byte)Endpoint.Protocol.MinorVersion;
+                versionArray[3] = (byte)Endpoint.Protocol.Revision;
             }
             else
             {
-                nbw.Write(one);
-                nbw.Write(one);
-                nbw.Write((byte)Endpoint.Protocol.MajorVersion);
-                nbw.Write((byte)Endpoint.Protocol.MinorVersion);
+                versionArray[0] = 1;
+                versionArray[1] = 1;
+                versionArray[2] = (byte)Endpoint.Protocol.MajorVersion;
+                versionArray[3] = (byte)Endpoint.Protocol.MinorVersion;
             }
-            Write(ms.GetBufferSegment());
+            _writer.Write(amqp);
+            _writer.Write(versionArray, 0, 4);
+            _writer.Flush();
+            ArrayPool<byte>.Shared.Return(versionArray);
         }
 
         public void WriteFrame(OutboundFrame frame)
         {
-            var ms = new MemoryStream();
-            var nbw = new NetworkBinaryWriter(ms);
-            frame.WriteTo(nbw);
-            m_socket.Client.Poll(m_writeableStateTimeoutMicroSeconds, SelectMode.SelectWrite);
-            Write(ms.GetBufferSegment());
+            _writeSemaphore.Wait();
+            frame.WriteTo(_writer);
+            _writer.Flush();
+            _writeSemaphore.Release();
         }
 
         public void WriteFrameSet(IList<OutboundFrame> frames)
         {
-            var ms = new MemoryStream();
-            var nbw = new NetworkBinaryWriter(ms);
-            for (var i = 0; i < frames.Count; ++i)
+            _writeSemaphore.Wait();
+            foreach (OutboundFrame frame in frames)
             {
-                frames[i].WriteTo(nbw);
+                frame.WriteTo(_writer);
             }
-            m_socket.Client.Poll(m_writeableStateTimeoutMicroSeconds, SelectMode.SelectWrite);
-            Write(ms.GetBufferSegment());
-        }
-
-        private void Write(ArraySegment<byte> bufferSegment)
-        {
-            lock (_streamLock)
-            {
-                m_writer.Write(bufferSegment.Array, bufferSegment.Offset, bufferSegment.Count);
-            }
+            _writer.Flush();
+            _writeSemaphore.Release();
         }
 
         private bool ShouldTryIPv6(AmqpTcpEndpoint endpoint)
@@ -277,10 +267,18 @@ namespace RabbitMQ.Client.Impl
                                                     TimeSpan timeout, AddressFamily family)
         {
             ITcpClient socket = socketFactory(family);
-            try {
+            try
+            {
                 ConnectOrFail(socket, endpoint, timeout);
                 return socket;
-            } catch (ConnectFailureException e) {
+            }
+            catch (ConnectFailureException e)
+            {
+                socket.Dispose();
+                throw e;
+            }
+            catch (Exception e)
+            {
                 socket.Dispose();
                 throw e;
             }
@@ -290,12 +288,12 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
-               socket.ConnectAsync(endpoint.HostName, endpoint.Port)
-                    .TimeoutAfter(timeout)
-                    .ConfigureAwait(false)
-                    // this ensures exceptions aren't wrapped in an AggregateException
-                    .GetAwaiter()
-                    .GetResult();
+                socket.ConnectAsync(endpoint.HostName, endpoint.Port)
+                     .TimeoutAfter(timeout)
+                     .ConfigureAwait(false)
+                     // this ensures exceptions aren't wrapped in an AggregateException
+                     .GetAwaiter()
+                     .GetResult();
             }
             catch (ArgumentException e)
             {
