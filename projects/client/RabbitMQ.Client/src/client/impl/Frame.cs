@@ -38,11 +38,12 @@
 //  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System.IO;
+using System.Net.Sockets;
+
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing;
 using RabbitMQ.Util;
-using System.IO;
-using System.Net.Sockets;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -59,15 +60,18 @@ namespace RabbitMQ.Client.Impl
 
         public override void WritePayload(NetworkBinaryWriter writer)
         {
-            var ms = new MemoryStream();
-            var nw = new NetworkBinaryWriter(ms);
+            using (var ms = PooledMemoryStream.GetMemoryStream())
+            {
+                using (var nw = new NetworkBinaryWriter(ms))
+                {
+                    nw.Write(header.ProtocolClassId);
+                    header.WriteTo(nw, (ulong)bodyLength);
 
-            nw.Write(header.ProtocolClassId);
-            header.WriteTo(nw, (ulong)bodyLength);
-
-            var bufferSegment = ms.GetBufferSegment();
-            writer.Write((uint)bufferSegment.Count);
-            writer.Write(bufferSegment.Array, bufferSegment.Offset, bufferSegment.Count);
+                    var bufferSegment = ms.GetBufferSegment();
+                    writer.Write((uint)bufferSegment.Count);
+                    writer.Write(bufferSegment.Array, bufferSegment.Offset, bufferSegment.Count);
+                }
+            }
         }
     }
 
@@ -102,19 +106,22 @@ namespace RabbitMQ.Client.Impl
 
         public override void WritePayload(NetworkBinaryWriter writer)
         {
-            var ms = new MemoryStream();
-            var nw = new NetworkBinaryWriter(ms);
+            using (var ms = PooledMemoryStream.GetMemoryStream())
+            {
+                using (var nw = new NetworkBinaryWriter(ms))
+                {
+                    nw.Write(method.ProtocolClassId);
+                    nw.Write(method.ProtocolMethodId);
 
-            nw.Write(method.ProtocolClassId);
-            nw.Write(method.ProtocolMethodId);
+                    var argWriter = new MethodArgumentWriter(nw);
+                    method.WriteArgumentsTo(argWriter);
+                    argWriter.Flush();
 
-            var argWriter = new MethodArgumentWriter(nw);
-            method.WriteArgumentsTo(argWriter);
-            argWriter.Flush();
-
-            var bufferSegment = ms.GetBufferSegment();
-            writer.Write((uint)bufferSegment.Count);
-            writer.Write(bufferSegment.Array, bufferSegment.Offset, bufferSegment.Count);
+                    var bufferSegment = ms.GetBufferSegment();
+                    writer.Write((uint)bufferSegment.Count);
+                    writer.Write(bufferSegment.Array, bufferSegment.Offset, bufferSegment.Count);
+                }
+            }
         }
     }
 

@@ -1,9 +1,9 @@
-﻿using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
-
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 
 namespace DeadlockRabbitMQ
 {
@@ -15,7 +15,6 @@ namespace DeadlockRabbitMQ
         private static int itemsPerBatch = 500;
         static async Task Main(string[] args)
         {
-            //ThreadPool.SetMinThreads(16 * Environment.ProcessorCount, 16 * Environment.ProcessorCount);
             var connectionString = new Uri("amqp://guest:guest@localhost/");
 
             var connectionFactory = new ConnectionFactory() { DispatchConsumersAsync = true, Uri = connectionString };
@@ -62,11 +61,6 @@ namespace DeadlockRabbitMQ
             await batchPublish;
 
             Console.WriteLine("Done receiving all messages.");
-            Console.ReadLine();
-            subscriber.Dispose();
-            publisher.Dispose();
-            connection.Dispose();
-            connection2.Dispose();
         }
 
         private static async Task AsyncListener_Received(object sender, BasicDeliverEventArgs @event)

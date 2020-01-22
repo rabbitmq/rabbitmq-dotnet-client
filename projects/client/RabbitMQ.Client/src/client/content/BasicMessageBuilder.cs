@@ -40,6 +40,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Content
@@ -73,7 +74,7 @@ namespace RabbitMQ.Client.Content
         public BasicMessageBuilder(IModel model, int initialAccumulatorSize)
         {
             Properties = model.CreateBasicProperties();
-            m_accumulator = new MemoryStream(initialAccumulatorSize);
+            m_accumulator = PooledMemoryStream.GetMemoryStream(initialAccumulatorSize);
 
             string contentType = GetDefaultContentType();
             if (contentType != null)
@@ -182,6 +183,6 @@ namespace RabbitMQ.Client.Content
         {
             BodyStream.Write(bytes, offset, length);
             return this;
-        }
+        }        
     }
 }
