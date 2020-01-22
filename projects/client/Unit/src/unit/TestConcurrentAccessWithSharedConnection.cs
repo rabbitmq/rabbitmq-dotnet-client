@@ -213,7 +213,6 @@ namespace RabbitMQ.Client.Unit
                 });
             }).ToArray();
 
-            //Task.WhenAll(tasks).Wait();
             Assert.IsTrue(latch.Wait(timeout));
             // incorrect frame interleaving in these tests will result
             // in an unrecoverable connection-level exception, thus
