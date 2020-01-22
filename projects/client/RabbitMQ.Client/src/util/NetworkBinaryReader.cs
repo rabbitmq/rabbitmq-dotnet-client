@@ -38,7 +38,10 @@
 //  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+using System.Buffers.Binary;
 using System.IO;
+using System.Security;
 using System.Text;
 
 namespace RabbitMQ.Util
@@ -78,32 +81,20 @@ namespace RabbitMQ.Util
         {
         }
 
-        ///<summary>Helper method for constructing a temporary
-        ///BinaryReader over a byte[].</summary>
-        public static BinaryReader TemporaryBinaryReader(byte[] bytes)
-        {
-            return new BinaryReader(new MemoryStream(bytes));
-        }
-
         /// <summary>
         /// Override BinaryReader's method for network-order.
         /// </summary>
         public override double ReadDouble()
         {
             byte[] bytes = ReadBytes(8);
-            byte temp = bytes[0];
-            bytes[0] = bytes[7];
-            bytes[7] = temp;
-            temp = bytes[1];
-            bytes[1] = bytes[6];
-            bytes[6] = temp;
-            temp = bytes[2];
-            bytes[2] = bytes[5];
-            bytes[5] = temp;
-            temp = bytes[3];
-            bytes[3] = bytes[4];
-            bytes[4] = temp;
-            return TemporaryBinaryReader(bytes).ReadDouble();
+            if (BitConverter.IsLittleEndian)
+            {
+                return BitConverter.Int64BitsToDouble(BinaryPrimitives.ReadInt64BigEndian(new ReadOnlySpan<byte>(bytes)));
+            }
+            else
+            {
+                return BitConverter.ToDouble(bytes, 0);
+            }
         }
 
         /// <summary>
@@ -111,9 +102,7 @@ namespace RabbitMQ.Util
         /// </summary>
         public override short ReadInt16()
         {
-            uint i = base.ReadUInt16();
-            return (short)(((i & 0xFF00) >> 8) |
-                           ((i & 0x00FF) << 8));
+            return BinaryPrimitives.ReadInt16BigEndian(new ReadOnlySpan<byte>(ReadBytes(2)));
         }
 
         /// <summary>
@@ -121,11 +110,7 @@ namespace RabbitMQ.Util
         /// </summary>
         public override int ReadInt32()
         {
-            uint i = base.ReadUInt32();
-            return (int)(((i & 0xFF000000) >> 24) |
-                         ((i & 0x00FF0000) >> 8) |
-                         ((i & 0x0000FF00) << 8) |
-                         ((i & 0x000000FF) << 24));
+            return BinaryPrimitives.ReadInt32BigEndian(new ReadOnlySpan<byte>(ReadBytes(4)));
         }
 
         /// <summary>
@@ -133,15 +118,7 @@ namespace RabbitMQ.Util
         /// </summary>
         public override long ReadInt64()
         {
-            ulong i = base.ReadUInt64();
-            return (long)(((i & 0xFF00000000000000) >> 56) |
-                          ((i & 0x00FF000000000000) >> 40) |
-                          ((i & 0x0000FF0000000000) >> 24) |
-                          ((i & 0x000000FF00000000) >> 8) |
-                          ((i & 0x00000000FF000000) << 8) |
-                          ((i & 0x0000000000FF0000) << 24) |
-                          ((i & 0x000000000000FF00) << 40) |
-                          ((i & 0x00000000000000FF) << 56));
+            return BinaryPrimitives.ReadInt64BigEndian(new ReadOnlySpan<byte>(ReadBytes(8)));
         }
 
         /// <summary>
@@ -156,7 +133,7 @@ namespace RabbitMQ.Util
             temp = bytes[1];
             bytes[1] = bytes[2];
             bytes[2] = temp;
-            return TemporaryBinaryReader(bytes).ReadSingle();
+            return BitConverter.ToSingle(bytes, 0);
         }
 
         /// <summary>
@@ -164,9 +141,7 @@ namespace RabbitMQ.Util
         /// </summary>
         public override ushort ReadUInt16()
         {
-            uint i = base.ReadUInt16();
-            return (ushort)(((i & 0xFF00) >> 8) |
-                            ((i & 0x00FF) << 8));
+            return BinaryPrimitives.ReadUInt16BigEndian(new ReadOnlySpan<byte>(ReadBytes(2)));
         }
 
         /// <summary>
@@ -174,11 +149,7 @@ namespace RabbitMQ.Util
         /// </summary>
         public override uint ReadUInt32()
         {
-            uint i = base.ReadUInt32();
-            return (((i & 0xFF000000) >> 24) |
-                    ((i & 0x00FF0000) >> 8) |
-                    ((i & 0x0000FF00) << 8) |
-                    ((i & 0x000000FF) << 24));
+            return BinaryPrimitives.ReadUInt32BigEndian(new ReadOnlySpan<byte>(ReadBytes(4)));
         }
 
         /// <summary>
@@ -186,15 +157,7 @@ namespace RabbitMQ.Util
         /// </summary>
         public override ulong ReadUInt64()
         {
-            ulong i = base.ReadUInt64();
-            return (((i & 0xFF00000000000000) >> 56) |
-                    ((i & 0x00FF000000000000) >> 40) |
-                    ((i & 0x0000FF0000000000) >> 24) |
-                    ((i & 0x000000FF00000000) >> 8) |
-                    ((i & 0x00000000FF000000) << 8) |
-                    ((i & 0x0000000000FF0000) << 24) |
-                    ((i & 0x000000000000FF00) << 40) |
-                    ((i & 0x00000000000000FF) << 56));
+            return BinaryPrimitives.ReadUInt64BigEndian(new ReadOnlySpan<byte>(ReadBytes(8)));
         }
     }
 }

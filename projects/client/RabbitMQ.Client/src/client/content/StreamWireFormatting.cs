@@ -38,6 +38,8 @@
 //  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+using System.Buffers;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -293,16 +295,25 @@ namespace RabbitMQ.Client.Content
 
         public static string ReadUntypedString(NetworkBinaryReader reader)
         {
-            BinaryWriter buffer = NetworkBinaryWriter.TemporaryBinaryWriter(256);
-            while (true)
+            byte[] array = null;
+            try
             {
-                byte b = reader.ReadByte();
-                if (b == 0)
+                array = ArrayPool<byte>.Shared.Rent(256);
+                int index = 0;
+                while (true)
                 {
-                    byte[] temporaryContents = NetworkBinaryWriter.TemporaryContents(buffer);
-                    return Encoding.UTF8.GetString(temporaryContents, 0, temporaryContents.Length);
+                    byte b = reader.ReadByte();
+                    if (b == 0)
+                    {
+                        return Encoding.UTF8.GetString(array, 0, index);
+                    }
+
+                    array[index++] = b;
                 }
-                buffer.Write(b);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(array);
             }
         }
 
