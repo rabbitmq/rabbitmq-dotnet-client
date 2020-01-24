@@ -11,17 +11,17 @@ namespace DeadlockRabbitMQ
     {
         private static int messagesSent = 0;
         private static int messagesReceived = 0;
-        private static int batchesToSend = 10;
+        private static int batchesToSend = 100;
         private static int itemsPerBatch = 500;
         static async Task Main(string[] args)
         {
+            ThreadPool.SetMinThreads(16 * Environment.ProcessorCount, 16 * Environment.ProcessorCount);
             var connectionString = new Uri("amqp://guest:guest@localhost/");
 
             var connectionFactory = new ConnectionFactory() { DispatchConsumersAsync = true, Uri = connectionString };
             var connection = connectionFactory.CreateConnection();
-            var connection2 = connectionFactory.CreateConnection();
             var publisher = connection.CreateModel();
-            var subscriber = connection2.CreateModel();
+            var subscriber = connection.CreateModel();
             publisher.ConfirmSelect();
             subscriber.ConfirmSelect();
 
@@ -33,7 +33,7 @@ namespace DeadlockRabbitMQ
             subscriber.QueueBind("testqueue", "test", "myawesome.routing.key");
             subscriber.BasicConsume("testqueue", false, asyncListener.ConsumerTag, asyncListener);
 
-            var batchPublish = Task.Run(() =>
+            var batchPublish = Task.Run(async () =>
             {
                 while (messagesSent < batchesToSend * itemsPerBatch)
                 {
@@ -46,21 +46,37 @@ namespace DeadlockRabbitMQ
                         batch.Add("test", "myawesome.routing.key", true, properties, BitConverter.GetBytes(i + messagesSent));
                     }
                     batch.Publish();
-                    publisher.WaitForConfirmsOrDie();
+                    await publisher.WaitForConfirmsOrDieAsync();
                     messagesSent += itemsPerBatch;
                 }
             });
 
-            while (messagesReceived < batchesToSend * itemsPerBatch)
+
+            var sentTask = Task.Run(async () =>
             {
-                Console.WriteLine($"Messages received: {messagesReceived}");
+                while (messagesSent < batchesToSend * itemsPerBatch)
+                {
+                    Console.WriteLine($"Messages sent: {messagesSent}");
 
-                await Task.Delay(500);
-            }
+                    await Task.Delay(500);
+                }
 
-            await batchPublish;
+                Console.WriteLine("Done sending messages!");
+            });
 
-            Console.WriteLine("Done receiving all messages.");
+            var receivedTask = Task.Run(async () =>
+            {
+                while (messagesReceived < batchesToSend * itemsPerBatch)
+                {
+                    Console.WriteLine($"Messages received: {messagesReceived}");
+
+                    await Task.Delay(500);
+                }
+
+                Console.WriteLine("Done receiving all messages.");
+            });
+
+            await Task.WhenAll(sentTask, receivedTask);
         }
 
         private static async Task AsyncListener_Received(object sender, BasicDeliverEventArgs @event)
@@ -72,19 +88,13 @@ namespace DeadlockRabbitMQ
             // to eventually be working with different references, or that's at least the current theory.
             // Moving to better synchronization constructs solves the issue, and using the ThreadPool
             // is standard practice as well to maximize core utilization and reduce overhead of Thread creation
-            await Task.WhenAll(IncrementCounter().AsTask(), WriteToConsole(@event.BasicProperties.CorrelationId, @event.Body).AsTask());
+            await IncrementCounter();
             (sender as AsyncEventingBasicConsumer).Model.BasicAck(@event.DeliveryTag, false);
         }
 
         private static ValueTask IncrementCounter()
         {
             Interlocked.Increment(ref messagesReceived);
-            return new ValueTask();
-        }
-
-        private static ValueTask WriteToConsole(string correlationId, byte[] body)
-        {
-            //Console.WriteLine($"Received event {correlationId} with value: {BitConverter.ToInt32(body, 0)}");
             return new ValueTask();
         }
     }

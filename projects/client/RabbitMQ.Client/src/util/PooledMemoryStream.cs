@@ -7,7 +7,7 @@ namespace RabbitMQ.Util
 {
     public static class PooledMemoryStream
     {
-        private static RecyclableMemoryStreamManager s_manager = new RecyclableMemoryStreamManager(4096, 1024 * 1024, 1024 * 1024 * 128);
+        private static RecyclableMemoryStreamManager s_manager = new RecyclableMemoryStreamManager();
         public static MemoryStream GetMemoryStream([CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
         {
             return s_manager.GetStream(memberName);

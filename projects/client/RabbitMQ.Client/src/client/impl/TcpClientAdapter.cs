@@ -4,6 +4,8 @@ using System.Net.Sockets;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Pipelines.Sockets.Unofficial;
+using System.IO;
 
 namespace RabbitMQ.Client
 {
@@ -32,11 +34,7 @@ namespace RabbitMQ.Client
                 throw new ArgumentException("No ip address could be resolved for " + host);
             }
 
-#if CORECLR
             await sock.ConnectAsync(ep, port).ConfigureAwait(false);
-#else
-            await Task.Run(() => sock.Connect(ep, port));
-#endif
         }
 
         public virtual void Close()
@@ -65,7 +63,7 @@ namespace RabbitMQ.Client
             // dispose unmanaged resources
         }
 
-        public virtual NetworkStream GetStream()
+        public virtual Stream GetStream()
         {
             AssertSocket();
             return new NetworkStream(sock);

@@ -40,6 +40,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO.Pipelines;
 
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Util;
@@ -83,19 +84,20 @@ namespace RabbitMQ.Client.Impl
             var f = new EmptyOutboundFrame();
             using (var stream = PooledMemoryStream.GetMemoryStream())
             {
-                using (var writer = new NetworkBinaryWriter(stream))
-                {
-                    f.WriteTo(writer);
-                    long actualLength = stream.Length;
+                var pipeWriter = PipeWriter.Create(stream);
+                var writer = new PipelineBinaryWriter(pipeWriter);
+                f.WriteTo(writer);
+                writer.Flush();
 
-                    if (EmptyFrameSize != actualLength)
-                    {
-                        string message =
-                            string.Format("EmptyFrameSize is incorrect - defined as {0} where the computed value is in fact {1}.",
-                                EmptyFrameSize,
-                                actualLength);
-                        throw new ProtocolViolationException(message);
-                    }
+                long actualLength = stream.Position;
+
+                if (EmptyFrameSize != actualLength)
+                {
+                    string message =
+                        string.Format("EmptyFrameSize is incorrect - defined as {0} where the computed value is in fact {1}.",
+                            EmptyFrameSize,
+                            actualLength);
+                    throw new ProtocolViolationException(message);
                 }
             }
         }

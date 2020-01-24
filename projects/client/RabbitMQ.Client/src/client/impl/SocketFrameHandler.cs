@@ -38,15 +38,20 @@
 //  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Util;
 using System;
-using System.IO;
-using System.Net;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Pipelines;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading.Channels;
 using System.Threading.Tasks;
+
+using Pipelines.Sockets.Unofficial;
+
+using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -74,13 +79,19 @@ namespace RabbitMQ.Client.Impl
         // become writeable in this amount of time, we throw
         // an exception.
         private int m_writeableStateTimeout = 30000;
-        private readonly NetworkBinaryReader m_reader;
+        private readonly PipelineBinaryReader m_reader;
+        private readonly PipeReader _pipeReader;
+        private readonly PipeWriter _pipeWriter;
         private readonly ITcpClient m_socket;
-        private readonly NetworkBinaryWriter m_writer;
+        private readonly PipelineBinaryWriter m_writer;
         private readonly object _semaphore = new object();
         private readonly object _sslStreamLock = new object();
+        private readonly Channel<InboundFrame> _inboundFrames = Channel.CreateUnbounded<InboundFrame>();
+        private readonly Channel<OutboundFrame> _outboundFrames = Channel.CreateUnbounded<OutboundFrame>();
+        private Task _readerTask;
+        private Task _writerTask;
         private bool _closed;
-        private bool _ssl = false;
+
         public SocketFrameHandler(AmqpTcpEndpoint endpoint,
             Func<AddressFamily, ITcpClient> socketFactory,
             int connectionTimeout, int readTimeout, int writeTimeout)
@@ -89,9 +100,11 @@ namespace RabbitMQ.Client.Impl
 
             if (ShouldTryIPv6(endpoint))
             {
-                try {
+                try
+                {
                     m_socket = ConnectUsingIPv6(endpoint, socketFactory, connectionTimeout);
-                } catch (ConnectFailureException)
+                }
+                catch (ConnectFailureException)
                 {
                     m_socket = null;
                 }
@@ -102,16 +115,17 @@ namespace RabbitMQ.Client.Impl
                 m_socket = ConnectUsingIPv4(endpoint, socketFactory, connectionTimeout);
             }
 
-            Stream netstream = m_socket.GetStream();
-            netstream.ReadTimeout  = readTimeout;
-            netstream.WriteTimeout = writeTimeout;
-
             if (endpoint.Ssl.Enabled)
             {
                 try
                 {
+                    Stream netstream = m_socket.GetStream();
+                    netstream.ReadTimeout = readTimeout;
+                    netstream.WriteTimeout = writeTimeout;
                     netstream = SslHelper.TcpUpgrade(netstream, endpoint.Ssl);
-                    _ssl = true;
+                    IDuplexPipe connection = StreamConnection.GetDuplex(netstream);
+                    _pipeReader = connection.Input;
+                    _pipeWriter = connection.Output;
                 }
                 catch (Exception)
                 {
@@ -119,8 +133,17 @@ namespace RabbitMQ.Client.Impl
                     throw;
                 }
             }
-            m_reader = new NetworkBinaryReader(new BufferedStream(netstream, m_socket.Client.ReceiveBufferSize));
-            m_writer = new NetworkBinaryWriter(netstream);
+            else
+            {
+                SocketConnection connection = SocketConnection.Create(m_socket.Client);
+                _pipeReader = connection.Input;
+                _pipeWriter = connection.Output;
+            }
+
+            m_reader = new PipelineBinaryReader(_pipeReader);
+            m_writer = new PipelineBinaryWriter(_pipeWriter);
+            _readerTask = Task.Run(ParseFrames);
+            _writerTask = Task.Run(WriteFrames);
 
             m_writeableStateTimeout = writeTimeout;
         }
@@ -181,6 +204,8 @@ namespace RabbitMQ.Client.Impl
                 {
                     try
                     {
+                        _inboundFrames.Writer.Complete();
+                        _outboundFrames.Writer.Complete();
                         m_socket.Close();
                     }
                     catch (Exception)
@@ -193,83 +218,84 @@ namespace RabbitMQ.Client.Impl
                     }
                 }
             }
+
+            _readerTask.Wait();
         }
 
-        public InboundFrame ReadFrame()
+        public async ValueTask<InboundFrame> ReadFrameAsync()
         {
-            return RabbitMQ.Client.Impl.InboundFrame.ReadFrom(m_reader);
+            if (!_inboundFrames.Reader.Completion.IsCompleted)
+            {
+                return await _inboundFrames.Reader.ReadAsync();
+            }
+
+            return default;
+        }
+
+        public async Task ParseFrames()
+        {
+            while (!_closed)
+            {
+                try
+                {
+                    _inboundFrames.Writer.TryWrite(await RabbitMQ.Client.Impl.InboundFrame.ReadFromAsync(m_reader));
+                }
+                catch (Exception ex)
+                {
+                    string test = ex.ToString();
+                }
+            }
+        }
+
+        public async Task WriteFrames()
+        {
+            while (await _outboundFrames.Reader.WaitToReadAsync())
+            {
+                while (_outboundFrames.Reader.TryRead(out OutboundFrame frame))
+                {
+                    frame.WriteTo(m_writer);
+                }
+
+                await m_writer.FlushAsync();
+            }
         }
 
         private static readonly byte[] amqp = Encoding.ASCII.GetBytes("AMQP");
         public void SendHeader()
         {
-            using (var ms = PooledMemoryStream.GetMemoryStream())
+            lock (_sslStreamLock)
             {
-                using (var nbw = new NetworkBinaryWriter(ms))
+                m_writer.Write(amqp);
+                byte one = (byte)1;
+                if (Endpoint.Protocol.Revision != 0)
                 {
-                    nbw.Write(amqp);
-                    byte one = (byte)1;
-                    if (Endpoint.Protocol.Revision != 0)
-                    {
-                        nbw.Write((byte)0);
-                        nbw.Write((byte)Endpoint.Protocol.MajorVersion);
-                        nbw.Write((byte)Endpoint.Protocol.MinorVersion);
-                        nbw.Write((byte)Endpoint.Protocol.Revision);
-                    }
-                    else
-                    {
-                        nbw.Write(one);
-                        nbw.Write(one);
-                        nbw.Write((byte)Endpoint.Protocol.MajorVersion);
-                        nbw.Write((byte)Endpoint.Protocol.MinorVersion);
-                    }
-
-                    Write(ms.GetBufferSegment());
+                    m_writer.Write((byte)0);
+                    m_writer.Write((byte)Endpoint.Protocol.MajorVersion);
+                    m_writer.Write((byte)Endpoint.Protocol.MinorVersion);
+                    m_writer.Write((byte)Endpoint.Protocol.Revision);
                 }
+                else
+                {
+                    m_writer.Write(one);
+                    m_writer.Write(one);
+                    m_writer.Write((byte)Endpoint.Protocol.MajorVersion);
+                    m_writer.Write((byte)Endpoint.Protocol.MinorVersion);
+                }
+
+                m_writer.Flush();
             }
         }
 
         public void WriteFrame(OutboundFrame frame)
         {
-            using (var ms = PooledMemoryStream.GetMemoryStream())
-            {
-                using (var nbw = new NetworkBinaryWriter(ms))
-                {
-                    frame.WriteTo(nbw);
-                    m_socket.Client.Poll(m_writeableStateTimeout, SelectMode.SelectWrite);
-                    Write(ms.GetBufferSegment());
-                }
-            }
+            _outboundFrames.Writer.TryWrite(frame);
         }
 
         public void WriteFrameSet(IList<OutboundFrame> frames)
         {
-            using (var ms = PooledMemoryStream.GetMemoryStream())
+            foreach (var frame in frames)
             {
-                using (var nbw = new NetworkBinaryWriter(ms))
-                {
-                    for (var i = 0; i < frames.Count; ++i)
-                    {
-                        frames[i].WriteTo(nbw);
-                    }
-                    m_socket.Client.Poll(m_writeableStateTimeout, SelectMode.SelectWrite);
-                    Write(ms.GetBufferSegment());
-                }
-            }
-        }
-
-        private void Write(ArraySegment<byte> bufferSegment)
-        {
-            if(_ssl)
-            {
-                lock (_sslStreamLock)
-                {
-                    m_writer.Write(bufferSegment.Array, bufferSegment.Offset, bufferSegment.Count);
-                }
-            }
-            else
-            {
-                m_writer.Write(bufferSegment.Array, bufferSegment.Offset, bufferSegment.Count);
+                _outboundFrames.Writer.TryWrite(frame);
             }
         }
 
@@ -297,10 +323,18 @@ namespace RabbitMQ.Client.Impl
                                                     int timeout, AddressFamily family)
         {
             ITcpClient socket = socketFactory(family);
-            try {
+            try
+            {
                 ConnectOrFail(socket, endpoint, timeout);
                 return socket;
-            } catch (ConnectFailureException e) {
+            }
+            catch (ConnectFailureException e)
+            {
+                socket.Dispose();
+                throw e;
+            }
+            catch (Exception e)
+            {
                 socket.Dispose();
                 throw e;
             }
@@ -310,12 +344,12 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
-               socket.ConnectAsync(endpoint.HostName, endpoint.Port)
-                    .TimeoutAfter(timeout)
-                    .ConfigureAwait(false)
-                    // this ensures exceptions aren't wrapped in an AggregateException
-                    .GetAwaiter()
-                    .GetResult();
+                socket.ConnectAsync(endpoint.HostName, endpoint.Port)
+                     .TimeoutAfter(timeout)
+                     .ConfigureAwait(false)
+                     // this ensures exceptions aren't wrapped in an AggregateException
+                     .GetAwaiter()
+                     .GetResult();
             }
             catch (ArgumentException e)
             {

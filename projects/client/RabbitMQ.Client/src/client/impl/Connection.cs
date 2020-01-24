@@ -445,7 +445,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<remarks>
         /// Loop only used while quiescing. Use only to cleanly close connection
         ///</remarks>
-        public void ClosingLoop()
+        public async Task ClosingLoop()
         {
             try
             {
@@ -453,7 +453,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 // Wait for response/socket closure or timeout
                 while (!m_closed)
                 {
-                    MainLoopIteration();
+                    await MainLoopIteration();
                 }
             }
             catch (ObjectDisposedException ode)
@@ -595,7 +595,7 @@ namespace RabbitMQ.Client.Framing.Impl
             m_shutdownReport.Add(new ShutdownReportEntry(error, ex));
         }
 
-        public void MainLoop()
+        public async Task MainLoop()
         {
             try
             {
@@ -606,7 +606,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     {
                         try
                         {
-                            MainLoopIteration();
+                            await MainLoopIteration();
                         }
                         catch (SoftProtocolException spe)
                         {
@@ -643,7 +643,7 @@ namespace RabbitMQ.Client.Framing.Impl
 #pragma warning disable 0168
                     try
                     {
-                        ClosingLoop();
+                        await ClosingLoop();
                     }
                     catch (SocketException se)
                     {
@@ -662,10 +662,9 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public void MainLoopIteration()
+        public async Task MainLoopIteration()
         {
-            InboundFrame frame = m_frameHandler.ReadFrame();
-
+            InboundFrame frame = await m_frameHandler.ReadFrameAsync();
             NotifyHeartbeatListener();
             // We have received an actual frame.
             if (frame.IsHeartbeat())
