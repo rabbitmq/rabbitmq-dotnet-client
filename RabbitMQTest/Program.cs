@@ -16,6 +16,7 @@ namespace DeadlockRabbitMQ
         static async Task Main(string[] args)
         {
             ThreadPool.SetMinThreads(16 * Environment.ProcessorCount, 16 * Environment.ProcessorCount);
+            Console.ReadLine();
             var connectionString = new Uri("amqp://guest:guest@localhost/");
 
             var connectionFactory = new ConnectionFactory() { DispatchConsumersAsync = true, Uri = connectionString };
@@ -77,6 +78,7 @@ namespace DeadlockRabbitMQ
             });
 
             await Task.WhenAll(sentTask, receivedTask);
+            Console.ReadLine();
         }
 
         private static async Task AsyncListener_Received(object sender, BasicDeliverEventArgs @event)

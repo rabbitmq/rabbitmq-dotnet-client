@@ -22,8 +22,12 @@ namespace RabbitMQ.Util
             ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
             while (result.Buffer.Length < 8)
             {
-                _reader.AdvanceTo(result.Buffer.Start, result.Buffer.End);
+                if (result.Buffer.Length > 0)
+                {
+                    _reader.AdvanceTo(result.Buffer.Start);
+                }
                 await Task.Yield();
+                result = await _reader.ReadAsync().ConfigureAwait(false);
             }
 
             ReadOnlySequence<byte> slice = result.Buffer.Slice(0, 8);
@@ -37,8 +41,12 @@ namespace RabbitMQ.Util
             ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
             while (result.Buffer.Length < 4)
             {
-                _reader.AdvanceTo(result.Buffer.Start, result.Buffer.End);
+                if (result.Buffer.Length > 0)
+                {
+                    _reader.AdvanceTo(result.Buffer.Start);
+                }
                 await Task.Yield();
+                result = await _reader.ReadAsync().ConfigureAwait(false);
             }
 
             ReadOnlySequence<byte> slice = result.Buffer.Slice(0, 4);
@@ -52,8 +60,12 @@ namespace RabbitMQ.Util
             ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
             while (result.Buffer.Length < 2)
             {
-                _reader.AdvanceTo(result.Buffer.Start, result.Buffer.End);
+                if (result.Buffer.Length > 0)
+                {
+                    _reader.AdvanceTo(result.Buffer.Start);
+                }
                 await Task.Yield();
+                result = await _reader.ReadAsync().ConfigureAwait(false);
             }
 
             ReadOnlySequence<byte> slice = result.Buffer.Slice(0, 2);
@@ -67,8 +79,12 @@ namespace RabbitMQ.Util
             ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
             while (result.Buffer.Length < 2)
             {
-                _reader.AdvanceTo(result.Buffer.Start, result.Buffer.End);
+                if (result.Buffer.Length > 0)
+                {
+                    _reader.AdvanceTo(result.Buffer.Start);
+                }
                 await Task.Yield();
+                result = await _reader.ReadAsync().ConfigureAwait(false);
             }
 
             ReadOnlySequence<byte> slice = result.Buffer.Slice(0, 2);
@@ -83,8 +99,12 @@ namespace RabbitMQ.Util
             ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
             while (result.Buffer.Length < 4)
             {
-                _reader.AdvanceTo(result.Buffer.Start, result.Buffer.End);
+                if (result.Buffer.Length > 0)
+                {
+                    _reader.AdvanceTo(result.Buffer.Start);
+                }
                 await Task.Yield();
+                result = await _reader.ReadAsync().ConfigureAwait(false);
             }
 
             ReadOnlySequence<byte> slice = result.Buffer.Slice(0, 4);
@@ -98,8 +118,12 @@ namespace RabbitMQ.Util
             ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
             while (result.Buffer.Length < 4)
             {
-                _reader.AdvanceTo(result.Buffer.Start, result.Buffer.End);
+                if (result.Buffer.Length > 0)
+                {
+                    _reader.AdvanceTo(result.Buffer.Start);
+                }
                 await Task.Yield();
+                result = await _reader.ReadAsync().ConfigureAwait(false);
             }
 
             ReadOnlySequence<byte> slice = result.Buffer.Slice(0, 4);
@@ -113,8 +137,12 @@ namespace RabbitMQ.Util
             ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
             while (result.Buffer.Length < 8)
             {
-                _reader.AdvanceTo(result.Buffer.Start, result.Buffer.End);
+                if (result.Buffer.Length > 0)
+                {
+                    _reader.AdvanceTo(result.Buffer.Start);
+                }
                 await Task.Yield();
+                result = await _reader.ReadAsync().ConfigureAwait(false);
             }
 
             ReadOnlySequence<byte> slice = result.Buffer.Slice(0, 8);
@@ -128,8 +156,12 @@ namespace RabbitMQ.Util
             ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
             while (result.Buffer.Length < 8)
             {
-                _reader.AdvanceTo(result.Buffer.Start, result.Buffer.End);
+                if (result.Buffer.Length > 0)
+                {
+                    _reader.AdvanceTo(result.Buffer.Start);
+                }
                 await Task.Yield();
+                result = await _reader.ReadAsync().ConfigureAwait(false);
             }
 
             ReadOnlySequence<byte> slice = result.Buffer.Slice(0, 8);
@@ -143,7 +175,6 @@ namespace RabbitMQ.Util
             ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
             while (result.Buffer.Length < 1)
             {
-                _reader.AdvanceTo(result.Buffer.Start, result.Buffer.End);
                 await Task.Yield();
                 result = await _reader.ReadAsync().ConfigureAwait(false);
             }
@@ -162,7 +193,6 @@ namespace RabbitMQ.Util
                 ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
                 while (result.Buffer.Length == 0)
                 {
-                    _reader.AdvanceTo(result.Buffer.End);
                     await Task.Yield();
                     result = await _reader.ReadAsync().ConfigureAwait(false);
                 }

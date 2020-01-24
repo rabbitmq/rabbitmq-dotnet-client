@@ -46,6 +46,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Framing.Impl
@@ -558,7 +559,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 if (ShouldTriggerConnectionRecovery(args))
                 {
-                    if (!m_recoveryLoopCommandQueue.TryAdd(RecoveryCommand.BeginAutomaticRecovery))
+                    if (!m_recoveryLoopCommandQueue.Writer.TryWrite(RecoveryCommand.BeginAutomaticRecovery))
                     {
                         ESLog.Warn("Failed to notify RecoveryLoop to BeginAutomaticRecovery.");
                     }
@@ -1016,7 +1017,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private Task m_recoveryTask;
         private RecoveryConnectionState m_recoveryLoopState = RecoveryConnectionState.Connected;
 
-        private readonly BlockingCollection<RecoveryCommand> m_recoveryLoopCommandQueue = new BlockingCollection<RecoveryCommand>();
+        private readonly Channel<RecoveryCommand> m_recoveryLoopCommandQueue = Channel.CreateUnbounded<RecoveryCommand>();
         private readonly CancellationTokenSource m_recoveryCancellationToken = new CancellationTokenSource();
         private readonly TaskCompletionSource<int> m_recoveryLoopComplete = new TaskCompletionSource<int>();
 
@@ -1027,8 +1028,9 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             try
             {
-                while (m_recoveryLoopCommandQueue.TryTake(out var command, -1, m_recoveryCancellationToken.Token))
+                while (await m_recoveryLoopCommandQueue.Reader.WaitToReadAsync(m_recoveryCancellationToken.Token))
                 {
+                    var command = await m_recoveryLoopCommandQueue.Reader.ReadAsync(m_recoveryCancellationToken.Token);
                     switch (m_recoveryLoopState)
                     {
                         case RecoveryConnectionState.Connected:
@@ -1087,7 +1089,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     else
                     {
                         await Task.Delay(m_factory.NetworkRecoveryInterval);
-                        m_recoveryLoopCommandQueue.TryAdd(RecoveryCommand.PerformAutomaticRecovery);
+                        m_recoveryLoopCommandQueue.Writer.TryWrite(RecoveryCommand.PerformAutomaticRecovery);
                     }
 
                     break;
@@ -1111,7 +1113,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 case RecoveryCommand.BeginAutomaticRecovery:
                     m_recoveryLoopState = RecoveryConnectionState.Recovering;
                     await Task.Delay(m_factory.NetworkRecoveryInterval).ConfigureAwait(false);
-                    m_recoveryLoopCommandQueue.TryAdd(RecoveryCommand.PerformAutomaticRecovery);
+                    m_recoveryLoopCommandQueue.Writer.TryWrite(RecoveryCommand.PerformAutomaticRecovery);
                     break;
                 default:
                     ESLog.Warn($"RecoveryLoop command {command} is out of range.");
