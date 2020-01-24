@@ -65,7 +65,37 @@ namespace RabbitMQ.Client.Unit
             TestConsumerCancel("queue_consumer_cancel_event", true, ref notifiedEvent, ref consumerTag);
         }
 
-        public void TestConsumerCancel(string queue, bool EventMode, ref bool notified, ref string consumerTag)
+        [Test]
+        public void TestCorrectConsumerTag()
+        {
+            string q1 = GenerateQueueName();
+            string q2 = GenerateQueueName();
+
+            Model.QueueDeclare(q1, false, false, false, null);
+            Model.QueueDeclare(q2, false, false, false, null);
+
+            EventingBasicConsumer consumer = new EventingBasicConsumer(Model);
+            string consumerTag1 = Model.BasicConsume(q1, true, consumer);
+            string consumerTag2 = Model.BasicConsume(q2, true, consumer);
+
+            string notifiedConsumerTag = null;
+            consumer.ConsumerCancelled += (sender, args) =>
+            {
+                lock (lockObject)
+                {
+                    notifiedConsumerTag = args.ConsumerTag;
+                    Monitor.PulseAll(lockObject);
+                }
+            };
+
+            Model.QueueDelete(q1);
+            WaitOn(lockObject);
+            Assert.AreEqual(consumerTag1, notifiedConsumerTag);
+
+            Model.QueueDelete(q2);
+        }
+
+        public void TestConsumerCancel(string queue, bool EventMode, ref bool notified)
         {
             Model.QueueDeclare(queue, false, true, false, null);
             IBasicConsumer consumer = new CancelNotificationConsumer(Model, this, EventMode);
