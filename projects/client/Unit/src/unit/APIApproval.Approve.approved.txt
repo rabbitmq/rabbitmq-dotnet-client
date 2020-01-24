@@ -42,7 +42,7 @@ namespace RabbitMQ.Client
     {
         public AsyncDefaultBasicConsumer() { }
         public AsyncDefaultBasicConsumer(RabbitMQ.Client.IModel model) { }
-        public string ConsumerTag { get; set; }
+        public string[] ConsumerTags { get; }
         public bool IsRunning { get; set; }
         public RabbitMQ.Client.IModel Model { get; set; }
         public RabbitMQ.Client.ShutdownEventArgs ShutdownReason { get; set; }
@@ -53,7 +53,7 @@ namespace RabbitMQ.Client
         public virtual System.Threading.Tasks.Task HandleBasicConsumeOk(string consumerTag) { }
         public virtual System.Threading.Tasks.Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, RabbitMQ.Client.IBasicProperties properties, byte[] body) { }
         public virtual System.Threading.Tasks.Task HandleModelShutdown(object model, RabbitMQ.Client.ShutdownEventArgs reason) { }
-        public virtual System.Threading.Tasks.Task OnCancel() { }
+        public virtual System.Threading.Tasks.Task OnCancel(params string[] consumerTags) { }
     }
     public interface AuthMechanism
     {
@@ -147,7 +147,7 @@ namespace RabbitMQ.Client
         public System.EventHandler<RabbitMQ.Client.Events.ConsumerEventArgs> m_consumerCancelled;
         public DefaultBasicConsumer() { }
         public DefaultBasicConsumer(RabbitMQ.Client.IModel model) { }
-        public string ConsumerTag { get; set; }
+        public string[] ConsumerTags { get; }
         public bool IsRunning { get; set; }
         public RabbitMQ.Client.IModel Model { get; set; }
         public RabbitMQ.Client.ShutdownEventArgs ShutdownReason { get; set; }
@@ -157,7 +157,7 @@ namespace RabbitMQ.Client
         public virtual void HandleBasicConsumeOk(string consumerTag) { }
         public virtual void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, RabbitMQ.Client.IBasicProperties properties, byte[] body) { }
         public virtual void HandleModelShutdown(object model, RabbitMQ.Client.ShutdownEventArgs reason) { }
-        public virtual void OnCancel() { }
+        public virtual void OnCancel(params string[] consumerTags) { }
     }
     public class DefaultEndpointResolver : RabbitMQ.Client.IEndpointResolver
     {
@@ -1049,8 +1049,8 @@ namespace RabbitMQ.Client.Events
     }
     public class ConsumerEventArgs : System.EventArgs
     {
-        public ConsumerEventArgs(string consumerTag) { }
-        public string ConsumerTag { get; }
+        public ConsumerEventArgs(string[] consumerTags) { }
+        public string[] ConsumerTags { get; }
     }
     public sealed class ConsumerTagChangedAfterRecoveryEventArgs : System.EventArgs
     {

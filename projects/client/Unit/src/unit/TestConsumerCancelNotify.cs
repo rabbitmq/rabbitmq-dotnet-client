@@ -41,6 +41,7 @@
 using NUnit.Framework;
 using RabbitMQ.Client.Events;
 using System;
+using System.Linq;
 using System.Threading;
 
 namespace RabbitMQ.Client.Unit
@@ -56,13 +57,13 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestConsumerCancelNotification()
         {
-            TestConsumerCancel("queue_consumer_cancel_notify", false, ref notifiedCallback, ref consumerTag);
+            TestConsumerCancel("queue_consumer_cancel_notify", false, ref notifiedCallback);
         }
 
         [Test]
         public void TestConsumerCancelEvent()
         {
-            TestConsumerCancel("queue_consumer_cancel_event", true, ref notifiedEvent, ref consumerTag);
+            TestConsumerCancel("queue_consumer_cancel_event", true, ref notifiedEvent);
         }
 
         [Test]
@@ -83,7 +84,7 @@ namespace RabbitMQ.Client.Unit
             {
                 lock (lockObject)
                 {
-                    notifiedConsumerTag = args.ConsumerTag;
+                    notifiedConsumerTag = args.ConsumerTags.First();
                     Monitor.PulseAll(lockObject);
                 }
             };
