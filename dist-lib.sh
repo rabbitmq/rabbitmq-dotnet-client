@@ -37,7 +37,7 @@
 ##  The Original Code is RabbitMQ.
 ##
 ##  The Initial Developer of the Original Code is GoPivotal, Inc.
-##  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
+##  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 ##---------------------------------------------------------------------------
 
 function assembly-version {
