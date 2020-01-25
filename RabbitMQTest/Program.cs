@@ -21,8 +21,9 @@ namespace DeadlockRabbitMQ
 
             var connectionFactory = new ConnectionFactory() { DispatchConsumersAsync = true, Uri = connectionString };
             var connection = connectionFactory.CreateConnection();
+            var connection2 = connectionFactory.CreateConnection();
             var publisher = connection.CreateModel();
-            var subscriber = connection.CreateModel();
+            var subscriber = connection2.CreateModel();
             publisher.ConfirmSelect();
             subscriber.ConfirmSelect();
 
@@ -32,8 +33,9 @@ namespace DeadlockRabbitMQ
             var asyncListener = new AsyncEventingBasicConsumer(subscriber) { ConsumerTag = "testconsumer" };
             asyncListener.Received += AsyncListener_Received;
             subscriber.QueueBind("testqueue", "test", "myawesome.routing.key");
-            subscriber.BasicConsume("testqueue", false, asyncListener.ConsumerTag, asyncListener);
+            subscriber.BasicConsume("testqueue", true, asyncListener.ConsumerTag, asyncListener);
 
+            byte[] payload = new byte[16384];
             var batchPublish = Task.Run(async () =>
             {
                 while (messagesSent < batchesToSend * itemsPerBatch)
@@ -44,7 +46,7 @@ namespace DeadlockRabbitMQ
                         var properties = publisher.CreateBasicProperties();
                         properties.AppId = "testapp";
                         properties.CorrelationId = Guid.NewGuid().ToString();
-                        batch.Add("test", "myawesome.routing.key", true, properties, BitConverter.GetBytes(i + messagesSent));
+                        batch.Add("test", "myawesome.routing.key", true, properties, payload);
                     }
                     batch.Publish();
                     await publisher.WaitForConfirmsOrDieAsync();
@@ -81,7 +83,7 @@ namespace DeadlockRabbitMQ
             Console.ReadLine();
         }
 
-        private static async Task AsyncListener_Received(object sender, BasicDeliverEventArgs @event)
+        private static Task AsyncListener_Received(object sender, BasicDeliverEventArgs @event)
         {
             // Doing things in parallel here is what will eventually trigger the deadlock,
             // probably due to a race condition in AsyncConsumerWorkService.Loop, although
@@ -90,14 +92,8 @@ namespace DeadlockRabbitMQ
             // to eventually be working with different references, or that's at least the current theory.
             // Moving to better synchronization constructs solves the issue, and using the ThreadPool
             // is standard practice as well to maximize core utilization and reduce overhead of Thread creation
-            await IncrementCounter();
-            (sender as AsyncEventingBasicConsumer).Model.BasicAck(@event.DeliveryTag, false);
-        }
-
-        private static ValueTask IncrementCounter()
-        {
             Interlocked.Increment(ref messagesReceived);
-            return new ValueTask();
+            return Task.CompletedTask;
         }
     }
 }

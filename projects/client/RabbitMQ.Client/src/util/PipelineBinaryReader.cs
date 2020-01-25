@@ -170,7 +170,7 @@ namespace RabbitMQ.Util
             return returnValue;
         }
 
-        public async Task<byte> ReadByteAsync()
+        public async ValueTask<byte> ReadByteAsync()
         {
             ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
             while (result.Buffer.Length < 1)
@@ -185,7 +185,7 @@ namespace RabbitMQ.Util
             return returnValue;
         }
 
-        public async Task ReadBytesAsync(byte[] buffer, int position, int length)
+        public async ValueTask ReadBytesAsync(byte[] buffer, int position, int length)
         {
             int bytesRemaining = length;
             while (bytesRemaining > 0)
