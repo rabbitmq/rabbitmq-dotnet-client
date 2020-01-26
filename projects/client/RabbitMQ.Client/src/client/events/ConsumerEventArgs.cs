@@ -46,15 +46,15 @@ namespace RabbitMQ.Client.Events
     ///or cancellation.</summary>
     public class ConsumerEventArgs : EventArgs
     {
-        ///<summary>Construct an event containing the consumer-tag of
+        ///<summary>Construct an event containing the consumer-tags of
         ///the consumer the event relates to.</summary>
-        public ConsumerEventArgs(string consumerTag)
+        public ConsumerEventArgs(string[] consumerTags)
         {
-            ConsumerTag = consumerTag;
+            ConsumerTags = consumerTags;
         }
 
-        ///<summary>Access the consumer-tag of the consumer the event
+        ///<summary>Access the consumer-tags of the consumer the event
         ///relates to.</summary>
-        public string ConsumerTag { get; private set; }
+        public string[] ConsumerTags { get; private set; }
     }
 }

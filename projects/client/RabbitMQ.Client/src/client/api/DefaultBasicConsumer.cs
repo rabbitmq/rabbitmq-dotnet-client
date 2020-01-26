@@ -39,6 +39,8 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Util;
 
@@ -56,6 +58,7 @@ namespace RabbitMQ.Client
     public class DefaultBasicConsumer : IBasicConsumer
     {
         private readonly object m_eventLock = new object();
+        private readonly HashSet<string> m_consumerTags = new HashSet<string>();
         public EventHandler<ConsumerEventArgs> m_consumerCancelled;
 
         /// <summary>
@@ -66,7 +69,6 @@ namespace RabbitMQ.Client
             ShutdownReason = null;
             Model = null;
             IsRunning = false;
-            ConsumerTag = null;
         }
 
         /// <summary>
@@ -77,15 +79,21 @@ namespace RabbitMQ.Client
         {
             ShutdownReason = null;
             IsRunning = false;
-            ConsumerTag = null;
             Model = model;
         }
 
         /// <summary>
-        /// Retrieve the consumer tag this consumer is registered as; to be used when discussing this consumer
-        /// with the server, for instance with <see cref="IModel.BasicCancel"/>.
+        /// Retrieve the consumer tags this consumer is registered as; to be used to identify
+        /// this consumer, for example, when cancelling it with <see cref="IModel.BasicCancel"/>.
+        /// This value is an array because a single consumer instance can be reused to consume on
+        /// multiple channels.
         /// </summary>
-        public string ConsumerTag { get; set; }
+        public string[] ConsumerTags {
+            get
+            {
+                return m_consumerTags.ToArray();
+            }
+        }
 
         /// <summary>
         /// Returns true while the consumer is registered and expecting deliveries from the broker.
@@ -133,7 +141,7 @@ namespace RabbitMQ.Client
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
         public virtual void HandleBasicCancel(string consumerTag)
         {
-            OnCancel();
+            OnCancel(consumerTag);
         }
 
         /// <summary>
@@ -142,7 +150,7 @@ namespace RabbitMQ.Client
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
         public virtual void HandleBasicCancelOk(string consumerTag)
         {
-            OnCancel();
+            OnCancel(consumerTag);
         }
 
         /// <summary>
@@ -151,7 +159,7 @@ namespace RabbitMQ.Client
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
         public virtual void HandleBasicConsumeOk(string consumerTag)
         {
-            ConsumerTag = consumerTag;
+            m_consumerTags.Add(consumerTag);
             IsRunning = true;
         }
 
@@ -182,16 +190,17 @@ namespace RabbitMQ.Client
         public virtual void HandleModelShutdown(object model, ShutdownEventArgs reason)
         {
             ShutdownReason = reason;
-            OnCancel();
+            OnCancel(m_consumerTags.ToArray());
         }
 
         /// <summary>
         /// Default implementation - overridable in subclasses.</summary>
+        /// <param name="consumerTags">The set of consumer tags that where cancelled</param>
         /// <remarks>
         /// This default implementation simply sets the <see cref="IsRunning"/> 
         /// property to false, and takes no further action.
         /// </remarks>
-        public virtual void OnCancel()
+        public virtual void OnCancel(params string[] consumerTags)
         {
             IsRunning = false;
             EventHandler<ConsumerEventArgs> handler;
@@ -203,8 +212,13 @@ namespace RabbitMQ.Client
             {
                 foreach (EventHandler<ConsumerEventArgs> h in handler.GetInvocationList())
                 {
-                    h(this, new ConsumerEventArgs(ConsumerTag));
+                    h(this, new ConsumerEventArgs(consumerTags));
                 }
+            }
+
+            foreach (string consumerTag in consumerTags)
+            {
+                m_consumerTags.Remove(consumerTag);
             }
         }
     }
