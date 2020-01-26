@@ -83,8 +83,10 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// Retrieve the consumer tags this consumer is registered as; to be used when discussing this consumer
-        /// with the server, for instance with <see cref="IModel.BasicCancel"/>.
+        /// Retrieve the consumer tags this consumer is registered as; to be used to identify
+        /// this consumer, for example, when cancelling it with <see cref="IModel.BasicCancel"/>.
+        /// This value is an array because a single consumer instance can be reused to consume on
+        /// multiple channels.
         /// </summary>
         public string[] ConsumerTags {
             get
