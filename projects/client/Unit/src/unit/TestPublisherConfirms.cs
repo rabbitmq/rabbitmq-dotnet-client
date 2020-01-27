@@ -69,7 +69,7 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestWaitForConfirmsWithTimeout_AllMessagesAcked_WaitingHasTimedout_ReturnFalseTrue()
+        public void TestWaitForConfirmsWithTimeout_AllMessagesAcked_WaitingHasTimedout_ReturnTrue()
         {
             TestWaitForConfirms(200, (ch) =>
             {
