@@ -1499,7 +1499,7 @@ namespace RabbitMQ.Client.Impl
                             m_unconfirmedSet.SyncRoot, timeout - elapsed))
                         {
                             timedOut = true;
-                            return true;
+                            return m_onlyAcksReceived;
                         }
                     }
                 }
