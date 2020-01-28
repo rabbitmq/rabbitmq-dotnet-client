@@ -48,7 +48,7 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestPublisherConfirms : IntegrationFixture
     {
-        private const string QueueName = "TestQueue";
+        private const string QueueName = "RabbitMQ.Client.Unit.TestPublisherConfirms";
 
         [Test]
         public void TestWaitForConfirmsWithoutTimeout()
