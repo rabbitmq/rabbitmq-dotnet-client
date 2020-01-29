@@ -57,7 +57,7 @@ namespace RabbitMQ.Client
         /// </summary>
         public SslOption(string serverName, string certificatePath = "", bool enabled = false)
         {
-            Version = SslProtocols.Tls;
+            Version = SslProtocols.None;
             AcceptablePolicyErrors = SslPolicyErrors.None;
             ServerName = serverName;
             CertPath = certificatePath;

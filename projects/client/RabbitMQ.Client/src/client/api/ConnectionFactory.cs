@@ -137,7 +137,7 @@ namespace RabbitMQ.Client
         /// TLS versions enabled by default: TLSv1.2, v1.1, v1.0.
         /// </summary>
         public static SslProtocols DefaultAmqpUriSslProtocols { get; set; } =
-            SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
+            SslProtocols.None;
 
         /// <summary>
         /// The AMQP URI SSL protocols.
