@@ -61,9 +61,7 @@ namespace RabbitMQ.Client
     /// existing usage of the ReplyTo field; the AMQP specifications
     /// 0-8 and 0-9 do not define the format of the field, and do not
     /// define any format for the triple (exchange name, exchange
-    /// type, routing key) that could be used instead. Please see also
-    /// the way class RabbitMQ.Client.MessagePatterns.SimpleRpcServer
-    /// uses the ReplyTo field.
+    /// type, routing key) that could be used instead.
     /// </para>
     /// </remarks>
     public class PublicationAddress

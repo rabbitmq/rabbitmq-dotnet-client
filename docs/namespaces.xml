@@ -52,11 +52,5 @@
 	client library.
       </summary>
     </member>
-    <member name="N:RabbitMQ.Client.MessagePatterns">
-      <summary>
-	Public API for high-level helper classes and interface for
-	common ways of using the AMQP client library.
-      </summary>
-    </member>
   </members>
 </doc>
