@@ -145,7 +145,7 @@ namespace RabbitMQ.Client.Unit
                 Enabled = true,
             };
 
-            cf.Ssl.Version = SslProtocols.Tls;
+            cf.Ssl.Version = SslProtocols.None;
             cf.Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNotAvailable |
                                         SslPolicyErrors.RemoteCertificateNameMismatch;
 
