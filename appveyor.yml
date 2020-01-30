@@ -6,8 +6,6 @@ skip_tags: true
 image: Visual Studio 2017
 
 environment:
-  BUILDWINRT: true
-  USINGMONO: false
   SNKSECRET:
     secure: C8FL0UTKVN8YcMW1wdssabbkSWMIrpJTqgUNeI2NfQw=
 
