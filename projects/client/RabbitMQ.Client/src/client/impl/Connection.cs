@@ -254,6 +254,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
             }
         }
+
         public string ClientProvidedName { get; private set; }
 
         public ushort ChannelMax
