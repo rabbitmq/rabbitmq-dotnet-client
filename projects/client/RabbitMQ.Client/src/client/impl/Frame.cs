@@ -38,6 +38,9 @@
 //  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+using System.Buffers;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading.Tasks;
@@ -157,7 +160,7 @@ namespace RabbitMQ.Client.Impl
 
     public class InboundFrame : Frame
     {
-        private InboundFrame(FrameType type, int channel, byte[] payload) : base(type, channel, payload)
+        private InboundFrame(FrameType type, int channel, byte[] payload, int payloadSize) : base(type, channel, payload, payloadSize)
         {
         }
 
@@ -199,8 +202,15 @@ namespace RabbitMQ.Client.Impl
         {
             int type;
 
+
+            // The header consists of
+            //
+            // [1 byte] [2 bytes (ushort)] [4 bytes (uint)]
+            // [type]   [channel]          [payloadSize]
+
             try
             {
+                // Let's read the header type
                 type = await reader.ReadByteAsync();
             }
             catch (IOException ioe)
@@ -225,8 +235,10 @@ namespace RabbitMQ.Client.Impl
 
             int channel = await reader.ReadUInt16BigEndianAsync();
             int payloadSize = await reader.ReadInt32BigEndianAsync(); // FIXME - throw exn on unreasonable value
-            byte[] payload = new byte[payloadSize];
+            Debug.WriteLine("Reading {0} bytes from the pipe.", payloadSize);
+            byte[] payload = ArrayPool<byte>.Shared.Rent(payloadSize);
             await reader.ReadBytesAsync(payload, 0, payloadSize);
+            /*
             if (payload.Length != payloadSize)
             {
                 // Early EOF.
@@ -234,6 +246,7 @@ namespace RabbitMQ.Client.Impl
                                                   payloadSize + " bytes, got " +
                                                   payload.Length + " bytes");
             }
+            */
 
             int frameEndMarker = await reader.ReadByteAsync();
             if (frameEndMarker != Constants.FrameEnd)
@@ -241,16 +254,16 @@ namespace RabbitMQ.Client.Impl
                 throw new MalformedFrameException("Bad frame end marker: " + frameEndMarker);
             }
 
-            return new InboundFrame((FrameType)type, channel, payload);
+            return new InboundFrame((FrameType)type, channel, payload, payloadSize);
         }
 
         public NetworkBinaryReader GetReader()
         {
-            return new NetworkBinaryReader(new MemoryStream(base.Payload));
+            return new NetworkBinaryReader(new MemoryStream(base.Payload, 0, PayloadSize));
         }
     }
 
-    public class Frame
+    public class Frame : IDisposable
     {
         public Frame(FrameType type, int channel)
         {
@@ -259,17 +272,18 @@ namespace RabbitMQ.Client.Impl
             Payload = null;
         }
 
-        public Frame(FrameType type, int channel, byte[] payload)
+        public Frame(FrameType type, int channel, byte[] payload, int payloadSize)
         {
             Type = type;
             Channel = channel;
             Payload = payload;
+            PayloadSize = payloadSize;
         }
 
         public int Channel { get; private set; }
 
         public byte[] Payload { get; private set; }
-
+        public int PayloadSize { get; }
         public FrameType Type { get; private set; }
 
         public override string ToString()
@@ -279,7 +293,7 @@ namespace RabbitMQ.Client.Impl
                 Channel,
                 Payload == null
                     ? "(null)"
-                    : Payload.Length.ToString());
+                    : PayloadSize.ToString());
         }
 
         public bool IsMethod()
@@ -297,6 +311,14 @@ namespace RabbitMQ.Client.Impl
         public bool IsHeartbeat()
         {
             return this.Type == FrameType.FrameHeartbeat;
+        }
+
+        public void Dispose()
+        {
+            if(Payload != null)
+            {
+                ArrayPool<byte>.Shared.Return(Payload);
+            }
         }
     }
 

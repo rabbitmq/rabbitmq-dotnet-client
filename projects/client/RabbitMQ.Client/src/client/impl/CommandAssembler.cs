@@ -44,6 +44,7 @@ using System.IO;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Framing;
 using RabbitMQ.Util;
+using System.Buffers;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -103,8 +104,8 @@ namespace RabbitMQ.Client.Impl
                         throw new UnexpectedFrameException(f);
                     }
                     m_remainingBodyBytes = (int)totalBodyBytes;
-                    m_body = new byte[m_remainingBodyBytes];
-                    m_bodyStream = new MemoryStream(m_body, true);
+                        m_body = ArrayPool<byte>.Shared.Rent(m_remainingBodyBytes);
+                    m_bodyStream = new MemoryStream(m_body, 0, m_remainingBodyBytes, true);
                     UpdateContentBodyState();
                     return CompletedCommand();
                 }
@@ -114,15 +115,15 @@ namespace RabbitMQ.Client.Impl
                     {
                         throw new UnexpectedFrameException(f);
                     }
-                    if (f.Payload.Length > m_remainingBodyBytes)
+                    if (f.PayloadSize > m_remainingBodyBytes)
                     {
                         throw new MalformedFrameException
                             (string.Format("Overlong content body received - {0} bytes remaining, {1} bytes received",
                                 m_remainingBodyBytes,
-                                f.Payload.Length));
+                                f.PayloadSize));
                     }
-                    m_bodyStream.Write(f.Payload, 0, f.Payload.Length);
-                    m_remainingBodyBytes -= f.Payload.Length;
+                    m_bodyStream.Write(f.Payload, 0, f.PayloadSize);
+                    m_remainingBodyBytes -= f.PayloadSize;
                     UpdateContentBodyState();
                     return CompletedCommand();
                 }
@@ -151,7 +152,11 @@ namespace RabbitMQ.Client.Impl
             m_state = AssemblyState.ExpectingMethod;
             m_method = null;
             m_header = null;
-            m_body = null;
+            if (m_body != null)
+            {
+                ArrayPool<byte>.Shared.Return(m_body);
+            }
+
             m_bodyStream = null;
             m_remainingBodyBytes = 0;
         }

@@ -15,7 +15,6 @@ namespace DeadlockRabbitMQ
         private static int itemsPerBatch = 500;
         static async Task Main(string[] args)
         {
-            ThreadPool.SetMinThreads(16 * Environment.ProcessorCount, 16 * Environment.ProcessorCount);
             Console.ReadLine();
             var connectionString = new Uri("amqp://guest:guest@localhost/");
 
@@ -23,7 +22,7 @@ namespace DeadlockRabbitMQ
             var connection = connectionFactory.CreateConnection();
             var connection2 = connectionFactory.CreateConnection();
             var publisher = connection.CreateModel();
-            var subscriber = connection2.CreateModel();
+            var subscriber = connection.CreateModel();
             publisher.ConfirmSelect();
             subscriber.ConfirmSelect();
 
@@ -46,14 +45,13 @@ namespace DeadlockRabbitMQ
                         var properties = publisher.CreateBasicProperties();
                         properties.AppId = "testapp";
                         properties.CorrelationId = Guid.NewGuid().ToString();
-                        batch.Add("test", "myawesome.routing.key", true, properties, payload);
+                        batch.Add("test", "myawesome.routing.key", false, properties, payload);
                     }
                     batch.Publish();
                     await publisher.WaitForConfirmsOrDieAsync();
                     messagesSent += itemsPerBatch;
                 }
             });
-
 
             var sentTask = Task.Run(async () =>
             {

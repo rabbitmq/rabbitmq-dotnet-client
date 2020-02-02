@@ -22,11 +22,7 @@ namespace RabbitMQ.Util
             ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
             while (result.Buffer.Length < 8)
             {
-                if (result.Buffer.Length > 0)
-                {
-                    _reader.AdvanceTo(result.Buffer.Start);
-                }
-                await Task.Yield();
+                AdvanceReaderIfNotEmpty(result);
                 result = await _reader.ReadAsync().ConfigureAwait(false);
             }
 
@@ -41,11 +37,7 @@ namespace RabbitMQ.Util
             ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
             while (result.Buffer.Length < 4)
             {
-                if (result.Buffer.Length > 0)
-                {
-                    _reader.AdvanceTo(result.Buffer.Start);
-                }
-                await Task.Yield();
+                AdvanceReaderIfNotEmpty(result);
                 result = await _reader.ReadAsync().ConfigureAwait(false);
             }
 
@@ -60,11 +52,7 @@ namespace RabbitMQ.Util
             ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
             while (result.Buffer.Length < 2)
             {
-                if (result.Buffer.Length > 0)
-                {
-                    _reader.AdvanceTo(result.Buffer.Start);
-                }
-                await Task.Yield();
+                AdvanceReaderIfNotEmpty(result);
                 result = await _reader.ReadAsync().ConfigureAwait(false);
             }
 
@@ -79,11 +67,7 @@ namespace RabbitMQ.Util
             ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
             while (result.Buffer.Length < 2)
             {
-                if (result.Buffer.Length > 0)
-                {
-                    _reader.AdvanceTo(result.Buffer.Start);
-                }
-                await Task.Yield();
+                AdvanceReaderIfNotEmpty(result);
                 result = await _reader.ReadAsync().ConfigureAwait(false);
             }
 
@@ -93,17 +77,12 @@ namespace RabbitMQ.Util
             return returnValue;
         }
 
-
         public async ValueTask<int> ReadInt32BigEndianAsync()
         {
             ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
             while (result.Buffer.Length < 4)
             {
-                if (result.Buffer.Length > 0)
-                {
-                    _reader.AdvanceTo(result.Buffer.Start);
-                }
-                await Task.Yield();
+                AdvanceReaderIfNotEmpty(result);
                 result = await _reader.ReadAsync().ConfigureAwait(false);
             }
 
@@ -118,11 +97,7 @@ namespace RabbitMQ.Util
             ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
             while (result.Buffer.Length < 4)
             {
-                if (result.Buffer.Length > 0)
-                {
-                    _reader.AdvanceTo(result.Buffer.Start);
-                }
-                await Task.Yield();
+                AdvanceReaderIfNotEmpty(result);
                 result = await _reader.ReadAsync().ConfigureAwait(false);
             }
 
@@ -137,11 +112,7 @@ namespace RabbitMQ.Util
             ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
             while (result.Buffer.Length < 8)
             {
-                if (result.Buffer.Length > 0)
-                {
-                    _reader.AdvanceTo(result.Buffer.Start);
-                }
-                await Task.Yield();
+                AdvanceReaderIfNotEmpty(result);
                 result = await _reader.ReadAsync().ConfigureAwait(false);
             }
 
@@ -156,11 +127,7 @@ namespace RabbitMQ.Util
             ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
             while (result.Buffer.Length < 8)
             {
-                if (result.Buffer.Length > 0)
-                {
-                    _reader.AdvanceTo(result.Buffer.Start);
-                }
-                await Task.Yield();
+                AdvanceReaderIfNotEmpty(result);
                 result = await _reader.ReadAsync().ConfigureAwait(false);
             }
 
@@ -175,7 +142,7 @@ namespace RabbitMQ.Util
             ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
             while (result.Buffer.Length < 1)
             {
-                await Task.Yield();
+                AdvanceReaderIfNotEmpty(result);
                 result = await _reader.ReadAsync().ConfigureAwait(false);
             }
 
@@ -191,9 +158,9 @@ namespace RabbitMQ.Util
             while (bytesRemaining > 0)
             {
                 ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
-                while (result.Buffer.Length == 0)
+                while (result.Buffer.Length < 1)
                 {
-                    await Task.Yield();
+                    AdvanceReaderIfNotEmpty(result);
                     result = await _reader.ReadAsync().ConfigureAwait(false);
                 }
 
@@ -210,6 +177,14 @@ namespace RabbitMQ.Util
                     bytesRemaining -= (int)result.Buffer.Length;
                     _reader.AdvanceTo(result.Buffer.End);
                 }
+            }
+        }
+
+        private void AdvanceReaderIfNotEmpty(ReadResult result)
+        {
+            if (!result.Buffer.IsEmpty)
+            {
+                _reader.AdvanceTo(result.Buffer.Start);
             }
         }
     }

@@ -5,6 +5,7 @@ using System.IO.Pipelines;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Pipelines.Sockets.Unofficial.Arenas;
 
 namespace RabbitMQ.Util
 {
@@ -17,124 +18,76 @@ namespace RabbitMQ.Util
             _writer = reader;
         }
 
-        public async ValueTask<FlushResult> WriteAsync(double val)
-        {
-            return await _writer.WriteAsync(SerializeDoubleBigEndian(val)).ConfigureAwait(false);
-        }
-
         public void Write(double val)
         {
-            _writer.Write(SerializeDoubleBigEndian(val).Span);
-        }
-
-        public async ValueTask<FlushResult> WriteAsync(float val)
-        {
-            return await _writer.WriteAsync(SerializeSingleBigEndian(val)).ConfigureAwait(false);
+            SerializeDoubleBigEndian(val, _writer.GetSpan(8));
+            _writer.Advance(8);
         }
 
         public void Write(float val)
         {
-            _writer.Write(SerializeSingleBigEndian(val).Span);
-        }
-
-        public async ValueTask<FlushResult> WriteAsync(short val)
-        {
-            return await _writer.WriteAsync(SerializeInt16BigEndian(val)).ConfigureAwait(false);
+            SerializeSingleBigEndian(val, _writer.GetSpan(4));
+            _writer.Advance(4);
         }
 
         public void Write(short val)
         {
-            _writer.Write(SerializeInt16BigEndian(val).Span);
-        }
-
-        public async ValueTask<FlushResult> WriteAsync(ushort val)
-        {
-            return await _writer.WriteAsync(SerializeUInt16BigEndian(val)).ConfigureAwait(false);
+            SerializeInt16BigEndian(val, _writer.GetSpan(2));
+            _writer.Advance(2);
         }
 
         public void Write(ushort val)
         {
-            _writer.Write(SerializeUInt16BigEndian(val).Span);
-        }
-
-        public async ValueTask<FlushResult> WriteAsync(int val)
-        {
-            return await _writer.WriteAsync(SerializeInt32BigEndian(val)).ConfigureAwait(false);
+            SerializeUInt16BigEndian(val, _writer.GetSpan(2));
+            _writer.Advance(2);
         }
 
         public void Write(int val)
         {
-            _writer.Write(SerializeInt32BigEndian(val).Span);
-        }
-
-        public async ValueTask<FlushResult> WriteAsync(uint val)
-        {
-            return await _writer.WriteAsync(SerializeUInt32BigEndian(val)).ConfigureAwait(false);
+            SerializeInt32BigEndian(val, _writer.GetSpan(4));
+            _writer.Advance(4);
         }
 
         public void Write(uint val)
         {
-            _writer.Write(SerializeUInt32BigEndian(val).Span);
-        }
-
-        public async ValueTask<FlushResult> WriteAsync(long val)
-        {
-            return await _writer.WriteAsync(SerializeInt64BigEndian(val)).ConfigureAwait(false);
+            SerializeUInt32BigEndian(val, _writer.GetSpan(2));
+            _writer.Advance(4);
         }
 
         public void Write(long val)
         {
-            _writer.Write(SerializeInt64BigEndian(val).Span);
-        }
-
-        public async ValueTask<FlushResult> WriteAsync(ulong val)
-        {
-            return await _writer.WriteAsync(SerializeUInt64BigEndian(val)).ConfigureAwait(false);
+            Span<byte> array = stackalloc byte[8];
+            _writer.Write(SerializeInt64BigEndian(val, array));
         }
 
         public void Write(ulong val)
         {
-            _writer.Write(SerializeUInt64BigEndian(val).Span);
-        }
-
-        public async ValueTask<FlushResult> WriteAsync(byte[] val)
-        {
-            Memory<byte> memory = _writer.GetMemory(val.Length).Slice(0, val.Length);
-            val.CopyTo(memory.Span);
-            return await _writer.WriteAsync(memory).ConfigureAwait(false);
+            SerializeUInt64BigEndian(val, _writer.GetSpan(8));
+            _writer.Advance(8);
         }
 
         public void Write(byte[] val)
         {
-            _writer.Write(val);
-        }
-
-        public async ValueTask<FlushResult> WriteAsync(byte val)
-        {
-            Memory<byte> memory = _writer.GetMemory(1);
-            memory.Span[0] = val;
-            return await _writer.WriteAsync(memory.Slice(0, 1)).ConfigureAwait(false);
+            Write(val, 0, val.Length);
         }
 
         public void Write(byte val)
         {
-            Span<byte> singleByte = stackalloc byte[1];
-            singleByte[0] = val;
-            _writer.Write(singleByte);
-        }
-
-        public async ValueTask<FlushResult> WriteAsync(byte[] val, int offset, int length)
-        {
-            Memory<byte> memory = _writer.GetMemory(length).Slice(0, length);
-            val.AsSpan(offset, length).CopyTo(memory.Span);
-            return await _writer.WriteAsync(memory).ConfigureAwait(false);
+            _writer.GetSpan(1)[0] = val;
+            _writer.Advance(1);
         }
 
         public void Write(Span<byte> val, int offset, int length)
         {
-            Memory<byte> memory = _writer.GetMemory(length).Slice(0, length);
-            val.Slice(offset, length).CopyTo(memory.Span);
-            _writer.Write(memory.Span);
+            int bytesLeft = length;
+            while (bytesLeft > 0)
+            {
+                var memory = _writer.GetSpan(bytesLeft);
+                int bytesToCopy = Math.Min(memory.Length, bytesLeft);
+                val.Slice(offset + (length - bytesLeft), bytesToCopy).CopyTo(memory);
+                _writer.Advance(bytesToCopy);
+                bytesLeft -= bytesToCopy;
+            }
         }
 
         public ValueTask<FlushResult> FlushAsync()
@@ -147,62 +100,54 @@ namespace RabbitMQ.Util
             return _writer.FlushAsync().GetAwaiter().GetResult();
         }
 
-        private Memory<byte> SerializeDoubleBigEndian(double val)
+        private Span<byte> SerializeDoubleBigEndian(double val, Span<byte> memory)
         {
-            Memory<byte> memory = _writer.GetMemory(8).Slice(0, 8);
-            BinaryPrimitives.WriteInt64BigEndian(memory.Span, BitConverter.DoubleToInt64Bits(val));
+            BinaryPrimitives.WriteInt64BigEndian(memory, BitConverter.DoubleToInt64Bits(val));
             return memory;
         }
 
-        private Memory<byte> SerializeSingleBigEndian(float val)
+        private Span<byte> SerializeSingleBigEndian(float val, Span<byte> memory)
         {
-            Memory<byte> memory = _writer.GetMemory(4).Slice(0, 4);
             Span<float> bytes = stackalloc float[1];
             Span<byte> result = MemoryMarshal.Cast<float, byte>(bytes);
             result.Reverse();
-            result.CopyTo(memory.Span);
+            result.CopyTo(memory);
             return memory;
         }
 
-        private Memory<byte> SerializeInt16BigEndian(short val)
+        private Span<byte> SerializeInt16BigEndian(short val, Span<byte> memory)
         {
-            Memory<byte> memory = _writer.GetMemory(2).Slice(0, 2);
-            BinaryPrimitives.WriteInt16BigEndian(memory.Span, val);
+            BinaryPrimitives.WriteInt16BigEndian(memory, val);
             return memory;
         }
 
-        private Memory<byte> SerializeUInt16BigEndian(ushort val)
+        private Span<byte> SerializeUInt16BigEndian(ushort val, Span<byte> memory)
         {
-            Memory<byte> memory = _writer.GetMemory(2).Slice(0, 2);
-            BinaryPrimitives.WriteUInt16BigEndian(memory.Span, val);
+            BinaryPrimitives.WriteUInt16BigEndian(memory, val);
             return memory;
         }
 
-        private Memory<byte> SerializeInt32BigEndian(int val)
+        private Span<byte> SerializeInt32BigEndian(int val, Span<byte> memory)
         {
-            Memory<byte> memory = _writer.GetMemory(4).Slice(0, 4);
-            BinaryPrimitives.WriteInt32BigEndian(memory.Span, val);
+            BinaryPrimitives.WriteInt32BigEndian(memory, val);
             return memory;
         }
 
-        private Memory<byte> SerializeUInt32BigEndian(uint val)
+        private Span<byte> SerializeUInt32BigEndian(uint val, Span<byte> memory)
         {
-            Memory<byte> memory = _writer.GetMemory(4).Slice(0, 4);
-            BinaryPrimitives.WriteUInt32BigEndian(memory.Span, val);
+            BinaryPrimitives.WriteUInt32BigEndian(memory, val);
             return memory;
         }
 
-        private Memory<byte> SerializeInt64BigEndian(long val)
+        private Span<byte> SerializeInt64BigEndian(long val, Span<byte> memory)
         {
-            Memory<byte> memory = _writer.GetMemory(8).Slice(0, 8);
-            BinaryPrimitives.WriteInt64BigEndian(memory.Span, val);
+            BinaryPrimitives.WriteInt64BigEndian(memory, val);
             return memory;
         }
 
-        private Memory<byte> SerializeUInt64BigEndian(ulong val)
+        private Span<byte> SerializeUInt64BigEndian(ulong val, Span<byte> memory)
         {
-            Memory<byte> memory = _writer.GetMemory(8).Slice(0, 8);
-            BinaryPrimitives.WriteUInt64BigEndian(memory.Span, val);
+            BinaryPrimitives.WriteUInt64BigEndian(memory, val);
             return memory;
         }
     }

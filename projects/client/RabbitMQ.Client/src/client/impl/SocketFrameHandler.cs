@@ -39,7 +39,9 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
 using System.Net;
@@ -238,11 +240,11 @@ namespace RabbitMQ.Client.Impl
             {
                 try
                 {
-                    _inboundFrames.Writer.TryWrite(await RabbitMQ.Client.Impl.InboundFrame.ReadFromAsync(m_reader));
+                    _inboundFrames.Writer.TryWrite(await RabbitMQ.Client.Impl.InboundFrame.ReadFromAsync(m_reader).ConfigureAwait(false));
                 }
                 catch (Exception ex)
                 {
-                    string test = ex.ToString();
+                    Debug.WriteLine(ex.ToString());
                 }
             }
         }
@@ -253,37 +255,42 @@ namespace RabbitMQ.Client.Impl
             {
                 while (_outboundFrames.Reader.TryRead(out OutboundFrame frame))
                 {
-                    frame.WriteTo(m_writer);
+                    try
+                    {
+                        frame.WriteTo(m_writer);
+                        await m_writer.FlushAsync().ConfigureAwait(false);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine(e.ToString());
+                    }
                 }
-
-                await m_writer.FlushAsync();
             }
         }
 
         private static readonly byte[] amqp = Encoding.ASCII.GetBytes("AMQP");
         public void SendHeader()
         {
-            lock (_sslStreamLock)
-            {
-                m_writer.Write(amqp);
-                byte one = (byte)1;
-                if (Endpoint.Protocol.Revision != 0)
-                {
-                    m_writer.Write((byte)0);
-                    m_writer.Write((byte)Endpoint.Protocol.MajorVersion);
-                    m_writer.Write((byte)Endpoint.Protocol.MinorVersion);
-                    m_writer.Write((byte)Endpoint.Protocol.Revision);
-                }
-                else
-                {
-                    m_writer.Write(one);
-                    m_writer.Write(one);
-                    m_writer.Write((byte)Endpoint.Protocol.MajorVersion);
-                    m_writer.Write((byte)Endpoint.Protocol.MinorVersion);
-                }
+            byte[] versionArray = ArrayPool<byte>.Shared.Rent(4);
 
-                m_writer.Flush();
+            if (Endpoint.Protocol.Revision != 0)
+            {
+                versionArray[0] = 0;
+                versionArray[1] = (byte)Endpoint.Protocol.MajorVersion;
+                versionArray[2] = (byte)Endpoint.Protocol.MinorVersion;
+                versionArray[3] = (byte)Endpoint.Protocol.Revision;
             }
+            else
+            {
+                versionArray[0] = 1;
+                versionArray[1] = 1;
+                versionArray[2] = (byte)Endpoint.Protocol.MajorVersion;
+                versionArray[3] = (byte)Endpoint.Protocol.MinorVersion;
+            }
+            m_writer.Write(amqp);
+            m_writer.Write(versionArray, 0, 4);
+            m_writer.Flush();
+            ArrayPool<byte>.Shared.Return(versionArray);
         }
 
         public void WriteFrame(OutboundFrame frame)
@@ -364,6 +371,10 @@ namespace RabbitMQ.Client.Impl
                 throw new ConnectFailureException("Connection failed", e);
             }
             catch (TimeoutException e)
+            {
+                throw new ConnectFailureException("Connection failed", e);
+            }
+            catch(Exception e)
             {
                 throw new ConnectFailureException("Connection failed", e);
             }
