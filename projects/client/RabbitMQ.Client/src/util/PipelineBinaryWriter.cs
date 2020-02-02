@@ -50,14 +50,14 @@ namespace RabbitMQ.Util
 
         public void Write(uint val)
         {
-            SerializeUInt32BigEndian(val, _writer.GetSpan(2));
+            SerializeUInt32BigEndian(val, _writer.GetSpan(4));
             _writer.Advance(4);
         }
 
         public void Write(long val)
         {
-            Span<byte> array = stackalloc byte[8];
-            _writer.Write(SerializeInt64BigEndian(val, array));
+            SerializeInt64BigEndian(val, _writer.GetSpan(8));
+            _writer.Advance(8);
         }
 
         public void Write(ulong val)
