@@ -38,13 +38,11 @@
 //  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-using System.Diagnostics;
-using System.IO;
-using RabbitMQ.Client.Framing.Impl;
-using RabbitMQ.Client.Framing;
-using RabbitMQ.Util;
 using System.Buffers;
+using System.IO;
+
+using RabbitMQ.Client.Framing.Impl;
+using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -59,7 +57,7 @@ namespace RabbitMQ.Client.Impl
     public class CommandAssembler
     {
         private const int MaxArrayOfBytesSize = 2_147_483_591;
-        
+
         public MethodBase m_method;
         public ContentHeaderBase m_header;
         public MemoryStream m_bodyStream;
@@ -67,7 +65,7 @@ namespace RabbitMQ.Client.Impl
         public ProtocolBase m_protocol;
         public int m_remainingBodyBytes;
         public AssemblyState m_state;
-      
+
         public CommandAssembler(ProtocolBase protocol)
         {
             m_protocol = protocol;
@@ -79,54 +77,54 @@ namespace RabbitMQ.Client.Impl
             switch (m_state)
             {
                 case AssemblyState.ExpectingMethod:
-                {
-                    if (!f.IsMethod())
                     {
-                        throw new UnexpectedFrameException(f);
+                        if (!f.IsMethod())
+                        {
+                            throw new UnexpectedFrameException(f);
+                        }
+                        m_method = m_protocol.DecodeMethodFrom(f.GetReader());
+                        m_state = m_method.HasContent
+                            ? AssemblyState.ExpectingContentHeader
+                            : AssemblyState.Complete;
+                        return CompletedCommand();
                     }
-                    m_method = m_protocol.DecodeMethodFrom(f.GetReader());
-                    m_state = m_method.HasContent
-                        ? AssemblyState.ExpectingContentHeader
-                        : AssemblyState.Complete;
-                    return CompletedCommand();
-                }
                 case AssemblyState.ExpectingContentHeader:
-                {
-                    if (!f.IsHeader())
                     {
-                        throw new UnexpectedFrameException(f);
+                        if (!f.IsHeader())
+                        {
+                            throw new UnexpectedFrameException(f);
+                        }
+                        NetworkBinaryReader reader = f.GetReader();
+                        m_header = m_protocol.DecodeContentHeaderFrom(reader);
+                        var totalBodyBytes = m_header.ReadFrom(reader);
+                        if (totalBodyBytes > MaxArrayOfBytesSize)
+                        {
+                            throw new UnexpectedFrameException(f);
+                        }
+                        m_remainingBodyBytes = (int)totalBodyBytes;
+                        m_body = new byte[totalBodyBytes];
+                        m_bodyStream = new MemoryStream(m_body, true);
+                        UpdateContentBodyState();
+                        return CompletedCommand();
                     }
-                    NetworkBinaryReader reader = f.GetReader();
-                    m_header = m_protocol.DecodeContentHeaderFrom(reader);
-                    var totalBodyBytes = m_header.ReadFrom(reader);
-                    if (totalBodyBytes > MaxArrayOfBytesSize)
-                    {
-                        throw new UnexpectedFrameException(f);
-                    }
-                    m_remainingBodyBytes = (int)totalBodyBytes;
-                        m_body = ArrayPool<byte>.Shared.Rent(m_remainingBodyBytes);
-                    m_bodyStream = new MemoryStream(m_body, 0, m_remainingBodyBytes, true);
-                    UpdateContentBodyState();
-                    return CompletedCommand();
-                }
                 case AssemblyState.ExpectingContentBody:
-                {
-                    if (!f.IsBody())
                     {
-                        throw new UnexpectedFrameException(f);
+                        if (!f.IsBody())
+                        {
+                            throw new UnexpectedFrameException(f);
+                        }
+                        if (f.PayloadSize > m_remainingBodyBytes)
+                        {
+                            throw new MalformedFrameException
+                                (string.Format("Overlong content body received - {0} bytes remaining, {1} bytes received",
+                                    m_remainingBodyBytes,
+                                    f.PayloadSize));
+                        }
+                        m_bodyStream.Write(f.Payload, 0, f.PayloadSize);
+                        m_remainingBodyBytes -= f.PayloadSize;
+                        UpdateContentBodyState();
+                        return CompletedCommand();
                     }
-                    if (f.PayloadSize > m_remainingBodyBytes)
-                    {
-                        throw new MalformedFrameException
-                            (string.Format("Overlong content body received - {0} bytes remaining, {1} bytes received",
-                                m_remainingBodyBytes,
-                                f.PayloadSize));
-                    }
-                    m_bodyStream.Write(f.Payload, 0, f.PayloadSize);
-                    m_remainingBodyBytes -= f.PayloadSize;
-                    UpdateContentBodyState();
-                    return CompletedCommand();
-                }
                 case AssemblyState.Complete:
                 default:
                     return null;
@@ -152,11 +150,6 @@ namespace RabbitMQ.Client.Impl
             m_state = AssemblyState.ExpectingMethod;
             m_method = null;
             m_header = null;
-            if (m_body != null)
-            {
-                ArrayPool<byte>.Shared.Return(m_body);
-            }
-
             m_bodyStream = null;
             m_remainingBodyBytes = 0;
         }

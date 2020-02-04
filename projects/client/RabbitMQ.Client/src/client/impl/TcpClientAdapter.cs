@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Linq;
-using System.Net.Sockets;
-using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
-using Pipelines.Sockets.Unofficial;
 using System.IO;
+using System.Net;
+using System.Net.Sockets;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client
 {
@@ -34,11 +31,7 @@ namespace RabbitMQ.Client
                 throw new ArgumentException("No ip address could be resolved for " + host);
             }
 
-#if CORECLR
             await sock.ConnectAsync(ep, port).ConfigureAwait(false);
-#else
-            await Task.Run(() => sock.Connect(ep, port));
-#endif
         }
 
         public virtual void Close()
@@ -85,7 +78,7 @@ namespace RabbitMQ.Client
         {
             get
             {
-                if(sock == null) return false;
+                if (sock == null) return false;
                 return sock.Connected;
             }
         }
@@ -106,7 +99,7 @@ namespace RabbitMQ.Client
 
         private void AssertSocket()
         {
-            if(sock == null)
+            if (sock == null)
             {
                 throw new InvalidOperationException("Cannot perform operation as socket is null");
             }

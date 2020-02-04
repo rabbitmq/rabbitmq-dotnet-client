@@ -15,14 +15,13 @@ namespace DeadlockRabbitMQ
         private static int itemsPerBatch = 500;
         static async Task Main(string[] args)
         {
-            Console.ReadLine();
             var connectionString = new Uri("amqp://guest:guest@localhost/");
 
             var connectionFactory = new ConnectionFactory() { DispatchConsumersAsync = true, Uri = connectionString };
             var connection = connectionFactory.CreateConnection();
             var connection2 = connectionFactory.CreateConnection();
             var publisher = connection.CreateModel();
-            var subscriber = connection.CreateModel();
+            var subscriber = connection2.CreateModel();
             publisher.ConfirmSelect();
             subscriber.ConfirmSelect();
 
@@ -78,7 +77,6 @@ namespace DeadlockRabbitMQ
             });
 
             await Task.WhenAll(sentTask, receivedTask);
-            Console.ReadLine();
         }
 
         private static Task AsyncListener_Received(object sender, BasicDeliverEventArgs @event)

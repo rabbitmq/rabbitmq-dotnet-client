@@ -40,9 +40,9 @@
 
 using System;
 using System.Buffers;
-using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 
 using RabbitMQ.Client.Exceptions;
@@ -198,7 +198,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public static async ValueTask<InboundFrame> ReadFromAsync(PipelineBinaryReader reader)
+        public static async ValueTask<InboundFrame> ReadFromAsync(PipelineBinaryReader reader, CancellationToken cancellationToken = default)
         {
             int type;
 
@@ -211,7 +211,7 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 // Let's read the header type
-                type = await reader.ReadByteAsync();
+                type = await reader.ReadByteAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (IOException ioe)
             {
@@ -230,14 +230,13 @@ namespace RabbitMQ.Client.Impl
             if (type == 'A')
             {
                 // Probably an AMQP protocol header, otherwise meaningless
-                await ProcessProtocolHeader(reader);
+                await ProcessProtocolHeader(reader).ConfigureAwait(false);
             }
 
-            int channel = await reader.ReadUInt16BigEndianAsync();
-            int payloadSize = await reader.ReadInt32BigEndianAsync(); // FIXME - throw exn on unreasonable value
-            Debug.WriteLine("Reading {0} bytes from the pipe.", payloadSize);
+            int channel = await reader.ReadUInt16BigEndianAsync(cancellationToken).ConfigureAwait(false);
+            int payloadSize = await reader.ReadInt32BigEndianAsync(cancellationToken).ConfigureAwait(false); // FIXME - throw exn on unreasonable value
             byte[] payload = ArrayPool<byte>.Shared.Rent(payloadSize);
-            await reader.ReadBytesAsync(payload, 0, payloadSize);
+            await reader.ReadBytesAsync(new Memory<byte>(payload, 0, payloadSize), cancellationToken).ConfigureAwait(false);
             /*
             if (payload.Length != payloadSize)
             {
@@ -248,7 +247,7 @@ namespace RabbitMQ.Client.Impl
             }
             */
 
-            int frameEndMarker = await reader.ReadByteAsync();
+            int frameEndMarker = await reader.ReadByteAsync(cancellationToken).ConfigureAwait(false);
             if (frameEndMarker != Constants.FrameEnd)
             {
                 throw new MalformedFrameException("Bad frame end marker: " + frameEndMarker);
@@ -315,7 +314,7 @@ namespace RabbitMQ.Client.Impl
 
         public void Dispose()
         {
-            if(Payload != null)
+            if (Payload != null)
             {
                 ArrayPool<byte>.Shared.Return(Payload);
             }

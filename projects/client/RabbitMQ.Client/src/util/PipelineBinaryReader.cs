@@ -3,7 +3,9 @@ using System.Buffers;
 using System.Buffers.Binary;
 using System.IO.Pipelines;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RabbitMQ.Util
@@ -17,174 +19,103 @@ namespace RabbitMQ.Util
             _reader = reader;
         }
 
-        public async ValueTask<double> ReadDoubleBigEndianAsync()
+        public async ValueTask<double> ReadDoubleBigEndianAsync(CancellationToken cancellationToken = default)
         {
-            ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
-            while (result.Buffer.Length < 8)
-            {
-                AdvanceReaderIfNotEmpty(result);
-                result = await _reader.ReadAsync().ConfigureAwait(false);
-            }
-
-            ReadOnlySequence<byte> slice = result.Buffer.Slice(0, 8);
+            ReadOnlySequence<byte> slice = await _reader.ReadMinimumSize<double>(cancellationToken).ConfigureAwait(false);
             double returnValue = slice.ReadDoubleBigEndian();
             _reader.AdvanceTo(slice.End);
             return returnValue;
         }
 
-        public async ValueTask<float> ReadSingleBigEndianAsync()
+        public async ValueTask<float> ReadSingleBigEndianAsync(CancellationToken cancellationToken = default)
         {
-            ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
-            while (result.Buffer.Length < 4)
-            {
-                AdvanceReaderIfNotEmpty(result);
-                result = await _reader.ReadAsync().ConfigureAwait(false);
-            }
-
-            ReadOnlySequence<byte> slice = result.Buffer.Slice(0, 4);
+            ReadOnlySequence<byte> slice = await _reader.ReadMinimumSize<float>(cancellationToken).ConfigureAwait(false);
             float returnValue = slice.ReadSingleBigEndian();
             _reader.AdvanceTo(slice.End);
             return returnValue;
         }
 
-        public async ValueTask<short> ReadInt16BigEndianAsync()
+        public async ValueTask<short> ReadInt16BigEndianAsync(CancellationToken cancellationToken = default)
         {
-            ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
-            while (result.Buffer.Length < 2)
-            {
-                AdvanceReaderIfNotEmpty(result);
-                result = await _reader.ReadAsync().ConfigureAwait(false);
-            }
-
-            ReadOnlySequence<byte> slice = result.Buffer.Slice(0, 2);
+            ReadOnlySequence<byte> slice = await _reader.ReadMinimumSize<short>(cancellationToken).ConfigureAwait(false);
             short returnValue = slice.ReadInt16BigEndian();
             _reader.AdvanceTo(slice.End);
             return returnValue;
         }
 
-        public async ValueTask<ushort> ReadUInt16BigEndianAsync()
+        public async ValueTask<ushort> ReadUInt16BigEndianAsync(CancellationToken cancellationToken = default)
         {
-            ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
-            while (result.Buffer.Length < 2)
-            {
-                AdvanceReaderIfNotEmpty(result);
-                result = await _reader.ReadAsync().ConfigureAwait(false);
-            }
-
-            ReadOnlySequence<byte> slice = result.Buffer.Slice(0, 2);
+            ReadOnlySequence<byte> slice = await _reader.ReadMinimumSize<ushort>(cancellationToken).ConfigureAwait(false);
             ushort returnValue = slice.ReadUInt16BigEndian();
             _reader.AdvanceTo(slice.End);
             return returnValue;
         }
 
-        public async ValueTask<int> ReadInt32BigEndianAsync()
+        public async ValueTask<int> ReadInt32BigEndianAsync(CancellationToken cancellationToken = default)
         {
-            ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
-            while (result.Buffer.Length < 4)
-            {
-                AdvanceReaderIfNotEmpty(result);
-                result = await _reader.ReadAsync().ConfigureAwait(false);
-            }
-
-            ReadOnlySequence<byte> slice = result.Buffer.Slice(0, 4);
+            ReadOnlySequence<byte> slice = await _reader.ReadMinimumSize<int>(cancellationToken).ConfigureAwait(false);
             int returnValue = slice.ReadInt32BigEndian();
             _reader.AdvanceTo(slice.End);
             return returnValue;
         }
 
-        public async ValueTask<uint> ReadUInt32BigEndianAsync()
+        public async ValueTask<uint> ReadUInt32BigEndianAsync(CancellationToken cancellationToken = default)
         {
-            ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
-            while (result.Buffer.Length < 4)
-            {
-                AdvanceReaderIfNotEmpty(result);
-                result = await _reader.ReadAsync().ConfigureAwait(false);
-            }
-
-            ReadOnlySequence<byte> slice = result.Buffer.Slice(0, 4);
+            ReadOnlySequence<byte> slice = await _reader.ReadMinimumSize<uint>(cancellationToken).ConfigureAwait(false);
             uint returnValue = slice.ReadUInt32BigEndian();
             _reader.AdvanceTo(slice.End);
             return returnValue;
         }
 
-        public async ValueTask<long> ReadInt64BigEndianAsync()
+        public async ValueTask<long> ReadInt64BigEndianAsync(CancellationToken cancellationToken = default)
         {
-            ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
-            while (result.Buffer.Length < 8)
-            {
-                AdvanceReaderIfNotEmpty(result);
-                result = await _reader.ReadAsync().ConfigureAwait(false);
-            }
-
-            ReadOnlySequence<byte> slice = result.Buffer.Slice(0, 8);
+            ReadOnlySequence<byte> slice = await _reader.ReadMinimumSize<long>(cancellationToken).ConfigureAwait(false);
             long returnValue = slice.ReadInt64BigEndian();
             _reader.AdvanceTo(slice.End);
             return returnValue;
         }
 
-        public async ValueTask<ulong> ReadUInt64BigEndianAsync()
+        public async ValueTask<ulong> ReadUInt64BigEndianAsync(CancellationToken cancellationToken = default)
         {
-            ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
-            while (result.Buffer.Length < 8)
-            {
-                AdvanceReaderIfNotEmpty(result);
-                result = await _reader.ReadAsync().ConfigureAwait(false);
-            }
-
-            ReadOnlySequence<byte> slice = result.Buffer.Slice(0, 8);
+            ReadOnlySequence<byte> slice = await _reader.ReadMinimumSize<ulong>().ConfigureAwait(false);
             ushort returnValue = slice.ReadUInt16BigEndian();
             _reader.AdvanceTo(slice.End);
             return returnValue;
         }
 
-        public async ValueTask<byte> ReadByteAsync()
+        public async ValueTask<byte> ReadByteAsync(CancellationToken cancellationToken = default)
         {
-            ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
-            while (result.Buffer.Length < 1)
-            {
-                AdvanceReaderIfNotEmpty(result);
-                result = await _reader.ReadAsync().ConfigureAwait(false);
-            }
-
-            ReadOnlySequence<byte> slice = result.Buffer.Slice(0, 1);
+            ReadOnlySequence<byte> slice = await _reader.ReadMinimumSize<byte>(cancellationToken).ConfigureAwait(false);
             byte returnValue = slice.ReadByte();
             _reader.AdvanceTo(slice.End);
             return returnValue;
         }
 
-        public async ValueTask ReadBytesAsync(byte[] buffer, int position, int length)
+        public async ValueTask ReadBytesAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
         {
-            int bytesRemaining = length;
+            int bytesRemaining = buffer.Length;
             while (bytesRemaining > 0)
             {
-                ReadResult result = await _reader.ReadAsync().ConfigureAwait(false);
+                ReadResult result = await _reader.ReadAsync(cancellationToken).ConfigureAwait(false);
                 while (result.Buffer.Length < 1)
                 {
-                    AdvanceReaderIfNotEmpty(result);
-                    result = await _reader.ReadAsync().ConfigureAwait(false);
+                    _reader.AdvanceTo(result.Buffer.Start);
+                    result = await _reader.ReadAsync(cancellationToken).ConfigureAwait(false);
                 }
 
                 if (result.Buffer.Length > bytesRemaining)
                 {
                     ReadOnlySequence<byte> slice = result.Buffer.Slice(0, bytesRemaining);
-                    slice.CopyTo(buffer.AsSpan(length - bytesRemaining, bytesRemaining));
+                    slice.CopyTo(buffer.Span.Slice(buffer.Length - bytesRemaining, bytesRemaining));
                     _reader.AdvanceTo(slice.End);
-                    bytesRemaining = 0;
+                    return;
                 }
                 else
                 {
-                    result.Buffer.CopyTo(buffer.AsSpan(length - bytesRemaining, (int)result.Buffer.Length));
+                    result.Buffer.CopyTo(buffer.Span.Slice(buffer.Length - bytesRemaining, (int)result.Buffer.Length));
                     bytesRemaining -= (int)result.Buffer.Length;
                     _reader.AdvanceTo(result.Buffer.End);
                 }
-            }
-        }
-
-        private void AdvanceReaderIfNotEmpty(ReadResult result)
-        {
-            if (!result.Buffer.IsEmpty)
-            {
-                _reader.AdvanceTo(result.Buffer.Start);
             }
         }
     }
@@ -248,6 +179,30 @@ namespace RabbitMQ.Util
         private static ReadOnlySpan<byte> GetSpan(this ReadOnlySequence<byte> slice)
         {
             return slice.IsSingleSegment ? slice.First.Span : slice.ToArray();
+        }
+    }
+
+    public static class PipeReaderExtensions
+    {
+        public static async ValueTask<ReadOnlySequence<byte>> ReadMinimumSize<T>(this PipeReader reader, CancellationToken cancellationToken = default) where T : struct
+        {
+            int size = Unsafe.SizeOf<T>();
+            ReadResult result = await reader.ReadAsync(cancellationToken).ConfigureAwait(false);
+            while (result.Buffer.Length < size)
+            {
+                reader.AdvanceReaderIfNotEmpty(result);
+                result = await reader.ReadAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            return result.Buffer.Slice(0, size);
+        }
+
+        public static void AdvanceReaderIfNotEmpty(this PipeReader reader, ReadResult result)
+        {
+            if (!result.Buffer.IsEmpty)
+            {
+                reader.AdvanceTo(result.Buffer.Start);
+            }
         }
     }
 }
