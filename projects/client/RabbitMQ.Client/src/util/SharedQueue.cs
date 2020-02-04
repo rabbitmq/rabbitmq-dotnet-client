@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2016 Pivotal Software, Inc.
+//   Copyright (c) 2007-2020 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is Pivotal Software, Inc.
-//  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
+//  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
@@ -120,7 +120,7 @@ namespace RabbitMQ.Util
         /// false, and sets "result" to null.
         ///</para>
         ///<para>
-        /// A timeout of -1 (i.e. System.Threading.Timeout.Infinite)
+        /// A timeout of -1 (i.e. System.Threading.Timeout.InfiniteTimeSpan)
         /// will be interpreted as a command to wait for an
         /// indefinitely long period of time for an item to become
         /// available. Usage of such a timeout is equivalent to
@@ -135,9 +135,9 @@ namespace RabbitMQ.Util
         /// method will throw EndOfStreamException.
         ///</para>
         ///</remarks>
-        public bool Dequeue(int millisecondsTimeout, out T result)
+        public bool Dequeue(TimeSpan timeout, out T result)
         {
-            if (millisecondsTimeout == Timeout.Infinite)
+            if (timeout == Timeout.InfiniteTimeSpan)
             {
                 result = Dequeue();
                 return true;
@@ -149,9 +149,9 @@ namespace RabbitMQ.Util
                 while (m_queue.Count == 0)
                 {
                     EnsureIsOpen();
-                    var elapsedTime = (int)((DateTime.Now - startTime).TotalMilliseconds);
-                    int remainingTime = millisecondsTimeout - elapsedTime;
-                    if (remainingTime <= 0)
+                    TimeSpan elapsedTime = DateTime.Now.Subtract(startTime);
+                    TimeSpan remainingTime = timeout.Subtract(elapsedTime);
+                    if (remainingTime <= TimeSpan.Zero)
                     {
                         result = default(T);
                         return false;

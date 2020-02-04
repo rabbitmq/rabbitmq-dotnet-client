@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2016 Pivotal Software, Inc.
+//   Copyright (c) 2007-2020 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -35,19 +35,21 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is Pivotal Software, Inc.
-//  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
+//  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using NUnit.Framework;
 using System;
 using System.Threading;
-using RabbitMQ.Client;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
     public class TestPublisherConfirms : IntegrationFixture
     {
+        private const string QueueName = "RabbitMQ.Client.Unit.TestPublisherConfirms";
+
         [Test]
         public void TestWaitForConfirmsWithoutTimeout()
         {
@@ -67,12 +69,35 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
+        public void TestWaitForConfirmsWithTimeout_AllMessagesAcked_WaitingHasTimedout_ReturnTrue()
+        {
+            TestWaitForConfirms(200, (ch) =>
+            {
+                Assert.IsTrue(ch.WaitForConfirms(TimeSpan.FromMilliseconds(1)));
+            });
+        }
+
+        [Test]
+        public void TestWaitForConfirmsWithTimeout_MessageNacked_WaitingHasTimedout_ReturnFalse()
+        {
+            TestWaitForConfirms(200, (ch) =>
+            {
+                var message = ch.BasicGet(QueueName, false);
+
+                var fullModel = ch as IFullModel;
+                fullModel.HandleBasicNack(message.DeliveryTag, false, false);
+
+                Assert.IsFalse(ch.WaitForConfirms(TimeSpan.FromMilliseconds(1)));
+            });
+        }
+
+        [Test]
         public void TestWaitForConfirmsWithEvents()
         {
             var ch = Conn.CreateModel();
             ch.ConfirmSelect();
 
-            var q = ch.QueueDeclare().QueueName;
+            ch.QueueDeclare(QueueName);
             var n = 200;
             // number of event handler invocations
             var c = 0;
@@ -85,7 +110,7 @@ namespace RabbitMQ.Client.Unit
             {
                 for (int i = 0; i < n; i++)
                 {
-                    ch.BasicPublish("", q, null, encoding.GetBytes("msg"));
+                    ch.BasicPublish("", QueueName, null, encoding.GetBytes("msg"));
                 }
                 Thread.Sleep(TimeSpan.FromSeconds(1));
                 ch.WaitForConfirms(TimeSpan.FromSeconds(5));
@@ -98,7 +123,7 @@ namespace RabbitMQ.Client.Unit
             }
             finally
             {
-                ch.QueueDelete(q);
+                ch.QueueDelete(QueueName);
                 ch.Close();
             }
         }
@@ -108,18 +133,20 @@ namespace RabbitMQ.Client.Unit
             var ch = Conn.CreateModel();
             ch.ConfirmSelect();
 
-            var q = ch.QueueDeclare().QueueName;
+            ch.QueueDeclare(QueueName);
 
             for (int i = 0; i < numberOfMessagesToPublish; i++)
             {
-                ch.BasicPublish("", q, null, encoding.GetBytes("msg"));
+                ch.BasicPublish("", QueueName, null, encoding.GetBytes("msg"));
             }
+
             try
             {
                 fn(ch);
-            } finally
+            }
+            finally
             {
-                ch.QueueDelete(q);
+                ch.QueueDelete(QueueName);
                 ch.Close();
             }
         }

@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2016 Pivotal Software, Inc.
+//   Copyright (c) 2007-2020 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is Pivotal Software, Inc.
-//  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
+//  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
@@ -86,7 +86,7 @@ namespace RabbitMQ.Client.Unit
 
             public void DequeueAfterOneIntoV()
             {
-                m_q.Dequeue(1, out m_v);
+                m_q.Dequeue(TimeSpan.FromMilliseconds(1), out m_v);
             }
 
             public void BackgroundEofExpectingDequeue()
@@ -95,9 +95,9 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        public static void EnqueueAfter(int delayMs, SharedQueue queue, object v)
+        public static void EnqueueAfter(TimeSpan delay, SharedQueue queue, object v)
         {
-            var enqueuer = new DelayedEnqueuer(queue, delayMs, v);
+            var enqueuer = new DelayedEnqueuer(queue, (int)delay.TotalMilliseconds, v);
             new Thread(enqueuer.EnqueueValue).Start();
         }
 
@@ -120,9 +120,9 @@ namespace RabbitMQ.Client.Unit
             m_startTime = DateTime.Now;
         }
 
-        public int ElapsedMs()
+        public TimeSpan ElapsedMs()
         {
-            return (int) ((DateTime.Now - m_startTime).TotalMilliseconds);
+            return DateTime.Now - m_startTime;
         }
 
         [Test]
@@ -147,7 +147,7 @@ namespace RabbitMQ.Client.Unit
 
             ResetTimer();
             object v;
-            bool r = q.Dequeue(TimingInterval*2, out v);
+            bool r = q.Dequeue(TimingInterval * 2, out v);
             Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.IsTrue(r);
             Assert.AreEqual(123, v);
@@ -177,7 +177,7 @@ namespace RabbitMQ.Client.Unit
             ExpectEof(de.EnqueueValue);
             Assert.AreEqual(1, q.Dequeue());
             Assert.AreEqual(2, q.DequeueNoWait(0));
-            bool r = q.Dequeue(1, out v);
+            bool r = q.Dequeue(TimeSpan.FromMilliseconds(1), out v);
             Assert.IsTrue(r);
             Assert.AreEqual(3, v);
             ExpectEof(de.Dequeue);
@@ -244,13 +244,13 @@ namespace RabbitMQ.Client.Unit
             object v;
             bool r;
 
-            r = q.Dequeue(TimingInterval*2, out v);
+            r = q.Dequeue(TimingInterval * 2, out v);
             Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.Greater(TimingInterval + SafetyMargin, ElapsedMs());
             Assert.IsTrue(r);
             Assert.AreEqual(123, v);
 
-            r = q.Dequeue(TimingInterval*2, out v);
+            r = q.Dequeue(TimingInterval * 2, out v);
             Assert.Less(TimingInterval*2 - SafetyMargin, ElapsedMs());
             Assert.Greater(TimingInterval*2 + SafetyMargin, ElapsedMs());
             Assert.IsTrue(r);
@@ -273,7 +273,7 @@ namespace RabbitMQ.Client.Unit
             Assert.IsTrue(!r);
             Assert.AreEqual(null, v);
 
-            r = q.Dequeue(TimingInterval*2, out v);
+            r = q.Dequeue(TimingInterval * 2, out v);
             Assert.Less(TimingInterval*2 - SafetyMargin, ElapsedMs());
             Assert.Greater(TimingInterval*2 + SafetyMargin, ElapsedMs());
             Assert.IsTrue(r);
@@ -307,7 +307,7 @@ namespace RabbitMQ.Client.Unit
 
             ResetTimer();
             object v;
-            bool r = q.Dequeue(Timeout.Infinite, out v);
+            bool r = q.Dequeue(Timeout.InfiniteTimeSpan, out v);
             Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.IsTrue(r);
             Assert.AreEqual(123, v);
@@ -333,7 +333,7 @@ namespace RabbitMQ.Client.Unit
 
             ResetTimer();
             object v;
-            bool r = q.Dequeue(-10000, out v);
+            bool r = q.Dequeue(TimeSpan.FromMilliseconds(-10000), out v);
             Assert.Greater(SafetyMargin, ElapsedMs());
             Assert.IsTrue(!r);
             Assert.AreEqual(null, v);

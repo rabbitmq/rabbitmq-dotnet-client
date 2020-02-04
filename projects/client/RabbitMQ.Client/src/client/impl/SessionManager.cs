@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2016 Pivotal Software, Inc.
+//   Copyright (c) 2007-2020 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is Pivotal Software, Inc.
-//  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
+//  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
@@ -92,7 +92,7 @@ namespace RabbitMQ.Client.Impl
         ///when we decide to close the connection.</summary>
         public void AutoCloseConnection()
         {
-            m_connection.Abort(Constants.ReplySuccess, "AutoClose", ShutdownInitiator.Library, Timeout.Infinite);
+            m_connection.Abort(Constants.ReplySuccess, "AutoClose", ShutdownInitiator.Library, Timeout.InfiniteTimeSpan);
         }
 
         ///<summary>If m_autoClose and there are no active sessions
@@ -114,7 +114,7 @@ namespace RabbitMQ.Client.Impl
                         // we would suffer a deadlock as the connection thread 
                         // would be blocking waiting for its own mainloop
                         // to reply to it.
-                        Task.Run(AutoCloseConnection).Wait();
+                        Task.Run((Action)AutoCloseConnection).Wait();
                     }
                 }
             }

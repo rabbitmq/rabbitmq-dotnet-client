@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2016 Pivotal Software, Inc.
+//   Copyright (c) 2007-2020 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is Pivotal Software, Inc.
-//  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
+//  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using RabbitMQ.Client.Exceptions;
@@ -103,9 +103,9 @@ namespace RabbitMQ.Client
         public const ushort DefaultChannelMax = 2047;
 
         /// <summary>
-        /// Default value for connection attempt timeout, in milliseconds.
+        /// Default value for connection attempt timeout.
         /// </summary>
-        public const int DefaultConnectionTimeout = 30 * 1000;
+        public static readonly TimeSpan DefaultConnectionTimeout = TimeSpan.FromSeconds(30);
 
         /// <summary>
         /// Default value for the desired maximum frame size. Default is 0 ("no limit").
@@ -113,10 +113,10 @@ namespace RabbitMQ.Client
         public const uint DefaultFrameMax = 0;
 
         /// <summary>
-        /// Default value for desired heartbeat interval, in seconds. Default is 60,
-        /// 0 means "heartbeats are disabled".
+        /// Default value for desired heartbeat interval. Default is 60 seconds,
+        /// TimeSpan.Zero means "heartbeats are disabled".
         /// </summary>
-        public const ushort DefaultHeartbeat = 60; //
+        public static readonly TimeSpan DefaultHeartbeat = TimeSpan.FromSeconds(60); //
 
         /// <summary>
         /// Default password (value: "guest").
@@ -137,7 +137,7 @@ namespace RabbitMQ.Client
         /// TLS versions enabled by default: TLSv1.2, v1.1, v1.0.
         /// </summary>
         public static SslProtocols DefaultAmqpUriSslProtocols { get; set; } =
-            SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
+            SslProtocols.None;
 
         /// <summary>
         /// The AMQP URI SSL protocols.
@@ -227,19 +227,19 @@ namespace RabbitMQ.Client
         public int Port { get; set; } = AmqpTcpEndpoint.UseDefaultPort;
 
         /// <summary>
-        /// Timeout setting for connection attempts (in milliseconds).
+        /// Timeout setting for connection attempts.
         /// </summary>
-        public int RequestedConnectionTimeout { get; set; } = DefaultConnectionTimeout;
+        public TimeSpan RequestedConnectionTimeout { get; set; } = DefaultConnectionTimeout;
 
         /// <summary>
-        /// Timeout setting for socket read operations (in milliseconds).
+        /// Timeout setting for socket read operations.
         /// </summary>
-        public int SocketReadTimeout { get; set; } = DefaultConnectionTimeout;
+        public TimeSpan SocketReadTimeout { get; set; } = DefaultConnectionTimeout;
 
         /// <summary>
-        /// Timeout setting for socket write operations (in milliseconds).
+        /// Timeout setting for socket write operations.
         /// </summary>
-        public int SocketWriteTimeout { get; set; } = DefaultConnectionTimeout;
+        public TimeSpan SocketWriteTimeout { get; set; } = DefaultConnectionTimeout;
 
         /// <summary>
         /// Ssl options setting.
@@ -295,9 +295,9 @@ namespace RabbitMQ.Client
         public uint RequestedFrameMax { get; set; } = DefaultFrameMax;
 
         /// <summary>
-        /// Heartbeat timeout to use when negotiating with the server (in seconds).
+        /// Heartbeat timeout to use when negotiating with the server.
         /// </summary>
-        public ushort RequestedHeartbeat { get; set; } = DefaultHeartbeat;
+        public TimeSpan RequestedHeartbeat { get; set; } = DefaultHeartbeat;
 
         /// <summary>
         /// When set to true, background thread will be used for the I/O loop.
@@ -525,13 +525,22 @@ namespace RabbitMQ.Client
             return CreateFrameHandler(this.Endpoint.CloneWithHostname(hostname));
         }
 
-
         private IFrameHandler ConfigureFrameHandler(IFrameHandler fh)
         {
-            // make sure socket timeouts are higher than heartbeat
-            fh.ReadTimeout = Math.Max(SocketReadTimeout, RequestedHeartbeat * 1000);
-            fh.WriteTimeout = Math.Max(SocketWriteTimeout, RequestedHeartbeat * 1000);
             // TODO: add user-provided configurator, like in the Java client
+            fh.ReadTimeout = RequestedHeartbeat;
+            fh.WriteTimeout = RequestedHeartbeat;
+
+            if (SocketReadTimeout > RequestedHeartbeat)
+            {
+                fh.ReadTimeout = SocketReadTimeout;
+            }
+
+            if (SocketWriteTimeout > RequestedHeartbeat)
+            {
+                fh.WriteTimeout = SocketWriteTimeout;
+            }
+
             return fh;
         }
 

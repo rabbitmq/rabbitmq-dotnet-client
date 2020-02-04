@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2016 Pivotal Software, Inc.
+//   Copyright (c) 2007-2020 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is Pivotal Software, Inc.
-//  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
+//  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
@@ -68,9 +68,9 @@ namespace RabbitMQ.Client
         uint RequestedFrameMax { get; set; }
 
         /// <summary>
-        /// Heartbeat setting to request (in seconds).
+        /// Heartbeat setting to request.
         /// </summary>
-        ushort RequestedHeartbeat { get; set; }
+        TimeSpan RequestedHeartbeat { get; set; }
 
         /// <summary>
         /// When set to true, background threads will be used for I/O and heartbeats.

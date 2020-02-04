@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2016 Pivotal Software, Inc.
+//   Copyright (c) 2007-2020 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is Pivotal Software, Inc.
-//  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
+//  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
@@ -89,25 +89,7 @@ namespace RabbitMQ.Util
             }
             throw new TimeoutException();
         }
-        ///<summary>Retrieve the cell's value, waiting for the given
-        ///timeout if no value is immediately available.</summary>
-        ///<remarks>
-        ///<para>
-        /// If a value is present in the cell at the time the call is
-        /// made, the call will return immediately. Otherwise, the
-        /// calling thread blocks until either a value appears, or
-        /// operation times out.
-        ///</para>
-        ///<para>
-        /// If no value was available before the timeout, an exception
-        /// is thrown.
-        ///</para>
-        ///</remarks>
-        /// <exception cref="TimeoutException" />
-        public T WaitForValue(int timeout)
-        {
-            return WaitForValue(TimeSpan.FromMilliseconds(timeout));
-        }
+
         ///<summary>Retrieve the cell's value, blocking if none exists
         ///at present, or supply a value to an empty cell, thereby
         ///filling it.</summary>
@@ -115,14 +97,6 @@ namespace RabbitMQ.Util
         public T WaitForValue()
         {
             return WaitForValue(TimeSpan.FromMinutes(60));
-        }
-
-        ///<summary>Return valid timeout value</summary>
-        ///<remarks>If value of the parameter is less then zero, return 0
-        ///to mean infinity</remarks>
-        public static int validatedTimeout(int timeout)
-        {
-            return (timeout != Timeout.Infinite) && (timeout < 0) ? 0 : timeout;
         }
     }
 }

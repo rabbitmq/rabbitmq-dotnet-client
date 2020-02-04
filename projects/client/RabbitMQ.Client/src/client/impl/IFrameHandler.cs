@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2016 Pivotal Software, Inc.
+//   Copyright (c) 2007-2020 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -35,9 +35,10 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is Pivotal Software, Inc.
-//  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
+//  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
@@ -56,11 +57,11 @@ namespace RabbitMQ.Client.Impl
 
         int RemotePort { get; }
 
-        ///<summary>Socket read timeout, in milliseconds. Zero signals "infinity".</summary>
-        int ReadTimeout { set; }
+        ///<summary>Socket read timeout. System.Threading.Timeout.InfiniteTimeSpan signals "infinity".</summary>
+        TimeSpan ReadTimeout { set; }
 
-        ///<summary>Socket write timeout, in milliseconds. Zero signals "infinity".</summary>
-        int WriteTimeout { set; }
+        ///<summary>Socket write timeout. System.Threading.Timeout.InfiniteTimeSpan signals "infinity".</summary>
+        TimeSpan WriteTimeout { set; }
 
         void Close();
 

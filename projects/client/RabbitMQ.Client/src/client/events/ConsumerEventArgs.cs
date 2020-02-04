@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2016 Pivotal Software, Inc.
+//   Copyright (c) 2007-2020 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is Pivotal Software, Inc.
-//  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
+//  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
@@ -46,15 +46,15 @@ namespace RabbitMQ.Client.Events
     ///or cancellation.</summary>
     public class ConsumerEventArgs : EventArgs
     {
-        ///<summary>Construct an event containing the consumer-tag of
+        ///<summary>Construct an event containing the consumer-tags of
         ///the consumer the event relates to.</summary>
-        public ConsumerEventArgs(string consumerTag)
+        public ConsumerEventArgs(string[] consumerTags)
         {
-            ConsumerTag = consumerTag;
+            ConsumerTags = consumerTags;
         }
 
-        ///<summary>Access the consumer-tag of the consumer the event
+        ///<summary>Access the consumer-tags of the consumer the event
         ///relates to.</summary>
-        public string ConsumerTag { get; private set; }
+        public string[] ConsumerTags { get; private set; }
     }
 }

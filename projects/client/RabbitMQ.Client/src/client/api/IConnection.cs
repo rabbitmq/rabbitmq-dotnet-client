@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2016 Pivotal Software, Inc.
+//   Copyright (c) 2007-2020 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is Pivotal Software, Inc.
-//  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
+//  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
@@ -108,9 +108,9 @@ namespace RabbitMQ.Client
         uint FrameMax { get; }
 
         /// <summary>
-        /// The current heartbeat setting for this connection (0 for disabled), in seconds.
+        /// The current heartbeat setting for this connection (System.TimeSpan.Zero for disabled).
         /// </summary>
-        ushort Heartbeat { get; }
+        TimeSpan Heartbeat { get; }
 
         /// <summary>
         /// Returns true if the connection is still in a state where it can be used.
@@ -223,45 +223,10 @@ namespace RabbitMQ.Client
         /// for all the in-progress close operations to complete.
         /// If timeout is reached and the close operations haven't finished, then socket is forced to close.
         /// <para>
-        /// The timeout value is in milliseconds.
-        /// To wait infinitely for the close operations to complete use <see cref="Timeout.Infinite"/>.
-        /// </para>
-        /// </remarks>
-        void Abort(int timeout);
-
-        /// <summary>
-        /// Abort this connection and all its channels and wait with a
-        /// timeout for all the in-progress close operations to complete.
-        /// </summary>
-        /// <remarks>
-        /// This method, behaves in a similar way as method <see cref="Abort()"/> with the
-        /// only difference that it explictly specifies a timeout given
-        /// for all the in-progress close operations to complete.
-        /// If timeout is reached and the close operations haven't finished, then socket is forced to close.
-        /// <para>
         /// To wait infinitely for the close operations to complete use <see cref="Timeout.Infinite"/>.
         /// </para>
         /// </remarks>
         void Abort(TimeSpan timeout);
-
-        /// <summary>
-        /// Abort this connection and all its channels and wait with a
-        /// timeout for all the in-progress close operations to complete.
-        /// </summary>
-        /// <remarks>
-        /// The method behaves in the same way as <see cref="Abort(int)"/>, with the only
-        /// difference that the connection is closed with the given connection close code and message.
-        /// <para>
-        /// The close code (See under "Reply Codes" in the AMQP 0-9-1 specification).
-        /// </para>
-        /// <para>
-        /// A message indicating the reason for closing the connection.
-        /// </para>
-        /// <para>
-        /// Operation timeout in milliseconds.
-        /// </para>
-        /// </remarks>
-        void Abort(ushort reasonCode, string reasonText, int timeout);
 
         /// <summary>
         /// Abort this connection and all its channels and wait with a
@@ -319,18 +284,17 @@ namespace RabbitMQ.Client
         /// It can also throw <see cref="IOException"/> when socket was closed unexpectedly.
         /// If timeout is reached and the close operations haven't finished, then socket is forced to close.
         /// <para>
-        /// The timeout value is in milliseconds.
-        /// To wait infinitely for the close operations to complete use <see cref="Timeout.Infinite"/>.
+        /// To wait infinitely for the close operations to complete use <see cref="System.Threading.Timeout.InfiniteTimeSpan"/>.
         /// </para>
         /// </remarks>
-        void Close(int timeout);
+        void Close(TimeSpan timeout);
 
         /// <summary>
         /// Close this connection and all its channels
         /// and wait with a timeout for all the in-progress close operations to complete.
         /// </summary>
         /// <remarks>
-        /// The method behaves in the same way as <see cref="Close(int)"/>, with the only
+        /// The method behaves in the same way as <see cref="Close(TimeSpan)"/>, with the only
         /// difference that the connection is closed with the given connection close code and message.
         /// <para>
         /// The close code (See under "Reply Codes" in the AMQP 0-9-1 specification).
@@ -339,10 +303,10 @@ namespace RabbitMQ.Client
         /// A message indicating the reason for closing the connection.
         /// </para>
         /// <para>
-        /// Operation timeout in milliseconds.
+        /// Operation timeout.
         /// </para>
         /// </remarks>
-        void Close(ushort reasonCode, string reasonText, int timeout);
+        void Close(ushort reasonCode, string reasonText, TimeSpan timeout);
 
         /// <summary>
         /// Create and return a fresh channel, session, and model.

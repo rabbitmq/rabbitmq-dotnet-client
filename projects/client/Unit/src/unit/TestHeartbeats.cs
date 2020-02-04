@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2016 Pivotal Software, Inc.
+//   Copyright (c) 2007-2020 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is Pivotal Software, Inc.
-//  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
+//  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using NUnit.Framework;
@@ -48,7 +48,7 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     internal class TestHeartbeats : IntegrationFixture
     {
-        private const UInt16 heartbeatTimeout = 2;
+        private readonly TimeSpan heartbeatTimeout = TimeSpan.FromSeconds(2);
 
         [Test, Category("LongRunning"), MaxTimeAttribute(35000)]
         public void TestThatHeartbeatWriterUsesConfigurableInterval()
@@ -103,7 +103,11 @@ namespace RabbitMQ.Client.Unit
             for (var i = 0; i < 200; i++)
             {
                 var n = Convert.ToUInt16(rnd.Next(2, 6));
-                var cf = new ConnectionFactory() { RequestedHeartbeat = n, AutomaticRecoveryEnabled = false };
+                var cf = new ConnectionFactory()
+                {
+                    RequestedHeartbeat = TimeSpan.FromSeconds(n),
+                    AutomaticRecoveryEnabled = false
+                };
                 var conn = cf.CreateConnection();
                 xs.Add(conn);
                 var ch = conn.CreateModel();

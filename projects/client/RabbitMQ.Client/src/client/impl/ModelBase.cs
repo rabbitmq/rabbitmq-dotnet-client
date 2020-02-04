@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2016 Pivotal Software, Inc.
+//   Copyright (c) 2007-2020 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is Pivotal Software, Inc.
-//  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
+//  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
@@ -964,9 +964,7 @@ namespace RabbitMQ.Client.Impl
 
         ///<summary>Handle incoming Connection.Tune
         ///methods.</summary>
-        public void HandleConnectionTune(ushort channelMax,
-            uint frameMax,
-            ushort heartbeat)
+        public void HandleConnectionTune(ushort channelMax, uint frameMax, ushort heartbeatInSeconds)
         {
             var k = (ConnectionStartRpcContinuation)m_continuationQueue.Next();
             k.m_result = new ConnectionSecureOrTune
@@ -975,7 +973,7 @@ namespace RabbitMQ.Client.Impl
                 {
                     m_channelMax = channelMax,
                     m_frameMax = frameMax,
-                    m_heartbeat = heartbeat
+                    m_heartbeatInSeconds = heartbeatInSeconds
                 }
             };
             k.HandleCommand(null); // release the continuation.

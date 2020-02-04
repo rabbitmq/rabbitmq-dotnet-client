@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2016 Pivotal Software, Inc.
+//   Copyright (c) 2007-2020 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is Pivotal Software, Inc.
-//  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
+//  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using RabbitMQ.Client.Events;
@@ -277,7 +277,7 @@ namespace RabbitMQ.Client.Framing.Impl
             get { return m_delegate.FrameMax; }
         }
 
-        public ushort Heartbeat
+        public TimeSpan Heartbeat
         {
             get { return m_delegate.Heartbeat; }
         }
@@ -597,27 +597,13 @@ namespace RabbitMQ.Client.Framing.Impl
         }
 
         ///<summary>API-side invocation of connection abort with timeout.</summary>
-        public void Abort(int timeout)
-        {
-            StopRecoveryLoop();
-            if (m_delegate.IsOpen)
-                m_delegate.Abort(timeout);
-        }
-
-        ///<summary>API-side invocation of connection abort with timeout.</summary>
         public void Abort(TimeSpan timeout)
         {
             StopRecoveryLoop();
             if (m_delegate.IsOpen)
+            {
                 m_delegate.Abort(timeout);
-        }
-
-        ///<summary>API-side invocation of connection abort with timeout.</summary>
-        public void Abort(ushort reasonCode, string reasonText, int timeout)
-        {
-            StopRecoveryLoop();
-            if (m_delegate.IsOpen)
-                m_delegate.Abort(reasonCode, reasonText, timeout);
+            }
         }
 
         ///<summary>API-side invocation of connection abort with timeout.</summary>
@@ -645,19 +631,23 @@ namespace RabbitMQ.Client.Framing.Impl
         }
 
         ///<summary>API-side invocation of connection.close with timeout.</summary>
-        public void Close(int timeout)
+        public void Close(TimeSpan timeout)
         {
             StopRecoveryLoop();
             if (m_delegate.IsOpen)
+            {
                 m_delegate.Close(timeout);
+            }
         }
 
         ///<summary>API-side invocation of connection.close with timeout.</summary>
-        public void Close(ushort reasonCode, string reasonText, int timeout)
+        public void Close(ushort reasonCode, string reasonText, TimeSpan timeout)
         {
             StopRecoveryLoop();
             if (m_delegate.IsOpen)
+            {
                 m_delegate.Close(reasonCode, reasonText, timeout);
+            }
         }
 
         public IModel CreateModel()

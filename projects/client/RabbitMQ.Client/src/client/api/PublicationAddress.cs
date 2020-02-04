@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2016 Pivotal Software, Inc.
+//   Copyright (c) 2007-2020 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is Pivotal Software, Inc.
-//  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
+//  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System.Text.RegularExpressions;
@@ -61,9 +61,7 @@ namespace RabbitMQ.Client
     /// existing usage of the ReplyTo field; the AMQP specifications
     /// 0-8 and 0-9 do not define the format of the field, and do not
     /// define any format for the triple (exchange name, exchange
-    /// type, routing key) that could be used instead. Please see also
-    /// the way class RabbitMQ.Client.MessagePatterns.SimpleRpcServer
-    /// uses the ReplyTo field.
+    /// type, routing key) that could be used instead.
     /// </para>
     /// </remarks>
     public class PublicationAddress

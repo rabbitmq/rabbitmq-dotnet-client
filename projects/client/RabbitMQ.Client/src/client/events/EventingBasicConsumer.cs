@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2016 Pivotal Software, Inc.
+//   Copyright (c) 2007-2020 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is Pivotal Software, Inc.
-//  Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
+//  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
@@ -68,14 +68,14 @@ namespace RabbitMQ.Client.Events
         public override void HandleBasicCancelOk(string consumerTag)
         {
             base.HandleBasicCancelOk(consumerTag);
-            Raise(Unregistered, new ConsumerEventArgs(consumerTag));
+            Raise(Unregistered, new ConsumerEventArgs(new[] { consumerTag }));
         }
 
         ///<summary>Fires the Registered event.</summary>
         public override void HandleBasicConsumeOk(string consumerTag)
         {
             base.HandleBasicConsumeOk(consumerTag);
-            Raise(Registered, new ConsumerEventArgs(consumerTag));
+            Raise(Registered, new ConsumerEventArgs(new[] { consumerTag }));
         }
 
         ///<summary>Fires the Received event.</summary>

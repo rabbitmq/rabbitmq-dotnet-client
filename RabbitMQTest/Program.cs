@@ -28,10 +28,10 @@ namespace DeadlockRabbitMQ
             publisher.ExchangeDeclare("test", ExchangeType.Topic, true);
 
             subscriber.QueueDeclare("testqueue", true, false, true);
-            var asyncListener = new AsyncEventingBasicConsumer(subscriber) { ConsumerTag = "testconsumer" };
+            var asyncListener = new AsyncEventingBasicConsumer(subscriber);
             asyncListener.Received += AsyncListener_Received;
             subscriber.QueueBind("testqueue", "test", "myawesome.routing.key");
-            subscriber.BasicConsume("testqueue", true, asyncListener.ConsumerTag, asyncListener);
+            subscriber.BasicConsume("testqueue", true, "testconsumer", asyncListener);
 
             byte[] payload = new byte[16384];
             var batchPublish = Task.Run(async () =>

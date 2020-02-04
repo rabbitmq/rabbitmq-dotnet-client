@@ -42,7 +42,7 @@ namespace RabbitMQ.Client
     {
         public AsyncDefaultBasicConsumer() { }
         public AsyncDefaultBasicConsumer(RabbitMQ.Client.IModel model) { }
-        public string ConsumerTag { get; set; }
+        public string[] ConsumerTags { get; }
         public bool IsRunning { get; set; }
         public RabbitMQ.Client.IModel Model { get; set; }
         public RabbitMQ.Client.ShutdownEventArgs ShutdownReason { get; set; }
@@ -53,7 +53,7 @@ namespace RabbitMQ.Client
         public virtual System.Threading.Tasks.Task HandleBasicConsumeOk(string consumerTag) { }
         public virtual System.Threading.Tasks.Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, RabbitMQ.Client.IBasicProperties properties, byte[] body) { }
         public virtual System.Threading.Tasks.Task HandleModelShutdown(object model, RabbitMQ.Client.ShutdownEventArgs reason) { }
-        public virtual System.Threading.Tasks.Task OnCancel() { }
+        public virtual System.Threading.Tasks.Task OnCancel(params string[] consumerTags) { }
     }
     public interface AuthMechanism
     {
@@ -85,9 +85,9 @@ namespace RabbitMQ.Client
     {
         public static readonly System.Collections.Generic.IList<RabbitMQ.Client.AuthMechanismFactory> DefaultAuthMechanisms;
         public const ushort DefaultChannelMax = 2047;
-        public const int DefaultConnectionTimeout = 30000;
+        public static readonly System.TimeSpan DefaultConnectionTimeout;
         public const uint DefaultFrameMax = 0u;
-        public const ushort DefaultHeartbeat = 60;
+        public static readonly System.TimeSpan DefaultHeartbeat;
         public const string DefaultPass = "guest";
         public const string DefaultUser = "guest";
         public const string DefaultVHost = "/";
@@ -109,11 +109,11 @@ namespace RabbitMQ.Client
         public string Password { get; set; }
         public int Port { get; set; }
         public ushort RequestedChannelMax { get; set; }
-        public int RequestedConnectionTimeout { get; set; }
+        public System.TimeSpan RequestedConnectionTimeout { get; set; }
         public uint RequestedFrameMax { get; set; }
-        public ushort RequestedHeartbeat { get; set; }
-        public int SocketReadTimeout { get; set; }
-        public int SocketWriteTimeout { get; set; }
+        public System.TimeSpan RequestedHeartbeat { get; set; }
+        public System.TimeSpan SocketReadTimeout { get; set; }
+        public System.TimeSpan SocketWriteTimeout { get; set; }
         public RabbitMQ.Client.SslOption Ssl { get; set; }
         public bool TopologyRecoveryEnabled { get; set; }
         public System.Uri Uri { get; set; }
@@ -147,7 +147,7 @@ namespace RabbitMQ.Client
         public System.EventHandler<RabbitMQ.Client.Events.ConsumerEventArgs> m_consumerCancelled;
         public DefaultBasicConsumer() { }
         public DefaultBasicConsumer(RabbitMQ.Client.IModel model) { }
-        public string ConsumerTag { get; set; }
+        public string[] ConsumerTags { get; }
         public bool IsRunning { get; set; }
         public RabbitMQ.Client.IModel Model { get; set; }
         public RabbitMQ.Client.ShutdownEventArgs ShutdownReason { get; set; }
@@ -157,7 +157,7 @@ namespace RabbitMQ.Client
         public virtual void HandleBasicConsumeOk(string consumerTag) { }
         public virtual void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, RabbitMQ.Client.IBasicProperties properties, byte[] body) { }
         public virtual void HandleModelShutdown(object model, RabbitMQ.Client.ShutdownEventArgs reason) { }
-        public virtual void OnCancel() { }
+        public virtual void OnCancel(params string[] consumerTags) { }
     }
     public class DefaultEndpointResolver : RabbitMQ.Client.IEndpointResolver
     {
@@ -298,7 +298,7 @@ namespace RabbitMQ.Client
         RabbitMQ.Client.ConsumerWorkService ConsumerWorkService { get; }
         RabbitMQ.Client.AmqpTcpEndpoint Endpoint { get; }
         uint FrameMax { get; }
-        ushort Heartbeat { get; }
+        System.TimeSpan Heartbeat { get; }
         bool IsOpen { get; }
         RabbitMQ.Client.AmqpTcpEndpoint[] KnownHosts { get; }
         RabbitMQ.Client.IProtocol Protocol { get; }
@@ -312,14 +312,12 @@ namespace RabbitMQ.Client
         public event System.EventHandler<System.EventArgs> RecoverySucceeded;
         void Abort();
         void Abort(ushort reasonCode, string reasonText);
-        void Abort(int timeout);
         void Abort(System.TimeSpan timeout);
-        void Abort(ushort reasonCode, string reasonText, int timeout);
         void Abort(ushort reasonCode, string reasonText, System.TimeSpan timeout);
         void Close();
         void Close(ushort reasonCode, string reasonText);
-        void Close(int timeout);
-        void Close(ushort reasonCode, string reasonText, int timeout);
+        void Close(System.TimeSpan timeout);
+        void Close(ushort reasonCode, string reasonText, System.TimeSpan timeout);
         RabbitMQ.Client.IModel CreateModel();
         void HandleConnectionBlocked(string reason);
         void HandleConnectionUnblocked();
@@ -334,7 +332,7 @@ namespace RabbitMQ.Client
         string Password { get; set; }
         ushort RequestedChannelMax { get; set; }
         uint RequestedFrameMax { get; set; }
-        ushort RequestedHeartbeat { get; set; }
+        System.TimeSpan RequestedHeartbeat { get; set; }
         System.Uri Uri { get; set; }
         bool UseBackgroundThreadsForIO { get; set; }
         string UserName { get; set; }
@@ -515,7 +513,7 @@ namespace RabbitMQ.Client
     {
         System.Net.Sockets.Socket Client { get; }
         bool Connected { get; }
-        int ReceiveTimeout { get; set; }
+        System.TimeSpan ReceiveTimeout { get; set; }
         void Close();
         System.Threading.Tasks.Task ConnectAsync(string host, int port);
         System.Net.Sockets.NetworkStream GetStream();
@@ -614,7 +612,7 @@ namespace RabbitMQ.Client
         public TcpClientAdapter(System.Net.Sockets.Socket socket) { }
         public virtual System.Net.Sockets.Socket Client { get; }
         public virtual bool Connected { get; }
-        public virtual int ReceiveTimeout { get; set; }
+        public virtual System.TimeSpan ReceiveTimeout { get; set; }
         public virtual void Close() { }
         public virtual System.Threading.Tasks.Task ConnectAsync(string host, int port) { }
         [System.ObsoleteAttribute("Override Dispose(bool) instead.")]
@@ -1051,8 +1049,8 @@ namespace RabbitMQ.Client.Events
     }
     public class ConsumerEventArgs : System.EventArgs
     {
-        public ConsumerEventArgs(string consumerTag) { }
-        public string ConsumerTag { get; }
+        public ConsumerEventArgs(string[] consumerTags) { }
+        public string[] ConsumerTags { get; }
     }
     public sealed class ConsumerTagChangedAfterRecoveryEventArgs : System.EventArgs
     {
@@ -1492,7 +1490,7 @@ namespace RabbitMQ.Client.Framing.Impl
         public RabbitMQ.Client.ConsumerWorkService ConsumerWorkService { get; }
         public RabbitMQ.Client.AmqpTcpEndpoint Endpoint { get; }
         public uint FrameMax { get; set; }
-        public ushort Heartbeat { get; set; }
+        public System.TimeSpan Heartbeat { get; set; }
         public System.Guid Id { get; }
         public bool IsOpen { get; }
         public RabbitMQ.Client.AmqpTcpEndpoint[] KnownHosts { get; set; }
@@ -1509,19 +1507,17 @@ namespace RabbitMQ.Client.Framing.Impl
         public event System.EventHandler<RabbitMQ.Client.ShutdownEventArgs> ConnectionShutdown;
         public event System.EventHandler<System.EventArgs> ConnectionUnblocked;
         public event System.EventHandler<System.EventArgs> RecoverySucceeded;
-        public void Abort(ushort reasonCode, string reasonText, RabbitMQ.Client.ShutdownInitiator initiator, int timeout) { }
+        public void Abort(ushort reasonCode, string reasonText, RabbitMQ.Client.ShutdownInitiator initiator, System.TimeSpan timeout) { }
         public void Abort() { }
         public void Abort(ushort reasonCode, string reasonText) { }
-        public void Abort(int timeout) { }
         public void Abort(System.TimeSpan timeout) { }
-        public void Abort(ushort reasonCode, string reasonText, int timeout) { }
         public void Abort(ushort reasonCode, string reasonText, System.TimeSpan timeout) { }
         public void Close(RabbitMQ.Client.ShutdownEventArgs reason) { }
-        public void Close(RabbitMQ.Client.ShutdownEventArgs reason, bool abort, int timeout) { }
+        public void Close(RabbitMQ.Client.ShutdownEventArgs reason, bool abort, System.TimeSpan timeout) { }
         public void Close() { }
         public void Close(ushort reasonCode, string reasonText) { }
-        public void Close(int timeout) { }
-        public void Close(ushort reasonCode, string reasonText, int timeout) { }
+        public void Close(System.TimeSpan timeout) { }
+        public void Close(ushort reasonCode, string reasonText, System.TimeSpan timeout) { }
         public void ClosingLoop() { }
         public RabbitMQ.Client.Impl.Command ConnectionCloseWrapper(ushort reasonCode, string reasonText) { }
         public RabbitMQ.Client.IModel CreateModel() { }
@@ -1561,7 +1557,7 @@ namespace RabbitMQ.Client.Framing.Impl
     }
     public class static IProtocolExtensions
     {
-        public static RabbitMQ.Client.Impl.IFrameHandler CreateFrameHandler(this RabbitMQ.Client.IProtocol protocol, RabbitMQ.Client.AmqpTcpEndpoint endpoint, System.Func<System.Net.Sockets.AddressFamily, RabbitMQ.Client.ITcpClient> socketFactory, int connectionTimeout, int readTimeout, int writeTimeout) { }
+        public static RabbitMQ.Client.Impl.IFrameHandler CreateFrameHandler(this RabbitMQ.Client.IProtocol protocol, RabbitMQ.Client.AmqpTcpEndpoint endpoint, System.Func<System.Net.Sockets.AddressFamily, RabbitMQ.Client.ITcpClient> socketFactory, System.TimeSpan connectionTimeout, System.TimeSpan readTimeout, System.TimeSpan writeTimeout) { }
     }
     public abstract class ProtocolBase : RabbitMQ.Client.IProtocol
     {
@@ -1707,7 +1703,7 @@ namespace RabbitMQ.Client.Impl
     {
         public ushort m_channelMax;
         public uint m_frameMax;
-        public ushort m_heartbeat;
+        public ushort m_heartbeatInSeconds;
     }
     public abstract class ContentHeaderBase : RabbitMQ.Client.IContentHeader
     {
@@ -1816,10 +1812,10 @@ namespace RabbitMQ.Client.Impl
         RabbitMQ.Client.AmqpTcpEndpoint Endpoint { get; }
         System.Net.EndPoint LocalEndPoint { get; }
         int LocalPort { get; }
-        int ReadTimeout { set; }
+        System.TimeSpan ReadTimeout { set; }
         System.Net.EndPoint RemoteEndPoint { get; }
         int RemotePort { get; }
-        int WriteTimeout { set; }
+        System.TimeSpan WriteTimeout { set; }
         void Close();
         RabbitMQ.Client.Impl.InboundFrame ReadFrame();
         void SendHeader();
@@ -2078,7 +2074,7 @@ namespace RabbitMQ.Client.Impl
         public void HandleConnectionOpenOk(string knownHosts) { }
         public void HandleConnectionSecure(byte[] challenge) { }
         public void HandleConnectionStart(byte versionMajor, byte versionMinor, System.Collections.Generic.IDictionary<string, object> serverProperties, byte[] mechanisms, byte[] locales) { }
-        public void HandleConnectionTune(ushort channelMax, uint frameMax, ushort heartbeat) { }
+        public void HandleConnectionTune(ushort channelMax, uint frameMax, ushort heartbeatInSeconds) { }
         public void HandleConnectionUnblocked() { }
         public void HandleQueueDeclareOk(string queue, uint messageCount, uint consumerCount) { }
         protected void Initialise(RabbitMQ.Client.Impl.ISession session) { }
@@ -2255,14 +2251,14 @@ namespace RabbitMQ.Client.Impl
     }
     public class SocketFrameHandler : RabbitMQ.Client.Impl.IFrameHandler
     {
-        public SocketFrameHandler(RabbitMQ.Client.AmqpTcpEndpoint endpoint, System.Func<System.Net.Sockets.AddressFamily, RabbitMQ.Client.ITcpClient> socketFactory, int connectionTimeout, int readTimeout, int writeTimeout) { }
+        public SocketFrameHandler(RabbitMQ.Client.AmqpTcpEndpoint endpoint, System.Func<System.Net.Sockets.AddressFamily, RabbitMQ.Client.ITcpClient> socketFactory, System.TimeSpan connectionTimeout, System.TimeSpan readTimeout, System.TimeSpan writeTimeout) { }
         public RabbitMQ.Client.AmqpTcpEndpoint Endpoint { get; set; }
         public System.Net.EndPoint LocalEndPoint { get; }
         public int LocalPort { get; }
-        public int ReadTimeout { set; }
+        public System.TimeSpan ReadTimeout { set; }
         public System.Net.EndPoint RemoteEndPoint { get; }
         public int RemotePort { get; }
-        public int WriteTimeout { set; }
+        public System.TimeSpan WriteTimeout { set; }
         public void Close() { }
         public RabbitMQ.Client.Impl.InboundFrame ReadFrame() { }
         public void SendHeader() { }
@@ -2391,9 +2387,7 @@ namespace RabbitMQ.Util
         public BlockingCell() { }
         public void ContinueWithValue(T value) { }
         public T WaitForValue(System.TimeSpan timeout) { }
-        public T WaitForValue(int timeout) { }
         public T WaitForValue() { }
-        public static int validatedTimeout(int timeout) { }
     }
     public class static DebugUtil
     {
@@ -2486,7 +2480,7 @@ namespace RabbitMQ.Util
         public SharedQueue() { }
         public void Close() { }
         public T Dequeue() { }
-        public bool Dequeue(int millisecondsTimeout, out T result) { }
+        public bool Dequeue(System.TimeSpan timeout, out T result) { }
         public T DequeueNoWait(T defaultValue) { }
         public void Enqueue(T o) { }
     }
