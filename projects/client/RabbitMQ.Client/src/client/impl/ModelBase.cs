@@ -273,7 +273,7 @@ namespace RabbitMQ.Client.Impl
         {
             var k = new ShutdownContinuation();
             ModelShutdown += k.OnConnectionShutdown;
-            _connectionClosingCancellation.Cancel();
+            _connectionClosingCancellation.Cancel(false);
 
             try
             {
@@ -284,7 +284,11 @@ namespace RabbitMQ.Client.Impl
                 }
                 k.Wait(TimeSpan.FromMilliseconds(10000));
                 ConsumerDispatcher.Shutdown(this);
-                _multipleConfirmCleanup.Wait();
+                try
+                {
+                    _multipleConfirmCleanup.Wait();
+                }
+                catch (AggregateException) { }
             }
             catch (AlreadyClosedException)
             {
@@ -1628,23 +1632,16 @@ namespace RabbitMQ.Client.Impl
         {
             while (!_connectionClosingCancellation.IsCancellationRequested)
             {
-                try
+                await _multipleConfirmLock.WaitAsync(_connectionClosingCancellation.Token).ConfigureAwait(false);
+                foreach (ulong key in m_unconfirmedSet.Keys)
                 {
-                    await _multipleConfirmLock.WaitAsync(_connectionClosingCancellation.Token).ConfigureAwait(false);
-                    foreach (ulong key in m_unconfirmedSet.Keys)
+                    if (key <= _highestDeliveryTag)
                     {
-                        if (key <= _highestDeliveryTag)
-                        {
-                            m_unconfirmedSet.TryRemove(key, out _);
-                        }
+                        m_unconfirmedSet.TryRemove(key, out _);
                     }
+                }
 
-                    TriggerAllOutstandingCompleted();
-                }
-                catch (TaskCanceledException)
-                {
-                    // Swallow the task cancel exception since the model is being closed.
-                }
+                TriggerAllOutstandingCompleted();
             }
         }
 

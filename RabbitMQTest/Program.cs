@@ -34,7 +34,7 @@ namespace DeadlockRabbitMQ
             subscriber.QueueBind("testqueue", "test", "myawesome.routing.key");
             subscriber.BasicConsume("testqueue", false, "testconsumer", asyncListener);
 
-            byte[] payload = new byte[512];
+            byte[] payload = new byte[16384];
             var batchPublish = Task.Run(async () =>
             {
                 while (messagesSent < batchesToSend * itemsPerBatch)
@@ -49,7 +49,7 @@ namespace DeadlockRabbitMQ
                     }
                     batch.Publish();
                     messagesSent += itemsPerBatch;
-                    await publisher.WaitForConfirmsOrDieAsync();
+                    publisher.WaitForConfirmsOrDie();
                 }
             });
 

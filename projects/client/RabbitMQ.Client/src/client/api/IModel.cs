@@ -496,8 +496,6 @@ namespace RabbitMQ.Client
         /// </remarks>
         [AmqpMethodDoNotImplement(null)]
         bool WaitForConfirms();
-        [AmqpMethodDoNotImplement(null)]
-        Task<bool> WaitForConfirmsAsync();
 
         /// <summary>
         /// Wait until all published messages have been confirmed.
@@ -533,8 +531,6 @@ namespace RabbitMQ.Client
         /// </remarks>
         [AmqpMethodDoNotImplement(null)]
         bool WaitForConfirms(TimeSpan timeout, out bool timedOut);
-        [AmqpMethodDoNotImplement(null)]
-        Task<(bool onlyAcksReceived, bool timedOut)> WaitForConfirmsAsync(TimeSpan timeout);
 
         /// <summary>
         /// Wait until all published messages have been confirmed.
@@ -546,8 +542,6 @@ namespace RabbitMQ.Client
         /// </remarks>
         [AmqpMethodDoNotImplement(null)]
         void WaitForConfirmsOrDie();
-        [AmqpMethodDoNotImplement(null)]
-        Task WaitForConfirmsOrDieAsync();
 
         /// <summary>
         /// Wait until all published messages have been confirmed.
@@ -559,8 +553,6 @@ namespace RabbitMQ.Client
         /// </remarks>
         [AmqpMethodDoNotImplement(null)]
         void WaitForConfirmsOrDie(TimeSpan timeout);
-        [AmqpMethodDoNotImplement(null)]
-        Task WaitForConfirmsOrDieAsync(TimeSpan timeout);
 
         /// <summary>
         /// Amount of time protocol  operations (e.g. <code>queue.declare</code>) are allowed to take before
