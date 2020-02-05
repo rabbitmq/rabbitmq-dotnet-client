@@ -75,6 +75,10 @@ namespace RabbitMQ.Client.Impl
 
         //private readonly SynchronizedList<ulong> m_unconfirmedSet = new SynchronizedList<ulong>();
         private readonly ConcurrentDictionary<ulong, bool> m_unconfirmedSet = new ConcurrentDictionary<ulong, bool>();
+        private ulong _highestDeliveryTag = 0;
+        private Task _multipleConfirmCleanup;
+        private SemaphoreSlim _multipleConfirmLock = new SemaphoreSlim(1, 1);
+        private readonly CancellationTokenSource _connectionClosingCancellation = new CancellationTokenSource();
         private readonly SemaphoreSlim _outstandingSemaphore = new SemaphoreSlim(0);
 
         private EventHandler<EventArgs> m_basicRecoverOk;
@@ -114,6 +118,7 @@ namespace RabbitMQ.Client.Impl
             Session = session;
             Session.CommandReceived = HandleCommand;
             Session.SessionShutdown += OnSessionShutdown;
+            _multipleConfirmCleanup = Task.Run(CleanupUnconfirmedTagsAsync);
         }
 
         public TimeSpan HandshakeContinuationTimeout
@@ -268,6 +273,7 @@ namespace RabbitMQ.Client.Impl
         {
             var k = new ShutdownContinuation();
             ModelShutdown += k.OnConnectionShutdown;
+            _connectionClosingCancellation.Cancel();
 
             try
             {
@@ -278,6 +284,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 k.Wait(TimeSpan.FromMilliseconds(10000));
                 ConsumerDispatcher.Shutdown(this);
+                _multipleConfirmCleanup.Wait();
             }
             catch (AlreadyClosedException)
             {
@@ -420,6 +427,13 @@ namespace RabbitMQ.Client.Impl
                 TransmitAndEnqueue(new Command(method, header, body), k);
                 return k.GetReply(this.ContinuationTimeout).Method;
             }
+        }
+
+        public async ValueTask<MethodBase> ModelRpcAsync(MethodBase method, ContentHeaderBase header, byte[] body)
+        {
+            var k = new AsyncRpcContinuation();
+            TransmitAndEnqueue(new Command(method, header, body), k);
+            return (await k.GetReplyAsync(this.ContinuationTimeout).ConfigureAwait(false)).Method;
         }
 
         public void ModelSend(MethodBase method, ContentHeaderBase header, byte[] body)
@@ -1574,23 +1588,63 @@ namespace RabbitMQ.Client.Impl
         {
             if (multiple)
             {
-                foreach (ulong key in m_unconfirmedSet.Keys)
+                if (_highestDeliveryTag < deliveryTag)
                 {
-                    if (key <= deliveryTag)
+                    // Multiple confirms, let's trigger a cleanup of any older deliveries.
+                    _highestDeliveryTag = deliveryTag;
+                    try
                     {
-                        m_unconfirmedSet.TryRemove(key, out _);
+                        _multipleConfirmLock.Release();
+                    }
+                    catch (SemaphoreFullException)
+                    {
+                        // Ignore if we are trying to release often.
                     }
                 }
             }
-            else
-            {
-                m_unconfirmedSet.TryRemove(deliveryTag, out _);
-            }
+
+            m_unconfirmedSet.TryRemove(deliveryTag, out _);
 
             m_onlyAcksReceived = m_onlyAcksReceived && !isNack;
+            TriggerAllOutstandingCompleted();
+        }
+
+        private void TriggerAllOutstandingCompleted()
+        {
             if (m_unconfirmedSet.Count == 0)
             {
-                _outstandingSemaphore.Release();
+                try
+                {
+                    _outstandingSemaphore.Release();
+                }
+                catch (SemaphoreFullException)
+                {
+                    // Swallow the semaphore full exception.
+                }
+            }
+        }
+
+        public async Task CleanupUnconfirmedTagsAsync()
+        {
+            while (!_connectionClosingCancellation.IsCancellationRequested)
+            {
+                try
+                {
+                    await _multipleConfirmLock.WaitAsync(_connectionClosingCancellation.Token).ConfigureAwait(false);
+                    foreach (ulong key in m_unconfirmedSet.Keys)
+                    {
+                        if (key <= _highestDeliveryTag)
+                        {
+                            m_unconfirmedSet.TryRemove(key, out _);
+                        }
+                    }
+
+                    TriggerAllOutstandingCompleted();
+                }
+                catch (TaskCanceledException)
+                {
+                    // Swallow the task cancel exception since the model is being closed.
+                }
             }
         }
 

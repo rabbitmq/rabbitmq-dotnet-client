@@ -15,7 +15,7 @@ namespace DeadlockRabbitMQ
         private static int itemsPerBatch = 500;
         static async Task Main(string[] args)
         {
-            ThreadPool.SetMinThreads(16 * Environment.ProcessorCount, 16 * Environment.ProcessorCount);
+            Console.ReadLine();
             var connectionString = new Uri("amqp://guest:guest@localhost/");
 
             var connectionFactory = new ConnectionFactory() { DispatchConsumersAsync = true, Uri = connectionString };
@@ -32,9 +32,9 @@ namespace DeadlockRabbitMQ
             var asyncListener = new AsyncEventingBasicConsumer(subscriber);
             asyncListener.Received += AsyncListener_Received;
             subscriber.QueueBind("testqueue", "test", "myawesome.routing.key");
-            subscriber.BasicConsume("testqueue", true, "testconsumer", asyncListener);
+            subscriber.BasicConsume("testqueue", false, "testconsumer", asyncListener);
 
-            byte[] payload = new byte[16384];
+            byte[] payload = new byte[512];
             var batchPublish = Task.Run(async () =>
             {
                 while (messagesSent < batchesToSend * itemsPerBatch)
@@ -78,6 +78,7 @@ namespace DeadlockRabbitMQ
             });
 
             await Task.WhenAll(sentTask, receivedTask);
+            Console.ReadLine();
         }
 
         private static Task AsyncListener_Received(object sender, BasicDeliverEventArgs @event)
@@ -90,6 +91,7 @@ namespace DeadlockRabbitMQ
             // Moving to better synchronization constructs solves the issue, and using the ThreadPool
             // is standard practice as well to maximize core utilization and reduce overhead of Thread creation
             Interlocked.Increment(ref messagesReceived);
+            (sender as AsyncDefaultBasicConsumer).Model.BasicAck(@event.DeliveryTag, true);
             return Task.CompletedTask;
         }
     }
