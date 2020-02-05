@@ -60,7 +60,8 @@ namespace RabbitMQ.Client.Impl
 
         ///<summary>Only used to kick-start a connection open
         ///sequence. See <see cref="Connection.Open"/> </summary>
-        public BlockingCell<ConnectionStartDetails> m_connectionStartCell = null;
+        //public BlockingCell<ConnectionStartDetails> m_connectionStartCell = null;
+        public TaskCompletionSource<ConnectionStartDetails> m_connectionStartCell;
 
         private TimeSpan m_handshakeContinuationTimeout = TimeSpan.FromSeconds(10);
         private TimeSpan m_continuationTimeout = TimeSpan.FromSeconds(20);
@@ -401,7 +402,7 @@ namespace RabbitMQ.Client.Impl
             }
             if (m_connectionStartCell != null)
             {
-                m_connectionStartCell.ContinueWithValue(null);
+                m_connectionStartCell.TrySetResult(null);
             }
         }
 
@@ -958,8 +959,7 @@ namespace RabbitMQ.Client.Impl
                 m_mechanisms = mechanisms,
                 m_locales = locales
             };
-            m_connectionStartCell.ContinueWithValue(details);
-            m_connectionStartCell = null;
+            m_connectionStartCell.TrySetResult(details);
         }
 
         ///<summary>Handle incoming Connection.Tune

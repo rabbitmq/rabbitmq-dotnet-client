@@ -39,7 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Diagnostics;
+
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
 
@@ -79,19 +79,19 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        private static void ReportInvalidInvariant(Either<Command,ShutdownEventArgs> result)
+        private static void ReportInvalidInvariant(Either<Command, ShutdownEventArgs> result)
         {
             string error = "Illegal EitherAlternative " + result.Alternative;
         }
 
         public virtual void HandleCommand(Command cmd)
         {
-            m_cell.ContinueWithValue(Either<Command,ShutdownEventArgs>.Left(cmd));
+            m_cell.ContinueWithValue(Either<Command, ShutdownEventArgs>.Left(cmd));
         }
 
         public virtual void HandleModelShutdown(ShutdownEventArgs reason)
         {
-            m_cell.ContinueWithValue(Either<Command,ShutdownEventArgs>.Right(reason));
+            m_cell.ContinueWithValue(Either<Command, ShutdownEventArgs>.Right(reason));
         }
     }
 }

@@ -72,9 +72,7 @@ namespace RabbitMQ.Client
 
             var sslStream = new SslStream(tcpStream, false, remoteCertValidator, localCertSelector);
 
-            sslStream.AuthenticateAsClientAsync(sslOption.ServerName, sslOption.Certs, sslOption.Version,
-                                                sslOption.CheckCertificateRevocation).GetAwaiter().GetResult();
-
+            sslStream.AuthenticateAsClient(sslOption.ServerName, sslOption.Certs, sslOption.Version, sslOption.CheckCertificateRevocation);
             return sslStream;
         }
 

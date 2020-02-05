@@ -1181,19 +1181,25 @@ entry.ToString());
 
         void StartAndTune()
         {
-            var connectionStartCell = new BlockingCell<ConnectionStartDetails>();
-            m_model0.m_connectionStartCell = connectionStartCell;
+            m_model0.m_connectionStartCell = new TaskCompletionSource<ConnectionStartDetails>(TaskCreationOptions.RunContinuationsAsynchronously);
             m_model0.HandshakeContinuationTimeout = m_factory.HandshakeContinuationTimeout;
             m_frameHandler.ReadTimeout = m_factory.HandshakeContinuationTimeout;
             m_frameHandler.SendHeader();
+            try
+            {
+                m_model0.m_connectionStartCell.Task.Wait(m_factory.HandshakeContinuationTimeout);
+            }
+            catch (Exception)
+            {
+                m_model0.m_connectionStartCell.TrySetCanceled();
+            }
 
-            var connectionStart = connectionStartCell.WaitForValue();
-
-            if (connectionStart == null)
+            if (m_model0.m_connectionStartCell.Task.IsCanceled)
             {
                 throw new IOException("connection.start was never received, likely due to a network timeout");
             }
 
+            var connectionStart = m_model0.m_connectionStartCell.Task.Result;
             ServerProperties = connectionStart.m_serverProperties;
 
             var serverVersion = new AmqpVersion(connectionStart.m_versionMajor,
