@@ -20,6 +20,11 @@
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
     <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
 
   <ItemGroup>
@@ -67,6 +72,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
   </ItemGroup>
 
   <ItemGroup Condition=" '$(Configuration)' == 'SignedRelease' ">
