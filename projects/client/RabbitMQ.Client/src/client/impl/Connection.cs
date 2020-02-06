@@ -945,8 +945,8 @@ entry.ToString());
         {
             if (Heartbeat != TimeSpan.Zero)
             {
-                _heartbeatWriteTask = Task.Run(HeartbeatWriteTimerCallback, _connectionCancellationToken.Token);
-                _heartbeatReadTask = Task.Run(HeartbeatReadTimerCallback, _connectionCancellationToken.Token);
+                _heartbeatWriteTask = Task.Run((Func<ValueTask>)HeartbeatWriteTimerCallback, _connectionCancellationToken.Token);
+                _heartbeatReadTask = Task.Run((Func<ValueTask>)HeartbeatReadTimerCallback, _connectionCancellationToken.Token);
             }
         }
 

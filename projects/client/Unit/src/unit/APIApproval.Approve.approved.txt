@@ -516,7 +516,7 @@ namespace RabbitMQ.Client
         System.TimeSpan ReceiveTimeout { get; set; }
         void Close();
         System.Threading.Tasks.Task ConnectAsync(string host, int port);
-        System.Net.Sockets.NetworkStream GetStream();
+        System.IO.Stream GetStream();
     }
     public interface NetworkConnection
     {
@@ -618,7 +618,7 @@ namespace RabbitMQ.Client
         [System.ObsoleteAttribute("Override Dispose(bool) instead.")]
         public virtual void Dispose() { }
         protected virtual void Dispose(bool disposing) { }
-        public virtual System.Net.Sockets.NetworkStream GetStream() { }
+        public virtual System.IO.Stream GetStream() { }
     }
     public class static TcpClientAdapterHelper
     {
@@ -1518,7 +1518,7 @@ namespace RabbitMQ.Client.Framing.Impl
         public void Close(ushort reasonCode, string reasonText) { }
         public void Close(System.TimeSpan timeout) { }
         public void Close(ushort reasonCode, string reasonText, System.TimeSpan timeout) { }
-        public void ClosingLoop() { }
+        public System.Threading.Tasks.Task ClosingLoop() { }
         public RabbitMQ.Client.Impl.Command ConnectionCloseWrapper(ushort reasonCode, string reasonText) { }
         public RabbitMQ.Client.IModel CreateModel() { }
         public RabbitMQ.Client.Impl.ISession CreateSession() { }
@@ -1531,12 +1531,12 @@ namespace RabbitMQ.Client.Framing.Impl
         public void HandleDomainUnload(object sender, System.EventArgs ea) { }
         public void HandleMainLoopException(RabbitMQ.Client.ShutdownEventArgs reason) { }
         public bool HardProtocolExceptionHandler(RabbitMQ.Client.Impl.HardProtocolException hpe) { }
-        public void HeartbeatReadTimerCallback(object state) { }
-        public void HeartbeatWriteTimerCallback(object state) { }
+        public System.Threading.Tasks.ValueTask HeartbeatReadTimerCallback() { }
+        public System.Threading.Tasks.ValueTask HeartbeatWriteTimerCallback() { }
         public void InternalClose(RabbitMQ.Client.ShutdownEventArgs reason) { }
         public void LogCloseError(string error, System.Exception ex) { }
-        public void MainLoop() { }
-        public void MainLoopIteration() { }
+        public System.Threading.Tasks.Task MainLoop() { }
+        public System.Threading.Tasks.Task MainLoopIteration() { }
         public void MaybeStartHeartbeatTimers() { }
         public void NotifyHeartbeatListener() { }
         public void NotifyReceivedCloseOk() { }
@@ -1593,6 +1593,14 @@ namespace RabbitMQ.Client.Impl
         ExpectingContentHeader = 1,
         ExpectingContentBody = 2,
         Complete = 3,
+    }
+    public class AsyncRpcContinuation : RabbitMQ.Client.Impl.IRpcContinuation
+    {
+        public AsyncRpcContinuation() { }
+        public virtual System.Threading.Tasks.ValueTask<RabbitMQ.Client.Impl.Command> GetReplyAsync(System.Threading.CancellationToken cancellationToken = null) { }
+        public virtual System.Threading.Tasks.ValueTask<RabbitMQ.Client.Impl.Command> GetReplyAsync(System.TimeSpan timeout) { }
+        public void HandleCommand(RabbitMQ.Client.Impl.Command cmd) { }
+        public void HandleModelShutdown(RabbitMQ.Client.ShutdownEventArgs reason) { }
     }
     public abstract class BasicProperties : RabbitMQ.Client.Impl.ContentHeaderBase, RabbitMQ.Client.IBasicProperties, RabbitMQ.Client.IContentHeader
     {
@@ -1651,7 +1659,7 @@ namespace RabbitMQ.Client.Impl
     public class BodySegmentOutboundFrame : RabbitMQ.Client.Impl.OutboundFrame
     {
         public BodySegmentOutboundFrame(int channel, byte[] body, int offset, int count) { }
-        public override void WritePayload(RabbitMQ.Util.NetworkBinaryWriter writer) { }
+        public override void WritePayload(RabbitMQ.Util.PipelineBinaryWriter writer) { }
     }
     public class ChannelErrorException : RabbitMQ.Client.Impl.HardProtocolException
     {
@@ -1758,19 +1766,21 @@ namespace RabbitMQ.Client.Impl
     public class EmptyOutboundFrame : RabbitMQ.Client.Impl.OutboundFrame
     {
         public EmptyOutboundFrame() { }
-        public override void WritePayload(RabbitMQ.Util.NetworkBinaryWriter writer) { }
+        public override void WritePayload(RabbitMQ.Util.PipelineBinaryWriter writer) { }
     }
     public class static ExtensionMethods
     {
         public static T RandomItem<T>(this System.Collections.Generic.IList<T> list) { }
     }
-    public class Frame
+    public class Frame : System.IDisposable
     {
         public Frame(RabbitMQ.Client.Impl.FrameType type, int channel) { }
-        public Frame(RabbitMQ.Client.Impl.FrameType type, int channel, byte[] payload) { }
+        public Frame(RabbitMQ.Client.Impl.FrameType type, int channel, byte[] payload, int payloadSize) { }
         public int Channel { get; }
         public byte[] Payload { get; }
+        public int PayloadSize { get; }
         public RabbitMQ.Client.Impl.FrameType Type { get; }
+        public void Dispose() { }
         public bool IsBody() { }
         public bool IsHeader() { }
         public bool IsHeartbeat() { }
@@ -1793,7 +1803,7 @@ namespace RabbitMQ.Client.Impl
     public class HeaderOutboundFrame : RabbitMQ.Client.Impl.OutboundFrame
     {
         public HeaderOutboundFrame(int channel, RabbitMQ.Client.Impl.ContentHeaderBase header, int bodyLength) { }
-        public override void WritePayload(RabbitMQ.Util.NetworkBinaryWriter writer) { }
+        public override void WritePayload(RabbitMQ.Util.PipelineBinaryWriter writer) { }
     }
     public interface IConsumerDispatcher
     {
@@ -1817,7 +1827,7 @@ namespace RabbitMQ.Client.Impl
         int RemotePort { get; }
         System.TimeSpan WriteTimeout { set; }
         void Close();
-        RabbitMQ.Client.Impl.InboundFrame ReadFrame();
+        System.Threading.Tasks.ValueTask<RabbitMQ.Client.Impl.InboundFrame> ReadFrameAsync();
         void SendHeader();
         void WriteFrame(RabbitMQ.Client.Impl.OutboundFrame frame);
         void WriteFrameSet(System.Collections.Generic.IList<RabbitMQ.Client.Impl.OutboundFrame> frames);
@@ -1930,7 +1940,7 @@ namespace RabbitMQ.Client.Impl
     public class InboundFrame : RabbitMQ.Client.Impl.Frame
     {
         public RabbitMQ.Util.NetworkBinaryReader GetReader() { }
-        public static RabbitMQ.Client.Impl.InboundFrame ReadFrom(RabbitMQ.Util.NetworkBinaryReader reader) { }
+        public static System.Threading.Tasks.ValueTask<RabbitMQ.Client.Impl.InboundFrame> ReadFromAsync(RabbitMQ.Util.PipelineBinaryReader reader, System.Threading.CancellationToken cancellationToken = null) { }
     }
     public class MainSession : RabbitMQ.Client.Impl.Session
     {
@@ -1991,11 +2001,11 @@ namespace RabbitMQ.Client.Impl
     public class MethodOutboundFrame : RabbitMQ.Client.Impl.OutboundFrame
     {
         public MethodOutboundFrame(int channel, RabbitMQ.Client.Impl.MethodBase method) { }
-        public override void WritePayload(RabbitMQ.Util.NetworkBinaryWriter writer) { }
+        public override void WritePayload(RabbitMQ.Util.PipelineBinaryWriter writer) { }
     }
     public abstract class ModelBase : RabbitMQ.Client.IModel, RabbitMQ.Client.IRecoverable, RabbitMQ.Client.Impl.IFullModel, System.IDisposable
     {
-        public RabbitMQ.Util.BlockingCell<RabbitMQ.Client.Impl.ConnectionStartDetails> m_connectionStartCell;
+        public System.Threading.Tasks.TaskCompletionSource<RabbitMQ.Client.Impl.ConnectionStartDetails> m_connectionStartCell;
         public readonly System.Collections.Generic.IDictionary<string, RabbitMQ.Client.IBasicConsumer> m_consumers;
         public ModelBase(RabbitMQ.Client.Impl.ISession session) { }
         public ModelBase(RabbitMQ.Client.Impl.ISession session, RabbitMQ.Client.ConsumerWorkService workService) { }
@@ -2030,6 +2040,7 @@ namespace RabbitMQ.Client.Impl
         public abstract void BasicRecoverAsync(bool requeue);
         public abstract void BasicReject(ulong deliveryTag, bool requeue);
         protected void BroadcastShutdownToConsumers(System.Collections.Generic.IDictionary<string, RabbitMQ.Client.IBasicConsumer> cs, RabbitMQ.Client.ShutdownEventArgs reason) { }
+        public System.Threading.Tasks.Task CleanupUnconfirmedTagsAsync() { }
         public void Close(ushort replyCode, string replyText, bool abort) { }
         public void Close(RabbitMQ.Client.ShutdownEventArgs reason, bool abort) { }
         public void Close() { }
@@ -2080,6 +2091,7 @@ namespace RabbitMQ.Client.Impl
         protected void Initialise(RabbitMQ.Client.Impl.ISession session) { }
         public uint MessageCount(string queue) { }
         public RabbitMQ.Client.Impl.MethodBase ModelRpc(RabbitMQ.Client.Impl.MethodBase method, RabbitMQ.Client.Impl.ContentHeaderBase header, byte[] body) { }
+        public System.Threading.Tasks.ValueTask<RabbitMQ.Client.Impl.MethodBase> ModelRpcAsync(RabbitMQ.Client.Impl.MethodBase method, RabbitMQ.Client.Impl.ContentHeaderBase header, byte[] body) { }
         public void ModelSend(RabbitMQ.Client.Impl.MethodBase method, RabbitMQ.Client.Impl.ContentHeaderBase header, byte[] body) { }
         public virtual void OnBasicAck(RabbitMQ.Client.Events.BasicAckEventArgs args) { }
         public virtual void OnBasicNack(RabbitMQ.Client.Events.BasicNackEventArgs args) { }
@@ -2108,8 +2120,15 @@ namespace RabbitMQ.Client.Impl
         public bool WaitForConfirms(System.TimeSpan timeout, out bool timedOut) { }
         public bool WaitForConfirms() { }
         public bool WaitForConfirms(System.TimeSpan timeout) { }
+        [return: System.Runtime.CompilerServices.TupleElementNamesAttribute(new string[] {
+                "onlyAcksReceived",
+                "timedOut"})]
+        public System.Threading.Tasks.Task<System.ValueTuple<bool, bool>> WaitForConfirmsAsync(System.TimeSpan timeout) { }
+        public System.Threading.Tasks.Task<bool> WaitForConfirmsAsync() { }
         public void WaitForConfirmsOrDie() { }
         public void WaitForConfirmsOrDie(System.TimeSpan timeout) { }
+        public System.Threading.Tasks.Task WaitForConfirmsOrDieAsync() { }
+        public System.Threading.Tasks.Task WaitForConfirmsOrDieAsync(System.TimeSpan timeout) { }
         public abstract void _Private_BasicCancel(string consumerTag, bool nowait);
         public abstract void _Private_BasicConsume(string queue, string consumerTag, bool noLocal, bool autoAck, bool exclusive, bool nowait, System.Collections.Generic.IDictionary<string, object> arguments);
         public abstract void _Private_BasicGet(string queue, bool autoAck);
@@ -2167,8 +2186,8 @@ namespace RabbitMQ.Client.Impl
     public abstract class OutboundFrame : RabbitMQ.Client.Impl.Frame
     {
         public OutboundFrame(RabbitMQ.Client.Impl.FrameType type, int channel) { }
-        public abstract void WritePayload(RabbitMQ.Util.NetworkBinaryWriter writer);
-        public void WriteTo(RabbitMQ.Util.NetworkBinaryWriter writer) { }
+        public abstract void WritePayload(RabbitMQ.Util.PipelineBinaryWriter writer);
+        public void WriteTo(RabbitMQ.Util.PipelineBinaryWriter writer) { }
     }
     public abstract class ProtocolException : RabbitMQ.Client.Exceptions.RabbitMQClientException
     {
@@ -2258,9 +2277,9 @@ namespace RabbitMQ.Client.Impl
         public System.TimeSpan ReadTimeout { set; }
         public System.Net.EndPoint RemoteEndPoint { get; }
         public int RemotePort { get; }
-        public System.TimeSpan WriteTimeout { set; }
+        public System.TimeSpan WriteTimeout { get; set; }
         public void Close() { }
-        public RabbitMQ.Client.Impl.InboundFrame ReadFrame() { }
+        public System.Threading.Tasks.ValueTask<RabbitMQ.Client.Impl.InboundFrame> ReadFrameAsync() { }
         public void SendHeader() { }
         public void WriteFrame(RabbitMQ.Client.Impl.OutboundFrame frame) { }
         public void WriteFrameSet(System.Collections.Generic.IList<RabbitMQ.Client.Impl.OutboundFrame> frames) { }
@@ -2331,7 +2350,7 @@ namespace RabbitMQ.Client.Impl
         public static void WriteFieldValue(RabbitMQ.Util.NetworkBinaryWriter writer, object value) { }
         public static void WriteLong(RabbitMQ.Util.NetworkBinaryWriter writer, uint val) { }
         public static void WriteLonglong(RabbitMQ.Util.NetworkBinaryWriter writer, ulong val) { }
-        public static void WriteLongstr(RabbitMQ.Util.NetworkBinaryWriter writer, byte[] val) { }
+        public static void WriteLongstr(RabbitMQ.Util.NetworkBinaryWriter writer, byte[] val, int length) { }
         public static void WriteOctet(RabbitMQ.Util.NetworkBinaryWriter writer, byte val) { }
         public static void WriteShort(RabbitMQ.Util.NetworkBinaryWriter writer, ushort val) { }
         public static void WriteShortstr(RabbitMQ.Util.NetworkBinaryWriter writer, string val) { }
@@ -2425,6 +2444,13 @@ namespace RabbitMQ.Util
             public static RabbitMQ.Util.IntAllocator.IntervalList Merge(RabbitMQ.Util.IntAllocator.IntervalList x, RabbitMQ.Util.IntAllocator.IntervalList y) { }
         }
     }
+    public class static InterlockedEx
+    {
+        public static ulong Decrement(ref uint location) { }
+        public static ulong Decrement(ref ulong location) { }
+        public static ulong Increment(ref uint location) { }
+        public static ulong Increment(ref ulong location) { }
+    }
     public class NetworkBinaryReader : System.IO.BinaryReader
     {
         public NetworkBinaryReader(System.IO.Stream input) { }
@@ -2437,14 +2463,11 @@ namespace RabbitMQ.Util
         public override ushort ReadUInt16() { }
         public override uint ReadUInt32() { }
         public override ulong ReadUInt64() { }
-        public static System.IO.BinaryReader TemporaryBinaryReader(byte[] bytes) { }
     }
     public class NetworkBinaryWriter : System.IO.BinaryWriter
     {
         public NetworkBinaryWriter(System.IO.Stream output) { }
         public NetworkBinaryWriter(System.IO.Stream output, System.Text.Encoding encoding) { }
-        public static System.IO.BinaryWriter TemporaryBinaryWriter(int initialSize) { }
-        public static byte[] TemporaryContents(System.IO.BinaryWriter w) { }
         public override void Write(short i) { }
         public override void Write(ushort i) { }
         public override void Write(int i) { }
@@ -2453,6 +2476,61 @@ namespace RabbitMQ.Util
         public override void Write(ulong i) { }
         public override void Write(float f) { }
         public override void Write(double d) { }
+    }
+    public class static PipeReaderExtensions
+    {
+        public static void AdvanceReaderIfNotEmpty(this System.IO.Pipelines.PipeReader reader, System.IO.Pipelines.ReadResult result) { }
+        public static System.Threading.Tasks.ValueTask<System.Buffers.ReadOnlySequence<byte>> ReadMinimumSize<T>(this System.IO.Pipelines.PipeReader reader, System.Threading.CancellationToken cancellationToken = null)
+            where T :  struct { }
+    }
+    public class PipelineBinaryReader
+    {
+        public PipelineBinaryReader(System.IO.Pipelines.PipeReader reader) { }
+        public System.Threading.Tasks.ValueTask<byte> ReadByteAsync(System.Threading.CancellationToken cancellationToken = null) { }
+        public System.Threading.Tasks.ValueTask ReadBytesAsync(System.Memory<byte> buffer, System.Threading.CancellationToken cancellationToken = null) { }
+        public System.Threading.Tasks.ValueTask<double> ReadDoubleBigEndianAsync(System.Threading.CancellationToken cancellationToken = null) { }
+        public System.Threading.Tasks.ValueTask<short> ReadInt16BigEndianAsync(System.Threading.CancellationToken cancellationToken = null) { }
+        public System.Threading.Tasks.ValueTask<int> ReadInt32BigEndianAsync(System.Threading.CancellationToken cancellationToken = null) { }
+        public System.Threading.Tasks.ValueTask<long> ReadInt64BigEndianAsync(System.Threading.CancellationToken cancellationToken = null) { }
+        public System.Threading.Tasks.ValueTask<float> ReadSingleBigEndianAsync(System.Threading.CancellationToken cancellationToken = null) { }
+        public System.Threading.Tasks.ValueTask<ushort> ReadUInt16BigEndianAsync(System.Threading.CancellationToken cancellationToken = null) { }
+        public System.Threading.Tasks.ValueTask<uint> ReadUInt32BigEndianAsync(System.Threading.CancellationToken cancellationToken = null) { }
+        public System.Threading.Tasks.ValueTask<ulong> ReadUInt64BigEndianAsync(System.Threading.CancellationToken cancellationToken = null) { }
+    }
+    public class PipelineBinaryWriter
+    {
+        public PipelineBinaryWriter(System.IO.Pipelines.PipeWriter reader) { }
+        public System.IO.Pipelines.FlushResult Flush() { }
+        public System.Threading.Tasks.ValueTask<System.IO.Pipelines.FlushResult> FlushAsync(System.Threading.CancellationToken cancellationToken = null) { }
+        public void Write(double val) { }
+        public void Write(float val) { }
+        public void Write(short val) { }
+        public void Write(ushort val) { }
+        public void Write(int val) { }
+        public void Write(uint val) { }
+        public void Write(long val) { }
+        public void Write(ulong val) { }
+        public void Write(System.ReadOnlySpan<byte> val) { }
+        public void Write(byte val) { }
+        public void Write(System.ReadOnlySpan<byte> val, int offset, int length) { }
+    }
+    public class static PooledMemoryStream
+    {
+        public static System.IO.MemoryStream GetMemoryStream([System.Runtime.CompilerServices.CallerMemberNameAttribute()] string memberName = "", [System.Runtime.CompilerServices.CallerFilePathAttribute()] string sourceFilePath = "", [System.Runtime.CompilerServices.CallerLineNumberAttribute()] int sourceLineNumber = 0) { }
+        public static System.IO.MemoryStream GetMemoryStream(int initialSize, [System.Runtime.CompilerServices.CallerMemberNameAttribute()] string memberName = "", [System.Runtime.CompilerServices.CallerFilePathAttribute()] string sourceFilePath = "", [System.Runtime.CompilerServices.CallerLineNumberAttribute()] int sourceLineNumber = 0) { }
+    }
+    public class static ReadOnlySequenceExtensions
+    {
+        public static byte ReadByte(this System.Buffers.ReadOnlySequence<byte> slice) { }
+        public static void ReadBytes(this System.Buffers.ReadOnlySequence<byte> slice, System.Span<byte> span) { }
+        public static double ReadDoubleBigEndian(this System.Buffers.ReadOnlySequence<byte> slice) { }
+        public static short ReadInt16BigEndian(this System.Buffers.ReadOnlySequence<byte> slice) { }
+        public static int ReadInt32BigEndian(this System.Buffers.ReadOnlySequence<byte> slice) { }
+        public static long ReadInt64BigEndian(this System.Buffers.ReadOnlySequence<byte> slice) { }
+        public static float ReadSingleBigEndian(this System.Buffers.ReadOnlySequence<byte> slice) { }
+        public static ushort ReadUInt16BigEndian(this System.Buffers.ReadOnlySequence<byte> slice) { }
+        public static uint ReadUInt32BigEndian(this System.Buffers.ReadOnlySequence<byte> slice) { }
+        public static ulong ReadUInt64BigEndian(this System.Buffers.ReadOnlySequence<byte> slice) { }
     }
     public class SetQueue<T>
     {

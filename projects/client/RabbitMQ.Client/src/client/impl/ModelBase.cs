@@ -1505,6 +1505,7 @@ namespace RabbitMQ.Client.Impl
                 {
                     return (true, true);
                 }
+
             }
         }
 
