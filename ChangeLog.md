@@ -1,3 +1,9 @@
+## Changes Between 5.1.2 and 5.1.3
+
+### Re-introduce lock for all socket writes
+
+GitHub PR: [rabbitmq-dotnet-client#702](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/702)
+
 ## Changes Between 5.1.1 and 5.1.2
 
 ### Bump System.Net.Security to 4.3.2
