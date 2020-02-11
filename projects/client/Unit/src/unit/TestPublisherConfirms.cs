@@ -92,29 +92,6 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestWaitForConfirmsWithTimeout_AllMessagesAcked_WaitingHasTimedout_ReturnTrue()
-        {
-            TestWaitForConfirms(200, (ch) =>
-            {
-                Assert.IsTrue(ch.WaitForConfirms(TimeSpan.FromMilliseconds(1)));
-            });
-        }
-
-        [Test]
-        public void TestWaitForConfirmsWithTimeout_MessageNacked_WaitingHasTimedout_ReturnFalse()
-        {
-            TestWaitForConfirms(200, (ch) =>
-            {
-                var message = ch.BasicGet(QueueName, false);
-
-                var fullModel = ch as IFullModel;
-                fullModel.HandleBasicNack(message.DeliveryTag, false, false);
-
-                Assert.IsFalse(ch.WaitForConfirms(TimeSpan.FromMilliseconds(1)));
-            });
-        }
-
-        [Test]
         public void TestWaitForConfirmsWithEvents()
         {
             var ch = Conn.CreateModel();
