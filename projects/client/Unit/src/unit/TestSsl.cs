@@ -150,10 +150,7 @@ namespace RabbitMQ.Client.Unit
             };
 
             cf.Ssl.Version = SslProtocols.None;
-            cf.Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNotAvailable |
-                                        SslPolicyErrors.RemoteCertificateNameMismatch;
-#endif
-
+            cf.Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNotAvailable | SslPolicyErrors.RemoteCertificateNameMismatch;
             SendReceive(cf);
         }
     }

@@ -66,8 +66,6 @@ namespace RabbitMQ.Client
         {
             Version = SslProtocols.None;
             AcceptablePolicyErrors = SslPolicyErrors.None;
-#endif
-
             ServerName = serverName;
             CertPath = certificatePath;
             Enabled = enabled;
