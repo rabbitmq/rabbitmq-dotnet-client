@@ -50,7 +50,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Dictionary of client properties to be sent to the server.
         /// </summary>
-        IDictionary<String, object> ClientProperties { get; set; }
+        IDictionary<string, object> ClientProperties { get; set; }
 
         /// <summary>
         /// Password to use when authenticating to the server.
@@ -113,7 +113,7 @@ namespace RabbitMQ.Client
         /// This value is supposed to be human-readable.
         /// </param>
         /// <returns></returns>
-        IConnection CreateConnection(String clientProvidedName);
+        IConnection CreateConnection(string clientProvidedName);
 
         /// <summary>
         /// Connects to the first reachable hostname from the list.
@@ -133,7 +133,7 @@ namespace RabbitMQ.Client
         /// This value is supposed to be human-readable.
         /// </param>
         /// <returns></returns>
-        IConnection CreateConnection(IList<string> hostnames, String clientProvidedName);
+        IConnection CreateConnection(IList<string> hostnames, string clientProvidedName);
 
         /// <summary>
         /// Create a connection using a list of endpoints.

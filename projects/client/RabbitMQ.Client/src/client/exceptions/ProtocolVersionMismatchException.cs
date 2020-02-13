@@ -73,7 +73,7 @@ namespace RabbitMQ.Client.Exceptions
         ///<summary>The peer's AMQP specification minor version.</summary>
         public int ServerMinor { get; private set; }
 
-        private static String positiveOrUnknown(int version)
+        private static string positiveOrUnknown(int version)
         {
             return version >= 0 ? version.ToString() : "unknown";
         }

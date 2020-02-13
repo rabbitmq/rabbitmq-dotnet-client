@@ -20,7 +20,7 @@ namespace RabbitMQ.Client.Impl
             }
             catch (Exception)
             {
-               // intentionally caught
+                // intentionally caught
             }
         }
 

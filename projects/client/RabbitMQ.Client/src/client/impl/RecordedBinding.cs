@@ -94,7 +94,7 @@ namespace RabbitMQ.Client.Impl
 
         public override string ToString()
         {
-            return String.Format("{0}: source = '{1}', destination = '{2}', routingKey = '{3}', arguments = '{4}'",
+            return string.Format("{0}: source = '{1}', destination = '{2}', routingKey = '{3}', arguments = '{4}'",
                 GetType().Name, Source, Destination, RoutingKey, Arguments);
         }
 

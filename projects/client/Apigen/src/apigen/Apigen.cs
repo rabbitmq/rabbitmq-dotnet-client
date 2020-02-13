@@ -131,9 +131,9 @@ namespace RabbitMQ.Client.Apigen
         public static IList<string> IdentifierParts(string name)
         {
             IList<string> result = new List<string>();
-            foreach (String s1 in name.Split(new Char[] { '-' }))
+            foreach (string s1 in name.Split(new char[] { '-' }))
             {
-                foreach (String s2 in s1.Split(new Char[] { ' ' }))
+                foreach (string s2 in s1.Split(new char[] { ' ' }))
                 {
                     result.Add(s2);
                 }
@@ -144,9 +144,9 @@ namespace RabbitMQ.Client.Apigen
         public static string MangleClass(string name)
         {
             StringBuilder sb = new StringBuilder();
-            foreach (String s in IdentifierParts(name))
+            foreach (string s in IdentifierParts(name))
             {
-                sb.Append(Char.ToUpperInvariant(s[0]) + s.Substring(1).ToLowerInvariant());
+                sb.Append(char.ToUpperInvariant(s[0]) + s.Substring(1).ToLowerInvariant());
             }
             return sb.ToString();
         }
@@ -155,11 +155,11 @@ namespace RabbitMQ.Client.Apigen
         {
             StringBuilder sb = new StringBuilder();
             bool useUpper = false;
-            foreach (String s in IdentifierParts(name))
+            foreach (string s in IdentifierParts(name))
             {
                 if (useUpper)
                 {
-                    sb.Append(Char.ToUpperInvariant(s[0]) + s.Substring(1).ToLowerInvariant());
+                    sb.Append(char.ToUpperInvariant(s[0]) + s.Substring(1).ToLowerInvariant());
                 }
                 else
                 {
@@ -937,7 +937,7 @@ namespace RabbitMQ.Client.Apigen
             EmitLine("    {");
             if (Attribute(method, typeof(AmqpUnsupportedAttribute)) != null)
             {
-                EmitLine(String.Format("      throw new UnsupportedMethodException(\"" + method.Name + "\");"));
+                EmitLine(string.Format("      throw new UnsupportedMethodException(\"" + method.Name + "\");"));
             }
             else
             {

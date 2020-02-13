@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Unit {
         [Test]
         public void TestAckWithUnknownConsumerTagAndMultipleFalse()
         {
-            object o = new Object();
+            object o = new object();
             bool shutdownFired = false;
             ShutdownEventArgs shutdownArgs = null;
             Model.ModelShutdown += (s, args) =>
