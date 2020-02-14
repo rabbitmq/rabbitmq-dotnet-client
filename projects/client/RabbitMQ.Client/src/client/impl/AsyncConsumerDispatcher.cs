@@ -19,12 +19,14 @@
 
         public void Shutdown()
         {
-            workService.Stop();
+            // necessary evil
+            this.workService.Stop().GetAwaiter().GetResult();
         }
 
         public void Shutdown(IModel model)
         {
-            workService.Stop(model);
+            // necessary evil
+            this.workService.Stop(model).GetAwaiter().GetResult();
         }
 
         public bool IsShutdown
@@ -64,10 +66,10 @@
         public void HandleModelShutdown(IBasicConsumer consumer, ShutdownEventArgs reason)
         {
             // the only case where we ignore the shutdown flag.
-            new ModelShutdown(consumer, reason).Execute(model).GetAwaiter().GetResult();
+            new ModelShutdown(consumer,reason).Execute(model).GetAwaiter().GetResult();
         }
 
-        private void ScheduleUnlessShuttingDown<TWork>(TWork work)
+        private void ScheduleUnlessShuttingDown<TWork>(TWork work) 
             where TWork : Work
         {
             if (!this.IsShutdown)

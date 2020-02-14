@@ -1,3 +1,8 @@
 #!/bin/sh
+
 set -e
-dotnet test --no-build --logger 'console;verbosity=detailed' ./RabbitMQDotNetClient.sln
+
+# export RABBITMQ_RABBITMQCTL_PATH=$(pwd)/../rabbit/scripts/rabbitmqctl
+cd ./projects/client/Unit
+
+dotnet test -f netcoreapp2.1

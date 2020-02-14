@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2020 VMware, Inc.
+//   Copyright (c) 2007-2016 Pivotal Software, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -146,7 +146,7 @@ namespace RabbitMQ.Client
         /// The default AMQP URI SSL protocols.
         /// </summary>
         public static SslProtocols DefaultAmqpUriSslProtocols { get; set; } =
-            SslProtocols.None;
+            SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
 
         /// <summary>
         /// The AMQP URI SSL protocols.
@@ -381,7 +381,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When the configured hostname was not reachable.
         /// </exception>
-        public IConnection CreateConnection(string clientProvidedName)
+        public IConnection CreateConnection(String clientProvidedName)
         {
             return CreateConnection(EndpointResolverFactory(LocalEndpoints()), clientProvidedName);
         }
@@ -425,7 +425,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public IConnection CreateConnection(IList<string> hostnames, string clientProvidedName)
+        public IConnection CreateConnection(IList<string> hostnames, String clientProvidedName)
         {
             var endpoints = hostnames.Select(h => new AmqpTcpEndpoint(h, this.Port, this.Ssl));
             return CreateConnection(new DefaultEndpointResolver(endpoints), clientProvidedName);
@@ -465,7 +465,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public IConnection CreateConnection(IEndpointResolver endpointResolver, string clientProvidedName)
+        public IConnection CreateConnection(IEndpointResolver endpointResolver, String clientProvidedName)
         {
             IConnection conn;
             try

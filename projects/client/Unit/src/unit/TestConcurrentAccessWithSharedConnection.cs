@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2020 VMware, Inc.
+//   Copyright (c) 2007-2016 Pivotal Software, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -41,16 +41,15 @@
 using NUnit.Framework;
 
 using System;
-using System.Linq;
 using System.Text;
+using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 
-namespace RabbitMQ.Client.Unit
-{
+using RabbitMQ.Client;
+
+namespace RabbitMQ.Client.Unit {
     [TestFixture]
-    public class TestConcurrentAccessWithSharedConnection : IntegrationFixture
-    {
+    public class TestConcurrentAccessWithSharedConnection : IntegrationFixture {
 
         protected const int threads = 32;
         protected CountdownEvent latch;
@@ -60,7 +59,6 @@ namespace RabbitMQ.Client.Unit
         public override void Init()
         {
             base.Init();
-            ThreadPool.SetMinThreads(threads, threads);
             latch = new CountdownEvent(threads);
         }
 
@@ -152,8 +150,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestConcurrentChannelOpenCloseLoop()
         {
-            TestConcurrentChannelOperations((conn) =>
-            {
+            TestConcurrentChannelOperations((conn) => {
                 var ch = conn.CreateModel();
                 ch.Close();
             }, 50);
@@ -167,7 +164,7 @@ namespace RabbitMQ.Client.Unit
         protected void TestConcurrentChannelOpenAndPublishingWithBodyOfSize(int length, int iterations)
         {
             string s = "payload";
-            if (length > s.Length)
+            if(length > s.Length)
             {
                 s.PadRight(length);
             }
@@ -177,8 +174,7 @@ namespace RabbitMQ.Client.Unit
 
         protected void TestConcurrentChannelOpenAndPublishingWithBody(byte[] body, int iterations)
         {
-            TestConcurrentChannelOperations((conn) =>
-            {
+            TestConcurrentChannelOperations((conn) => {
                 // publishing on a shared channel is not supported
                 // and would missing the point of this test anyway
                 var ch = Conn.CreateModel();
@@ -200,18 +196,17 @@ namespace RabbitMQ.Client.Unit
         protected void TestConcurrentChannelOperations(Action<IConnection> actions,
             int iterations, TimeSpan timeout)
         {
-            var tasks = Enumerable.Range(0, threads).Select(x =>
+            foreach (var i in Enumerable.Range(0, threads))
             {
-                return Task.Run(() =>
-                {
+                var t = new Thread(() => {
                     foreach (var j in Enumerable.Range(0, iterations))
                     {
                         actions(Conn);
                     }
-
                     latch.Signal();
                 });
-            }).ToArray();
+                t.Start();
+            }
 
             Assert.IsTrue(latch.Wait(timeout));
             // incorrect frame interleaving in these tests will result

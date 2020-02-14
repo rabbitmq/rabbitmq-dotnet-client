@@ -73,7 +73,7 @@
     <Compile Include="src\util\Timer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" PrivateAssets="All" />
+    <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
   </ItemGroup>
   <!-- Mono compatibility workarounds -->
   <!-- Microsoft Windows 8 CSharp targets -->

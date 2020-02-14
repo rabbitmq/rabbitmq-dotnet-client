@@ -1,2 +1,4 @@
 @echo off
-dotnet test --no-build --logger "console;verbosity=detailed" ./RabbitMQDotNetClient.sln
+cd .\projects\client\Unit
+dotnet test -f netcoreapp2.1 --filter="testcategory != requiresmp & testcategory != longrunning & testcategory != gctest"
+cd ..\..\..

@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2020 VMware, Inc.
+//   Copyright (c) 2007-2016 Pivotal Software, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Dictionary of client properties to be sent to the server.
         /// </summary>
-        IDictionary<string, object> ClientProperties { get; set; }
+        IDictionary<String, object> ClientProperties { get; set; }
 
         /// <summary>
         /// Password to use when authenticating to the server.
@@ -113,7 +113,7 @@ namespace RabbitMQ.Client
         /// This value is supposed to be human-readable.
         /// </param>
         /// <returns></returns>
-        IConnection CreateConnection(string clientProvidedName);
+        IConnection CreateConnection(String clientProvidedName);
 
         /// <summary>
         /// Connects to the first reachable hostname from the list.
@@ -133,7 +133,7 @@ namespace RabbitMQ.Client
         /// This value is supposed to be human-readable.
         /// </param>
         /// <returns></returns>
-        IConnection CreateConnection(IList<string> hostnames, string clientProvidedName);
+        IConnection CreateConnection(IList<string> hostnames, String clientProvidedName);
 
         /// <summary>
         /// Create a connection using a list of endpoints.

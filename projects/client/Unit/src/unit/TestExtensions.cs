@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2020 VMware, Inc.
+//   Copyright (c) 2007-2016 Pivotal Software, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ namespace RabbitMQ.Client.Unit
             Model.ConfirmSelect();
             for (int i = 0; i < 10; i++)
             {
-                Model.BasicPublish("", string.Empty, null, new byte[] {});
+                Model.BasicPublish("", String.Empty, null, new byte[] {});
             }
             Assert.That(Model.WaitForConfirms(), Is.True);
         }
@@ -72,16 +72,16 @@ namespace RabbitMQ.Client.Unit
             Model.ExchangeDeclare("dest", ExchangeType.Direct, false, false, null);
             string queue = Model.QueueDeclare();
 
-            Model.ExchangeBind("dest", "src", string.Empty);
-            Model.ExchangeBind("dest", "src", string.Empty);
-            Model.QueueBind(queue, "dest", string.Empty);
+            Model.ExchangeBind("dest", "src", String.Empty);
+            Model.ExchangeBind("dest", "src", String.Empty);
+            Model.QueueBind(queue, "dest", String.Empty);
 
-            Model.BasicPublish("src", string.Empty, null, new byte[] {});
+            Model.BasicPublish("src", String.Empty, null, new byte[] {});
             Model.WaitForConfirms();
             Assert.IsNotNull(Model.BasicGet(queue, true));
 
-            Model.ExchangeUnbind("dest", "src", string.Empty);
-            Model.BasicPublish("src", string.Empty, null, new byte[] {});
+            Model.ExchangeUnbind("dest", "src", String.Empty);
+            Model.BasicPublish("src", String.Empty, null, new byte[] {});
             Model.WaitForConfirms();
             Assert.IsNull(Model.BasicGet(queue, true));
 

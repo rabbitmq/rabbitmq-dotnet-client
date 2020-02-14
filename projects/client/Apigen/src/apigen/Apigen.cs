@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2020 VMware, Inc.
+//   Copyright (c) 2007-2016 Pivotal Software, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -131,9 +131,9 @@ namespace RabbitMQ.Client.Apigen
         public static IList<string> IdentifierParts(string name)
         {
             IList<string> result = new List<string>();
-            foreach (string s1 in name.Split(new char[] { '-' }))
+            foreach (String s1 in name.Split(new Char[] { '-' }))
             {
-                foreach (string s2 in s1.Split(new char[] { ' ' }))
+                foreach (String s2 in s1.Split(new Char[] { ' ' }))
                 {
                     result.Add(s2);
                 }
@@ -144,9 +144,9 @@ namespace RabbitMQ.Client.Apigen
         public static string MangleClass(string name)
         {
             StringBuilder sb = new StringBuilder();
-            foreach (string s in IdentifierParts(name))
+            foreach (String s in IdentifierParts(name))
             {
-                sb.Append(char.ToUpperInvariant(s[0]) + s.Substring(1).ToLowerInvariant());
+                sb.Append(Char.ToUpperInvariant(s[0]) + s.Substring(1).ToLowerInvariant());
             }
             return sb.ToString();
         }
@@ -155,11 +155,11 @@ namespace RabbitMQ.Client.Apigen
         {
             StringBuilder sb = new StringBuilder();
             bool useUpper = false;
-            foreach (string s in IdentifierParts(name))
+            foreach (String s in IdentifierParts(name))
             {
                 if (useUpper)
                 {
-                    sb.Append(char.ToUpperInvariant(s[0]) + s.Substring(1).ToLowerInvariant());
+                    sb.Append(Char.ToUpperInvariant(s[0]) + s.Substring(1).ToLowerInvariant());
                 }
                 else
                 {
@@ -401,7 +401,7 @@ namespace RabbitMQ.Client.Apigen
             EmitLine("// The APL v2.0:");
             EmitLine("//");
             EmitLine("//---------------------------------------------------------------------------");
-            EmitLine("//   Copyright (c) 2007-2020 VMware, Inc.");
+            EmitLine("//   Copyright (c) 2007-2016 Pivotal Software, Inc.");
             EmitLine("//");
             EmitLine("//   Licensed under the Apache License, Version 2.0 (the \"License\");");
             EmitLine("//   you may not use this file except in compliance with the License.");
@@ -937,7 +937,7 @@ namespace RabbitMQ.Client.Apigen
             EmitLine("    {");
             if (Attribute(method, typeof(AmqpUnsupportedAttribute)) != null)
             {
-                EmitLine(string.Format("      throw new UnsupportedMethodException(\"" + method.Name + "\");"));
+                EmitLine(String.Format("      throw new UnsupportedMethodException(\"" + method.Name + "\");"));
             }
             else
             {

@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2020 VMware, Inc.
+//   Copyright (c) 2007-2016 Pivotal Software, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -92,7 +92,7 @@ namespace RabbitMQ.Client.Unit {
         public void TestEventingConsumerDeliveryEvents()
         {
             string q = Model.QueueDeclare();
-            object o = new object();
+            object o = new Object ();
 
             bool receivedInvoked = false;
             object receivedSender = null;

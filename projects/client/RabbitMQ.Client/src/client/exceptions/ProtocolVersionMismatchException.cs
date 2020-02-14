@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2020 VMware, Inc.
+//   Copyright (c) 2007-2016 Pivotal Software, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ namespace RabbitMQ.Client.Exceptions
         ///<summary>The peer's AMQP specification minor version.</summary>
         public int ServerMinor { get; private set; }
 
-        private static string positiveOrUnknown(int version)
+        private static String positiveOrUnknown(int version)
         {
             return version >= 0 ? version.ToString() : "unknown";
         }

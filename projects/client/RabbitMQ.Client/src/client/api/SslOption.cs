@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2020 VMware, Inc.
+//   Copyright (c) 2007-2016 Pivotal Software, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -64,8 +64,11 @@ namespace RabbitMQ.Client
         /// </summary>
         public SslOption(string serverName, string certificatePath = "", bool enabled = false)
         {
-            Version = SslProtocols.None;
+#if !NETFX_CORE
+            Version = SslProtocols.Tls;
             AcceptablePolicyErrors = SslPolicyErrors.None;
+#endif
+
             ServerName = serverName;
             CertPath = certificatePath;
             Enabled = enabled;
