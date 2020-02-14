@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2016 Pivotal Software, Inc.
+//   Copyright (c) 2007-2020 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ namespace RabbitMQ.Client.Unit
                 IModel ch = conn.CreateModel();
 
                 ch.ExchangeDeclare("Exchange_TestSslEndPoint", ExchangeType.Direct);
-                String qName = ch.QueueDeclare();
+                string qName = ch.QueueDeclare();
                 ch.QueueBind(qName, "Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null);
 
                 string message = "Hello C# SSL Client World";
@@ -149,12 +149,8 @@ namespace RabbitMQ.Client.Unit
                 Enabled = true,
             };
 
-#if !NETFX_CORE
-            cf.Ssl.Version = SslProtocols.Tls;
-            cf.Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNotAvailable |
-                                        SslPolicyErrors.RemoteCertificateNameMismatch;
-#endif
-
+            cf.Ssl.Version = SslProtocols.None;
+            cf.Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNotAvailable | SslPolicyErrors.RemoteCertificateNameMismatch;
             SendReceive(cf);
         }
     }

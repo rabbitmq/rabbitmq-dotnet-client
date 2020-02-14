@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2016 Pivotal Software, Inc.
+//   Copyright (c) 2007-2020 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     internal class TestHeartbeats : IntegrationFixture
     {
-        private const UInt16 heartbeatTimeout = 2;
+        private const ushort heartbeatTimeout = 2;
 
         [Test, Category("LongRunning"), MaxTimeAttribute(35000)]
         public void TestThatHeartbeatWriterUsesConfigurableInterval()
@@ -99,6 +99,8 @@ namespace RabbitMQ.Client.Unit
         {
             var rnd = new Random();
             List<IConnection> xs = new List<IConnection>();
+            // Since we are using the ThreadPool, let's set MinThreads to a high-enough value.
+            ThreadPool.SetMinThreads(200, 200);
             for (var i = 0; i < 200; i++)
             {
                 var n = Convert.ToUInt16(rnd.Next(2, 6));
@@ -151,7 +153,7 @@ namespace RabbitMQ.Client.Unit
             if (InitiatedByPeerOrLibrary(evt))
             {
                 Console.WriteLine(((Exception)evt.Cause).StackTrace);
-                var s = String.Format("Shutdown: {0}, initiated by: {1}",
+                var s = string.Format("Shutdown: {0}, initiated by: {1}",
                                       evt, evt.Initiator);
                 Console.WriteLine(s);
                 Assert.Fail(s);

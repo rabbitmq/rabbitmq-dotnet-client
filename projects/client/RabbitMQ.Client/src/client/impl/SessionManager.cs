@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2016 Pivotal Software, Inc.
+//   Copyright (c) 2007-2020 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -50,6 +50,8 @@ using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Util;
 using RabbitMQ.Client.Framing;
+
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -108,20 +110,15 @@ namespace RabbitMQ.Client.Impl
                 {
                     if (m_sessionMap.Count == 0)
                     {
-                        // Run this in a background thread, because
+                        // Run this in a separate task, because
                         // usually CheckAutoClose will be called from
                         // HandleSessionShutdown above, which runs in
                         // the thread of the connection. If we were to
-                        // attempt to close the connection from within
-                        // the connection's thread, we would suffer a
-                        // deadlock as the connection thread would be
-                        // blocking waiting for its own mainloop to
-                        // reply to it.
-#if NETFX_CORE
-                        Task.Factory.StartNew(AutoCloseConnection, TaskCreationOptions.LongRunning);
-#else
-                        new Thread(AutoCloseConnection).Start();
-#endif
+                        // attempt to close the connection synchronously,
+                        // we would suffer a deadlock as the connection thread 
+                        // would be blocking waiting for its own mainloop
+                        // to reply to it.
+                        Task.Run(AutoCloseConnection).Wait();
                     }
                 }
             }
@@ -167,7 +164,7 @@ namespace RabbitMQ.Client.Impl
         {
             lock (m_sessionMap)
             {
-                var session = (ISession) sender;
+                var session = (ISession)sender;
                 m_sessionMap.Remove(session.ChannelNumber);
                 Ints.Free(session.ChannelNumber);
                 CheckAutoClose();

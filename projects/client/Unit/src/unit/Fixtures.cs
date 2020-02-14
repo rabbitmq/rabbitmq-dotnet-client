@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2016 Pivotal Software, Inc.
+//   Copyright (c) 2007-2020 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -465,11 +465,11 @@ namespace RabbitMQ.Client.Unit
               proc.StartInfo.RedirectStandardOutput = true;
 
               proc.Start();
-              String stderr = proc.StandardError.ReadToEnd();
+                string stderr = proc.StandardError.ReadToEnd();
               proc.WaitForExit();
               if (stderr.Length >  0 || proc.ExitCode > 0)
               {
-                  String stdout = proc.StandardOutput.ReadToEnd();
+                    string stdout = proc.StandardOutput.ReadToEnd();
                   ReportExecFailure(cmd, args, stderr + "\n" + stdout);
               }
 
@@ -482,7 +482,7 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        protected void ReportExecFailure(String cmd, String args, String msg)
+        protected void ReportExecFailure(string cmd, string args, string msg)
         {
             Console.WriteLine("Failure while running " + cmd + " " + args + ":\n" + msg);
         }
@@ -550,7 +550,7 @@ namespace RabbitMQ.Client.Unit
         protected List<ConnectionInfo> ListConnections()
         {
             Process proc  = ExecRabbitMQCtl("list_connections --silent pid peer_port");
-            String stdout = proc.StandardOutput.ReadToEnd();
+            string stdout = proc.StandardOutput.ReadToEnd();
 
             try
             {

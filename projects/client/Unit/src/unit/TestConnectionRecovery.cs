@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2016 Pivotal Software, Inc.
+//   Copyright (c) 2007-2020 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -618,7 +618,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestRecoveryEventHandlersOnChannel()
         {
-            Int32 counter = 0;
+            int counter = 0;
             ((AutorecoveringModel)Model).Recovery += (source, ea) => Interlocked.Increment(ref counter);
 
             CloseAndWaitForRecovery();
@@ -631,7 +631,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestRecoveryEventHandlersOnConnection()
         {
-            Int32 counter = 0;
+            int counter = 0;
             ((AutorecoveringConnection)Conn).Recovery += (source, ea) => Interlocked.Increment(ref counter);
 
             CloseAndWaitForRecovery();
@@ -646,7 +646,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestRecoveryEventHandlersOnModel()
         {
-            Int32 counter = 0;
+            int counter = 0;
             ((AutorecoveringModel)Model).Recovery += (source, ea) => Interlocked.Increment(ref counter);
 
             CloseAndWaitForRecovery();
@@ -715,7 +715,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestShutdownEventHandlersRecoveryOnConnection()
         {
-            Int32 counter = 0;
+            int counter = 0;
             Conn.ConnectionShutdown += (c, args) => Interlocked.Increment(ref counter);
 
             Assert.IsTrue(Conn.IsOpen);
@@ -731,7 +731,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestShutdownEventHandlersRecoveryOnConnectionAfterDelayedServerRestart()
         {
-            Int32 counter = 0;
+            int counter = 0;
             Conn.ConnectionShutdown += (c, args) => Interlocked.Increment(ref counter);
             ManualResetEvent shutdownLatch = PrepareForShutdown(Conn);
             ManualResetEvent recoveryLatch = PrepareForRecovery(((AutorecoveringConnection)Conn));
@@ -751,7 +751,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestShutdownEventHandlersRecoveryOnModel()
         {
-            Int32 counter = 0;
+            int counter = 0;
             Model.ModelShutdown += (c, args) => Interlocked.Increment(ref counter);
 
             Assert.IsTrue(Model.IsOpen);

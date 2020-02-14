@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2016 Pivotal Software, Inc.
+//   Copyright (c) 2007-2020 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -100,13 +100,13 @@ namespace RabbitMQ.Client
         /// a frame handler, a client-provided name, and no automatic recovery.
         /// The "insist" parameter is passed on to the AMQP connection.open method.
         /// </summary>
-        IConnection CreateConnection(IConnectionFactory factory, bool insist, IFrameHandler frameHandler, String clientProvidedName);
+        IConnection CreateConnection(IConnectionFactory factory, bool insist, IFrameHandler frameHandler, string clientProvidedName);
 
         /// <summary>
         /// Construct a connection from a given set of parameters,
         /// a frame handler, a client-provided name, and automatic recovery settings.
         /// </summary>
-        IConnection CreateConnection(ConnectionFactory factory, IFrameHandler frameHandler, bool automaticRecoveryEnabled, String clientProvidedName);
+        IConnection CreateConnection(ConnectionFactory factory, IFrameHandler frameHandler, bool automaticRecoveryEnabled, string clientProvidedName);
 
         /// <summary>
         /// Construct a protocol model atop a given session.
