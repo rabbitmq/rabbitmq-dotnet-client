@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2016 Pivotal Software, Inc.
+//   Copyright (c) 2007-2020 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -39,11 +39,11 @@
 //---------------------------------------------------------------------------
 
 using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Impl;
+
 using System;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -806,7 +806,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
                 catch (Exception cause)
                 {
-                    string s = String.Format("Caught an exception while recovering binding between {0} and {1}: {2}",
+                    string s = string.Format("Caught an exception while recovering binding between {0} and {1}: {2}",
                         b.Source, b.Destination, cause.Message);
                     HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
                 }
@@ -926,7 +926,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
                 catch (Exception cause)
                 {
-                    string s = String.Format("Caught an exception while recovering consumer {0} on queue {1}: {2}",
+                    string s = string.Format("Caught an exception while recovering consumer {0} on queue {1}: {2}",
                         tag, cons.Queue, cause.Message);
                     HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
                 }
@@ -956,7 +956,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
                 catch (Exception cause)
                 {
-                    string s = String.Format("Caught an exception while recovering exchange {0}: {1}",
+                    string s = string.Format("Caught an exception while recovering exchange {0}: {1}",
                         rx.Name, cause.Message);
                     HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
                 }
@@ -1022,7 +1022,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                     catch (Exception cause)
                     {
-                        string s = String.Format("Caught an exception while recovering queue {0}: {1}",
+                        string s = string.Format("Caught an exception while recovering queue {0}: {1}",
                             oldName, cause.Message);
                         HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
                     }

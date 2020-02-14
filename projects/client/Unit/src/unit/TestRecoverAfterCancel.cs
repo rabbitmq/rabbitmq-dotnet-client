@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2016 Pivotal Software, Inc.
+//   Copyright (c) 2007-2020 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ namespace RabbitMQ.Client.Unit
     {
         IConnection Connection;
         IModel Channel;
-        String Queue;
+        string Queue;
         int callbackCount;
 
         public int ModelNumber(IModel model)
@@ -86,7 +86,7 @@ namespace RabbitMQ.Client.Unit
             Channel.BasicPublish("", Queue, null, enc.GetBytes("message"));
             QueueingBasicConsumer Consumer = new QueueingBasicConsumer(Channel);
 
-            String CTag = Channel.BasicConsume(Queue, false, Consumer);
+            string CTag = Channel.BasicConsume(Queue, false, Consumer);
             BasicDeliverEventArgs Event = (BasicDeliverEventArgs) Consumer.Queue.Dequeue();
             Channel.BasicCancel(CTag);
             Channel.BasicRecover(true);

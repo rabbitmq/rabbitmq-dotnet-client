@@ -6,15 +6,14 @@ skip_tags: true
 image: Visual Studio 2017
 
 environment:
-  BUILDWINRT: true
-  USINGMONO: false
   SNKSECRET:
     secure: C8FL0UTKVN8YcMW1wdssabbkSWMIrpJTqgUNeI2NfQw=
 
 cache:
-  # Note: this must match the $rabbitmq_installer_path value in
+  # Note: this must match the $rabbitmq_installer_path and $erlang_installer_path values in
   # tools\appveyor\install.ps1
-  - "%HOMEDRIVE%%HOMEPATH%\rabbitmq-server-3.7.4.exe"
+  - "%HOMEDRIVE%%HOMEPATH%\\rabbitmq-server-3.8.2.exe"
+  - "%HOMEDRIVE%%HOMEPATH%\\otp_win64_22.2.exe"
 
 install:
   - IF DEFINED SNKSECRET (nuget install secure-file -ExcludeVersion)
