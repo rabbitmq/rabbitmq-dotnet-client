@@ -153,7 +153,7 @@ namespace RabbitMQ.Util
                     TimeSpan remainingTime = timeout.Subtract(elapsedTime);
                     if (remainingTime <= TimeSpan.Zero)
                     {
-                        result = default(T);
+                        result = default;
                         return false;
                     }
 
@@ -259,7 +259,7 @@ namespace RabbitMQ.Util
         public SharedQueueEnumerator(SharedQueue<T> queue)
         {
             m_queue = queue;
-            m_current = default(T);
+            m_current = default;
         }
 
         object IEnumerator.Current
@@ -299,7 +299,7 @@ namespace RabbitMQ.Util
             }
             catch (EndOfStreamException)
             {
-                m_current = default(T);
+                m_current = default;
                 return false;
             }
         }

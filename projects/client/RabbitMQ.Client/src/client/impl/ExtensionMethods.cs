@@ -58,7 +58,7 @@ namespace RabbitMQ.Client.Impl
             var n = list.Count;
             if (n == 0)
             {
-                return default(T);
+                return default;
             }
 
             var hashCode = Math.Abs(Guid.NewGuid().GetHashCode());

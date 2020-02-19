@@ -73,13 +73,13 @@ namespace RabbitMQ.Util
         ///<summary>Constructs an Either instance representing a Left alternative.</summary>
         public static Either<L, R> Left(L value)
         {
-            return new Either<L, R>(EitherAlternative.Left, value, default(R));
+            return new Either<L, R>(EitherAlternative.Left, value, default);
         }
 
         ///<summary>Constructs an Either instance representing a Right alternative.</summary>
         public static Either<L, R> Right(R value)
         {
-            return new Either<L, R>(EitherAlternative.Right, default(L), value);
+            return new Either<L, R>(EitherAlternative.Right, default, value);
         }
     }
 }

@@ -52,7 +52,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void Approve()
         {
-            var publicApi = ApiGenerator.GeneratePublicApi(typeof(ConnectionFactory).Assembly, excludeAttributes: new[] { "System.Runtime.Versioning.TargetFrameworkAttribute" });
+            var publicApi = typeof(ConnectionFactory).Assembly.GeneratePublicApi(new ApiGeneratorOptions { ExcludeAttributes = new[] { "System.Runtime.Versioning.TargetFrameworkAttribute" } });
             Approvals.Verify(publicApi);
         }
     }

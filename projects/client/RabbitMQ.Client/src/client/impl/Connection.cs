@@ -587,7 +587,7 @@ namespace RabbitMQ.Client.Framing.Impl
             TerminateMainloop();
         }
 
-        public void LogCloseError(String error, Exception ex)
+        public void LogCloseError(string error, Exception ex)
         {
             ESLog.Error(error, ex);
             m_shutdownReport.Add(new ShutdownReportEntry(error, ex));
@@ -841,7 +841,7 @@ namespace RabbitMQ.Client.Framing.Impl
         public void Open(bool insist)
         {
             StartAndTune();
-            m_model0.ConnectionOpen(m_factory.VirtualHost, String.Empty, false);
+            m_model0.ConnectionOpen(m_factory.VirtualHost, string.Empty, false);
         }
 
         public void PrettyPrintShutdownReport()
@@ -988,7 +988,7 @@ entry.ToString());
                     // of the heartbeat setting in setHeartbeat above.
                     if (m_missedHeartbeats > 2 * 4)
                     {
-                        String description = String.Format("Heartbeat missing with heartbeat == {0} seconds", m_heartbeat);
+                        string description = string.Format("Heartbeat missing with heartbeat == {0} seconds", m_heartbeat);
                         var eose = new EndOfStreamException(description);
                         ESLog.Error(description, eose);
                         m_shutdownReport.Add(new ShutdownReportEntry(description, eose));
@@ -1234,7 +1234,7 @@ entry.ToString());
             m_clientProperties["connection_name"] = this.ClientProvidedName;
 
             // FIXME: parse out locales properly!
-            ConnectionTuneDetails connectionTune = default(ConnectionTuneDetails);
+            ConnectionTuneDetails connectionTune = default;
             bool tuned = false;
             try
             {
