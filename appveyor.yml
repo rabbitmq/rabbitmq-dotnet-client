@@ -30,8 +30,3 @@ test_script:
 
 nuget:
   disable_publish_on_pr: true
-
-branches:
-    only:
-      - master
-      - stable
