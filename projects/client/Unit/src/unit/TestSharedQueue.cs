@@ -132,8 +132,7 @@ namespace RabbitMQ.Client.Unit
             EnqueueAfter(TimingInterval*2, q, 123);
 
             ResetTimer();
-            object v;
-            bool r = q.Dequeue(TimingInterval, out v);
+            bool r = q.Dequeue(TimingInterval, out object v);
             Assert.Greater(TimingInterval + SafetyMargin, ElapsedMs());
             Assert.IsTrue(!r);
             Assert.AreEqual(null, v);
@@ -146,8 +145,7 @@ namespace RabbitMQ.Client.Unit
             EnqueueAfter(TimingInterval, q, 123);
 
             ResetTimer();
-            object v;
-            bool r = q.Dequeue(TimingInterval * 2, out v);
+            bool r = q.Dequeue(TimingInterval * 2, out object v);
             Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.IsTrue(r);
             Assert.AreEqual(123, v);
@@ -168,7 +166,6 @@ namespace RabbitMQ.Client.Unit
         public void TestCloseWhenFull()
         {
             var q = new SharedQueue();
-            object v;
             q.Enqueue(1);
             q.Enqueue(2);
             q.Enqueue(3);
@@ -177,7 +174,7 @@ namespace RabbitMQ.Client.Unit
             ExpectEof(de.EnqueueValue);
             Assert.AreEqual(1, q.Dequeue());
             Assert.AreEqual(2, q.DequeueNoWait(0));
-            bool r = q.Dequeue(TimeSpan.FromMilliseconds(1), out v);
+            bool r = q.Dequeue(TimeSpan.FromMilliseconds(1), out object v);
             Assert.IsTrue(r);
             Assert.AreEqual(3, v);
             ExpectEof(de.Dequeue);
@@ -241,10 +238,9 @@ namespace RabbitMQ.Client.Unit
             EnqueueAfter(TimingInterval*2, q, 234);
 
             ResetTimer();
-            object v;
             bool r;
 
-            r = q.Dequeue(TimingInterval * 2, out v);
+            r = q.Dequeue(TimingInterval * 2, out object v);
             Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.Greater(TimingInterval + SafetyMargin, ElapsedMs());
             Assert.IsTrue(r);
@@ -264,10 +260,9 @@ namespace RabbitMQ.Client.Unit
             EnqueueAfter(TimingInterval*2, q, 123);
 
             ResetTimer();
-            object v;
             bool r;
 
-            r = q.Dequeue(TimingInterval, out v);
+            r = q.Dequeue(TimingInterval, out object v);
             Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.Greater(TimingInterval + SafetyMargin, ElapsedMs());
             Assert.IsTrue(!r);
@@ -306,8 +301,7 @@ namespace RabbitMQ.Client.Unit
             EnqueueAfter(TimingInterval, q, 123);
 
             ResetTimer();
-            object v;
-            bool r = q.Dequeue(Timeout.InfiniteTimeSpan, out v);
+            bool r = q.Dequeue(Timeout.InfiniteTimeSpan, out object v);
             Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.IsTrue(r);
             Assert.AreEqual(123, v);
@@ -319,8 +313,7 @@ namespace RabbitMQ.Client.Unit
             var q = new SharedQueue();
 
             ResetTimer();
-            object v;
-            bool r = q.Dequeue(TimingInterval, out v);
+            bool r = q.Dequeue(TimingInterval, out object v);
             Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.IsTrue(!r);
             Assert.AreEqual(null, v);
@@ -332,8 +325,7 @@ namespace RabbitMQ.Client.Unit
             var q = new SharedQueue();
 
             ResetTimer();
-            object v;
-            bool r = q.Dequeue(TimeSpan.FromMilliseconds(-10000), out v);
+            bool r = q.Dequeue(TimeSpan.FromMilliseconds(-10000), out object v);
             Assert.Greater(SafetyMargin, ElapsedMs());
             Assert.IsTrue(!r);
             Assert.AreEqual(null, v);
@@ -346,8 +338,7 @@ namespace RabbitMQ.Client.Unit
             q.Enqueue(123);
 
             ResetTimer();
-            object v;
-            bool r = q.Dequeue(TimingInterval, out v);
+            bool r = q.Dequeue(TimingInterval, out object v);
             Assert.Greater(SafetyMargin, ElapsedMs());
             Assert.IsTrue(r);
             Assert.AreEqual(123, v);

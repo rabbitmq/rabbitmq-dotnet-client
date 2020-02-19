@@ -456,8 +456,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 if (!HasMoreDestinationsBoundToExchange(m_recordedBindings.Keys, exchange))
                 {
-                    RecordedExchange rx;
-                    m_recordedExchanges.TryGetValue(exchange, out rx);
+                    m_recordedExchanges.TryGetValue(exchange, out RecordedExchange rx);
                     // last binding where this exchange is the source is gone,
                     // remove recorded exchange
                     // if it is auto-deleted. See bug 26364.
@@ -475,8 +474,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 if (!HasMoreConsumersOnQueue(m_recordedConsumers.Values, queue))
                 {
-                    RecordedQueue rq;
-                    m_recordedQueues.TryGetValue(queue, out rq);
+                    m_recordedQueues.TryGetValue(queue, out RecordedQueue rq);
                     // last consumer on this connection is gone, remove recorded queue
                     // if it is auto-deleted. See bug 26364.
                     if ((rq != null) && rq.IsAutoDelete)
