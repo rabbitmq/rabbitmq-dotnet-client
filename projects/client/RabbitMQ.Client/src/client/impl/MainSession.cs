@@ -64,8 +64,7 @@ namespace RabbitMQ.Client.Impl
 
         public MainSession(Connection connection) : base(connection, 0)
         {
-            Command request;
-            connection.Protocol.CreateConnectionClose(0, string.Empty, out request, out m_closeOkClassId, out m_closeOkMethodId);
+            connection.Protocol.CreateConnectionClose(0, string.Empty, out Command request, out m_closeOkClassId, out m_closeOkMethodId);
             m_closeClassId = request.Method.ProtocolClassId;
             m_closeMethodId = request.Method.ProtocolMethodId;
         }

@@ -91,8 +91,7 @@ namespace RabbitMQ.Client
         /// </summary>
         public override bool Equals(object other)
         {
-            var version = other as AmqpVersion;
-            return (version != null) && (version.Major == Major) && (version.Minor == Minor);
+            return (other is AmqpVersion version) && (version.Major == Major) && (version.Minor == Minor);
         }
 
         /// <summary>

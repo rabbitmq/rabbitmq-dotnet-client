@@ -66,8 +66,7 @@ namespace RabbitMQ.Client.Logging
             this.Type = ex["Type"].ToString();
             this.Message = ex["Message"].ToString();
             this.StackTrace = ex["StackTrace"].ToString();
-            object inner;
-            if(ex.TryGetValue("InnerException", out inner))
+            if (ex.TryGetValue("InnerException", out object inner))
             {
                 this.InnerException = inner.ToString();
             }

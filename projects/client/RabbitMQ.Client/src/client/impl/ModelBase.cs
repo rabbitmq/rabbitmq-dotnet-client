@@ -38,17 +38,18 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Client.Framing;
-using RabbitMQ.Client.Framing.Impl;
-using RabbitMQ.Util;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
+
+using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Framing;
+using RabbitMQ.Client.Framing.Impl;
+using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -93,8 +94,7 @@ namespace RabbitMQ.Client.Impl
 
         public ModelBase(ISession session, ConsumerWorkService workService)
         {
-            var asyncConsumerWorkService = workService as AsyncConsumerWorkService;
-            if (asyncConsumerWorkService != null)
+            if (workService is AsyncConsumerWorkService asyncConsumerWorkService)
             {
                 ConsumerDispatcher = new AsyncConsumerDispatcher(this, asyncConsumerWorkService);
             }
@@ -378,7 +378,7 @@ namespace RabbitMQ.Client.Impl
         public ConnectionSecureOrTune ConnectionSecureOk(byte[] response)
         {
             var k = new ConnectionStartRpcContinuation();
-            lock(_rpcLock)
+            lock (_rpcLock)
             {
                 Enqueue(k);
                 try
@@ -402,7 +402,7 @@ namespace RabbitMQ.Client.Impl
             string locale)
         {
             var k = new ConnectionStartRpcContinuation();
-            lock(_rpcLock)
+            lock (_rpcLock)
             {
                 Enqueue(k);
                 try
@@ -464,7 +464,7 @@ namespace RabbitMQ.Client.Impl
         public MethodBase ModelRpc(MethodBase method, ContentHeaderBase header, byte[] body)
         {
             var k = new SimpleBlockingRpcContinuation();
-            lock(_rpcLock)
+            lock (_rpcLock)
             {
                 TransmitAndEnqueue(new Command(method, header, body), k);
                 return k.GetReply(this.ContinuationTimeout).Method;
@@ -1185,7 +1185,7 @@ namespace RabbitMQ.Client.Impl
         {
             var k = new BasicConsumerRpcContinuation { m_consumerTag = consumerTag };
 
-            lock(_rpcLock)
+            lock (_rpcLock)
             {
                 Enqueue(k);
                 _Private_BasicCancel(consumerTag, false);
@@ -1208,11 +1208,9 @@ namespace RabbitMQ.Client.Impl
             IBasicConsumer consumer)
         {
             // TODO: Replace with flag
-            var asyncDispatcher = ConsumerDispatcher as AsyncConsumerDispatcher;
-            if (asyncDispatcher != null)
+            if (ConsumerDispatcher is AsyncConsumerDispatcher asyncDispatcher)
             {
-                var asyncConsumer = consumer as IAsyncBasicConsumer;
-                if (asyncConsumer == null)
+                if (!(consumer is IAsyncBasicConsumer asyncConsumer))
                 {
                     // TODO: Friendly message
                     throw new InvalidOperationException("In the async mode you have to use an async consumer");
@@ -1221,7 +1219,7 @@ namespace RabbitMQ.Client.Impl
 
             var k = new BasicConsumerRpcContinuation { m_consumer = consumer };
 
-            lock(_rpcLock)
+            lock (_rpcLock)
             {
                 Enqueue(k);
                 // Non-nowait. We have an unconventional means of getting
@@ -1239,7 +1237,7 @@ namespace RabbitMQ.Client.Impl
             bool autoAck)
         {
             var k = new BasicGetRpcContinuation();
-            lock(_rpcLock)
+            lock (_rpcLock)
             {
                 Enqueue(k);
                 _Private_BasicGet(queue, autoAck);
@@ -1258,7 +1256,7 @@ namespace RabbitMQ.Client.Impl
             var c = 0;
             lock (m_unconfirmedSet.SyncRoot)
             {
-                while(c < count)
+                while (c < count)
                 {
                     if (NextPublishSeqNo > 0)
                     {
@@ -1329,7 +1327,7 @@ namespace RabbitMQ.Client.Impl
         {
             var k = new SimpleBlockingRpcContinuation();
 
-            lock(_rpcLock)
+            lock (_rpcLock)
             {
                 Enqueue(k);
                 _Private_BasicRecover(requeue);
@@ -1553,14 +1551,12 @@ namespace RabbitMQ.Client.Impl
 
         public bool WaitForConfirms()
         {
-            bool timedOut;
-            return WaitForConfirms(TimeSpan.FromMilliseconds(Timeout.Infinite), out timedOut);
+            return WaitForConfirms(TimeSpan.FromMilliseconds(Timeout.Infinite), out _);
         }
 
         public bool WaitForConfirms(TimeSpan timeout)
         {
-            bool timedOut;
-            return WaitForConfirms(timeout, out timedOut);
+            return WaitForConfirms(timeout, out _);
         }
 
         public void WaitForConfirmsOrDie()
@@ -1570,8 +1566,7 @@ namespace RabbitMQ.Client.Impl
 
         public void WaitForConfirmsOrDie(TimeSpan timeout)
         {
-            bool timedOut;
-            bool onlyAcksReceived = WaitForConfirms(timeout, out timedOut);
+            bool onlyAcksReceived = WaitForConfirms(timeout, out bool timedOut);
             if (!onlyAcksReceived)
             {
                 Close(new ShutdownEventArgs(ShutdownInitiator.Application,
@@ -1630,7 +1625,7 @@ namespace RabbitMQ.Client.Impl
             bool autoDelete, IDictionary<string, object> arguments)
         {
             var k = new QueueDeclareRpcContinuation();
-            lock(_rpcLock)
+            lock (_rpcLock)
             {
                 Enqueue(k);
                 _Private_QueueDeclare(queue, passive, durable, exclusive, autoDelete, false, arguments);
