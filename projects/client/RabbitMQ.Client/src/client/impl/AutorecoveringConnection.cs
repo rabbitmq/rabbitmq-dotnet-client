@@ -456,8 +456,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 if (!HasMoreDestinationsBoundToExchange(m_recordedBindings.Keys, exchange))
                 {
-                    RecordedExchange rx;
-                    m_recordedExchanges.TryGetValue(exchange, out rx);
+                    m_recordedExchanges.TryGetValue(exchange, out RecordedExchange rx);
                     // last binding where this exchange is the source is gone,
                     // remove recorded exchange
                     // if it is auto-deleted. See bug 26364.
@@ -475,8 +474,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 if (!HasMoreConsumersOnQueue(m_recordedConsumers.Values, queue))
                 {
-                    RecordedQueue rq;
-                    m_recordedQueues.TryGetValue(queue, out rq);
+                    m_recordedQueues.TryGetValue(queue, out RecordedQueue rq);
                     // last consumer on this connection is gone, remove recorded queue
                     // if it is auto-deleted. See bug 26364.
                     if ((rq != null) && rq.IsAutoDelete)
@@ -747,7 +745,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
                 catch (Exception cause)
                 {
-                    string s = String.Format("Caught an exception while recovering binding between {0} and {1}: {2}",
+                    string s = string.Format("Caught an exception while recovering binding between {0} and {1}: {2}",
                         b.Source, b.Destination, cause.Message);
                     HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
                 }
@@ -844,7 +842,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
                 catch (Exception cause)
                 {
-                    string s = String.Format("Caught an exception while recovering consumer {0} on queue {1}: {2}",
+                    string s = string.Format("Caught an exception while recovering consumer {0} on queue {1}: {2}",
                         tag, cons.Queue, cause.Message);
                     HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
                 }
@@ -874,7 +872,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
                 catch (Exception cause)
                 {
-                    string s = String.Format("Caught an exception while recovering exchange {0}: {1}",
+                    string s = string.Format("Caught an exception while recovering exchange {0}: {1}",
                         rx.Name, cause.Message);
                     HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
                 }
@@ -940,7 +938,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                     catch (Exception cause)
                     {
-                        string s = String.Format("Caught an exception while recovering queue {0}: {1}",
+                        string s = string.Format("Caught an exception while recovering queue {0}: {1}",
                             oldName, cause.Message);
                         HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
                     }

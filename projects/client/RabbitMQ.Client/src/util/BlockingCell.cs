@@ -56,7 +56,7 @@ namespace RabbitMQ.Util
     public class BlockingCell<T>
     {
         private readonly ManualResetEventSlim manualResetEventSlim = new ManualResetEventSlim(false);
-        private T m_value = default(T);
+        private T m_value = default;
         public EventHandler<T> ContinueUsingValue;
 
         public void ContinueWithValue(T value)

@@ -49,7 +49,7 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestConsumerCancelNotify : IntegrationFixture
     {
-        protected readonly Object lockObject = new Object();
+        protected readonly object lockObject = new object();
         protected bool notifiedCallback;
         protected bool notifiedEvent;
         protected string consumerTag;

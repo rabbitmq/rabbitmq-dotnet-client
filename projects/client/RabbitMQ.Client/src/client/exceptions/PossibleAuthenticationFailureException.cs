@@ -49,10 +49,10 @@ namespace RabbitMQ.Client.Exceptions
 #endif
     public class PossibleAuthenticationFailureException : RabbitMQClientException
     {
-        public PossibleAuthenticationFailureException(String msg, Exception inner) : base(msg, inner)
+        public PossibleAuthenticationFailureException(string msg, Exception inner) : base(msg, inner)
         {
         }
-        public PossibleAuthenticationFailureException(String msg) : base(msg)
+        public PossibleAuthenticationFailureException(string msg) : base(msg)
         {
         }
     }

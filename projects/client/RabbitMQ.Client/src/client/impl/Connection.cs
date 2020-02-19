@@ -38,20 +38,20 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Client.Impl;
-using RabbitMQ.Util;
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Text;
 using System.Threading;
-using System.Reflection;
 using System.Threading.Tasks;
+
+using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Impl;
+using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -118,8 +118,7 @@ namespace RabbitMQ.Client.Framing.Impl
             m_factory = factory;
             m_frameHandler = frameHandler;
 
-            var asyncConnectionFactory = factory as IAsyncConnectionFactory;
-            if (asyncConnectionFactory != null && asyncConnectionFactory.DispatchConsumersAsync)
+            if (factory is IAsyncConnectionFactory asyncConnectionFactory && asyncConnectionFactory.DispatchConsumersAsync)
             {
                 ConsumerWorkService = new AsyncConsumerWorkService();
             }
@@ -482,14 +481,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public Command ConnectionCloseWrapper(ushort reasonCode, string reasonText)
         {
-            Command request;
-            ushort replyClassId;
-            ushort replyMethodId;
-            Protocol.CreateConnectionClose(reasonCode,
-                reasonText,
-                out request,
-                out replyClassId,
-                out replyMethodId);
+            Protocol.CreateConnectionClose(reasonCode, reasonText, out Command request, out _, out _);
             return request;
         }
 
@@ -587,7 +579,7 @@ namespace RabbitMQ.Client.Framing.Impl
             TerminateMainloop();
         }
 
-        public void LogCloseError(String error, Exception ex)
+        public void LogCloseError(string error, Exception ex)
         {
             ESLog.Error(error, ex);
             m_shutdownReport.Add(new ShutdownReportEntry(error, ex));
@@ -841,7 +833,7 @@ namespace RabbitMQ.Client.Framing.Impl
         public void Open(bool insist)
         {
             StartAndTune();
-            m_model0.ConnectionOpen(m_factory.VirtualHost, String.Empty, false);
+            m_model0.ConnectionOpen(m_factory.VirtualHost, string.Empty, false);
         }
 
         public void PrettyPrintShutdownReport()
@@ -988,7 +980,7 @@ entry.ToString());
                     // of the heartbeat setting in setHeartbeat above.
                     if (m_missedHeartbeats > 2 * 4)
                     {
-                        String description = String.Format("Heartbeat missing with heartbeat == {0} seconds", m_heartbeat);
+                        string description = string.Format("Heartbeat missing with heartbeat == {0} seconds", m_heartbeat);
                         var eose = new EndOfStreamException(description);
                         ESLog.Error(description, eose);
                         m_shutdownReport.Add(new ShutdownReportEntry(description, eose));
@@ -1189,14 +1181,7 @@ entry.ToString());
 
         Command ChannelCloseWrapper(ushort reasonCode, string reasonText)
         {
-            Command request;
-            ushort replyClassId;
-            ushort replyMethodId;
-            Protocol.CreateChannelClose(reasonCode,
-                reasonText,
-                out request,
-                out replyClassId,
-                out replyMethodId);
+            Protocol.CreateChannelClose(reasonCode, reasonText, out Command request, out _, out _);
             return request;
         }
 
@@ -1234,7 +1219,7 @@ entry.ToString());
             m_clientProperties["connection_name"] = this.ClientProvidedName;
 
             // FIXME: parse out locales properly!
-            ConnectionTuneDetails connectionTune = default(ConnectionTuneDetails);
+            ConnectionTuneDetails connectionTune = default;
             bool tuned = false;
             try
             {

@@ -48,7 +48,7 @@ namespace RabbitMQ.Client.Exceptions
 #endif
     public class ConnectFailureException : ProtocolViolationException
     {
-        public ConnectFailureException(String msg, Exception inner)
+        public ConnectFailureException(string msg, Exception inner)
             : base(msg, inner)
         {
         }

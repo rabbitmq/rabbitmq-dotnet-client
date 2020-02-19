@@ -100,7 +100,7 @@ namespace RabbitMQ.Util
         ///<remarks>Recurses into the value using DumpProperties().</remarks>
         public static void DumpKeyValue(string key, object value, TextWriter writer, int indent)
         {
-            string prefix = new String(' ', indent + 2) + key + ": ";
+            string prefix = new string(' ', indent + 2) + key + ": ";
             writer.Write(prefix);
             DumpProperties(value, writer, indent + 2);
         }

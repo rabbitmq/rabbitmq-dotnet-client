@@ -92,7 +92,7 @@ namespace RabbitMQ.Client.Unit {
         public void TestEventingConsumerDeliveryEvents()
         {
             string q = Model.QueueDeclare();
-            object o = new Object ();
+            object o = new object();
 
             bool receivedInvoked = false;
             object receivedSender = null;
