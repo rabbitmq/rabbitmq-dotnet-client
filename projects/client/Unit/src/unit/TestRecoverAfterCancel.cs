@@ -59,7 +59,7 @@ namespace RabbitMQ.Client.Unit
     {
         IConnection Connection;
         IModel Channel;
-        String Queue;
+        string Queue;
         int callbackCount;
 
         public int ModelNumber(IModel model)
@@ -88,7 +88,7 @@ namespace RabbitMQ.Client.Unit
             SharedQueue<BasicDeliverEventArgs> EventQueue = new SharedQueue<BasicDeliverEventArgs>();
             Consumer.Received += (_, e) => EventQueue.Enqueue(e);
 
-            String CTag = Channel.BasicConsume(Queue, false, Consumer);
+            string CTag = Channel.BasicConsume(Queue, false, Consumer);
             BasicDeliverEventArgs Event = EventQueue.Dequeue();
             Channel.BasicCancel(CTag);
             Channel.BasicRecover(true);

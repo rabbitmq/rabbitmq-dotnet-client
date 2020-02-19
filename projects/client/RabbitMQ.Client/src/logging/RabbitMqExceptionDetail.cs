@@ -80,7 +80,7 @@ namespace RabbitMQ.Client.Logging
 
         public override string ToString()
         {
-            return String.Format("Exception: {0}\r\n{1}\r\n\r\n{2}\r\nInnerException:\r\n{3}", Type, Message, StackTrace, InnerException);
+            return string.Format("Exception: {0}\r\n{1}\r\n\r\n{2}\r\nInnerException:\r\n{3}", Type, Message, StackTrace, InnerException);
         }
     }
 }
