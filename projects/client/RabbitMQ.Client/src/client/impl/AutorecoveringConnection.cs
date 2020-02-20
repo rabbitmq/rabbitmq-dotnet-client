@@ -969,10 +969,10 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private bool ShouldTriggerConnectionRecovery(ShutdownEventArgs args)
         {
-            return (args.Initiator == ShutdownInitiator.Peer ||
+            return args.Initiator == ShutdownInitiator.Peer ||
                     // happens when EOF is reached, e.g. due to RabbitMQ node
                     // connectivity loss or abrupt shutdown
-                    args.Initiator == ShutdownInitiator.Library);
+                    args.Initiator == ShutdownInitiator.Library;
         }
 
         private enum RecoveryCommand

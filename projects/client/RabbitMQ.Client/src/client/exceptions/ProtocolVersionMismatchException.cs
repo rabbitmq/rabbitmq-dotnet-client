@@ -45,7 +45,7 @@ namespace RabbitMQ.Client.Exceptions
     ///<summary>Thrown to indicate that the peer does not support the
     ///wire protocol version we requested immediately after opening
     ///the TCP socket.</summary>
-#if !(NETSTANDARD1_5)
+#if !NETSTANDARD1_5
     [Serializable]
 #endif
     public class ProtocolVersionMismatchException : ProtocolViolationException

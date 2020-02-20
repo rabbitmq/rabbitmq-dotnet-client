@@ -81,7 +81,7 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            if (!_closeServerInitiated && (frame.IsMethod()))
+            if (!_closeServerInitiated && frame.IsMethod())
             {
                 MethodBase method = Connection.Protocol.DecodeMethodFrom(frame.GetReader());
                 if ((method.ProtocolClassId == _closeClassId)
@@ -138,9 +138,9 @@ namespace RabbitMQ.Client.Impl
             MethodBase method = cmd.Method;
             if (((method.ProtocolClassId == _closeOkClassId)
                  && (method.ProtocolMethodId == _closeOkMethodId))
-                || (!_closeServerInitiated && (
+                || (!_closeServerInitiated && 
                     (method.ProtocolClassId == _closeClassId) &&
-                    (method.ProtocolMethodId == _closeMethodId))
+                    (method.ProtocolMethodId == _closeMethodId)
                     ))
             {
                 base.Transmit(cmd);
