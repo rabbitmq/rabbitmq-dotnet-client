@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestBasicConnectionRecoveryWithHostnameList()
         {
-            var c = CreateAutorecoveringConnection(new List<string>() { "127.0.0.1", "localhost" });
+            Framing.Impl.AutorecoveringConnection c = CreateAutorecoveringConnection(new List<string>() { "127.0.0.1", "localhost" });
             Assert.IsTrue(c.IsOpen);
             c.Close();
         }
@@ -58,7 +58,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestBasicConnectionRecoveryWithHostnameListAndUnreachableHosts()
         {
-            var c = CreateAutorecoveringConnection(new List<string>() { "191.72.44.22", "127.0.0.1", "localhost" });
+            Framing.Impl.AutorecoveringConnection c = CreateAutorecoveringConnection(new List<string>() { "191.72.44.22", "127.0.0.1", "localhost" });
             Assert.IsTrue(c.IsOpen);
             c.Close();
         }

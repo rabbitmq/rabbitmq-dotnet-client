@@ -138,7 +138,7 @@ namespace RabbitMQ.Client
         public virtual async Task OnCancel(params string[] consumerTags)
         {
             IsRunning = false;
-            var handler = ConsumerCancelled;
+            AsyncEventHandler<ConsumerEventArgs> handler = ConsumerCancelled;
             if (handler != null)
             {
                 foreach (AsyncEventHandler<ConsumerEventArgs> h in handler.GetInvocationList())

@@ -49,7 +49,7 @@ namespace RabbitMQ.Client.Unit
         public void TestMessageCountMethod()
         {
             Model.ConfirmSelect();
-            var q = GenerateQueueName();
+            string q = GenerateQueueName();
             Model.QueueDeclare(queue: q, durable: false, exclusive: true, autoDelete: false, arguments: null);
             Assert.AreEqual(0, Model.MessageCount(q));
 

@@ -98,7 +98,7 @@ namespace RabbitMQ.Client.Unit
             k.ContinueWithValue(123);
 
             ResetTimer();
-            var v = k.WaitForValue(TimingInterval);
+            int v = k.WaitForValue(TimingInterval);
             Assert.Greater(SafetyMargin, ElapsedMs());
             Assert.AreEqual(123, v);
         }
@@ -126,7 +126,7 @@ namespace RabbitMQ.Client.Unit
             SetAfter(TimingInterval, k, 123);
 
             ResetTimer();
-            var v = k.WaitForValue(Timeout.InfiniteTimeSpan);
+            int v = k.WaitForValue(Timeout.InfiniteTimeSpan);
             Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.AreEqual(123, v);
         }
@@ -138,7 +138,7 @@ namespace RabbitMQ.Client.Unit
             SetAfter(TimingInterval, k, 123);
 
             ResetTimer();
-            var v = k.WaitForValue(TimingInterval * 2);
+            int v = k.WaitForValue(TimingInterval * 2);
             Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.AreEqual(123, v);
         }
@@ -150,7 +150,7 @@ namespace RabbitMQ.Client.Unit
             SetAfter(TimingInterval, k, 123);
 
             ResetTimer();
-            var v = k.WaitForValue(TimingInterval * 2);
+            int v = k.WaitForValue(TimingInterval * 2);
             Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.AreEqual(123, v);
         }
@@ -162,8 +162,8 @@ namespace RabbitMQ.Client.Unit
             SetAfter(TimingInterval, k, 123);
 
             ResetTimer();
-            var infiniteTimeSpan = Timeout.InfiniteTimeSpan;
-            var v = k.WaitForValue(infiniteTimeSpan);
+            TimeSpan infiniteTimeSpan = Timeout.InfiniteTimeSpan;
+            int v = k.WaitForValue(infiniteTimeSpan);
             Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.AreEqual(123, v);
         }

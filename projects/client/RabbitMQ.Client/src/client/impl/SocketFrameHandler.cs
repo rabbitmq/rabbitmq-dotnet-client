@@ -61,7 +61,7 @@ namespace RabbitMQ.Client.Impl
                 await task;
             else
             {
-                var supressErrorTask = task.ContinueWith(t => t.Exception.Handle(e => true), TaskContinuationOptions.OnlyOnFaulted);
+                Task supressErrorTask = task.ContinueWith(t => t.Exception.Handle(e => true), TaskContinuationOptions.OnlyOnFaulted);
                 throw new TimeoutException();
             }
         }
@@ -240,7 +240,7 @@ namespace RabbitMQ.Client.Impl
         {
             var ms = new MemoryStream();
             var nbw = new NetworkBinaryWriter(ms);
-            for (var i = 0; i < frames.Count; ++i)
+            for (int i = 0; i < frames.Count; ++i)
             {
                 frames[i].WriteTo(nbw);
             }

@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Impl
 
         public void Add(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, byte[] body)
         {
-            var bp = basicProperties == null ? _model.CreateBasicProperties() : basicProperties;
+            IBasicProperties bp = basicProperties == null ? _model.CreateBasicProperties() : basicProperties;
             var method = new BasicPublish
             {
                 _exchange = exchange,

@@ -48,11 +48,11 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestConsumerCountMethod()
         {
-            var q = GenerateQueueName();
+            string q = GenerateQueueName();
             Model.QueueDeclare(queue: q, durable: false, exclusive: true, autoDelete: false, arguments: null);
             Assert.AreEqual(0, Model.ConsumerCount(q));
 
-            var tag = Model.BasicConsume(q, true, new EventingBasicConsumer(Model));
+            string tag = Model.BasicConsume(q, true, new EventingBasicConsumer(Model));
             Assert.AreEqual(1, Model.ConsumerCount(q));
 
             Model.BasicCancel(tag);

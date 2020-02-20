@@ -61,7 +61,7 @@ namespace RabbitMQ.Client.Events
 
         public IDictionary<string, object> UpdateDetails(IDictionary<string, object> other)
         {
-            foreach (var pair in other)
+            foreach (KeyValuePair<string, object> pair in other)
             {
                 Detail[pair.Key] = pair.Value;
             }

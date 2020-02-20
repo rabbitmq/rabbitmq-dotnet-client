@@ -413,8 +413,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
                 // find bindings that need removal, check if some auto-delete exchanges
                 // might need the same
-                var bs = _recordedBindings.Keys.Where(b => name.Equals(b.Destination));
-                foreach (var b in bs)
+                IEnumerable<RecordedBinding> bs = _recordedBindings.Keys.Where(b => name.Equals(b.Destination));
+                foreach (RecordedBinding b in bs)
                 {
                     DeleteRecordedBinding(b);
                     MaybeDeleteRecordedAutoDeleteExchange(b.Source);
@@ -429,8 +429,8 @@ namespace RabbitMQ.Client.Framing.Impl
                 _recordedQueues.Remove(name);
                 // find bindings that need removal, check if some auto-delete exchanges
                 // might need the same
-                var bs = _recordedBindings.Keys.Where(b => name.Equals(b.Destination));
-                foreach (var b in bs)
+                IEnumerable<RecordedBinding> bs = _recordedBindings.Keys.Where(b => name.Equals(b.Destination));
+                foreach (RecordedBinding b in bs)
                 {
                     DeleteRecordedBinding(b);
                     MaybeDeleteRecordedAutoDeleteExchange(b.Source);
@@ -541,7 +541,7 @@ namespace RabbitMQ.Client.Framing.Impl
         public void Init(IEndpointResolver endpoints)
         {
             _endpoints = endpoints;
-            var fh = endpoints.SelectOne(_factory.CreateFrameHandler);
+            IFrameHandler fh = endpoints.SelectOne(_factory.CreateFrameHandler);
             Init(fh);
         }
 
@@ -714,7 +714,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             lock (_recordedBindings)
             {
-                var bs = _recordedBindings.Keys.Where(b => b.Destination.Equals(oldName));
+                IEnumerable<RecordedBinding> bs = _recordedBindings.Keys.Where(b => b.Destination.Equals(oldName));
                 foreach (RecordedBinding b in bs)
                 {
                     b.Destination = newName;
@@ -737,7 +737,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void RecoverBindings()
         {
-            foreach (var b in _recordedBindings.Keys)
+            foreach (RecordedBinding b in _recordedBindings.Keys)
             {
                 try
                 {
@@ -764,7 +764,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             try
             {
-                var fh = _endpoints.SelectOne(_factory.CreateFrameHandler);
+                IFrameHandler fh = _endpoints.SelectOne(_factory.CreateFrameHandler);
                 _delegate = new Connection(_factory, false, fh, ClientProvidedName);
                 return true;
             }
@@ -772,7 +772,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 ESLog.Error("Connection recovery exception.", e);
                 // Trigger recovery error events
-                var handler = _connectionRecoveryError;
+                EventHandler<ConnectionRecoveryErrorEventArgs> handler = _connectionRecoveryError;
                 if (handler != null)
                 {
                     var args = new ConnectionRecoveryErrorEventArgs(e);
@@ -1015,7 +1015,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             try
             {
-                while (_recoveryLoopCommandQueue.TryTake(out var command, -1, _recoveryCancellationToken.Token))
+                while (_recoveryLoopCommandQueue.TryTake(out RecoveryCommand command, -1, _recoveryCancellationToken.Token))
                 {
                     switch (_recoveryLoopState)
                     {

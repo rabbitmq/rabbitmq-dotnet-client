@@ -53,7 +53,7 @@ namespace RabbitMQ.Client.Logging
 
         protected override void OnEventWritten(EventWrittenEventArgs eventData)
         {
-            foreach(var pl in eventData.Payload)
+            foreach(object pl in eventData.Payload)
             {
                 if (pl is IDictionary<string, object> dict)
                 {

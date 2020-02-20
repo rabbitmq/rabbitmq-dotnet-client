@@ -112,7 +112,7 @@ namespace RabbitMQ.Client.Events
 
         private void Raise<TEvent>(EventHandler<TEvent> eventHandler, TEvent evt)
         {
-            var handler = eventHandler;
+            EventHandler<TEvent> handler = eventHandler;
             if(handler != null)
             {
                 handler(this, evt);
