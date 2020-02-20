@@ -38,13 +38,9 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
 using NUnit.Framework;
-
-using RabbitMQ.Client;
 
 namespace RabbitMQ.Client.Unit
 {

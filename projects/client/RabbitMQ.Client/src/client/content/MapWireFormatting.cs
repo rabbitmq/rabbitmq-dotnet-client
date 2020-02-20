@@ -39,7 +39,6 @@
 //---------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Net;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Content

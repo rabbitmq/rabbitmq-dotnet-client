@@ -39,10 +39,7 @@
 //---------------------------------------------------------------------------
 
 using NUnit.Framework;
-
-using System;
 using System.Collections;
-using System.IO;
 using System.Text;
 
 using RabbitMQ.Util;

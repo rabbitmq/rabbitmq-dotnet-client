@@ -38,8 +38,6 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-using System.Net;
 using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Impl

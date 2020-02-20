@@ -39,13 +39,8 @@
 //---------------------------------------------------------------------------
 
 using NUnit.Framework;
-using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Client.Framing.Impl;
-using RabbitMQ.Client.Impl;
-using System;
 using System.Collections.Generic;
-using System.Threading;
 
 namespace RabbitMQ.Client.Unit
 {

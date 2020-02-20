@@ -38,13 +38,11 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System.Collections.Generic;
+using RabbitMQ.Client.Framing.Impl;
+
 namespace RabbitMQ.Client.Impl
 {
-    using System.Collections.Generic;
-    using RabbitMQ.Client;
-    using RabbitMQ.Client.Framing.Impl;
-    using RabbitMQ.Client.Impl;
-
     public class BasicPublishBatch : IBasicPublishBatch
     {
         private List<Command> commands = new List<Command>();

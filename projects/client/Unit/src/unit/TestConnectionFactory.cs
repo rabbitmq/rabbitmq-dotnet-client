@@ -38,7 +38,6 @@
 //  Copyright (c) 2011-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 using RabbitMQ.Client.Exceptions;

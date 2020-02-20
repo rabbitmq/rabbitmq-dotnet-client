@@ -40,12 +40,8 @@
 
 using NUnit.Framework;
 
-using System;
-using System.Collections.Generic;
-
-using RabbitMQ.Client.Exceptions;
-
-namespace RabbitMQ.Client.Unit {
+namespace RabbitMQ.Client.Unit
+{
     [TestFixture]
     public class TestNoWait : IntegrationFixture {
         [Test]

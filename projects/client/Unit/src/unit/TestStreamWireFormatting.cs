@@ -40,9 +40,6 @@
 
 using NUnit.Framework;
 
-using System;
-using System.IO;
-
 using RabbitMQ.Util;
 using RabbitMQ.Client.Content;
 

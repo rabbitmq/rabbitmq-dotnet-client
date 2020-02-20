@@ -40,10 +40,8 @@
 
 using NUnit.Framework;
 
-using System;
-using System.Text;
-
-namespace RabbitMQ.Client.Unit {
+namespace RabbitMQ.Client.Unit
+{
     [TestFixture]
     public class TestConfirmSelect : IntegrationFixture {
 

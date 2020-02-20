@@ -38,12 +38,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
-using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Impl
 {
