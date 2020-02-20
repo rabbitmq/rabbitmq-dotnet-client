@@ -50,9 +50,9 @@ namespace RabbitMQ.Util
 
     public class IntAllocator
     {
-        private readonly int[] unsorted;
-        private IntervalList Base;
-        private int unsortedCount = 0;
+        private readonly int[] _unsorted;
+        private IntervalList _base;
+        private int _unsortedCount = 0;
 
         /**
      * A class representing a list of inclusive intervals
@@ -70,8 +70,8 @@ namespace RabbitMQ.Util
             }
 
             // Fairly arbitrary heuristic for a good size for the unsorted set.
-            unsorted = new int[Math.Max(32, (int)Math.Sqrt(end - start))];
-            Base = new IntervalList(start, end);
+            _unsorted = new int[Math.Max(32, (int)Math.Sqrt(end - start))];
+            _base = new IntervalList(start, end);
         }
 
         /**
@@ -81,20 +81,20 @@ namespace RabbitMQ.Util
 
         public int Allocate()
         {
-            if (unsortedCount > 0)
+            if (_unsortedCount > 0)
             {
-                return unsorted[--unsortedCount];
+                return _unsorted[--_unsortedCount];
             }
-            else if (Base != null)
+            else if (_base != null)
             {
-                int result = Base.Start;
-                if (Base.Start == Base.End)
+                int result = _base.Start;
+                if (_base.Start == _base.End)
                 {
-                    Base = Base.Next;
+                    _base = _base.Next;
                 }
                 else
                 {
-                    Base.Start++;
+                    _base.Start++;
                 }
                 return result;
             }
@@ -116,11 +116,11 @@ namespace RabbitMQ.Util
 
         public void Free(int id)
         {
-            if (unsortedCount >= unsorted.Length)
+            if (_unsortedCount >= _unsorted.Length)
             {
                 Flush();
             }
-            unsorted[unsortedCount++] = id;
+            _unsorted[_unsortedCount++] = id;
         }
 
         public bool Reserve(int id)
@@ -133,7 +133,7 @@ namespace RabbitMQ.Util
             // reserve is called twice.
             Flush();
 
-            IntervalList current = Base;
+            IntervalList current = _base;
 
             while (current != null)
             {
@@ -170,10 +170,10 @@ namespace RabbitMQ.Util
 
         private void Flush()
         {
-            if (unsortedCount > 0)
+            if (_unsortedCount > 0)
             {
-                Base = IntervalList.Merge(Base, IntervalList.FromArray(unsorted, unsortedCount));
-                unsortedCount = 0;
+                _base = IntervalList.Merge(_base, IntervalList.FromArray(_unsorted, _unsortedCount));
+                _unsortedCount = 0;
             }
         }
 

@@ -115,7 +115,7 @@ namespace RabbitMQ.Client.Unit
             public CancelNotificationConsumer(IModel model, TestConsumerCancelNotify tc, bool EventMode)
                 : base(model)
             {
-                this.testClass = tc;
+                testClass = tc;
                 this.EventMode = EventMode;
                 if (EventMode)
                 {

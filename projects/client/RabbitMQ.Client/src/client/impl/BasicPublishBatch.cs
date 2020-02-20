@@ -45,16 +45,16 @@ namespace RabbitMQ.Client.Impl
 {
     public class BasicPublishBatch : IBasicPublishBatch
     {
-        private List<Command> commands = new List<Command>();
-        private ModelBase model;
+        private List<Command> _commands = new List<Command>();
+        private ModelBase _model;
         internal BasicPublishBatch (ModelBase model)
         {
-            this.model = model;
+            _model = model;
         }
 
         public void Add(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, byte[] body)
         {
-            var bp = basicProperties == null ? model.CreateBasicProperties() : basicProperties;
+            var bp = basicProperties == null ? _model.CreateBasicProperties() : basicProperties;
             var method = new BasicPublish
             {
                 _exchange = exchange,
@@ -62,12 +62,12 @@ namespace RabbitMQ.Client.Impl
                 _mandatory = mandatory
             };
 
-            commands.Add(new Command(method, (ContentHeaderBase)bp, body));
+            _commands.Add(new Command(method, (ContentHeaderBase)bp, body));
         }
 
         public void Publish()
         {
-            model.SendCommands(commands);
+            _model.SendCommands(_commands);
         }
     }
 }

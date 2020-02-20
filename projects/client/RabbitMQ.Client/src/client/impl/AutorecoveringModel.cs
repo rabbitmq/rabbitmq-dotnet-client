@@ -47,56 +47,56 @@ namespace RabbitMQ.Client.Impl
 {
     internal sealed class AutorecoveringModel : IFullModel, IRecoverable
     {
-        private readonly object m_eventLock = new object();
-        private AutorecoveringConnection m_connection;
-        private RecoveryAwareModel m_delegate;
+        private readonly object _eventLock = new object();
+        private AutorecoveringConnection _connection;
+        private RecoveryAwareModel _delegate;
 
-        private EventHandler<BasicAckEventArgs> m_recordedBasicAckEventHandlers;
-        private EventHandler<BasicNackEventArgs> m_recordedBasicNackEventHandlers;
-        private EventHandler<BasicReturnEventArgs> m_recordedBasicReturnEventHandlers;
-        private EventHandler<CallbackExceptionEventArgs> m_recordedCallbackExceptionEventHandlers;
-        private EventHandler<ShutdownEventArgs> m_recordedShutdownEventHandlers;
+        private EventHandler<BasicAckEventArgs> _recordedBasicAckEventHandlers;
+        private EventHandler<BasicNackEventArgs> _recordedBasicNackEventHandlers;
+        private EventHandler<BasicReturnEventArgs> _recordedBasicReturnEventHandlers;
+        private EventHandler<CallbackExceptionEventArgs> _recordedCallbackExceptionEventHandlers;
+        private EventHandler<ShutdownEventArgs> _recordedShutdownEventHandlers;
 
-        private ushort prefetchCountConsumer = 0;
-        private ushort prefetchCountGlobal = 0;
-        private bool usesPublisherConfirms = false;
-        private bool usesTransactions = false;
+        private ushort _prefetchCountConsumer = 0;
+        private ushort _prefetchCountGlobal = 0;
+        private bool _usesPublisherConfirms = false;
+        private bool _usesTransactions = false;
 
-        private EventHandler<EventArgs> m_recovery;
+        private EventHandler<EventArgs> _recovery;
 
         public IConsumerDispatcher ConsumerDispatcher
         {
-            get { return m_delegate.ConsumerDispatcher; }
+            get { return _delegate.ConsumerDispatcher; }
         }
 
         public TimeSpan ContinuationTimeout
         {
-            get { return m_delegate.ContinuationTimeout; }
-            set { m_delegate.ContinuationTimeout = value; }
+            get { return _delegate.ContinuationTimeout; }
+            set { _delegate.ContinuationTimeout = value; }
         }
 
         public AutorecoveringModel(AutorecoveringConnection conn, RecoveryAwareModel _delegate)
         {
-            m_connection = conn;
-            m_delegate = _delegate;
+            _connection = conn;
+            this._delegate = _delegate;
         }
 
         public event EventHandler<BasicAckEventArgs> BasicAcks
         {
             add
             {
-                lock (m_eventLock)
+                lock (_eventLock)
                 {
-                    m_recordedBasicAckEventHandlers += value;
-                    m_delegate.BasicAcks += value;
+                    _recordedBasicAckEventHandlers += value;
+                    _delegate.BasicAcks += value;
                 }
             }
             remove
             {
-                lock (m_eventLock)
+                lock (_eventLock)
                 {
-                    m_recordedBasicAckEventHandlers -= value;
-                    m_delegate.BasicAcks -= value;
+                    _recordedBasicAckEventHandlers -= value;
+                    _delegate.BasicAcks -= value;
                 }
             }
         }
@@ -105,18 +105,18 @@ namespace RabbitMQ.Client.Impl
         {
             add
             {
-                lock (m_eventLock)
+                lock (_eventLock)
                 {
-                    m_recordedBasicNackEventHandlers += value;
-                    m_delegate.BasicNacks += value;
+                    _recordedBasicNackEventHandlers += value;
+                    _delegate.BasicNacks += value;
                 }
             }
             remove
             {
-                lock (m_eventLock)
+                lock (_eventLock)
                 {
-                    m_recordedBasicNackEventHandlers -= value;
-                    m_delegate.BasicNacks -= value;
+                    _recordedBasicNackEventHandlers -= value;
+                    _delegate.BasicNacks -= value;
                 }
             }
         }
@@ -126,27 +126,27 @@ namespace RabbitMQ.Client.Impl
             add
             {
                 // TODO: record and re-add handlers
-                m_delegate.BasicRecoverOk += value;
+                _delegate.BasicRecoverOk += value;
             }
-            remove { m_delegate.BasicRecoverOk -= value; }
+            remove { _delegate.BasicRecoverOk -= value; }
         }
 
         public event EventHandler<BasicReturnEventArgs> BasicReturn
         {
             add
             {
-                lock (m_eventLock)
+                lock (_eventLock)
                 {
-                    m_recordedBasicReturnEventHandlers += value;
-                    m_delegate.BasicReturn += value;
+                    _recordedBasicReturnEventHandlers += value;
+                    _delegate.BasicReturn += value;
                 }
             }
             remove
             {
-                lock (m_eventLock)
+                lock (_eventLock)
                 {
-                    m_recordedBasicReturnEventHandlers -= value;
-                    m_delegate.BasicReturn -= value;
+                    _recordedBasicReturnEventHandlers -= value;
+                    _delegate.BasicReturn -= value;
                 }
             }
         }
@@ -155,18 +155,18 @@ namespace RabbitMQ.Client.Impl
         {
             add
             {
-                lock (m_eventLock)
+                lock (_eventLock)
                 {
-                    m_recordedCallbackExceptionEventHandlers += value;
-                    m_delegate.CallbackException += value;
+                    _recordedCallbackExceptionEventHandlers += value;
+                    _delegate.CallbackException += value;
                 }
             }
             remove
             {
-                lock (m_eventLock)
+                lock (_eventLock)
                 {
-                    m_recordedCallbackExceptionEventHandlers -= value;
-                    m_delegate.CallbackException -= value;
+                    _recordedCallbackExceptionEventHandlers -= value;
+                    _delegate.CallbackException -= value;
                 }
             }
         }
@@ -176,27 +176,27 @@ namespace RabbitMQ.Client.Impl
             add
             {
                 // TODO: record and re-add handlers
-                m_delegate.FlowControl += value;
+                _delegate.FlowControl += value;
             }
-            remove { m_delegate.FlowControl -= value; }
+            remove { _delegate.FlowControl -= value; }
         }
 
         public event EventHandler<ShutdownEventArgs> ModelShutdown
         {
             add
             {
-                lock (m_eventLock)
+                lock (_eventLock)
                 {
-                    m_recordedShutdownEventHandlers += value;
-                    m_delegate.ModelShutdown += value;
+                    _recordedShutdownEventHandlers += value;
+                    _delegate.ModelShutdown += value;
                 }
             }
             remove
             {
-                lock (m_eventLock)
+                lock (_eventLock)
                 {
-                    m_recordedShutdownEventHandlers -= value;
-                    m_delegate.ModelShutdown -= value;
+                    _recordedShutdownEventHandlers -= value;
+                    _delegate.ModelShutdown -= value;
                 }
             }
         }
@@ -205,63 +205,63 @@ namespace RabbitMQ.Client.Impl
         {
             add
             {
-                lock (m_eventLock)
+                lock (_eventLock)
                 {
-                    m_recovery += value;
+                    _recovery += value;
                 }
             }
             remove
             {
-                lock (m_eventLock)
+                lock (_eventLock)
                 {
-                    m_recovery -= value;
+                    _recovery -= value;
                 }
             }
         }
 
         public int ChannelNumber
         {
-            get { return m_delegate.ChannelNumber; }
+            get { return _delegate.ChannelNumber; }
         }
 
         public ShutdownEventArgs CloseReason
         {
-            get { return m_delegate.CloseReason; }
+            get { return _delegate.CloseReason; }
         }
 
         public IBasicConsumer DefaultConsumer
         {
-            get { return m_delegate.DefaultConsumer; }
-            set { m_delegate.DefaultConsumer = value; }
+            get { return _delegate.DefaultConsumer; }
+            set { _delegate.DefaultConsumer = value; }
         }
 
         public IModel Delegate
         {
-            get { return m_delegate; }
+            get { return _delegate; }
         }
 
         public bool IsClosed
         {
-            get { return m_delegate.IsClosed; }
+            get { return _delegate.IsClosed; }
         }
 
         public bool IsOpen
         {
-            get { return m_delegate.IsOpen; }
+            get { return _delegate.IsOpen; }
         }
 
         public ulong NextPublishSeqNo
         {
-            get { return m_delegate.NextPublishSeqNo; }
+            get { return _delegate.NextPublishSeqNo; }
         }
 
         public void AutomaticallyRecover(AutorecoveringConnection conn, IConnection connDelegate)
         {
-            m_connection = conn;
-            RecoveryAwareModel defunctModel = m_delegate;
+            _connection = conn;
+            RecoveryAwareModel defunctModel = _delegate;
 
-            m_delegate = conn.CreateNonRecoveringModel();
-            m_delegate.InheritOffsetFrom(defunctModel);
+            _delegate = conn.CreateNonRecoveringModel();
+            _delegate.InheritOffsetFrom(defunctModel);
 
             RecoverModelShutdownHandlers();
             RecoverState();
@@ -277,18 +277,18 @@ namespace RabbitMQ.Client.Impl
         public void BasicQos(ushort prefetchCount,
             bool global)
         {
-            m_delegate.BasicQos(0, prefetchCount, global);
+            _delegate.BasicQos(0, prefetchCount, global);
         }
 
         public void Close(ushort replyCode, string replyText, bool abort)
         {
             try
             {
-                m_delegate.Close(replyCode, replyText, abort);
+                _delegate.Close(replyCode, replyText, abort);
             }
             finally
             {
-                m_connection.UnregisterModel(this);
+                _connection.UnregisterModel(this);
             }
         }
 
@@ -296,77 +296,77 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
-                m_delegate.Close(reason, abort);
+                _delegate.Close(reason, abort);
             }
             finally
             {
-                m_connection.UnregisterModel(this);
+                _connection.UnregisterModel(this);
             }
         }
 
         public bool DispatchAsynchronous(Command cmd)
         {
-            return m_delegate.DispatchAsynchronous(cmd);
+            return _delegate.DispatchAsynchronous(cmd);
         }
 
         public void FinishClose()
         {
-            m_delegate.FinishClose();
+            _delegate.FinishClose();
         }
 
         public void HandleCommand(ISession session, Command cmd)
         {
-            m_delegate.HandleCommand(session, cmd);
+            _delegate.HandleCommand(session, cmd);
         }
 
         public void OnBasicAck(BasicAckEventArgs args)
         {
-            m_delegate.OnBasicAck(args);
+            _delegate.OnBasicAck(args);
         }
 
         public void OnBasicNack(BasicNackEventArgs args)
         {
-            m_delegate.OnBasicNack(args);
+            _delegate.OnBasicNack(args);
         }
 
         public void OnBasicRecoverOk(EventArgs args)
         {
-            m_delegate.OnBasicRecoverOk(args);
+            _delegate.OnBasicRecoverOk(args);
         }
 
         public void OnBasicReturn(BasicReturnEventArgs args)
         {
-            m_delegate.OnBasicReturn(args);
+            _delegate.OnBasicReturn(args);
         }
 
         public void OnCallbackException(CallbackExceptionEventArgs args)
         {
-            m_delegate.OnCallbackException(args);
+            _delegate.OnCallbackException(args);
         }
 
         public void OnFlowControl(FlowControlEventArgs args)
         {
-            m_delegate.OnFlowControl(args);
+            _delegate.OnFlowControl(args);
         }
 
         public void OnModelShutdown(ShutdownEventArgs reason)
         {
-            m_delegate.OnModelShutdown(reason);
+            _delegate.OnModelShutdown(reason);
         }
 
         public void OnSessionShutdown(ISession session, ShutdownEventArgs reason)
         {
-            m_delegate.OnSessionShutdown(session, reason);
+            _delegate.OnSessionShutdown(session, reason);
         }
 
         public bool SetCloseReason(ShutdownEventArgs reason)
         {
-            return m_delegate.SetCloseReason(reason);
+            return _delegate.SetCloseReason(reason);
         }
 
         public override string ToString()
         {
-            return m_delegate.ToString();
+            return _delegate.ToString();
         }
 
         void IDisposable.Dispose()
@@ -381,13 +381,13 @@ namespace RabbitMQ.Client.Impl
                 // dispose managed resources
                 Abort();
 
-                m_connection = null;
-                m_delegate = null;
-                m_recordedBasicAckEventHandlers = null;
-                m_recordedBasicNackEventHandlers = null;
-                m_recordedBasicReturnEventHandlers = null;
-                m_recordedCallbackExceptionEventHandlers = null;
-                m_recordedShutdownEventHandlers = null;
+                _connection = null;
+                _delegate = null;
+                _recordedBasicAckEventHandlers = null;
+                _recordedBasicNackEventHandlers = null;
+                _recordedBasicReturnEventHandlers = null;
+                _recordedCallbackExceptionEventHandlers = null;
+                _recordedShutdownEventHandlers = null;
             }
 
             // dispose unmanaged resources
@@ -397,28 +397,28 @@ namespace RabbitMQ.Client.Impl
             uint frameMax,
             ushort heartbeat)
         {
-            m_delegate.ConnectionTuneOk(channelMax, frameMax, heartbeat);
+            _delegate.ConnectionTuneOk(channelMax, frameMax, heartbeat);
         }
 
         public void HandleBasicAck(ulong deliveryTag,
             bool multiple)
         {
-            m_delegate.HandleBasicAck(deliveryTag, multiple);
+            _delegate.HandleBasicAck(deliveryTag, multiple);
         }
 
         public void HandleBasicCancel(string consumerTag, bool nowait)
         {
-            m_delegate.HandleBasicCancel(consumerTag, nowait);
+            _delegate.HandleBasicCancel(consumerTag, nowait);
         }
 
         public void HandleBasicCancelOk(string consumerTag)
         {
-            m_delegate.HandleBasicCancelOk(consumerTag);
+            _delegate.HandleBasicCancelOk(consumerTag);
         }
 
         public void HandleBasicConsumeOk(string consumerTag)
         {
-            m_delegate.HandleBasicConsumeOk(consumerTag);
+            _delegate.HandleBasicConsumeOk(consumerTag);
         }
 
         public void HandleBasicDeliver(string consumerTag,
@@ -429,11 +429,11 @@ namespace RabbitMQ.Client.Impl
             IBasicProperties basicProperties,
             byte[] body)
         {
-            m_delegate.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange,
+            _delegate.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange,
                 routingKey, basicProperties, body);
         }
 
-        public void HandleBasicGetEmpty() => m_delegate.HandleBasicGetEmpty();
+        public void HandleBasicGetEmpty() => _delegate.HandleBasicGetEmpty();
 
         public void HandleBasicGetOk(ulong deliveryTag,
             bool redelivered,
@@ -443,7 +443,7 @@ namespace RabbitMQ.Client.Impl
             IBasicProperties basicProperties,
             byte[] body)
         {
-            m_delegate.HandleBasicGetOk(deliveryTag, redelivered, exchange, routingKey,
+            _delegate.HandleBasicGetOk(deliveryTag, redelivered, exchange, routingKey,
                 messageCount, basicProperties, body);
         }
 
@@ -451,12 +451,12 @@ namespace RabbitMQ.Client.Impl
             bool multiple,
             bool requeue)
         {
-            m_delegate.HandleBasicNack(deliveryTag, multiple, requeue);
+            _delegate.HandleBasicNack(deliveryTag, multiple, requeue);
         }
 
         public void HandleBasicRecoverOk()
         {
-            m_delegate.HandleBasicRecoverOk();
+            _delegate.HandleBasicRecoverOk();
         }
 
         public void HandleBasicReturn(ushort replyCode,
@@ -466,7 +466,7 @@ namespace RabbitMQ.Client.Impl
             IBasicProperties basicProperties,
             byte[] body)
         {
-            m_delegate.HandleBasicReturn(replyCode, replyText, exchange,
+            _delegate.HandleBasicReturn(replyCode, replyText, exchange,
                 routingKey, basicProperties, body);
         }
 
@@ -475,22 +475,22 @@ namespace RabbitMQ.Client.Impl
             ushort classId,
             ushort methodId)
         {
-            m_delegate.HandleChannelClose(replyCode, replyText, classId, methodId);
+            _delegate.HandleChannelClose(replyCode, replyText, classId, methodId);
         }
 
         public void HandleChannelCloseOk()
         {
-            m_delegate.HandleChannelCloseOk();
+            _delegate.HandleChannelCloseOk();
         }
 
         public void HandleChannelFlow(bool active)
         {
-            m_delegate.HandleChannelFlow(active);
+            _delegate.HandleChannelFlow(active);
         }
 
         public void HandleConnectionBlocked(string reason)
         {
-            m_delegate.HandleConnectionBlocked(reason);
+            _delegate.HandleConnectionBlocked(reason);
         }
 
         public void HandleConnectionClose(ushort replyCode,
@@ -498,17 +498,17 @@ namespace RabbitMQ.Client.Impl
             ushort classId,
             ushort methodId)
         {
-            m_delegate.HandleConnectionClose(replyCode, replyText, classId, methodId);
+            _delegate.HandleConnectionClose(replyCode, replyText, classId, methodId);
         }
 
         public void HandleConnectionOpenOk(string knownHosts)
         {
-            m_delegate.HandleConnectionOpenOk(knownHosts);
+            _delegate.HandleConnectionOpenOk(knownHosts);
         }
 
         public void HandleConnectionSecure(byte[] challenge)
         {
-            m_delegate.HandleConnectionSecure(challenge);
+            _delegate.HandleConnectionSecure(challenge);
         }
 
         public void HandleConnectionStart(byte versionMajor,
@@ -517,7 +517,7 @@ namespace RabbitMQ.Client.Impl
             byte[] mechanisms,
             byte[] locales)
         {
-            m_delegate.HandleConnectionStart(versionMajor, versionMinor, serverProperties,
+            _delegate.HandleConnectionStart(versionMajor, versionMinor, serverProperties,
                 mechanisms, locales);
         }
 
@@ -525,25 +525,25 @@ namespace RabbitMQ.Client.Impl
             uint frameMax,
             ushort heartbeat)
         {
-            m_delegate.HandleConnectionTune(channelMax, frameMax, heartbeat);
+            _delegate.HandleConnectionTune(channelMax, frameMax, heartbeat);
         }
 
         public void HandleConnectionUnblocked()
         {
-            m_delegate.HandleConnectionUnblocked();
+            _delegate.HandleConnectionUnblocked();
         }
 
         public void HandleQueueDeclareOk(string queue,
             uint messageCount,
             uint consumerCount)
         {
-            m_delegate.HandleQueueDeclareOk(queue, messageCount, consumerCount);
+            _delegate.HandleQueueDeclareOk(queue, messageCount, consumerCount);
         }
 
         public void _Private_BasicCancel(string consumerTag,
             bool nowait)
         {
-            m_delegate._Private_BasicCancel(consumerTag,
+            _delegate._Private_BasicCancel(consumerTag,
                 nowait);
         }
 
@@ -555,7 +555,7 @@ namespace RabbitMQ.Client.Impl
             bool nowait,
             IDictionary<string, object> arguments)
         {
-            m_delegate._Private_BasicConsume(queue,
+            _delegate._Private_BasicConsume(queue,
                 consumerTag,
                 noLocal,
                 autoAck,
@@ -566,7 +566,7 @@ namespace RabbitMQ.Client.Impl
 
         public void _Private_BasicGet(string queue, bool autoAck)
         {
-            m_delegate._Private_BasicGet(queue, autoAck);
+            _delegate._Private_BasicGet(queue, autoAck);
         }
 
         public void _Private_BasicPublish(string exchange,
@@ -580,13 +580,13 @@ namespace RabbitMQ.Client.Impl
                 throw new ArgumentNullException(nameof(routingKey));
             }
 
-            m_delegate._Private_BasicPublish(exchange, routingKey, mandatory,
+            _delegate._Private_BasicPublish(exchange, routingKey, mandatory,
                 basicProperties, body);
         }
 
         public void _Private_BasicRecover(bool requeue)
         {
-            m_delegate._Private_BasicRecover(requeue);
+            _delegate._Private_BasicRecover(requeue);
         }
 
         public void _Private_ChannelClose(ushort replyCode,
@@ -594,28 +594,28 @@ namespace RabbitMQ.Client.Impl
             ushort classId,
             ushort methodId)
         {
-            m_delegate._Private_ChannelClose(replyCode, replyText,
+            _delegate._Private_ChannelClose(replyCode, replyText,
                 classId, methodId);
         }
 
         public void _Private_ChannelCloseOk()
         {
-            m_delegate._Private_ChannelCloseOk();
+            _delegate._Private_ChannelCloseOk();
         }
 
         public void _Private_ChannelFlowOk(bool active)
         {
-            m_delegate._Private_ChannelFlowOk(active);
+            _delegate._Private_ChannelFlowOk(active);
         }
 
         public void _Private_ChannelOpen(string outOfBand)
         {
-            m_delegate._Private_ChannelOpen(outOfBand);
+            _delegate._Private_ChannelOpen(outOfBand);
         }
 
         public void _Private_ConfirmSelect(bool nowait)
         {
-            m_delegate._Private_ConfirmSelect(nowait);
+            _delegate._Private_ConfirmSelect(nowait);
         }
 
         public void _Private_ConnectionClose(ushort replyCode,
@@ -623,37 +623,37 @@ namespace RabbitMQ.Client.Impl
             ushort classId,
             ushort methodId)
         {
-            m_delegate._Private_ConnectionClose(replyCode, replyText,
+            _delegate._Private_ConnectionClose(replyCode, replyText,
                 classId, methodId);
         }
 
         public void _Private_ConnectionCloseOk()
         {
-            m_delegate._Private_ConnectionCloseOk();
+            _delegate._Private_ConnectionCloseOk();
         }
 
         public void _Private_ConnectionOpen(string virtualHost,
             string capabilities,
             bool insist)
         {
-            m_delegate._Private_ConnectionOpen(virtualHost, capabilities, insist);
+            _delegate._Private_ConnectionOpen(virtualHost, capabilities, insist);
         }
 
         public void _Private_ConnectionSecureOk(byte[] response)
         {
-            m_delegate._Private_ConnectionSecureOk(response);
+            _delegate._Private_ConnectionSecureOk(response);
         }
 
         public void _Private_ConnectionStartOk(IDictionary<string, object> clientProperties,
             string mechanism, byte[] response, string locale)
         {
-            m_delegate._Private_ConnectionStartOk(clientProperties, mechanism,
+            _delegate._Private_ConnectionStartOk(clientProperties, mechanism,
                 response, locale);
         }
 
         public void _Private_UpdateSecret(byte[] newSecret, string reason)
         {
-            m_delegate._Private_UpdateSecret(newSecret, reason);
+            _delegate._Private_UpdateSecret(newSecret, reason);
         }
 
         public void _Private_ExchangeBind(string destination,
@@ -662,7 +662,7 @@ namespace RabbitMQ.Client.Impl
             bool nowait,
             IDictionary<string, object> arguments)
         {
-            m_delegate._Private_ExchangeBind(destination, source, routingKey,
+            _delegate._Private_ExchangeBind(destination, source, routingKey,
                 nowait, arguments);
         }
 
@@ -675,7 +675,7 @@ namespace RabbitMQ.Client.Impl
             bool nowait,
             IDictionary<string, object> arguments)
         {
-            m_delegate._Private_ExchangeDeclare(exchange, type, passive,
+            _delegate._Private_ExchangeDeclare(exchange, type, passive,
                 durable, autoDelete, @internal,
                 nowait, arguments);
         }
@@ -684,7 +684,7 @@ namespace RabbitMQ.Client.Impl
             bool ifUnused,
             bool nowait)
         {
-            m_delegate._Private_ExchangeDelete(exchange, ifUnused, nowait);
+            _delegate._Private_ExchangeDelete(exchange, ifUnused, nowait);
         }
 
         public void _Private_ExchangeUnbind(string destination,
@@ -693,7 +693,7 @@ namespace RabbitMQ.Client.Impl
             bool nowait,
             IDictionary<string, object> arguments)
         {
-            m_delegate._Private_ExchangeUnbind(destination, source, routingKey,
+            _delegate._Private_ExchangeUnbind(destination, source, routingKey,
                 nowait, arguments);
         }
 
@@ -703,7 +703,7 @@ namespace RabbitMQ.Client.Impl
             bool nowait,
             IDictionary<string, object> arguments)
         {
-            m_delegate._Private_QueueBind(queue, exchange, routingKey,
+            _delegate._Private_QueueBind(queue, exchange, routingKey,
                 nowait, arguments);
         }
 
@@ -715,7 +715,7 @@ namespace RabbitMQ.Client.Impl
             bool nowait,
             IDictionary<string, object> arguments)
         {
-            m_delegate._Private_QueueDeclare(queue, passive,
+            _delegate._Private_QueueDeclare(queue, passive,
                 durable, exclusive, autoDelete,
                 nowait, arguments);
         }
@@ -725,25 +725,25 @@ namespace RabbitMQ.Client.Impl
             bool ifEmpty,
             bool nowait)
         {
-            return m_delegate._Private_QueueDelete(queue, ifUnused,
+            return _delegate._Private_QueueDelete(queue, ifUnused,
                 ifEmpty, nowait);
         }
 
         public uint _Private_QueuePurge(string queue,
             bool nowait)
         {
-            return m_delegate._Private_QueuePurge(queue, nowait);
+            return _delegate._Private_QueuePurge(queue, nowait);
         }
 
         public void Abort()
         {
             try
             {
-                m_delegate.Abort();
+                _delegate.Abort();
             }
             finally
             {
-                m_connection.UnregisterModel(this);
+                _connection.UnregisterModel(this);
             }
         }
 
@@ -751,28 +751,28 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
-                m_delegate.Abort(replyCode, replyText);
+                _delegate.Abort(replyCode, replyText);
             }
             finally
             {
-                m_connection.UnregisterModel(this);
+                _connection.UnregisterModel(this);
             }
         }
 
         public void BasicAck(ulong deliveryTag,
             bool multiple)
         {
-            m_delegate.BasicAck(deliveryTag, multiple);
+            _delegate.BasicAck(deliveryTag, multiple);
         }
 
         public void BasicCancel(string consumerTag)
         {
-            RecordedConsumer cons = m_connection.DeleteRecordedConsumer(consumerTag);
+            RecordedConsumer cons = _connection.DeleteRecordedConsumer(consumerTag);
             if (cons != null)
             {
-                m_connection.MaybeDeleteRecordedAutoDeleteQueue(cons.Queue);
+                _connection.MaybeDeleteRecordedAutoDeleteQueue(cons.Queue);
             }
-            m_delegate.BasicCancel(consumerTag);
+            _delegate.BasicCancel(consumerTag);
         }
 
         public string BasicConsume(
@@ -784,7 +784,7 @@ namespace RabbitMQ.Client.Impl
             IDictionary<string, object> arguments,
             IBasicConsumer consumer)
         {
-            var result = m_delegate.BasicConsume(queue, autoAck, consumerTag, noLocal,
+            var result = _delegate.BasicConsume(queue, autoAck, consumerTag, noLocal,
                 exclusive, arguments, consumer);
             RecordedConsumer rc = new RecordedConsumer(this, queue).
                 WithConsumerTag(result).
@@ -792,21 +792,21 @@ namespace RabbitMQ.Client.Impl
                 WithExclusive(exclusive).
                 WithAutoAck(autoAck).
                 WithArguments(arguments);
-            m_connection.RecordConsumer(result, rc);
+            _connection.RecordConsumer(result, rc);
             return result;
         }
 
         public BasicGetResult BasicGet(string queue,
             bool autoAck)
         {
-            return m_delegate.BasicGet(queue, autoAck);
+            return _delegate.BasicGet(queue, autoAck);
         }
 
         public void BasicNack(ulong deliveryTag,
             bool multiple,
             bool requeue)
         {
-            m_delegate.BasicNack(deliveryTag, multiple, requeue);
+            _delegate.BasicNack(deliveryTag, multiple, requeue);
         }
 
         public void BasicPublish(string exchange,
@@ -820,7 +820,7 @@ namespace RabbitMQ.Client.Impl
                 throw new ArgumentNullException(nameof(routingKey));
             }
 
-            m_delegate.BasicPublish(exchange,
+            _delegate.BasicPublish(exchange,
                 routingKey,
                 mandatory,
                 basicProperties,
@@ -833,40 +833,40 @@ namespace RabbitMQ.Client.Impl
         {
             if (global)
             {
-                prefetchCountGlobal = prefetchCount;
+                _prefetchCountGlobal = prefetchCount;
             }
             else
             {
-                prefetchCountConsumer = prefetchCount;
+                _prefetchCountConsumer = prefetchCount;
             }
-            m_delegate.BasicQos(prefetchSize, prefetchCount, global);
+            _delegate.BasicQos(prefetchSize, prefetchCount, global);
         }
 
         public void BasicRecover(bool requeue)
         {
-            m_delegate.BasicRecover(requeue);
+            _delegate.BasicRecover(requeue);
         }
 
         public void BasicRecoverAsync(bool requeue)
         {
-            m_delegate.BasicRecoverAsync(requeue);
+            _delegate.BasicRecoverAsync(requeue);
         }
 
         public void BasicReject(ulong deliveryTag,
             bool requeue)
         {
-            m_delegate.BasicReject(deliveryTag, requeue);
+            _delegate.BasicReject(deliveryTag, requeue);
         }
 
         public void Close()
         {
             try
             {
-                m_delegate.Close();
+                _delegate.Close();
             }
             finally
             {
-                m_connection.UnregisterModel(this);
+                _connection.UnregisterModel(this);
             }
         }
 
@@ -874,23 +874,23 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
-                m_delegate.Close(replyCode, replyText);
+                _delegate.Close(replyCode, replyText);
             }
             finally
             {
-                m_connection.UnregisterModel(this);
+                _connection.UnregisterModel(this);
             }
         }
 
         public void ConfirmSelect()
         {
-            usesPublisherConfirms = true;
-            m_delegate.ConfirmSelect();
+            _usesPublisherConfirms = true;
+            _delegate.ConfirmSelect();
         }
 
         public IBasicProperties CreateBasicProperties()
         {
-            return m_delegate.CreateBasicProperties();
+            return _delegate.CreateBasicProperties();
         }
 
         public void ExchangeBind(string destination,
@@ -903,8 +903,8 @@ namespace RabbitMQ.Client.Impl
                 WithDestination(destination).
                 WithRoutingKey(routingKey).
                 WithArguments(arguments);
-            m_connection.RecordBinding(eb);
-            m_delegate.ExchangeBind(destination, source, routingKey, arguments);
+            _connection.RecordBinding(eb);
+            _delegate.ExchangeBind(destination, source, routingKey, arguments);
         }
 
         public void ExchangeBindNoWait(string destination,
@@ -912,7 +912,7 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             IDictionary<string, object> arguments)
         {
-            m_delegate.ExchangeBindNoWait(destination, source, routingKey, arguments);
+            _delegate.ExchangeBindNoWait(destination, source, routingKey, arguments);
         }
 
         public void ExchangeDeclare(string exchange, string type, bool durable,
@@ -923,9 +923,9 @@ namespace RabbitMQ.Client.Impl
                 WithDurable(durable).
                 WithAutoDelete(autoDelete).
                 WithArguments(arguments);
-            m_delegate.ExchangeDeclare(exchange, type, durable,
+            _delegate.ExchangeDeclare(exchange, type, durable,
                 autoDelete, arguments);
-            m_connection.RecordExchange(exchange, rx);
+            _connection.RecordExchange(exchange, rx);
         }
 
         public void ExchangeDeclareNoWait(string exchange,
@@ -939,28 +939,28 @@ namespace RabbitMQ.Client.Impl
                 WithDurable(durable).
                 WithAutoDelete(autoDelete).
                 WithArguments(arguments);
-            m_delegate.ExchangeDeclareNoWait(exchange, type, durable,
+            _delegate.ExchangeDeclareNoWait(exchange, type, durable,
                 autoDelete, arguments);
-            m_connection.RecordExchange(exchange, rx);
+            _connection.RecordExchange(exchange, rx);
         }
 
         public void ExchangeDeclarePassive(string exchange)
         {
-            m_delegate.ExchangeDeclarePassive(exchange);
+            _delegate.ExchangeDeclarePassive(exchange);
         }
 
         public void ExchangeDelete(string exchange,
             bool ifUnused)
         {
-            m_delegate.ExchangeDelete(exchange, ifUnused);
-            m_connection.DeleteRecordedExchange(exchange);
+            _delegate.ExchangeDelete(exchange, ifUnused);
+            _connection.DeleteRecordedExchange(exchange);
         }
 
         public void ExchangeDeleteNoWait(string exchange,
             bool ifUnused)
         {
-            m_delegate.ExchangeDeleteNoWait(exchange, ifUnused);
-            m_connection.DeleteRecordedExchange(exchange);
+            _delegate.ExchangeDeleteNoWait(exchange, ifUnused);
+            _connection.DeleteRecordedExchange(exchange);
         }
 
         public void ExchangeUnbind(string destination,
@@ -973,9 +973,9 @@ namespace RabbitMQ.Client.Impl
                 WithDestination(destination).
                 WithRoutingKey(routingKey).
                 WithArguments(arguments);
-            m_connection.DeleteRecordedBinding(eb);
-            m_delegate.ExchangeUnbind(destination, source, routingKey, arguments);
-            m_connection.MaybeDeleteRecordedAutoDeleteExchange(source);
+            _connection.DeleteRecordedBinding(eb);
+            _delegate.ExchangeUnbind(destination, source, routingKey, arguments);
+            _connection.MaybeDeleteRecordedAutoDeleteExchange(source);
         }
 
         public void ExchangeUnbindNoWait(string destination,
@@ -983,7 +983,7 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             IDictionary<string, object> arguments)
         {
-            m_delegate.ExchangeUnbind(destination, source, routingKey, arguments);
+            _delegate.ExchangeUnbind(destination, source, routingKey, arguments);
         }
 
         public void QueueBind(string queue,
@@ -996,8 +996,8 @@ namespace RabbitMQ.Client.Impl
                 WithDestination(queue).
                 WithRoutingKey(routingKey).
                 WithArguments(arguments);
-            m_connection.RecordBinding(qb);
-            m_delegate.QueueBind(queue, exchange, routingKey, arguments);
+            _connection.RecordBinding(qb);
+            _delegate.QueueBind(queue, exchange, routingKey, arguments);
         }
 
         public void QueueBindNoWait(string queue,
@@ -1005,14 +1005,14 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             IDictionary<string, object> arguments)
         {
-            m_delegate.QueueBind(queue, exchange, routingKey, arguments);
+            _delegate.QueueBind(queue, exchange, routingKey, arguments);
         }
 
         public QueueDeclareOk QueueDeclare(string queue, bool durable,
                                            bool exclusive, bool autoDelete,
                                            IDictionary<string, object> arguments)
         {
-            var result = m_delegate.QueueDeclare(queue, durable, exclusive,
+            var result = _delegate.QueueDeclare(queue, durable, exclusive,
                 autoDelete, arguments);
             RecordedQueue rq = new RecordedQueue(this, result.QueueName).
                 Durable(durable).
@@ -1020,7 +1020,7 @@ namespace RabbitMQ.Client.Impl
                 AutoDelete(autoDelete).
                 Arguments(arguments).
                 ServerNamed(string.Empty.Equals(queue));
-            m_connection.RecordQueue(result.QueueName, rq);
+            _connection.RecordQueue(result.QueueName, rq);
             return result;
         }
 
@@ -1028,7 +1028,7 @@ namespace RabbitMQ.Client.Impl
                                        bool exclusive, bool autoDelete,
                                        IDictionary<string, object> arguments)
         {
-            m_delegate.QueueDeclareNoWait(queue, durable, exclusive,
+            _delegate.QueueDeclareNoWait(queue, durable, exclusive,
                 autoDelete, arguments);
             RecordedQueue rq = new RecordedQueue(this, queue).
                 Durable(durable).
@@ -1036,30 +1036,30 @@ namespace RabbitMQ.Client.Impl
                 AutoDelete(autoDelete).
                 Arguments(arguments).
                 ServerNamed(string.Empty.Equals(queue));
-            m_connection.RecordQueue(queue, rq);
+            _connection.RecordQueue(queue, rq);
         }
 
         public QueueDeclareOk QueueDeclarePassive(string queue)
         {
-            return m_delegate.QueueDeclarePassive(queue);
+            return _delegate.QueueDeclarePassive(queue);
         }
 
         public uint MessageCount(string queue)
         {
-            return m_delegate.MessageCount(queue);
+            return _delegate.MessageCount(queue);
         }
 
         public uint ConsumerCount(string queue)
         {
-            return m_delegate.ConsumerCount(queue);
+            return _delegate.ConsumerCount(queue);
         }
 
         public uint QueueDelete(string queue,
             bool ifUnused,
             bool ifEmpty)
         {
-            var result = m_delegate.QueueDelete(queue, ifUnused, ifEmpty);
-            m_connection.DeleteRecordedQueue(queue);
+            var result = _delegate.QueueDelete(queue, ifUnused, ifEmpty);
+            _connection.DeleteRecordedQueue(queue);
             return result;
         }
 
@@ -1067,13 +1067,13 @@ namespace RabbitMQ.Client.Impl
             bool ifUnused,
             bool ifEmpty)
         {
-            m_delegate.QueueDeleteNoWait(queue, ifUnused, ifEmpty);
-            m_connection.DeleteRecordedQueue(queue);
+            _delegate.QueueDeleteNoWait(queue, ifUnused, ifEmpty);
+            _connection.DeleteRecordedQueue(queue);
         }
 
         public uint QueuePurge(string queue)
         {
-            return m_delegate.QueuePurge(queue);
+            return _delegate.QueuePurge(queue);
         }
 
         public void QueueUnbind(string queue,
@@ -1086,110 +1086,110 @@ namespace RabbitMQ.Client.Impl
                 WithDestination(queue).
                 WithRoutingKey(routingKey).
                 WithArguments(arguments);
-            m_connection.DeleteRecordedBinding(qb);
-            m_delegate.QueueUnbind(queue, exchange, routingKey, arguments);
-            m_connection.MaybeDeleteRecordedAutoDeleteExchange(exchange);
+            _connection.DeleteRecordedBinding(qb);
+            _delegate.QueueUnbind(queue, exchange, routingKey, arguments);
+            _connection.MaybeDeleteRecordedAutoDeleteExchange(exchange);
         }
 
         public void TxCommit()
         {
-            m_delegate.TxCommit();
+            _delegate.TxCommit();
         }
 
         public void TxRollback()
         {
-            m_delegate.TxRollback();
+            _delegate.TxRollback();
         }
 
         public void TxSelect()
         {
-            usesTransactions = true;
-            m_delegate.TxSelect();
+            _usesTransactions = true;
+            _delegate.TxSelect();
         }
 
         public bool WaitForConfirms(TimeSpan timeout, out bool timedOut)
         {
-            return m_delegate.WaitForConfirms(timeout, out timedOut);
+            return _delegate.WaitForConfirms(timeout, out timedOut);
         }
 
         public bool WaitForConfirms(TimeSpan timeout)
         {
-            return m_delegate.WaitForConfirms(timeout);
+            return _delegate.WaitForConfirms(timeout);
         }
 
         public bool WaitForConfirms()
         {
-            return m_delegate.WaitForConfirms();
+            return _delegate.WaitForConfirms();
         }
 
         public void WaitForConfirmsOrDie()
         {
-            m_delegate.WaitForConfirmsOrDie();
+            _delegate.WaitForConfirmsOrDie();
         }
 
         public void WaitForConfirmsOrDie(TimeSpan timeout)
         {
-            m_delegate.WaitForConfirmsOrDie(timeout);
+            _delegate.WaitForConfirmsOrDie(timeout);
         }
 
         private void RecoverBasicAckHandlers()
         {
-            lock (m_eventLock)
+            lock (_eventLock)
             {
-                m_delegate.BasicAcks += m_recordedBasicAckEventHandlers;
+                _delegate.BasicAcks += _recordedBasicAckEventHandlers;
             }
         }
 
         private void RecoverBasicNackHandlers()
         {
-            lock (m_eventLock)
+            lock (_eventLock)
             {
-                m_delegate.BasicNacks += m_recordedBasicNackEventHandlers;
+                _delegate.BasicNacks += _recordedBasicNackEventHandlers;
             }
         }
 
         private void RecoverBasicReturnHandlers()
         {
-            lock (m_eventLock)
+            lock (_eventLock)
             {
-                m_delegate.BasicReturn += m_recordedBasicReturnEventHandlers;
+                _delegate.BasicReturn += _recordedBasicReturnEventHandlers;
             }
         }
 
         private void RecoverCallbackExceptionHandlers()
         {
-            lock (m_eventLock)
+            lock (_eventLock)
             {
-                m_delegate.CallbackException += m_recordedCallbackExceptionEventHandlers;
+                _delegate.CallbackException += _recordedCallbackExceptionEventHandlers;
             }
         }
 
         private void RecoverModelShutdownHandlers()
         {
-            lock (m_eventLock)
+            lock (_eventLock)
             {
-                m_delegate.ModelShutdown += m_recordedShutdownEventHandlers;
+                _delegate.ModelShutdown += _recordedShutdownEventHandlers;
             }
         }
 
         private void RecoverState()
         {
-            if (prefetchCountConsumer != 0)
+            if (_prefetchCountConsumer != 0)
             {
-                BasicQos(prefetchCountConsumer, false);
+                BasicQos(_prefetchCountConsumer, false);
             }
 
-            if (prefetchCountGlobal != 0)
+            if (_prefetchCountGlobal != 0)
             {
-                BasicQos(prefetchCountGlobal, true);
+                BasicQos(_prefetchCountGlobal, true);
             }
 
-            if (usesPublisherConfirms)
+            if (_usesPublisherConfirms)
             {
                 ConfirmSelect();
             }
 
-            if (usesTransactions)
+            if (_usesTransactions)
             {
                 TxSelect();
             }
@@ -1197,7 +1197,7 @@ namespace RabbitMQ.Client.Impl
 
         private void RunRecoveryEventHandlers()
         {
-            EventHandler<EventArgs> handler = m_recovery;
+            EventHandler<EventArgs> handler = _recovery;
             if (handler != null)
             {
                 foreach (EventHandler<EventArgs> reh in handler.GetInvocationList())
@@ -1210,7 +1210,7 @@ namespace RabbitMQ.Client.Impl
                     {
                         var args = new CallbackExceptionEventArgs(e);
                         args.Detail["context"] = "OnModelRecovery";
-                        m_delegate.OnCallbackException(args);
+                        _delegate.OnCallbackException(args);
                     }
                 }
             }
@@ -1218,7 +1218,7 @@ namespace RabbitMQ.Client.Impl
 
         public IBasicPublishBatch CreateBasicPublishBatch()
         {
-            return ((IFullModel)m_delegate).CreateBasicPublishBatch();
+            return ((IFullModel)_delegate).CreateBasicPublishBatch();
         }
     }
 }

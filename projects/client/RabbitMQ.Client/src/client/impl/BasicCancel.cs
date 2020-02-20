@@ -7,18 +7,18 @@ namespace RabbitMQ.Client.Impl
 {
     sealed class BasicCancel : Work
     {
-        readonly string consumerTag;
+        readonly string _consumerTag;
 
         public BasicCancel(IBasicConsumer consumer, string consumerTag) : base(consumer)
         {
-            this.consumerTag = consumerTag;
+            _consumerTag = consumerTag;
         }
 
         protected override async Task Execute(ModelBase model, IAsyncBasicConsumer consumer)
         {
             try
             {
-                await consumer.HandleBasicCancel(consumerTag).ConfigureAwait(false);
+                await consumer.HandleBasicCancel(_consumerTag).ConfigureAwait(false);
             }
             catch (Exception e)
             {

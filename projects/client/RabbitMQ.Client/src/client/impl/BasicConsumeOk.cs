@@ -7,18 +7,18 @@ namespace RabbitMQ.Client.Impl
 {
     sealed class BasicConsumeOk : Work
     {
-        readonly string consumerTag;
+        readonly string _consumerTag;
 
         public BasicConsumeOk(IBasicConsumer consumer, string consumerTag) : base(consumer)
         {
-            this.consumerTag = consumerTag;
+            _consumerTag = consumerTag;
         }
 
         protected override async Task Execute(ModelBase model, IAsyncBasicConsumer consumer)
         {
             try
             {
-                await consumer.HandleBasicConsumeOk(consumerTag).ConfigureAwait(false);
+                await consumer.HandleBasicConsumeOk(_consumerTag).ConfigureAwait(false);
             }
             catch (Exception e)
             {

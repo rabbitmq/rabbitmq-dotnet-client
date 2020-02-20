@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Unit
         {
             var latch = new ManualResetEvent(false);
 
-            this.Model.ModelShutdown += (model, args) => {
+            Model.ModelShutdown += (model, args) => {
                 latch.Set();
             };
             Conn.Close();
@@ -68,7 +68,7 @@ namespace RabbitMQ.Client.Unit
             var m = (AutorecoveringModel)Model;
             var latch = new ManualResetEvent(false);
 
-            this.Model.ModelShutdown += (model, args) =>
+            Model.ModelShutdown += (model, args) =>
             {
                 latch.Set();
             };

@@ -64,8 +64,8 @@ namespace RabbitMQ.Client.Impl
             {
             }
         }
-        static readonly EmptyRpcContinuation tmp = new EmptyRpcContinuation();
-        IRpcContinuation m_outstandingRpc = tmp;
+        static readonly EmptyRpcContinuation s_tmp = new EmptyRpcContinuation();
+        IRpcContinuation _outstandingRpc = s_tmp;
 
         ///<summary>Enqueue a continuation, marking a pending RPC.</summary>
         ///<remarks>
@@ -81,7 +81,7 @@ namespace RabbitMQ.Client.Impl
         ///</remarks>
         public void Enqueue(IRpcContinuation k)
         {
-            var result = Interlocked.CompareExchange(ref this.m_outstandingRpc, k, tmp);
+            var result = Interlocked.CompareExchange(ref _outstandingRpc, k, s_tmp);
             if (!(result is EmptyRpcContinuation))
             {
                 throw new NotSupportedException("Pipelining of requests forbidden");
@@ -114,7 +114,7 @@ namespace RabbitMQ.Client.Impl
         ///</remarks>
         public IRpcContinuation Next()
         {
-            return Interlocked.Exchange(ref m_outstandingRpc, tmp);
+            return Interlocked.Exchange(ref _outstandingRpc, s_tmp);
         }
     }
 }

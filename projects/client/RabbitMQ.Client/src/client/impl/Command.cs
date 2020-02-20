@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Impl
         // - 4 bytes of frame payload length
         // - 1 byte of payload trailer FrameEnd byte
         private const int EmptyFrameSize = 8;
-        private static readonly byte[] m_emptyByteArray = new byte[0];
+        private static readonly byte[] s_emptyByteArray = new byte[0];
 
         static Command()
         {
@@ -69,7 +69,7 @@ namespace RabbitMQ.Client.Impl
         {
             Method = method;
             Header = header;
-            Body = body ?? m_emptyByteArray;
+            Body = body ?? s_emptyByteArray;
         }
 
         public byte[] Body { get; private set; }

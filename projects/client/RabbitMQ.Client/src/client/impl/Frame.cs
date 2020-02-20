@@ -48,13 +48,13 @@ namespace RabbitMQ.Client.Impl
 {
     public class HeaderOutboundFrame : OutboundFrame
     {
-        private readonly ContentHeaderBase header;
-        private readonly int bodyLength;
+        private readonly ContentHeaderBase _header;
+        private readonly int _bodyLength;
 
         public HeaderOutboundFrame(int channel, ContentHeaderBase header, int bodyLength) : base(FrameType.FrameHeader, channel)
         {
-            this.header = header;
-            this.bodyLength = bodyLength;
+            _header = header;
+            _bodyLength = bodyLength;
         }
 
         public override void WritePayload(NetworkBinaryWriter writer)
@@ -62,8 +62,8 @@ namespace RabbitMQ.Client.Impl
             var ms = new MemoryStream();
             var nw = new NetworkBinaryWriter(ms);
 
-            nw.Write(header.ProtocolClassId);
-            header.WriteTo(nw, (ulong)bodyLength);
+            nw.Write(_header.ProtocolClassId);
+            _header.WriteTo(nw, (ulong)_bodyLength);
 
             var bufferSegment = ms.GetBufferSegment();
             writer.Write((uint)bufferSegment.Count);
@@ -73,31 +73,31 @@ namespace RabbitMQ.Client.Impl
 
     public class BodySegmentOutboundFrame : OutboundFrame
     {
-        private readonly byte[] body;
-        private readonly int offset;
-        private readonly int count;
+        private readonly byte[] _body;
+        private readonly int _offset;
+        private readonly int _count;
 
         public BodySegmentOutboundFrame(int channel, byte[] body, int offset, int count) : base(FrameType.FrameBody, channel)
         {
-            this.body = body;
-            this.offset = offset;
-            this.count = count;
+            _body = body;
+            _offset = offset;
+            _count = count;
         }
 
         public override void WritePayload(NetworkBinaryWriter writer)
         {
-            writer.Write((uint)count);
-            writer.Write(body, offset, count);
+            writer.Write((uint)_count);
+            writer.Write(_body, _offset, _count);
         }
     }
 
     public class MethodOutboundFrame : OutboundFrame
     {
-        private readonly MethodBase method;
+        private readonly MethodBase _method;
 
         public MethodOutboundFrame(int channel, MethodBase method) : base(FrameType.FrameMethod, channel)
         {
-            this.method = method;
+            _method = method;
         }
 
         public override void WritePayload(NetworkBinaryWriter writer)
@@ -105,11 +105,11 @@ namespace RabbitMQ.Client.Impl
             var ms = new MemoryStream();
             var nw = new NetworkBinaryWriter(ms);
 
-            nw.Write(method.ProtocolClassId);
-            nw.Write(method.ProtocolMethodId);
+            nw.Write(_method.ProtocolClassId);
+            nw.Write(_method.ProtocolMethodId);
 
             var argWriter = new MethodArgumentWriter(nw);
-            method.WriteArgumentsTo(argWriter);
+            _method.WriteArgumentsTo(argWriter);
             argWriter.Flush();
 
             var bufferSegment = ms.GetBufferSegment();
@@ -275,19 +275,19 @@ namespace RabbitMQ.Client.Impl
 
         public bool IsMethod()
         {
-            return this.Type == FrameType.FrameMethod;
+            return Type == FrameType.FrameMethod;
         }
         public bool IsHeader()
         {
-            return this.Type == FrameType.FrameHeader;
+            return Type == FrameType.FrameHeader;
         }
         public bool IsBody()
         {
-            return this.Type == FrameType.FrameBody;
+            return Type == FrameType.FrameBody;
         }
         public bool IsHeartbeat()
         {
-            return this.Type == FrameType.FrameHeartbeat;
+            return Type == FrameType.FrameHeartbeat;
         }
     }
 

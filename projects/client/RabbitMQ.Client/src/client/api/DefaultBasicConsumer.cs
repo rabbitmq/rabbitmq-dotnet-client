@@ -56,8 +56,8 @@ namespace RabbitMQ.Client
     /// </remarks>
     public class DefaultBasicConsumer : IBasicConsumer
     {
-        private readonly object m_eventLock = new object();
-        private readonly HashSet<string> m_consumerTags = new HashSet<string>();
+        private readonly object _eventLock = new object();
+        private readonly HashSet<string> _consumerTags = new HashSet<string>();
         public EventHandler<ConsumerEventArgs> m_consumerCancelled;
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace RabbitMQ.Client
         public string[] ConsumerTags {
             get
             {
-                return m_consumerTags.ToArray();
+                return _consumerTags.ToArray();
             }
         }
 
@@ -112,14 +112,14 @@ namespace RabbitMQ.Client
         {
             add
             {
-                lock (m_eventLock)
+                lock (_eventLock)
                 {
                     m_consumerCancelled += value;
                 }
             }
             remove
             {
-                lock (m_eventLock)
+                lock (_eventLock)
                 {
                     m_consumerCancelled -= value;
                 }
@@ -158,7 +158,7 @@ namespace RabbitMQ.Client
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
         public virtual void HandleBasicConsumeOk(string consumerTag)
         {
-            m_consumerTags.Add(consumerTag);
+            _consumerTags.Add(consumerTag);
             IsRunning = true;
         }
 
@@ -189,7 +189,7 @@ namespace RabbitMQ.Client
         public virtual void HandleModelShutdown(object model, ShutdownEventArgs reason)
         {
             ShutdownReason = reason;
-            OnCancel(m_consumerTags.ToArray());
+            OnCancel(_consumerTags.ToArray());
         }
 
         /// <summary>
@@ -203,7 +203,7 @@ namespace RabbitMQ.Client
         {
             IsRunning = false;
             EventHandler<ConsumerEventArgs> handler;
-            lock (m_eventLock)
+            lock (_eventLock)
             {
                 handler = m_consumerCancelled;
             }
@@ -217,7 +217,7 @@ namespace RabbitMQ.Client
 
             foreach (string consumerTag in consumerTags)
             {
-                m_consumerTags.Remove(consumerTag);
+                _consumerTags.Remove(consumerTag);
             }
         }
     }

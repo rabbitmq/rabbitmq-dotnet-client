@@ -47,9 +47,9 @@ namespace RabbitMQ.Client.Impl
 {
     public class MethodArgumentWriter
     {
-        private byte m_bitAccumulator;
-        private int m_bitMask;
-        private bool m_needBitFlush;
+        private byte _bitAccumulator;
+        private int _bitMask;
+        private bool _needBitFlush;
 
         public MethodArgumentWriter(NetworkBinaryWriter writer)
         {
@@ -76,7 +76,7 @@ namespace RabbitMQ.Client.Impl
 
         public void WriteBit(bool val)
         {
-            if (m_bitMask > 0x80)
+            if (_bitMask > 0x80)
             {
                 BitFlush();
             }
@@ -86,10 +86,10 @@ namespace RabbitMQ.Client.Impl
                 // the test against 0x80 above, and the action of
                 // BitFlush(), causes m_bitMask never to exceed 0x80
                 // at the point the following statement executes.
-                m_bitAccumulator = (byte)(m_bitAccumulator | (byte)m_bitMask);
+                _bitAccumulator = (byte)(_bitAccumulator | (byte)_bitMask);
             }
-            m_bitMask = m_bitMask << 1;
-            m_needBitFlush = true;
+            _bitMask = _bitMask << 1;
+            _needBitFlush = true;
         }
 
         public void WriteContent(byte[] val)
@@ -153,18 +153,18 @@ namespace RabbitMQ.Client.Impl
 
         private void BitFlush()
         {
-            if (m_needBitFlush)
+            if (_needBitFlush)
             {
-                BaseWriter.Write(m_bitAccumulator);
+                BaseWriter.Write(_bitAccumulator);
                 ResetBitAccumulator();
             }
         }
 
         private void ResetBitAccumulator()
         {
-            m_needBitFlush = false;
-            m_bitAccumulator = 0;
-            m_bitMask = 1;
+            _needBitFlush = false;
+            _bitAccumulator = 0;
+            _bitMask = 1;
         }
 
         // TODO: Consider using NotImplementedException (?)

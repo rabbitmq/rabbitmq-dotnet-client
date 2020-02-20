@@ -38,15 +38,15 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Client.Framing.Impl;
-using RabbitMQ.Client.Impl;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Security;
 using System.Security.Authentication;
 
-using System.Net.Security;
+using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Framing.Impl;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
 {
@@ -182,11 +182,11 @@ namespace RabbitMQ.Client
         /// Amount of time client will wait for before re-trying  to recover connection.
         /// </summary>
         public TimeSpan NetworkRecoveryInterval { get; set; } = TimeSpan.FromSeconds(5);
-        private TimeSpan m_handshakeContinuationTimeout = TimeSpan.FromSeconds(10);
-        private TimeSpan m_continuationTimeout = TimeSpan.FromSeconds(20);
+        private TimeSpan _handshakeContinuationTimeout = TimeSpan.FromSeconds(10);
+        private TimeSpan _continuationTimeout = TimeSpan.FromSeconds(20);
 
         // just here to hold the value that was set through the setter
-        private Uri uri;
+        private Uri _uri;
 
         /// <summary>
         /// Amount of time protocol handshake operations are allowed to take before
@@ -194,8 +194,8 @@ namespace RabbitMQ.Client
         /// </summary>
         public TimeSpan HandshakeContinuationTimeout
         {
-            get { return m_handshakeContinuationTimeout; }
-            set { m_handshakeContinuationTimeout = value; }
+            get { return _handshakeContinuationTimeout; }
+            set { _handshakeContinuationTimeout = value; }
         }
 
         /// <summary>
@@ -204,8 +204,8 @@ namespace RabbitMQ.Client
         /// </summary>
         public TimeSpan ContinuationTimeout
         {
-            get { return m_continuationTimeout; }
-            set { m_continuationTimeout = value; }
+            get { return _continuationTimeout; }
+            set { _continuationTimeout = value; }
         }
 
         /// <summary>
@@ -318,7 +318,7 @@ namespace RabbitMQ.Client
         /// </summary>
         public Uri Uri
         {
-            get { return uri; }
+            get { return _uri; }
             set { SetUri(value); }
         }
 
@@ -355,7 +355,7 @@ namespace RabbitMQ.Client
         /// </exception>
         public IConnection CreateConnection()
         {
-            return CreateConnection(this.EndpointResolverFactory(LocalEndpoints()), ClientProvidedName);
+            return CreateConnection(EndpointResolverFactory(LocalEndpoints()), ClientProvidedName);
         }
 
         /// <summary>
@@ -418,7 +418,7 @@ namespace RabbitMQ.Client
         /// </exception>
         public IConnection CreateConnection(IList<string> hostnames, string clientProvidedName)
         {
-            var endpoints = hostnames.Select(h => new AmqpTcpEndpoint(h, this.Port, this.Ssl));
+            var endpoints = hostnames.Select(h => new AmqpTcpEndpoint(h, Port, Ssl));
             return CreateConnection(new DefaultEndpointResolver(endpoints), clientProvidedName);
         }
 
@@ -494,7 +494,7 @@ namespace RabbitMQ.Client
                 else
                 {
                     IProtocol protocol = Protocols.DefaultProtocol;
-                    conn = protocol.CreateConnection(this, false, endpointResolver.SelectOne(this.CreateFrameHandler), clientProvidedName);
+                    conn = protocol.CreateConnection(this, false, endpointResolver.SelectOne(CreateFrameHandler), clientProvidedName);
                 }
             }
             catch (Exception e)
@@ -521,7 +521,7 @@ namespace RabbitMQ.Client
 
         private IFrameHandler CreateFrameHandlerForHostname(string hostname)
         {
-            return CreateFrameHandler(this.Endpoint.CloneWithHostname(hostname));
+            return CreateFrameHandler(Endpoint.CloneWithHostname(hostname));
         }
 
         private IFrameHandler ConfigureFrameHandler(IFrameHandler fh)
@@ -603,7 +603,7 @@ namespace RabbitMQ.Client
                 VirtualHost = UriDecode(uri.Segments[1]);
             }
 
-            this.uri = uri;
+            _uri = uri;
         }
 
         ///<summary>
@@ -616,7 +616,7 @@ namespace RabbitMQ.Client
 
         private List<AmqpTcpEndpoint> LocalEndpoints()
         {
-            return new List<AmqpTcpEndpoint> { this.Endpoint };
+            return new List<AmqpTcpEndpoint> { Endpoint };
         }
     }
 }

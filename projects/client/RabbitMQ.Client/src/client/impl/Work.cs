@@ -5,18 +5,18 @@ namespace RabbitMQ.Client.Impl
 {
     internal abstract class Work
     {
-        readonly IAsyncBasicConsumer asyncConsumer;
+        readonly IAsyncBasicConsumer _asyncConsumer;
 
         protected Work(IBasicConsumer consumer)
         {
-            asyncConsumer = (IAsyncBasicConsumer)consumer;
+            _asyncConsumer = (IAsyncBasicConsumer)consumer;
         }
 
         public async Task Execute(ModelBase model)
         {
             try
             {
-                await Execute(model, asyncConsumer).ConfigureAwait(false);
+                await Execute(model, _asyncConsumer).ConfigureAwait(false);
             }
             catch (Exception)
             {

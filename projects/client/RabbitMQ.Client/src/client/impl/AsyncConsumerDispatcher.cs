@@ -2,14 +2,14 @@
 {
     internal sealed class AsyncConsumerDispatcher : IConsumerDispatcher
     {
-        private readonly ModelBase model;
-        private readonly AsyncConsumerWorkService workService;
+        private readonly ModelBase _model;
+        private readonly AsyncConsumerWorkService _workService;
 
         public AsyncConsumerDispatcher(ModelBase model, AsyncConsumerWorkService ws)
         {
-            this.model = model;
-            this.workService = ws;
-            this.IsShutdown = false;
+            _model = model;
+            _workService = ws;
+            IsShutdown = false;
         }
 
         public void Quiesce()
@@ -19,12 +19,12 @@
 
         public void Shutdown()
         {
-            workService.Stop();
+            _workService.Stop();
         }
 
         public void Shutdown(IModel model)
         {
-            workService.Stop(model);
+            _workService.Stop(model);
         }
 
         public bool IsShutdown
@@ -64,13 +64,13 @@
         public void HandleModelShutdown(IBasicConsumer consumer, ShutdownEventArgs reason)
         {
             // the only case where we ignore the shutdown flag.
-            new ModelShutdown(consumer, reason).Execute(model).GetAwaiter().GetResult();
+            new ModelShutdown(consumer, reason).Execute(_model).GetAwaiter().GetResult();
         }
 
         private void ScheduleUnlessShuttingDown<TWork>(TWork work)
             where TWork : Work
         {
-            if (!this.IsShutdown)
+            if (!IsShutdown)
             {
                 Schedule(work);
             }
@@ -79,7 +79,7 @@
         private void Schedule<TWork>(TWork work)
             where TWork : Work
         {
-            this.workService.Schedule(this.model, work);
+            _workService.Schedule(_model, work);
         }
     }
 }

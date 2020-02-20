@@ -56,12 +56,12 @@ namespace RabbitMQ.Util
     /// </remarks>
     public class NetworkBinaryWriter : BinaryWriter
     {
-        private static readonly Encoding encoding = new UTF8Encoding(false, true);
+        private static readonly Encoding s_encoding = new UTF8Encoding(false, true);
 
         /// <summary>
         /// Construct a NetworkBinaryWriter over the given input stream.
         /// </summary>
-        public NetworkBinaryWriter(Stream output) : base(output, encoding)
+        public NetworkBinaryWriter(Stream output) : base(output, s_encoding)
         {
         }
 

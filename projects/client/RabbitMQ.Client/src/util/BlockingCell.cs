@@ -55,14 +55,14 @@ namespace RabbitMQ.Util
     ///</remarks>
     public class BlockingCell<T>
     {
-        private readonly ManualResetEventSlim manualResetEventSlim = new ManualResetEventSlim(false);
-        private T m_value = default;
+        private readonly ManualResetEventSlim _manualResetEventSlim = new ManualResetEventSlim(false);
+        private T _value = default;
         public EventHandler<T> ContinueUsingValue;
 
         public void ContinueWithValue(T value)
         {
-            m_value = value;
-            manualResetEventSlim.Set();
+            _value = value;
+            _manualResetEventSlim.Set();
         }
 
         ///<summary>Retrieve the cell's value, waiting for the given
@@ -82,10 +82,10 @@ namespace RabbitMQ.Util
         /// <exception cref="TimeoutException" />
         public T WaitForValue(TimeSpan timeout)
         {
-            if (manualResetEventSlim.Wait(timeout))
+            if (_manualResetEventSlim.Wait(timeout))
             {
-                if (ContinueUsingValue != null) ContinueUsingValue(this, m_value);
-                return m_value;
+                if (ContinueUsingValue != null) ContinueUsingValue(this, _value);
+                return _value;
             }
             throw new TimeoutException();
         }

@@ -7,13 +7,13 @@ namespace RabbitMQ.Client.Impl
 {
     sealed class BasicDeliver : Work
     {
-        readonly string consumerTag;
-        readonly ulong deliveryTag;
-        readonly bool redelivered;
-        readonly string exchange;
-        readonly string routingKey;
-        readonly IBasicProperties basicProperties;
-        readonly byte[] body;
+        readonly string _consumerTag;
+        readonly ulong _deliveryTag;
+        readonly bool _redelivered;
+        readonly string _exchange;
+        readonly string _routingKey;
+        readonly IBasicProperties _basicProperties;
+        readonly byte[] _body;
 
         public BasicDeliver(IBasicConsumer consumer, 
             string consumerTag, 
@@ -24,26 +24,26 @@ namespace RabbitMQ.Client.Impl
             IBasicProperties basicProperties, 
             byte[] body) : base(consumer)
         {
-            this.consumerTag = consumerTag;
-            this.deliveryTag = deliveryTag;
-            this.redelivered = redelivered;
-            this.exchange = exchange;
-            this.routingKey = routingKey;
-            this.basicProperties = basicProperties;
-            this.body = body;
+            _consumerTag = consumerTag;
+            _deliveryTag = deliveryTag;
+            _redelivered = redelivered;
+            _exchange = exchange;
+            _routingKey = routingKey;
+            _basicProperties = basicProperties;
+            _body = body;
         }
 
         protected override async Task Execute(ModelBase model, IAsyncBasicConsumer consumer)
         {
             try
             {
-                await consumer.HandleBasicDeliver(consumerTag,
-                    deliveryTag,
-                    redelivered,
-                    exchange,
-                    routingKey,
-                    basicProperties,
-                    body).ConfigureAwait(false);
+                await consumer.HandleBasicDeliver(_consumerTag,
+                    _deliveryTag,
+                    _redelivered,
+                    _exchange,
+                    _routingKey,
+                    _basicProperties,
+                    _body).ConfigureAwait(false);
             }
             catch (Exception e)
             {

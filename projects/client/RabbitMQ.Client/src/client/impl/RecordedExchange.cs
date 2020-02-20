@@ -44,7 +44,7 @@ namespace RabbitMQ.Client.Impl
 {
     internal class RecordedExchange : RecordedNamedEntity
     {
-        private string type;
+        private string _type;
 
         public RecordedExchange(AutorecoveringModel model, string name) : base(model, name)
         {
@@ -56,18 +56,18 @@ namespace RabbitMQ.Client.Impl
 
         public string Type
         {
-            get { return type; }
+            get { return _type; }
         }
 
         public void Recover()
         {
-            ModelDelegate.ExchangeDeclare(Name, type, Durable, IsAutoDelete, Arguments);
+            ModelDelegate.ExchangeDeclare(Name, _type, Durable, IsAutoDelete, Arguments);
         }
 
         public override string ToString()
         {
             return string.Format("{0}: name = '{1}', type = '{2}', durable = {3}, autoDelete = {4}, arguments = '{5}'",
-                GetType().Name, Name, type, Durable, IsAutoDelete, Arguments);
+                GetType().Name, Name, _type, Durable, IsAutoDelete, Arguments);
         }
 
         public RecordedExchange WithArguments(IDictionary<string, object> value)
@@ -90,7 +90,7 @@ namespace RabbitMQ.Client.Impl
 
         public RecordedExchange WithType(string value)
         {
-            type = value;
+            _type = value;
             return this;
         }
     }

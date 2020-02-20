@@ -50,20 +50,20 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestUpdatingConnectionSecret()
         {
-            if (!this.RabbitMQ380OrHigher())
+            if (!RabbitMQ380OrHigher())
             {
                 Console.WriteLine("Not connected to RabbitMQ 3.8 or higher, skipping test");
                 return;
             }
 
-            this.Conn.UpdateSecret("new-secret", "Test Case");
+            Conn.UpdateSecret("new-secret", "Test Case");
 
-            Assert.AreEqual("new-secret", this.ConnFactory.Password);
+            Assert.AreEqual("new-secret", ConnFactory.Password);
         }
 
         private bool RabbitMQ380OrHigher()
         {
-            var properties = this.Conn.ServerProperties;
+            var properties = Conn.ServerProperties;
 
             if (properties.TryGetValue("version", out var versionVal))
             {

@@ -46,8 +46,8 @@ namespace RabbitMQ.Client.Impl
 {
     public class MethodArgumentReader
     {
-        private int m_bit;
-        private int m_bits;
+        private int _bit;
+        private int _bits;
 
         public MethodArgumentReader(NetworkBinaryReader reader)
         {
@@ -59,14 +59,14 @@ namespace RabbitMQ.Client.Impl
 
         public bool ReadBit()
         {
-            if (m_bit > 0x80)
+            if (_bit > 0x80)
             {
-                m_bits = BaseReader.ReadByte();
-                m_bit = 0x01;
+                _bits = BaseReader.ReadByte();
+                _bit = 0x01;
             }
 
-            bool result = (m_bits & m_bit) != 0;
-            m_bit = m_bit << 1;
+            bool result = (_bits & _bit) != 0;
+            _bit = _bit << 1;
             return result;
         }
 
@@ -125,8 +125,8 @@ namespace RabbitMQ.Client.Impl
 
         private void ClearBits()
         {
-            m_bits = 0;
-            m_bit = 0x100;
+            _bits = 0;
+            _bit = 0x100;
         }
 
         // TODO: Consider using NotImplementedException (?)
