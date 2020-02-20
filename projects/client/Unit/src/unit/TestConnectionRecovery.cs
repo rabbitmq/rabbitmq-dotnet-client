@@ -327,33 +327,40 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestConsumerRecoveryOnClientNamedQueueWithOneRecovery()
         {
+            string q0 = "dotnet-client.recovery.queue1";
             using (AutorecoveringConnection c = CreateAutorecoveringConnection())
             {
                 IModel m = c.CreateModel();
-                string q = m.QueueDeclare("dotnet-client.recovery.queue1",
-                    false, false, false, null).QueueName;
+                string q1 = m.QueueDeclare(q0, false, false, false, null).QueueName;
+                Assert.AreEqual(q0, q1);
+
                 var cons = new EventingBasicConsumer(m);
-                m.BasicConsume(q, true, cons);
-                AssertConsumerCount(m, q, 1);
+                m.BasicConsume(q1, true, cons);
+                AssertConsumerCount(m, q1, 1);
 
-                string latestName = null;
+                bool queueNameChangeAfterRecoveryCalled = false;
 
-                c.QueueNameChangeAfterRecovery += (source, ea) => { latestName = ea.NameAfter; };
+                c.QueueNameChangeAfterRecovery += (source, ea) => { queueNameChangeAfterRecoveryCalled = true; };
 
                 CloseAndWaitForRecovery(c);
-                AssertConsumerCount(m, latestName, 1);
+                AssertConsumerCount(m, q1, 1);
+                Assert.False(queueNameChangeAfterRecoveryCalled);
+
                 CloseAndWaitForRecovery(c);
-                AssertConsumerCount(m, latestName, 1);
+                AssertConsumerCount(m, q1, 1);
+                Assert.False(queueNameChangeAfterRecoveryCalled);
+
                 CloseAndWaitForRecovery(c);
-                AssertConsumerCount(m, latestName, 1);
+                AssertConsumerCount(m, q1, 1);
+                Assert.False(queueNameChangeAfterRecoveryCalled);
 
                 var latch = new ManualResetEvent(false);
                 cons.Received += (s, args) => latch.Set();
 
-                m.BasicPublish("", q, null, encoding.GetBytes("msg"));
+                m.BasicPublish("", q1, null, encoding.GetBytes("msg"));
                 Wait(latch);
 
-                m.QueueDelete(q);
+                m.QueueDelete(q1);
             }
         }
 
@@ -921,12 +928,12 @@ namespace RabbitMQ.Client.Unit
 
         internal void AssertRecordedExchanges(AutorecoveringConnection c, int n)
         {
-            Assert.AreEqual(n, c.RecordedExchanges.Count);
+            Assert.AreEqual(n, c.RecordedExchangesCount);
         }
 
         internal void AssertRecordedQueues(AutorecoveringConnection c, int n)
         {
-            Assert.AreEqual(n, c.RecordedQueues.Count);
+            Assert.AreEqual(n, c.RecordedQueuesCount);
         }
 
         internal void CloseAllAndWaitForRecovery()
