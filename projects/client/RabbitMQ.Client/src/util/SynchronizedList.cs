@@ -57,7 +57,7 @@ namespace RabbitMQ.Util
         internal SynchronizedList(IList<T> list)
         {
             this.list = list;
-            root = new Object();
+            root = new object();
         }
 
         public int Count

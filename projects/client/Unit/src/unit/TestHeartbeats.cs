@@ -156,7 +156,7 @@ namespace RabbitMQ.Client.Unit
             if (InitiatedByPeerOrLibrary(evt))
             {
                 Console.WriteLine(((Exception)evt.Cause).StackTrace);
-                var s = String.Format("Shutdown: {0}, initiated by: {1}",
+                var s = string.Format("Shutdown: {0}, initiated by: {1}",
                                       evt, evt.Initiator);
                 Console.WriteLine(s);
                 Assert.Fail(s);

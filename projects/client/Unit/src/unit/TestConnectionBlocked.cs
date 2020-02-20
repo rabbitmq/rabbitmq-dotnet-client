@@ -48,7 +48,7 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestConnectionBlocked : IntegrationFixture
     {
-        private readonly Object _lockObject = new Object();
+        private readonly object _lockObject = new object();
         private bool _notified;
 
         public void HandleBlocked(object sender, ConnectionBlockedEventArgs args)

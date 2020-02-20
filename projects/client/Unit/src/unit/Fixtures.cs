@@ -455,11 +455,11 @@ namespace RabbitMQ.Client.Unit
                 proc.StartInfo.RedirectStandardOutput = true;
 
                 proc.Start();
-                String stderr = proc.StandardError.ReadToEnd();
+                string stderr = proc.StandardError.ReadToEnd();
                 proc.WaitForExit();
                 if (stderr.Length >  0 || proc.ExitCode > 0)
                 {
-                    String stdout = proc.StandardOutput.ReadToEnd();
+                    string stdout = proc.StandardOutput.ReadToEnd();
                     ReportExecFailure("rabbitmqctl", args, stderr + "\n" + stdout);
                 }
 
@@ -512,11 +512,11 @@ namespace RabbitMQ.Client.Unit
               proc.StartInfo.RedirectStandardOutput = true;
 
               proc.Start();
-              String stderr = proc.StandardError.ReadToEnd();
+                string stderr = proc.StandardError.ReadToEnd();
               proc.WaitForExit();
               if (stderr.Length >  0 || proc.ExitCode > 0)
               {
-                  String stdout = proc.StandardOutput.ReadToEnd();
+                    string stdout = proc.StandardOutput.ReadToEnd();
                   ReportExecFailure(cmd, args, stderr + "\n" + stdout);
               }
 
@@ -529,7 +529,7 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        internal void ReportExecFailure(String cmd, String args, String msg)
+        internal void ReportExecFailure(string cmd, string args, string msg)
         {
             Console.WriteLine("Failure while running " + cmd + " " + args + ":\n" + msg);
         }
@@ -599,7 +599,7 @@ namespace RabbitMQ.Client.Unit
         internal List<ConnectionInfo> ListConnections()
         {
             Process proc  = ExecRabbitMQCtl("list_connections --silent pid client_properties");
-            String stdout = proc.StandardOutput.ReadToEnd();
+            string stdout = proc.StandardOutput.ReadToEnd();
 
             try
             {
