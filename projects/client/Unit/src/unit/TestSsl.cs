@@ -149,12 +149,9 @@ namespace RabbitMQ.Client.Unit
                 Enabled = true,
             };
 
-#if !NETFX_CORE
-            cf.Ssl.Version = SslProtocols.Tls;
+            cf.Ssl.Version = SslProtocols.None;
             cf.Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNotAvailable |
                                         SslPolicyErrors.RemoteCertificateNameMismatch;
-#endif
-
             SendReceive(cf);
         }
     }

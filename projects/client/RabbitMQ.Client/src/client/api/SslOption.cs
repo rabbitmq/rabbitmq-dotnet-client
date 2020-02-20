@@ -64,11 +64,8 @@ namespace RabbitMQ.Client
         /// </summary>
         public SslOption(string serverName, string certificatePath = "", bool enabled = false)
         {
-#if !NETFX_CORE
-            Version = SslProtocols.Tls;
+            Version = SslProtocols.None;
             AcceptablePolicyErrors = SslPolicyErrors.None;
-#endif
-
             ServerName = serverName;
             CertPath = certificatePath;
             Enabled = enabled;
