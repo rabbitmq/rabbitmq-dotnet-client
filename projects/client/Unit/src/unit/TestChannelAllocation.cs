@@ -39,14 +39,13 @@
 //---------------------------------------------------------------------------
 
 using NUnit.Framework;
-using RabbitMQ.Client;
 using RabbitMQ.Client.Impl;
 using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Unit
 {
 
-  [TestFixture]
+    [TestFixture]
   public class TestIModelAllocation
   {
     public const int CHANNEL_COUNT = 100;

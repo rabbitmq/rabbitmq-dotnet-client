@@ -38,10 +38,10 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.Xml;
 
-namespace RabbitMQ.Client.Apigen {
+namespace RabbitMQ.Client.Apigen
+{
     public class AmqpEntity {
         public XmlNode m_node;
 

@@ -44,9 +44,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
-using RabbitMQ.Client.Exceptions;
-
-namespace RabbitMQ.Client.Unit {
+namespace RabbitMQ.Client.Unit
+{
     [TestFixture]
     public class TestExchangeDeclare : IntegrationFixture {
 

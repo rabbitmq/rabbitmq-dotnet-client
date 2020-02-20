@@ -38,12 +38,12 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.Tracing;
+
 namespace RabbitMQ.Client.Logging
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics.Tracing;
-
 #if NET452
 #else
 [EventData]

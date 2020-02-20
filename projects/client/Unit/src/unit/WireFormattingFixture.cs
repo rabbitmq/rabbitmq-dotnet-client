@@ -44,7 +44,6 @@ using System;
 using System.IO;
 
 using RabbitMQ.Util;
-using RabbitMQ.Client.Content;
 
 namespace RabbitMQ.Client.Unit
 {

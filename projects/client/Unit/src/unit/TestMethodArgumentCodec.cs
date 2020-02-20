@@ -44,8 +44,6 @@ using System;
 using System.IO;
 using System.Text;
 using System.Collections;
-
-using RabbitMQ.Client;
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Util;
 

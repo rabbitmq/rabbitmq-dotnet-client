@@ -43,7 +43,6 @@ using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Impl;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Linq;
 using System.Security.Authentication;
 

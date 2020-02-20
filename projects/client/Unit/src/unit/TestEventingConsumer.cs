@@ -39,15 +39,12 @@
 //---------------------------------------------------------------------------
 
 using NUnit.Framework;
-
-using System;
-using System.Text;
 using System.Threading;
-using System.Diagnostics;
 
 using RabbitMQ.Client.Events;
 
-namespace RabbitMQ.Client.Unit {
+namespace RabbitMQ.Client.Unit
+{
     [TestFixture]
     public class TestEventingConsumer : IntegrationFixture {
 

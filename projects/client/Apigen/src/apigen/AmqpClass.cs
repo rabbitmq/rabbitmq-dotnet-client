@@ -38,11 +38,11 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Xml;
 
-namespace RabbitMQ.Client.Apigen {
+namespace RabbitMQ.Client.Apigen
+{
     public class AmqpClass: AmqpEntity {
         public IList<AmqpMethod> m_Methods;
         public IList<AmqpField> m_Fields;

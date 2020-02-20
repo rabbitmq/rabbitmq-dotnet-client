@@ -40,7 +40,6 @@
 
 using NUnit.Framework;
 using RabbitMQ.Client.Events;
-using System;
 using System.Linq;
 using System.Threading;
 
