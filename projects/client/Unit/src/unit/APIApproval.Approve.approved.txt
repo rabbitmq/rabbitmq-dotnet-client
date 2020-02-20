@@ -1,27 +1,15 @@
-<<<<<<< HEAD
-﻿namespace RabbitMQ.Client
-=======
-﻿[assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("Unit")]
+﻿[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Unit")]
 namespace RabbitMQ.Client
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
 {
     public class AmqpTcpEndpoint
     {
         public const int DefaultAmqpSslPort = 5671;
         public const int UseDefaultPort = -1;
-<<<<<<< HEAD
         public AmqpTcpEndpoint() { }
         public AmqpTcpEndpoint(System.Uri uri) { }
         public AmqpTcpEndpoint(string hostName, int portOrMinusOne = -1) { }
         public AmqpTcpEndpoint(System.Uri uri, RabbitMQ.Client.SslOption ssl) { }
         public AmqpTcpEndpoint(string hostName, int portOrMinusOne, RabbitMQ.Client.SslOption ssl) { }
-=======
-        public AmqpTcpEndpoint(string hostName, int portOrMinusOne, RabbitMQ.Client.SslOption ssl) { }
-        public AmqpTcpEndpoint(string hostName, int portOrMinusOne = -1) { }
-        public AmqpTcpEndpoint() { }
-        public AmqpTcpEndpoint(System.Uri uri, RabbitMQ.Client.SslOption ssl) { }
-        public AmqpTcpEndpoint(System.Uri uri) { }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public System.Net.Sockets.AddressFamily AddressFamily { get; set; }
         public string HostName { get; set; }
         public int Port { get; set; }
@@ -31,15 +19,9 @@ namespace RabbitMQ.Client
         public RabbitMQ.Client.AmqpTcpEndpoint CloneWithHostname(string hostname) { }
         public override bool Equals(object obj) { }
         public override int GetHashCode() { }
-<<<<<<< HEAD
         public override string ToString() { }
         public static RabbitMQ.Client.AmqpTcpEndpoint Parse(string address) { }
         public static RabbitMQ.Client.AmqpTcpEndpoint[] ParseMultiple(string addresses) { }
-=======
-        public static RabbitMQ.Client.AmqpTcpEndpoint Parse(string address) { }
-        public static RabbitMQ.Client.AmqpTcpEndpoint[] ParseMultiple(string addresses) { }
-        public override string ToString() { }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     }
     public struct AmqpTimestamp
     {
@@ -65,10 +47,6 @@ namespace RabbitMQ.Client
         public RabbitMQ.Client.IModel Model { get; set; }
         public RabbitMQ.Client.ShutdownEventArgs ShutdownReason { get; set; }
         public event RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.ConsumerEventArgs> ConsumerCancelled;
-<<<<<<< HEAD
-=======
-        public event System.EventHandler<RabbitMQ.Client.Events.ConsumerEventArgs> RabbitMQ.Client.IBasicConsumer.ConsumerCancelled;
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public virtual System.Threading.Tasks.Task HandleBasicCancel(string consumerTag) { }
         public virtual System.Threading.Tasks.Task HandleBasicCancelOk(string consumerTag) { }
         public virtual System.Threading.Tasks.Task HandleBasicConsumeOk(string consumerTag) { }
@@ -102,39 +80,22 @@ namespace RabbitMQ.Client
         public BinaryTableValue(byte[] bytes) { }
         public byte[] Bytes { get; set; }
     }
-<<<<<<< HEAD
     public class ConnectionFactory : RabbitMQ.Client.ConnectionFactoryBase, RabbitMQ.Client.IConnectionFactory
     {
         public const ushort DefaultChannelMax = 0;
-=======
-    public sealed class ConnectionFactory : RabbitMQ.Client.ConnectionFactoryBase, RabbitMQ.Client.IAsyncConnectionFactory, RabbitMQ.Client.IConnectionFactory
-    {
-        public static readonly System.Collections.Generic.IList<RabbitMQ.Client.AuthMechanismFactory> DefaultAuthMechanisms;
-        public const ushort DefaultChannelMax = 2047;
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public const int DefaultConnectionTimeout = 30000;
         public const uint DefaultFrameMax = 0u;
         public const ushort DefaultHeartbeat = 60;
         public const string DefaultPass = "guest";
         public const string DefaultUser = "guest";
         public const string DefaultVHost = "/";
-<<<<<<< HEAD
         public static readonly System.Collections.Generic.IList<RabbitMQ.Client.AuthMechanismFactory> DefaultAuthMechanisms;
-=======
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public ConnectionFactory() { }
         public System.Security.Authentication.SslProtocols AmqpUriSslProtocols { get; set; }
         public System.Collections.Generic.IList<RabbitMQ.Client.AuthMechanismFactory> AuthMechanisms { get; set; }
         public bool AutomaticRecoveryEnabled { get; set; }
         public System.Collections.Generic.IDictionary<string, object> ClientProperties { get; set; }
-<<<<<<< HEAD
         public System.TimeSpan ContinuationTimeout { get; set; }
-=======
-        public string ClientProvidedName { get; set; }
-        public System.TimeSpan ContinuationTimeout { get; set; }
-        public static System.Net.Sockets.AddressFamily DefaultAddressFamily { get; set; }
-        public static System.Security.Authentication.SslProtocols DefaultAmqpUriSslProtocols { get; set; }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public bool DispatchConsumersAsync { get; set; }
         public RabbitMQ.Client.AmqpTcpEndpoint Endpoint { get; set; }
         public System.Func<System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint>, RabbitMQ.Client.IEndpointResolver> EndpointResolverFactory { get; set; }
@@ -143,10 +104,7 @@ namespace RabbitMQ.Client
         public System.TimeSpan NetworkRecoveryInterval { get; set; }
         public string Password { get; set; }
         public int Port { get; set; }
-<<<<<<< HEAD
         public RabbitMQ.Client.IProtocol Protocol { get; set; }
-=======
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public ushort RequestedChannelMax { get; set; }
         public int RequestedConnectionTimeout { get; set; }
         public uint RequestedFrameMax { get; set; }
@@ -154,18 +112,14 @@ namespace RabbitMQ.Client
         public int SocketReadTimeout { get; set; }
         public int SocketWriteTimeout { get; set; }
         public RabbitMQ.Client.SslOption Ssl { get; set; }
-<<<<<<< HEAD
         [System.Obsolete("This scheduler is no longer used for dispatching consumer operations and will be " +
             "removed in the next major version.", false)]
         public System.Threading.Tasks.TaskScheduler TaskScheduler { get; set; }
-=======
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public bool TopologyRecoveryEnabled { get; set; }
         public System.Uri Uri { get; set; }
         public bool UseBackgroundThreadsForIO { get; set; }
         public string UserName { get; set; }
         public string VirtualHost { get; set; }
-<<<<<<< HEAD
         public static System.Security.Authentication.SslProtocols DefaultAmqpUriSslProtocols { get; set; }
         public RabbitMQ.Client.AuthMechanismFactory AuthMechanismFactory(System.Collections.Generic.IList<string> mechanismNames) { }
         public virtual RabbitMQ.Client.IConnection CreateConnection() { }
@@ -177,16 +131,6 @@ namespace RabbitMQ.Client
         public RabbitMQ.Client.Impl.IFrameHandler CreateFrameHandler() { }
         public RabbitMQ.Client.Impl.IFrameHandler CreateFrameHandler(RabbitMQ.Client.AmqpTcpEndpoint endpoint) { }
         public RabbitMQ.Client.Impl.IFrameHandler CreateFrameHandlerForHostname(string hostname) { }
-=======
-        public RabbitMQ.Client.AuthMechanismFactory AuthMechanismFactory(System.Collections.Generic.IList<string> mechanismNames) { }
-        public RabbitMQ.Client.IConnection CreateConnection() { }
-        public RabbitMQ.Client.IConnection CreateConnection(string clientProvidedName) { }
-        public RabbitMQ.Client.IConnection CreateConnection(System.Collections.Generic.IList<string> hostnames) { }
-        public RabbitMQ.Client.IConnection CreateConnection(System.Collections.Generic.IList<string> hostnames, string clientProvidedName) { }
-        public RabbitMQ.Client.IConnection CreateConnection(System.Collections.Generic.IList<RabbitMQ.Client.AmqpTcpEndpoint> endpoints) { }
-        public RabbitMQ.Client.IConnection CreateConnection(System.Collections.Generic.IList<RabbitMQ.Client.AmqpTcpEndpoint> endpoints, string clientProvidedName) { }
-        public RabbitMQ.Client.IConnection CreateConnection(RabbitMQ.Client.IEndpointResolver endpointResolver, string clientProvidedName) { }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     }
     public class ConnectionFactoryBase
     {
@@ -198,21 +142,13 @@ namespace RabbitMQ.Client
     {
         public ConsumerWorkService() { }
         public void AddWork(RabbitMQ.Client.IModel model, System.Action fn) { }
-<<<<<<< HEAD
         public void StopWork() { }
         public void StopWork(RabbitMQ.Client.IModel model) { }
-=======
-        public void StopWork(RabbitMQ.Client.IModel model) { }
-        public void StopWork() { }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     }
     public class DefaultBasicConsumer : RabbitMQ.Client.IBasicConsumer
     {
         public System.EventHandler<RabbitMQ.Client.Events.ConsumerEventArgs> m_consumerCancelled;
-<<<<<<< HEAD
         public readonly object m_eventLock;
-=======
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public DefaultBasicConsumer() { }
         public DefaultBasicConsumer(RabbitMQ.Client.IModel model) { }
         public string ConsumerTag { get; set; }
@@ -232,11 +168,7 @@ namespace RabbitMQ.Client
         public DefaultEndpointResolver(System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint> tcpEndpoints) { }
         public System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint> All() { }
     }
-<<<<<<< HEAD
     public static class ESLog
-=======
-    public class static ESLog
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     {
         public static void Error(string message, System.Exception ex) { }
         public static void Error(string message, System.Exception ex, params object[] args) { }
@@ -245,19 +177,11 @@ namespace RabbitMQ.Client
         public static void Warn(string message) { }
         public static void Warn(string message, params object[] args) { }
     }
-<<<<<<< HEAD
     public static class EndpointResolverExtensions
     {
         public static T SelectOne<T>(this RabbitMQ.Client.IEndpointResolver resolver, System.Func<RabbitMQ.Client.AmqpTcpEndpoint, T> selector) { }
     }
     public static class ExchangeType
-=======
-    public class static EndpointResolverExtensions
-    {
-        public static T SelectOne<T>(this RabbitMQ.Client.IEndpointResolver resolver, System.Func<RabbitMQ.Client.AmqpTcpEndpoint, T> selector) { }
-    }
-    public class static ExchangeType
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     {
         public const string Direct = "direct";
         public const string Fanout = "fanout";
@@ -276,11 +200,7 @@ namespace RabbitMQ.Client
         public string Name { get; }
         public RabbitMQ.Client.AuthMechanism GetInstance() { }
     }
-<<<<<<< HEAD
     public static class Headers
-=======
-    public class static Headers
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     {
         public const string AlternateExchange = "alternate-exchange";
         public const string XDeadLetterExchange = "x-dead-letter-exchange";
@@ -290,46 +210,27 @@ namespace RabbitMQ.Client
         public const string XMaxLengthInBytes = "x-max-length-bytes";
         public const string XMaxPriority = "x-max-priority";
         public const string XMessageTTL = "x-message-ttl";
-<<<<<<< HEAD
-        public const string XPriority = "x-priority";
-=======
         public const string XOverflow = "x-overflow";
         public const string XPriority = "x-priority";
         public const string XQueueMode = "x-queue-mode";
         public const string XQueueType = "x-queue-type";
         public const string XQuorumInitialGroupSize = "x-quorum-initial-group-size";
         public const string XSingleActiveConsumer = "x-single-active-consumer";
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     }
     public interface IAsyncBasicConsumer
     {
         RabbitMQ.Client.IModel Model { get; }
-<<<<<<< HEAD
         event RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.ConsumerEventArgs> ConsumerCancelled;
-=======
-        public event RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.ConsumerEventArgs> ConsumerCancelled;
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         System.Threading.Tasks.Task HandleBasicCancel(string consumerTag);
         System.Threading.Tasks.Task HandleBasicCancelOk(string consumerTag);
         System.Threading.Tasks.Task HandleBasicConsumeOk(string consumerTag);
         System.Threading.Tasks.Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, RabbitMQ.Client.IBasicProperties properties, byte[] body);
         System.Threading.Tasks.Task HandleModelShutdown(object model, RabbitMQ.Client.ShutdownEventArgs reason);
     }
-<<<<<<< HEAD
     public interface IBasicConsumer
     {
         RabbitMQ.Client.IModel Model { get; }
         event System.EventHandler<RabbitMQ.Client.Events.ConsumerEventArgs> ConsumerCancelled;
-=======
-    public interface IAsyncConnectionFactory : RabbitMQ.Client.IConnectionFactory
-    {
-        bool DispatchConsumersAsync { get; set; }
-    }
-    public interface IBasicConsumer
-    {
-        RabbitMQ.Client.IModel Model { get; }
-        public event System.EventHandler<RabbitMQ.Client.Events.ConsumerEventArgs> ConsumerCancelled;
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         void HandleBasicCancel(string consumerTag);
         void HandleBasicCancelOk(string consumerTag);
         void HandleBasicConsumeOk(string consumerTag);
@@ -382,11 +283,8 @@ namespace RabbitMQ.Client
         bool IsTimestampPresent();
         bool IsTypePresent();
         bool IsUserIdPresent();
-<<<<<<< HEAD
         [System.Obsolete("Usage of this setter method is deprecated. Use the Persistent property instead.")]
         void SetPersistent(bool persistent);
-=======
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     }
     public interface IBasicPublishBatch
     {
@@ -395,11 +293,8 @@ namespace RabbitMQ.Client
     }
     public interface IConnection : RabbitMQ.Client.NetworkConnection, System.IDisposable
     {
-<<<<<<< HEAD
         [System.Obsolete("Please explicitly close connections instead.")]
         bool AutoClose { get; set; }
-=======
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         ushort ChannelMax { get; }
         System.Collections.Generic.IDictionary<string, object> ClientProperties { get; }
         string ClientProvidedName { get; }
@@ -413,7 +308,6 @@ namespace RabbitMQ.Client
         RabbitMQ.Client.IProtocol Protocol { get; }
         System.Collections.Generic.IDictionary<string, object> ServerProperties { get; }
         System.Collections.Generic.IList<RabbitMQ.Client.ShutdownReportEntry> ShutdownReport { get; }
-<<<<<<< HEAD
         event System.EventHandler<RabbitMQ.Client.Events.CallbackExceptionEventArgs> CallbackException;
         event System.EventHandler<RabbitMQ.Client.Events.ConnectionBlockedEventArgs> ConnectionBlocked;
         event System.EventHandler<RabbitMQ.Client.Events.ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError;
@@ -427,21 +321,6 @@ namespace RabbitMQ.Client
         void Close();
         void Close(int timeout);
         void Close(ushort reasonCode, string reasonText);
-=======
-        public event System.EventHandler<RabbitMQ.Client.Events.CallbackExceptionEventArgs> CallbackException;
-        public event System.EventHandler<RabbitMQ.Client.Events.ConnectionBlockedEventArgs> ConnectionBlocked;
-        public event System.EventHandler<RabbitMQ.Client.Events.ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError;
-        public event System.EventHandler<RabbitMQ.Client.ShutdownEventArgs> ConnectionShutdown;
-        public event System.EventHandler<System.EventArgs> ConnectionUnblocked;
-        public event System.EventHandler<System.EventArgs> RecoverySucceeded;
-        void Abort();
-        void Abort(ushort reasonCode, string reasonText);
-        void Abort(int timeout);
-        void Abort(ushort reasonCode, string reasonText, int timeout);
-        void Close();
-        void Close(ushort reasonCode, string reasonText);
-        void Close(int timeout);
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         void Close(ushort reasonCode, string reasonText, int timeout);
         RabbitMQ.Client.IModel CreateModel();
         void HandleConnectionBlocked(string reason);
@@ -450,29 +329,21 @@ namespace RabbitMQ.Client
     public interface IConnectionFactory
     {
         System.Collections.Generic.IDictionary<string, object> ClientProperties { get; set; }
-<<<<<<< HEAD
-=======
-        string ClientProvidedName { get; set; }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         System.TimeSpan ContinuationTimeout { get; set; }
         System.TimeSpan HandshakeContinuationTimeout { get; set; }
         string Password { get; set; }
         ushort RequestedChannelMax { get; set; }
         uint RequestedFrameMax { get; set; }
         ushort RequestedHeartbeat { get; set; }
-<<<<<<< HEAD
         [System.Obsolete("This scheduler is no longer used for dispatching consumer operations and will be " +
             "removed in the next major version.", false)]
         System.Threading.Tasks.TaskScheduler TaskScheduler { get; set; }
-=======
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         System.Uri Uri { get; set; }
         bool UseBackgroundThreadsForIO { get; set; }
         string UserName { get; set; }
         string VirtualHost { get; set; }
         RabbitMQ.Client.AuthMechanismFactory AuthMechanismFactory(System.Collections.Generic.IList<string> mechanismNames);
         RabbitMQ.Client.IConnection CreateConnection();
-<<<<<<< HEAD
         RabbitMQ.Client.IConnection CreateConnection(System.Collections.Generic.IList<RabbitMQ.Client.AmqpTcpEndpoint> endpoints);
         RabbitMQ.Client.IConnection CreateConnection(System.Collections.Generic.IList<string> hostnames);
         RabbitMQ.Client.IConnection CreateConnection(string clientProvidedName);
@@ -481,17 +352,6 @@ namespace RabbitMQ.Client
     public interface IContentHeader
     {
         int ProtocolClassId { get; }
-=======
-        RabbitMQ.Client.IConnection CreateConnection(string clientProvidedName);
-        RabbitMQ.Client.IConnection CreateConnection(System.Collections.Generic.IList<string> hostnames);
-        RabbitMQ.Client.IConnection CreateConnection(System.Collections.Generic.IList<string> hostnames, string clientProvidedName);
-        RabbitMQ.Client.IConnection CreateConnection(System.Collections.Generic.IList<RabbitMQ.Client.AmqpTcpEndpoint> endpoints);
-        RabbitMQ.Client.IConnection CreateConnection(System.Collections.Generic.IList<RabbitMQ.Client.AmqpTcpEndpoint> endpoints, string clientProvidedName);
-    }
-    public interface IContentHeader
-    {
-        ushort ProtocolClassId { get; }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         string ProtocolClassName { get; }
     }
     public interface IEndpointResolver
@@ -500,13 +360,8 @@ namespace RabbitMQ.Client
     }
     public interface IMethod
     {
-<<<<<<< HEAD
         int ProtocolClassId { get; }
         int ProtocolMethodId { get; }
-=======
-        ushort ProtocolClassId { get; }
-        ushort ProtocolMethodId { get; }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         string ProtocolMethodName { get; }
     }
     public interface IModel : System.IDisposable
@@ -518,7 +373,6 @@ namespace RabbitMQ.Client
         bool IsClosed { get; }
         bool IsOpen { get; }
         ulong NextPublishSeqNo { get; }
-<<<<<<< HEAD
         event System.EventHandler<RabbitMQ.Client.Events.BasicAckEventArgs> BasicAcks;
         event System.EventHandler<RabbitMQ.Client.Events.BasicNackEventArgs> BasicNacks;
         event System.EventHandler<System.EventArgs> BasicRecoverOk;
@@ -586,81 +440,11 @@ namespace RabbitMQ.Client
         uint QueueDelete(string queue, bool ifUnused, bool ifEmpty);
         void QueueDeleteNoWait(string queue, bool ifUnused, bool ifEmpty);
         [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplement(null)]
-=======
-        public event System.EventHandler<RabbitMQ.Client.Events.BasicAckEventArgs> BasicAcks;
-        public event System.EventHandler<RabbitMQ.Client.Events.BasicNackEventArgs> BasicNacks;
-        public event System.EventHandler<System.EventArgs> BasicRecoverOk;
-        public event System.EventHandler<RabbitMQ.Client.Events.BasicReturnEventArgs> BasicReturn;
-        public event System.EventHandler<RabbitMQ.Client.Events.CallbackExceptionEventArgs> CallbackException;
-        public event System.EventHandler<RabbitMQ.Client.Events.FlowControlEventArgs> FlowControl;
-        public event System.EventHandler<RabbitMQ.Client.ShutdownEventArgs> ModelShutdown;
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute(null)]
-        void Abort();
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute(null)]
-        void Abort(ushort replyCode, string replyText);
-        void BasicAck(ulong deliveryTag, bool multiple);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute(null)]
-        void BasicCancel(string consumerTag);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute(null)]
-        string BasicConsume(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, System.Collections.Generic.IDictionary<string, object> arguments, RabbitMQ.Client.IBasicConsumer consumer);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute(null)]
-        RabbitMQ.Client.BasicGetResult BasicGet(string queue, bool autoAck);
-        void BasicNack(ulong deliveryTag, bool multiple, bool requeue);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute(null)]
-        void BasicPublish(string exchange, string routingKey, bool mandatory, RabbitMQ.Client.IBasicProperties basicProperties, byte[] body);
-        void BasicQos(uint prefetchSize, ushort prefetchCount, bool global);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute(null)]
-        void BasicRecover(bool requeue);
-        void BasicRecoverAsync(bool requeue);
-        void BasicReject(ulong deliveryTag, bool requeue);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute(null)]
-        void Close();
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute(null)]
-        void Close(ushort replyCode, string replyText);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute(null)]
-        void ConfirmSelect();
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute(null)]
-        uint ConsumerCount(string queue);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpContentHeaderFactoryAttribute("basic")]
-        RabbitMQ.Client.IBasicProperties CreateBasicProperties();
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute(null)]
-        RabbitMQ.Client.IBasicPublishBatch CreateBasicPublishBatch();
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute(null)]
-        void ExchangeBind(string destination, string source, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments);
-        void ExchangeBindNoWait(string destination, string source, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute(null)]
-        void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, System.Collections.Generic.IDictionary<string, object> arguments);
-        void ExchangeDeclareNoWait(string exchange, string type, bool durable, bool autoDelete, System.Collections.Generic.IDictionary<string, object> arguments);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute(null)]
-        void ExchangeDeclarePassive(string exchange);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute(null)]
-        void ExchangeDelete(string exchange, bool ifUnused);
-        void ExchangeDeleteNoWait(string exchange, bool ifUnused);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute(null)]
-        void ExchangeUnbind(string destination, string source, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute(null)]
-        void ExchangeUnbindNoWait(string destination, string source, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute(null)]
-        uint MessageCount(string queue);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute(null)]
-        void QueueBind(string queue, string exchange, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments);
-        void QueueBindNoWait(string queue, string exchange, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute(null)]
-        RabbitMQ.Client.QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, System.Collections.Generic.IDictionary<string, object> arguments);
-        void QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, System.Collections.Generic.IDictionary<string, object> arguments);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute(null)]
-        RabbitMQ.Client.QueueDeclareOk QueueDeclarePassive(string queue);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute(null)]
-        uint QueueDelete(string queue, bool ifUnused, bool ifEmpty);
-        void QueueDeleteNoWait(string queue, bool ifUnused, bool ifEmpty);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute(null)]
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         uint QueuePurge(string queue);
         void QueueUnbind(string queue, string exchange, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments);
         void TxCommit();
         void TxRollback();
         void TxSelect();
-<<<<<<< HEAD
         [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplement(null)]
         bool WaitForConfirms();
         [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplement(null)]
@@ -692,39 +476,6 @@ namespace RabbitMQ.Client
         public static RabbitMQ.Client.QueueDeclareOk QueueDeclare(this RabbitMQ.Client.IModel model, string queue = "", bool durable = false, bool exclusive = true, bool autoDelete = true, System.Collections.Generic.IDictionary<string, object> arguments = null) { }
         public static uint QueueDelete(this RabbitMQ.Client.IModel model, string queue, bool ifUnused = false, bool ifEmpty = false) { }
         public static void QueueDeleteNoWait(this RabbitMQ.Client.IModel model, string queue, bool ifUnused = false, bool ifEmpty = false) { }
-=======
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute(null)]
-        bool WaitForConfirms();
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute(null)]
-        bool WaitForConfirms(System.TimeSpan timeout);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute(null)]
-        bool WaitForConfirms(System.TimeSpan timeout, out bool timedOut);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute(null)]
-        void WaitForConfirmsOrDie();
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute(null)]
-        void WaitForConfirmsOrDie(System.TimeSpan timeout);
-    }
-    public class static IModelExensions
-    {
-        public static string BasicConsume(this RabbitMQ.Client.IModel model, RabbitMQ.Client.IBasicConsumer consumer, string queue, bool autoAck = False, string consumerTag = "", bool noLocal = False, bool exclusive = False, System.Collections.Generic.IDictionary<string, object> arguments = null) { }
-        public static string BasicConsume(this RabbitMQ.Client.IModel model, string queue, bool autoAck, RabbitMQ.Client.IBasicConsumer consumer) { }
-        public static string BasicConsume(this RabbitMQ.Client.IModel model, string queue, bool autoAck, string consumerTag, RabbitMQ.Client.IBasicConsumer consumer) { }
-        public static string BasicConsume(this RabbitMQ.Client.IModel model, string queue, bool autoAck, string consumerTag, System.Collections.Generic.IDictionary<string, object> arguments, RabbitMQ.Client.IBasicConsumer consumer) { }
-        public static void BasicPublish(this RabbitMQ.Client.IModel model, RabbitMQ.Client.PublicationAddress addr, RabbitMQ.Client.IBasicProperties basicProperties, byte[] body) { }
-        public static void BasicPublish(this RabbitMQ.Client.IModel model, string exchange, string routingKey, RabbitMQ.Client.IBasicProperties basicProperties, byte[] body) { }
-        public static void BasicPublish(this RabbitMQ.Client.IModel model, string exchange, string routingKey, bool mandatory = False, RabbitMQ.Client.IBasicProperties basicProperties = null, byte[] body = null) { }
-        public static void ExchangeBind(this RabbitMQ.Client.IModel model, string destination, string source, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments = null) { }
-        public static void ExchangeBindNoWait(this RabbitMQ.Client.IModel model, string destination, string source, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments = null) { }
-        public static void ExchangeDeclare(this RabbitMQ.Client.IModel model, string exchange, string type, bool durable = False, bool autoDelete = False, System.Collections.Generic.IDictionary<string, object> arguments = null) { }
-        public static void ExchangeDeclareNoWait(this RabbitMQ.Client.IModel model, string exchange, string type, bool durable = False, bool autoDelete = False, System.Collections.Generic.IDictionary<string, object> arguments = null) { }
-        public static void ExchangeDelete(this RabbitMQ.Client.IModel model, string exchange, bool ifUnused = False) { }
-        public static void ExchangeDeleteNoWait(this RabbitMQ.Client.IModel model, string exchange, bool ifUnused = False) { }
-        public static void ExchangeUnbind(this RabbitMQ.Client.IModel model, string destination, string source, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments = null) { }
-        public static void QueueBind(this RabbitMQ.Client.IModel model, string queue, string exchange, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments = null) { }
-        public static RabbitMQ.Client.QueueDeclareOk QueueDeclare(this RabbitMQ.Client.IModel model, string queue = "", bool durable = False, bool exclusive = True, bool autoDelete = True, System.Collections.Generic.IDictionary<string, object> arguments = null) { }
-        public static uint QueueDelete(this RabbitMQ.Client.IModel model, string queue, bool ifUnused = False, bool ifEmpty = False) { }
-        public static void QueueDeleteNoWait(this RabbitMQ.Client.IModel model, string queue, bool ifUnused = False, bool ifEmpty = False) { }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public static void QueueUnbind(this RabbitMQ.Client.IModel model, string queue, string exchange, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments = null) { }
     }
     public interface IProtocol
@@ -734,7 +485,6 @@ namespace RabbitMQ.Client
         int MajorVersion { get; }
         int MinorVersion { get; }
         int Revision { get; }
-<<<<<<< HEAD
         RabbitMQ.Client.IConnection CreateConnection(RabbitMQ.Client.ConnectionFactory factory, RabbitMQ.Client.Impl.IFrameHandler frameHandler, bool automaticRecoveryEnabled);
         RabbitMQ.Client.IConnection CreateConnection(RabbitMQ.Client.IConnectionFactory factory, bool insist, RabbitMQ.Client.Impl.IFrameHandler frameHandler);
         RabbitMQ.Client.IConnection CreateConnection(RabbitMQ.Client.ConnectionFactory factory, RabbitMQ.Client.Impl.IFrameHandler frameHandler, bool automaticRecoveryEnabled, string clientProvidedName);
@@ -750,17 +500,6 @@ namespace RabbitMQ.Client
     public interface IRecoverable
     {
         event System.EventHandler<System.EventArgs> Recovery;
-=======
-        RabbitMQ.Client.IConnection CreateConnection(RabbitMQ.Client.IConnectionFactory factory, bool insist, RabbitMQ.Client.Impl.IFrameHandler frameHandler);
-        RabbitMQ.Client.IConnection CreateConnection(RabbitMQ.Client.ConnectionFactory factory, RabbitMQ.Client.Impl.IFrameHandler frameHandler, bool automaticRecoveryEnabled);
-        RabbitMQ.Client.IConnection CreateConnection(RabbitMQ.Client.IConnectionFactory factory, bool insist, RabbitMQ.Client.Impl.IFrameHandler frameHandler, string clientProvidedName);
-        RabbitMQ.Client.IConnection CreateConnection(RabbitMQ.Client.ConnectionFactory factory, RabbitMQ.Client.Impl.IFrameHandler frameHandler, bool automaticRecoveryEnabled, string clientProvidedName);
-        RabbitMQ.Client.IModel CreateModel(RabbitMQ.Client.Impl.ISession session);
-    }
-    public interface IRecoverable
-    {
-        public event System.EventHandler<System.EventArgs> Recovery;
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     }
     public interface IStreamProperties : RabbitMQ.Client.IContentHeader
     {
@@ -807,19 +546,11 @@ namespace RabbitMQ.Client
     }
     public class ProtocolViolationException : RabbitMQ.Client.Exceptions.RabbitMQClientException
     {
-<<<<<<< HEAD
         public ProtocolViolationException() { }
         public ProtocolViolationException(string message) { }
         public ProtocolViolationException(string message, System.Exception inner) { }
     }
     public static class Protocols
-=======
-        public ProtocolViolationException(string message) { }
-        public ProtocolViolationException(string message, System.Exception inner) { }
-        public ProtocolViolationException() { }
-    }
-    public class static Protocols
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     {
         public static RabbitMQ.Client.IProtocol AMQP_0_9_1 { get; }
         public static RabbitMQ.Client.IProtocol DefaultProtocol { get; }
@@ -831,13 +562,8 @@ namespace RabbitMQ.Client
         public string ExchangeName { get; }
         public string ExchangeType { get; }
         public string RoutingKey { get; }
-<<<<<<< HEAD
         public override string ToString() { }
         public static RabbitMQ.Client.PublicationAddress Parse(string uriLikeString) { }
-=======
-        public static RabbitMQ.Client.PublicationAddress Parse(string uriLikeString) { }
-        public override string ToString() { }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     }
     public class QueueDeclareOk
     {
@@ -847,7 +573,6 @@ namespace RabbitMQ.Client
         public string QueueName { get; }
         public static string op_Implicit(RabbitMQ.Client.QueueDeclareOk declareOk) { }
     }
-<<<<<<< HEAD
     [System.Obsolete("Deprecated. Use EventingBasicConsumer or a different consumer interface implement" +
         "ation instead")]
     public class QueueingBasicConsumer : RabbitMQ.Client.DefaultBasicConsumer, RabbitMQ.Client.IQueueingBasicConsumer
@@ -859,8 +584,6 @@ namespace RabbitMQ.Client
         public override void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, RabbitMQ.Client.IBasicProperties properties, byte[] body) { }
         public override void OnCancel() { }
     }
-=======
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     public class ShutdownEventArgs : System.EventArgs
     {
         public ShutdownEventArgs(RabbitMQ.Client.ShutdownInitiator initiator, ushort replyCode, string replyText, object cause = null) { }
@@ -892,52 +615,31 @@ namespace RabbitMQ.Client
     }
     public class SslOption
     {
-<<<<<<< HEAD
         public SslOption() { }
         public SslOption(string serverName, string certificatePath = "", bool enabled = false) { }
-=======
-        public SslOption(string serverName, string certificatePath = "", bool enabled = False) { }
-        public SslOption() { }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public System.Net.Security.SslPolicyErrors AcceptablePolicyErrors { get; set; }
         public string CertPassphrase { get; set; }
         public string CertPath { get; set; }
         public System.Net.Security.LocalCertificateSelectionCallback CertificateSelectionCallback { get; set; }
         public System.Net.Security.RemoteCertificateValidationCallback CertificateValidationCallback { get; set; }
         public System.Security.Cryptography.X509Certificates.X509CertificateCollection Certs { get; set; }
-<<<<<<< HEAD
-=======
-        public bool CheckCertificateRevocation { get; set; }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public bool Enabled { get; set; }
         public string ServerName { get; set; }
         public System.Security.Authentication.SslProtocols Version { get; set; }
     }
     public class TcpClientAdapter : RabbitMQ.Client.ITcpClient, System.IDisposable
     {
-<<<<<<< HEAD
         protected System.Net.Sockets.Socket sock;
-=======
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public TcpClientAdapter(System.Net.Sockets.Socket socket) { }
         public virtual System.Net.Sockets.Socket Client { get; }
         public virtual bool Connected { get; }
         public virtual int ReceiveTimeout { get; set; }
         public virtual void Close() { }
         public virtual System.Threading.Tasks.Task ConnectAsync(string host, int port) { }
-<<<<<<< HEAD
         public virtual void Dispose() { }
         public virtual System.Net.Sockets.NetworkStream GetStream() { }
     }
     public static class TcpClientAdapterHelper
-=======
-        [System.ObsoleteAttribute("Override Dispose(bool) instead.")]
-        public virtual void Dispose() { }
-        protected virtual void Dispose(bool disposing) { }
-        public virtual System.Net.Sockets.NetworkStream GetStream() { }
-    }
-    public class static TcpClientAdapterHelper
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     {
         public static System.Net.IPAddress GetMatchingHost(System.Collections.Generic.IReadOnlyCollection<System.Net.IPAddress> addresses, System.Net.Sockets.AddressFamily addressFamily) { }
     }
@@ -953,11 +655,7 @@ namespace RabbitMQ.Client.Apigen.Attributes
         public string m_namespaceName;
         public AmqpApigenAttribute(string namespaceName) { }
     }
-<<<<<<< HEAD
     [System.AttributeUsage(System.AttributeTargets.Assembly | System.AttributeTargets.Module | System.AttributeTargets.Class | System.AttributeTargets.Struct | System.AttributeTargets.Enum | System.AttributeTargets.Constructor | System.AttributeTargets.Method | System.AttributeTargets.Property | System.AttributeTargets.Field | System.AttributeTargets.Event | System.AttributeTargets.Interface | System.AttributeTargets.Parameter | System.AttributeTargets.Delegate | System.AttributeTargets.ReturnValue | System.AttributeTargets.GenericParameter | System.AttributeTargets.All, AllowMultiple=true)]
-=======
-    [System.AttributeUsageAttribute(System.AttributeTargets.Assembly | System.AttributeTargets.Module | System.AttributeTargets.Class | System.AttributeTargets.Struct | System.AttributeTargets.Enum | System.AttributeTargets.Constructor | System.AttributeTargets.Method | System.AttributeTargets.Property | System.AttributeTargets.Field | System.AttributeTargets.Event | System.AttributeTargets.Interface | System.AttributeTargets.Parameter | System.AttributeTargets.Delegate | System.AttributeTargets.ReturnValue | System.AttributeTargets.GenericParameter | System.AttributeTargets.All, AllowMultiple=true)]
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     public class AmqpAsynchronousHandlerAttribute : RabbitMQ.Client.Apigen.Attributes.AmqpApigenAttribute
     {
         public AmqpAsynchronousHandlerAttribute(string namespaceName) { }
@@ -975,11 +673,7 @@ namespace RabbitMQ.Client.Apigen.Attributes
     {
         public AmqpContentHeaderMappingAttribute() { }
     }
-<<<<<<< HEAD
     [System.AttributeUsage(System.AttributeTargets.Assembly | System.AttributeTargets.Module | System.AttributeTargets.Class | System.AttributeTargets.Struct | System.AttributeTargets.Enum | System.AttributeTargets.Constructor | System.AttributeTargets.Method | System.AttributeTargets.Property | System.AttributeTargets.Field | System.AttributeTargets.Event | System.AttributeTargets.Interface | System.AttributeTargets.Parameter | System.AttributeTargets.Delegate | System.AttributeTargets.ReturnValue | System.AttributeTargets.GenericParameter | System.AttributeTargets.All, AllowMultiple=true)]
-=======
-    [System.AttributeUsageAttribute(System.AttributeTargets.Assembly | System.AttributeTargets.Module | System.AttributeTargets.Class | System.AttributeTargets.Struct | System.AttributeTargets.Enum | System.AttributeTargets.Constructor | System.AttributeTargets.Method | System.AttributeTargets.Property | System.AttributeTargets.Field | System.AttributeTargets.Event | System.AttributeTargets.Interface | System.AttributeTargets.Parameter | System.AttributeTargets.Delegate | System.AttributeTargets.ReturnValue | System.AttributeTargets.GenericParameter | System.AttributeTargets.All, AllowMultiple=true)]
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     public class AmqpFieldMappingAttribute : RabbitMQ.Client.Apigen.Attributes.AmqpApigenAttribute
     {
         public string m_fieldName;
@@ -989,42 +683,26 @@ namespace RabbitMQ.Client.Apigen.Attributes
     {
         public AmqpForceOneWayAttribute() { }
     }
-<<<<<<< HEAD
     [System.AttributeUsage(System.AttributeTargets.Assembly | System.AttributeTargets.Module | System.AttributeTargets.Class | System.AttributeTargets.Struct | System.AttributeTargets.Enum | System.AttributeTargets.Constructor | System.AttributeTargets.Method | System.AttributeTargets.Property | System.AttributeTargets.Field | System.AttributeTargets.Event | System.AttributeTargets.Interface | System.AttributeTargets.Parameter | System.AttributeTargets.Delegate | System.AttributeTargets.ReturnValue | System.AttributeTargets.GenericParameter | System.AttributeTargets.All, AllowMultiple=true)]
-=======
-    [System.AttributeUsageAttribute(System.AttributeTargets.Assembly | System.AttributeTargets.Module | System.AttributeTargets.Class | System.AttributeTargets.Struct | System.AttributeTargets.Enum | System.AttributeTargets.Constructor | System.AttributeTargets.Method | System.AttributeTargets.Property | System.AttributeTargets.Field | System.AttributeTargets.Event | System.AttributeTargets.Interface | System.AttributeTargets.Parameter | System.AttributeTargets.Delegate | System.AttributeTargets.ReturnValue | System.AttributeTargets.GenericParameter | System.AttributeTargets.All, AllowMultiple=true)]
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     public class AmqpMethodDoNotImplementAttribute : RabbitMQ.Client.Apigen.Attributes.AmqpApigenAttribute
     {
         public AmqpMethodDoNotImplementAttribute(string namespaceName) { }
     }
-<<<<<<< HEAD
     [System.AttributeUsage(System.AttributeTargets.Assembly | System.AttributeTargets.Module | System.AttributeTargets.Class | System.AttributeTargets.Struct | System.AttributeTargets.Enum | System.AttributeTargets.Constructor | System.AttributeTargets.Method | System.AttributeTargets.Property | System.AttributeTargets.Field | System.AttributeTargets.Event | System.AttributeTargets.Interface | System.AttributeTargets.Parameter | System.AttributeTargets.Delegate | System.AttributeTargets.ReturnValue | System.AttributeTargets.GenericParameter | System.AttributeTargets.All, AllowMultiple=true)]
-=======
-    [System.AttributeUsageAttribute(System.AttributeTargets.Assembly | System.AttributeTargets.Module | System.AttributeTargets.Class | System.AttributeTargets.Struct | System.AttributeTargets.Enum | System.AttributeTargets.Constructor | System.AttributeTargets.Method | System.AttributeTargets.Property | System.AttributeTargets.Field | System.AttributeTargets.Event | System.AttributeTargets.Interface | System.AttributeTargets.Parameter | System.AttributeTargets.Delegate | System.AttributeTargets.ReturnValue | System.AttributeTargets.GenericParameter | System.AttributeTargets.All, AllowMultiple=true)]
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     public class AmqpMethodMappingAttribute : RabbitMQ.Client.Apigen.Attributes.AmqpApigenAttribute
     {
         public string m_className;
         public string m_methodName;
         public AmqpMethodMappingAttribute(string namespaceName, string className, string methodName) { }
     }
-<<<<<<< HEAD
     [System.AttributeUsage(System.AttributeTargets.Assembly | System.AttributeTargets.Module | System.AttributeTargets.Class | System.AttributeTargets.Struct | System.AttributeTargets.Enum | System.AttributeTargets.Constructor | System.AttributeTargets.Method | System.AttributeTargets.Property | System.AttributeTargets.Field | System.AttributeTargets.Event | System.AttributeTargets.Interface | System.AttributeTargets.Parameter | System.AttributeTargets.Delegate | System.AttributeTargets.ReturnValue | System.AttributeTargets.GenericParameter | System.AttributeTargets.All, AllowMultiple=true)]
-=======
-    [System.AttributeUsageAttribute(System.AttributeTargets.Assembly | System.AttributeTargets.Module | System.AttributeTargets.Class | System.AttributeTargets.Struct | System.AttributeTargets.Enum | System.AttributeTargets.Constructor | System.AttributeTargets.Method | System.AttributeTargets.Property | System.AttributeTargets.Field | System.AttributeTargets.Event | System.AttributeTargets.Interface | System.AttributeTargets.Parameter | System.AttributeTargets.Delegate | System.AttributeTargets.ReturnValue | System.AttributeTargets.GenericParameter | System.AttributeTargets.All, AllowMultiple=true)]
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     public class AmqpNowaitArgumentAttribute : RabbitMQ.Client.Apigen.Attributes.AmqpApigenAttribute
     {
         public string m_replacementExpression;
         public AmqpNowaitArgumentAttribute(string namespaceName) { }
         public AmqpNowaitArgumentAttribute(string namespaceName, string replacementExpression) { }
     }
-<<<<<<< HEAD
     [System.AttributeUsage(System.AttributeTargets.Assembly | System.AttributeTargets.Module | System.AttributeTargets.Class | System.AttributeTargets.Struct | System.AttributeTargets.Enum | System.AttributeTargets.Constructor | System.AttributeTargets.Method | System.AttributeTargets.Property | System.AttributeTargets.Field | System.AttributeTargets.Event | System.AttributeTargets.Interface | System.AttributeTargets.Parameter | System.AttributeTargets.Delegate | System.AttributeTargets.ReturnValue | System.AttributeTargets.GenericParameter | System.AttributeTargets.All, AllowMultiple=true)]
-=======
-    [System.AttributeUsageAttribute(System.AttributeTargets.Assembly | System.AttributeTargets.Module | System.AttributeTargets.Class | System.AttributeTargets.Struct | System.AttributeTargets.Enum | System.AttributeTargets.Constructor | System.AttributeTargets.Method | System.AttributeTargets.Property | System.AttributeTargets.Field | System.AttributeTargets.Event | System.AttributeTargets.Interface | System.AttributeTargets.Parameter | System.AttributeTargets.Delegate | System.AttributeTargets.ReturnValue | System.AttributeTargets.GenericParameter | System.AttributeTargets.All, AllowMultiple=true)]
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     public class AmqpUnsupportedAttribute : RabbitMQ.Client.Apigen.Attributes.AmqpApigenAttribute
     {
         public AmqpUnsupportedAttribute(string namespaceName) { }
@@ -1046,13 +724,8 @@ namespace RabbitMQ.Client.Content
         public virtual byte[] GetContentBody() { }
         public virtual RabbitMQ.Client.IContentHeader GetContentHeader() { }
         public virtual string GetDefaultContentType() { }
-<<<<<<< HEAD
         public RabbitMQ.Client.Content.IMessageBuilder RawWrite(byte[] bytes) { }
         public RabbitMQ.Client.Content.IMessageBuilder RawWrite(byte value) { }
-=======
-        public RabbitMQ.Client.Content.IMessageBuilder RawWrite(byte value) { }
-        public RabbitMQ.Client.Content.IMessageBuilder RawWrite(byte[] bytes) { }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public RabbitMQ.Client.Content.IMessageBuilder RawWrite(byte[] bytes, int offset, int length) { }
     }
     public class BasicMessageReader : RabbitMQ.Client.Content.IMessageReader
@@ -1100,11 +773,7 @@ namespace RabbitMQ.Client.Content
         public float ReadSingle() { }
         public string ReadString() { }
     }
-<<<<<<< HEAD
     public static class BytesWireFormatting
-=======
-    public class static BytesWireFormatting
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     {
         public static int Read(RabbitMQ.Util.NetworkBinaryReader reader, byte[] target, int offset, int count) { }
         public static byte ReadByte(RabbitMQ.Util.NetworkBinaryReader reader) { }
@@ -1168,13 +837,8 @@ namespace RabbitMQ.Client.Content
         byte[] GetContentBody();
         RabbitMQ.Client.IContentHeader GetContentHeader();
         string GetDefaultContentType();
-<<<<<<< HEAD
         RabbitMQ.Client.Content.IMessageBuilder RawWrite(byte[] bytes);
         RabbitMQ.Client.Content.IMessageBuilder RawWrite(byte value);
-=======
-        RabbitMQ.Client.Content.IMessageBuilder RawWrite(byte value);
-        RabbitMQ.Client.Content.IMessageBuilder RawWrite(byte[] bytes);
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         RabbitMQ.Client.Content.IMessageBuilder RawWrite(byte[] bytes, int offset, int length);
     }
     public interface IMessageReader
@@ -1189,13 +853,8 @@ namespace RabbitMQ.Client.Content
     {
         RabbitMQ.Client.Content.IStreamMessageBuilder WriteBool(bool value);
         RabbitMQ.Client.Content.IStreamMessageBuilder WriteByte(byte value);
-<<<<<<< HEAD
         RabbitMQ.Client.Content.IStreamMessageBuilder WriteBytes(byte[] source);
         RabbitMQ.Client.Content.IStreamMessageBuilder WriteBytes(byte[] source, int offset, int count);
-=======
-        RabbitMQ.Client.Content.IStreamMessageBuilder WriteBytes(byte[] source, int offset, int count);
-        RabbitMQ.Client.Content.IStreamMessageBuilder WriteBytes(byte[] source);
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         RabbitMQ.Client.Content.IStreamMessageBuilder WriteChar(char value);
         RabbitMQ.Client.Content.IStreamMessageBuilder WriteDouble(double value);
         RabbitMQ.Client.Content.IStreamMessageBuilder WriteInt16(short value);
@@ -1237,20 +896,12 @@ namespace RabbitMQ.Client.Content
         public MapMessageReader(RabbitMQ.Client.IBasicProperties properties, byte[] payload) { }
         public System.Collections.Generic.IDictionary<string, object> Body { get; }
     }
-<<<<<<< HEAD
     public static class MapWireFormatting
-=======
-    public class static MapWireFormatting
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     {
         public static System.Collections.Generic.IDictionary<string, object> ReadMap(RabbitMQ.Util.NetworkBinaryReader reader) { }
         public static void WriteMap(RabbitMQ.Util.NetworkBinaryWriter writer, System.Collections.Generic.IDictionary<string, object> table) { }
     }
-<<<<<<< HEAD
     public static class PrimitiveParser
-=======
-    public class static PrimitiveParser
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     {
         public static System.Exception CreateProtocolViolationException(string targetType, object source) { }
         public static bool ParseBool(string value) { }
@@ -1269,13 +920,8 @@ namespace RabbitMQ.Client.Content
         public override string GetDefaultContentType() { }
         public RabbitMQ.Client.Content.IStreamMessageBuilder WriteBool(bool value) { }
         public RabbitMQ.Client.Content.IStreamMessageBuilder WriteByte(byte value) { }
-<<<<<<< HEAD
         public RabbitMQ.Client.Content.IStreamMessageBuilder WriteBytes(byte[] source) { }
         public RabbitMQ.Client.Content.IStreamMessageBuilder WriteBytes(byte[] source, int offset, int count) { }
-=======
-        public RabbitMQ.Client.Content.IStreamMessageBuilder WriteBytes(byte[] source, int offset, int count) { }
-        public RabbitMQ.Client.Content.IStreamMessageBuilder WriteBytes(byte[] source) { }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public RabbitMQ.Client.Content.IStreamMessageBuilder WriteChar(char value) { }
         public RabbitMQ.Client.Content.IStreamMessageBuilder WriteDouble(double value) { }
         public RabbitMQ.Client.Content.IStreamMessageBuilder WriteInt16(short value) { }
@@ -1303,11 +949,7 @@ namespace RabbitMQ.Client.Content
         public float ReadSingle() { }
         public string ReadString() { }
     }
-<<<<<<< HEAD
     public static class StreamWireFormatting
-=======
-    public class static StreamWireFormatting
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     {
         public static bool ReadBool(RabbitMQ.Util.NetworkBinaryReader reader) { }
         public static byte ReadByte(RabbitMQ.Util.NetworkBinaryReader reader) { }
@@ -1324,13 +966,8 @@ namespace RabbitMQ.Client.Content
         public static string ReadUntypedString(RabbitMQ.Util.NetworkBinaryReader reader) { }
         public static void WriteBool(RabbitMQ.Util.NetworkBinaryWriter writer, bool value) { }
         public static void WriteByte(RabbitMQ.Util.NetworkBinaryWriter writer, byte value) { }
-<<<<<<< HEAD
         public static void WriteBytes(RabbitMQ.Util.NetworkBinaryWriter writer, byte[] value) { }
         public static void WriteBytes(RabbitMQ.Util.NetworkBinaryWriter writer, byte[] value, int offset, int length) { }
-=======
-        public static void WriteBytes(RabbitMQ.Util.NetworkBinaryWriter writer, byte[] value, int offset, int length) { }
-        public static void WriteBytes(RabbitMQ.Util.NetworkBinaryWriter writer, byte[] value) { }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public static void WriteChar(RabbitMQ.Util.NetworkBinaryWriter writer, char value) { }
         public static void WriteDouble(RabbitMQ.Util.NetworkBinaryWriter writer, double value) { }
         public static void WriteInt16(RabbitMQ.Util.NetworkBinaryWriter writer, short value) { }
@@ -1416,13 +1053,8 @@ namespace RabbitMQ.Client.Events
     public class CallbackExceptionEventArgs : RabbitMQ.Client.Events.BaseExceptionEventArgs
     {
         public CallbackExceptionEventArgs(System.Exception e) { }
-<<<<<<< HEAD
         public static RabbitMQ.Client.Events.CallbackExceptionEventArgs Build(System.Exception e, System.Collections.Generic.IDictionary<string, object> details) { }
         public static RabbitMQ.Client.Events.CallbackExceptionEventArgs Build(System.Exception e, string context) { }
-=======
-        public static RabbitMQ.Client.Events.CallbackExceptionEventArgs Build(System.Exception e, string context) { }
-        public static RabbitMQ.Client.Events.CallbackExceptionEventArgs Build(System.Exception e, System.Collections.Generic.IDictionary<string, object> details) { }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     }
     public class ConnectionBlockedEventArgs : System.EventArgs
     {
@@ -1499,17 +1131,10 @@ namespace RabbitMQ.Client.Exceptions
     }
     public class OperationInterruptedException : RabbitMQ.Client.Exceptions.RabbitMQClientException
     {
-<<<<<<< HEAD
         protected OperationInterruptedException() { }
         public OperationInterruptedException(RabbitMQ.Client.ShutdownEventArgs reason) { }
         protected OperationInterruptedException(string message) { }
         public OperationInterruptedException(RabbitMQ.Client.ShutdownEventArgs reason, string prefix) { }
-=======
-        public OperationInterruptedException(RabbitMQ.Client.ShutdownEventArgs reason) { }
-        public OperationInterruptedException(RabbitMQ.Client.ShutdownEventArgs reason, string prefix) { }
-        protected OperationInterruptedException() { }
-        protected OperationInterruptedException(string message) { }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         protected OperationInterruptedException(string message, System.Exception inner) { }
         public RabbitMQ.Client.ShutdownEventArgs ShutdownReason { get; set; }
     }
@@ -1523,13 +1148,8 @@ namespace RabbitMQ.Client.Exceptions
     }
     public class PossibleAuthenticationFailureException : RabbitMQ.Client.Exceptions.RabbitMQClientException
     {
-<<<<<<< HEAD
         public PossibleAuthenticationFailureException(string msg) { }
         public PossibleAuthenticationFailureException(string msg, System.Exception inner) { }
-=======
-        public PossibleAuthenticationFailureException(string msg, System.Exception inner) { }
-        public PossibleAuthenticationFailureException(string msg) { }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     }
     public class ProtocolVersionMismatchException : RabbitMQ.Client.ProtocolViolationException
     {
@@ -1570,7 +1190,6 @@ namespace RabbitMQ.Client.Exceptions
 }
 namespace RabbitMQ.Client.Framing
 {
-<<<<<<< HEAD
     public class BasicProperties : RabbitMQ.Client.Impl.BasicProperties
     {
         public BasicProperties() { }
@@ -1650,8 +1269,6 @@ namespace RabbitMQ.Client.Framing
         public const int UnexpectedFrame = 505;
         public Constants() { }
     }
-=======
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     public interface IBasicAck : RabbitMQ.Client.IMethod
     {
         ulong DeliveryTag { get; }
@@ -1941,7 +1558,6 @@ namespace RabbitMQ.Client.Framing
     public interface ITxRollbackOk : RabbitMQ.Client.IMethod { }
     public interface ITxSelect : RabbitMQ.Client.IMethod { }
     public interface ITxSelectOk : RabbitMQ.Client.IMethod { }
-<<<<<<< HEAD
     public class Protocol : RabbitMQ.Client.Framing.Impl.ProtocolBase
     {
         public Protocol() { }
@@ -2441,11 +2057,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public override void ReadArgumentsFrom(RabbitMQ.Client.Impl.MethodArgumentReader reader) { }
         public override void WriteArgumentsTo(RabbitMQ.Client.Impl.MethodArgumentWriter writer) { }
     }
-=======
-}
-namespace RabbitMQ.Client.Framing.Impl
-{
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     public enum ClassId
     {
         Connection = 10,
@@ -2457,7 +2068,6 @@ namespace RabbitMQ.Client.Framing.Impl
         Confirm = 85,
         Invalid = -1,
     }
-<<<<<<< HEAD
     public class ConfirmSelect : RabbitMQ.Client.Impl.MethodBase, RabbitMQ.Client.Framing.IConfirmSelect, RabbitMQ.Client.IMethod
     {
         public const int ClassId = 85;
@@ -2491,11 +2101,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public Connection(RabbitMQ.Client.IConnectionFactory factory, bool insist, RabbitMQ.Client.Impl.IFrameHandler frameHandler, string clientProvidedName = null) { }
         [System.Obsolete("Please explicitly close connections instead.")]
         public bool AutoClose { get; set; }
-=======
-    public class Connection : RabbitMQ.Client.IConnection, RabbitMQ.Client.NetworkConnection, System.IDisposable
-    {
-        public Connection(RabbitMQ.Client.IConnectionFactory factory, bool insist, RabbitMQ.Client.Impl.IFrameHandler frameHandler, string clientProvidedName = null) { }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public ushort ChannelMax { get; }
         public System.Collections.Generic.IDictionary<string, object> ClientProperties { get; set; }
         public string ClientProvidedName { get; }
@@ -2520,7 +2125,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public event System.EventHandler<RabbitMQ.Client.ShutdownEventArgs> ConnectionShutdown;
         public event System.EventHandler<System.EventArgs> ConnectionUnblocked;
         public event System.EventHandler<System.EventArgs> RecoverySucceeded;
-<<<<<<< HEAD
         public void Abort() { }
         public void Abort(int timeout) { }
         public void Abort(ushort reasonCode, string reasonText) { }
@@ -2532,28 +2136,12 @@ namespace RabbitMQ.Client.Framing.Impl
         public void Close(int timeout) { }
         public void Close(ushort reasonCode, string reasonText) { }
         public void Close(RabbitMQ.Client.ShutdownEventArgs reason, bool abort, int timeout) { }
-=======
-        public void Abort(ushort reasonCode, string reasonText, RabbitMQ.Client.ShutdownInitiator initiator, int timeout) { }
-        public void Abort() { }
-        public void Abort(ushort reasonCode, string reasonText) { }
-        public void Abort(int timeout) { }
-        public void Abort(ushort reasonCode, string reasonText, int timeout) { }
-        public void Close(RabbitMQ.Client.ShutdownEventArgs reason) { }
-        public void Close(RabbitMQ.Client.ShutdownEventArgs reason, bool abort, int timeout) { }
-        public void Close() { }
-        public void Close(ushort reasonCode, string reasonText) { }
-        public void Close(int timeout) { }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public void Close(ushort reasonCode, string reasonText, int timeout) { }
         public void ClosingLoop() { }
         public RabbitMQ.Client.Impl.Command ConnectionCloseWrapper(ushort reasonCode, string reasonText) { }
         public RabbitMQ.Client.IModel CreateModel() { }
         public RabbitMQ.Client.Impl.ISession CreateSession() { }
         public RabbitMQ.Client.Impl.ISession CreateSession(int channelNumber) { }
-<<<<<<< HEAD
-=======
-        public static System.Collections.Generic.IDictionary<string, object> DefaultClientProperties() { }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public void EnsureIsOpen() { }
         public void FinishClose() { }
         public void HandleConnectionBlocked(string reason) { }
@@ -2568,10 +2156,7 @@ namespace RabbitMQ.Client.Framing.Impl
         public void MainLoop() { }
         public void MainLoopIteration() { }
         public void MaybeStartHeartbeatTimers() { }
-<<<<<<< HEAD
         protected void MaybeStopHeartbeatTimers() { }
-=======
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public void NotifyHeartbeatListener() { }
         public void NotifyReceivedCloseOk() { }
         public void OnCallbackException(RabbitMQ.Client.Events.CallbackExceptionEventArgs args) { }
@@ -2582,16 +2167,12 @@ namespace RabbitMQ.Client.Framing.Impl
         public void PrettyPrintShutdownReport() { }
         public void QuiesceChannel(RabbitMQ.Client.Impl.SoftProtocolException pe) { }
         public bool SetCloseReason(RabbitMQ.Client.ShutdownEventArgs reason) { }
-<<<<<<< HEAD
         protected void StartAndTune() { }
-=======
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public void StartMainLoop(bool useBackgroundThread) { }
         public void TerminateMainloop() { }
         public override string ToString() { }
         public void WriteFrame(RabbitMQ.Client.Impl.OutboundFrame f) { }
         public void WriteFrameSet(System.Collections.Generic.IList<RabbitMQ.Client.Impl.OutboundFrame> f) { }
-<<<<<<< HEAD
         public static System.Collections.Generic.IDictionary<string, object> DefaultClientProperties() { }
     }
     public class ConnectionBlocked : RabbitMQ.Client.Impl.MethodBase, RabbitMQ.Client.Framing.IConnectionBlocked, RabbitMQ.Client.IMethod
@@ -2963,13 +2544,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public override uint _Private_QueueDelete(string queue, bool ifUnused, bool ifEmpty, bool nowait) { }
         public override uint _Private_QueuePurge(string queue, bool nowait) { }
     }
-=======
-    }
-    public class static IProtocolExtensions
-    {
-        public static RabbitMQ.Client.Impl.IFrameHandler CreateFrameHandler(this RabbitMQ.Client.IProtocol protocol, RabbitMQ.Client.AmqpTcpEndpoint endpoint, System.Func<System.Net.Sockets.AddressFamily, RabbitMQ.Client.ITcpClient> socketFactory, int connectionTimeout, int readTimeout, int writeTimeout) { }
-    }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     public abstract class ProtocolBase : RabbitMQ.Client.IProtocol
     {
         public System.Collections.Generic.IDictionary<string, bool> Capabilities;
@@ -2981,21 +2555,12 @@ namespace RabbitMQ.Client.Framing.Impl
         public abstract int Revision { get; }
         public RabbitMQ.Client.AmqpVersion Version { get; }
         public bool CanSendWhileClosed(RabbitMQ.Client.Impl.Command cmd) { }
-<<<<<<< HEAD
         public void CreateChannelClose(ushort reasonCode, string reasonText, out RabbitMQ.Client.Impl.Command request, out int replyClassId, out int replyMethodId) { }
         public RabbitMQ.Client.IConnection CreateConnection(RabbitMQ.Client.ConnectionFactory factory, RabbitMQ.Client.Impl.IFrameHandler frameHandler, bool automaticRecoveryEnabled) { }
         public RabbitMQ.Client.IConnection CreateConnection(RabbitMQ.Client.IConnectionFactory factory, bool insist, RabbitMQ.Client.Impl.IFrameHandler frameHandler) { }
         public RabbitMQ.Client.IConnection CreateConnection(RabbitMQ.Client.ConnectionFactory factory, RabbitMQ.Client.Impl.IFrameHandler frameHandler, bool automaticRecoveryEnabled, string clientProvidedName) { }
         public RabbitMQ.Client.IConnection CreateConnection(RabbitMQ.Client.IConnectionFactory factory, bool insist, RabbitMQ.Client.Impl.IFrameHandler frameHandler, string clientProvidedName) { }
         public void CreateConnectionClose(ushort reasonCode, string reasonText, out RabbitMQ.Client.Impl.Command request, out int replyClassId, out int replyMethodId) { }
-=======
-        public void CreateChannelClose(ushort reasonCode, string reasonText, out RabbitMQ.Client.Impl.Command request, out ushort replyClassId, out ushort replyMethodId) { }
-        public RabbitMQ.Client.IConnection CreateConnection(RabbitMQ.Client.IConnectionFactory factory, bool insist, RabbitMQ.Client.Impl.IFrameHandler frameHandler) { }
-        public RabbitMQ.Client.IConnection CreateConnection(RabbitMQ.Client.IConnectionFactory factory, bool insist, RabbitMQ.Client.Impl.IFrameHandler frameHandler, string clientProvidedName) { }
-        public RabbitMQ.Client.IConnection CreateConnection(RabbitMQ.Client.ConnectionFactory factory, RabbitMQ.Client.Impl.IFrameHandler frameHandler, bool automaticRecoveryEnabled) { }
-        public RabbitMQ.Client.IConnection CreateConnection(RabbitMQ.Client.ConnectionFactory factory, RabbitMQ.Client.Impl.IFrameHandler frameHandler, bool automaticRecoveryEnabled, string clientProvidedName) { }
-        public void CreateConnectionClose(ushort reasonCode, string reasonText, out RabbitMQ.Client.Impl.Command request, out ushort replyClassId, out ushort replyMethodId) { }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public RabbitMQ.Client.IModel CreateModel(RabbitMQ.Client.Impl.ISession session) { }
         public RabbitMQ.Client.IModel CreateModel(RabbitMQ.Client.Impl.ISession session, RabbitMQ.Client.ConsumerWorkService workService) { }
         public abstract RabbitMQ.Client.Impl.ContentHeaderBase DecodeContentHeaderFrom(RabbitMQ.Util.NetworkBinaryReader reader);
@@ -3004,7 +2569,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public override int GetHashCode() { }
         public override string ToString() { }
     }
-<<<<<<< HEAD
     public class QueueBind : RabbitMQ.Client.Impl.MethodBase, RabbitMQ.Client.Framing.IQueueBind, RabbitMQ.Client.IMethod
     {
         public const int ClassId = 50;
@@ -3253,8 +2817,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public override void ReadArgumentsFrom(RabbitMQ.Client.Impl.MethodArgumentReader reader) { }
         public override void WriteArgumentsTo(RabbitMQ.Client.Impl.MethodArgumentWriter writer) { }
     }
-=======
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
 }
 namespace RabbitMQ.Client.Impl
 {
@@ -3265,7 +2827,6 @@ namespace RabbitMQ.Client.Impl
         ExpectingContentBody = 2,
         Complete = 3,
     }
-<<<<<<< HEAD
     public class AutorecoveringModel : RabbitMQ.Client.IModel, RabbitMQ.Client.IRecoverable, RabbitMQ.Client.Impl.IFullModel, System.IDisposable
     {
         protected RabbitMQ.Client.Framing.Impl.AutorecoveringConnection m_connection;
@@ -3413,8 +2974,6 @@ namespace RabbitMQ.Client.Impl
         public uint _Private_QueueDelete(string queue, bool ifUnused, bool ifEmpty, bool nowait) { }
         public uint _Private_QueuePurge(string queue, bool nowait) { }
     }
-=======
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     public abstract class BasicProperties : RabbitMQ.Client.Impl.ContentHeaderBase, RabbitMQ.Client.IBasicProperties, RabbitMQ.Client.IContentHeader
     {
         protected BasicProperties() { }
@@ -3463,11 +3022,8 @@ namespace RabbitMQ.Client.Impl
         public abstract bool IsTimestampPresent();
         public abstract bool IsTypePresent();
         public abstract bool IsUserIdPresent();
-<<<<<<< HEAD
         [System.Obsolete("Usage of this setter method is deprecated. Use the Persistent property instead.")]
         public void SetPersistent(bool persistent) { }
-=======
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     }
     public class BasicPublishBatch : RabbitMQ.Client.IBasicPublishBatch
     {
@@ -3477,10 +3033,6 @@ namespace RabbitMQ.Client.Impl
     public class BodySegmentOutboundFrame : RabbitMQ.Client.Impl.OutboundFrame
     {
         public BodySegmentOutboundFrame(int channel, byte[] body, int offset, int count) { }
-<<<<<<< HEAD
-=======
-        public override void WritePayload(RabbitMQ.Util.NetworkBinaryWriter writer) { }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     }
     public class ChannelErrorException : RabbitMQ.Client.Impl.HardProtocolException
     {
@@ -3490,7 +3042,6 @@ namespace RabbitMQ.Client.Impl
     }
     public class Command
     {
-<<<<<<< HEAD
         public Command() { }
         public Command(RabbitMQ.Client.Impl.MethodBase method) { }
         public Command(RabbitMQ.Client.Impl.MethodBase method, RabbitMQ.Client.Impl.ContentHeaderBase header, byte[] body) { }
@@ -3510,27 +3061,6 @@ namespace RabbitMQ.Client.Impl
         public RabbitMQ.Client.Impl.Command m_command;
         public RabbitMQ.Client.Framing.Impl.ProtocolBase m_protocol;
         public ulong m_remainingBodyBytes;
-=======
-        public Command(RabbitMQ.Client.Impl.MethodBase method) { }
-        public Command(RabbitMQ.Client.Impl.MethodBase method, RabbitMQ.Client.Impl.ContentHeaderBase header, byte[] body) { }
-        public byte[] Body { get; }
-        public RabbitMQ.Client.Impl.ContentHeaderBase Header { get; }
-        public RabbitMQ.Client.Impl.MethodBase Method { get; }
-        public static System.Collections.Generic.List<RabbitMQ.Client.Impl.OutboundFrame> CalculateFrames(int channelNumber, RabbitMQ.Client.Framing.Impl.Connection connection, System.Collections.Generic.IList<RabbitMQ.Client.Impl.Command> commands) { }
-        public static void CheckEmptyFrameSize() { }
-        public void Transmit(int channelNumber, RabbitMQ.Client.Framing.Impl.Connection connection) { }
-        public void TransmitAsFrameSet(int channelNumber, RabbitMQ.Client.Framing.Impl.Connection connection) { }
-        public void TransmitAsSingleFrame(int channelNumber, RabbitMQ.Client.Framing.Impl.Connection connection) { }
-    }
-    public class CommandAssembler
-    {
-        public byte[] m_body;
-        public System.IO.MemoryStream m_bodyStream;
-        public RabbitMQ.Client.Impl.ContentHeaderBase m_header;
-        public RabbitMQ.Client.Impl.MethodBase m_method;
-        public RabbitMQ.Client.Framing.Impl.ProtocolBase m_protocol;
-        public int m_remainingBodyBytes;
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public RabbitMQ.Client.Impl.AssemblyState m_state;
         public CommandAssembler(RabbitMQ.Client.Framing.Impl.ProtocolBase protocol) { }
         public RabbitMQ.Client.Impl.Command HandleFrame(RabbitMQ.Client.Impl.InboundFrame f) { }
@@ -3559,11 +3089,7 @@ namespace RabbitMQ.Client.Impl
     public abstract class ContentHeaderBase : RabbitMQ.Client.IContentHeader
     {
         protected ContentHeaderBase() { }
-<<<<<<< HEAD
         public abstract int ProtocolClassId { get; }
-=======
-        public abstract ushort ProtocolClassId { get; }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public abstract string ProtocolClassName { get; }
         public abstract void AppendPropertyDebugStringTo(System.Text.StringBuilder stringBuilder);
         public virtual object Clone() { }
@@ -3613,15 +3139,9 @@ namespace RabbitMQ.Client.Impl
     public class EmptyOutboundFrame : RabbitMQ.Client.Impl.OutboundFrame
     {
         public EmptyOutboundFrame() { }
-<<<<<<< HEAD
         public override string ToString() { }
     }
     public static class ExtensionMethods
-=======
-        public override void WritePayload(RabbitMQ.Util.NetworkBinaryWriter writer) { }
-    }
-    public class static ExtensionMethods
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     {
         public static T RandomItem<T>(this System.Collections.Generic.IList<T> list) { }
     }
@@ -3654,10 +3174,6 @@ namespace RabbitMQ.Client.Impl
     public class HeaderOutboundFrame : RabbitMQ.Client.Impl.OutboundFrame
     {
         public HeaderOutboundFrame(int channel, RabbitMQ.Client.Impl.ContentHeaderBase header, int bodyLength) { }
-<<<<<<< HEAD
-=======
-        public override void WritePayload(RabbitMQ.Util.NetworkBinaryWriter writer) { }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     }
     public interface IConsumerDispatcher
     {
@@ -3693,7 +3209,6 @@ namespace RabbitMQ.Client.Impl
         void HandleBasicCancel(string consumerTag, bool nowait);
         void HandleBasicCancelOk(string consumerTag);
         void HandleBasicConsumeOk(string consumerTag);
-<<<<<<< HEAD
         void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, [RabbitMQ.Client.Apigen.Attributes.AmqpContentHeaderMapping] RabbitMQ.Client.IBasicProperties basicProperties, [RabbitMQ.Client.Apigen.Attributes.AmqpContentBodyMapping] byte[] body);
         void HandleBasicGetEmpty();
         void HandleBasicGetOk(ulong deliveryTag, bool redelivered, string exchange, string routingKey, uint messageCount, [RabbitMQ.Client.Apigen.Attributes.AmqpContentHeaderMapping] RabbitMQ.Client.IBasicProperties basicProperties, [RabbitMQ.Client.Apigen.Attributes.AmqpContentBodyMapping] byte[] body);
@@ -3707,27 +3222,11 @@ namespace RabbitMQ.Client.Impl
         void HandleConnectionBlocked(string reason);
         void HandleConnectionClose(ushort replyCode, string replyText, ushort classId, ushort methodId);
         void HandleConnectionOpenOk([RabbitMQ.Client.Apigen.Attributes.AmqpFieldMapping("RabbitMQ.Client.Framing", "reserved1")] string knownHosts);
-=======
-        void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, [RabbitMQ.Client.Apigen.Attributes.AmqpContentHeaderMappingAttribute()] RabbitMQ.Client.IBasicProperties basicProperties, [RabbitMQ.Client.Apigen.Attributes.AmqpContentBodyMappingAttribute()] byte[] body);
-        void HandleBasicGetEmpty();
-        void HandleBasicGetOk(ulong deliveryTag, bool redelivered, string exchange, string routingKey, uint messageCount, [RabbitMQ.Client.Apigen.Attributes.AmqpContentHeaderMappingAttribute()] RabbitMQ.Client.IBasicProperties basicProperties, [RabbitMQ.Client.Apigen.Attributes.AmqpContentBodyMappingAttribute()] byte[] body);
-        void HandleBasicNack(ulong deliveryTag, bool multiple, bool requeue);
-        void HandleBasicRecoverOk();
-        void HandleBasicReturn(ushort replyCode, string replyText, string exchange, string routingKey, [RabbitMQ.Client.Apigen.Attributes.AmqpContentHeaderMappingAttribute()] RabbitMQ.Client.IBasicProperties basicProperties, [RabbitMQ.Client.Apigen.Attributes.AmqpContentBodyMappingAttribute()] byte[] body);
-        void HandleChannelClose(ushort replyCode, string replyText, ushort classId, ushort methodId);
-        void HandleChannelCloseOk();
-        void HandleChannelFlow(bool active);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodMappingAttribute(null, "connection", "blocked")]
-        void HandleConnectionBlocked(string reason);
-        void HandleConnectionClose(ushort replyCode, string replyText, ushort classId, ushort methodId);
-        void HandleConnectionOpenOk([RabbitMQ.Client.Apigen.Attributes.AmqpFieldMappingAttribute("RabbitMQ.Client.Framing", "reserved1")] string knownHosts);
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         void HandleConnectionSecure(byte[] challenge);
         void HandleConnectionStart(byte versionMajor, byte versionMinor, System.Collections.Generic.IDictionary<string, object> serverProperties, byte[] mechanisms, byte[] locales);
         void HandleConnectionTune(ushort channelMax, uint frameMax, ushort heartbeat);
         void HandleConnectionUnblocked();
         void HandleQueueDeclareOk(string queue, uint messageCount, uint consumerCount);
-<<<<<<< HEAD
         [RabbitMQ.Client.Apigen.Attributes.AmqpForceOneWay]
         [RabbitMQ.Client.Apigen.Attributes.AmqpMethodMapping(null, "basic", "cancel")]
         void _Private_BasicCancel(string consumerTag, bool nowait);
@@ -3785,65 +3284,6 @@ namespace RabbitMQ.Client.Impl
         [RabbitMQ.Client.Apigen.Attributes.AmqpMethodMapping(null, "queue", "purge")]
         [return: RabbitMQ.Client.Apigen.Attributes.AmqpFieldMapping(null, "messageCount")]
         uint _Private_QueuePurge(string queue, [RabbitMQ.Client.Apigen.Attributes.AmqpNowaitArgument(null, "0xFFFFFFFF")] bool nowait);
-=======
-        [RabbitMQ.Client.Apigen.Attributes.AmqpForceOneWayAttribute()]
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodMappingAttribute(null, "basic", "cancel")]
-        void _Private_BasicCancel(string consumerTag, bool nowait);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpForceOneWayAttribute()]
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodMappingAttribute(null, "basic", "consume")]
-        void _Private_BasicConsume(string queue, string consumerTag, bool noLocal, [RabbitMQ.Client.Apigen.Attributes.AmqpFieldMappingAttribute(null, "noAck")] bool autoAck, bool exclusive, bool nowait, System.Collections.Generic.IDictionary<string, object> arguments);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpForceOneWayAttribute()]
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodMappingAttribute(null, "basic", "get")]
-        void _Private_BasicGet(string queue, [RabbitMQ.Client.Apigen.Attributes.AmqpFieldMappingAttribute(null, "noAck")] bool autoAck);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodMappingAttribute(null, "basic", "publish")]
-        void _Private_BasicPublish(string exchange, string routingKey, bool mandatory, [RabbitMQ.Client.Apigen.Attributes.AmqpContentHeaderMappingAttribute()] RabbitMQ.Client.IBasicProperties basicProperties, [RabbitMQ.Client.Apigen.Attributes.AmqpContentBodyMappingAttribute()] byte[] body);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpForceOneWayAttribute()]
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodMappingAttribute(null, "basic", "recover")]
-        void _Private_BasicRecover(bool requeue);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpForceOneWayAttribute()]
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodMappingAttribute(null, "channel", "close")]
-        void _Private_ChannelClose(ushort replyCode, string replyText, ushort classId, ushort methodId);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodMappingAttribute(null, "channel", "close-ok")]
-        void _Private_ChannelCloseOk();
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodMappingAttribute(null, "channel", "flow-ok")]
-        void _Private_ChannelFlowOk(bool active);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodMappingAttribute(null, "channel", "open")]
-        void _Private_ChannelOpen([RabbitMQ.Client.Apigen.Attributes.AmqpFieldMappingAttribute("RabbitMQ.Client.Framing", "reserved1")] string outOfBand);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodMappingAttribute(null, "confirm", "select")]
-        void _Private_ConfirmSelect([RabbitMQ.Client.Apigen.Attributes.AmqpNowaitArgumentAttribute(null)] bool nowait);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodMappingAttribute(null, "connection", "close")]
-        void _Private_ConnectionClose(ushort replyCode, string replyText, ushort classId, ushort methodId);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodMappingAttribute(null, "connection", "close-ok")]
-        void _Private_ConnectionCloseOk();
-        [RabbitMQ.Client.Apigen.Attributes.AmqpForceOneWayAttribute()]
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodMappingAttribute(null, "connection", "open")]
-        void _Private_ConnectionOpen(string virtualHost, [RabbitMQ.Client.Apigen.Attributes.AmqpFieldMappingAttribute("RabbitMQ.Client.Framing", "reserved1")] string capabilities, [RabbitMQ.Client.Apigen.Attributes.AmqpFieldMappingAttribute("RabbitMQ.Client.Framing", "reserved2")] bool insist);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpForceOneWayAttribute()]
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodMappingAttribute(null, "connection", "secure-ok")]
-        void _Private_ConnectionSecureOk(byte[] response);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpForceOneWayAttribute()]
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodMappingAttribute(null, "connection", "start-ok")]
-        void _Private_ConnectionStartOk(System.Collections.Generic.IDictionary<string, object> clientProperties, string mechanism, byte[] response, string locale);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodMappingAttribute(null, "exchange", "bind")]
-        void _Private_ExchangeBind(string destination, string source, string routingKey, [RabbitMQ.Client.Apigen.Attributes.AmqpNowaitArgumentAttribute(null)] bool nowait, System.Collections.Generic.IDictionary<string, object> arguments);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodMappingAttribute(null, "exchange", "declare")]
-        void _Private_ExchangeDeclare(string exchange, string type, bool passive, bool durable, bool autoDelete, bool @internal, [RabbitMQ.Client.Apigen.Attributes.AmqpNowaitArgumentAttribute(null)] bool nowait, System.Collections.Generic.IDictionary<string, object> arguments);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodMappingAttribute(null, "exchange", "delete")]
-        void _Private_ExchangeDelete(string exchange, bool ifUnused, [RabbitMQ.Client.Apigen.Attributes.AmqpNowaitArgumentAttribute(null)] bool nowait);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodMappingAttribute(null, "exchange", "unbind")]
-        void _Private_ExchangeUnbind(string destination, string source, string routingKey, [RabbitMQ.Client.Apigen.Attributes.AmqpNowaitArgumentAttribute(null)] bool nowait, System.Collections.Generic.IDictionary<string, object> arguments);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodMappingAttribute(null, "queue", "bind")]
-        void _Private_QueueBind(string queue, string exchange, string routingKey, [RabbitMQ.Client.Apigen.Attributes.AmqpNowaitArgumentAttribute(null)] bool nowait, System.Collections.Generic.IDictionary<string, object> arguments);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpForceOneWayAttribute()]
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodMappingAttribute(null, "queue", "declare")]
-        void _Private_QueueDeclare(string queue, bool passive, bool durable, bool exclusive, bool autoDelete, [RabbitMQ.Client.Apigen.Attributes.AmqpNowaitArgumentAttribute(null)] bool nowait, System.Collections.Generic.IDictionary<string, object> arguments);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodMappingAttribute(null, "queue", "delete")]
-        [return: RabbitMQ.Client.Apigen.Attributes.AmqpFieldMappingAttribute(null, "messageCount")]
-        uint _Private_QueueDelete(string queue, bool ifUnused, bool ifEmpty, [RabbitMQ.Client.Apigen.Attributes.AmqpNowaitArgumentAttribute(null, "0xFFFFFFFF")] bool nowait);
-        [RabbitMQ.Client.Apigen.Attributes.AmqpMethodMappingAttribute(null, "queue", "purge")]
-        [return: RabbitMQ.Client.Apigen.Attributes.AmqpFieldMappingAttribute(null, "messageCount")]
-        uint _Private_QueuePurge(string queue, [RabbitMQ.Client.Apigen.Attributes.AmqpNowaitArgumentAttribute(null, "0xFFFFFFFF")] bool nowait);
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     }
     public interface IRpcContinuation
     {
@@ -3857,11 +3297,7 @@ namespace RabbitMQ.Client.Impl
         System.Action<RabbitMQ.Client.Impl.ISession, RabbitMQ.Client.Impl.Command> CommandReceived { get; set; }
         RabbitMQ.Client.IConnection Connection { get; }
         bool IsOpen { get; }
-<<<<<<< HEAD
         event System.EventHandler<RabbitMQ.Client.ShutdownEventArgs> SessionShutdown;
-=======
-        public event System.EventHandler<RabbitMQ.Client.ShutdownEventArgs> SessionShutdown;
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         void Close(RabbitMQ.Client.ShutdownEventArgs reason);
         void Close(RabbitMQ.Client.ShutdownEventArgs reason, bool notify);
         void HandleFrame(RabbitMQ.Client.Impl.InboundFrame frame);
@@ -3872,23 +3308,17 @@ namespace RabbitMQ.Client.Impl
     public class InboundFrame : RabbitMQ.Client.Impl.Frame
     {
         public RabbitMQ.Util.NetworkBinaryReader GetReader() { }
-<<<<<<< HEAD
         public override string ToString() { }
-=======
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public static RabbitMQ.Client.Impl.InboundFrame ReadFrom(RabbitMQ.Util.NetworkBinaryReader reader) { }
     }
     public class MainSession : RabbitMQ.Client.Impl.Session
     {
-<<<<<<< HEAD
         public int m_closeClassId;
         public int m_closeMethodId;
         public int m_closeOkClassId;
         public int m_closeOkMethodId;
         public bool m_closeServerInitiated;
         public bool m_closing;
-=======
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public MainSession(RabbitMQ.Client.Framing.Impl.Connection connection) { }
         public System.Action Handler { get; set; }
         public override void HandleFrame(RabbitMQ.Client.Impl.InboundFrame frame) { }
@@ -3928,26 +3358,16 @@ namespace RabbitMQ.Client.Impl
         public void WriteOctet(byte val) { }
         public void WriteShort(ushort val) { }
         public void WriteShortstr(string val) { }
-<<<<<<< HEAD
         public void WriteTable(System.Collections.Generic.IDictionary<string, object> val) { }
         public void WriteTable(System.Collections.IDictionary val) { }
-=======
-        public void WriteTable(System.Collections.IDictionary val) { }
-        public void WriteTable(System.Collections.Generic.IDictionary<string, object> val) { }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public void WriteTimestamp(RabbitMQ.Client.AmqpTimestamp val) { }
     }
     public abstract class MethodBase : RabbitMQ.Client.IMethod
     {
         protected MethodBase() { }
         public abstract bool HasContent { get; }
-<<<<<<< HEAD
         public abstract int ProtocolClassId { get; }
         public abstract int ProtocolMethodId { get; }
-=======
-        public abstract ushort ProtocolClassId { get; }
-        public abstract ushort ProtocolMethodId { get; }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public abstract string ProtocolMethodName { get; }
         public abstract void AppendArgumentDebugStringTo(System.Text.StringBuilder stringBuilder);
         public abstract void ReadArgumentsFrom(RabbitMQ.Client.Impl.MethodArgumentReader reader);
@@ -3956,18 +3376,10 @@ namespace RabbitMQ.Client.Impl
     public class MethodOutboundFrame : RabbitMQ.Client.Impl.OutboundFrame
     {
         public MethodOutboundFrame(int channel, RabbitMQ.Client.Impl.MethodBase method) { }
-<<<<<<< HEAD
     }
     public abstract class ModelBase : RabbitMQ.Client.IModel, RabbitMQ.Client.IRecoverable, RabbitMQ.Client.Impl.IFullModel, System.IDisposable
     {
         public RabbitMQ.Util.BlockingCell m_connectionStartCell;
-=======
-        public override void WritePayload(RabbitMQ.Util.NetworkBinaryWriter writer) { }
-    }
-    public abstract class ModelBase : RabbitMQ.Client.IModel, RabbitMQ.Client.IRecoverable, RabbitMQ.Client.Impl.IFullModel, System.IDisposable
-    {
-        public RabbitMQ.Util.BlockingCell<RabbitMQ.Client.Impl.ConnectionStartDetails> m_connectionStartCell;
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public readonly System.Collections.Generic.IDictionary<string, RabbitMQ.Client.IBasicConsumer> m_consumers;
         public ModelBase(RabbitMQ.Client.Impl.ISession session) { }
         public ModelBase(RabbitMQ.Client.Impl.ISession session, RabbitMQ.Client.ConsumerWorkService workService) { }
@@ -4002,17 +3414,10 @@ namespace RabbitMQ.Client.Impl
         public abstract void BasicRecoverAsync(bool requeue);
         public abstract void BasicReject(ulong deliveryTag, bool requeue);
         protected void BroadcastShutdownToConsumers(System.Collections.Generic.IDictionary<string, RabbitMQ.Client.IBasicConsumer> cs, RabbitMQ.Client.ShutdownEventArgs reason) { }
-<<<<<<< HEAD
         public void Close() { }
         public void Close(RabbitMQ.Client.ShutdownEventArgs reason, bool abort) { }
         public void Close(ushort replyCode, string replyText) { }
         public void Close(ushort replyCode, string replyText, bool abort) { }
-=======
-        public void Close(ushort replyCode, string replyText, bool abort) { }
-        public void Close(RabbitMQ.Client.ShutdownEventArgs reason, bool abort) { }
-        public void Close() { }
-        public void Close(ushort replyCode, string replyText) { }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public void ConfirmSelect() { }
         public string ConnectionOpen(string virtualHost, string capabilities, bool insist) { }
         public RabbitMQ.Client.Impl.ConnectionSecureOrTune ConnectionSecureOk(byte[] response) { }
@@ -4022,10 +3427,6 @@ namespace RabbitMQ.Client.Impl
         public abstract RabbitMQ.Client.IBasicProperties CreateBasicProperties();
         public RabbitMQ.Client.IBasicPublishBatch CreateBasicPublishBatch() { }
         public abstract bool DispatchAsynchronous(RabbitMQ.Client.Impl.Command cmd);
-<<<<<<< HEAD
-=======
-        protected virtual void Dispose(bool disposing) { }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public void Enqueue(RabbitMQ.Client.Impl.IRpcContinuation k) { }
         public void ExchangeBind(string destination, string source, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments) { }
         public void ExchangeBindNoWait(string destination, string source, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments) { }
@@ -4086,15 +3487,9 @@ namespace RabbitMQ.Client.Impl
         public abstract void TxCommit();
         public abstract void TxRollback();
         public abstract void TxSelect();
-<<<<<<< HEAD
         public bool WaitForConfirms() { }
         public bool WaitForConfirms(System.TimeSpan timeout) { }
         public bool WaitForConfirms(System.TimeSpan timeout, out bool timedOut) { }
-=======
-        public bool WaitForConfirms(System.TimeSpan timeout, out bool timedOut) { }
-        public bool WaitForConfirms() { }
-        public bool WaitForConfirms(System.TimeSpan timeout) { }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public void WaitForConfirmsOrDie() { }
         public void WaitForConfirmsOrDie(System.TimeSpan timeout) { }
         public abstract void _Private_BasicCancel(string consumerTag, bool nowait);
@@ -4150,18 +3545,11 @@ namespace RabbitMQ.Client.Impl
             public QueueDeclareRpcContinuation() { }
         }
     }
-<<<<<<< HEAD
     public class OutboundFrame : RabbitMQ.Client.Impl.Frame
     {
         public OutboundFrame(RabbitMQ.Client.Impl.FrameType type, int channel) { }
         public RabbitMQ.Util.NetworkBinaryWriter GetWriter() { }
         public override string ToString() { }
-=======
-    public abstract class OutboundFrame : RabbitMQ.Client.Impl.Frame
-    {
-        public OutboundFrame(RabbitMQ.Client.Impl.FrameType type, int channel) { }
-        public abstract void WritePayload(RabbitMQ.Util.NetworkBinaryWriter writer);
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public void WriteTo(RabbitMQ.Util.NetworkBinaryWriter writer) { }
     }
     public abstract class ProtocolException : RabbitMQ.Client.Exceptions.RabbitMQClientException
@@ -4177,7 +3565,6 @@ namespace RabbitMQ.Client.Impl
         protected RabbitMQ.Client.Impl.Command CreateChannelCloseOk() { }
         public override void HandleFrame(RabbitMQ.Client.Impl.InboundFrame frame) { }
     }
-<<<<<<< HEAD
     public abstract class RecordedBinding : RabbitMQ.Client.Impl.RecordedEntity
     {
         public RecordedBinding(RabbitMQ.Client.Impl.AutorecoveringModel model) { }
@@ -4277,10 +3664,6 @@ namespace RabbitMQ.Client.Impl
     public class RpcContinuationQueue
     {
         public RabbitMQ.Client.Impl.IRpcContinuation m_outstandingRpc;
-=======
-    public class RpcContinuationQueue
-    {
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public RpcContinuationQueue() { }
         public void Enqueue(RabbitMQ.Client.Impl.IRpcContinuation k) { }
         public void HandleModelShutdown(RabbitMQ.Client.ShutdownEventArgs reason) { }
@@ -4288,10 +3671,7 @@ namespace RabbitMQ.Client.Impl
     }
     public class Session : RabbitMQ.Client.Impl.SessionBase
     {
-<<<<<<< HEAD
         public RabbitMQ.Client.Impl.CommandAssembler m_assembler;
-=======
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public Session(RabbitMQ.Client.Framing.Impl.Connection connection, int channelNumber) { }
         public override void HandleFrame(RabbitMQ.Client.Impl.InboundFrame frame) { }
     }
@@ -4319,11 +3699,7 @@ namespace RabbitMQ.Client.Impl
     {
         public readonly ushort ChannelMax;
         public SessionManager(RabbitMQ.Client.Framing.Impl.Connection connection, ushort channelMax) { }
-<<<<<<< HEAD
         [System.Obsolete("Please explicitly close connections instead.")]
-=======
-        [System.ObsoleteAttribute("Please explicitly close connections instead.")]
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public bool AutoClose { get; set; }
         public int Count { get; }
         public void AutoCloseConnection() { }
@@ -4337,11 +3713,7 @@ namespace RabbitMQ.Client.Impl
     }
     public class ShutdownContinuation
     {
-<<<<<<< HEAD
         public readonly RabbitMQ.Util.BlockingCell m_cell;
-=======
-        public readonly RabbitMQ.Util.BlockingCell<RabbitMQ.Client.ShutdownEventArgs> m_cell;
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public ShutdownContinuation() { }
         public virtual void OnConnectionShutdown(object sender, RabbitMQ.Client.ShutdownEventArgs reason) { }
         public virtual void OnModelShutdown(RabbitMQ.Client.IModel sender, RabbitMQ.Client.ShutdownEventArgs reason) { }
@@ -4350,11 +3722,7 @@ namespace RabbitMQ.Client.Impl
     }
     public class SimpleBlockingRpcContinuation : RabbitMQ.Client.Impl.IRpcContinuation
     {
-<<<<<<< HEAD
         public readonly RabbitMQ.Util.BlockingCell m_cell;
-=======
-        public readonly RabbitMQ.Util.BlockingCell<RabbitMQ.Util.Either<RabbitMQ.Client.Impl.Command, RabbitMQ.Client.ShutdownEventArgs>> m_cell;
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public SimpleBlockingRpcContinuation() { }
         public virtual RabbitMQ.Client.Impl.Command GetReply() { }
         public virtual RabbitMQ.Client.Impl.Command GetReply(System.TimeSpan timeout) { }
@@ -4447,28 +3815,18 @@ namespace RabbitMQ.Client.Impl
         public static void WriteOctet(RabbitMQ.Util.NetworkBinaryWriter writer, byte val) { }
         public static void WriteShort(RabbitMQ.Util.NetworkBinaryWriter writer, ushort val) { }
         public static void WriteShortstr(RabbitMQ.Util.NetworkBinaryWriter writer, string val) { }
-<<<<<<< HEAD
         public static void WriteTable(RabbitMQ.Util.NetworkBinaryWriter writer, System.Collections.Generic.IDictionary<string, object> val) { }
         public static void WriteTable(RabbitMQ.Util.NetworkBinaryWriter writer, System.Collections.IDictionary val) { }
-=======
-        public static void WriteTable(RabbitMQ.Util.NetworkBinaryWriter writer, System.Collections.IDictionary val) { }
-        public static void WriteTable(RabbitMQ.Util.NetworkBinaryWriter writer, System.Collections.Generic.IDictionary<string, object> val) { }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public static void WriteTimestamp(RabbitMQ.Util.NetworkBinaryWriter writer, RabbitMQ.Client.AmqpTimestamp val) { }
     }
 }
 namespace RabbitMQ.Client.Logging
 {
-<<<<<<< HEAD
     [System.Diagnostics.Tracing.EventSource(Name="rabbitmq-dotnet-client")]
-=======
-    [System.Diagnostics.Tracing.EventSourceAttribute(Name="rabbitmq-dotnet-client")]
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     public sealed class RabbitMqClientEventSource : System.Diagnostics.Tracing.EventSource
     {
         public static RabbitMQ.Client.Logging.RabbitMqClientEventSource Log;
         public RabbitMqClientEventSource() { }
-<<<<<<< HEAD
         [System.Diagnostics.Tracing.Event(3, Keywords=System.Diagnostics.Tracing.EventKeywords.None | System.Diagnostics.Tracing.EventKeywords.All, Level=System.Diagnostics.Tracing.EventLevel.Error, Message="ERROR")]
         public void Error(string message, RabbitMQ.Client.Logging.RabbitMqExceptionDetail ex) { }
         [System.Diagnostics.Tracing.NonEvent]
@@ -4476,15 +3834,6 @@ namespace RabbitMQ.Client.Logging
         [System.Diagnostics.Tracing.Event(1, Keywords=System.Diagnostics.Tracing.EventKeywords.None | System.Diagnostics.Tracing.EventKeywords.All, Level=System.Diagnostics.Tracing.EventLevel.Informational, Message="INFO")]
         public void Info(string message) { }
         [System.Diagnostics.Tracing.Event(2, Keywords=System.Diagnostics.Tracing.EventKeywords.None | System.Diagnostics.Tracing.EventKeywords.All, Level=System.Diagnostics.Tracing.EventLevel.Warning, Message="WARN")]
-=======
-        [System.Diagnostics.Tracing.EventAttribute(3, Keywords=System.Diagnostics.Tracing.EventKeywords.None | System.Diagnostics.Tracing.EventKeywords.All, Level=System.Diagnostics.Tracing.EventLevel.Error, Message="ERROR")]
-        public void Error(string message, RabbitMQ.Client.Logging.RabbitMqExceptionDetail ex) { }
-        [System.Diagnostics.Tracing.NonEventAttribute()]
-        public void Error(string message, System.Exception ex) { }
-        [System.Diagnostics.Tracing.EventAttribute(1, Keywords=System.Diagnostics.Tracing.EventKeywords.None | System.Diagnostics.Tracing.EventKeywords.All, Level=System.Diagnostics.Tracing.EventLevel.Informational, Message="INFO")]
-        public void Info(string message) { }
-        [System.Diagnostics.Tracing.EventAttribute(2, Keywords=System.Diagnostics.Tracing.EventKeywords.None | System.Diagnostics.Tracing.EventKeywords.All, Level=System.Diagnostics.Tracing.EventLevel.Warning, Message="WARN")]
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public void Warn(string message) { }
         public class Keywords
         {
@@ -4498,19 +3847,11 @@ namespace RabbitMQ.Client.Logging
         public override void Dispose() { }
         protected override void OnEventWritten(System.Diagnostics.Tracing.EventWrittenEventArgs eventData) { }
     }
-<<<<<<< HEAD
     [System.Diagnostics.Tracing.EventData]
     public class RabbitMqExceptionDetail
     {
         public RabbitMqExceptionDetail(System.Collections.Generic.IDictionary<string, object> ex) { }
         public RabbitMqExceptionDetail(System.Exception ex) { }
-=======
-    [System.Diagnostics.Tracing.EventDataAttribute()]
-    public class RabbitMqExceptionDetail
-    {
-        public RabbitMqExceptionDetail(System.Exception ex) { }
-        public RabbitMqExceptionDetail(System.Collections.Generic.IDictionary<string, object> ex) { }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
         public string InnerException { get; }
         public string Message { get; }
         public string StackTrace { get; }
@@ -4518,7 +3859,6 @@ namespace RabbitMQ.Client.Logging
         public override string ToString() { }
     }
 }
-<<<<<<< HEAD
 namespace RabbitMQ.Client.MessagePatterns
 {
     [System.Obsolete("Messaging patterns are no longer recommended for use and will be removed.")]
@@ -4615,28 +3955,12 @@ namespace RabbitMQ.Util
         public static int validatedTimeout(int timeout) { }
     }
     public static class DebugUtil
-=======
-namespace RabbitMQ.Util
-{
-    public class BlockingCell<T>
-    {
-        public System.EventHandler<T> ContinueUsingValue;
-        public BlockingCell() { }
-        public void ContinueWithValue(T value) { }
-        public T WaitForValue(System.TimeSpan timeout) { }
-        public T WaitForValue(int timeout) { }
-        public T WaitForValue() { }
-        public static int validatedTimeout(int timeout) { }
-    }
-    public class static DebugUtil
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     {
         public static void Dump(byte[] bytes) { }
         public static void Dump(byte[] bytes, System.IO.TextWriter writer) { }
         public static void DumpKeyValue(string key, object value, System.IO.TextWriter writer, int indent) { }
         public static void DumpProperties(object value, System.IO.TextWriter writer, int indent) { }
     }
-<<<<<<< HEAD
     public class Either
     {
         public RabbitMQ.Util.EitherAlternative Alternative { get; }
@@ -4644,24 +3968,11 @@ namespace RabbitMQ.Util
         public static RabbitMQ.Util.Either Left(object value) { }
         public static RabbitMQ.Util.Either Right(object value) { }
     }
-=======
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     public enum EitherAlternative
     {
         Left = 0,
         Right = 1,
     }
-<<<<<<< HEAD
-=======
-    public class Either<L, R>
-    {
-        public RabbitMQ.Util.EitherAlternative Alternative { get; }
-        public L LeftValue { get; }
-        public R RightValue { get; }
-        public static RabbitMQ.Util.Either<L, R> Left(L value) { }
-        public static RabbitMQ.Util.Either<L, R> Right(R value) { }
-    }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     public class IntAllocator
     {
         public IntAllocator(int start, int end) { }
@@ -4696,7 +4007,6 @@ namespace RabbitMQ.Util
     {
         public NetworkBinaryWriter(System.IO.Stream output) { }
         public NetworkBinaryWriter(System.IO.Stream output, System.Text.Encoding encoding) { }
-<<<<<<< HEAD
         public override void Write(double d) { }
         public override void Write(short i) { }
         public override void Write(int i) { }
@@ -4707,18 +4017,6 @@ namespace RabbitMQ.Util
         public override void Write(ulong i) { }
         public static System.IO.BinaryWriter TemporaryBinaryWriter(int initialSize) { }
         public static byte[] TemporaryContents(System.IO.BinaryWriter w) { }
-=======
-        public static System.IO.BinaryWriter TemporaryBinaryWriter(int initialSize) { }
-        public static byte[] TemporaryContents(System.IO.BinaryWriter w) { }
-        public override void Write(short i) { }
-        public override void Write(ushort i) { }
-        public override void Write(int i) { }
-        public override void Write(uint i) { }
-        public override void Write(long i) { }
-        public override void Write(ulong i) { }
-        public override void Write(float f) { }
-        public override void Write(double d) { }
->>>>>>> ad203063... Merge pull request #710 from rabbitmq/lrb-master-backport-5.x
     }
     public class SetQueue<T>
     {
