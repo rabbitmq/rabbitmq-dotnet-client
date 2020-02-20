@@ -116,26 +116,43 @@ namespace RabbitMQ.Client.Impl
 
         public static object ReadFieldValue(NetworkBinaryReader reader)
         {
-            return ((char)reader.ReadByte()) switch
+            switch((char)reader.ReadByte())
             {
-                'S' => ReadLongstr(reader),
-                'I' => reader.ReadInt32(),
-                'i' => reader.ReadUInt32(),
-                'D' => ReadDecimal(reader),
-                'T' => ReadTimestamp(reader),
-                'F' => ReadTable(reader),
-                'A' => ReadArray(reader),
-                'B' => reader.ReadByte(),
-                'b' => reader.ReadSByte(),
-                'd' => reader.ReadDouble(),
-                'f' => reader.ReadSingle(),
-                'l' => reader.ReadInt64(),
-                's' => reader.ReadInt16(),
-                't' => (ReadOctet(reader) != 0),
-                'x' => new BinaryTableValue(ReadLongstr(reader)),
-                'V' => null,
-                _ => throw new SyntaxError($"Unrecognised type in table: {(char)reader.ReadByte()}"),
-            };
+                case 'S':
+                    return ReadLongstr(reader);
+                case 'I':
+                    return reader.ReadInt32();
+                case 'i':
+                    return reader.ReadUInt32();
+                case 'D':
+                    return ReadDecimal(reader);
+                case 'T':
+                    return ReadTimestamp(reader);
+                case 'F':
+                    return ReadTable(reader);
+                case 'A':
+                    return ReadArray(reader);
+                case 'B':
+                    return reader.ReadByte();
+                case 'b':
+                    return reader.ReadSByte();
+                case 'd':
+                    return reader.ReadDouble();
+                case 'f':
+                    return reader.ReadSingle();
+                case 'l':
+                    return reader.ReadInt64();
+                case 's':
+                    return reader.ReadInt16();
+                case 't':
+                    return ReadOctet(reader) != 0;
+                case 'x':
+                    return new BinaryTableValue(ReadLongstr(reader));
+                case 'V':
+                    return null;
+                default:
+                    throw new SyntaxError($"Unrecognised type in table: {(char)reader.ReadByte()}");
+            }
         }
 
         public static uint ReadLong(NetworkBinaryReader reader)
