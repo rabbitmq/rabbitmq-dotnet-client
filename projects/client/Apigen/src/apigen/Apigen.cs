@@ -723,7 +723,7 @@ $@"namespace {ApiNamespaceBase}
         {
             EmitLine($"namespace {ImplNamespaceBase}");
             EmitLine("{");
-            EmitLine("  internal static class ClassId");
+            EmitLine("  internal static class ClassConstants");
             EmitLine("  {");
             foreach (AmqpClass c in m_classes)
             {
@@ -731,9 +731,18 @@ $@"namespace {ApiNamespaceBase}
             }
             EmitLine("  }");
             EmitLine("");
+            EmitLine("  public enum ClassId");
+            EmitLine("  {");
             foreach (AmqpClass c in m_classes)
             {
-                EmitLine($"  internal static class {MangleClass(c.Name)}MethodId");
+                EmitLine($"      {MangleConstant(c.Name)} = {c.Index},");
+            }
+            EmitLine("    Invalid = -1,");
+            EmitLine("  }");
+            EmitLine("");
+            foreach (AmqpClass c in m_classes)
+            {
+                EmitLine($"  internal static class {MangleClass(c.Name)}MethodConstants");
                 EmitLine("  {");
                 foreach (AmqpMethod m in c.m_Methods)
                 {
@@ -781,8 +790,8 @@ $@"namespace {ApiNamespaceBase}
                 }
                 EmitLine("    }");
                 EmitLine("");
-                EmitLine($"    public override ushort ProtocolClassId => ClassId.{MangleConstant(c.Name)};");
-                EmitLine($"    public override ushort ProtocolMethodId => {MangleConstant(c.Name)}MethodId.{MangleConstant(m.Name)};");
+                EmitLine($"    public override ushort ProtocolClassId => ClassConstants.{MangleConstant(c.Name)};");
+                EmitLine($"    public override ushort ProtocolMethodId => {MangleConstant(c.Name)}MethodConstants.{MangleConstant(m.Name)};");
                 EmitLine($"    public override string ProtocolMethodName => \"{c.Name}.{m.Name}\";");
                 EmitLine($"    public override bool HasContent => {(m.HasContent ? "true" : "false")};");
                 EmitLine("");
@@ -841,7 +850,7 @@ $@"namespace {ApiNamespaceBase}
             {
                 foreach (AmqpMethod m in c.m_Methods)
                 {
-                    EmitLine($"        case (ClassId.{MangleConstant(c.Name)} << 16) | {MangleConstant(c.Name)}MethodId.{MangleConstant(m.Name)}:");
+                    EmitLine($"        case (ClassConstants.{MangleConstant(c.Name)} << 16) | {MangleConstant(c.Name)}MethodConstants.{MangleConstant(m.Name)}:");
                     EmitLine("        {");
                     EmitLine($"          result = new Impl.{MangleMethodClass(c, m)}();");
                     EmitLine($"          break;");
@@ -1309,7 +1318,7 @@ $@"namespace {ApiNamespaceBase}
 
                 string implClass = MangleMethodClass(amqpClass, amqpMethod);
 
-                EmitLine($"        case (ClassId.{MangleConstant(amqpClass.Name)} << 16) | {MangleClass(amqpClass.Name)}MethodId.{MangleConstant(amqpMethod.Name)}: ");
+                EmitLine($"        case (ClassConstants.{MangleConstant(amqpClass.Name)} << 16) | {MangleClass(amqpClass.Name)}MethodConstants.{MangleConstant(amqpMethod.Name)}: ");
                 EmitLine("        {");
                 ParameterInfo[] parameters = method.GetParameters();
                 if (parameters.Length > 0)

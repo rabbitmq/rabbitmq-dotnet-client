@@ -60,16 +60,16 @@ namespace RabbitMQ.Client.Impl
             if (frame.IsMethod())
             {
                 MethodBase method = Connection.Protocol.DecodeMethodFrom(frame.GetReader());
-                if ((method.ProtocolClassId == ClassId.Channel)
-                    && (method.ProtocolMethodId == ChannelMethodId.CloseOk))
+                if ((method.ProtocolClassId == ClassConstants.Channel)
+                    && (method.ProtocolMethodId == ChannelMethodConstants.CloseOk))
                 {
                     // This is the reply we were looking for. Release
                     // the channel with the reason we were passed in
                     // our constructor.
                     Close(m_reason);
                 }
-                else if ((method.ProtocolClassId == ClassId.Channel)
-                         && (method.ProtocolMethodId == ChannelMethodId.Close))
+                else if ((method.ProtocolClassId == ClassConstants.Channel)
+                         && (method.ProtocolMethodId == ChannelMethodConstants.Close))
                 {
                     // We're already shutting down the channel, so
                     // just send back an ok.
