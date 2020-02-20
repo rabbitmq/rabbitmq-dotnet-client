@@ -85,8 +85,8 @@ namespace RabbitMQ.Client.Framing.Impl
             request = new Command(new Impl.ChannelClose(reasonCode,
                 reasonText,
                 0, 0));
-            replyClassId = Impl.ChannelCloseOk.ClassId;
-            replyMethodId = Impl.ChannelCloseOk.MethodId;
+            replyClassId = ClassId.Channel;
+            replyMethodId = ChannelMethodId.CloseOk;
         }
 
         public void CreateConnectionClose(ushort reasonCode,
@@ -98,8 +98,8 @@ namespace RabbitMQ.Client.Framing.Impl
             request = new Command(new Impl.ConnectionClose(reasonCode,
                 reasonText,
                 0, 0));
-            replyClassId = Impl.ConnectionCloseOk.ClassId;
-            replyMethodId = Impl.ConnectionCloseOk.MethodId;
+            replyClassId = ClassId.Connection;
+            replyMethodId = ConnectionMethodId.CloseOk;
         }
 
         public abstract ContentHeaderBase DecodeContentHeaderFrom(NetworkBinaryReader reader);
