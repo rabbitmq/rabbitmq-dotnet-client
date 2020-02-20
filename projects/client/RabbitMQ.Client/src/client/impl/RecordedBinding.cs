@@ -64,7 +64,7 @@ namespace RabbitMQ.Client.Impl
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(obj, null))
+            if (obj is null)
             {
                 return false;
             }
