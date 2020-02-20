@@ -6,14 +6,14 @@ namespace RabbitMQ.Client.Impl
 {
     internal sealed class ConcurrentConsumerDispatcher : IConsumerDispatcher
     {
-        private ModelBase model;
-        private ConsumerWorkService workService;
+        private ModelBase _model;
+        private ConsumerWorkService _workService;
 
         public ConcurrentConsumerDispatcher(ModelBase model, ConsumerWorkService ws)
         {
-            this.model = model;
-            this.workService = ws;
-            this.IsShutdown = false;
+            _model = model;
+            _workService = ws;
+            IsShutdown = false;
         }
 
         public void Quiesce()
@@ -23,12 +23,12 @@ namespace RabbitMQ.Client.Impl
 
         public void Shutdown()
         {
-            this.workService.StopWork();
+            _workService.StopWork();
         }
 
         public void Shutdown(IModel model)
         {
-            this.workService.StopWork(model);
+            _workService.StopWork(model);
         }
 
         public bool IsShutdown
@@ -53,7 +53,7 @@ namespace RabbitMQ.Client.Impl
                         {"consumer", consumer},
                         {"context",  "HandleBasicConsumeOk"}
                     };
-                    model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
+                    _model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
                 }
             });
         }
@@ -86,7 +86,7 @@ namespace RabbitMQ.Client.Impl
                         {"consumer", consumer},
                         {"context",  "HandleBasicDeliver"}
                     };
-                    model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
+                    _model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
                 }
             });
         }
@@ -106,7 +106,7 @@ namespace RabbitMQ.Client.Impl
                         {"consumer", consumer},
                         {"context",  "HandleBasicCancelOk"}
                     };
-                    model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
+                    _model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
                 }
             });
         }
@@ -126,7 +126,7 @@ namespace RabbitMQ.Client.Impl
                         {"consumer", consumer},
                         {"context",  "HandleBasicCancel"}
                     };
-                    model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
+                    _model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
                 }
             });
         }
@@ -136,7 +136,7 @@ namespace RabbitMQ.Client.Impl
             // the only case where we ignore the shutdown flag.
             try
             {
-                consumer.HandleModelShutdown(model, reason);
+                consumer.HandleModelShutdown(_model, reason);
             }
             catch (Exception e)
             {
@@ -145,13 +145,13 @@ namespace RabbitMQ.Client.Impl
                         {"consumer", consumer},
                         {"context",  "HandleModelShutdown"}
                     };
-                model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
+                _model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
             };
         }
 
         private void UnlessShuttingDown(Action fn)
         {
-            if (!this.IsShutdown)
+            if (!IsShutdown)
             {
                 Execute(fn);
             }
@@ -159,7 +159,7 @@ namespace RabbitMQ.Client.Impl
 
         private void Execute(Action fn)
         {
-            this.workService.AddWork(this.model, fn);
+            _workService.AddWork(_model, fn);
         }
     }
 }

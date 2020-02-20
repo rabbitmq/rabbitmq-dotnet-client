@@ -63,9 +63,9 @@ namespace RabbitMQ.Client.Events
         {
             foreach (var pair in other)
             {
-                this.Detail[pair.Key] = pair.Value;
+                Detail[pair.Key] = pair.Value;
             }
-            return this.Detail;
+            return Detail;
         }
     }
 

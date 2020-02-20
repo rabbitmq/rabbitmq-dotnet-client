@@ -7,18 +7,18 @@ namespace RabbitMQ.Client.Impl
 {
     sealed class ModelShutdown : Work
     {
-        readonly ShutdownEventArgs reason;
+        readonly ShutdownEventArgs _reason;
 
         public ModelShutdown(IBasicConsumer consumer, ShutdownEventArgs reason) : base(consumer)
         {
-            this.reason = reason;
+            _reason = reason;
         }
 
         protected override async Task Execute(ModelBase model, IAsyncBasicConsumer consumer)
         {
             try
             {
-                await consumer.HandleModelShutdown(model, reason).ConfigureAwait(false);
+                await consumer.HandleModelShutdown(model, _reason).ConfigureAwait(false);
             }
             catch (Exception e)
             {

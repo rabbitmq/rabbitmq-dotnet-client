@@ -55,14 +55,14 @@ namespace RabbitMQ.Client.Unit
     {
         public DisposableConnection(AutorecoveringConnection c)
         {
-            this.Connection = c;
+            Connection = c;
         }
 
         public AutorecoveringConnection Connection {get; private set;}
 
         public void Dispose()
         {
-            this.Connection.Close();
+            Connection.Close();
         }
     }
     [TestFixture]

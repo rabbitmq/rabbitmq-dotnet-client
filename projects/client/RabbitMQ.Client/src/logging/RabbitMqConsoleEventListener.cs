@@ -48,7 +48,7 @@ namespace RabbitMQ.Client.Logging
     {
         public RabbitMqConsoleEventListener()
         {
-            this.EnableEvents(RabbitMqClientEventSource.Log, EventLevel.Informational, RabbitMqClientEventSource.Keywords.Log);
+            EnableEvents(RabbitMqClientEventSource.Log, EventLevel.Informational, RabbitMqClientEventSource.Keywords.Log);
         }
 
         protected override void OnEventWritten(EventWrittenEventArgs eventData)
@@ -69,7 +69,7 @@ namespace RabbitMQ.Client.Logging
 
         public override void Dispose()
         {
-            this.DisableEvents(RabbitMqClientEventSource.Log);
+            DisableEvents(RabbitMqClientEventSource.Log);
         }
     }
 }

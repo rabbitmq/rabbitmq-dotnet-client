@@ -46,17 +46,17 @@ namespace RabbitMQ.Client.Impl
     ///<summary>Normal ISession implementation used during normal channel operation.</summary>
     public class Session : SessionBase
     {
-        private CommandAssembler m_assembler;
+        private CommandAssembler _assembler;
 
         public Session(Connection connection, int channelNumber)
             : base(connection, channelNumber)
         {
-            m_assembler = new CommandAssembler(connection.Protocol);
+            _assembler = new CommandAssembler(connection.Protocol);
         }
 
         public override void HandleFrame(InboundFrame frame)
         {
-            Command cmd = m_assembler.HandleFrame(frame);
+            Command cmd = _assembler.HandleFrame(frame);
             if (cmd != null)
             {
                 OnCommandReceived(cmd);

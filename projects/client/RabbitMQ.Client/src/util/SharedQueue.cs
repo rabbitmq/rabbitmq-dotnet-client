@@ -251,26 +251,26 @@ namespace RabbitMQ.Util
     ///permitting SharedQueue to be used in foreach loops.</summary>
     public struct SharedQueueEnumerator<T> : IEnumerator<T>
     {
-        private readonly SharedQueue<T> m_queue;
-        private T m_current;
+        private readonly SharedQueue<T> _queue;
+        private T _current;
 
         ///<summary>Construct an enumerator for the given
         ///SharedQueue.</summary>
         public SharedQueueEnumerator(SharedQueue<T> queue)
         {
-            m_queue = queue;
-            m_current = default;
+            _queue = queue;
+            _current = default;
         }
 
         object IEnumerator.Current
         {
             get
             {
-                if (m_current == null)
+                if (_current == null)
                 {
                     throw new InvalidOperationException();
                 }
-                return m_current;
+                return _current;
             }
         }
 
@@ -278,11 +278,11 @@ namespace RabbitMQ.Util
         {
             get
             {
-                if (m_current == null)
+                if (_current == null)
                 {
                     throw new InvalidOperationException();
                 }
-                return m_current;
+                return _current;
             }
         }
 
@@ -294,12 +294,12 @@ namespace RabbitMQ.Util
         {
             try
             {
-                m_current = m_queue.Dequeue();
+                _current = _queue.Dequeue();
                 return true;
             }
             catch (EndOfStreamException)
             {
-                m_current = default;
+                _current = default;
                 return false;
             }
         }

@@ -41,38 +41,37 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 
 using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Framing;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Util;
-using RabbitMQ.Client.Framing;
-
-using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
     public class SessionManager
     {
         public readonly ushort ChannelMax;
-        private readonly IntAllocator Ints;
-        private readonly Connection m_connection;
-        private readonly IDictionary<int, ISession> m_sessionMap = new Dictionary<int, ISession>();
-        private bool m_autoClose = false;
+        private readonly IntAllocator _ints;
+        private readonly Connection _connection;
+        private readonly IDictionary<int, ISession> _sessionMap = new Dictionary<int, ISession>();
+        private bool _autoClose = false;
 
         public SessionManager(Connection connection, ushort channelMax)
         {
-            m_connection = connection;
+            _connection = connection;
             ChannelMax = (channelMax == 0) ? ushort.MaxValue : channelMax;
-            Ints = new IntAllocator(1, ChannelMax);
+            _ints = new IntAllocator(1, ChannelMax);
         }
 
         [Obsolete("Please explicitly close connections instead.")]
         public bool AutoClose
         {
-            get { return m_autoClose; }
+            get { return _autoClose; }
             set
             {
-                m_autoClose = value;
+                _autoClose = value;
                 CheckAutoClose();
             }
         }
@@ -81,9 +80,9 @@ namespace RabbitMQ.Client.Impl
         {
             get
             {
-                lock (m_sessionMap)
+                lock (_sessionMap)
                 {
-                    return m_sessionMap.Count;
+                    return _sessionMap.Count;
                 }
             }
         }
@@ -92,7 +91,7 @@ namespace RabbitMQ.Client.Impl
         ///when we decide to close the connection.</summary>
         public void AutoCloseConnection()
         {
-            m_connection.Abort(Constants.ReplySuccess, "AutoClose", ShutdownInitiator.Library, Timeout.InfiniteTimeSpan);
+            _connection.Abort(Constants.ReplySuccess, "AutoClose", ShutdownInitiator.Library, Timeout.InfiniteTimeSpan);
         }
 
         ///<summary>If m_autoClose and there are no active sessions
@@ -100,11 +99,11 @@ namespace RabbitMQ.Client.Impl
         ///200.</summary>
         public void CheckAutoClose()
         {
-            if (m_autoClose)
+            if (_autoClose)
             {
-                lock (m_sessionMap)
+                lock (_sessionMap)
                 {
-                    if (m_sessionMap.Count == 0)
+                    if (_sessionMap.Count == 0)
                     {
                         // Run this in a separate task, because
                         // usually CheckAutoClose will be called from
@@ -122,9 +121,9 @@ namespace RabbitMQ.Client.Impl
 
         public ISession Create()
         {
-            lock (m_sessionMap)
+            lock (_sessionMap)
             {
-                int channelNumber = Ints.Allocate();
+                int channelNumber = _ints.Allocate();
                 if (channelNumber == -1)
                 {
                     throw new ChannelAllocationException();
@@ -135,9 +134,9 @@ namespace RabbitMQ.Client.Impl
 
         public ISession Create(int channelNumber)
         {
-            lock (m_sessionMap)
+            lock (_sessionMap)
             {
-                if (!Ints.Reserve(channelNumber))
+                if (!_ints.Reserve(channelNumber))
                 {
                     throw new ChannelAllocationException(channelNumber);
                 }
@@ -147,31 +146,31 @@ namespace RabbitMQ.Client.Impl
 
         public ISession CreateInternal(int channelNumber)
         {
-            lock (m_sessionMap)
+            lock (_sessionMap)
             {
-                ISession session = new Session(m_connection, channelNumber);
+                ISession session = new Session(_connection, channelNumber);
                 session.SessionShutdown += HandleSessionShutdown;
-                m_sessionMap[channelNumber] = session;
+                _sessionMap[channelNumber] = session;
                 return session;
             }
         }
 
         public void HandleSessionShutdown(object sender, ShutdownEventArgs reason)
         {
-            lock (m_sessionMap)
+            lock (_sessionMap)
             {
                 var session = (ISession)sender;
-                m_sessionMap.Remove(session.ChannelNumber);
-                Ints.Free(session.ChannelNumber);
+                _sessionMap.Remove(session.ChannelNumber);
+                _ints.Free(session.ChannelNumber);
                 CheckAutoClose();
             }
         }
 
         public ISession Lookup(int number)
         {
-            lock (m_sessionMap)
+            lock (_sessionMap)
             {
-                return m_sessionMap[number];
+                return _sessionMap[number];
             }
         }
 
@@ -184,11 +183,11 @@ namespace RabbitMQ.Client.Impl
         ///</remarks>
         public ISession Swap(int channelNumber, ISession replacement)
         {
-            lock (m_sessionMap)
+            lock (_sessionMap)
             {
-                ISession previous = m_sessionMap[channelNumber];
+                ISession previous = _sessionMap[channelNumber];
                 previous.SessionShutdown -= HandleSessionShutdown;
-                m_sessionMap[channelNumber] = replacement;
+                _sessionMap[channelNumber] = replacement;
                 replacement.SessionShutdown += HandleSessionShutdown;
                 return previous;
             }

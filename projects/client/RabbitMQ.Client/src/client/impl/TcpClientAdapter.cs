@@ -12,40 +12,40 @@ namespace RabbitMQ.Client
     /// </summary>
     public class TcpClientAdapter : ITcpClient
     {
-        private Socket sock;
+        private Socket _sock;
 
         public TcpClientAdapter(Socket socket)
         {
             if (socket == null)
                 throw new InvalidOperationException("socket must not be null");
 
-            this.sock = socket;
+            _sock = socket;
         }
 
         public virtual async Task ConnectAsync(string host, int port)
         {
             AssertSocket();
             var adds = await Dns.GetHostAddressesAsync(host).ConfigureAwait(false);
-            var ep = TcpClientAdapterHelper.GetMatchingHost(adds, sock.AddressFamily);
+            var ep = TcpClientAdapterHelper.GetMatchingHost(adds, _sock.AddressFamily);
             if (ep == default(IPAddress))
             {
                 throw new ArgumentException("No ip address could be resolved for " + host);
             }
 
 #if CORECLR
-            await sock.ConnectAsync(ep, port).ConfigureAwait(false);
+            await _sock.ConnectAsync(ep, port).ConfigureAwait(false);
 #else
-            await Task.Run(() => sock.Connect(ep, port));
+            await Task.Run(() => _sock.Connect(ep, port));
 #endif
         }
 
         public virtual void Close()
         {
-            if (sock != null)
+            if (_sock != null)
             {
-                sock.Dispose();
+                _sock.Dispose();
             }
-            sock = null;
+            _sock = null;
         }
 
         [Obsolete("Override Dispose(bool) instead.")]
@@ -68,14 +68,14 @@ namespace RabbitMQ.Client
         public virtual NetworkStream GetStream()
         {
             AssertSocket();
-            return new NetworkStream(sock);
+            return new NetworkStream(_sock);
         }
 
         public virtual Socket Client
         {
             get
             {
-                return sock;
+                return _sock;
             }
         }
 
@@ -83,8 +83,8 @@ namespace RabbitMQ.Client
         {
             get
             {
-                if(sock == null) return false;
-                return sock.Connected;
+                if(_sock == null) return false;
+                return _sock.Connected;
             }
         }
 
@@ -93,18 +93,18 @@ namespace RabbitMQ.Client
             get
             {
                 AssertSocket();
-                return TimeSpan.FromMilliseconds(sock.ReceiveTimeout);
+                return TimeSpan.FromMilliseconds(_sock.ReceiveTimeout);
             }
             set
             {
                 AssertSocket();
-                sock.ReceiveTimeout = (int)value.TotalMilliseconds;
+                _sock.ReceiveTimeout = (int)value.TotalMilliseconds;
             }
         }
 
         private void AssertSocket()
         {
-            if(sock == null)
+            if(_sock == null)
             {
                 throw new InvalidOperationException("Cannot perform operation as socket is null");
             }

@@ -52,23 +52,23 @@ namespace RabbitMQ.Client.Logging
     {
         public RabbitMqExceptionDetail(Exception ex)
         {
-            this.Type = ex.GetType().FullName;
-            this.Message = ex.Message;
-            this.StackTrace = ex.StackTrace;
+            Type = ex.GetType().FullName;
+            Message = ex.Message;
+            StackTrace = ex.StackTrace;
             if(ex.InnerException != null)
             {
-                this.InnerException = ex.InnerException.ToString();
+                InnerException = ex.InnerException.ToString();
             }
         }
 
         public RabbitMqExceptionDetail(IDictionary<string, object> ex)
         {
-            this.Type = ex["Type"].ToString();
-            this.Message = ex["Message"].ToString();
-            this.StackTrace = ex["StackTrace"].ToString();
+            Type = ex["Type"].ToString();
+            Message = ex["Message"].ToString();
+            StackTrace = ex["StackTrace"].ToString();
             if (ex.TryGetValue("InnerException", out object inner))
             {
-                this.InnerException = inner.ToString();
+                InnerException = inner.ToString();
             }
         }
 

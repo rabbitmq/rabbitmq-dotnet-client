@@ -45,9 +45,9 @@ namespace RabbitMQ.Client.Impl
 {
     internal class RecordedQueue : RecordedNamedEntity
     {
-        private IDictionary<string, object> arguments;
-        private bool durable;
-        private bool exclusive;
+        private IDictionary<string, object> _arguments;
+        private bool _durable;
+        private bool _exclusive;
 
         public RecordedQueue(AutorecoveringModel model, string name) : base(model, name)
         {
@@ -73,7 +73,7 @@ namespace RabbitMQ.Client.Impl
 
         public RecordedQueue Arguments(IDictionary<string, object> value)
         {
-            arguments = value;
+            _arguments = value;
             return this;
         }
 
@@ -85,21 +85,21 @@ namespace RabbitMQ.Client.Impl
 
         public RecordedQueue Durable(bool value)
         {
-            durable = value;
+            _durable = value;
             return this;
         }
 
         public RecordedQueue Exclusive(bool value)
         {
-            exclusive = value;
+            _exclusive = value;
             return this;
         }
 
         public void Recover()
         {
-            QueueDeclareOk ok = ModelDelegate.QueueDeclare(NameToUseForRecovery, durable,
-                exclusive, IsAutoDelete,
-                arguments);
+            QueueDeclareOk ok = ModelDelegate.QueueDeclare(NameToUseForRecovery, _durable,
+                _exclusive, IsAutoDelete,
+                _arguments);
             Name = ok.QueueName;
         }
 
@@ -112,7 +112,7 @@ namespace RabbitMQ.Client.Impl
         public override string ToString()
         {
             return string.Format("{0}: name = '{1}', durable = {2}, exlusive = {3}, autoDelete = {4}, arguments = '{5}'",
-                GetType().Name, Name, durable, exclusive, IsAutoDelete, arguments);
+                GetType().Name, Name, _durable, _exclusive, IsAutoDelete, _arguments);
         }
     }
 }

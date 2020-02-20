@@ -54,7 +54,7 @@ namespace RabbitMQ.Util
     /// </remarks>
     public class NetworkBinaryReader : BinaryReader
     {
-        private static readonly Encoding encoding = new UTF8Encoding();
+        private static readonly Encoding s_encoding = new UTF8Encoding();
 
         // Not particularly efficient. To be more efficient, we could
         // reuse BinaryReader's implementation details: m_buffer and
@@ -66,7 +66,7 @@ namespace RabbitMQ.Util
         /// <summary>
         /// Construct a NetworkBinaryReader over the given input stream.
         /// </summary>
-        public NetworkBinaryReader(Stream input) : base(input, encoding)
+        public NetworkBinaryReader(Stream input) : base(input, s_encoding)
         {
         }
 

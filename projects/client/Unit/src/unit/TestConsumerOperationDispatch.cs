@@ -88,7 +88,7 @@ namespace RabbitMQ.Client.Unit
             public CollectingConsumer(IModel model)
                 : base(model)
             {
-                this.DeliveryTags = new List<ulong>();
+                DeliveryTags = new List<ulong>();
             }
 
             public override void HandleBasicDeliver(string consumerTag,
@@ -98,14 +98,14 @@ namespace RabbitMQ.Client.Unit
                 // we test concurrent dispatch from the moment basic.delivery is returned.
                 // delivery tags have guaranteed ordering and we verify that it is preserved
                 // (per-channel) by the concurrent dispatcher.
-                this.DeliveryTags.Add(deliveryTag);
+                DeliveryTags.Add(deliveryTag);
 
                 if (deliveryTag == n)
                 {
                     counter.Signal();
                 }
 
-                this.Model.BasicAck(deliveryTag: deliveryTag, multiple: false);
+                Model.BasicAck(deliveryTag: deliveryTag, multiple: false);
             }
         }
 
@@ -185,17 +185,17 @@ namespace RabbitMQ.Client.Unit
 
             public ShutdownLatchConsumer(ManualResetEvent latch, ManualResetEvent duplicateLatch)
             {
-                this.Latch = latch;
-                this.DuplicateLatch = duplicateLatch;
+                Latch = latch;
+                DuplicateLatch = duplicateLatch;
             }
 
             public override void HandleModelShutdown(object model, ShutdownEventArgs reason)
             {
                 // keep track of duplicates
-                if (this.Latch.WaitOne(0)){
-                    this.DuplicateLatch.Set();
+                if (Latch.WaitOne(0)){
+                    DuplicateLatch.Set();
                 } else {
-                    this.Latch.Set();
+                    Latch.Set();
                 }
             }
         }
@@ -205,11 +205,11 @@ namespace RabbitMQ.Client.Unit
         {
             var latch = new ManualResetEvent(false);
             var duplicateLatch = new ManualResetEvent(false);
-            var q = this.Model.QueueDeclare().QueueName;
+            var q = Model.QueueDeclare().QueueName;
             var c = new ShutdownLatchConsumer(latch, duplicateLatch);
 
-            this.Model.BasicConsume(queue: q, autoAck: true, consumer: c);
-            this.Model.Close();
+            Model.BasicConsume(queue: q, autoAck: true, consumer: c);
+            Model.Close();
             Wait(latch, TimeSpan.FromSeconds(5));
             Assert.IsFalse(duplicateLatch.WaitOne(TimeSpan.FromSeconds(5)),
                            "event handler fired more than once");

@@ -9,7 +9,7 @@ namespace RabbitMQ.Client
 {
     public class AsyncDefaultBasicConsumer : IBasicConsumer, IAsyncBasicConsumer
     {
-        private readonly HashSet<string> m_consumerTags = new HashSet<string>();
+        private readonly HashSet<string> _consumerTags = new HashSet<string>();
 
         /// <summary>
         /// Creates a new instance of an <see cref="DefaultBasicConsumer"/>.
@@ -40,7 +40,7 @@ namespace RabbitMQ.Client
         {
             get
             {
-                return m_consumerTags.ToArray();
+                return _consumerTags.ToArray();
             }
         }
 
@@ -92,7 +92,7 @@ namespace RabbitMQ.Client
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
         public virtual Task HandleBasicConsumeOk(string consumerTag)
         {
-            m_consumerTags.Add(consumerTag);
+            _consumerTags.Add(consumerTag);
             IsRunning = true;
             return TaskExtensions.CompletedTask;
         }
@@ -125,7 +125,7 @@ namespace RabbitMQ.Client
         public virtual Task HandleModelShutdown(object model, ShutdownEventArgs reason)
         {
             ShutdownReason = reason;
-            return OnCancel(m_consumerTags.ToArray());
+            return OnCancel(_consumerTags.ToArray());
         }
 
         /// <summary>
@@ -149,7 +149,7 @@ namespace RabbitMQ.Client
 
             foreach (string consumerTag in consumerTags)
             {
-                m_consumerTags.Remove(consumerTag);
+                _consumerTags.Remove(consumerTag);
             }
         }
 

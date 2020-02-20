@@ -67,14 +67,14 @@ namespace RabbitMQ.Client.Logging
         public void Info(string message)
         {
             if(IsEnabled())
-                this.WriteEvent(1, message);
+                WriteEvent(1, message);
         }
 
         [Event(2, Message = "WARN", Keywords = Keywords.Log, Level = EventLevel.Warning)]
         public void Warn(string message)
         {
             if(IsEnabled())
-                this.WriteEvent(2, message);
+                WriteEvent(2, message);
         }
 #if NET452
         [Event(3, Message = "ERROR", Keywords = Keywords.Log, Level = EventLevel.Error)]
@@ -88,7 +88,7 @@ namespace RabbitMQ.Client.Logging
         public void Error(string message,  RabbitMqExceptionDetail ex)
         {
             if(IsEnabled())
-                this.WriteEvent(3, message, ex);
+                WriteEvent(3, message, ex);
         }
 #endif
 
