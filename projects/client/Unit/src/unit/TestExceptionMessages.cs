@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestAlreadyClosedExceptionMessage()
         {
-            var uuid = System.Guid.NewGuid().ToString();
+            string uuid = System.Guid.NewGuid().ToString();
             try
             {
                 Model.QueueDeclarePassive(uuid);

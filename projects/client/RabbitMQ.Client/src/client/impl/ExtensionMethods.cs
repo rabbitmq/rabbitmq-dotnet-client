@@ -55,19 +55,19 @@ namespace RabbitMQ.Client.Impl
         /// <returns></returns>
         public static T RandomItem<T>(this IList<T> list)
         {
-            var n = list.Count;
+            int n = list.Count;
             if (n == 0)
             {
                 return default;
             }
 
-            var hashCode = Math.Abs(Guid.NewGuid().GetHashCode());
+            int hashCode = Math.Abs(Guid.NewGuid().GetHashCode());
             return list.ElementAt<T>(hashCode % n);
         }
 
         internal static ArraySegment<byte> GetBufferSegment(this MemoryStream ms)
         {
-            var buffer = ms.GetBuffer();
+            byte[] buffer = ms.GetBuffer();
             return new ArraySegment<byte>(buffer, 0, (int)ms.Position);
         }
     }

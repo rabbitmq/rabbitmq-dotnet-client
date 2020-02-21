@@ -100,17 +100,17 @@ namespace RabbitMQ.Client.Unit
             List<IConnection> xs = new List<IConnection>();
             // Since we are using the ThreadPool, let's set MinThreads to a high-enough value.
             ThreadPool.SetMinThreads(200, 200);
-            for (var i = 0; i < 200; i++)
+            for (int i = 0; i < 200; i++)
             {
-                var n = Convert.ToUInt16(rnd.Next(2, 6));
+                ushort n = Convert.ToUInt16(rnd.Next(2, 6));
                 var cf = new ConnectionFactory()
                 {
                     RequestedHeartbeat = TimeSpan.FromSeconds(n),
                     AutomaticRecoveryEnabled = false
                 };
-                var conn = cf.CreateConnection();
+                IConnection conn = cf.CreateConnection();
                 xs.Add(conn);
-                var ch = conn.CreateModel();
+                IModel ch = conn.CreateModel();
 
                 conn.ConnectionShutdown += (sender, evt) =>
                     {
@@ -120,7 +120,7 @@ namespace RabbitMQ.Client.Unit
 
             SleepFor(60);
 
-            foreach (var x in xs)
+            foreach (IConnection x in xs)
             {
                 x.Close();
             }
@@ -128,8 +128,8 @@ namespace RabbitMQ.Client.Unit
 
         protected void RunSingleConnectionTest(ConnectionFactory cf)
         {
-            var conn = cf.CreateConnection();
-            var ch = conn.CreateModel();
+            IConnection conn = cf.CreateConnection();
+            IModel ch = conn.CreateModel();
             bool wasShutdown = false;
 
             conn.ConnectionShutdown += (sender, evt) =>
@@ -156,7 +156,7 @@ namespace RabbitMQ.Client.Unit
             if (InitiatedByPeerOrLibrary(evt))
             {
                 Console.WriteLine(((Exception)evt.Cause).StackTrace);
-                var s = string.Format("Shutdown: {0}, initiated by: {1}",
+                string s = string.Format("Shutdown: {0}, initiated by: {1}",
                                       evt, evt.Initiator);
                 Console.WriteLine(s);
                 Assert.Fail(s);
@@ -165,7 +165,7 @@ namespace RabbitMQ.Client.Unit
 
         private bool LongRunningTestsEnabled()
         {
-            var s = Environment.GetEnvironmentVariable("RABBITMQ_LONG_RUNNING_TESTS");
+            string s = Environment.GetEnvironmentVariable("RABBITMQ_LONG_RUNNING_TESTS");
             if (s == null || s.Equals(""))
             {
                 return false;

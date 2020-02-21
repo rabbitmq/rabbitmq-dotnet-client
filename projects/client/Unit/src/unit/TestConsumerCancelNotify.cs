@@ -99,7 +99,7 @@ namespace RabbitMQ.Client.Unit
         {
             Model.QueueDeclare(queue, false, true, false, null);
             IBasicConsumer consumer = new CancelNotificationConsumer(Model, this, EventMode);
-            var actualConsumerTag = Model.BasicConsume(queue, false, consumer);
+            string actualConsumerTag = Model.BasicConsume(queue, false, consumer);
 
             Model.QueueDelete(queue);
             WaitOn(lockObject);

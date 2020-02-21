@@ -336,7 +336,7 @@ namespace RabbitMQ.Client
             // Our list is in order of preference, the server one is not.
             foreach (AuthMechanismFactory factory in AuthMechanisms)
             {
-                var factoryName = factory.Name;
+                string factoryName = factory.Name;
                 if (mechanismNames.Any<string>(x => string.Equals(x, factoryName, StringComparison.OrdinalIgnoreCase)))
                 {
                     return factory;
@@ -418,7 +418,7 @@ namespace RabbitMQ.Client
         /// </exception>
         public IConnection CreateConnection(IList<string> hostnames, string clientProvidedName)
         {
-            var endpoints = hostnames.Select(h => new AmqpTcpEndpoint(h, Port, Ssl));
+            IEnumerable<AmqpTcpEndpoint> endpoints = hostnames.Select(h => new AmqpTcpEndpoint(h, Port, Ssl));
             return CreateConnection(new DefaultEndpointResolver(endpoints), clientProvidedName);
         }
 
@@ -507,14 +507,14 @@ namespace RabbitMQ.Client
 
         private IFrameHandler CreateFrameHandler()
         {
-            var fh = Protocols.DefaultProtocol.CreateFrameHandler(Endpoint, SocketFactory,
+            IFrameHandler fh = Protocols.DefaultProtocol.CreateFrameHandler(Endpoint, SocketFactory,
                 RequestedConnectionTimeout, SocketReadTimeout, SocketWriteTimeout);
             return ConfigureFrameHandler(fh);
         }
 
         internal IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint)
         {
-            var fh = Protocols.DefaultProtocol.CreateFrameHandler(endpoint, SocketFactory,
+            IFrameHandler fh = Protocols.DefaultProtocol.CreateFrameHandler(endpoint, SocketFactory,
                 RequestedConnectionTimeout, SocketReadTimeout, SocketWriteTimeout);
             return ConfigureFrameHandler(fh);
         }

@@ -49,7 +49,7 @@ namespace RabbitMQ.Client
 
         public static void Info(string message, params object[] args)
         {
-            var msg = string.Format(message, args);
+            string msg = string.Format(message, args);
             Info(msg);
         }
 
@@ -60,7 +60,7 @@ namespace RabbitMQ.Client
 
         public static void Warn(string message, params object[] args)
         {
-            var msg = string.Format(message, args);
+            string msg = string.Format(message, args);
             Warn(msg);
         }
 
@@ -71,7 +71,7 @@ namespace RabbitMQ.Client
 
         public static void Error(string message, System.Exception ex, params object[] args)
         {
-            var msg = string.Format(message, args);
+            string msg = string.Format(message, args);
             Error(msg, ex);
         }
     }

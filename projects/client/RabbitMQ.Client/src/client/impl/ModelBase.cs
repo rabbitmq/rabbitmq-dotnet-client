@@ -681,7 +681,7 @@ namespace RabbitMQ.Client.Impl
 
         protected void BroadcastShutdownToConsumers(IDictionary<string, IBasicConsumer> cs, ShutdownEventArgs reason)
         {
-            foreach (var c in cs)
+            foreach (KeyValuePair<string, IBasicConsumer> c in cs)
             {
                 ConsumerDispatcher.HandleModelShutdown(c.Value, reason);
             }
@@ -1253,7 +1253,7 @@ namespace RabbitMQ.Client.Impl
 
         internal void AllocatatePublishSeqNos(int count)
         {
-            var c = 0;
+            int c = 0;
             lock (_unconfirmedSet.SyncRoot)
             {
                 while (c < count)
@@ -1467,13 +1467,13 @@ namespace RabbitMQ.Client.Impl
 
         public uint MessageCount(string queue)
         {
-            var ok = QueueDeclarePassive(queue);
+            QueueDeclareOk ok = QueueDeclarePassive(queue);
             return ok.MessageCount;
         }
 
         public uint ConsumerCount(string queue)
         {
-            var ok = QueueDeclarePassive(queue);
+            QueueDeclareOk ok = QueueDeclarePassive(queue);
             return ok.ConsumerCount;
         }
 

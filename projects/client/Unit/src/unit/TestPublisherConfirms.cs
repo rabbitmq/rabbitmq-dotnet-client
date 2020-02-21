@@ -82,7 +82,7 @@ namespace RabbitMQ.Client.Unit
         {
             TestWaitForConfirms(200, (ch) =>
             {
-                var message = ch.BasicGet(QueueName, false);
+                BasicGetResult message = ch.BasicGet(QueueName, false);
 
                 var fullModel = ch as IFullModel;
                 fullModel.HandleBasicNack(message.DeliveryTag, false, false);
@@ -94,13 +94,13 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestWaitForConfirmsWithEvents()
         {
-            var ch = Conn.CreateModel();
+            IModel ch = Conn.CreateModel();
             ch.ConfirmSelect();
 
             ch.QueueDeclare(QueueName);
-            var n = 200;
+            int n = 200;
             // number of event handler invocations
-            var c = 0;
+            int c = 0;
 
             ch.BasicAcks += (_, args) =>
             {
@@ -130,7 +130,7 @@ namespace RabbitMQ.Client.Unit
 
         protected void TestWaitForConfirms(int numberOfMessagesToPublish, Action<IModel> fn)
         {
-            var ch = Conn.CreateModel();
+            IModel ch = Conn.CreateModel();
             ch.ConfirmSelect();
 
             ch.QueueDeclare(QueueName);
