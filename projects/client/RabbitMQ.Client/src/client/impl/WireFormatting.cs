@@ -38,6 +38,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -116,7 +117,7 @@ namespace RabbitMQ.Client.Impl
 
         public static object ReadFieldValue(NetworkBinaryReader reader)
         {
-            switch((char)reader.ReadByte())
+            switch ((char)reader.ReadByte())
             {
                 case 'S':
                     return ReadLongstr(reader);
@@ -268,7 +269,17 @@ namespace RabbitMQ.Client.Impl
                     break;
                 case string val:
                     WriteOctet(writer, (byte)'S');
-                    WriteLongstr(writer, Encoding.UTF8.GetBytes(val));
+                    int maxLength = Encoding.UTF8.GetMaxByteCount(val.Length);
+                    byte[] bytes = ArrayPool<byte>.Shared.Rent(maxLength);
+                    try
+                    {
+                        int bytesUsed = Encoding.UTF8.GetBytes(val, 0, val.Length, bytes, 0);
+                        WriteLongstr(writer, bytes, 0, bytesUsed);
+                    }
+                    finally
+                    {
+                        ArrayPool<byte>.Shared.Return(bytes);
+                    }
                     break;
                 case byte[] val:
                     WriteOctet(writer, (byte)'S');
@@ -353,6 +364,12 @@ namespace RabbitMQ.Client.Impl
             writer.Write(val);
         }
 
+        public static void WriteLongstr(NetworkBinaryWriter writer, byte[] val, int index, int count)
+        {
+            WriteLong(writer, (uint)count);
+            writer.Write(val, index, count);
+        }
+
         public static void WriteOctet(NetworkBinaryWriter writer, byte val)
         {
             writer.Write(val);
@@ -365,17 +382,23 @@ namespace RabbitMQ.Client.Impl
 
         public static void WriteShortstr(NetworkBinaryWriter writer, string val)
         {
-            byte[] bytes = Encoding.UTF8.GetBytes(val);
-            int length = bytes.Length;
-
-            if (length > 255)
+            int maxLength = Encoding.UTF8.GetMaxByteCount(val.Length);
+            byte[] bytes = ArrayPool<byte>.Shared.Rent(maxLength);
+            try
             {
-                throw new WireFormattingException("Short string too long; " +
-                                                  "UTF-8 encoded length=" + length + ", max=255");
-            }
+                int bytesUsed = Encoding.UTF8.GetBytes(val, 0, val.Length, bytes, 0);
+                if (bytesUsed > 255)
+                {
+                    throw new WireFormattingException($"Short string too long; UTF-8 encoded length={bytesUsed}, max=255");
+                }
 
-            writer.Write((byte)length);
-            writer.Write(bytes);
+                writer.Write((byte)bytesUsed);
+                writer.Write(bytes, 0, bytesUsed);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(bytes);
+            }
         }
 
         ///<summary>Writes an AMQP "table" to the writer.</summary>
