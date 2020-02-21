@@ -1,8 +1,9 @@
-version: "5.1.0.{build}"
+version: "6.0.0.{build}"
 
 platform: Any CPU
 configuration: Release
 skip_tags: true
+skip_branch_with_pr: true
 image: Visual Studio 2017
 
 environment:
