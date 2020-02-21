@@ -63,18 +63,13 @@ namespace RabbitMQ.Client.Framing.Impl
         private readonly EmptyOutboundFrame _heartbeatFrame = new EmptyOutboundFrame();
 
         private ManualResetEvent _appContinuation = new ManualResetEvent(false);
-        private EventHandler<CallbackExceptionEventArgs> _callbackException;
-        private EventHandler<EventArgs> _recoverySucceeded;
-        private EventHandler<ConnectionRecoveryErrorEventArgs> _connectionRecoveryFailure;
 
         private IDictionary<string, object> _clientProperties;
 
         private volatile ShutdownEventArgs _closeReason = null;
         private volatile bool _closed = false;
 
-        private EventHandler<ConnectionBlockedEventArgs> _connectionBlocked;
         private EventHandler<ShutdownEventArgs> _connectionShutdown;
-        private EventHandler<EventArgs> _connectionUnblocked;
 
         private IConnectionFactory _factory;
         private IFrameHandler _frameHandler;
@@ -137,59 +132,14 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public Guid Id { get { return _id; } }
 
-        public event EventHandler<EventArgs> RecoverySucceeded
-        {
-            add
-            {
-                lock (_eventLock)
-                {
-                    _recoverySucceeded += value;
-                }
-            }
-            remove
-            {
-                lock (_eventLock)
-                {
-                    _recoverySucceeded -= value;
-                }
-            }
-        }
+#pragma warning disable 67
+        public event EventHandler<EventArgs> RecoverySucceeded;
+        public event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError;
+#pragma warning restore 67
 
-        public event EventHandler<CallbackExceptionEventArgs> CallbackException
-        {
-            add
-            {
-                lock (_eventLock)
-                {
-                    _callbackException += value;
-                }
-            }
-            remove
-            {
-                lock (_eventLock)
-                {
-                    _callbackException -= value;
-                }
-            }
-        }
+        public event EventHandler<CallbackExceptionEventArgs> CallbackException;
 
-        public event EventHandler<ConnectionBlockedEventArgs> ConnectionBlocked
-        {
-            add
-            {
-                lock (_eventLock)
-                {
-                    _connectionBlocked += value;
-                }
-            }
-            remove
-            {
-                lock (_eventLock)
-                {
-                    _connectionBlocked -= value;
-                }
-            }
-        }
+        public event EventHandler<ConnectionBlockedEventArgs> ConnectionBlocked;
 
         public event EventHandler<ShutdownEventArgs> ConnectionShutdown
         {
@@ -218,41 +168,8 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public event EventHandler<EventArgs> ConnectionUnblocked
-        {
-            add
-            {
-                lock (_eventLock)
-                {
-                    _connectionUnblocked += value;
-                }
-            }
-            remove
-            {
-                lock (_eventLock)
-                {
-                    _connectionUnblocked -= value;
-                }
-            }
-        }
+        public event EventHandler<EventArgs> ConnectionUnblocked;
 
-        public event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError
-        {
-            add
-            {
-                lock (_eventLock)
-                {
-                    _connectionRecoveryFailure += value;
-                }
-            }
-            remove
-            {
-                lock (_eventLock)
-                {
-                    _connectionRecoveryFailure -= value;
-                }
-            }
-        }
 
         public string ClientProvidedName { get; private set; }
 
@@ -721,80 +638,48 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void OnCallbackException(CallbackExceptionEventArgs args)
         {
-            EventHandler<CallbackExceptionEventArgs> handler;
-            lock (_eventLock)
+            foreach (EventHandler<CallbackExceptionEventArgs> h in CallbackException?.GetInvocationList() ?? Array.Empty<Delegate>())
             {
-                handler = _callbackException;
-            }
-            if (handler != null)
-            {
-                foreach (EventHandler<CallbackExceptionEventArgs> h in handler.GetInvocationList())
+                try
                 {
-                    try
-                    {
-                        h(this, args);
-                    }
-                    catch
-                    {
-                        // Exception in
-                        // Callback-exception-handler. That was the
-                        // app's last chance. Swallow the exception.
-                        // FIXME: proper logging
-                    }
+                    h(this, args);
+                }
+                catch
+                {
+                    // Exception in
+                    // Callback-exception-handler. That was the
+                    // app's last chance. Swallow the exception.
+                    // FIXME: proper logging
                 }
             }
         }
 
         public void OnConnectionBlocked(ConnectionBlockedEventArgs args)
         {
-            EventHandler<ConnectionBlockedEventArgs> handler;
-            lock (_eventLock)
+            foreach (EventHandler<ConnectionBlockedEventArgs> h in ConnectionBlocked?.GetInvocationList() ?? Array.Empty<Delegate>())
             {
-                handler = _connectionBlocked;
-            }
-            if (handler != null)
-            {
-                foreach (EventHandler<ConnectionBlockedEventArgs> h in handler.GetInvocationList())
+                try
                 {
-                    try
-                    {
-                        h(this, args);
-                    }
-                    catch (Exception e)
-                    {
-                        OnCallbackException(CallbackExceptionEventArgs.Build(e,
-                            new Dictionary<string, object>
-                            {
-                                {"context", "OnConnectionBlocked"}
-                            }));
-                    }
+                    h(this, args);
+                }
+                catch (Exception e)
+                {
+                    OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object> { { "context", "OnConnectionBlocked" } }));
                 }
             }
         }
 
         public void OnConnectionUnblocked()
         {
-            EventHandler<EventArgs> handler;
-            lock (_eventLock)
+            foreach (EventHandler<EventArgs> h in ConnectionUnblocked?.GetInvocationList() ?? Array.Empty<Delegate>())
             {
-                handler = _connectionUnblocked;
-            }
-            if (handler != null)
-            {
-                foreach (EventHandler<EventArgs> h in handler.GetInvocationList())
+                try
                 {
-                    try
-                    {
-                        h(this, EventArgs.Empty);
-                    }
-                    catch (Exception e)
-                    {
-                        OnCallbackException(CallbackExceptionEventArgs.Build(e,
-                            new Dictionary<string, object>
-                            {
-                                {"context", "OnConnectionUnblocked"}
-                            }));
-                    }
+                    h(this, EventArgs.Empty);
+                }
+                catch (Exception e)
+                {
+                    OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object> { { "context", "OnConnectionUnblocked" } }));
                 }
             }
         }
@@ -1169,10 +1054,7 @@ entry.ToString());
                 }
                 finally
                 {
-                    _callbackException = null;
-                    _recoverySucceeded = null;
                     _connectionShutdown = null;
-                    _connectionUnblocked = null;
                 }
             }
 

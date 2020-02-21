@@ -1,6 +1,4 @@
-using System;
 using System.Threading.Tasks;
-using TaskExtensions = RabbitMQ.Client.Impl.TaskExtensions;
 
 namespace RabbitMQ.Client.Events
 {
@@ -28,57 +26,30 @@ namespace RabbitMQ.Client.Events
         public override async Task HandleBasicCancelOk(string consumerTag)
         {
             await base.HandleBasicCancelOk(consumerTag).ConfigureAwait(false);
-            await Raise(Unregistered, new ConsumerEventArgs(new []{consumerTag})).ConfigureAwait(false);
+            await (Unregistered?.Invoke(this, new ConsumerEventArgs(new[] { consumerTag })) ?? Task.CompletedTask).ConfigureAwait(false);
         }
 
         ///<summary>Fires the Registered event.</summary>
         public override async Task HandleBasicConsumeOk(string consumerTag)
         {
             await base.HandleBasicConsumeOk(consumerTag).ConfigureAwait(false);
-            await Raise(Registered, new ConsumerEventArgs(new[] { consumerTag })).ConfigureAwait(false);
+            await (Registered?.Invoke(this, new ConsumerEventArgs(new[] { consumerTag })) ?? Task.CompletedTask).ConfigureAwait(false);
         }
 
         ///<summary>Fires the Received event.</summary>
-        public override async Task HandleBasicDeliver(string consumerTag,
-            ulong deliveryTag,
-            bool redelivered,
-            string exchange,
-            string routingKey,
-            IBasicProperties properties,
-            byte[] body)
+        public override async Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, IBasicProperties properties, byte[] body)
         {
-            await base.HandleBasicDeliver(consumerTag,
-                deliveryTag,
-                redelivered,
-                exchange,
-                routingKey,
-                properties,
-                body).ConfigureAwait(false);
-            await Raise(Received, new BasicDeliverEventArgs(consumerTag,
-                deliveryTag,
-                redelivered,
-                exchange,
-                routingKey,
-                properties,
-                body)).ConfigureAwait(false);
+            await base.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body).ConfigureAwait(false);
+            await (Received?.Invoke(
+                this,
+                new BasicDeliverEventArgs(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body)) ?? Task.CompletedTask).ConfigureAwait(false);
         }
 
         ///<summary>Fires the Shutdown event.</summary>
         public override async Task HandleModelShutdown(object model, ShutdownEventArgs reason)
         {
             await base.HandleModelShutdown(model, reason).ConfigureAwait(false);
-            await Raise(Shutdown, reason).ConfigureAwait(false);
-        }
-
-        private Task Raise<TEvent>(AsyncEventHandler<TEvent> eventHandler, TEvent evt) 
-            where TEvent : EventArgs
-        {
-            var handler = eventHandler;
-            if (handler != null)
-            {
-                return handler(this, evt);
-            }
-            return TaskExtensions.CompletedTask;
+            await (Shutdown?.Invoke(this, reason) ?? Task.CompletedTask).ConfigureAwait(false);
         }
     }
 }

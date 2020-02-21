@@ -39,9 +39,10 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
-using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -108,10 +109,7 @@ namespace RabbitMQ.Client.Impl
 
         public virtual void OnCommandReceived(Command cmd)
         {
-            if (CommandReceived != null)
-            {
-                CommandReceived(this, cmd);
-            }
+            CommandReceived?.Invoke(this, cmd);
         }
 
         public virtual void OnConnectionShutdown(object conn, ShutdownEventArgs reason)
@@ -128,10 +126,8 @@ namespace RabbitMQ.Client.Impl
                 handler = _sessionShutdown;
                 _sessionShutdown = null;
             }
-            if (handler != null)
-            {
-                handler(this, reason);
-            }
+
+            handler?.Invoke(this, reason);
         }
 
         public override string ToString()
