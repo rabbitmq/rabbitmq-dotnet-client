@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+
 using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit

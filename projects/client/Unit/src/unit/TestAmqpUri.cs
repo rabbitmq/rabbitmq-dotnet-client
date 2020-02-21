@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+
 using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
@@ -152,8 +153,10 @@ namespace RabbitMQ.Client.Unit
 
         private void ParseSuccess(string uri, string user, string password, string host, int port, string vhost)
         {
-            var factory = new ConnectionFactory();
-            factory.Uri = new Uri(uri);
+            var factory = new ConnectionFactory
+            {
+                Uri = new Uri(uri)
+            };
             AssertUriPartEquivalence(user, password, port, vhost, factory);
             Assert.AreEqual(host, factory.HostName);
         }
@@ -161,8 +164,10 @@ namespace RabbitMQ.Client.Unit
         private void ParseSuccess(string uri, string user, string password,
             string[] hosts, int port, string vhost)
         {
-            var factory = new ConnectionFactory();
-            factory.Uri = new Uri(uri);
+            var factory = new ConnectionFactory
+            {
+                Uri = new Uri(uri)
+            };
             AssertUriPartEquivalence(user, password, port, vhost, factory);
             Assert.IsTrue(Array.IndexOf(hosts, factory.HostName) != -1);
         }

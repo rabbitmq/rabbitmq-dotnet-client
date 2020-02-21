@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+
 using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client

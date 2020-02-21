@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using NUnit.Framework;
+
 using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Unit
@@ -50,9 +51,11 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestAuthFailure()
         {
-            ConnectionFactory connFactory = new ConnectionFactory();
-            connFactory.UserName = "guest";
-            connFactory.Password = "incorrect-password";
+            ConnectionFactory connFactory = new ConnectionFactory
+            {
+                UserName = "guest",
+                Password = "incorrect-password"
+            };
 
             try
             {

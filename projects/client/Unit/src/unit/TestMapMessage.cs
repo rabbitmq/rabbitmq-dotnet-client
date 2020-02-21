@@ -38,11 +38,12 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
 using System.Collections.Generic;
 
-using RabbitMQ.Util;
+using NUnit.Framework;
+
 using RabbitMQ.Client.Content;
+using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -53,9 +54,11 @@ namespace RabbitMQ.Client.Unit
         public void TestRoundTrip()
         {
             NetworkBinaryWriter w = Writer();
-            Dictionary<string, object> t = new Dictionary<string, object>();
-            t["double"] = 1.234;
-            t["string"] = "hello";
+            Dictionary<string, object> t = new Dictionary<string, object>
+            {
+                ["double"] = 1.234,
+                ["string"] = "hello"
+            };
             MapWireFormatting.WriteMap(w, t);
             IDictionary<string, object> t2 = MapWireFormatting.ReadMap(Reader(Contents(w)));
             Assert.AreEqual(2, t2.Count);
@@ -67,9 +70,11 @@ namespace RabbitMQ.Client.Unit
         public void TestEncoding()
         {
             NetworkBinaryWriter w = Writer();
-            Dictionary<string, object> t = new Dictionary<string, object>();
-            t["double"] = 1.234;
-            t["string"] = "hello";
+            Dictionary<string, object> t = new Dictionary<string, object>
+            {
+                ["double"] = 1.234,
+                ["string"] = "hello"
+            };
             MapWireFormatting.WriteMap(w, t);
             Check(w, new byte[] {
                 0x00, 0x00, 0x00, 0x02,

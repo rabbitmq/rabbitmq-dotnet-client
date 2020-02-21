@@ -38,13 +38,13 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
-
 using System;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
+using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -52,22 +52,22 @@ namespace RabbitMQ.Client.Unit
     public class TestConcurrentAccessWithSharedConnection : IntegrationFixture
     {
 
-        internal const int threads = 32;
-        internal CountdownEvent latch;
-        internal TimeSpan completionTimeout = TimeSpan.FromSeconds(90);
+        internal const int Threads = 32;
+        internal CountdownEvent _latch;
+        internal TimeSpan _completionTimeout = TimeSpan.FromSeconds(90);
 
         [SetUp]
         public override void Init()
         {
             base.Init();
-            ThreadPool.SetMinThreads(threads, threads);
-            latch = new CountdownEvent(threads);
+            ThreadPool.SetMinThreads(Threads, Threads);
+            _latch = new CountdownEvent(Threads);
         }
 
         [TearDown]
         protected override void ReleaseResources()
         {
-            latch.Dispose();
+            _latch.Dispose();
         }
 
         [Test]
@@ -194,13 +194,13 @@ namespace RabbitMQ.Client.Unit
         internal void TestConcurrentChannelOperations(Action<IConnection> actions,
             int iterations)
         {
-            TestConcurrentChannelOperations(actions, iterations, completionTimeout);
+            TestConcurrentChannelOperations(actions, iterations, _completionTimeout);
         }
 
         internal void TestConcurrentChannelOperations(Action<IConnection> actions,
             int iterations, TimeSpan timeout)
         {
-            Task[] tasks = Enumerable.Range(0, threads).Select(x =>
+            Task[] tasks = Enumerable.Range(0, Threads).Select(x =>
             {
                 return Task.Run(() =>
                 {
@@ -209,11 +209,11 @@ namespace RabbitMQ.Client.Unit
                         actions(Conn);
                     }
 
-                    latch.Signal();
+                    _latch.Signal();
                 });
             }).ToArray();
 
-            Assert.IsTrue(latch.Wait(timeout));
+            Assert.IsTrue(_latch.Wait(timeout));
             // incorrect frame interleaving in these tests will result
             // in an unrecoverable connection-level exception, thus
             // closing the connection

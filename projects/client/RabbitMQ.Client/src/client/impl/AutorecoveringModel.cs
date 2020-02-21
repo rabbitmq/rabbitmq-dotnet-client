@@ -38,10 +38,11 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Framing.Impl;
 using System;
 using System.Collections.Generic;
+
+using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -255,7 +256,7 @@ namespace RabbitMQ.Client.Impl
             get { return _delegate.NextPublishSeqNo; }
         }
 
-        public void AutomaticallyRecover(AutorecoveringConnection conn, IConnection connDelegate)
+        public void AutomaticallyRecover(AutorecoveringConnection conn)
         {
             _connection = conn;
             RecoveryAwareModel defunctModel = _delegate;

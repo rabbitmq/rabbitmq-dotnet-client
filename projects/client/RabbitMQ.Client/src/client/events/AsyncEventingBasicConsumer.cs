@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+
 using TaskExtensions = RabbitMQ.Client.Impl.TaskExtensions;
 
 namespace RabbitMQ.Client.Events

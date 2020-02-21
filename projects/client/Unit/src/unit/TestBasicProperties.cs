@@ -38,9 +38,11 @@
 //  Copyright (c) 2011-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
-using RabbitMQ.Util;
 using System.IO;
+
+using NUnit.Framework;
+
+using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -52,10 +54,12 @@ namespace RabbitMQ.Client.Unit
         public void TestPersistentPropertyChangesDeliveryMode_PersistentTrueDelivery2()
         {
             // Arrange
-            var subject = new Framing.BasicProperties();
+            var subject = new Framing.BasicProperties
+            {
 
-            // Act
-            subject.Persistent = true;
+                // Act
+                Persistent = true
+            };
 
             // Assert
             Assert.AreEqual(2, subject.DeliveryMode);
@@ -66,10 +70,12 @@ namespace RabbitMQ.Client.Unit
         public void TestPersistentPropertyChangesDeliveryMode_PersistentFalseDelivery1()
         {
             // Arrange
-            var subject = new Framing.BasicProperties();
+            var subject = new Framing.BasicProperties
+            {
 
-            // Act
-            subject.Persistent = false;
+                // Act
+                Persistent = false
+            };
 
             // Assert
             Assert.AreEqual(1, subject.DeliveryMode);
@@ -84,12 +90,14 @@ namespace RabbitMQ.Client.Unit
             )
         {
             // Arrange
-            var subject = new Framing.BasicProperties();
+            var subject = new Framing.BasicProperties
+            {
 
-            // Act
-            subject.ClusterId = clusterId;
-            subject.CorrelationId = correlationId;
-            subject.MessageId = messageId;
+                // Act
+                ClusterId = clusterId,
+                CorrelationId = correlationId,
+                MessageId = messageId
+            };
 
             // Assert
             bool isClusterIdPresent = clusterId != null;

@@ -39,9 +39,10 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
-using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
 {

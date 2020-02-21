@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System.Collections.Generic;
+
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl

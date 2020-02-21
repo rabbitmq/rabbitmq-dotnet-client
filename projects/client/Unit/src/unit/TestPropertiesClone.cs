@@ -39,7 +39,9 @@
 //---------------------------------------------------------------------------
 
 using System.Collections.Generic;
+
 using NUnit.Framework;
+
 using RabbitMQ.Client;
 using RabbitMQ.Client.Impl;
 
@@ -63,9 +65,11 @@ public class TestPropertiesClone
         // Set initial values
         bp.ContentType = "foo_1";
         bp.ContentEncoding = "foo_2";
-        bp.Headers = new Dictionary<string, object>();
-        bp.Headers.Add("foo_3", "foo_4");
-        bp.Headers.Add("foo_5", "foo_6");
+        bp.Headers = new Dictionary<string, object>
+        {
+            { "foo_3", "foo_4" },
+            { "foo_5", "foo_6" }
+        };
         bp.DeliveryMode = 2;
         // Persistent also changes DeliveryMode's value to 2
         bp.Persistent = true;
@@ -134,9 +138,11 @@ public class TestPropertiesClone
         // Set members in source object
         bp.ContentType = "foo_1";
         bp.ContentEncoding = "foo_2";
-        bp.Headers = new Dictionary<string, object>();
-        bp.Headers.Add("foo_3", "foo_4");
-        bp.Headers.Add("foo_5", "foo_6");
+        bp.Headers = new Dictionary<string, object>
+        {
+            { "foo_3", "foo_4" },
+            { "foo_5", "foo_6" }
+        };
         bp.DeliveryMode = 2;
         // Persistent also changes DeliveryMode's value to 2
         bp.Persistent = true;
@@ -166,63 +172,5 @@ public class TestPropertiesClone
         Assert.AreEqual(false, bpClone.IsUserIdPresent());
         Assert.AreEqual(false, bpClone.IsAppIdPresent());
         Assert.AreEqual(false, bpClone.IsClusterIdPresent());
-    }
-
-    private void TestStreamPropertiesClone(StreamProperties sp)
-    {
-        // Set members in source object
-        sp.ContentType = "foo_1";
-        sp.ContentEncoding = "foo_2";
-        sp.Headers = new Dictionary<string, object>();
-        sp.Headers.Add("foo_3", "foo_4");
-        sp.Headers.Add("foo_5", "foo_6");
-        sp.Priority = 12;
-        sp.Timestamp = new AmqpTimestamp(123);
-
-        // Clone
-        StreamProperties spClone = sp.Clone() as StreamProperties;
-
-        // Change values in source object
-        sp.ContentType = "foo_7";
-        sp.ContentEncoding = "foo_8";
-        sp.Headers.Remove("foo_3");
-        sp.Headers.Remove("foo_5");
-        sp.Headers.Add("foo_9", "foo_10");
-        sp.Headers.Add("foo_11", "foo_12");
-        sp.Priority = 34;
-        sp.Timestamp = new AmqpTimestamp(234);
-
-        // Make sure values have not changed in clone
-        Assert.AreEqual("foo_1", spClone.ContentType);
-        Assert.AreEqual("foo_2", spClone.ContentEncoding);
-        Assert.AreEqual(2, spClone.Headers.Count);
-        Assert.AreEqual(true, spClone.Headers.ContainsKey("foo_3"));
-        Assert.AreEqual("foo_4", spClone.Headers["foo_3"]);
-        Assert.AreEqual(true, spClone.Headers.ContainsKey("foo_5"));
-        Assert.AreEqual("foo_6", spClone.Headers["foo_5"]);
-        Assert.AreEqual(12, spClone.Priority);
-        Assert.AreEqual(new AmqpTimestamp(123), spClone.Timestamp);
-    }
-
-    private void TestStreamPropertiesNoneClone(StreamProperties sp)
-    {
-        // Do not set any members and clone
-        StreamProperties spClone = sp.Clone() as StreamProperties;
-
-        // Set members in source object
-        sp.ContentType = "foo_1";
-        sp.ContentEncoding = "foo_2";
-        sp.Headers = new Dictionary<string, object>();
-        sp.Headers.Add("foo_3", "foo_4");
-        sp.Headers.Add("foo_5", "foo_6");
-        sp.Priority = 12;
-        sp.Timestamp = new AmqpTimestamp(123);
-
-        // Check that no member is present in clone
-        Assert.AreEqual(false, spClone.IsContentTypePresent());
-        Assert.AreEqual(false, spClone.IsContentEncodingPresent());
-        Assert.AreEqual(false, spClone.IsHeadersPresent());
-        Assert.AreEqual(false, spClone.IsPriorityPresent());
-        Assert.AreEqual(false, spClone.IsTimestampPresent());
     }
 }

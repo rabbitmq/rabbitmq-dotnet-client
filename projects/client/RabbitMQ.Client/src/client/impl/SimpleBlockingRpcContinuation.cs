@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
 
@@ -58,7 +59,6 @@ namespace RabbitMQ.Client.Impl
                 case EitherAlternative.Right:
                     throw new OperationInterruptedException(result.RightValue);
                 default:
-                    string error = "Illegal EitherAlternative " + result.Alternative;
                     return null;
             }
         }
@@ -73,14 +73,8 @@ namespace RabbitMQ.Client.Impl
                 case EitherAlternative.Right:
                     throw new OperationInterruptedException(result.RightValue);
                 default:
-                    ReportInvalidInvariant(result);
                     return null;
             }
-        }
-
-        private static void ReportInvalidInvariant(Either<Command,ShutdownEventArgs> result)
-        {
-            string error = "Illegal EitherAlternative " + result.Alternative;
         }
 
         public virtual void HandleCommand(Command cmd)

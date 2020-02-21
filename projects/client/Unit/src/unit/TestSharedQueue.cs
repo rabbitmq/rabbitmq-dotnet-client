@@ -41,7 +41,9 @@
 using System;
 using System.IO;
 using System.Threading;
+
 using NUnit.Framework;
+
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Unit

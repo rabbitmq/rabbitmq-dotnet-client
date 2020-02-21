@@ -69,8 +69,6 @@ namespace RabbitMQ.Client.Impl
 
     public class SocketFrameHandler : IFrameHandler
     {
-        // Timeout in seconds to wait for a clean socket close.
-        private const int SOCKET_CLOSING_TIMEOUT = 1;
         // Socket poll timeout in ms. If the socket does not
         // become writeable in this amount of time, we throw
         // an exception.

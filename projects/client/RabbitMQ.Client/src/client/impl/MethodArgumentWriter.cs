@@ -41,6 +41,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
@@ -88,7 +89,7 @@ namespace RabbitMQ.Client.Impl
                 // at the point the following statement executes.
                 _bitAccumulator = (byte)(_bitAccumulator | (byte)_bitMask);
             }
-            _bitMask = _bitMask << 1;
+            _bitMask <<= 1;
             _needBitFlush = true;
         }
 

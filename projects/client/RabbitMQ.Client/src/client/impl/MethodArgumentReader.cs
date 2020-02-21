@@ -40,6 +40,7 @@
 
 using System;
 using System.Collections.Generic;
+
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
@@ -66,7 +67,7 @@ namespace RabbitMQ.Client.Impl
             }
 
             bool result = (_bits & _bit) != 0;
-            _bit = _bit << 1;
+            _bit <<= 1;
             return result;
         }
 
