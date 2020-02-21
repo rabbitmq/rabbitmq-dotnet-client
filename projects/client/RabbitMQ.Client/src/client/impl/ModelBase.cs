@@ -954,7 +954,7 @@ namespace RabbitMQ.Client.Impl
 
         public void HandleConnectionBlocked(string reason)
         {
-            var cb = ((Connection)Session.Connection);
+            var cb = (Connection)Session.Connection;
 
             cb.HandleConnectionBlocked(reason);
         }
@@ -973,7 +973,7 @@ namespace RabbitMQ.Client.Impl
             {
                 ((Connection)Session.Connection).InternalClose(reason);
                 _Private_ConnectionCloseOk();
-                SetCloseReason((Session.Connection).CloseReason);
+                SetCloseReason(Session.Connection.CloseReason);
             }
             catch (IOException)
             {
@@ -1051,7 +1051,7 @@ namespace RabbitMQ.Client.Impl
 
         public void HandleConnectionUnblocked()
         {
-            var cb = ((Connection)Session.Connection);
+            var cb = (Connection)Session.Connection;
 
             cb.HandleConnectionUnblocked();
         }
@@ -1513,7 +1513,7 @@ namespace RabbitMQ.Client.Impl
             {
                 throw new InvalidOperationException("Confirms not selected");
             }
-            bool isWaitInfinite = (timeout.TotalMilliseconds == Timeout.Infinite);
+            bool isWaitInfinite = timeout.TotalMilliseconds == Timeout.Infinite;
             Stopwatch stopwatch = Stopwatch.StartNew();
             lock (_unconfirmedSet.SyncRoot)
             {

@@ -43,7 +43,7 @@ using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client
 {
-#if !(NETSTANDARD1_5)
+#if !NETSTANDARD1_5
     [Serializable]
 #endif
     public class ProtocolViolationException : RabbitMQClientException

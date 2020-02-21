@@ -697,7 +697,7 @@ namespace RabbitMQ.Client.Unit
             string nameAfter = null;
 
             var latch = new ManualResetEvent(false);
-            var connection = ((AutorecoveringConnection)Conn);
+            var connection = (AutorecoveringConnection)Conn;
             connection.RecoverySucceeded += (source, ea) => latch.Set();
             connection.QueueNameChangeAfterRecovery += (source, ea) => { nameAfter = ea.NameAfter; };
 
@@ -734,7 +734,7 @@ namespace RabbitMQ.Client.Unit
             int counter = 0;
             Conn.ConnectionShutdown += (c, args) => Interlocked.Increment(ref counter);
             ManualResetEvent shutdownLatch = PrepareForShutdown(Conn);
-            ManualResetEvent recoveryLatch = PrepareForRecovery(((AutorecoveringConnection)Conn));
+            ManualResetEvent recoveryLatch = PrepareForRecovery((AutorecoveringConnection)Conn);
 
             Assert.IsTrue(Conn.IsOpen);
             StopRabbitMQ();

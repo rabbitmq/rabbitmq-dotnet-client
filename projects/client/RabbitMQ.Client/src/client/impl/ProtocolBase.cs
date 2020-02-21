@@ -107,7 +107,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override bool Equals(object obj)
         {
-            return (GetType() == obj.GetType());
+            return GetType() == obj.GetType();
         }
 
         public override int GetHashCode()

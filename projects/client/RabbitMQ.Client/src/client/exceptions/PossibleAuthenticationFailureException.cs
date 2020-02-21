@@ -44,7 +44,7 @@ namespace RabbitMQ.Client.Exceptions
 {
     /// <summary> Thrown when the likely cause is  an
     /// authentication failure. </summary>
-#if !(NETSTANDARD1_5)
+#if !NETSTANDARD1_5
     [Serializable]
 #endif
     public class PossibleAuthenticationFailureException : RabbitMQClientException

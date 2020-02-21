@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.Exceptions
     ///The peer's {'A','M','Q','P',txHi,txLo,major,minor} packet is
     ///decoded into instances of this class.
     ///</remarks>
-#if !(NETSTANDARD1_5)
+#if !NETSTANDARD1_5
     [Serializable]
 #endif
     public class PacketNotRecognizedException : RabbitMQClientException

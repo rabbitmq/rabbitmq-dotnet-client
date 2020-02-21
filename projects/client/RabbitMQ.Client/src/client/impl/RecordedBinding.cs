@@ -56,9 +56,9 @@ namespace RabbitMQ.Client.Impl
         public bool Equals(RecordedBinding other)
         {
             return other != null && 
-                (Source.Equals(other.Source)) &&
-                (Destination.Equals(other.Destination)) &&
-                (RoutingKey.Equals(other.RoutingKey)) &&
+                Source.Equals(other.Source) &&
+                Destination.Equals(other.Destination) &&
+                RoutingKey.Equals(other.RoutingKey) &&
                 (Arguments == other.Arguments);
         }
 
