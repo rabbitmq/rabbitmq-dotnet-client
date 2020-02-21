@@ -59,7 +59,6 @@ namespace RabbitMQ.Client
     {
         private readonly object _eventLock = new object();
         private readonly HashSet<string> _consumerTags = new HashSet<string>();
-        public EventHandler<ConsumerEventArgs> m_consumerCancelled;
 
         /// <summary>
         /// Creates a new instance of an <see cref="DefaultBasicConsumer"/>.
@@ -88,7 +87,8 @@ namespace RabbitMQ.Client
         /// This value is an array because a single consumer instance can be reused to consume on
         /// multiple channels.
         /// </summary>
-        public string[] ConsumerTags {
+        public string[] ConsumerTags
+        {
             get
             {
                 return _consumerTags.ToArray();
@@ -109,23 +109,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Signalled when the consumer gets cancelled.
         /// </summary>
-        public event EventHandler<ConsumerEventArgs> ConsumerCancelled
-        {
-            add
-            {
-                lock (_eventLock)
-                {
-                    m_consumerCancelled += value;
-                }
-            }
-            remove
-            {
-                lock (_eventLock)
-                {
-                    m_consumerCancelled -= value;
-                }
-            }
-        }
+        public event EventHandler<ConsumerEventArgs> ConsumerCancelled;
 
         /// <summary>
         /// Retrieve the <see cref="IModel"/> this consumer is associated with,
@@ -203,17 +187,9 @@ namespace RabbitMQ.Client
         public virtual void OnCancel(params string[] consumerTags)
         {
             IsRunning = false;
-            EventHandler<ConsumerEventArgs> handler;
-            lock (_eventLock)
+            foreach (EventHandler<ConsumerEventArgs> h in ConsumerCancelled?.GetInvocationList() ?? Array.Empty<Delegate>())
             {
-                handler = m_consumerCancelled;
-            }
-            if (handler != null)
-            {
-                foreach (EventHandler<ConsumerEventArgs> h in handler.GetInvocationList())
-                {
-                    h(this, new ConsumerEventArgs(consumerTags));
-                }
+                h(this, new ConsumerEventArgs(consumerTags));
             }
 
             foreach (string consumerTag in consumerTags)

@@ -63,8 +63,6 @@ namespace RabbitMQ.Client.Impl
         private bool _usesPublisherConfirms = false;
         private bool _usesTransactions = false;
 
-        private EventHandler<EventArgs> _recovery;
-
         public IConsumerDispatcher ConsumerDispatcher
         {
             get { return _delegate.ConsumerDispatcher; }
@@ -202,23 +200,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public event EventHandler<EventArgs> Recovery
-        {
-            add
-            {
-                lock (_eventLock)
-                {
-                    _recovery += value;
-                }
-            }
-            remove
-            {
-                lock (_eventLock)
-                {
-                    _recovery -= value;
-                }
-            }
-        }
+        public event EventHandler<EventArgs> Recovery;
 
         public int ChannelNumber
         {
@@ -1198,21 +1180,17 @@ namespace RabbitMQ.Client.Impl
 
         private void RunRecoveryEventHandlers()
         {
-            EventHandler<EventArgs> handler = _recovery;
-            if (handler != null)
+            foreach (EventHandler<EventArgs> reh in Recovery?.GetInvocationList() ?? Array.Empty<Delegate>())
             {
-                foreach (EventHandler<EventArgs> reh in handler.GetInvocationList())
+                try
                 {
-                    try
-                    {
-                        reh(this, EventArgs.Empty);
-                    }
-                    catch (Exception e)
-                    {
-                        var args = new CallbackExceptionEventArgs(e);
-                        args.Detail["context"] = "OnModelRecovery";
-                        _delegate.OnCallbackException(args);
-                    }
+                    reh(this, EventArgs.Empty);
+                }
+                catch (Exception e)
+                {
+                    var args = new CallbackExceptionEventArgs(e);
+                    args.Detail["context"] = "OnModelRecovery";
+                    _delegate.OnCallbackException(args);
                 }
             }
         }
