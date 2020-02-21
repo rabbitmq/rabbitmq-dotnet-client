@@ -38,7 +38,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -116,64 +116,43 @@ namespace RabbitMQ.Client.Impl
 
         public static object ReadFieldValue(NetworkBinaryReader reader)
         {
-            object value = null;
-            byte discriminator = reader.ReadByte();
-            switch ((char)discriminator)
+            switch ((char)reader.ReadByte())
             {
                 case 'S':
-                    value = ReadLongstr(reader);
-                    break;
+                    return ReadLongstr(reader);
                 case 'I':
-                    value = reader.ReadInt32();
-                    break;
+                    return reader.ReadInt32();
                 case 'i':
-                    value = reader.ReadUInt32();
-                    break;
+                    return reader.ReadUInt32();
                 case 'D':
-                    value = ReadDecimal(reader);
-                    break;
+                    return ReadDecimal(reader);
                 case 'T':
-                    value = ReadTimestamp(reader);
-                    break;
+                    return ReadTimestamp(reader);
                 case 'F':
-                    value = ReadTable(reader);
-                    break;
+                    return ReadTable(reader);
                 case 'A':
-                    value = ReadArray(reader);
-                    break;
+                    return ReadArray(reader);
                 case 'B':
-                    value = reader.ReadByte();
-                    break;
+                    return reader.ReadByte();
                 case 'b':
-                    value = reader.ReadSByte();
-                    break;
+                    return reader.ReadSByte();
                 case 'd':
-                    value = reader.ReadDouble();
-                    break;
+                    return reader.ReadDouble();
                 case 'f':
-                    value = reader.ReadSingle();
-                    break;
+                    return reader.ReadSingle();
                 case 'l':
-                    value = reader.ReadInt64();
-                    break;
+                    return reader.ReadInt64();
                 case 's':
-                    value = reader.ReadInt16();
-                    break;
+                    return reader.ReadInt16();
                 case 't':
-                    value = (ReadOctet(reader) != 0);
-                    break;
+                    return (ReadOctet(reader) != 0);
                 case 'x':
-                    value = new BinaryTableValue(ReadLongstr(reader));
-                    break;
+                    return new BinaryTableValue(ReadLongstr(reader));
                 case 'V':
-                    value = null;
-                    break;
-
+                    return null;
                 default:
-                    throw new SyntaxError("Unrecognised type in table: " +
-                                          (char)discriminator);
+                    throw new SyntaxError($"Unrecognised type in table: {(char)reader.ReadByte()}");
             }
-            return value;
         }
 
         public static uint ReadLong(NetworkBinaryReader reader)
@@ -289,7 +268,17 @@ namespace RabbitMQ.Client.Impl
                     break;
                 case string val:
                     WriteOctet(writer, (byte)'S');
-                    WriteLongstr(writer, Encoding.UTF8.GetBytes(val));
+                    int maxLength = Encoding.UTF8.GetMaxByteCount(val.Length);
+                    byte[] bytes = ArrayPool<byte>.Shared.Rent(maxLength);
+                    try
+                    {
+                        int bytesUsed = Encoding.UTF8.GetBytes(val, 0, val.Length, bytes, 0);
+                        WriteLongstr(writer, bytes, 0, bytesUsed);
+                    }
+                    finally
+                    {
+                        ArrayPool<byte>.Shared.Return(bytes);
+                    }
                     break;
                 case byte[] val:
                     WriteOctet(writer, (byte)'S');
@@ -374,6 +363,12 @@ namespace RabbitMQ.Client.Impl
             writer.Write(val);
         }
 
+        public static void WriteLongstr(NetworkBinaryWriter writer, byte[] val, int index, int count)
+        {
+            WriteLong(writer, (uint)count);
+            writer.Write(val, index, count);
+        }
+
         public static void WriteOctet(NetworkBinaryWriter writer, byte val)
         {
             writer.Write(val);
@@ -386,17 +381,23 @@ namespace RabbitMQ.Client.Impl
 
         public static void WriteShortstr(NetworkBinaryWriter writer, string val)
         {
-            var bytes = Encoding.UTF8.GetBytes(val);
-            var length = bytes.Length;
-            
-            if (length > 255)
+            int maxLength = Encoding.UTF8.GetMaxByteCount(val.Length);
+            byte[] bytes = ArrayPool<byte>.Shared.Rent(maxLength);
+            try
             {
-                throw new WireFormattingException("Short string too long; " +
-                                                  "UTF-8 encoded length=" + length + ", max=255");
-            }
+                int bytesUsed = Encoding.UTF8.GetBytes(val, 0, val.Length, bytes, 0);
+                if (bytesUsed > 255)
+                {
+                    throw new WireFormattingException($"Short string too long; UTF-8 encoded length={bytesUsed}, max=255");
+                }
 
-            writer.Write((byte)length);
-            writer.Write(bytes);
+                writer.Write((byte)bytesUsed);
+                writer.Write(bytes, 0, bytesUsed);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(bytes);
+            }
         }
 
         ///<summary>Writes an AMQP "table" to the writer.</summary>
