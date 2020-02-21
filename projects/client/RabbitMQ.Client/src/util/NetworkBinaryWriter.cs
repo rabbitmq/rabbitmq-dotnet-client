@@ -134,8 +134,8 @@ namespace RabbitMQ.Util
         /// </summary>
         public override void Write(long i)
         {
-            var i1 = (uint)(i >> 32);
-            var i2 = (uint)i;
+            uint i1 = (uint)(i >> 32);
+            uint i2 = (uint)i;
             Write(i1);
             Write(i2);
         }
@@ -145,8 +145,8 @@ namespace RabbitMQ.Util
         /// </summary>
         public override void Write(ulong i)
         {
-            var i1 = (uint)(i >> 32);
-            var i2 = (uint)i;
+            uint i1 = (uint)(i >> 32);
+            uint i2 = (uint)i;
             Write(i1);
             Write(i2);
         }

@@ -63,12 +63,12 @@ namespace RabbitMQ.Client.Unit
 
         private bool RabbitMQ380OrHigher()
         {
-            var properties = Conn.ServerProperties;
+            System.Collections.Generic.IDictionary<string, object> properties = Conn.ServerProperties;
 
-            if (properties.TryGetValue("version", out var versionVal))
+            if (properties.TryGetValue("version", out object versionVal))
             {
-                var versionStr = Encoding.UTF8.GetString((byte[])versionVal);
-                if (Version.TryParse(versionStr, out var version))
+                string versionStr = Encoding.UTF8.GetString((byte[])versionVal);
+                if (Version.TryParse(versionStr, out Version version))
                 {
                     return version >= new Version(3, 8);
                 }

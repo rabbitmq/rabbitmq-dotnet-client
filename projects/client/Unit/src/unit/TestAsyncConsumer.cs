@@ -55,12 +55,12 @@ namespace RabbitMQ.Client.Unit
         public void TestBasicRoundtrip()
         {
             var cf = new ConnectionFactory{ DispatchConsumersAsync = true };
-            using(var c = cf.CreateConnection())
-            using(var m = c.CreateModel())
+            using(IConnection c = cf.CreateConnection())
+            using(IModel m = c.CreateModel())
             {
-                var q = m.QueueDeclare();
-                var bp = m.CreateBasicProperties();
-                var body = System.Text.Encoding.UTF8.GetBytes("async-hi");
+                QueueDeclareOk q = m.QueueDeclare();
+                IBasicProperties bp = m.CreateBasicProperties();
+                byte[] body = System.Text.Encoding.UTF8.GetBytes("async-hi");
                 m.BasicPublish("", q.QueueName, bp, body);
                 var consumer = new AsyncEventingBasicConsumer(m);
                 var are = new AutoResetEvent(false);
@@ -69,14 +69,14 @@ namespace RabbitMQ.Client.Unit
                         are.Set();
                         await Task.Yield();
                     };
-                var tag = m.BasicConsume(q.QueueName, true, consumer);
+                string tag = m.BasicConsume(q.QueueName, true, consumer);
                 // ensure we get a delivery
-                var waitRes = are.WaitOne(2000);
+                bool waitRes = are.WaitOne(2000);
                 Assert.IsTrue(waitRes);
                 // unsubscribe and ensure no further deliveries
                 m.BasicCancel(tag);
                 m.BasicPublish("", q.QueueName, bp, body);
-                var waitResFalse = are.WaitOne(2000);
+                bool waitResFalse = are.WaitOne(2000);
                 Assert.IsFalse(waitResFalse);
             }
         }
@@ -85,12 +85,12 @@ namespace RabbitMQ.Client.Unit
         public void NonAsyncConsumerShouldThrowInvalidOperationException()
         {
             var cf = new ConnectionFactory{ DispatchConsumersAsync = true };
-            using(var c = cf.CreateConnection())
-            using(var m = c.CreateModel())
+            using(IConnection c = cf.CreateConnection())
+            using(IModel m = c.CreateModel())
             {
-                var q = m.QueueDeclare();
-                var bp = m.CreateBasicProperties();
-                var body = System.Text.Encoding.UTF8.GetBytes("async-hi");
+                QueueDeclareOk q = m.QueueDeclare();
+                IBasicProperties bp = m.CreateBasicProperties();
+                byte[] body = System.Text.Encoding.UTF8.GetBytes("async-hi");
                 m.BasicPublish("", q.QueueName, bp, body);
                 var consumer = new EventingBasicConsumer(m);
                 Assert.Throws<InvalidOperationException>(() => m.BasicConsume(q.QueueName, false, consumer));

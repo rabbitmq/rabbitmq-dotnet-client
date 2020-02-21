@@ -50,11 +50,11 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestProperties()
         {
-            var u  = "username";
-            var pw = "password";
-            var v  = "vhost";
-            var h  = "192.168.0.1";
-            var p  = 5674;
+            string u  = "username";
+            string pw = "password";
+            string v  = "vhost";
+            string h  = "192.168.0.1";
+            int p  = 5674;
 
             var cf = new ConnectionFactory();
             cf.UserName = u;
@@ -79,7 +79,7 @@ namespace RabbitMQ.Client.Unit
             cf.Port = 1234;
             Assert.That(() =>
                     {
-                        using(var conn = cf.CreateConnection()) {}
+                        using(IConnection conn = cf.CreateConnection()) {}
                     }, Throws.TypeOf<BrokerUnreachableException>());
         }
 
@@ -92,7 +92,7 @@ namespace RabbitMQ.Client.Unit
             cf.Port = 1234;
             Assert.That(() =>
                     {
-                        using(var conn = cf.CreateConnection("some_name")) {}
+                        using(IConnection conn = cf.CreateConnection("some_name")) {}
                     }, Throws.TypeOf<BrokerUnreachableException>());
         }
 
@@ -102,7 +102,7 @@ namespace RabbitMQ.Client.Unit
             var cf = new ConnectionFactory();
             cf.AutomaticRecoveryEnabled = false;
             cf.ClientProvidedName = "some_name";
-            using (var conn = cf.CreateConnection())
+            using (IConnection conn = cf.CreateConnection())
             {
                 Assert.AreEqual("some_name", conn.ClientProvidedName);
                 Assert.AreEqual("some_name", conn.ClientProperties["connection_name"]);
@@ -114,7 +114,7 @@ namespace RabbitMQ.Client.Unit
         {
             var cf = new ConnectionFactory();
             cf.AutomaticRecoveryEnabled = false;
-            using(var conn = cf.CreateConnection("some_name"))
+            using(IConnection conn = cf.CreateConnection("some_name"))
             {
                 Assert.AreEqual("some_name", conn.ClientProvidedName);
                 Assert.AreEqual("some_name", conn.ClientProperties["connection_name"]);
@@ -126,7 +126,7 @@ namespace RabbitMQ.Client.Unit
         {
             var cf = new ConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
-            using(var conn = cf.CreateConnection("some_name"))
+            using(IConnection conn = cf.CreateConnection("some_name"))
             {
                 Assert.AreEqual("some_name", conn.ClientProvidedName);
                 Assert.AreEqual("some_name", conn.ClientProperties["connection_name"]);
@@ -139,7 +139,7 @@ namespace RabbitMQ.Client.Unit
             var cf = new ConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
             var xs = new System.Collections.Generic.List<AmqpTcpEndpoint> { new AmqpTcpEndpoint("localhost") };
-            using(var conn = cf.CreateConnection(xs, "some_name"))
+            using(IConnection conn = cf.CreateConnection(xs, "some_name"))
             {
               Assert.AreEqual("some_name", conn.ClientProvidedName);
               Assert.AreEqual("some_name", conn.ClientProperties["connection_name"]);
@@ -152,7 +152,7 @@ namespace RabbitMQ.Client.Unit
             var cf = new ConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
             cf.HostName = "localhost";
-            using(var conn = cf.CreateConnection()){
+            using(IConnection conn = cf.CreateConnection()){
                 Assert.AreEqual(5672, conn.Endpoint.Port);
             }
         }
@@ -163,7 +163,7 @@ namespace RabbitMQ.Client.Unit
             var cf = new ConnectionFactory();
             cf.AutomaticRecoveryEnabled = false;
             cf.HostName = "not_localhost";
-            var conn = cf.CreateConnection(new System.Collections.Generic.List<string> { "localhost" }, "oregano");
+            IConnection conn = cf.CreateConnection(new System.Collections.Generic.List<string> { "localhost" }, "oregano");
             conn.Close();
             conn.Dispose();
             Assert.AreEqual("not_localhost", cf.HostName);
@@ -178,7 +178,7 @@ namespace RabbitMQ.Client.Unit
             cf.HostName = "not_localhost";
             cf.Port = 1234 ;
             var ep = new AmqpTcpEndpoint("localhost");
-            using(var conn = cf.CreateConnection(new System.Collections.Generic.List<AmqpTcpEndpoint> { ep })) {}
+            using(IConnection conn = cf.CreateConnection(new System.Collections.Generic.List<AmqpTcpEndpoint> { ep })) {}
         }
 
         [Test]
@@ -189,7 +189,7 @@ namespace RabbitMQ.Client.Unit
             var ep = new AmqpTcpEndpoint("localhost", 1234);
             Assert.That(() =>
                     {
-                        using(var conn = cf.CreateConnection(new System.Collections.Generic.List<AmqpTcpEndpoint> { ep })){}
+                        using(IConnection conn = cf.CreateConnection(new System.Collections.Generic.List<AmqpTcpEndpoint> { ep })){}
                     }, Throws.TypeOf<BrokerUnreachableException>());
         }
 
@@ -200,7 +200,7 @@ namespace RabbitMQ.Client.Unit
             cf.HostName = "not_localhost";
             cf.Port = 1234 ;
             var ep = new AmqpTcpEndpoint("localhost");
-            using(var conn = cf.CreateConnection(new System.Collections.Generic.List<AmqpTcpEndpoint> { ep })) {}
+            using(IConnection conn = cf.CreateConnection(new System.Collections.Generic.List<AmqpTcpEndpoint> { ep })) {}
         }
 
         [Test]
@@ -211,7 +211,7 @@ namespace RabbitMQ.Client.Unit
             var ep = new AmqpTcpEndpoint("localhost");
             ep.AddressFamily = System.Net.Sockets.AddressFamily.InterNetwork;
             cf.Endpoint = ep;
-            using(var conn = cf.CreateConnection()){};
+            using(IConnection conn = cf.CreateConnection()){};
         }
 
         [Test]
@@ -221,7 +221,7 @@ namespace RabbitMQ.Client.Unit
             var ep = new AmqpTcpEndpoint("localhost", 1234);
             Assert.That(() =>
                     {
-                        using(var conn = cf.CreateConnection(new System.Collections.Generic.List<AmqpTcpEndpoint> { ep })) {}
+                        using(IConnection conn = cf.CreateConnection(new System.Collections.Generic.List<AmqpTcpEndpoint> { ep })) {}
                     }, Throws.TypeOf<BrokerUnreachableException>());
         }
 
@@ -231,7 +231,7 @@ namespace RabbitMQ.Client.Unit
             var cf = new ConnectionFactory();
             var invalidEp = new AmqpTcpEndpoint("not_localhost");
             var ep = new AmqpTcpEndpoint("localhost");
-            using(var conn = cf.CreateConnection(new List<AmqpTcpEndpoint> { invalidEp, ep })) {};
+            using(IConnection conn = cf.CreateConnection(new List<AmqpTcpEndpoint> { invalidEp, ep })) {};
         }
     }
 }

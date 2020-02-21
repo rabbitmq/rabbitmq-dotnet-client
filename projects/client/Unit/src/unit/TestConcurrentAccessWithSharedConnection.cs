@@ -154,7 +154,7 @@ namespace RabbitMQ.Client.Unit
         {
             TestConcurrentChannelOperations((conn) =>
             {
-                var ch = conn.CreateModel();
+                IModel ch = conn.CreateModel();
                 ch.Close();
             }, 50);
         }
@@ -181,9 +181,9 @@ namespace RabbitMQ.Client.Unit
             {
                 // publishing on a shared channel is not supported
                 // and would missing the point of this test anyway
-                var ch = Conn.CreateModel();
+                IModel ch = Conn.CreateModel();
                 ch.ConfirmSelect();
-                foreach (var j in Enumerable.Range(0, 200))
+                foreach (int j in Enumerable.Range(0, 200))
                 {
                     ch.BasicPublish(exchange: "", routingKey: "_______", basicProperties: ch.CreateBasicProperties(), body: body);
                 }
@@ -200,11 +200,11 @@ namespace RabbitMQ.Client.Unit
         internal void TestConcurrentChannelOperations(Action<IConnection> actions,
             int iterations, TimeSpan timeout)
         {
-            var tasks = Enumerable.Range(0, threads).Select(x =>
+            Task[] tasks = Enumerable.Range(0, threads).Select(x =>
             {
                 return Task.Run(() =>
                 {
-                    foreach (var j in Enumerable.Range(0, iterations))
+                    foreach (int j in Enumerable.Range(0, iterations))
                     {
                         actions(Conn);
                     }

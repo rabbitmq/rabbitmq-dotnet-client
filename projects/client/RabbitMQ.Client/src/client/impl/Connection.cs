@@ -431,7 +431,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
             }
 
-            var receivedSignal = _appContinuation.WaitOne(timeout);
+            bool receivedSignal = _appContinuation.WaitOne(timeout);
 
             if (!receivedSignal)
             {
@@ -1193,7 +1193,7 @@ entry.ToString());
             _frameHandler.ReadTimeout = _factory.HandshakeContinuationTimeout;
             _frameHandler.SendHeader();
 
-            var connectionStart = connectionStartCell.WaitForValue();
+            ConnectionStartDetails connectionStart = connectionStartCell.WaitForValue();
 
             if (connectionStart == null)
             {
@@ -1271,7 +1271,7 @@ entry.ToString());
                     "Possibly caused by authentication failure", e);
             }
 
-            var channelMax = (ushort)NegotiatedMaxValue(_factory.RequestedChannelMax,
+            ushort channelMax = (ushort)NegotiatedMaxValue(_factory.RequestedChannelMax,
                 connectionTune.m_channelMax);
             _sessionManager = new SessionManager(this, channelMax);
 
@@ -1280,7 +1280,7 @@ entry.ToString());
             FrameMax = frameMax;
 
             TimeSpan requestedHeartbeat = _factory.RequestedHeartbeat;
-            var heartbeatInSeconds = NegotiatedMaxValue((uint)requestedHeartbeat.TotalSeconds,
+            uint heartbeatInSeconds = NegotiatedMaxValue((uint)requestedHeartbeat.TotalSeconds,
                 (uint)connectionTune.m_heartbeatInSeconds);
             Heartbeat = TimeSpan.FromSeconds(heartbeatInSeconds);
 
