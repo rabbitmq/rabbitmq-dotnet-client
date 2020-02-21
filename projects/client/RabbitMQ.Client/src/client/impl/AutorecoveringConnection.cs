@@ -54,7 +54,6 @@ namespace RabbitMQ.Client.Framing.Impl
     {
         private readonly object _eventLock = new object();
 
-        private readonly object _manuallyClosedLock = new object();
         private Connection _delegate;
         private readonly ConnectionFactory _factory;
 
@@ -74,13 +73,6 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private readonly IDictionary<string, RecordedConsumer> _recordedConsumers =
             new ConcurrentDictionary<string, RecordedConsumer>();
-
-        private readonly IDictionary<string, RecordedExchange> _recordedExchanges =
-            new ConcurrentDictionary<string, RecordedExchange>();
-
-        private readonly IDictionary<string, RecordedQueue> _recordedQueues =
-            new ConcurrentDictionary<string, RecordedQueue>();
-
         private EventHandler<ShutdownEventArgs> _recordedShutdownEventHandlers;
         private EventHandler<EventArgs> _recordedUnblockedEventHandlers;
         private EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> _consumerTagChange;
@@ -302,15 +294,9 @@ namespace RabbitMQ.Client.Framing.Impl
             get { return _delegate.Protocol; }
         }
 
-        public IDictionary<string, RecordedExchange> RecordedExchanges
-        {
-            get { return _recordedExchanges; }
-        }
+        public IDictionary<string, RecordedExchange> RecordedExchanges { get; } = new ConcurrentDictionary<string, RecordedExchange>();
 
-        public IDictionary<string, RecordedQueue> RecordedQueues
-        {
-            get { return _recordedQueues; }
-        }
+        public IDictionary<string, RecordedQueue> RecordedQueues { get; } = new ConcurrentDictionary<string, RecordedQueue>();
 
         public int RemotePort
         {
@@ -409,7 +395,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             lock (_recordedEntitiesLock)
             {
-                _recordedExchanges.Remove(name);
+                RecordedExchanges.Remove(name);
 
                 // find bindings that need removal, check if some auto-delete exchanges
                 // might need the same
@@ -426,7 +412,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             lock (_recordedEntitiesLock)
             {
-                _recordedQueues.Remove(name);
+                RecordedQueues.Remove(name);
                 // find bindings that need removal, check if some auto-delete exchanges
                 // might need the same
                 IEnumerable<RecordedBinding> bs = _recordedBindings.Keys.Where(b => name.Equals(b.Destination));
@@ -456,13 +442,13 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 if (!HasMoreDestinationsBoundToExchange(_recordedBindings.Keys, exchange))
                 {
-                    _recordedExchanges.TryGetValue(exchange, out RecordedExchange rx);
+                    RecordedExchanges.TryGetValue(exchange, out RecordedExchange rx);
                     // last binding where this exchange is the source is gone,
                     // remove recorded exchange
                     // if it is auto-deleted. See bug 26364.
                     if ((rx != null) && rx.IsAutoDelete)
                     {
-                        _recordedExchanges.Remove(exchange);
+                        RecordedExchanges.Remove(exchange);
                     }
                 }
             }
@@ -474,12 +460,12 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 if (!HasMoreConsumersOnQueue(_recordedConsumers.Values, queue))
                 {
-                    _recordedQueues.TryGetValue(queue, out RecordedQueue rq);
+                    RecordedQueues.TryGetValue(queue, out RecordedQueue rq);
                     // last consumer on this connection is gone, remove recorded queue
                     // if it is auto-deleted. See bug 26364.
                     if ((rq != null) && rq.IsAutoDelete)
                     {
-                        _recordedQueues.Remove(queue);
+                        RecordedQueues.Remove(queue);
                     }
                 }
             }
@@ -508,7 +494,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             lock (_recordedEntitiesLock)
             {
-                _recordedExchanges[name] = x;
+                RecordedExchanges[name] = x;
             }
         }
 
@@ -516,7 +502,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             lock (_recordedEntitiesLock)
             {
-                _recordedQueues[name] = q;
+                RecordedQueues[name] = q;
             }
         }
 
@@ -864,7 +850,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void RecoverExchanges()
         {
-            foreach (RecordedExchange rx in _recordedExchanges.Values)
+            foreach (RecordedExchange rx in RecordedExchanges.Values)
             {
                 try
                 {
@@ -885,16 +871,16 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 foreach (AutorecoveringModel m in _models)
                 {
-                    m.AutomaticallyRecover(this, _delegate);
+                    m.AutomaticallyRecover(this);
                 }
             }
         }
 
         private void RecoverQueues()
         {
-            lock (_recordedQueues)
+            lock (RecordedQueues)
             {
-                foreach (KeyValuePair<string, RecordedQueue> pair in _recordedQueues)
+                foreach (KeyValuePair<string, RecordedQueue> pair in RecordedQueues)
                 {
                     string oldName = pair.Key;
                     RecordedQueue rq = pair.Value;

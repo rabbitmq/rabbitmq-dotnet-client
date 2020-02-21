@@ -38,43 +38,45 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
-using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Framing;
 using System;
 using System.Collections.Generic;
 using System.Threading;
+
+using NUnit.Framework;
+
+using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
     internal class TestConsumerOperationDispatch : IntegrationFixture
     {
-        private readonly string x = "dotnet.tests.consumer-operation-dispatch.fanout";
-        private readonly List<IModel> channels = new List<IModel>();
-        private readonly List<string> queues = new List<string>();
-        private readonly List<CollectingConsumer> consumers = new List<CollectingConsumer>();
+        private readonly string _x = "dotnet.tests.consumer-operation-dispatch.fanout";
+        private readonly List<IModel> _channels = new List<IModel>();
+        private readonly List<string> _queues = new List<string>();
+        private readonly List<CollectingConsumer> _consumers = new List<CollectingConsumer>();
 
         // number of channels (and consumers)
-        private const int y = 100;
+        private const int Y = 100;
 
         // number of messages to be published
-        private const int n = 100;
+        private const int N = 100;
 
-        public static CountdownEvent counter = new CountdownEvent(y);
+        public static CountdownEvent counter = new CountdownEvent(Y);
 
         [TearDown]
         protected override void ReleaseResources()
         {
-            foreach (IModel ch in channels)
+            foreach (IModel ch in _channels)
             {
                 if (ch.IsOpen)
                 {
                     ch.Close();
                 }
             }
-            queues.Clear();
-            consumers.Clear();
+            _queues.Clear();
+            _consumers.Clear();
             counter.Reset();
             base.ReleaseResources();
         }
@@ -98,7 +100,7 @@ namespace RabbitMQ.Client.Unit
                 // (per-channel) by the concurrent dispatcher.
                 DeliveryTags.Add(deliveryTag);
 
-                if (deliveryTag == n)
+                if (deliveryTag == N)
                 {
                     counter.Signal();
                 }
@@ -111,35 +113,35 @@ namespace RabbitMQ.Client.Unit
         public void TestDeliveryOrderingWithSingleChannel()
         {
             IModel Ch = Conn.CreateModel();
-            Ch.ExchangeDeclare(x, "fanout", durable: false);
+            Ch.ExchangeDeclare(_x, "fanout", durable: false);
 
-            for (int i = 0; i < y; i++)
+            for (int i = 0; i < Y; i++)
             {
                 IModel ch = Conn.CreateModel();
                 QueueDeclareOk q = ch.QueueDeclare("", durable: false, exclusive: true, autoDelete: true, arguments: null);
-                ch.QueueBind(queue: q, exchange: x, routingKey: "");
-                channels.Add(ch);
-                queues.Add(q);
+                ch.QueueBind(queue: q, exchange: _x, routingKey: "");
+                _channels.Add(ch);
+                _queues.Add(q);
                 var cons = new CollectingConsumer(ch);
-                consumers.Add(cons);
+                _consumers.Add(cons);
                 ch.BasicConsume(queue: q, autoAck: false, consumer: cons);
             }
 
-            for (int i = 0; i < n; i++)
+            for (int i = 0; i < N; i++)
             {
-                Ch.BasicPublish(exchange: x, routingKey: "",
+                Ch.BasicPublish(exchange: _x, routingKey: "",
                     basicProperties: new BasicProperties(),
                     body: encoding.GetBytes("msg"));
             }
             counter.Wait(TimeSpan.FromSeconds(120));
 
-            foreach (CollectingConsumer cons in consumers)
+            foreach (CollectingConsumer cons in _consumers)
             {
-                Assert.That(cons.DeliveryTags, Has.Count.EqualTo(n));
+                Assert.That(cons.DeliveryTags, Has.Count.EqualTo(N));
                 ulong[] ary = cons.DeliveryTags.ToArray();
                 Assert.AreEqual(ary[0], 1);
-                Assert.AreEqual(ary[n - 1], n);
-                for (int i = 0; i < (n - 1); i++)
+                Assert.AreEqual(ary[N - 1], N);
+                for (int i = 0; i < (N - 1); i++)
                 {
                     ulong a = ary[i];
                     ulong b = ary[i + 1];
@@ -155,11 +157,11 @@ namespace RabbitMQ.Client.Unit
         {
             IModel ch1 = Conn.CreateModel();
             IModel ch2 = Conn.CreateModel();
-            Model.ExchangeDeclare(x, "fanout", durable: false);
+            Model.ExchangeDeclare(_x, "fanout", durable: false);
 
             string q1 = ch1.QueueDeclare().QueueName;
             string q2 = ch2.QueueDeclare().QueueName;
-            ch2.QueueBind(queue: q2, exchange: x, routingKey: "");
+            ch2.QueueBind(queue: q2, exchange: _x, routingKey: "");
 
             var latch = new ManualResetEvent(false);
             ch1.BasicConsume(q1, true, new EventingBasicConsumer(ch1));
@@ -172,7 +174,7 @@ namespace RabbitMQ.Client.Unit
             // closing this channel must not affect ch2
             ch1.Close();
 
-            ch2.BasicPublish(exchange: x, basicProperties: null, body: encoding.GetBytes("msg"), routingKey: "");
+            ch2.BasicPublish(exchange: _x, basicProperties: null, body: encoding.GetBytes("msg"), routingKey: "");
             Wait(latch);
         }
 

@@ -16,7 +16,7 @@ namespace RabbitMQ.Client
 
         private WorkPool StartNewWorkPool(IModel model)
         {
-            var newWorkPool = new WorkPool(model);
+            var newWorkPool = new WorkPool();
             newWorkPool.Start();
             return newWorkPool;
         }
@@ -44,7 +44,7 @@ namespace RabbitMQ.Client
             readonly CancellationTokenSource _tokenSource;
             private Task _worker;
 
-            public WorkPool(IModel model)
+            public WorkPool()
             {
                 _actions = new ConcurrentQueue<Action>();
                 _tokenSource = new CancellationTokenSource();

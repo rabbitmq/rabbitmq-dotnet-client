@@ -46,7 +46,7 @@ namespace RabbitMQ.Client.Logging
 {
 #if NET452
 #else
-[EventData]
+    [EventData]
 #endif
     public class RabbitMqExceptionDetail
     {

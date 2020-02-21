@@ -42,6 +42,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 

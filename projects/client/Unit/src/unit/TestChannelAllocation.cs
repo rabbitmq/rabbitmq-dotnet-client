@@ -38,9 +38,11 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
-using RabbitMQ.Client.Impl;
 using System.Collections.Generic;
+
+using NUnit.Framework;
+
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -50,7 +52,7 @@ namespace RabbitMQ.Client.Unit
   {
     public const int CHANNEL_COUNT = 100;
 
-    IConnection C;
+    IConnection _c;
 
     public int ModelNumber(IModel model)
     {
@@ -59,26 +61,26 @@ namespace RabbitMQ.Client.Unit
 
     [SetUp] public void Connect()
     {
-      C = new ConnectionFactory().CreateConnection();
+      _c = new ConnectionFactory().CreateConnection();
     }
 
     [TearDown] public void Disconnect()
     {
-      C.Close();
+      _c.Close();
     }
 
 
     [Test] public void AllocateInOrder()
     {
       for(int i = 1; i <= CHANNEL_COUNT; i++)
-        Assert.AreEqual(i, ModelNumber(C.CreateModel()));
+        Assert.AreEqual(i, ModelNumber(_c.CreateModel()));
     }
 
     [Test] public void AllocateAfterFreeingLast() {
-      IModel ch = C.CreateModel();
+      IModel ch = _c.CreateModel();
       Assert.AreEqual(1, ModelNumber(ch));
       ch.Close();
-      ch = C.CreateModel();
+      ch = _c.CreateModel();
       Assert.AreEqual(1, ModelNumber(ch));
     }
 
@@ -93,7 +95,7 @@ namespace RabbitMQ.Client.Unit
       List<IModel> channels = new List<IModel>();
 
       for(int i = 1; i <= CHANNEL_COUNT; i++)
-        channels.Add(C.CreateModel());
+        channels.Add(_c.CreateModel());
 
       foreach(IModel channel in channels){
         channel.Close();
@@ -102,7 +104,7 @@ namespace RabbitMQ.Client.Unit
       channels = new List<IModel>();
 
       for(int j = 1; j <= CHANNEL_COUNT; j++)
-        channels.Add(C.CreateModel());
+        channels.Add(_c.CreateModel());
 
       // In the current implementation the list should actually
       // already be sorted, but we don't want to force that behaviour

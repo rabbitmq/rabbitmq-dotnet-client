@@ -46,7 +46,6 @@ namespace RabbitMQ.Util
     internal class SynchronizedList<T> : IList<T>
     {
         private readonly IList<T> _list;
-        private readonly object _root;
 
         internal SynchronizedList()
             : this(new List<T>())
@@ -56,14 +55,14 @@ namespace RabbitMQ.Util
         internal SynchronizedList(IList<T> list)
         {
             _list = list;
-            _root = new object();
+            SyncRoot = new object();
         }
 
         public int Count
         {
             get
             {
-                lock (_root)
+                lock (SyncRoot)
                     return _list.Count;
             }
         }
@@ -77,78 +76,75 @@ namespace RabbitMQ.Util
         {
             get
             {
-                lock (_root)
+                lock (SyncRoot)
                     return _list[index];
             }
             set
             {
-                lock (_root)
+                lock (SyncRoot)
                     _list[index] = value;
             }
         }
 
-        public object SyncRoot
-        {
-            get { return _root; }
-        }
+        public object SyncRoot { get; private set; }
 
         public void Add(T item)
         {
-            lock (_root)
+            lock (SyncRoot)
                 _list.Add(item);
         }
 
         public void Clear()
         {
-            lock (_root)
+            lock (SyncRoot)
                 _list.Clear();
         }
 
         public bool Contains(T item)
         {
-            lock (_root)
+            lock (SyncRoot)
                 return _list.Contains(item);
         }
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            lock (_root)
+            lock (SyncRoot)
                 _list.CopyTo(array, arrayIndex);
         }
 
         public bool Remove(T item)
         {
-            lock (_root)
+            lock (SyncRoot)
                 return _list.Remove(item);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            lock (_root)
+            lock (SyncRoot)
                 return _list.GetEnumerator();
         }
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
-            lock (_root)
+            lock (SyncRoot)
                 return _list.GetEnumerator();
         }
 
         public int IndexOf(T item)
         {
-            lock (_root)
+            lock (SyncRoot)
                 return _list.IndexOf(item);
         }
 
         public void Insert(int index, T item)
         {
-            lock (_root)
+            lock (SyncRoot)
                 _list.Insert(index, item);
         }
 
         public void RemoveAt(int index)
         {
-            lock (_root)
+            lock (SyncRoot)
                 _list.RemoveAt(index);
         }
     }

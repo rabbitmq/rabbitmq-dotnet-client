@@ -38,23 +38,24 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+
+using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
 {
     public class TestEndpointResolver : IEndpointResolver
     {
-        private readonly IEnumerable<AmqpTcpEndpoint> endpoints;
+        private readonly IEnumerable<AmqpTcpEndpoint> _endpoints;
         public TestEndpointResolver (IEnumerable<AmqpTcpEndpoint> endpoints)
         {
-            this.endpoints = endpoints;
+            _endpoints = endpoints;
         }
 
         public IEnumerable<AmqpTcpEndpoint> All()
         {
-            return endpoints;
+            return _endpoints;
         }
     }
 

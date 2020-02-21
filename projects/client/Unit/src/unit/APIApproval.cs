@@ -40,7 +40,9 @@
 
 using ApprovalTests;
 using ApprovalTests.Reporters;
+
 using NUnit.Framework;
+
 using PublicApiGenerator;
 
 namespace RabbitMQ.Client.Unit

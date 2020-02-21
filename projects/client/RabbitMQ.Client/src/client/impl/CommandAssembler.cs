@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System.IO;
+
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Util;
 

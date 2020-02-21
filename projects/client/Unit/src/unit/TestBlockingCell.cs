@@ -38,10 +38,10 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
-
 using System;
 using System.Threading;
+
+using NUnit.Framework;
 
 using RabbitMQ.Util;
 
@@ -64,10 +64,12 @@ namespace RabbitMQ.Client.Unit
 
         public static void SetAfter<T>(TimeSpan delay, BlockingCell<T> k, T v)
         {
-            var ds = new DelayedSetter<T>();
-            ds.m_k = k;
-            ds.m_delay = delay;
-            ds.m_v = v;
+            var ds = new DelayedSetter<T>
+            {
+                m_k = k,
+                m_delay = delay,
+                m_v = v
+            };
             new Thread(new ThreadStart(ds.Run)).Start();
         }
 

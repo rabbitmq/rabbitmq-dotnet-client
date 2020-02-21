@@ -40,6 +40,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Content

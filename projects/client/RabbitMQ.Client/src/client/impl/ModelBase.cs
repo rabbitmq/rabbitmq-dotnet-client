@@ -68,7 +68,6 @@ namespace RabbitMQ.Client.Impl
         private readonly ManualResetEvent _flowControlBlock = new ManualResetEvent(true);
 
         private readonly object _eventLock = new object();
-        private readonly object _flowSendLock = new object();
         private readonly object _shutdownLock = new object();
         private readonly object _rpcLock = new object();
 
@@ -879,10 +878,12 @@ namespace RabbitMQ.Client.Impl
             bool multiple,
             bool requeue)
         {
-            var e = new BasicNackEventArgs();
-            e.DeliveryTag = deliveryTag;
-            e.Multiple = multiple;
-            e.Requeue = requeue;
+            var e = new BasicNackEventArgs
+            {
+                DeliveryTag = deliveryTag,
+                Multiple = multiple,
+                Requeue = requeue
+            };
             OnBasicNack(e);
         }
 
@@ -900,13 +901,15 @@ namespace RabbitMQ.Client.Impl
             IBasicProperties basicProperties,
             byte[] body)
         {
-            var e = new BasicReturnEventArgs();
-            e.ReplyCode = replyCode;
-            e.ReplyText = replyText;
-            e.Exchange = exchange;
-            e.RoutingKey = routingKey;
-            e.BasicProperties = basicProperties;
-            e.Body = body;
+            var e = new BasicReturnEventArgs
+            {
+                ReplyCode = replyCode,
+                ReplyText = replyText,
+                Exchange = exchange,
+                RoutingKey = routingKey,
+                BasicProperties = basicProperties,
+                Body = body
+            };
             OnBasicReturn(e);
         }
 
@@ -1208,9 +1211,9 @@ namespace RabbitMQ.Client.Impl
             IBasicConsumer consumer)
         {
             // TODO: Replace with flag
-            if (ConsumerDispatcher is AsyncConsumerDispatcher asyncDispatcher)
+            if (ConsumerDispatcher is AsyncConsumerDispatcher)
             {
-                if (!(consumer is IAsyncBasicConsumer asyncConsumer))
+                if (!(consumer is IAsyncBasicConsumer))
                 {
                     // TODO: Friendly message
                     throw new InvalidOperationException("In the async mode you have to use an async consumer");

@@ -38,8 +38,9 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
 using System;
+
+using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
 {

@@ -38,10 +38,11 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
-
 using System;
 using System.IO;
+
+using NUnit.Framework;
+
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Util;
 
@@ -141,8 +142,10 @@ namespace RabbitMQ.Client.Unit
         public void TestSimpleProperties()
         {
             RabbitMQ.Client.Framing.BasicProperties prop =
-                new RabbitMQ.Client.Framing.BasicProperties();
-            prop.ContentType = "text/plain";
+                new RabbitMQ.Client.Framing.BasicProperties
+                {
+                    ContentType = "text/plain"
+                };
             prop.WriteTo(m_w.BaseWriter, 0x123456789ABCDEF0UL);
             Check(m_w, new byte[] { 0x00, 0x00, // weight
 			          0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0, // body len
