@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl

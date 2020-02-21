@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using NUnit.Framework;
+
 using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Unit

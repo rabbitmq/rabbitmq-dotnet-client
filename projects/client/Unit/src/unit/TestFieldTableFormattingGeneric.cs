@@ -39,13 +39,14 @@
 //---------------------------------------------------------------------------
 
 
-using NUnit.Framework;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
-using RabbitMQ.Util;
+using NUnit.Framework;
+
 using RabbitMQ.Client.Impl;
+using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -56,18 +57,22 @@ namespace RabbitMQ.Client.Unit
         public void TestStandardTypes()
         {
             NetworkBinaryWriter w = Writer();
-            IDictionary<string, object> t = new Dictionary<string, object>();
-            t["string"] = "Hello";
-            t["int"] = 1234;
-            t["uint"] = 1234u;
-            t["decimal"] = 12.34m;
-            t["timestamp"] = new AmqpTimestamp(0);
+            IDictionary<string, object> t = new Dictionary<string, object>
+            {
+                ["string"] = "Hello",
+                ["int"] = 1234,
+                ["uint"] = 1234u,
+                ["decimal"] = 12.34m,
+                ["timestamp"] = new AmqpTimestamp(0)
+            };
             IDictionary<string, object> t2 = new Dictionary<string, object>();
             t["fieldtable"] = t2;
             t2["test"] = "test";
-            IList array = new List<object>();
-            array.Add("longstring");
-            array.Add(1234);
+            IList array = new List<object>
+            {
+                "longstring",
+                1234
+            };
             t["fieldarray"] = array;
             WireFormatting.WriteTable(w, t);
             IDictionary<string, object> nt = WireFormatting.ReadTable(Reader(Contents(w)));
@@ -87,8 +92,10 @@ namespace RabbitMQ.Client.Unit
         public void TestTableEncoding_S()
         {
             NetworkBinaryWriter w = Writer();
-            IDictionary<string, object> t = new Dictionary<string, object>();
-            t["a"] = "bc";
+            IDictionary<string, object> t = new Dictionary<string, object>
+            {
+                ["a"] = "bc"
+            };
             WireFormatting.WriteTable(w, t);
             Check(w, new byte[] {
                     0,0,0,9, // table length
@@ -102,8 +109,10 @@ namespace RabbitMQ.Client.Unit
         public void TestTableEncoding_x()
         {
             NetworkBinaryWriter w = Writer();
-            IDictionary<string, object> t = new Dictionary<string, object>();
-            t["a"] = new BinaryTableValue(new byte[] { 0xaa, 0x55 });
+            IDictionary<string, object> t = new Dictionary<string, object>
+            {
+                ["a"] = new BinaryTableValue(new byte[] { 0xaa, 0x55 })
+            };
             WireFormatting.WriteTable(w, t);
             Check(w, new byte[] {
                     0,0,0,9, // table length
@@ -117,14 +126,16 @@ namespace RabbitMQ.Client.Unit
         public void TestQpidJmsTypes()
         {
             NetworkBinaryWriter w = Writer();
-            IDictionary<string, object> t = new Dictionary<string, object>();
-            t["B"] = (byte)255;
-            t["b"] = (sbyte)-128;
-            t["d"] = (double)123;
-            t["f"] = (float)123;
-            t["l"] = (long)123;
-            t["s"] = (short)123;
-            t["t"] = true;
+            IDictionary<string, object> t = new Dictionary<string, object>
+            {
+                ["B"] = (byte)255,
+                ["b"] = (sbyte)-128,
+                ["d"] = (double)123,
+                ["f"] = (float)123,
+                ["l"] = (long)123,
+                ["s"] = (short)123,
+                ["t"] = true
+            };
             byte[] xbytes = new byte[] { 0xaa, 0x55 };
             t["x"] = new BinaryTableValue(xbytes);
             t["V"] = null;

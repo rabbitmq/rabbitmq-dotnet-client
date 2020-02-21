@@ -38,13 +38,13 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
-
 using System;
 using System.Text;
 
-using RabbitMQ.Client.Impl;
+using NUnit.Framework;
+
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Impl;
 using RabbitMQ.Util;
 
 #pragma warning disable 0618

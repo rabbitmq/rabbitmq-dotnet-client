@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using RabbitMQ.Client.Events;
+
 using TaskExtensions = RabbitMQ.Client.Impl.TaskExtensions;
 
 namespace RabbitMQ.Client
@@ -138,13 +140,9 @@ namespace RabbitMQ.Client
         public virtual async Task OnCancel(params string[] consumerTags)
         {
             IsRunning = false;
-            AsyncEventHandler<ConsumerEventArgs> handler = ConsumerCancelled;
-            if (handler != null)
+            foreach (AsyncEventHandler<ConsumerEventArgs> h in ConsumerCancelled?.GetInvocationList() ?? Array.Empty<Delegate>())
             {
-                foreach (AsyncEventHandler<ConsumerEventArgs> h in handler.GetInvocationList())
-                {
-                    await h(this, new ConsumerEventArgs(consumerTags)).ConfigureAwait(false);
-                }
+                await h(this, new ConsumerEventArgs(consumerTags)).ConfigureAwait(false);
             }
 
             foreach (string consumerTag in consumerTags)

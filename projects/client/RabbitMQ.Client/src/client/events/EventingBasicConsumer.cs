@@ -68,55 +68,30 @@ namespace RabbitMQ.Client.Events
         public override void HandleBasicCancelOk(string consumerTag)
         {
             base.HandleBasicCancelOk(consumerTag);
-            Raise(Unregistered, new ConsumerEventArgs(new[] { consumerTag }));
+            Unregistered?.Invoke(this, new ConsumerEventArgs(new[] { consumerTag }));
         }
 
         ///<summary>Fires the Registered event.</summary>
         public override void HandleBasicConsumeOk(string consumerTag)
         {
             base.HandleBasicConsumeOk(consumerTag);
-            Raise(Registered, new ConsumerEventArgs(new[] { consumerTag }));
+            Registered?.Invoke(this, new ConsumerEventArgs(new[] { consumerTag }));
         }
 
         ///<summary>Fires the Received event.</summary>
-        public override void HandleBasicDeliver(string consumerTag,
-            ulong deliveryTag,
-            bool redelivered,
-            string exchange,
-            string routingKey,
-            IBasicProperties properties,
-            byte[] body)
+        public override void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, IBasicProperties properties, byte[] body)
         {
-            base.HandleBasicDeliver(consumerTag,
-                deliveryTag,
-                redelivered,
-                exchange,
-                routingKey,
-                properties,
-                body);
-            Raise(Received, new BasicDeliverEventArgs(consumerTag,
-                                            deliveryTag,
-                                            redelivered,
-                                            exchange,
-                                            routingKey,
-                                            properties,
-                                            body));
+            base.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
+            Received?.Invoke(
+                this,
+                new BasicDeliverEventArgs(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body));
         }
 
         ///<summary>Fires the Shutdown event.</summary>
         public override void HandleModelShutdown(object model, ShutdownEventArgs reason)
         {
             base.HandleModelShutdown(model, reason);
-            Raise(Shutdown, reason);
-        }
-
-        private void Raise<TEvent>(EventHandler<TEvent> eventHandler, TEvent evt)
-        {
-            EventHandler<TEvent> handler = eventHandler;
-            if(handler != null)
-            {
-                handler(this, evt);
-            }
+            Shutdown?.Invoke(this, reason);
         }
     }
 }

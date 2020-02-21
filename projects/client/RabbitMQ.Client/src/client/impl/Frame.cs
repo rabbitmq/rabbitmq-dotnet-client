@@ -38,11 +38,12 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System.IO;
+using System.Net.Sockets;
+
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing;
 using RabbitMQ.Util;
-using System.IO;
-using System.Net.Sockets;
 
 namespace RabbitMQ.Client.Impl
 {

@@ -40,17 +40,18 @@
 
 #pragma warning disable 2002
 
-using NUnit.Framework;
-
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
-using RabbitMQ.Client.Framing.Impl;
+using System.Threading;
+
+using NUnit.Framework;
+
 using RabbitMQ.Client.Framing;
+using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -108,48 +109,58 @@ namespace RabbitMQ.Client.Unit
 
         internal AutorecoveringConnection CreateAutorecoveringConnection(TimeSpan interval)
         {
-            var cf = new ConnectionFactory();
-            cf.AutomaticRecoveryEnabled = true;
-            cf.NetworkRecoveryInterval = interval;
+            var cf = new ConnectionFactory
+            {
+                AutomaticRecoveryEnabled = true,
+                NetworkRecoveryInterval = interval
+            };
             return (AutorecoveringConnection)cf.CreateConnection($"UNIT_CONN:{Guid.NewGuid()}");
         }
 
         internal AutorecoveringConnection CreateAutorecoveringConnection(TimeSpan interval, IList<string> hostnames)
         {
-            var cf = new ConnectionFactory();
-            cf.AutomaticRecoveryEnabled = true;
-            // tests that use this helper will likely list unreachable hosts,
-            // make sure we time out quickly on those
-            cf.RequestedConnectionTimeout = TimeSpan.FromSeconds(1);
-            cf.NetworkRecoveryInterval = interval;
+            var cf = new ConnectionFactory
+            {
+                AutomaticRecoveryEnabled = true,
+                // tests that use this helper will likely list unreachable hosts,
+                // make sure we time out quickly on those
+                RequestedConnectionTimeout = TimeSpan.FromSeconds(1),
+                NetworkRecoveryInterval = interval
+            };
             return (AutorecoveringConnection)cf.CreateConnection(hostnames, $"UNIT_CONN:{Guid.NewGuid()}");
         }
 
         internal AutorecoveringConnection CreateAutorecoveringConnection(IList<AmqpTcpEndpoint> endpoints)
         {
-            var cf = new ConnectionFactory();
-            cf.AutomaticRecoveryEnabled = true;
-            // tests that use this helper will likely list unreachable hosts,
-            // make sure we time out quickly on those
-            cf.RequestedConnectionTimeout = TimeSpan.FromSeconds(1);
-            cf.NetworkRecoveryInterval = RECOVERY_INTERVAL;
+            var cf = new ConnectionFactory
+            {
+                AutomaticRecoveryEnabled = true,
+                // tests that use this helper will likely list unreachable hosts,
+                // make sure we time out quickly on those
+                RequestedConnectionTimeout = TimeSpan.FromSeconds(1),
+                NetworkRecoveryInterval = RECOVERY_INTERVAL
+            };
             return (AutorecoveringConnection)cf.CreateConnection(endpoints, $"UNIT_CONN:{Guid.NewGuid()}");
         }
 
         internal AutorecoveringConnection CreateAutorecoveringConnectionWithTopologyRecoveryDisabled()
         {
-            var cf = new ConnectionFactory();
-            cf.AutomaticRecoveryEnabled = true;
-            cf.TopologyRecoveryEnabled = false;
-            cf.NetworkRecoveryInterval = RECOVERY_INTERVAL;
+            var cf = new ConnectionFactory
+            {
+                AutomaticRecoveryEnabled = true,
+                TopologyRecoveryEnabled = false,
+                NetworkRecoveryInterval = RECOVERY_INTERVAL
+            };
             return (AutorecoveringConnection)cf.CreateConnection($"UNIT_CONN:{Guid.NewGuid()}");
         }
 
         internal IConnection CreateNonRecoveringConnection()
         {
-            var cf = new ConnectionFactory();
-            cf.AutomaticRecoveryEnabled = false;
-            cf.TopologyRecoveryEnabled = false;
+            var cf = new ConnectionFactory
+            {
+                AutomaticRecoveryEnabled = false,
+                TopologyRecoveryEnabled = false
+            };
             return cf.CreateConnection($"UNIT_CONN:{Guid.NewGuid()}");
         }
 

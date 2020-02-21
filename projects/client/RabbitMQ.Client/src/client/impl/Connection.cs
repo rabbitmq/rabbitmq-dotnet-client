@@ -63,18 +63,11 @@ namespace RabbitMQ.Client.Framing.Impl
         private readonly EmptyOutboundFrame _heartbeatFrame = new EmptyOutboundFrame();
 
         private readonly ManualResetEvent _appContinuation = new ManualResetEvent(false);
-        private EventHandler<CallbackExceptionEventArgs> _callbackException;
-        private EventHandler<EventArgs> _recoverySucceeded;
-        private EventHandler<ConnectionRecoveryErrorEventArgs> _connectionRecoveryFailure;
-
-        private IDictionary<string, object> _clientProperties;
 
         private volatile ShutdownEventArgs _closeReason = null;
         private volatile bool _closed = false;
 
-        private EventHandler<ConnectionBlockedEventArgs> _connectionBlocked;
         private EventHandler<ShutdownEventArgs> _connectionShutdown;
-        private EventHandler<EventArgs> _connectionUnblocked;
 
         private readonly IConnectionFactory _factory;
         private readonly IFrameHandler _frameHandler;
@@ -84,8 +77,6 @@ namespace RabbitMQ.Client.Framing.Impl
         private volatile bool _running = true;
         private readonly MainSession _session0;
         private SessionManager _sessionManager;
-
-        private readonly IList<ShutdownReportEntry> _shutdownReport = new SynchronizedList<ShutdownReportEntry>(new List<ShutdownReportEntry>());
 
         //
         // Heartbeats
@@ -137,59 +128,14 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public Guid Id { get { return _id; } }
 
-        public event EventHandler<EventArgs> RecoverySucceeded
-        {
-            add
-            {
-                lock (_eventLock)
-                {
-                    _recoverySucceeded += value;
-                }
-            }
-            remove
-            {
-                lock (_eventLock)
-                {
-                    _recoverySucceeded -= value;
-                }
-            }
-        }
+#pragma warning disable 67
+        public event EventHandler<EventArgs> RecoverySucceeded;
+        public event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError;
+#pragma warning restore 67
 
-        public event EventHandler<CallbackExceptionEventArgs> CallbackException
-        {
-            add
-            {
-                lock (_eventLock)
-                {
-                    _callbackException += value;
-                }
-            }
-            remove
-            {
-                lock (_eventLock)
-                {
-                    _callbackException -= value;
-                }
-            }
-        }
+        public event EventHandler<CallbackExceptionEventArgs> CallbackException;
 
-        public event EventHandler<ConnectionBlockedEventArgs> ConnectionBlocked
-        {
-            add
-            {
-                lock (_eventLock)
-                {
-                    _connectionBlocked += value;
-                }
-            }
-            remove
-            {
-                lock (_eventLock)
-                {
-                    _connectionBlocked -= value;
-                }
-            }
-        }
+        public event EventHandler<ConnectionBlockedEventArgs> ConnectionBlocked;
 
         public event EventHandler<ShutdownEventArgs> ConnectionShutdown
         {
@@ -218,41 +164,8 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public event EventHandler<EventArgs> ConnectionUnblocked
-        {
-            add
-            {
-                lock (_eventLock)
-                {
-                    _connectionUnblocked += value;
-                }
-            }
-            remove
-            {
-                lock (_eventLock)
-                {
-                    _connectionUnblocked -= value;
-                }
-            }
-        }
+        public event EventHandler<EventArgs> ConnectionUnblocked;
 
-        public event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError
-        {
-            add
-            {
-                lock (_eventLock)
-                {
-                    _connectionRecoveryFailure += value;
-                }
-            }
-            remove
-            {
-                lock (_eventLock)
-                {
-                    _connectionRecoveryFailure -= value;
-                }
-            }
-        }
 
         public string ClientProvidedName { get; private set; }
 
@@ -261,11 +174,7 @@ namespace RabbitMQ.Client.Framing.Impl
             get { return _sessionManager.ChannelMax; }
         }
 
-        public IDictionary<string, object> ClientProperties
-        {
-            get { return _clientProperties; }
-            set { _clientProperties = value; }
-        }
+        public IDictionary<string, object> ClientProperties { get; set; }
 
         public ShutdownEventArgs CloseReason
         {
@@ -328,10 +237,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public IDictionary<string, object> ServerProperties { get; set; }
 
-        public IList<ShutdownReportEntry> ShutdownReport
-        {
-            get { return _shutdownReport; }
-        }
+        public IList<ShutdownReportEntry> ShutdownReport { get; } = new SynchronizedList<ShutdownReportEntry>(new List<ShutdownReportEntry>());
 
         ///<summary>Explicit implementation of IConnection.Protocol.</summary>
         IProtocol IConnection.Protocol
@@ -341,13 +247,15 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public static IDictionary<string, object> DefaultClientProperties()
         {
-            IDictionary<string, object> table = new Dictionary<string, object>();
-            table["product"] = Encoding.UTF8.GetBytes("RabbitMQ");
-            table["version"] = Encoding.UTF8.GetBytes(s_version);
-            table["platform"] = Encoding.UTF8.GetBytes(".NET");
-            table["copyright"] = Encoding.UTF8.GetBytes("Copyright (c) 2007-2020 VMware, Inc.");
-            table["information"] = Encoding.UTF8.GetBytes("Licensed under the MPL.  " +
-                                                          "See https://www.rabbitmq.com/");
+            IDictionary<string, object> table = new Dictionary<string, object>
+            {
+                ["product"] = Encoding.UTF8.GetBytes("RabbitMQ"),
+                ["version"] = Encoding.UTF8.GetBytes(s_version),
+                ["platform"] = Encoding.UTF8.GetBytes(".NET"),
+                ["copyright"] = Encoding.UTF8.GetBytes("Copyright (c) 2007-2020 VMware, Inc."),
+                ["information"] = Encoding.UTF8.GetBytes("Licensed under the MPL.  " +
+                                                          "See https://www.rabbitmq.com/")
+            };
             return table;
         }
 
@@ -582,7 +490,7 @@ namespace RabbitMQ.Client.Framing.Impl
         public void LogCloseError(string error, Exception ex)
         {
             ESLog.Error(error, ex);
-            _shutdownReport.Add(new ShutdownReportEntry(error, ex));
+            ShutdownReport.Add(new ShutdownReportEntry(error, ex));
         }
 
         public void MainLoop()
@@ -635,7 +543,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     {
                         ClosingLoop();
                     }
-                    catch (SocketException se)
+                    catch (SocketException)
                     {
                         // means that socket was closed when frame handler
                         // attempted to use it. Since we are shutting down,
@@ -721,80 +629,48 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void OnCallbackException(CallbackExceptionEventArgs args)
         {
-            EventHandler<CallbackExceptionEventArgs> handler;
-            lock (_eventLock)
+            foreach (EventHandler<CallbackExceptionEventArgs> h in CallbackException?.GetInvocationList() ?? Array.Empty<Delegate>())
             {
-                handler = _callbackException;
-            }
-            if (handler != null)
-            {
-                foreach (EventHandler<CallbackExceptionEventArgs> h in handler.GetInvocationList())
+                try
                 {
-                    try
-                    {
-                        h(this, args);
-                    }
-                    catch
-                    {
-                        // Exception in
-                        // Callback-exception-handler. That was the
-                        // app's last chance. Swallow the exception.
-                        // FIXME: proper logging
-                    }
+                    h(this, args);
+                }
+                catch
+                {
+                    // Exception in
+                    // Callback-exception-handler. That was the
+                    // app's last chance. Swallow the exception.
+                    // FIXME: proper logging
                 }
             }
         }
 
         public void OnConnectionBlocked(ConnectionBlockedEventArgs args)
         {
-            EventHandler<ConnectionBlockedEventArgs> handler;
-            lock (_eventLock)
+            foreach (EventHandler<ConnectionBlockedEventArgs> h in ConnectionBlocked?.GetInvocationList() ?? Array.Empty<Delegate>())
             {
-                handler = _connectionBlocked;
-            }
-            if (handler != null)
-            {
-                foreach (EventHandler<ConnectionBlockedEventArgs> h in handler.GetInvocationList())
+                try
                 {
-                    try
-                    {
-                        h(this, args);
-                    }
-                    catch (Exception e)
-                    {
-                        OnCallbackException(CallbackExceptionEventArgs.Build(e,
-                            new Dictionary<string, object>
-                            {
-                                {"context", "OnConnectionBlocked"}
-                            }));
-                    }
+                    h(this, args);
+                }
+                catch (Exception e)
+                {
+                    OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object> { { "context", "OnConnectionBlocked" } }));
                 }
             }
         }
 
         public void OnConnectionUnblocked()
         {
-            EventHandler<EventArgs> handler;
-            lock (_eventLock)
+            foreach (EventHandler<EventArgs> h in ConnectionUnblocked?.GetInvocationList() ?? Array.Empty<Delegate>())
             {
-                handler = _connectionUnblocked;
-            }
-            if (handler != null)
-            {
-                foreach (EventHandler<EventArgs> h in handler.GetInvocationList())
+                try
                 {
-                    try
-                    {
-                        h(this, EventArgs.Empty);
-                    }
-                    catch (Exception e)
-                    {
-                        OnCallbackException(CallbackExceptionEventArgs.Build(e,
-                            new Dictionary<string, object>
-                            {
-                                {"context", "OnConnectionUnblocked"}
-                            }));
-                    }
+                    h(this, EventArgs.Empty);
+                }
+                catch (Exception e)
+                {
+                    OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object> { { "context", "OnConnectionUnblocked" } }));
                 }
             }
         }
@@ -983,7 +859,7 @@ entry.ToString());
                         string description = string.Format("Heartbeat missing with heartbeat == {0} seconds", _heartbeat);
                         var eose = new EndOfStreamException(description);
                         ESLog.Error(description, eose);
-                        _shutdownReport.Add(new ShutdownReportEntry(description, eose));
+                        ShutdownReport.Add(new ShutdownReportEntry(description, eose));
                         HandleMainLoopException(
                             new ShutdownEventArgs(ShutdownInitiator.Library, 0, "End of stream", eose));
                         shouldTerminate = true;
@@ -1169,10 +1045,7 @@ entry.ToString());
                 }
                 finally
                 {
-                    _callbackException = null;
-                    _recoverySucceeded = null;
                     _connectionShutdown = null;
-                    _connectionUnblocked = null;
                 }
             }
 
@@ -1214,9 +1087,11 @@ entry.ToString());
                     serverVersion.Minor);
             }
 
-            _clientProperties = new Dictionary<string, object>(_factory.ClientProperties);
-            _clientProperties["capabilities"] = Protocol.Capabilities;
-            _clientProperties["connection_name"] = ClientProvidedName;
+            ClientProperties = new Dictionary<string, object>(_factory.ClientProperties)
+            {
+                ["capabilities"] = Protocol.Capabilities,
+                ["connection_name"] = ClientProvidedName
+            };
 
             // FIXME: parse out locales properly!
             ConnectionTuneDetails connectionTune = default;
@@ -1239,7 +1114,7 @@ entry.ToString());
                     ConnectionSecureOrTune res;
                     if (challenge == null)
                     {
-                        res = _model0.ConnectionStartOk(_clientProperties,
+                        res = _model0.ConnectionStartOk(ClientProperties,
                             mechanismFactory.Name,
                             response,
                             "en_US");

@@ -49,8 +49,10 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestWithBackgroundThreadsEnabled()
         {
-            ConnectionFactory connFactory = new ConnectionFactory();
-            connFactory.UseBackgroundThreadsForIO = true;
+            ConnectionFactory connFactory = new ConnectionFactory
+            {
+                UseBackgroundThreadsForIO = true
+            };
 
             IConnection conn = connFactory.CreateConnection();
             IModel ch = conn.CreateModel();

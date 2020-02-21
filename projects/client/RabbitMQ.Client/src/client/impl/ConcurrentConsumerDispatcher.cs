@@ -1,6 +1,7 @@
-﻿using RabbitMQ.Client.Events;
-using System;
+﻿using System;
 using System.Collections.Generic;
+
+using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Impl
 {

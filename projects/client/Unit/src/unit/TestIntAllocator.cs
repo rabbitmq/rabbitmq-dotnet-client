@@ -40,8 +40,10 @@
 
 using System;
 using System.Collections.Generic;
-using RabbitMQ.Util;
+
 using NUnit.Framework;
+
+using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Unit
 {

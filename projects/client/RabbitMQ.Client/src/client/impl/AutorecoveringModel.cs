@@ -38,10 +38,11 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Framing.Impl;
 using System;
 using System.Collections.Generic;
+
+using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -61,8 +62,6 @@ namespace RabbitMQ.Client.Impl
         private ushort _prefetchCountGlobal = 0;
         private bool _usesPublisherConfirms = false;
         private bool _usesTransactions = false;
-
-        private EventHandler<EventArgs> _recovery;
 
         public IConsumerDispatcher ConsumerDispatcher
         {
@@ -201,23 +200,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public event EventHandler<EventArgs> Recovery
-        {
-            add
-            {
-                lock (_eventLock)
-                {
-                    _recovery += value;
-                }
-            }
-            remove
-            {
-                lock (_eventLock)
-                {
-                    _recovery -= value;
-                }
-            }
-        }
+        public event EventHandler<EventArgs> Recovery;
 
         public int ChannelNumber
         {
@@ -255,7 +238,7 @@ namespace RabbitMQ.Client.Impl
             get { return _delegate.NextPublishSeqNo; }
         }
 
-        public void AutomaticallyRecover(AutorecoveringConnection conn, IConnection connDelegate)
+        public void AutomaticallyRecover(AutorecoveringConnection conn)
         {
             _connection = conn;
             RecoveryAwareModel defunctModel = _delegate;
@@ -1197,21 +1180,17 @@ namespace RabbitMQ.Client.Impl
 
         private void RunRecoveryEventHandlers()
         {
-            EventHandler<EventArgs> handler = _recovery;
-            if (handler != null)
+            foreach (EventHandler<EventArgs> reh in Recovery?.GetInvocationList() ?? Array.Empty<Delegate>())
             {
-                foreach (EventHandler<EventArgs> reh in handler.GetInvocationList())
+                try
                 {
-                    try
-                    {
-                        reh(this, EventArgs.Empty);
-                    }
-                    catch (Exception e)
-                    {
-                        var args = new CallbackExceptionEventArgs(e);
-                        args.Detail["context"] = "OnModelRecovery";
-                        _delegate.OnCallbackException(args);
-                    }
+                    reh(this, EventArgs.Empty);
+                }
+                catch (Exception e)
+                {
+                    var args = new CallbackExceptionEventArgs(e);
+                    args.Detail["context"] = "OnModelRecovery";
+                    _delegate.OnCallbackException(args);
                 }
             }
         }

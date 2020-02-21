@@ -40,6 +40,7 @@
 
 using System;
 using System.Text;
+
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl

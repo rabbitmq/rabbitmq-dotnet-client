@@ -143,7 +143,6 @@ namespace RabbitMQ.Client
     }
     public class DefaultBasicConsumer : RabbitMQ.Client.IBasicConsumer
     {
-        public System.EventHandler<RabbitMQ.Client.Events.ConsumerEventArgs> m_consumerCancelled;
         public DefaultBasicConsumer() { }
         public DefaultBasicConsumer(RabbitMQ.Client.IModel model) { }
         public string[] ConsumerTags { get; }

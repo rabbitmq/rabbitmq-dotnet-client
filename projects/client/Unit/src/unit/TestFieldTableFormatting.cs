@@ -38,12 +38,13 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
 using System.Collections;
 using System.Text;
 
-using RabbitMQ.Util;
+using NUnit.Framework;
+
 using RabbitMQ.Client.Impl;
+using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -54,18 +55,22 @@ namespace RabbitMQ.Client.Unit
         public void TestStandardTypes()
         {
             NetworkBinaryWriter w = Writer();
-            Hashtable t = new Hashtable();
-            t["string"] = "Hello";
-            t["int"] = 1234;
-            t["uint"] = 1234u;
-            t["decimal"] = 12.34m;
-            t["timestamp"] = new AmqpTimestamp(0);
+            Hashtable t = new Hashtable
+            {
+                ["string"] = "Hello",
+                ["int"] = 1234,
+                ["uint"] = 1234u,
+                ["decimal"] = 12.34m,
+                ["timestamp"] = new AmqpTimestamp(0)
+            };
             Hashtable t2 = new Hashtable();
             t["fieldtable"] = t2;
             t2["test"] = "test";
-            IList array = new ArrayList();
-            array.Add("longstring");
-            array.Add(1234);
+            IList array = new ArrayList
+            {
+                "longstring",
+                1234
+            };
             t["fieldarray"] = array;
             WireFormatting.WriteTable(w, t);
             IDictionary nt = (IDictionary)WireFormatting.ReadTable(Reader(Contents(w)));
@@ -85,8 +90,10 @@ namespace RabbitMQ.Client.Unit
         public void TestTableEncoding_S()
         {
             NetworkBinaryWriter w = Writer();
-            Hashtable t = new Hashtable();
-            t["a"] = "bc";
+            Hashtable t = new Hashtable
+            {
+                ["a"] = "bc"
+            };
             WireFormatting.WriteTable(w, t);
             Check(w, new byte[] {
                     0,0,0,9, // table length
@@ -100,8 +107,10 @@ namespace RabbitMQ.Client.Unit
         public void TestTableEncoding_x()
         {
             NetworkBinaryWriter w = Writer();
-            Hashtable t = new Hashtable();
-            t["a"] = new BinaryTableValue(new byte[] { 0xaa, 0x55 });
+            Hashtable t = new Hashtable
+            {
+                ["a"] = new BinaryTableValue(new byte[] { 0xaa, 0x55 })
+            };
             WireFormatting.WriteTable(w, t);
             Check(w, new byte[] {
                     0,0,0,9, // table length
@@ -115,14 +124,16 @@ namespace RabbitMQ.Client.Unit
         public void TestQpidJmsTypes()
         {
             NetworkBinaryWriter w = Writer();
-            Hashtable t = new Hashtable();
-            t["B"] = (byte)255;
-            t["b"] = (sbyte)-128;
-            t["d"] = (double)123;
-            t["f"] = (float)123;
-            t["l"] = (long)123;
-            t["s"] = (short)123;
-            t["t"] = true;
+            Hashtable t = new Hashtable
+            {
+                ["B"] = (byte)255,
+                ["b"] = (sbyte)-128,
+                ["d"] = (double)123,
+                ["f"] = (float)123,
+                ["l"] = (long)123,
+                ["s"] = (short)123,
+                ["t"] = true
+            };
             byte[] xbytes = { 0xaa, 0x55 };
             t["x"] = new BinaryTableValue(xbytes);
             t["V"] = null;
