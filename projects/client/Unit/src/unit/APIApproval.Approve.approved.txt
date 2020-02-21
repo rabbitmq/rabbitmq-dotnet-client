@@ -2427,7 +2427,6 @@ namespace RabbitMQ.Util
     public class NetworkBinaryReader : System.IO.BinaryReader
     {
         public NetworkBinaryReader(System.IO.Stream input) { }
-        public NetworkBinaryReader(System.IO.Stream input, System.Text.Encoding encoding) { }
         public override double ReadDouble() { }
         public override short ReadInt16() { }
         public override int ReadInt32() { }
@@ -2436,7 +2435,6 @@ namespace RabbitMQ.Util
         public override ushort ReadUInt16() { }
         public override uint ReadUInt32() { }
         public override ulong ReadUInt64() { }
-        public static System.IO.BinaryReader TemporaryBinaryReader(byte[] bytes) { }
     }
     public class NetworkBinaryWriter : System.IO.BinaryWriter
     {
