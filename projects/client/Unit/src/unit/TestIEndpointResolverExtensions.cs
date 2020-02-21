@@ -46,7 +46,7 @@ namespace RabbitMQ.Client.Unit
 {
     public class TestEndpointResolver : IEndpointResolver
     {
-        private IEnumerable<AmqpTcpEndpoint> endpoints;
+        private readonly IEnumerable<AmqpTcpEndpoint> endpoints;
         public TestEndpointResolver (IEnumerable<AmqpTcpEndpoint> endpoints)
         {
             this.endpoints = endpoints;

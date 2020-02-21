@@ -44,8 +44,8 @@ namespace RabbitMQ.Util
 {
     public class SetQueue<T>
     {
-        private HashSet<T> _members = new HashSet<T>();
-        private LinkedList<T> _queue = new LinkedList<T>();
+        private readonly HashSet<T> _members = new HashSet<T>();
+        private readonly LinkedList<T> _queue = new LinkedList<T>();
 
         public bool Enqueue(T item)
         {

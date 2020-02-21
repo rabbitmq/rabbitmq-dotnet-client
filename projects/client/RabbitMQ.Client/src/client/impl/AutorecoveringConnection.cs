@@ -56,7 +56,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private readonly object _manuallyClosedLock = new object();
         private Connection _delegate;
-        private ConnectionFactory _factory;
+        private readonly ConnectionFactory _factory;
 
         // list of endpoints provided on initial connection.
         // on re-connection, the next host in the line is chosen using
@@ -65,20 +65,20 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private readonly object _recordedEntitiesLock = new object();
 
-        private List<AutorecoveringModel> _models = new List<AutorecoveringModel>();
+        private readonly List<AutorecoveringModel> _models = new List<AutorecoveringModel>();
 
-        private ConcurrentDictionary<RecordedBinding, byte> _recordedBindings =
+        private readonly ConcurrentDictionary<RecordedBinding, byte> _recordedBindings =
             new ConcurrentDictionary<RecordedBinding, byte>();
 
         private EventHandler<ConnectionBlockedEventArgs> _recordedBlockedEventHandlers;
 
-        private IDictionary<string, RecordedConsumer> _recordedConsumers =
+        private readonly IDictionary<string, RecordedConsumer> _recordedConsumers =
             new ConcurrentDictionary<string, RecordedConsumer>();
 
-        private IDictionary<string, RecordedExchange> _recordedExchanges =
+        private readonly IDictionary<string, RecordedExchange> _recordedExchanges =
             new ConcurrentDictionary<string, RecordedExchange>();
 
-        private IDictionary<string, RecordedQueue> _recordedQueues =
+        private readonly IDictionary<string, RecordedQueue> _recordedQueues =
             new ConcurrentDictionary<string, RecordedQueue>();
 
         private EventHandler<ShutdownEventArgs> _recordedShutdownEventHandlers;
