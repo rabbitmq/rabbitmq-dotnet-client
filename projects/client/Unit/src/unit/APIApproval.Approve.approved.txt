@@ -2330,6 +2330,7 @@ namespace RabbitMQ.Client.Impl
         public static void WriteLong(RabbitMQ.Util.NetworkBinaryWriter writer, uint val) { }
         public static void WriteLonglong(RabbitMQ.Util.NetworkBinaryWriter writer, ulong val) { }
         public static void WriteLongstr(RabbitMQ.Util.NetworkBinaryWriter writer, byte[] val) { }
+        public static void WriteLongstr(RabbitMQ.Util.NetworkBinaryWriter writer, byte[] val, int index, int count) { }
         public static void WriteOctet(RabbitMQ.Util.NetworkBinaryWriter writer, byte val) { }
         public static void WriteShort(RabbitMQ.Util.NetworkBinaryWriter writer, ushort val) { }
         public static void WriteShortstr(RabbitMQ.Util.NetworkBinaryWriter writer, string val) { }
