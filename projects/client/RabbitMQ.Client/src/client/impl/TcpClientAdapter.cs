@@ -14,10 +14,7 @@ namespace RabbitMQ.Client
 
         public TcpClientAdapter(Socket socket)
         {
-            if (socket == null)
-                throw new InvalidOperationException("socket must not be null");
-
-            _sock = socket;
+            _sock = socket ?? throw new InvalidOperationException("socket must not be null");
         }
 
         public virtual async Task ConnectAsync(string host, int port)
