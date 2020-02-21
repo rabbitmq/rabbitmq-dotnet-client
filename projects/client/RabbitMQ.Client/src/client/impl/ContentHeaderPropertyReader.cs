@@ -59,7 +59,7 @@ namespace RabbitMQ.Client.Impl
 
         public bool ContinuationBitSet
         {
-            get { return ((m_flagWord & 1) != 0); }
+            get { return (m_flagWord & 1) != 0; }
         }
 
         public void FinishPresence()

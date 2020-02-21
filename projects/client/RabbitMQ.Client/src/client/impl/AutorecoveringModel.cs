@@ -766,7 +766,7 @@ namespace RabbitMQ.Client.Impl
             IDictionary<string, object> arguments,
             IBasicConsumer consumer)
         {
-            var result = _delegate.BasicConsume(queue, autoAck, consumerTag, noLocal,
+            string result = _delegate.BasicConsume(queue, autoAck, consumerTag, noLocal,
                 exclusive, arguments, consumer);
             RecordedConsumer rc = new RecordedConsumer(this, queue).
                 WithConsumerTag(result).
@@ -973,7 +973,7 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             IDictionary<string, object> arguments)
         {
-            var qb = new RecordedQueueBinding(this).
+            RecordedBinding qb = new RecordedQueueBinding(this).
                 WithSource(exchange).
                 WithDestination(queue).
                 WithRoutingKey(routingKey).
@@ -994,7 +994,7 @@ namespace RabbitMQ.Client.Impl
                                            bool exclusive, bool autoDelete,
                                            IDictionary<string, object> arguments)
         {
-            var result = _delegate.QueueDeclare(queue, durable, exclusive,
+            QueueDeclareOk result = _delegate.QueueDeclare(queue, durable, exclusive,
                 autoDelete, arguments);
             RecordedQueue rq = new RecordedQueue(this, result.QueueName).
                 Durable(durable).
@@ -1040,7 +1040,7 @@ namespace RabbitMQ.Client.Impl
             bool ifUnused,
             bool ifEmpty)
         {
-            var result = _delegate.QueueDelete(queue, ifUnused, ifEmpty);
+            uint result = _delegate.QueueDelete(queue, ifUnused, ifEmpty);
             _connection.DeleteRecordedQueue(queue);
             return result;
         }

@@ -42,7 +42,7 @@ using System;
 
 namespace RabbitMQ.Client.Exceptions
 {
-#if !(NETSTANDARD1_5)
+#if !NETSTANDARD1_5
     [Serializable]
 #endif
     public abstract class RabbitMQClientException : Exception

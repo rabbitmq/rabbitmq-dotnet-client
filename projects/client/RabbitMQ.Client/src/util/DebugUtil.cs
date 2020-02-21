@@ -129,7 +129,7 @@ namespace RabbitMQ.Util
             {
                 Type t = value.GetType();
                 writer.WriteLine(t.FullName);
-                foreach (DictionaryEntry entry in ((IDictionary)value))
+                foreach (DictionaryEntry entry in (IDictionary)value)
                 {
                     DumpKeyValue(entry.Key.ToString(), entry.Value, writer, indent);
                 }
@@ -138,7 +138,7 @@ namespace RabbitMQ.Util
             {
                 writer.WriteLine("IEnumerable");
                 int index = 0;
-                foreach (object v in ((IEnumerable)value))
+                foreach (object v in (IEnumerable)value)
                 {
                     DumpKeyValue(index.ToString(), v, writer, indent);
                     index++;

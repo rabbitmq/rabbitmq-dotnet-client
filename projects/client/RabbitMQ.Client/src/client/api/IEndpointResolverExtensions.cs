@@ -49,7 +49,7 @@ namespace RabbitMQ.Client
         {
             var t = default(T);
             var exceptions = new List<Exception>();
-            foreach(var ep in resolver.All())
+            foreach(AmqpTcpEndpoint ep in resolver.All())
             {
                 try
                 {

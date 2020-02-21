@@ -56,7 +56,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private readonly object _manuallyClosedLock = new object();
         private Connection _delegate;
-        private ConnectionFactory _factory;
+        private readonly ConnectionFactory _factory;
 
         // list of endpoints provided on initial connection.
         // on re-connection, the next host in the line is chosen using
@@ -65,20 +65,20 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private readonly object _recordedEntitiesLock = new object();
 
-        private List<AutorecoveringModel> _models = new List<AutorecoveringModel>();
+        private readonly List<AutorecoveringModel> _models = new List<AutorecoveringModel>();
 
-        private ConcurrentDictionary<RecordedBinding, byte> _recordedBindings =
+        private readonly ConcurrentDictionary<RecordedBinding, byte> _recordedBindings =
             new ConcurrentDictionary<RecordedBinding, byte>();
 
         private EventHandler<ConnectionBlockedEventArgs> _recordedBlockedEventHandlers;
 
-        private IDictionary<string, RecordedConsumer> _recordedConsumers =
+        private readonly IDictionary<string, RecordedConsumer> _recordedConsumers =
             new ConcurrentDictionary<string, RecordedConsumer>();
 
-        private IDictionary<string, RecordedExchange> _recordedExchanges =
+        private readonly IDictionary<string, RecordedExchange> _recordedExchanges =
             new ConcurrentDictionary<string, RecordedExchange>();
 
-        private IDictionary<string, RecordedQueue> _recordedQueues =
+        private readonly IDictionary<string, RecordedQueue> _recordedQueues =
             new ConcurrentDictionary<string, RecordedQueue>();
 
         private EventHandler<ShutdownEventArgs> _recordedShutdownEventHandlers;
@@ -342,8 +342,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
                 // find bindings that need removal, check if some auto-delete exchanges
                 // might need the same
-                var bs = _recordedBindings.Keys.Where(b => name.Equals(b.Destination));
-                foreach (var b in bs)
+                IEnumerable<RecordedBinding> bs = _recordedBindings.Keys.Where(b => name.Equals(b.Destination));
+                foreach (RecordedBinding b in bs)
                 {
                     DeleteRecordedBinding(b);
                     MaybeDeleteRecordedAutoDeleteExchange(b.Source);
@@ -358,8 +358,8 @@ namespace RabbitMQ.Client.Framing.Impl
                 _recordedQueues.Remove(name);
                 // find bindings that need removal, check if some auto-delete exchanges
                 // might need the same
-                var bs = _recordedBindings.Keys.Where(b => name.Equals(b.Destination));
-                foreach (var b in bs)
+                IEnumerable<RecordedBinding> bs = _recordedBindings.Keys.Where(b => name.Equals(b.Destination));
+                foreach (RecordedBinding b in bs)
                 {
                     DeleteRecordedBinding(b);
                     MaybeDeleteRecordedAutoDeleteExchange(b.Source);
@@ -470,7 +470,7 @@ namespace RabbitMQ.Client.Framing.Impl
         public void Init(IEndpointResolver endpoints)
         {
             _endpoints = endpoints;
-            var fh = endpoints.SelectOne(_factory.CreateFrameHandler);
+            IFrameHandler fh = endpoints.SelectOne(_factory.CreateFrameHandler);
             Init(fh);
         }
 
@@ -643,7 +643,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             lock (_recordedBindings)
             {
-                var bs = _recordedBindings.Keys.Where(b => b.Destination.Equals(oldName));
+                IEnumerable<RecordedBinding> bs = _recordedBindings.Keys.Where(b => b.Destination.Equals(oldName));
                 foreach (RecordedBinding b in bs)
                 {
                     b.Destination = newName;
@@ -666,7 +666,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void RecoverBindings()
         {
-            foreach (var b in _recordedBindings.Keys)
+            foreach (RecordedBinding b in _recordedBindings.Keys)
             {
                 try
                 {
@@ -693,7 +693,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             try
             {
-                var fh = _endpoints.SelectOne(_factory.CreateFrameHandler);
+                IFrameHandler fh = _endpoints.SelectOne(_factory.CreateFrameHandler);
                 _delegate = new Connection(_factory, false, fh, ClientProvidedName);
                 return true;
             }
@@ -883,10 +883,10 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private bool ShouldTriggerConnectionRecovery(ShutdownEventArgs args)
         {
-            return (args.Initiator == ShutdownInitiator.Peer ||
+            return args.Initiator == ShutdownInitiator.Peer ||
                     // happens when EOF is reached, e.g. due to RabbitMQ node
                     // connectivity loss or abrupt shutdown
-                    args.Initiator == ShutdownInitiator.Library);
+                    args.Initiator == ShutdownInitiator.Library;
         }
 
         private enum RecoveryCommand
@@ -929,7 +929,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             try
             {
-                while (_recoveryLoopCommandQueue.TryTake(out var command, -1, _recoveryCancellationToken.Token))
+                while (_recoveryLoopCommandQueue.TryTake(out RecoveryCommand command, -1, _recoveryCancellationToken.Token))
                 {
                     switch (_recoveryLoopState)
                     {

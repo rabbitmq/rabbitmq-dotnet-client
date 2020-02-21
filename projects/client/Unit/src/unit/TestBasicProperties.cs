@@ -92,13 +92,13 @@ namespace RabbitMQ.Client.Unit
             subject.MessageId = messageId;
 
             // Assert
-            var isClusterIdPresent = clusterId != null;
+            bool isClusterIdPresent = clusterId != null;
             Assert.AreEqual(isClusterIdPresent, subject.IsClusterIdPresent());
 
-            var isCorrelationIdPresent = correlationId != null;
+            bool isCorrelationIdPresent = correlationId != null;
             Assert.AreEqual(isCorrelationIdPresent, subject.IsCorrelationIdPresent());
 
-            var isMessageIdPresent = messageId != null;
+            bool isMessageIdPresent = messageId != null;
             Assert.AreEqual(isMessageIdPresent, subject.IsMessageIdPresent());
 
             using (var outputStream = new MemoryStream())

@@ -405,14 +405,14 @@ namespace RabbitMQ.Client.Unit
         internal Process ExecRabbitMQCtl(string args)
         {
             // Allow the path to the rabbitmqctl.bat to be set per machine
-            var envVariable = Environment.GetEnvironmentVariable("RABBITMQ_RABBITMQCTL_PATH");
+            string envVariable = Environment.GetEnvironmentVariable("RABBITMQ_RABBITMQCTL_PATH");
 
             string rabbitmqctlPath;
 
             if (envVariable != null)
             {
                 var regex = new Regex(@"^DOCKER:(?<dockerMachine>.+)$");
-                var match = regex.Match(envVariable);
+                Match match = regex.Match(envVariable);
 
                 if (match.Success)
                 {
@@ -607,10 +607,10 @@ namespace RabbitMQ.Client.Unit
                 // line: <rabbit@mercurio.1.11491.0>	{.../*client_properties*/...}
                 return lines.Select(s =>
                 {
-                    var columns = s.Split('\t');
+                    string[] columns = s.Split('\t');
                     Debug.Assert(!string.IsNullOrEmpty(columns[0]), "columns[0] is null or empty!");
                     Debug.Assert(!string.IsNullOrEmpty(columns[1]), "columns[1] is null or empty!");
-                    var match = GetConnectionName.Match(columns[1]);
+                    Match match = GetConnectionName.Match(columns[1]);
                     Debug.Assert(match.Success, "columns[1] is not in expected format.");
                     return new ConnectionInfo(columns[0], match.Groups["connection_name"].Value);
                 }).ToList();
@@ -624,14 +624,14 @@ namespace RabbitMQ.Client.Unit
 
         internal void CloseConnection(IConnection conn)
         {
-            var ci = ListConnections().First(x => conn.ClientProvidedName == x.Name);
+            ConnectionInfo ci = ListConnections().First(x => conn.ClientProvidedName == x.Name);
             CloseConnection(ci.Pid);
         }
 
         internal void CloseAllConnections()
         {
-            var cs = ListConnections();
-            foreach(var c in cs)
+            List<ConnectionInfo> cs = ListConnections();
+            foreach(ConnectionInfo c in cs)
             {
                 CloseConnection(c.Pid);
             }

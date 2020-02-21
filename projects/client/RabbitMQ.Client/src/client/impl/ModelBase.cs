@@ -64,8 +64,8 @@ namespace RabbitMQ.Client.Impl
         private TimeSpan _handshakeContinuationTimeout = TimeSpan.FromSeconds(10);
         private TimeSpan _continuationTimeout = TimeSpan.FromSeconds(20);
 
-        private RpcContinuationQueue _continuationQueue = new RpcContinuationQueue();
-        private ManualResetEvent _flowControlBlock = new ManualResetEvent(true);
+        private readonly RpcContinuationQueue _continuationQueue = new RpcContinuationQueue();
+        private readonly ManualResetEvent _flowControlBlock = new ManualResetEvent(true);
 
         private readonly object _eventLock = new object();
         private readonly object _flowSendLock = new object();
@@ -509,7 +509,7 @@ namespace RabbitMQ.Client.Impl
 
         protected void BroadcastShutdownToConsumers(IDictionary<string, IBasicConsumer> cs, ShutdownEventArgs reason)
         {
-            foreach (var c in cs)
+            foreach (KeyValuePair<string, IBasicConsumer> c in cs)
             {
                 ConsumerDispatcher.HandleModelShutdown(c.Value, reason);
             }
@@ -774,7 +774,7 @@ namespace RabbitMQ.Client.Impl
 
         public void HandleConnectionBlocked(string reason)
         {
-            var cb = ((Connection)Session.Connection);
+            var cb = (Connection)Session.Connection;
 
             cb.HandleConnectionBlocked(reason);
         }
@@ -793,7 +793,7 @@ namespace RabbitMQ.Client.Impl
             {
                 ((Connection)Session.Connection).InternalClose(reason);
                 _Private_ConnectionCloseOk();
-                SetCloseReason((Session.Connection).CloseReason);
+                SetCloseReason(Session.Connection.CloseReason);
             }
             catch (IOException)
             {
@@ -871,7 +871,7 @@ namespace RabbitMQ.Client.Impl
 
         public void HandleConnectionUnblocked()
         {
-            var cb = ((Connection)Session.Connection);
+            var cb = (Connection)Session.Connection;
 
             cb.HandleConnectionUnblocked();
         }
@@ -1073,7 +1073,7 @@ namespace RabbitMQ.Client.Impl
 
         internal void AllocatatePublishSeqNos(int count)
         {
-            var c = 0;
+            int c = 0;
             lock (_unconfirmedSet.SyncRoot)
             {
                 while (c < count)
@@ -1287,13 +1287,13 @@ namespace RabbitMQ.Client.Impl
 
         public uint MessageCount(string queue)
         {
-            var ok = QueueDeclarePassive(queue);
+            QueueDeclareOk ok = QueueDeclarePassive(queue);
             return ok.MessageCount;
         }
 
         public uint ConsumerCount(string queue)
         {
-            var ok = QueueDeclarePassive(queue);
+            QueueDeclareOk ok = QueueDeclarePassive(queue);
             return ok.ConsumerCount;
         }
 
@@ -1333,7 +1333,7 @@ namespace RabbitMQ.Client.Impl
             {
                 throw new InvalidOperationException("Confirms not selected");
             }
-            bool isWaitInfinite = (timeout.TotalMilliseconds == Timeout.Infinite);
+            bool isWaitInfinite = timeout.TotalMilliseconds == Timeout.Infinite;
             Stopwatch stopwatch = Stopwatch.StartNew();
             lock (_unconfirmedSet.SyncRoot)
             {

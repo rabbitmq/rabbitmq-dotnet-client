@@ -62,7 +62,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>Heartbeat frame for transmission. Reusable across connections.</summary>
         private readonly EmptyOutboundFrame _heartbeatFrame = new EmptyOutboundFrame();
 
-        private ManualResetEvent _appContinuation = new ManualResetEvent(false);
+        private readonly ManualResetEvent _appContinuation = new ManualResetEvent(false);
 
         private IDictionary<string, object> _clientProperties;
 
@@ -71,16 +71,16 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private EventHandler<ShutdownEventArgs> _connectionShutdown;
 
-        private IConnectionFactory _factory;
-        private IFrameHandler _frameHandler;
+        private readonly IConnectionFactory _factory;
+        private readonly IFrameHandler _frameHandler;
 
         private Guid _id = Guid.NewGuid();
-        private ModelBase _model0;
+        private readonly ModelBase _model0;
         private volatile bool _running = true;
-        private MainSession _session0;
+        private readonly MainSession _session0;
         private SessionManager _sessionManager;
 
-        private IList<ShutdownReportEntry> _shutdownReport = new SynchronizedList<ShutdownReportEntry>(new List<ShutdownReportEntry>());
+        private readonly IList<ShutdownReportEntry> _shutdownReport = new SynchronizedList<ShutdownReportEntry>(new List<ShutdownReportEntry>());
 
         //
         // Heartbeats
@@ -92,11 +92,11 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private Timer _heartbeatWriteTimer;
         private Timer _heartbeatReadTimer;
-        private AutoResetEvent _heartbeatRead = new AutoResetEvent(false);
+        private readonly AutoResetEvent _heartbeatRead = new AutoResetEvent(false);
 
         private Task _mainLoopTask;
 
-        private static string s_version = typeof(Connection).Assembly
+        private static readonly string s_version = typeof(Connection).Assembly
                                             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
                                             .InformationalVersion;
 
@@ -348,7 +348,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
             }
 
-            var receivedSignal = _appContinuation.WaitOne(timeout);
+            bool receivedSignal = _appContinuation.WaitOne(timeout);
 
             if (!receivedSignal)
             {
@@ -1075,7 +1075,7 @@ entry.ToString());
             _frameHandler.ReadTimeout = _factory.HandshakeContinuationTimeout;
             _frameHandler.SendHeader();
 
-            var connectionStart = connectionStartCell.WaitForValue();
+            ConnectionStartDetails connectionStart = connectionStartCell.WaitForValue();
 
             if (connectionStart == null)
             {
@@ -1153,7 +1153,7 @@ entry.ToString());
                     "Possibly caused by authentication failure", e);
             }
 
-            var channelMax = (ushort)NegotiatedMaxValue(_factory.RequestedChannelMax,
+            ushort channelMax = (ushort)NegotiatedMaxValue(_factory.RequestedChannelMax,
                 connectionTune.m_channelMax);
             _sessionManager = new SessionManager(this, channelMax);
 
@@ -1162,7 +1162,7 @@ entry.ToString());
             FrameMax = frameMax;
 
             TimeSpan requestedHeartbeat = _factory.RequestedHeartbeat;
-            var heartbeatInSeconds = NegotiatedMaxValue((uint)requestedHeartbeat.TotalSeconds,
+            uint heartbeatInSeconds = NegotiatedMaxValue((uint)requestedHeartbeat.TotalSeconds,
                 (uint)connectionTune.m_heartbeatInSeconds);
             Heartbeat = TimeSpan.FromSeconds(heartbeatInSeconds);
 

@@ -99,7 +99,7 @@ namespace RabbitMQ.Client.Unit
         {
             Model.QueueDeclare(queue, false, true, false, null);
             IBasicConsumer consumer = new CancelNotificationConsumer(Model, this, EventMode);
-            var actualConsumerTag = Model.BasicConsume(queue, false, consumer);
+            string actualConsumerTag = Model.BasicConsume(queue, false, consumer);
 
             Model.QueueDelete(queue);
             WaitOn(lockObject);
@@ -109,8 +109,8 @@ namespace RabbitMQ.Client.Unit
 
         private class CancelNotificationConsumer : DefaultBasicConsumer
         {
-            private TestConsumerCancelNotify testClass;
-            private bool EventMode;
+            private readonly TestConsumerCancelNotify testClass;
+            private readonly bool EventMode;
 
             public CancelNotificationConsumer(IModel model, TestConsumerCancelNotify tc, bool EventMode)
                 : base(model)

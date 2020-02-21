@@ -45,8 +45,8 @@ namespace RabbitMQ.Client.Impl
 {
     public class BasicPublishBatch : IBasicPublishBatch
     {
-        private List<Command> _commands = new List<Command>();
-        private ModelBase _model;
+        private readonly List<Command> _commands = new List<Command>();
+        private readonly ModelBase _model;
         internal BasicPublishBatch (ModelBase model)
         {
             _model = model;
@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Impl
 
         public void Add(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, byte[] body)
         {
-            var bp = basicProperties == null ? _model.CreateBasicProperties() : basicProperties;
+            var bp = basicProperties ?? _model.CreateBasicProperties();
             var method = new BasicPublish
             {
                 _exchange = exchange,

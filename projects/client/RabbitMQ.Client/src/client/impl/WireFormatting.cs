@@ -97,7 +97,7 @@ namespace RabbitMQ.Client.Impl
         {
             IList array = new List<object>();
             long arrayLength = reader.ReadUInt32();
-            var backingStream = reader.BaseStream;
+            Stream backingStream = reader.BaseStream;
             long startPosition = backingStream.Position;
             while ((backingStream.Position - startPosition) < arrayLength)
             {
@@ -205,7 +205,7 @@ namespace RabbitMQ.Client.Impl
             IDictionary<string, object> table = new Dictionary<string, object>();
             long tableLength = reader.ReadUInt32();
 
-            var backingStream = reader.BaseStream;
+            Stream backingStream = reader.BaseStream;
             long startPosition = backingStream.Position;
             while ((backingStream.Position - startPosition) < tableLength)
             {
@@ -237,7 +237,7 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                var backingStream = writer.BaseStream;
+                Stream backingStream = writer.BaseStream;
                 long patchPosition = backingStream.Position;
                 writer.Write((uint)0); // length of table - will be backpatched
                 foreach (object entry in val)
@@ -254,7 +254,7 @@ namespace RabbitMQ.Client.Impl
 
         public static void WriteDecimal(NetworkBinaryWriter writer, decimal value)
         {
-            DecimalToAmqp(value, out var scale, out var mantissa);
+            DecimalToAmqp(value, out byte scale, out int mantissa);
             WriteOctet(writer, scale);
             WriteLong(writer, (uint)mantissa);
         }
@@ -365,8 +365,8 @@ namespace RabbitMQ.Client.Impl
 
         public static void WriteShortstr(NetworkBinaryWriter writer, string val)
         {
-            var bytes = Encoding.UTF8.GetBytes(val);
-            var length = bytes.Length;
+            byte[] bytes = Encoding.UTF8.GetBytes(val);
+            int length = bytes.Length;
 
             if (length > 255)
             {
@@ -400,7 +400,7 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                var backingStream = writer.BaseStream;
+                Stream backingStream = writer.BaseStream;
                 long patchPosition = backingStream.Position;
                 writer.Write((uint)0); // length of table - will be backpatched
 
@@ -441,11 +441,11 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                var backingStream = writer.BaseStream;
+                Stream backingStream = writer.BaseStream;
                 long patchPosition = backingStream.Position;
                 writer.Write((uint)0); // length of table - will be backpatched
 
-                foreach (var entry in val)
+                foreach (KeyValuePair<string, object> entry in val)
                 {
                     WriteShortstr(writer, entry.Key);
                     WriteFieldValue(writer, entry.Value);

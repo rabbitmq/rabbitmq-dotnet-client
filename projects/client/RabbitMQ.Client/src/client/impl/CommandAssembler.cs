@@ -94,7 +94,7 @@ namespace RabbitMQ.Client.Impl
                     }
                     NetworkBinaryReader reader = f.GetReader();
                     m_header = m_protocol.DecodeContentHeaderFrom(reader);
-                    var totalBodyBytes = m_header.ReadFrom(reader);
+                        ulong totalBodyBytes = m_header.ReadFrom(reader);
                     if (totalBodyBytes > MaxArrayOfBytesSize)
                     {
                         throw new UnexpectedFrameException(f);

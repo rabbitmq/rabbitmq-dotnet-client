@@ -53,7 +53,7 @@ namespace RabbitMQ.Client.Unit
             RpcContinuationQueue queue = new RpcContinuationQueue();
             var inputContinuation = new SimpleBlockingRpcContinuation();
             queue.Enqueue(inputContinuation);
-            var outputContinuation = queue.Next();
+            IRpcContinuation outputContinuation = queue.Next();
             Assert.AreEqual(outputContinuation, inputContinuation);
         }
 
@@ -63,9 +63,9 @@ namespace RabbitMQ.Client.Unit
             RpcContinuationQueue queue = new RpcContinuationQueue();
             var inputContinuation = new SimpleBlockingRpcContinuation();
             queue.Enqueue(inputContinuation);
-            var outputContinuation = queue.Next();
+            IRpcContinuation outputContinuation = queue.Next();
             Assert.AreEqual(outputContinuation, inputContinuation);
-            var outputContinuation1 = queue.Next();
+            IRpcContinuation outputContinuation1 = queue.Next();
             Assert.AreNotEqual(outputContinuation1, inputContinuation);
         }
 

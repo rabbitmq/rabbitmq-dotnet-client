@@ -50,10 +50,10 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     internal class TestConsumerOperationDispatch : IntegrationFixture
     {
-        private string x = "dotnet.tests.consumer-operation-dispatch.fanout";
-        private List<IModel> channels = new List<IModel>();
-        private List<string> queues = new List<string>();
-        private List<CollectingConsumer> consumers = new List<CollectingConsumer>();
+        private readonly string x = "dotnet.tests.consumer-operation-dispatch.fanout";
+        private readonly List<IModel> channels = new List<IModel>();
+        private readonly List<string> queues = new List<string>();
+        private readonly List<CollectingConsumer> consumers = new List<CollectingConsumer>();
 
         // number of channels (and consumers)
         private const int y = 100;
@@ -66,7 +66,7 @@ namespace RabbitMQ.Client.Unit
         [TearDown]
         protected override void ReleaseResources()
         {
-            foreach (var ch in channels)
+            foreach (IModel ch in channels)
             {
                 if (ch.IsOpen)
                 {
@@ -110,13 +110,13 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestDeliveryOrderingWithSingleChannel()
         {
-            var Ch = Conn.CreateModel();
+            IModel Ch = Conn.CreateModel();
             Ch.ExchangeDeclare(x, "fanout", durable: false);
 
             for (int i = 0; i < y; i++)
             {
-                var ch = Conn.CreateModel();
-                var q = ch.QueueDeclare("", durable: false, exclusive: true, autoDelete: true, arguments: null);
+                IModel ch = Conn.CreateModel();
+                QueueDeclareOk q = ch.QueueDeclare("", durable: false, exclusive: true, autoDelete: true, arguments: null);
                 ch.QueueBind(queue: q, exchange: x, routingKey: "");
                 channels.Add(ch);
                 queues.Add(q);
@@ -133,16 +133,16 @@ namespace RabbitMQ.Client.Unit
             }
             counter.Wait(TimeSpan.FromSeconds(120));
 
-            foreach (var cons in consumers)
+            foreach (CollectingConsumer cons in consumers)
             {
                 Assert.That(cons.DeliveryTags, Has.Count.EqualTo(n));
-                var ary = cons.DeliveryTags.ToArray();
+                ulong[] ary = cons.DeliveryTags.ToArray();
                 Assert.AreEqual(ary[0], 1);
                 Assert.AreEqual(ary[n - 1], n);
                 for (int i = 0; i < (n - 1); i++)
                 {
-                    var a = ary[i];
-                    var b = ary[i + 1];
+                    ulong a = ary[i];
+                    ulong b = ary[i + 1];
 
                     Assert.IsTrue(a < b);
                 }
@@ -153,12 +153,12 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestChannelShutdownDoesNotShutDownDispatcher()
         {
-            var ch1 = Conn.CreateModel();
-            var ch2 = Conn.CreateModel();
+            IModel ch1 = Conn.CreateModel();
+            IModel ch2 = Conn.CreateModel();
             Model.ExchangeDeclare(x, "fanout", durable: false);
 
-            var q1 = ch1.QueueDeclare().QueueName;
-            var q2 = ch2.QueueDeclare().QueueName;
+            string q1 = ch1.QueueDeclare().QueueName;
+            string q2 = ch2.QueueDeclare().QueueName;
             ch2.QueueBind(queue: q2, exchange: x, routingKey: "");
 
             var latch = new ManualResetEvent(false);
@@ -203,7 +203,7 @@ namespace RabbitMQ.Client.Unit
         {
             var latch = new ManualResetEvent(false);
             var duplicateLatch = new ManualResetEvent(false);
-            var q = Model.QueueDeclare().QueueName;
+            string q = Model.QueueDeclare().QueueName;
             var c = new ShutdownLatchConsumer(latch, duplicateLatch);
 
             Model.BasicConsume(queue: q, autoAck: true, consumer: c);

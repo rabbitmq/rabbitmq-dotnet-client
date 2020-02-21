@@ -116,7 +116,7 @@ namespace RabbitMQ.Client.Unit
         protected void TestExceptionHandlingWith(IBasicConsumer consumer,
             Action<IModel, string, IBasicConsumer, string> action)
         {
-            var o = new object();
+            object o = new object();
             bool notified = false;
             string q = Model.QueueDeclare();
 

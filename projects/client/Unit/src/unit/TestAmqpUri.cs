@@ -164,7 +164,7 @@ namespace RabbitMQ.Client.Unit
             var factory = new ConnectionFactory();
             factory.Uri = new Uri(uri);
             AssertUriPartEquivalence(user, password, port, vhost, factory);
-            Assert.IsTrue((Array.IndexOf(hosts, factory.HostName)) != -1);
+            Assert.IsTrue(Array.IndexOf(hosts, factory.HostName) != -1);
         }
         public static bool IsRunningOnMono()
         {

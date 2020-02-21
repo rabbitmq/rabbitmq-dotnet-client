@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.Impl
 
         public virtual Command GetReply()
         {
-            var result = m_cell.WaitForValue();
+            Either<Command, ShutdownEventArgs> result = m_cell.WaitForValue();
             switch (result.Alternative)
             {
                 case EitherAlternative.Left:
@@ -65,7 +65,7 @@ namespace RabbitMQ.Client.Impl
 
         public virtual Command GetReply(TimeSpan timeout)
         {
-            var result = m_cell.WaitForValue(timeout);
+            Either<Command, ShutdownEventArgs> result = m_cell.WaitForValue(timeout);
             switch (result.Alternative)
             {
                 case EitherAlternative.Left:
