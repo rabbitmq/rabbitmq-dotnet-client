@@ -556,13 +556,7 @@ namespace RabbitMQ.Client.Impl
             if (disposing)
             {
                 // dispose managed resources
-                try
-                {
-                    Abort();
-                }
-                finally
-                {
-                }
+                Abort();
             }
 
             // dispose unmanaged resources
