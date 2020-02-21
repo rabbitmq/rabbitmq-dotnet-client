@@ -68,7 +68,6 @@ namespace RabbitMQ.Client.Impl
         private readonly ManualResetEvent _flowControlBlock = new ManualResetEvent(true);
 
         private readonly object _eventLock = new object();
-        private readonly object _flowSendLock = new object();
         private readonly object _shutdownLock = new object();
         private readonly object _rpcLock = new object();
 

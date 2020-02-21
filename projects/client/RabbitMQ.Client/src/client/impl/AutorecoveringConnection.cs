@@ -54,7 +54,6 @@ namespace RabbitMQ.Client.Framing.Impl
     {
         private readonly object _eventLock = new object();
 
-        private readonly object _manuallyClosedLock = new object();
         private Connection _delegate;
         private readonly ConnectionFactory _factory;
 

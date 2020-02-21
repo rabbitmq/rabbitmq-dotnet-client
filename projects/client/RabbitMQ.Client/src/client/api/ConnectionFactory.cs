@@ -505,23 +505,11 @@ namespace RabbitMQ.Client
             return conn;
         }
 
-        private IFrameHandler CreateFrameHandler()
-        {
-            IFrameHandler fh = Protocols.DefaultProtocol.CreateFrameHandler(Endpoint, SocketFactory,
-                RequestedConnectionTimeout, SocketReadTimeout, SocketWriteTimeout);
-            return ConfigureFrameHandler(fh);
-        }
-
         internal IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint)
         {
             IFrameHandler fh = Protocols.DefaultProtocol.CreateFrameHandler(endpoint, SocketFactory,
                 RequestedConnectionTimeout, SocketReadTimeout, SocketWriteTimeout);
             return ConfigureFrameHandler(fh);
-        }
-
-        private IFrameHandler CreateFrameHandlerForHostname(string hostname)
-        {
-            return CreateFrameHandler(Endpoint.CloneWithHostname(hostname));
         }
 
         private IFrameHandler ConfigureFrameHandler(IFrameHandler fh)
