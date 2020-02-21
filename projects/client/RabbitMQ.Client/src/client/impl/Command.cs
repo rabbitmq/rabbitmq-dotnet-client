@@ -41,6 +41,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Util;
 
@@ -115,8 +116,7 @@ namespace RabbitMQ.Client.Impl
 
         public void TransmitAsFrameSet(int channelNumber, Connection connection)
         {
-            var frames = new List<OutboundFrame>();
-            frames.Add(new MethodOutboundFrame(channelNumber, Method));
+            var frames = new List<OutboundFrame> { new MethodOutboundFrame(channelNumber, Method) };
             if (Method.HasContent)
             {
                 byte[] body = Body;

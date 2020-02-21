@@ -38,10 +38,12 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
-using RabbitMQ.Client.Events;
 using System.Linq;
 using System.Threading;
+
+using NUnit.Framework;
+
+using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -109,14 +111,14 @@ namespace RabbitMQ.Client.Unit
 
         private class CancelNotificationConsumer : DefaultBasicConsumer
         {
-            private readonly TestConsumerCancelNotify testClass;
-            private readonly bool EventMode;
+            private readonly TestConsumerCancelNotify _testClass;
+            private readonly bool _eventMode;
 
             public CancelNotificationConsumer(IModel model, TestConsumerCancelNotify tc, bool EventMode)
                 : base(model)
             {
-                testClass = tc;
-                this.EventMode = EventMode;
+                _testClass = tc;
+                _eventMode = EventMode;
                 if (EventMode)
                 {
                     ConsumerCancelled += Cancelled;
@@ -125,13 +127,13 @@ namespace RabbitMQ.Client.Unit
 
             public override void HandleBasicCancel(string consumerTag)
             {
-                if (!EventMode)
+                if (!_eventMode)
                 {
-                    lock (testClass.lockObject)
+                    lock (_testClass.lockObject)
                     {
-                        testClass.notifiedCallback = true;
-                        testClass.consumerTag = consumerTag;
-                        Monitor.PulseAll(testClass.lockObject);
+                        _testClass.notifiedCallback = true;
+                        _testClass.consumerTag = consumerTag;
+                        Monitor.PulseAll(_testClass.lockObject);
                     }
                 }
                 base.HandleBasicCancel(consumerTag);
@@ -139,11 +141,11 @@ namespace RabbitMQ.Client.Unit
 
             private void Cancelled(object sender, ConsumerEventArgs arg)
             {
-                lock (testClass.lockObject)
+                lock (_testClass.lockObject)
                 {
-                    testClass.notifiedEvent = true;
-                    testClass.consumerTag = arg.ConsumerTags[0];
-                    Monitor.PulseAll(testClass.lockObject);
+                    _testClass.notifiedEvent = true;
+                    _testClass.consumerTag = arg.ConsumerTags[0];
+                    Monitor.PulseAll(_testClass.lockObject);
                 }
             }
         }

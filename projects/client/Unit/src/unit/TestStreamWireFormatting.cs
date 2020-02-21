@@ -40,8 +40,8 @@
 
 using NUnit.Framework;
 
-using RabbitMQ.Util;
 using RabbitMQ.Client.Content;
+using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Unit
 {

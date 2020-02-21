@@ -80,8 +80,6 @@ namespace RabbitMQ.Client.Framing.Impl
         private readonly MainSession _session0;
         private SessionManager _sessionManager;
 
-        private readonly IList<ShutdownReportEntry> _shutdownReport = new SynchronizedList<ShutdownReportEntry>(new List<ShutdownReportEntry>());
-
         //
         // Heartbeats
         //
@@ -178,11 +176,7 @@ namespace RabbitMQ.Client.Framing.Impl
             get { return _sessionManager.ChannelMax; }
         }
 
-        public IDictionary<string, object> ClientProperties
-        {
-            get { return _clientProperties; }
-            set { _clientProperties = value; }
-        }
+        public IDictionary<string, object> ClientProperties { get; set; }
 
         public ShutdownEventArgs CloseReason
         {
@@ -245,10 +239,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public IDictionary<string, object> ServerProperties { get; set; }
 
-        public IList<ShutdownReportEntry> ShutdownReport
-        {
-            get { return _shutdownReport; }
-        }
+        public IList<ShutdownReportEntry> ShutdownReport { get; } = new SynchronizedList<ShutdownReportEntry>(new List<ShutdownReportEntry>());
 
         ///<summary>Explicit implementation of IConnection.Protocol.</summary>
         IProtocol IConnection.Protocol
@@ -258,13 +249,15 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public static IDictionary<string, object> DefaultClientProperties()
         {
-            IDictionary<string, object> table = new Dictionary<string, object>();
-            table["product"] = Encoding.UTF8.GetBytes("RabbitMQ");
-            table["version"] = Encoding.UTF8.GetBytes(s_version);
-            table["platform"] = Encoding.UTF8.GetBytes(".NET");
-            table["copyright"] = Encoding.UTF8.GetBytes("Copyright (c) 2007-2020 VMware, Inc.");
-            table["information"] = Encoding.UTF8.GetBytes("Licensed under the MPL.  " +
-                                                          "See https://www.rabbitmq.com/");
+            IDictionary<string, object> table = new Dictionary<string, object>
+            {
+                ["product"] = Encoding.UTF8.GetBytes("RabbitMQ"),
+                ["version"] = Encoding.UTF8.GetBytes(s_version),
+                ["platform"] = Encoding.UTF8.GetBytes(".NET"),
+                ["copyright"] = Encoding.UTF8.GetBytes("Copyright (c) 2007-2020 VMware, Inc."),
+                ["information"] = Encoding.UTF8.GetBytes("Licensed under the MPL.  " +
+                                                          "See https://www.rabbitmq.com/")
+            };
             return table;
         }
 
@@ -499,7 +492,7 @@ namespace RabbitMQ.Client.Framing.Impl
         public void LogCloseError(string error, Exception ex)
         {
             ESLog.Error(error, ex);
-            _shutdownReport.Add(new ShutdownReportEntry(error, ex));
+            ShutdownReport.Add(new ShutdownReportEntry(error, ex));
         }
 
         public void MainLoop()
@@ -552,7 +545,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     {
                         ClosingLoop();
                     }
-                    catch (SocketException se)
+                    catch (SocketException)
                     {
                         // means that socket was closed when frame handler
                         // attempted to use it. Since we are shutting down,
@@ -868,7 +861,7 @@ entry.ToString());
                         string description = string.Format("Heartbeat missing with heartbeat == {0} seconds", _heartbeat);
                         var eose = new EndOfStreamException(description);
                         ESLog.Error(description, eose);
-                        _shutdownReport.Add(new ShutdownReportEntry(description, eose));
+                        ShutdownReport.Add(new ShutdownReportEntry(description, eose));
                         HandleMainLoopException(
                             new ShutdownEventArgs(ShutdownInitiator.Library, 0, "End of stream", eose));
                         shouldTerminate = true;
@@ -1096,9 +1089,11 @@ entry.ToString());
                     serverVersion.Minor);
             }
 
-            _clientProperties = new Dictionary<string, object>(_factory.ClientProperties);
-            _clientProperties["capabilities"] = Protocol.Capabilities;
-            _clientProperties["connection_name"] = ClientProvidedName;
+            ClientProperties = new Dictionary<string, object>(_factory.ClientProperties)
+            {
+                ["capabilities"] = Protocol.Capabilities,
+                ["connection_name"] = ClientProvidedName
+            };
 
             // FIXME: parse out locales properly!
             ConnectionTuneDetails connectionTune = default;
@@ -1121,7 +1116,7 @@ entry.ToString());
                     ConnectionSecureOrTune res;
                     if (challenge == null)
                     {
-                        res = _model0.ConnectionStartOk(_clientProperties,
+                        res = _model0.ConnectionStartOk(ClientProperties,
                             mechanismFactory.Name,
                             response,
                             "en_US");

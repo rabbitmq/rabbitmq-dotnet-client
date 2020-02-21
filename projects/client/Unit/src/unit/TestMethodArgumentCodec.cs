@@ -38,12 +38,13 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
-
 using System;
+using System.Collections;
 using System.IO;
 using System.Text;
-using System.Collections;
+
+using NUnit.Framework;
+
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Util;
 
@@ -97,8 +98,10 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestTableLengthWrite()
         {
-            var t = new Hashtable();
-            t["abc"] = "def";
+            var t = new Hashtable
+            {
+                ["abc"] = "def"
+            };
             m_w.WriteTable(t);
             Check(m_w, new byte[] { 0x00, 0x00, 0x00, 0x0C,
                                    0x03, 0x61, 0x62, 0x63,
@@ -121,8 +124,10 @@ namespace RabbitMQ.Client.Unit
         public void TestNestedTableWrite()
         {
             Hashtable t = new Hashtable();
-            Hashtable x = new Hashtable();
-            x["y"] = 0x12345678;
+            Hashtable x = new Hashtable
+            {
+                ["y"] = 0x12345678
+            };
             t["x"] = x;
             m_w.WriteTable(t);
             Check(m_w, new byte[] { 0x00, 0x00, 0x00, 0x0E,

@@ -38,10 +38,11 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
 using System;
 using System.Net.Security;
 using System.Security.Authentication;
+
+using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -136,11 +137,13 @@ namespace RabbitMQ.Client.Unit
                 return;
             }
 
-            ConnectionFactory cf = new ConnectionFactory();
-            cf.Ssl = new SslOption()
+            ConnectionFactory cf = new ConnectionFactory
             {
-                CertPath = null,
-                Enabled = true,
+                Ssl = new SslOption()
+                {
+                    CertPath = null,
+                    Enabled = true,
+                }
             };
 
             cf.Ssl.Version = SslProtocols.None;

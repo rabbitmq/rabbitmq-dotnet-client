@@ -38,14 +38,16 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using System.Threading;
+
 using NUnit.Framework;
+
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Impl;
-using System;
-using System.Collections.Generic;
-using System.Threading;
 
 #pragma warning disable 0618
 
@@ -58,7 +60,7 @@ namespace RabbitMQ.Client.Unit
             Connection = c;
         }
 
-        public AutorecoveringConnection Connection {get; private set;}
+        public AutorecoveringConnection Connection { get; private set; }
 
         public void Dispose()
         {
@@ -68,15 +70,6 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestConnectionRecovery : IntegrationFixture
     {
-        private DisposableConnection CreateWrappedAutorecoveringConnection()
-        {
-            return new DisposableConnection(CreateAutorecoveringConnection());
-        }
-        private DisposableConnection CreateWrappedAutorecoveringConnection(IList<string> hostnames)
-        {
-            return new DisposableConnection(CreateAutorecoveringConnection(hostnames));
-        }
-
         [SetUp]
         public override void Init()
         {
@@ -106,7 +99,7 @@ namespace RabbitMQ.Client.Unit
             Model.QueueDeclare(q, false, false, false, null);
             // create an offset
             IBasicProperties bp = Model.CreateBasicProperties();
-            Model.BasicPublish("", q, bp, new byte [] {});
+            Model.BasicPublish("", q, bp, new byte[] { });
             Thread.Sleep(50);
             BasicGetResult g = Model.BasicGet(q, false);
             CloseAndWaitForRecovery();
@@ -145,7 +138,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestBasicConnectionRecoveryWithHostnameList()
         {
-            using(AutorecoveringConnection c = CreateAutorecoveringConnection(new List<string> { "127.0.0.1", "localhost" }))
+            using (AutorecoveringConnection c = CreateAutorecoveringConnection(new List<string> { "127.0.0.1", "localhost" }))
             {
                 Assert.IsTrue(c.IsOpen);
                 CloseAndWaitForRecovery(c);
@@ -156,7 +149,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestBasicConnectionRecoveryWithHostnameListAndUnreachableHosts()
         {
-            using(AutorecoveringConnection c = CreateAutorecoveringConnection(new List<string> { "191.72.44.22", "127.0.0.1", "localhost" }))
+            using (AutorecoveringConnection c = CreateAutorecoveringConnection(new List<string> { "191.72.44.22", "127.0.0.1", "localhost" }))
             {
                 Assert.IsTrue(c.IsOpen);
                 CloseAndWaitForRecovery(c);
@@ -167,17 +160,17 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestBasicConnectionRecoveryWithEndpointList()
         {
-            using(AutorecoveringConnection c = CreateAutorecoveringConnection(
-                        new List<AmqpTcpEndpoint> 
+            using (AutorecoveringConnection c = CreateAutorecoveringConnection(
+                        new List<AmqpTcpEndpoint>
                         {
-                            new AmqpTcpEndpoint("127.0.0.1"), 
-                            new AmqpTcpEndpoint("localhost") 
+                            new AmqpTcpEndpoint("127.0.0.1"),
+                            new AmqpTcpEndpoint("localhost")
                         }))
-                        {
-                            Assert.IsTrue(c.IsOpen);
-                            CloseAndWaitForRecovery(c);
-                            Assert.IsTrue(c.IsOpen);
-                        }
+            {
+                Assert.IsTrue(c.IsOpen);
+                CloseAndWaitForRecovery(c);
+                Assert.IsTrue(c.IsOpen);
+            }
         }
 
         [Test]
@@ -201,18 +194,18 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestBasicConnectionRecoveryWithEndpointListAndUnreachableHosts()
         {
-            using(AutorecoveringConnection c = CreateAutorecoveringConnection(
-                        new List<AmqpTcpEndpoint> 
-                        { 
-                            new AmqpTcpEndpoint("191.72.44.22"), 
-                            new AmqpTcpEndpoint("127.0.0.1"), 
-                            new AmqpTcpEndpoint("localhost") 
-                        }))
+            using (AutorecoveringConnection c = CreateAutorecoveringConnection(
+                        new List<AmqpTcpEndpoint>
                         {
-                            Assert.IsTrue(c.IsOpen);
-                            CloseAndWaitForRecovery(c);
-                            Assert.IsTrue(c.IsOpen);
-                        }
+                            new AmqpTcpEndpoint("191.72.44.22"),
+                            new AmqpTcpEndpoint("127.0.0.1"),
+                            new AmqpTcpEndpoint("localhost")
+                        }))
+            {
+                Assert.IsTrue(c.IsOpen);
+                CloseAndWaitForRecovery(c);
+                Assert.IsTrue(c.IsOpen);
+            }
         }
 
         [Test]
@@ -309,7 +302,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestConsumerWorkServiceRecovery()
         {
-            using(AutorecoveringConnection c = CreateAutorecoveringConnection())
+            using (AutorecoveringConnection c = CreateAutorecoveringConnection())
             {
                 IModel m = c.CreateModel();
                 string q = m.QueueDeclare("dotnet-client.recovery.consumer_work_pool1",
@@ -1086,15 +1079,15 @@ namespace RabbitMQ.Client.Unit
 
         public class TestBasicConsumer1 : DefaultBasicConsumer
         {
-            private readonly Action action;
-            private readonly ManualResetEvent latch;
-            private ushort counter = 0;
+            private readonly Action _action;
+            private readonly ManualResetEvent _latch;
+            private ushort _counter = 0;
 
             public TestBasicConsumer1(IModel model, ManualResetEvent latch, Action fn)
                 : base(model)
             {
-                this.latch = latch;
-                action = fn;
+                _latch = latch;
+                _action = fn;
             }
 
             public override void HandleBasicDeliver(string consumerTag,
@@ -1107,19 +1100,19 @@ namespace RabbitMQ.Client.Unit
             {
                 try
                 {
-                    if (deliveryTag == 7 && counter < 10)
+                    if (deliveryTag == 7 && _counter < 10)
                     {
-                        action();
+                        _action();
                     }
-                    if (counter == 9)
+                    if (_counter == 9)
                     {
-                        latch.Set();
+                        _latch.Set();
                     }
                     PostHandleDelivery(deliveryTag);
                 }
                 finally
                 {
-                    counter += 1;
+                    _counter += 1;
                 }
             }
 

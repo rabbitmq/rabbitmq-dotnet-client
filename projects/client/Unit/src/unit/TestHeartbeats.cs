@@ -38,24 +38,25 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Threading;
+
+using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
     internal class TestHeartbeats : IntegrationFixture
     {
-        private readonly TimeSpan heartbeatTimeout = TimeSpan.FromSeconds(2);
+        private readonly TimeSpan _heartbeatTimeout = TimeSpan.FromSeconds(2);
 
         [Test, Category("LongRunning"), MaxTimeAttribute(35000)]
         public void TestThatHeartbeatWriterUsesConfigurableInterval()
         {
             var cf = new ConnectionFactory()
             {
-                RequestedHeartbeat = heartbeatTimeout,
+                RequestedHeartbeat = _heartbeatTimeout,
                 AutomaticRecoveryEnabled = false
             };
             RunSingleConnectionTest(cf);
@@ -72,7 +73,7 @@ namespace RabbitMQ.Client.Unit
 
             var cf = new ConnectionFactory()
             {
-                RequestedHeartbeat = heartbeatTimeout,
+                RequestedHeartbeat = _heartbeatTimeout,
                 AutomaticRecoveryEnabled = false
             };
 
