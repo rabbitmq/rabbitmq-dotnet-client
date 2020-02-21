@@ -64,8 +64,6 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private readonly ManualResetEvent _appContinuation = new ManualResetEvent(false);
 
-        private IDictionary<string, object> _clientProperties;
-
         private volatile ShutdownEventArgs _closeReason = null;
         private volatile bool _closed = false;
 
