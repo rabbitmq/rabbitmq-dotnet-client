@@ -200,6 +200,7 @@ namespace RabbitMQ.Client.Content
             {
                 throw new EndOfStreamException("End of StreamMessage reached");
             }
+
             switch ((StreamWireFormattingTag)typeTag)
             {
                 case StreamWireFormattingTag.Bool:
@@ -439,7 +440,7 @@ namespace RabbitMQ.Client.Content
             try
             {
                 int bytesUsed = Encoding.UTF8.GetBytes(value, 0, value.Length, bytes, 0);
-                bytes[bytesUsed + 1] = 0;
+                bytes[bytesUsed] = 0;
                 writer.Write(bytes, 0, bytesUsed + 1);
             }
             finally

@@ -366,7 +366,7 @@ namespace RabbitMQ.Client.Impl
 
         public static void WriteLongstr(NetworkBinaryWriter writer, byte[] val, int index, int count)
         {
-            WriteLong(writer, (uint)val.Length);
+            WriteLong(writer, (uint)count);
             writer.Write(val, index, count);
         }
 
