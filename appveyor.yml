@@ -1,4 +1,4 @@
-version: "6.0.0.{build}"
+version: "5.2.0.{build}"
 
 platform: Any CPU
 configuration: Release
