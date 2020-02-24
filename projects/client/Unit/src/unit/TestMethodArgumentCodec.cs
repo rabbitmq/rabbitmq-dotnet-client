@@ -41,11 +41,8 @@
 using NUnit.Framework;
 
 using System;
-using System.IO;
 using System.Text;
 using System.Collections;
-
-using RabbitMQ.Client;
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Util;
 
@@ -56,22 +53,22 @@ namespace RabbitMQ.Client.Unit
     {
         public static MethodArgumentWriter Writer()
         {
-            return new MethodArgumentWriter(new NetworkBinaryWriter(new MemoryStream()));
+            return new MethodArgumentWriter(new BinaryBufferWriter());
         }
 
         public static MethodArgumentReader Reader(byte[] bytes)
         {
-            return new MethodArgumentReader(new NetworkBinaryReader(new MemoryStream(bytes)));
+            return new MethodArgumentReader(new BinaryBufferReader(bytes));
         }
 
-        public byte[] Contents(MethodArgumentWriter w)
+        public byte[] Contents(ref MethodArgumentWriter w)
         {
-            return ((MemoryStream)w.BaseWriter.BaseStream).ToArray();
+            return w.BaseWriter.Buffer.ToArray();
         }
 
-        public void Check(MethodArgumentWriter w, byte[] expected)
+        public void Check(ref MethodArgumentWriter w, byte[] expected)
         {
-            byte[] actual = Contents(w);
+            byte[] actual = Contents(ref w);
             try
             {
                 Assert.AreEqual(expected, actual);
@@ -88,21 +85,14 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        public MethodArgumentWriter m_w;
-
-        [SetUp]
-        public void SetUp()
-        {
-            m_w = Writer();
-        }
-
         [Test]
         public void TestTableLengthWrite()
         {
+            var m_w = Writer();
             var t = new Hashtable();
             t["abc"] = "def";
             m_w.WriteTable(t);
-            Check(m_w, new byte[] { 0x00, 0x00, 0x00, 0x0C,
+            Check(ref m_w, new byte[] { 0x00, 0x00, 0x00, 0x0C,
                                    0x03, 0x61, 0x62, 0x63,
                                    0x53, 0x00, 0x00, 0x00,
                                    0x03, 0x64, 0x65, 0x66 });
@@ -126,8 +116,9 @@ namespace RabbitMQ.Client.Unit
             Hashtable x = new Hashtable();
             x["y"] = 0x12345678;
             t["x"] = x;
+            var m_w = Writer();
             m_w.WriteTable(t);
-            Check(m_w, new byte[] { 0x00, 0x00, 0x00, 0x0E,
+            Check(ref m_w, new byte[] { 0x00, 0x00, 0x00, 0x0E,
                                    0x01, 0x78, 0x46, 0x00,
                                    0x00, 0x00, 0x07, 0x01,
                                    0x79, 0x49, 0x12, 0x34,

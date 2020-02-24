@@ -58,7 +58,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestStandardTypes()
         {
-            NetworkBinaryWriter w = Writer();
+            using BinaryBufferWriter w = Writer();
             IDictionary<string, object> t = new Dictionary<string, object>();
             t["string"] = "Hello";
             t["int"] = 1234;
@@ -89,7 +89,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestTableEncoding_S()
         {
-            NetworkBinaryWriter w = Writer();
+            using BinaryBufferWriter w = Writer();
             IDictionary<string, object> t = new Dictionary<string, object>();
             t["a"] = "bc";
             WireFormatting.WriteTable(w, t);
@@ -104,7 +104,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestTableEncoding_x()
         {
-            NetworkBinaryWriter w = Writer();
+            using BinaryBufferWriter w = Writer();
             IDictionary<string, object> t = new Dictionary<string, object>();
             t["a"] = new BinaryTableValue(new byte[] { 0xaa, 0x55 });
             WireFormatting.WriteTable(w, t);
@@ -119,7 +119,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestQpidJmsTypes()
         {
-            NetworkBinaryWriter w = Writer();
+            using BinaryBufferWriter w = Writer();
             IDictionary<string, object> t = new Dictionary<string, object>();
             t["B"] = (byte)255;
             t["b"] = (sbyte)-128;

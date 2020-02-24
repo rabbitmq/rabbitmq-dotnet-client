@@ -59,7 +59,7 @@ namespace RabbitMQ.Client
     {
         private readonly object m_eventLock = new object();
         private readonly HashSet<string> m_consumerTags = new HashSet<string>();
-        public EventHandler<ConsumerEventArgs> m_consumerCancelled;
+        private EventHandler<ConsumerEventArgs> m_consumerCancelled;
 
         /// <summary>
         /// Creates a new instance of an <see cref="DefaultBasicConsumer"/>.

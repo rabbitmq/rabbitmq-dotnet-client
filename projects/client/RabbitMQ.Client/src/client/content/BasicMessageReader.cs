@@ -49,8 +49,7 @@ namespace RabbitMQ.Client.Content
     /// </summary>
     public class BasicMessageReader : IMessageReader
     {
-        protected NetworkBinaryReader m_reader;
-        protected MemoryStream m_stream;
+        protected BinaryBufferReader _reader;
 
         /// <summary>
         /// Construct an instance ready for reading.
@@ -75,15 +74,15 @@ namespace RabbitMQ.Client.Content
         /// exists, the existing instance is returned. The instance is
         /// not reset.
         /// </remarks>
-        public NetworkBinaryReader Reader
+        public BinaryBufferReader Reader
         {
             get
             {
-                if (m_reader == null)
+                if (_reader == null)
                 {
-                    m_reader = new NetworkBinaryReader(BodyStream);
+                    _reader = new BinaryBufferReader(BodyBytes);
                 }
-                return m_reader;
+                return _reader;
             }
         }
 
@@ -91,21 +90,6 @@ namespace RabbitMQ.Client.Content
         /// Retrieve the message body, as a byte array.
         /// </summary>
         public byte[] BodyBytes { get; protected set; }
-
-        /// <summary>
-        /// Retrieve the <see cref="Stream"/> being used to read from the message body.
-        /// </summary>
-        public Stream BodyStream
-        {
-            get
-            {
-                if (m_stream == null)
-                {
-                    m_stream = new MemoryStream(BodyBytes);
-                }
-                return m_stream;
-            }
-        }
 
         /// <summary>
         /// Retrieves the content header properties of the message being read. Is of type <seealso cref="IDictionary{TKey,TValue}"/>.
@@ -128,7 +112,7 @@ namespace RabbitMQ.Client.Content
         /// </summary>
         public int RawRead()
         {
-            return BodyStream.ReadByte();
+            return Reader.ReadByte();
         }
 
         /// <summary>
@@ -140,7 +124,7 @@ namespace RabbitMQ.Client.Content
         /// </summary>
         public int RawRead(byte[] target, int offset, int length)
         {
-            return BodyStream.Read(target, offset, length);
+            return Reader.ReadBytes(new System.Span<byte>(target, offset, length));
         }
     }
 }

@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using NUnit.Framework;
+using RabbitMQ.Client.Impl;
 using RabbitMQ.Util;
 using System.IO;
 
@@ -101,17 +102,16 @@ namespace RabbitMQ.Client.Unit
             var isMessageIdPresent = messageId != null;
             Assert.AreEqual(isMessageIdPresent, subject.IsMessageIdPresent());
 
-            using (var outputStream = new MemoryStream())
-            {
-                var binaryWriter = new NetworkBinaryWriter(outputStream);
-                var writer = new Impl.ContentHeaderPropertyWriter(binaryWriter);
-                subject.WritePropertiesTo(writer);
 
-                // Read from Stream
-                outputStream.Seek(0L, SeekOrigin.Begin);
+            using (var binaryWriter = new BinaryBufferWriter())
+            {
+                var writer = new Impl.ContentHeaderPropertyWriter(binaryWriter);
+                subject.WritePropertiesTo(ref writer);
+
                 var propertiesFromStream = new Framing.BasicProperties();
-                var reader = new Impl.ContentHeaderPropertyReader(new NetworkBinaryReader(outputStream));
-                propertiesFromStream.ReadPropertiesFrom(reader);
+                var payloadReader = new BinaryBufferReader(binaryWriter.Buffer.ToArray());
+                var reader = new ContentHeaderPropertyReader(payloadReader);
+                propertiesFromStream.ReadPropertiesFrom(ref reader);
 
                 Assert.AreEqual(clusterId, propertiesFromStream.ClusterId);
                 Assert.AreEqual(correlationId, propertiesFromStream.CorrelationId);

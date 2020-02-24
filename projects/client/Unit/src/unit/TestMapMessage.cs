@@ -56,7 +56,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestRoundTrip()
         {
-            NetworkBinaryWriter w = Writer();
+            using BinaryBufferWriter w = Writer();
             Dictionary<string, object> t = new Dictionary<string, object>();
             t["double"] = 1.234;
             t["string"] = "hello";
@@ -70,7 +70,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestEncoding()
         {
-            NetworkBinaryWriter w = Writer();
+            using BinaryBufferWriter w = Writer();
             Dictionary<string, object> t = new Dictionary<string, object>();
             t["double"] = 1.234;
             t["string"] = "hello";

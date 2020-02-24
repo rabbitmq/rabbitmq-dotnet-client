@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using TaskExtensions = RabbitMQ.Client.Impl.TaskExtensions;
 
 namespace RabbitMQ.Client.Events
 {
@@ -25,21 +24,21 @@ namespace RabbitMQ.Client.Events
         public event AsyncEventHandler<ConsumerEventArgs> Unregistered;
 
         ///<summary>Fires the Unregistered event.</summary>
-        public override async Task HandleBasicCancelOk(string consumerTag)
+        public override async ValueTask HandleBasicCancelOk(string consumerTag)
         {
             await base.HandleBasicCancelOk(consumerTag).ConfigureAwait(false);
             await Raise(Unregistered, new ConsumerEventArgs(new []{consumerTag})).ConfigureAwait(false);
         }
 
         ///<summary>Fires the Registered event.</summary>
-        public override async Task HandleBasicConsumeOk(string consumerTag)
+        public override async ValueTask HandleBasicConsumeOk(string consumerTag)
         {
             await base.HandleBasicConsumeOk(consumerTag).ConfigureAwait(false);
             await Raise(Registered, new ConsumerEventArgs(new[] { consumerTag })).ConfigureAwait(false);
         }
 
         ///<summary>Fires the Received event.</summary>
-        public override async Task HandleBasicDeliver(string consumerTag,
+        public override async ValueTask HandleBasicDeliver(string consumerTag,
             ulong deliveryTag,
             bool redelivered,
             string exchange,
@@ -64,13 +63,13 @@ namespace RabbitMQ.Client.Events
         }
 
         ///<summary>Fires the Shutdown event.</summary>
-        public override async Task HandleModelShutdown(object model, ShutdownEventArgs reason)
+        public override async ValueTask HandleModelShutdown(object model, ShutdownEventArgs reason)
         {
             await base.HandleModelShutdown(model, reason).ConfigureAwait(false);
             await Raise(Shutdown, reason).ConfigureAwait(false);
         }
 
-        private Task Raise<TEvent>(AsyncEventHandler<TEvent> eventHandler, TEvent evt) 
+        private ValueTask Raise<TEvent>(AsyncEventHandler<TEvent> eventHandler, TEvent evt) 
             where TEvent : EventArgs
         {
             var handler = eventHandler;
@@ -78,7 +77,7 @@ namespace RabbitMQ.Client.Events
             {
                 return handler(this, evt);
             }
-            return TaskExtensions.CompletedTask;
+            return default;
         }
     }
 }

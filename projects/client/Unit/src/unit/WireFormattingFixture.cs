@@ -41,31 +41,28 @@
 using NUnit.Framework;
 
 using System;
-using System.IO;
-
 using RabbitMQ.Util;
-using RabbitMQ.Client.Content;
 
 namespace RabbitMQ.Client.Unit
 {
     public class WireFormattingFixture
     {
-        public static NetworkBinaryReader Reader(byte[] content)
+        public static BinaryBufferReader Reader(byte[] content)
         {
-            return new NetworkBinaryReader(new MemoryStream(content));
+            return new BinaryBufferReader(content);
         }
 
-        public static NetworkBinaryWriter Writer()
+        public static BinaryBufferWriter Writer()
         {
-            return new NetworkBinaryWriter(new MemoryStream());
+            return new BinaryBufferWriter();
         }
 
-        public static byte[] Contents(NetworkBinaryWriter w)
+        public static byte[] Contents(BinaryBufferWriter w)
         {
-            return ((MemoryStream)w.BaseStream).ToArray();
+            return w.Buffer.ToArray();
         }
 
-        public void Check(NetworkBinaryWriter w, byte[] expected)
+        public void Check(BinaryBufferWriter w, byte[] expected)
         {
             byte[] actual = Contents(w);
             try

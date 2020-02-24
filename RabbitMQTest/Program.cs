@@ -35,7 +35,7 @@ namespace DeadlockRabbitMQ
             subscriber.BasicConsume("testqueue", false, "testconsumer", asyncListener);
 
             byte[] payload = new byte[16384];
-            var batchPublish = Task.Run(async () =>
+            var batchPublish = Task.Run(() =>
             {
                 while (messagesSent < batchesToSend * itemsPerBatch)
                 {
@@ -81,7 +81,7 @@ namespace DeadlockRabbitMQ
             Console.ReadLine();
         }
 
-        private static Task AsyncListener_Received(object sender, BasicDeliverEventArgs @event)
+        private static ValueTask AsyncListener_Received(object sender, BasicDeliverEventArgs @event)
         {
             // Doing things in parallel here is what will eventually trigger the deadlock,
             // probably due to a race condition in AsyncConsumerWorkService.Loop, although
@@ -92,7 +92,7 @@ namespace DeadlockRabbitMQ
             // is standard practice as well to maximize core utilization and reduce overhead of Thread creation
             Interlocked.Increment(ref messagesReceived);
             (sender as AsyncDefaultBasicConsumer).Model.BasicAck(@event.DeliveryTag, true);
-            return Task.CompletedTask;
+            return default;
         }
     }
 }

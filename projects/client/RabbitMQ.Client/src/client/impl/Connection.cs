@@ -1018,13 +1018,27 @@ entry.ToString());
                 await Task.Delay(200).ConfigureAwait(false);
                 while (!_connectionCancellationToken.IsCancellationRequested)
                 {
-                    WriteFrame(m_heartbeatFrame);
+                    SendHeartbeat();
                     await Task.Delay(m_heartbeatTimeSpan, _connectionCancellationToken.Token);
                 }
             }
             catch (TaskCanceledException)
             {
                 // Do nothing when the connection is being closed
+            }
+        }
+
+        private void SendHeartbeat()
+        {
+            // unwrap using pattern, because we can't use it with readonly ref struct in netstandard2.0 and less
+            WriteSession session = OpenWriteSession();
+            try
+            {
+                WriteFrame(m_heartbeatFrame);
+            }
+            finally
+            {
+                session.Dispose();
             }
         }
 
@@ -1052,9 +1066,10 @@ entry.ToString());
             m_frameHandler.WriteFrame(f);
         }
 
-        public void WriteFrameSet(IList<OutboundFrame> f)
+        internal WriteSession OpenWriteSession()
         {
-            m_frameHandler.WriteFrameSet(f);
+            var handler = m_frameHandler as SocketFrameHandler;
+            return handler.OpenWriteSession();
         }
 
         public void UpdateSecret(string newSecret, string reason)

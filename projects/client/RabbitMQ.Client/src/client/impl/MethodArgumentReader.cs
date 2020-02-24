@@ -40,28 +40,30 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    public class MethodArgumentReader
+    public ref struct MethodArgumentReader
     {
         private int m_bit;
         private int m_bits;
 
-        public MethodArgumentReader(NetworkBinaryReader reader)
+        public MethodArgumentReader(BinaryBufferReader reader)
         {
-            BaseReader = reader;
-            ClearBits();
+            _baseReader = reader;
+            m_bits = 0;
+            m_bit = 0x100;
         }
 
-        public NetworkBinaryReader BaseReader { get; private set; }
+        private BinaryBufferReader _baseReader;
 
         public bool ReadBit()
         {
             if (m_bit > 0x80)
             {
-                m_bits = BaseReader.ReadByte();
+                m_bits = _baseReader.ReadByte();
                 m_bit = 0x01;
             }
 
@@ -78,51 +80,52 @@ namespace RabbitMQ.Client.Impl
         public uint ReadLong()
         {
             ClearBits();
-            return WireFormatting.ReadLong(BaseReader);
+            return WireFormatting.ReadLong(_baseReader);
         }
 
         public ulong ReadLonglong()
         {
             ClearBits();
-            return WireFormatting.ReadLonglong(BaseReader);
+            return WireFormatting.ReadLonglong(_baseReader);
         }
 
         public byte[] ReadLongstr()
         {
             ClearBits();
-            return WireFormatting.ReadLongstr(BaseReader);
+            return WireFormatting.ReadLongstr(_baseReader);
         }
 
         public byte ReadOctet()
         {
             ClearBits();
-            return WireFormatting.ReadOctet(BaseReader);
+            return WireFormatting.ReadOctet(_baseReader);
         }
 
         public ushort ReadShort()
         {
             ClearBits();
-            return WireFormatting.ReadShort(BaseReader);
+            return WireFormatting.ReadShort(_baseReader);
         }
 
         public string ReadShortstr()
         {
             ClearBits();
-            return WireFormatting.ReadShortstr(BaseReader);
+            return WireFormatting.ReadShortstr(_baseReader);
         }
 
         public IDictionary<string, object> ReadTable()
         {
             ClearBits();
-            return WireFormatting.ReadTable(BaseReader);
+            return WireFormatting.ReadTable(_baseReader);
         }
 
         public AmqpTimestamp ReadTimestamp()
         {
             ClearBits();
-            return WireFormatting.ReadTimestamp(BaseReader);
+            return WireFormatting.ReadTimestamp(_baseReader);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ClearBits()
         {
             m_bits = 0;

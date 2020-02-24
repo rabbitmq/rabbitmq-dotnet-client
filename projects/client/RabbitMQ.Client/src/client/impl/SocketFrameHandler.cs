@@ -58,8 +58,6 @@ namespace RabbitMQ.Client.Impl
 {
     static class TaskExtensions
     {
-        public static Task CompletedTask = Task.FromResult(0);
-
         public static async Task TimeoutAfter(this Task task, TimeSpan timeout)
         {
             if (task == await Task.WhenAny(task, Task.Delay(timeout)).ConfigureAwait(false))
@@ -203,7 +201,7 @@ namespace RabbitMQ.Client.Impl
         private static readonly byte[] amqp = Encoding.ASCII.GetBytes("AMQP");
         public void SendHeader()
         {
-            byte[] versionArray = ArrayPool<byte>.Shared.Rent(4);
+            Span<byte> versionArray = stackalloc byte[4];
 
             if (Endpoint.Protocol.Revision != 0)
             {
@@ -220,28 +218,13 @@ namespace RabbitMQ.Client.Impl
                 versionArray[3] = (byte)Endpoint.Protocol.MinorVersion;
             }
             _writer.Write(amqp);
-            _writer.Write(versionArray, 0, 4);
+            _writer.Write(versionArray);
             _writer.Flush();
-            ArrayPool<byte>.Shared.Return(versionArray);
         }
 
         public void WriteFrame(OutboundFrame frame)
         {
-            _writeSemaphore.Wait();
             frame.WriteTo(_writer);
-            _writer.Flush();
-            _writeSemaphore.Release();
-        }
-
-        public void WriteFrameSet(IList<OutboundFrame> frames)
-        {
-            _writeSemaphore.Wait();
-            foreach (OutboundFrame frame in frames)
-            {
-                frame.WriteTo(_writer);
-            }
-            _writer.Flush();
-            _writeSemaphore.Release();
         }
 
         private bool ShouldTryIPv6(AmqpTcpEndpoint endpoint)
@@ -312,6 +295,36 @@ namespace RabbitMQ.Client.Impl
             {
                 throw new ConnectFailureException("Connection failed", e);
             }
+        }
+
+        internal WriteSession OpenWriteSession()
+        {
+            var wrapper = new WriteSession(_writeSemaphore, _writer);
+            wrapper.Wait();
+            return wrapper;
+        }
+    }
+
+    internal readonly ref struct WriteSession
+    {
+        private readonly SemaphoreSlim _writeSemaphore;
+        private readonly PipelineBinaryWriter _writer;
+
+        public WriteSession(SemaphoreSlim writeSemaphore, PipelineBinaryWriter writer)
+        {
+            _writeSemaphore = writeSemaphore;
+            _writer = writer;
+        }
+
+        public void Wait()
+        {
+            _writeSemaphore.Wait();
+        }
+
+        public void Dispose()
+        {
+            _writer.Flush();
+            _writeSemaphore.Release();
         }
     }
 }

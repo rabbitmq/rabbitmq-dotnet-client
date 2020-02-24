@@ -39,7 +39,6 @@
 //---------------------------------------------------------------------------
 
 using System.Collections.Generic;
-
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Util;
 
@@ -102,8 +101,9 @@ namespace RabbitMQ.Client.Framing.Impl
             replyMethodId = Impl.ConnectionCloseOk.MethodId;
         }
 
-        public abstract ContentHeaderBase DecodeContentHeaderFrom(NetworkBinaryReader reader);
-        public abstract MethodBase DecodeMethodFrom(NetworkBinaryReader reader);
+        public abstract ContentHeaderBase DecodeContentHeaderFrom(BinaryBufferReader reader);
+
+        public abstract MethodBase DecodeMethodFrom(BinaryBufferReader reader);
 
         public override bool Equals(object obj)
         {

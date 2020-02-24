@@ -77,7 +77,7 @@ namespace RabbitMQ.Client.Impl
         private readonly ConcurrentDictionary<ulong, bool> m_unconfirmedSet = new ConcurrentDictionary<ulong, bool>();
         private ulong _highestDeliveryTag = 0;
         private Task _multipleConfirmCleanup;
-        private SemaphoreSlim _multipleConfirmLock = new SemaphoreSlim(1, 1);
+        private SemaphoreSlim _multipleConfirmLock = new SemaphoreSlim(1);
         private readonly CancellationTokenSource _connectionClosingCancellation = new CancellationTokenSource();
         private readonly SemaphoreSlim _outstandingSemaphore = new SemaphoreSlim(0);
 

@@ -84,7 +84,7 @@ namespace RabbitMQ.Util
         {
             if (manualResetEventSlim.Wait(timeout))
             {
-                if (ContinueUsingValue != null) ContinueUsingValue(this, m_value);
+                ContinueUsingValue?.Invoke(this, m_value);
                 return m_value;
             }
             throw new TimeoutException();

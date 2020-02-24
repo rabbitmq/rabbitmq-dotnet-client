@@ -56,17 +56,17 @@ namespace RabbitMQ.Client.Unit
     {
         public static ContentHeaderPropertyWriter Writer()
         {
-            return new ContentHeaderPropertyWriter(new NetworkBinaryWriter(new MemoryStream()));
+            return new ContentHeaderPropertyWriter(new BinaryBufferWriter());
         }
 
         public static ContentHeaderPropertyReader Reader(byte[] bytes)
         {
-            return new ContentHeaderPropertyReader(new NetworkBinaryReader(new MemoryStream(bytes)));
+            return new ContentHeaderPropertyReader(new BinaryBufferReader(bytes));
         }
 
         public byte[] Contents(ContentHeaderPropertyWriter w)
         {
-            return ((MemoryStream)w.BaseWriter.BaseStream).ToArray();
+            return w.BaseWriter.Buffer.ToArray();
         }
 
         public void Check(ContentHeaderPropertyWriter w, byte[] expected)

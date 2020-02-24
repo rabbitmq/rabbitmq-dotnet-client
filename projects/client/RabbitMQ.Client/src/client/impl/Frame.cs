@@ -42,9 +42,10 @@ using System;
 using System.Buffers;
 using System.IO;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-
+using Microsoft.Extensions.ObjectPool;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing;
 using RabbitMQ.Util;
@@ -64,38 +65,35 @@ namespace RabbitMQ.Client.Impl
 
         public override void WritePayload(PipelineBinaryWriter writer)
         {
-            using (var ms = PooledMemoryStream.GetMemoryStream())
+            using (var nw = new BinaryBufferWriter())
             {
-                using (var nw = new NetworkBinaryWriter(ms))
-                {
-                    nw.Write(header.ProtocolClassId);
-                    header.WriteTo(nw, (ulong)bodyLength);
+                nw.Write(header.ProtocolClassId);
+                header.WriteTo(nw, (ulong)bodyLength);
 
-                    var bufferSegment = ms.GetBufferSegment();
-                    writer.Write((uint)bufferSegment.Count);
-                    writer.Write(bufferSegment.Array, bufferSegment.Offset, bufferSegment.Count);
-                }
+                var bufferSegment = nw.Buffer;
+                writer.Write((uint)bufferSegment.Length);
+                writer.Write(bufferSegment);
             }
         }
     }
 
     public class BodySegmentOutboundFrame : OutboundFrame
     {
-        private readonly byte[] body;
-        private readonly int offset;
-        private readonly int count;
+        private readonly ReadOnlyMemory<byte> _body;
 
-        public BodySegmentOutboundFrame(int channel, byte[] body, int offset, int count) : base(FrameType.FrameBody, channel)
+        public BodySegmentOutboundFrame(int channel, byte[] body, int offset, int count) : this(channel, new ReadOnlyMemory<byte>(body, offset, count))
         {
-            this.body = body;
-            this.offset = offset;
-            this.count = count;
+        }
+
+        public BodySegmentOutboundFrame(int channel, ReadOnlyMemory<byte> body) : base(FrameType.FrameBody, channel)
+        {
+            _body = body;
         }
 
         public override void WritePayload(PipelineBinaryWriter writer)
         {
-            writer.Write((uint)count);
-            writer.Write(body, offset, count);
+            writer.Write((uint)_body.Length);
+            writer.Write(_body.Span);
         }
     }
 
@@ -110,21 +108,18 @@ namespace RabbitMQ.Client.Impl
 
         public override void WritePayload(PipelineBinaryWriter writer)
         {
-            using (var ms = PooledMemoryStream.GetMemoryStream())
+            using (var nw = new BinaryBufferWriter())
             {
-                using (var nw = new NetworkBinaryWriter(ms))
-                {
-                    nw.Write(method.ProtocolClassId);
-                    nw.Write(method.ProtocolMethodId);
+                nw.Write(method.ProtocolClassId);
+                nw.Write(method.ProtocolMethodId);
 
-                    var argWriter = new MethodArgumentWriter(nw);
-                    method.WriteArgumentsTo(argWriter);
-                    argWriter.Flush();
+                var argWriter = new MethodArgumentWriter(nw);
+                method.WriteArgumentsTo(ref argWriter);
+                argWriter.Flush();
 
-                    var bufferSegment = ms.GetBufferSegment();
-                    writer.Write((uint)bufferSegment.Count);
-                    writer.Write(bufferSegment.Array, bufferSegment.Offset, bufferSegment.Count);
-                }
+                var bufferSegment = nw.Buffer;
+                writer.Write((uint)bufferSegment.Length);
+                writer.Write(bufferSegment);
             }
         }
     }
@@ -160,105 +155,30 @@ namespace RabbitMQ.Client.Impl
 
     public class InboundFrame : Frame
     {
+        private static ObjectPool<FrameContentReader> _readerPool = ObjectPool.Create<FrameContentReader>();
         private InboundFrame(FrameType type, int channel, byte[] payload, int payloadSize) : base(type, channel, payload, payloadSize)
         {
         }
 
-        private static async ValueTask ProcessProtocolHeader(PipelineBinaryReader reader)
-        {
-            try
-            {
-                byte b1 = await reader.ReadByteAsync();
-                byte b2 = await reader.ReadByteAsync();
-                byte b3 = await reader.ReadByteAsync();
-                if (b1 != 'M' || b2 != 'Q' || b3 != 'P')
-                {
-                    throw new MalformedFrameException("Invalid AMQP protocol header from server");
-                }
-
-                int transportHigh = await reader.ReadByteAsync();
-                int transportLow = await reader.ReadByteAsync();
-                int serverMajor = await reader.ReadByteAsync();
-                int serverMinor = await reader.ReadByteAsync();
-                throw new PacketNotRecognizedException(transportHigh,
-                    transportLow,
-                    serverMajor,
-                    serverMinor);
-            }
-            catch (EndOfStreamException)
-            {
-                // Ideally we'd wrap the EndOfStreamException in the
-                // MalformedFrameException, but unfortunately the
-                // design of MalformedFrameException's superclass,
-                // ProtocolViolationException, doesn't permit
-                // this. Fortunately, the call stack in the
-                // EndOfStreamException is largely irrelevant at this
-                // point, so can safely be ignored.
-                throw new MalformedFrameException("Invalid AMQP protocol header from server");
-            }
-        }
-
         public static async ValueTask<InboundFrame> ReadFromAsync(PipelineBinaryReader reader, CancellationToken cancellationToken = default)
         {
-            int type;
-
-
-            // The header consists of
-            //
-            // [1 byte] [2 bytes (ushort)] [4 bytes (uint)]
-            // [type]   [channel]          [payloadSize]
-
+            FrameContentReader contentReader = _readerPool.Get();
             try
             {
-                // Let's read the header type
-                type = await reader.ReadByteAsync(cancellationToken).ConfigureAwait(false);
+                await reader.ReadAsync(contentReader, cancellationToken).ConfigureAwait(false);
+                reader.Advance();
+                return new InboundFrame((FrameType)contentReader.Type, contentReader.Channel, contentReader.Payload, contentReader.PayloadSize);
             }
-            catch (IOException ioe)
+            finally
             {
-                // If it's a WSAETIMEDOUT SocketException, unwrap it.
-                // This might happen when the limit of half-open connections is
-                // reached.
-                if (ioe.InnerException == null ||
-                    !(ioe.InnerException is SocketException) ||
-                    ((SocketException)ioe.InnerException).SocketErrorCode != SocketError.TimedOut)
-                {
-                    throw ioe;
-                }
-                throw ioe.InnerException;
+                contentReader.Reset();
+                _readerPool.Return(contentReader);
             }
-
-            if (type == 'A')
-            {
-                // Probably an AMQP protocol header, otherwise meaningless
-                await ProcessProtocolHeader(reader).ConfigureAwait(false);
-            }
-
-            int channel = await reader.ReadUInt16BigEndianAsync(cancellationToken).ConfigureAwait(false);
-            int payloadSize = await reader.ReadInt32BigEndianAsync(cancellationToken).ConfigureAwait(false); // FIXME - throw exn on unreasonable value
-            byte[] payload = ArrayPool<byte>.Shared.Rent(payloadSize);
-            await reader.ReadBytesAsync(new Memory<byte>(payload, 0, payloadSize), cancellationToken).ConfigureAwait(false);
-            /*
-            if (payload.Length != payloadSize)
-            {
-                // Early EOF.
-                throw new MalformedFrameException("Short frame - expected " +
-                                                  payloadSize + " bytes, got " +
-                                                  payload.Length + " bytes");
-            }
-            */
-
-            int frameEndMarker = await reader.ReadByteAsync(cancellationToken).ConfigureAwait(false);
-            if (frameEndMarker != Constants.FrameEnd)
-            {
-                throw new MalformedFrameException("Bad frame end marker: " + frameEndMarker);
-            }
-
-            return new InboundFrame((FrameType)type, channel, payload, payloadSize);
         }
 
-        public NetworkBinaryReader GetReader()
+        public BinaryBufferReader GetReader()
         {
-            return new NetworkBinaryReader(new MemoryStream(base.Payload, 0, PayloadSize));
+            return new BinaryBufferReader(new ReadOnlyMemory<byte>(Payload, 0, PayloadSize));
         }
     }
 
@@ -274,6 +194,10 @@ namespace RabbitMQ.Client.Impl
         public Frame(FrameType type, int channel, byte[] payload, int payloadSize)
         {
             Type = type;
+            if (!IsMethod() && !IsHeader() && !IsBody() && !IsHeartbeat())
+            {
+                throw new InvalidOperationException("Unknown frame type");
+            }
             Channel = channel;
             Payload = payload;
             PayloadSize = payloadSize;
@@ -285,6 +209,8 @@ namespace RabbitMQ.Client.Impl
         public int PayloadSize { get; }
         public FrameType Type { get; private set; }
 
+        public Span<byte> PayloadSpan => new Span<byte>(Payload, 0, PayloadSize);
+
         public override string ToString()
         {
             return string.Format("(type={0}, channel={1}, {2} bytes of payload)",
@@ -295,26 +221,33 @@ namespace RabbitMQ.Client.Impl
                     : PayloadSize.ToString());
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsMethod()
         {
-            return this.Type == FrameType.FrameMethod;
+            return Type == FrameType.FrameMethod;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsHeader()
         {
-            return this.Type == FrameType.FrameHeader;
+            return Type == FrameType.FrameHeader;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsBody()
         {
-            return this.Type == FrameType.FrameBody;
+            return Type == FrameType.FrameBody;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsHeartbeat()
         {
-            return this.Type == FrameType.FrameHeartbeat;
+            return Type == FrameType.FrameHeartbeat;
         }
 
         public void Dispose()
         {
-            if (Payload != null)
+            if (Payload != null && Payload.Length != 0)
             {
                 ArrayPool<byte>.Shared.Return(Payload);
             }

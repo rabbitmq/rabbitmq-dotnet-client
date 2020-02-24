@@ -71,7 +71,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestRoundTrip()
         {
-            NetworkBinaryWriter w = Writer();
+            using BinaryBufferWriter w = Writer();
             StreamWireFormatting.WriteBool(w, true);
             StreamWireFormatting.WriteInt32(w, 1234);
             StreamWireFormatting.WriteInt16(w, 1234);
@@ -83,7 +83,7 @@ namespace RabbitMQ.Client.Unit
             StreamWireFormatting.WriteBytes(w, new byte[] { 1, 2, 3, 4 });
             StreamWireFormatting.WriteString(w, "hello");
             StreamWireFormatting.WriteObject(w, "world");
-            NetworkBinaryReader r = Reader(Contents(w));
+            BinaryBufferReader r = Reader(Contents(w));
             Assert.AreEqual(true, StreamWireFormatting.ReadBool(r));
             Assert.AreEqual(1234, StreamWireFormatting.ReadInt32(r));
             Assert.AreEqual(1234, StreamWireFormatting.ReadInt16(r));

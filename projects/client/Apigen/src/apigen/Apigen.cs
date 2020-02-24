@@ -613,7 +613,7 @@ namespace RabbitMQ.Client.Apigen
             EmitLine("    public override ushort ProtocolClassId { get { return " + c.Index + "; } }");
             EmitLine("    public override string ProtocolClassName { get { return \"" + c.Name + "\"; } }");
             EmitLine("");
-            EmitLine("    public override void ReadPropertiesFrom(RabbitMQ.Client.Impl.ContentHeaderPropertyReader reader) {");
+            EmitLine("    public override void ReadPropertiesFrom(ref RabbitMQ.Client.Impl.ContentHeaderPropertyReader reader) {");
             foreach (AmqpField f in c.m_Fields)
             {
                 if (IsBoolean(f))
@@ -635,7 +635,7 @@ namespace RabbitMQ.Client.Apigen
             }
             EmitLine("    }");
             EmitLine("");
-            EmitLine("    public override void WritePropertiesTo(RabbitMQ.Client.Impl.ContentHeaderPropertyWriter writer) {");
+            EmitLine("    public override void WritePropertiesTo(ref RabbitMQ.Client.Impl.ContentHeaderPropertyWriter writer) {");
             foreach (AmqpField f in c.m_Fields)
             {
                 if (IsBoolean(f))
@@ -770,14 +770,14 @@ namespace RabbitMQ.Client.Apigen
                 EmitLine("    public override bool HasContent { get { return "
                          + (m.HasContent ? "true" : "false") + "; } }");
                 EmitLine("");
-                EmitLine("    public override void ReadArgumentsFrom(RabbitMQ.Client.Impl.MethodArgumentReader reader) {");
+                EmitLine("    public override void ReadArgumentsFrom(ref RabbitMQ.Client.Impl.MethodArgumentReader reader) {");
                 foreach (AmqpField f in m.m_Fields)
                 {
                     EmitLine("      m_" + MangleMethod(f.Name) + " = reader.Read" + MangleClass(ResolveDomain(f.Domain)) + "();");
                 }
                 EmitLine("    }");
                 EmitLine("");
-                EmitLine("    public override void WriteArgumentsTo(RabbitMQ.Client.Impl.MethodArgumentWriter writer) {");
+                EmitLine("    public override void WriteArgumentsTo(ref RabbitMQ.Client.Impl.MethodArgumentWriter writer) {");
                 foreach (AmqpField f in m.m_Fields)
                 {
                     EmitLine("      writer.Write" + MangleClass(ResolveDomain(f.Domain))
@@ -811,7 +811,7 @@ namespace RabbitMQ.Client.Apigen
 
         public void EmitMethodArgumentReader()
         {
-            EmitLine("    public override RabbitMQ.Client.Impl.MethodBase DecodeMethodFrom(RabbitMQ.Util.NetworkBinaryReader reader) {");
+            EmitLine("    public override RabbitMQ.Client.Impl.MethodBase DecodeMethodFrom(RabbitMQ.Util.BinaryBufferReader reader) {");
             EmitLine("      ushort classId = reader.ReadUInt16();");
             EmitLine("      ushort methodId = reader.ReadUInt16();");
             EmitLine("");
@@ -824,7 +824,8 @@ namespace RabbitMQ.Client.Apigen
                 {
                     EmitLine("            case " + m.Index + ": {");
                     EmitLine("              " + ImplNamespaceBase + "." + MangleMethodClass(c, m) + " result = new " + ImplNamespaceBase + "." + MangleMethodClass(c, m) + "();");
-                    EmitLine("              result.ReadArgumentsFrom(new RabbitMQ.Client.Impl.MethodArgumentReader(reader));");
+                    EmitLine("              var methodReader = new RabbitMQ.Client.Impl.MethodArgumentReader(reader);");
+                    EmitLine("              result.ReadArgumentsFrom(ref methodReader);");
                     EmitLine("              return result;");
                     EmitLine("            }");
                 }
@@ -841,7 +842,7 @@ namespace RabbitMQ.Client.Apigen
 
         public void EmitContentHeaderReader()
         {
-            EmitLine("    public override RabbitMQ.Client.Impl.ContentHeaderBase DecodeContentHeaderFrom(RabbitMQ.Util.NetworkBinaryReader reader) {");
+            EmitLine("    public override RabbitMQ.Client.Impl.ContentHeaderBase DecodeContentHeaderFrom(RabbitMQ.Util.BinaryBufferReader reader) {");
             EmitLine("      ushort classId = reader.ReadUInt16();");
             EmitLine("");
             EmitLine("      switch (classId) {");

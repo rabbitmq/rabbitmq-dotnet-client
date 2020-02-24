@@ -66,24 +66,26 @@ namespace RabbitMQ.Client.Impl
         ///<summary>
         /// Fill this instance from the given byte buffer stream.
         ///</summary>
-        public ulong ReadFrom(NetworkBinaryReader reader)
+        public ulong ReadFrom(BinaryBufferReader reader)
         {
             reader.ReadUInt16(); // weight - not currently used
             ulong bodySize = reader.ReadUInt64();
-            ReadPropertiesFrom(new ContentHeaderPropertyReader(reader));
+            var headerReader = new ContentHeaderPropertyReader(reader);
+            ReadPropertiesFrom(ref headerReader);
             return bodySize;
         }
 
-        public abstract void ReadPropertiesFrom(ContentHeaderPropertyReader reader);
-        public abstract void WritePropertiesTo(ContentHeaderPropertyWriter writer);
+        public abstract void ReadPropertiesFrom(ref ContentHeaderPropertyReader reader);
+        public abstract void WritePropertiesTo(ref ContentHeaderPropertyWriter writer);
 
         private const ushort ZERO = 0;
 
-        public void WriteTo(NetworkBinaryWriter writer, ulong bodySize)
+        public void WriteTo(BinaryBufferWriter writer, ulong bodySize)
         {
             writer.Write(ZERO); // weight - not currently used
             writer.Write(bodySize);
-            WritePropertiesTo(new ContentHeaderPropertyWriter(writer));
+            var headerWriter = new ContentHeaderPropertyWriter(writer);
+            WritePropertiesTo(ref headerWriter);
         }
     }
 }

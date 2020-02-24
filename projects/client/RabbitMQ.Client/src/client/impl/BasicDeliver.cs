@@ -33,7 +33,7 @@ namespace RabbitMQ.Client.Impl
             this.body = body;
         }
 
-        protected override async Task Execute(ModelBase model, IAsyncBasicConsumer consumer)
+        protected override async ValueTask Execute(ModelBase model, IAsyncBasicConsumer consumer)
         {
             try
             {

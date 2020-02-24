@@ -45,33 +45,25 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    public class MethodArgumentWriter
+    public struct MethodArgumentWriter
     {
         private byte m_bitAccumulator;
         private int m_bitMask;
         private bool m_needBitFlush;
 
-        public MethodArgumentWriter(NetworkBinaryWriter writer)
+        public MethodArgumentWriter(BinaryBufferWriter writer)
         {
             BaseWriter = writer;
-            if (!BaseWriter.BaseStream.CanSeek)
-            {
-                //FIXME: Consider throwing System.IO.IOException
-                // with message indicating that the specified writer does not support Seeking
-
-                // Only really a problem if we try to write a table,
-                // but complain anyway. See WireFormatting.WriteTable
-                throw new NotSupportedException("Cannot write method arguments to non-positionable stream");
-            }
-            ResetBitAccumulator();
+            m_needBitFlush = false;
+            m_bitAccumulator = 0;
+            m_bitMask = 1;
         }
 
-        public NetworkBinaryWriter BaseWriter { get; private set; }
+        public BinaryBufferWriter BaseWriter { get; private set; }
 
         public void Flush()
         {
             BitFlush();
-            BaseWriter.Flush();
         }
 
         public void WriteBit(bool val)

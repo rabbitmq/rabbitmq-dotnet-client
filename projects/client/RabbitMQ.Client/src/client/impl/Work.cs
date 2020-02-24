@@ -12,7 +12,7 @@ namespace RabbitMQ.Client.Impl
             asyncConsumer = (IAsyncBasicConsumer)consumer;
         }
 
-        public async Task Execute(ModelBase model)
+        public async ValueTask Execute(ModelBase model)
         {
             try
             {
@@ -24,6 +24,6 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        protected abstract Task Execute(ModelBase model, IAsyncBasicConsumer consumer);
+        protected abstract ValueTask Execute(ModelBase model, IAsyncBasicConsumer consumer);
     }
 }

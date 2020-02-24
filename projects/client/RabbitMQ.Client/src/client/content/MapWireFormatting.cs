@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.Content
     /// <exception cref="ProtocolViolationException"/>
     public static class MapWireFormatting
     {
-        public static IDictionary<string, object> ReadMap(NetworkBinaryReader reader)
+        public static IDictionary<string, object> ReadMap(BinaryBufferReader reader)
         {
             int entryCount = BytesWireFormatting.ReadInt32(reader);
             if (entryCount < 0)
@@ -71,7 +71,7 @@ namespace RabbitMQ.Client.Content
             return table;
         }
 
-        public static void WriteMap(NetworkBinaryWriter writer, IDictionary<string, object> table)
+        public static void WriteMap(BinaryBufferWriter writer, IDictionary<string, object> table)
         {
             int entryCount = table.Count;
             BytesWireFormatting.WriteInt32(writer, entryCount);

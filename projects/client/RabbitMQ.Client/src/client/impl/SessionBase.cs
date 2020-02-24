@@ -108,10 +108,7 @@ namespace RabbitMQ.Client.Impl
 
         public virtual void OnCommandReceived(Command cmd)
         {
-            if (CommandReceived != null)
-            {
-                CommandReceived(this, cmd);
-            }
+            CommandReceived?.Invoke(this, cmd);
         }
 
         public virtual void OnConnectionShutdown(object conn, ShutdownEventArgs reason)
@@ -128,10 +125,7 @@ namespace RabbitMQ.Client.Impl
                 handler = _sessionShutdown;
                 _sessionShutdown = null;
             }
-            if (handler != null)
-            {
-                handler(this, reason);
-            }
+            handler?.Invoke(this, reason);
         }
 
         public override string ToString()
@@ -181,7 +175,41 @@ namespace RabbitMQ.Client.Impl
             OnSessionShutdown(CloseReason);
         }
 
-        public virtual void Transmit(Command cmd)
+        public virtual void Transmit(Command command)
+        {
+            CheckClose(command);
+
+            // unwrap using pattern, because we can't use it with readonly ref struct in netstandard2.0 and less
+            WriteSession writeSession = Connection.OpenWriteSession();
+            try
+            {
+                command.Transmit(ChannelNumber, Connection);
+            }
+            finally
+            {
+                writeSession.Dispose();
+            }
+        }
+
+        public virtual void Transmit(IList<Command> commands)
+        {
+            // unwrap using pattern, because we can't use it with readonly ref struct in netstandard2.0 and less
+            WriteSession writeSession = Connection.OpenWriteSession();
+            try
+            {
+                foreach (Command command in commands)
+                {
+                    command.Transmit(ChannelNumber, Connection);
+                }
+            }
+            finally
+            {
+                writeSession.Dispose();
+            }
+        }
+
+
+        private void CheckClose(Command command)
         {
             if (CloseReason != null)
             {
@@ -189,20 +217,13 @@ namespace RabbitMQ.Client.Impl
                 {
                     if (CloseReason != null)
                     {
-                        if (!Connection.Protocol.CanSendWhileClosed(cmd))
+                        if (!Connection.Protocol.CanSendWhileClosed(command))
                         {
                             throw new AlreadyClosedException(CloseReason);
                         }
                     }
                 }
             }
-            // We used to transmit *inside* the lock to avoid interleaving
-            // of frames within a channel.  But that is fixed in socket frame handler instead, so no need to lock.
-            cmd.Transmit(ChannelNumber, Connection);
-        }
-        public virtual void Transmit(IList<Command> commands)
-        {
-            Connection.WriteFrameSet(Command.CalculateFrames(ChannelNumber, Connection, commands));
         }
     }
 }

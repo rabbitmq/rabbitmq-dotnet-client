@@ -59,11 +59,6 @@ namespace RabbitMQ.Client.Content
         byte[] BodyBytes { get; }
 
         /// <summary>
-        /// Retrieve the <see cref="Stream"/> being used to read from the message body.
-        /// </summary>
-        Stream BodyStream { get; }
-
-        /// <summary>
         /// Retrieves the content header properties of the message being read. Is of type <seealso cref="IDictionary{TKey,TValue}"/>.
         /// </summary>
         IDictionary<string, object> Headers { get; }

@@ -54,15 +54,16 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestSingleDecoding()
         {
-            Assert.AreEqual(1.234f,
-                            BytesWireFormatting.ReadSingle(Reader
-                                                           (new byte[] { 63, 157, 243, 182 })));
+            var array = new byte[] { 63, 157, 243, 182 };
+            var reader = Reader(array);
+            var result = BytesWireFormatting.ReadSingle(reader);
+            Assert.AreEqual(1.234f, result);
         }
 
         [Test]
         public void TestSingleEncoding()
         {
-            NetworkBinaryWriter w = Writer();
+            using BinaryBufferWriter w = Writer();
             BytesWireFormatting.WriteSingle(w, 1.234f);
             Check(w, new byte[] { 63, 157, 243, 182 });
         }
@@ -79,7 +80,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestDoubleEncoding()
         {
-            NetworkBinaryWriter w = Writer();
+            using BinaryBufferWriter w = Writer();
             BytesWireFormatting.WriteDouble(w, 1.234);
             Check(w, new byte[] { 63, 243, 190, 118, 200, 180, 57, 88 });
         }

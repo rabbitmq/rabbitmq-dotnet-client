@@ -38,13 +38,14 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Buffers;
+using System.Buffers.Binary;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
-
 using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.src.client.impl;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
@@ -94,13 +95,13 @@ namespace RabbitMQ.Client.Impl
                              (((uint)bitRepresentation[0]) & 0x7FFFFFFF));
         }
 
-        public static IList ReadArray(NetworkBinaryReader reader)
+        public static IList ReadArray(BinaryBufferReader reader)
         {
             IList array = new List<object>();
             long arrayLength = reader.ReadUInt32();
-            var backingStream = reader.BaseStream;
-            long startPosition = backingStream.Position;
-            while ((backingStream.Position - startPosition) < arrayLength)
+
+            int unreaded = reader.Unreaded.Length;
+            while ((unreaded - reader.Unreaded.Length) < arrayLength)
             {
                 object value = ReadFieldValue(reader);
                 array.Add(value);
@@ -108,65 +109,66 @@ namespace RabbitMQ.Client.Impl
             return array;
         }
 
-        public static decimal ReadDecimal(NetworkBinaryReader reader)
+        public static decimal ReadDecimal(BinaryBufferReader reader)
         {
             byte scale = ReadOctet(reader);
             uint unsignedMantissa = ReadLong(reader);
             return AmqpToDecimal(scale, unsignedMantissa);
         }
 
-        public static object ReadFieldValue(NetworkBinaryReader reader)
+        public static object ReadFieldValue(BinaryBufferReader reader)
         {
-            object value = null;
             byte discriminator = reader.ReadByte();
-            switch ((char)discriminator)
+
+            object value;
+            switch (discriminator)
             {
-                case 'S':
+                case WireConstants.String:
                     value = ReadLongstr(reader);
                     break;
-                case 'I':
+                case WireConstants.Int:
                     value = reader.ReadInt32();
                     break;
-                case 'i':
+                case WireConstants.Uint:
                     value = reader.ReadUInt32();
                     break;
-                case 'D':
+                case WireConstants.Decimal:
                     value = ReadDecimal(reader);
                     break;
-                case 'T':
+                case WireConstants.Timestamp:
                     value = ReadTimestamp(reader);
                     break;
-                case 'F':
+                case WireConstants.Dictionary:
                     value = ReadTable(reader);
                     break;
-                case 'A':
+                case WireConstants.List:
                     value = ReadArray(reader);
                     break;
-                case 'B':
+                case WireConstants.Byte:
                     value = reader.ReadByte();
                     break;
-                case 'b':
+                case WireConstants.Sbyte:
                     value = reader.ReadSByte();
                     break;
-                case 'd':
+                case WireConstants.Double:
                     value = reader.ReadDouble();
                     break;
-                case 'f':
+                case WireConstants.Float:
                     value = reader.ReadSingle();
                     break;
-                case 'l':
+                case WireConstants.Long:
                     value = reader.ReadInt64();
                     break;
-                case 's':
+                case WireConstants.Short:
                     value = reader.ReadInt16();
                     break;
-                case 't':
-                    value = (ReadOctet(reader) != 0);
+                case WireConstants.Bool:
+                    value = ReadOctet(reader) != 0;
                     break;
-                case 'x':
+                case WireConstants.TableValue:
                     value = new BinaryTableValue(ReadLongstr(reader));
                     break;
-                case 'V':
+                case WireConstants.Null:
                     value = null;
                     break;
 
@@ -177,17 +179,18 @@ namespace RabbitMQ.Client.Impl
             return value;
         }
 
-        public static uint ReadLong(NetworkBinaryReader reader)
+
+        public static uint ReadLong(BinaryBufferReader reader)
         {
             return reader.ReadUInt32();
         }
 
-        public static ulong ReadLonglong(NetworkBinaryReader reader)
+        public static ulong ReadLonglong(BinaryBufferReader reader)
         {
             return reader.ReadUInt64();
         }
 
-        public static byte[] ReadLongstr(NetworkBinaryReader reader)
+        public static byte[] ReadLongstr(BinaryBufferReader reader)
         {
             uint byteCount = reader.ReadUInt32();
             if (byteCount > int.MaxValue)
@@ -198,25 +201,37 @@ namespace RabbitMQ.Client.Impl
             return reader.ReadBytes((int)byteCount);
         }
 
-        public static byte ReadOctet(NetworkBinaryReader reader)
+        public static byte ReadOctet(BinaryBufferReader reader)
         {
             return reader.ReadByte();
         }
 
-        public static ushort ReadShort(NetworkBinaryReader reader)
+        public static ushort ReadShort(BinaryBufferReader reader)
         {
             return reader.ReadUInt16();
         }
 
-        public static string ReadShortstr(NetworkBinaryReader reader)
+#if NETSTANDARD2_1
+        public static string ReadShortstr(BinaryBufferReader reader)
+        {
+            int byteCount = reader.ReadByte();
+            Span<byte> span = stackalloc byte[byteCount]; //always less then 256 bytes
+            reader.ReadBytes(span);
+            string returnValue = Encoding.UTF8.GetString(span);
+            return returnValue;
+        }
+#else
+        public static string ReadShortstr(BinaryBufferReader reader)
         {
             int byteCount = reader.ReadByte();
             byte[] readBytes = ArrayPool<byte>.Shared.Rent(byteCount);
-            reader.Read(readBytes, 0, byteCount);
+            reader.ReadBytes(new Span<byte>(readBytes, 0, byteCount));
             string returnValue = Encoding.UTF8.GetString(readBytes, 0, byteCount);
             ArrayPool<byte>.Shared.Return(readBytes);
             return returnValue;
         }
+#endif
+
 
         ///<summary>Reads an AMQP "table" definition from the reader.</summary>
         ///<remarks>
@@ -225,14 +240,13 @@ namespace RabbitMQ.Client.Impl
         /// x and V types and the AMQP 0-9-1 A type.
         ///</remarks>
         /// <returns>A <seealso cref="System.Collections.Generic.IDictionary{TKey,TValue}"/>.</returns>
-        public static IDictionary<string, object> ReadTable(NetworkBinaryReader reader)
+        public static IDictionary<string, object> ReadTable(BinaryBufferReader reader)
         {
             IDictionary<string, object> table = new Dictionary<string, object>();
             long tableLength = reader.ReadUInt32();
 
-            var backingStream = reader.BaseStream;
-            long startPosition = backingStream.Position;
-            while ((backingStream.Position - startPosition) < tableLength)
+            int unreaded = reader.Unreaded.Length;
+            while ((unreaded - reader.Unreaded.Length) < tableLength)
             {
                 string key = ReadShortstr(reader);
                 object value = ReadFieldValue(reader);
@@ -246,7 +260,7 @@ namespace RabbitMQ.Client.Impl
             return table;
         }
 
-        public static AmqpTimestamp ReadTimestamp(NetworkBinaryReader reader)
+        public static AmqpTimestamp ReadTimestamp(BinaryBufferReader reader)
         {
             ulong stamp = ReadLonglong(reader);
             // 0-9 is afaict silent on the signedness of the timestamp.
@@ -254,7 +268,7 @@ namespace RabbitMQ.Client.Impl
             return new AmqpTimestamp((long)stamp);
         }
 
-        public static void WriteArray(NetworkBinaryWriter writer, IList val)
+        public static void WriteArray(BinaryBufferWriter writer, IList val)
         {
             if (val == null)
             {
@@ -262,101 +276,94 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                var backingStream = writer.BaseStream;
-                long patchPosition = backingStream.Position;
-                writer.Write((uint)0); // length of table - will be backpatched
+                Span<byte> buffer = writer.GetBufferWithAdvance(sizeof(uint));
+                int patchPosition = writer.Position;
                 foreach (object entry in val)
                 {
                     WriteFieldValue(writer, entry);
                 }
-                long savedPosition = backingStream.Position;
-                long tableLength = savedPosition - patchPosition - 4; // offset for length word
-                backingStream.Seek(patchPosition, SeekOrigin.Begin);
-                writer.Write((uint)tableLength);
-                backingStream.Seek(savedPosition, SeekOrigin.Begin);
+                int savedPosition = writer.Position;
+                int tableLength = savedPosition - patchPosition;
+                BinaryPrimitives.WriteUInt32BigEndian(buffer, (uint)tableLength);
             }
         }
 
-        public static void WriteDecimal(NetworkBinaryWriter writer, decimal value)
+        public static void WriteDecimal(BinaryBufferWriter writer, decimal value)
         {
-            DecimalToAmqp(value, out var scale, out var mantissa);
+            DecimalToAmqp(value, out byte scale, out int mantissa);
             WriteOctet(writer, scale);
             WriteLong(writer, (uint)mantissa);
         }
 
-        public static void WriteFieldValue(NetworkBinaryWriter writer, object value)
+        public static void WriteFieldValue(BinaryBufferWriter writer, object value)
         {
             switch (value)
             {
                 case null:
-                    WriteOctet(writer, (byte)'V');
+                    WriteOctet(writer, WireConstants.Null);
                     break;
                 case string val:
-                    WriteOctet(writer, (byte)'S');
-                    int length = Encoding.UTF8.GetByteCount(val);
-                    byte[] bytes = ArrayPool<byte>.Shared.Rent(length);
-                    length = Encoding.UTF8.GetBytes(val, 0, val.Length, bytes, 0);
-                    WriteLongstr(writer, bytes, length);
-                    ArrayPool<byte>.Shared.Return(bytes);
+                    WriteOctet(writer, WireConstants.String);
+                    WriteLongstr(writer, val);
                     break;
                 case byte[] val:
-                    WriteOctet(writer, (byte)'S');
+                    WriteOctet(writer, WireConstants.Array);
                     WriteLongstr(writer, val, val.Length);
                     break;
                 case int val:
-                    WriteOctet(writer, (byte)'I');
+                    WriteOctet(writer, WireConstants.Int);
                     writer.Write(val);
                     break;
                 case uint val:
-                    WriteOctet(writer, (byte)'i');
+                    WriteOctet(writer, WireConstants.Uint);
                     writer.Write(val);
                     break;
                 case decimal val:
-                    WriteOctet(writer, (byte)'D');
+                    WriteOctet(writer, WireConstants.Decimal);
                     WriteDecimal(writer, val);
                     break;
                 case AmqpTimestamp val:
-                    WriteOctet(writer, (byte)'T');
+                    WriteOctet(writer, WireConstants.Timestamp);
                     WriteTimestamp(writer, val);
                     break;
                 case IDictionary val:
-                    WriteOctet(writer, (byte)'F');
+                    WriteOctet(writer, WireConstants.Dictionary);
                     WriteTable(writer, val);
                     break;
                 case IList val:
-                    WriteOctet(writer, (byte)'A');
+                    WriteOctet(writer, WireConstants.List);
                     WriteArray(writer, val);
                     break;
                 case byte val:
-                    WriteOctet(writer, (byte)'B');
+                    WriteOctet(writer, WireConstants.Byte);
                     writer.Write(val);
                     break;
                 case sbyte val:
-                    WriteOctet(writer, (byte)'b');
+                    WriteOctet(writer, WireConstants.Sbyte);
                     writer.Write(val);
                     break;
                 case double val:
-                    WriteOctet(writer, (byte)'d');
+                    WriteOctet(writer, WireConstants.Double);
                     writer.Write(val);
                     break;
                 case float val:
-                    WriteOctet(writer, (byte)'f');
+                    WriteOctet(writer, WireConstants.Float);
                     writer.Write(val);
                     break;
                 case long val:
-                    WriteOctet(writer, (byte)'l');
+                    WriteOctet(writer, WireConstants.Long);
                     writer.Write(val);
                     break;
                 case short val:
-                    WriteOctet(writer, (byte)'s');
+                    WriteOctet(writer, WireConstants.Short);
                     writer.Write(val);
                     break;
                 case bool val:
-                    WriteOctet(writer, (byte)'t');
+                    WriteOctet(writer, WireConstants.Bool);
                     WriteOctet(writer, (byte)(val ? 1 : 0));
                     break;
                 case BinaryTableValue val:
-                    WriteOctet(writer, (byte)'x');
+                    WriteOctet(writer, WireConstants.TableValue);
                     WriteLongstr(writer, val.Bytes, val.Bytes.Length);
                     break;
                 default:
@@ -366,47 +373,104 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public static void WriteLong(NetworkBinaryWriter writer, uint val)
+        public static void WriteLong(BinaryBufferWriter writer, uint val)
         {
             writer.Write(val);
         }
 
-        public static void WriteLonglong(NetworkBinaryWriter writer, ulong val)
+        public static void WriteLonglong(BinaryBufferWriter writer, ulong val)
         {
             writer.Write(val);
         }
 
-        public static void WriteLongstr(NetworkBinaryWriter writer, byte[] val, int length)
+#if NETSTANDARD2_1
+        public static void WriteLongstr(BinaryBufferWriter writer, ReadOnlySpan<byte> val)
+        {
+            WriteLong(writer, (uint)val.Length);
+            writer.Write(val);
+        }
+
+        public static void WriteLongstr(BinaryBufferWriter writer, string val)
+        {
+            int length = Encoding.UTF8.GetMaxByteCount(val.Length);
+            Span<byte> buffer = writer.GetBuffer(length + sizeof(uint));
+            int byteCount = Encoding.UTF8.GetBytes(val, buffer.Slice(sizeof(uint)));
+            BinaryPrimitives.WriteUInt32BigEndian(buffer, (uint)byteCount);
+            writer.Advance(byteCount + sizeof(uint));
+        }
+#else
+        public static void WriteLongstr(BinaryBufferWriter writer, string val)
+        {
+            int maxLength = Encoding.UTF8.GetMaxByteCount(val.Length);
+            byte[] bytes = ArrayPool<byte>.Shared.Rent(maxLength);
+            try
+            {
+                int bytesUsed = Encoding.UTF8.GetBytes(val, 0, val.Length, bytes, 0);
+                WriteLong(writer, (uint)bytesUsed);
+                writer.Write(bytes, 0, bytesUsed);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(bytes);
+            }
+        }
+#endif
+
+        public static void WriteLongstr(BinaryBufferWriter writer, byte[] val, int length)
         {
             WriteLong(writer, (uint)length);
             writer.Write(val, 0, length);
         }
 
-        public static void WriteOctet(NetworkBinaryWriter writer, byte val)
+
+        public static void WriteOctet(BinaryBufferWriter writer, byte val)
         {
             writer.Write(val);
         }
 
-        public static void WriteShort(NetworkBinaryWriter writer, ushort val)
+        public static void WriteShort(BinaryBufferWriter writer, ushort val)
         {
             writer.Write(val);
         }
 
-        public static void WriteShortstr(NetworkBinaryWriter writer, string val)
+#if NETSTANDARD2_1
+        public static void WriteShortstr(BinaryBufferWriter writer, string val)
         {
-            var length = Encoding.UTF8.GetByteCount(val);
-            if (length > 255)
+            int length = Encoding.UTF8.GetMaxByteCount(val.Length);
+            Span<byte> buffer = writer.GetBuffer(length + sizeof(byte));
+            
+            int byteCount = Encoding.UTF8.GetBytes(val, buffer.Slice(sizeof(byte)));
+            if (byteCount > 255)
             {
                 throw new WireFormattingException("Short string too long; " +
                                                   "UTF-8 encoded length=" + length + ", max=255");
             }
-
-            byte[] stringBytes = ArrayPool<byte>.Shared.Rent(length);
-            length = Encoding.UTF8.GetBytes(val, 0, val.Length, stringBytes, 0);
-            writer.Write((byte)length);
-            writer.Write(stringBytes, 0, length);
-            ArrayPool<byte>.Shared.Return(stringBytes);
+            buffer[0] = (byte)byteCount;
+            writer.Advance(byteCount + sizeof(byte));
         }
+#else
+        public static void WriteShortstr(BinaryBufferWriter writer, string val)
+        {
+            int length = Encoding.UTF8.GetMaxByteCount(val.Length);
+            byte[] bytes = ArrayPool<byte>.Shared.Rent(length + sizeof(byte));
+            try
+            {
+                int bytesUsed = Encoding.UTF8.GetBytes(val, 0, val.Length, bytes, 0);
+                if (bytesUsed > 255)
+                {
+                    throw new WireFormattingException("Short string too long; " +
+                                                      "UTF-8 encoded length=" + bytesUsed + ", max=255");
+                }
+                writer.Write((byte)bytesUsed);
+                writer.Write(new ReadOnlySpan<byte>( bytes, 0, bytesUsed));
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(bytes);
+            }
+        }
+
+#endif
 
         ///<summary>Writes an AMQP "table" to the writer.</summary>
         ///<remarks>
@@ -422,7 +486,7 @@ namespace RabbitMQ.Client.Impl
         /// x and V types and the AMQP 0-9-1 A type.
         ///</para>
         ///</remarks>
-        public static void WriteTable(NetworkBinaryWriter writer, IDictionary val)
+        public static void WriteTable(BinaryBufferWriter writer, IDictionary val)
         {
             if (val == null)
             {
@@ -430,9 +494,8 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                var backingStream = writer.BaseStream;
-                long patchPosition = backingStream.Position;
-                writer.Write((uint)0); // length of table - will be backpatched
+                Span<byte> buffer = writer.GetBufferWithAdvance(sizeof(uint));
+                int patchPosition = writer.Position;
 
                 foreach (DictionaryEntry entry in val)
                 {
@@ -441,13 +504,12 @@ namespace RabbitMQ.Client.Impl
                 }
 
                 // Now, backpatch the table length.
-                long savedPosition = backingStream.Position;
-                long tableLength = savedPosition - patchPosition - 4; // offset for length word
-                backingStream.Seek(patchPosition, SeekOrigin.Begin);
-                writer.Write((uint)tableLength);
-                backingStream.Seek(savedPosition, SeekOrigin.Begin);
+                int savedPosition = writer.Position;
+                int tableLength = savedPosition - patchPosition;
+                BinaryPrimitives.WriteUInt32BigEndian(buffer, (uint)tableLength);
             }
         }
+
 
         ///<summary>Writes an AMQP "table" to the writer.</summary>
         ///<remarks>
@@ -463,7 +525,7 @@ namespace RabbitMQ.Client.Impl
         /// x and V types and the AMQP 0-9-1 A type.
         ///</para>
         ///</remarks>
-        public static void WriteTable(NetworkBinaryWriter writer, IDictionary<string, object> val)
+        public static void WriteTable(BinaryBufferWriter writer, IDictionary<string, object> val)
         {
             if (val == null)
             {
@@ -471,9 +533,8 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                var backingStream = writer.BaseStream;
-                long patchPosition = backingStream.Position;
-                writer.Write((uint)0); // length of table - will be backpatched
+                Span<byte> buffer = writer.GetBufferWithAdvance(sizeof(uint));
+                int patchPosition = writer.Position;
 
                 foreach (var entry in val)
                 {
@@ -482,15 +543,13 @@ namespace RabbitMQ.Client.Impl
                 }
 
                 // Now, backpatch the table length.
-                long savedPosition = backingStream.Position;
-                long tableLength = savedPosition - patchPosition - 4; // offset for length word
-                backingStream.Seek(patchPosition, SeekOrigin.Begin);
-                writer.Write((uint)tableLength);
-                backingStream.Seek(savedPosition, SeekOrigin.Begin);
+                int savedPosition = writer.Position;
+                int tableLength = savedPosition - patchPosition;
+                BinaryPrimitives.WriteUInt32BigEndian(buffer, (uint)tableLength);
             }
         }
 
-        public static void WriteTimestamp(NetworkBinaryWriter writer, AmqpTimestamp val)
+        public static void WriteTimestamp(BinaryBufferWriter writer, AmqpTimestamp val)
         {
             // 0-9 is afaict silent on the signedness of the timestamp.
             // See also MethodArgumentReader.ReadTimestamp and AmqpTimestamp itself

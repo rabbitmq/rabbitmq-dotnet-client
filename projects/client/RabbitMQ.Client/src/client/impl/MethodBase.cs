@@ -62,7 +62,7 @@ namespace RabbitMQ.Client.Impl
         public abstract string ProtocolMethodName { get; }
 
         public abstract void AppendArgumentDebugStringTo(StringBuilder stringBuilder);
-        public abstract void ReadArgumentsFrom(MethodArgumentReader reader);
-        public abstract void WriteArgumentsTo(MethodArgumentWriter writer);
+        public abstract void ReadArgumentsFrom(ref MethodArgumentReader reader);
+        public abstract void WriteArgumentsTo(ref MethodArgumentWriter writer);
     }
 }

@@ -38,9 +38,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Buffers;
-using System.IO;
-
+using System;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Util;
 
@@ -58,13 +56,14 @@ namespace RabbitMQ.Client.Impl
     {
         private const int MaxArrayOfBytesSize = 2_147_483_591;
 
-        public MethodBase m_method;
-        public ContentHeaderBase m_header;
-        public MemoryStream m_bodyStream;
-        public byte[] m_body;
-        public ProtocolBase m_protocol;
-        public int m_remainingBodyBytes;
-        public AssemblyState m_state;
+        private MethodBase m_method;
+        private ContentHeaderBase m_header;
+        private byte[] m_body;
+        private ProtocolBase m_protocol;
+        private int m_remainingBodyBytes;
+        private AssemblyState m_state;
+
+        private Span<byte> UnwritedSpan => new Span<byte>(m_body, m_body.Length - m_remainingBodyBytes, m_remainingBodyBytes);
 
         public CommandAssembler(ProtocolBase protocol)
         {
@@ -82,7 +81,8 @@ namespace RabbitMQ.Client.Impl
                         {
                             throw new UnexpectedFrameException(f);
                         }
-                        m_method = m_protocol.DecodeMethodFrom(f.GetReader());
+                        BinaryBufferReader reader = f.GetReader();
+                        m_method = m_protocol.DecodeMethodFrom(reader);
                         m_state = m_method.HasContent
                             ? AssemblyState.ExpectingContentHeader
                             : AssemblyState.Complete;
@@ -94,16 +94,15 @@ namespace RabbitMQ.Client.Impl
                         {
                             throw new UnexpectedFrameException(f);
                         }
-                        NetworkBinaryReader reader = f.GetReader();
+                        BinaryBufferReader reader = f.GetReader();
                         m_header = m_protocol.DecodeContentHeaderFrom(reader);
-                        var totalBodyBytes = m_header.ReadFrom(reader);
+                        ulong totalBodyBytes = m_header.ReadFrom(reader);
                         if (totalBodyBytes > MaxArrayOfBytesSize)
                         {
                             throw new UnexpectedFrameException(f);
                         }
                         m_remainingBodyBytes = (int)totalBodyBytes;
                         m_body = new byte[totalBodyBytes];
-                        m_bodyStream = new MemoryStream(m_body, true);
                         UpdateContentBodyState();
                         return CompletedCommand();
                     }
@@ -120,7 +119,7 @@ namespace RabbitMQ.Client.Impl
                                     m_remainingBodyBytes,
                                     f.PayloadSize));
                         }
-                        m_bodyStream.Write(f.Payload, 0, f.PayloadSize);
+                        f.PayloadSpan.CopyTo(UnwritedSpan);
                         m_remainingBodyBytes -= f.PayloadSize;
                         UpdateContentBodyState();
                         return CompletedCommand();
@@ -150,7 +149,6 @@ namespace RabbitMQ.Client.Impl
             m_state = AssemblyState.ExpectingMethod;
             m_method = null;
             m_header = null;
-            m_bodyStream = null;
             m_remainingBodyBytes = 0;
         }
 

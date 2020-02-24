@@ -14,7 +14,7 @@ namespace RabbitMQ.Client.Impl
             this.consumerTag = consumerTag;
         }
 
-        protected override async Task Execute(ModelBase model, IAsyncBasicConsumer consumer)
+        protected override async ValueTask Execute(ModelBase model, IAsyncBasicConsumer consumer)
         {
             try
             {

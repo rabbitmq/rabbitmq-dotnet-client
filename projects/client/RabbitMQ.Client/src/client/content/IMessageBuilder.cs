@@ -38,6 +38,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -51,13 +52,8 @@ namespace RabbitMQ.Client.Content
     /// base interface deals with the lowest common denominator:
     /// bytes, with no special encodings for higher-level objects.
     /// </remarks>
-    public interface IMessageBuilder
+    public interface IMessageBuilder : IDisposable
     {
-        /// <summary>
-        /// Retrieve the <see cref="Stream"/> being used to construct the message body.
-        /// </summary>
-        Stream BodyStream { get; }
-
         /// <summary>
         /// Retrieves the dictionary that will be used to construct the message header table.
         /// It is of type <see cref="IDictionary{TKey,TValue}" />.

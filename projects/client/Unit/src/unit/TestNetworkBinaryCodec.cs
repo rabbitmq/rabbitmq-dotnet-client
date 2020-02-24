@@ -51,27 +51,27 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestNetworkBinaryCodec
     {
-        public static NetworkBinaryWriter Writer()
+        public static BinaryBufferWriter Writer()
         {
-            return new NetworkBinaryWriter(new MemoryStream());
+            return new BinaryBufferWriter();
         }
 
-        public byte[] Contents(NetworkBinaryWriter w)
+        public byte[] Contents(BinaryBufferWriter w)
         {
-            return ((MemoryStream)w.BaseStream).ToArray();
+            return w.Buffer.ToArray();
         }
 
-        public NetworkBinaryReader Reader(byte[] bytes)
+        public BinaryBufferReader Reader(byte[] bytes)
         {
-            return new NetworkBinaryReader(new MemoryStream(bytes));
+            return new BinaryBufferReader(bytes);
         }
 
-        public void Check(NetworkBinaryWriter w, byte[] bytes)
+        public void Check(BinaryBufferWriter w, byte[] bytes)
         {
             Assert.AreEqual(bytes, Contents(w));
         }
 
-        public NetworkBinaryWriter m_w;
+        public BinaryBufferWriter m_w;
 
         [SetUp]
         public void SetUp()

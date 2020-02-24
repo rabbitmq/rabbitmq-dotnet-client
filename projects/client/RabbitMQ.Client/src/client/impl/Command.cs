@@ -39,7 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
+using System.IO;
 using System.IO.Pipelines;
 
 using RabbitMQ.Client.Framing.Impl;
@@ -81,7 +81,7 @@ namespace RabbitMQ.Client.Impl
         public static void CheckEmptyFrameSize()
         {
             var f = new EmptyOutboundFrame();
-            using (var stream = PooledMemoryStream.GetMemoryStream())
+            using (var stream = new MemoryStream())
             {
                 var pipeWriter = PipeWriter.Create(stream);
                 var writer = new PipelineBinaryWriter(pipeWriter);
@@ -103,68 +103,21 @@ namespace RabbitMQ.Client.Impl
 
         public void Transmit(int channelNumber, Connection connection)
         {
-            if (Method.HasContent)
-            {
-                TransmitAsFrameSet(channelNumber, connection);
-            }
-            else
-            {
-                TransmitAsSingleFrame(channelNumber, connection);
-            }
-        }
-
-        public void TransmitAsSingleFrame(int channelNumber, Connection connection)
-        {
             connection.WriteFrame(new MethodOutboundFrame(channelNumber, Method));
-        }
-
-        public void TransmitAsFrameSet(int channelNumber, Connection connection)
-        {
-            var frames = new List<OutboundFrame>();
-            frames.Add(new MethodOutboundFrame(channelNumber, Method));
             if (Method.HasContent)
             {
-                var body = Body;
+                byte[] body = Body;
 
-                frames.Add(new HeaderOutboundFrame(channelNumber, Header, body.Length));
-                var frameMax = (int)Math.Min(int.MaxValue, connection.FrameMax);
-                var bodyPayloadMax = (frameMax == 0) ? body.Length : frameMax - EmptyFrameSize;
+                connection.WriteFrame(new HeaderOutboundFrame(channelNumber, Header, body.Length));
+                int frameMax = (int)Math.Min(int.MaxValue, connection.FrameMax);
+                int bodyPayloadMax = (frameMax == 0) ? body.Length : frameMax - EmptyFrameSize;
                 for (int offset = 0; offset < body.Length; offset += bodyPayloadMax)
                 {
-                    var remaining = body.Length - offset;
-                    var count = (remaining < bodyPayloadMax) ? remaining : bodyPayloadMax;
-                    frames.Add(new BodySegmentOutboundFrame(channelNumber, body, offset, count));
+                    int remaining = body.Length - offset;
+                    int count = (remaining < bodyPayloadMax) ? remaining : bodyPayloadMax;
+                    connection.WriteFrame(new BodySegmentOutboundFrame(channelNumber, new ReadOnlyMemory<byte>(body, offset, count)));
                 }
             }
-
-            connection.WriteFrameSet(frames);
-        }
-
-
-        public static List<OutboundFrame> CalculateFrames(int channelNumber, Connection connection, IList<Command> commands)
-        {
-            var frames = new List<OutboundFrame>();
-
-            foreach (var cmd in commands)
-            {
-                frames.Add(new MethodOutboundFrame(channelNumber, cmd.Method));
-                if (cmd.Method.HasContent)
-                {
-                    var body = cmd.Body;
-
-                    frames.Add(new HeaderOutboundFrame(channelNumber, cmd.Header, body.Length));
-                    var frameMax = (int)Math.Min(int.MaxValue, connection.FrameMax);
-                    var bodyPayloadMax = (frameMax == 0) ? body.Length : frameMax - EmptyFrameSize;
-                    for (int offset = 0; offset < body.Length; offset += bodyPayloadMax)
-                    {
-                        var remaining = body.Length - offset;
-                        var count = (remaining < bodyPayloadMax) ? remaining : bodyPayloadMax;
-                        frames.Add(new BodySegmentOutboundFrame(channelNumber, body, offset, count));
-                    }
-                }
-            }
-
-            return frames;
         }
     }
 }

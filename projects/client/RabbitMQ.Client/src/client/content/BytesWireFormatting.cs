@@ -38,6 +38,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Buffers;
 using System.Text;
 using RabbitMQ.Util;
@@ -50,111 +51,152 @@ namespace RabbitMQ.Client.Content
     /// </summary>
     public static class BytesWireFormatting
     {
-        public static int Read(NetworkBinaryReader reader, byte[] target, int offset, int count)
+        public static int Read(BinaryBufferReader reader, byte[] target, int offset, int count)
         {
-            return reader.Read(target, offset, count);
+            return reader.ReadBytes(new Span<byte>(target, offset, count));
         }
 
-        public static byte ReadByte(NetworkBinaryReader reader)
+        public static byte ReadByte(BinaryBufferReader reader)
         {
             return reader.ReadByte();
         }
 
-        public static byte[] ReadBytes(NetworkBinaryReader reader, int count)
+        public static byte[] ReadBytes(BinaryBufferReader reader, int count)
         {
             return reader.ReadBytes(count);
         }
 
-        public static char ReadChar(NetworkBinaryReader reader)
+        public static char ReadChar(BinaryBufferReader reader)
         {
-            return (char) reader.ReadUInt16();
+            return (char)reader.ReadUInt16();
         }
 
-        public static double ReadDouble(NetworkBinaryReader reader)
+        public static double ReadDouble(BinaryBufferReader reader)
         {
             return reader.ReadDouble();
         }
 
-        public static short ReadInt16(NetworkBinaryReader reader)
+        public static short ReadInt16(BinaryBufferReader reader)
         {
             return reader.ReadInt16();
         }
 
-        public static int ReadInt32(NetworkBinaryReader reader)
+        public static int ReadInt32(BinaryBufferReader reader)
         {
             return reader.ReadInt32();
         }
 
-        public static long ReadInt64(NetworkBinaryReader reader)
+        public static long ReadInt64(BinaryBufferReader reader)
         {
             return reader.ReadInt64();
         }
 
-        public static float ReadSingle(NetworkBinaryReader reader)
+        public static float ReadSingle(BinaryBufferReader reader)
         {
             return reader.ReadSingle();
         }
 
-        public static string ReadString(NetworkBinaryReader reader)
+        public static string ReadString(BinaryBufferReader reader)
         {
             ushort length = reader.ReadUInt16();
-            byte[] bytes = ArrayPool<byte>.Shared.Rent(length);
-            reader.Read(bytes, 0, length);
-            string returnValue = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
-            ArrayPool<byte>.Shared.Return(bytes);
+
+            string returnValue = null;
+            byte[] bytes = null;
+            try
+            {
+#if NETSTANDARD2_1
+                Span<byte> span = length < 512 ? stackalloc byte[length] : (bytes = ArrayPool<byte>.Shared.Rent(length));
+                reader.ReadBytes(span);
+                returnValue = Encoding.UTF8.GetString(span);
+#else
+                bytes = ArrayPool<byte>.Shared.Rent(length);
+                reader.ReadBytes(new Span<byte>(bytes, 0, length));
+                returnValue = Encoding.UTF8.GetString(bytes, 0, length);
+#endif
+            }
+            finally
+            {
+                if (bytes != null)
+                {
+                    ArrayPool<byte>.Shared.Return(bytes);
+                }
+            }
+
             return returnValue;
         }
 
-        public static void Write(NetworkBinaryWriter writer, byte[] source, int offset, int count)
+
+        public static void Write(BinaryBufferWriter writer, byte[] source, int offset, int count)
         {
             writer.Write(source, offset, count);
         }
 
-        public static void WriteByte(NetworkBinaryWriter writer, byte value)
+        public static void WriteByte(BinaryBufferWriter writer, byte value)
         {
             writer.Write(value);
         }
 
-        public static void WriteBytes(NetworkBinaryWriter writer, byte[] source)
+        public static void WriteBytes(BinaryBufferWriter writer, byte[] source)
         {
             Write(writer, source, 0, source.Length);
         }
 
-        public static void WriteChar(NetworkBinaryWriter writer, char value)
+        public static void WriteChar(BinaryBufferWriter writer, char value)
         {
-            writer.Write((ushort) value);
+            writer.Write((ushort)value);
         }
 
-        public static void WriteDouble(NetworkBinaryWriter writer, double value)
+        public static void WriteDouble(BinaryBufferWriter writer, double value)
         {
             writer.Write(value);
         }
 
-        public static void WriteInt16(NetworkBinaryWriter writer, short value)
+        public static void WriteInt16(BinaryBufferWriter writer, short value)
         {
             writer.Write(value);
         }
 
-        public static void WriteInt32(NetworkBinaryWriter writer, int value)
+        public static void WriteInt32(BinaryBufferWriter writer, int value)
         {
             writer.Write(value);
         }
 
-        public static void WriteInt64(NetworkBinaryWriter writer, long value)
+        public static void WriteInt64(BinaryBufferWriter writer, long value)
         {
             writer.Write(value);
         }
 
-        public static void WriteSingle(NetworkBinaryWriter writer, float value)
+        public static void WriteSingle(BinaryBufferWriter writer, float value)
         {
             writer.Write(value);
         }
 
-        public static void WriteString(NetworkBinaryWriter writer, string value)
+        public static void WriteString(BinaryBufferWriter writer, string value)
         {
+#if NETSTANDARD2_1
+            byte[] bytes = null;
+            int length = value.Length; 
+            try
+            {
+                // actually max array length is 1024 bytes
+                Span<byte> span = length < 512 ? stackalloc byte[length] : (bytes = ArrayPool<byte>.Shared.Rent(length));
+                int byteCount = Encoding.UTF8.GetBytes(value, span);
+                writer.Write((ushort)byteCount);
+                writer.Write(span.Slice(0, byteCount));
+            }
+            finally
+            {
+                if (bytes != null)
+                {
+                    ArrayPool<byte>.Shared.Return(bytes);
+                }
+            }
+#else
             byte[] bytes = Encoding.UTF8.GetBytes(value);
-            writer.Write((ushort) bytes.Length);
+            writer.Write((ushort)bytes.Length);
             writer.Write(bytes);
+#endif
+
         }
     }
 }

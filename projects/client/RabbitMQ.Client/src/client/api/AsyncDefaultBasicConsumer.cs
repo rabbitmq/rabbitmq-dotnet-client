@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
-using TaskExtensions = RabbitMQ.Client.Impl.TaskExtensions;
 
 namespace RabbitMQ.Client
 {
@@ -72,7 +71,7 @@ namespace RabbitMQ.Client
         ///  See <see cref="HandleBasicCancelOk"/> for notification of consumer cancellation due to basicCancel
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        public virtual Task HandleBasicCancel(string consumerTag)
+        public virtual ValueTask HandleBasicCancel(string consumerTag)
         {
             return OnCancel(consumerTag);
         }
@@ -81,7 +80,7 @@ namespace RabbitMQ.Client
         /// Called upon successful deregistration of the consumer from the broker.
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        public virtual Task HandleBasicCancelOk(string consumerTag)
+        public virtual ValueTask HandleBasicCancelOk(string consumerTag)
         {
             return OnCancel(consumerTag);
         }
@@ -90,11 +89,11 @@ namespace RabbitMQ.Client
         /// Called upon successful registration of the consumer with the broker.
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        public virtual Task HandleBasicConsumeOk(string consumerTag)
+        public virtual ValueTask HandleBasicConsumeOk(string consumerTag)
         {
             m_consumerTags.Add(consumerTag);
             IsRunning = true;
-            return TaskExtensions.CompletedTask;
+            return default;
         }
 
         /// <summary>
@@ -105,7 +104,7 @@ namespace RabbitMQ.Client
         /// Note that in particular, some delivered messages may require acknowledgement via <see cref="IModel.BasicAck"/>.
         /// The implementation of this method in this class does NOT acknowledge such messages.
         /// </remarks>
-        public virtual Task HandleBasicDeliver(string consumerTag,
+        public virtual ValueTask HandleBasicDeliver(string consumerTag,
             ulong deliveryTag,
             bool redelivered,
             string exchange,
@@ -114,7 +113,7 @@ namespace RabbitMQ.Client
             byte[] body)
         {
             // Nothing to do here.
-            return TaskExtensions.CompletedTask;
+            return default;
         }
 
         /// <summary>
@@ -122,7 +121,7 @@ namespace RabbitMQ.Client
         ///  </summary>
         ///  <param name="model"> Common AMQP model.</param>
         /// <param name="reason"> Information about the reason why a particular model, session, or connection was destroyed.</param>
-        public virtual Task HandleModelShutdown(object model, ShutdownEventArgs reason)
+        public virtual ValueTask HandleModelShutdown(object model, ShutdownEventArgs reason)
         {
             ShutdownReason = reason;
             return OnCancel(m_consumerTags.ToArray());
@@ -135,7 +134,7 @@ namespace RabbitMQ.Client
         /// This default implementation simply sets the <see cref="IsRunning"/> 
         /// property to false, and takes no further action.
         /// </remarks>
-        public virtual async Task OnCancel(params string[] consumerTags)
+        public virtual async ValueTask OnCancel(params string[] consumerTags)
         {
             IsRunning = false;
             var handler = ConsumerCancelled;

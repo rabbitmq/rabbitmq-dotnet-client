@@ -72,7 +72,7 @@ namespace RabbitMQ.Client.Content
     /// </summary>
     public static class StreamWireFormatting
     {
-        public static bool ReadBool(NetworkBinaryReader reader)
+        public static bool ReadBool(BinaryBufferReader reader)
         {
             object value = ReadNonnullObject("bool", reader);
             if (value is bool)
@@ -86,7 +86,7 @@ namespace RabbitMQ.Client.Content
             throw PrimitiveParser.CreateProtocolViolationException("bool", value);
         }
 
-        public static byte ReadByte(NetworkBinaryReader reader)
+        public static byte ReadByte(BinaryBufferReader reader)
         {
             object value = ReadNonnullObject("byte", reader);
             if (value is byte)
@@ -100,7 +100,7 @@ namespace RabbitMQ.Client.Content
             throw PrimitiveParser.CreateProtocolViolationException("byte", value);
         }
 
-        public static byte[] ReadBytes(NetworkBinaryReader reader)
+        public static byte[] ReadBytes(BinaryBufferReader reader)
         {
             object value = ReadObject(reader);
             if (value == null)
@@ -114,7 +114,7 @@ namespace RabbitMQ.Client.Content
             throw PrimitiveParser.CreateProtocolViolationException("byte[]", value);
         }
 
-        public static char ReadChar(NetworkBinaryReader reader)
+        public static char ReadChar(BinaryBufferReader reader)
         {
             object value = ReadNonnullObject("char", reader);
             if (value is char)
@@ -124,7 +124,7 @@ namespace RabbitMQ.Client.Content
             throw PrimitiveParser.CreateProtocolViolationException("char", value);
         }
 
-        public static double ReadDouble(NetworkBinaryReader reader)
+        public static double ReadDouble(BinaryBufferReader reader)
         {
             object value = ReadNonnullObject("double", reader);
             if (value is double || value is float)
@@ -138,7 +138,7 @@ namespace RabbitMQ.Client.Content
             throw PrimitiveParser.CreateProtocolViolationException("double", value);
         }
 
-        public static short ReadInt16(NetworkBinaryReader reader)
+        public static short ReadInt16(BinaryBufferReader reader)
         {
             object value = ReadNonnullObject("short", reader);
             if (value is short || value is byte)
@@ -152,7 +152,7 @@ namespace RabbitMQ.Client.Content
             throw PrimitiveParser.CreateProtocolViolationException("short", value);
         }
 
-        public static int ReadInt32(NetworkBinaryReader reader)
+        public static int ReadInt32(BinaryBufferReader reader)
         {
             object value = ReadNonnullObject("int", reader);
             if (value is int || value is short || value is byte)
@@ -166,7 +166,7 @@ namespace RabbitMQ.Client.Content
             throw PrimitiveParser.CreateProtocolViolationException("int", value);
         }
 
-        public static long ReadInt64(NetworkBinaryReader reader)
+        public static long ReadInt64(BinaryBufferReader reader)
         {
             object value = ReadNonnullObject("long", reader);
             if (value is long || value is int || value is short || value is byte)
@@ -181,7 +181,7 @@ namespace RabbitMQ.Client.Content
         }
 
         /// <exception cref="ProtocolViolationException"/>
-        public static object ReadNonnullObject(string target, NetworkBinaryReader reader)
+        public static object ReadNonnullObject(string target, BinaryBufferReader reader)
         {
             object value = ReadObject(reader);
             if (value == null)
@@ -194,7 +194,7 @@ namespace RabbitMQ.Client.Content
 
         /// <exception cref="EndOfStreamException"/>
         /// <exception cref="ProtocolViolationException"/>
-        public static object ReadObject(NetworkBinaryReader reader)
+        public static object ReadObject(BinaryBufferReader reader)
         {
             int typeTag = reader.ReadByte();
             switch (typeTag)
@@ -265,7 +265,7 @@ namespace RabbitMQ.Client.Content
             }
         }
 
-        public static float ReadSingle(NetworkBinaryReader reader)
+        public static float ReadSingle(BinaryBufferReader reader)
         {
             object value = ReadNonnullObject("float", reader);
             if (value is float)
@@ -279,7 +279,7 @@ namespace RabbitMQ.Client.Content
             throw PrimitiveParser.CreateProtocolViolationException("float", value);
         }
 
-        public static string ReadString(NetworkBinaryReader reader)
+        public static string ReadString(BinaryBufferReader reader)
         {
             object value = ReadObject(reader);
             if (value == null)
@@ -293,7 +293,7 @@ namespace RabbitMQ.Client.Content
             return value.ToString();
         }
 
-        public static string ReadUntypedString(NetworkBinaryReader reader)
+        public static string ReadUntypedString(BinaryBufferReader reader)
         {
             byte[] array = null;
             try
@@ -317,19 +317,19 @@ namespace RabbitMQ.Client.Content
             }
         }
 
-        public static void WriteBool(NetworkBinaryWriter writer, bool value)
+        public static void WriteBool(BinaryBufferWriter writer, bool value)
         {
             writer.Write((byte) StreamWireFormattingTag.Bool);
             writer.Write(value ? (byte) 0x01 : (byte) 0x00);
         }
 
-        public static void WriteByte(NetworkBinaryWriter writer, byte value)
+        public static void WriteByte(BinaryBufferWriter writer, byte value)
         {
             writer.Write((byte) StreamWireFormattingTag.Byte);
             writer.Write(value);
         }
 
-        public static void WriteBytes(NetworkBinaryWriter writer,
+        public static void WriteBytes(BinaryBufferWriter writer,
             byte[] value,
             int offset,
             int length)
@@ -339,43 +339,43 @@ namespace RabbitMQ.Client.Content
             writer.Write(value, offset, length);
         }
 
-        public static void WriteBytes(NetworkBinaryWriter writer, byte[] value)
+        public static void WriteBytes(BinaryBufferWriter writer, byte[] value)
         {
             WriteBytes(writer, value, 0, value.Length);
         }
 
-        public static void WriteChar(NetworkBinaryWriter writer, char value)
+        public static void WriteChar(BinaryBufferWriter writer, char value)
         {
             writer.Write((byte) StreamWireFormattingTag.Char);
             writer.Write((ushort) value);
         }
 
-        public static void WriteDouble(NetworkBinaryWriter writer, double value)
+        public static void WriteDouble(BinaryBufferWriter writer, double value)
         {
             writer.Write((byte) StreamWireFormattingTag.Double);
             writer.Write(value);
         }
 
-        public static void WriteInt16(NetworkBinaryWriter writer, short value)
+        public static void WriteInt16(BinaryBufferWriter writer, short value)
         {
             writer.Write((byte) StreamWireFormattingTag.Int16);
             writer.Write(value);
         }
 
-        public static void WriteInt32(NetworkBinaryWriter writer, int value)
+        public static void WriteInt32(BinaryBufferWriter writer, int value)
         {
             writer.Write((byte) StreamWireFormattingTag.Int32);
             writer.Write(value);
         }
 
-        public static void WriteInt64(NetworkBinaryWriter writer, long value)
+        public static void WriteInt64(BinaryBufferWriter writer, long value)
         {
             writer.Write((byte) StreamWireFormattingTag.Int64);
             writer.Write(value);
         }
 
         /// <exception cref="ProtocolViolationException"/>
-        public static void WriteObject(NetworkBinaryWriter writer, object value)
+        public static void WriteObject(BinaryBufferWriter writer, object value)
         {
             if (value is bool)
             {
@@ -429,19 +429,19 @@ namespace RabbitMQ.Client.Content
             }
         }
 
-        public static void WriteSingle(NetworkBinaryWriter writer, float value)
+        public static void WriteSingle(BinaryBufferWriter writer, float value)
         {
             writer.Write((byte) StreamWireFormattingTag.Single);
             writer.Write(value);
         }
 
-        public static void WriteString(NetworkBinaryWriter writer, string value)
+        public static void WriteString(BinaryBufferWriter writer, string value)
         {
             writer.Write((byte) StreamWireFormattingTag.String);
             WriteUntypedString(writer, value);
         }
 
-        public static void WriteUntypedString(NetworkBinaryWriter writer, string value)
+        public static void WriteUntypedString(BinaryBufferWriter writer, string value)
         {
             writer.Write(Encoding.UTF8.GetBytes(value));
             writer.Write((byte) 0);

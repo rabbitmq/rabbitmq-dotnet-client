@@ -44,19 +44,19 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    public class ContentHeaderPropertyReader
+    public struct ContentHeaderPropertyReader
     {
-        protected ushort m_bitCount;
-        protected ushort m_flagWord;
+        private ushort m_bitCount;
+        private ushort m_flagWord;
 
-        public ContentHeaderPropertyReader(NetworkBinaryReader reader)
+        public ContentHeaderPropertyReader(BinaryBufferReader reader)
         {
             BaseReader = reader;
             m_flagWord = 1; // just the continuation bit
             m_bitCount = 15; // the correct position to force a m_flagWord read
         }
 
-        public NetworkBinaryReader BaseReader { get; private set; }
+        private BinaryBufferReader BaseReader;
 
         public bool ContinuationBitSet
         {
