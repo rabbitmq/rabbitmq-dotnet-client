@@ -38,6 +38,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+using System.Buffers;
 using System.IO;
 using System.Net.Sockets;
 
@@ -148,10 +150,12 @@ namespace RabbitMQ.Client.Impl
         internal abstract void WritePayload(NetworkBinaryWriter writer);
     }
 
-    class InboundFrame : Frame
+    class InboundFrame : Frame, IDisposable
     {
-        private InboundFrame(FrameType type, int channel, byte[] payload) : base(type, channel, payload)
+        public int PayloadSize { get; private set; }
+        private InboundFrame(FrameType type, int channel, byte[] payload, int payloadSize) : base(type, channel, payload)
         {
+            PayloadSize = payloadSize;
         }
 
         private static void ProcessProtocolHeader(NetworkBinaryReader reader)
@@ -218,13 +222,19 @@ namespace RabbitMQ.Client.Impl
 
             int channel = reader.ReadUInt16();
             int payloadSize = reader.ReadInt32(); // FIXME - throw exn on unreasonable value
-            byte[] payload = reader.ReadBytes(payloadSize);
-            if (payload.Length != payloadSize)
+            byte[] payload = ArrayPool<byte>.Shared.Rent(payloadSize);
+            int bytesRead = 0;
+            try
+            {
+                while (bytesRead < payloadSize)
+                {
+                    bytesRead += reader.Read(payload, bytesRead, payloadSize - bytesRead);
+                }
+            }
+            catch (Exception)
             {
                 // Early EOF.
-                throw new MalformedFrameException("Short frame - expected " +
-                                                  payloadSize + " bytes, got " +
-                                                  payload.Length + " bytes");
+                throw new MalformedFrameException($"Short frame - expected to read {payloadSize} bytes, only got {bytesRead} bytes");
             }
 
             int frameEndMarker = reader.ReadByte();
@@ -233,12 +243,20 @@ namespace RabbitMQ.Client.Impl
                 throw new MalformedFrameException("Bad frame end marker: " + frameEndMarker);
             }
 
-            return new InboundFrame((FrameType)type, channel, payload);
+            return new InboundFrame((FrameType)type, channel, payload, payloadSize);
         }
 
         internal NetworkBinaryReader GetReader()
         {
-            return new NetworkBinaryReader(new MemoryStream(base.Payload));
+            return new NetworkBinaryReader(new MemoryStream(base.Payload, 0, PayloadSize));
+        }
+
+        public void Dispose()
+        {
+            if (Payload != null)
+            {
+                ArrayPool<byte>.Shared.Return(Payload);
+            }
         }
     }
 

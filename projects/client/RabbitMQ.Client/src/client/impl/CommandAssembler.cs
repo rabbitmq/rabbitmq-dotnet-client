@@ -38,6 +38,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.IO;
 
 using RabbitMQ.Client.Framing.Impl;
@@ -76,54 +77,51 @@ namespace RabbitMQ.Client.Impl
             switch (m_state)
             {
                 case AssemblyState.ExpectingMethod:
-                {
-                    if (!f.IsMethod())
                     {
-                        throw new UnexpectedFrameException(f);
+                        if (!f.IsMethod())
+                        {
+                            throw new UnexpectedFrameException(f);
+                        }
+                        m_method = m_protocol.DecodeMethodFrom(f.Payload.AsMemory(0, f.PayloadSize));
+                        m_state = m_method.HasContent
+                            ? AssemblyState.ExpectingContentHeader
+                            : AssemblyState.Complete;
+                        return CompletedCommand();
                     }
-                    m_method = m_protocol.DecodeMethodFrom(f.GetReader());
-                    m_state = m_method.HasContent
-                        ? AssemblyState.ExpectingContentHeader
-                        : AssemblyState.Complete;
-                    return CompletedCommand();
-                }
                 case AssemblyState.ExpectingContentHeader:
-                {
-                    if (!f.IsHeader())
                     {
-                        throw new UnexpectedFrameException(f);
+                        if (!f.IsHeader())
+                        {
+                            throw new UnexpectedFrameException(f);
+                        }
+                        Memory<byte> memory = f.Payload.AsMemory(0, f.PayloadSize);
+                        m_header = m_protocol.DecodeContentHeaderFrom(NetworkOrderDeserializer.ReadUInt16(memory));
+                        ulong totalBodyBytes = m_header.ReadFrom(memory.Slice(2));
+                        if (totalBodyBytes > MaxArrayOfBytesSize)
+                        {
+                            throw new UnexpectedFrameException(f);
+                        }
+                        m_remainingBodyBytes = (int)totalBodyBytes;
+                        m_body = new byte[m_remainingBodyBytes];
+                        m_bodyStream = new MemoryStream(m_body, true);
+                        UpdateContentBodyState();
+                        return CompletedCommand();
                     }
-                    NetworkBinaryReader reader = f.GetReader();
-                    m_header = m_protocol.DecodeContentHeaderFrom(reader);
-                        ulong totalBodyBytes = m_header.ReadFrom(reader);
-                    if (totalBodyBytes > MaxArrayOfBytesSize)
-                    {
-                        throw new UnexpectedFrameException(f);
-                    }
-                    m_remainingBodyBytes = (int)totalBodyBytes;
-                    m_body = new byte[m_remainingBodyBytes];
-                    m_bodyStream = new MemoryStream(m_body, true);
-                    UpdateContentBodyState();
-                    return CompletedCommand();
-                }
                 case AssemblyState.ExpectingContentBody:
-                {
-                    if (!f.IsBody())
                     {
-                        throw new UnexpectedFrameException(f);
+                        if (!f.IsBody())
+                        {
+                            throw new UnexpectedFrameException(f);
+                        }
+                        if (f.PayloadSize > m_remainingBodyBytes)
+                        {
+                            throw new MalformedFrameException($"Overlong content body received - {m_remainingBodyBytes} bytes remaining, {f.PayloadSize} bytes received");
+                        }
+                        m_bodyStream.Write(f.Payload, 0, f.PayloadSize);
+                        m_remainingBodyBytes -= f.PayloadSize;
+                        UpdateContentBodyState();
+                        return CompletedCommand();
                     }
-                    if (f.Payload.Length > m_remainingBodyBytes)
-                    {
-                        throw new MalformedFrameException
-                            (string.Format("Overlong content body received - {0} bytes remaining, {1} bytes received",
-                                m_remainingBodyBytes,
-                                f.Payload.Length));
-                    }
-                    m_bodyStream.Write(f.Payload, 0, f.Payload.Length);
-                    m_remainingBodyBytes -= f.Payload.Length;
-                    UpdateContentBodyState();
-                    return CompletedCommand();
-                }
                 case AssemblyState.Complete:
                 default:
                     return null;

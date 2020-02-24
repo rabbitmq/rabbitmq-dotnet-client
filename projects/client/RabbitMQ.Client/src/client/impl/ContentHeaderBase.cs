@@ -67,11 +67,11 @@ namespace RabbitMQ.Client.Impl
         ///<summary>
         /// Fill this instance from the given byte buffer stream.
         ///</summary>
-        internal ulong ReadFrom(NetworkBinaryReader reader)
+        internal ulong ReadFrom(Memory<byte> memory)
         {
-            reader.ReadUInt16(); // weight - not currently used
-            ulong bodySize = reader.ReadUInt64();
-            ReadPropertiesFrom(new ContentHeaderPropertyReader(reader));
+            // Skipping the first two bytes since they arent used (weight - not currently used)
+            ulong bodySize = NetworkOrderDeserializer.ReadUInt64(memory.Slice(2));
+            ReadPropertiesFrom(new ContentHeaderPropertyReader(memory.Slice(10)));
             return bodySize;
         }
 

@@ -38,10 +38,12 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 
 using RabbitMQ.Client.Exceptions;
@@ -55,8 +57,7 @@ namespace RabbitMQ.Client.Impl
         {
             if (scale > 28)
             {
-                throw new SyntaxError("Unrepresentable AMQP decimal table field: " +
-                                      "scale=" + scale);
+                throw new SyntaxError($"Unrepresentable AMQP decimal table field: scale={scale}");
             }
 
             return new decimal(
@@ -108,10 +109,33 @@ namespace RabbitMQ.Client.Impl
             return array;
         }
 
+        public static IList ReadArray(Memory<byte> memory, out int bytesRead)
+        {
+            IList array = new List<object>();
+            long arrayLength = NetworkOrderDeserializer.ReadUInt32(memory, 0);
+            bytesRead = 4;
+            long startPosition = 4;
+            while (bytesRead - startPosition < arrayLength)
+            {
+                object value = ReadFieldValue(memory.Slice(bytesRead), out int fieldValueBytesRead);
+                bytesRead += fieldValueBytesRead;
+                array.Add(value);
+            }
+
+            return array;
+        }
+
         public static decimal ReadDecimal(NetworkBinaryReader reader)
         {
             byte scale = ReadOctet(reader);
             uint unsignedMantissa = ReadLong(reader);
+            return AmqpToDecimal(scale, unsignedMantissa);
+        }
+
+        public static decimal ReadDecimal(Memory<byte> memory)
+        {
+            byte scale = memory.Span[0];
+            uint unsignedMantissa = NetworkOrderDeserializer.ReadUInt32(memory.Slice(1));
             return AmqpToDecimal(scale, unsignedMantissa);
         }
 
@@ -156,6 +180,69 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public static object ReadFieldValue(Memory<byte> memory, out int bytesRead)
+        {
+            bytesRead = 1;
+            Memory<byte> slice = memory.Slice(1);
+            switch ((char)memory.Span[0])
+            {
+                case 'S':
+                    byte[] result = ReadLongstr(slice);
+                    bytesRead += result.Length + 4;
+                    return result;
+                case 'I':
+                    bytesRead += 4;
+                    return NetworkOrderDeserializer.ReadInt32(slice);
+                case 'i':
+                    bytesRead += 4;
+                    return NetworkOrderDeserializer.ReadUInt32(slice);
+                case 'D':
+                    bytesRead += 5;
+                    return ReadDecimal(slice);
+                case 'T':
+                    bytesRead += 8;
+                    return ReadTimestamp(slice);
+                case 'F':
+                    IDictionary<string, object> tableResult = ReadTable(slice, out int tableBytesRead);
+                    bytesRead += tableBytesRead;
+                    return tableResult;
+                case 'A':
+                    IList arrayResult = ReadArray(slice, out int arrayBytesRead);
+                    bytesRead += arrayBytesRead;
+                    return arrayResult;
+
+                case 'B':
+                    bytesRead += 1;
+                    return slice.Span[0];
+                case 'b':
+                    bytesRead += 1;
+                    return (sbyte)slice.Span[0];
+                case 'd':
+                    bytesRead += 8;
+                    return NetworkOrderDeserializer.ReadDouble(slice);
+                case 'f':
+                    bytesRead += 4;
+                    return NetworkOrderDeserializer.ReadSingle(slice);
+                case 'l':
+                    bytesRead += 8;
+                    return NetworkOrderDeserializer.ReadInt64(slice);
+                case 's':
+                    bytesRead += 2;
+                    return NetworkOrderDeserializer.ReadInt16(slice);
+                case 't':
+                    bytesRead += 1;
+                    return slice.Span[0] != 0;
+                case 'x':
+                    byte[] binaryTableResult = ReadLongstr(slice);
+                    bytesRead += binaryTableResult.Length + 4;
+                    return new BinaryTableValue(binaryTableResult);
+                case 'V':
+                    return null;
+                default:
+                    throw new SyntaxError($"Unrecognised type in table: {(char)memory.Span[0]}");
+            }
+        }
+
         public static uint ReadLong(NetworkBinaryReader reader)
         {
             return reader.ReadUInt32();
@@ -177,6 +264,17 @@ namespace RabbitMQ.Client.Impl
             return reader.ReadBytes((int)byteCount);
         }
 
+        public static byte[] ReadLongstr(Memory<byte> memory)
+        {
+            int byteCount = (int)NetworkOrderDeserializer.ReadUInt32(memory);
+            if (byteCount > int.MaxValue)
+            {
+                throw new SyntaxError($"Long string too long; byte length={byteCount}, max={int.MaxValue}");
+            }
+
+            return memory.Slice(4, byteCount).ToArray();
+        }
+
         public static byte ReadOctet(NetworkBinaryReader reader)
         {
             return reader.ReadByte();
@@ -192,6 +290,19 @@ namespace RabbitMQ.Client.Impl
             int byteCount = reader.ReadByte();
             byte[] readBytes = reader.ReadBytes(byteCount);
             return Encoding.UTF8.GetString(readBytes, 0, readBytes.Length);
+        }
+
+        public static string ReadShortstr(Memory<byte> memory, out int bytesRead)
+        {
+            int byteCount = memory.Span[0];
+            Memory<byte> stringSlice = memory.Slice(1, byteCount);
+            bytesRead = 1 + byteCount;
+            if (MemoryMarshal.TryGetArray(stringSlice, out ArraySegment<byte> segment))
+            {
+                return Encoding.UTF8.GetString(segment.Array, segment.Offset, segment.Count);
+            }
+
+            throw new InvalidOperationException("Unable to get ArraySegment from memory");
         }
 
         ///<summary>Reads an AMQP "table" definition from the reader.</summary>
@@ -222,9 +333,40 @@ namespace RabbitMQ.Client.Impl
             return table;
         }
 
+        public static IDictionary<string, object> ReadTable(Memory<byte> memory, out int bytesRead)
+        {
+            IDictionary<string, object> table = new Dictionary<string, object>();
+            long tableLength = NetworkOrderDeserializer.ReadUInt32(memory);
+            bytesRead = 4;
+
+            long startPosition = bytesRead;
+            while ((bytesRead - startPosition) < tableLength)
+            {
+                string key = ReadShortstr(memory.Slice(bytesRead), out int keyBytesRead);
+                bytesRead += keyBytesRead;
+                object value = ReadFieldValue(memory.Slice(bytesRead), out int valueBytesRead);
+                bytesRead += valueBytesRead;
+
+                if (!table.ContainsKey(key))
+                {
+                    table[key] = value;
+                }
+            }
+
+            return table;
+        }
+
         public static AmqpTimestamp ReadTimestamp(NetworkBinaryReader reader)
         {
             ulong stamp = ReadLonglong(reader);
+            // 0-9 is afaict silent on the signedness of the timestamp.
+            // See also MethodArgumentWriter.WriteTimestamp and AmqpTimestamp itself
+            return new AmqpTimestamp((long)stamp);
+        }
+
+        public static AmqpTimestamp ReadTimestamp(Memory<byte> memory)
+        {
+            ulong stamp = NetworkOrderDeserializer.ReadUInt64(memory);
             // 0-9 is afaict silent on the signedness of the timestamp.
             // See also MethodArgumentWriter.WriteTimestamp and AmqpTimestamp itself
             return new AmqpTimestamp((long)stamp);

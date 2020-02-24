@@ -39,8 +39,9 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Buffers.Binary;
+using System.Buffers;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace RabbitMQ.Util
@@ -75,8 +76,12 @@ namespace RabbitMQ.Util
         /// </summary>
         public override double ReadDouble()
         {
-            long val = BinaryPrimitives.ReadInt64BigEndian(ReadBytes(8));
-            return BitConverter.Int64BitsToDouble(val);
+            using (IMemoryOwner<byte> memory = MemoryPool<byte>.Shared.Rent(8))
+            {
+                Memory<byte> slice = memory.Memory.Slice(0, 8);
+                Read(slice);
+                return NetworkOrderDeserializer.ReadDouble(slice);
+            }
         }
 
         /// <summary>
@@ -84,7 +89,12 @@ namespace RabbitMQ.Util
         /// </summary>
         public override short ReadInt16()
         {
-            return BinaryPrimitives.ReadInt16BigEndian(ReadBytes(2));
+            using (IMemoryOwner<byte> memory = MemoryPool<byte>.Shared.Rent(2))
+            {
+                Memory<byte> slice = memory.Memory.Slice(0, 2);
+                Read(slice);
+                return NetworkOrderDeserializer.ReadInt16(slice);
+            }
         }
 
         /// <summary>
@@ -92,7 +102,12 @@ namespace RabbitMQ.Util
         /// </summary>
         public override int ReadInt32()
         {
-            return BinaryPrimitives.ReadInt32BigEndian(ReadBytes(4));
+            using (IMemoryOwner<byte> memory = MemoryPool<byte>.Shared.Rent(4))
+            {
+                Memory<byte> slice = memory.Memory.Slice(0, 4);
+                Read(slice);
+                return NetworkOrderDeserializer.ReadInt32(slice);
+            }
         }
 
         /// <summary>
@@ -100,7 +115,12 @@ namespace RabbitMQ.Util
         /// </summary>
         public override long ReadInt64()
         {
-            return BinaryPrimitives.ReadInt64BigEndian(ReadBytes(8));
+            using (IMemoryOwner<byte> memory = MemoryPool<byte>.Shared.Rent(8))
+            {
+                Memory<byte> slice = memory.Memory.Slice(0, 8);
+                Read(slice);
+                return NetworkOrderDeserializer.ReadInt64(slice);
+            }
         }
 
         /// <summary>
@@ -108,13 +128,12 @@ namespace RabbitMQ.Util
         /// </summary>
         public override float ReadSingle()
         {
-            byte[] bytes = ReadBytes(4);
-            if (BitConverter.IsLittleEndian)
+            using (IMemoryOwner<byte> memory = MemoryPool<byte>.Shared.Rent(4))
             {
-                bytes.AsSpan().Reverse();
+                Memory<byte> slice = memory.Memory.Slice(0, 4);
+                Read(slice);
+                return NetworkOrderDeserializer.ReadSingle(slice);
             }
-
-            return BitConverter.ToSingle(bytes, 0);
         }
 
         /// <summary>
@@ -122,7 +141,12 @@ namespace RabbitMQ.Util
         /// </summary>
         public override ushort ReadUInt16()
         {
-            return BinaryPrimitives.ReadUInt16BigEndian(ReadBytes(2));
+            using (IMemoryOwner<byte> memory = MemoryPool<byte>.Shared.Rent(2))
+            {
+                Memory<byte> slice = memory.Memory.Slice(0, 2);
+                Read(slice);
+                return NetworkOrderDeserializer.ReadUInt16(slice);
+            }
         }
 
         /// <summary>
@@ -130,7 +154,12 @@ namespace RabbitMQ.Util
         /// </summary>
         public override uint ReadUInt32()
         {
-            return BinaryPrimitives.ReadUInt32BigEndian(ReadBytes(4));
+            using (IMemoryOwner<byte> memory = MemoryPool<byte>.Shared.Rent(4))
+            {
+                Memory<byte> slice = memory.Memory.Slice(0, 4);
+                Read(slice);
+                return NetworkOrderDeserializer.ReadUInt32(slice);
+            }
         }
 
         /// <summary>
@@ -138,7 +167,28 @@ namespace RabbitMQ.Util
         /// </summary>
         public override ulong ReadUInt64()
         {
-            return BinaryPrimitives.ReadUInt64BigEndian(ReadBytes(8));
+            using (IMemoryOwner<byte> memory = MemoryPool<byte>.Shared.Rent(8))
+            {
+                Memory<byte> slice = memory.Memory.Slice(0, 8);
+                Read(slice);
+                return NetworkOrderDeserializer.ReadUInt64(slice);
+            }
+        }
+
+        public int Read(Memory<byte> memory)
+        {
+            if (MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> segment))
+            {
+                int numRead = Read(segment.Array, segment.Offset, segment.Count);
+                if (numRead > segment.Count)
+                {
+                    throw new IOException("Read to far :(");
+                }
+
+                return numRead;
+            }
+
+            throw new IOException("Unable to get array from memory.");
         }
     }
 }

@@ -38,6 +38,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
@@ -59,7 +61,7 @@ namespace RabbitMQ.Client.Impl
         {
             if (frame.IsMethod())
             {
-                MethodBase method = Connection.Protocol.DecodeMethodFrom(frame.GetReader());
+                MethodBase method = Connection.Protocol.DecodeMethodFrom(frame.Payload.AsMemory(0, frame.PayloadSize));
                 if ((method.ProtocolClassId == ClassConstants.Channel)
                     && (method.ProtocolMethodId == ChannelMethodConstants.CloseOk))
                 {

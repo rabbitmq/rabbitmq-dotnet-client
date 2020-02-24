@@ -562,52 +562,53 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void MainLoopIteration()
         {
-            InboundFrame frame = _frameHandler.ReadFrame();
-
-            NotifyHeartbeatListener();
-            // We have received an actual frame.
-            if (frame.IsHeartbeat())
+            using (InboundFrame frame = _frameHandler.ReadFrame())
             {
-                // Ignore it: we've already just reset the heartbeat
-                // latch.
-                return;
-            }
-
-            if (frame.Channel == 0)
-            {
-                // In theory, we could get non-connection.close-ok
-                // frames here while we're quiescing (m_closeReason !=
-                // null). In practice, there's a limited number of
-                // things the server can ask of us on channel 0 -
-                // essentially, just connection.close. That, combined
-                // with the restrictions on pipelining, mean that
-                // we're OK here to handle channel 0 traffic in a
-                // quiescing situation, even though technically we
-                // should be ignoring everything except
-                // connection.close-ok.
-                _session0.HandleFrame(frame);
-            }
-            else
-            {
-                // If we're still m_running, but have a m_closeReason,
-                // then we must be quiescing, which means any inbound
-                // frames for non-zero channels (and any inbound
-                // commands on channel zero that aren't
-                // Connection.CloseOk) must be discarded.
-                if (_closeReason == null)
+                NotifyHeartbeatListener();
+                // We have received an actual frame.
+                if (frame.IsHeartbeat())
                 {
-                    // No close reason, not quiescing the
-                    // connection. Handle the frame. (Of course, the
-                    // Session itself may be quiescing this particular
-                    // channel, but that's none of our concern.)
-                    ISession session = _sessionManager.Lookup(frame.Channel);
-                    if (session == null)
+                    // Ignore it: we've already just reset the heartbeat
+                    // latch.
+                    return;
+                }
+
+                if (frame.Channel == 0)
+                {
+                    // In theory, we could get non-connection.close-ok
+                    // frames here while we're quiescing (m_closeReason !=
+                    // null). In practice, there's a limited number of
+                    // things the server can ask of us on channel 0 -
+                    // essentially, just connection.close. That, combined
+                    // with the restrictions on pipelining, mean that
+                    // we're OK here to handle channel 0 traffic in a
+                    // quiescing situation, even though technically we
+                    // should be ignoring everything except
+                    // connection.close-ok.
+                    _session0.HandleFrame(frame);
+                }
+                else
+                {
+                    // If we're still m_running, but have a m_closeReason,
+                    // then we must be quiescing, which means any inbound
+                    // frames for non-zero channels (and any inbound
+                    // commands on channel zero that aren't
+                    // Connection.CloseOk) must be discarded.
+                    if (_closeReason == null)
                     {
-                        throw new ChannelErrorException(frame.Channel);
-                    }
-                    else
-                    {
-                        session.HandleFrame(frame);
+                        // No close reason, not quiescing the
+                        // connection. Handle the frame. (Of course, the
+                        // Session itself may be quiescing this particular
+                        // channel, but that's none of our concern.)
+                        ISession session = _sessionManager.Lookup(frame.Channel);
+                        if (session == null)
+                        {
+                            throw new ChannelErrorException(frame.Channel);
+                        }
+                        else
+                        {
+                            session.HandleFrame(frame);
+                        }
                     }
                 }
             }

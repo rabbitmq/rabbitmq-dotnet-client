@@ -58,7 +58,7 @@ namespace RabbitMQ.Client.Unit
 
         public static ContentHeaderPropertyReader Reader(byte[] bytes)
         {
-            return new ContentHeaderPropertyReader(new NetworkBinaryReader(new MemoryStream(bytes)));
+            return new ContentHeaderPropertyReader(bytes);
         }
 
         public byte[] Contents(ContentHeaderPropertyWriter w)
@@ -152,8 +152,8 @@ namespace RabbitMQ.Client.Unit
 			          0x80, 0x00, // props flags
 			          0x0A, // shortstr len
 			          0x74, 0x65, 0x78, 0x74,
-			          0x2F, 0x70, 0x6C, 0x61,
-			          0x69, 0x6E });
+                      0x2F, 0x70, 0x6C, 0x61,
+                      0x69, 0x6E });
         }
     }
 }

@@ -47,26 +47,28 @@ namespace RabbitMQ.Client.Impl
 {
     class MethodArgumentReader
     {
-        private int _bit;
+        private int? _bit;
         private int _bits;
 
-        public MethodArgumentReader(NetworkBinaryReader reader)
+        public MethodArgumentReader(Memory<byte> memory)
         {
-            BaseReader = reader;
+            _memory = memory;
+            _memoryOffset = 0;
             ClearBits();
         }
 
-        public NetworkBinaryReader BaseReader { get; private set; }
+        private Memory<byte> _memory;
+        private int _memoryOffset;
 
         public bool ReadBit()
         {
-            if (_bit > 0x80)
+            if (!_bit.HasValue)
             {
-                _bits = BaseReader.ReadByte();
+                _bits = _memory.Span[_memoryOffset++];
                 _bit = 0x01;
             }
 
-            bool result = (_bits & _bit) != 0;
+            bool result = (_bits & _bit.Value) != 0;
             _bit <<= 1;
             return result;
         }
@@ -79,55 +81,69 @@ namespace RabbitMQ.Client.Impl
         public uint ReadLong()
         {
             ClearBits();
-            return WireFormatting.ReadLong(BaseReader);
+            uint result = NetworkOrderDeserializer.ReadUInt32(_memory.Slice(_memoryOffset));
+            _memoryOffset += 4;
+            return result;
         }
 
         public ulong ReadLonglong()
         {
             ClearBits();
-            return WireFormatting.ReadLonglong(BaseReader);
+            ulong result = NetworkOrderDeserializer.ReadUInt64(_memory.Slice(_memoryOffset));
+            _memoryOffset += 8;
+            return result;
         }
 
         public byte[] ReadLongstr()
         {
             ClearBits();
-            return WireFormatting.ReadLongstr(BaseReader);
+            byte[] result = WireFormatting.ReadLongstr(_memory.Slice(_memoryOffset));
+            _memoryOffset += 4 + result.Length;
+            return result;
         }
 
         public byte ReadOctet()
         {
             ClearBits();
-            return WireFormatting.ReadOctet(BaseReader);
+            return _memory.Span[_memoryOffset++];
         }
 
         public ushort ReadShort()
         {
             ClearBits();
-            return WireFormatting.ReadShort(BaseReader);
+            ushort result = NetworkOrderDeserializer.ReadUInt16(_memory.Slice(_memoryOffset));
+            _memoryOffset += 2;
+            return result;
         }
 
         public string ReadShortstr()
         {
             ClearBits();
-            return WireFormatting.ReadShortstr(BaseReader);
+            string result = WireFormatting.ReadShortstr(_memory.Slice(_memoryOffset), out int bytesRead);
+            _memoryOffset += bytesRead;
+            return result;
         }
 
         public IDictionary<string, object> ReadTable()
         {
             ClearBits();
-            return WireFormatting.ReadTable(BaseReader);
+            IDictionary<string, object> result = WireFormatting.ReadTable(_memory.Slice(_memoryOffset), out int bytesRead);
+            _memoryOffset += bytesRead;
+            return result;
         }
 
         public AmqpTimestamp ReadTimestamp()
         {
             ClearBits();
-            return WireFormatting.ReadTimestamp(BaseReader);
+            AmqpTimestamp result = WireFormatting.ReadTimestamp(_memory.Slice(_memoryOffset));
+            _memoryOffset += 8;
+            return result;
         }
 
         private void ClearBits()
         {
             _bits = 0;
-            _bit = 0x100;
+            _bit = null;
         }
 
         // TODO: Consider using NotImplementedException (?)

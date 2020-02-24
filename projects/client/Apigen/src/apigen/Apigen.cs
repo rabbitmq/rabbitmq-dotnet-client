@@ -122,7 +122,7 @@ namespace RabbitMQ.Client.Apigen
         /// <returns>renamed string</returns>
         private static string xmlStringMapper(string xmlString)
         {
-            switch(xmlString)
+            switch (xmlString)
             {
                 case "no-wait":
                     return "nowait";
@@ -445,6 +445,7 @@ namespace RabbitMQ.Client.Apigen
 //   Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -840,44 +841,41 @@ $@"namespace {ApiNamespaceBase}
 
         public void EmitMethodArgumentReader()
         {
-            EmitLine("    internal override Client.Impl.MethodBase DecodeMethodFrom(Util.NetworkBinaryReader reader)");
+            EmitLine("    internal override Client.Impl.MethodBase DecodeMethodFrom(Memory<byte> memory)");
             EmitLine("    {");
-            EmitLine("      ushort classId = reader.ReadUInt16();");
-            EmitLine("      ushort methodId = reader.ReadUInt16();");
-            EmitLine("      Client.Impl.MethodBase result = null;");
+            EmitLine("      ushort classId = Util.NetworkOrderDeserializer.ReadUInt16(memory);");
+            EmitLine("      ushort methodId = Util.NetworkOrderDeserializer.ReadUInt16(memory, 2);");
+            EmitLine("      Client.Impl.MethodBase result = DecodeMethodFrom(classId, methodId);");
+            EmitLine("      if(result != null)");
+            EmitLine("      {");
+            EmitLine("        result.ReadArgumentsFrom(new Client.Impl.MethodArgumentReader(memory.Slice(4)));");
+            EmitLine("        return result;");
+            EmitLine("      }");
             EmitLine("");
+            EmitLine("      throw new Client.Impl.UnknownClassOrMethodException(classId, methodId);");
+            EmitLine("    }");
+            EmitLine("");
+            EmitLine("    internal Client.Impl.MethodBase DecodeMethodFrom(ushort classId, ushort methodId)");
+            EmitLine("    {");
             EmitLine("      switch ((classId << 16) | methodId)");
             EmitLine("      {");
             foreach (AmqpClass c in m_classes)
             {
                 foreach (AmqpMethod m in c.m_Methods)
                 {
-                    EmitLine($"        case (ClassConstants.{MangleConstant(c.Name)} << 16) | {MangleConstant(c.Name)}MethodConstants.{MangleConstant(m.Name)}:");
-                    EmitLine("        {");
-                    EmitLine($"          result = new Impl.{MangleMethodClass(c, m)}();");
-                    EmitLine($"          break;");
-                    EmitLine("        }");
+                    EmitLine($"        case (ClassConstants.{MangleConstant(c.Name)} << 16) | {MangleConstant(c.Name)}MethodConstants.{MangleConstant(m.Name)}: return new Impl.{MangleMethodClass(c, m)}();");
                 }
             }
-            EmitLine("        default: break;");
+            EmitLine("        default: return null;");
             EmitLine("      }");
-            EmitLine("");
-            EmitLine("      if(result != null)");
-            EmitLine("      {");
-            EmitLine("        result.ReadArgumentsFrom(new Client.Impl.MethodArgumentReader(reader));");
-            EmitLine("        return result;");
-            EmitLine("      }");
-            EmitLine("");
-            EmitLine("      throw new Client.Impl.UnknownClassOrMethodException(classId, methodId);");
             EmitLine("    }");
+            EmitLine("");
         }
 
         public void EmitContentHeaderReader()
         {
-            EmitLine("    internal override Client.Impl.ContentHeaderBase DecodeContentHeaderFrom(Util.NetworkBinaryReader reader)");
+            EmitLine("    internal override Client.Impl.ContentHeaderBase DecodeContentHeaderFrom(ushort classId)");
             EmitLine("    {");
-            EmitLine("      ushort classId = reader.ReadUInt16();");
-            EmitLine("");
             EmitLine("      switch (classId)");
             EmitLine("      {");
             foreach (AmqpClass c in m_classes)
@@ -887,9 +885,8 @@ $@"namespace {ApiNamespaceBase}
                     EmitLine($"        case {c.Index}: return new {MangleClass(c.Name)}Properties();");
                 }
             }
-            EmitLine("        default: break;");
+            EmitLine("        default: throw new Client.Impl.UnknownClassOrMethodException(classId, 0);");
             EmitLine("      }");
-            EmitLine("      throw new Client.Impl.UnknownClassOrMethodException(classId, 0);");
             EmitLine("    }");
         }
 

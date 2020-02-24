@@ -60,7 +60,7 @@ namespace RabbitMQ.Client.Unit
 
         public static MethodArgumentReader Reader(byte[] bytes)
         {
-            return new MethodArgumentReader(new NetworkBinaryReader(new MemoryStream(bytes)));
+            return new MethodArgumentReader(bytes);
         }
 
         public byte[] Contents(MethodArgumentWriter w)

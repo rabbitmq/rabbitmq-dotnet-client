@@ -118,7 +118,7 @@ namespace RabbitMQ.Client.Unit
                 // Read from Stream
                 outputStream.Seek(0L, SeekOrigin.Begin);
                 var propertiesFromStream = new Framing.BasicProperties();
-                var reader = new Impl.ContentHeaderPropertyReader(new NetworkBinaryReader(outputStream));
+                var reader = new Impl.ContentHeaderPropertyReader(outputStream.GetBuffer());
                 propertiesFromStream.ReadPropertiesFrom(reader);
 
                 Assert.AreEqual(clusterId, propertiesFromStream.ClusterId);
