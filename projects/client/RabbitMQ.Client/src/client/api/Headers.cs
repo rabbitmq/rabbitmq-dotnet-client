@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2016 Pivotal Software, Inc.
+//   Copyright (c) 2007-2020 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -37,8 +37,6 @@
 //  The Initial Developer of the Original Code is Pivotal Software, Inc.
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
-
-using System.Collections.Generic;
 
 namespace RabbitMQ.Client
 {
@@ -97,5 +95,40 @@ namespace RabbitMQ.Client
         /// x-priority header
         /// </summary>
         public const string XPriority = "x-priority";
+
+        /// <summary>
+        /// x-queue-mode header.
+        /// Available modes: "default" and "lazy"
+        /// </summary>
+        public const string XQueueMode = "x-queue-mode";
+
+        // quorum
+        /// <summary>
+        /// x-queue-type header.
+        /// Available types: "quorum" and "classic"(default)
+        /// </summary>
+        public const string XQueueType = "x-queue-type";
+
+        /// <summary>
+        /// x-quorum-initial-group-size header.
+        /// Use to control the number of quorum queue members
+        /// </summary>
+        public const string XQuorumInitialGroupSize = "x-quorum-initial-group-size";
+
+        // true/false
+        /// <summary>
+        /// x-single-active-consumer header.
+        /// Available modes: true and false(default).
+        /// Allows to have only one consumer at a time consuming from a queue
+        /// and to fail over to another registered consumer in case the active one is cancelled or dies
+        ///  </summary>
+        public const string XSingleActiveConsumer = "x-single-active-consumer";
+
+        /// <summary>
+        /// x-overflow header.
+        /// Available strategies: "reject-publish" and "drop-head"(default).
+        /// Allows to configure strategy when <see cref="XMaxLength"/> or <see cref="XMaxLengthInBytes"/> hits limits
+        /// </summary>
+        public const string XOverflow = "x-overflow";
     }
 }
