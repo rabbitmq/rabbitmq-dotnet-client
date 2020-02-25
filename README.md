@@ -1,8 +1,7 @@
 ## RabbitMQ .NET Client [![Build status](https://ci.appveyor.com/api/projects/status/33srpo7owl1h3y4e?svg=true)](https://ci.appveyor.com/project/rabbitmq/rabbitmq-dotnet-client)
 
 This repository contains source code of the [RabbitMQ .NET client](https://www.rabbitmq.com/dotnet.html).
-The client is maintained by the [RabbitMQ team at Pivotal](https://github.com/rabbitmq/).
-
+The client is maintained by the [RabbitMQ team at VMware](https://github.com/rabbitmq/).
 
 ## Dependency (Binaries and Nuget Artifact)
 
