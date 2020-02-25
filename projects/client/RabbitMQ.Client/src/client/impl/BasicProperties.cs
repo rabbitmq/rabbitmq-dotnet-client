@@ -274,6 +274,8 @@ namespace RabbitMQ.Client.Impl
         /// </summary>
         public abstract bool IsUserIdPresent();
 
+        public abstract override int GetRequiredPayloadBufferSize();
+
         public override object Clone()
         {
             var clone = MemberwiseClone() as BasicProperties;

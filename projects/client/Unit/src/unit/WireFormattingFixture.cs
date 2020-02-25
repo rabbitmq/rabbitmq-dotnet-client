@@ -67,6 +67,11 @@ namespace RabbitMQ.Client.Unit
         public void Check(NetworkBinaryWriter w, byte[] expected)
         {
             byte[] actual = Contents(w);
+            Check(actual, expected);
+        }
+
+        public void Check(byte[] actual, byte[] expected)
+        {
             try
             {
                 Assert.AreEqual(expected, actual);

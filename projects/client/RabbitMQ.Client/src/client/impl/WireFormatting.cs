@@ -114,8 +114,7 @@ namespace RabbitMQ.Client.Impl
             IList array = new List<object>();
             long arrayLength = NetworkOrderDeserializer.ReadUInt32(memory, 0);
             bytesRead = 4;
-            long startPosition = 4;
-            while (bytesRead - startPosition < arrayLength)
+            while (bytesRead - 4 < arrayLength)
             {
                 object value = ReadFieldValue(memory.Slice(bytesRead), out int fieldValueBytesRead);
                 bytesRead += fieldValueBytesRead;
@@ -210,7 +209,6 @@ namespace RabbitMQ.Client.Impl
                     IList arrayResult = ReadArray(slice, out int arrayBytesRead);
                     bytesRead += arrayBytesRead;
                     return arrayResult;
-
                 case 'B':
                     bytesRead += 1;
                     return slice.Span[0];
@@ -296,9 +294,9 @@ namespace RabbitMQ.Client.Impl
         {
             int byteCount = memory.Span[0];
             Memory<byte> stringSlice = memory.Slice(1, byteCount);
-            bytesRead = 1 + byteCount;
             if (MemoryMarshal.TryGetArray(stringSlice, out ArraySegment<byte> segment))
             {
+                bytesRead = 1 + byteCount;
                 return Encoding.UTF8.GetString(segment.Array, segment.Offset, segment.Count);
             }
 
@@ -338,9 +336,7 @@ namespace RabbitMQ.Client.Impl
             IDictionary<string, object> table = new Dictionary<string, object>();
             long tableLength = NetworkOrderDeserializer.ReadUInt32(memory);
             bytesRead = 4;
-
-            long startPosition = bytesRead;
-            while ((bytesRead - startPosition) < tableLength)
+            while ((bytesRead - 4) < tableLength)
             {
                 string key = ReadShortstr(memory.Slice(bytesRead), out int keyBytesRead);
                 bytesRead += keyBytesRead;
@@ -395,11 +391,54 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public static int WriteArray(Memory<byte> memory, IList val)
+        {
+            if (val == null)
+            {
+                NetworkOrderSerializer.WriteUInt32(memory, 0);
+                return 4;
+            }
+            else
+            {
+                int bytesWritten = 0;
+                foreach (object entry in val)
+                {
+                    bytesWritten += WriteFieldValue(memory.Slice(4 + bytesWritten), entry); ;
+                }
+
+                NetworkOrderSerializer.WriteUInt32(memory, (uint)bytesWritten);
+                return 4 + bytesWritten;
+            }
+        }
+
+        public static int GetArrayByteCount(IList val)
+        {
+            int byteCount = 4;
+            if (val == null)
+            {
+                return byteCount;
+            }
+
+            foreach (object entry in val)
+            {
+                byteCount += GetFieldValueByteCount(entry);
+            }
+
+            return byteCount;
+        }
+
         public static void WriteDecimal(NetworkBinaryWriter writer, decimal value)
         {
             DecimalToAmqp(value, out byte scale, out int mantissa);
             WriteOctet(writer, scale);
             WriteLong(writer, (uint)mantissa);
+        }
+
+        public static int WriteDecimal(Memory<byte> memory, decimal value)
+        {
+            DecimalToAmqp(value, out byte scale, out int mantissa);
+            memory.Span[0] = scale;
+            return 1 + WriteLong(memory.Slice(1), (uint)mantissa);
         }
 
         public static void WriteFieldValue(NetworkBinaryWriter writer, object value)
@@ -411,7 +450,7 @@ namespace RabbitMQ.Client.Impl
                     break;
                 case string val:
                     WriteOctet(writer, (byte)'S');
-                    int maxLength = Encoding.UTF8.GetMaxByteCount(val.Length);
+                    int maxLength = Encoding.UTF8.GetByteCount(val);
                     byte[] bytes = ArrayPool<byte>.Shared.Rent(maxLength);
                     try
                     {
@@ -490,14 +529,143 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public static int WriteFieldValue(Memory<byte> memory, object value)
+        {
+            if (value == null)
+            {
+                memory.Span[0] = (byte)'V';
+                return 1;
+            }
+
+            Memory<byte> slice = memory.Slice(1);
+            switch (value)
+            {
+                case string val:
+                    memory.Span[0] = (byte)'S';
+                    if (MemoryMarshal.TryGetArray(memory.Slice(5, Encoding.UTF8.GetByteCount(val)), out ArraySegment<byte> segment))
+                    {
+                        NetworkOrderSerializer.WriteUInt32(slice, (uint)segment.Count);
+                        Encoding.UTF8.GetBytes(val, 0, val.Length, segment.Array, segment.Offset);
+                        return segment.Count + 5;
+                    }
+
+                    throw new WireFormattingException("Unable to get array segment from memory.");
+                case byte[] val:
+                    memory.Span[0] = (byte)'S';
+                    return 1 + WriteLongstr(slice, val);
+                case int val:
+                    memory.Span[0] = (byte)'I';
+                    NetworkOrderSerializer.WriteInt32(slice, val);
+                    return 5;
+                case uint val:
+                    memory.Span[0] = (byte)'i';
+                    NetworkOrderSerializer.WriteUInt32(slice, val);
+                    return 5;
+                case decimal val:
+                    memory.Span[0] = (byte)'D';
+                    return 1 + WriteDecimal(slice, val);
+                case AmqpTimestamp val:
+                    memory.Span[0] = (byte)'T';
+                    return 1 + WriteTimestamp(slice, val);
+                case IDictionary val:
+                    memory.Span[0] = (byte)'F';
+                    return 1 + WriteTable(slice, val);
+                case IList val:
+                    memory.Span[0] = (byte)'A';
+                    return 1 + WriteArray(slice, val);
+                case byte val:
+                    memory.Span[0] = (byte)'B';
+                    memory.Span[1] = val;
+                    return 2;
+                case sbyte val:
+                    memory.Span[0] = (byte)'b';
+                    memory.Span[1] = (byte)val;
+                    return 2;
+                case double val:
+                    memory.Span[0] = (byte)'d';
+                    NetworkOrderSerializer.WriteDouble(slice, val);
+                    return 9;
+                case float val:
+                    memory.Span[0] = (byte)'f';
+                    NetworkOrderSerializer.WriteSingle(slice, val);
+                    return 5;
+                case long val:
+                    memory.Span[0] = (byte)'l';
+                    NetworkOrderSerializer.WriteInt64(slice, val);
+                    return 9;
+                case short val:
+                    memory.Span[0] = (byte)'s';
+                    NetworkOrderSerializer.WriteInt16(slice, val);
+                    return 3;
+                case bool val:
+                    memory.Span[0] = (byte)'t';
+                    memory.Span[1] = (byte)(val ? 1 : 0);
+                    return 2;
+                case BinaryTableValue val:
+                    memory.Span[0] = (byte)'x';
+                    return 1 + WriteLongstr(slice, val.Bytes);
+                default:
+                    throw new WireFormattingException($"Value of type '{value.GetType().Name}' cannot appear as table value", value);
+            }
+        }
+
+        public static int GetFieldValueByteCount(object value)
+        {
+            switch (value)
+            {
+                case null:
+                    return 1;
+                case byte _:
+                case sbyte _:
+                case bool _:
+                    return 2;
+                case short _:
+                    return 3;
+                case int _:
+                case uint _:
+                case float _:
+                    return 5;
+                case decimal _:
+                    return 6;
+                case AmqpTimestamp _:
+                case double _:
+                case long _:
+                    return 9;
+                case string val:
+                    return 5 + Encoding.UTF8.GetByteCount(val);
+                case byte[] val:
+                    return 5 + val.Length;
+                case IDictionary val:
+                    return 1 + GetTableByteCount(val);
+                case IList val:
+                    return 1 + GetArrayByteCount(val);
+                case BinaryTableValue val:
+                    return 5 + val.Bytes.Length;
+                default:
+                    throw new WireFormattingException($"Value of type '{value.GetType().Name}' cannot appear as table value", value);
+            }
+        }
+
         public static void WriteLong(NetworkBinaryWriter writer, uint val)
         {
             writer.Write(val);
         }
 
+        public static int WriteLong(Memory<byte> memory, uint val)
+        {
+            NetworkOrderSerializer.WriteUInt32(memory, val);
+            return 4;
+        }
+
         public static void WriteLonglong(NetworkBinaryWriter writer, ulong val)
         {
             writer.Write(val);
+        }
+
+        public static int WriteLonglong(Memory<byte> memory, ulong val)
+        {
+            NetworkOrderSerializer.WriteUInt64(memory, val);
+            return 8;
         }
 
         public static void WriteLongstr(NetworkBinaryWriter writer, byte[] val)
@@ -506,10 +674,22 @@ namespace RabbitMQ.Client.Impl
             writer.Write(val);
         }
 
+        public static int WriteLongstr(Memory<byte> memory, byte[] val)
+        {
+            return WriteLongstr(memory, val, 0, val.Length);
+        }
+
         public static void WriteLongstr(NetworkBinaryWriter writer, byte[] val, int index, int count)
         {
             WriteLong(writer, (uint)count);
             writer.Write(val, index, count);
+        }
+
+        public static int WriteLongstr(Memory<byte> memory, byte[] val, int index, int count)
+        {
+            WriteLong(memory, (uint)count);
+            val.AsMemory(index, count).CopyTo(memory.Slice(4));
+            return 4 + count;
         }
 
         public static void WriteOctet(NetworkBinaryWriter writer, byte val)
@@ -522,9 +702,15 @@ namespace RabbitMQ.Client.Impl
             writer.Write(val);
         }
 
+        public static int WriteShort(Memory<byte> memory, ushort val)
+        {
+            NetworkOrderSerializer.WriteUInt16(memory, val);
+            return 2;
+        }
+
         public static void WriteShortstr(NetworkBinaryWriter writer, string val)
         {
-            int maxLength = Encoding.UTF8.GetMaxByteCount(val.Length);
+            int maxLength = Encoding.UTF8.GetByteCount(val);
             byte[] bytes = ArrayPool<byte>.Shared.Rent(maxLength);
             try
             {
@@ -541,6 +727,19 @@ namespace RabbitMQ.Client.Impl
             {
                 ArrayPool<byte>.Shared.Return(bytes);
             }
+        }
+
+        public static int WriteShortstr(Memory<byte> memory, string val)
+        {
+            int stringBytesNeeded = Encoding.UTF8.GetByteCount(val);
+            if (MemoryMarshal.TryGetArray(memory.Slice(1, stringBytesNeeded), out ArraySegment<byte> segment))
+            {
+                memory.Span[0] = (byte)stringBytesNeeded;
+                Encoding.UTF8.GetBytes(val, 0, val.Length, segment.Array, segment.Offset);
+                return stringBytesNeeded + 1;
+            }
+
+            throw new WireFormattingException("Unable to get array segment from memory.");
         }
 
         ///<summary>Writes an AMQP "table" to the writer.</summary>
@@ -582,6 +781,86 @@ namespace RabbitMQ.Client.Impl
                 writer.Write((uint)tableLength);
                 backingStream.Seek(savedPosition, SeekOrigin.Begin);
             }
+        }
+
+        public static int WriteTable(Memory<byte> memory, IDictionary val)
+        {
+            if (val == null)
+            {
+                NetworkOrderSerializer.WriteUInt32(memory, 0);
+                return 4;
+            }
+            else
+            {
+                // Let's only write after the length header.
+                Memory<byte> slice = memory.Slice(4);
+                int bytesWritten = 0;
+                foreach (DictionaryEntry entry in val)
+                {
+                    bytesWritten += WriteShortstr(slice.Slice(bytesWritten), entry.Key.ToString());
+                    bytesWritten += WriteFieldValue(slice.Slice(bytesWritten), entry.Value);
+                }
+
+                NetworkOrderSerializer.WriteUInt32(memory, (uint)bytesWritten);
+                return 4 + bytesWritten;
+            }
+        }
+
+        public static int WriteTable(Memory<byte> memory, IDictionary<string, object> val)
+        {
+            if (val == null)
+            {
+                NetworkOrderSerializer.WriteUInt32(memory, 0);
+                return 4;
+            }
+            else
+            {
+                // Let's only write after the length header.
+                Memory<byte> slice = memory.Slice(4);
+                int bytesWritten = 0;
+                foreach (KeyValuePair<string, object> entry in val)
+                {
+                    bytesWritten += WriteShortstr(slice.Slice(bytesWritten), entry.Key.ToString());
+                    bytesWritten += WriteFieldValue(slice.Slice(bytesWritten), entry.Value);
+                }
+
+                NetworkOrderSerializer.WriteUInt32(memory, (uint)bytesWritten);
+                return 4 + bytesWritten;
+            }
+        }
+
+        public static int GetTableByteCount(IDictionary val)
+        {
+            int byteCount = 4;
+            if (val == null)
+            {
+                return byteCount;
+            }
+
+            foreach (DictionaryEntry entry in val)
+            {
+                byteCount += Encoding.UTF8.GetByteCount(entry.Key.ToString()) + 1;
+                byteCount += GetFieldValueByteCount(entry.Value);
+            }
+
+            return byteCount;
+        }
+
+        public static int GetTableByteCount(IDictionary<string, object> val)
+        {
+            int byteCount = 4;
+            if (val == null)
+            {
+                return byteCount;
+            }
+
+            foreach (KeyValuePair<string, object> entry in val)
+            {
+                byteCount += Encoding.UTF8.GetByteCount(entry.Key.ToString()) + 1;
+                byteCount += GetFieldValueByteCount(entry.Value);
+            }
+
+            return byteCount;
         }
 
         ///<summary>Writes an AMQP "table" to the writer.</summary>
@@ -630,6 +909,13 @@ namespace RabbitMQ.Client.Impl
             // 0-9 is afaict silent on the signedness of the timestamp.
             // See also MethodArgumentReader.ReadTimestamp and AmqpTimestamp itself
             WriteLonglong(writer, (ulong)val.UnixTime);
+        }
+
+        public static int WriteTimestamp(Memory<byte> memory, AmqpTimestamp val)
+        {
+            // 0-9 is afaict silent on the signedness of the timestamp.
+            // See also MethodArgumentReader.ReadTimestamp and AmqpTimestamp itself
+            return WriteLonglong(memory, (ulong)val.UnixTime);
         }
     }
 }

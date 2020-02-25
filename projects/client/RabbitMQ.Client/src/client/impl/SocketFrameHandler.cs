@@ -39,10 +39,12 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -227,23 +229,59 @@ namespace RabbitMQ.Client.Impl
 
         public void WriteFrame(OutboundFrame frame)
         {
-            var ms = new MemoryStream();
-            var nbw = new NetworkBinaryWriter(ms);
-            frame.WriteTo(nbw);
-            _socket.Client.Poll(_writeableStateTimeoutMicroSeconds, SelectMode.SelectWrite);
-            Write(ms.GetBufferSegment());
+            int bufferSize = frame.GetMinimumBufferSize();
+            using (IMemoryOwner<byte> memory = MemoryPool<byte>.Shared.Rent(bufferSize))
+            {
+                Memory<byte> slice = memory.Memory.Slice(0, bufferSize);
+                frame.WriteTo(slice);
+                _socket.Client.Poll(_writeableStateTimeoutMicroSeconds, SelectMode.SelectWrite);
+                if (MemoryMarshal.TryGetArray(slice.Slice(0, frame.ByteCount), out ArraySegment<byte> segment))
+                {
+                    Write(segment);
+                    return;
+                }
+
+
+                throw new InvalidOperationException("Unable to get array segment from memory.");
+            }
         }
 
         public void WriteFrameSet(IList<OutboundFrame> frames)
         {
-            var ms = new MemoryStream();
-            var nbw = new NetworkBinaryWriter(ms);
-            for (int i = 0; i < frames.Count; ++i)
+            for (int i = 0; i < frames.Count; i++)
             {
-                frames[i].WriteTo(nbw);
+                WriteFrame(frames[i]);
             }
-            _socket.Client.Poll(_writeableStateTimeoutMicroSeconds, SelectMode.SelectWrite);
-            Write(ms.GetBufferSegment());
+            /*
+            int bufferSize = 0;
+            for (int i = 0; i < frames.Count; i++)
+            {
+                bufferSize += frames[i].GetMinimumBufferSize();
+            }
+
+            using (IMemoryOwner<byte> memory = MemoryPool<byte>.Shared.Rent(bufferSize))
+            {
+                int frameBytes = 0;
+                Memory<byte> slice = memory.Memory.Slice(0, bufferSize);
+                for (int i = 0; i < frames.Count; i++)
+                {
+                    OutboundFrame frame = frames[i];
+                    int frameLength = frame.GetMinimumBufferSize();
+                    Memory<byte> frameSlice = slice.Slice(frameBytes, frameLength);
+                    frame.WriteTo(frameSlice);
+                    frameBytes += frame.ByteCount;
+                }
+
+                _socket.Client.Poll(_writeableStateTimeoutMicroSeconds, SelectMode.SelectWrite);
+                if (MemoryMarshal.TryGetArray(slice.Slice(0, frameBytes), out ArraySegment<byte> segment))
+                {
+                    Write(segment);
+                    return;
+                }
+
+                throw new InvalidOperationException("Unable to get array segment from memory.");
+            }
+            */
         }
 
         private void Write(ArraySegment<byte> bufferSegment)

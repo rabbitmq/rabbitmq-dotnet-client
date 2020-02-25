@@ -42,8 +42,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-using RabbitMQ.Util;
-
 namespace RabbitMQ.Client.Impl
 {
     class MethodArgumentWriter
@@ -51,28 +49,18 @@ namespace RabbitMQ.Client.Impl
         private byte _bitAccumulator;
         private int _bitMask;
         private bool _needBitFlush;
+        public int Offset { get; private set; } = 0;
+        public Memory<byte> Memory { get; private set; }
 
-        public MethodArgumentWriter(NetworkBinaryWriter writer)
+        public MethodArgumentWriter(Memory<byte> memory)
         {
-            BaseWriter = writer;
-            if (!BaseWriter.BaseStream.CanSeek)
-            {
-                //FIXME: Consider throwing System.IO.IOException
-                // with message indicating that the specified writer does not support Seeking
-
-                // Only really a problem if we try to write a table,
-                // but complain anyway. See WireFormatting.WriteTable
-                throw new NotSupportedException("Cannot write method arguments to non-positionable stream");
-            }
+            Memory = memory;
             ResetBitAccumulator();
         }
-
-        public NetworkBinaryWriter BaseWriter { get; private set; }
 
         public void Flush()
         {
             BitFlush();
-            BaseWriter.Flush();
         }
 
         public void WriteBit(bool val)
@@ -101,62 +89,62 @@ namespace RabbitMQ.Client.Impl
         public void WriteLong(uint val)
         {
             BitFlush();
-            WireFormatting.WriteLong(BaseWriter, val);
+            Offset += WireFormatting.WriteLong(Memory.Slice(Offset), val);
         }
 
         public void WriteLonglong(ulong val)
         {
             BitFlush();
-            WireFormatting.WriteLonglong(BaseWriter, val);
+            Offset += WireFormatting.WriteLonglong(Memory.Slice(Offset), val);
         }
 
         public void WriteLongstr(byte[] val)
         {
             BitFlush();
-            WireFormatting.WriteLongstr(BaseWriter, val);
+            Offset += WireFormatting.WriteLongstr(Memory.Slice(Offset), val);
         }
 
         public void WriteOctet(byte val)
         {
             BitFlush();
-            WireFormatting.WriteOctet(BaseWriter, val);
+            Memory.Slice(Offset++).Span[0] = val;
         }
 
         public void WriteShort(ushort val)
         {
             BitFlush();
-            WireFormatting.WriteShort(BaseWriter, val);
+            Offset += WireFormatting.WriteShort(Memory.Slice(Offset), val);
         }
 
         public void WriteShortstr(string val)
         {
             BitFlush();
-            WireFormatting.WriteShortstr(BaseWriter, val);
+            Offset += WireFormatting.WriteShortstr(Memory.Slice(Offset), val);
         }
 
         public void WriteTable(IDictionary val)
         {
             BitFlush();
-            WireFormatting.WriteTable(BaseWriter, val);
+            Offset += WireFormatting.WriteTable(Memory.Slice(Offset), val);
         }
 
         public void WriteTable(IDictionary<string, object> val)
         {
             BitFlush();
-            WireFormatting.WriteTable(BaseWriter, val);
+            Offset += WireFormatting.WriteTable(Memory.Slice(Offset), val);
         }
 
         public void WriteTimestamp(AmqpTimestamp val)
         {
             BitFlush();
-            WireFormatting.WriteTimestamp(BaseWriter, val);
+            Offset += WireFormatting.WriteTimestamp(Memory.Slice(Offset), val);
         }
 
         private void BitFlush()
         {
             if (_needBitFlush)
             {
-                BaseWriter.Write(_bitAccumulator);
+                Memory.Slice(Offset++).Span[0] = _bitAccumulator;
                 ResetBitAccumulator();
             }
         }

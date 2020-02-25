@@ -435,7 +435,7 @@ namespace RabbitMQ.Client.Content
 
         public static void WriteUntypedString(NetworkBinaryWriter writer, string value)
         {
-            int maxLength = Encoding.UTF8.GetMaxByteCount(value.Length);
+            int maxLength = Encoding.UTF8.GetByteCount(value);
             byte[] bytes = ArrayPool<byte>.Shared.Rent(maxLength + 1);
             try
             {

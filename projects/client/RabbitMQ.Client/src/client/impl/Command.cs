@@ -40,10 +40,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 
 using RabbitMQ.Client.Framing.Impl;
-using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -82,10 +80,9 @@ namespace RabbitMQ.Client.Impl
         public static void CheckEmptyFrameSize()
         {
             var f = new EmptyOutboundFrame();
-            var stream = new MemoryStream();
-            var writer = new NetworkBinaryWriter(stream);
-            f.WriteTo(writer);
-            long actualLength = stream.Length;
+            byte[] b = new byte[f.GetMinimumBufferSize()];
+            f.WriteTo(b);
+            long actualLength = f.ByteCount;
 
             if (EmptyFrameSize != actualLength)
             {
