@@ -39,6 +39,8 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
+using System.Buffers.Binary;
 using System.IO;
 using System.Text;
 
@@ -93,8 +95,16 @@ namespace RabbitMQ.Util
         /// </summary>
         public override void Write(short i)
         {
-            Write((byte)((i & 0xFF00) >> 8));
-            Write((byte)(i & 0x00FF));
+            byte[] bytes = ArrayPool<byte>.Shared.Rent(2);
+            try
+            {
+                BinaryPrimitives.WriteInt16BigEndian(bytes, i);
+                Write(bytes, 0, 2);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(bytes);
+            }
         }
 
         /// <summary>
@@ -102,8 +112,16 @@ namespace RabbitMQ.Util
         /// </summary>
         public override void Write(ushort i)
         {
-            Write((byte)((i & 0xFF00) >> 8));
-            Write((byte)(i & 0x00FF));
+            byte[] bytes = ArrayPool<byte>.Shared.Rent(2);
+            try
+            {
+                BinaryPrimitives.WriteUInt16BigEndian(bytes, i);
+                Write(bytes, 0, 2);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(bytes);
+            }
         }
 
         /// <summary>
@@ -111,10 +129,16 @@ namespace RabbitMQ.Util
         /// </summary>
         public override void Write(int i)
         {
-            Write((byte)((i & 0xFF000000) >> 24));
-            Write((byte)((i & 0x00FF0000) >> 16));
-            Write((byte)((i & 0x0000FF00) >> 8));
-            Write((byte)(i & 0x000000FF));
+            byte[] bytes = ArrayPool<byte>.Shared.Rent(4);
+            try
+            {
+                BinaryPrimitives.WriteInt32BigEndian(bytes, i);
+                Write(bytes, 0, 4);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(bytes);
+            }
         }
 
         /// <summary>
@@ -122,10 +146,16 @@ namespace RabbitMQ.Util
         /// </summary>
         public override void Write(uint i)
         {
-            Write((byte)((i & 0xFF000000) >> 24));
-            Write((byte)((i & 0x00FF0000) >> 16));
-            Write((byte)((i & 0x0000FF00) >> 8));
-            Write((byte)(i & 0x000000FF));
+            byte[] bytes = ArrayPool<byte>.Shared.Rent(4);
+            try
+            {
+                BinaryPrimitives.WriteUInt32BigEndian(bytes, i);
+                Write(bytes, 0, 4);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(bytes);
+            }
         }
 
         /// <summary>
@@ -133,10 +163,16 @@ namespace RabbitMQ.Util
         /// </summary>
         public override void Write(long i)
         {
-            var i1 = (uint)(i >> 32);
-            var i2 = (uint)i;
-            Write(i1);
-            Write(i2);
+            byte[] bytes = ArrayPool<byte>.Shared.Rent(8);
+            try
+            {
+                BinaryPrimitives.WriteInt64BigEndian(bytes, i);
+                Write(bytes, 0, 8);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(bytes);
+            }
         }
 
         /// <summary>
@@ -144,10 +180,16 @@ namespace RabbitMQ.Util
         /// </summary>
         public override void Write(ulong i)
         {
-            var i1 = (uint)(i >> 32);
-            var i2 = (uint)i;
-            Write(i1);
-            Write(i2);
+            byte[] bytes = ArrayPool<byte>.Shared.Rent(8);
+            try
+            {
+                BinaryPrimitives.WriteUInt64BigEndian(bytes, i);
+                Write(bytes, 0, 8);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(bytes);
+            }
         }
 
         /// <summary>
@@ -155,13 +197,13 @@ namespace RabbitMQ.Util
         /// </summary>
         public override void Write(float f)
         {
-            BinaryWriter w = TemporaryBinaryWriter(4);
-            w.Write(f);
-            byte[] wrongBytes = TemporaryContents(w);
-            Write(wrongBytes[3]);
-            Write(wrongBytes[2]);
-            Write(wrongBytes[1]);
-            Write(wrongBytes[0]);
+            byte[] bytes = BitConverter.GetBytes(f);
+            if (BitConverter.IsLittleEndian)
+            {
+                bytes.AsSpan().Reverse();
+            }
+
+            Write(bytes);
         }
 
         /// <summary>
@@ -169,17 +211,16 @@ namespace RabbitMQ.Util
         /// </summary>
         public override void Write(double d)
         {
-            BinaryWriter w = TemporaryBinaryWriter(8);
-            w.Write(d);
-            byte[] wrongBytes = TemporaryContents(w);
-            Write(wrongBytes[7]);
-            Write(wrongBytes[6]);
-            Write(wrongBytes[5]);
-            Write(wrongBytes[4]);
-            Write(wrongBytes[3]);
-            Write(wrongBytes[2]);
-            Write(wrongBytes[1]);
-            Write(wrongBytes[0]);
+            byte[] bytes = ArrayPool<byte>.Shared.Rent(8);
+            try
+            {
+                BinaryPrimitives.WriteInt64BigEndian(bytes, BitConverter.DoubleToInt64Bits(d));
+                Write(bytes, 0, 8);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(bytes);
+            }
         }
     }
 }
