@@ -78,7 +78,7 @@ namespace RabbitMQ.Client.Impl
         private int _writeableStateTimeoutMicroSeconds;
         private readonly NetworkBinaryReader _reader;
         private readonly ITcpClient _socket;
-        private readonly NetworkBinaryWriter _writer;
+        private readonly Stream _writer;
         private readonly object _semaphore = new object();
         private readonly object _streamLock = new object();
         private bool _closed;
@@ -122,7 +122,7 @@ namespace RabbitMQ.Client.Impl
                 }
             }
             _reader = new NetworkBinaryReader(new BufferedStream(netstream, _socket.Client.ReceiveBufferSize));
-            _writer = new NetworkBinaryWriter(netstream);
+            _writer = netstream;
 
             WriteTimeout = writeTimeout;
         }
