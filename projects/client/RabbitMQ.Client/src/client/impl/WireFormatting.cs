@@ -98,7 +98,7 @@ namespace RabbitMQ.Client.Impl
         public static IList ReadArray(Memory<byte> memory, out int bytesRead)
         {
             IList array = new List<object>();
-            long arrayLength = NetworkOrderDeserializer.ReadUInt32(memory, 0);
+            long arrayLength = NetworkOrderDeserializer.ReadUInt32(memory);
             bytesRead = 4;
             while (bytesRead - 4 < arrayLength)
             {

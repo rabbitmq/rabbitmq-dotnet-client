@@ -932,7 +932,7 @@ $@"namespace {ApiNamespaceBase}
             EmitLine("    internal override Client.Impl.MethodBase DecodeMethodFrom(Memory<byte> memory)");
             EmitLine("    {");
             EmitLine("      ushort classId = Util.NetworkOrderDeserializer.ReadUInt16(memory);");
-            EmitLine("      ushort methodId = Util.NetworkOrderDeserializer.ReadUInt16(memory, 2);");
+            EmitLine("      ushort methodId = Util.NetworkOrderDeserializer.ReadUInt16(memory.Slice(2));");
             EmitLine("      Client.Impl.MethodBase result = DecodeMethodFrom(classId, methodId);");
             EmitLine("      if(result != null)");
             EmitLine("      {");

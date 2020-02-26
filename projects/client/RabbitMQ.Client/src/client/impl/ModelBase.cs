@@ -67,7 +67,6 @@ namespace RabbitMQ.Client.Impl
         private readonly RpcContinuationQueue _continuationQueue = new RpcContinuationQueue();
         private readonly ManualResetEvent _flowControlBlock = new ManualResetEvent(true);
 
-        private readonly object _eventLock = new object();
         private readonly object _shutdownLock = new object();
         private readonly object _rpcLock = new object();
 

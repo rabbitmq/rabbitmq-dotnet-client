@@ -239,30 +239,35 @@ namespace RabbitMQ.Client.Impl
                 ProcessProtocolHeader(reader);
             }
 
-            int channel = reader.ReadUInt16();
-            int payloadSize = reader.ReadInt32(); // FIXME - throw exn on unreasonable value
-            byte[] payload = ArrayPool<byte>.Shared.Rent(payloadSize);
-            int bytesRead = 0;
-            try
+            using (IMemoryOwner<byte> headerMemory = MemoryPool<byte>.Shared.Rent(6))
             {
-                while (bytesRead < payloadSize)
+                Memory<byte> headerSlice = headerMemory.Memory.Slice(0, 6);
+                reader.Read(headerSlice);
+                int channel = NetworkOrderDeserializer.ReadUInt16(headerSlice);
+                int payloadSize = NetworkOrderDeserializer.ReadInt32(headerSlice.Slice(2)); // FIXME - throw exn on unreasonable value
+                byte[] payload = ArrayPool<byte>.Shared.Rent(payloadSize);
+                int bytesRead = 0;
+                try
                 {
-                    bytesRead += reader.Read(payload, bytesRead, payloadSize - bytesRead);
+                    while (bytesRead < payloadSize)
+                    {
+                        bytesRead += reader.Read(payload, bytesRead, payloadSize - bytesRead);
+                    }
                 }
-            }
-            catch (Exception)
-            {
-                // Early EOF.
-                throw new MalformedFrameException($"Short frame - expected to read {payloadSize} bytes, only got {bytesRead} bytes");
-            }
+                catch (Exception)
+                {
+                    // Early EOF.
+                    throw new MalformedFrameException($"Short frame - expected to read {payloadSize} bytes, only got {bytesRead} bytes");
+                }
 
-            int frameEndMarker = reader.ReadByte();
-            if (frameEndMarker != Constants.FrameEnd)
-            {
-                throw new MalformedFrameException("Bad frame end marker: " + frameEndMarker);
-            }
+                int frameEndMarker = reader.ReadByte();
+                if (frameEndMarker != Constants.FrameEnd)
+                {
+                    throw new MalformedFrameException("Bad frame end marker: " + frameEndMarker);
+                }
 
-            return new InboundFrame((FrameType)type, channel, payload, payloadSize);
+                return new InboundFrame((FrameType)type, channel, payload, payloadSize);
+            }
         }
 
         internal NetworkBinaryReader GetReader()
