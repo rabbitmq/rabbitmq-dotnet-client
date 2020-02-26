@@ -1047,7 +1047,7 @@ entry.ToString());
 
         public void StartMainLoop(bool useBackgroundThread)
         {
-            _mainLoopTask = Task.Run(MainLoop);
+            _mainLoopTask = Task.Run((Action)MainLoop);
         }
 
         public void HeartbeatReadTimerCallback(object state)
