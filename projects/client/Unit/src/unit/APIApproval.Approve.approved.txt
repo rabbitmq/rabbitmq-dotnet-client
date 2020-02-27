@@ -50,7 +50,7 @@ namespace RabbitMQ.Client
         public virtual System.Threading.Tasks.Task HandleBasicCancel(string consumerTag) { }
         public virtual System.Threading.Tasks.Task HandleBasicCancelOk(string consumerTag) { }
         public virtual System.Threading.Tasks.Task HandleBasicConsumeOk(string consumerTag) { }
-        public virtual System.Threading.Tasks.Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, RabbitMQ.Client.IBasicProperties properties, byte[] body) { }
+        public virtual System.Threading.Tasks.Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, RabbitMQ.Client.IBasicProperties properties, System.ReadOnlyMemory<byte> body) { }
         public virtual System.Threading.Tasks.Task HandleModelShutdown(object model, RabbitMQ.Client.ShutdownEventArgs reason) { }
         public virtual System.Threading.Tasks.Task OnCancel(params string[] consumerTags) { }
     }
@@ -65,9 +65,9 @@ namespace RabbitMQ.Client
     }
     public class BasicGetResult
     {
-        public BasicGetResult(ulong deliveryTag, bool redelivered, string exchange, string routingKey, uint messageCount, RabbitMQ.Client.IBasicProperties basicProperties, byte[] body) { }
+        public BasicGetResult(ulong deliveryTag, bool redelivered, string exchange, string routingKey, uint messageCount, RabbitMQ.Client.IBasicProperties basicProperties, System.ReadOnlyMemory<byte> body) { }
         public RabbitMQ.Client.IBasicProperties BasicProperties { get; }
-        public byte[] Body { get; }
+        public System.ReadOnlyMemory<byte> Body { get; }
         public ulong DeliveryTag { get; }
         public string Exchange { get; }
         public uint MessageCount { get; }
@@ -153,7 +153,7 @@ namespace RabbitMQ.Client
         public virtual void HandleBasicCancel(string consumerTag) { }
         public virtual void HandleBasicCancelOk(string consumerTag) { }
         public virtual void HandleBasicConsumeOk(string consumerTag) { }
-        public virtual void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, RabbitMQ.Client.IBasicProperties properties, byte[] body) { }
+        public virtual void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, RabbitMQ.Client.IBasicProperties properties, System.ReadOnlyMemory<byte> body) { }
         public virtual void HandleModelShutdown(object model, RabbitMQ.Client.ShutdownEventArgs reason) { }
         public virtual void OnCancel(params string[] consumerTags) { }
     }
@@ -209,7 +209,7 @@ namespace RabbitMQ.Client
         System.Threading.Tasks.Task HandleBasicCancel(string consumerTag);
         System.Threading.Tasks.Task HandleBasicCancelOk(string consumerTag);
         System.Threading.Tasks.Task HandleBasicConsumeOk(string consumerTag);
-        System.Threading.Tasks.Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, RabbitMQ.Client.IBasicProperties properties, byte[] body);
+        System.Threading.Tasks.Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, RabbitMQ.Client.IBasicProperties properties, System.ReadOnlyMemory<byte> body);
         System.Threading.Tasks.Task HandleModelShutdown(object model, RabbitMQ.Client.ShutdownEventArgs reason);
     }
     public interface IAsyncConnectionFactory : RabbitMQ.Client.IConnectionFactory
@@ -223,7 +223,7 @@ namespace RabbitMQ.Client
         void HandleBasicCancel(string consumerTag);
         void HandleBasicCancelOk(string consumerTag);
         void HandleBasicConsumeOk(string consumerTag);
-        void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, RabbitMQ.Client.IBasicProperties properties, byte[] body);
+        void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, RabbitMQ.Client.IBasicProperties properties, System.ReadOnlyMemory<byte> body);
         void HandleModelShutdown(object model, RabbitMQ.Client.ShutdownEventArgs reason);
     }
     public interface IBasicProperties : RabbitMQ.Client.IContentHeader
@@ -578,7 +578,7 @@ namespace RabbitMQ.Client.Events
         public event RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.ConsumerEventArgs> Unregistered;
         public override System.Threading.Tasks.Task HandleBasicCancelOk(string consumerTag) { }
         public override System.Threading.Tasks.Task HandleBasicConsumeOk(string consumerTag) { }
-        public override System.Threading.Tasks.Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, RabbitMQ.Client.IBasicProperties properties, byte[] body) { }
+        public override System.Threading.Tasks.Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, RabbitMQ.Client.IBasicProperties properties, System.ReadOnlyMemory<byte> body) { }
         public override System.Threading.Tasks.Task HandleModelShutdown(object model, RabbitMQ.Client.ShutdownEventArgs reason) { }
     }
     public abstract class BaseExceptionEventArgs : System.EventArgs
@@ -597,9 +597,9 @@ namespace RabbitMQ.Client.Events
     public class BasicDeliverEventArgs : System.EventArgs
     {
         public BasicDeliverEventArgs() { }
-        public BasicDeliverEventArgs(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, RabbitMQ.Client.IBasicProperties properties, byte[] body) { }
+        public BasicDeliverEventArgs(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, RabbitMQ.Client.IBasicProperties properties, System.ReadOnlyMemory<byte> body) { }
         public RabbitMQ.Client.IBasicProperties BasicProperties { get; set; }
-        public byte[] Body { get; set; }
+        public System.ReadOnlyMemory<byte> Body { get; set; }
         public string ConsumerTag { get; set; }
         public ulong DeliveryTag { get; set; }
         public string Exchange { get; set; }
@@ -617,7 +617,7 @@ namespace RabbitMQ.Client.Events
     {
         public BasicReturnEventArgs() { }
         public RabbitMQ.Client.IBasicProperties BasicProperties { get; set; }
-        public byte[] Body { get; set; }
+        public System.ReadOnlyMemory<byte> Body { get; set; }
         public string Exchange { get; set; }
         public ushort ReplyCode { get; set; }
         public string ReplyText { get; set; }
@@ -659,7 +659,7 @@ namespace RabbitMQ.Client.Events
         public event System.EventHandler<RabbitMQ.Client.Events.ConsumerEventArgs> Unregistered;
         public override void HandleBasicCancelOk(string consumerTag) { }
         public override void HandleBasicConsumeOk(string consumerTag) { }
-        public override void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, RabbitMQ.Client.IBasicProperties properties, byte[] body) { }
+        public override void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, RabbitMQ.Client.IBasicProperties properties, System.ReadOnlyMemory<byte> body) { }
         public override void HandleModelShutdown(object model, RabbitMQ.Client.ShutdownEventArgs reason) { }
     }
     public class FlowControlEventArgs : System.EventArgs

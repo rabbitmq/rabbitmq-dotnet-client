@@ -630,7 +630,7 @@ namespace RabbitMQ.Client.Impl
             string exchange,
             string routingKey,
             IBasicProperties basicProperties,
-            byte[] body)
+            ReadOnlyMemory<byte> body)
         {
             IBasicConsumer consumer;
             lock (m_consumers)
@@ -674,7 +674,7 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             uint messageCount,
             IBasicProperties basicProperties,
-            byte[] body)
+            ReadOnlyMemory<byte> body)
         {
             var k = (BasicGetRpcContinuation)_continuationQueue.Next();
             k.m_result = new BasicGetResult(deliveryTag,
@@ -712,7 +712,7 @@ namespace RabbitMQ.Client.Impl
             string exchange,
             string routingKey,
             IBasicProperties basicProperties,
-            byte[] body)
+            ReadOnlyMemory<byte> body)
         {
             var e = new BasicReturnEventArgs
             {

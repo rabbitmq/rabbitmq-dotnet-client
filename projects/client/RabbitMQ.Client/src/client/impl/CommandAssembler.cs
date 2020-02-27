@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
 using System.IO;
 
 using RabbitMQ.Client.Framing.Impl;
@@ -60,10 +61,10 @@ namespace RabbitMQ.Client.Impl
 
         public MethodBase m_method;
         public ContentHeaderBase m_header;
-        public MemoryStream m_bodyStream;
-        public byte[] m_body;
+        public IMemoryOwner<byte> m_body;
         public ProtocolBase m_protocol;
         public int m_remainingBodyBytes;
+        private int _offset;
         public AssemblyState m_state;
 
         public CommandAssembler(ProtocolBase protocol)
@@ -98,8 +99,7 @@ namespace RabbitMQ.Client.Impl
                     }
 
                     m_remainingBodyBytes = (int)totalBodyBytes;
-                    m_body = new byte[m_remainingBodyBytes];
-                    m_bodyStream = new MemoryStream(m_body, true);
+                    m_body = MemoryPool<byte>.Shared.Rent(m_remainingBodyBytes);
                     UpdateContentBodyState();
                     return CompletedCommand();
                 case AssemblyState.ExpectingContentBody:
@@ -113,8 +113,9 @@ namespace RabbitMQ.Client.Impl
                         throw new MalformedFrameException($"Overlong content body received - {m_remainingBodyBytes} bytes remaining, {f.PayloadSize} bytes received");
                     }
 
-                    m_bodyStream.Write(f.Payload, 0, f.PayloadSize);
+                    f.Payload.AsMemory().Slice(0, f.PayloadSize).CopyTo(m_body.Memory.Slice(_offset, f.PayloadSize));
                     m_remainingBodyBytes -= f.PayloadSize;
+                    _offset += f.PayloadSize;
                     UpdateContentBodyState();
                     return CompletedCommand();
                 case AssemblyState.Complete:
@@ -127,7 +128,7 @@ namespace RabbitMQ.Client.Impl
         {
             if (m_state == AssemblyState.Complete)
             {
-                Command result = new Command(m_method, m_header, m_body);
+                Command result = new Command(m_method, m_header, m_body, _offset);
                 Reset();
                 return result;
             }
@@ -143,7 +144,7 @@ namespace RabbitMQ.Client.Impl
             m_method = null;
             m_header = null;
             m_body = null;
-            m_bodyStream = null;
+            _offset = 0;
             m_remainingBodyBytes = 0;
         }
 

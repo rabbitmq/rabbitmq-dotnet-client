@@ -1,4 +1,6 @@
-﻿namespace RabbitMQ.Client.Impl
+﻿using System;
+
+namespace RabbitMQ.Client.Impl
 {
     internal sealed class AsyncConsumerDispatcher : IConsumerDispatcher
     {
@@ -46,7 +48,7 @@
             string exchange,
             string routingKey,
             IBasicProperties basicProperties,
-            byte[] body)
+            ReadOnlyMemory<byte> body)
         {
             ScheduleUnlessShuttingDown(new BasicDeliver(consumer, consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body));
         }

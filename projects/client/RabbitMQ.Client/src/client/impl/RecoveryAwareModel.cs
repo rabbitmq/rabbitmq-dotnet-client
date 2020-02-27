@@ -38,6 +38,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
@@ -65,7 +66,7 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             uint messageCount,
             IBasicProperties basicProperties,
-            byte[] body)
+            ReadOnlyMemory<byte> body)
         {
             if (deliveryTag > MaxSeenDeliveryTag)
             {
@@ -88,7 +89,7 @@ namespace RabbitMQ.Client.Impl
             string exchange,
             string routingKey,
             IBasicProperties basicProperties,
-            byte[] body)
+            ReadOnlyMemory<byte> body)
         {
             if (deliveryTag > MaxSeenDeliveryTag)
             {

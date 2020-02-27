@@ -38,6 +38,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+
 namespace RabbitMQ.Client
 {
     /// <summary>Represents Basic.GetOk responses from the server.</summary>
@@ -57,7 +59,7 @@ namespace RabbitMQ.Client
         /// <param name="basicProperties">The Basic-class content header properties for the message.</param>
         /// <param name="body"></param>
         public BasicGetResult(ulong deliveryTag, bool redelivered, string exchange,
-            string routingKey, uint messageCount, IBasicProperties basicProperties, byte[] body)
+            string routingKey, uint messageCount, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
         {
             DeliveryTag = deliveryTag;
             Redelivered = redelivered;
@@ -76,7 +78,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Retrieves the body of this message.
         /// </summary>
-        public byte[] Body { get; private set; }
+        public ReadOnlyMemory<byte> Body { get; private set; }
 
         /// <summary>
         /// Retrieve the delivery tag for this message. See also <see cref="IModel.BasicAck"/>.
