@@ -440,11 +440,6 @@ namespace RabbitMQ.Client
         int MajorVersion { get; }
         int MinorVersion { get; }
         int Revision { get; }
-        RabbitMQ.Client.IConnection CreateConnection(RabbitMQ.Client.ConnectionFactory factory, RabbitMQ.Client.Impl.IFrameHandler frameHandler, bool automaticRecoveryEnabled);
-        RabbitMQ.Client.IConnection CreateConnection(RabbitMQ.Client.IConnectionFactory factory, bool insist, RabbitMQ.Client.Impl.IFrameHandler frameHandler);
-        RabbitMQ.Client.IConnection CreateConnection(RabbitMQ.Client.ConnectionFactory factory, RabbitMQ.Client.Impl.IFrameHandler frameHandler, bool automaticRecoveryEnabled, string clientProvidedName);
-        RabbitMQ.Client.IConnection CreateConnection(RabbitMQ.Client.IConnectionFactory factory, bool insist, RabbitMQ.Client.Impl.IFrameHandler frameHandler, string clientProvidedName);
-        RabbitMQ.Client.IModel CreateModel(RabbitMQ.Client.Impl.ISession session);
     }
     public interface IRecoverable
     {
