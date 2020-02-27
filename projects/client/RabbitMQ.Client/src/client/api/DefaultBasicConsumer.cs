@@ -57,7 +57,6 @@ namespace RabbitMQ.Client
     /// </remarks>
     public class DefaultBasicConsumer : IBasicConsumer
     {
-        private readonly object _eventLock = new object();
         private readonly HashSet<string> _consumerTags = new HashSet<string>();
 
         /// <summary>

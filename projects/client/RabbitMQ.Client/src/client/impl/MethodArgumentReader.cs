@@ -57,7 +57,7 @@ namespace RabbitMQ.Client.Impl
             ClearBits();
         }
 
-        private Memory<byte> _memory;
+        private readonly Memory<byte> _memory;
         private int _memoryOffset;
 
         public bool ReadBit()
