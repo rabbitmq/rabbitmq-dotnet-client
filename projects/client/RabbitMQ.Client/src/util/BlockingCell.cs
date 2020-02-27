@@ -53,7 +53,7 @@ namespace RabbitMQ.Util
     ///attempts to set Value result in a thrown
     ///InvalidOperationException.
     ///</remarks>
-    public class BlockingCell<T>
+    class BlockingCell<T>
     {
         private readonly ManualResetEventSlim _manualResetEventSlim = new ManualResetEventSlim(false);
         private T _value = default;

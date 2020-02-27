@@ -42,7 +42,7 @@ using System.Collections.Generic;
 
 namespace RabbitMQ.Util
 {
-    public class SetQueue<T>
+    class SetQueue<T>
     {
         private readonly HashSet<T> _members = new HashSet<T>();
         private readonly LinkedList<T> _queue = new LinkedList<T>();

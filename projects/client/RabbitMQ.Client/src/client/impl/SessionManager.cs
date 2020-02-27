@@ -50,7 +50,7 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    public class SessionManager
+    class SessionManager
     {
         public readonly ushort ChannelMax;
         private readonly IntAllocator _ints;
@@ -110,7 +110,7 @@ namespace RabbitMQ.Client.Impl
                         // HandleSessionShutdown above, which runs in
                         // the thread of the connection. If we were to
                         // attempt to close the connection synchronously,
-                        // we would suffer a deadlock as the connection thread 
+                        // we would suffer a deadlock as the connection thread
                         // would be blocking waiting for its own mainloop
                         // to reply to it.
                         Task.Run((Action)AutoCloseConnection).Wait();

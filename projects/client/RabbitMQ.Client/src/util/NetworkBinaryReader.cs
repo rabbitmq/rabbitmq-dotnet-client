@@ -54,7 +54,7 @@ namespace RabbitMQ.Util
     /// Relies on BinaryReader always being little-endian.
     /// </para>
     /// </remarks>
-    public class NetworkBinaryReader : BinaryReader
+    class NetworkBinaryReader : BinaryReader
     {
         // Not particularly efficient. To be more efficient, we could
         // reuse BinaryReader's implementation details: m_buffer and

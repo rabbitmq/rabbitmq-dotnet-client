@@ -47,7 +47,7 @@ using RabbitMQ.Util;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestNetworkBinaryCodec
+    class TestNetworkBinaryCodec
     {
         public static NetworkBinaryWriter Writer()
         {

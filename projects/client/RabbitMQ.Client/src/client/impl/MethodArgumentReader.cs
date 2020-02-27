@@ -45,7 +45,7 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    public class MethodArgumentReader
+    class MethodArgumentReader
     {
         private int _bit;
         private int _bits;

@@ -49,7 +49,7 @@ using RabbitMQ.Util;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestContentHeaderCodec
+    class TestContentHeaderCodec
     {
         public static ContentHeaderPropertyWriter Writer()
         {

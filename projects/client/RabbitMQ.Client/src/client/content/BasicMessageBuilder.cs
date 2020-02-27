@@ -48,7 +48,7 @@ namespace RabbitMQ.Client.Content
     /// <summary>
     /// Framework for constructing various types of AMQP. Basic-class application messages.
     /// </summary>
-    public class BasicMessageBuilder : IMessageBuilder
+    class BasicMessageBuilder : IMessageBuilder
     {
         /// <summary>
         /// By default, new instances of BasicMessageBuilder and its subclasses will have this much initial buffer space.

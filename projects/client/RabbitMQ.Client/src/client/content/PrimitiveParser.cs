@@ -45,7 +45,7 @@ namespace RabbitMQ.Client.Content
     /// <summary>
     ///     Utility class for extracting typed values from strings.
     /// </summary>
-    public static class PrimitiveParser
+    static class PrimitiveParser
     {
         /// <summary>
         /// Creates the protocol violation exception.

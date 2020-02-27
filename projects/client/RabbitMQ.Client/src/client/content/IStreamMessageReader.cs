@@ -43,7 +43,7 @@ namespace RabbitMQ.Client.Content
     /// <summary>
     /// Analyzes messages binary-compatible with QPid's "StreamMessage" wire encoding.
     /// </summary>
-    public interface IStreamMessageReader : IMessageReader
+    interface IStreamMessageReader : IMessageReader
     {
         /// <summary>
         /// Reads a <see cref="bool"/> from the message body.

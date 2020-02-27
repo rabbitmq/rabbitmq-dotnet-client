@@ -49,7 +49,7 @@ using RabbitMQ.Util;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestFieldTableFormatting : WireFormattingFixture
+    class TestFieldTableFormatting : WireFormattingFixture
     {
         [Test]
         public void TestStandardTypes()

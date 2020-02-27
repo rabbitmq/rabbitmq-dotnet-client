@@ -49,7 +49,7 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    public class WireFormatting
+    class WireFormatting
     {
         public static decimal AmqpToDecimal(byte scale, uint unsignedMantissa)
         {

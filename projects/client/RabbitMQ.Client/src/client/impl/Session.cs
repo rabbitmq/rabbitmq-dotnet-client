@@ -43,7 +43,7 @@ using RabbitMQ.Client.Framing.Impl;
 namespace RabbitMQ.Client.Impl
 {
     ///<summary>Normal ISession implementation used during normal channel operation.</summary>
-    public class Session : SessionBase
+    class Session : SessionBase
     {
         private readonly CommandAssembler _assembler;
 

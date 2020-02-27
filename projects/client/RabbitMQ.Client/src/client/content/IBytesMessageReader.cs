@@ -43,7 +43,7 @@ namespace RabbitMQ.Client.Content
     /// <summary>
     /// Analyzes messages binary-compatible with QPid's "BytesMessage" wire encoding.
     /// </summary>
-    public interface IBytesMessageReader : IMessageReader
+    interface IBytesMessageReader : IMessageReader
     {
         /// <summary>
         /// Reads a given number ("count") of bytes from the message body,

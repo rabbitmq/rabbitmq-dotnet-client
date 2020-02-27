@@ -45,7 +45,7 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    public enum AssemblyState
+    enum AssemblyState
     {
         ExpectingMethod,
         ExpectingContentHeader,
@@ -53,10 +53,10 @@ namespace RabbitMQ.Client.Impl
         Complete
     }
 
-    public class CommandAssembler
+    class CommandAssembler
     {
         private const int MaxArrayOfBytesSize = 2_147_483_591;
-        
+
         public MethodBase m_method;
         public ContentHeaderBase m_header;
         public MemoryStream m_bodyStream;
@@ -64,7 +64,7 @@ namespace RabbitMQ.Client.Impl
         public ProtocolBase m_protocol;
         public int m_remainingBodyBytes;
         public AssemblyState m_state;
-      
+
         public CommandAssembler(ProtocolBase protocol)
         {
             m_protocol = protocol;

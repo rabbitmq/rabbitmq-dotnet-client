@@ -49,7 +49,7 @@ namespace RabbitMQ.Client.Content
     /// Internal support class for use in reading and
     /// writing information binary-compatible with QPid's "BytesMessage" wire encoding.
     /// </summary>
-    public static class BytesWireFormatting
+    static class BytesWireFormatting
     {
         public static int Read(NetworkBinaryReader reader, byte[] target, int offset, int count)
         {

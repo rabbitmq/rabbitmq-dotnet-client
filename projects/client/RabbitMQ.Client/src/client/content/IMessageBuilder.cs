@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.Content
     /// base interface deals with the lowest common denominator:
     /// bytes, with no special encodings for higher-level objects.
     /// </remarks>
-    public interface IMessageBuilder
+    interface IMessageBuilder
     {
         /// <summary>
         /// Retrieve the <see cref="Stream"/> being used to construct the message body.

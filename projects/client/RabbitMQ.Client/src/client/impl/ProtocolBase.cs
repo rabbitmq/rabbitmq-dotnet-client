@@ -45,7 +45,7 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    public abstract class ProtocolBase : IProtocol
+    abstract class ProtocolBase : IProtocol
     {
         public IDictionary<string, bool> Capabilities = new Dictionary<string, bool>();
 
@@ -102,8 +102,8 @@ namespace RabbitMQ.Client.Framing.Impl
             replyMethodId = ConnectionMethodConstants.CloseOk;
         }
 
-        public abstract ContentHeaderBase DecodeContentHeaderFrom(NetworkBinaryReader reader);
-        public abstract MethodBase DecodeMethodFrom(NetworkBinaryReader reader);
+        internal abstract ContentHeaderBase DecodeContentHeaderFrom(NetworkBinaryReader reader);
+        internal abstract MethodBase DecodeMethodFrom(NetworkBinaryReader reader);
 
         public override bool Equals(object obj)
         {

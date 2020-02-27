@@ -57,7 +57,7 @@ namespace RabbitMQ.Util
     /// See also NetworkBinaryReader.
     /// </p>
     /// </remarks>
-    public class NetworkBinaryWriter : BinaryWriter
+    class NetworkBinaryWriter : BinaryWriter
     {
         private static readonly Encoding s_encoding = new UTF8Encoding(false, true);
 

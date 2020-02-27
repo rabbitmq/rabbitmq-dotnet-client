@@ -67,7 +67,7 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    public class SocketFrameHandler : IFrameHandler
+    class SocketFrameHandler : IFrameHandler
     {
         // Socket poll timeout in ms. If the socket does not
         // become writeable in this amount of time, we throw
