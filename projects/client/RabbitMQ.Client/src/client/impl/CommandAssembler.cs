@@ -38,9 +38,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.Buffers;
-using System.IO;
 
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Util;
@@ -82,7 +80,7 @@ namespace RabbitMQ.Client.Impl
                     {
                         throw new UnexpectedFrameException(f);
                     }
-                    m_method = m_protocol.DecodeMethodFrom(f.Payload.AsMemory(0, f.PayloadSize));
+                    m_method = m_protocol.DecodeMethodFrom(f.Payload);
                     m_state = m_method.HasContent ? AssemblyState.ExpectingContentHeader : AssemblyState.Complete;
                     return CompletedCommand();
                 case AssemblyState.ExpectingContentHeader:
@@ -90,9 +88,8 @@ namespace RabbitMQ.Client.Impl
                     {
                         throw new UnexpectedFrameException(f);
                     }
-                    Memory<byte> memory = f.Payload.AsMemory(0, f.PayloadSize);
-                    m_header = m_protocol.DecodeContentHeaderFrom(NetworkOrderDeserializer.ReadUInt16(memory));
-                    ulong totalBodyBytes = m_header.ReadFrom(memory.Slice(2));
+                    m_header = m_protocol.DecodeContentHeaderFrom(NetworkOrderDeserializer.ReadUInt16(f.Payload));
+                    ulong totalBodyBytes = m_header.ReadFrom(f.Payload.Slice(2));
                     if (totalBodyBytes > MaxArrayOfBytesSize)
                     {
                         throw new UnexpectedFrameException(f);
@@ -108,14 +105,14 @@ namespace RabbitMQ.Client.Impl
                         throw new UnexpectedFrameException(f);
                     }
 
-                    if (f.PayloadSize > m_remainingBodyBytes)
+                    if (f.Payload.Length > m_remainingBodyBytes)
                     {
-                        throw new MalformedFrameException($"Overlong content body received - {m_remainingBodyBytes} bytes remaining, {f.PayloadSize} bytes received");
+                        throw new MalformedFrameException($"Overlong content body received - {m_remainingBodyBytes} bytes remaining, {f.Payload.Length} bytes received");
                     }
 
-                    f.Payload.AsMemory().Slice(0, f.PayloadSize).CopyTo(m_body.Memory.Slice(_offset, f.PayloadSize));
-                    m_remainingBodyBytes -= f.PayloadSize;
-                    _offset += f.PayloadSize;
+                    f.Payload.CopyTo(m_body.Memory.Slice(_offset));
+                    m_remainingBodyBytes -= f.Payload.Length;
+                    _offset += f.Payload.Length;
                     UpdateContentBodyState();
                     return CompletedCommand();
                 case AssemblyState.Complete:

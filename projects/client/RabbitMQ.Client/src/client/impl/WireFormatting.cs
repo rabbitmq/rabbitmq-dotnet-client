@@ -39,10 +39,8 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -95,7 +93,7 @@ namespace RabbitMQ.Client.Impl
                              (((uint)bitRepresentation[0]) & 0x7FFFFFFF));
         }
 
-        public static IList ReadArray(Memory<byte> memory, out int bytesRead)
+        public static IList ReadArray(ReadOnlyMemory<byte> memory, out int bytesRead)
         {
             IList array = new List<object>();
             long arrayLength = NetworkOrderDeserializer.ReadUInt32(memory);
@@ -110,17 +108,17 @@ namespace RabbitMQ.Client.Impl
             return array;
         }
 
-        public static decimal ReadDecimal(Memory<byte> memory)
+        public static decimal ReadDecimal(ReadOnlyMemory<byte> memory)
         {
             byte scale = memory.Span[0];
             uint unsignedMantissa = NetworkOrderDeserializer.ReadUInt32(memory.Slice(1));
             return AmqpToDecimal(scale, unsignedMantissa);
         }
 
-        public static object ReadFieldValue(Memory<byte> memory, out int bytesRead)
+        public static object ReadFieldValue(ReadOnlyMemory<byte> memory, out int bytesRead)
         {
             bytesRead = 1;
-            Memory<byte> slice = memory.Slice(1);
+            ReadOnlyMemory<byte> slice = memory.Slice(1);
             switch ((char)memory.Span[0])
             {
                 case 'S':
@@ -179,7 +177,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public static byte[] ReadLongstr(Memory<byte> memory)
+        public static byte[] ReadLongstr(ReadOnlyMemory<byte> memory)
         {
             int byteCount = (int)NetworkOrderDeserializer.ReadUInt32(memory);
             if (byteCount > int.MaxValue)
@@ -190,10 +188,10 @@ namespace RabbitMQ.Client.Impl
             return memory.Slice(4, byteCount).ToArray();
         }
 
-        public static string ReadShortstr(Memory<byte> memory, out int bytesRead)
+        public static string ReadShortstr(ReadOnlyMemory<byte> memory, out int bytesRead)
         {
             int byteCount = memory.Span[0];
-            Memory<byte> stringSlice = memory.Slice(1, byteCount);
+            ReadOnlyMemory<byte> stringSlice = memory.Slice(1, byteCount);
             if (MemoryMarshal.TryGetArray(stringSlice, out ArraySegment<byte> segment))
             {
                 bytesRead = 1 + byteCount;
@@ -210,7 +208,7 @@ namespace RabbitMQ.Client.Impl
         /// x and V types and the AMQP 0-9-1 A type.
         ///</remarks>
         /// <returns>A <seealso cref="System.Collections.Generic.IDictionary{TKey,TValue}"/>.</returns>
-        public static IDictionary<string, object> ReadTable(Memory<byte> memory, out int bytesRead)
+        public static IDictionary<string, object> ReadTable(ReadOnlyMemory<byte> memory, out int bytesRead)
         {
             IDictionary<string, object> table = new Dictionary<string, object>();
             long tableLength = NetworkOrderDeserializer.ReadUInt32(memory);
@@ -231,7 +229,7 @@ namespace RabbitMQ.Client.Impl
             return table;
         }
 
-        public static AmqpTimestamp ReadTimestamp(Memory<byte> memory)
+        public static AmqpTimestamp ReadTimestamp(ReadOnlyMemory<byte> memory)
         {
             ulong stamp = NetworkOrderDeserializer.ReadUInt64(memory);
             // 0-9 is afaict silent on the signedness of the timestamp.

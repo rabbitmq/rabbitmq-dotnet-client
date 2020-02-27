@@ -929,7 +929,7 @@ $@"namespace {ApiNamespaceBase}
 
         public void EmitMethodArgumentReader()
         {
-            EmitLine("    internal override Client.Impl.MethodBase DecodeMethodFrom(Memory<byte> memory)");
+            EmitLine("    internal override Client.Impl.MethodBase DecodeMethodFrom(ReadOnlyMemory<byte> memory)");
             EmitLine("    {");
             EmitLine("      ushort classId = Util.NetworkOrderDeserializer.ReadUInt16(memory);");
             EmitLine("      ushort methodId = Util.NetworkOrderDeserializer.ReadUInt16(memory.Slice(2));");

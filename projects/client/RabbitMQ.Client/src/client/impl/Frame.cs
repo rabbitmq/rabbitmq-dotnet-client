@@ -78,7 +78,7 @@ namespace RabbitMQ.Client.Impl
 
     class BodySegmentOutboundFrame : OutboundFrame
     {
-        private ReadOnlyMemory<byte> _body;
+        private readonly ReadOnlyMemory<byte> _body;
 
         internal BodySegmentOutboundFrame(int channel, ReadOnlyMemory<byte> bodySegment) : base(FrameType.FrameBody, channel)
         {
@@ -167,10 +167,10 @@ namespace RabbitMQ.Client.Impl
 
     class InboundFrame : Frame, IDisposable
     {
-        public int PayloadSize { get; private set; }
-        private InboundFrame(FrameType type, int channel, byte[] payload, int payloadSize) : base(type, channel, payload)
+        private IMemoryOwner<byte> _payload;
+        private InboundFrame(FrameType type, int channel, IMemoryOwner<byte> payload, int payloadSize) : base(type, channel, payload.Memory.Slice(0, payloadSize))
         {
-            PayloadSize = payloadSize;
+            _payload = payload;
         }
 
         private static void ProcessProtocolHeader(Stream reader)
@@ -242,13 +242,13 @@ namespace RabbitMQ.Client.Impl
                 reader.Read(headerSlice);
                 int channel = NetworkOrderDeserializer.ReadUInt16(headerSlice);
                 int payloadSize = NetworkOrderDeserializer.ReadInt32(headerSlice.Slice(2)); // FIXME - throw exn on unreasonable value
-                byte[] payload = ArrayPool<byte>.Shared.Rent(payloadSize);
+                IMemoryOwner<byte> payload = MemoryPool<byte>.Shared.Rent(payloadSize);
                 int bytesRead = 0;
                 try
                 {
                     while (bytesRead < payloadSize)
                     {
-                        bytesRead += reader.Read(payload, bytesRead, payloadSize - bytesRead);
+                        bytesRead += reader.Read(payload.Memory.Slice(bytesRead, payloadSize - bytesRead));
                     }
                 }
                 catch (Exception)
@@ -269,9 +269,9 @@ namespace RabbitMQ.Client.Impl
 
         public void Dispose()
         {
-            if (Payload != null)
+            if (_payload is IMemoryOwner<byte>)
             {
-                ArrayPool<byte>.Shared.Return(Payload);
+                _payload.Dispose();
             }
         }
     }
@@ -285,7 +285,7 @@ namespace RabbitMQ.Client.Impl
             Payload = null;
         }
 
-        public Frame(FrameType type, int channel, byte[] payload)
+        public Frame(FrameType type, int channel, ReadOnlyMemory<byte> payload)
         {
             Type = type;
             Channel = channel;
@@ -294,7 +294,7 @@ namespace RabbitMQ.Client.Impl
 
         public int Channel { get; private set; }
 
-        public byte[] Payload { get; private set; }
+        public ReadOnlyMemory<byte> Payload { get; private set; }
 
         public FrameType Type { get; private set; }
 
@@ -303,9 +303,7 @@ namespace RabbitMQ.Client.Impl
             return string.Format("(type={0}, channel={1}, {2} bytes of payload)",
                 Type,
                 Channel,
-                Payload == null
-                    ? "(null)"
-                    : Payload.Length.ToString());
+                Payload.Length.ToString());
         }
 
         public bool IsMethod()

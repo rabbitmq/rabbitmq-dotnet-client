@@ -55,7 +55,7 @@ namespace RabbitMQ.Client.Impl
         // - 1 byte of payload trailer FrameEnd byte
         private const int EmptyFrameSize = 8;
         private static readonly byte[] s_emptyByteArray = new byte[0];
-        private IMemoryOwner<byte> _body;
+        private readonly IMemoryOwner<byte> _body;
 
         static Command()
         {
@@ -167,7 +167,7 @@ namespace RabbitMQ.Client.Impl
 
         public void Dispose()
         {
-            if(_body is IMemoryOwner<byte>)
+            if (_body is IMemoryOwner<byte>)
             {
                 _body.Dispose();
             }

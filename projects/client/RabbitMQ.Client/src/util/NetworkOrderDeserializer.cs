@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Buffers.Binary;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace RabbitMQ.Util
 {
@@ -70,7 +68,7 @@ namespace RabbitMQ.Util
             return Unsafe.As<int, float>(ref num);
         }
 
-        internal static ushort ReadUInt16(Memory<byte> memory) => ReadUInt16(memory.Span);
+        internal static ushort ReadUInt16(ReadOnlyMemory<byte> memory) => ReadUInt16(memory.Span);
 
         internal static ushort ReadUInt16(ReadOnlySpan<byte> span)
         {
@@ -82,7 +80,7 @@ namespace RabbitMQ.Util
             return BinaryPrimitives.ReadUInt16BigEndian(span);
         }
 
-        internal static uint ReadUInt32(Memory<byte> memory) => ReadUInt32(memory.Span);
+        internal static uint ReadUInt32(ReadOnlyMemory<byte> memory) => ReadUInt32(memory.Span);
 
         internal static uint ReadUInt32(ReadOnlySpan<byte> span)
         {
@@ -94,7 +92,7 @@ namespace RabbitMQ.Util
             return BinaryPrimitives.ReadUInt32BigEndian(span);
         }
 
-        internal static ulong ReadUInt64(Memory<byte> memory) => ReadUInt64(memory.Span);
+        internal static ulong ReadUInt64(ReadOnlyMemory<byte> memory) => ReadUInt64(memory.Span);
 
         internal static ulong ReadUInt64(ReadOnlySpan<byte> span)
         {

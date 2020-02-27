@@ -67,8 +67,8 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        byte[] expectedDoubleBytes = new byte[] { 63, 243, 190, 118, 200, 180, 57, 88 };
-        byte[] expectedSingleBytes = new byte[] { 63, 157, 243, 182 };
+        readonly byte[] expectedDoubleBytes = new byte[] { 63, 243, 190, 118, 200, 180, 57, 88 };
+        readonly byte[] expectedSingleBytes = new byte[] { 63, 157, 243, 182 };
 
         [Test]
         public void TestSingleDecoding()

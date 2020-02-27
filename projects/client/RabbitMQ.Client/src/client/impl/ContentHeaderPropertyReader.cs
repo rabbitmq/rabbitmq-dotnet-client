@@ -50,9 +50,9 @@ namespace RabbitMQ.Client.Impl
         protected ushort m_bitCount;
         protected ushort m_flagWord;
         private int _memoryOffset = 0;
-        private readonly Memory<byte> _memory;
+        private readonly ReadOnlyMemory<byte> _memory;
 
-        public ContentHeaderPropertyReader(Memory<byte> memory)
+        public ContentHeaderPropertyReader(ReadOnlyMemory<byte> memory)
         {
             _memory = memory;
             m_flagWord = 1; // just the continuation bit

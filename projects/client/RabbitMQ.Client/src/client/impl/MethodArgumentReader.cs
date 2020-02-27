@@ -50,14 +50,14 @@ namespace RabbitMQ.Client.Impl
         private int? _bit;
         private int _bits;
 
-        public MethodArgumentReader(Memory<byte> memory)
+        public MethodArgumentReader(ReadOnlyMemory<byte> memory)
         {
             _memory = memory;
             _memoryOffset = 0;
             ClearBits();
         }
 
-        private readonly Memory<byte> _memory;
+        private readonly ReadOnlyMemory<byte> _memory;
         private int _memoryOffset;
 
         public bool ReadBit()
