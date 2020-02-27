@@ -3812,7 +3812,6 @@ namespace RabbitMQ.Client.Impl
         public static void WriteLong(RabbitMQ.Util.NetworkBinaryWriter writer, uint val) { }
         public static void WriteLonglong(RabbitMQ.Util.NetworkBinaryWriter writer, ulong val) { }
         public static void WriteLongstr(RabbitMQ.Util.NetworkBinaryWriter writer, byte[] val) { }
-        public static void WriteLongstr(RabbitMQ.Util.NetworkBinaryWriter writer, byte[] val, int index, int count) { }
         public static void WriteOctet(RabbitMQ.Util.NetworkBinaryWriter writer, byte val) { }
         public static void WriteShort(RabbitMQ.Util.NetworkBinaryWriter writer, ushort val) { }
         public static void WriteShortstr(RabbitMQ.Util.NetworkBinaryWriter writer, string val) { }
@@ -3993,6 +3992,7 @@ namespace RabbitMQ.Util
     public class NetworkBinaryReader : System.IO.BinaryReader
     {
         public NetworkBinaryReader(System.IO.Stream input) { }
+        public NetworkBinaryReader(System.IO.Stream input, System.Text.Encoding encoding) { }
         public override double ReadDouble() { }
         public override short ReadInt16() { }
         public override int ReadInt32() { }
@@ -4001,6 +4001,7 @@ namespace RabbitMQ.Util
         public override ushort ReadUInt16() { }
         public override uint ReadUInt32() { }
         public override ulong ReadUInt64() { }
+        public static System.IO.BinaryReader TemporaryBinaryReader(byte[] bytes) { }
     }
     public class NetworkBinaryWriter : System.IO.BinaryWriter
     {

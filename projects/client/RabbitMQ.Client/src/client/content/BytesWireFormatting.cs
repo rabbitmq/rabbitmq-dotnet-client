@@ -38,7 +38,6 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Buffers;
 using System.Text;
 using RabbitMQ.Util;
 
@@ -67,7 +66,7 @@ namespace RabbitMQ.Client.Content
 
         public static char ReadChar(NetworkBinaryReader reader)
         {
-            return (char)reader.ReadUInt16();
+            return (char) reader.ReadUInt16();
         }
 
         public static double ReadDouble(NetworkBinaryReader reader)
@@ -119,7 +118,7 @@ namespace RabbitMQ.Client.Content
 
         public static void WriteChar(NetworkBinaryWriter writer, char value)
         {
-            writer.Write((ushort)value);
+            writer.Write((ushort) value);
         }
 
         public static void WriteDouble(NetworkBinaryWriter writer, double value)
@@ -149,18 +148,9 @@ namespace RabbitMQ.Client.Content
 
         public static void WriteString(NetworkBinaryWriter writer, string value)
         {
-            int maxLength = Encoding.UTF8.GetMaxByteCount(value.Length);
-            byte[] bytes = ArrayPool<byte>.Shared.Rent(maxLength);
-            try
-            {
-                int bytesUsed = Encoding.UTF8.GetBytes(value, 0, value.Length, bytes, 0);
-                writer.Write((ushort)bytesUsed);
-                writer.Write(bytes, 0, bytesUsed);
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(bytes);
-            }
+            byte[] bytes = Encoding.UTF8.GetBytes(value);
+            writer.Write((ushort) bytes.Length);
+            writer.Write(bytes);
         }
     }
 }
