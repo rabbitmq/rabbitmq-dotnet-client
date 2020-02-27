@@ -763,92 +763,20 @@ namespace RabbitMQ.Client.Exceptions
 }
 namespace RabbitMQ.Client.Impl
 {
-    public class BodySegmentOutboundFrame : RabbitMQ.Client.Impl.OutboundFrame
-    {
-        public BodySegmentOutboundFrame(int channel, byte[] body, int offset, int count) { }
-    }
     public class ChannelErrorException : RabbitMQ.Client.Impl.HardProtocolException
     {
         public ChannelErrorException(int channel) { }
         public int Channel { get; }
         public override ushort ReplyCode { get; }
     }
-    public class Command
-    {
-        public byte[] Body { get; }
-        public static void CheckEmptyFrameSize() { }
-    }
-    public class EmptyOutboundFrame : RabbitMQ.Client.Impl.OutboundFrame
-    {
-        public EmptyOutboundFrame() { }
-    }
-    public class Frame
-    {
-        public Frame(RabbitMQ.Client.Impl.FrameType type, int channel) { }
-        public Frame(RabbitMQ.Client.Impl.FrameType type, int channel, byte[] payload) { }
-        public int Channel { get; }
-        public byte[] Payload { get; }
-        public RabbitMQ.Client.Impl.FrameType Type { get; }
-        public bool IsBody() { }
-        public bool IsHeader() { }
-        public bool IsHeartbeat() { }
-        public bool IsMethod() { }
-        public override string ToString() { }
-    }
-    public enum FrameType
-    {
-        FrameMethod = 1,
-        FrameHeader = 2,
-        FrameBody = 3,
-        FrameHeartbeat = 8,
-        FrameEnd = 206,
-        FrameMinSize = 4096,
-    }
     public abstract class HardProtocolException : RabbitMQ.Client.Impl.ProtocolException
     {
         protected HardProtocolException(string message) { }
     }
-    public class HeaderOutboundFrame : RabbitMQ.Client.Impl.OutboundFrame { }
-    public interface IFrameHandler
-    {
-        RabbitMQ.Client.AmqpTcpEndpoint Endpoint { get; }
-        System.Net.EndPoint LocalEndPoint { get; }
-        int LocalPort { get; }
-        System.TimeSpan ReadTimeout { set; }
-        System.Net.EndPoint RemoteEndPoint { get; }
-        int RemotePort { get; }
-        System.TimeSpan WriteTimeout { set; }
-        void Close();
-        RabbitMQ.Client.Impl.InboundFrame ReadFrame();
-        void SendHeader();
-        void WriteFrame(RabbitMQ.Client.Impl.OutboundFrame frame);
-        void WriteFrameSet(System.Collections.Generic.IList<RabbitMQ.Client.Impl.OutboundFrame> frames);
-    }
-    public interface ISession
-    {
-        int ChannelNumber { get; }
-        RabbitMQ.Client.ShutdownEventArgs CloseReason { get; }
-        System.Action<RabbitMQ.Client.Impl.ISession, RabbitMQ.Client.Impl.Command> CommandReceived { get; set; }
-        RabbitMQ.Client.IConnection Connection { get; }
-        bool IsOpen { get; }
-        event System.EventHandler<RabbitMQ.Client.ShutdownEventArgs> SessionShutdown;
-        void Close(RabbitMQ.Client.ShutdownEventArgs reason);
-        void Close(RabbitMQ.Client.ShutdownEventArgs reason, bool notify);
-        void HandleFrame(RabbitMQ.Client.Impl.InboundFrame frame);
-        void Notify();
-        void Transmit(RabbitMQ.Client.Impl.Command cmd);
-        void Transmit(System.Collections.Generic.IList<RabbitMQ.Client.Impl.Command> cmd);
-    }
-    public class InboundFrame : RabbitMQ.Client.Impl.Frame { }
     public class MalformedFrameException : RabbitMQ.Client.Impl.HardProtocolException
     {
         public MalformedFrameException(string message) { }
         public override ushort ReplyCode { get; }
-    }
-    public class MethodOutboundFrame : RabbitMQ.Client.Impl.OutboundFrame { }
-    public abstract class OutboundFrame : RabbitMQ.Client.Impl.Frame
-    {
-        public OutboundFrame(RabbitMQ.Client.Impl.FrameType type, int channel) { }
     }
     public abstract class ProtocolException : RabbitMQ.Client.Exceptions.RabbitMQClientException
     {
@@ -868,9 +796,6 @@ namespace RabbitMQ.Client.Impl
     }
     public class UnexpectedFrameException : RabbitMQ.Client.Impl.HardProtocolException
     {
-        public RabbitMQ.Client.Impl.Frame m_frame;
-        public UnexpectedFrameException(RabbitMQ.Client.Impl.Frame frame) { }
-        public RabbitMQ.Client.Impl.Frame Frame { get; }
         public override ushort ReplyCode { get; }
     }
     public class UnknownClassOrMethodException : RabbitMQ.Client.Impl.HardProtocolException

@@ -47,7 +47,7 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    public class Command
+    class Command
     {
         // EmptyFrameSize, 8 = 1 + 2 + 4 + 1
         // - 1 byte of frame type
