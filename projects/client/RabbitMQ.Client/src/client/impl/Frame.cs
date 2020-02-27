@@ -173,13 +173,13 @@ namespace RabbitMQ.Client.Impl
             PayloadSize = payloadSize;
         }
 
-        private static void ProcessProtocolHeader(NetworkBinaryReader reader)
+        private static void ProcessProtocolHeader(Stream reader)
         {
             try
             {
-                byte b1 = reader.ReadByte();
-                byte b2 = reader.ReadByte();
-                byte b3 = reader.ReadByte();
+                byte b1 = (byte)reader.ReadByte();
+                byte b2 = (byte)reader.ReadByte();
+                byte b3 = (byte)reader.ReadByte();
                 if (b1 != 'M' || b2 != 'Q' || b3 != 'P')
                 {
                     throw new MalformedFrameException("Invalid AMQP protocol header from server");
@@ -189,10 +189,7 @@ namespace RabbitMQ.Client.Impl
                 int transportLow = reader.ReadByte();
                 int serverMajor = reader.ReadByte();
                 int serverMinor = reader.ReadByte();
-                throw new PacketNotRecognizedException(transportHigh,
-                    transportLow,
-                    serverMajor,
-                    serverMinor);
+                throw new PacketNotRecognizedException(transportHigh, transportLow, serverMajor, serverMinor);
             }
             catch (EndOfStreamException)
             {
@@ -207,13 +204,17 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        internal static InboundFrame ReadFrom(NetworkBinaryReader reader)
+        internal static InboundFrame ReadFrom(Stream reader)
         {
             int type;
 
             try
             {
                 type = reader.ReadByte();
+                if (type == -1)
+                {
+                    throw new EndOfStreamException("Reached the end of the stream. Possible authentication failure.");
+                }
             }
             catch (IOException ioe)
             {
@@ -264,11 +265,6 @@ namespace RabbitMQ.Client.Impl
 
                 return new InboundFrame((FrameType)type, channel, payload, payloadSize);
             }
-        }
-
-        internal NetworkBinaryReader GetReader()
-        {
-            return new NetworkBinaryReader(new MemoryStream(base.Payload, 0, PayloadSize));
         }
 
         public void Dispose()

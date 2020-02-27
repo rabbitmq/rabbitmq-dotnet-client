@@ -49,7 +49,6 @@ using System.Text;
 using System.Threading.Tasks;
 
 using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -76,7 +75,7 @@ namespace RabbitMQ.Client.Impl
         // an exception.
         private TimeSpan _writeableStateTimeout = TimeSpan.FromSeconds(30);
         private int _writeableStateTimeoutMicroSeconds;
-        private readonly NetworkBinaryReader _reader;
+        private readonly Stream _reader;
         private readonly ITcpClient _socket;
         private readonly Stream _writer;
         private readonly object _semaphore = new object();
@@ -121,7 +120,7 @@ namespace RabbitMQ.Client.Impl
                     throw;
                 }
             }
-            _reader = new NetworkBinaryReader(new BufferedStream(netstream, _socket.Client.ReceiveBufferSize));
+            _reader = new BufferedStream(netstream, _socket.Client.ReceiveBufferSize);
             _writer = netstream;
 
             WriteTimeout = writeTimeout;
@@ -206,25 +205,24 @@ namespace RabbitMQ.Client.Impl
         private static readonly byte[] s_amqp = Encoding.ASCII.GetBytes("AMQP");
         public void SendHeader()
         {
-            var ms = new MemoryStream();
-            var nbw = new NetworkBinaryWriter(ms);
-            nbw.Write(s_amqp);
-            byte one = (byte)1;
+            byte[] headerBytes = new byte[8];
+            Encoding.ASCII.GetBytes("AMQP", 0, 4, headerBytes, 0);
             if (Endpoint.Protocol.Revision != 0)
             {
-                nbw.Write((byte)0);
-                nbw.Write((byte)Endpoint.Protocol.MajorVersion);
-                nbw.Write((byte)Endpoint.Protocol.MinorVersion);
-                nbw.Write((byte)Endpoint.Protocol.Revision);
+                headerBytes[4] = 0;
+                headerBytes[5] = (byte)Endpoint.Protocol.MajorVersion;
+                headerBytes[6] = (byte)Endpoint.Protocol.MinorVersion;
+                headerBytes[7] = (byte)Endpoint.Protocol.Revision;
             }
             else
             {
-                nbw.Write(one);
-                nbw.Write(one);
-                nbw.Write((byte)Endpoint.Protocol.MajorVersion);
-                nbw.Write((byte)Endpoint.Protocol.MinorVersion);
+                headerBytes[4] = 1;
+                headerBytes[5] = 1;
+                headerBytes[6] = (byte)Endpoint.Protocol.MajorVersion;
+                headerBytes[7] = (byte)Endpoint.Protocol.MinorVersion;
             }
-            Write(ms.GetBufferSegment());
+
+            Write(new ArraySegment<byte>(headerBytes));
         }
 
         public void WriteFrame(OutboundFrame frame)
