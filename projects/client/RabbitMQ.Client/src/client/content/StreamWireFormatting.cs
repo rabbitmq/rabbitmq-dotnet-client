@@ -49,7 +49,7 @@ namespace RabbitMQ.Client.Content
     /// <summary>
     /// Tags used in parsing and generating StreamWireFormatting message bodies.
     /// </summary>
-    public enum StreamWireFormattingTag
+    enum StreamWireFormattingTag
     {
         Bool = 0x01,
         Byte = 0x02,
@@ -69,7 +69,7 @@ namespace RabbitMQ.Client.Content
     /// Internal support class for use in reading and
     /// writing information binary-compatible with QPid's "StreamMessage" wire encoding.
     /// </summary>
-    public static class StreamWireFormatting
+    static class StreamWireFormatting
     {
         public static bool ReadBool(NetworkBinaryReader reader)
         {

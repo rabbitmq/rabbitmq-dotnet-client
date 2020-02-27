@@ -52,7 +52,7 @@ namespace RabbitMQ.Client.Impl
     /// under a somewhat generous reading.
     ///</para>
     ///</remarks>
-    public class RpcContinuationQueue
+    class RpcContinuationQueue
     {
         private class EmptyRpcContinuation : IRpcContinuation
         {

@@ -48,7 +48,7 @@ namespace RabbitMQ.Client.Content
     /// <summary>
     /// Framework for analyzing various types of AMQP Basic-class application messages.
     /// </summary>
-    public class BasicMessageReader : IMessageReader
+    class BasicMessageReader : IMessageReader
     {
         protected NetworkBinaryReader m_reader;
         protected MemoryStream m_stream;

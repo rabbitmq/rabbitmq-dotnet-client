@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.Content
     /// base interface deals with the lowest common denominator:
     /// bytes, with no special encodings for higher-level objects.
     /// </remarks>
-    public interface IMessageReader
+    interface IMessageReader
     {
         /// <summary>
         /// Retrieve the message body, as a byte array.

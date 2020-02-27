@@ -44,7 +44,7 @@ using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
-    public class BasicPublishBatch : IBasicPublishBatch
+    class BasicPublishBatch : IBasicPublishBatch
     {
         private readonly List<Command> _commands = new List<Command>();
         private readonly ModelBase _model;

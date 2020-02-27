@@ -40,7 +40,7 @@
 
 namespace RabbitMQ.Client
 {
-    public static class ESLog
+    static class ESLog
     {
         public static void Info(string message)
         {

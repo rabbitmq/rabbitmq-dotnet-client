@@ -43,7 +43,7 @@ namespace RabbitMQ.Client.Content
     /// <summary>
     /// Constructs AMQP Basic-class messages binary-compatible with QPid's "StreamMessage" wire encoding.
     /// </summary>
-    public class StreamMessageBuilder : BasicMessageBuilder, IStreamMessageBuilder
+    class StreamMessageBuilder : BasicMessageBuilder, IStreamMessageBuilder
     {
         /// <summary>
         /// MIME type associated with QPid StreamMessages.

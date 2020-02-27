@@ -47,7 +47,7 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Unit
 {
-    public class WireFormattingFixture
+    class WireFormattingFixture
     {
         public static NetworkBinaryReader Reader(byte[] content)
         {

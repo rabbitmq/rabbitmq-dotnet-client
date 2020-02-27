@@ -50,7 +50,7 @@ using RabbitMQ.Client.Framing.Impl;
 namespace RabbitMQ.Client.Impl
 {
     ///<summary>Small ISession implementation used only for channel 0.</summary>
-    public class MainSession : Session
+    class MainSession : Session
     {
         private readonly object _closingLock = new object();
 
@@ -139,7 +139,7 @@ namespace RabbitMQ.Client.Impl
             MethodBase method = cmd.Method;
             if (((method.ProtocolClassId == _closeOkClassId)
                  && (method.ProtocolMethodId == _closeOkMethodId))
-                || (!_closeServerInitiated && 
+                || (!_closeServerInitiated &&
                     (method.ProtocolClassId == _closeClassId) &&
                     (method.ProtocolMethodId == _closeMethodId)
                     ))

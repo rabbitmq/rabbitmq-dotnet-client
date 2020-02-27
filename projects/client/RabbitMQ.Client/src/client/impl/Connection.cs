@@ -55,7 +55,7 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    public class Connection : IConnection
+    class Connection : IConnection
     {
         private readonly object _eventLock = new object();
 

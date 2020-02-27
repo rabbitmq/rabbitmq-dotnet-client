@@ -48,7 +48,7 @@ using RabbitMQ.Util;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestBlockingCell : TimingFixture
+    class TestBlockingCell : TimingFixture
     {
         public class DelayedSetter<T>
         {

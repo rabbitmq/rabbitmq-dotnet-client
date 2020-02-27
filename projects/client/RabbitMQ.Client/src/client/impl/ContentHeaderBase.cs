@@ -45,7 +45,7 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    public abstract class ContentHeaderBase : IContentHeader
+    abstract class ContentHeaderBase : IContentHeader
     {
         ///<summary>
         /// Retrieve the AMQP class ID of this content header.
@@ -67,7 +67,7 @@ namespace RabbitMQ.Client.Impl
         ///<summary>
         /// Fill this instance from the given byte buffer stream.
         ///</summary>
-        public ulong ReadFrom(NetworkBinaryReader reader)
+        internal ulong ReadFrom(NetworkBinaryReader reader)
         {
             reader.ReadUInt16(); // weight - not currently used
             ulong bodySize = reader.ReadUInt64();
@@ -75,12 +75,12 @@ namespace RabbitMQ.Client.Impl
             return bodySize;
         }
 
-        public abstract void ReadPropertiesFrom(ContentHeaderPropertyReader reader);
-        public abstract void WritePropertiesTo(ContentHeaderPropertyWriter writer);
+        internal abstract void ReadPropertiesFrom(ContentHeaderPropertyReader reader);
+        internal abstract void WritePropertiesTo(ContentHeaderPropertyWriter writer);
 
         private const ushort ZERO = 0;
 
-        public void WriteTo(NetworkBinaryWriter writer, ulong bodySize)
+        internal void WriteTo(NetworkBinaryWriter writer, ulong bodySize)
         {
             writer.Write(ZERO); // weight - not currently used
             writer.Write(bodySize);

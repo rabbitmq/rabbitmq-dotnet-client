@@ -493,7 +493,7 @@ namespace RabbitMQ.Client
                 }
                 else
                 {
-                    IProtocol protocol = Protocols.DefaultProtocol;
+                    var protocol = new RabbitMQ.Client.Framing.Protocol();
                     conn = protocol.CreateConnection(this, false, endpointResolver.SelectOne(CreateFrameHandler), clientProvidedName);
                 }
             }

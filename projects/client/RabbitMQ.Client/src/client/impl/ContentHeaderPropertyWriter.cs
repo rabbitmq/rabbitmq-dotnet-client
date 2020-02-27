@@ -44,7 +44,7 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    public class ContentHeaderPropertyWriter
+    class ContentHeaderPropertyWriter
     {
         protected int m_bitCount;
         protected ushort m_flagWord;

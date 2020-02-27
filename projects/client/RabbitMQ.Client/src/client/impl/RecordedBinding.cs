@@ -52,10 +52,10 @@ namespace RabbitMQ.Client.Impl
         public string Destination { get; set; }
         public string RoutingKey { get; protected set; }
         public string Source { get; protected set; }
-		
+
         public bool Equals(RecordedBinding other)
         {
-            return other != null && 
+            return other != null &&
                 Source.Equals(other.Source) &&
                 Destination.Equals(other.Destination) &&
                 RoutingKey.Equals(other.RoutingKey) &&
@@ -74,9 +74,9 @@ namespace RabbitMQ.Client.Impl
                 return true;
             }
 
-			var other = obj as RecordedBinding;
-			
-			return Equals(other);
+            var other = obj as RecordedBinding;
+
+            return Equals(other);
         }
 
         public override int GetHashCode()

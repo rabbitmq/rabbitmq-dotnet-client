@@ -49,7 +49,7 @@ namespace RabbitMQ.Client.Content
     /// writing information binary-compatible with QPid's "MapMessage" wire encoding.
     /// </summary>
     /// <exception cref="ProtocolViolationException"/>
-    public static class MapWireFormatting
+    static class MapWireFormatting
     {
         public static IDictionary<string, object> ReadMap(NetworkBinaryReader reader)
         {

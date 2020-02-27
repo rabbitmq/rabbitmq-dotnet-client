@@ -47,18 +47,13 @@ namespace RabbitMQ.Client.Impl
     /// </summary>
     public class UnexpectedFrameException : HardProtocolException
     {
-        public Frame m_frame;
-
-        public UnexpectedFrameException(Frame frame)
+        internal UnexpectedFrameException(Frame frame)
             : base("A frame of this type was not expected at this time")
         {
-            m_frame = frame;
+            Frame = frame;
         }
 
-        public Frame Frame
-        {
-            get { return m_frame; }
-        }
+        internal  Frame Frame { get; }
 
         public override ushort ReplyCode
         {

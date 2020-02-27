@@ -43,7 +43,7 @@ namespace RabbitMQ.Client.Content
     /// <summary>
     /// Interface for constructing messages binary-compatible with QPid's "BytesMessage" wire encoding.
     /// </summary>
-    public interface IBytesMessageBuilder : IMessageBuilder
+    interface IBytesMessageBuilder : IMessageBuilder
     {
         /// <summary>
         /// Write a section of a byte array into the message body being assembled.

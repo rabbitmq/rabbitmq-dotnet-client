@@ -46,7 +46,7 @@ using RabbitMQ.Util;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestBytesWireFormatting : WireFormattingFixture
+    class TestBytesWireFormatting : WireFormattingFixture
     {
         [Test]
         public void TestSingleDecoding()

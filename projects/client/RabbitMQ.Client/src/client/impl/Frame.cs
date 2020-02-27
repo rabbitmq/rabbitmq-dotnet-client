@@ -47,18 +47,18 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    public class HeaderOutboundFrame : OutboundFrame
+    class HeaderOutboundFrame : OutboundFrame
     {
         private readonly ContentHeaderBase _header;
         private readonly int _bodyLength;
 
-        public HeaderOutboundFrame(int channel, ContentHeaderBase header, int bodyLength) : base(FrameType.FrameHeader, channel)
+        internal HeaderOutboundFrame(int channel, ContentHeaderBase header, int bodyLength) : base(FrameType.FrameHeader, channel)
         {
             _header = header;
             _bodyLength = bodyLength;
         }
 
-        public override void WritePayload(NetworkBinaryWriter writer)
+        internal override void WritePayload(NetworkBinaryWriter writer)
         {
             var ms = new MemoryStream();
             var nw = new NetworkBinaryWriter(ms);
@@ -72,7 +72,7 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    public class BodySegmentOutboundFrame : OutboundFrame
+    class BodySegmentOutboundFrame : OutboundFrame
     {
         private readonly byte[] _body;
         private readonly int _offset;
@@ -85,23 +85,23 @@ namespace RabbitMQ.Client.Impl
             _count = count;
         }
 
-        public override void WritePayload(NetworkBinaryWriter writer)
+        internal override void WritePayload(NetworkBinaryWriter writer)
         {
             writer.Write((uint)_count);
             writer.Write(_body, _offset, _count);
         }
     }
 
-    public class MethodOutboundFrame : OutboundFrame
+    class MethodOutboundFrame : OutboundFrame
     {
         private readonly MethodBase _method;
 
-        public MethodOutboundFrame(int channel, MethodBase method) : base(FrameType.FrameMethod, channel)
+        internal MethodOutboundFrame(int channel, MethodBase method) : base(FrameType.FrameMethod, channel)
         {
             _method = method;
         }
 
-        public override void WritePayload(NetworkBinaryWriter writer)
+        internal override void WritePayload(NetworkBinaryWriter writer)
         {
             var ms = new MemoryStream();
             var nw = new NetworkBinaryWriter(ms);
@@ -119,25 +119,25 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    public class EmptyOutboundFrame : OutboundFrame
+    class EmptyOutboundFrame : OutboundFrame
     {
         public EmptyOutboundFrame() : base(FrameType.FrameHeartbeat, 0)
         {
         }
 
-        public override void WritePayload(NetworkBinaryWriter writer)
+        internal override void WritePayload(NetworkBinaryWriter writer)
         {
             writer.Write((uint)0);
         }
     }
 
-    public abstract class OutboundFrame : Frame
+    abstract class OutboundFrame : Frame
     {
         public OutboundFrame(FrameType type, int channel) : base(type, channel)
         {
         }
 
-        public void WriteTo(NetworkBinaryWriter writer)
+        internal void WriteTo(NetworkBinaryWriter writer)
         {
             writer.Write((byte)Type);
             writer.Write((ushort)Channel);
@@ -145,10 +145,10 @@ namespace RabbitMQ.Client.Impl
             writer.Write((byte)Constants.FrameEnd);
         }
 
-        public abstract void WritePayload(NetworkBinaryWriter writer);
+        internal abstract void WritePayload(NetworkBinaryWriter writer);
     }
 
-    public class InboundFrame : Frame
+    class InboundFrame : Frame
     {
         private InboundFrame(FrameType type, int channel, byte[] payload) : base(type, channel, payload)
         {
@@ -188,7 +188,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public static InboundFrame ReadFrom(NetworkBinaryReader reader)
+        internal static InboundFrame ReadFrom(NetworkBinaryReader reader)
         {
             int type;
 
@@ -236,13 +236,13 @@ namespace RabbitMQ.Client.Impl
             return new InboundFrame((FrameType)type, channel, payload);
         }
 
-        public NetworkBinaryReader GetReader()
+        internal NetworkBinaryReader GetReader()
         {
             return new NetworkBinaryReader(new MemoryStream(base.Payload));
         }
     }
 
-    public class Frame
+    class Frame
     {
         public Frame(FrameType type, int channel)
         {
@@ -292,7 +292,7 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    public enum FrameType : int
+    enum FrameType : int
     {
         FrameMethod = 1,
         FrameHeader = 2,

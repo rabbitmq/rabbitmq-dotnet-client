@@ -45,7 +45,7 @@ namespace RabbitMQ.Client.Content
     /// <summary>
     /// Analyzes AMQP Basic-class messages binary-compatible with QPid's "MapMessage" wire encoding.
     /// </summary>
-    public class MapMessageReader : BasicMessageReader, IMapMessageReader
+    class MapMessageReader : BasicMessageReader, IMapMessageReader
     {
         /// <summary>
         /// MIME type associated with QPid MapMessages.

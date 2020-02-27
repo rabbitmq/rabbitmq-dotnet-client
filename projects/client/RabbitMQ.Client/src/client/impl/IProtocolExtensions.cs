@@ -46,7 +46,7 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    public static class IProtocolExtensions
+    static class IProtocolExtensions
     {
         public static IFrameHandler CreateFrameHandler(
             this IProtocol protocol,

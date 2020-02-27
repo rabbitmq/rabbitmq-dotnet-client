@@ -5,7 +5,7 @@ using System.Net.Sockets;
 
 namespace RabbitMQ.Client
 {
-    public static class TcpClientAdapterHelper
+    static class TcpClientAdapterHelper
     {
         public static IPAddress GetMatchingHost(IReadOnlyCollection<IPAddress> addresses, AddressFamily addressFamily)
         {

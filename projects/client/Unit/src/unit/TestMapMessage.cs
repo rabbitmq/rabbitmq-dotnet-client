@@ -48,7 +48,7 @@ using RabbitMQ.Util;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestMapMessage : WireFormattingFixture
+    class TestMapMessage : WireFormattingFixture
     {
         [Test]
         public void TestRoundTrip()

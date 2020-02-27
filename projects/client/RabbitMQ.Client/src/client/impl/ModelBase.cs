@@ -53,7 +53,7 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    public abstract class ModelBase : IFullModel, IRecoverable
+    abstract class ModelBase : IFullModel, IRecoverable
     {
         public readonly IDictionary<string, IBasicConsumer> m_consumers = new Dictionary<string, IBasicConsumer>();
 
