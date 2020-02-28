@@ -49,27 +49,6 @@ namespace RabbitMQ.Client.Unit
 {
     class WireFormattingFixture
     {
-        public static NetworkBinaryReader Reader(byte[] content)
-        {
-            return new NetworkBinaryReader(new MemoryStream(content));
-        }
-
-        public static NetworkBinaryWriter Writer()
-        {
-            return new NetworkBinaryWriter(new MemoryStream());
-        }
-
-        public static byte[] Contents(NetworkBinaryWriter w)
-        {
-            return ((MemoryStream)w.BaseStream).ToArray();
-        }
-
-        public void Check(NetworkBinaryWriter w, byte[] expected)
-        {
-            byte[] actual = Contents(w);
-            Check(actual, expected);
-        }
-
         public void Check(byte[] actual, byte[] expected)
         {
             try

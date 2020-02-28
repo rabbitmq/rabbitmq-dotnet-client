@@ -180,8 +180,6 @@ namespace RabbitMQ.Client.Impl
             get { return CloseReason == null; }
         }
 
-
-
         public ulong NextPublishSeqNo { get => _nextPublishSeqNo; }
 
         public ISession Session { get; private set; }

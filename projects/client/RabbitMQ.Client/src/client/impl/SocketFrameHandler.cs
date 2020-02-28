@@ -253,36 +253,6 @@ namespace RabbitMQ.Client.Impl
             {
                 _writer.Flush();
             }
-            /*
-            int bufferSize = 0;
-            for (int i = 0; i < frames.Count; i++)
-            {
-                bufferSize += frames[i].GetMinimumBufferSize();
-            }
-
-            using (IMemoryOwner<byte> memory = MemoryPool<byte>.Shared.Rent(bufferSize))
-            {
-                int frameBytes = 0;
-                Memory<byte> slice = memory.Memory.Slice(0, bufferSize);
-                for (int i = 0; i < frames.Count; i++)
-                {
-                    OutboundFrame frame = frames[i];
-                    int frameLength = frame.GetMinimumBufferSize();
-                    Memory<byte> frameSlice = slice.Slice(frameBytes, frameLength);
-                    frame.WriteTo(frameSlice);
-                    frameBytes += frame.ByteCount;
-                }
-
-                _socket.Client.Poll(_writeableStateTimeoutMicroSeconds, SelectMode.SelectWrite);
-                if (MemoryMarshal.TryGetArray(slice.Slice(0, frameBytes), out ArraySegment<byte> segment))
-                {
-                    Write(segment);
-                    return;
-                }
-
-                throw new InvalidOperationException("Unable to get array segment from memory.");
-            }
-            */
         }
 
         private void Write(ArraySegment<byte> bufferSegment, bool flush)

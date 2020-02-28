@@ -962,7 +962,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private RecoveryConnectionState _recoveryLoopState = RecoveryConnectionState.Connected;
 
         private readonly ConcurrentQueue<RecoveryCommand> _recoveryLoopCommandQueue = new ConcurrentQueue<RecoveryCommand>();
-        readonly SemaphoreSlim _semaphore = new SemaphoreSlim(0);
+        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(0);
         private readonly CancellationTokenSource _recoveryCancellationToken = new CancellationTokenSource();
         private readonly TaskCompletionSource<int> _recoveryLoopComplete = new TaskCompletionSource<int>();
 
