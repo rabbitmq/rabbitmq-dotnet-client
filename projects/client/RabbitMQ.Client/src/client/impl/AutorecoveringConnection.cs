@@ -476,10 +476,8 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 if (ShouldTriggerConnectionRecovery(args))
                 {
-                    if (!_recoveryLoopCommandQueue.TryAdd(RecoveryCommand.BeginAutomaticRecovery))
-                    {
-                        ESLog.Warn("Failed to notify RecoveryLoop to BeginAutomaticRecovery.");
-                    }
+                    _recoveryLoopCommandQueue.Enqueue(RecoveryCommand.BeginAutomaticRecovery);
+                    _semaphore.Release();
                 }
             };
             lock (_eventLock)
@@ -963,7 +961,8 @@ namespace RabbitMQ.Client.Framing.Impl
         private Task _recoveryTask;
         private RecoveryConnectionState _recoveryLoopState = RecoveryConnectionState.Connected;
 
-        private readonly BlockingCollection<RecoveryCommand> _recoveryLoopCommandQueue = new BlockingCollection<RecoveryCommand>();
+        private readonly ConcurrentQueue<RecoveryCommand> _recoveryLoopCommandQueue = new ConcurrentQueue<RecoveryCommand>();
+        readonly SemaphoreSlim _semaphore = new SemaphoreSlim(0);
         private readonly CancellationTokenSource _recoveryCancellationToken = new CancellationTokenSource();
         private readonly TaskCompletionSource<int> _recoveryLoopComplete = new TaskCompletionSource<int>();
 
@@ -974,19 +973,31 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             try
             {
-                while (_recoveryLoopCommandQueue.TryTake(out RecoveryCommand command, -1, _recoveryCancellationToken.Token))
+                while (!_recoveryCancellationToken.IsCancellationRequested)
                 {
-                    switch (_recoveryLoopState)
+                    try
                     {
-                        case RecoveryConnectionState.Connected:
-                            await RecoveryLoopConnectedHandler(command).ConfigureAwait(false);
-                            break;
-                        case RecoveryConnectionState.Recovering:
-                            await RecoveryLoopRecoveringHandler(command).ConfigureAwait(false);
-                            break;
-                        default:
-                            ESLog.Warn("RecoveryLoop state is out of range.");
-                            break;
+                        await _semaphore.WaitAsync(_recoveryCancellationToken.Token).ConfigureAwait(false);
+                    }
+                    catch (TaskCanceledException)
+                    {
+                        // Swallowing the task cancellation in case we are stopping work.
+                    }
+
+                    if (!_recoveryCancellationToken.IsCancellationRequested && _recoveryLoopCommandQueue.TryDequeue(out RecoveryCommand command))
+                    {
+                        switch (_recoveryLoopState)
+                        {
+                            case RecoveryConnectionState.Connected:
+                                await RecoveryLoopConnectedHandler(command).ConfigureAwait(false);
+                                break;
+                            case RecoveryConnectionState.Recovering:
+                                await RecoveryLoopRecoveringHandler(command).ConfigureAwait(false);
+                                break;
+                            default:
+                                ESLog.Warn("RecoveryLoop state is out of range.");
+                                break;
+                        }
                     }
                 }
             }
@@ -1034,7 +1045,8 @@ namespace RabbitMQ.Client.Framing.Impl
                     else
                     {
                         await Task.Delay(_factory.NetworkRecoveryInterval);
-                        _recoveryLoopCommandQueue.TryAdd(RecoveryCommand.PerformAutomaticRecovery);
+                        _recoveryLoopCommandQueue.Enqueue(RecoveryCommand.PerformAutomaticRecovery);
+                        _semaphore.Release();
                     }
 
                     break;
@@ -1058,7 +1070,8 @@ namespace RabbitMQ.Client.Framing.Impl
                 case RecoveryCommand.BeginAutomaticRecovery:
                     _recoveryLoopState = RecoveryConnectionState.Recovering;
                     await Task.Delay(_factory.NetworkRecoveryInterval).ConfigureAwait(false);
-                    _recoveryLoopCommandQueue.TryAdd(RecoveryCommand.PerformAutomaticRecovery);
+                    _recoveryLoopCommandQueue.Enqueue(RecoveryCommand.PerformAutomaticRecovery);
+                    _semaphore.Release();
                     break;
                 default:
                     ESLog.Warn($"RecoveryLoop command {command} is out of range.");
