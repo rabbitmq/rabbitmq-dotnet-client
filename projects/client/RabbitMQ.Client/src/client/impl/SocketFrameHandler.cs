@@ -121,7 +121,7 @@ namespace RabbitMQ.Client.Impl
                 }
             }
             _reader = new BufferedStream(netstream, _socket.Client.ReceiveBufferSize);
-            _writer = netstream;
+            _writer = new BufferedStream(netstream, _socket.Client.SendBufferSize);
 
             WriteTimeout = writeTimeout;
         }
@@ -222,10 +222,10 @@ namespace RabbitMQ.Client.Impl
                 headerBytes[7] = (byte)Endpoint.Protocol.MinorVersion;
             }
 
-            Write(new ArraySegment<byte>(headerBytes));
+            Write(new ArraySegment<byte>(headerBytes), true);
         }
 
-        public void WriteFrame(OutboundFrame frame)
+        public void WriteFrame(OutboundFrame frame, bool flush = true)
         {
             int bufferSize = frame.GetMinimumBufferSize();
             using (IMemoryOwner<byte> memory = MemoryPool<byte>.Shared.Rent(bufferSize))
@@ -235,10 +235,9 @@ namespace RabbitMQ.Client.Impl
                 _socket.Client.Poll(_writeableStateTimeoutMicroSeconds, SelectMode.SelectWrite);
                 if (MemoryMarshal.TryGetArray(slice.Slice(0, frame.ByteCount), out ArraySegment<byte> segment))
                 {
-                    Write(segment);
+                    Write(segment, flush);
                     return;
                 }
-
 
                 throw new InvalidOperationException("Unable to get array segment from memory.");
             }
@@ -248,7 +247,11 @@ namespace RabbitMQ.Client.Impl
         {
             for (int i = 0; i < frames.Count; i++)
             {
-                WriteFrame(frames[i]);
+                WriteFrame(frames[i], false);
+            }
+            lock (_streamLock)
+            {
+                _writer.Flush();
             }
             /*
             int bufferSize = 0;
@@ -282,11 +285,15 @@ namespace RabbitMQ.Client.Impl
             */
         }
 
-        private void Write(ArraySegment<byte> bufferSegment)
+        private void Write(ArraySegment<byte> bufferSegment, bool flush)
         {
             lock (_streamLock)
             {
                 _writer.Write(bufferSegment.Array, bufferSegment.Offset, bufferSegment.Count);
+                if (flush)
+                {
+                    _writer.Flush();
+                }
             }
         }
 
