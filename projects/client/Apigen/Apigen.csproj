@@ -17,6 +17,6 @@
 
   <ItemGroup>
     <PackageReference Include="System.Xml.XmlDocument" Version="4.0.1" />
-    <PackageReference Include="System.Xml.xpath.xmldocument" Version="4.0.0" />
+    <PackageReference Include="System.Xml.XPath.XmlDocument" Version="4.0.1" />
   </ItemGroup>
 </Project>
