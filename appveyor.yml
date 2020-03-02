@@ -6,10 +6,6 @@ skip_tags: true
 skip_branch_with_pr: true
 image: Visual Studio 2019
 
-environment:
-  SNKSECRET:
-    secure: C8FL0UTKVN8YcMW1wdssabbkSWMIrpJTqgUNeI2NfQw=
-
 cache:
   # Note: this must match the $rabbitmq_installer_path and $erlang_installer_path values in
   # tools\appveyor\install.ps1
@@ -17,9 +13,6 @@ cache:
   - "%HOMEDRIVE%%HOMEPATH%\\otp_win64_22.2.exe"
 
 install:
-  - IF DEFINED SNKSECRET (nuget install secure-file -ExcludeVersion)
-  - IF DEFINED SNKSECRET (secure-file\tools\secure-file -decrypt %APPVEYOR_BUILD_FOLDER%\rabbit.snk.enc -secret %SNKSECRET%) ELSE (ECHO This Is A Pull Request Build)
-  - IF NOT DEFINED SNKSECRET (copy "rabbit.snk.prbuilds" "rabbit.snk") ELSE (ECHO Using The Release Key File)
   - ps: .\tools\appveyor\install.ps1
 
 build_script: 
