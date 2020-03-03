@@ -18,9 +18,6 @@ TestResult.xml
 /packages
 /.fake
 /.ionide
-.paket/*
-.paket/paket.exe
-/paket-files/*
 /NuGet
 .vscode/
 *.lock.json
