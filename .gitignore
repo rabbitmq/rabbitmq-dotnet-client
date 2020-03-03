@@ -22,7 +22,6 @@ TestResult.xml
 .paket/paket.exe
 /paket-files/*
 /NuGet
-rabbit-mock.snk
 .vscode/
 *.lock.json
 
@@ -124,4 +123,3 @@ projects/client/Unit*/TestResult.xml
 # Vim
 .sw?
 .*.sw?
-rabbit.snk

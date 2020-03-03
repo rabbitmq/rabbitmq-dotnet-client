@@ -25,6 +25,8 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <AssemblyOriginatorKeyFile>../rabbit.snk</AssemblyOriginatorKeyFile>
+    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="build\**\*" />
@@ -39,13 +41,6 @@
   
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.5' Or '$(TargetFramework)' == 'netstandard2.0' ">
     <DefineConstants>$(DefineConstants);CORECLR</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'SignedRelease' ">
-    <DelaySign>true</DelaySign>
-    <OutputType>Library</OutputType>
-    <Optimize>true</Optimize>
-    <AssemblyOriginatorKeyFile>../../../rabbit.snk</AssemblyOriginatorKeyFile>
-    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.5' ">
     <PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
@@ -70,15 +65,5 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" PrivateAssets="All" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
-  </ItemGroup>
-  <ItemGroup Condition=" '$(Configuration)' == 'SignedRelease' ">
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
-      <_Parameter1>Unit, PublicKey=00240000048000009400000006020000002400005253413100040000010001008d20ec856aeeb8c3153a77faa2d80e6e43b5db93224a20cc7ae384f65f142e89730e2ff0fcc5d578bbe96fa98a7196c77329efdee4579b3814c0789e5a39b51df6edd75b602a33ceabdfcf19a3feb832f31d8254168cd7ba5700dfbca301fbf8db614ba41ba18474de0a5f4c2d51c995bc3636c641c8cbe76f45717bfcb943b5</_Parameter1>
-    </AssemblyAttribute>
-  </ItemGroup>
-  <ItemGroup Condition=" '$(Configuration)' != 'SignedRelease' ">
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
-      <_Parameter1>Unit</_Parameter1>
-    </AssemblyAttribute>
   </ItemGroup>
 </Project>
