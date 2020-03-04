@@ -1,3 +1,17 @@
+## Changes Between 5.2.0 and 6.0.0
+
+[GitHub `6.0.0` Milestone](https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/41?closed=1)
+
+## Changes Between 5.1.3 and 5.2.0
+
+[GitHub `5.2.0` Milestone](https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/42?closed=1)
+
+## Changes Between 5.1.2 and 5.1.3
+
+### Re-introduce lock for all socket writes
+
+GitHub PR: [rabbitmq-dotnet-client#702](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/702)
+
 ## Changes Between 5.1.1 and 5.1.2
 
 ### Bump System.Net.Security to 4.3.2
@@ -19,6 +33,7 @@ GitHub PR: [rabbitmq-dotnet-client#579](https://github.com/rabbitmq/rabbitmq-dot
 ### Heartbeat write deadlock fix
 
 GitHub PR: [rabbitmq-dotnet-client#636](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/636)
+
 
 ## Changes Between 5.0.x and 5.1.0
 
