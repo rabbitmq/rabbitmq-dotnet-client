@@ -1,0 +1,38 @@
+sudo: false
+dist: xenial
+language: csharp
+mono: none
+dotnet: 3.1.102
+
+addons:
+  apt:
+    sources:
+      - sourceline: deb https://packages.erlang-solutions.com/ubuntu trusty contrib
+        key_url: https://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc
+    packages:
+      - erlang-nox
+
+env:
+  global:
+    - RABBITMQ_VERSION=3.8.2
+    - RABBITMQ_DOWNLOAD_URL="https://github.com/rabbitmq/rabbitmq-server/releases/download/v$RABBITMQ_VERSION/rabbitmq-server-generic-unix-$RABBITMQ_VERSION.tar.xz"
+    - RABBITMQ_TAR="rabbitmq-$RABBITMQ_VERSION.tar.xz"
+
+cache:
+  apt: true
+  directories:
+    - $HOME/.cache
+
+install:
+  - if [ ! -d "$HOME/.cache" ]; then mkdir "$HOME/.cache"; fi
+  - if [ -s "$HOME/.cache/$RABBITMQ_TAR" ]; then echo "[INFO] found cached $RABBITMQ_TAR file"; else wget -O "$HOME/.cache/$RABBITMQ_TAR" "$RABBITMQ_DOWNLOAD_URL"; fi
+  - tar -C "$TRAVIS_BUILD_DIR" -xf "$HOME/.cache/$RABBITMQ_TAR"
+
+before_script:
+  - /bin/sh -c "RABBITMQ_PID_FILE=$TRAVIS_BUILD_DIR/rabbitmq.pid $TRAVIS_BUILD_DIR/rabbitmq_server-$RABBITMQ_VERSION/sbin/rabbitmq-server &"
+  - /bin/sh "$TRAVIS_BUILD_DIR/rabbitmq_server-$RABBITMQ_VERSION/sbin/rabbitmqctl" wait "$TRAVIS_BUILD_DIR/rabbitmq.pid"
+  - /bin/sh "$TRAVIS_BUILD_DIR/rabbitmq_server-$RABBITMQ_VERSION/sbin/rabbitmqctl" status
+
+script:
+  - /bin/sh "$TRAVIS_BUILD_DIR/build.sh"
+  - /bin/sh -c "RABBITMQ_RABBITMQCTL_PATH=$TRAVIS_BUILD_DIR/rabbitmq_server-$RABBITMQ_VERSION/sbin/rabbitmqctl $TRAVIS_BUILD_DIR/run-test.sh"
