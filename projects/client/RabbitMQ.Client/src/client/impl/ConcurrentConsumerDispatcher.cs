@@ -66,7 +66,7 @@ namespace RabbitMQ.Client.Impl
                                        string exchange,
                                        string routingKey,
                                        IBasicProperties basicProperties,
-                                       byte[] body)
+                                       ReadOnlyMemory<byte> body)
         {
             UnlessShuttingDown(() =>
             {

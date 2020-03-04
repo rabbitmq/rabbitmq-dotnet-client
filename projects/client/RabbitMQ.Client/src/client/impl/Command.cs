@@ -39,15 +39,14 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
-using System.IO;
 
 using RabbitMQ.Client.Framing.Impl;
-using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    class Command
+    class Command : IDisposable
     {
         // EmptyFrameSize, 8 = 1 + 2 + 4 + 1
         // - 1 byte of frame type
@@ -56,24 +55,33 @@ namespace RabbitMQ.Client.Impl
         // - 1 byte of payload trailer FrameEnd byte
         private const int EmptyFrameSize = 8;
         private static readonly byte[] s_emptyByteArray = new byte[0];
+        private readonly IMemoryOwner<byte> _body;
 
         static Command()
         {
             CheckEmptyFrameSize();
         }
 
-        internal Command(MethodBase method) : this(method, null, null)
+        internal Command(MethodBase method) : this(method, null, null, 0)
         {
         }
 
-        internal Command(MethodBase method, ContentHeaderBase header, byte[] body)
+        internal Command(MethodBase method, ContentHeaderBase header, ReadOnlyMemory<byte> body)
         {
             Method = method;
             Header = header;
-            Body = body ?? s_emptyByteArray;
+            Body = body;
         }
 
-        public byte[] Body { get; private set; }
+        public Command(MethodBase method, ContentHeaderBase header, IMemoryOwner<byte> body, int bodySize)
+        {
+            Method = method;
+            Header = header;
+            _body = body;
+            Body = _body?.Memory.Slice(0, bodySize) ?? s_emptyByteArray;
+        }
+
+        public ReadOnlyMemory<byte> Body { get; private set; }
 
         internal ContentHeaderBase Header { get; private set; }
 
@@ -82,10 +90,9 @@ namespace RabbitMQ.Client.Impl
         public static void CheckEmptyFrameSize()
         {
             var f = new EmptyOutboundFrame();
-            var stream = new MemoryStream();
-            var writer = new NetworkBinaryWriter(stream);
-            f.WriteTo(writer);
-            long actualLength = stream.Length;
+            byte[] b = new byte[f.GetMinimumBufferSize()];
+            f.WriteTo(b);
+            long actualLength = f.ByteCount;
 
             if (EmptyFrameSize != actualLength)
             {
@@ -119,16 +126,14 @@ namespace RabbitMQ.Client.Impl
             var frames = new List<OutboundFrame> { new MethodOutboundFrame(channelNumber, Method) };
             if (Method.HasContent)
             {
-                byte[] body = Body;
-
-                frames.Add(new HeaderOutboundFrame(channelNumber, Header, body.Length));
+                frames.Add(new HeaderOutboundFrame(channelNumber, Header, Body.Length));
                 int frameMax = (int)Math.Min(int.MaxValue, connection.FrameMax);
-                int bodyPayloadMax = (frameMax == 0) ? body.Length : frameMax - EmptyFrameSize;
-                for (int offset = 0; offset < body.Length; offset += bodyPayloadMax)
+                int bodyPayloadMax = (frameMax == 0) ? Body.Length : frameMax - EmptyFrameSize;
+                for (int offset = 0; offset < Body.Length; offset += bodyPayloadMax)
                 {
-                    int remaining = body.Length - offset;
+                    int remaining = Body.Length - offset;
                     int count = (remaining < bodyPayloadMax) ? remaining : bodyPayloadMax;
-                    frames.Add(new BodySegmentOutboundFrame(channelNumber, body, offset, count));
+                    frames.Add(new BodySegmentOutboundFrame(channelNumber, Body.Slice(offset, count)));
                 }
             }
 
@@ -145,21 +150,27 @@ namespace RabbitMQ.Client.Impl
                 frames.Add(new MethodOutboundFrame(channelNumber, cmd.Method));
                 if (cmd.Method.HasContent)
                 {
-                    byte[] body = cmd.Body;
-
-                    frames.Add(new HeaderOutboundFrame(channelNumber, cmd.Header, body.Length));
+                    frames.Add(new HeaderOutboundFrame(channelNumber, cmd.Header, cmd.Body.Length));
                     int frameMax = (int)Math.Min(int.MaxValue, connection.FrameMax);
-                    int bodyPayloadMax = (frameMax == 0) ? body.Length : frameMax - EmptyFrameSize;
-                    for (int offset = 0; offset < body.Length; offset += bodyPayloadMax)
+                    int bodyPayloadMax = (frameMax == 0) ? cmd.Body.Length : frameMax - EmptyFrameSize;
+                    for (int offset = 0; offset < cmd.Body.Length; offset += bodyPayloadMax)
                     {
-                        int remaining = body.Length - offset;
+                        int remaining = cmd.Body.Length - offset;
                         int count = (remaining < bodyPayloadMax) ? remaining : bodyPayloadMax;
-                        frames.Add(new BodySegmentOutboundFrame(channelNumber, body, offset, count));
+                        frames.Add(new BodySegmentOutboundFrame(channelNumber, cmd.Body.Slice(offset, count)));
                     }
                 }
             }
 
             return frames;
+        }
+
+        public void Dispose()
+        {
+            if (_body is IMemoryOwner<byte>)
+            {
+                _body.Dispose();
+            }
         }
     }
 }

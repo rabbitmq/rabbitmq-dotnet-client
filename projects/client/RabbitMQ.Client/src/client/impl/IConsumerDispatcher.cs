@@ -38,6 +38,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+
 namespace RabbitMQ.Client.Impl
 {
     interface IConsumerDispatcher
@@ -54,7 +56,7 @@ namespace RabbitMQ.Client.Impl
                             string exchange,
                             string routingKey,
                             IBasicProperties basicProperties,
-                            byte[] body);
+                            ReadOnlyMemory<byte> body);
 
         void HandleBasicCancelOk(IBasicConsumer consumer,
                             string consumerTag);

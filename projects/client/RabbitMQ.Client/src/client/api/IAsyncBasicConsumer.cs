@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 
 using RabbitMQ.Client.Events;
@@ -51,7 +52,7 @@ namespace RabbitMQ.Client
             string exchange,
             string routingKey,
             IBasicProperties properties,
-            byte[] body);
+            ReadOnlyMemory<byte> body);
 
         /// <summary>
         ///  Called when the model shuts down.

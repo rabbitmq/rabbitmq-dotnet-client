@@ -38,10 +38,10 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Buffers;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 
 using RabbitMQ.Client.Exceptions;
@@ -55,8 +55,7 @@ namespace RabbitMQ.Client.Impl
         {
             if (scale > 28)
             {
-                throw new SyntaxError("Unrepresentable AMQP decimal table field: " +
-                                      "scale=" + scale);
+                throw new SyntaxError($"Unrepresentable AMQP decimal table field: scale={scale}");
             }
 
             return new decimal(
@@ -94,104 +93,112 @@ namespace RabbitMQ.Client.Impl
                              (((uint)bitRepresentation[0]) & 0x7FFFFFFF));
         }
 
-        public static IList ReadArray(NetworkBinaryReader reader)
+        public static IList ReadArray(ReadOnlyMemory<byte> memory, out int bytesRead)
         {
             IList array = new List<object>();
-            long arrayLength = reader.ReadUInt32();
-            Stream backingStream = reader.BaseStream;
-            long startPosition = backingStream.Position;
-            while ((backingStream.Position - startPosition) < arrayLength)
+            long arrayLength = NetworkOrderDeserializer.ReadUInt32(memory);
+            bytesRead = 4;
+            while (bytesRead - 4 < arrayLength)
             {
-                object value = ReadFieldValue(reader);
+                object value = ReadFieldValue(memory.Slice(bytesRead), out int fieldValueBytesRead);
+                bytesRead += fieldValueBytesRead;
                 array.Add(value);
             }
+
             return array;
         }
 
-        public static decimal ReadDecimal(NetworkBinaryReader reader)
+        public static decimal ReadDecimal(ReadOnlyMemory<byte> memory)
         {
-            byte scale = ReadOctet(reader);
-            uint unsignedMantissa = ReadLong(reader);
+            byte scale = memory.Span[0];
+            uint unsignedMantissa = NetworkOrderDeserializer.ReadUInt32(memory.Slice(1));
             return AmqpToDecimal(scale, unsignedMantissa);
         }
 
-        public static object ReadFieldValue(NetworkBinaryReader reader)
+        public static object ReadFieldValue(ReadOnlyMemory<byte> memory, out int bytesRead)
         {
-            switch ((char)reader.ReadByte())
+            bytesRead = 1;
+            ReadOnlyMemory<byte> slice = memory.Slice(1);
+            switch ((char)memory.Span[0])
             {
                 case 'S':
-                    return ReadLongstr(reader);
+                    byte[] result = ReadLongstr(slice);
+                    bytesRead += result.Length + 4;
+                    return result;
                 case 'I':
-                    return reader.ReadInt32();
+                    bytesRead += 4;
+                    return NetworkOrderDeserializer.ReadInt32(slice);
                 case 'i':
-                    return reader.ReadUInt32();
+                    bytesRead += 4;
+                    return NetworkOrderDeserializer.ReadUInt32(slice);
                 case 'D':
-                    return ReadDecimal(reader);
+                    bytesRead += 5;
+                    return ReadDecimal(slice);
                 case 'T':
-                    return ReadTimestamp(reader);
+                    bytesRead += 8;
+                    return ReadTimestamp(slice);
                 case 'F':
-                    return ReadTable(reader);
+                    IDictionary<string, object> tableResult = ReadTable(slice, out int tableBytesRead);
+                    bytesRead += tableBytesRead;
+                    return tableResult;
                 case 'A':
-                    return ReadArray(reader);
+                    IList arrayResult = ReadArray(slice, out int arrayBytesRead);
+                    bytesRead += arrayBytesRead;
+                    return arrayResult;
                 case 'B':
-                    return reader.ReadByte();
+                    bytesRead += 1;
+                    return slice.Span[0];
                 case 'b':
-                    return reader.ReadSByte();
+                    bytesRead += 1;
+                    return (sbyte)slice.Span[0];
                 case 'd':
-                    return reader.ReadDouble();
+                    bytesRead += 8;
+                    return NetworkOrderDeserializer.ReadDouble(slice);
                 case 'f':
-                    return reader.ReadSingle();
+                    bytesRead += 4;
+                    return NetworkOrderDeserializer.ReadSingle(slice);
                 case 'l':
-                    return reader.ReadInt64();
+                    bytesRead += 8;
+                    return NetworkOrderDeserializer.ReadInt64(slice);
                 case 's':
-                    return reader.ReadInt16();
+                    bytesRead += 2;
+                    return NetworkOrderDeserializer.ReadInt16(slice);
                 case 't':
-                    return ReadOctet(reader) != 0;
+                    bytesRead += 1;
+                    return slice.Span[0] != 0;
                 case 'x':
-                    return new BinaryTableValue(ReadLongstr(reader));
+                    byte[] binaryTableResult = ReadLongstr(slice);
+                    bytesRead += binaryTableResult.Length + 4;
+                    return new BinaryTableValue(binaryTableResult);
                 case 'V':
                     return null;
                 default:
-                    throw new SyntaxError($"Unrecognised type in table: {(char)reader.ReadByte()}");
+                    throw new SyntaxError($"Unrecognised type in table: {(char)memory.Span[0]}");
             }
         }
 
-        public static uint ReadLong(NetworkBinaryReader reader)
+        public static byte[] ReadLongstr(ReadOnlyMemory<byte> memory)
         {
-            return reader.ReadUInt32();
-        }
-
-        public static ulong ReadLonglong(NetworkBinaryReader reader)
-        {
-            return reader.ReadUInt64();
-        }
-
-        public static byte[] ReadLongstr(NetworkBinaryReader reader)
-        {
-            uint byteCount = reader.ReadUInt32();
+            int byteCount = (int)NetworkOrderDeserializer.ReadUInt32(memory);
             if (byteCount > int.MaxValue)
             {
-                throw new SyntaxError("Long string too long; " +
-                                      "byte length=" + byteCount + ", max=" + int.MaxValue);
+                throw new SyntaxError($"Long string too long; byte length={byteCount}, max={int.MaxValue}");
             }
-            return reader.ReadBytes((int)byteCount);
+
+            return memory.Slice(4, byteCount).ToArray();
         }
 
-        public static byte ReadOctet(NetworkBinaryReader reader)
+        public static string ReadShortstr(ReadOnlyMemory<byte> memory, out int bytesRead)
         {
-            return reader.ReadByte();
-        }
+            int byteCount = memory.Span[0];
+            ReadOnlyMemory<byte> stringSlice = memory.Slice(1, byteCount);
+            if (MemoryMarshal.TryGetArray(stringSlice, out ArraySegment<byte> segment))
+            {
+                bytesRead = 1 + byteCount;
+                return Encoding.UTF8.GetString(segment.Array, segment.Offset, segment.Count);
+            }
 
-        public static ushort ReadShort(NetworkBinaryReader reader)
-        {
-            return reader.ReadUInt16();
-        }
-
-        public static string ReadShortstr(NetworkBinaryReader reader)
-        {
-            int byteCount = reader.ReadByte();
-            byte[] readBytes = reader.ReadBytes(byteCount);
-            return Encoding.UTF8.GetString(readBytes, 0, readBytes.Length);
+            throw new InvalidOperationException("Unable to get ArraySegment from memory");
         }
 
         ///<summary>Reads an AMQP "table" definition from the reader.</summary>
@@ -201,17 +208,17 @@ namespace RabbitMQ.Client.Impl
         /// x and V types and the AMQP 0-9-1 A type.
         ///</remarks>
         /// <returns>A <seealso cref="System.Collections.Generic.IDictionary{TKey,TValue}"/>.</returns>
-        public static IDictionary<string, object> ReadTable(NetworkBinaryReader reader)
+        public static IDictionary<string, object> ReadTable(ReadOnlyMemory<byte> memory, out int bytesRead)
         {
             IDictionary<string, object> table = new Dictionary<string, object>();
-            long tableLength = reader.ReadUInt32();
-
-            Stream backingStream = reader.BaseStream;
-            long startPosition = backingStream.Position;
-            while ((backingStream.Position - startPosition) < tableLength)
+            long tableLength = NetworkOrderDeserializer.ReadUInt32(memory);
+            bytesRead = 4;
+            while ((bytesRead - 4) < tableLength)
             {
-                string key = ReadShortstr(reader);
-                object value = ReadFieldValue(reader);
+                string key = ReadShortstr(memory.Slice(bytesRead), out int keyBytesRead);
+                bytesRead += keyBytesRead;
+                object value = ReadFieldValue(memory.Slice(bytesRead), out int valueBytesRead);
+                bytesRead += valueBytesRead;
 
                 if (!table.ContainsKey(key))
                 {
@@ -222,272 +229,302 @@ namespace RabbitMQ.Client.Impl
             return table;
         }
 
-        public static AmqpTimestamp ReadTimestamp(NetworkBinaryReader reader)
+        public static AmqpTimestamp ReadTimestamp(ReadOnlyMemory<byte> memory)
         {
-            ulong stamp = ReadLonglong(reader);
+            ulong stamp = NetworkOrderDeserializer.ReadUInt64(memory);
             // 0-9 is afaict silent on the signedness of the timestamp.
             // See also MethodArgumentWriter.WriteTimestamp and AmqpTimestamp itself
             return new AmqpTimestamp((long)stamp);
         }
 
-        public static void WriteArray(NetworkBinaryWriter writer, IList val)
+        public static int WriteArray(Memory<byte> memory, IList val)
         {
             if (val == null)
             {
-                writer.Write((uint)0);
+                NetworkOrderSerializer.WriteUInt32(memory, 0);
+                return 4;
             }
             else
             {
-                Stream backingStream = writer.BaseStream;
-                long patchPosition = backingStream.Position;
-                writer.Write((uint)0); // length of table - will be backpatched
+                int bytesWritten = 0;
                 foreach (object entry in val)
                 {
-                    WriteFieldValue(writer, entry);
+                    bytesWritten += WriteFieldValue(memory.Slice(4 + bytesWritten), entry); ;
                 }
-                long savedPosition = backingStream.Position;
-                long tableLength = savedPosition - patchPosition - 4; // offset for length word
-                backingStream.Seek(patchPosition, SeekOrigin.Begin);
-                writer.Write((uint)tableLength);
-                backingStream.Seek(savedPosition, SeekOrigin.Begin);
+
+                NetworkOrderSerializer.WriteUInt32(memory, (uint)bytesWritten);
+                return 4 + bytesWritten;
             }
         }
 
-        public static void WriteDecimal(NetworkBinaryWriter writer, decimal value)
+        public static int GetArrayByteCount(IList val)
         {
-            DecimalToAmqp(value, out byte scale, out int mantissa);
-            WriteOctet(writer, scale);
-            WriteLong(writer, (uint)mantissa);
+            int byteCount = 4;
+            if (val == null)
+            {
+                return byteCount;
+            }
+
+            foreach (object entry in val)
+            {
+                byteCount += GetFieldValueByteCount(entry);
+            }
+
+            return byteCount;
         }
 
-        public static void WriteFieldValue(NetworkBinaryWriter writer, object value)
+        public static int WriteDecimal(Memory<byte> memory, decimal value)
+        {
+            DecimalToAmqp(value, out byte scale, out int mantissa);
+            memory.Span[0] = scale;
+            return 1 + WriteLong(memory.Slice(1), (uint)mantissa);
+        }
+
+        public static int WriteFieldValue(Memory<byte> memory, object value)
+        {
+            if (value == null)
+            {
+                memory.Span[0] = (byte)'V';
+                return 1;
+            }
+
+            Memory<byte> slice = memory.Slice(1);
+            switch (value)
+            {
+                case string val:
+                    memory.Span[0] = (byte)'S';
+                    if (MemoryMarshal.TryGetArray(memory.Slice(5, Encoding.UTF8.GetByteCount(val)), out ArraySegment<byte> segment))
+                    {
+                        NetworkOrderSerializer.WriteUInt32(slice, (uint)segment.Count);
+                        Encoding.UTF8.GetBytes(val, 0, val.Length, segment.Array, segment.Offset);
+                        return segment.Count + 5;
+                    }
+
+                    throw new WireFormattingException("Unable to get array segment from memory.");
+                case byte[] val:
+                    memory.Span[0] = (byte)'S';
+                    return 1 + WriteLongstr(slice, val);
+                case int val:
+                    memory.Span[0] = (byte)'I';
+                    NetworkOrderSerializer.WriteInt32(slice, val);
+                    return 5;
+                case uint val:
+                    memory.Span[0] = (byte)'i';
+                    NetworkOrderSerializer.WriteUInt32(slice, val);
+                    return 5;
+                case decimal val:
+                    memory.Span[0] = (byte)'D';
+                    return 1 + WriteDecimal(slice, val);
+                case AmqpTimestamp val:
+                    memory.Span[0] = (byte)'T';
+                    return 1 + WriteTimestamp(slice, val);
+                case IDictionary val:
+                    memory.Span[0] = (byte)'F';
+                    return 1 + WriteTable(slice, val);
+                case IList val:
+                    memory.Span[0] = (byte)'A';
+                    return 1 + WriteArray(slice, val);
+                case byte val:
+                    memory.Span[0] = (byte)'B';
+                    memory.Span[1] = val;
+                    return 2;
+                case sbyte val:
+                    memory.Span[0] = (byte)'b';
+                    memory.Span[1] = (byte)val;
+                    return 2;
+                case double val:
+                    memory.Span[0] = (byte)'d';
+                    NetworkOrderSerializer.WriteDouble(slice, val);
+                    return 9;
+                case float val:
+                    memory.Span[0] = (byte)'f';
+                    NetworkOrderSerializer.WriteSingle(slice, val);
+                    return 5;
+                case long val:
+                    memory.Span[0] = (byte)'l';
+                    NetworkOrderSerializer.WriteInt64(slice, val);
+                    return 9;
+                case short val:
+                    memory.Span[0] = (byte)'s';
+                    NetworkOrderSerializer.WriteInt16(slice, val);
+                    return 3;
+                case bool val:
+                    memory.Span[0] = (byte)'t';
+                    memory.Span[1] = (byte)(val ? 1 : 0);
+                    return 2;
+                case BinaryTableValue val:
+                    memory.Span[0] = (byte)'x';
+                    return 1 + WriteLongstr(slice, val.Bytes);
+                default:
+                    throw new WireFormattingException($"Value of type '{value.GetType().Name}' cannot appear as table value", value);
+            }
+        }
+
+        public static int GetFieldValueByteCount(object value)
         {
             switch (value)
             {
                 case null:
-                    WriteOctet(writer, (byte)'V');
-                    break;
+                    return 1;
+                case byte _:
+                case sbyte _:
+                case bool _:
+                    return 2;
+                case short _:
+                    return 3;
+                case int _:
+                case uint _:
+                case float _:
+                    return 5;
+                case decimal _:
+                    return 6;
+                case AmqpTimestamp _:
+                case double _:
+                case long _:
+                    return 9;
                 case string val:
-                    WriteOctet(writer, (byte)'S');
-                    int maxLength = Encoding.UTF8.GetMaxByteCount(val.Length);
-                    byte[] bytes = ArrayPool<byte>.Shared.Rent(maxLength);
-                    try
-                    {
-                        int bytesUsed = Encoding.UTF8.GetBytes(val, 0, val.Length, bytes, 0);
-                        WriteLongstr(writer, bytes, 0, bytesUsed);
-                    }
-                    finally
-                    {
-                        ArrayPool<byte>.Shared.Return(bytes);
-                    }
-                    break;
+                    return 5 + Encoding.UTF8.GetByteCount(val);
                 case byte[] val:
-                    WriteOctet(writer, (byte)'S');
-                    WriteLongstr(writer, val);
-                    break;
-                case int val:
-                    WriteOctet(writer, (byte)'I');
-                    writer.Write(val);
-                    break;
-                case uint val:
-                    WriteOctet(writer, (byte)'i');
-                    writer.Write(val);
-                    break;
-                case decimal val:
-                    WriteOctet(writer, (byte)'D');
-                    WriteDecimal(writer, val);
-                    break;
-                case AmqpTimestamp val:
-                    WriteOctet(writer, (byte)'T');
-                    WriteTimestamp(writer, val);
-                    break;
+                    return 5 + val.Length;
                 case IDictionary val:
-                    WriteOctet(writer, (byte)'F');
-                    WriteTable(writer, val);
-                    break;
+                    return 1 + GetTableByteCount(val);
                 case IList val:
-                    WriteOctet(writer, (byte)'A');
-                    WriteArray(writer, val);
-                    break;
-                case byte val:
-                    WriteOctet(writer, (byte)'B');
-                    writer.Write(val);
-                    break;
-                case sbyte val:
-                    WriteOctet(writer, (byte)'b');
-                    writer.Write(val);
-                    break;
-                case double val:
-                    WriteOctet(writer, (byte)'d');
-                    writer.Write(val);
-                    break;
-                case float val:
-                    WriteOctet(writer, (byte)'f');
-                    writer.Write(val);
-                    break;
-                case long val:
-                    WriteOctet(writer, (byte)'l');
-                    writer.Write(val);
-                    break;
-                case short val:
-                    WriteOctet(writer, (byte)'s');
-                    writer.Write(val);
-                    break;
-                case bool val:
-                    WriteOctet(writer, (byte)'t');
-                    WriteOctet(writer, (byte)(val ? 1 : 0));
-                    break;
+                    return 1 + GetArrayByteCount(val);
                 case BinaryTableValue val:
-                    WriteOctet(writer, (byte)'x');
-                    WriteLongstr(writer, val.Bytes);
-                    break;
+                    return 5 + val.Bytes.Length;
                 default:
-                    throw new WireFormattingException(
-                        $"Value of type '{value.GetType().Name}' cannot appear as table value",
-                        value);
+                    throw new WireFormattingException($"Value of type '{value.GetType().Name}' cannot appear as table value", value);
             }
         }
 
-        public static void WriteLong(NetworkBinaryWriter writer, uint val)
+        public static int WriteLong(Memory<byte> memory, uint val)
         {
-            writer.Write(val);
+            NetworkOrderSerializer.WriteUInt32(memory, val);
+            return 4;
         }
 
-        public static void WriteLonglong(NetworkBinaryWriter writer, ulong val)
+        public static int WriteLonglong(Memory<byte> memory, ulong val)
         {
-            writer.Write(val);
+            NetworkOrderSerializer.WriteUInt64(memory, val);
+            return 8;
         }
 
-        public static void WriteLongstr(NetworkBinaryWriter writer, byte[] val)
+        public static int WriteLongstr(Memory<byte> memory, byte[] val)
         {
-            WriteLong(writer, (uint)val.Length);
-            writer.Write(val);
+            return WriteLongstr(memory, val, 0, val.Length);
         }
 
-        public static void WriteLongstr(NetworkBinaryWriter writer, byte[] val, int index, int count)
+        public static int WriteLongstr(Memory<byte> memory, byte[] val, int index, int count)
         {
-            WriteLong(writer, (uint)count);
-            writer.Write(val, index, count);
+            WriteLong(memory, (uint)count);
+            val.AsMemory(index, count).CopyTo(memory.Slice(4));
+            return 4 + count;
         }
 
-        public static void WriteOctet(NetworkBinaryWriter writer, byte val)
+        public static int WriteShort(Memory<byte> memory, ushort val)
         {
-            writer.Write(val);
+            NetworkOrderSerializer.WriteUInt16(memory, val);
+            return 2;
         }
 
-        public static void WriteShort(NetworkBinaryWriter writer, ushort val)
+        public static int WriteShortstr(Memory<byte> memory, string val)
         {
-            writer.Write(val);
-        }
-
-        public static void WriteShortstr(NetworkBinaryWriter writer, string val)
-        {
-            int maxLength = Encoding.UTF8.GetMaxByteCount(val.Length);
-            byte[] bytes = ArrayPool<byte>.Shared.Rent(maxLength);
-            try
+            int stringBytesNeeded = Encoding.UTF8.GetByteCount(val);
+            if (MemoryMarshal.TryGetArray(memory.Slice(1, stringBytesNeeded), out ArraySegment<byte> segment))
             {
-                int bytesUsed = Encoding.UTF8.GetBytes(val, 0, val.Length, bytes, 0);
-                if (bytesUsed > 255)
-                {
-                    throw new WireFormattingException($"Short string too long; UTF-8 encoded length={bytesUsed}, max=255");
-                }
+                memory.Span[0] = (byte)stringBytesNeeded;
+                Encoding.UTF8.GetBytes(val, 0, val.Length, segment.Array, segment.Offset);
+                return stringBytesNeeded + 1;
+            }
 
-                writer.Write((byte)bytesUsed);
-                writer.Write(bytes, 0, bytesUsed);
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(bytes);
-            }
+            throw new WireFormattingException("Unable to get array segment from memory.");
         }
 
-        ///<summary>Writes an AMQP "table" to the writer.</summary>
-        ///<remarks>
-        ///<para>
-        /// In this method, we assume that the stream that backs our
-        /// NetworkBinaryWriter is a positionable stream - which it is
-        /// currently (see Frame.m_accumulator, Frame.GetWriter and
-        /// Command.Transmit).
-        ///</para>
-        ///<para>
-        /// Supports the AMQP 0-8/0-9 standard entry types S, I, D, T
-        /// and F, as well as the QPid-0-8 specific b, d, f, l, s, t
-        /// x and V types and the AMQP 0-9-1 A type.
-        ///</para>
-        ///</remarks>
-        public static void WriteTable(NetworkBinaryWriter writer, IDictionary val)
+        public static int WriteTable(Memory<byte> memory, IDictionary val)
         {
             if (val == null)
             {
-                writer.Write((uint)0);
+                NetworkOrderSerializer.WriteUInt32(memory, 0);
+                return 4;
             }
             else
             {
-                Stream backingStream = writer.BaseStream;
-                long patchPosition = backingStream.Position;
-                writer.Write((uint)0); // length of table - will be backpatched
-
+                // Let's only write after the length header.
+                Memory<byte> slice = memory.Slice(4);
+                int bytesWritten = 0;
                 foreach (DictionaryEntry entry in val)
                 {
-                    WriteShortstr(writer, entry.Key.ToString());
-                    WriteFieldValue(writer, entry.Value);
+                    bytesWritten += WriteShortstr(slice.Slice(bytesWritten), entry.Key.ToString());
+                    bytesWritten += WriteFieldValue(slice.Slice(bytesWritten), entry.Value);
                 }
 
-                // Now, backpatch the table length.
-                long savedPosition = backingStream.Position;
-                long tableLength = savedPosition - patchPosition - 4; // offset for length word
-                backingStream.Seek(patchPosition, SeekOrigin.Begin);
-                writer.Write((uint)tableLength);
-                backingStream.Seek(savedPosition, SeekOrigin.Begin);
+                NetworkOrderSerializer.WriteUInt32(memory, (uint)bytesWritten);
+                return 4 + bytesWritten;
             }
         }
 
-        ///<summary>Writes an AMQP "table" to the writer.</summary>
-        ///<remarks>
-        ///<para>
-        /// In this method, we assume that the stream that backs our
-        /// NetworkBinaryWriter is a positionable stream - which it is
-        /// currently (see Frame.m_accumulator, Frame.GetWriter and
-        /// Command.Transmit).
-        ///</para>
-        ///<para>
-        /// Supports the AMQP 0-8/0-9 standard entry types S, I, D, T
-        /// and F, as well as the QPid-0-8 specific b, d, f, l, s, t
-        /// x and V types and the AMQP 0-9-1 A type.
-        ///</para>
-        ///</remarks>
-        public static void WriteTable(NetworkBinaryWriter writer, IDictionary<string, object> val)
+        public static int WriteTable(Memory<byte> memory, IDictionary<string, object> val)
         {
             if (val == null)
             {
-                writer.Write((uint)0);
+                NetworkOrderSerializer.WriteUInt32(memory, 0);
+                return 4;
             }
             else
             {
-                Stream backingStream = writer.BaseStream;
-                long patchPosition = backingStream.Position;
-                writer.Write((uint)0); // length of table - will be backpatched
-
+                // Let's only write after the length header.
+                Memory<byte> slice = memory.Slice(4);
+                int bytesWritten = 0;
                 foreach (KeyValuePair<string, object> entry in val)
                 {
-                    WriteShortstr(writer, entry.Key);
-                    WriteFieldValue(writer, entry.Value);
+                    bytesWritten += WriteShortstr(slice.Slice(bytesWritten), entry.Key.ToString());
+                    bytesWritten += WriteFieldValue(slice.Slice(bytesWritten), entry.Value);
                 }
 
-                // Now, backpatch the table length.
-                long savedPosition = backingStream.Position;
-                long tableLength = savedPosition - patchPosition - 4; // offset for length word
-                backingStream.Seek(patchPosition, SeekOrigin.Begin);
-                writer.Write((uint)tableLength);
-                backingStream.Seek(savedPosition, SeekOrigin.Begin);
+                NetworkOrderSerializer.WriteUInt32(memory, (uint)bytesWritten);
+                return 4 + bytesWritten;
             }
         }
 
-        public static void WriteTimestamp(NetworkBinaryWriter writer, AmqpTimestamp val)
+        public static int GetTableByteCount(IDictionary val)
+        {
+            int byteCount = 4;
+            if (val == null)
+            {
+                return byteCount;
+            }
+
+            foreach (DictionaryEntry entry in val)
+            {
+                byteCount += Encoding.UTF8.GetByteCount(entry.Key.ToString()) + 1;
+                byteCount += GetFieldValueByteCount(entry.Value);
+            }
+
+            return byteCount;
+        }
+
+        public static int GetTableByteCount(IDictionary<string, object> val)
+        {
+            int byteCount = 4;
+            if (val == null)
+            {
+                return byteCount;
+            }
+
+            foreach (KeyValuePair<string, object> entry in val)
+            {
+                byteCount += Encoding.UTF8.GetByteCount(entry.Key.ToString()) + 1;
+                byteCount += GetFieldValueByteCount(entry.Value);
+            }
+
+            return byteCount;
+        }
+
+        public static int WriteTimestamp(Memory<byte> memory, AmqpTimestamp val)
         {
             // 0-9 is afaict silent on the signedness of the timestamp.
             // See also MethodArgumentReader.ReadTimestamp and AmqpTimestamp itself
-            WriteLonglong(writer, (ulong)val.UnixTime);
+            return WriteLonglong(memory, (ulong)val.UnixTime);
         }
     }
 }

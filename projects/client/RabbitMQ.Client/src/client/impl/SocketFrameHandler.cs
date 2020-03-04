@@ -39,15 +39,16 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
 using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -74,9 +75,9 @@ namespace RabbitMQ.Client.Impl
         // an exception.
         private TimeSpan _writeableStateTimeout = TimeSpan.FromSeconds(30);
         private int _writeableStateTimeoutMicroSeconds;
-        private readonly NetworkBinaryReader _reader;
+        private readonly Stream _reader;
         private readonly ITcpClient _socket;
-        private readonly NetworkBinaryWriter _writer;
+        private readonly Stream _writer;
         private readonly object _semaphore = new object();
         private readonly object _streamLock = new object();
         private bool _closed;
@@ -119,8 +120,8 @@ namespace RabbitMQ.Client.Impl
                     throw;
                 }
             }
-            _reader = new NetworkBinaryReader(new BufferedStream(netstream, _socket.Client.ReceiveBufferSize));
-            _writer = new NetworkBinaryWriter(netstream);
+            _reader = new BufferedStream(netstream, _socket.Client.ReceiveBufferSize);
+            _writer = new BufferedStream(netstream, _socket.Client.SendBufferSize);
 
             WriteTimeout = writeTimeout;
         }
@@ -204,53 +205,65 @@ namespace RabbitMQ.Client.Impl
         private static readonly byte[] s_amqp = Encoding.ASCII.GetBytes("AMQP");
         public void SendHeader()
         {
-            var ms = new MemoryStream();
-            var nbw = new NetworkBinaryWriter(ms);
-            nbw.Write(s_amqp);
-            byte one = (byte)1;
+            byte[] headerBytes = new byte[8];
+            Encoding.ASCII.GetBytes("AMQP", 0, 4, headerBytes, 0);
             if (Endpoint.Protocol.Revision != 0)
             {
-                nbw.Write((byte)0);
-                nbw.Write((byte)Endpoint.Protocol.MajorVersion);
-                nbw.Write((byte)Endpoint.Protocol.MinorVersion);
-                nbw.Write((byte)Endpoint.Protocol.Revision);
+                headerBytes[4] = 0;
+                headerBytes[5] = (byte)Endpoint.Protocol.MajorVersion;
+                headerBytes[6] = (byte)Endpoint.Protocol.MinorVersion;
+                headerBytes[7] = (byte)Endpoint.Protocol.Revision;
             }
             else
             {
-                nbw.Write(one);
-                nbw.Write(one);
-                nbw.Write((byte)Endpoint.Protocol.MajorVersion);
-                nbw.Write((byte)Endpoint.Protocol.MinorVersion);
+                headerBytes[4] = 1;
+                headerBytes[5] = 1;
+                headerBytes[6] = (byte)Endpoint.Protocol.MajorVersion;
+                headerBytes[7] = (byte)Endpoint.Protocol.MinorVersion;
             }
-            Write(ms.GetBufferSegment());
+
+            Write(new ArraySegment<byte>(headerBytes), true);
         }
 
-        public void WriteFrame(OutboundFrame frame)
+        public void WriteFrame(OutboundFrame frame, bool flush = true)
         {
-            var ms = new MemoryStream();
-            var nbw = new NetworkBinaryWriter(ms);
-            frame.WriteTo(nbw);
-            _socket.Client.Poll(_writeableStateTimeoutMicroSeconds, SelectMode.SelectWrite);
-            Write(ms.GetBufferSegment());
+            int bufferSize = frame.GetMinimumBufferSize();
+            using (IMemoryOwner<byte> memory = MemoryPool<byte>.Shared.Rent(bufferSize))
+            {
+                Memory<byte> slice = memory.Memory.Slice(0, bufferSize);
+                frame.WriteTo(slice);
+                _socket.Client.Poll(_writeableStateTimeoutMicroSeconds, SelectMode.SelectWrite);
+                if (MemoryMarshal.TryGetArray(slice.Slice(0, frame.ByteCount), out ArraySegment<byte> segment))
+                {
+                    Write(segment, flush);
+                    return;
+                }
+
+                throw new InvalidOperationException("Unable to get array segment from memory.");
+            }
         }
 
         public void WriteFrameSet(IList<OutboundFrame> frames)
         {
-            var ms = new MemoryStream();
-            var nbw = new NetworkBinaryWriter(ms);
-            for (int i = 0; i < frames.Count; ++i)
+            for (int i = 0; i < frames.Count; i++)
             {
-                frames[i].WriteTo(nbw);
+                WriteFrame(frames[i], false);
             }
-            _socket.Client.Poll(_writeableStateTimeoutMicroSeconds, SelectMode.SelectWrite);
-            Write(ms.GetBufferSegment());
+            lock (_streamLock)
+            {
+                _writer.Flush();
+            }
         }
 
-        private void Write(ArraySegment<byte> bufferSegment)
+        private void Write(ArraySegment<byte> bufferSegment, bool flush)
         {
             lock (_streamLock)
             {
                 _writer.Write(bufferSegment.Array, bufferSegment.Offset, bufferSegment.Count);
+                if (flush)
+                {
+                    _writer.Flush();
+                }
             }
         }
 

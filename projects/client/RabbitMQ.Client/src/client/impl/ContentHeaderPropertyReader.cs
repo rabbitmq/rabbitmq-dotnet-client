@@ -38,6 +38,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 
 using RabbitMQ.Util;
@@ -48,15 +49,15 @@ namespace RabbitMQ.Client.Impl
     {
         protected ushort m_bitCount;
         protected ushort m_flagWord;
+        private int _memoryOffset = 0;
+        private readonly ReadOnlyMemory<byte> _memory;
 
-        public ContentHeaderPropertyReader(NetworkBinaryReader reader)
+        public ContentHeaderPropertyReader(ReadOnlyMemory<byte> memory)
         {
-            BaseReader = reader;
+            _memory = memory;
             m_flagWord = 1; // just the continuation bit
             m_bitCount = 15; // the correct position to force a m_flagWord read
         }
-
-        public NetworkBinaryReader BaseReader { get; private set; }
 
         public bool ContinuationBitSet
         {
@@ -82,28 +83,35 @@ namespace RabbitMQ.Client.Impl
             {
                 throw new MalformedFrameException("Attempted to read flag word when none advertised");
             }
-            m_flagWord = BaseReader.ReadUInt16();
+            m_flagWord = NetworkOrderDeserializer.ReadUInt16(_memory.Slice(_memoryOffset));
+            _memoryOffset += 2;
             m_bitCount = 0;
         }
 
         public uint ReadLong()
         {
-            return WireFormatting.ReadLong(BaseReader);
+            uint result = NetworkOrderDeserializer.ReadUInt32(_memory.Slice(_memoryOffset));
+            _memoryOffset += 4;
+            return result;
         }
 
         public ulong ReadLonglong()
         {
-            return WireFormatting.ReadLonglong(BaseReader);
+            ulong result = NetworkOrderDeserializer.ReadUInt64(_memory.Slice(_memoryOffset));
+            _memoryOffset += 8;
+            return result;
         }
 
         public byte[] ReadLongstr()
         {
-            return WireFormatting.ReadLongstr(BaseReader);
+            byte[] result = WireFormatting.ReadLongstr(_memory.Slice(_memoryOffset));
+            _memoryOffset += 4 + result.Length;
+            return result;
         }
 
         public byte ReadOctet()
         {
-            return WireFormatting.ReadOctet(BaseReader);
+            return _memory.Span[_memoryOffset++];
         }
 
         public bool ReadPresence()
@@ -121,23 +129,31 @@ namespace RabbitMQ.Client.Impl
 
         public ushort ReadShort()
         {
-            return WireFormatting.ReadShort(BaseReader);
+            ushort result = NetworkOrderDeserializer.ReadUInt16(_memory.Slice(_memoryOffset));
+            _memoryOffset += 2;
+            return result;
         }
 
         public string ReadShortstr()
         {
-            return WireFormatting.ReadShortstr(BaseReader);
+            string result = WireFormatting.ReadShortstr(_memory.Slice(_memoryOffset), out int bytesRead);
+            _memoryOffset += bytesRead;
+            return result;
         }
 
         /// <returns>A type of <seealso cref="System.Collections.Generic.IDictionary{TKey,TValue}"/>.</returns>
         public IDictionary<string, object> ReadTable()
         {
-            return WireFormatting.ReadTable(BaseReader);
+            IDictionary<string, object> result = WireFormatting.ReadTable(_memory.Slice(_memoryOffset), out int bytesRead);
+            _memoryOffset += bytesRead;
+            return result;
         }
 
         public AmqpTimestamp ReadTimestamp()
         {
-            return WireFormatting.ReadTimestamp(BaseReader);
+            AmqpTimestamp result = WireFormatting.ReadTimestamp(_memory.Slice(_memoryOffset));
+            _memoryOffset += 8;
+            return result;
         }
     }
 }

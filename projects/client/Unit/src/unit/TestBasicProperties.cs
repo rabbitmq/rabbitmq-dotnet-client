@@ -38,11 +38,7 @@
 //  Copyright (c) 2011-2016 Pivotal Software, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.IO;
-
 using NUnit.Framework;
-
-using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -109,25 +105,20 @@ namespace RabbitMQ.Client.Unit
             bool isMessageIdPresent = messageId != null;
             Assert.AreEqual(isMessageIdPresent, subject.IsMessageIdPresent());
 
-            using (var outputStream = new MemoryStream())
-            {
-                var binaryWriter = new NetworkBinaryWriter(outputStream);
-                var writer = new Impl.ContentHeaderPropertyWriter(binaryWriter);
-                subject.WritePropertiesTo(writer);
+            var writer = new Impl.ContentHeaderPropertyWriter(new byte[1024]);
+            subject.WritePropertiesTo(writer);
 
-                // Read from Stream
-                outputStream.Seek(0L, SeekOrigin.Begin);
-                var propertiesFromStream = new Framing.BasicProperties();
-                var reader = new Impl.ContentHeaderPropertyReader(new NetworkBinaryReader(outputStream));
-                propertiesFromStream.ReadPropertiesFrom(reader);
+            // Read from Stream
+            var propertiesFromStream = new Framing.BasicProperties();
+            var reader = new Impl.ContentHeaderPropertyReader(writer.Memory.Slice(0, writer.Offset));
+            propertiesFromStream.ReadPropertiesFrom(reader);
 
-                Assert.AreEqual(clusterId, propertiesFromStream.ClusterId);
-                Assert.AreEqual(correlationId, propertiesFromStream.CorrelationId);
-                Assert.AreEqual(messageId, propertiesFromStream.MessageId);
-                Assert.AreEqual(isClusterIdPresent, propertiesFromStream.IsClusterIdPresent());
-                Assert.AreEqual(isCorrelationIdPresent, propertiesFromStream.IsCorrelationIdPresent());
-                Assert.AreEqual(isMessageIdPresent, propertiesFromStream.IsMessageIdPresent());
-            }
+            Assert.AreEqual(clusterId, propertiesFromStream.ClusterId);
+            Assert.AreEqual(correlationId, propertiesFromStream.CorrelationId);
+            Assert.AreEqual(messageId, propertiesFromStream.MessageId);
+            Assert.AreEqual(isClusterIdPresent, propertiesFromStream.IsClusterIdPresent());
+            Assert.AreEqual(isCorrelationIdPresent, propertiesFromStream.IsCorrelationIdPresent());
+            Assert.AreEqual(isMessageIdPresent, propertiesFromStream.IsMessageIdPresent());
         }
     }
 }

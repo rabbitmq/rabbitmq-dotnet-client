@@ -1103,7 +1103,7 @@ namespace RabbitMQ.Client.Unit
                 string exchange,
                 string routingKey,
                 IBasicProperties properties,
-                byte[] body)
+                ReadOnlyMemory<byte> body)
             {
                 try
                 {

@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.Events
         public IBasicProperties BasicProperties { get; set; }
 
         ///<summary>The message body.</summary>
-        public byte[] Body { get; set; }
+        public ReadOnlyMemory<byte> Body { get; set; }
 
         ///<summary>The exchange the returned message was originally
         ///published to.</summary>

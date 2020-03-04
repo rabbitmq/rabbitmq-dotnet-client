@@ -89,7 +89,7 @@ namespace RabbitMQ.Client.Impl
             string exchange,
             string routingKey,
             [AmqpContentHeaderMapping] IBasicProperties basicProperties,
-            [AmqpContentBodyMapping] byte[] body);
+            [AmqpContentBodyMapping] ReadOnlyMemory<byte> body);
 
         ///<summary>Handle incoming Basic.GetEmpty methods. Routes the
         ///information to a waiting Basic.Get continuation.</summary>
@@ -108,7 +108,7 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             uint messageCount,
             [AmqpContentHeaderMapping] IBasicProperties basicProperties,
-            [AmqpContentBodyMapping] byte[] body);
+            [AmqpContentBodyMapping] ReadOnlyMemory<byte> body);
 
         ///<summary>Handle incoming Basic.Nack methods. Signals a
         ///BasicNackEvent.</summary>
@@ -128,7 +128,7 @@ namespace RabbitMQ.Client.Impl
             string exchange,
             string routingKey,
             [AmqpContentHeaderMapping] IBasicProperties basicProperties,
-            [AmqpContentBodyMapping] byte[] body);
+            [AmqpContentBodyMapping] ReadOnlyMemory<byte> body);
 
         ///<summary>Handle an incoming Channel.Close. Shuts down the
         ///session and model.</summary>

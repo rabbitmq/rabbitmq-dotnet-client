@@ -410,7 +410,7 @@ namespace RabbitMQ.Client.Impl
             string exchange,
             string routingKey,
             IBasicProperties basicProperties,
-            byte[] body)
+            ReadOnlyMemory<byte> body)
         {
             _delegate.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange,
                 routingKey, basicProperties, body);
@@ -424,7 +424,7 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             uint messageCount,
             IBasicProperties basicProperties,
-            byte[] body)
+            ReadOnlyMemory<byte> body)
         {
             _delegate.HandleBasicGetOk(deliveryTag, redelivered, exchange, routingKey,
                 messageCount, basicProperties, body);
@@ -447,7 +447,7 @@ namespace RabbitMQ.Client.Impl
             string exchange,
             string routingKey,
             IBasicProperties basicProperties,
-            byte[] body)
+            ReadOnlyMemory<byte> body)
         {
             _delegate.HandleBasicReturn(replyCode, replyText, exchange,
                 routingKey, basicProperties, body);

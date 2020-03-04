@@ -42,6 +42,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 
@@ -67,15 +68,17 @@ namespace RabbitMQ.Client.Impl
         private readonly RpcContinuationQueue _continuationQueue = new RpcContinuationQueue();
         private readonly ManualResetEvent _flowControlBlock = new ManualResetEvent(true);
 
-        private readonly object _eventLock = new object();
         private readonly object _shutdownLock = new object();
         private readonly object _rpcLock = new object();
+        private readonly object _confirmLock = new object();
 
-        private readonly SynchronizedList<ulong> _unconfirmedSet = new SynchronizedList<ulong>();
+        private ulong _maxDeliveryId;
+        private ulong _deliveredItems = 0;
 
         private EventHandler<ShutdownEventArgs> _modelShutdown;
 
         private bool _onlyAcksReceived = true;
+        private ulong _nextPublishSeqNo;
 
         public IConsumerDispatcher ConsumerDispatcher { get; private set; }
 
@@ -100,7 +103,7 @@ namespace RabbitMQ.Client.Impl
         protected void Initialise(ISession session)
         {
             CloseReason = null;
-            NextPublishSeqNo = 0;
+            _nextPublishSeqNo = 0;
             Session = session;
             Session.CommandReceived = HandleCommand;
             Session.SessionShutdown += OnSessionShutdown;
@@ -177,7 +180,7 @@ namespace RabbitMQ.Client.Impl
             get { return CloseReason == null; }
         }
 
-        public ulong NextPublishSeqNo { get; private set; }
+        public ulong NextPublishSeqNo { get => _nextPublishSeqNo; }
 
         public ISession Session { get; private set; }
 
@@ -491,8 +494,10 @@ namespace RabbitMQ.Client.Impl
                     }
                 }
             }
-            lock (_unconfirmedSet.SyncRoot)
-                Monitor.Pulse(_unconfirmedSet.SyncRoot);
+            lock (_confirmLock)
+            {
+                Monitor.Pulse(_confirmLock);
+            }
 
             _flowControlBlock.Set();
         }
@@ -631,7 +636,7 @@ namespace RabbitMQ.Client.Impl
             string exchange,
             string routingKey,
             IBasicProperties basicProperties,
-            byte[] body)
+            ReadOnlyMemory<byte> body)
         {
             IBasicConsumer consumer;
             lock (m_consumers)
@@ -675,7 +680,7 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             uint messageCount,
             IBasicProperties basicProperties,
-            byte[] body)
+            ReadOnlyMemory<byte> body)
         {
             var k = (BasicGetRpcContinuation)_continuationQueue.Next();
             k.m_result = new BasicGetResult(deliveryTag,
@@ -713,7 +718,7 @@ namespace RabbitMQ.Client.Impl
             string exchange,
             string routingKey,
             IBasicProperties basicProperties,
-            byte[] body)
+            ReadOnlyMemory<byte> body)
         {
             var e = new BasicReturnEventArgs
             {
@@ -1070,20 +1075,12 @@ namespace RabbitMQ.Client.Impl
 
         internal void AllocatatePublishSeqNos(int count)
         {
-            int c = 0;
-            lock (_unconfirmedSet.SyncRoot)
+
+            lock (_confirmLock)
             {
-                while (c < count)
+                if (_nextPublishSeqNo > 0)
                 {
-                    if (NextPublishSeqNo > 0)
-                    {
-                        if (!_unconfirmedSet.Contains(NextPublishSeqNo))
-                        {
-                            _unconfirmedSet.Add(NextPublishSeqNo);
-                        }
-                        NextPublishSeqNo++;
-                    }
-                    c++;
+                    _nextPublishSeqNo = InterlockedEx.Add(ref _nextPublishSeqNo, (ulong)count);
                 }
             }
         }
@@ -1103,17 +1100,14 @@ namespace RabbitMQ.Client.Impl
             {
                 basicProperties = CreateBasicProperties();
             }
-            if (NextPublishSeqNo > 0)
+            if (_nextPublishSeqNo > 0)
             {
-                lock (_unconfirmedSet.SyncRoot)
+                lock (_confirmLock)
                 {
-                    if (!_unconfirmedSet.Contains(NextPublishSeqNo))
-                    {
-                        _unconfirmedSet.Add(NextPublishSeqNo);
-                    }
-                    NextPublishSeqNo++;
+                    _nextPublishSeqNo = InterlockedEx.Increment(ref _nextPublishSeqNo);
                 }
             }
+
             _Private_BasicPublish(exchange,
                 routingKey,
                 mandatory,
@@ -1171,8 +1165,9 @@ namespace RabbitMQ.Client.Impl
         {
             if (NextPublishSeqNo == 0UL)
             {
-                NextPublishSeqNo = 1;
+                _nextPublishSeqNo = 1;
             }
+
             _Private_ConfirmSelect(false);
         }
 
@@ -1332,7 +1327,7 @@ namespace RabbitMQ.Client.Impl
             }
             bool isWaitInfinite = timeout.TotalMilliseconds == Timeout.Infinite;
             Stopwatch stopwatch = Stopwatch.StartNew();
-            lock (_unconfirmedSet.SyncRoot)
+            lock (_confirmLock)
             {
                 while (true)
                 {
@@ -1341,7 +1336,7 @@ namespace RabbitMQ.Client.Impl
                         throw new AlreadyClosedException(CloseReason);
                     }
 
-                    if (_unconfirmedSet.Count == 0)
+                    if (_deliveredItems == _nextPublishSeqNo - 1)
                     {
                         bool aux = _onlyAcksReceived;
                         _onlyAcksReceived = true;
@@ -1350,13 +1345,12 @@ namespace RabbitMQ.Client.Impl
                     }
                     if (isWaitInfinite)
                     {
-                        Monitor.Wait(_unconfirmedSet.SyncRoot);
+                        Monitor.Wait(_confirmLock);
                     }
                     else
                     {
                         TimeSpan elapsed = stopwatch.Elapsed;
-                        if (elapsed > timeout || !Monitor.Wait(
-                            _unconfirmedSet.SyncRoot, timeout - elapsed))
+                        if (elapsed > timeout || !Monitor.Wait(_confirmLock, timeout - elapsed))
                         {
                             timedOut = true;
                             return _onlyAcksReceived;
@@ -1412,31 +1406,26 @@ namespace RabbitMQ.Client.Impl
 
         protected virtual void handleAckNack(ulong deliveryTag, bool multiple, bool isNack)
         {
-            lock (_unconfirmedSet.SyncRoot)
+            lock (_confirmLock)
             {
-                if (multiple)
+                _deliveredItems = InterlockedEx.Increment(ref _deliveredItems);
+
+                if (multiple && _maxDeliveryId < deliveryTag)
                 {
-                    for (ulong i = _unconfirmedSet[0]; i <= deliveryTag; i++)
-                    {
-                        // removes potential duplicates
-                        while (_unconfirmedSet.Remove(i))
-                        {
-                        }
-                    }
+                    _maxDeliveryId = deliveryTag;
                 }
-                else
-                {
-                    while (_unconfirmedSet.Remove(deliveryTag))
-                    {
-                    }
-                }
+
+                _deliveredItems = Math.Max(_maxDeliveryId, _deliveredItems);
                 _onlyAcksReceived = _onlyAcksReceived && !isNack;
-                if (_unconfirmedSet.Count == 0)
+                if (_deliveredItems == _nextPublishSeqNo - 1)
                 {
-                    Monitor.Pulse(_unconfirmedSet.SyncRoot);
+                    Monitor.Pulse(_confirmLock);
                 }
             }
+
         }
+
+
 
         private QueueDeclareOk QueueDeclare(string queue, bool passive, bool durable, bool exclusive,
             bool autoDelete, IDictionary<string, object> arguments)
@@ -1478,6 +1467,27 @@ namespace RabbitMQ.Client.Impl
         public class QueueDeclareRpcContinuation : SimpleBlockingRpcContinuation
         {
             public QueueDeclareOk m_result;
+        }
+
+        public static class InterlockedEx
+        {
+            public static ulong Increment(ref ulong location)
+            {
+                long incrementedSigned = Interlocked.Increment(ref Unsafe.As<ulong, long>(ref location));
+                return Unsafe.As<long, ulong>(ref incrementedSigned);
+            }
+
+            public static ulong Decrement(ref ulong location)
+            {
+                long decrementedSigned = Interlocked.Decrement(ref Unsafe.As<ulong, long>(ref location));
+                return Unsafe.As<long, ulong>(ref decrementedSigned);
+            }
+
+            public static ulong Add(ref ulong location, ulong value)
+            {
+                long addSigned = Interlocked.Add(ref Unsafe.As<ulong, long>(ref location), Unsafe.As<ulong, long>(ref value));
+                return Unsafe.As<long, ulong>(ref addSigned);
+            }
         }
     }
 }

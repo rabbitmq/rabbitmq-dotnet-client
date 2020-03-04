@@ -44,7 +44,6 @@ using System.Text;
 using NUnit.Framework;
 
 using RabbitMQ.Client.Impl;
-using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -54,7 +53,6 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestStandardTypes()
         {
-            NetworkBinaryWriter w = Writer();
             Hashtable t = new Hashtable
             {
                 ["string"] = "Hello",
@@ -72,8 +70,11 @@ namespace RabbitMQ.Client.Unit
                 1234
             };
             t["fieldarray"] = array;
-            WireFormatting.WriteTable(w, t);
-            IDictionary nt = (IDictionary)WireFormatting.ReadTable(Reader(Contents(w)));
+            int bytesNeeded = WireFormatting.GetTableByteCount(t);
+            byte[] bytes = new byte[bytesNeeded];
+            WireFormatting.WriteTable(bytes, t);
+            IDictionary nt = (IDictionary)WireFormatting.ReadTable(bytes, out int bytesRead);
+            Assert.AreEqual(bytesNeeded, bytesRead);
             Assert.AreEqual(Encoding.UTF8.GetBytes("Hello"), nt["string"]);
             Assert.AreEqual(1234, nt["int"]);
             Assert.AreEqual(1234u, nt["uint"]);
@@ -89,13 +90,16 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestTableEncoding_S()
         {
-            NetworkBinaryWriter w = Writer();
             Hashtable t = new Hashtable
             {
                 ["a"] = "bc"
             };
-            WireFormatting.WriteTable(w, t);
-            Check(w, new byte[] {
+            int bytesNeeded = WireFormatting.GetTableByteCount(t);
+            byte[] bytes = new byte[bytesNeeded];
+            WireFormatting.WriteTable(bytes, t);
+            WireFormatting.ReadTable(bytes, out int bytesRead);
+            Assert.AreEqual(bytesNeeded, bytesRead);
+            Check(bytes, new byte[] {
                     0,0,0,9, // table length
                     1,(byte)'a', // key
                     (byte)'S', // type
@@ -106,13 +110,16 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestTableEncoding_x()
         {
-            NetworkBinaryWriter w = Writer();
             Hashtable t = new Hashtable
             {
                 ["a"] = new BinaryTableValue(new byte[] { 0xaa, 0x55 })
             };
-            WireFormatting.WriteTable(w, t);
-            Check(w, new byte[] {
+            int bytesNeeded = WireFormatting.GetTableByteCount(t);
+            byte[] bytes = new byte[bytesNeeded];
+            WireFormatting.WriteTable(bytes, t);
+            WireFormatting.ReadTable(bytes, out int bytesRead);
+            Assert.AreEqual(bytesNeeded, bytesRead);
+            Check(bytes, new byte[] {
                     0,0,0,9, // table length
                     1,(byte)'a', // key
                     (byte)'x', // type
@@ -123,22 +130,24 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestQpidJmsTypes()
         {
-            NetworkBinaryWriter w = Writer();
-            Hashtable t = new Hashtable
+            Hashtable t = new Hashtable // 4
             {
-                ["B"] = (byte)255,
-                ["b"] = (sbyte)-128,
-                ["d"] = (double)123,
-                ["f"] = (float)123,
-                ["l"] = (long)123,
-                ["s"] = (short)123,
-                ["t"] = true
+                ["B"] = (byte)255, // 2+2
+                ["b"] = (sbyte)-128, // 2+2
+                ["d"] = (double)123, // 2+9
+                ["f"] = (float)123,  // 2+5
+                ["l"] = (long)123, // 2+9
+                ["s"] = (short)123, // 2+2
+                ["t"] = true // 2+2
             };
             byte[] xbytes = { 0xaa, 0x55 };
-            t["x"] = new BinaryTableValue(xbytes);
-            t["V"] = null;
-            WireFormatting.WriteTable(w, t);
-            IDictionary nt = (IDictionary)WireFormatting.ReadTable(Reader(Contents(w)));
+            t["x"] = new BinaryTableValue(xbytes); // 2+5+2
+            t["V"] = null; // 2+1
+            int bytesNeeded = WireFormatting.GetTableByteCount(t);
+            byte[] bytes = new byte[bytesNeeded];
+            WireFormatting.WriteTable(bytes, t);
+            IDictionary nt = (IDictionary)WireFormatting.ReadTable(bytes, out int bytesRead);
+            Assert.AreEqual(bytesNeeded, bytesRead);
             Assert.AreEqual(typeof(byte), nt["B"].GetType()); Assert.AreEqual((byte)255, nt["B"]);
             Assert.AreEqual(typeof(sbyte), nt["b"].GetType()); Assert.AreEqual((sbyte)-128, nt["b"]);
             Assert.AreEqual(typeof(double), nt["d"].GetType()); Assert.AreEqual((double)123, nt["d"]);

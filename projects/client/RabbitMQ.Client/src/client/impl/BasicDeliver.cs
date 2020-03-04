@@ -14,7 +14,7 @@ namespace RabbitMQ.Client.Impl
         readonly string _exchange;
         readonly string _routingKey;
         readonly IBasicProperties _basicProperties;
-        readonly byte[] _body;
+        readonly ReadOnlyMemory<byte> _body;
 
         public BasicDeliver(IBasicConsumer consumer, 
             string consumerTag, 
@@ -22,8 +22,8 @@ namespace RabbitMQ.Client.Impl
             bool redelivered, 
             string exchange, 
             string routingKey, 
-            IBasicProperties basicProperties, 
-            byte[] body) : base(consumer)
+            IBasicProperties basicProperties,
+            ReadOnlyMemory<byte> body) : base(consumer)
         {
             _consumerTag = consumerTag;
             _deliveryTag = deliveryTag;

@@ -38,7 +38,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.IO;
+using System.Buffers;
 
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Util;
@@ -59,10 +59,10 @@ namespace RabbitMQ.Client.Impl
 
         public MethodBase m_method;
         public ContentHeaderBase m_header;
-        public MemoryStream m_bodyStream;
-        public byte[] m_body;
+        public IMemoryOwner<byte> m_body;
         public ProtocolBase m_protocol;
         public int m_remainingBodyBytes;
+        private int _offset;
         public AssemblyState m_state;
 
         public CommandAssembler(ProtocolBase protocol)
@@ -76,54 +76,45 @@ namespace RabbitMQ.Client.Impl
             switch (m_state)
             {
                 case AssemblyState.ExpectingMethod:
-                {
                     if (!f.IsMethod())
                     {
                         throw new UnexpectedFrameException(f);
                     }
-                    m_method = m_protocol.DecodeMethodFrom(f.GetReader());
-                    m_state = m_method.HasContent
-                        ? AssemblyState.ExpectingContentHeader
-                        : AssemblyState.Complete;
+                    m_method = m_protocol.DecodeMethodFrom(f.Payload);
+                    m_state = m_method.HasContent ? AssemblyState.ExpectingContentHeader : AssemblyState.Complete;
                     return CompletedCommand();
-                }
                 case AssemblyState.ExpectingContentHeader:
-                {
                     if (!f.IsHeader())
                     {
                         throw new UnexpectedFrameException(f);
                     }
-                    NetworkBinaryReader reader = f.GetReader();
-                    m_header = m_protocol.DecodeContentHeaderFrom(reader);
-                        ulong totalBodyBytes = m_header.ReadFrom(reader);
+                    m_header = m_protocol.DecodeContentHeaderFrom(NetworkOrderDeserializer.ReadUInt16(f.Payload));
+                    ulong totalBodyBytes = m_header.ReadFrom(f.Payload.Slice(2));
                     if (totalBodyBytes > MaxArrayOfBytesSize)
                     {
                         throw new UnexpectedFrameException(f);
                     }
+
                     m_remainingBodyBytes = (int)totalBodyBytes;
-                    m_body = new byte[m_remainingBodyBytes];
-                    m_bodyStream = new MemoryStream(m_body, true);
+                    m_body = MemoryPool<byte>.Shared.Rent(m_remainingBodyBytes);
                     UpdateContentBodyState();
                     return CompletedCommand();
-                }
                 case AssemblyState.ExpectingContentBody:
-                {
                     if (!f.IsBody())
                     {
                         throw new UnexpectedFrameException(f);
                     }
+
                     if (f.Payload.Length > m_remainingBodyBytes)
                     {
-                        throw new MalformedFrameException
-                            (string.Format("Overlong content body received - {0} bytes remaining, {1} bytes received",
-                                m_remainingBodyBytes,
-                                f.Payload.Length));
+                        throw new MalformedFrameException($"Overlong content body received - {m_remainingBodyBytes} bytes remaining, {f.Payload.Length} bytes received");
                     }
-                    m_bodyStream.Write(f.Payload, 0, f.Payload.Length);
+
+                    f.Payload.CopyTo(m_body.Memory.Slice(_offset));
                     m_remainingBodyBytes -= f.Payload.Length;
+                    _offset += f.Payload.Length;
                     UpdateContentBodyState();
                     return CompletedCommand();
-                }
                 case AssemblyState.Complete:
                 default:
                     return null;
@@ -134,7 +125,7 @@ namespace RabbitMQ.Client.Impl
         {
             if (m_state == AssemblyState.Complete)
             {
-                Command result = new Command(m_method, m_header, m_body);
+                Command result = new Command(m_method, m_header, m_body, _offset);
                 Reset();
                 return result;
             }
@@ -150,7 +141,7 @@ namespace RabbitMQ.Client.Impl
             m_method = null;
             m_header = null;
             m_body = null;
-            m_bodyStream = null;
+            _offset = 0;
             m_remainingBodyBytes = 0;
         }
 

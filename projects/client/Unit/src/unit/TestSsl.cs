@@ -65,7 +65,7 @@ namespace RabbitMQ.Client.Unit
 
                 bool autoAck = false;
                 BasicGetResult result = ch.BasicGet(qName, autoAck);
-                byte[] body = result.Body;
+                byte[] body = result.Body.ToArray();
                 string resultMessage = System.Text.Encoding.UTF8.GetString(body);
 
                 Assert.AreEqual(message, resultMessage);
