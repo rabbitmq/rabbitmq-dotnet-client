@@ -44,18 +44,21 @@ using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
 {
-    class MethodArgumentWriter
+    struct MethodArgumentWriter
     {
         private byte _bitAccumulator;
         private int _bitMask;
         private bool _needBitFlush;
-        public int Offset { get; private set; } = 0;
+        public int Offset { get; private set; }
         public Memory<byte> Memory { get; private set; }
 
         public MethodArgumentWriter(Memory<byte> memory)
         {
             Memory = memory;
-            ResetBitAccumulator();
+            _needBitFlush = false;
+            _bitAccumulator = 0;
+            _bitMask = 1;
+            Offset = 0;
         }
 
         public void Flush()

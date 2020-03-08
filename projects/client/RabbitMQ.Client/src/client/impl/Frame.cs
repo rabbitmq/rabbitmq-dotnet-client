@@ -117,7 +117,7 @@ namespace RabbitMQ.Client.Impl
             NetworkOrderSerializer.WriteUInt16(memory, _method.ProtocolClassId);
             NetworkOrderSerializer.WriteUInt16(memory.Slice(2), _method.ProtocolMethodId);
             var argWriter = new MethodArgumentWriter(memory.Slice(4));
-            _method.WriteArgumentsTo(argWriter);
+            _method.WriteArgumentsTo(ref argWriter);
             argWriter.Flush();
             return 4 + argWriter.Offset;
         }
