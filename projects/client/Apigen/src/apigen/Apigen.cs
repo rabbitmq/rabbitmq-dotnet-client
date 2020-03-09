@@ -637,7 +637,7 @@ $@"namespace {ApiNamespaceBase}
             EmitLine($"    public override ushort ProtocolClassId => {c.Index};");
             EmitLine($"    public override string ProtocolClassName => \"{c.Name}\";");
             EmitLine("");
-            EmitLine("    internal override void ReadPropertiesFrom(Client.Impl.ContentHeaderPropertyReader reader)");
+            EmitLine("    internal override void ReadPropertiesFrom(ref Client.Impl.ContentHeaderPropertyReader reader)");
             EmitLine("    {");
             foreach (AmqpField f in c.m_Fields)
             {
@@ -660,7 +660,7 @@ $@"namespace {ApiNamespaceBase}
             }
             EmitLine("    }");
             EmitLine("");
-            EmitLine("    internal override void WritePropertiesTo(Client.Impl.ContentHeaderPropertyWriter writer)");
+            EmitLine("    internal override void WritePropertiesTo(ref Client.Impl.ContentHeaderPropertyWriter writer)");
             EmitLine("    {");
             foreach (AmqpField f in c.m_Fields)
             {
@@ -841,7 +841,7 @@ $@"namespace {ApiNamespaceBase}
                 EmitLine($"    public override string ProtocolMethodName => \"{c.Name}.{m.Name}\";");
                 EmitLine($"    public override bool HasContent => {(m.HasContent ? "true" : "false")};");
                 EmitLine("");
-                EmitLine("    public override void ReadArgumentsFrom(Client.Impl.MethodArgumentReader reader)");
+                EmitLine("    public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)");
                 EmitLine("    {");
                 foreach (AmqpField f in m.m_Fields)
                 {
@@ -849,7 +849,7 @@ $@"namespace {ApiNamespaceBase}
                 }
                 EmitLine("    }");
                 EmitLine("");
-                EmitLine("    public override void WriteArgumentsTo(Client.Impl.MethodArgumentWriter writer)");
+                EmitLine("    public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)");
                 EmitLine("    {");
                 foreach (AmqpField f in m.m_Fields)
                 {
@@ -936,7 +936,8 @@ $@"namespace {ApiNamespaceBase}
             EmitLine("      Client.Impl.MethodBase result = DecodeMethodFrom(classId, methodId);");
             EmitLine("      if(result != null)");
             EmitLine("      {");
-            EmitLine("        result.ReadArgumentsFrom(new Client.Impl.MethodArgumentReader(memory.Slice(4)));");
+            EmitLine("        Client.Impl.MethodArgumentReader reader = new Client.Impl.MethodArgumentReader(memory.Slice(4));");
+            EmitLine("        result.ReadArgumentsFrom(ref reader);");
             EmitLine("        return result;");
             EmitLine("      }");
             EmitLine("");

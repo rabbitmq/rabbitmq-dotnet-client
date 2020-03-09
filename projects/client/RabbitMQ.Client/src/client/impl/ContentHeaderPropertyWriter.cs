@@ -45,18 +45,19 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    class ContentHeaderPropertyWriter
+    struct ContentHeaderPropertyWriter
     {
-        protected int m_bitCount;
-        protected ushort m_flagWord;
-        public int Offset { get; private set; } = 0;
+        private int _bitCount;
+        private ushort _flagWord;
+        public int Offset { get; private set; }
         public Memory<byte> Memory { get; private set; }
 
         public ContentHeaderPropertyWriter(Memory<byte> memory)
         {
             Memory = memory;
-            m_flagWord = 0;
-            m_bitCount = 0;
+            _flagWord = 0;
+            _bitCount = 0;
+            Offset = 0;
         }
 
         public void FinishPresence()
@@ -91,17 +92,17 @@ namespace RabbitMQ.Client.Impl
 
         public void WritePresence(bool present)
         {
-            if (m_bitCount == 15)
+            if (_bitCount == 15)
             {
                 EmitFlagWord(true);
             }
 
             if (present)
             {
-                int bit = 15 - m_bitCount;
-                m_flagWord = (ushort)(m_flagWord | (1 << bit));
+                int bit = 15 - _bitCount;
+                _flagWord = (ushort)(_flagWord | (1 << bit));
             }
-            m_bitCount++;
+            _bitCount++;
         }
 
         public void WriteShort(ushort val)
@@ -126,10 +127,10 @@ namespace RabbitMQ.Client.Impl
 
         private void EmitFlagWord(bool continuationBit)
         {
-            NetworkOrderSerializer.WriteUInt16(Memory.Slice(Offset), (ushort)(continuationBit ? (m_flagWord | 1) : m_flagWord));
+            NetworkOrderSerializer.WriteUInt16(Memory.Slice(Offset), (ushort)(continuationBit ? (_flagWord | 1) : _flagWord));
             Offset += 2;
-            m_flagWord = 0;
-            m_bitCount = 0;
+            _flagWord = 0;
+            _bitCount = 0;
         }
     }
 }

@@ -71,12 +71,13 @@ namespace RabbitMQ.Client.Impl
         {
             // Skipping the first two bytes since they arent used (weight - not currently used)
             ulong bodySize = NetworkOrderDeserializer.ReadUInt64(memory.Slice(2));
-            ReadPropertiesFrom(new ContentHeaderPropertyReader(memory.Slice(10)));
+            ContentHeaderPropertyReader reader = new ContentHeaderPropertyReader(memory.Slice(10));
+            ReadPropertiesFrom(ref reader);
             return bodySize;
         }
 
-        internal abstract void ReadPropertiesFrom(ContentHeaderPropertyReader reader);
-        internal abstract void WritePropertiesTo(ContentHeaderPropertyWriter writer);
+        internal abstract void ReadPropertiesFrom(ref ContentHeaderPropertyReader reader);
+        internal abstract void WritePropertiesTo(ref ContentHeaderPropertyWriter writer);
 
         private const ushort ZERO = 0;
 
@@ -86,7 +87,7 @@ namespace RabbitMQ.Client.Impl
             NetworkOrderSerializer.WriteUInt64(memory.Slice(2), bodySize);
 
             ContentHeaderPropertyWriter writer = new ContentHeaderPropertyWriter(memory.Slice(10));
-            WritePropertiesTo(writer);
+            WritePropertiesTo(ref writer);
             return 10 + writer.Offset;
         }
         public int GetRequiredBufferSize()

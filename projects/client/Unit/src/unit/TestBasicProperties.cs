@@ -106,12 +106,12 @@ namespace RabbitMQ.Client.Unit
             Assert.AreEqual(isMessageIdPresent, subject.IsMessageIdPresent());
 
             var writer = new Impl.ContentHeaderPropertyWriter(new byte[1024]);
-            subject.WritePropertiesTo(writer);
+            subject.WritePropertiesTo(ref writer);
 
             // Read from Stream
             var propertiesFromStream = new Framing.BasicProperties();
             var reader = new Impl.ContentHeaderPropertyReader(writer.Memory.Slice(0, writer.Offset));
-            propertiesFromStream.ReadPropertiesFrom(reader);
+            propertiesFromStream.ReadPropertiesFrom(ref reader);
 
             Assert.AreEqual(clusterId, propertiesFromStream.ClusterId);
             Assert.AreEqual(correlationId, propertiesFromStream.CorrelationId);
