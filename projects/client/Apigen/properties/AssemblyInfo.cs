@@ -48,9 +48,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("ApiGen")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Pivotal Software, Inc.")]
+[assembly: AssemblyCompany("VMware, Inc. or its affiliates.")]
 [assembly: AssemblyProduct("ApiGen")]
-[assembly: AssemblyCopyright("Copyright © 2007-2016 Pivotal Software, Inc.")]
+[assembly: AssemblyCopyright("Copyright © 2007-2020 VMware, Inc. or its affiliates.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
