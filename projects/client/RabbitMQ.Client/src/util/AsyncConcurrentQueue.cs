@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.src.util
     ///   support.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class AsyncConcurrentQueue<T>
+    class AsyncConcurrentQueue<T>
     {
         private readonly ConcurrentQueue<T> _internalQueue = new ConcurrentQueue<T>();
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(0);
