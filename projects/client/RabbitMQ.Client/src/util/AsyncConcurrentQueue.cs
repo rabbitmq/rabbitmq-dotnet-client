@@ -61,7 +61,7 @@ namespace RabbitMQ.Client.src.util
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
-        public async Task<T> DequeueAsync(CancellationToken token)
+        public async Task<T> DequeueAsync(CancellationToken token = default)
         {
             await _semaphore.WaitAsync(token).ConfigureAwait(false);
 
