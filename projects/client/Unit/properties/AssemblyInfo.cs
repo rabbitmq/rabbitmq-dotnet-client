@@ -47,9 +47,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("RabbitMQ.Client Unit Tests")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Pivotal Software, Inc.")]
+[assembly: AssemblyCompany("VMware, Inc. or its affiliates.")]
 [assembly: AssemblyProduct("RabbitMQ.Client")]
-[assembly: AssemblyCopyright("Copyright © 2007-2016 Pivotal Software, Inc.")]
+[assembly: AssemblyCopyright("Copyright © 2007-2020 VMware, Inc. or its affiliates.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

@@ -44,9 +44,9 @@ using System.Runtime.CompilerServices;
 [assembly: AssemblyTitle("RabbitMQ Client Library for .NET")]
 [assembly: AssemblyDescription("See https://rabbitmq.com")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Pivotal Software, Inc.")]
+[assembly: AssemblyCompany("VMware, Inc. or its affiliates.")]
 [assembly: AssemblyProduct("RabbitMQ")]
-[assembly: AssemblyCopyright("Copyright © 2007-2016 Pivotal Software, Inc.")]
+[assembly: AssemblyCopyright("Copyright © 2007-2020 VMware, Inc. or its affiliates.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
