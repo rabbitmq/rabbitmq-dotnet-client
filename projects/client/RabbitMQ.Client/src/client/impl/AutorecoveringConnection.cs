@@ -47,6 +47,7 @@ using System.Threading.Tasks;
 
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Impl;
+using RabbitMQ.Client.src.util;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -960,31 +961,6 @@ namespace RabbitMQ.Client.Framing.Impl
         private Task _recoveryTask;
         private RecoveryConnectionState _recoveryLoopState = RecoveryConnectionState.Connected;
 
-
-        private class AsyncConcurrentQueue<T>
-        {
-            private readonly ConcurrentQueue<T> _internalQueue = new ConcurrentQueue<T>();
-            private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(0);
-
-            public async Task<T> DequeueAsync(CancellationToken token)
-            {
-                await _semaphore.WaitAsync(token).ConfigureAwait(false);
-
-                if (!_internalQueue.TryDequeue(out var command))
-                {
-                    throw new InvalidOperationException("Internal queue empty despite signaled enqueue.");
-                }
-
-                return command;
-            }
-
-            public void Enqueue(T item)
-            {
-                _internalQueue.Enqueue(item);
-                _semaphore.Release();
-            }
-        }
-
         private readonly AsyncConcurrentQueue<RecoveryCommand> _recoveryLoopCommandQueue = new AsyncConcurrentQueue<RecoveryCommand>();
         private readonly CancellationTokenSource _recoveryCancellationToken = new CancellationTokenSource();
         private readonly TaskCompletionSource<int> _recoveryLoopComplete = new TaskCompletionSource<int>();
@@ -1057,11 +1033,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                     else
                     {
-                        Task.Delay(_factory.NetworkRecoveryInterval)
-                            .ContinueWith(t =>
-                                {
-                                    _recoveryLoopCommandQueue.Enqueue(RecoveryCommand.PerformAutomaticRecovery);
-                                });
+                        ScheduleRecoveryRetry();
                     }
 
                     break;
@@ -1084,16 +1056,24 @@ namespace RabbitMQ.Client.Framing.Impl
                     break;
                 case RecoveryCommand.BeginAutomaticRecovery:
                     _recoveryLoopState = RecoveryConnectionState.Recovering;
-                    Task.Delay(_factory.NetworkRecoveryInterval)
-                        .ContinueWith(t =>
-                            {
-                                _recoveryLoopCommandQueue.Enqueue(RecoveryCommand.PerformAutomaticRecovery);
-                            });
+                    ScheduleRecoveryRetry();
                     break;
                 default:
                     ESLog.Warn($"RecoveryLoop command {command} is out of range.");
                     break;
             }
+        }
+
+        /// <summary>
+        /// Schedule a background Task to signal the command queue when the retry duration has elapsed.
+        /// </summary>
+        private void ScheduleRecoveryRetry()
+        {
+            Task.Delay(_factory.NetworkRecoveryInterval)
+                .ContinueWith(t =>
+                {
+                    _recoveryLoopCommandQueue.Enqueue(RecoveryCommand.PerformAutomaticRecovery);
+                });
         }
     }
 }
