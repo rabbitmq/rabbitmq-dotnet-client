@@ -901,6 +901,7 @@ entry.ToString());
                 if (!_closed)
                 {
                     WriteFrame(_heartbeatFrame);
+                    _heartbeatWriteTimer?.Change((int)_heartbeatTimeSpan.TotalMilliseconds, Timeout.Infinite);
                 }
             }
             catch (ObjectDisposedException)
@@ -912,11 +913,6 @@ entry.ToString());
             {
                 // ignore, let the read callback detect
                 // peer unavailability. See rabbitmq/rabbitmq-dotnet-client#638 for details.
-            }
-
-            if (_closed == false)
-            {
-                _heartbeatWriteTimer?.Change((int)_heartbeatTimeSpan.TotalMilliseconds, Timeout.Infinite);
             }
         }
 
