@@ -1,8 +1,17 @@
-## Changes Between 5.1.3 and 5.2.0
+Please see the milestone for all changes:
+
+## Changes Between 5.1.2 and 5.2.0
+
+Please see the milestone for all changes:
 
 [GitHub `5.2.0` Milestone](https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/42?closed=1)
 
-## Changes Between 5.1.2 and 5.1.3
+Selected highlights:
+
+### Add support for `netstandard2.0`
+
+GitHub Issue: https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/428
+GitHub PR: https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/435
 
 ### Re-introduce lock for all socket writes
 
