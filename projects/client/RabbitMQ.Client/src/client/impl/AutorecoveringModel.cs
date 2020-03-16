@@ -758,6 +758,16 @@ namespace RabbitMQ.Client.Impl
             _delegate.BasicCancel(consumerTag);
         }
 
+        public void BasicCancelNoWait(string consumerTag)
+        {
+            RecordedConsumer cons = _connection.DeleteRecordedConsumer(consumerTag);
+            if (cons != null)
+            {
+                _connection.MaybeDeleteRecordedAutoDeleteQueue(cons.Queue);
+            }
+            _delegate.BasicCancelNoWait(consumerTag);
+        }
+
         public string BasicConsume(
             string queue,
             bool autoAck,
