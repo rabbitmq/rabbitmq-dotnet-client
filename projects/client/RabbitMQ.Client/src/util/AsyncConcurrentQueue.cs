@@ -43,7 +43,7 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RabbitMQ.Client.src.util
+namespace RabbitMQ.Util
 {
     /// <summary>
     /// A concurrent queue where Dequeue waits for something to be inserted if the queue is empty and Enqueue signals
@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.src.util
     ///   support.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    class AsyncConcurrentQueue<T>
+    internal class AsyncConcurrentQueue<T>
     {
         private readonly ConcurrentQueue<T> _internalQueue = new ConcurrentQueue<T>();
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(0);
