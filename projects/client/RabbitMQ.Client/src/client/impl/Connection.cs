@@ -55,7 +55,7 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    class Connection : IConnection
+    internal sealed class Connection : IConnection
     {
         private readonly object _eventLock = new object();
 
@@ -127,11 +127,6 @@ namespace RabbitMQ.Client.Framing.Impl
         }
 
         public Guid Id { get { return _id; } }
-
-#pragma warning disable 67
-        public event EventHandler<EventArgs> RecoverySucceeded;
-        public event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError;
-#pragma warning restore 67
 
         public event EventHandler<CallbackExceptionEventArgs> CallbackException;
 

@@ -50,7 +50,7 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class AutorecoveringConnection : IConnection
+    internal sealed class AutorecoveringConnection : IAutorecoveringConnection
     {
         private readonly object _eventLock = new object();
 
