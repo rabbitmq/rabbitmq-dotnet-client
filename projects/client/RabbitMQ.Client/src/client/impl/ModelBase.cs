@@ -1013,12 +1013,23 @@ namespace RabbitMQ.Client.Impl
                 _Private_BasicCancel(consumerTag, false);
                 k.GetReply(ContinuationTimeout);
             }
+
             lock (m_consumers)
             {
                 m_consumers.Remove(consumerTag);
             }
 
             ModelShutdown -= k.m_consumer.HandleModelShutdown;
+        }
+
+        public void BasicCancelNoWait(string consumerTag)
+        {
+            _Private_BasicCancel(consumerTag, true);
+
+            lock (m_consumers)
+            {
+                m_consumers.Remove(consumerTag);
+            }
         }
 
         public string BasicConsume(string queue,
@@ -1224,7 +1235,7 @@ namespace RabbitMQ.Client.Impl
         public void ExchangeDeleteNoWait(string exchange,
             bool ifUnused)
         {
-            _Private_ExchangeDelete(exchange, ifUnused, false);
+            _Private_ExchangeDelete(exchange, ifUnused, true);
         }
 
         public void ExchangeUnbind(string destination,

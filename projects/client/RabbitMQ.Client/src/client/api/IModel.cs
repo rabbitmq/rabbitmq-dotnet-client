@@ -193,6 +193,12 @@ namespace RabbitMQ.Client
         [AmqpMethodDoNotImplement(null)]
         void BasicCancel(string consumerTag);
 
+        /// <summary>
+        /// Same as BasicCancel but sets nowait to true and returns void (as there
+        /// will be no response from the server).
+        /// </summary>
+        void BasicCancelNoWait(string consumerTag);
+
         /// <summary>Start a Basic content-class consumer.</summary>
         [AmqpMethodDoNotImplement(null)]
         string BasicConsume(
