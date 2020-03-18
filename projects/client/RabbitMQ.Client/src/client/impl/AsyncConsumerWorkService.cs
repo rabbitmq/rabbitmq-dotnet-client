@@ -43,7 +43,8 @@ namespace RabbitMQ.Client
             readonly ConcurrentQueue<Work> _workQueue;
             readonly CancellationTokenSource _tokenSource;
             readonly ModelBase _model;
-            readonly SemaphoreSlim _semaphore = new SemaphoreSlim(0);
+            CancellationTokenRegistration _tokenRegistration;
+            volatile TaskCompletionSource<bool> _syncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             private Task _task;
 
             public WorkPool(ModelBase model)
@@ -51,6 +52,7 @@ namespace RabbitMQ.Client
                 _model = model;
                 _workQueue = new ConcurrentQueue<Work>();
                 _tokenSource = new CancellationTokenSource();
+                _tokenRegistration = _tokenSource.Token.Register(() => _syncSource.TrySetCanceled());
             }
 
             public void Start()
@@ -61,7 +63,7 @@ namespace RabbitMQ.Client
             public void Enqueue(Work work)
             {
                 _workQueue.Enqueue(work);
-                _semaphore.Release();
+                _syncSource.TrySetResult(true);
             }
 
             async Task Loop()
@@ -70,7 +72,8 @@ namespace RabbitMQ.Client
                 {
                     try
                     {
-                        await _semaphore.WaitAsync(_tokenSource.Token).ConfigureAwait(false);
+                        await _syncSource.Task.ConfigureAwait(false);
+                        _syncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                     }
                     catch (TaskCanceledException)
                     {
@@ -87,6 +90,7 @@ namespace RabbitMQ.Client
             public void Stop()
             {
                 _tokenSource.Cancel();
+                _tokenRegistration.Dispose();
             }
         }
     }
