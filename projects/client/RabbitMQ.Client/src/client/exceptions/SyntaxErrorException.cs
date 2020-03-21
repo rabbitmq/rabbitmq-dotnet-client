@@ -44,9 +44,9 @@ namespace RabbitMQ.Client.Exceptions
 {
     /// <summary> Thrown when our peer sends a frame that contains
     /// illegal values for one or more fields. </summary>
-    public class SyntaxError : HardProtocolException
+    public class SyntaxErrorException : HardProtocolException
     {
-        public SyntaxError(string message) : base(message)
+        public SyntaxErrorException(string message) : base(message)
         {
         }
 
