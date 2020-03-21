@@ -941,7 +941,7 @@ $@"namespace {ApiNamespaceBase}
             EmitLine("        return result;");
             EmitLine("      }");
             EmitLine("");
-            EmitLine("      throw new Client.Impl.UnknownClassOrMethodException(classId, methodId);");
+            EmitLine("      throw new Client.Exceptions.UnknownClassOrMethodException(classId, methodId);");
             EmitLine("    }");
             EmitLine("");
             EmitLine("    internal Client.Impl.MethodBase DecodeMethodFrom(ushort classId, ushort methodId)");
@@ -974,7 +974,7 @@ $@"namespace {ApiNamespaceBase}
                     EmitLine($"        case {c.Index}: return new {MangleClass(c.Name)}Properties();");
                 }
             }
-            EmitLine("        default: throw new Client.Impl.UnknownClassOrMethodException(classId, 0);");
+            EmitLine("        default: throw new Client.Exceptions.UnknownClassOrMethodException(classId, 0);");
             EmitLine("      }");
             EmitLine("    }");
         }
