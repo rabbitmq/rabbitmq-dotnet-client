@@ -50,7 +50,7 @@ namespace RabbitMQ.Client
     /// Represents an <see cref="SslHelper"/> which does the actual heavy lifting to set up an SSL connection,
     ///  using the config options in an <see cref="SslOption"/> to make things cleaner.
     /// </summary>
-    public class SslHelper
+    class SslHelper
     {
         private readonly SslOption _sslOption;
 

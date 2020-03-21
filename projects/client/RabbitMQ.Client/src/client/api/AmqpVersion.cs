@@ -54,7 +54,7 @@ namespace RabbitMQ.Client
     /// special-cases 8-0, rewriting it at construction time to be 0-8 instead.
     /// </para>
     /// </remarks>
-    public class AmqpVersion
+    class AmqpVersion
     {
         /// <summary>
         /// Construct an <see cref="AmqpVersion"/> from major and minor version numbers.
