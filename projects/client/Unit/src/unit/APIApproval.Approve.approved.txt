@@ -702,9 +702,24 @@ namespace RabbitMQ.Client.Exceptions
         public ChannelAllocationException(int channel) { }
         public int Channel { get; }
     }
+    public class ChannelErrorException : RabbitMQ.Client.Exceptions.HardProtocolException
+    {
+        public ChannelErrorException(int channel) { }
+        public int Channel { get; }
+        public override ushort ReplyCode { get; }
+    }
     public class ConnectFailureException : RabbitMQ.Client.ProtocolViolationException
     {
         public ConnectFailureException(string msg, System.Exception inner) { }
+    }
+    public abstract class HardProtocolException : RabbitMQ.Client.Exceptions.ProtocolException
+    {
+        protected HardProtocolException(string message) { }
+    }
+    public class MalformedFrameException : RabbitMQ.Client.Exceptions.HardProtocolException
+    {
+        public MalformedFrameException(string message) { }
+        public override ushort ReplyCode { get; }
     }
     public class OperationInterruptedException : RabbitMQ.Client.Exceptions.RabbitMQClientException
     {
@@ -728,6 +743,12 @@ namespace RabbitMQ.Client.Exceptions
         public PossibleAuthenticationFailureException(string msg) { }
         public PossibleAuthenticationFailureException(string msg, System.Exception inner) { }
     }
+    public abstract class ProtocolException : RabbitMQ.Client.Exceptions.RabbitMQClientException
+    {
+        protected ProtocolException(string message) { }
+        public abstract ushort ReplyCode { get; }
+        public virtual RabbitMQ.Client.ShutdownEventArgs ShutdownReason { get; }
+    }
     public class ProtocolVersionMismatchException : RabbitMQ.Client.ProtocolViolationException
     {
         public ProtocolVersionMismatchException(int clientMajor, int clientMinor, int serverMajor, int serverMinor) { }
@@ -742,10 +763,32 @@ namespace RabbitMQ.Client.Exceptions
         protected RabbitMQClientException(string message) { }
         protected RabbitMQClientException(string message, System.Exception innerException) { }
     }
+    public abstract class SoftProtocolException : RabbitMQ.Client.Exceptions.ProtocolException
+    {
+        protected SoftProtocolException(int channelNumber, string message) { }
+        public int Channel { get; }
+    }
+    public class SyntaxErrorException : RabbitMQ.Client.Exceptions.HardProtocolException
+    {
+        public SyntaxErrorException(string message) { }
+        public override ushort ReplyCode { get; }
+    }
+    public class UnexpectedFrameException : RabbitMQ.Client.Exceptions.HardProtocolException
+    {
+        public override ushort ReplyCode { get; }
+    }
     public class UnexpectedMethodException : RabbitMQ.Client.ProtocolViolationException
     {
         public UnexpectedMethodException(RabbitMQ.Client.IMethod method) { }
         public RabbitMQ.Client.IMethod Method { get; }
+    }
+    public class UnknownClassOrMethodException : RabbitMQ.Client.Exceptions.HardProtocolException
+    {
+        public UnknownClassOrMethodException(ushort classId, ushort methodId) { }
+        public ushort ClassId { get; }
+        public ushort MethodId { get; }
+        public override ushort ReplyCode { get; }
+        public override string ToString() { }
     }
     public class UnsupportedMethodException : System.NotSupportedException
     {
@@ -763,52 +806,6 @@ namespace RabbitMQ.Client.Exceptions
         public WireFormattingException(string message) { }
         public WireFormattingException(string message, object offender) { }
         public object Offender { get; }
-    }
-}
-namespace RabbitMQ.Client.Impl
-{
-    public class ChannelErrorException : RabbitMQ.Client.Impl.HardProtocolException
-    {
-        public ChannelErrorException(int channel) { }
-        public int Channel { get; }
-        public override ushort ReplyCode { get; }
-    }
-    public abstract class HardProtocolException : RabbitMQ.Client.Impl.ProtocolException
-    {
-        protected HardProtocolException(string message) { }
-    }
-    public class MalformedFrameException : RabbitMQ.Client.Impl.HardProtocolException
-    {
-        public MalformedFrameException(string message) { }
-        public override ushort ReplyCode { get; }
-    }
-    public abstract class ProtocolException : RabbitMQ.Client.Exceptions.RabbitMQClientException
-    {
-        protected ProtocolException(string message) { }
-        public abstract ushort ReplyCode { get; }
-        public virtual RabbitMQ.Client.ShutdownEventArgs ShutdownReason { get; }
-    }
-    public abstract class SoftProtocolException : RabbitMQ.Client.Impl.ProtocolException
-    {
-        protected SoftProtocolException(int channelNumber, string message) { }
-        public int Channel { get; }
-    }
-    public class SyntaxError : RabbitMQ.Client.Impl.HardProtocolException
-    {
-        public SyntaxError(string message) { }
-        public override ushort ReplyCode { get; }
-    }
-    public class UnexpectedFrameException : RabbitMQ.Client.Impl.HardProtocolException
-    {
-        public override ushort ReplyCode { get; }
-    }
-    public class UnknownClassOrMethodException : RabbitMQ.Client.Impl.HardProtocolException
-    {
-        public UnknownClassOrMethodException(ushort classId, ushort methodId) { }
-        public ushort ClassId { get; }
-        public ushort MethodId { get; }
-        public override ushort ReplyCode { get; }
-        public override string ToString() { }
     }
 }
 namespace RabbitMQ.Client.Logging
