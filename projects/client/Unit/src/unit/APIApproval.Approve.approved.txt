@@ -29,15 +29,6 @@ namespace RabbitMQ.Client
         public long UnixTime { get; }
         public override string ToString() { }
     }
-    public class AmqpVersion
-    {
-        public AmqpVersion(int major, int minor) { }
-        public int Major { get; }
-        public int Minor { get; }
-        public override bool Equals(object other) { }
-        public override int GetHashCode() { }
-        public override string ToString() { }
-    }
     public class AsyncDefaultBasicConsumer : RabbitMQ.Client.IAsyncBasicConsumer, RabbitMQ.Client.IBasicConsumer
     {
         public AsyncDefaultBasicConsumer() { }
@@ -54,15 +45,6 @@ namespace RabbitMQ.Client
         public virtual System.Threading.Tasks.Task HandleModelShutdown(object model, RabbitMQ.Client.ShutdownEventArgs reason) { }
         public virtual System.Threading.Tasks.Task OnCancel(params string[] consumerTags) { }
     }
-    public interface AuthMechanism
-    {
-        byte[] handleChallenge(byte[] challenge, RabbitMQ.Client.IConnectionFactory factory);
-    }
-    public interface AuthMechanismFactory
-    {
-        string Name { get; }
-        RabbitMQ.Client.AuthMechanism GetInstance();
-    }
     public class BasicGetResult
     {
         public BasicGetResult(ulong deliveryTag, bool redelivered, string exchange, string routingKey, uint messageCount, RabbitMQ.Client.IBasicProperties basicProperties, System.ReadOnlyMemory<byte> body) { }
@@ -74,12 +56,6 @@ namespace RabbitMQ.Client
         public bool Redelivered { get; }
         public string RoutingKey { get; }
     }
-    public class BinaryTableValue
-    {
-        public BinaryTableValue() { }
-        public BinaryTableValue(byte[] bytes) { }
-        public byte[] Bytes { get; set; }
-    }
     public sealed class ConnectionFactory : RabbitMQ.Client.ConnectionFactoryBase, RabbitMQ.Client.IAsyncConnectionFactory, RabbitMQ.Client.IConnectionFactory
     {
         public const ushort DefaultChannelMax = 2047;
@@ -87,12 +63,12 @@ namespace RabbitMQ.Client
         public const string DefaultPass = "guest";
         public const string DefaultUser = "guest";
         public const string DefaultVHost = "/";
-        public static readonly System.Collections.Generic.IList<RabbitMQ.Client.AuthMechanismFactory> DefaultAuthMechanisms;
+        public static readonly System.Collections.Generic.IList<RabbitMQ.Client.IAuthMechanismFactory> DefaultAuthMechanisms;
         public static readonly System.TimeSpan DefaultConnectionTimeout;
         public static readonly System.TimeSpan DefaultHeartbeat;
         public ConnectionFactory() { }
         public System.Security.Authentication.SslProtocols AmqpUriSslProtocols { get; set; }
-        public System.Collections.Generic.IList<RabbitMQ.Client.AuthMechanismFactory> AuthMechanisms { get; set; }
+        public System.Collections.Generic.IList<RabbitMQ.Client.IAuthMechanismFactory> AuthMechanisms { get; set; }
         public bool AutomaticRecoveryEnabled { get; set; }
         public System.Collections.Generic.IDictionary<string, object> ClientProperties { get; set; }
         public string ClientProvidedName { get; set; }
@@ -119,7 +95,7 @@ namespace RabbitMQ.Client
         public string VirtualHost { get; set; }
         public static System.Net.Sockets.AddressFamily DefaultAddressFamily { get; set; }
         public static System.Security.Authentication.SslProtocols DefaultAmqpUriSslProtocols { get; set; }
-        public RabbitMQ.Client.AuthMechanismFactory AuthMechanismFactory(System.Collections.Generic.IList<string> mechanismNames) { }
+        public RabbitMQ.Client.IAuthMechanismFactory AuthMechanismFactory(System.Collections.Generic.IList<string> mechanismNames) { }
         public RabbitMQ.Client.IConnection CreateConnection() { }
         public RabbitMQ.Client.IConnection CreateConnection(System.Collections.Generic.IList<RabbitMQ.Client.AmqpTcpEndpoint> endpoints) { }
         public RabbitMQ.Client.IConnection CreateConnection(System.Collections.Generic.IList<string> hostnames) { }
@@ -133,13 +109,6 @@ namespace RabbitMQ.Client
         public System.Func<System.Net.Sockets.AddressFamily, RabbitMQ.Client.ITcpClient> SocketFactory;
         public ConnectionFactoryBase() { }
         public static RabbitMQ.Client.ITcpClient DefaultSocketFactory(System.Net.Sockets.AddressFamily addressFamily) { }
-    }
-    public class ConsumerWorkService
-    {
-        public ConsumerWorkService() { }
-        public void AddWork(RabbitMQ.Client.IModel model, System.Action fn) { }
-        public void StopWork() { }
-        public void StopWork(RabbitMQ.Client.IModel model) { }
     }
     public class DefaultBasicConsumer : RabbitMQ.Client.IBasicConsumer
     {
@@ -174,16 +143,16 @@ namespace RabbitMQ.Client
         public const string Topic = "topic";
         public static System.Collections.Generic.ICollection<string> All() { }
     }
-    public class ExternalMechanism : RabbitMQ.Client.AuthMechanism
+    public class ExternalMechanism : RabbitMQ.Client.IAuthMechanism
     {
         public ExternalMechanism() { }
         public byte[] handleChallenge(byte[] challenge, RabbitMQ.Client.IConnectionFactory factory) { }
     }
-    public class ExternalMechanismFactory : RabbitMQ.Client.AuthMechanismFactory
+    public class ExternalMechanismFactory : RabbitMQ.Client.IAuthMechanismFactory
     {
         public ExternalMechanismFactory() { }
         public string Name { get; }
-        public RabbitMQ.Client.AuthMechanism GetInstance() { }
+        public RabbitMQ.Client.IAuthMechanism GetInstance() { }
     }
     public static class Headers
     {
@@ -216,7 +185,16 @@ namespace RabbitMQ.Client
     {
         bool DispatchConsumersAsync { get; set; }
     }
-    public interface IAutorecoveringConnection : RabbitMQ.Client.IConnection, RabbitMQ.Client.NetworkConnection, System.IDisposable
+    public interface IAuthMechanism
+    {
+        byte[] handleChallenge(byte[] challenge, RabbitMQ.Client.IConnectionFactory factory);
+    }
+    public interface IAuthMechanismFactory
+    {
+        string Name { get; }
+        RabbitMQ.Client.IAuthMechanism GetInstance();
+    }
+    public interface IAutorecoveringConnection : RabbitMQ.Client.IConnection, RabbitMQ.Client.INetworkConnection, System.IDisposable
     {
         event System.EventHandler<RabbitMQ.Client.Events.ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError;
         event System.EventHandler<System.EventArgs> RecoverySucceeded;
@@ -283,13 +261,13 @@ namespace RabbitMQ.Client
         void Add(string exchange, string routingKey, bool mandatory, RabbitMQ.Client.IBasicProperties properties, byte[] body);
         void Publish();
     }
-    public interface IConnection : RabbitMQ.Client.NetworkConnection, System.IDisposable
+    public interface IConnection : RabbitMQ.Client.INetworkConnection, System.IDisposable
     {
         ushort ChannelMax { get; }
         System.Collections.Generic.IDictionary<string, object> ClientProperties { get; }
         string ClientProvidedName { get; }
         RabbitMQ.Client.ShutdownEventArgs CloseReason { get; }
-        RabbitMQ.Client.ConsumerWorkService ConsumerWorkService { get; }
+        RabbitMQ.Client.Impl.ConsumerWorkService ConsumerWorkService { get; }
         RabbitMQ.Client.AmqpTcpEndpoint Endpoint { get; }
         uint FrameMax { get; }
         System.TimeSpan Heartbeat { get; }
@@ -329,7 +307,7 @@ namespace RabbitMQ.Client
         bool UseBackgroundThreadsForIO { get; set; }
         string UserName { get; set; }
         string VirtualHost { get; set; }
-        RabbitMQ.Client.AuthMechanismFactory AuthMechanismFactory(System.Collections.Generic.IList<string> mechanismNames);
+        RabbitMQ.Client.IAuthMechanismFactory AuthMechanismFactory(System.Collections.Generic.IList<string> mechanismNames);
         RabbitMQ.Client.IConnection CreateConnection();
         RabbitMQ.Client.IConnection CreateConnection(System.Collections.Generic.IList<RabbitMQ.Client.AmqpTcpEndpoint> endpoints);
         RabbitMQ.Client.IConnection CreateConnection(System.Collections.Generic.IList<string> hostnames);
@@ -437,6 +415,11 @@ namespace RabbitMQ.Client
         public static void QueueDeleteNoWait(this RabbitMQ.Client.IModel model, string queue, bool ifUnused = false, bool ifEmpty = false) { }
         public static void QueueUnbind(this RabbitMQ.Client.IModel model, string queue, string exchange, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments = null) { }
     }
+    public interface INetworkConnection
+    {
+        int LocalPort { get; }
+        int RemotePort { get; }
+    }
     public interface IProtocol
     {
         string ApiName { get; }
@@ -476,27 +459,16 @@ namespace RabbitMQ.Client
         System.Threading.Tasks.Task ConnectAsync(string host, int port);
         System.Net.Sockets.NetworkStream GetStream();
     }
-    public interface NetworkConnection
-    {
-        int LocalPort { get; }
-        int RemotePort { get; }
-    }
-    public class PlainMechanism : RabbitMQ.Client.AuthMechanism
+    public class PlainMechanism : RabbitMQ.Client.IAuthMechanism
     {
         public PlainMechanism() { }
         public byte[] handleChallenge(byte[] challenge, RabbitMQ.Client.IConnectionFactory factory) { }
     }
-    public class PlainMechanismFactory : RabbitMQ.Client.AuthMechanismFactory
+    public class PlainMechanismFactory : RabbitMQ.Client.IAuthMechanismFactory
     {
         public PlainMechanismFactory() { }
         public string Name { get; }
-        public RabbitMQ.Client.AuthMechanism GetInstance() { }
-    }
-    public class ProtocolViolationException : RabbitMQ.Client.Exceptions.RabbitMQClientException
-    {
-        public ProtocolViolationException() { }
-        public ProtocolViolationException(string message) { }
-        public ProtocolViolationException(string message, System.Exception inner) { }
+        public RabbitMQ.Client.IAuthMechanism GetInstance() { }
     }
     public static class Protocols
     {
@@ -546,10 +518,6 @@ namespace RabbitMQ.Client
         public System.Exception Exception { get; set; }
         public override string ToString() { }
     }
-    public class SslHelper
-    {
-        public static System.IO.Stream TcpUpgrade(System.IO.Stream tcpStream, RabbitMQ.Client.SslOption options) { }
-    }
     public class SslOption
     {
         public SslOption() { }
@@ -564,10 +532,6 @@ namespace RabbitMQ.Client
         public bool Enabled { get; set; }
         public string ServerName { get; set; }
         public System.Security.Authentication.SslProtocols Version { get; set; }
-    }
-    public class TopologyRecoveryException : RabbitMQ.Client.Exceptions.RabbitMQClientException
-    {
-        public TopologyRecoveryException(string message, System.Exception cause) { }
     }
 }
 namespace RabbitMQ.Client.Events
@@ -696,7 +660,7 @@ namespace RabbitMQ.Client.Exceptions
     {
         public BrokerUnreachableException(System.Exception Inner) { }
     }
-    public class ChannelAllocationException : RabbitMQ.Client.ProtocolViolationException
+    public class ChannelAllocationException : RabbitMQ.Client.Exceptions.ProtocolViolationException
     {
         public ChannelAllocationException() { }
         public ChannelAllocationException(int channel) { }
@@ -708,7 +672,7 @@ namespace RabbitMQ.Client.Exceptions
         public int Channel { get; }
         public override ushort ReplyCode { get; }
     }
-    public class ConnectFailureException : RabbitMQ.Client.ProtocolViolationException
+    public class ConnectFailureException : RabbitMQ.Client.Exceptions.ProtocolViolationException
     {
         public ConnectFailureException(string msg, System.Exception inner) { }
     }
@@ -749,13 +713,19 @@ namespace RabbitMQ.Client.Exceptions
         public abstract ushort ReplyCode { get; }
         public virtual RabbitMQ.Client.ShutdownEventArgs ShutdownReason { get; }
     }
-    public class ProtocolVersionMismatchException : RabbitMQ.Client.ProtocolViolationException
+    public class ProtocolVersionMismatchException : RabbitMQ.Client.Exceptions.ProtocolViolationException
     {
         public ProtocolVersionMismatchException(int clientMajor, int clientMinor, int serverMajor, int serverMinor) { }
         public int ClientMajor { get; }
         public int ClientMinor { get; }
         public int ServerMajor { get; }
         public int ServerMinor { get; }
+    }
+    public class ProtocolViolationException : RabbitMQ.Client.Exceptions.RabbitMQClientException
+    {
+        public ProtocolViolationException() { }
+        public ProtocolViolationException(string message) { }
+        public ProtocolViolationException(string message, System.Exception inner) { }
     }
     public abstract class RabbitMQClientException : System.Exception
     {
@@ -773,11 +743,15 @@ namespace RabbitMQ.Client.Exceptions
         public SyntaxErrorException(string message) { }
         public override ushort ReplyCode { get; }
     }
+    public class TopologyRecoveryException : RabbitMQ.Client.Exceptions.RabbitMQClientException
+    {
+        public TopologyRecoveryException(string message, System.Exception cause) { }
+    }
     public class UnexpectedFrameException : RabbitMQ.Client.Exceptions.HardProtocolException
     {
         public override ushort ReplyCode { get; }
     }
-    public class UnexpectedMethodException : RabbitMQ.Client.ProtocolViolationException
+    public class UnexpectedMethodException : RabbitMQ.Client.Exceptions.ProtocolViolationException
     {
         public UnexpectedMethodException(RabbitMQ.Client.IMethod method) { }
         public RabbitMQ.Client.IMethod Method { get; }
@@ -801,11 +775,21 @@ namespace RabbitMQ.Client.Exceptions
         public string FieldName { get; }
         public string MethodName { get; }
     }
-    public class WireFormattingException : RabbitMQ.Client.ProtocolViolationException
+    public class WireFormattingException : RabbitMQ.Client.Exceptions.ProtocolViolationException
     {
         public WireFormattingException(string message) { }
         public WireFormattingException(string message, object offender) { }
         public object Offender { get; }
+    }
+}
+namespace RabbitMQ.Client.Impl
+{
+    public class ConsumerWorkService
+    {
+        public ConsumerWorkService() { }
+        public void AddWork(RabbitMQ.Client.IModel model, System.Action fn) { }
+        public void StopWork() { }
+        public void StopWork(RabbitMQ.Client.IModel model) { }
     }
 }
 namespace RabbitMQ.Client.Logging
