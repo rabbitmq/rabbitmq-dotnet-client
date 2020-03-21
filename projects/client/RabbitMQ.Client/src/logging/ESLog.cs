@@ -38,7 +38,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-namespace RabbitMQ.Client
+namespace RabbitMQ.Client.Logging
 {
     static class ESLog
     {

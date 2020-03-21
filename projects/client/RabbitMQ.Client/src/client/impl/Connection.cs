@@ -51,6 +51,7 @@ using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Impl;
+using RabbitMQ.Client.Logging;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Framing.Impl

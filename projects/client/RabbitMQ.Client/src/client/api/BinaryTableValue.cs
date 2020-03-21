@@ -38,7 +38,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-namespace RabbitMQ.Client
+namespace RabbitMQ.Client.Impl
 {
     /// <summary>Wrapper for a byte[]. May appear as values read from
     ///and written to AMQP field tables.</summary>

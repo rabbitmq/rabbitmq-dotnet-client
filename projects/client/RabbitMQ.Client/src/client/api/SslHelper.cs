@@ -44,7 +44,7 @@ using System.Net.Security;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 
-namespace RabbitMQ.Client
+namespace RabbitMQ.Client.Impl
 {
     /// <summary>
     /// Represents an <see cref="SslHelper"/> which does the actual heavy lifting to set up an SSL connection,
