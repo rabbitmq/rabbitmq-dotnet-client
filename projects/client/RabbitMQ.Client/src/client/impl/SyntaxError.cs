@@ -40,7 +40,7 @@
 
 using RabbitMQ.Client.Framing;
 
-namespace RabbitMQ.Client.Impl
+namespace RabbitMQ.Client.Exceptions
 {
     /// <summary> Thrown when our peer sends a frame that contains
     /// illegal values for one or more fields. </summary>

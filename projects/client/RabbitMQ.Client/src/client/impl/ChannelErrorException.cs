@@ -40,7 +40,7 @@
 
 using RabbitMQ.Client.Framing;
 
-namespace RabbitMQ.Client.Impl
+namespace RabbitMQ.Client.Exceptions
 {
     /// <summary> Thrown when the server sends a frame along a channel
     /// that we do not currently have a Session entry in our

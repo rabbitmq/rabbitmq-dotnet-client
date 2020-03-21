@@ -40,7 +40,7 @@
 
 using RabbitMQ.Client.Framing;
 
-namespace RabbitMQ.Client.Impl
+namespace RabbitMQ.Client.Exceptions
 {
     ///<summary>Thrown when frame parsing code detects an error in the
     ///wire-protocol encoding of a frame.</summary>

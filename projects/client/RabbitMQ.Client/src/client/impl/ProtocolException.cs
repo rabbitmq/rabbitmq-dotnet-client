@@ -38,9 +38,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using RabbitMQ.Client.Exceptions;
-
-namespace RabbitMQ.Client.Impl
+namespace RabbitMQ.Client.Exceptions
 {
     /// <summary> Instances of subclasses of subclasses
     /// HardProtocolException and SoftProtocolException are thrown in

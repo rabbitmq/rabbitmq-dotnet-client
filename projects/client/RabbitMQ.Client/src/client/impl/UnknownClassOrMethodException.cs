@@ -40,7 +40,7 @@
 
 using RabbitMQ.Client.Framing;
 
-namespace RabbitMQ.Client.Impl
+namespace RabbitMQ.Client.Exceptions
 {
     /// <summary>
     /// Thrown when the protocol handlers detect an unknown class

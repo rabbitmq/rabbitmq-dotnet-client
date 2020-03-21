@@ -40,7 +40,7 @@
 
 using System;
 using System.Collections.Generic;
-
+using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl

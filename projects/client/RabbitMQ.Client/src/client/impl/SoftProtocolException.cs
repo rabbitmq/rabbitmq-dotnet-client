@@ -38,7 +38,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-namespace RabbitMQ.Client.Impl
+namespace RabbitMQ.Client.Exceptions
 {
     ///<summary>Subclass of ProtocolException representing problems
     ///requiring a channel.close.</summary>
