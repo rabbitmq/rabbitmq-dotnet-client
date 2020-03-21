@@ -65,7 +65,7 @@ namespace RabbitMQ.Client
     /// appropriate.
     /// </para>
     /// </remarks>
-    public interface IConnection : NetworkConnection, IDisposable
+    public interface IConnection : INetworkConnection, IDisposable
     {
         /// <summary>
         /// The maximum channel number this connection supports (0 if unlimited).

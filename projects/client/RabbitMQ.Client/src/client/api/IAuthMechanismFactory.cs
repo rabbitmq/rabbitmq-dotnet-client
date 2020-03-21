@@ -40,7 +40,7 @@
 
 namespace RabbitMQ.Client
 {
-    public interface AuthMechanismFactory
+    public interface IAuthMechanismFactory
     {
         /// <summary>
         /// The name of the authentication mechanism, as negotiated on the wire.
@@ -50,6 +50,6 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Return a new authentication mechanism implementation.
         /// </summary>
-        AuthMechanism GetInstance();
+        IAuthMechanism GetInstance();
     }
 }
