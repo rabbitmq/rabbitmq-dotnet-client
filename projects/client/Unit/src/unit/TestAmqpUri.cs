@@ -97,7 +97,13 @@ namespace RabbitMQ.Client.Unit
                     "guest", "guest", "host", 5672, "/");
                 ParseSuccess("amqp://[::1]", "guest", "guest",
                     IPv6Loopbacks,
-                    5672, "/");
+                    5672, "/", false);
+                ParseSuccess("AMQPS://[::1]", "guest", "guest",
+                    IPv6Loopbacks,
+                    5671, "/", true);
+                ParseSuccess("AMQPS://[::1]", "guest", "guest",
+                    IPv6Loopbacks,
+                    5671, "/", true);
 
                 /* Various other success cases */
                 ParseSuccess("amqp://host:100",
