@@ -76,9 +76,11 @@ namespace RabbitMQ.Client.Unit
             {
                 /* From the spec */
                 ParseSuccess("amqp://user:pass@host:10000/vhost",
-                    "user", "pass", "host", 10000, "vhost");
+                    "user", "pass", "host", 10000, "vhost", false);
+                ParseSuccess("amqps://user:pass@host:10000/vhost",
+                    "user", "pass", "host", 10000, "vhost", true);
                 ParseSuccess("aMQps://user%61:%61pass@host:10000/v%2fhost",
-                    "usera", "apass", "host", 10000, "v/host");
+                    "usera", "apass", "host", 10000, "v/host", true);
                 ParseSuccess("amqp://localhost", "guest", "guest", "localhost", 5672, "/");
                 ParseSuccess("amqp://:@localhost/", "", "", "localhost", 5672, "/");
                 ParseSuccess("amqp://user@localhost",
@@ -137,12 +139,13 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        private static void AssertUriPartEquivalence(string user, string password, int port, string vhost, ConnectionFactory cf)
+        private static void AssertUriPartEquivalence(ConnectionFactory cf, string user, string password, int port, string vhost, bool tlsEnabled)
         {
             Assert.AreEqual(user, cf.UserName);
             Assert.AreEqual(password, cf.Password);
             Assert.AreEqual(port, cf.Port);
             Assert.AreEqual(vhost, cf.VirtualHost);
+            Assert.AreEqual(tlsEnabled, cf.Tls.Enabled);
         }
 
         private void ParseFailWith<T>(string uri) where T : Exception
@@ -151,26 +154,27 @@ namespace RabbitMQ.Client.Unit
             Assert.That(() => cf.Uri = new Uri(uri), Throws.TypeOf<T>());
         }
 
-        private void ParseSuccess(string uri, string user, string password, string host, int port, string vhost)
+        private void ParseSuccess(string uri, string user, string password, string host, int port, string vhost, bool tlsEnabled = false)
         {
             var factory = new ConnectionFactory
             {
                 Uri = new Uri(uri)
             };
-            AssertUriPartEquivalence(user, password, port, vhost, factory);
+            AssertUriPartEquivalence(factory, user, password, port, vhost, tlsEnabled);
             Assert.AreEqual(host, factory.HostName);
         }
 
         private void ParseSuccess(string uri, string user, string password,
-            string[] hosts, int port, string vhost)
+            string[] hosts, int port, string vhost, bool tlsEnabled = false)
         {
             var factory = new ConnectionFactory
             {
                 Uri = new Uri(uri)
             };
-            AssertUriPartEquivalence(user, password, port, vhost, factory);
+            AssertUriPartEquivalence(factory, user, password, port, vhost, tlsEnabled);
             Assert.IsTrue(Array.IndexOf(hosts, factory.HostName) != -1);
         }
+
         public static bool IsRunningOnMono()
         {
             #if CORECLR
