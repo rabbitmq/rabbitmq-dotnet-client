@@ -160,7 +160,7 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        private static void AssertUriPartEquivalence(ConnectionFactory cf, string user, string password, int port, string vhost, bool tlsEnabled)
+        private static void AssertUriPartEquivalence(ConnectionFactory cf, string user, string password, int port, string vhost, bool tlsEnabled = false)
         {
             Assert.AreEqual(user, cf.UserName);
             Assert.AreEqual(password, cf.Password);
