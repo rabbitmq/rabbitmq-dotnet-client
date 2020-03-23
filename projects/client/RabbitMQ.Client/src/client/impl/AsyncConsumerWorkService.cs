@@ -43,9 +43,8 @@ namespace RabbitMQ.Client
             readonly ConcurrentQueue<Work> _workQueue;
             readonly CancellationTokenSource _tokenSource;
             readonly ModelBase _model;
-            CancellationTokenRegistration _tokenRegistration;
+            readonly CancellationTokenRegistration _tokenRegistration;
             volatile TaskCompletionSource<bool> _syncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            private Task _task;
 
             public WorkPool(ModelBase model)
             {
@@ -57,7 +56,7 @@ namespace RabbitMQ.Client
 
             public void Start()
             {
-                _task = Task.Run(Loop, CancellationToken.None);
+                Task.Run(Loop, CancellationToken.None);
             }
 
             public void Enqueue(Work work)
@@ -80,7 +79,7 @@ namespace RabbitMQ.Client
                         // Swallowing the task cancellation in case we are stopping work.
                     }
 
-                    if (!_tokenSource.IsCancellationRequested && _workQueue.TryDequeue(out Work work))
+                    while (_tokenSource.IsCancellationRequested == false && _workQueue.TryDequeue(out Work work))
                     {
                         await work.Execute(_model).ConfigureAwait(false);
                     }

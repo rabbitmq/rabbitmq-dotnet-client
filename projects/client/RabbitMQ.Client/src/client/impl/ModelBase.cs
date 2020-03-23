@@ -336,7 +336,9 @@ namespace RabbitMQ.Client.Impl
         public void HandleCommand(ISession session, Command cmd)
         {
             if (!DispatchAsynchronous(cmd))// Was asynchronous. Already processed. No need to process further.
+            {
                 _continuationQueue.Next().HandleCommand(cmd);
+            }
         }
 
         public MethodBase ModelRpc(MethodBase method, ContentHeaderBase header, byte[] body)

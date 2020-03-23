@@ -202,7 +202,6 @@ namespace RabbitMQ.Client.Impl
             return RabbitMQ.Client.Impl.InboundFrame.ReadFrom(_reader);
         }
 
-        private static readonly byte[] s_amqp = Encoding.ASCII.GetBytes("AMQP");
         public void SendHeader()
         {
             byte[] headerBytes = new byte[8];
