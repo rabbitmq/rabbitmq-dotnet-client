@@ -167,6 +167,9 @@ namespace RabbitMQ.Client.Unit
             Assert.AreEqual(port, cf.Port);
             Assert.AreEqual(vhost, cf.VirtualHost);
             Assert.AreEqual(tlsEnabled, cf.Tls.Enabled);
+
+            Assert.AreEqual(port, cf.Endpoint.Port);
+            Assert.AreEqual(tlsEnabled, cf.Endpoint.Tls.Enabled);
         }
 
         private void ParseFailWith<T>(string uri) where T : Exception
