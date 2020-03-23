@@ -142,6 +142,21 @@ namespace RabbitMQ.Client.Unit
                     "user", "pass",
                     IPv6Loopbacks,
                     100, "/");
+
+                ParseSuccess("amqps://user:pass@host",
+                    "user", "pass", "host", 5671, "/", true);
+                ParseSuccess("amqps://user:pass@host:100",
+                    "user", "pass", "host", 100, "/", true);
+                ParseSuccess("amqps://user:pass@localhost:100",
+                    "user", "pass", "localhost", 100, "/", true);
+                ParseSuccess("amqps://user:pass@[::1]",
+                    "user", "pass",
+                    IPv6Loopbacks,
+                    5671, "/", true);
+                ParseSuccess("amqps://user:pass@[::1]:100",
+                    "user", "pass",
+                    IPv6Loopbacks,
+                    100, "/", true);
             }
         }
 
