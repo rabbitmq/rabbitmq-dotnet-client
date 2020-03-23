@@ -66,6 +66,10 @@ namespace RabbitMQ.Client.Unit
                 ParseFailWith<UriFormatException>("amqp://foo%1");
                 ParseFailWith<UriFormatException>("amqp://foo%1x");
                 ParseFailWith<UriFormatException>("amqp://foo%xy");
+
+                ParseFailWith<UriFormatException>("amqps://foo%1");
+                ParseFailWith<UriFormatException>("amqps://foo%1x");
+                ParseFailWith<UriFormatException>("AMQPS://foo%xy");
             }
         }
 
