@@ -15,7 +15,6 @@ namespace RabbitMQ.Client
         public int Port { get; set; }
         public RabbitMQ.Client.IProtocol Protocol { get; }
         public RabbitMQ.Client.SslOption Ssl { get; set; }
-        public RabbitMQ.Client.SslOption Tls { get; set; }
         public object Clone() { }
         public RabbitMQ.Client.AmqpTcpEndpoint CloneWithHostname(string hostname) { }
         public override bool Equals(object obj) { }
@@ -113,7 +112,6 @@ namespace RabbitMQ.Client
         public System.TimeSpan SocketReadTimeout { get; set; }
         public System.TimeSpan SocketWriteTimeout { get; set; }
         public RabbitMQ.Client.SslOption Ssl { get; set; }
-        public RabbitMQ.Client.SslOption Tls { get; set; }
         public bool TopologyRecoveryEnabled { get; set; }
         public System.Uri Uri { get; set; }
         public bool UseBackgroundThreadsForIO { get; set; }

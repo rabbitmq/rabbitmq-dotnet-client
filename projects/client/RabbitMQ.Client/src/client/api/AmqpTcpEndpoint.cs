@@ -184,11 +184,6 @@ namespace RabbitMQ.Client
         /// </summary>
         public SslOption Ssl { get; set; }
 
-        public SslOption Tls { 
-            get { return this.Ssl; }
-            set { this.Ssl = value; }
-        }
-
         /// <summary>
         /// Construct an instance from a protocol and an address in "hostname:port" format.
         /// </summary>

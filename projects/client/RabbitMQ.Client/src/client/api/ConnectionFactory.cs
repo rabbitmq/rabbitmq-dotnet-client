@@ -246,14 +246,6 @@ namespace RabbitMQ.Client
         public SslOption Ssl { get; set; } = new SslOption();
 
         /// <summary>
-        /// TLS options setting.
-        /// </summary>
-        public SslOption Tls {
-            get { return this.Ssl; }
-            set { this.Ssl = value; }
-        }
-
-        /// <summary>
         /// Set to false to make automatic connection recovery not recover topology (exchanges, queues, bindings, etc).
         /// Defaults to true.
         /// </summary>
