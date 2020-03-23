@@ -89,6 +89,8 @@ namespace RabbitMQ.Client.Unit
                 ParseSuccess("amqp://:@localhost/", "", "", "localhost", 5672, "/");
                 ParseSuccess("amqp://user@localhost",
                     "user", "guest", "localhost", 5672, "/");
+                ParseSuccess("amqps://user@localhost",
+                    "user", "guest", "localhost", 5671, "/", true);
                 ParseSuccess("amqp://user:pass@localhost",
                     "user", "pass", "localhost", 5672, "/");
                 ParseSuccess("amqp://host", "guest", "guest", "host", 5672, "/");
