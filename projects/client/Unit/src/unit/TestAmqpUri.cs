@@ -172,10 +172,10 @@ namespace RabbitMQ.Client.Unit
             Assert.AreEqual(password, cf.Password);
             Assert.AreEqual(port, cf.Port);
             Assert.AreEqual(vhost, cf.VirtualHost);
-            Assert.AreEqual(tlsEnabled, cf.Tls.Enabled);
+            Assert.AreEqual(tlsEnabled, cf.Ssl.Enabled);
 
             Assert.AreEqual(port, cf.Endpoint.Port);
-            Assert.AreEqual(tlsEnabled, cf.Endpoint.Tls.Enabled);
+            Assert.AreEqual(tlsEnabled, cf.Endpoint.Ssl.Enabled);
         }
 
         private void ParseFailWith<T>(string uri) where T : Exception
