@@ -149,5 +149,16 @@ namespace RabbitMQ.Client
         /// Retrieve or set the Ssl protocol version.
         /// </summary>
         public SslProtocols Version { get; set; }
+
+        /// <summary>
+        /// Reconfigures the instance to enable/use TLSv1.2.
+        /// Only used in environments where System.Security.Authentication.SslProtocols.None
+        /// is unavailable or effectively disabled, as reported by System.Net.ServicePointManager.
+        /// </summary>
+        public SslProtocols UseFallbackTlsVersions()
+        {
+            this.Version = SslProtocols.Tls12;
+            return Version;
+        }
     }
 }

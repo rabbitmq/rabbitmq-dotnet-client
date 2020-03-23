@@ -41,6 +41,7 @@
 using System;
 using System.IO;
 using System.Net.Security;
+using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 
 namespace RabbitMQ.Client
@@ -59,21 +60,32 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// Upgrade a Tcp stream to an Ssl stream using the SSL options provided.
+        /// Upgrade a Tcp stream to an Ssl stream using the TLS options provided.
         /// </summary>
-        public static Stream TcpUpgrade(Stream tcpStream, SslOption sslOption)
+        public static Stream TcpUpgrade(Stream tcpStream, SslOption options)
         {
-            var helper = new SslHelper(sslOption);
+            var helper = new SslHelper(options);
 
             RemoteCertificateValidationCallback remoteCertValidator =
-                sslOption.CertificateValidationCallback ?? helper.CertificateValidationCallback;
+                options.CertificateValidationCallback ?? helper.CertificateValidationCallback;
             LocalCertificateSelectionCallback localCertSelector =
-                sslOption.CertificateSelectionCallback ?? helper.CertificateSelectionCallback;
+                options.CertificateSelectionCallback ?? helper.CertificateSelectionCallback;
 
             var sslStream = new SslStream(tcpStream, false, remoteCertValidator, localCertSelector);
 
-            sslStream.AuthenticateAsClientAsync(sslOption.ServerName, sslOption.Certs, sslOption.Version,
-                                                sslOption.CheckCertificateRevocation).GetAwaiter().GetResult();
+            Action<SslOption> TryAuthenticating = (SslOption opts) => {
+                sslStream.AuthenticateAsClientAsync(opts.ServerName, opts.Certs, opts.Version,
+                                                    opts.CheckCertificateRevocation).GetAwaiter().GetResult();
+            };
+            try {
+                TryAuthenticating(options);
+            } catch(ArgumentException e) when (e.ParamName == "sslProtocolType" && options.Version == SslProtocols.None) {
+                // SslProtocols.None is dysfunctional in this environment, possibly due to TLS version restrictions
+                // in the app context, system or .NET version-specific behavior. See rabbitmq/rabbitmq-dotnet-client#764
+                // for background.
+                options.UseFallbackTlsVersions();
+                TryAuthenticating(options);
+            }
 
             return sslStream;
         }
