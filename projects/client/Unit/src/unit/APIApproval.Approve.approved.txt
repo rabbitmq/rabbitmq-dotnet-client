@@ -548,7 +548,7 @@ namespace RabbitMQ.Client
     }
     public class SslHelper
     {
-        public static System.IO.Stream TcpUpgrade(System.IO.Stream tcpStream, RabbitMQ.Client.SslOption sslOption) { }
+        public static System.IO.Stream TcpUpgrade(System.IO.Stream tcpStream, RabbitMQ.Client.SslOption options) { }
     }
     public class SslOption
     {

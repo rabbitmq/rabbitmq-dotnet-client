@@ -75,7 +75,7 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// Retrieve or set the set of ssl policy errors that are deemed acceptable.
+        /// Retrieve or set the set of TLS policy errors that are deemed acceptable.
         /// </summary>
         public SslPolicyErrors AcceptablePolicyErrors { get; set; }
 
@@ -90,13 +90,13 @@ namespace RabbitMQ.Client
         public string CertPath { get; set; }
 
         /// <summary>
-        /// An optional client specified SSL certificate selection callback.  If this is not specified,
+        /// An optional client specified TLS certificate selection callback.  If this is not specified,
         /// the first valid certificate found will be used.
         /// </summary>
         public LocalCertificateSelectionCallback CertificateSelectionCallback { get; set; }
 
         /// <summary>
-        /// An optional client specified SSL certificate validation callback.  If this is not specified,
+        /// An optional client specified TLS certificate validation callback.  If this is not specified,
         /// the default callback will be used in conjunction with the <see cref="AcceptablePolicyErrors"/> property to
         /// determine if the remote server certificate is valid.
         /// </summary>
@@ -135,13 +135,13 @@ namespace RabbitMQ.Client
         public bool CheckCertificateRevocation { get; set; }
 
         /// <summary>
-        /// Flag specifying if Ssl should indeed be used.
+        /// Flag specifying if TLS should indeed be used.
         /// </summary>
         public bool Enabled { get; set; }
 
         /// <summary>
         /// Retrieve or set server's Canonical Name.
-        /// This MUST match the CN on the Certificate else the SSL connection will fail.
+        /// This MUST match the Subject Alternative Name or CN on the Certificate else the TLS connection will fail.
         /// </summary>
         public string ServerName { get; set; }
 
@@ -149,5 +149,16 @@ namespace RabbitMQ.Client
         /// Retrieve or set the Ssl protocol version.
         /// </summary>
         public SslProtocols Version { get; set; }
+
+        /// <summary>
+        /// Reconfigures the instance to enable/use TLSv1.2.
+        /// Only used in environments where System.Security.Authentication.SslProtocols.None
+        /// is unavailable or effectively disabled, as reported by System.Net.ServicePointManager.
+        /// </summary>
+        internal SslProtocols UseFallbackTlsVersions()
+        {
+            this.Version = SslProtocols.Tls12;
+            return Version;
+        }
     }
 }
