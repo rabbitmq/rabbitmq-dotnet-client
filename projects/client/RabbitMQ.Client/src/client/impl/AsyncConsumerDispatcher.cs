@@ -17,11 +17,6 @@
             IsShutdown = true;
         }
 
-        public void Shutdown()
-        {
-            workService.Stop();
-        }
-
         public void Shutdown(IModel model)
         {
             workService.Stop(model);
