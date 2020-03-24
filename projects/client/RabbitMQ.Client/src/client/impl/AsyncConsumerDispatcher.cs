@@ -19,11 +19,6 @@ namespace RabbitMQ.Client.Impl
             IsShutdown = true;
         }
 
-        public void Shutdown()
-        {
-            _workService.Stop();
-        }
-
         public void Shutdown(IModel model)
         {
             _workService.Stop(model);
