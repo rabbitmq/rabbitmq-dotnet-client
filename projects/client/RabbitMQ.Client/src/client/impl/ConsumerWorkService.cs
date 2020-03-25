@@ -41,7 +41,7 @@ namespace RabbitMQ.Client
         {
             readonly ConcurrentQueue<Action> _actions;
             readonly CancellationTokenSource _tokenSource;
-            CancellationTokenRegistration _tokenRegistration;
+            readonly CancellationTokenRegistration _tokenRegistration;
             volatile TaskCompletionSource<bool> _syncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             private Task _worker;
 
