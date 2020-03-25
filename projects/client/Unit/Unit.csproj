@@ -18,8 +18,4 @@
     <PackageReference Include="PublicApiGenerator" Version="10.0.2" />
   </ItemGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1' ">
-    <DefineConstants>$(DefineConstants);CORECLR</DefineConstants>
-  </PropertyGroup>
-
 </Project>
