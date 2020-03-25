@@ -29,14 +29,6 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public void StopWork()
-        {
-            foreach (IModel model in _workPools.Keys)
-            {
-                StopWork(model);
-            }
-        }
-
         class WorkPool
         {
             readonly ConcurrentQueue<Action> _actions;
