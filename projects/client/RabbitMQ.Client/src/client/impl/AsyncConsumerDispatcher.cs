@@ -59,7 +59,7 @@
         public void HandleModelShutdown(IBasicConsumer consumer, ShutdownEventArgs reason)
         {
             // the only case where we ignore the shutdown flag.
-            new ModelShutdown(consumer, reason).Execute(model).GetAwaiter().GetResult();
+            Schedule(new ModelShutdown(consumer, reason));
         }
 
         private void ScheduleUnlessShuttingDown<TWork>(TWork work)
