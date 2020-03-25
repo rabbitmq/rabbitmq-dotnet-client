@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -39,42 +40,45 @@ namespace RabbitMQ.Client
 
         class WorkPool
         {
-            readonly ConcurrentQueue<Action> actions;
-            readonly SemaphoreSlim semaphore = new SemaphoreSlim(0);
-            readonly CancellationTokenSource tokenSource;
-            private Task worker;
+            readonly ConcurrentQueue<Action> _actions;
+            readonly CancellationTokenSource _tokenSource;
+            readonly CancellationTokenRegistration _tokenRegistration;
+            volatile TaskCompletionSource<bool> _syncSource = TaskCompletionSourceFactory.Create<bool>();
+            private Task _worker;
 
             public WorkPool(IModel model)
             {
-                actions = new ConcurrentQueue<Action>();
-                tokenSource = new CancellationTokenSource();
+                _actions = new ConcurrentQueue<Action>();
+                _tokenSource = new CancellationTokenSource();
+                _tokenRegistration = _tokenSource.Token.Register(() => _syncSource.TrySetCanceled());
             }
 
             public void Start()
             {
-                worker = Task.Run(Loop);
+                _worker = Task.Run(Loop, CancellationToken.None);
             }
 
             public void Enqueue(Action action)
             {
-                actions.Enqueue(action);
-                semaphore.Release();
+                _actions.Enqueue(action);
+                _syncSource.TrySetResult(true);
             }
 
             async Task Loop()
             {
-                while (tokenSource.IsCancellationRequested == false)
+                while (_tokenSource.IsCancellationRequested == false)
                 {
                     try
                     {
-                        await semaphore.WaitAsync(tokenSource.Token).ConfigureAwait(false);
+                        await _syncSource.Task.ConfigureAwait(false);
+                        _syncSource = TaskCompletionSourceFactory.Create<bool>();
                     }
                     catch (TaskCanceledException)
                     {
-                        // Swallowing the task cancellation exception for the semaphore in case we are stopping.
+                        // Swallowing the task cancellation in case we are stopping work.
                     }
 
-                    if (!tokenSource.IsCancellationRequested && actions.TryDequeue(out Action action))
+                    while (_tokenSource.IsCancellationRequested == false && _actions.TryDequeue(out Action action))
                     {
                         try
                         {
@@ -82,15 +86,37 @@ namespace RabbitMQ.Client
                         }
                         catch (Exception)
                         {
+                            // ignored
                         }
                     }
-
                 }
             }
 
             public void Stop()
             {
-                tokenSource.Cancel();
+                _tokenSource.Cancel();
+                _tokenRegistration.Dispose();
+            }
+
+            static class TaskCompletionSourceFactory
+            {
+#if NETFRAMEWORK
+                static readonly FieldInfo StateField = typeof(Task).GetField("m_stateFlags", BindingFlags.NonPublic | BindingFlags.Instance);
+#endif
+        
+                public static TaskCompletionSource<T> Create<T>(TaskCreationOptions options = TaskCreationOptions.None)
+                {
+#if NETFRAMEWORK
+                    //This lovely hack forces the task scheduler to run continuations asynchronously,
+                    //see https://stackoverflow.com/questions/22579206/how-can-i-prevent-synchronous-continuations-on-a-task/22588431#22588431
+                    var tcs = new TaskCompletionSource<T>(options);
+                    const int TASK_STATE_THREAD_WAS_ABORTED = 134217728;
+                    StateField.SetValue(tcs.Task, (int) StateField.GetValue(tcs.Task) | TASK_STATE_THREAD_WAS_ABORTED);
+                    return tcs;
+#else
+                    return new TaskCompletionSource<T>(options | TaskCreationOptions.RunContinuationsAsynchronously);
+#endif
+                }
             }
         }
     }
