@@ -26,7 +26,7 @@ as archives.
 
 ## Supported Platforms and .NET Releases
 
-Future `6.x` versions of the library require .NET 4.6.2 or a .NET Core version implementing .NET Standard 2.0.
+Future `6.x` versions of the library require .NET 4.6.1 or a .NET Core version implementing .NET Standard 2.0.
 
 ### 5.x and 4.x
 
