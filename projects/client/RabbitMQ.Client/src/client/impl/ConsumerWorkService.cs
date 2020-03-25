@@ -40,25 +40,27 @@ namespace RabbitMQ.Client
         class WorkPool
         {
             readonly ConcurrentQueue<Action> _actions;
-            readonly SemaphoreSlim _semaphore = new SemaphoreSlim(0);
             readonly CancellationTokenSource _tokenSource;
+            CancellationTokenRegistration _tokenRegistration;
+            volatile TaskCompletionSource<bool> _syncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             private Task _worker;
 
             public WorkPool()
             {
                 _actions = new ConcurrentQueue<Action>();
                 _tokenSource = new CancellationTokenSource();
+                _tokenRegistration = _tokenSource.Token.Register(() => _syncSource.TrySetCanceled());
             }
 
             public void Start()
             {
-                _worker = Task.Run(Loop);
+                _worker = Task.Run(Loop, CancellationToken.None);
             }
 
             public void Enqueue(Action action)
             {
                 _actions.Enqueue(action);
-                _semaphore.Release();
+                _syncSource.TrySetResult(true);
             }
 
             async Task Loop()
@@ -67,14 +69,15 @@ namespace RabbitMQ.Client
                 {
                     try
                     {
-                        await _semaphore.WaitAsync(_tokenSource.Token).ConfigureAwait(false);
+                        await _syncSource.Task.ConfigureAwait(false);
+                        _syncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                     }
                     catch (TaskCanceledException)
                     {
                         // Swallowing the task cancellation exception for the semaphore in case we are stopping.
                     }
 
-                    if (!_tokenSource.IsCancellationRequested && _actions.TryDequeue(out Action action))
+                    while (_tokenSource.IsCancellationRequested == false && _actions.TryDequeue(out Action action))
                     {
                         try
                         {
@@ -82,15 +85,16 @@ namespace RabbitMQ.Client
                         }
                         catch (Exception)
                         {
+                            // ignored
                         }
                     }
-
                 }
             }
 
             public void Stop()
             {
                 _tokenSource.Cancel();
+                _tokenRegistration.Dispose();
             }
         }
     }
