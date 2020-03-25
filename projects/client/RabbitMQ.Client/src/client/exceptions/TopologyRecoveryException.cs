@@ -38,26 +38,14 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using RabbitMQ.Client.Framing;
+using System;
 
-namespace RabbitMQ.Client.Impl
+namespace RabbitMQ.Client.Exceptions
 {
-    /// <summary>
-    /// Thrown when the connection receives a frame that it wasn't expecting.
-    /// </summary>
-    public class UnexpectedFrameException : HardProtocolException
+    public class TopologyRecoveryException : RabbitMQClientException
     {
-        internal UnexpectedFrameException(Frame frame)
-            : base("A frame of this type was not expected at this time")
+        public TopologyRecoveryException(string message, Exception cause) : base(message, cause)
         {
-            Frame = frame;
-        }
-
-        internal  Frame Frame { get; }
-
-        public override ushort ReplyCode
-        {
-            get { return Constants.CommandInvalid; }
         }
     }
 }

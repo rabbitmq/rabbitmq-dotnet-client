@@ -55,7 +55,7 @@ namespace RabbitMQ.Client.Impl
         {
             if (scale > 28)
             {
-                throw new SyntaxError($"Unrepresentable AMQP decimal table field: scale={scale}");
+                throw new SyntaxErrorException($"Unrepresentable AMQP decimal table field: scale={scale}");
             }
 
             return new decimal(
@@ -173,7 +173,7 @@ namespace RabbitMQ.Client.Impl
                 case 'V':
                     return null;
                 default:
-                    throw new SyntaxError($"Unrecognised type in table: {(char)memory.Span[0]}");
+                    throw new SyntaxErrorException($"Unrecognised type in table: {(char)memory.Span[0]}");
             }
         }
 
@@ -182,7 +182,7 @@ namespace RabbitMQ.Client.Impl
             int byteCount = (int)NetworkOrderDeserializer.ReadUInt32(memory);
             if (byteCount > int.MaxValue)
             {
-                throw new SyntaxError($"Long string too long; byte length={byteCount}, max={int.MaxValue}");
+                throw new SyntaxErrorException($"Long string too long; byte length={byteCount}, max={int.MaxValue}");
             }
 
             return memory.Slice(4, byteCount).ToArray();

@@ -45,6 +45,7 @@ using System.Threading;
 
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
 {
@@ -65,7 +66,7 @@ namespace RabbitMQ.Client
     /// appropriate.
     /// </para>
     /// </remarks>
-    public interface IConnection : NetworkConnection, IDisposable
+    public interface IConnection : INetworkConnection, IDisposable
     {
         /// <summary>
         /// The maximum channel number this connection supports (0 if unlimited).

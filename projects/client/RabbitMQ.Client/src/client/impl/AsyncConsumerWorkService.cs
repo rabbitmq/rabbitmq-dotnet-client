@@ -2,9 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-using RabbitMQ.Client.Impl;
-
-namespace RabbitMQ.Client
+namespace RabbitMQ.Client.Impl
 {
     internal sealed class AsyncConsumerWorkService : ConsumerWorkService
     {

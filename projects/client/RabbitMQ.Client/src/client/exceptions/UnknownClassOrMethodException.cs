@@ -38,32 +38,39 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Framing;
 
-namespace RabbitMQ.Client.Impl
+namespace RabbitMQ.Client.Exceptions
 {
-    /// <summary> Instances of subclasses of subclasses
-    /// HardProtocolException and SoftProtocolException are thrown in
-    /// situations when we detect a problem with the connection-,
-    /// channel- or wire-level parts of the AMQP protocol. </summary>
-    public abstract class ProtocolException : RabbitMQClientException
+    /// <summary>
+    /// Thrown when the protocol handlers detect an unknown class
+    /// number or method number.
+    /// </summary>
+    public class UnknownClassOrMethodException : HardProtocolException
     {
-        protected ProtocolException(string message) : base(message)
+        public UnknownClassOrMethodException(ushort classId, ushort methodId)
+            : base($"The Class or Method <{classId}.{methodId}> is unknown")
         {
+            ClassId = classId;
+            MethodId = methodId;
         }
 
-        ///<summary>Retrieve the reply code to use in a
-        ///connection/channel close method.</summary>
-        public abstract ushort ReplyCode { get; }
+        ///<summary>The AMQP content-class ID.</summary>
+        public ushort ClassId { get; private set; }
 
-        ///<summary>Retrieve the shutdown details to use in a
-        ///connection/channel close method. Defaults to using
-        ///ShutdownInitiator.Library, and this.ReplyCode and
-        ///this.Message as the reply code and text,
-        ///respectively.</summary>
-        public virtual ShutdownEventArgs ShutdownReason
+        ///<summary>The AMQP method ID within the content-class, or 0 if none.</summary>
+        public ushort MethodId { get; private set; }
+
+        public override ushort ReplyCode
         {
-            get { return new ShutdownEventArgs(ShutdownInitiator.Library, ReplyCode, Message, this); }
+            get { return Constants.NotImplemented; }
+        }
+
+        public override string ToString()
+        {
+            return MethodId == 0
+                ? $"{base.ToString()}<{ClassId}>"
+                : $"{base.ToString()}<{ClassId}.{MethodId}>";
         }
     }
 }

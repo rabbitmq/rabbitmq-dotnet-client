@@ -44,13 +44,13 @@ using System.Net.Security;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 
-namespace RabbitMQ.Client
+namespace RabbitMQ.Client.Impl
 {
     /// <summary>
     /// Represents an <see cref="SslHelper"/> which does the actual heavy lifting to set up an SSL connection,
     ///  using the config options in an <see cref="SslOption"/> to make things cleaner.
     /// </summary>
-    public class SslHelper
+    class SslHelper
     {
         private readonly SslOption _sslOption;
 

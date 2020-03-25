@@ -40,9 +40,7 @@
 
 using System;
 
-using RabbitMQ.Client.Exceptions;
-
-namespace RabbitMQ.Client
+namespace RabbitMQ.Client.Exceptions
 {
 #if !NETSTANDARD1_5
     [Serializable]
@@ -55,9 +53,8 @@ namespace RabbitMQ.Client
         public ProtocolViolationException(string message, Exception inner) : base(message, inner)
         {
         }
-        public ProtocolViolationException() 
+        public ProtocolViolationException()
         {
         }
-
-    } 
+    }
 }

@@ -38,14 +38,27 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-namespace RabbitMQ.Client.Impl
+using RabbitMQ.Client.Framing;
+
+namespace RabbitMQ.Client.Exceptions
 {
-    ///<summary>Subclass of ProtocolException representing problems
-    ///requiring a connection.close.</summary>
-    public abstract class HardProtocolException : ProtocolException
+    /// <summary> Thrown when the server sends a frame along a channel
+    /// that we do not currently have a Session entry in our
+    /// SessionManager for. </summary>
+    public class ChannelErrorException : HardProtocolException
     {
-        protected HardProtocolException(string message) : base(message)
+        public ChannelErrorException(int channel)
+            : base($"Frame received for invalid channel {channel}")
         {
+            Channel = channel;
+        }
+
+        ///<summary>The channel number concerned.</summary>
+        public int Channel { get; private set; }
+
+        public override ushort ReplyCode
+        {
+            get { return Constants.ChannelError; }
         }
     }
 }

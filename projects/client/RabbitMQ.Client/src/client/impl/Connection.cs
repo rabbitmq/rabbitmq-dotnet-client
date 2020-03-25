@@ -51,6 +51,7 @@ using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Impl;
+using RabbitMQ.Client.Logging;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Framing.Impl
@@ -1092,13 +1093,13 @@ entry.ToString());
             {
                 string mechanismsString = Encoding.UTF8.GetString(connectionStart.m_mechanisms, 0, connectionStart.m_mechanisms.Length);
                 string[] mechanisms = mechanismsString.Split(' ');
-                AuthMechanismFactory mechanismFactory = _factory.AuthMechanismFactory(mechanisms);
+                IAuthMechanismFactory mechanismFactory = _factory.AuthMechanismFactory(mechanisms);
                 if (mechanismFactory == null)
                 {
                     throw new IOException("No compatible authentication mechanism found - " +
                                           "server offered [" + mechanismsString + "]");
                 }
-                AuthMechanism mechanism = mechanismFactory.GetInstance();
+                IAuthMechanism mechanism = mechanismFactory.GetInstance();
                 byte[] challenge = null;
                 do
                 {

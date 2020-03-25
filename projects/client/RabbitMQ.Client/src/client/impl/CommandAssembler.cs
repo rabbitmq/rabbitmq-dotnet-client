@@ -39,7 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System.Buffers;
-
+using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Util;
 

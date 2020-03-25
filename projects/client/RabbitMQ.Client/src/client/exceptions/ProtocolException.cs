@@ -38,21 +38,30 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using RabbitMQ.Client.Framing;
-
-namespace RabbitMQ.Client.Impl
+namespace RabbitMQ.Client.Exceptions
 {
-    /// <summary> Thrown when our peer sends a frame that contains
-    /// illegal values for one or more fields. </summary>
-    public class SyntaxError : HardProtocolException
+    /// <summary> Instances of subclasses of subclasses
+    /// HardProtocolException and SoftProtocolException are thrown in
+    /// situations when we detect a problem with the connection-,
+    /// channel- or wire-level parts of the AMQP protocol. </summary>
+    public abstract class ProtocolException : RabbitMQClientException
     {
-        public SyntaxError(string message) : base(message)
+        protected ProtocolException(string message) : base(message)
         {
         }
 
-        public override ushort ReplyCode
+        ///<summary>Retrieve the reply code to use in a
+        ///connection/channel close method.</summary>
+        public abstract ushort ReplyCode { get; }
+
+        ///<summary>Retrieve the shutdown details to use in a
+        ///connection/channel close method. Defaults to using
+        ///ShutdownInitiator.Library, and this.ReplyCode and
+        ///this.Message as the reply code and text,
+        ///respectively.</summary>
+        public virtual ShutdownEventArgs ShutdownReason
         {
-            get { return Constants.SyntaxError; }
+            get { return new ShutdownEventArgs(ShutdownInitiator.Library, ReplyCode, Message, this); }
         }
     }
 }

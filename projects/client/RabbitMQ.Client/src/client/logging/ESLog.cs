@@ -38,27 +38,41 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using RabbitMQ.Client.Framing;
-
-namespace RabbitMQ.Client.Impl
+namespace RabbitMQ.Client.Logging
 {
-    /// <summary> Thrown when the server sends a frame along a channel
-    /// that we do not currently have a Session entry in our
-    /// SessionManager for. </summary>
-    public class ChannelErrorException : HardProtocolException
+    static class ESLog
     {
-        public ChannelErrorException(int channel)
-            : base($"Frame received for invalid channel {channel}")
+        public static void Info(string message)
         {
-            Channel = channel;
+            Logging.RabbitMqClientEventSource.Log.Info(message);
         }
 
-        ///<summary>The channel number concerned.</summary>
-        public int Channel { get; private set; }
-
-        public override ushort ReplyCode
+        public static void Info(string message, params object[] args)
         {
-            get { return Constants.ChannelError; }
+            string msg = string.Format(message, args);
+            Info(msg);
+        }
+
+        public static void Warn(string message)
+        {
+            Logging.RabbitMqClientEventSource.Log.Warn(message);
+        }
+
+        public static void Warn(string message, params object[] args)
+        {
+            string msg = string.Format(message, args);
+            Warn(msg);
+        }
+
+        public static void Error(string message, System.Exception ex)
+        {
+            Logging.RabbitMqClientEventSource.Log.Error(message, ex);
+        }
+
+        public static void Error(string message, System.Exception ex, params object[] args)
+        {
+            string msg = string.Format(message, args);
+            Error(msg, ex);
         }
     }
 }

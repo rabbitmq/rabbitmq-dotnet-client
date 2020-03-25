@@ -38,26 +38,18 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using RabbitMQ.Client.Framing;
-
-namespace RabbitMQ.Client.Impl
+namespace RabbitMQ.Client.Exceptions
 {
-    ///<summary>Thrown when frame parsing code detects an error in the
-    ///wire-protocol encoding of a frame.</summary>
-    ///<remarks>
-    ///For example, potential MalformedFrameException conditions
-    ///include frames too short, frames missing their end marker, and
-    ///invalid protocol negotiation headers.
-    ///</remarks>
-    public class MalformedFrameException : HardProtocolException
+    ///<summary>Subclass of ProtocolException representing problems
+    ///requiring a channel.close.</summary>
+    public abstract class SoftProtocolException : ProtocolException
     {
-        public MalformedFrameException(string message) : base(message)
+        protected SoftProtocolException(int channelNumber, string message)
+            : base(message)
         {
+            Channel = channelNumber;
         }
 
-        public override ushort ReplyCode
-        {
-            get { return Constants.FrameError; }
-        }
+        public int Channel { get; private set; }
     }
 }
