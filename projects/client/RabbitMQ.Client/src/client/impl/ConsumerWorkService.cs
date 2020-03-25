@@ -77,7 +77,7 @@ namespace RabbitMQ.Client.Impl
                         // Swallowing the task cancellation exception for the semaphore in case we are stopping.
                     }
 
-                    while (_tokenSource.IsCancellationRequested == false && _actions.TryDequeue(out Action action))
+                    while (_actions.TryDequeue(out Action action))
                     {
                         try
                         {

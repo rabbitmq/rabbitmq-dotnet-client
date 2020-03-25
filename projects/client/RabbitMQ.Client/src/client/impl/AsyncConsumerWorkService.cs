@@ -78,7 +78,7 @@ namespace RabbitMQ.Client.Impl
                         // Swallowing the task cancellation in case we are stopping work.
                     }
 
-                    while (_tokenSource.IsCancellationRequested == false && _workQueue.TryDequeue(out Work work))
+                    while (_workQueue.TryDequeue(out Work work))
                     {
                         await work.Execute(_model).ConfigureAwait(false);
                     }
