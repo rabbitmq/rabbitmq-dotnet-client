@@ -39,7 +39,7 @@ For .NET Core users, 2.0 is the minimum supported version for `5.x` series.
 
 ## Change Log
 
-See [ChangeLog.md](https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/ChangeLog.md).
+See [/CHANGELOG.md](https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/CHANGELOG.md).
 
 ## Building from Source
 
