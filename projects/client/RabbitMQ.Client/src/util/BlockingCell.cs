@@ -57,7 +57,6 @@ namespace RabbitMQ.Util
     {
         private readonly ManualResetEventSlim _manualResetEventSlim = new ManualResetEventSlim(false);
         private T _value = default;
-        public EventHandler<T> ContinueUsingValue;
 
         public void ContinueWithValue(T value)
         {
@@ -84,7 +83,6 @@ namespace RabbitMQ.Util
         {
             if (_manualResetEventSlim.Wait(timeout))
             {
-                ContinueUsingValue?.Invoke(this, _value);
                 return _value;
             }
             throw new TimeoutException();
