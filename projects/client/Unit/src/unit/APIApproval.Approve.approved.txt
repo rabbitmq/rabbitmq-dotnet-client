@@ -3184,7 +3184,6 @@ namespace RabbitMQ.Client.Impl
         void HandleBasicDeliver(RabbitMQ.Client.IBasicConsumer consumer, string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, RabbitMQ.Client.IBasicProperties basicProperties, byte[] body);
         void HandleModelShutdown(RabbitMQ.Client.IBasicConsumer consumer, RabbitMQ.Client.ShutdownEventArgs reason);
         void Quiesce();
-        void Shutdown();
         void Shutdown(RabbitMQ.Client.IModel model);
     }
     public interface IFrameHandler
