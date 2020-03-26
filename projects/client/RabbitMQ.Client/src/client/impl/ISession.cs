@@ -40,6 +40,7 @@
 
 using System;
 using System.Collections.Generic;
+using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -63,7 +64,7 @@ namespace RabbitMQ.Client.Impl
         /// <summary>
         /// Gets the connection.
         /// </summary>
-        IConnection Connection { get; }
+        Connection Connection { get; }
 
         /// <summary>
         /// Gets a value indicating whether this session is open.

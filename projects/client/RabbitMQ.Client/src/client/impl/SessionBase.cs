@@ -102,11 +102,6 @@ namespace RabbitMQ.Client.Impl
             get { return CloseReason == null; }
         }
 
-        IConnection ISession.Connection
-        {
-            get { return Connection; }
-        }
-
         public virtual void OnCommandReceived(Command cmd)
         {
             CommandReceived?.Invoke(this, cmd);
