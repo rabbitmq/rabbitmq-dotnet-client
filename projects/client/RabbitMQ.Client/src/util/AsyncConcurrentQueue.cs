@@ -46,11 +46,13 @@ using System.Threading.Tasks;
 namespace RabbitMQ.Util
 {
     /// <summary>
-    /// A concurrent queue where Dequeue waits for something to be inserted if the queue is empty and Enqueue signals
-    ///   that something has been added. Similar in function to a BlockingCollection but with async/await
-    ///   support.
+    /// A concurrent queue where Dequeue waits for something to be added if the queue is empty and Enqueue signals
+    /// that something has been added. Similar in function to a BlockingCollection but with async/await
+    /// support.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">
+    /// Queue element type
+    /// </typeparam>
     internal class AsyncConcurrentQueue<T>
     {
         private readonly ConcurrentQueue<T> _internalQueue = new ConcurrentQueue<T>();
@@ -67,7 +69,7 @@ namespace RabbitMQ.Util
 
             if (!_internalQueue.TryDequeue(out var command))
             {
-                throw new InvalidOperationException("Internal queue empty despite signaled enqueue.");
+                throw new InvalidOperationException("Internal queue is empty despite receiving an enqueueing signal");
             }
 
             return command;
