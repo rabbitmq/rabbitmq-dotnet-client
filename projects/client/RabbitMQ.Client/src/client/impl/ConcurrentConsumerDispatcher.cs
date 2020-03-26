@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Impl
@@ -22,9 +22,9 @@ namespace RabbitMQ.Client.Impl
             IsShutdown = true;
         }
 
-        public void Shutdown(IModel model)
+        public Task Shutdown(IModel model)
         {
-            _workService.StopWork(model);
+            return _workService.StopWork(model);
         }
 
         public bool IsShutdown

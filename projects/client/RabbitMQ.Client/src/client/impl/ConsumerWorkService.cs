@@ -21,12 +21,14 @@ namespace RabbitMQ.Client.Impl
             return newWorkPool;
         }
 
-        public void StopWork(IModel model)
+        public Task StopWork(IModel model)
         {
             if (_workPools.TryRemove(model, out WorkPool workPool))
             {
-                workPool.Stop();
+                return workPool.Stop();
             }
+
+            return Task.CompletedTask;
         }
 
         class WorkPool
@@ -83,10 +85,11 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            public void Stop()
+            public Task Stop()
             {
                 _tokenSource.Cancel();
                 _tokenRegistration.Dispose();
+                return _worker;
             }
         }
     }

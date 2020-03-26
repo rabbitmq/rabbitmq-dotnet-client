@@ -279,7 +279,7 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
-                _delegate.Close(reason, abort);
+                _delegate.Close(reason, abort).GetAwaiter().GetResult();;
             }
             finally
             {
