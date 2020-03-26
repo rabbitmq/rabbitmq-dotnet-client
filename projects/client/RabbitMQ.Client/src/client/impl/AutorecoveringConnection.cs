@@ -46,12 +46,15 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Impl;
+
 using RabbitMQ.Util;
+using RabbitMQ.Client.Logging;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class AutorecoveringConnection : IConnection
+    internal sealed class AutorecoveringConnection : IAutorecoveringConnection
     {
         private readonly object _eventLock = new object();
 

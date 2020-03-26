@@ -147,13 +147,13 @@ namespace RabbitMQ.Client
         /// <summary>
         ///  Default SASL auth mechanisms to use.
         /// </summary>
-        public static readonly IList<AuthMechanismFactory> DefaultAuthMechanisms =
-            new List<AuthMechanismFactory>() { new PlainMechanismFactory() };
+        public static readonly IList<IAuthMechanismFactory> DefaultAuthMechanisms =
+            new List<IAuthMechanismFactory>() { new PlainMechanismFactory() };
 
         /// <summary>
         ///  SASL auth mechanisms to use.
         /// </summary>
-        public IList<AuthMechanismFactory> AuthMechanisms { get; set; } = DefaultAuthMechanisms;
+        public IList<IAuthMechanismFactory> AuthMechanisms { get; set; } = DefaultAuthMechanisms;
 
         /// <summary>
         /// Address family used by default.
@@ -241,7 +241,7 @@ namespace RabbitMQ.Client
         public TimeSpan SocketWriteTimeout { get; set; } = DefaultConnectionTimeout;
 
         /// <summary>
-        /// Ssl options setting.
+        /// TLS options setting.
         /// </summary>
         public SslOption Ssl { get; set; } = new SslOption();
 
@@ -331,10 +331,10 @@ namespace RabbitMQ.Client
         /// Given a list of mechanism names supported by the server, select a preferred mechanism,
         ///  or null if we have none in common.
         /// </summary>
-        public AuthMechanismFactory AuthMechanismFactory(IList<string> mechanismNames)
+        public IAuthMechanismFactory AuthMechanismFactory(IList<string> mechanismNames)
         {
             // Our list is in order of preference, the server one is not.
-            foreach (AuthMechanismFactory factory in AuthMechanisms)
+            foreach (IAuthMechanismFactory factory in AuthMechanisms)
             {
                 string factoryName = factory.Name;
                 if (mechanismNames.Any<string>(x => string.Equals(x, factoryName, StringComparison.OrdinalIgnoreCase)))

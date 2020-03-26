@@ -456,7 +456,7 @@ namespace RabbitMQ.Client.Unit
                     UseShellExecute = false
                 }
             };
-            
+
             try {
                 proc.StartInfo.FileName = "docker";
                 proc.StartInfo.Arguments = $"exec {dockerMachineName} rabbitmqctl {args}";
@@ -545,7 +545,7 @@ namespace RabbitMQ.Client.Unit
 
         public static bool IsRunningOnMonoOrDotNetCore()
         {
-            #if CORECLR
+            #if NETCOREAPP
             return true;
             #else
             return Type.GetType("Mono.Runtime") != null;
@@ -578,7 +578,7 @@ namespace RabbitMQ.Client.Unit
         //
         // Connection Closure
         //
-        
+
         public class ConnectionInfo
         {
             public string Pid

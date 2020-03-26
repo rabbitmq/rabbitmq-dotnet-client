@@ -38,7 +38,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-namespace RabbitMQ.Client
+namespace RabbitMQ.Client.Framing.Impl
 {
     /// <summary>Represents a version of the AMQP specification.</summary>
     /// <remarks>
@@ -54,7 +54,7 @@ namespace RabbitMQ.Client
     /// special-cases 8-0, rewriting it at construction time to be 0-8 instead.
     /// </para>
     /// </remarks>
-    public class AmqpVersion
+    class AmqpVersion
     {
         /// <summary>
         /// Construct an <see cref="AmqpVersion"/> from major and minor version numbers.

@@ -16,6 +16,7 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
+                await Task.Yield();
                 await Execute(model, _asyncConsumer).ConfigureAwait(false);
             }
             catch (Exception)

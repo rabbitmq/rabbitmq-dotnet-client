@@ -3,7 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
-namespace RabbitMQ.Client
+namespace RabbitMQ.Client.Impl
 {
     /// <summary>
     /// Simple wrapper around TcpClient.
@@ -27,11 +27,7 @@ namespace RabbitMQ.Client
                 throw new ArgumentException("No ip address could be resolved for " + host);
             }
 
-#if CORECLR
             await _sock.ConnectAsync(ep, port).ConfigureAwait(false);
-#else
-            await Task.Run(() => _sock.Connect(ep, port));
-#endif
         }
 
         public virtual void Close()

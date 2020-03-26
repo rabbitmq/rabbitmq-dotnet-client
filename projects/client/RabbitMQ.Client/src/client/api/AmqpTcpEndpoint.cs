@@ -180,7 +180,7 @@ namespace RabbitMQ.Client
         public System.Net.Sockets.AddressFamily AddressFamily { get; set; } = ConnectionFactory.DefaultAddressFamily;
 
         /// <summary>
-        /// Retrieve the SSL options for this AmqpTcpEndpoint. If not set, null is returned.
+        /// Retrieve the TLS options for this AmqpTcpEndpoint. If not set, null is returned.
         /// </summary>
         public SslOption Ssl { get; set; }
 

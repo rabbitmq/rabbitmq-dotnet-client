@@ -51,11 +51,12 @@ using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Impl;
+using RabbitMQ.Client.Logging;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    class Connection : IConnection
+    internal sealed class Connection : IConnection
     {
         private readonly object _eventLock = new object();
 
@@ -127,11 +128,6 @@ namespace RabbitMQ.Client.Framing.Impl
         }
 
         public Guid Id { get { return _id; } }
-
-#pragma warning disable 67
-        public event EventHandler<EventArgs> RecoverySucceeded;
-        public event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError;
-#pragma warning restore 67
 
         public event EventHandler<CallbackExceptionEventArgs> CallbackException;
 
@@ -901,6 +897,7 @@ entry.ToString());
                 if (!_closed)
                 {
                     WriteFrame(_heartbeatFrame);
+                    _heartbeatWriteTimer?.Change((int)_heartbeatTimeSpan.TotalMilliseconds, Timeout.Infinite);
                 }
             }
             catch (ObjectDisposedException)
@@ -912,11 +909,6 @@ entry.ToString());
             {
                 // ignore, let the read callback detect
                 // peer unavailability. See rabbitmq/rabbitmq-dotnet-client#638 for details.
-            }
-
-            if (_closed == false)
-            {
-                _heartbeatWriteTimer?.Change((int)_heartbeatTimeSpan.TotalMilliseconds, Timeout.Infinite);
             }
         }
 
@@ -1101,13 +1093,13 @@ entry.ToString());
             {
                 string mechanismsString = Encoding.UTF8.GetString(connectionStart.m_mechanisms, 0, connectionStart.m_mechanisms.Length);
                 string[] mechanisms = mechanismsString.Split(' ');
-                AuthMechanismFactory mechanismFactory = _factory.AuthMechanismFactory(mechanisms);
+                IAuthMechanismFactory mechanismFactory = _factory.AuthMechanismFactory(mechanisms);
                 if (mechanismFactory == null)
                 {
                     throw new IOException("No compatible authentication mechanism found - " +
                                           "server offered [" + mechanismsString + "]");
                 }
-                AuthMechanism mechanism = mechanismFactory.GetInstance();
+                IAuthMechanism mechanism = mechanismFactory.GetInstance();
                 byte[] challenge = null;
                 do
                 {

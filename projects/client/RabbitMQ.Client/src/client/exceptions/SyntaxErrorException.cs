@@ -38,16 +38,21 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-namespace RabbitMQ.Client
+using RabbitMQ.Client.Framing;
+
+namespace RabbitMQ.Client.Exceptions
 {
-    /// <summary>
-    /// A pluggable authentication mechanism.
-    /// </summary>
-    public interface AuthMechanism
+    /// <summary> Thrown when our peer sends a frame that contains
+    /// illegal values for one or more fields. </summary>
+    public class SyntaxErrorException : HardProtocolException
     {
-        /// <summary>
-        /// Handle one round of challenge-response.
-        /// </summary>
-        byte[] handleChallenge(byte[] challenge, IConnectionFactory factory);
+        public SyntaxErrorException(string message) : base(message)
+        {
+        }
+
+        public override ushort ReplyCode
+        {
+            get { return Constants.SyntaxError; }
+        }
     }
 }

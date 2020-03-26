@@ -38,21 +38,14 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-namespace RabbitMQ.Client
+namespace RabbitMQ.Client.Exceptions
 {
-    /// <summary>
-    /// Common interface for network (TCP/IP) connection classes.
-    /// </summary>
-    public interface NetworkConnection
+    ///<summary>Subclass of ProtocolException representing problems
+    ///requiring a connection.close.</summary>
+    public abstract class HardProtocolException : ProtocolException
     {
-        /// <summary>
-        /// Local port.
-        /// </summary>
-        int LocalPort { get; }
-
-        /// <summary>
-        /// Remote port.
-        /// </summary>
-        int RemotePort { get; }
+        protected HardProtocolException(string message) : base(message)
+        {
+        }
     }
 }

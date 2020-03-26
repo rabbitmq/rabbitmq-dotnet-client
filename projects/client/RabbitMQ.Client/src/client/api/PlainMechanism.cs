@@ -42,7 +42,7 @@ using System.Text;
 
 namespace RabbitMQ.Client
 {
-    public class PlainMechanism : AuthMechanism
+    public class PlainMechanism : IAuthMechanism
     {
         public byte[] handleChallenge(byte[] challenge, IConnectionFactory factory)
         {

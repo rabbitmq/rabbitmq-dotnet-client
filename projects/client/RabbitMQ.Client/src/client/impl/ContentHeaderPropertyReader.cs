@@ -40,21 +40,22 @@
 
 using System;
 using System.Collections.Generic;
-
+using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    class ContentHeaderPropertyReader
+    struct ContentHeaderPropertyReader
     {
-        protected ushort m_bitCount;
-        protected ushort m_flagWord;
-        private int _memoryOffset = 0;
+        private ushort m_bitCount;
+        private ushort m_flagWord;
+        private int _memoryOffset;
         private readonly ReadOnlyMemory<byte> _memory;
 
         public ContentHeaderPropertyReader(ReadOnlyMemory<byte> memory)
         {
             _memory = memory;
+            _memoryOffset = 0;
             m_flagWord = 1; // just the continuation bit
             m_bitCount = 15; // the correct position to force a m_flagWord read
         }

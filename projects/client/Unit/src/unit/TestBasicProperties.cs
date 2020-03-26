@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (C) 2011-2016 Pivotal Software, Inc.
+//   Copyright (C) 2011-2020 VMware, Inc. or its affiliates.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@
 //  The Original Code is RabbitMQ.
 //
 //  The Initial Developer of the Original Code is Pivotal Software, Inc.
-//  Copyright (c) 2011-2016 Pivotal Software, Inc.  All rights reserved.
+//  Copyright (c) 2011-2020 VMware, Inc. or its affiliates.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using NUnit.Framework;
@@ -106,12 +106,12 @@ namespace RabbitMQ.Client.Unit
             Assert.AreEqual(isMessageIdPresent, subject.IsMessageIdPresent());
 
             var writer = new Impl.ContentHeaderPropertyWriter(new byte[1024]);
-            subject.WritePropertiesTo(writer);
+            subject.WritePropertiesTo(ref writer);
 
             // Read from Stream
             var propertiesFromStream = new Framing.BasicProperties();
             var reader = new Impl.ContentHeaderPropertyReader(writer.Memory.Slice(0, writer.Offset));
-            propertiesFromStream.ReadPropertiesFrom(reader);
+            propertiesFromStream.ReadPropertiesFrom(ref reader);
 
             Assert.AreEqual(clusterId, propertiesFromStream.ClusterId);
             Assert.AreEqual(correlationId, propertiesFromStream.CorrelationId);

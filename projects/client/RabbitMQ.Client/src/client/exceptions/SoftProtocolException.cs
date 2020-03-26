@@ -38,22 +38,18 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+namespace RabbitMQ.Client.Exceptions
+{
+    ///<summary>Subclass of ProtocolException representing problems
+    ///requiring a channel.close.</summary>
+    public abstract class SoftProtocolException : ProtocolException
+    {
+        protected SoftProtocolException(int channelNumber, string message)
+            : base(message)
+        {
+            Channel = channelNumber;
+        }
 
-[assembly: AssemblyTitle("RabbitMQ Client Library for .NET")]
-[assembly: AssemblyDescription("See https://rabbitmq.com")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Pivotal Software, Inc.")]
-[assembly: AssemblyProduct("RabbitMQ")]
-[assembly: AssemblyCopyright("Copyright © 2007-2016 Pivotal Software, Inc.")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
-
-[assembly: ComVisible(true)]
-
-[assembly: Guid("32a32ed8-c871-45ad-86b3-f50723a7434b")]
-
-[assembly: AssemblyVersion("${PropAssemblyVersion}")]
-
+        public int Channel { get; private set; }
+    }
+}

@@ -19,11 +19,6 @@ namespace RabbitMQ.Client.Impl
             IsShutdown = true;
         }
 
-        public void Shutdown()
-        {
-            _workService.Stop();
-        }
-
         public void Shutdown(IModel model)
         {
             _workService.Stop(model);
@@ -66,7 +61,7 @@ namespace RabbitMQ.Client.Impl
         public void HandleModelShutdown(IBasicConsumer consumer, ShutdownEventArgs reason)
         {
             // the only case where we ignore the shutdown flag.
-            new ModelShutdown(consumer, reason).Execute(_model).GetAwaiter().GetResult();
+            Schedule(new ModelShutdown(consumer, reason));
         }
 
         private void ScheduleUnlessShuttingDown<TWork>(TWork work)

@@ -38,18 +38,27 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-namespace RabbitMQ.Client.Impl
+using RabbitMQ.Client.Framing;
+using RabbitMQ.Client.Impl;
+
+namespace RabbitMQ.Client.Exceptions
 {
-    ///<summary>Subclass of ProtocolException representing problems
-    ///requiring a channel.close.</summary>
-    public abstract class SoftProtocolException : ProtocolException
+    /// <summary>
+    /// Thrown when the connection receives a frame that it wasn't expecting.
+    /// </summary>
+    public class UnexpectedFrameException : HardProtocolException
     {
-        protected SoftProtocolException(int channelNumber, string message)
-            : base(message)
+        internal UnexpectedFrameException(Frame frame)
+            : base("A frame of this type was not expected at this time")
         {
-            Channel = channelNumber;
+            Frame = frame;
         }
 
-        public int Channel { get; private set; }
+        internal  Frame Frame { get; }
+
+        public override ushort ReplyCode
+        {
+            get { return Constants.CommandInvalid; }
+        }
     }
 }

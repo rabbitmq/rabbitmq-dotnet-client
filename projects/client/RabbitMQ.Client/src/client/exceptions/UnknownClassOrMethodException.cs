@@ -1,4 +1,4 @@
-﻿// This source code is dual-licensed under the Apache License, version
+// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 1.1.
 //
 // The APL v2.0:
@@ -38,26 +38,39 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Reflection;
-using System.Runtime.InteropServices;
+using RabbitMQ.Client.Framing;
 
-// General Information about an assembly is controlled through the following
-// set of attributes. Change these attribute values to modify the information
-// associated with an assembly.
-[assembly: AssemblyTitle("ApiGen")]
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Pivotal Software, Inc.")]
-[assembly: AssemblyProduct("ApiGen")]
-[assembly: AssemblyCopyright("Copyright © 2007-2016 Pivotal Software, Inc.")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
+namespace RabbitMQ.Client.Exceptions
+{
+    /// <summary>
+    /// Thrown when the protocol handlers detect an unknown class
+    /// number or method number.
+    /// </summary>
+    public class UnknownClassOrMethodException : HardProtocolException
+    {
+        public UnknownClassOrMethodException(ushort classId, ushort methodId)
+            : base($"The Class or Method <{classId}.{methodId}> is unknown")
+        {
+            ClassId = classId;
+            MethodId = methodId;
+        }
 
-// Setting ComVisible to false makes the types in this assembly not visible
-// to COM components.  If you need to access a type in this assembly from
-// COM, set the ComVisible attribute to true on that type.
-[assembly: ComVisible(false)]
+        ///<summary>The AMQP content-class ID.</summary>
+        public ushort ClassId { get; private set; }
 
-// The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("047d6662-98f3-412d-b8a1-3a50b45493f4")]
+        ///<summary>The AMQP method ID within the content-class, or 0 if none.</summary>
+        public ushort MethodId { get; private set; }
 
+        public override ushort ReplyCode
+        {
+            get { return Constants.NotImplemented; }
+        }
+
+        public override string ToString()
+        {
+            return MethodId == 0
+                ? $"{base.ToString()}<{ClassId}>"
+                : $"{base.ToString()}<{ClassId}.{MethodId}>";
+        }
+    }
+}

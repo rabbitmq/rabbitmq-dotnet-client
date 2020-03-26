@@ -41,7 +41,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
-
+using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl

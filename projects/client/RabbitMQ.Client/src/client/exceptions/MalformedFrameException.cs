@@ -38,18 +38,26 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-namespace RabbitMQ.Client
-{
-    public interface AuthMechanismFactory
-    {
-        /// <summary>
-        /// The name of the authentication mechanism, as negotiated on the wire.
-        /// </summary>
-        string Name { get; }
+using RabbitMQ.Client.Framing;
 
-        /// <summary>
-        /// Return a new authentication mechanism implementation.
-        /// </summary>
-        AuthMechanism GetInstance();
+namespace RabbitMQ.Client.Exceptions
+{
+    ///<summary>Thrown when frame parsing code detects an error in the
+    ///wire-protocol encoding of a frame.</summary>
+    ///<remarks>
+    ///For example, potential MalformedFrameException conditions
+    ///include frames too short, frames missing their end marker, and
+    ///invalid protocol negotiation headers.
+    ///</remarks>
+    public class MalformedFrameException : HardProtocolException
+    {
+        public MalformedFrameException(string message) : base(message)
+        {
+        }
+
+        public override ushort ReplyCode
+        {
+            get { return Constants.FrameError; }
+        }
     }
 }

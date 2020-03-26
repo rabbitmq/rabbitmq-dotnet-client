@@ -38,16 +38,16 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-
-using RabbitMQ.Client.Exceptions;
-
 namespace RabbitMQ.Client
 {
-    public class TopologyRecoveryException : RabbitMQClientException
+    /// <summary>
+    /// A pluggable authentication mechanism.
+    /// </summary>
+    public interface IAuthMechanism
     {
-        public TopologyRecoveryException(string message, Exception cause) : base(message, cause)
-        {
-        }
+        /// <summary>
+        /// Handle one round of challenge-response.
+        /// </summary>
+        byte[] handleChallenge(byte[] challenge, IConnectionFactory factory);
     }
 }
