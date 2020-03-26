@@ -24,7 +24,7 @@ namespace RabbitMQ.Client.Impl
 
         public Task Shutdown(IModel model)
         {
-            return _workService.StopWork(model);
+            return _workService.StopWorkAsync(model);
         }
 
         public bool IsShutdown

@@ -21,7 +21,20 @@ namespace RabbitMQ.Client.Impl
             return newWorkPool;
         }
 
-        public Task StopWork(IModel model)
+        public void StopWork()
+        {
+            foreach (IModel model in _workPools.Keys)
+            {
+                StopWork(model);
+            }
+        }
+
+        public void StopWork(IModel model)
+        {
+            StopWorkAsync(model).GetAwaiter().GetResult();
+        }
+
+        internal Task StopWorkAsync(IModel model)
         {
             if (_workPools.TryRemove(model, out WorkPool workPool))
             {
