@@ -45,7 +45,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
-
+using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing;
@@ -184,14 +184,14 @@ namespace RabbitMQ.Client.Impl
 
         public ISession Session { get; private set; }
 
-        public void Close(ushort replyCode, string replyText, bool abort)
+        public Task Close(ushort replyCode, string replyText, bool abort)
         {
-            Close(new ShutdownEventArgs(ShutdownInitiator.Application,
+            return Close(new ShutdownEventArgs(ShutdownInitiator.Application,
                 replyCode, replyText),
                 abort);
         }
 
-        public void Close(ShutdownEventArgs reason, bool abort)
+        public async Task Close(ShutdownEventArgs reason, bool abort)
         {
             var k = new ShutdownContinuation();
             ModelShutdown += k.OnConnectionShutdown;
@@ -204,7 +204,7 @@ namespace RabbitMQ.Client.Impl
                     _Private_ChannelClose(reason.ReplyCode, reason.ReplyText, 0, 0);
                 }
                 k.Wait(TimeSpan.FromMilliseconds(10000));
-                ConsumerDispatcher.Shutdown(this);
+                await ConsumerDispatcher.Shutdown(this).ConfigureAwait(false);
             }
             catch (AlreadyClosedException)
             {
@@ -508,7 +508,7 @@ namespace RabbitMQ.Client.Impl
             SetCloseReason(reason);
             OnModelShutdown(reason);
             BroadcastShutdownToConsumers(m_consumers, reason);
-            ConsumerDispatcher.Shutdown(this);
+            ConsumerDispatcher.Shutdown(this).GetAwaiter().GetResult();;
         }
 
         protected void BroadcastShutdownToConsumers(IDictionary<string, IBasicConsumer> cs, ShutdownEventArgs reason)
@@ -1394,7 +1394,7 @@ namespace RabbitMQ.Client.Impl
                 Close(new ShutdownEventArgs(ShutdownInitiator.Application,
                     Constants.ReplySuccess,
                     "Nacks Received", new IOException("nack received")),
-                    false);
+                    false).GetAwaiter().GetResult();
                 throw new IOException("Nacks Received");
             }
             if (timedOut)
@@ -1403,7 +1403,7 @@ namespace RabbitMQ.Client.Impl
                     Constants.ReplySuccess,
                     "Timed out waiting for acks",
                     new IOException("timed out waiting for acks")),
-                    false);
+                    false).GetAwaiter().GetResult();
                 throw new IOException("Timed out waiting for acks");
             }
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -19,9 +20,9 @@ namespace RabbitMQ.Client.Impl
             IsShutdown = true;
         }
 
-        public void Shutdown(IModel model)
+        public Task Shutdown(IModel model)
         {
-            _workService.Stop(model);
+            return _workService.Stop(model);
         }
 
         public bool IsShutdown

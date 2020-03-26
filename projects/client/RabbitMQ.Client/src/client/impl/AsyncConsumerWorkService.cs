@@ -20,20 +20,14 @@ namespace RabbitMQ.Client.Impl
             return newWorkPool;
         }
 
-        public void Stop(IModel model)
+        public Task Stop(IModel model)
         {
             if (_workPools.TryRemove(model, out WorkPool workPool))
             {
-                workPool.Stop();
+                return workPool.Stop();
             }
-        }
 
-        public void Stop()
-        {
-            foreach (IModel model in _workPools.Keys)
-            {
-                Stop(model);
-            }
+            return Task.CompletedTask;
         }
 
         class WorkPool
@@ -78,17 +72,18 @@ namespace RabbitMQ.Client.Impl
                         // Swallowing the task cancellation in case we are stopping work.
                     }
 
-                    while (_tokenSource.IsCancellationRequested == false && _workQueue.TryDequeue(out Work work))
+                    while (_workQueue.TryDequeue(out Work work))
                     {
                         await work.Execute(_model).ConfigureAwait(false);
                     }
                 }
             }
 
-            public void Stop()
+            public Task Stop()
             {
                 _tokenSource.Cancel();
                 _tokenRegistration.Dispose();
+                return _worker;
             }
         }
     }

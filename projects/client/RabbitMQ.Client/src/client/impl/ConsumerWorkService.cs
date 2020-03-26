@@ -21,20 +21,27 @@ namespace RabbitMQ.Client.Impl
             return newWorkPool;
         }
 
-        public void StopWork(IModel model)
-        {
-            if (_workPools.TryRemove(model, out WorkPool workPool))
-            {
-                workPool.Stop();
-            }
-        }
-
         public void StopWork()
         {
             foreach (IModel model in _workPools.Keys)
             {
                 StopWork(model);
             }
+        }
+
+        public void StopWork(IModel model)
+        {
+            StopWorkAsync(model).GetAwaiter().GetResult();
+        }
+
+        internal Task StopWorkAsync(IModel model)
+        {
+            if (_workPools.TryRemove(model, out WorkPool workPool))
+            {
+                return workPool.Stop();
+            }
+
+            return Task.CompletedTask;
         }
 
         class WorkPool
@@ -77,7 +84,7 @@ namespace RabbitMQ.Client.Impl
                         // Swallowing the task cancellation exception for the semaphore in case we are stopping.
                     }
 
-                    while (_tokenSource.IsCancellationRequested == false && _actions.TryDequeue(out Action action))
+                    while (_actions.TryDequeue(out Action action))
                     {
                         try
                         {
@@ -91,10 +98,11 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            public void Stop()
+            public Task Stop()
             {
                 _tokenSource.Cancel();
                 _tokenRegistration.Dispose();
+                return _worker;
             }
         }
     }
