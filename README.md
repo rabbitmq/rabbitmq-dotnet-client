@@ -1,5 +1,3 @@
-## TODO TRIGGER BUILD
-
 ## RabbitMQ .NET Client [![Build status](https://ci.appveyor.com/api/projects/status/33srpo7owl1h3y4e?svg=true)](https://ci.appveyor.com/project/rabbitmq/rabbitmq-dotnet-client)
 
 This repository contains source code of the [RabbitMQ .NET client](https://www.rabbitmq.com/dotnet.html).
