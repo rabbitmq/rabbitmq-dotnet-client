@@ -267,7 +267,6 @@ namespace RabbitMQ.Client
         System.Collections.Generic.IDictionary<string, object> ClientProperties { get; }
         string ClientProvidedName { get; }
         RabbitMQ.Client.ShutdownEventArgs CloseReason { get; }
-        RabbitMQ.Client.Impl.ConsumerWorkService ConsumerWorkService { get; }
         RabbitMQ.Client.AmqpTcpEndpoint Endpoint { get; }
         uint FrameMax { get; }
         System.TimeSpan Heartbeat { get; }
@@ -780,16 +779,6 @@ namespace RabbitMQ.Client.Exceptions
         public WireFormattingException(string message) { }
         public WireFormattingException(string message, object offender) { }
         public object Offender { get; }
-    }
-}
-namespace RabbitMQ.Client.Impl
-{
-    public class ConsumerWorkService
-    {
-        public ConsumerWorkService() { }
-        public void AddWork(RabbitMQ.Client.IModel model, System.Action fn) { }
-        public void StopWork() { }
-        public void StopWork(RabbitMQ.Client.IModel model) { }
     }
 }
 namespace RabbitMQ.Client.Logging
