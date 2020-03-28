@@ -1112,6 +1112,10 @@ $@"namespace {ApiNamespaceBase}
             {
                 return "IDictionary<string, object>";
             }
+            if (t.FullName.StartsWith("System.ReadOnlyMemory`1[[System.Byte"))
+            {
+                return "ReadOnlyMemory<byte>";
+            }
 
             switch (t.FullName)
             {
