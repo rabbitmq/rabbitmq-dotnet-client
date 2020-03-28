@@ -436,11 +436,11 @@ namespace RabbitMQ.Client.Unit
             }
             else if (IsRunningOnMonoOrDotNetCore())
             {
-                rabbitmqctlPath = "../../../../../../../rabbit/scripts/rabbitmqctl";
+                rabbitmqctlPath = "../../../../../../rabbit/scripts/rabbitmqctl";
             }
             else
             {
-                rabbitmqctlPath = @"..\..\..\..\..\..\..\rabbit\scripts\rabbitmqctl.bat";
+                rabbitmqctlPath = @"..\..\..\..\..\..\rabbit\scripts\rabbitmqctl.bat";
             }
 
             return ExecCommand(rabbitmqctlPath, args);

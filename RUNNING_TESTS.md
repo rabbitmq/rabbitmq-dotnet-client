@@ -59,7 +59,7 @@ Running individual tests and fixtures on Windows is trivial using the Visual Stu
 To run a specific tests fixture on MacOS or Linux, use the NUnit filter expressions to select the tests
 to be run:
 
-    dotnet test projects/client/Unit --filter "Name~TestAmqpUriParseFail"
+    dotnet test projects/Unit --filter "Name~TestAmqpUriParseFail"
 
 
-    dotnet test projects/client/Unit --filter "FullyQualifiedName~RabbitMQ.Client.Unit.TestHeartbeats"
+    dotnet test projects/Unit --filter "FullyQualifiedName~RabbitMQ.Client.Unit.TestHeartbeats"
