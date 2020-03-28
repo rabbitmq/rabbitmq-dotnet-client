@@ -4,18 +4,16 @@ VisualStudioVersion = 16.0.29806.167
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "projects", "projects", "{068D7DC3-8E6E-4951-B9E3-272C641BF0DE}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "client", "client", "{ECCBAEE2-24C9-4C95-A88C-03B68E866F0F}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{34486CC0-D61E-46BA-9E5E-6E8EFA7C34B5}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitMQ.Client", "projects\client\RabbitMQ.Client\RabbitMQ.Client.csproj", "{8C554257-5ECC-45DB-873D-560BFBB74EC8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitMQ.Client", "projects\RabbitMQ.Client\RabbitMQ.Client.csproj", "{8C554257-5ECC-45DB-873D-560BFBB74EC8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Unit", "projects\client\Unit\Unit.csproj", "{B8FAC024-CC03-4067-9FFC-02846FB8AE48}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Unit", "projects\Unit\Unit.csproj", "{B8FAC024-CC03-4067-9FFC-02846FB8AE48}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Apigen", "projects\client\Apigen\Apigen.csproj", "{B416DDB7-5E3E-4A20-B5A9-C6E518E203A2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Apigen", "projects\Apigen\Apigen.csproj", "{B416DDB7-5E3E-4A20-B5A9-C6E518E203A2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -40,10 +38,9 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{ECCBAEE2-24C9-4C95-A88C-03B68E866F0F} = {068D7DC3-8E6E-4951-B9E3-272C641BF0DE}
-		{8C554257-5ECC-45DB-873D-560BFBB74EC8} = {ECCBAEE2-24C9-4C95-A88C-03B68E866F0F}
-		{B8FAC024-CC03-4067-9FFC-02846FB8AE48} = {ECCBAEE2-24C9-4C95-A88C-03B68E866F0F}
-		{B416DDB7-5E3E-4A20-B5A9-C6E518E203A2} = {ECCBAEE2-24C9-4C95-A88C-03B68E866F0F}
+		{8C554257-5ECC-45DB-873D-560BFBB74EC8} = {068D7DC3-8E6E-4951-B9E3-272C641BF0DE}
+		{B8FAC024-CC03-4067-9FFC-02846FB8AE48} = {068D7DC3-8E6E-4951-B9E3-272C641BF0DE}
+		{B416DDB7-5E3E-4A20-B5A9-C6E518E203A2} = {068D7DC3-8E6E-4951-B9E3-272C641BF0DE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3C6A0C44-FA63-4101-BBF9-2598641167D1}
