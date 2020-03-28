@@ -23,7 +23,7 @@
     <AssemblyOriginatorKeyFile>../rabbit.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <MinVerTagPrefix>v</MinVerTagPrefix>
-    <MinVerVerbosity>detailed</MinVerVerbosity>
+    <MinVerVerbosity>minimal</MinVerVerbosity>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageOutputPath>..\..\..\packages</PackageOutputPath>
   </PropertyGroup>
