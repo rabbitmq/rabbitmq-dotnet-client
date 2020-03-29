@@ -89,17 +89,6 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// The publication occurs with mandatory=false and immediate=false.
         /// </remarks>
-        public static void BasicPublish(this IModel model, PublicationAddress addr, IBasicProperties basicProperties, byte[] body)
-        {
-            model.BasicPublish(addr.ExchangeName, addr.RoutingKey, basicProperties: basicProperties, body: body);
-        }
-
-        /// <summary>
-        /// (Extension method) Convenience overload of BasicPublish.
-        /// </summary>
-        /// <remarks>
-        /// The publication occurs with mandatory=false and immediate=false.
-        /// </remarks>
         public static void BasicPublish(this IModel model, PublicationAddress addr, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
         {
             model.BasicPublish(addr.ExchangeName, addr.RoutingKey, basicProperties: basicProperties, body: body);
@@ -111,28 +100,9 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// The publication occurs with mandatory=false
         /// </remarks>
-        public static void BasicPublish(this IModel model, string exchange, string routingKey, IBasicProperties basicProperties, byte[] body)
-        {
-            model.BasicPublish(exchange, routingKey, false, basicProperties, body);
-        }
-
-        /// <summary>
-        /// (Extension method) Convenience overload of BasicPublish.
-        /// </summary>
-        /// <remarks>
-        /// The publication occurs with mandatory=false
-        /// </remarks>
         public static void BasicPublish(this IModel model, string exchange, string routingKey, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
         {
             model.BasicPublish(exchange, routingKey, false, basicProperties, body);
-        }
-
-        /// <summary>
-        /// (Spec method) Convenience overload of BasicPublish.
-        /// </summary>
-        public static void BasicPublish(this IModel model, string exchange, string routingKey, bool mandatory = false, IBasicProperties basicProperties = null, byte[] body = null)
-        {
-            model.BasicPublish(exchange, routingKey, mandatory, basicProperties, body);
         }
 
         /// <summary>

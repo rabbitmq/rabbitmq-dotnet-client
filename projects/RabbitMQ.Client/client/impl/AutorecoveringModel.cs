@@ -806,15 +806,6 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             bool mandatory,
             IBasicProperties basicProperties,
-            byte[] body)
-        {
-            BasicPublish(exchange, routingKey, mandatory, basicProperties, new ReadOnlyMemory<byte>(body));
-        }
-
-        public void BasicPublish(string exchange,
-            string routingKey,
-            bool mandatory,
-            IBasicProperties basicProperties,
             ReadOnlyMemory<byte> body)
         {
             if (routingKey == null)
