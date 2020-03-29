@@ -75,12 +75,12 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// Retrieve or set the set of TLS policy errors that are deemed acceptable.
+        /// Retrieve or set the set of TLS policy (peer verification) errors that are deemed acceptable.
         /// </summary>
         public SslPolicyErrors AcceptablePolicyErrors { get; set; }
 
         /// <summary>
-        /// Retrieve or set the path to client certificate.
+        /// Retrieve or set the client certificate passphrase.
         /// </summary>
         public string CertPassphrase { get; set; }
 
@@ -90,15 +90,15 @@ namespace RabbitMQ.Client
         public string CertPath { get; set; }
 
         /// <summary>
-        /// An optional client specified TLS certificate selection callback.  If this is not specified,
+        /// An optional client TLS certificate selection callback. If this is not specified,
         /// the first valid certificate found will be used.
         /// </summary>
         public LocalCertificateSelectionCallback CertificateSelectionCallback { get; set; }
 
         /// <summary>
-        /// An optional client specified TLS certificate validation callback.  If this is not specified,
+        /// An optional peer verification (TLS certificate validation) callback. If this is not specified,
         /// the default callback will be used in conjunction with the <see cref="AcceptablePolicyErrors"/> property to
-        /// determine if the remote server certificate is valid.
+        /// determine if the peer's (server's) certificate should be considered valid (acceptable).
         /// </summary>
         public RemoteCertificateValidationCallback CertificateValidationCallback { get; set; }
 
@@ -128,25 +128,37 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// Attempts to check certificate revocation status. Default is false. True if peer certificate should be
-        /// checked for revocation, false otherwise.
+        /// Attempts to check certificate revocation status. Default is false.
+        /// Set to true to check peer certificate for revocation.
         /// </summary>
-        /// <remarks>Uses the built-in .NET mechanics for checking a certificate against CRLs.</remarks>
+        /// <remarks>
+        /// Uses the built-in .NET TLS implementation machinery for checking a certificate against
+        /// certificate revocation lists.
+        /// </remarks>
         public bool CheckCertificateRevocation { get; set; }
 
         /// <summary>
-        /// Flag specifying if TLS should indeed be used.
+        /// Controls if TLS should indeed be used. Set to false to disable TLS
+        /// on the connection.
         /// </summary>
         public bool Enabled { get; set; }
 
         /// <summary>
-        /// Retrieve or set server's Canonical Name.
-        /// This MUST match the Subject Alternative Name or CN on the Certificate else the TLS connection will fail.
+        /// Retrieve or set server's expected name.
+        /// This MUST match the Subject Alternative Name (SAN) or CN on the peer's (server's) leaf certificate,
+        /// otherwise the TLS connection will fail.
         /// </summary>
         public string ServerName { get; set; }
 
         /// <summary>
-        /// Retrieve or set the Ssl protocol version.
+        /// Retrieve or set the TLS protocol version.
+        /// The client will let the OS pick a suitable version by using <see cref="SslProtocols.None" />.
+        /// If this option is disabled, e.g.see via app context, the client will attempt to fall back
+        /// to TLSv1.2 (<see cref="SslProtocols.Tls12" />).
+        /// <see cref="System.Security.Authentication.SslProtocols" />
+        /// <see href="https://www.rabbitmq.com/ssl.html#dotnet-client" />
+        /// <see href="https://docs.microsoft.com/en-us/dotnet/framework/network-programming/tls?view=netframework-4.6.2" />
+        /// <see href="https://docs.microsoft.com/en-us/dotnet/api/system.security.authentication.sslprotocols?view=netframework-4.8" />
         /// </summary>
         public SslProtocols Version { get; set; }
 
