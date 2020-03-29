@@ -1108,11 +1108,11 @@ $@"namespace {ApiNamespaceBase}
 
         public string SanitisedFullName(Type t)
         {
-            if (t.FullName.StartsWith("System.Collections.Generic.IDictionary`2[[System.String"))
+            if (t.Equals(typeof(IDictionary<string, object>)))
             {
                 return "IDictionary<string, object>";
             }
-            if (t.FullName.StartsWith("System.ReadOnlyMemory`1[[System.Byte"))
+            if (t.Equals(typeof(ReadOnlyMemory<byte>)))
             {
                 return "ReadOnlyMemory<byte>";
             }
