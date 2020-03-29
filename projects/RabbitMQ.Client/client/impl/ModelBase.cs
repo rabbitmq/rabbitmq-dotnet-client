@@ -349,7 +349,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public void ModelSend(MethodBase method, ContentHeaderBase header, byte[] body)
+        public void ModelSend(MethodBase method, ContentHeaderBase header, ReadOnlyMemory<byte> body)
         {
             if (method.HasContent)
             {
@@ -905,7 +905,7 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             bool mandatory,
             IBasicProperties basicProperties,
-            byte[] body);
+            ReadOnlyMemory<byte> body);
 
         public abstract void _Private_BasicRecover(bool requeue);
 
@@ -1100,7 +1100,7 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             bool mandatory,
             IBasicProperties basicProperties,
-            byte[] body)
+            ReadOnlyMemory<byte> body)
         {
             if (routingKey == null)
             {
