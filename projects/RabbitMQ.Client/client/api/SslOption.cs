@@ -46,7 +46,10 @@ using System.Security.Cryptography.X509Certificates;
 namespace RabbitMQ.Client
 {
     /// <summary>
-    /// Represents a configurable SSL option, used in setting up an SSL connection.
+    /// Represents a set of configurable TLS options for a connection. Use this class to configure
+    /// TLS version used, client certificate list or file location, peer certificate verification
+    /// (validation) functions, expected server name (Subject Alternative Name or Common Name),
+    /// and so on.
     /// </summary>
     public class SslOption
     {
@@ -154,12 +157,12 @@ namespace RabbitMQ.Client
         /// Retrieve or set the TLS protocol version.
         /// The client will let the OS pick a suitable version by using <see cref="SslProtocols.None" />.
         /// If this option is disabled, e.g.see via app context, the client will attempt to fall back
-        /// to TLSv1.2 (<see cref="SslProtocols.Tls12" />).
-        /// <see cref="System.Security.Authentication.SslProtocols" />
-        /// <see href="https://www.rabbitmq.com/ssl.html#dotnet-client" />
-        /// <see href="https://docs.microsoft.com/en-us/dotnet/framework/network-programming/tls?view=netframework-4.6.2" />
-        /// <see href="https://docs.microsoft.com/en-us/dotnet/api/system.security.authentication.sslprotocols?view=netframework-4.8" />
+        /// to TLSv1.2.
         /// </summary>
+        /// <seealso cref="SslProtocols" />
+        /// <seealso href="https://www.rabbitmq.com/ssl.html#dotnet-client" />
+        /// <seealso href="https://docs.microsoft.com/en-us/dotnet/framework/network-programming/tls?view=netframework-4.6.2" />
+        /// <seealso href="https://docs.microsoft.com/en-us/dotnet/api/system.security.authentication.sslprotocols?view=netframework-4.8" />
         public SslProtocols Version { get; set; }
 
         /// <summary>
