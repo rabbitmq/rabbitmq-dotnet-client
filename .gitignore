@@ -14,12 +14,12 @@ docs/api-guide.pdf
 .DS_Store
 TestResults.xml
 TestResult.xml
-/packages
 /.fake
 /.ionide
 /NuGet
 .vscode/
 *.lock.json
+api/
 
 test.sh
 *.VisualState.xml
@@ -83,8 +83,8 @@ DocProject/Help/Html2
 DocProject/Help/html
 
 # NuGet Packages Directory
-## TODO: If you have NuGet Package Restore enabled, uncomment the next line
-#packages/
+packages/
+/packages
 
 # Windows Store app package directory
 AppPackages/
