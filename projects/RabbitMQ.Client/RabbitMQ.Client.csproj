@@ -28,7 +28,7 @@
     <PackageOutputPath>..\..\packages</PackageOutputPath>
   </PropertyGroup>
 
-  <Target Name="SetVersionFromConcourseData" AfterTargets="MinVer" Condition="'$(CONCOURSE_PULL_REQUEST_NUMBER)' != ''" >
+  <Target Name="SetVersionFromConcourseData" AfterTargets="MinVer" Condition="'$(CONCOURSE_PULL_REQUEST_NUMBER)' != ''">
     <PropertyGroup>
       <PackageVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch)-$(MinVerPreRelease)-pr.$(CONCOURSE_PULL_REQUEST_NUMBER)</PackageVersion>
       <PackageVersion Condition="'$(MinVerBuildMetadata)' != ''">$(PackageVersion)+$(MinVerBuildMetadata)</PackageVersion>
@@ -51,7 +51,7 @@
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" PrivateAssets="All" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
     <PackageReference Include="MinVer" Version="2.2.0" PrivateAssets="All" />
-    <PackageReference Include="System.Memory" Version="4.5.3" />
+    <PackageReference Include="System.Memory" Version="4.5.4" />
   </ItemGroup>
 
 </Project>
