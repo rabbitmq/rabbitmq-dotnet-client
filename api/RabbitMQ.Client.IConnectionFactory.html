@@ -10,19 +10,19 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Interface IConnectionFactory
    ">
-    <meta name="generator" content="docfx 2.31.0.0">
+    <meta name="generator" content="docfx 2.51.0.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
     <link rel="stylesheet" href="../styles/docfx.css">
     <link rel="stylesheet" href="../styles/main.css">
-    <meta property="docfx:navrel" content="">
+    <meta property="docfx:navrel" content="../toc.html">
     <meta property="docfx:tocrel" content="toc.html">
     
     
     
   </head>
-  <body data-spy="scroll" data-target="#affix">
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
     <div id="wrapper">
       <header>
         
@@ -76,7 +76,7 @@
   <div class="markdown level0 summary"></div>
   <div class="markdown level0 conceptual"></div>
   <h6><strong>Namespace</strong>: <a class="xref" href="RabbitMQ.Client.html">RabbitMQ.Client</a></h6>
-  <h6><strong>Assembly</strong>: RabbitMQ.Client.WinRT.dll</h6>
+  <h6><strong>Assembly</strong>: RabbitMQ.Client.dll</h6>
   <h5 id="RabbitMQ_Client_IConnectionFactory_syntax">Syntax</h5>
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public interface IConnectionFactory</code></pre>
@@ -85,10 +85,10 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_ClientProperties.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.ClientProperties%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_ClientProperties.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.ClientProperties%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnectionFactory.cs/#L53">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L53">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnectionFactory_ClientProperties_" data-uid="RabbitMQ.Client.IConnectionFactory.ClientProperties*"></a>
   <h4 id="RabbitMQ_Client_IConnectionFactory_ClientProperties" data-uid="RabbitMQ.Client.IConnectionFactory.ClientProperties">ClientProperties</h4>
@@ -116,10 +116,41 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_ContinuationTimeout.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.ContinuationTimeout%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_ClientProvidedName.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.ClientProvidedName%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnectionFactory.cs/#L170">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L98">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IConnectionFactory_ClientProvidedName_" data-uid="RabbitMQ.Client.IConnectionFactory.ClientProvidedName*"></a>
+  <h4 id="RabbitMQ_Client_IConnectionFactory_ClientProvidedName" data-uid="RabbitMQ.Client.IConnectionFactory.ClientProvidedName">ClientProvidedName</h4>
+  <div class="markdown level1 summary"><p>Default client provided name to be used for connections.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string ClientProvidedName { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_ContinuationTimeout.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.ContinuationTimeout%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L187">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnectionFactory_ContinuationTimeout_" data-uid="RabbitMQ.Client.IConnectionFactory.ContinuationTimeout*"></a>
   <h4 id="RabbitMQ_Client_IConnectionFactory_ContinuationTimeout" data-uid="RabbitMQ.Client.IConnectionFactory.ContinuationTimeout">ContinuationTimeout</h4>
@@ -148,10 +179,10 @@ timing out.</p>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_HandshakeContinuationTimeout.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.HandshakeContinuationTimeout%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_HandshakeContinuationTimeout.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.HandshakeContinuationTimeout%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnectionFactory.cs/#L164">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L181">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnectionFactory_HandshakeContinuationTimeout_" data-uid="RabbitMQ.Client.IConnectionFactory.HandshakeContinuationTimeout*"></a>
   <h4 id="RabbitMQ_Client_IConnectionFactory_HandshakeContinuationTimeout" data-uid="RabbitMQ.Client.IConnectionFactory.HandshakeContinuationTimeout">HandshakeContinuationTimeout</h4>
@@ -180,10 +211,10 @@ timing out.</p>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_Password.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.Password%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_Password.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.Password%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnectionFactory.cs/#L58">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L58">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnectionFactory_Password_" data-uid="RabbitMQ.Client.IConnectionFactory.Password*"></a>
   <h4 id="RabbitMQ_Client_IConnectionFactory_Password" data-uid="RabbitMQ.Client.IConnectionFactory.Password">Password</h4>
@@ -211,10 +242,10 @@ timing out.</p>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_RequestedChannelMax.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.RequestedChannelMax%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_RequestedChannelMax.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.RequestedChannelMax%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnectionFactory.cs/#L63">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L63">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnectionFactory_RequestedChannelMax_" data-uid="RabbitMQ.Client.IConnectionFactory.RequestedChannelMax*"></a>
   <h4 id="RabbitMQ_Client_IConnectionFactory_RequestedChannelMax" data-uid="RabbitMQ.Client.IConnectionFactory.RequestedChannelMax">RequestedChannelMax</h4>
@@ -242,10 +273,10 @@ timing out.</p>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_RequestedFrameMax.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.RequestedFrameMax%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_RequestedFrameMax.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.RequestedFrameMax%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnectionFactory.cs/#L68">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L68">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnectionFactory_RequestedFrameMax_" data-uid="RabbitMQ.Client.IConnectionFactory.RequestedFrameMax*"></a>
   <h4 id="RabbitMQ_Client_IConnectionFactory_RequestedFrameMax" data-uid="RabbitMQ.Client.IConnectionFactory.RequestedFrameMax">RequestedFrameMax</h4>
@@ -273,19 +304,19 @@ timing out.</p>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_RequestedHeartbeat.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.RequestedHeartbeat%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_RequestedHeartbeat.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.RequestedHeartbeat%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnectionFactory.cs/#L73">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L73">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnectionFactory_RequestedHeartbeat_" data-uid="RabbitMQ.Client.IConnectionFactory.RequestedHeartbeat*"></a>
   <h4 id="RabbitMQ_Client_IConnectionFactory_RequestedHeartbeat" data-uid="RabbitMQ.Client.IConnectionFactory.RequestedHeartbeat">RequestedHeartbeat</h4>
-  <div class="markdown level1 summary"><p>Heartbeat setting to request (in seconds).</p>
+  <div class="markdown level1 summary"><p>Heartbeat setting to request.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">ushort RequestedHeartbeat { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">TimeSpan RequestedHeartbeat { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -297,50 +328,17 @@ timing out.</p>
     </thead>
     <tbody>
       <tr>
-        <td><span class="xref">System.UInt16</span></td>
+        <td><span class="xref">System.TimeSpan</span></td>
         <td></td>
       </tr>
     </tbody>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_TaskScheduler.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.TaskScheduler%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_Uri.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.Uri%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnectionFactory.cs/#L157">View Source</a>
-  </span>
-  <a id="RabbitMQ_Client_IConnectionFactory_TaskScheduler_" data-uid="RabbitMQ.Client.IConnectionFactory.TaskScheduler*"></a>
-  <h4 id="RabbitMQ_Client_IConnectionFactory_TaskScheduler" data-uid="RabbitMQ.Client.IConnectionFactory.TaskScheduler">TaskScheduler</h4>
-  <div class="markdown level1 summary"><p>Advanced option.</p>
-<p>What task scheduler should consumer dispatcher use.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">[Obsolete(&quot;This scheduler is no longer used for dispatching consumer operations and will be removed in the next major version.&quot;, false)]
-TaskScheduler TaskScheduler { get; set; }</code></pre>
-  </div>
-  <h5 class="propertyValue">Property Value</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="xref">System.Threading.Tasks.TaskScheduler</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_Uri.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.Uri%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnectionFactory.cs/#L93">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L93">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnectionFactory_Uri_" data-uid="RabbitMQ.Client.IConnectionFactory.Uri*"></a>
   <h4 id="RabbitMQ_Client_IConnectionFactory_Uri" data-uid="RabbitMQ.Client.IConnectionFactory.Uri">Uri</h4>
@@ -361,17 +359,17 @@ TaskScheduler TaskScheduler { get; set; }</code></pre>
     </thead>
     <tbody>
       <tr>
-        <td><span class="xref">Uri</span></td>
+        <td><span class="xref">System.Uri</span></td>
         <td></td>
       </tr>
     </tbody>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_UseBackgroundThreadsForIO.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.UseBackgroundThreadsForIO%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_UseBackgroundThreadsForIO.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.UseBackgroundThreadsForIO%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnectionFactory.cs/#L78">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L78">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnectionFactory_UseBackgroundThreadsForIO_" data-uid="RabbitMQ.Client.IConnectionFactory.UseBackgroundThreadsForIO*"></a>
   <h4 id="RabbitMQ_Client_IConnectionFactory_UseBackgroundThreadsForIO" data-uid="RabbitMQ.Client.IConnectionFactory.UseBackgroundThreadsForIO">UseBackgroundThreadsForIO</h4>
@@ -399,10 +397,10 @@ TaskScheduler TaskScheduler { get; set; }</code></pre>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_UserName.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.UserName%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_UserName.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.UserName%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnectionFactory.cs/#L83">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L83">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnectionFactory_UserName_" data-uid="RabbitMQ.Client.IConnectionFactory.UserName*"></a>
   <h4 id="RabbitMQ_Client_IConnectionFactory_UserName" data-uid="RabbitMQ.Client.IConnectionFactory.UserName">UserName</h4>
@@ -430,10 +428,10 @@ TaskScheduler TaskScheduler { get; set; }</code></pre>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_VirtualHost.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.VirtualHost%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_VirtualHost.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.VirtualHost%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnectionFactory.cs/#L88">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L88">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnectionFactory_VirtualHost_" data-uid="RabbitMQ.Client.IConnectionFactory.VirtualHost*"></a>
   <h4 id="RabbitMQ_Client_IConnectionFactory_VirtualHost" data-uid="RabbitMQ.Client.IConnectionFactory.VirtualHost">VirtualHost</h4>
@@ -463,10 +461,10 @@ TaskScheduler TaskScheduler { get; set; }</code></pre>
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_AuthMechanismFactory_System_Collections_Generic_IList_System_String__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.AuthMechanismFactory(System.Collections.Generic.IList%7BSystem.String%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_AuthMechanismFactory_System_Collections_Generic_IList_System_String__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.AuthMechanismFactory(System.Collections.Generic.IList%7BSystem.String%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnectionFactory.cs/#L99">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L104">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnectionFactory_AuthMechanismFactory_" data-uid="RabbitMQ.Client.IConnectionFactory.AuthMechanismFactory*"></a>
   <h4 id="RabbitMQ_Client_IConnectionFactory_AuthMechanismFactory_System_Collections_Generic_IList_System_String__" data-uid="RabbitMQ.Client.IConnectionFactory.AuthMechanismFactory(System.Collections.Generic.IList{System.String})">AuthMechanismFactory(IList&lt;String&gt;)</h4>
@@ -476,7 +474,7 @@ or null if we have none in common.</p>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">AuthMechanismFactory AuthMechanismFactory(IList&lt;string&gt; mechanismNames)</code></pre>
+    <pre><code class="lang-csharp hljs">IAuthMechanismFactory AuthMechanismFactory(IList&lt;string&gt; mechanismNames)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -505,17 +503,17 @@ or null if we have none in common.</p>
     </thead>
     <tbody>
       <tr>
-        <td><a class="xref" href="RabbitMQ.Client.AuthMechanismFactory.html">AuthMechanismFactory</a></td>
+        <td><a class="xref" href="RabbitMQ.Client.IAuthMechanismFactory.html">IAuthMechanismFactory</a></td>
         <td></td>
       </tr>
     </tbody>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_CreateConnection.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.CreateConnection%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_CreateConnection.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.CreateConnection%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnectionFactory.cs/#L104">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L109">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnectionFactory_CreateConnection_" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnection*"></a>
   <h4 id="RabbitMQ_Client_IConnectionFactory_CreateConnection" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnection">CreateConnection()</h4>
@@ -543,15 +541,15 @@ or null if we have none in common.</p>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_CreateConnection_System_Collections_Generic_IList_RabbitMQ_Client_AmqpTcpEndpoint__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.CreateConnection(System.Collections.Generic.IList%7BRabbitMQ.Client.AmqpTcpEndpoint%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_CreateConnection_System_Collections_Generic_IList_RabbitMQ_Client_AmqpTcpEndpoint__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.CreateConnection(System.Collections.Generic.IList%7BRabbitMQ.Client.AmqpTcpEndpoint%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnectionFactory.cs/#L150">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L155">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnectionFactory_CreateConnection_" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnection*"></a>
   <h4 id="RabbitMQ_Client_IConnectionFactory_CreateConnection_System_Collections_Generic_IList_RabbitMQ_Client_AmqpTcpEndpoint__" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnection(System.Collections.Generic.IList{RabbitMQ.Client.AmqpTcpEndpoint})">CreateConnection(IList&lt;AmqpTcpEndpoint&gt;)</h4>
   <div class="markdown level1 summary"><p>Create a connection using a list of endpoints.
-The selection behaviour can be overriden by configuring the EndpointResolverFactory.</p>
+The selection behaviour can be overridden by configuring the EndpointResolverFactory.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -611,10 +609,87 @@ connection and recovery.</p>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_CreateConnection_System_Collections_Generic_IList_System_String__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.CreateConnection(System.Collections.Generic.IList%7BSystem.String%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_CreateConnection_System_Collections_Generic_IList_RabbitMQ_Client_AmqpTcpEndpoint__System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.CreateConnection(System.Collections.Generic.IList%7BRabbitMQ.Client.AmqpTcpEndpoint%7D%2CSystem.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnectionFactory.cs/#L123">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L175">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IConnectionFactory_CreateConnection_" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnection*"></a>
+  <h4 id="RabbitMQ_Client_IConnectionFactory_CreateConnection_System_Collections_Generic_IList_RabbitMQ_Client_AmqpTcpEndpoint__System_String_" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnection(System.Collections.Generic.IList{RabbitMQ.Client.AmqpTcpEndpoint},System.String)">CreateConnection(IList&lt;AmqpTcpEndpoint&gt;, String)</h4>
+  <div class="markdown level1 summary"><p>Create a connection using a list of endpoints.
+The selection behaviour can be overridden by configuring the EndpointResolverFactory.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IConnection CreateConnection(IList&lt;AmqpTcpEndpoint&gt; endpoints, string clientProvidedName)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IList</span>&lt;<a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html">AmqpTcpEndpoint</a>&gt;</td>
+        <td><span class="parametername">endpoints</span></td>
+        <td><p>List of endpoints to use for the initial
+connection and recovery.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">clientProvidedName</span></td>
+        <td><p>Application-specific connection name, will be displayed in the management UI
+if RabbitMQ server supports it. This value doesn&apos;t have to be unique and cannot
+be used as a connection identifier, e.g. in HTTP API requests.
+This value is supposed to be human-readable.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a></td>
+        <td><p>Open connection</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="RabbitMQ.Client.Exceptions.BrokerUnreachableException.html">BrokerUnreachableException</a></td>
+        <td><p>When no hostname was reachable.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_CreateConnection_System_Collections_Generic_IList_System_String__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.CreateConnection(System.Collections.Generic.IList%7BSystem.String%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L128">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnectionFactory_CreateConnection_" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnection*"></a>
   <h4 id="RabbitMQ_Client_IConnectionFactory_CreateConnection_System_Collections_Generic_IList_System_String__" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnection(System.Collections.Generic.IList{System.String})">CreateConnection(IList&lt;String&gt;)</h4>
@@ -654,16 +729,17 @@ connection and recovery.</p>
     <tbody>
       <tr>
         <td><a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a></td>
-        <td></td>
+        <td><p>Open connection</p>
+</td>
       </tr>
     </tbody>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_CreateConnection_System_Collections_Generic_IList_System_String__System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.CreateConnection(System.Collections.Generic.IList%7BSystem.String%7D%2CSystem.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_CreateConnection_System_Collections_Generic_IList_System_String__System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.CreateConnection(System.Collections.Generic.IList%7BSystem.String%7D%2CSystem.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnectionFactory.cs/#L136">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L141">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnectionFactory_CreateConnection_" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnection*"></a>
   <h4 id="RabbitMQ_Client_IConnectionFactory_CreateConnection_System_Collections_Generic_IList_System_String__System_String_" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnection(System.Collections.Generic.IList{System.String},System.String)">CreateConnection(IList&lt;String&gt;, String)</h4>
@@ -712,16 +788,17 @@ This value is supposed to be human-readable.</p>
     <tbody>
       <tr>
         <td><a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a></td>
-        <td></td>
+        <td><p>Open connection</p>
+</td>
       </tr>
     </tbody>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_CreateConnection_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.CreateConnection(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory_CreateConnection_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory.CreateConnection(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnectionFactory.cs/#L116">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L121">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnectionFactory_CreateConnection_" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnection*"></a>
   <h4 id="RabbitMQ_Client_IConnectionFactory_CreateConnection_System_String_" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnection(System.String)">CreateConnection(String)</h4>
@@ -764,7 +841,8 @@ This value is supposed to be human-readable.</p>
     <tbody>
       <tr>
         <td><a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a></td>
-        <td></td>
+        <td><p>Open connection</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -776,10 +854,10 @@ This value is supposed to be human-readable.</p>
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnectionFactory.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnectionFactory%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnectionFactory.cs/#L48" class="contribution-link">View Source</a>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L48" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>
@@ -799,7 +877,7 @@ This value is supposed to be human-readable.</p>
               <a href="#top">Back to top</a>
             </span>
             
-            <span>Copyright © 2015-2017 Microsoft<br>Generated by <strong>DocFX</strong></span>
+            <span>Generated by <strong>DocFX</strong></span>
           </div>
         </div>
       </footer>

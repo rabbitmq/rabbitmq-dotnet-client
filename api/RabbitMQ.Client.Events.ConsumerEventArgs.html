@@ -10,19 +10,19 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Class ConsumerEventArgs
    ">
-    <meta name="generator" content="docfx 2.31.0.0">
+    <meta name="generator" content="docfx 2.51.0.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
     <link rel="stylesheet" href="../styles/docfx.css">
     <link rel="stylesheet" href="../styles/main.css">
-    <meta property="docfx:navrel" content="">
+    <meta property="docfx:navrel" content="../toc.html">
     <meta property="docfx:tocrel" content="toc.html">
     
     
     
   </head>
-  <body data-spy="scroll" data-target="#affix">
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
     <div id="wrapper">
       <header>
         
@@ -111,7 +111,7 @@ or cancellation.</p>
     </div>
   </div>
   <h6><strong>Namespace</strong>: <a class="xref" href="RabbitMQ.Client.Events.html">RabbitMQ.Client.Events</a></h6>
-  <h6><strong>Assembly</strong>: RabbitMQ.Client.WinRT.dll</h6>
+  <h6><strong>Assembly</strong>: RabbitMQ.Client.dll</h6>
   <h5 id="RabbitMQ_Client_Events_ConsumerEventArgs_syntax">Syntax</h5>
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public class ConsumerEventArgs : EventArgs</code></pre>
@@ -120,20 +120,20 @@ or cancellation.</p>
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Events_ConsumerEventArgs__ctor_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Events.ConsumerEventArgs.%23ctor(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_Events_ConsumerEventArgs__ctor_System_String___.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Events.ConsumerEventArgs.%23ctor(System.String%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/events/ConsumerEventArgs.cs/#L51">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/events/ConsumerEventArgs.cs/#L51">View Source</a>
   </span>
   <a id="RabbitMQ_Client_Events_ConsumerEventArgs__ctor_" data-uid="RabbitMQ.Client.Events.ConsumerEventArgs.#ctor*"></a>
-  <h4 id="RabbitMQ_Client_Events_ConsumerEventArgs__ctor_System_String_" data-uid="RabbitMQ.Client.Events.ConsumerEventArgs.#ctor(System.String)">ConsumerEventArgs(String)</h4>
-  <div class="markdown level1 summary"><p>Construct an event containing the consumer-tag of
+  <h4 id="RabbitMQ_Client_Events_ConsumerEventArgs__ctor_System_String___" data-uid="RabbitMQ.Client.Events.ConsumerEventArgs.#ctor(System.String[])">ConsumerEventArgs(String[])</h4>
+  <div class="markdown level1 summary"><p>Construct an event containing the consumer-tags of
 the consumer the event relates to.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ConsumerEventArgs(string consumerTag)</code></pre>
+    <pre><code class="lang-csharp hljs">public ConsumerEventArgs(string[] consumerTags)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -146,8 +146,8 @@ the consumer the event relates to.</p>
     </thead>
     <tbody>
       <tr>
-        <td><span class="xref">System.String</span></td>
-        <td><span class="parametername">consumerTag</span></td>
+        <td><span class="xref">System.String</span>[]</td>
+        <td><span class="parametername">consumerTags</span></td>
         <td></td>
       </tr>
     </tbody>
@@ -156,20 +156,20 @@ the consumer the event relates to.</p>
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Events_ConsumerEventArgs_ConsumerTag.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Events.ConsumerEventArgs.ConsumerTag%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_Events_ConsumerEventArgs_ConsumerTags.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Events.ConsumerEventArgs.ConsumerTags%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/events/ConsumerEventArgs.cs/#L58">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/events/ConsumerEventArgs.cs/#L58">View Source</a>
   </span>
-  <a id="RabbitMQ_Client_Events_ConsumerEventArgs_ConsumerTag_" data-uid="RabbitMQ.Client.Events.ConsumerEventArgs.ConsumerTag*"></a>
-  <h4 id="RabbitMQ_Client_Events_ConsumerEventArgs_ConsumerTag" data-uid="RabbitMQ.Client.Events.ConsumerEventArgs.ConsumerTag">ConsumerTag</h4>
-  <div class="markdown level1 summary"><p>Access the consumer-tag of the consumer the event
+  <a id="RabbitMQ_Client_Events_ConsumerEventArgs_ConsumerTags_" data-uid="RabbitMQ.Client.Events.ConsumerEventArgs.ConsumerTags*"></a>
+  <h4 id="RabbitMQ_Client_Events_ConsumerEventArgs_ConsumerTags" data-uid="RabbitMQ.Client.Events.ConsumerEventArgs.ConsumerTags">ConsumerTags</h4>
+  <div class="markdown level1 summary"><p>Access the consumer-tags of the consumer the event
 relates to.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public string ConsumerTag { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public string[] ConsumerTags { get; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -181,7 +181,7 @@ relates to.</p>
     </thead>
     <tbody>
       <tr>
-        <td><span class="xref">System.String</span></td>
+        <td><span class="xref">System.String</span>[]</td>
         <td></td>
       </tr>
     </tbody>
@@ -194,10 +194,10 @@ relates to.</p>
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Events_ConsumerEventArgs.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Events.ConsumerEventArgs%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_Events_ConsumerEventArgs.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Events.ConsumerEventArgs%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/events/ConsumerEventArgs.cs/#L47" class="contribution-link">View Source</a>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/events/ConsumerEventArgs.cs/#L47" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>
@@ -217,7 +217,7 @@ relates to.</p>
               <a href="#top">Back to top</a>
             </span>
             
-            <span>Copyright © 2015-2017 Microsoft<br>Generated by <strong>DocFX</strong></span>
+            <span>Generated by <strong>DocFX</strong></span>
           </div>
         </div>
       </footer>

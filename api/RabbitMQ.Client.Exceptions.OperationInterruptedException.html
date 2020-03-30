@@ -10,19 +10,19 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Class OperationInterruptedException
    ">
-    <meta name="generator" content="docfx 2.31.0.0">
+    <meta name="generator" content="docfx 2.51.0.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
     <link rel="stylesheet" href="../styles/docfx.css">
     <link rel="stylesheet" href="../styles/main.css">
-    <meta property="docfx:navrel" content="">
+    <meta property="docfx:navrel" content="../toc.html">
     <meta property="docfx:tocrel" content="toc.html">
     
     
     
   </head>
-  <body data-spy="scroll" data-target="#affix">
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
     <div id="wrapper">
       <header>
         
@@ -84,8 +84,9 @@ the caller of IModel.QueueDeclare.</p>
     <h5>Inheritance</h5>
     <div class="level0"><span class="xref">System.Object</span></div>
     <div class="level1"><span class="xref">System.Exception</span></div>
-    <div class="level2"><span class="xref">OperationInterruptedException</span></div>
-      <div class="level3"><a class="xref" href="RabbitMQ.Client.Exceptions.AlreadyClosedException.html">AlreadyClosedException</a></div>
+    <div class="level2"><a class="xref" href="RabbitMQ.Client.Exceptions.RabbitMQClientException.html">RabbitMQClientException</a></div>
+    <div class="level3"><span class="xref">OperationInterruptedException</span></div>
+      <div class="level4"><a class="xref" href="RabbitMQ.Client.Exceptions.AlreadyClosedException.html">AlreadyClosedException</a></div>
   </div>
   <div classs="implements">
     <h5>Implements</h5>
@@ -150,19 +151,20 @@ the caller of IModel.QueueDeclare.</p>
     </div>
   </div>
   <h6><strong>Namespace</strong>: <a class="xref" href="RabbitMQ.Client.Exceptions.html">RabbitMQ.Client.Exceptions</a></h6>
-  <h6><strong>Assembly</strong>: RabbitMQ.Client.WinRT.dll</h6>
+  <h6><strong>Assembly</strong>: RabbitMQ.Client.dll</h6>
   <h5 id="RabbitMQ_Client_Exceptions_OperationInterruptedException_syntax">Syntax</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public class OperationInterruptedException : Exception, ISerializable, _Exception</code></pre>
+    <pre><code class="lang-csharp hljs">[Serializable]
+public class OperationInterruptedException : RabbitMQClientException, ISerializable, _Exception</code></pre>
   </div>
   <h3 id="constructors">Constructors
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Exceptions_OperationInterruptedException__ctor.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Exceptions.OperationInterruptedException.%23ctor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_Exceptions_OperationInterruptedException__ctor.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Exceptions.OperationInterruptedException.%23ctor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/exceptions/OperationInterruptedException.cs/#L76">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/exceptions/OperationInterruptedException.cs/#L77">View Source</a>
   </span>
   <a id="RabbitMQ_Client_Exceptions_OperationInterruptedException__ctor_" data-uid="RabbitMQ.Client.Exceptions.OperationInterruptedException.#ctor*"></a>
   <h4 id="RabbitMQ_Client_Exceptions_OperationInterruptedException__ctor" data-uid="RabbitMQ.Client.Exceptions.OperationInterruptedException.#ctor">OperationInterruptedException()</h4>
@@ -174,10 +176,10 @@ the caller of IModel.QueueDeclare.</p>
   </div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Exceptions_OperationInterruptedException__ctor_RabbitMQ_Client_ShutdownEventArgs_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Exceptions.OperationInterruptedException.%23ctor(RabbitMQ.Client.ShutdownEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_Exceptions_OperationInterruptedException__ctor_RabbitMQ_Client_ShutdownEventArgs_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Exceptions.OperationInterruptedException.%23ctor(RabbitMQ.Client.ShutdownEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/exceptions/OperationInterruptedException.cs/#L58">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/exceptions/OperationInterruptedException.cs/#L61">View Source</a>
   </span>
   <a id="RabbitMQ_Client_Exceptions_OperationInterruptedException__ctor_" data-uid="RabbitMQ.Client.Exceptions.OperationInterruptedException.#ctor*"></a>
   <h4 id="RabbitMQ_Client_Exceptions_OperationInterruptedException__ctor_RabbitMQ_Client_ShutdownEventArgs_" data-uid="RabbitMQ.Client.Exceptions.OperationInterruptedException.#ctor(RabbitMQ.Client.ShutdownEventArgs)">OperationInterruptedException(ShutdownEventArgs)</h4>
@@ -208,10 +210,10 @@ the passed-in explanation, if any.</p>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Exceptions_OperationInterruptedException__ctor_RabbitMQ_Client_ShutdownEventArgs_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Exceptions.OperationInterruptedException.%23ctor(RabbitMQ.Client.ShutdownEventArgs%2CSystem.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_Exceptions_OperationInterruptedException__ctor_RabbitMQ_Client_ShutdownEventArgs_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Exceptions.OperationInterruptedException.%23ctor(RabbitMQ.Client.ShutdownEventArgs%2CSystem.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/exceptions/OperationInterruptedException.cs/#L68">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/exceptions/OperationInterruptedException.cs/#L70">View Source</a>
   </span>
   <a id="RabbitMQ_Client_Exceptions_OperationInterruptedException__ctor_" data-uid="RabbitMQ.Client.Exceptions.OperationInterruptedException.#ctor*"></a>
   <h4 id="RabbitMQ_Client_Exceptions_OperationInterruptedException__ctor_RabbitMQ_Client_ShutdownEventArgs_System_String_" data-uid="RabbitMQ.Client.Exceptions.OperationInterruptedException.#ctor(RabbitMQ.Client.ShutdownEventArgs,System.String)">OperationInterruptedException(ShutdownEventArgs, String)</h4>
@@ -247,10 +249,10 @@ the passed-in explanation and prefix, if any.</p>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Exceptions_OperationInterruptedException__ctor_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Exceptions.OperationInterruptedException.%23ctor(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_Exceptions_OperationInterruptedException__ctor_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Exceptions.OperationInterruptedException.%23ctor(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/exceptions/OperationInterruptedException.cs/#L80">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/exceptions/OperationInterruptedException.cs/#L81">View Source</a>
   </span>
   <a id="RabbitMQ_Client_Exceptions_OperationInterruptedException__ctor_" data-uid="RabbitMQ.Client.Exceptions.OperationInterruptedException.#ctor*"></a>
   <h4 id="RabbitMQ_Client_Exceptions_OperationInterruptedException__ctor_System_String_" data-uid="RabbitMQ.Client.Exceptions.OperationInterruptedException.#ctor(System.String)">OperationInterruptedException(String)</h4>
@@ -279,10 +281,10 @@ the passed-in explanation and prefix, if any.</p>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Exceptions_OperationInterruptedException__ctor_System_String_System_Exception_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Exceptions.OperationInterruptedException.%23ctor(System.String%2CSystem.Exception)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_Exceptions_OperationInterruptedException__ctor_System_String_System_Exception_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Exceptions.OperationInterruptedException.%23ctor(System.String%2CSystem.Exception)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/exceptions/OperationInterruptedException.cs/#L84">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/exceptions/OperationInterruptedException.cs/#L85">View Source</a>
   </span>
   <a id="RabbitMQ_Client_Exceptions_OperationInterruptedException__ctor_" data-uid="RabbitMQ.Client.Exceptions.OperationInterruptedException.#ctor*"></a>
   <h4 id="RabbitMQ_Client_Exceptions_OperationInterruptedException__ctor_System_String_System_Exception_" data-uid="RabbitMQ.Client.Exceptions.OperationInterruptedException.#ctor(System.String,System.Exception)">OperationInterruptedException(String, Exception)</h4>
@@ -318,10 +320,10 @@ the passed-in explanation and prefix, if any.</p>
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Exceptions_OperationInterruptedException_ShutdownReason.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Exceptions.OperationInterruptedException.ShutdownReason%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_Exceptions_OperationInterruptedException_ShutdownReason.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Exceptions.OperationInterruptedException.ShutdownReason%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/exceptions/OperationInterruptedException.cs/#L99">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/exceptions/OperationInterruptedException.cs/#L92">View Source</a>
   </span>
   <a id="RabbitMQ_Client_Exceptions_OperationInterruptedException_ShutdownReason_" data-uid="RabbitMQ.Client.Exceptions.OperationInterruptedException.ShutdownReason*"></a>
   <h4 id="RabbitMQ_Client_Exceptions_OperationInterruptedException_ShutdownReason" data-uid="RabbitMQ.Client.Exceptions.OperationInterruptedException.ShutdownReason">ShutdownReason</h4>
@@ -363,10 +365,10 @@ return null if no explanation is available.</p>
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Exceptions_OperationInterruptedException.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Exceptions.OperationInterruptedException%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_Exceptions_OperationInterruptedException.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Exceptions.OperationInterruptedException%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/exceptions/OperationInterruptedException.cs/#L52" class="contribution-link">View Source</a>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/exceptions/OperationInterruptedException.cs/#L53" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>
@@ -386,7 +388,7 @@ return null if no explanation is available.</p>
               <a href="#top">Back to top</a>
             </span>
             
-            <span>Copyright © 2015-2017 Microsoft<br>Generated by <strong>DocFX</strong></span>
+            <span>Generated by <strong>DocFX</strong></span>
           </div>
         </div>
       </footer>

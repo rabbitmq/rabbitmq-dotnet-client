@@ -10,19 +10,19 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Class IntegrationFixture.ConnectionInfo
    ">
-    <meta name="generator" content="docfx 2.31.0.0">
+    <meta name="generator" content="docfx 2.51.0.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
     <link rel="stylesheet" href="../styles/docfx.css">
     <link rel="stylesheet" href="../styles/main.css">
-    <meta property="docfx:navrel" content="">
+    <meta property="docfx:navrel" content="../toc.html">
     <meta property="docfx:tocrel" content="toc.html">
     
     
     
   </head>
-  <body data-spy="scroll" data-target="#affix">
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
     <div id="wrapper">
       <header>
         
@@ -89,9 +89,6 @@
       <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
     </div>
     <div>
-      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
-    </div>
-    <div>
       <span class="xref">System.Object.GetHashCode()</span>
     </div>
     <div>
@@ -100,9 +97,12 @@
     <div>
       <span class="xref">System.Object.MemberwiseClone()</span>
     </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
   </div>
   <h6><strong>Namespace</strong>: <a class="xref" href="RabbitMQ.Client.Unit.html">RabbitMQ.Client.Unit</a></h6>
-  <h6><strong>Assembly</strong>: unit-tests.dll</h6>
+  <h6><strong>Assembly</strong>: Unit.dll</h6>
   <h5 id="RabbitMQ_Client_Unit_IntegrationFixture_ConnectionInfo_syntax">Syntax</h5>
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public class ConnectionInfo</code></pre>
@@ -111,18 +111,18 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_IntegrationFixture_ConnectionInfo__ctor_System_String_System_UInt32_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.IntegrationFixture.ConnectionInfo.%23ctor(System.String%2CSystem.UInt32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_Unit_IntegrationFixture_ConnectionInfo__ctor_System_String_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.IntegrationFixture.ConnectionInfo.%23ctor(System.String%2CSystem.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/Fixtures.cs/#L538">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/Unit/Fixtures.cs/#L594">View Source</a>
   </span>
   <a id="RabbitMQ_Client_Unit_IntegrationFixture_ConnectionInfo__ctor_" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.ConnectionInfo.#ctor*"></a>
-  <h4 id="RabbitMQ_Client_Unit_IntegrationFixture_ConnectionInfo__ctor_System_String_System_UInt32_" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.ConnectionInfo.#ctor(System.String,System.UInt32)">ConnectionInfo(String, UInt32)</h4>
+  <h4 id="RabbitMQ_Client_Unit_IntegrationFixture_ConnectionInfo__ctor_System_String_System_String_" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.ConnectionInfo.#ctor(System.String,System.String)">ConnectionInfo(String, String)</h4>
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ConnectionInfo(string pid, uint peerPort)</code></pre>
+    <pre><code class="lang-csharp hljs">public ConnectionInfo(string pid, string name)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -140,8 +140,8 @@
         <td></td>
       </tr>
       <tr>
-        <td><span class="xref">System.UInt32</span></td>
-        <td><span class="parametername">peerPort</span></td>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">name</span></td>
         <td></td>
       </tr>
     </tbody>
@@ -150,18 +150,18 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_IntegrationFixture_ConnectionInfo_PeerPort.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.IntegrationFixture.ConnectionInfo.PeerPort%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_Unit_IntegrationFixture_ConnectionInfo_Name.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.IntegrationFixture.ConnectionInfo.Name%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/Fixtures.cs/#L533">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/Unit/Fixtures.cs/#L589">View Source</a>
   </span>
-  <a id="RabbitMQ_Client_Unit_IntegrationFixture_ConnectionInfo_PeerPort_" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.ConnectionInfo.PeerPort*"></a>
-  <h4 id="RabbitMQ_Client_Unit_IntegrationFixture_ConnectionInfo_PeerPort" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.ConnectionInfo.PeerPort">PeerPort</h4>
+  <a id="RabbitMQ_Client_Unit_IntegrationFixture_ConnectionInfo_Name_" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.ConnectionInfo.Name*"></a>
+  <h4 id="RabbitMQ_Client_Unit_IntegrationFixture_ConnectionInfo_Name" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.ConnectionInfo.Name">Name</h4>
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public uint PeerPort { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public string Name { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -173,17 +173,17 @@
     </thead>
     <tbody>
       <tr>
-        <td><span class="xref">System.UInt32</span></td>
+        <td><span class="xref">System.String</span></td>
         <td></td>
       </tr>
     </tbody>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_IntegrationFixture_ConnectionInfo_Pid.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.IntegrationFixture.ConnectionInfo.Pid%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_Unit_IntegrationFixture_ConnectionInfo_Pid.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.IntegrationFixture.ConnectionInfo.Pid%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/Fixtures.cs/#L528">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/Unit/Fixtures.cs/#L584">View Source</a>
   </span>
   <a id="RabbitMQ_Client_Unit_IntegrationFixture_ConnectionInfo_Pid_" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.ConnectionInfo.Pid*"></a>
   <h4 id="RabbitMQ_Client_Unit_IntegrationFixture_ConnectionInfo_Pid" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.ConnectionInfo.Pid">Pid</h4>
@@ -212,10 +212,10 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_IntegrationFixture_ConnectionInfo_ToString.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.IntegrationFixture.ConnectionInfo.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_Unit_IntegrationFixture_ConnectionInfo_ToString.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.IntegrationFixture.ConnectionInfo.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/Fixtures.cs/#L544">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/Unit/Fixtures.cs/#L600">View Source</a>
   </span>
   <a id="RabbitMQ_Client_Unit_IntegrationFixture_ConnectionInfo_ToString_" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.ConnectionInfo.ToString*"></a>
   <h4 id="RabbitMQ_Client_Unit_IntegrationFixture_ConnectionInfo_ToString" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.ConnectionInfo.ToString">ToString()</h4>
@@ -250,10 +250,10 @@
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_Unit_IntegrationFixture_ConnectionInfo.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.IntegrationFixture.ConnectionInfo%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_Unit_IntegrationFixture_ConnectionInfo.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.IntegrationFixture.ConnectionInfo%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/Unit/src/unit/Fixtures.cs/#L526" class="contribution-link">View Source</a>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/Unit/Fixtures.cs/#L582" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>
@@ -273,7 +273,7 @@
               <a href="#top">Back to top</a>
             </span>
             
-            <span>Copyright © 2015-2017 Microsoft<br>Generated by <strong>DocFX</strong></span>
+            <span>Generated by <strong>DocFX</strong></span>
           </div>
         </div>
       </footer>

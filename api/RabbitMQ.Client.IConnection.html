@@ -10,19 +10,19 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Interface IConnection
    ">
-    <meta name="generator" content="docfx 2.31.0.0">
+    <meta name="generator" content="docfx 2.51.0.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
     <link rel="stylesheet" href="../styles/docfx.css">
     <link rel="stylesheet" href="../styles/main.css">
-    <meta property="docfx:navrel" content="">
+    <meta property="docfx:navrel" content="../toc.html">
     <meta property="docfx:tocrel" content="toc.html">
     
     
     
   </head>
-  <body data-spy="scroll" data-target="#affix">
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
     <div id="wrapper">
       <header>
         
@@ -79,20 +79,20 @@
   <div class="inheritedMembers">
     <h5>Inherited Members</h5>
     <div>
-      <a class="xref" href="RabbitMQ.Client.NetworkConnection.html#RabbitMQ_Client_NetworkConnection_LocalPort">NetworkConnection.LocalPort</a>
+      <a class="xref" href="RabbitMQ.Client.INetworkConnection.html#RabbitMQ_Client_INetworkConnection_LocalPort">INetworkConnection.LocalPort</a>
     </div>
     <div>
-      <a class="xref" href="RabbitMQ.Client.NetworkConnection.html#RabbitMQ_Client_NetworkConnection_RemotePort">NetworkConnection.RemotePort</a>
+      <a class="xref" href="RabbitMQ.Client.INetworkConnection.html#RabbitMQ_Client_INetworkConnection_RemotePort">INetworkConnection.RemotePort</a>
     </div>
     <div>
       <span class="xref">System.IDisposable.Dispose()</span>
     </div>
   </div>
   <h6><strong>Namespace</strong>: <a class="xref" href="RabbitMQ.Client.html">RabbitMQ.Client</a></h6>
-  <h6><strong>Assembly</strong>: RabbitMQ.Client.WinRT.dll</h6>
+  <h6><strong>Assembly</strong>: RabbitMQ.Client.dll</h6>
   <h5 id="RabbitMQ_Client_IConnection_syntax">Syntax</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public interface IConnection : NetworkConnection, IDisposable</code></pre>
+    <pre><code class="lang-csharp hljs">public interface IConnection : INetworkConnection, IDisposable</code></pre>
   </div>
   <h5 id="RabbitMQ_Client_IConnection_remarks"><strong>Remarks</strong></h5>
   <div class="markdown level0 remarks"><p>
@@ -112,46 +112,10 @@ appropriate.
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_AutoClose.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.AutoClose%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnection_ChannelMax.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.ChannelMax%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L77">View Source</a>
-  </span>
-  <a id="RabbitMQ_Client_IConnection_AutoClose_" data-uid="RabbitMQ.Client.IConnection.AutoClose*"></a>
-  <h4 id="RabbitMQ_Client_IConnection_AutoClose" data-uid="RabbitMQ.Client.IConnection.AutoClose">AutoClose</h4>
-  <div class="markdown level1 summary"><p>If true, will close the whole connection as soon as there are no channels open on it;
-if false, manual connection closure will be required.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">bool AutoClose { get; set; }</code></pre>
-  </div>
-  <h5 class="propertyValue">Property Value</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="xref">System.Boolean</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h5 id="RabbitMQ_Client_IConnection_AutoClose_remarks">Remarks</h5>
-  <div class="markdown level1 remarks"><p>DON&apos;T set AutoClose to true before opening the first
-channel, because the connection will be immediately closed if you do!</p>
-</div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_ChannelMax.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.ChannelMax%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L83">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnection.cs/#L75">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnection_ChannelMax_" data-uid="RabbitMQ.Client.IConnection.ChannelMax*"></a>
   <h4 id="RabbitMQ_Client_IConnection_ChannelMax" data-uid="RabbitMQ.Client.IConnection.ChannelMax">ChannelMax</h4>
@@ -180,10 +144,10 @@ Usable channel numbers range from 1 to this number, inclusive.</p>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_ClientProperties.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.ClientProperties%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnection_ClientProperties.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.ClientProperties%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L88">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnection.cs/#L80">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnection_ClientProperties_" data-uid="RabbitMQ.Client.IConnection.ClientProperties*"></a>
   <h4 id="RabbitMQ_Client_IConnection_ClientProperties" data-uid="RabbitMQ.Client.IConnection.ClientProperties">ClientProperties</h4>
@@ -211,10 +175,10 @@ Usable channel numbers range from 1 to this number, inclusive.</p>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_ClientProvidedName.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.ClientProvidedName%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnection_ClientProvidedName.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.ClientProvidedName%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L161">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnection.cs/#L153">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnection_ClientProvidedName_" data-uid="RabbitMQ.Client.IConnection.ClientProvidedName*"></a>
   <h4 id="RabbitMQ_Client_IConnection_ClientProvidedName" data-uid="RabbitMQ.Client.IConnection.ClientProvidedName">ClientProvidedName</h4>
@@ -245,10 +209,10 @@ This value is supposed to be human-readable.</p>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_CloseReason.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.CloseReason%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnection_CloseReason.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.CloseReason%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L108">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnection.cs/#L100">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnection_CloseReason_" data-uid="RabbitMQ.Client.IConnection.CloseReason*"></a>
   <h4 id="RabbitMQ_Client_IConnection_CloseReason" data-uid="RabbitMQ.Client.IConnection.CloseReason">CloseReason</h4>
@@ -291,40 +255,10 @@ vary depending on the particular operation being attempted).
 </div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_ConsumerWorkService.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.ConsumerWorkService%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnection_Endpoint.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.Endpoint%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L324">View Source</a>
-  </span>
-  <a id="RabbitMQ_Client_IConnection_ConsumerWorkService_" data-uid="RabbitMQ.Client.IConnection.ConsumerWorkService*"></a>
-  <h4 id="RabbitMQ_Client_IConnection_ConsumerWorkService" data-uid="RabbitMQ.Client.IConnection.ConsumerWorkService">ConsumerWorkService</h4>
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">ConsumerWorkService ConsumerWorkService { get; }</code></pre>
-  </div>
-  <h5 class="propertyValue">Property Value</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.ConsumerWorkService.html">ConsumerWorkService</a></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_Endpoint.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.Endpoint%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L113">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnection.cs/#L105">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnection_Endpoint_" data-uid="RabbitMQ.Client.IConnection.Endpoint*"></a>
   <h4 id="RabbitMQ_Client_IConnection_Endpoint" data-uid="RabbitMQ.Client.IConnection.Endpoint">Endpoint</h4>
@@ -352,10 +286,10 @@ vary depending on the particular operation being attempted).
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_FrameMax.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.FrameMax%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnection_FrameMax.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.FrameMax%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L118">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnection.cs/#L110">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnection_FrameMax_" data-uid="RabbitMQ.Client.IConnection.FrameMax*"></a>
   <h4 id="RabbitMQ_Client_IConnection_FrameMax" data-uid="RabbitMQ.Client.IConnection.FrameMax">FrameMax</h4>
@@ -383,19 +317,19 @@ vary depending on the particular operation being attempted).
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_Heartbeat.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.Heartbeat%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnection_Heartbeat.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.Heartbeat%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L123">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnection.cs/#L115">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnection_Heartbeat_" data-uid="RabbitMQ.Client.IConnection.Heartbeat*"></a>
   <h4 id="RabbitMQ_Client_IConnection_Heartbeat" data-uid="RabbitMQ.Client.IConnection.Heartbeat">Heartbeat</h4>
-  <div class="markdown level1 summary"><p>The current heartbeat setting for this connection (0 for disabled), in seconds.</p>
+  <div class="markdown level1 summary"><p>The current heartbeat setting for this connection (System.TimeSpan.Zero for disabled).</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">ushort Heartbeat { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">TimeSpan Heartbeat { get; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -407,17 +341,17 @@ vary depending on the particular operation being attempted).
     </thead>
     <tbody>
       <tr>
-        <td><span class="xref">System.UInt16</span></td>
+        <td><span class="xref">System.TimeSpan</span></td>
         <td></td>
       </tr>
     </tbody>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_IsOpen.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.IsOpen%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnection_IsOpen.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.IsOpen%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L129">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnection.cs/#L121">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnection_IsOpen_" data-uid="RabbitMQ.Client.IConnection.IsOpen*"></a>
   <h4 id="RabbitMQ_Client_IConnection_IsOpen" data-uid="RabbitMQ.Client.IConnection.IsOpen">IsOpen</h4>
@@ -446,10 +380,10 @@ Identical to checking if <a class="xref" href="RabbitMQ.Client.IConnection.html#
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_KnownHosts.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.KnownHosts%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnection_KnownHosts.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.KnownHosts%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L136">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnection.cs/#L128">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnection_KnownHosts_" data-uid="RabbitMQ.Client.IConnection.KnownHosts*"></a>
   <h4 id="RabbitMQ_Client_IConnection_KnownHosts" data-uid="RabbitMQ.Client.IConnection.KnownHosts">KnownHosts</h4>
@@ -479,10 +413,10 @@ startup time. Null until the connection is completely open and ready for use.</p
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_Protocol.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.Protocol%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnection_Protocol.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.Protocol%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L141">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnection.cs/#L133">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnection_Protocol_" data-uid="RabbitMQ.Client.IConnection.Protocol*"></a>
   <h4 id="RabbitMQ_Client_IConnection_Protocol" data-uid="RabbitMQ.Client.IConnection.Protocol">Protocol</h4>
@@ -510,10 +444,10 @@ startup time. Null until the connection is completely open and ready for use.</p
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_ServerProperties.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.ServerProperties%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnection_ServerProperties.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.ServerProperties%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L147">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnection.cs/#L139">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnection_ServerProperties_" data-uid="RabbitMQ.Client.IConnection.ServerProperties*"></a>
   <h4 id="RabbitMQ_Client_IConnection_ServerProperties" data-uid="RabbitMQ.Client.IConnection.ServerProperties">ServerProperties</h4>
@@ -542,10 +476,10 @@ This typically includes the product name and version of the server.</p>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_ShutdownReport.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.ShutdownReport%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnection_ShutdownReport.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.ShutdownReport%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L153">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnection.cs/#L145">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnection_ShutdownReport_" data-uid="RabbitMQ.Client.IConnection.ShutdownReport*"></a>
   <h4 id="RabbitMQ_Client_IConnection_ShutdownReport" data-uid="RabbitMQ.Client.IConnection.ShutdownReport">ShutdownReport</h4>
@@ -576,10 +510,10 @@ about any errors reported while closing the connection in the order they appeare
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_Abort.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.Abort%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnection_Abort.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.Abort%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L200">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnection.cs/#L198">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnection_Abort_" data-uid="RabbitMQ.Client.IConnection.Abort*"></a>
   <h4 id="RabbitMQ_Client_IConnection_Abort" data-uid="RabbitMQ.Client.IConnection.Abort">Abort()</h4>
@@ -598,20 +532,20 @@ This method waits infinitely for the in-progress close operation to complete.</p
 </div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_Abort_System_Int32_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.Abort(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnection_Abort_System_TimeSpan_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.Abort(System.TimeSpan)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L230">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnection.cs/#L228">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnection_Abort_" data-uid="RabbitMQ.Client.IConnection.Abort*"></a>
-  <h4 id="RabbitMQ_Client_IConnection_Abort_System_Int32_" data-uid="RabbitMQ.Client.IConnection.Abort(System.Int32)">Abort(Int32)</h4>
+  <h4 id="RabbitMQ_Client_IConnection_Abort_System_TimeSpan_" data-uid="RabbitMQ.Client.IConnection.Abort(System.TimeSpan)">Abort(TimeSpan)</h4>
   <div class="markdown level1 summary"><p>Abort this connection and all its channels and wait with a
 timeout for all the in-progress close operations to complete.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">void Abort(int timeout)</code></pre>
+    <pre><code class="lang-csharp hljs">void Abort(TimeSpan timeout)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -624,15 +558,15 @@ timeout for all the in-progress close operations to complete.</p>
     </thead>
     <tbody>
       <tr>
-        <td><span class="xref">System.Int32</span></td>
+        <td><span class="xref">System.TimeSpan</span></td>
         <td><span class="parametername">timeout</span></td>
         <td></td>
       </tr>
     </tbody>
   </table>
-  <h5 id="RabbitMQ_Client_IConnection_Abort_System_Int32__remarks">Remarks</h5>
+  <h5 id="RabbitMQ_Client_IConnection_Abort_System_TimeSpan__remarks">Remarks</h5>
   <div class="markdown level1 remarks"><p>This method, behaves in a similar way as method <a class="xref" href="RabbitMQ.Client.IConnection.html#RabbitMQ_Client_IConnection_Abort">Abort()</a> with the
-only difference that it explictly specifies the timeout given
+only difference that it explictly specifies a timeout given
 for all the in-progress close operations to complete.
 If timeout is reached and the close operations haven&apos;t finished, then socket is forced to close.
 <p>
@@ -641,10 +575,10 @@ To wait infinitely for the close operations to complete use <span class="xref">S
 </div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_Abort_System_UInt16_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.Abort(System.UInt16%2CSystem.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnection_Abort_System_UInt16_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.Abort(System.UInt16%2CSystem.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L215">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnection.cs/#L213">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnection_Abort_" data-uid="RabbitMQ.Client.IConnection.Abort*"></a>
   <h4 id="RabbitMQ_Client_IConnection_Abort_System_UInt16_System_String_" data-uid="RabbitMQ.Client.IConnection.Abort(System.UInt16,System.String)">Abort(UInt16, String)</h4>
@@ -689,20 +623,20 @@ A message indicating the reason for closing the connection
 </div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_Abort_System_UInt16_System_String_System_Int32_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.Abort(System.UInt16%2CSystem.String%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnection_Abort_System_UInt16_System_String_System_TimeSpan_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.Abort(System.UInt16%2CSystem.String%2CSystem.TimeSpan)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L246">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnection.cs/#L244">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnection_Abort_" data-uid="RabbitMQ.Client.IConnection.Abort*"></a>
-  <h4 id="RabbitMQ_Client_IConnection_Abort_System_UInt16_System_String_System_Int32_" data-uid="RabbitMQ.Client.IConnection.Abort(System.UInt16,System.String,System.Int32)">Abort(UInt16, String, Int32)</h4>
+  <h4 id="RabbitMQ_Client_IConnection_Abort_System_UInt16_System_String_System_TimeSpan_" data-uid="RabbitMQ.Client.IConnection.Abort(System.UInt16,System.String,System.TimeSpan)">Abort(UInt16, String, TimeSpan)</h4>
   <div class="markdown level1 summary"><p>Abort this connection and all its channels and wait with a
 timeout for all the in-progress close operations to complete.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">void Abort(ushort reasonCode, string reasonText, int timeout)</code></pre>
+    <pre><code class="lang-csharp hljs">void Abort(ushort reasonCode, string reasonText, TimeSpan timeout)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -725,17 +659,17 @@ timeout for all the in-progress close operations to complete.</p>
         <td></td>
       </tr>
       <tr>
-        <td><span class="xref">System.Int32</span></td>
+        <td><span class="xref">System.TimeSpan</span></td>
         <td><span class="parametername">timeout</span></td>
         <td></td>
       </tr>
     </tbody>
   </table>
-  <h5 id="RabbitMQ_Client_IConnection_Abort_System_UInt16_System_String_System_Int32__remarks">Remarks</h5>
-  <div class="markdown level1 remarks"><p>The method behaves in the same way as <a class="xref" href="RabbitMQ.Client.IConnection.html#RabbitMQ_Client_IConnection_Abort_System_Int32_">Abort(Int32)</a>, with the only
+  <h5 id="RabbitMQ_Client_IConnection_Abort_System_UInt16_System_String_System_TimeSpan__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The method behaves in the same way as <a class="xref" href="RabbitMQ.Client.IConnection.html#RabbitMQ_Client_IConnection_Abort_System_TimeSpan_">Abort(TimeSpan)</a>, with the only
 difference that the connection is closed with the given connection close code and message.
 <p>
-The close code (See under &quot;Reply Codes&quot; in the AMQP specification).
+The close code (See under &quot;Reply Codes&quot; in the AMQP 0-9-1 specification).
 </p>
 <p>
 A message indicating the reason for closing the connection.
@@ -743,10 +677,10 @@ A message indicating the reason for closing the connection.
 </div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_Close.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.Close%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnection_Close.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.Close%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L259">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnection.cs/#L257">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnection_Close_" data-uid="RabbitMQ.Client.IConnection.Close*"></a>
   <h4 id="RabbitMQ_Client_IConnection_Close" data-uid="RabbitMQ.Client.IConnection.Close">Close()</h4>
@@ -767,20 +701,20 @@ It can also throw <span class="xref">System.IO.IOException</span> when socket wa
 </div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_Close_System_Int32_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.Close(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnection_Close_System_TimeSpan_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.Close(System.TimeSpan)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L291">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnection.cs/#L289">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnection_Close_" data-uid="RabbitMQ.Client.IConnection.Close*"></a>
-  <h4 id="RabbitMQ_Client_IConnection_Close_System_Int32_" data-uid="RabbitMQ.Client.IConnection.Close(System.Int32)">Close(Int32)</h4>
+  <h4 id="RabbitMQ_Client_IConnection_Close_System_TimeSpan_" data-uid="RabbitMQ.Client.IConnection.Close(System.TimeSpan)">Close(TimeSpan)</h4>
   <div class="markdown level1 summary"><p>Close this connection and all its channels
 and wait with a timeout for all the in-progress close operations to complete.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">void Close(int timeout)</code></pre>
+    <pre><code class="lang-csharp hljs">void Close(TimeSpan timeout)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -793,13 +727,13 @@ and wait with a timeout for all the in-progress close operations to complete.</p
     </thead>
     <tbody>
       <tr>
-        <td><span class="xref">System.Int32</span></td>
+        <td><span class="xref">System.TimeSpan</span></td>
         <td><span class="parametername">timeout</span></td>
         <td></td>
       </tr>
     </tbody>
   </table>
-  <h5 id="RabbitMQ_Client_IConnection_Close_System_Int32__remarks">Remarks</h5>
+  <h5 id="RabbitMQ_Client_IConnection_Close_System_TimeSpan__remarks">Remarks</h5>
   <div class="markdown level1 remarks"><p>Note that all active channels, sessions, and models will be
 closed if this method is called. It will wait for the in-progress
 close operation to complete with a timeout. If the connection is
@@ -807,15 +741,15 @@ already closed (or closing), then this method will do nothing.
 It can also throw <span class="xref">System.IO.IOException</span> when socket was closed unexpectedly.
 If timeout is reached and the close operations haven&apos;t finished, then socket is forced to close.
 <p>
-To wait infinitely for the close operations to complete use <span class="xref">System.Threading.Timeout.Infinite</span>.
+To wait infinitely for the close operations to complete use <span class="xref">System.Threading.Timeout.InfiniteTimeSpan</span>.
 </p></p>
 </div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_Close_System_UInt16_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.Close(System.UInt16%2CSystem.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnection_Close_System_UInt16_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.Close(System.UInt16%2CSystem.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L274">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnection.cs/#L272">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnection_Close_" data-uid="RabbitMQ.Client.IConnection.Close*"></a>
   <h4 id="RabbitMQ_Client_IConnection_Close_System_UInt16_System_String_" data-uid="RabbitMQ.Client.IConnection.Close(System.UInt16,System.String)">Close(UInt16, String)</h4>
@@ -860,20 +794,20 @@ A message indicating the reason for closing the connection.
 </div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_Close_System_UInt16_System_String_System_Int32_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.Close(System.UInt16%2CSystem.String%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnection_Close_System_UInt16_System_String_System_TimeSpan_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.Close(System.UInt16%2CSystem.String%2CSystem.TimeSpan)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L307">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnection.cs/#L308">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnection_Close_" data-uid="RabbitMQ.Client.IConnection.Close*"></a>
-  <h4 id="RabbitMQ_Client_IConnection_Close_System_UInt16_System_String_System_Int32_" data-uid="RabbitMQ.Client.IConnection.Close(System.UInt16,System.String,System.Int32)">Close(UInt16, String, Int32)</h4>
+  <h4 id="RabbitMQ_Client_IConnection_Close_System_UInt16_System_String_System_TimeSpan_" data-uid="RabbitMQ.Client.IConnection.Close(System.UInt16,System.String,System.TimeSpan)">Close(UInt16, String, TimeSpan)</h4>
   <div class="markdown level1 summary"><p>Close this connection and all its channels
 and wait with a timeout for all the in-progress close operations to complete.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">void Close(ushort reasonCode, string reasonText, int timeout)</code></pre>
+    <pre><code class="lang-csharp hljs">void Close(ushort reasonCode, string reasonText, TimeSpan timeout)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -896,28 +830,31 @@ and wait with a timeout for all the in-progress close operations to complete.</p
         <td></td>
       </tr>
       <tr>
-        <td><span class="xref">System.Int32</span></td>
+        <td><span class="xref">System.TimeSpan</span></td>
         <td><span class="parametername">timeout</span></td>
         <td></td>
       </tr>
     </tbody>
   </table>
-  <h5 id="RabbitMQ_Client_IConnection_Close_System_UInt16_System_String_System_Int32__remarks">Remarks</h5>
-  <div class="markdown level1 remarks"><p>The method behaves in the same way as <a class="xref" href="RabbitMQ.Client.IConnection.html#RabbitMQ_Client_IConnection_Close_System_Int32_">Close(Int32)</a>, with the only
+  <h5 id="RabbitMQ_Client_IConnection_Close_System_UInt16_System_String_System_TimeSpan__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The method behaves in the same way as <a class="xref" href="RabbitMQ.Client.IConnection.html#RabbitMQ_Client_IConnection_Close_System_TimeSpan_">Close(TimeSpan)</a>, with the only
 difference that the connection is closed with the given connection close code and message.
 <p>
 The close code (See under &quot;Reply Codes&quot; in the AMQP 0-9-1 specification).
 </p>
 <p>
 A message indicating the reason for closing the connection.
+</p>
+<p>
+Operation timeout.
 </p></p>
 </div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_CreateModel.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.CreateModel%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnection_CreateModel.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.CreateModel%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L312">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnection.cs/#L313">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnection_CreateModel_" data-uid="RabbitMQ.Client.IConnection.CreateModel*"></a>
   <h4 id="RabbitMQ_Client_IConnection_CreateModel" data-uid="RabbitMQ.Client.IConnection.CreateModel">CreateModel()</h4>
@@ -945,10 +882,10 @@ A message indicating the reason for closing the connection.
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_HandleConnectionBlocked_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.HandleConnectionBlocked(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnection_HandleConnectionBlocked_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.HandleConnectionBlocked(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L317">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnection.cs/#L318">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnection_HandleConnectionBlocked_" data-uid="RabbitMQ.Client.IConnection.HandleConnectionBlocked*"></a>
   <h4 id="RabbitMQ_Client_IConnection_HandleConnectionBlocked_System_String_" data-uid="RabbitMQ.Client.IConnection.HandleConnectionBlocked(System.String)">HandleConnectionBlocked(String)</h4>
@@ -978,10 +915,10 @@ A message indicating the reason for closing the connection.
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_HandleConnectionUnblocked.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.HandleConnectionUnblocked%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnection_HandleConnectionUnblocked.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.HandleConnectionUnblocked%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L322">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnection.cs/#L323">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IConnection_HandleConnectionUnblocked_" data-uid="RabbitMQ.Client.IConnection.HandleConnectionUnblocked*"></a>
   <h4 id="RabbitMQ_Client_IConnection_HandleConnectionUnblocked" data-uid="RabbitMQ.Client.IConnection.HandleConnectionUnblocked">HandleConnectionUnblocked()</h4>
@@ -992,14 +929,56 @@ A message indicating the reason for closing the connection.
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">void HandleConnectionUnblocked()</code></pre>
   </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnection_UpdateSecret_System_String_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.UpdateSecret(System.String%2CSystem.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnection.cs/#L187">View Source</a>
+  </span>
+  <a id="RabbitMQ_Client_IConnection_UpdateSecret_" data-uid="RabbitMQ.Client.IConnection.UpdateSecret*"></a>
+  <h4 id="RabbitMQ_Client_IConnection_UpdateSecret_System_String_System_String_" data-uid="RabbitMQ.Client.IConnection.UpdateSecret(System.String,System.String)">UpdateSecret(String, String)</h4>
+  <div class="markdown level1 summary"><p>This method updates the secret used to authenticate this connection.
+It is used when secrets have an expiration date and need to be renewed,
+like OAuth 2 tokens.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void UpdateSecret(string newSecret, string reason)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">newSecret</span></td>
+        <td><p>The new secret.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">reason</span></td>
+        <td><p>The reason for the secret update.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
   <h3 id="events">Events
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_CallbackException.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.CallbackException%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnection_CallbackException.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.CallbackException%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L172">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnection.cs/#L164">View Source</a>
   </span>
   <h4 id="RabbitMQ_Client_IConnection_CallbackException" data-uid="RabbitMQ.Client.IConnection.CallbackException">CallbackException</h4>
   <div class="markdown level1 summary"><p>Signalled when an exception occurs in a callback invoked by the connection.</p>
@@ -1032,10 +1011,10 @@ of those event handlers throws an exception, as well.</p>
 </div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_ConnectionBlocked.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.ConnectionBlocked%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnection_ConnectionBlocked.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.ConnectionBlocked%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L177">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnection.cs/#L166">View Source</a>
   </span>
   <h4 id="RabbitMQ_Client_IConnection_ConnectionBlocked" data-uid="RabbitMQ.Client.IConnection.ConnectionBlocked">ConnectionBlocked</h4>
   <div class="markdown level1 summary"></div>
@@ -1061,39 +1040,10 @@ of those event handlers throws an exception, as well.</p>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_ConnectionRecoveryError.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.ConnectionRecoveryError%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnection_ConnectionShutdown.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.ConnectionShutdown%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L174">View Source</a>
-  </span>
-  <h4 id="RabbitMQ_Client_IConnection_ConnectionRecoveryError" data-uid="RabbitMQ.Client.IConnection.ConnectionRecoveryError">ConnectionRecoveryError</h4>
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">event EventHandler&lt;ConnectionRecoveryErrorEventArgs&gt; ConnectionRecoveryError</code></pre>
-  </div>
-  <h5 class="eventType">Event Type</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="xref">System.EventHandler</span>&lt;<a class="xref" href="RabbitMQ.Client.Events.ConnectionRecoveryErrorEventArgs.html">ConnectionRecoveryErrorEventArgs</a>&gt;</td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_ConnectionShutdown.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.ConnectionShutdown%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L187">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnection.cs/#L176">View Source</a>
   </span>
   <h4 id="RabbitMQ_Client_IConnection_ConnectionShutdown" data-uid="RabbitMQ.Client.IConnection.ConnectionShutdown">ConnectionShutdown</h4>
   <div class="markdown level1 summary"><p>Raised when the connection is destroyed.</p>
@@ -1125,10 +1075,10 @@ will be fired immediately.</p>
 </div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_ConnectionUnblocked.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.ConnectionUnblocked%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnection_ConnectionUnblocked.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.ConnectionUnblocked%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L189">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnection.cs/#L178">View Source</a>
   </span>
   <h4 id="RabbitMQ_Client_IConnection_ConnectionUnblocked" data-uid="RabbitMQ.Client.IConnection.ConnectionUnblocked">ConnectionUnblocked</h4>
   <div class="markdown level1 summary"></div>
@@ -1136,35 +1086,6 @@ will be fired immediately.</p>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">event EventHandler&lt;EventArgs&gt; ConnectionUnblocked</code></pre>
-  </div>
-  <h5 class="eventType">Event Type</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="xref">System.EventHandler</span>&lt;<span class="xref">System.EventArgs</span>&gt;</td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection_RecoverySucceeded.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection.RecoverySucceeded%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L173">View Source</a>
-  </span>
-  <h4 id="RabbitMQ_Client_IConnection_RecoverySucceeded" data-uid="RabbitMQ.Client.IConnection.RecoverySucceeded">RecoverySucceeded</h4>
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">event EventHandler&lt;EventArgs&gt; RecoverySucceeded</code></pre>
   </div>
   <h5 class="eventType">Event Type</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -1189,10 +1110,10 @@ will be fired immediately.</p>
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/rabbitmq-dotnet-client-154399066/apiSpec/new?filename=RabbitMQ_Client_IConnection.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IConnection.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IConnection%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-154399066/projects/client/RabbitMQ.Client/src/client/api/IConnection.cs/#L67" class="contribution-link">View Source</a>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IConnection.cs/#L69" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>
@@ -1212,7 +1133,7 @@ will be fired immediately.</p>
               <a href="#top">Back to top</a>
             </span>
             
-            <span>Copyright © 2015-2017 Microsoft<br>Generated by <strong>DocFX</strong></span>
+            <span>Generated by <strong>DocFX</strong></span>
           </div>
         </div>
       </footer>

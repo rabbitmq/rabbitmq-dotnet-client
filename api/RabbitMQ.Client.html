@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Namespace RabbitMQ.Client
    ">
-    <meta name="generator" content="docfx 2.31.0.0">
+    <meta name="generator" content="docfx 2.51.0.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -22,7 +22,7 @@
     
     
   </head>
-  <body data-spy="scroll" data-target="#affix">
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
     <div id="wrapper">
       <header>
         
@@ -80,17 +80,10 @@
       <h4><a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html">AmqpTcpEndpoint</a></h4>
       <section><p>Represents a TCP-addressable AMQP peer: a host name and port number.</p>
 </section>
-      <h4><a class="xref" href="RabbitMQ.Client.AmqpVersion.html">AmqpVersion</a></h4>
-      <section><p>Represents a version of the AMQP specification.</p>
-</section>
       <h4><a class="xref" href="RabbitMQ.Client.AsyncDefaultBasicConsumer.html">AsyncDefaultBasicConsumer</a></h4>
       <section></section>
       <h4><a class="xref" href="RabbitMQ.Client.BasicGetResult.html">BasicGetResult</a></h4>
       <section><p>Represents Basic.GetOk responses from the server.</p>
-</section>
-      <h4><a class="xref" href="RabbitMQ.Client.BinaryTableValue.html">BinaryTableValue</a></h4>
-      <section><p>Wrapper for a byte[]. May appear as values read from
-and written to AMQP field tables.</p>
 </section>
       <h4><a class="xref" href="RabbitMQ.Client.ConnectionFactory.html">ConnectionFactory</a></h4>
       <section><p>Main entry point to the RabbitMQ .NET AMQP client
@@ -98,11 +91,9 @@ API. Constructs <a class="xref" href="RabbitMQ.Client.IConnection.html">IConnect
 </section>
       <h4><a class="xref" href="RabbitMQ.Client.ConnectionFactoryBase.html">ConnectionFactoryBase</a></h4>
       <section></section>
-      <h4><a class="xref" href="RabbitMQ.Client.ConsumerWorkService.html">ConsumerWorkService</a></h4>
-      <section></section>
       <h4><a class="xref" href="RabbitMQ.Client.DefaultBasicConsumer.html">DefaultBasicConsumer</a></h4>
       <section><p>Useful default/base implementation of <a class="xref" href="RabbitMQ.Client.IBasicConsumer.html">IBasicConsumer</a>.
-Subclass and override <a class="xref" href="RabbitMQ.Client.DefaultBasicConsumer.html#RabbitMQ_Client_DefaultBasicConsumer_HandleBasicDeliver_System_String_System_UInt64_System_Boolean_System_String_System_String_RabbitMQ_Client_IBasicProperties_System_Byte___">HandleBasicDeliver(String, UInt64, Boolean, String, String, IBasicProperties, Byte[])</a> in application code.</p>
+Subclass and override <a class="xref" href="RabbitMQ.Client.DefaultBasicConsumer.html#RabbitMQ_Client_DefaultBasicConsumer_HandleBasicDeliver_System_String_System_UInt64_System_Boolean_System_String_System_String_RabbitMQ_Client_IBasicProperties_System_ReadOnlyMemory_System_Byte__">HandleBasicDeliver(String, UInt64, Boolean, String, String, IBasicProperties, ReadOnlyMemory&lt;Byte&gt;)</a> in application code.</p>
 </section>
       <h4><a class="xref" href="RabbitMQ.Client.DefaultEndpointResolver.html">DefaultEndpointResolver</a></h4>
       <section></section>
@@ -127,18 +118,12 @@ Subclass and override <a class="xref" href="RabbitMQ.Client.DefaultBasicConsumer
       <h4><a class="xref" href="RabbitMQ.Client.Protocols.html">Protocols</a></h4>
       <section><p>Provides access to the supported <a class="xref" href="RabbitMQ.Client.IProtocol.html">IProtocol</a> implementations.</p>
 </section>
-      <h4><a class="xref" href="RabbitMQ.Client.ProtocolViolationException.html">ProtocolViolationException</a></h4>
-      <section></section>
       <h4><a class="xref" href="RabbitMQ.Client.PublicationAddress.html">PublicationAddress</a></h4>
       <section><p>Container for an exchange name, exchange type and
 routing key, usable as the target address of a message to be published.</p>
 </section>
       <h4><a class="xref" href="RabbitMQ.Client.QueueDeclareOk.html">QueueDeclareOk</a></h4>
       <section><p>Represents Queue info.</p>
-</section>
-      <h4><a class="xref" href="RabbitMQ.Client.QueueingBasicConsumer.html">QueueingBasicConsumer</a></h4>
-      <section><p>A <a class="xref" href="RabbitMQ.Client.IBasicConsumer.html">IBasicConsumer</a> implementation that
-uses a <a class="xref" href="RabbitMQ.Util.SharedQueue.html">SharedQueue</a> to buffer incoming deliveries.</p>
 </section>
       <h4><a class="xref" href="RabbitMQ.Client.ShutdownEventArgs.html">ShutdownEventArgs</a></h4>
       <section><p>Information about the reason why a particular model, session, or connection was destroyed.</p>
@@ -148,10 +133,11 @@ uses a <a class="xref" href="RabbitMQ.Util.SharedQueue.html">SharedQueue</a> to 
 of the error which occured during shutdown.</p>
 </section>
       <h4><a class="xref" href="RabbitMQ.Client.SslOption.html">SslOption</a></h4>
-      <section><p>Represents a configurable SSL option, used in setting up an SSL connection.</p>
+      <section><p>Represents a set of configurable TLS options for a connection. Use this class to configure
+TLS version used, client certificate list or file location, peer certificate verification
+(validation) functions, expected server name (Subject Alternative Name or Common Name),
+and so on.</p>
 </section>
-      <h4><a class="xref" href="RabbitMQ.Client.TopologyRecoveryException.html">TopologyRecoveryException</a></h4>
-      <section></section>
     <h3 id="structs">Structs
   </h3>
       <h4><a class="xref" href="RabbitMQ.Client.AmqpTimestamp.html">AmqpTimestamp</a></h4>
@@ -159,13 +145,19 @@ of the error which occured during shutdown.</p>
 </section>
     <h3 id="interfaces">Interfaces
   </h3>
-      <h4><a class="xref" href="RabbitMQ.Client.AuthMechanism.html">AuthMechanism</a></h4>
-      <section><p>A pluggable authentication mechanism.</p>
-</section>
-      <h4><a class="xref" href="RabbitMQ.Client.AuthMechanismFactory.html">AuthMechanismFactory</a></h4>
-      <section></section>
       <h4><a class="xref" href="RabbitMQ.Client.IAsyncBasicConsumer.html">IAsyncBasicConsumer</a></h4>
       <section></section>
+      <h4><a class="xref" href="RabbitMQ.Client.IAsyncConnectionFactory.html">IAsyncConnectionFactory</a></h4>
+      <section><p>Defines a connection factory capable of using an asynchronous consumer dispatcher which is compatible with <a class="xref" href="RabbitMQ.Client.IAsyncBasicConsumer.html">IAsyncBasicConsumer</a>.</p>
+</section>
+      <h4><a class="xref" href="RabbitMQ.Client.IAuthMechanism.html">IAuthMechanism</a></h4>
+      <section><p>A pluggable authentication mechanism.</p>
+</section>
+      <h4><a class="xref" href="RabbitMQ.Client.IAuthMechanismFactory.html">IAuthMechanismFactory</a></h4>
+      <section></section>
+      <h4><a class="xref" href="RabbitMQ.Client.IAutorecoveringConnection.html">IAutorecoveringConnection</a></h4>
+      <section><p>Interface to an auto-recovering AMQP connection.</p>
+</section>
       <h4><a class="xref" href="RabbitMQ.Client.IBasicConsumer.html">IBasicConsumer</a></h4>
       <section><p>Consumer interface. Used to
 receive messages from a queue by subscription.</p>
@@ -194,13 +186,12 @@ spanning the union of the functionality offered by versions
       <section><p>Common AMQP model, spanning the union of the
 functionality offered by versions 0-8, 0-8qpid, 0-9 and 0-9-1 of AMQP.</p>
 </section>
+      <h4><a class="xref" href="RabbitMQ.Client.INetworkConnection.html">INetworkConnection</a></h4>
+      <section><p>Common interface for network (TCP/IP) connection classes.</p>
+</section>
       <h4><a class="xref" href="RabbitMQ.Client.IProtocol.html">IProtocol</a></h4>
       <section><p>Object describing various overarching parameters
 associated with a particular AMQP protocol variant.</p>
-</section>
-      <h4><a class="xref" href="RabbitMQ.Client.IQueueingBasicConsumer.html">IQueueingBasicConsumer</a></h4>
-      <section><p>A <a class="xref" href="RabbitMQ.Client.IBasicConsumer.html">IBasicConsumer</a> implementation that
-uses a <a class="xref" href="RabbitMQ.Util.SharedQueue.html">SharedQueue</a> to buffer incoming deliveries.</p>
 </section>
       <h4><a class="xref" href="RabbitMQ.Client.IRecoverable.html">IRecoverable</a></h4>
       <section><p>A marker interface for entities that are recoverable (currently connection or channel).</p>
@@ -209,8 +200,8 @@ uses a <a class="xref" href="RabbitMQ.Util.SharedQueue.html">SharedQueue</a> to 
       <section><p>Common AMQP Stream content-class headers interface,
 spanning the union of the functionality offered by versions 0-8, 0-8qpid, 0-9 and 0-9-1 of AMQP.</p>
 </section>
-      <h4><a class="xref" href="RabbitMQ.Client.NetworkConnection.html">NetworkConnection</a></h4>
-      <section><p>Common interface for network (TCP/IP) connection classes.</p>
+      <h4><a class="xref" href="RabbitMQ.Client.ITcpClient.html">ITcpClient</a></h4>
+      <section><p>Wrapper interface for standard TCP-client. Provides socket for socket frame handler class.</p>
 </section>
     <h3 id="enums">Enums
   </h3>
@@ -242,7 +233,7 @@ spanning the union of the functionality offered by versions 0-8, 0-8qpid, 0-9 an
               <a href="#top">Back to top</a>
             </span>
             
-            <span>Copyright © 2015-2017 Microsoft<br>Generated by <strong>DocFX</strong></span>
+            <span>Generated by <strong>DocFX</strong></span>
           </div>
         </div>
       </footer>

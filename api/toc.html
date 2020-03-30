@@ -4,6 +4,7 @@
     <div class="sidefilter">
       <form class="toc-filter">
         <span class="glyphicon glyphicon-filter filter-icon"></span>
+        <span class="glyphicon glyphicon-remove clear-icon" id="toc_filter_clear"></span>
         <input type="text" id="toc_filter_input" placeholder="Enter here to filter..." onkeypress="if(event.keyCode==13) {return false;}">
       </form>
     </div>
@@ -11,835 +12,464 @@
       <div class="toc" id="toc">
           
           <ul class="nav level1">
-            <li>
-              <span class="expand-stub"></span>
-              <a href="RabbitMQ.Client.html" name="" title="RabbitMQ.Client">RabbitMQ.Client</a>
-                
-                <ul class="nav level2">
-                  <li>
-                    <a href="RabbitMQ.Client.AmqpTcpEndpoint.html" name="" title="AmqpTcpEndpoint">AmqpTcpEndpoint</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.AmqpTimestamp.html" name="" title="AmqpTimestamp">AmqpTimestamp</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.AmqpVersion.html" name="" title="AmqpVersion">AmqpVersion</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.AsyncDefaultBasicConsumer.html" name="" title="AsyncDefaultBasicConsumer">AsyncDefaultBasicConsumer</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.AuthMechanism.html" name="" title="AuthMechanism">AuthMechanism</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.AuthMechanismFactory.html" name="" title="AuthMechanismFactory">AuthMechanismFactory</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.BasicGetResult.html" name="" title="BasicGetResult">BasicGetResult</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.BinaryTableValue.html" name="" title="BinaryTableValue">BinaryTableValue</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.ConnectionFactory.html" name="" title="ConnectionFactory">ConnectionFactory</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.ConnectionFactoryBase.html" name="" title="ConnectionFactoryBase">ConnectionFactoryBase</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.ConsumerWorkService.html" name="" title="ConsumerWorkService">ConsumerWorkService</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.DefaultBasicConsumer.html" name="" title="DefaultBasicConsumer">DefaultBasicConsumer</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.DefaultEndpointResolver.html" name="" title="DefaultEndpointResolver">DefaultEndpointResolver</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.EndpointResolverExtensions.html" name="" title="EndpointResolverExtensions">EndpointResolverExtensions</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.ExchangeType.html" name="" title="ExchangeType">ExchangeType</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.ExternalMechanism.html" name="" title="ExternalMechanism">ExternalMechanism</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.ExternalMechanismFactory.html" name="" title="ExternalMechanismFactory">ExternalMechanismFactory</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Headers.html" name="" title="Headers">Headers</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.IAsyncBasicConsumer.html" name="" title="IAsyncBasicConsumer">IAsyncBasicConsumer</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.IBasicConsumer.html" name="" title="IBasicConsumer">IBasicConsumer</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.IBasicProperties.html" name="" title="IBasicProperties">IBasicProperties</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.IBasicPublishBatch.html" name="" title="IBasicPublishBatch">IBasicPublishBatch</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.IConnection.html" name="" title="IConnection">IConnection</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.IConnectionFactory.html" name="" title="IConnectionFactory">IConnectionFactory</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.IContentHeader.html" name="" title="IContentHeader">IContentHeader</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.IEndpointResolver.html" name="" title="IEndpointResolver">IEndpointResolver</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.IMethod.html" name="" title="IMethod">IMethod</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.IModel.html" name="" title="IModel">IModel</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.IModelExensions.html" name="" title="IModelExensions">IModelExensions</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.IProtocol.html" name="" title="IProtocol">IProtocol</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.IQueueingBasicConsumer.html" name="" title="IQueueingBasicConsumer">IQueueingBasicConsumer</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.IRecoverable.html" name="" title="IRecoverable">IRecoverable</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.IStreamProperties.html" name="" title="IStreamProperties">IStreamProperties</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.NetworkConnection.html" name="" title="NetworkConnection">NetworkConnection</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.PlainMechanism.html" name="" title="PlainMechanism">PlainMechanism</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.PlainMechanismFactory.html" name="" title="PlainMechanismFactory">PlainMechanismFactory</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Protocols.html" name="" title="Protocols">Protocols</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.ProtocolViolationException.html" name="" title="ProtocolViolationException">ProtocolViolationException</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.PublicationAddress.html" name="" title="PublicationAddress">PublicationAddress</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.QueueDeclareOk.html" name="" title="QueueDeclareOk">QueueDeclareOk</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.QueueingBasicConsumer.html" name="" title="QueueingBasicConsumer">QueueingBasicConsumer</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.ShutdownEventArgs.html" name="" title="ShutdownEventArgs">ShutdownEventArgs</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.ShutdownInitiator.html" name="" title="ShutdownInitiator">ShutdownInitiator</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.ShutdownReportEntry.html" name="" title="ShutdownReportEntry">ShutdownReportEntry</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.SslOption.html" name="" title="SslOption">SslOption</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.TopologyRecoveryException.html" name="" title="TopologyRecoveryException">TopologyRecoveryException</a>
-                  </li>
-                </ul>  </li>
-            <li>
-              <span class="expand-stub"></span>
-              <a href="RabbitMQ.Client.Apigen.html" name="" title="RabbitMQ.Client.Apigen">RabbitMQ.Client.Apigen</a>
-                
-                <ul class="nav level2">
-                  <li>
-                    <a href="RabbitMQ.Client.Apigen.AmqpClass.html" name="" title="AmqpClass">AmqpClass</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Apigen.AmqpEntity.html" name="" title="AmqpEntity">AmqpEntity</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Apigen.AmqpField.html" name="" title="AmqpField">AmqpField</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Apigen.AmqpMethod.html" name="" title="AmqpMethod">AmqpMethod</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Apigen.Apigen.html" name="" title="Apigen">Apigen</a>
-                  </li>
-                </ul>  </li>
-            <li>
-              <span class="expand-stub"></span>
-              <a href="RabbitMQ.Client.Apigen.Attributes.html" name="" title="RabbitMQ.Client.Apigen.Attributes">RabbitMQ.Client.Apigen.Attributes</a>
-                
-                <ul class="nav level2">
-                  <li>
-                    <a href="RabbitMQ.Client.Apigen.Attributes.AmqpApigenAttribute.html" name="" title="AmqpApigenAttribute">AmqpApigenAttribute</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Apigen.Attributes.AmqpAsynchronousHandlerAttribute.html" name="" title="AmqpAsynchronousHandlerAttribute">AmqpAsynchronousHandlerAttribute</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Apigen.Attributes.AmqpContentBodyMappingAttribute.html" name="" title="AmqpContentBodyMappingAttribute">AmqpContentBodyMappingAttribute</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Apigen.Attributes.AmqpContentHeaderFactoryAttribute.html" name="" title="AmqpContentHeaderFactoryAttribute">AmqpContentHeaderFactoryAttribute</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Apigen.Attributes.AmqpContentHeaderMappingAttribute.html" name="" title="AmqpContentHeaderMappingAttribute">AmqpContentHeaderMappingAttribute</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Apigen.Attributes.AmqpFieldMappingAttribute.html" name="" title="AmqpFieldMappingAttribute">AmqpFieldMappingAttribute</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Apigen.Attributes.AmqpForceOneWayAttribute.html" name="" title="AmqpForceOneWayAttribute">AmqpForceOneWayAttribute</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Apigen.Attributes.AmqpMethodDoNotImplementAttribute.html" name="" title="AmqpMethodDoNotImplementAttribute">AmqpMethodDoNotImplementAttribute</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Apigen.Attributes.AmqpMethodMappingAttribute.html" name="" title="AmqpMethodMappingAttribute">AmqpMethodMappingAttribute</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Apigen.Attributes.AmqpNowaitArgumentAttribute.html" name="" title="AmqpNowaitArgumentAttribute">AmqpNowaitArgumentAttribute</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Apigen.Attributes.AmqpUnsupportedAttribute.html" name="" title="AmqpUnsupportedAttribute">AmqpUnsupportedAttribute</a>
-                  </li>
-                </ul>  </li>
-            <li>
-              <span class="expand-stub"></span>
-              <a href="RabbitMQ.Client.Content.html" name="" title="RabbitMQ.Client.Content">RabbitMQ.Client.Content</a>
-                
-                <ul class="nav level2">
-                  <li>
-                    <a href="RabbitMQ.Client.Content.BasicMessageBuilder.html" name="" title="BasicMessageBuilder">BasicMessageBuilder</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Content.BasicMessageReader.html" name="" title="BasicMessageReader">BasicMessageReader</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Content.BytesMessageBuilder.html" name="" title="BytesMessageBuilder">BytesMessageBuilder</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Content.BytesMessageReader.html" name="" title="BytesMessageReader">BytesMessageReader</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Content.BytesWireFormatting.html" name="" title="BytesWireFormatting">BytesWireFormatting</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Content.IBytesMessageBuilder.html" name="" title="IBytesMessageBuilder">IBytesMessageBuilder</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Content.IBytesMessageReader.html" name="" title="IBytesMessageReader">IBytesMessageReader</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Content.IMapMessageBuilder.html" name="" title="IMapMessageBuilder">IMapMessageBuilder</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Content.IMapMessageReader.html" name="" title="IMapMessageReader">IMapMessageReader</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Content.IMessageBuilder.html" name="" title="IMessageBuilder">IMessageBuilder</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Content.IMessageReader.html" name="" title="IMessageReader">IMessageReader</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Content.IStreamMessageBuilder.html" name="" title="IStreamMessageBuilder">IStreamMessageBuilder</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Content.IStreamMessageReader.html" name="" title="IStreamMessageReader">IStreamMessageReader</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Content.MapMessageBuilder.html" name="" title="MapMessageBuilder">MapMessageBuilder</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Content.MapMessageReader.html" name="" title="MapMessageReader">MapMessageReader</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Content.MapWireFormatting.html" name="" title="MapWireFormatting">MapWireFormatting</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Content.PrimitiveParser.html" name="" title="PrimitiveParser">PrimitiveParser</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Content.StreamMessageBuilder.html" name="" title="StreamMessageBuilder">StreamMessageBuilder</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Content.StreamMessageReader.html" name="" title="StreamMessageReader">StreamMessageReader</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Content.StreamWireFormatting.html" name="" title="StreamWireFormatting">StreamWireFormatting</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Content.StreamWireFormattingTag.html" name="" title="StreamWireFormattingTag">StreamWireFormattingTag</a>
-                  </li>
-                </ul>  </li>
-            <li>
-              <span class="expand-stub"></span>
-              <a href="RabbitMQ.Client.Events.html" name="" title="RabbitMQ.Client.Events">RabbitMQ.Client.Events</a>
-                
-                <ul class="nav level2">
-                  <li>
-                    <a href="RabbitMQ.Client.Events.AsyncEventHandler-1.html" name="" title="AsyncEventHandler&lt;TEvent&gt;">AsyncEventHandler&lt;TEvent&gt;</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Events.AsyncEventingBasicConsumer.html" name="" title="AsyncEventingBasicConsumer">AsyncEventingBasicConsumer</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Events.BaseExceptionEventArgs.html" name="" title="BaseExceptionEventArgs">BaseExceptionEventArgs</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Events.BasicAckEventArgs.html" name="" title="BasicAckEventArgs">BasicAckEventArgs</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Events.BasicDeliverEventArgs.html" name="" title="BasicDeliverEventArgs">BasicDeliverEventArgs</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Events.BasicNackEventArgs.html" name="" title="BasicNackEventArgs">BasicNackEventArgs</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Events.BasicReturnEventArgs.html" name="" title="BasicReturnEventArgs">BasicReturnEventArgs</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Events.CallbackExceptionEventArgs.html" name="" title="CallbackExceptionEventArgs">CallbackExceptionEventArgs</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Events.ConnectionBlockedEventArgs.html" name="" title="ConnectionBlockedEventArgs">ConnectionBlockedEventArgs</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Events.ConnectionRecoveryErrorEventArgs.html" name="" title="ConnectionRecoveryErrorEventArgs">ConnectionRecoveryErrorEventArgs</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Events.ConsumerEventArgs.html" name="" title="ConsumerEventArgs">ConsumerEventArgs</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Events.ConsumerTagChangedAfterRecoveryEventArgs.html" name="" title="ConsumerTagChangedAfterRecoveryEventArgs">ConsumerTagChangedAfterRecoveryEventArgs</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Events.EventingBasicConsumer.html" name="" title="EventingBasicConsumer">EventingBasicConsumer</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Events.FlowControlEventArgs.html" name="" title="FlowControlEventArgs">FlowControlEventArgs</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Events.QueueNameChangedAfterRecoveryEventArgs.html" name="" title="QueueNameChangedAfterRecoveryEventArgs">QueueNameChangedAfterRecoveryEventArgs</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Events.RecoveryExceptionEventArgs.html" name="" title="RecoveryExceptionEventArgs">RecoveryExceptionEventArgs</a>
-                  </li>
-                </ul>  </li>
-            <li>
-              <span class="expand-stub"></span>
-              <a href="RabbitMQ.Client.Exceptions.html" name="" title="RabbitMQ.Client.Exceptions">RabbitMQ.Client.Exceptions</a>
-                
-                <ul class="nav level2">
-                  <li>
-                    <a href="RabbitMQ.Client.Exceptions.AlreadyClosedException.html" name="" title="AlreadyClosedException">AlreadyClosedException</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Exceptions.AuthenticationFailureException.html" name="" title="AuthenticationFailureException">AuthenticationFailureException</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Exceptions.BrokerUnreachableException.html" name="" title="BrokerUnreachableException">BrokerUnreachableException</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Exceptions.ChannelAllocationException.html" name="" title="ChannelAllocationException">ChannelAllocationException</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Exceptions.ConnectFailureException.html" name="" title="ConnectFailureException">ConnectFailureException</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Exceptions.OperationInterruptedException.html" name="" title="OperationInterruptedException">OperationInterruptedException</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Exceptions.PacketNotRecognizedException.html" name="" title="PacketNotRecognizedException">PacketNotRecognizedException</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Exceptions.PossibleAuthenticationFailureException.html" name="" title="PossibleAuthenticationFailureException">PossibleAuthenticationFailureException</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Exceptions.ProtocolVersionMismatchException.html" name="" title="ProtocolVersionMismatchException">ProtocolVersionMismatchException</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Exceptions.UnexpectedMethodException.html" name="" title="UnexpectedMethodException">UnexpectedMethodException</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Exceptions.UnsupportedMethodException.html" name="" title="UnsupportedMethodException">UnsupportedMethodException</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Exceptions.UnsupportedMethodFieldException.html" name="" title="UnsupportedMethodFieldException">UnsupportedMethodFieldException</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Exceptions.WireFormattingException.html" name="" title="WireFormattingException">WireFormattingException</a>
-                  </li>
-                </ul>  </li>
-            <li>
-              <span class="expand-stub"></span>
-              <a href="RabbitMQ.Client.Framing.Impl.html" name="" title="RabbitMQ.Client.Framing.Impl">RabbitMQ.Client.Framing.Impl</a>
-                
-                <ul class="nav level2">
-                  <li>
-                    <a href="RabbitMQ.Client.Framing.Impl.AutorecoveringConnection.html" name="" title="AutorecoveringConnection">AutorecoveringConnection</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Framing.Impl.Connection.html" name="" title="Connection">Connection</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Framing.Impl.IProtocolExtensions.html" name="" title="IProtocolExtensions">IProtocolExtensions</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Framing.Impl.ProtocolBase.html" name="" title="ProtocolBase">ProtocolBase</a>
-                  </li>
-                </ul>  </li>
-            <li>
-              <span class="expand-stub"></span>
-              <a href="RabbitMQ.Client.Impl.html" name="" title="RabbitMQ.Client.Impl">RabbitMQ.Client.Impl</a>
-                
-                <ul class="nav level2">
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.AssemblyState.html" name="" title="AssemblyState">AssemblyState</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.AutorecoveringModel.html" name="" title="AutorecoveringModel">AutorecoveringModel</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.BasicProperties.html" name="" title="BasicProperties">BasicProperties</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.BasicPublishBatch.html" name="" title="BasicPublishBatch">BasicPublishBatch</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.BodySegmentOutboundFrame.html" name="" title="BodySegmentOutboundFrame">BodySegmentOutboundFrame</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.ChannelErrorException.html" name="" title="ChannelErrorException">ChannelErrorException</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.Command.html" name="" title="Command">Command</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.CommandAssembler.html" name="" title="CommandAssembler">CommandAssembler</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.ConnectionSecureOrTune.html" name="" title="ConnectionSecureOrTune">ConnectionSecureOrTune</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.ConnectionStartDetails.html" name="" title="ConnectionStartDetails">ConnectionStartDetails</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.ConnectionTuneDetails.html" name="" title="ConnectionTuneDetails">ConnectionTuneDetails</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.ContentHeaderBase.html" name="" title="ContentHeaderBase">ContentHeaderBase</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.ContentHeaderPropertyReader.html" name="" title="ContentHeaderPropertyReader">ContentHeaderPropertyReader</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.ContentHeaderPropertyWriter.html" name="" title="ContentHeaderPropertyWriter">ContentHeaderPropertyWriter</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.EmptyOutboundFrame.html" name="" title="EmptyOutboundFrame">EmptyOutboundFrame</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.ExtensionMethods.html" name="" title="ExtensionMethods">ExtensionMethods</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.Frame.html" name="" title="Frame">Frame</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.FrameType.html" name="" title="FrameType">FrameType</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.HardProtocolException.html" name="" title="HardProtocolException">HardProtocolException</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.HeaderOutboundFrame.html" name="" title="HeaderOutboundFrame">HeaderOutboundFrame</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.IConsumerDispatcher.html" name="" title="IConsumerDispatcher">IConsumerDispatcher</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.IFrameHandler.html" name="" title="IFrameHandler">IFrameHandler</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.IFullModel.html" name="" title="IFullModel">IFullModel</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.InboundFrame.html" name="" title="InboundFrame">InboundFrame</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.IRpcContinuation.html" name="" title="IRpcContinuation">IRpcContinuation</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.ISession.html" name="" title="ISession">ISession</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.MainSession.html" name="" title="MainSession">MainSession</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.MalformedFrameException.html" name="" title="MalformedFrameException">MalformedFrameException</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.MethodArgumentReader.html" name="" title="MethodArgumentReader">MethodArgumentReader</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.MethodArgumentWriter.html" name="" title="MethodArgumentWriter">MethodArgumentWriter</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.MethodBase.html" name="" title="MethodBase">MethodBase</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.MethodOutboundFrame.html" name="" title="MethodOutboundFrame">MethodOutboundFrame</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.ModelBase.html" name="" title="ModelBase">ModelBase</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.ModelBase.BasicConsumerRpcContinuation.html" name="" title="ModelBase.BasicConsumerRpcContinuation">ModelBase.BasicConsumerRpcContinuation</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.ModelBase.BasicGetRpcContinuation.html" name="" title="ModelBase.BasicGetRpcContinuation">ModelBase.BasicGetRpcContinuation</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.ModelBase.ConnectionOpenContinuation.html" name="" title="ModelBase.ConnectionOpenContinuation">ModelBase.ConnectionOpenContinuation</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.ModelBase.ConnectionStartRpcContinuation.html" name="" title="ModelBase.ConnectionStartRpcContinuation">ModelBase.ConnectionStartRpcContinuation</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.ModelBase.QueueDeclareRpcContinuation.html" name="" title="ModelBase.QueueDeclareRpcContinuation">ModelBase.QueueDeclareRpcContinuation</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.OutboundFrame.html" name="" title="OutboundFrame">OutboundFrame</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.ProtocolException.html" name="" title="ProtocolException">ProtocolException</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.QuiescingSession.html" name="" title="QuiescingSession">QuiescingSession</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.RecordedBinding.html" name="" title="RecordedBinding">RecordedBinding</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.RecordedConsumer.html" name="" title="RecordedConsumer">RecordedConsumer</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.RecordedEntity.html" name="" title="RecordedEntity">RecordedEntity</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.RecordedExchange.html" name="" title="RecordedExchange">RecordedExchange</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.RecordedExchangeBinding.html" name="" title="RecordedExchangeBinding">RecordedExchangeBinding</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.RecordedNamedEntity.html" name="" title="RecordedNamedEntity">RecordedNamedEntity</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.RecordedQueue.html" name="" title="RecordedQueue">RecordedQueue</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.RecordedQueueBinding.html" name="" title="RecordedQueueBinding">RecordedQueueBinding</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.RecoveryAwareModel.html" name="" title="RecoveryAwareModel">RecoveryAwareModel</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.RpcContinuationQueue.html" name="" title="RpcContinuationQueue">RpcContinuationQueue</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.Session.html" name="" title="Session">Session</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.SessionBase.html" name="" title="SessionBase">SessionBase</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.SessionManager.html" name="" title="SessionManager">SessionManager</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.ShutdownContinuation.html" name="" title="ShutdownContinuation">ShutdownContinuation</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.SimpleBlockingRpcContinuation.html" name="" title="SimpleBlockingRpcContinuation">SimpleBlockingRpcContinuation</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.SocketFrameHandler.html" name="" title="SocketFrameHandler">SocketFrameHandler</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.SoftProtocolException.html" name="" title="SoftProtocolException">SoftProtocolException</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.StreamProperties.html" name="" title="StreamProperties">StreamProperties</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.SyntaxError.html" name="" title="SyntaxError">SyntaxError</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.UnexpectedFrameException.html" name="" title="UnexpectedFrameException">UnexpectedFrameException</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.UnknownClassOrMethodException.html" name="" title="UnknownClassOrMethodException">UnknownClassOrMethodException</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Impl.WireFormatting.html" name="" title="WireFormatting">WireFormatting</a>
-                  </li>
-                </ul>  </li>
-            <li>
-              <span class="expand-stub"></span>
-              <a href="RabbitMQ.Client.MessagePatterns.html" name="" title="RabbitMQ.Client.MessagePatterns">RabbitMQ.Client.MessagePatterns</a>
-                
-                <ul class="nav level2">
-                  <li>
-                    <a href="RabbitMQ.Client.MessagePatterns.ISubscription.html" name="" title="ISubscription">ISubscription</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.MessagePatterns.SimpleRpcClient.html" name="" title="SimpleRpcClient">SimpleRpcClient</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.MessagePatterns.SimpleRpcServer.html" name="" title="SimpleRpcServer">SimpleRpcServer</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.MessagePatterns.Subscription.html" name="" title="Subscription">Subscription</a>
-                  </li>
-                </ul>  </li>
-            <li>
-              <span class="expand-stub"></span>
-              <a href="RabbitMQ.Client.Unit.html" name="" title="RabbitMQ.Client.Unit">RabbitMQ.Client.Unit</a>
-                
-                <ul class="nav level2">
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.IntegrationFixture.html" name="" title="IntegrationFixture">IntegrationFixture</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.IntegrationFixture.ConnectionInfo.html" name="" title="IntegrationFixture.ConnectionInfo">IntegrationFixture.ConnectionInfo</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.html" name="" title="TestAmqpTcpEndpointParsing">TestAmqpTcpEndpointParsing</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestAmqpUri.html" name="" title="TestAmqpUri">TestAmqpUri</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestAsyncConsumer.html" name="" title="TestAsyncConsumer">TestAsyncConsumer</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestAuth.html" name="" title="TestAuth">TestAuth</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestBasicGet.html" name="" title="TestBasicGet">TestBasicGet</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestBlockingCell.html" name="" title="TestBlockingCell">TestBlockingCell</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestBlockingCell.DelayedSetter.html" name="" title="TestBlockingCell.DelayedSetter">TestBlockingCell.DelayedSetter</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestBytesWireFormatting.html" name="" title="TestBytesWireFormatting">TestBytesWireFormatting</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.html" name="" title="TestConcurrentAccessWithSharedConnection">TestConcurrentAccessWithSharedConnection</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestConfirmSelect.html" name="" title="TestConfirmSelect">TestConfirmSelect</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestConnectionBlocked.html" name="" title="TestConnectionBlocked">TestConnectionBlocked</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestConnectionRecovery.html" name="" title="TestConnectionRecovery">TestConnectionRecovery</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestConnectionRecovery.AckingBasicConsumer.html" name="" title="TestConnectionRecovery.AckingBasicConsumer">TestConnectionRecovery.AckingBasicConsumer</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestConnectionRecovery.NackingBasicConsumer.html" name="" title="TestConnectionRecovery.NackingBasicConsumer">TestConnectionRecovery.NackingBasicConsumer</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestConnectionRecovery.RejectingBasicConsumer.html" name="" title="TestConnectionRecovery.RejectingBasicConsumer">TestConnectionRecovery.RejectingBasicConsumer</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1.html" name="" title="TestConnectionRecovery.TestBasicConsumer1">TestConnectionRecovery.TestBasicConsumer1</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestConnectionShutdown.html" name="" title="TestConnectionShutdown">TestConnectionShutdown</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestConnectionWithBackgroundThreads.html" name="" title="TestConnectionWithBackgroundThreads">TestConnectionWithBackgroundThreads</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestConsumerCancelNotify.html" name="" title="TestConsumerCancelNotify">TestConsumerCancelNotify</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestConsumerExceptions.html" name="" title="TestConsumerExceptions">TestConsumerExceptions</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestContentHeaderCodec.html" name="" title="TestContentHeaderCodec">TestContentHeaderCodec</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestEndpointResolver.html" name="" title="TestEndpointResolver">TestEndpointResolver</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestEventingConsumer.html" name="" title="TestEventingConsumer">TestEventingConsumer</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestExceptionMessages.html" name="" title="TestExceptionMessages">TestExceptionMessages</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestExchangeDeclare.html" name="" title="TestExchangeDeclare">TestExchangeDeclare</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestExtensions.html" name="" title="TestExtensions">TestExtensions</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestFieldTableFormatting.html" name="" title="TestFieldTableFormatting">TestFieldTableFormatting</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestFieldTableFormattingGeneric.html" name="" title="TestFieldTableFormattingGeneric">TestFieldTableFormattingGeneric</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestFloodPublishing.html" name="" title="TestFloodPublishing">TestFloodPublishing</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestIEndpointResolverExtensions.html" name="" title="TestIEndpointResolverExtensions">TestIEndpointResolverExtensions</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestIModelAllocation.html" name="" title="TestIModelAllocation">TestIModelAllocation</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestInitialConnection.html" name="" title="TestInitialConnection">TestInitialConnection</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestIntAllocator.html" name="" title="TestIntAllocator">TestIntAllocator</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestInvalidAck.html" name="" title="TestInvalidAck">TestInvalidAck</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestMainLoop.html" name="" title="TestMainLoop">TestMainLoop</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestMapMessage.html" name="" title="TestMapMessage">TestMapMessage</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestMessagePatternsSubscription.html" name="" title="TestMessagePatternsSubscription">TestMessagePatternsSubscription</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestMessagePatternsSubscription.SubscriptionDrainer.html" name="" title="TestMessagePatternsSubscription.SubscriptionDrainer">TestMessagePatternsSubscription.SubscriptionDrainer</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestMethodArgumentCodec.html" name="" title="TestMethodArgumentCodec">TestMethodArgumentCodec</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestNetworkBinaryCodec.html" name="" title="TestNetworkBinaryCodec">TestNetworkBinaryCodec</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestNoWait.html" name="" title="TestNoWait">TestNoWait</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestPassiveDeclare.html" name="" title="TestPassiveDeclare">TestPassiveDeclare</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestPublicationAddress.html" name="" title="TestPublicationAddress">TestPublicationAddress</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestPublisherConfirms.html" name="" title="TestPublisherConfirms">TestPublisherConfirms</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestQueueDeclare.html" name="" title="TestQueueDeclare">TestQueueDeclare</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestRecoverAfterCancel.html" name="" title="TestRecoverAfterCancel">TestRecoverAfterCancel</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestSharedQueue.html" name="" title="TestSharedQueue">TestSharedQueue</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestSharedQueue.DelayedEnqueuer.html" name="" title="TestSharedQueue.DelayedEnqueuer">TestSharedQueue.DelayedEnqueuer</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestSharedQueue.VolatileInt.html" name="" title="TestSharedQueue.VolatileInt">TestSharedQueue.VolatileInt</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestSsl.html" name="" title="TestSsl">TestSsl</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TestStreamWireFormatting.html" name="" title="TestStreamWireFormatting">TestStreamWireFormatting</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.TimingFixture.html" name="" title="TimingFixture">TimingFixture</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Client.Unit.WireFormattingFixture.html" name="" title="WireFormattingFixture">WireFormattingFixture</a>
-                  </li>
-                </ul>  </li>
-            <li>
-              <span class="expand-stub"></span>
-              <a href="RabbitMQ.Util.html" name="" title="RabbitMQ.Util">RabbitMQ.Util</a>
-                
-                <ul class="nav level2">
-                  <li>
-                    <a href="RabbitMQ.Util.BlockingCell.html" name="" title="BlockingCell">BlockingCell</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Util.DebugUtil.html" name="" title="DebugUtil">DebugUtil</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Util.Either.html" name="" title="Either">Either</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Util.EitherAlternative.html" name="" title="EitherAlternative">EitherAlternative</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Util.IntAllocator.html" name="" title="IntAllocator">IntAllocator</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Util.IntAllocator.IntervalList.html" name="" title="IntAllocator.IntervalList">IntAllocator.IntervalList</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Util.MetroEventSource.html" name="" title="MetroEventSource">MetroEventSource</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Util.NetworkBinaryReader.html" name="" title="NetworkBinaryReader">NetworkBinaryReader</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Util.NetworkBinaryWriter.html" name="" title="NetworkBinaryWriter">NetworkBinaryWriter</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Util.SetQueue-1.html" name="" title="SetQueue&lt;T&gt;">SetQueue&lt;T&gt;</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Util.SharedQueue.html" name="" title="SharedQueue">SharedQueue</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Util.SharedQueue-1.html" name="" title="SharedQueue&lt;T&gt;">SharedQueue&lt;T&gt;</a>
-                  </li>
-                  <li>
-                    <a href="RabbitMQ.Util.SharedQueueEnumerator-1.html" name="" title="SharedQueueEnumerator&lt;T&gt;">SharedQueueEnumerator&lt;T&gt;</a>
-                  </li>
-                </ul>  </li>
-            <li>
-              <span class="expand-stub"></span>
-              <a href="System.html" name="" title="System">System</a>
-                
-                <ul class="nav level2">
-                  <li>
-                    <a href="System.ICloneable.html" name="" title="ICloneable">ICloneable</a>
-                  </li>
-                </ul>  </li>
-          </ul>      </div>
+                <li>
+                    <span class="expand-stub"></span>
+                    <a href="RabbitMQ.Client.html" name="" title="RabbitMQ.Client">RabbitMQ.Client</a>
+                    
+                    <ul class="nav level2">
+                          <li>
+                              <a href="RabbitMQ.Client.AmqpTcpEndpoint.html" name="" title="AmqpTcpEndpoint">AmqpTcpEndpoint</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.AmqpTimestamp.html" name="" title="AmqpTimestamp">AmqpTimestamp</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.AsyncDefaultBasicConsumer.html" name="" title="AsyncDefaultBasicConsumer">AsyncDefaultBasicConsumer</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.BasicGetResult.html" name="" title="BasicGetResult">BasicGetResult</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.ConnectionFactory.html" name="" title="ConnectionFactory">ConnectionFactory</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.ConnectionFactoryBase.html" name="" title="ConnectionFactoryBase">ConnectionFactoryBase</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.DefaultBasicConsumer.html" name="" title="DefaultBasicConsumer">DefaultBasicConsumer</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.DefaultEndpointResolver.html" name="" title="DefaultEndpointResolver">DefaultEndpointResolver</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.EndpointResolverExtensions.html" name="" title="EndpointResolverExtensions">EndpointResolverExtensions</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.ExchangeType.html" name="" title="ExchangeType">ExchangeType</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.ExternalMechanism.html" name="" title="ExternalMechanism">ExternalMechanism</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.ExternalMechanismFactory.html" name="" title="ExternalMechanismFactory">ExternalMechanismFactory</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Headers.html" name="" title="Headers">Headers</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.IAsyncBasicConsumer.html" name="" title="IAsyncBasicConsumer">IAsyncBasicConsumer</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.IAsyncConnectionFactory.html" name="" title="IAsyncConnectionFactory">IAsyncConnectionFactory</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.IAuthMechanism.html" name="" title="IAuthMechanism">IAuthMechanism</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.IAuthMechanismFactory.html" name="" title="IAuthMechanismFactory">IAuthMechanismFactory</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.IAutorecoveringConnection.html" name="" title="IAutorecoveringConnection">IAutorecoveringConnection</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.IBasicConsumer.html" name="" title="IBasicConsumer">IBasicConsumer</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.IBasicProperties.html" name="" title="IBasicProperties">IBasicProperties</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.IBasicPublishBatch.html" name="" title="IBasicPublishBatch">IBasicPublishBatch</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.IConnection.html" name="" title="IConnection">IConnection</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.IConnectionFactory.html" name="" title="IConnectionFactory">IConnectionFactory</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.IContentHeader.html" name="" title="IContentHeader">IContentHeader</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.IEndpointResolver.html" name="" title="IEndpointResolver">IEndpointResolver</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.IMethod.html" name="" title="IMethod">IMethod</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.IModel.html" name="" title="IModel">IModel</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.IModelExensions.html" name="" title="IModelExensions">IModelExensions</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.INetworkConnection.html" name="" title="INetworkConnection">INetworkConnection</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.IProtocol.html" name="" title="IProtocol">IProtocol</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.IRecoverable.html" name="" title="IRecoverable">IRecoverable</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.IStreamProperties.html" name="" title="IStreamProperties">IStreamProperties</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.ITcpClient.html" name="" title="ITcpClient">ITcpClient</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.PlainMechanism.html" name="" title="PlainMechanism">PlainMechanism</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.PlainMechanismFactory.html" name="" title="PlainMechanismFactory">PlainMechanismFactory</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Protocols.html" name="" title="Protocols">Protocols</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.PublicationAddress.html" name="" title="PublicationAddress">PublicationAddress</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.QueueDeclareOk.html" name="" title="QueueDeclareOk">QueueDeclareOk</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.ShutdownEventArgs.html" name="" title="ShutdownEventArgs">ShutdownEventArgs</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.ShutdownInitiator.html" name="" title="ShutdownInitiator">ShutdownInitiator</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.ShutdownReportEntry.html" name="" title="ShutdownReportEntry">ShutdownReportEntry</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.SslOption.html" name="" title="SslOption">SslOption</a>
+                          </li>
+                    </ul>
+                </li>
+                <li>
+                    <span class="expand-stub"></span>
+                    <a href="RabbitMQ.Client.Apigen.html" name="" title="RabbitMQ.Client.Apigen">RabbitMQ.Client.Apigen</a>
+                    
+                    <ul class="nav level2">
+                          <li>
+                              <a href="RabbitMQ.Client.Apigen.AmqpClass.html" name="" title="AmqpClass">AmqpClass</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Apigen.AmqpEntity.html" name="" title="AmqpEntity">AmqpEntity</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Apigen.AmqpField.html" name="" title="AmqpField">AmqpField</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Apigen.AmqpMethod.html" name="" title="AmqpMethod">AmqpMethod</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Apigen.Apigen.html" name="" title="Apigen">Apigen</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Apigen.ApigenExtensions.html" name="" title="ApigenExtensions">ApigenExtensions</a>
+                          </li>
+                    </ul>
+                </li>
+                <li>
+                    <span class="expand-stub"></span>
+                    <a href="RabbitMQ.Client.Events.html" name="" title="RabbitMQ.Client.Events">RabbitMQ.Client.Events</a>
+                    
+                    <ul class="nav level2">
+                          <li>
+                              <a href="RabbitMQ.Client.Events.AsyncEventHandler-1.html" name="" title="AsyncEventHandler&lt;TEvent&gt;">AsyncEventHandler&lt;TEvent&gt;</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Events.AsyncEventingBasicConsumer.html" name="" title="AsyncEventingBasicConsumer">AsyncEventingBasicConsumer</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Events.BaseExceptionEventArgs.html" name="" title="BaseExceptionEventArgs">BaseExceptionEventArgs</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Events.BasicAckEventArgs.html" name="" title="BasicAckEventArgs">BasicAckEventArgs</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Events.BasicDeliverEventArgs.html" name="" title="BasicDeliverEventArgs">BasicDeliverEventArgs</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Events.BasicNackEventArgs.html" name="" title="BasicNackEventArgs">BasicNackEventArgs</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Events.BasicReturnEventArgs.html" name="" title="BasicReturnEventArgs">BasicReturnEventArgs</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Events.CallbackExceptionEventArgs.html" name="" title="CallbackExceptionEventArgs">CallbackExceptionEventArgs</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Events.ConnectionBlockedEventArgs.html" name="" title="ConnectionBlockedEventArgs">ConnectionBlockedEventArgs</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Events.ConnectionRecoveryErrorEventArgs.html" name="" title="ConnectionRecoveryErrorEventArgs">ConnectionRecoveryErrorEventArgs</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Events.ConsumerEventArgs.html" name="" title="ConsumerEventArgs">ConsumerEventArgs</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Events.ConsumerTagChangedAfterRecoveryEventArgs.html" name="" title="ConsumerTagChangedAfterRecoveryEventArgs">ConsumerTagChangedAfterRecoveryEventArgs</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Events.EventingBasicConsumer.html" name="" title="EventingBasicConsumer">EventingBasicConsumer</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Events.FlowControlEventArgs.html" name="" title="FlowControlEventArgs">FlowControlEventArgs</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Events.QueueNameChangedAfterRecoveryEventArgs.html" name="" title="QueueNameChangedAfterRecoveryEventArgs">QueueNameChangedAfterRecoveryEventArgs</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Events.RecoveryExceptionEventArgs.html" name="" title="RecoveryExceptionEventArgs">RecoveryExceptionEventArgs</a>
+                          </li>
+                    </ul>
+                </li>
+                <li>
+                    <span class="expand-stub"></span>
+                    <a href="RabbitMQ.Client.Exceptions.html" name="" title="RabbitMQ.Client.Exceptions">RabbitMQ.Client.Exceptions</a>
+                    
+                    <ul class="nav level2">
+                          <li>
+                              <a href="RabbitMQ.Client.Exceptions.AlreadyClosedException.html" name="" title="AlreadyClosedException">AlreadyClosedException</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Exceptions.AuthenticationFailureException.html" name="" title="AuthenticationFailureException">AuthenticationFailureException</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Exceptions.BrokerUnreachableException.html" name="" title="BrokerUnreachableException">BrokerUnreachableException</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Exceptions.ChannelAllocationException.html" name="" title="ChannelAllocationException">ChannelAllocationException</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Exceptions.ChannelErrorException.html" name="" title="ChannelErrorException">ChannelErrorException</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Exceptions.ConnectFailureException.html" name="" title="ConnectFailureException">ConnectFailureException</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Exceptions.HardProtocolException.html" name="" title="HardProtocolException">HardProtocolException</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Exceptions.MalformedFrameException.html" name="" title="MalformedFrameException">MalformedFrameException</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Exceptions.OperationInterruptedException.html" name="" title="OperationInterruptedException">OperationInterruptedException</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Exceptions.PacketNotRecognizedException.html" name="" title="PacketNotRecognizedException">PacketNotRecognizedException</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Exceptions.PossibleAuthenticationFailureException.html" name="" title="PossibleAuthenticationFailureException">PossibleAuthenticationFailureException</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Exceptions.ProtocolException.html" name="" title="ProtocolException">ProtocolException</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Exceptions.ProtocolVersionMismatchException.html" name="" title="ProtocolVersionMismatchException">ProtocolVersionMismatchException</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Exceptions.ProtocolViolationException.html" name="" title="ProtocolViolationException">ProtocolViolationException</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Exceptions.RabbitMQClientException.html" name="" title="RabbitMQClientException">RabbitMQClientException</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Exceptions.SoftProtocolException.html" name="" title="SoftProtocolException">SoftProtocolException</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Exceptions.SyntaxErrorException.html" name="" title="SyntaxErrorException">SyntaxErrorException</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Exceptions.TopologyRecoveryException.html" name="" title="TopologyRecoveryException">TopologyRecoveryException</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Exceptions.UnexpectedFrameException.html" name="" title="UnexpectedFrameException">UnexpectedFrameException</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Exceptions.UnexpectedMethodException.html" name="" title="UnexpectedMethodException">UnexpectedMethodException</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Exceptions.UnknownClassOrMethodException.html" name="" title="UnknownClassOrMethodException">UnknownClassOrMethodException</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Exceptions.UnsupportedMethodException.html" name="" title="UnsupportedMethodException">UnsupportedMethodException</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Exceptions.UnsupportedMethodFieldException.html" name="" title="UnsupportedMethodFieldException">UnsupportedMethodFieldException</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Exceptions.WireFormattingException.html" name="" title="WireFormattingException">WireFormattingException</a>
+                          </li>
+                    </ul>
+                </li>
+                <li>
+                    <span class="expand-stub"></span>
+                    <a href="RabbitMQ.Client.Logging.html" name="" title="RabbitMQ.Client.Logging">RabbitMQ.Client.Logging</a>
+                    
+                    <ul class="nav level2">
+                          <li>
+                              <a href="RabbitMQ.Client.Logging.RabbitMqClientEventSource.html" name="" title="RabbitMqClientEventSource">RabbitMqClientEventSource</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Logging.RabbitMqClientEventSource.Keywords.html" name="" title="RabbitMqClientEventSource.Keywords">RabbitMqClientEventSource.Keywords</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Logging.RabbitMqConsoleEventListener.html" name="" title="RabbitMqConsoleEventListener">RabbitMqConsoleEventListener</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Logging.RabbitMqExceptionDetail.html" name="" title="RabbitMqExceptionDetail">RabbitMqExceptionDetail</a>
+                          </li>
+                    </ul>
+                </li>
+                <li>
+                    <span class="expand-stub"></span>
+                    <a href="RabbitMQ.Client.Unit.html" name="" title="RabbitMQ.Client.Unit">RabbitMQ.Client.Unit</a>
+                    
+                    <ul class="nav level2">
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.APIApproval.html" name="" title="APIApproval">APIApproval</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.IntegrationFixture.html" name="" title="IntegrationFixture">IntegrationFixture</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.IntegrationFixture.ConnectionInfo.html" name="" title="IntegrationFixture.ConnectionInfo">IntegrationFixture.ConnectionInfo</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.html" name="" title="TestAmqpTcpEndpointParsing">TestAmqpTcpEndpointParsing</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestAmqpUri.html" name="" title="TestAmqpUri">TestAmqpUri</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestAsyncConsumer.html" name="" title="TestAsyncConsumer">TestAsyncConsumer</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestAuth.html" name="" title="TestAuth">TestAuth</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestBasicGet.html" name="" title="TestBasicGet">TestBasicGet</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestBasicPublish.html" name="" title="TestBasicPublish">TestBasicPublish</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.html" name="" title="TestConcurrentAccessWithSharedConnection">TestConcurrentAccessWithSharedConnection</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestConfirmSelect.html" name="" title="TestConfirmSelect">TestConfirmSelect</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestConnectionBlocked.html" name="" title="TestConnectionBlocked">TestConnectionBlocked</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestConnectionRecovery.html" name="" title="TestConnectionRecovery">TestConnectionRecovery</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestConnectionRecovery.AckingBasicConsumer.html" name="" title="TestConnectionRecovery.AckingBasicConsumer">TestConnectionRecovery.AckingBasicConsumer</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestConnectionRecovery.NackingBasicConsumer.html" name="" title="TestConnectionRecovery.NackingBasicConsumer">TestConnectionRecovery.NackingBasicConsumer</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestConnectionRecovery.RejectingBasicConsumer.html" name="" title="TestConnectionRecovery.RejectingBasicConsumer">TestConnectionRecovery.RejectingBasicConsumer</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1.html" name="" title="TestConnectionRecovery.TestBasicConsumer1">TestConnectionRecovery.TestBasicConsumer1</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestConnectionShutdown.html" name="" title="TestConnectionShutdown">TestConnectionShutdown</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestConnectionWithBackgroundThreads.html" name="" title="TestConnectionWithBackgroundThreads">TestConnectionWithBackgroundThreads</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestConsumerCancelNotify.html" name="" title="TestConsumerCancelNotify">TestConsumerCancelNotify</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestConsumerExceptions.html" name="" title="TestConsumerExceptions">TestConsumerExceptions</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestEndpointResolver.html" name="" title="TestEndpointResolver">TestEndpointResolver</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestEventingConsumer.html" name="" title="TestEventingConsumer">TestEventingConsumer</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestExceptionMessages.html" name="" title="TestExceptionMessages">TestExceptionMessages</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestExchangeDeclare.html" name="" title="TestExchangeDeclare">TestExchangeDeclare</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestExtensions.html" name="" title="TestExtensions">TestExtensions</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestFloodPublishing.html" name="" title="TestFloodPublishing">TestFloodPublishing</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestIEndpointResolverExtensions.html" name="" title="TestIEndpointResolverExtensions">TestIEndpointResolverExtensions</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestIModelAllocation.html" name="" title="TestIModelAllocation">TestIModelAllocation</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestInitialConnection.html" name="" title="TestInitialConnection">TestInitialConnection</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestIntAllocator.html" name="" title="TestIntAllocator">TestIntAllocator</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestInvalidAck.html" name="" title="TestInvalidAck">TestInvalidAck</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestMainLoop.html" name="" title="TestMainLoop">TestMainLoop</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestNoWait.html" name="" title="TestNoWait">TestNoWait</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestPassiveDeclare.html" name="" title="TestPassiveDeclare">TestPassiveDeclare</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestPropertiesClone.html" name="" title="TestPropertiesClone">TestPropertiesClone</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestPublicationAddress.html" name="" title="TestPublicationAddress">TestPublicationAddress</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestPublisherConfirms.html" name="" title="TestPublisherConfirms">TestPublisherConfirms</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestPublishValidation.html" name="" title="TestPublishValidation">TestPublishValidation</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestQueueDeclare.html" name="" title="TestQueueDeclare">TestQueueDeclare</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestRecoverAfterCancel.html" name="" title="TestRecoverAfterCancel">TestRecoverAfterCancel</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestRpcContinuationQueue.html" name="" title="TestRpcContinuationQueue">TestRpcContinuationQueue</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestSsl.html" name="" title="TestSsl">TestSsl</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestTcpClientAdapter.html" name="" title="TestTcpClientAdapter">TestTcpClientAdapter</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestUpdateSecret.html" name="" title="TestUpdateSecret">TestUpdateSecret</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TimingFixture.html" name="" title="TimingFixture">TimingFixture</a>
+                          </li>
+                    </ul>
+                </li>
+          </ul>
+      </div>
     </div>
   </div>
 </div>
