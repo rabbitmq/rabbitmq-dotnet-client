@@ -4,6 +4,20 @@ Please see the milestone for all changes:
 
 [GitHub `6.0.0` Milestone](https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/41?closed=1)
 
+* **NOTE:** you must copy or otherwise use the bytes returned in a message within the scope of your message handling function. The memory will be re-used once the function exits ([comment](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/732#issuecomment-591392925)).
+* Memory allocation improvements via use of `System.Memory` library. ([PR](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/732))
+* API changes
+  * See the note above about the lifespan of message data returned from your AMQP broker
+  * `byte[]` arguments to methods have been replaced via `ReadOnlyMemory` instances
+  * All timeouts are `System.TimeSpan` values ([PR](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/688))
+  * Public API surface has been reduced ([Issue](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/714))
+* Supports .NET Framework 4.6.1 and .NET Standard 2.0 ([Issue](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/686))
+* `Microsoft.Diagnostics.Tracing.EventSource` dependency is removed
+* Added an option to enforce CRL checks for server certificates ([PR](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/500))
+* Source linking is supported  ([Issue](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/697))
+* NuGet source packages are published
+
+
 ## Changes Between 5.1.2 and 5.2.0
 
 Please see the milestone for all changes:
