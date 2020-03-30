@@ -44,12 +44,13 @@
     <DefineConstants>$(DefineConstants);CORECLR</DefineConstants>
   </PropertyGroup>
 
-  <Target Name="SetVersionFromPullRequest" AfterTargets="MinVer" Condition="'$(CONCOURSE_PULL_REQUEST_NUMBER)' != ''" >
+  <Target Name="SetVersionFromConcourseData" AfterTargets="MinVer" Condition="'$(CONCOURSE_PULL_REQUEST_NUMBER)' != ''" >
     <PropertyGroup>
-      <PackageVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch)-pr.$(CONCOURSE_PULL_REQUEST_NUMBER).build-id.$(CONCOURSE_BUILD_ID).$(MinVerPreRelease)</PackageVersion>
+      <PackageVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch)-$(MinVerPreRelease)-pr.$(CONCOURSE_PULL_REQUEST_NUMBER)</PackageVersion>
       <PackageVersion Condition="'$(MinVerBuildMetadata)' != ''">$(PackageVersion)+$(MinVerBuildMetadata)</PackageVersion>
       <Version>$(PackageVersion)</Version>
     </PropertyGroup>
+    <Message Importance="normal" Text="SetVersionFromConcourseData: PackageVersion=$(PackageVersion) Version=$(Version)" />
   </Target>
 
   <ItemGroup>
