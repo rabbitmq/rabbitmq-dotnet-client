@@ -1,21 +1,76 @@
 ## Changes Between 5.2.0 and 6.0.0
 
-Please see the milestone for all changes:
+This major release of this client introduces substantial improvements
+in terms of memory footprint and throughput. They come at the cost
+of minor but important **breaking API changes** covered below.
 
-[GitHub `6.0.0` Milestone](https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/41?closed=1)
+The client now requires .NET Framework 4.6.1 or .NET Standard 2.0.
+Earlier versions are no longer supported by the `6.x` series.
 
-* **NOTE:** you must copy or otherwise use the bytes returned in a message within the scope of your message handling function. The memory will be re-used once the function exits ([comment](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/732#issuecomment-591392925)).
-* Memory allocation improvements via use of `System.Memory` library. ([PR](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/732))
-* API changes
-  * See the note above about the lifespan of message data returned from your AMQP broker
-  * `byte[]` arguments to methods have been replaced via `ReadOnlyMemory` instances
-  * All timeouts are `System.TimeSpan` values ([PR](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/688))
-  * Public API surface has been reduced ([Issue](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/714))
-* Supports .NET Framework 4.6.1 and .NET Standard 2.0 ([Issue](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/686))
-* `Microsoft.Diagnostics.Tracing.EventSource` dependency is removed
-* Added an option to enforce CRL checks for server certificates ([PR](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/500))
-* Source linking is supported  ([Issue](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/697))
-* NuGet source packages are published
+Key improvements in this release have been the result of hard work by
+our stellar community members (in no particular order): @stebet, @bording,
+@Anarh2404, @danielmarbach, and others.
+
+A full list of changes can be found in the GitHub milestone: [`6.0.0`](https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/41?closed=1).
+
+### The Switch to System.Memory (and Significantly Lower Memory Footprint that Comes with It)
+
+The client now uses the [`System.Memory` library]() for message and command payloads. This significantly
+reduces object allocation and GC pressure for heavy workloads but also
+**potentially requires application changes**: consumer delivery payloads are now of instance [`System.ReadOnlyMemory<byte>`](https://docs.microsoft.com/en-us/dotnet/api/system.readonlymemory-1?view=netcore-3.1)
+instead of `byte[]`.
+
+While there's an implicit conversion for these types,
+instances of `System.ReadOnlyMemory<byte>` **must be copied or consumed/deserialised before delivery handler completes**.
+Holding on to delivered payloads and referencing them at a later point **is no longer safe**.
+
+The same applies to publishers and the `IModel.BasicPublish` method: prefer using `System.ReadOnlyMemory<byte>`
+over `byte[]` and dont' assume that this memory can be retained and used outside of the scope of the publishing
+function.
+
+GitHub issue: [#732](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/732)
+
+### Timeouts Use `System.TimeSpan`
+
+All timeout arguments now use `System.TimeSpan` values.
+
+GitHub issue: [#688](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/688)
+
+### Reduced Public API Surface
+
+No major changes here but this is potentially breaking. Only public classes that were never meant
+to be publicly used have been turned internal to the client.
+
+GitHub issue: [#714](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/714)
+
+### Requires .NET Framework 4.6.1 or .NET Standard 2.0
+
+The client now requires .NET Framework 4.6.1 or .NET Standard 2.0. Earlier versions are no longer
+supported.
+
+GitHub issue: [#686](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/686)
+
+### `Microsoft.Diagnostics.Tracing.EventSource` Dependency Dropped
+
+`Microsoft.Diagnostics.Tracing.EventSource` dependency has been removed. It was an annoying
+dependency to have for some environments.
+
+### Source Linking
+
+The library now supports source linking.
+
+GitHub issue: [#697](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/697)
+
+### NuGet Source Packages
+
+Source packages are now also distributed via NuGet.
+
+### CRL Checks for Server x.509 (TLS) Certificates
+
+Added a TLS option to enforce CRL checks for server certificates.
+
+GitHub issue: [#500](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/500)
+
 
 
 ## Changes Between 5.1.2 and 5.2.0
@@ -28,12 +83,13 @@ Selected highlights:
 
 ### Add support for `netstandard2.0`
 
-GitHub Issue: https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/428
-GitHub PR: https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/435
+GitHub issues: [#428](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/428), [#435](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/435)
 
 ### Re-introduce lock for all socket writes
 
 GitHub PR: [rabbitmq-dotnet-client#702](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/702)
+
+
 
 ## Changes Between 5.1.1 and 5.1.2
 
