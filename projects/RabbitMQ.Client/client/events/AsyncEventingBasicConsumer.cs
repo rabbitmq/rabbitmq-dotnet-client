@@ -11,26 +11,33 @@ namespace RabbitMQ.Client.Events
         {
         }
 
-        ///<summary>Event fired on HandleBasicDeliver.</summary>
+        ///<summary>
+        /// Event fired when a delivery arrives for the consumer.
+        /// </summary>
+        /// <remarks>
+        /// Handlers must copy or fully use delivery body before returning.
+        /// Accessing the body at a later point is unsafe as its memory can
+        /// be already released.
+        /// </remarks>
         public event AsyncEventHandler<BasicDeliverEventArgs> Received;
 
-        ///<summary>Event fired on HandleBasicConsumeOk.</summary>
+        ///<summary>Fires when the server confirms successful consumer cancelation.</summary>
         public event AsyncEventHandler<ConsumerEventArgs> Registered;
 
-        ///<summary>Event fired on HandleModelShutdown.</summary>
+        ///<summary>Fires on model (channel) shutdown, both client and server initiated.</summary>
         public event AsyncEventHandler<ShutdownEventArgs> Shutdown;
 
-        ///<summary>Event fired on HandleBasicCancelOk.</summary>
+        ///<summary>Fires when the server confirms successful consumer cancelation.</summary>
         public event AsyncEventHandler<ConsumerEventArgs> Unregistered;
 
-        ///<summary>Fires the Unregistered event.</summary>
+        ///<summary>Fires when the server confirms successful consumer cancelation.</summary>
         public override async Task HandleBasicCancelOk(string consumerTag)
         {
             await base.HandleBasicCancelOk(consumerTag).ConfigureAwait(false);
             await (Unregistered?.Invoke(this, new ConsumerEventArgs(new[] { consumerTag })) ?? Task.CompletedTask).ConfigureAwait(false);
         }
 
-        ///<summary>Fires the Registered event.</summary>
+        ///<summary>Fires when the server confirms successful consumer registration.</summary>
         public override async Task HandleBasicConsumeOk(string consumerTag)
         {
             await base.HandleBasicConsumeOk(consumerTag).ConfigureAwait(false);

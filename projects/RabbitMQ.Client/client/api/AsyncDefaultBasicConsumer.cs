@@ -100,12 +100,14 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// Called each time a message arrives for this consumer.
+        /// Called each time a message is delivered for this consumer.
         /// </summary>
         /// <remarks>
-        /// Does nothing with the passed in information.
-        /// Note that in particular, some delivered messages may require acknowledgement via <see cref="IModel.BasicAck"/>.
-        /// The implementation of this method in this class does NOT acknowledge such messages.
+        /// This is a no-op implementation. It will not acknowledge deliveries via <see cref="IModel.BasicAck"/>
+        /// if consuming in automatic acknowledgement mode.
+        /// Subclasses must copy or fully use delivery body before returning.
+        /// Accessing the body at a later point is unsafe as its memory can
+        /// be already released.
         /// </remarks>
         public virtual Task HandleBasicDeliver(string consumerTag,
             ulong deliveryTag,
@@ -120,10 +122,10 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        ///  Called when the model shuts down.
-        ///  </summary>
-        ///  <param name="model"> Common AMQP model.</param>
-        /// <param name="reason"> Information about the reason why a particular model, session, or connection was destroyed.</param>
+        /// Called when the model (channel) this consumer was registered on terminates.
+        /// </summary>
+        /// <param name="model">A channel this consumer was registered on.</param>
+        /// <param name="reason">Shutdown context.</param>
         public virtual Task HandleModelShutdown(object model, ShutdownEventArgs reason)
         {
             ShutdownReason = reason;
