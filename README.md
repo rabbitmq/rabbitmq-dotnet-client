@@ -13,11 +13,6 @@ The client is maintained by the [RabbitMQ team at VMware](https://github.com/rab
 
 The client is [distributed via NuGet](https://www.nuget.org/packages/RabbitMQ.Client/).
 
-### Legacy Versions
-
-`3.6.x` and earlier releases were distributed [together with RabbitMQ server 3.6.x](https://github.com/rabbitmq/rabbitmq-server/releases/)
-as archives. You can also install `3.6.x` versions via [NuGet](https://www.nuget.org/packages/RabbitMQ.Client/).
-
 
 ## Tutorials and Documentation
 
@@ -28,7 +23,10 @@ as archives. You can also install `3.6.x` versions via [NuGet](https://www.nuget
 
 ## Supported Platforms and .NET Releases
 
-Future `6.x` versions of the library require .NET 4.6.1 or a .NET Core version implementing .NET Standard 2.0.
+### 6.x
+
+`6.x` versions of the library require .NET 4.6.1 or a .NET Core version implementing .NET Standard 2.0.
+They also introduce potentially breaking public API changes covered in the [changelog](CHANGELOG.md).
 
 ### 5.x and 4.x
 
