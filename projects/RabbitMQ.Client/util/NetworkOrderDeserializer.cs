@@ -1,13 +1,14 @@
 ﻿using System;
-using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
 
 namespace RabbitMQ.Util
 {
     internal static class NetworkOrderDeserializer
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static double ReadDouble(ReadOnlyMemory<byte> memory) => ReadDouble(memory.Span);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static double ReadDouble(ReadOnlySpan<byte> span)
         {
             if (span.Length < 8)
@@ -15,12 +16,14 @@ namespace RabbitMQ.Util
                 throw new ArgumentOutOfRangeException(nameof(span), "Insufficient length to decode Double from memory.");
             }
 
-            long val = BinaryPrimitives.ReadInt64BigEndian(span);
-            return Unsafe.As<long, double>(ref val);
+            ulong val = ReadUInt64(span);
+            return Unsafe.As<ulong, double>(ref val);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static short ReadInt16(ReadOnlyMemory<byte> memory) => ReadInt16(memory.Span);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static short ReadInt16(ReadOnlySpan<byte> span)
         {
             if (span.Length < 2)
@@ -28,11 +31,13 @@ namespace RabbitMQ.Util
                 throw new ArgumentOutOfRangeException(nameof(span), "Insufficient length to decode Int16 from memory.");
             }
 
-            return BinaryPrimitives.ReadInt16BigEndian(span);
+            return (short)ReadUInt16(span);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static int ReadInt32(ReadOnlyMemory<byte> memory) => ReadInt32(memory.Span);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static int ReadInt32(ReadOnlySpan<byte> span)
         {
             if (span.Length < 4)
@@ -40,11 +45,13 @@ namespace RabbitMQ.Util
                 throw new ArgumentOutOfRangeException(nameof(span), "Insufficient length to decode Int32 from memory.");
             }
 
-            return BinaryPrimitives.ReadInt32BigEndian(span);
+            return (int)ReadUInt32(span);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static long ReadInt64(ReadOnlyMemory<byte> memory) => ReadInt64(memory.Span);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static long ReadInt64(ReadOnlySpan<byte> span)
         {
             if (span.Length < 8)
@@ -52,11 +59,13 @@ namespace RabbitMQ.Util
                 throw new ArgumentOutOfRangeException(nameof(span), "Insufficient length to decode Int64 from memory.");
             }
 
-            return BinaryPrimitives.ReadInt64BigEndian(span);
+            return (long)ReadUInt64(span);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static float ReadSingle(ReadOnlyMemory<byte> memory) => ReadSingle(memory.Span);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static float ReadSingle(ReadOnlySpan<byte> span)
         {
             if (span.Length < 4)
@@ -64,12 +73,14 @@ namespace RabbitMQ.Util
                 throw new ArgumentOutOfRangeException(nameof(span), "Insufficient length to decode Single from memory.");
             }
 
-            int num = BinaryPrimitives.ReadInt32BigEndian(span);
-            return Unsafe.As<int, float>(ref num);
+            uint num = ReadUInt32(span);
+            return Unsafe.As<uint, float>(ref num);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static ushort ReadUInt16(ReadOnlyMemory<byte> memory) => ReadUInt16(memory.Span);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static ushort ReadUInt16(ReadOnlySpan<byte> span)
         {
             if (span.Length < 2)
@@ -77,11 +88,13 @@ namespace RabbitMQ.Util
                 throw new ArgumentOutOfRangeException(nameof(span), "Insufficient length to decode UInt16 from memory.");
             }
 
-            return BinaryPrimitives.ReadUInt16BigEndian(span);
+            return (ushort)((span[0] << 8) | span[1]);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static uint ReadUInt32(ReadOnlyMemory<byte> memory) => ReadUInt32(memory.Span);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static uint ReadUInt32(ReadOnlySpan<byte> span)
         {
             if (span.Length < 4)
@@ -89,11 +102,13 @@ namespace RabbitMQ.Util
                 throw new ArgumentOutOfRangeException(nameof(span), "Insufficient length to decode UInt32 from memory.");
             }
 
-            return BinaryPrimitives.ReadUInt32BigEndian(span);
+            return (uint)((span[0] << 24) | (span[1] << 16) | (span[2] << 8) | span[3]);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static ulong ReadUInt64(ReadOnlyMemory<byte> memory) => ReadUInt64(memory.Span);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static ulong ReadUInt64(ReadOnlySpan<byte> span)
         {
             if (span.Length < 8)
@@ -101,7 +116,7 @@ namespace RabbitMQ.Util
                 throw new ArgumentOutOfRangeException(nameof(span), "Insufficient length to decode UInt64 from memory.");
             }
 
-            return BinaryPrimitives.ReadUInt64BigEndian(span);
+            return ((ulong)span[0] << 56) | ((ulong)span[1] << 48) | ((ulong)span[2] << 40) | ((ulong)span[3] << 32) | ((ulong)span[4] << 24) | ((ulong)span[5] << 16) | ((ulong)span[6] << 8) | span[7];
         }
     }
 }
