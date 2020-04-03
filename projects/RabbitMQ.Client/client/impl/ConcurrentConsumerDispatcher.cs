@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
@@ -63,6 +64,8 @@ namespace RabbitMQ.Client.Impl
                                        IBasicProperties basicProperties,
                                        ReadOnlyMemory<byte> body)
         {
+            IMemoryOwner<byte> memoryCopy = MemoryPool<byte>.Shared.Rent(body.Length);
+            body.CopyTo(memoryCopy.Memory);
             UnlessShuttingDown(() =>
             {
                 try
@@ -73,7 +76,7 @@ namespace RabbitMQ.Client.Impl
                                                 exchange,
                                                 routingKey,
                                                 basicProperties,
-                                                body);
+                                                memoryCopy.Memory.Slice(0, body.Length));
                 }
                 catch (Exception e)
                 {
@@ -83,6 +86,10 @@ namespace RabbitMQ.Client.Impl
                         {"context",  "HandleBasicDeliver"}
                     };
                     _model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
+                }
+                finally
+                {
+                    memoryCopy.Dispose();
                 }
             });
         }

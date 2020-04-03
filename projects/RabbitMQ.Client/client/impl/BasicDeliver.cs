@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -14,7 +15,8 @@ namespace RabbitMQ.Client.Impl
         readonly string _exchange;
         readonly string _routingKey;
         readonly IBasicProperties _basicProperties;
-        readonly ReadOnlyMemory<byte> _body;
+        readonly IMemoryOwner<byte> _body;
+        readonly int _bodyLength;
 
         public BasicDeliver(IBasicConsumer consumer, 
             string consumerTag, 
@@ -23,7 +25,8 @@ namespace RabbitMQ.Client.Impl
             string exchange, 
             string routingKey, 
             IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body) : base(consumer)
+            IMemoryOwner<byte> body,
+            int bodyLength) : base(consumer)
         {
             _consumerTag = consumerTag;
             _deliveryTag = deliveryTag;
@@ -32,6 +35,7 @@ namespace RabbitMQ.Client.Impl
             _routingKey = routingKey;
             _basicProperties = basicProperties;
             _body = body;
+            _bodyLength = bodyLength;
         }
 
         protected override async Task Execute(ModelBase model, IAsyncBasicConsumer consumer)
@@ -44,7 +48,7 @@ namespace RabbitMQ.Client.Impl
                     _exchange,
                     _routingKey,
                     _basicProperties,
-                    _body).ConfigureAwait(false);
+                    _body.Memory.Slice(0, _bodyLength)).ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -54,6 +58,10 @@ namespace RabbitMQ.Client.Impl
                     {"context",  "HandleBasicDeliver"}
                 };
                 model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
+            }
+            finally
+            {
+                _body.Dispose();
             }
         }
     }

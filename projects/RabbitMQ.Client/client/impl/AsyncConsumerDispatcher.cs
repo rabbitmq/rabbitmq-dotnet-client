@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
@@ -46,7 +47,9 @@ namespace RabbitMQ.Client.Impl
             IBasicProperties basicProperties,
             ReadOnlyMemory<byte> body)
         {
-            ScheduleUnlessShuttingDown(new BasicDeliver(consumer, consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body));
+            IMemoryOwner<byte> bodyCopy = MemoryPool<byte>.Shared.Rent(body.Length);
+            body.CopyTo(bodyCopy.Memory);
+            ScheduleUnlessShuttingDown(new BasicDeliver(consumer, consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, bodyCopy, body.Length));
         }
 
         public void HandleBasicCancelOk(IBasicConsumer consumer, string consumerTag)
