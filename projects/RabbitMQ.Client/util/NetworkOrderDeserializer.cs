@@ -116,7 +116,9 @@ namespace RabbitMQ.Util
                 throw new ArgumentOutOfRangeException(nameof(span), "Insufficient length to decode UInt64 from memory.");
             }
 
-            return ((ulong)span[0] << 56) | ((ulong)span[1] << 48) | ((ulong)span[2] << 40) | ((ulong)span[3] << 32) | ((ulong)span[4] << 24) | ((ulong)span[5] << 16) | ((ulong)span[6] << 8) | span[7];
+            uint num1 = (uint)((span[0] << 24) | (span[1] << 16) | (span[2] << 8) | span[3]);
+            uint num2 = (uint)((span[4] << 24) | (span[5] << 16) | (span[6] << 8) | span[7]);
+            return ((ulong)num1 << 32) | num2;
         }
     }
 }
