@@ -38,31 +38,30 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-
 using NUnit.Framework;
-//using System.Timers;
+using RabbitMQ.Client.Events;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
     public class TestFloodPublishing : IntegrationFixture
     {
-        [SetUp]
-        public override void Init()
+        [Test, Category("LongRunning")]
+        public void TestUnthrottledFloodPublishing()
         {
             var connFactory = new ConnectionFactory()
             {
                 RequestedHeartbeat = TimeSpan.FromSeconds(60),
                 AutomaticRecoveryEnabled = false
             };
-            Conn = connFactory.CreateConnection();
-            Model = Conn.CreateModel();
-        }
+            using var Conn = connFactory.CreateConnection();
+            using var Model = Conn.CreateModel();
 
-        [Test, Category("LongRunning")]
-        public void TestUnthrottledFloodPublishing()
-        {
             Conn.ConnectionShutdown += (_, args) =>
             {
                 if (args.Initiator != ShutdownInitiator.Application)
@@ -84,6 +83,67 @@ namespace RabbitMQ.Client.Unit
             }
             Assert.IsTrue(Conn.IsOpen);
             t.Dispose();
+        }
+
+        [Test]
+        public async Task TestMultithreadFloodPublishing()
+        {
+            string message = "test message";
+            int threadCount = 4;
+            int publishCount = 100;
+            var receivedCount = 0;
+            byte[] sendBody = Encoding.UTF8.GetBytes(message);
+
+            var cf = new ConnectionFactory();
+            using (IConnection c = cf.CreateConnection())
+            using (IModel m = c.CreateModel())
+            {
+                QueueDeclareOk q = m.QueueDeclare();
+                IBasicProperties bp = m.CreateBasicProperties();
+                
+                var consumer = new EventingBasicConsumer(m);
+                var tcs = new TaskCompletionSource<bool>();
+                consumer.Received += (o, a) =>
+                {
+                    Assert.AreEqual(message, Encoding.UTF8.GetString(a.Body.ToArray()));
+
+                    var result = Interlocked.Increment(ref receivedCount);
+                    if (result == threadCount * publishCount)
+                    {
+                        tcs.SetResult(true);
+                    }
+                };
+
+                string tag = m.BasicConsume(q.QueueName, true, consumer);
+                var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+
+
+                using (var timeoutRegistration = cts.Token.Register(() => tcs.SetCanceled()))
+                {
+                    var tasks = new List<Task>();
+                    for (int i = 0; i < threadCount; i++)
+                    {
+                        tasks.Add(Task.Run(() => StartFlood(m, q.QueueName, bp, sendBody, publishCount)));
+                    }
+                    await Task.WhenAll(tasks);
+                    await tcs.Task;
+                }
+                m.BasicCancel(tag);
+
+
+
+                Assert.AreEqual(threadCount * publishCount, receivedCount);
+            }
+
+
+            void StartFlood(IModel model, string queue, IBasicProperties properties, byte[] body, int count)
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    model.BasicPublish(string.Empty, queue, properties, body);
+                }
+            }
         }
     }
 }
