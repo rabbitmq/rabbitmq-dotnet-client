@@ -105,12 +105,7 @@ namespace RabbitMQ.Client.Unit
                 var tcs = new TaskCompletionSource<bool>();
                 consumer.Received += (o, a) =>
                 {
-                    Console.WriteLine("Receiving");
                     var receivedMessage = Encoding.UTF8.GetString(a.Body.ToArray());
-                    if (!receivedMessage.Equals(message))
-                    {
-                        Debugger.Break();
-                    }
                     Assert.AreEqual(message, receivedMessage);
 
                     var result = Interlocked.Increment(ref receivedCount);
@@ -125,28 +120,16 @@ namespace RabbitMQ.Client.Unit
 
                 using (var timeoutRegistration = cts.Token.Register(() => tcs.SetCanceled()))
                 {
-                    StartFlood(m, q.QueueName, bp, sendBody, publishCount);
+                    for (int i = 0; i < publishCount; i++)
+                    {
+                        m.BasicPublish(string.Empty, q.QueueName, bp, sendBody);
+                    }
 
-                    //var tasks = new List<Task>();
-                    //for (int i = 0; i < threadCount; i++)
-                    //{
-                    //    tasks.Add(Task.Run(() => StartFlood(m, q.QueueName, bp, sendBody, publishCount)));
-                    //}
-                    //await Task.WhenAll(tasks);
                     await tcs.Task;
                 }
                 m.BasicCancel(tag);
                 await tcs.Task;
                 Assert.AreEqual(threadCount * publishCount, receivedCount);
-            }
-
-
-            void StartFlood(IModel model, string queue, IBasicProperties properties, byte[] body, int count)
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    model.BasicPublish(string.Empty, queue, properties, body);
-                }
             }
         }
     }
