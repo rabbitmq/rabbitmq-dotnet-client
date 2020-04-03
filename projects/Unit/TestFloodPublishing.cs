@@ -41,7 +41,7 @@
 using NUnit.Framework;
 using RabbitMQ.Client.Events;
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -89,7 +89,7 @@ namespace RabbitMQ.Client.Unit
         public async Task TestMultithreadFloodPublishing()
         {
             string message = "test message";
-            int threadCount = 4;
+            int threadCount = 1;
             int publishCount = 100;
             var receivedCount = 0;
             byte[] sendBody = Encoding.UTF8.GetBytes(message);
@@ -105,7 +105,13 @@ namespace RabbitMQ.Client.Unit
                 var tcs = new TaskCompletionSource<bool>();
                 consumer.Received += (o, a) =>
                 {
-                    Assert.AreEqual(message, Encoding.UTF8.GetString(a.Body.ToArray()));
+                    Console.WriteLine("Receiving");
+                    var receivedMessage = Encoding.UTF8.GetString(a.Body.ToArray());
+                    if (!receivedMessage.Equals(message))
+                    {
+                        Debugger.Break();
+                    }
+                    Assert.AreEqual(message, receivedMessage);
 
                     var result = Interlocked.Increment(ref receivedCount);
                     if (result == threadCount * publishCount)
@@ -115,24 +121,22 @@ namespace RabbitMQ.Client.Unit
                 };
 
                 string tag = m.BasicConsume(q.QueueName, true, consumer);
-                var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-
-
+                var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
                 using (var timeoutRegistration = cts.Token.Register(() => tcs.SetCanceled()))
                 {
-                    var tasks = new List<Task>();
-                    for (int i = 0; i < threadCount; i++)
-                    {
-                        tasks.Add(Task.Run(() => StartFlood(m, q.QueueName, bp, sendBody, publishCount)));
-                    }
-                    await Task.WhenAll(tasks);
+                    StartFlood(m, q.QueueName, bp, sendBody, publishCount);
+
+                    //var tasks = new List<Task>();
+                    //for (int i = 0; i < threadCount; i++)
+                    //{
+                    //    tasks.Add(Task.Run(() => StartFlood(m, q.QueueName, bp, sendBody, publishCount)));
+                    //}
+                    //await Task.WhenAll(tasks);
                     await tcs.Task;
                 }
                 m.BasicCancel(tag);
-
-
-
+                await tcs.Task;
                 Assert.AreEqual(threadCount * publishCount, receivedCount);
             }
 
