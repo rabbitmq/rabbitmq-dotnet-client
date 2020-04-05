@@ -81,7 +81,8 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        [Test]
+        // TODO rabbitmq/rabbitmq-dotnet-client#802 FIX THIS
+        [Test, Category("LongRunning")]
         public async Task TestMultithreadFloodPublishing()
         {
             string message = "test message";
