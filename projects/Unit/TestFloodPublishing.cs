@@ -71,18 +71,14 @@ namespace RabbitMQ.Client.Unit
             };
 
             bool elapsed = false;
-            var t = new System.Threading.Timer((_obj) => { elapsed = true; }, null, 1000 * 185, -1);
-            /*
-            t.Elapsed += (_sender, _args) => { elapsed = true; };
-            t.AutoReset = false;
-            t.Start();
-*/
-            while (!elapsed)
+            using (Timer t = new Timer((_obj) => { elapsed = true; }, null, 1000 * 185, -1))
             {
-                Model.BasicPublish("", "", null, new byte[2048]);
+                while (!elapsed)
+                {
+                    Model.BasicPublish("", "", null, new byte[2048]);
+                }
+                Assert.IsTrue(Conn.IsOpen);
             }
-            Assert.IsTrue(Conn.IsOpen);
-            t.Dispose();
         }
 
         [Test]
@@ -100,7 +96,7 @@ namespace RabbitMQ.Client.Unit
             {
                 QueueDeclareOk q = m.QueueDeclare();
                 IBasicProperties bp = m.CreateBasicProperties();
-                
+
                 var consumer = new EventingBasicConsumer(m);
                 var tcs = new TaskCompletionSource<bool>();
                 consumer.Received += (o, a) =>
