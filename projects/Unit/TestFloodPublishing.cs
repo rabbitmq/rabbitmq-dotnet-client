@@ -53,6 +53,7 @@ namespace RabbitMQ.Client.Unit
         private readonly byte[] _body = new byte[2048];
         private readonly TimeSpan _tenSeconds = TimeSpan.FromSeconds(10);
 
+        /*
         [Test]
         public void TestUnthrottledFloodPublishing()
         {
@@ -96,6 +97,7 @@ namespace RabbitMQ.Client.Unit
                 }
             }
         }
+        */
 
         [Test]
         public async Task TestMultithreadFloodPublishing()
