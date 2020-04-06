@@ -8,6 +8,12 @@ namespace RabbitMQ.Client.Impl
     internal sealed class AsyncConsumerWorkService : ConsumerWorkService
     {
         private readonly ConcurrentDictionary<IModel, WorkPool> _workPools = new ConcurrentDictionary<IModel, WorkPool>();
+        private readonly bool _runInParallel;
+
+        internal AsyncConsumerWorkService(bool runInParallel)
+        {
+            _runInParallel = runInParallel;
+        }
 
         public void Schedule<TWork>(ModelBase model, TWork work) where TWork : Work
         {
@@ -16,7 +22,7 @@ namespace RabbitMQ.Client.Impl
 
         private WorkPool StartNewWorkPool(IModel model)
         {
-            var newWorkPool = new WorkPool(model as ModelBase);
+            var newWorkPool = new WorkPool(model as ModelBase, _runInParallel);
             newWorkPool.Start();
             return newWorkPool;
         }
@@ -37,16 +43,18 @@ namespace RabbitMQ.Client.Impl
             readonly CancellationTokenSource _tokenSource;
             readonly ModelBase _model;
             readonly CancellationTokenRegistration _tokenRegistration;
+            private readonly bool _runInParallel;
             volatile TaskCompletionSource<bool> _syncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             private Task _worker;
             private readonly List<Task> _workTasks = new List<Task>();
 
-            public WorkPool(ModelBase model)
+            public WorkPool(ModelBase model, bool runInParallel)
             {
                 _model = model;
                 _workQueue = new ConcurrentQueue<Work>();
                 _tokenSource = new CancellationTokenSource();
                 _tokenRegistration = _tokenSource.Token.Register(() => _syncSource.TrySetCanceled());
+                _runInParallel = runInParallel;
             }
 
             public void Start()
@@ -74,13 +82,23 @@ namespace RabbitMQ.Client.Impl
                         // Swallowing the task cancellation in case we are stopping work.
                     }
 
-                    while (_workQueue.TryDequeue(out Work work))
+                    if (_runInParallel)
                     {
-                        _workTasks.Add(work.Execute(_model));
-                    }
+                        while (_workQueue.TryDequeue(out Work work))
+                        {
+                            _workTasks.Add(work.Execute(_model));
+                        }
 
-                    await Task.WhenAll(_workTasks).ConfigureAwait(false);
-                    _workTasks.Clear();
+                        await Task.WhenAll(_workTasks).ConfigureAwait(false);
+                        _workTasks.Clear();
+                    }
+                    else
+                    {
+                        while (_workQueue.TryDequeue(out Work work))
+                        {
+                            await work.Execute(_model).ConfigureAwait(false);
+                        }
+                    }
                 }
             }
 

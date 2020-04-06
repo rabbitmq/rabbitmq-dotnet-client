@@ -51,5 +51,10 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <value><see langword="true" /> if an asynchronous consumer dispatcher which is compatible with <see cref="IAsyncBasicConsumer"/> is used; otherwise, <see langword="false" />.</value>
         bool DispatchConsumersAsync { get; set; }
+
+        /// <summary>
+        /// Set to true will run message handlers for asynchronous consumers in parallel. NOTE: This removes the guarantee that consumers handle messages in the order they receive them.
+        /// </summary>
+        bool DispatcAsyncConsumersInParallel { get; set; }
     }
 }

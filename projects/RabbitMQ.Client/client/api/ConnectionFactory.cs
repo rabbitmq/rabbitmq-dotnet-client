@@ -175,6 +175,11 @@ namespace RabbitMQ.Client
         /// </summary>
         public bool DispatchConsumersAsync { get; set; } = false;
 
+        /// <summary>
+        /// Set to true will run message handlers for asynchronous consumers in parallel. NOTE: This removes the guarantee that consumers handle messages in the order they receive them.
+        /// </summary>
+        public bool DispatcAsyncConsumersInParallel { get; set; } = false;
+
         /// <summary>The host to connect to.</summary>
         public string HostName { get; set; } = "localhost";
 

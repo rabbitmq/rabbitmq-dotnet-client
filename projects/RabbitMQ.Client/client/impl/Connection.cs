@@ -112,7 +112,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
             if (factory is IAsyncConnectionFactory asyncConnectionFactory && asyncConnectionFactory.DispatchConsumersAsync)
             {
-                ConsumerWorkService = new AsyncConsumerWorkService();
+                ConsumerWorkService = new AsyncConsumerWorkService(asyncConnectionFactory.DispatcAsyncConsumersInParallel);
             }
             else
             {
