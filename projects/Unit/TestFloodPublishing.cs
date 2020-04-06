@@ -49,9 +49,12 @@ using System.Threading.Tasks;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestFloodPublishing : IntegrationFixture
+    public class TestFloodPublishing
     {
-        [Test, Category("LongRunning")]
+        private readonly byte[] _body = new byte[2048];
+        private readonly TimeSpan _tenSeconds = TimeSpan.FromSeconds(10);
+
+        [Test]
         public void TestUnthrottledFloodPublishing()
         {
             var connFactory = new ConnectionFactory()
@@ -60,9 +63,9 @@ namespace RabbitMQ.Client.Unit
                 AutomaticRecoveryEnabled = false
             };
 
-            using(var conn = connFactory.CreateConnection())
+            using (var conn = connFactory.CreateConnection())
             {
-                using(var model = conn.CreateModel())
+                using (var model = conn.CreateModel())
                 {
                     conn.ConnectionShutdown += (_, args) =>
                     {
@@ -73,11 +76,11 @@ namespace RabbitMQ.Client.Unit
                     };
 
                     bool elapsed = false;
-                    using (Timer t = new Timer((_obj) => { elapsed = true; }, null, 1000 * 185, -1))
+                    using (Timer t = new Timer((_obj) => { elapsed = true; }, null, (int)_tenSeconds.TotalMilliseconds, -1))
                     {
                         while (!elapsed)
                         {
-                            model.BasicPublish("", "", null, new byte[2048]);
+                            model.BasicPublish("", "", null, _body);
                         }
                         Assert.IsTrue(conn.IsOpen);
                     }
@@ -85,8 +88,7 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        // rabbitmq/rabbitmq-dotnet-client#802 FIX THIS TODO
-        [Test, Category("LongRunning")]
+        [Test]
         public async Task TestMultithreadFloodPublishing()
         {
             string message = "test message";
@@ -95,7 +97,12 @@ namespace RabbitMQ.Client.Unit
             int receivedCount = 0;
             byte[] sendBody = Encoding.UTF8.GetBytes(message);
 
-            var cf = new ConnectionFactory();
+            var cf = new ConnectionFactory()
+            {
+                RequestedHeartbeat = TimeSpan.FromSeconds(60),
+                AutomaticRecoveryEnabled = false
+            };
+
             using (IConnection c = cf.CreateConnection())
             {
                 using (IModel m = c.CreateModel())
@@ -118,7 +125,7 @@ namespace RabbitMQ.Client.Unit
                     };
 
                     string tag = m.BasicConsume(q.QueueName, true, consumer);
-                    var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+                    var cts = new CancellationTokenSource(_tenSeconds);
 
                     using (var timeoutRegistration = cts.Token.Register(() => tcs.SetCanceled()))
                     {
