@@ -59,74 +59,79 @@ namespace RabbitMQ.Client.Unit
                 RequestedHeartbeat = TimeSpan.FromSeconds(60),
                 AutomaticRecoveryEnabled = false
             };
-            using var Conn = connFactory.CreateConnection();
-            using var Model = Conn.CreateModel();
 
-            Conn.ConnectionShutdown += (_, args) =>
+            using(var conn = connFactory.CreateConnection())
             {
-                if (args.Initiator != ShutdownInitiator.Application)
+                using(var model = conn.CreateModel())
                 {
-                    Assert.Fail("Unexpected connection shutdown!");
-                }
-            };
+                    conn.ConnectionShutdown += (_, args) =>
+                    {
+                        if (args.Initiator != ShutdownInitiator.Application)
+                        {
+                            Assert.Fail("Unexpected connection shutdown!");
+                        }
+                    };
 
-            bool elapsed = false;
-            using (Timer t = new Timer((_obj) => { elapsed = true; }, null, 1000 * 185, -1))
-            {
-                while (!elapsed)
-                {
-                    Model.BasicPublish("", "", null, new byte[2048]);
+                    bool elapsed = false;
+                    using (Timer t = new Timer((_obj) => { elapsed = true; }, null, 1000 * 185, -1))
+                    {
+                        while (!elapsed)
+                        {
+                            model.BasicPublish("", "", null, new byte[2048]);
+                        }
+                        Assert.IsTrue(conn.IsOpen);
+                    }
                 }
-                Assert.IsTrue(Conn.IsOpen);
             }
         }
 
-        // TODO rabbitmq/rabbitmq-dotnet-client#802 FIX THIS
+        // rabbitmq/rabbitmq-dotnet-client#802 FIX THIS TODO
         [Test, Category("LongRunning")]
         public async Task TestMultithreadFloodPublishing()
         {
             string message = "test message";
             int threadCount = 1;
             int publishCount = 100;
-            var receivedCount = 0;
+            int receivedCount = 0;
             byte[] sendBody = Encoding.UTF8.GetBytes(message);
 
             var cf = new ConnectionFactory();
             using (IConnection c = cf.CreateConnection())
-            using (IModel m = c.CreateModel())
             {
-                QueueDeclareOk q = m.QueueDeclare();
-                IBasicProperties bp = m.CreateBasicProperties();
-
-                var consumer = new EventingBasicConsumer(m);
-                var tcs = new TaskCompletionSource<bool>();
-                consumer.Received += (o, a) =>
+                using (IModel m = c.CreateModel())
                 {
-                    var receivedMessage = Encoding.UTF8.GetString(a.Body.ToArray());
-                    Assert.AreEqual(message, receivedMessage);
+                    QueueDeclareOk q = m.QueueDeclare();
+                    IBasicProperties bp = m.CreateBasicProperties();
 
-                    var result = Interlocked.Increment(ref receivedCount);
-                    if (result == threadCount * publishCount)
+                    var consumer = new EventingBasicConsumer(m);
+                    var tcs = new TaskCompletionSource<bool>();
+                    consumer.Received += (o, a) =>
                     {
-                        tcs.SetResult(true);
-                    }
-                };
+                        var receivedMessage = Encoding.UTF8.GetString(a.Body.ToArray());
+                        Assert.AreEqual(message, receivedMessage);
 
-                string tag = m.BasicConsume(q.QueueName, true, consumer);
-                var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+                        var result = Interlocked.Increment(ref receivedCount);
+                        if (result == threadCount * publishCount)
+                        {
+                            tcs.SetResult(true);
+                        }
+                    };
 
-                using (var timeoutRegistration = cts.Token.Register(() => tcs.SetCanceled()))
-                {
-                    for (int i = 0; i < publishCount; i++)
+                    string tag = m.BasicConsume(q.QueueName, true, consumer);
+                    var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+                    using (var timeoutRegistration = cts.Token.Register(() => tcs.SetCanceled()))
                     {
-                        m.BasicPublish(string.Empty, q.QueueName, bp, sendBody);
+                        for (int i = 0; i < publishCount; i++)
+                        {
+                            m.BasicPublish(string.Empty, q.QueueName, bp, sendBody);
+                        }
+                        bool allMessagesReceived = await tcs.Task;
+                        Assert.IsTrue(allMessagesReceived);
                     }
-
-                    await tcs.Task;
+                    m.BasicCancel(tag);
+                    Assert.AreEqual(threadCount * publishCount, receivedCount);
                 }
-                m.BasicCancel(tag);
-                await tcs.Task;
-                Assert.AreEqual(threadCount * publishCount, receivedCount);
             }
         }
     }
