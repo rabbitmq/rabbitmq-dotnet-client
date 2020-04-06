@@ -41,7 +41,6 @@
 using NUnit.Framework;
 using RabbitMQ.Client.Events;
 using System;
-using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -75,15 +74,25 @@ namespace RabbitMQ.Client.Unit
                         }
                     };
 
-                    bool elapsed = false;
-                    using (Timer t = new Timer((_obj) => { elapsed = true; }, null, (int)_tenSeconds.TotalMilliseconds, -1))
+                    bool shouldStop = false;
+                    DateTime now = DateTime.Now;
+                    DateTime stopTime = DateTime.Now.Add(_tenSeconds);
+                    for (int i = 0; i < 65535*64; i++)
                     {
-                        while (!elapsed)
+                        if (i % 65536 == 0)
                         {
-                            model.BasicPublish("", "", null, _body);
+                            now = DateTime.Now;
+                            shouldStop = DateTime.Now > stopTime;
+                            TestContext.Out.WriteLine("@@@@@@@@ NUNIT Checking now {0} stopTime {1} shouldStop {2}", now, stopTime, shouldStop);
+                            Console.Error.WriteLine("@@@@@@@@ STDERR Checking now {0} stopTime {1} shouldStop {2}", now, stopTime, shouldStop);
+                            if (shouldStop)
+                            {
+                                break;
+                            }
                         }
-                        Assert.IsTrue(conn.IsOpen);
+                        model.BasicPublish("", "", null, _body);
                     }
+                    Assert.IsTrue(conn.IsOpen);
                 }
             }
         }
