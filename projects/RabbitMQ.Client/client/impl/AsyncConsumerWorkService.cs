@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -38,6 +39,7 @@ namespace RabbitMQ.Client.Impl
             readonly CancellationTokenRegistration _tokenRegistration;
             volatile TaskCompletionSource<bool> _syncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             private Task _worker;
+            private readonly List<Task> _workTasks = new List<Task>();
 
             public WorkPool(ModelBase model)
             {
@@ -74,8 +76,11 @@ namespace RabbitMQ.Client.Impl
 
                     while (_workQueue.TryDequeue(out Work work))
                     {
-                        await work.Execute(_model).ConfigureAwait(false);
+                        _workTasks.Add(work.Execute(_model));
                     }
+
+                    await Task.WhenAll(_workTasks).ConfigureAwait(false);
+                    _workTasks.Clear();
                 }
             }
 
