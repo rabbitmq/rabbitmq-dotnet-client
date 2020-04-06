@@ -40,6 +40,7 @@ namespace RabbitMQ.Client.Impl
         class WorkPool
         {
             readonly ConcurrentQueue<Work> _workQueue;
+            readonly ConcurrentBag<Work> _workBag;
             readonly CancellationTokenSource _tokenSource;
             readonly ModelBase _model;
             readonly CancellationTokenRegistration _tokenRegistration;
@@ -51,7 +52,15 @@ namespace RabbitMQ.Client.Impl
             public WorkPool(ModelBase model, bool runInParallel)
             {
                 _model = model;
-                _workQueue = new ConcurrentQueue<Work>();
+                if (runInParallel)
+                {
+                    _workBag = new ConcurrentBag<Work>();
+                }
+                else
+                {
+                    _workQueue = new ConcurrentQueue<Work>();
+                }
+
                 _tokenSource = new CancellationTokenSource();
                 _tokenRegistration = _tokenSource.Token.Register(() => _syncSource.TrySetCanceled());
                 _runInParallel = runInParallel;
@@ -64,7 +73,15 @@ namespace RabbitMQ.Client.Impl
 
             public void Enqueue(Work work)
             {
-                _workQueue.Enqueue(work);
+                if (_runInParallel)
+                {
+                    _workBag.Add(work);
+                }
+                else
+                {
+                    _workQueue.Enqueue(work);
+                }
+
                 _syncSource.TrySetResult(true);
             }
 
@@ -84,7 +101,7 @@ namespace RabbitMQ.Client.Impl
 
                     if (_runInParallel)
                     {
-                        while (_workQueue.TryDequeue(out Work work))
+                        while (_workBag.TryTake(out Work work))
                         {
                             _workTasks.Add(work.Execute(_model));
                         }
