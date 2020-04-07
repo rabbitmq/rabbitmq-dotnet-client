@@ -355,7 +355,7 @@ namespace RabbitMQ.Client
         /// </exception>
         public IConnection CreateConnection()
         {
-            return CreateConnection(EndpointResolverFactory(LocalEndpoints()), ClientProvidedName);
+            return CreateConnection(ClientProvidedName);
         }
 
         /// <summary>
@@ -419,7 +419,7 @@ namespace RabbitMQ.Client
         public IConnection CreateConnection(IList<string> hostnames, string clientProvidedName)
         {
             IEnumerable<AmqpTcpEndpoint> endpoints = hostnames.Select(h => new AmqpTcpEndpoint(h, Port, Ssl));
-            return CreateConnection(new DefaultEndpointResolver(endpoints), clientProvidedName);
+            return CreateConnection(EndpointResolverFactory(endpoints), clientProvidedName);
         }
 
         /// <summary>
@@ -461,7 +461,7 @@ namespace RabbitMQ.Client
         /// </exception>
         public IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints, string clientProvidedName)
         {
-            return CreateConnection(new DefaultEndpointResolver(endpoints), clientProvidedName);
+            return CreateConnection(EndpointResolverFactory(endpoints), clientProvidedName);
         }
 
         /// <summary>
