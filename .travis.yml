@@ -1,12 +1,8 @@
 sudo: false
 dist: xenial
 language: csharp
-
-jobs:
-  include:
-    - dotnet: 3.1
-      mono: none
-    - mono: latest
+dotnet: 3
+mono: none
 
 addons:
   apt:
