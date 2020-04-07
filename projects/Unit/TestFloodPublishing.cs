@@ -38,52 +38,120 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-
 using NUnit.Framework;
-//using System.Timers;
+using RabbitMQ.Client.Events;
+using System;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestFloodPublishing : IntegrationFixture
+    public class TestFloodPublishing
     {
-        [SetUp]
-        public override void Init()
+        private readonly byte[] _body = new byte[2048];
+        private readonly TimeSpan _tenSeconds = TimeSpan.FromSeconds(10);
+
+        [Test]
+        public void TestUnthrottledFloodPublishing()
         {
             var connFactory = new ConnectionFactory()
             {
                 RequestedHeartbeat = TimeSpan.FromSeconds(60),
                 AutomaticRecoveryEnabled = false
             };
-            Conn = connFactory.CreateConnection();
-            Model = Conn.CreateModel();
+
+            using (var conn = connFactory.CreateConnection())
+            {
+                using (var model = conn.CreateModel())
+                {
+                    conn.ConnectionShutdown += (_, args) =>
+                    {
+                        if (args.Initiator != ShutdownInitiator.Application)
+                        {
+                            Assert.Fail("Unexpected connection shutdown!");
+                        }
+                    };
+
+                    bool shouldStop = false;
+                    DateTime now = DateTime.Now;
+                    DateTime stopTime = DateTime.Now.Add(_tenSeconds);
+                    for (int i = 0; i < 65535*64; i++)
+                    {
+                        if (i % 65536 == 0)
+                        {
+                            now = DateTime.Now;
+                            shouldStop = DateTime.Now > stopTime;
+                            if (shouldStop)
+                            {
+                                break;
+                            }
+                        }
+                        model.BasicPublish("", "", null, _body);
+                    }
+                    Assert.IsTrue(conn.IsOpen);
+                }
+            }
         }
 
-        [Test, Category("LongRunning")]
-        public void TestUnthrottledFloodPublishing()
+        [Test]
+        public void TestMultithreadFloodPublishing()
         {
-            Conn.ConnectionShutdown += (_, args) =>
+            string testName = TestContext.CurrentContext.Test.FullName;
+            string message = string.Format("Hello from test {0}", testName);
+            byte[] sendBody = Encoding.UTF8.GetBytes(message);
+            int publishCount = 4096;
+            int receivedCount = 0;
+            AutoResetEvent autoResetEvent = new AutoResetEvent(false);
+
+            var cf = new ConnectionFactory()
             {
-                if (args.Initiator != ShutdownInitiator.Application)
-                {
-                    Assert.Fail("Unexpected connection shutdown!");
-                }
+                RequestedHeartbeat = TimeSpan.FromSeconds(60),
+                AutomaticRecoveryEnabled = false
             };
 
-            bool elapsed = false;
-            var t = new System.Threading.Timer((_obj) => { elapsed = true; }, null, 1000 * 185, -1);
-            /*
-            t.Elapsed += (_sender, _args) => { elapsed = true; };
-            t.AutoReset = false;
-            t.Start();
-*/
-            while (!elapsed)
+            using (IConnection c = cf.CreateConnection())
             {
-                Model.BasicPublish("", "", null, new byte[2048]);
+                string queueName = null;
+                using (IModel m = c.CreateModel())
+                {
+                    QueueDeclareOk q = m.QueueDeclare();
+                    queueName = q.QueueName;
+                }
+
+                Task pub = Task.Run(() =>
+                {
+                    using (IModel m = c.CreateModel())
+                    {
+                        IBasicProperties bp = m.CreateBasicProperties();
+                        for (int i = 0; i < publishCount; i++)
+                        {
+                            m.BasicPublish(string.Empty, queueName, bp, sendBody);
+                        }
+                    }
+                });
+
+                using (IModel consumerModel = c.CreateModel())
+                {
+                    var consumer = new EventingBasicConsumer(consumerModel);
+                    consumer.Received += (o, a) =>
+                    {
+                        string receivedMessage = Encoding.UTF8.GetString(a.Body.ToArray());
+                        Assert.AreEqual(message, receivedMessage);
+                        Interlocked.Increment(ref receivedCount);
+                        if (receivedCount == publishCount)
+                        {
+                            autoResetEvent.Set();
+                        }
+                    };
+                    consumerModel.BasicConsume(queueName, true, consumer);
+                    Assert.IsTrue(pub.Wait(_tenSeconds));
+                    Assert.IsTrue(autoResetEvent.WaitOne(_tenSeconds));
+                }
+
+                Assert.AreEqual(publishCount, receivedCount);
             }
-            Assert.IsTrue(Conn.IsOpen);
-            t.Dispose();
         }
     }
 }

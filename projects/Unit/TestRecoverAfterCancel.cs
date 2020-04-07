@@ -96,7 +96,7 @@ namespace RabbitMQ.Client.Unit
             Channel.BasicConsume(Queue, false, Consumer2);
             BasicDeliverEventArgs Event2 = EventQueue2.Dequeue();
 
-            Assert.AreEqual(Event.Body, Event2.Body);
+            CollectionAssert.AreEqual(Event.Body.ToArray(), Event2.Body.ToArray());
             Assert.IsFalse(Event.Redelivered);
             Assert.IsTrue(Event2.Redelivered);
         }
