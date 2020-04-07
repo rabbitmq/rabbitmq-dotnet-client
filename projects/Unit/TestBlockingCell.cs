@@ -140,7 +140,7 @@ namespace RabbitMQ.Client.Unit
             SetAfter(TimingInterval, k, 123);
 
             ResetTimer();
-            int v = k.WaitForValue(TimingInterval * 2);
+            int v = k.WaitForValue(TimingInterval_2X);
             Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.AreEqual(123, v);
         }
@@ -152,7 +152,7 @@ namespace RabbitMQ.Client.Unit
             SetAfter(TimingInterval, k, 123);
 
             ResetTimer();
-            int v = k.WaitForValue(TimingInterval * 2);
+            int v = k.WaitForValue(TimingInterval_2X);
             Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
             Assert.AreEqual(123, v);
         }
@@ -174,7 +174,7 @@ namespace RabbitMQ.Client.Unit
         public void TestBackgroundUpdateFails()
         {
             var k = new BlockingCell<int>();
-            SetAfter(TimingInterval * 2, k, 123);
+            SetAfter(TimingInterval_2X, k, 123);
 
             ResetTimer();
             Assert.Throws<TimeoutException>(() => k.WaitForValue(TimingInterval));
