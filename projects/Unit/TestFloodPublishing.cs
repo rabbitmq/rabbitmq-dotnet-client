@@ -53,7 +53,6 @@ namespace RabbitMQ.Client.Unit
         private readonly byte[] _body = new byte[2048];
         private readonly TimeSpan _tenSeconds = TimeSpan.FromSeconds(10);
 
-        /*
         [Test]
         public void TestUnthrottledFloodPublishing()
         {
@@ -84,8 +83,6 @@ namespace RabbitMQ.Client.Unit
                         {
                             now = DateTime.Now;
                             shouldStop = DateTime.Now > stopTime;
-                            TestContext.Out.WriteLine("@@@@@@@@ NUNIT Checking now {0} stopTime {1} shouldStop {2}", now, stopTime, shouldStop);
-                            Console.Error.WriteLine("@@@@@@@@ STDERR Checking now {0} stopTime {1} shouldStop {2}", now, stopTime, shouldStop);
                             if (shouldStop)
                             {
                                 break;
@@ -97,16 +94,15 @@ namespace RabbitMQ.Client.Unit
                 }
             }
         }
-        */
 
         [Test]
-        public async Task TestMultithreadFloodPublishing()
+        public void TestMultithreadFloodPublishing()
         {
-            string message = "test message";
-            int threadCount = 1;
-            int publishCount = 100;
-            int receivedCount = 0;
+            string testName = TestContext.CurrentContext.Test.FullName;
+            string message = string.Format("Hello from test {0}", testName);
             byte[] sendBody = Encoding.UTF8.GetBytes(message);
+            int publishCount = 4096;
+            int receivedCount = 0;
 
             var cf = new ConnectionFactory()
             {
@@ -116,39 +112,37 @@ namespace RabbitMQ.Client.Unit
 
             using (IConnection c = cf.CreateConnection())
             {
+                string queueName = null;
                 using (IModel m = c.CreateModel())
                 {
                     QueueDeclareOk q = m.QueueDeclare();
-                    IBasicProperties bp = m.CreateBasicProperties();
+                    queueName = q.QueueName;
+                }
 
-                    var consumer = new EventingBasicConsumer(m);
-                    var tcs = new TaskCompletionSource<bool>();
-                    consumer.Received += (o, a) =>
+                Task pub = Task.Run(() =>
+                {
+                    using (IModel m = c.CreateModel())
                     {
-                        var receivedMessage = Encoding.UTF8.GetString(a.Body.ToArray());
-                        Assert.AreEqual(message, receivedMessage);
-
-                        var result = Interlocked.Increment(ref receivedCount);
-                        if (result == threadCount * publishCount)
-                        {
-                            tcs.SetResult(true);
-                        }
-                    };
-
-                    string tag = m.BasicConsume(q.QueueName, true, consumer);
-                    var cts = new CancellationTokenSource(_tenSeconds);
-
-                    using (var timeoutRegistration = cts.Token.Register(() => tcs.SetCanceled()))
-                    {
+                        IBasicProperties bp = m.CreateBasicProperties();
                         for (int i = 0; i < publishCount; i++)
                         {
-                            m.BasicPublish(string.Empty, q.QueueName, bp, sendBody);
+                            m.BasicPublish(string.Empty, queueName, bp, sendBody);
                         }
-                        bool allMessagesReceived = await tcs.Task;
-                        Assert.IsTrue(allMessagesReceived);
                     }
-                    m.BasicCancel(tag);
-                    Assert.AreEqual(threadCount * publishCount, receivedCount);
+                });
+
+                using (IModel consumerModel = c.CreateModel())
+                {
+                    var consumer = new EventingBasicConsumer(consumerModel);
+                    consumer.Received += (o, a) =>
+                    {
+                        string receivedMessage = Encoding.UTF8.GetString(a.Body.ToArray());
+                        Assert.AreEqual(message, receivedMessage);
+                        Interlocked.Increment(ref receivedCount);
+                    };
+                    consumerModel.BasicConsume(queueName, true, consumer);
+                    Assert.IsTrue(pub.Wait(_tenSeconds));
+                    Assert.AreEqual(publishCount, receivedCount);
                 }
             }
         }
