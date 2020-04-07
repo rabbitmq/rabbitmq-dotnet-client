@@ -30,14 +30,12 @@ namespace RabbitMQ.Client.Unit
                 };
                 string tag = m.BasicConsume(q.QueueName, true, consumer);
 
-
                 m.BasicPublish("", q.QueueName, bp, sendBody);
                 bool waitResFalse = are.WaitOne(2000);
                 m.BasicCancel(tag);
 
-
                 Assert.IsTrue(waitResFalse);
-                Assert.AreEqual(sendBody, consumeBody);
+                CollectionAssert.AreEqual(sendBody, consumeBody);
             }
         }
 
@@ -62,14 +60,12 @@ namespace RabbitMQ.Client.Unit
                 };
                 string tag = m.BasicConsume(q.QueueName, true, consumer);
 
-
                 m.BasicPublish("", q.QueueName, bp, new ReadOnlyMemory<byte>(sendBody));
                 bool waitResFalse = are.WaitOne(2000);
                 m.BasicCancel(tag);
 
-
                 Assert.IsTrue(waitResFalse);
-                Assert.AreEqual(sendBody, consumeBody);
+                CollectionAssert.AreEqual(sendBody, consumeBody);
             }
         }
     }

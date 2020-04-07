@@ -103,6 +103,7 @@ namespace RabbitMQ.Client.Unit
             byte[] sendBody = Encoding.UTF8.GetBytes(message);
             int publishCount = 4096;
             int receivedCount = 0;
+            AutoResetEvent autoResetEvent = new AutoResetEvent(false);
 
             var cf = new ConnectionFactory()
             {
@@ -139,11 +140,17 @@ namespace RabbitMQ.Client.Unit
                         string receivedMessage = Encoding.UTF8.GetString(a.Body.ToArray());
                         Assert.AreEqual(message, receivedMessage);
                         Interlocked.Increment(ref receivedCount);
+                        if (receivedCount == publishCount)
+                        {
+                            autoResetEvent.Set();
+                        }
                     };
                     consumerModel.BasicConsume(queueName, true, consumer);
                     Assert.IsTrue(pub.Wait(_tenSeconds));
-                    Assert.AreEqual(publishCount, receivedCount);
+                    Assert.IsTrue(autoResetEvent.WaitOne(_tenSeconds));
                 }
+
+                Assert.AreEqual(publishCount, receivedCount);
             }
         }
     }
