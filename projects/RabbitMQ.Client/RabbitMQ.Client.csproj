@@ -28,6 +28,11 @@
     <PackageOutputPath>..\..\packages</PackageOutputPath>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(CONCOURSE_CI_BUILD)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+
   <Target Name="SetVersionFromConcourseData" AfterTargets="MinVer" Condition="'$(CONCOURSE_PULL_REQUEST_NUMBER)' != ''">
     <PropertyGroup>
       <PackageVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch)-$(MinVerPreRelease)-pr.$(CONCOURSE_PULL_REQUEST_NUMBER)</PackageVersion>
