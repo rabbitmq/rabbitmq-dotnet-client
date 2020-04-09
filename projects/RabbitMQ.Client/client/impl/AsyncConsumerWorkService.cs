@@ -49,7 +49,10 @@ namespace RabbitMQ.Client.Impl
 
             public void Start()
             {
-                _worker = Task.Run(Loop, CancellationToken.None);
+                _worker = Task.Run(Loop, _tokenSource.Token)
+                // continuation ignores TaskCancelledException
+                // (the Stop had been called before Loop started execution) 
+                    .ContinueWith((originalTask) => {}, TaskContinuationOptions.ExecuteSynchronously);
             }
 
             public void Enqueue(Work work)
