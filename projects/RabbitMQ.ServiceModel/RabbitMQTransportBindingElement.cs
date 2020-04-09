@@ -57,7 +57,6 @@ namespace RabbitMQ.ServiceModel
     {
         private ConnectionFactory m_connectionFactory;
         private IConnection m_connection;
-        private IProtocol m_protocol;
         private String m_host;
         private int m_port;
         private long m_maxReceivedMessageSize;
@@ -77,7 +76,6 @@ namespace RabbitMQ.ServiceModel
         {
             HostName = other.HostName;
             Port = other.Port;
-            BrokerProtocol = other.BrokerProtocol;
             Username = other.Username;
             Password = other.Password;
             VirtualHost = other.VirtualHost;
@@ -125,7 +123,8 @@ namespace RabbitMQ.ServiceModel
         internal IModel InternalOpen() {
             EnsureConnectionAvailable();
             IModel result = m_connection.CreateModel();
-            m_connection.AutoClose = true;
+            // TODO auto close?
+            // m_connection.AutoClose = true;
             return result;
         }
 
@@ -240,20 +239,6 @@ namespace RabbitMQ.ServiceModel
             }
         }
 
-        /// <summary>
-        /// Specifies the version of the AMQP protocol that should be used to
-        /// communicate with the broker
-        /// </summary>
-        public IProtocol BrokerProtocol
-        {
-            get { return m_protocol; }
-            set
-            {
-                m_protocol = value;
-                m_connectionFactory = null;
-            }
-        }
-
         internal ConnectionFactory ConnectionFactory
         {
             get
@@ -270,10 +255,6 @@ namespace RabbitMQ.ServiceModel
                 if (Port != AmqpTcpEndpoint.UseDefaultPort)
                 {
                     connFactory.Port = Port;
-                }
-                if (BrokerProtocol != null)
-                {
-                    connFactory.Protocol = BrokerProtocol;
                 }
                 if (Username != null)
                 {

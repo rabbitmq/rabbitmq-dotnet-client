@@ -144,7 +144,6 @@ namespace RabbitMQ.ServiceModel
         {
             m_transport.HostName = this.HostName;
             m_transport.Port = this.Port;
-            m_transport.BrokerProtocol = this.BrokerProtocol;
             if (MaxMessageSize != DefaultMaxMessageSize)
             {
                 m_transport.MaxReceivedMessageSize = MaxMessageSize;

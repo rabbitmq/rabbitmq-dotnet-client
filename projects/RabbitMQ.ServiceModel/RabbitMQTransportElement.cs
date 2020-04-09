@@ -67,7 +67,6 @@ namespace RabbitMQ.ServiceModel
 
             rabbind.HostName = this.HostName;
             rabbind.Port = this.Port;
-            rabbind.BrokerProtocol = this.Protocol;
             rabbind.ConnectionFactory.Password = this.Password;
             rabbind.ConnectionFactory.UserName = this.Username;
             rabbind.ConnectionFactory.VirtualHost = this.VirtualHost;
