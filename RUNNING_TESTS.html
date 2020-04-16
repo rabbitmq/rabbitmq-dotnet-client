@@ -8,7 +8,7 @@
     <title>Overview </title>
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Overview ">
-    <meta name="generator" content="docfx 2.51.0.0">
+    <meta name="generator" content="docfx 2.52.0.0">
     
     <link rel="shortcut icon" href="favicon.ico">
     <link rel="stylesheet" href="styles/docfx.vendor.css">
@@ -62,13 +62,13 @@
             <article class="content wrap" id="_content" data-uid="">
 <h2 id="overview">Overview</h2>
 
-<p>.NET client&#39;s test suite assumes there&#39;s a RabbitMQ node listening on localhost:5672
+<p>.NET client&#39;s test suite assumes there&#39;s a RabbitMQ node listening on <code>localhost:5672</code>
 (the default settings). SSL tests require a broker listening on the default
 SSL port. Connection recovery tests assume <code>rabbitmqctl</code> at <code>../rabbitmq-server/scripts/rabbitmqctl</code>
 can control the running node: this is the case when all repositories are cloned using
 the <a href="https://github.com/rabbitmq/rabbitmq-public-umbrella">umbrella repository</a>.</p>
-<p>It is possible to use <a href="https://www.visualstudio.com/en-us/products/visual-studio-community-vs.aspx">Visual Studio 2015 Community Edition</a>,
-.NET Core, and <code>dotnet.exe</code> in <code>PATH</code>, to build the client and run the test suite.</p>
+<p>It is possible to use Visual Studio Community Edition .NET Core, and
+<code>dotnet.exe</code> in <code>PATH</code>, to build the client and run the test suite.</p>
 <h2 id="building">Building</h2>
 <p>Before this project can be opened in Visual Studio, it&#39;s necessary to pull down dependencies
 and perform protocol encoder/decoder code generation.</p>
@@ -78,31 +78,33 @@ and perform protocol encoder/decoder code generation.</p>
 <pre><code>build.sh
 </code></pre><p>This will complete the code AMQP 0-9-1 protocol code generation and build all projects. After this open the solution in Visual Studio.</p>
 <h2 id="running-tests">Running Tests</h2>
-<p>Tests can be run from Visual Studio using <a href="https://visualstudiogallery.msdn.microsoft.com/6ab922d0-21c0-4f06-ab5f-4ecd1fe7175d">NUnit Test Adapter</a>.
-Note that it may take some time for the adapter to discover tests in the assemblies.</p>
-<p>The test suite assumes there&#39;s a RabbitMQ node running locally with all defaults, and the tests will need to be able to run commands against the <a href="https://www.rabbitmq.com/rabbitmqctl.8.html">rabbitmqctl</a> tool for that node. Two options to accomplish this are:</p>
+<p>Tests can be run from Visual Studio using the NUnit Test Adapter.  Note that it
+may take some time for the adapter to discover tests in the assemblies.</p>
+<p>The test suite assumes there&#39;s a RabbitMQ node running locally with all
+defaults, and the tests will need to be able to run commands against the
+<a href="https://www.rabbitmq.com/rabbitmqctl.8.html"><code>rabbitmqctl</code></a> tool for that node.
+Two options to accomplish this are:</p>
 <ol>
 <li><p>Team RabbitMQ uses <a href="https://github.com/rabbitmq/rabbitmq-public-umbrella">rabbitmq-public-umbrella</a>, which sets up a local RabbitMQ server <a href="https://www.rabbitmq.com/build-server.html">built from source</a>:</p>
-<pre><code> git clone https://github.com/rabbitmq/rabbitmq-public-umbrella umbrella
- cd umbrella
- make co
- cd deps/rabbit
- make
- make run-broker
+<pre><code>git clone https://github.com/rabbitmq/rabbitmq-public-umbrella umbrella
+cd umbrella
+make co
+cd deps/rabbit
+make
+make run-broker
 </code></pre></li>
 <li><p>You can load a RabbitMQ node in a <a href="https://www.docker.com/">docker</a> container. You will need to create an environment variable <code>RABBITMQ_RABBITMQCTL_PATH</code> and set it to <code>DOCKER:&lt;container_name&gt;</code> (for example <code>DOCKER:rabbitmq01</code>). This tells the unit tests to run the <code>rabbitmqctl</code> commands through docker, in the format <code>docker exec rabbitmq01 rabbitmqctl &lt;args&gt;</code>:</p>
-<pre><code> docker run -d --hostname rabbitmq01 --name rabbitmq01 -p 15672:15672 -p 5672:5672 rabbitmq:3-management
+<pre><code>docker run -d --hostname rabbitmq01 --name rabbitmq01 -p 15672:15672 -p 5672:5672 rabbitmq:3-management
+</code></pre><p> Then, to run the tests on Windows use:</p>
+<pre><code>run-test.bat
+</code></pre><p> On MacOS, Linux, BSD use:</p>
+<pre><code>run-test.sh
 </code></pre></li>
 </ol>
-<p>Then, to run the tests on Windows use:</p>
-<pre><code>run-test.bat
-</code></pre><p>On MacOS, Linux, BSD use:</p>
-<pre><code>run-test.sh
-</code></pre><p>Running individual tests and fixtures on Windows is trivial using the Visual Studio test runner.
+<p>Running individual tests and fixtures on Windows is trivial using the Visual Studio test runner.
 To run a specific tests fixture on MacOS or Linux, use the NUnit filter expressions to select the tests
 to be run:</p>
 <pre><code>dotnet test projects/Unit --filter &quot;Name~TestAmqpUriParseFail&quot;
-
 
 dotnet test projects/Unit --filter &quot;FullyQualifiedName~RabbitMQ.Client.Unit.TestHeartbeats&quot;
 </code></pre></article>

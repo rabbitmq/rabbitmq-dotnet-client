@@ -5,10 +5,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>RabbitMQ .NET Client  </title>
+    <title>RabbitMQ .NET Client </title>
     <meta name="viewport" content="width=device-width">
-    <meta name="title" content="RabbitMQ .NET Client  ">
-    <meta name="generator" content="docfx 2.51.0.0">
+    <meta name="title" content="RabbitMQ .NET Client ">
+    <meta name="generator" content="docfx 2.52.0.0">
     
     <link rel="shortcut icon" href="favicon.ico">
     <link rel="stylesheet" href="styles/docfx.vendor.css">
@@ -60,17 +60,17 @@
         <div class="article row grid">
           <div class="col-md-10">
             <article class="content wrap" id="_content" data-uid="">
-<h2 id="rabbitmq-net-client-build-statushttpsciappveyorcomapiprojectsstatus33srpo7owl1h3y4esvgtruehttpsciappveyorcomprojectrabbitmqrabbitmq-dotnet-client">RabbitMQ .NET Client <a href="https://ci.appveyor.com/project/rabbitmq/rabbitmq-dotnet-client"><img src="https://ci.appveyor.com/api/projects/status/33srpo7owl1h3y4e?svg=true" alt="Build status"></a></h2>
+<h2 id="rabbitmq-net-client">RabbitMQ .NET Client</h2>
 
+<ul>
+<li>AppVeyor: <a href="https://ci.appveyor.com/project/rabbitmq/rabbitmq-dotnet-client"><img src="https://ci.appveyor.com/api/projects/status/33srpo7owl1h3y4e?svg=true" alt="AppVeyor Build status"></a></li>
+<li>TravisCI: <a href="https://travis-ci.org/rabbitmq/rabbitmq-dotnet-client"><img src="https://travis-ci.org/rabbitmq/rabbitmq-dotnet-client.svg?branch=master" alt="Travis CI Build Status"></a></li>
+</ul>
 <p>This repository contains source code of the <a href="https://www.rabbitmq.com/dotnet.html">RabbitMQ .NET client</a>.
 The client is maintained by the <a href="https://github.com/rabbitmq/">RabbitMQ team at VMware</a>.</p>
-<h2 id="dependency-binaries-and-nuget-artifact">Dependency (Binaries and Nuget Artifact)</h2>
+<h2 id="dependency-nuget-artifact">Dependency (NuGet Artifact)</h2>
 <h3 id="modern-versions">Modern Versions</h3>
 <p>The client is <a href="https://www.nuget.org/packages/RabbitMQ.Client/">distributed via NuGet</a>.</p>
-<h3 id="legacy-versions">Legacy Versions</h3>
-<p><code>3.6.x</code> and earlier releases were distributed <a href="https://github.com/rabbitmq/rabbitmq-server/releases/">together with RabbitMQ server 3.6.x</a>
-as archives.</p>
-<p><a href="https://bintray.com/rabbitmq/archive/rabbitmq-dotnet-client">Release archive up to 3.4.3</a> is available from Bintray.</p>
 <h2 id="tutorials-and-documentation">Tutorials and Documentation</h2>
 <ul>
 <li><a href="https://www.rabbitmq.com/getstarted.html">Tutorials</a></li>
@@ -78,17 +78,18 @@ as archives.</p>
 <li><a href="https://rabbitmq.github.io/rabbitmq-dotnet-client/index.html">API Documentation</a></li>
 </ul>
 <h2 id="supported-platforms-and-net-releases">Supported Platforms and .NET Releases</h2>
-<p>Future <code>6.x</code> versions of the library require .NET 4.6.1 or a .NET Core version implementing .NET Standard 2.0.</p>
+<h3 id="6x">6.x</h3>
+<p><code>6.x</code> versions of the library require .NET 4.6.1 or a .NET Core version implementing .NET Standard 2.0.
+They also introduce potentially breaking public API changes covered in the <a href="CHANGELOG.html">changelog</a>.</p>
 <h3 id="5x-and-4x">5.x and 4.x</h3>
 <p><code>4.x</code> and <code>5.x</code> versions of the library require .NET 4.5.1 or later or .NET Core.
 For .NET Core users, 2.0 is the minimum supported version for <code>5.x</code> series.</p>
 <h3 id="older-versions">Older Versions</h3>
 <p><code>3.6.x</code> releases support Linux and MacOS on <a href="https://www.mono-project.com/">Mono</a>.</p>
 <h2 id="change-log">Change Log</h2>
-<p>See <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/CHANGELOG.md">/CHANGELOG.md</a>.</p>
+<p>See <a href="CHANGELOG.html">CHANGELOG.md</a>.</p>
 <h2 id="building-from-source">Building from Source</h2>
-<p>Please see <a href="RUNNING_TESTS.html">How to Run Tests</a> and <a href="./BUILD_DOTNET_CORE.md">Building .NET Core</a>
-for build process overview.</p>
+<p>Please see <a href="RUNNING_TESTS.html">How to Run Tests</a> for the build and test process overview.</p>
 <h2 id="contributing">Contributing</h2>
 <p>See <a href="CONTRIBUTING.html">Contributing</a> and <a href="RUNNING_TESTS.html">How to Run Tests</a>.</p>
 <h2 id="license">License</h2>

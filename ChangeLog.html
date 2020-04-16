@@ -8,7 +8,7 @@
     <title>Changes Between 5.2.0 and 6.0.0 </title>
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Changes Between 5.2.0 and 6.0.0 ">
-    <meta name="generator" content="docfx 2.51.0.0">
+    <meta name="generator" content="docfx 2.52.0.0">
     
     <link rel="shortcut icon" href="favicon.ico">
     <link rel="stylesheet" href="styles/docfx.vendor.css">
@@ -62,15 +62,55 @@
             <article class="content wrap" id="_content" data-uid="">
 <h2 id="changes-between-520-and-600">Changes Between 5.2.0 and 6.0.0</h2>
 
-<p>Please see the milestone for all changes:</p>
-<p><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/41?closed=1">GitHub <code>6.0.0</code> Milestone</a></p>
+<p>This major release of this client introduces substantial improvements
+in terms of memory footprint and throughput. They come at the cost
+of minor but important <strong>breaking API changes</strong> covered below.</p>
+<p>The client now requires .NET Framework 4.6.1 or .NET Standard 2.0.
+Earlier versions are no longer supported by the <code>6.x</code> series.</p>
+<p>Key improvements in this release have been the result of hard work by
+our stellar community members (in no particular order): @stebet, @bording,
+@Anarh2404, @danielmarbach, and others.</p>
+<p>A full list of changes can be found in the GitHub milestone: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/41?closed=1"><code>6.0.0</code></a>.</p>
+<h3 id="the-switch-to-systemmemory-and-significantly-lower-memory-footprint-that-comes-with-it">The Switch to System.Memory (and Significantly Lower Memory Footprint that Comes with It)</h3>
+<p>The client now uses the <a href=""><code>System.Memory</code> library</a> for message and command payloads. This significantly
+reduces object allocation and GC pressure for heavy workloads but also
+<strong>potentially requires application changes</strong>: consumer delivery payloads are now of instance <a href="https://docs.microsoft.com/en-us/dotnet/api/system.readonlymemory-1?view=netcore-3.1"><code>System.ReadOnlyMemory&lt;byte&gt;</code></a>
+instead of <code>byte[]</code>.</p>
+<p>While there&#39;s an implicit conversion for these types,
+instances of <code>System.ReadOnlyMemory&lt;byte&gt;</code> <strong>must be copied or consumed/deserialised before delivery handler completes</strong>.
+Holding on to delivered payloads and referencing them at a later point <strong>is no longer safe</strong>.</p>
+<p>The same applies to publishers and the <code>IModel.BasicPublish</code> method: prefer using <code>System.ReadOnlyMemory&lt;byte&gt;</code>
+over <code>byte[]</code> and dont&#39; assume that this memory can be retained and used outside of the scope of the publishing
+function.</p>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/732">#732</a></p>
+<h3 id="timeouts-use-systemtimespan">Timeouts Use <code>System.TimeSpan</code></h3>
+<p>All timeout arguments now use <code>System.TimeSpan</code> values.</p>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/688">#688</a></p>
+<h3 id="reduced-public-api-surface">Reduced Public API Surface</h3>
+<p>No major changes here but this is potentially breaking. Only public classes that were never meant
+to be publicly used have been turned internal to the client.</p>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/714">#714</a></p>
+<h3 id="requires-net-framework-461-or-net-standard-20">Requires .NET Framework 4.6.1 or .NET Standard 2.0</h3>
+<p>The client now requires .NET Framework 4.6.1 or .NET Standard 2.0. Earlier versions are no longer
+supported.</p>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/686">#686</a></p>
+<h3 id="microsoftdiagnosticstracingeventsource-dependency-dropped"><code>Microsoft.Diagnostics.Tracing.EventSource</code> Dependency Dropped</h3>
+<p><code>Microsoft.Diagnostics.Tracing.EventSource</code> dependency has been removed. It was an annoying
+dependency to have for some environments.</p>
+<h3 id="source-linking">Source Linking</h3>
+<p>The library now supports source linking.</p>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/697">#697</a></p>
+<h3 id="nuget-source-packages">NuGet Source Packages</h3>
+<p>Source packages are now also distributed via NuGet.</p>
+<h3 id="crl-checks-for-server-x509-tls-certificates">CRL Checks for Server x.509 (TLS) Certificates</h3>
+<p>Added a TLS option to enforce CRL checks for server certificates.</p>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/500">#500</a></p>
 <h2 id="changes-between-512-and-520">Changes Between 5.1.2 and 5.2.0</h2>
 <p>Please see the milestone for all changes:</p>
 <p><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/42?closed=1">GitHub <code>5.2.0</code> Milestone</a></p>
 <p>Selected highlights:</p>
 <h3 id="add-support-for-netstandard20">Add support for <code>netstandard2.0</code></h3>
-<p>GitHub Issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/428">https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/428</a>
-GitHub PR: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/435">https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/435</a></p>
+<p>GitHub issues: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/428">#428</a>, <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/435">#435</a></p>
 <h3 id="re-introduce-lock-for-all-socket-writes">Re-introduce lock for all socket writes</h3>
 <p>GitHub PR: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/702">rabbitmq-dotnet-client#702</a></p>
 <h2 id="changes-between-511-and-512">Changes Between 5.1.1 and 5.1.2</h2>

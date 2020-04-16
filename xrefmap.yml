@@ -10120,19 +10120,19 @@ references:
   commentId: T:RabbitMQ.Client.Unit.TestFloodPublishing
   fullName: RabbitMQ.Client.Unit.TestFloodPublishing
   nameWithType: TestFloodPublishing
-- uid: RabbitMQ.Client.Unit.TestFloodPublishing.Init
-  name: Init()
-  href: api/RabbitMQ.Client.Unit.TestFloodPublishing.html#RabbitMQ_Client_Unit_TestFloodPublishing_Init
-  commentId: M:RabbitMQ.Client.Unit.TestFloodPublishing.Init
-  fullName: RabbitMQ.Client.Unit.TestFloodPublishing.Init()
-  nameWithType: TestFloodPublishing.Init()
-- uid: RabbitMQ.Client.Unit.TestFloodPublishing.Init*
-  name: Init
-  href: api/RabbitMQ.Client.Unit.TestFloodPublishing.html#RabbitMQ_Client_Unit_TestFloodPublishing_Init_
-  commentId: Overload:RabbitMQ.Client.Unit.TestFloodPublishing.Init
+- uid: RabbitMQ.Client.Unit.TestFloodPublishing.TestMultithreadFloodPublishing
+  name: TestMultithreadFloodPublishing()
+  href: api/RabbitMQ.Client.Unit.TestFloodPublishing.html#RabbitMQ_Client_Unit_TestFloodPublishing_TestMultithreadFloodPublishing
+  commentId: M:RabbitMQ.Client.Unit.TestFloodPublishing.TestMultithreadFloodPublishing
+  fullName: RabbitMQ.Client.Unit.TestFloodPublishing.TestMultithreadFloodPublishing()
+  nameWithType: TestFloodPublishing.TestMultithreadFloodPublishing()
+- uid: RabbitMQ.Client.Unit.TestFloodPublishing.TestMultithreadFloodPublishing*
+  name: TestMultithreadFloodPublishing
+  href: api/RabbitMQ.Client.Unit.TestFloodPublishing.html#RabbitMQ_Client_Unit_TestFloodPublishing_TestMultithreadFloodPublishing_
+  commentId: Overload:RabbitMQ.Client.Unit.TestFloodPublishing.TestMultithreadFloodPublishing
   isSpec: "True"
-  fullName: RabbitMQ.Client.Unit.TestFloodPublishing.Init
-  nameWithType: TestFloodPublishing.Init
+  fullName: RabbitMQ.Client.Unit.TestFloodPublishing.TestMultithreadFloodPublishing
+  nameWithType: TestFloodPublishing.TestMultithreadFloodPublishing
 - uid: RabbitMQ.Client.Unit.TestFloodPublishing.TestUnthrottledFloodPublishing
   name: TestUnthrottledFloodPublishing()
   href: api/RabbitMQ.Client.Unit.TestFloodPublishing.html#RabbitMQ_Client_Unit_TestFloodPublishing_TestUnthrottledFloodPublishing
@@ -11054,3 +11054,9 @@ references:
   commentId: F:RabbitMQ.Client.Unit.TimingFixture.TimingInterval
   fullName: RabbitMQ.Client.Unit.TimingFixture.TimingInterval
   nameWithType: TimingFixture.TimingInterval
+- uid: RabbitMQ.Client.Unit.TimingFixture.TimingInterval_2X
+  name: TimingInterval_2X
+  href: api/RabbitMQ.Client.Unit.TimingFixture.html#RabbitMQ_Client_Unit_TimingFixture_TimingInterval_2X
+  commentId: F:RabbitMQ.Client.Unit.TimingFixture.TimingInterval_2X
+  fullName: RabbitMQ.Client.Unit.TimingFixture.TimingInterval_2X
+  nameWithType: TimingFixture.TimingInterval_2X
