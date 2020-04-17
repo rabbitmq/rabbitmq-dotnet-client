@@ -17,11 +17,15 @@ and perform protocol encoder/decoder code generation.
 
 On Windows run:
 
-    build.bat
+``` powershell
+build.bat
+```
 
-On osx/linux run:
+On MacOS and linux run:
 
-    build.sh
+``` shell
+build.sh
+```
 
 This will complete the code AMQP 0-9-1 protocol code generation and build all projects. After this open the solution in Visual Studio.
 
@@ -34,40 +38,56 @@ may take some time for the adapter to discover tests in the assemblies.
 The test suite assumes there's a RabbitMQ node running locally with all
 defaults, and the tests will need to be able to run commands against the
 [`rabbitmqctl`](https://www.rabbitmq.com/rabbitmqctl.8.html) tool for that node.
-Two options to accomplish this are:
+Two options to accomplish this are covered below.
+
+### Using RabbitMQ Umbrella Repository
 
 1. Team RabbitMQ uses [rabbitmq-public-umbrella](https://github.com/rabbitmq/rabbitmq-public-umbrella), which sets up a local RabbitMQ server [built from source](https://www.rabbitmq.com/build-server.html):
-    ```
-    git clone https://github.com/rabbitmq/rabbitmq-public-umbrella umbrella
-    cd umbrella
-    make co
-    cd deps/rabbit
-    make
-    make run-broker
-    ```
-
-2. You can load a RabbitMQ node in a [docker](https://www.docker.com/) container. You will need to create an environment variable `RABBITMQ_RABBITMQCTL_PATH` and set it to `DOCKER:<container_name>` (for example `DOCKER:rabbitmq01`). This tells the unit tests to run the `rabbitmqctl` commands through docker, in the format `docker exec rabbitmq01 rabbitmqctl <args>`:
-    ```
-    docker run -d --hostname rabbitmq01 --name rabbitmq01 -p 15672:15672 -p 5672:5672 rabbitmq:3-management
-    ```
-
-    Then, to run the tests on Windows use:
-
-    ```
-    run-test.bat
-    ```
-
-    On MacOS, Linux, BSD use:
-
-    ```
-    run-test.sh
-    ```
-
-Running individual tests and fixtures on Windows is trivial using the Visual Studio test runner.
-To run a specific tests fixture on MacOS or Linux, use the NUnit filter expressions to select the tests
-to be run:
 
 ```
+git clone https://github.com/rabbitmq/rabbitmq-public-umbrella umbrella
+cd umbrella
+make co
+cd deps/rabbit
+make
+make run-broker
+```
+
+`rabbitmqctl` location will be computed using a relative path in the umbrella.
+It is possible to override the location using `RABBITMQ_RABBITMQCTL_PATH`:
+
+```
+RABBITMQ_RABBITMQCTL_PATH=/path/to/rabbitmqctl dotnet test projects/Unit
+```
+
+### Using a Docker Container
+
+It is also possible to run a RabbitMQ node in a [Docker](https://www.docker.com/) container.  Set the environment variable `RABBITMQ_RABBITMQCTL_PATH` to `DOCKER:<container_name>` (for example `DOCKER:rabbitmq01`). This tells the unit tests to run the `rabbitmqctl` commands through Docker, in the format `docker exec rabbitmq01 rabbitmqctl <args>`:
+
+``` shell
+docker run -d --hostname rabbitmq01 --name rabbitmq01 -p 15672:15672 -p 5672:5672 rabbitmq:3-management
+```
+
+### Running All Tests
+
+Then, to run the tests use:
+
+``` powershell
+run-test.bat
+```
+
+On MacOS, Linux, BSD use:
+
+``` shell
+run-test.sh
+```
+
+### Running Individual Suites or Test Casess
+
+Running individual tests and fixtures on Windows is trivial using the Visual Studio test runner.
+To run a specific tests fixture on MacOS or Linux, use the NUnit filter expressions to select the tests to be run:
+
+``` shell
 dotnet test projects/Unit --filter "Name~TestAmqpUriParseFail"
 
 dotnet test projects/Unit --filter "FullyQualifiedName~RabbitMQ.Client.Unit.TestHeartbeats"
