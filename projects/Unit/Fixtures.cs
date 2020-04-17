@@ -43,6 +43,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -417,7 +418,6 @@ namespace RabbitMQ.Client.Unit
         {
             // Allow the path to the rabbitmqctl.bat to be set per machine
             string envVariable = Environment.GetEnvironmentVariable("RABBITMQ_RABBITMQCTL_PATH");
-
             string rabbitmqctlPath;
 
             if (envVariable != null)
@@ -428,19 +428,31 @@ namespace RabbitMQ.Client.Unit
                 if (match.Success)
                 {
                     return ExecRabbitMqCtlUsingDocker(args, match.Groups["dockerMachine"].Value);
-                }
-                else
-                {
+                } else {
                     rabbitmqctlPath = envVariable;
                 }
             }
-            else if (IsRunningOnMonoOrDotNetCore())
-            {
-                rabbitmqctlPath = "../../../../../../rabbit/scripts/rabbitmqctl";
-            }
             else
             {
-                rabbitmqctlPath = @"..\..\..\..\..\..\rabbit\scripts\rabbitmqctl.bat";
+                // provided by the umbrella
+                string umbrellaRabbitmqctlPath;
+                // provided in PATH by a RabbitMQ installation
+                string providedRabbitmqctlPath;
+
+                if (IsRunningOnMonoOrDotNetCore())
+                {
+                    umbrellaRabbitmqctlPath = "../../../../../../rabbit/scripts/rabbitmqctl";
+                    providedRabbitmqctlPath = "rabbitmqctl";
+                } else {
+                    umbrellaRabbitmqctlPath = @"..\..\..\..\..\..\rabbit\scripts\rabbitmqctl.bat";
+                    providedRabbitmqctlPath = "rabbitmqctl.bat";
+                }
+
+                if (File.Exists(umbrellaRabbitmqctlPath)) {
+                    rabbitmqctlPath = umbrellaRabbitmqctlPath;
+                } else {
+                    rabbitmqctlPath = providedRabbitmqctlPath;
+                }
             }
 
             return ExecCommand(rabbitmqctlPath, args);
