@@ -33,10 +33,6 @@ They also introduce potentially breaking public API changes covered in the [chan
 `4.x` and `5.x` versions of the library require .NET 4.5.1 or later or .NET Core.
 For .NET Core users, 2.0 is the minimum supported version for `5.x` series.
 
-### Older Versions
-
-`3.6.x` releases support Linux and MacOS on [Mono](https://www.mono-project.com/).
-
 
 ## Change Log
 
