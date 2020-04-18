@@ -15,7 +15,7 @@ A full list of changes can be found in the GitHub milestone: [`6.0.0`](https://g
 
 ### The Switch to System.Memory (and Significantly Lower Memory Footprint that Comes with It)
 
-The client now uses the [`System.Memory` library]() for message and command payloads. This significantly
+The client now uses the [`System.Memory` library](https://www.nuget.org/packages/System.Memory/) for message and command payloads. This significantly
 reduces object allocation and GC pressure for heavy workloads but also
 **potentially requires application changes**: consumer delivery payloads are now of instance [`System.ReadOnlyMemory<byte>`](https://docs.microsoft.com/en-us/dotnet/api/system.readonlymemory-1?view=netcore-3.1)
 instead of `byte[]`.
