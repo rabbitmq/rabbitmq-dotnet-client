@@ -50,6 +50,9 @@ namespace RabbitMQ.Client.Unit
     public class APIApproval
     {
         [Test]
+        #if !NETCOREAPP
+        [Ignore("This test is limited to .NET Core targets")]
+        #endif
         public Task Approve()
         {
             string publicApi = typeof(ConnectionFactory).Assembly.GeneratePublicApi(new ApiGeneratorOptions { ExcludeAttributes = new[] { "System.Runtime.Versioning.TargetFrameworkAttribute" } });
