@@ -100,3 +100,11 @@ dotnet test projects/Unit --filter "Name~TestAmqpUriParseFail"
 
 dotnet test projects/Unit --filter "FullyQualifiedName~RabbitMQ.Client.Unit.TestHeartbeats"
 ```
+
+## Running Tests for a Specific .NET Target
+
+To only run tests on .NET Core:
+
+``` shell
+dotnet test projects/Unit -f netcoreapp3.1 projects/Unit
+```
