@@ -106,5 +106,5 @@ dotnet test projects/Unit --filter "FullyQualifiedName~RabbitMQ.Client.Unit.Test
 To only run tests on .NET Core:
 
 ``` shell
-dotnet test projects/Unit -f netcoreapp3.1 projects/Unit
+dotnet test -f netcoreapp3.1 projects/Unit
 ```
