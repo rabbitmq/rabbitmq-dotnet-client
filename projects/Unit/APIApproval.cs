@@ -38,24 +38,27 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using ApprovalTests;
-using ApprovalTests.Reporters;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
-
 using PublicApiGenerator;
+using Verify;
+using VerifyNUnit;
 
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    [UseReporter(typeof(QuietReporter))]
     public class APIApproval
     {
         [Test]
-        public void Approve()
+        public Task Approve()
         {
             string publicApi = typeof(ConnectionFactory).Assembly.GeneratePublicApi(new ApiGeneratorOptions { ExcludeAttributes = new[] { "System.Runtime.Versioning.TargetFrameworkAttribute" } });
-            Approvals.Verify(publicApi);
+
+            var settings = new VerifySettings();
+            settings.DisableClipboard();
+            settings.DisableDiff();
+
+            return Verifier.Verify(publicApi, settings);
         }
     }
 }
