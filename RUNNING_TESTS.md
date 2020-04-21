@@ -81,12 +81,14 @@ docker run -d --hostname rabbitmq01 --name rabbitmq01 -p 15672:15672 -p 5672:567
 Then, to run the tests use:
 
 ``` powershell
+# will run tests on .NET Core and .NET Framework
 run-test.bat
 ```
 
 On MacOS, Linux, BSD use:
 
 ``` shell
+# will only run tests on .NET Core
 run-test.sh
 ```
 
@@ -96,9 +98,9 @@ Running individual tests and fixtures on Windows is trivial using the Visual Stu
 To run a specific tests fixture on MacOS or Linux, use the NUnit filter expressions to select the tests to be run:
 
 ``` shell
-dotnet test projects/Unit --filter "Name~TestAmqpUriParseFail"
+dotnet test projects/Unit -f netcoreapp3.1 --filter "Name~TestAmqpUriParseFail"
 
-dotnet test projects/Unit --filter "FullyQualifiedName~RabbitMQ.Client.Unit.TestHeartbeats"
+dotnet test projects/Unit -f netcoreapp3.1 --filter "FullyQualifiedName~RabbitMQ.Client.Unit.TestHeartbeats"
 ```
 
 ## Running Tests for a Specific .NET Target
