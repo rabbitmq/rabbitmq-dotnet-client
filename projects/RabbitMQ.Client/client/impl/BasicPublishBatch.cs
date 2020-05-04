@@ -55,6 +55,11 @@ namespace RabbitMQ.Client.Impl
             _model = model;
         }
 
+        public void Add(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, byte[] body)
+        {
+            Add(exchange, routingKey, mandatory, basicProperties, body.AsMemory());
+        }
+
         public void Add(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
         {
             IBasicProperties bp = basicProperties ?? _model.CreateBasicProperties();
