@@ -96,7 +96,7 @@ namespace RabbitMQ.Client
         {
             _consumerTags.Add(consumerTag);
             IsRunning = true;
-            return TaskExtensions.CompletedTask;
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -118,7 +118,7 @@ namespace RabbitMQ.Client
             ReadOnlyMemory<byte> body)
         {
             // Nothing to do here.
-            return TaskExtensions.CompletedTask;
+            return Task.CompletedTask;
         }
 
         /// <summary>

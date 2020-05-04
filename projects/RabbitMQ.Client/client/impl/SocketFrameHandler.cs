@@ -54,8 +54,6 @@ namespace RabbitMQ.Client.Impl
 {
     static class TaskExtensions
     {
-        public static Task CompletedTask = Task.FromResult(0);
-
         public static async Task TimeoutAfter(this Task task, TimeSpan timeout)
         {
             if (task == await Task.WhenAny(task, Task.Delay(timeout)).ConfigureAwait(false))
