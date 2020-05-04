@@ -57,7 +57,7 @@ namespace RabbitMQ.Client.Impl
                             string exchange,
                             string routingKey,
                             IBasicProperties basicProperties,
-                            ReadOnlyMemory<byte> body);
+                            ReadOnlySpan<byte> body);
 
         void HandleBasicCancelOk(IBasicConsumer consumer,
                             string consumerTag);

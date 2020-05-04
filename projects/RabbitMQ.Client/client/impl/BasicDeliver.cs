@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 using RabbitMQ.Client.Events;
@@ -15,8 +16,7 @@ namespace RabbitMQ.Client.Impl
         readonly string _exchange;
         readonly string _routingKey;
         readonly IBasicProperties _basicProperties;
-        readonly IMemoryOwner<byte> _body;
-        readonly int _bodyLength;
+        readonly ReadOnlyMemory<byte> _body;
 
         public BasicDeliver(IBasicConsumer consumer, 
             string consumerTag, 
@@ -25,8 +25,7 @@ namespace RabbitMQ.Client.Impl
             string exchange, 
             string routingKey, 
             IBasicProperties basicProperties,
-            IMemoryOwner<byte> body,
-            int bodyLength) : base(consumer)
+            ReadOnlyMemory<byte> body) : base(consumer)
         {
             _consumerTag = consumerTag;
             _deliveryTag = deliveryTag;
@@ -35,7 +34,6 @@ namespace RabbitMQ.Client.Impl
             _routingKey = routingKey;
             _basicProperties = basicProperties;
             _body = body;
-            _bodyLength = bodyLength;
         }
 
         protected override async Task Execute(ModelBase model, IAsyncBasicConsumer consumer)
@@ -48,7 +46,7 @@ namespace RabbitMQ.Client.Impl
                     _exchange,
                     _routingKey,
                     _basicProperties,
-                    _body.Memory.Slice(0, _bodyLength)).ConfigureAwait(false);
+                    _body).ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -61,7 +59,10 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                _body.Dispose();
+                if (MemoryMarshal.TryGetArray(_body, out ArraySegment<byte> segment))
+                {
+                    ArrayPool<byte>.Shared.Return(segment.Array);
+                }
             }
         }
     }

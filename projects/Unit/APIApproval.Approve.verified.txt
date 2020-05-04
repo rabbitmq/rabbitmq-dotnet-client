@@ -285,7 +285,7 @@ namespace RabbitMQ.Client
     }
     public interface IBasicPublishBatch
     {
-        void Add(string exchange, string routingKey, bool mandatory, RabbitMQ.Client.IBasicProperties properties, byte[] body);
+        void Add(string exchange, string routingKey, bool mandatory, RabbitMQ.Client.IBasicProperties properties, System.ReadOnlyMemory<byte> body);
         void Publish();
     }
     public interface IConnection : RabbitMQ.Client.INetworkConnection, System.IDisposable

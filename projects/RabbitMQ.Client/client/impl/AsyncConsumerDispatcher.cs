@@ -45,11 +45,12 @@ namespace RabbitMQ.Client.Impl
             string exchange,
             string routingKey,
             IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body)
+            ReadOnlySpan<byte> body)
         {
-            IMemoryOwner<byte> bodyCopy = MemoryPool<byte>.Shared.Rent(body.Length);
-            body.CopyTo(bodyCopy.Memory);
-            ScheduleUnlessShuttingDown(new BasicDeliver(consumer, consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, bodyCopy, body.Length));
+            byte[] bodyBytes = ArrayPool<byte>.Shared.Rent(body.Length);
+            Memory<byte> bodyCopy = new Memory<byte>(bodyBytes, 0, body.Length);
+            body.CopyTo(bodyCopy.Span);
+            ScheduleUnlessShuttingDown(new BasicDeliver(consumer, consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, bodyCopy));
         }
 
         public void HandleBasicCancelOk(IBasicConsumer consumer, string consumerTag)

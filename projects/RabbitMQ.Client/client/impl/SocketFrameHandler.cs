@@ -228,19 +228,15 @@ namespace RabbitMQ.Client.Impl
         public void WriteFrame(OutboundFrame frame, bool flush = true)
         {
             int bufferSize = frame.GetMinimumBufferSize();
-            using (IMemoryOwner<byte> memory = MemoryPool<byte>.Shared.Rent(bufferSize))
-            {
-                Memory<byte> slice = memory.Memory.Slice(0, bufferSize);
-                frame.WriteTo(slice);
-                _socket.Client.Poll(_writeableStateTimeoutMicroSeconds, SelectMode.SelectWrite);
-                if (MemoryMarshal.TryGetArray(slice.Slice(0, frame.ByteCount), out ArraySegment<byte> segment))
-                {
-                    Write(segment, flush);
-                    return;
-                }
+            byte[] memoryArray = ArrayPool<byte>.Shared.Rent(bufferSize);
+            Memory<byte> slice = new Memory<byte>(memoryArray, 0, bufferSize);
+            frame.WriteTo(slice);
+            _socket.Client.Poll(_writeableStateTimeoutMicroSeconds, SelectMode.SelectWrite);
+            Write(slice.Slice(0, frame.ByteCount), flush);
+            ArrayPool<byte>.Shared.Return(memoryArray);
+            return;
 
-                throw new InvalidOperationException("Unable to get array segment from memory.");
-            }
+            throw new InvalidOperationException("Unable to get array segment from memory.");
         }
 
         public void WriteFrameSet(IList<OutboundFrame> frames)
@@ -249,20 +245,25 @@ namespace RabbitMQ.Client.Impl
             {
                 WriteFrame(frames[i], false);
             }
+
             lock (_streamLock)
             {
                 _writer.Flush();
             }
         }
 
-        private void Write(ArraySegment<byte> bufferSegment, bool flush)
+        private void Write(ReadOnlyMemory<byte> buffer, bool flush)
         {
             lock (_streamLock)
             {
-                _writer.Write(bufferSegment.Array, bufferSegment.Offset, bufferSegment.Count);
-                if (flush)
+                if (MemoryMarshal.TryGetArray(buffer, out ArraySegment<byte> segment))
                 {
-                    _writer.Flush();
+                    _writer.Write(segment.Array, segment.Offset, segment.Count);
+
+                    if (flush)
+                    {
+                        _writer.Flush();
+                    }
                 }
             }
         }

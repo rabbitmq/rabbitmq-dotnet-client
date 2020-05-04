@@ -344,7 +344,7 @@ namespace RabbitMQ.Client.Impl
             var k = new SimpleBlockingRpcContinuation();
             lock (_rpcLock)
             {
-                TransmitAndEnqueue(new Command(method, header, body), k);
+                TransmitAndEnqueue(new Command(method, header, body, false), k);
                 return k.GetReply(ContinuationTimeout).Method;
             }
         }
@@ -354,11 +354,11 @@ namespace RabbitMQ.Client.Impl
             if (method.HasContent)
             {
                 _flowControlBlock.Wait();
-                Session.Transmit(new Command(method, header, body));
+                Session.Transmit(new Command(method, header, body, false));
             }
             else
             {
-                Session.Transmit(new Command(method, header, body));
+                Session.Transmit(new Command(method, header, body, false));
             }
         }
 
@@ -664,7 +664,7 @@ namespace RabbitMQ.Client.Impl
                     exchange,
                     routingKey,
                     basicProperties,
-                    body);
+                    body.Span);
         }
 
         public void HandleBasicGetEmpty()
