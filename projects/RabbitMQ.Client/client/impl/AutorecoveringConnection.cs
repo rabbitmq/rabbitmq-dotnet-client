@@ -299,6 +299,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             ISession session = _delegate.CreateSession();
             var result = new RecoveryAwareModel(session);
+            result.ContinuationTimeout = _factory.ContinuationTimeout;
             result._Private_ChannelOpen("");
             return result;
         }
