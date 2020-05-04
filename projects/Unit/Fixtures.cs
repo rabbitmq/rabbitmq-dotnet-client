@@ -165,6 +165,16 @@ namespace RabbitMQ.Client.Unit
             return cf.CreateConnection($"UNIT_CONN:{Guid.NewGuid()}");
         }
 
+        internal IConnection CreateConnectionWithContinuationTimeout(bool automaticRecoveryEnabled, TimeSpan continuationTimeout)
+        {
+            var cf = new ConnectionFactory
+            {
+                AutomaticRecoveryEnabled = automaticRecoveryEnabled,
+                ContinuationTimeout = continuationTimeout
+            };
+            return cf.CreateConnection($"UNIT_CONN:{Guid.NewGuid()}");
+        }
+
         //
         // Channels
         //
