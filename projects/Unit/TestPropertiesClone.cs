@@ -68,10 +68,10 @@ namespace RabbitMQ.Client.Unit
             bp.ContentType = "foo_1";
             bp.ContentEncoding = "foo_2";
             bp.Headers = new Dictionary<string, object>
-        {
-            { "foo_3", "foo_4" },
-            { "foo_5", "foo_6" }
-        };
+            {
+                { "foo_3", "foo_4" },
+                { "foo_5", "foo_6" }
+            };
             bp.DeliveryMode = 2;
             // Persistent also changes DeliveryMode's value to 2
             bp.Persistent = true;
@@ -123,6 +123,7 @@ namespace RabbitMQ.Client.Unit
             Assert.AreEqual(12, bpClone.Priority);
             Assert.AreEqual("foo_7", bpClone.CorrelationId);
             Assert.AreEqual("foo_8", bpClone.ReplyTo);
+            Assert.AreEqual(null, bpClone.ReplyToAddress);
             Assert.AreEqual("foo_9", bpClone.Expiration);
             Assert.AreEqual("foo_10", bpClone.MessageId);
             Assert.AreEqual(new AmqpTimestamp(123), bpClone.Timestamp);
@@ -141,10 +142,10 @@ namespace RabbitMQ.Client.Unit
             bp.ContentType = "foo_1";
             bp.ContentEncoding = "foo_2";
             bp.Headers = new Dictionary<string, object>
-        {
-            { "foo_3", "foo_4" },
-            { "foo_5", "foo_6" }
-        };
+            {
+                { "foo_3", "foo_4" },
+                { "foo_5", "foo_6" }
+            };
             bp.DeliveryMode = 2;
             // Persistent also changes DeliveryMode's value to 2
             bp.Persistent = true;
