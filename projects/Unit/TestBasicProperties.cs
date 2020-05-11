@@ -122,9 +122,7 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestProperties_ReplyTo(
-            [Values(null, "foo_1", "fanout://name/key")] string replyTo
-            )
+        public void TestProperties_ReplyTo([Values(null, "foo_1", "fanout://name/key")] string replyTo)
         {
             // Arrange
             var subject = new Framing.BasicProperties

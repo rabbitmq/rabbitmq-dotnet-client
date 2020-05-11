@@ -125,12 +125,17 @@ namespace RabbitMQ.Client
             {
                 result = null;
                 return false;
-            } else {
-                try {
+            }
+            else
+            {
+                try
+                {
                     var res = Parse(uriLikeString);
                     result = res;
                     return true;
-                } catch {
+                }
+                catch
+                {
                     result = null;
                     return false;
                 }

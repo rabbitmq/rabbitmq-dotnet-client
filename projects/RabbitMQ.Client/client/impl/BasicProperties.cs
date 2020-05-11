@@ -115,7 +115,8 @@ namespace RabbitMQ.Client.Impl
         /// </summary>
         public PublicationAddress ReplyToAddress
         {
-            get { 
+            get
+            {
                 PublicationAddress result;
                 PublicationAddress.TryParse(ReplyTo, out result);
                 return result;
