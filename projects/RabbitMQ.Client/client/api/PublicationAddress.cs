@@ -116,7 +116,8 @@ namespace RabbitMQ.Client
             return null;
         }
 
-        public static PublicationAddress TryParse(string uriLikeString) {
+        public static PublicationAddress TryParse(string uriLikeString)
+        {
             // Callers such as IBasicProperties.ReplyToAddress
             // expect null result for invalid input.
             // The regex.Match() throws on null arguments so we perform explicit check here
