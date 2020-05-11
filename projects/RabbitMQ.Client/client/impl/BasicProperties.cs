@@ -109,9 +109,9 @@ namespace RabbitMQ.Client.Impl
         public abstract string ReplyTo { get; set; }
 
         /// <summary>
-        /// Convenience property; parses <see cref="ReplyTo"/> property using <see cref="PublicationAddress.Parse"/>,
+        /// Convenience property; parses <see cref="ReplyTo"/> property using <see cref="PublicationAddress.TryParse"/>,
         /// and serializes it using <see cref="PublicationAddress.ToString"/>.
-        /// Returns null if <see cref="ReplyTo"/> property cannot be parsed by <see cref="PublicationAddress.Parse"/>.
+        /// Returns null if <see cref="ReplyTo"/> property cannot be parsed by <see cref="PublicationAddress.TryParse"/>.
         /// </summary>
         public PublicationAddress ReplyToAddress
         {
