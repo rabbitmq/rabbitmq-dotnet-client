@@ -120,5 +120,36 @@ namespace RabbitMQ.Client.Unit
             Assert.AreEqual(isCorrelationIdPresent, propertiesFromStream.IsCorrelationIdPresent());
             Assert.AreEqual(isMessageIdPresent, propertiesFromStream.IsMessageIdPresent());
         }
+
+        [Test]
+        public void TestProperties_ReplyTo(
+            [Values(null, "foo_1", "fanout://name/key")] string replyTo
+            )
+        {
+            // Arrange
+            var subject = new Framing.BasicProperties
+            {
+
+                // Act
+                ReplyTo = replyTo,
+            };
+
+            // Assert
+            bool isReplyToPresent = replyTo != null;
+            string replyToAddress = PublicationAddress.Parse(replyTo)?.ToString();
+            Assert.AreEqual(isReplyToPresent, subject.IsReplyToPresent());
+
+            var writer = new Impl.ContentHeaderPropertyWriter(new byte[1024]);
+            subject.WritePropertiesTo(ref writer);
+
+            // Read from Stream
+            var propertiesFromStream = new Framing.BasicProperties();
+            var reader = new Impl.ContentHeaderPropertyReader(writer.Memory.Slice(0, writer.Offset));
+            propertiesFromStream.ReadPropertiesFrom(ref reader);
+
+            Assert.AreEqual(replyTo, propertiesFromStream.ReplyTo);
+            Assert.AreEqual(isReplyToPresent, propertiesFromStream.IsReplyToPresent());
+            Assert.AreEqual(replyToAddress, propertiesFromStream.ReplyToAddress?.ToString());
+        }
     }
 }
