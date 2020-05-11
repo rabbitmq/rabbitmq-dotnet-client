@@ -106,14 +106,6 @@ namespace RabbitMQ.Client
         /// </summary>
         public static PublicationAddress Parse(string uriLikeString)
         {
-            // Callers such as IBasicProperties.ReplyToAddress
-            // expect null result for invalid input.
-            // The regex.Match() throws on null arguments so we perform explicit check here
-            if (uriLikeString == null)
-            {
-                return null;
-            }
-
             Match match = PSEUDO_URI_PARSER.Match(uriLikeString);
             if (match.Success)
             {
@@ -122,6 +114,22 @@ namespace RabbitMQ.Client
                     match.Groups[3].Value);
             }
             return null;
+        }
+
+        public static PublicationAddress TryParse(string uriLikeString) {
+            // Callers such as IBasicProperties.ReplyToAddress
+            // expect null result for invalid input.
+            // The regex.Match() throws on null arguments so we perform explicit check here
+            if (uriLikeString == null)
+            {
+                return null;
+            } else {
+                try {
+                    return Parse(uriLikeString);
+                } catch {
+                    return null;
+                }
+            }
         }
 
         /// <summary>
