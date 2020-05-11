@@ -483,6 +483,7 @@ namespace RabbitMQ.Client
         public string RoutingKey { get; }
         public override string ToString() { }
         public static RabbitMQ.Client.PublicationAddress Parse(string uriLikeString) { }
+        public static bool TryParse(string uriLikeString, out RabbitMQ.Client.PublicationAddress result) { }
     }
     public class QueueDeclareOk
     {
