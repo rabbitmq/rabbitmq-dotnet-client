@@ -135,7 +135,9 @@ namespace RabbitMQ.Client.Unit
 
             // Assert
             bool isReplyToPresent = replyTo != null;
-            string replyToAddress = PublicationAddress.TryParse(replyTo)?.ToString();
+            PublicationAddress result;
+            PublicationAddress.TryParse(replyTo, out result);
+            string replyToAddress = result?.ToString();
             Assert.AreEqual(isReplyToPresent, subject.IsReplyToPresent());
 
             var writer = new Impl.ContentHeaderPropertyWriter(new byte[1024]);
