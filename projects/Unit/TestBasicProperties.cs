@@ -52,7 +52,6 @@ namespace RabbitMQ.Client.Unit
             // Arrange
             var subject = new Framing.BasicProperties
             {
-
                 // Act
                 Persistent = true
             };
