@@ -58,6 +58,7 @@ namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class Connection : IConnection
     {
+        private bool _disposed = false;
         private readonly object _eventLock = new object();
 
         ///<summary>Heartbeat frame for transmission. Reusable across connections.</summary>
@@ -137,6 +138,11 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             add
             {
+                if (_disposed)
+                {
+                    throw new ObjectDisposedException(GetType().FullName);
+                }
+
                 bool ok = false;
                 lock (_eventLock)
                 {
@@ -153,6 +159,11 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             remove
             {
+                if (_disposed)
+                {
+                    throw new ObjectDisposedException(GetType().FullName);
+                }
+
                 lock (_eventLock)
                 {
                     _connectionShutdown -= value;
@@ -675,6 +686,11 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>Broadcasts notification of the final shutdown of the connection.</summary>
         public void OnShutdown()
         {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(GetType().FullName);
+            }
+
             EventHandler<ShutdownEventArgs> handler;
             ShutdownEventArgs reason;
             lock (_eventLock)
@@ -1024,6 +1040,11 @@ entry.ToString());
 
         private void Dispose(bool disposing)
         {
+            if (_disposed)
+            {
+                return;
+            }
+
             if (disposing)
             {
                 // dispose managed resources
@@ -1039,6 +1060,7 @@ entry.ToString());
                 finally
                 {
                     _connectionShutdown = null;
+                    _disposed = true;
                 }
             }
 
