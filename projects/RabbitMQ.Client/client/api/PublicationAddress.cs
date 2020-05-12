@@ -116,6 +116,32 @@ namespace RabbitMQ.Client
             return null;
         }
 
+        public static bool TryParse(string uriLikeString, out PublicationAddress result)
+        {
+            // Callers such as IBasicProperties.ReplyToAddress
+            // expect null result for invalid input.
+            // The regex.Match() throws on null arguments so we perform explicit check here
+            if (uriLikeString == null)
+            {
+                result = null;
+                return false;
+            }
+            else
+            {
+                try
+                {
+                    var res = Parse(uriLikeString);
+                    result = res;
+                    return true;
+                }
+                catch
+                {
+                    result = null;
+                    return false;
+                }
+            }
+        }
+
         /// <summary>
         /// Reconstruct the "uri" from its constituents.
         /// </summary>

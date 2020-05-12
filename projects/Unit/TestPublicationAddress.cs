@@ -57,9 +57,29 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestParseFail()
+        public void TestParseFailWithANE()
         {
-            Assert.IsNull(PublicationAddress.Parse("not a valid uri"));
+            Assert.That(()=> PublicationAddress.Parse(null), Throws.ArgumentNullException);
+        }
+
+        [Test]
+        public void TestParseFailWithUnparseableInput()
+        {
+            Assert.IsNull(PublicationAddress.Parse("not a valid URI"));
+        }
+
+        [Test]
+        public void TestTryParseFail()
+        {
+            PublicationAddress result;
+            PublicationAddress.TryParse(null, out result);
+            Assert.IsNull(result);
+
+            PublicationAddress.TryParse("not a valid URI", out result);
+            Assert.IsNull(result);
+
+            PublicationAddress.TryParse("}}}}}}}}", out result);
+            Assert.IsNull(result);
         }
 
         [Test]
