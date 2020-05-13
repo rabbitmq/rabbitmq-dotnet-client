@@ -485,7 +485,7 @@ $@"namespace {ApiNamespaceBase}
             EmitLine("");
             EmitContentHeaderReader();
             EmitLine("  }");
-            EmitLine("  internal sealed class Constants");
+            EmitLine("  public static class Constants");
             EmitLine("  {");
             foreach (KeyValuePair<string, int> de in m_constants)
             {
