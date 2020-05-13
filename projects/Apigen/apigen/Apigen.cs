@@ -480,11 +480,9 @@ $@"namespace {ApiNamespaceBase}
     ///<summary>Default TCP port (= {port})</summary>
     public override int DefaultPort => {port};
 ";
-            EmitLine(publicVars);
-            EmitMethodArgumentReader();
-            EmitLine("");
-            EmitContentHeaderReader();
-            EmitLine("  }");
+
+            EmitLine("namespace RabbitMQ.Client");
+            EmitLine("{");
             EmitLine("  public static class Constants");
             EmitLine("  {");
             foreach (KeyValuePair<string, int> de in m_constants)
@@ -492,6 +490,12 @@ $@"namespace {ApiNamespaceBase}
                 EmitLine($"    ///<summary>(= {de.Value})</summary>");
                 EmitLine($"    public const int {MangleConstant(de.Key)} = {de.Value};");
             }
+            EmitLine("  }");
+            EmitLine("}");
+            EmitLine(publicVars);
+            EmitMethodArgumentReader();
+            EmitLine("");
+            EmitContentHeaderReader();
             EmitLine("  }");
             foreach (AmqpClass c in m_classes)
             {
