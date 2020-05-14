@@ -1077,7 +1077,7 @@ namespace RabbitMQ.Client.Impl
             bool multiple,
             bool requeue);
 
-        internal void AllocatatePublishSeqNos(int count)
+        internal void AllocatePublishSeqNos(int count)
         {
             if (NextPublishSeqNo > 0)
             {
@@ -1423,7 +1423,7 @@ namespace RabbitMQ.Client.Impl
         internal void SendCommands(IList<Command> commands)
         {
             _flowControlBlock.Wait();
-            AllocatatePublishSeqNos(commands.Count);
+            AllocatePublishSeqNos(commands.Count);
             Session.Transmit(commands);
         }
 
