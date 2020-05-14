@@ -54,9 +54,9 @@ namespace RabbitMQ.Client.Unit
         {
             string q = Model.QueueDeclare();
 
-            var registeredLatch = new ManualResetEvent(false);
+            var registeredLatch = new ManualResetEventSlim(false);
             object registeredSender = null;
-            var unregisteredLatch = new ManualResetEvent(false);
+            var unregisteredLatch = new ManualResetEventSlim(false);
             object unregisteredSender = null;
 
             EventingBasicConsumer ec = new EventingBasicConsumer(Model);

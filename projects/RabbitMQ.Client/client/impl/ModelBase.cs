@@ -66,7 +66,7 @@ namespace RabbitMQ.Client.Impl
         private TimeSpan _continuationTimeout = TimeSpan.FromSeconds(20);
 
         private readonly RpcContinuationQueue _continuationQueue = new RpcContinuationQueue();
-        private readonly ManualResetEvent _flowControlBlock = new ManualResetEvent(true);
+        private readonly ManualResetEventSlim _flowControlBlock = new ManualResetEventSlim(true);
 
         private readonly object _shutdownLock = new object();
         private readonly object _rpcLock = new object();
@@ -353,7 +353,7 @@ namespace RabbitMQ.Client.Impl
         {
             if (method.HasContent)
             {
-                _flowControlBlock.WaitOne();
+                _flowControlBlock.Wait();
                 Session.Transmit(new Command(method, header, body));
             }
             else
@@ -1410,7 +1410,7 @@ namespace RabbitMQ.Client.Impl
 
         internal void SendCommands(IList<Command> commands)
         {
-            _flowControlBlock.WaitOne();
+            _flowControlBlock.Wait();
             AllocatatePublishSeqNos(commands.Count);
             Session.Transmit(commands);
         }

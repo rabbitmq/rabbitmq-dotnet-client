@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Unit
         public void TestConsumerDispatcherShutdown()
         {
             var m = (AutorecoveringModel)Model;
-            var latch = new ManualResetEvent(false);
+            var latch = new ManualResetEventSlim(false);
 
             Model.ModelShutdown += (model, args) =>
             {
