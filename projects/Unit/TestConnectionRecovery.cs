@@ -86,7 +86,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestBasicAckAfterChannelRecovery()
         {
-            var latch = new ManualResetEvent(false);
+            var latch = new ManualResetEventSlim(false);
             var cons = new AckingBasicConsumer(Model, latch, CloseAndWaitForRecovery);
 
             TestDelayedBasicAckNackAfterChannelRecovery(cons, latch);
@@ -115,7 +115,7 @@ namespace RabbitMQ.Client.Unit
         public void TestBasicAckEventHandlerRecovery()
         {
             Model.ConfirmSelect();
-            var latch = new ManualResetEvent(false);
+            var latch = new ManualResetEventSlim(false);
             ((AutorecoveringModel)Model).BasicAcks += (m, args) => latch.Set();
             ((AutorecoveringModel)Model).BasicNacks += (m, args) => latch.Set();
 
@@ -235,7 +235,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestBasicNackAfterChannelRecovery()
         {
-            var latch = new ManualResetEvent(false);
+            var latch = new ManualResetEventSlim(false);
             var cons = new NackingBasicConsumer(Model, latch, CloseAndWaitForRecovery);
 
             TestDelayedBasicAckNackAfterChannelRecovery(cons, latch);
@@ -244,7 +244,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestBasicRejectAfterChannelRecovery()
         {
-            var latch = new ManualResetEvent(false);
+            var latch = new ManualResetEventSlim(false);
             var cons = new RejectingBasicConsumer(Model, latch, CloseAndWaitForRecovery);
 
             TestDelayedBasicAckNackAfterChannelRecovery(cons, latch);
@@ -253,7 +253,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestBlockedListenersRecovery()
         {
-            var latch = new ManualResetEvent(false);
+            var latch = new ManualResetEventSlim(false);
             Conn.ConnectionBlocked += (c, reason) => latch.Set();
             CloseAndWaitForRecovery();
             CloseAndWaitForRecovery();
@@ -314,7 +314,7 @@ namespace RabbitMQ.Client.Unit
                 CloseAndWaitForRecovery(c);
 
                 Assert.IsTrue(m.IsOpen);
-                var latch = new ManualResetEvent(false);
+                var latch = new ManualResetEventSlim(false);
                 cons.Received += (s, args) => latch.Set();
 
                 m.BasicPublish("", q, null, encoding.GetBytes("msg"));
@@ -354,7 +354,7 @@ namespace RabbitMQ.Client.Unit
                 AssertConsumerCount(m, q1, 1);
                 Assert.False(queueNameChangeAfterRecoveryCalled);
 
-                var latch = new ManualResetEvent(false);
+                var latch = new ManualResetEventSlim(false);
                 cons.Received += (s, args) => latch.Set();
 
                 m.BasicPublish("", q1, null, encoding.GetBytes("msg"));
@@ -376,7 +376,7 @@ namespace RabbitMQ.Client.Unit
                 Model.BasicConsume(q, true, cons);
             }
 
-            var latch = new ManualResetEvent(false);
+            var latch = new ManualResetEventSlim(false);
             ((AutorecoveringConnection)Conn).ConsumerTagChangeAfterRecovery += (prev, current) => latch.Set();
 
             CloseAndWaitForRecovery();
@@ -593,7 +593,7 @@ namespace RabbitMQ.Client.Unit
             string q = ch.QueueDeclare(queue: "", durable: false, exclusive: false, autoDelete: true, arguments: null).QueueName;
             string nameBefore = q;
             string nameAfter = null;
-            var latch = new ManualResetEvent(false);
+            var latch = new ManualResetEventSlim(false);
             ((AutorecoveringConnection)Conn).QueueNameChangeAfterRecovery += (source, ea) =>
             {
                 nameBefore = ea.NameBefore;
@@ -696,7 +696,7 @@ namespace RabbitMQ.Client.Unit
             string nameBefore = q;
             string nameAfter = null;
 
-            var latch = new ManualResetEvent(false);
+            var latch = new ManualResetEventSlim(false);
             var connection = (AutorecoveringConnection)Conn;
             connection.RecoverySucceeded += (source, ea) => latch.Set();
             connection.QueueNameChangeAfterRecovery += (source, ea) => { nameAfter = ea.NameAfter; };
@@ -733,8 +733,8 @@ namespace RabbitMQ.Client.Unit
         {
             int counter = 0;
             Conn.ConnectionShutdown += (c, args) => Interlocked.Increment(ref counter);
-            ManualResetEvent shutdownLatch = PrepareForShutdown(Conn);
-            ManualResetEvent recoveryLatch = PrepareForRecovery((AutorecoveringConnection)Conn);
+            ManualResetEventSlim shutdownLatch = PrepareForShutdown(Conn);
+            ManualResetEventSlim recoveryLatch = PrepareForRecovery((AutorecoveringConnection)Conn);
 
             Assert.IsTrue(Conn.IsOpen);
             StopRabbitMQ();
@@ -884,7 +884,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestUnblockedListenersRecovery()
         {
-            var latch = new ManualResetEvent(false);
+            var latch = new ManualResetEventSlim(false);
             Conn.ConnectionUnblocked += (source, ea) => latch.Set();
             CloseAndWaitForRecovery();
             CloseAndWaitForRecovery();
@@ -943,7 +943,7 @@ namespace RabbitMQ.Client.Unit
 
         internal void CloseAllAndWaitForRecovery(AutorecoveringConnection conn)
         {
-            ManualResetEvent rl = PrepareForRecovery(conn);
+            ManualResetEventSlim rl = PrepareForRecovery(conn);
             CloseAllConnections();
             Wait(rl);
         }
@@ -955,8 +955,8 @@ namespace RabbitMQ.Client.Unit
 
         internal void CloseAndWaitForRecovery(AutorecoveringConnection conn)
         {
-            ManualResetEvent sl = PrepareForShutdown(conn);
-            ManualResetEvent rl = PrepareForRecovery(conn);
+            ManualResetEventSlim sl = PrepareForShutdown(conn);
+            ManualResetEventSlim rl = PrepareForRecovery(conn);
             CloseConnection(conn);
             Wait(sl);
             Wait(rl);
@@ -964,22 +964,22 @@ namespace RabbitMQ.Client.Unit
 
         internal void CloseAndWaitForShutdown(AutorecoveringConnection conn)
         {
-            ManualResetEvent sl = PrepareForShutdown(conn);
+            ManualResetEventSlim sl = PrepareForShutdown(conn);
             CloseConnection(conn);
             Wait(sl);
         }
 
-        internal ManualResetEvent PrepareForRecovery(AutorecoveringConnection conn)
+        internal ManualResetEventSlim PrepareForRecovery(AutorecoveringConnection conn)
         {
-            var latch = new ManualResetEvent(false);
+            var latch = new ManualResetEventSlim(false);
             conn.RecoverySucceeded += (source, ea) => latch.Set();
 
             return latch;
         }
 
-        internal ManualResetEvent PrepareForShutdown(IConnection conn)
+        internal ManualResetEventSlim PrepareForShutdown(IConnection conn)
         {
-            var latch = new ManualResetEvent(false);
+            var latch = new ManualResetEventSlim(false);
             conn.ConnectionShutdown += (c, args) => latch.Set();
 
             return latch;
@@ -997,14 +997,14 @@ namespace RabbitMQ.Client.Unit
 
         internal void RestartServerAndWaitForRecovery(AutorecoveringConnection conn)
         {
-            ManualResetEvent sl = PrepareForShutdown(conn);
-            ManualResetEvent rl = PrepareForRecovery(conn);
+            ManualResetEventSlim sl = PrepareForShutdown(conn);
+            ManualResetEventSlim rl = PrepareForRecovery(conn);
             RestartRabbitMQ();
             Wait(sl);
             Wait(rl);
         }
 
-        internal void TestDelayedBasicAckNackAfterChannelRecovery(TestBasicConsumer1 cons, ManualResetEvent latch)
+        internal void TestDelayedBasicAckNackAfterChannelRecovery(TestBasicConsumer1 cons, ManualResetEventSlim latch)
         {
             string q = Model.QueueDeclare(GenerateQueueName(), false, false, false, null).QueueName;
             int n = 30;
@@ -1047,7 +1047,7 @@ namespace RabbitMQ.Client.Unit
 
         public class AckingBasicConsumer : TestBasicConsumer1
         {
-            public AckingBasicConsumer(IModel model, ManualResetEvent latch, Action fn)
+            public AckingBasicConsumer(IModel model, ManualResetEventSlim latch, Action fn)
                 : base(model, latch, fn)
             {
             }
@@ -1060,7 +1060,7 @@ namespace RabbitMQ.Client.Unit
 
         public class NackingBasicConsumer : TestBasicConsumer1
         {
-            public NackingBasicConsumer(IModel model, ManualResetEvent latch, Action fn)
+            public NackingBasicConsumer(IModel model, ManualResetEventSlim latch, Action fn)
                 : base(model, latch, fn)
             {
             }
@@ -1073,7 +1073,7 @@ namespace RabbitMQ.Client.Unit
 
         public class RejectingBasicConsumer : TestBasicConsumer1
         {
-            public RejectingBasicConsumer(IModel model, ManualResetEvent latch, Action fn)
+            public RejectingBasicConsumer(IModel model, ManualResetEventSlim latch, Action fn)
                 : base(model, latch, fn)
             {
             }
@@ -1087,10 +1087,10 @@ namespace RabbitMQ.Client.Unit
         public class TestBasicConsumer1 : DefaultBasicConsumer
         {
             private readonly Action _action;
-            private readonly ManualResetEvent _latch;
+            private readonly ManualResetEventSlim _latch;
             private ushort _counter = 0;
 
-            public TestBasicConsumer1(IModel model, ManualResetEvent latch, Action fn)
+            public TestBasicConsumer1(IModel model, ManualResetEventSlim latch, Action fn)
                 : base(model)
             {
                 _latch = latch;

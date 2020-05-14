@@ -64,7 +64,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>Heartbeat frame for transmission. Reusable across connections.</summary>
         private readonly EmptyOutboundFrame _heartbeatFrame = new EmptyOutboundFrame();
 
-        private readonly ManualResetEvent _appContinuation = new ManualResetEvent(false);
+        private readonly ManualResetEventSlim _appContinuation = new ManualResetEventSlim(false);
 
         private volatile ShutdownEventArgs _closeReason = null;
         private volatile bool _closed = false;
@@ -346,8 +346,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
             }
 
-            bool receivedSignal = _appContinuation.WaitOne(timeout);
-
+            bool receivedSignal = _appContinuation.Wait(timeout);
             if (!receivedSignal)
             {
                 _frameHandler.Close();
