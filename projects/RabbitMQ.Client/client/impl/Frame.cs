@@ -251,44 +251,35 @@ namespace RabbitMQ.Client.Impl
                 ProcessProtocolHeader(reader);
             }
 
-            byte[] headerBytes = null;
+            Span<byte> headerBytes = stackalloc byte[6];
+            reader.Read(headerBytes);
+            int channel = NetworkOrderDeserializer.ReadUInt16(headerBytes);
+            int payloadSize = NetworkOrderDeserializer.ReadInt32(headerBytes.Slice(2)); // FIXME - throw exn on unreasonable value
+            byte[] payloadBytes = ArrayPool<byte>.Shared.Rent(payloadSize);
+            Memory<byte> payload = new Memory<byte>(payloadBytes, 0, payloadSize);
+            int bytesRead = 0;
             try
             {
-                headerBytes = ArrayPool<byte>.Shared.Rent(6);
-                Memory<byte> headerSlice = new Memory<byte>(headerBytes, 0, 6);
-                reader.Read(headerSlice);
-                int channel = NetworkOrderDeserializer.ReadUInt16(headerSlice);
-                int payloadSize = NetworkOrderDeserializer.ReadInt32(headerSlice.Slice(2)); // FIXME - throw exn on unreasonable value
-                byte[] payloadBytes = ArrayPool<byte>.Shared.Rent(payloadSize);
-                Memory<byte> payload = new Memory<byte>(payloadBytes, 0, payloadSize);
-                int bytesRead = 0;
-                try
+                while (bytesRead < payloadSize)
                 {
-                    while (bytesRead < payloadSize)
-                    {
-                        bytesRead += reader.Read(payload.Slice(bytesRead, payloadSize - bytesRead));
-                    }
+                    bytesRead += reader.Read(payload.Slice(bytesRead, payloadSize - bytesRead));
                 }
-                catch (Exception)
-                {
-                    // Early EOF.
-                    ArrayPool<byte>.Shared.Return(payloadBytes);
-                    throw new MalformedFrameException($"Short frame - expected to read {payloadSize} bytes, only got {bytesRead} bytes");
-                }
-
-                int frameEndMarker = reader.ReadByte();
-                if (frameEndMarker != Constants.FrameEnd)
-                {
-                    ArrayPool<byte>.Shared.Return(payloadBytes);
-                    throw new MalformedFrameException("Bad frame end marker: " + frameEndMarker);
-                }
-
-                return new InboundFrame((FrameType)type, channel, payload);
             }
-            finally
+            catch (Exception)
             {
-                ArrayPool<byte>.Shared.Return(headerBytes);
+                // Early EOF.
+                ArrayPool<byte>.Shared.Return(payloadBytes);
+                throw new MalformedFrameException($"Short frame - expected to read {payloadSize} bytes, only got {bytesRead} bytes");
             }
+
+            int frameEndMarker = reader.ReadByte();
+            if (frameEndMarker != Constants.FrameEnd)
+            {
+                ArrayPool<byte>.Shared.Return(payloadBytes);
+                throw new MalformedFrameException("Bad frame end marker: " + frameEndMarker);
+            }
+
+            return new InboundFrame((FrameType)type, channel, payload);
         }
 
         public void Dispose()
