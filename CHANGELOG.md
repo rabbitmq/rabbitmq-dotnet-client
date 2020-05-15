@@ -13,7 +13,7 @@ our stellar community members (in no particular order): @stebet, @bording,
 
 A full list of changes can be found in the GitHub milestone: [`6.0.0`](https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/41?closed=1).
 
-### The Switch to System.Memory (and Significantly Lower Memory Footprint that Comes with It)
+### The Switch to System.Memory (and [Significantly Lower Memory Footprint](https://stebet.net/real-world-example-of-reducing-allocations-using-span-t-and-memory-t/) that Comes with It)
 
 The client now uses the [`System.Memory` library](https://www.nuget.org/packages/System.Memory/) for message and command payloads. This significantly
 reduces object allocation and GC pressure for heavy workloads but also
