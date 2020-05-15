@@ -61,11 +61,7 @@ namespace RabbitMQ.Client.Apigen
             return Apigen.GetInt(m_node, path);
         }
 
-        public string Name {
-            get {
-                return GetString("@name");
-            }
-        }
+        public string Name => GetString("@name");
 
         public string DocumentationComment(string prefixSpaces) {
             return DocumentationComment(prefixSpaces, "doc");

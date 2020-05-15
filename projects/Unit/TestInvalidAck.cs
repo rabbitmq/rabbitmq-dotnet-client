@@ -58,6 +58,7 @@ namespace RabbitMQ.Client.Unit
                 shutdownFired = true;
                 shutdownArgs = args;
                 Monitor.PulseAll(o);
+                return default;
             };
 
             Model.BasicAck(123456, false);

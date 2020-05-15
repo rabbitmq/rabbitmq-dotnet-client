@@ -58,7 +58,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private readonly object _eventLock = new object();
 
         private Connection _delegate;
-        private readonly ConnectionFactory _factory;
+        private ConnectionFactory _factory;
 
         // list of endpoints provided on initial connection.
         // on re-connection, the next host in the line is chosen using
@@ -78,7 +78,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private readonly List<AutorecoveringModel> _models = new List<AutorecoveringModel>();
 
         private EventHandler<ConnectionBlockedEventArgs> _recordedBlockedEventHandlers;
-        private EventHandler<ShutdownEventArgs> _recordedShutdownEventHandlers;
+        private AsyncEventHandler<ShutdownEventArgs> _recordedShutdownEventHandlers;
         private EventHandler<EventArgs> _recordedUnblockedEventHandlers;
 
         public AutorecoveringConnection(ConnectionFactory factory, string clientProvidedName = null)
@@ -147,7 +147,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public event EventHandler<ShutdownEventArgs> ConnectionShutdown
+        public event AsyncEventHandler<ShutdownEventArgs> ConnectionShutdown
         {
             add
             {
@@ -222,19 +222,6 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
 
                 return _delegate.ChannelMax;
-            }
-        }
-
-        public ConsumerWorkService ConsumerWorkService
-        {
-            get
-            {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
-                return _delegate.ConsumerWorkService;
             }
         }
 
@@ -409,28 +396,25 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        IProtocol IConnection.Protocol
-        {
-            get { return Endpoint.Protocol; }
-        }
+        IProtocol IConnection.Protocol => Endpoint.Protocol;
 
-        private bool TryPerformAutomaticRecovery()
+        private async ValueTask<bool> TryPerformAutomaticRecovery()
         {
             ESLog.Info("Performing automatic recovery");
 
             try
             {
-                if (TryRecoverConnectionDelegate())
+                if (await TryRecoverConnectionDelegate().ConfigureAwait(false))
                 {
                     RecoverConnectionShutdownHandlers();
                     RecoverConnectionBlockedHandlers();
                     RecoverConnectionUnblockedHandlers();
 
-                    RecoverModels();
+                    await RecoverModels().ConfigureAwait(false);
                     if (_factory.TopologyRecoveryEnabled)
                     {
-                        RecoverEntities();
-                        RecoverConsumers();
+                        await RecoverEntities().ConfigureAwait(false);
+                        await RecoverConsumers().ConfigureAwait(false);
                     }
 
                     ESLog.Info("Connection recovery completed");
@@ -461,7 +445,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _delegate.Close(reason);
         }
 
-        public RecoveryAwareModel CreateNonRecoveringModel()
+        public async ValueTask<RecoveryAwareModel> CreateNonRecoveringModel()
         {
             if (_disposed)
             {
@@ -471,7 +455,7 @@ namespace RabbitMQ.Client.Framing.Impl
             ISession session = _delegate.CreateSession();
             var result = new RecoveryAwareModel(session);
             result.ContinuationTimeout = _factory.ContinuationTimeout;
-            result._Private_ChannelOpen("");
+            await result.TransmitAndEnqueueAsync<ChannelOpenOk>(new ChannelOpen(string.Empty)).ConfigureAwait(false);
             return result;
         }
 
@@ -485,16 +469,16 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public RecordedConsumer DeleteRecordedConsumer(string consumerTag)
         {
-            RecordedConsumer rc;
             lock (_recordedEntitiesLock)
             {
-                if (_recordedConsumers.TryGetValue(consumerTag, out rc))
+                if (_recordedConsumers.TryGetValue(consumerTag, out RecordedConsumer rc))
                 {
                     _recordedConsumers.Remove(consumerTag);
+                    return rc;
                 }
             }
 
-            return rc;
+            return null;
         }
 
         public void DeleteRecordedExchange(string name)
@@ -652,27 +636,28 @@ namespace RabbitMQ.Client.Framing.Impl
                 throw new ObjectDisposedException(GetType().FullName);
             }
 
-            _delegate = new Connection(_factory, false,
-                fh, ClientProvidedName);
-
+            _delegate = new Connection(_factory, fh, ClientProvidedName);
             _recoveryTask = Task.Run(MainRecoveryLoop);
 
-            EventHandler<ShutdownEventArgs> recoveryListener = (_, args) =>
-            {
-                if (ShouldTriggerConnectionRecovery(args))
-                {
-                    _recoveryLoopCommandQueue.Writer.TryWrite(RecoveryCommand.BeginAutomaticRecovery);
-                }
-            };
             lock (_eventLock)
             {
-                ConnectionShutdown += recoveryListener;
-                _recordedShutdownEventHandlers += recoveryListener;
+                ConnectionShutdown += RecoveryListener;
+                _recordedShutdownEventHandlers += RecoveryListener;
             }
         }
 
+        private ValueTask RecoveryListener(object sender, ShutdownEventArgs args)
+        {
+            if (ShouldTriggerConnectionRecovery(args))
+            {
+                _recoveryLoopCommandQueue.Writer.TryWrite(RecoveryCommand.BeginAutomaticRecovery);
+            }
+
+            return default;
+        }
+
         ///<summary>API-side invocation of updating the secret.</summary>
-        public void UpdateSecret(string newSecret, string reason)
+        public async ValueTask UpdateSecret(string newSecret, string reason)
         {
             if (_disposed)
             {
@@ -680,12 +665,12 @@ namespace RabbitMQ.Client.Framing.Impl
             }
 
             EnsureIsOpen();
-            _delegate.UpdateSecret(newSecret, reason);
+            await _delegate.UpdateSecret(newSecret, reason).ConfigureAwait(false);
             _factory.Password = newSecret;
         }
 
         ///<summary>API-side invocation of connection abort.</summary>
-        public void Abort()
+        public ValueTask Abort()
         {
             if (_disposed)
             {
@@ -695,12 +680,14 @@ namespace RabbitMQ.Client.Framing.Impl
             StopRecoveryLoop();
             if (_delegate.IsOpen)
             {
-                _delegate.Abort();
+                return _delegate.Abort();
             }
+
+            return default;
         }
 
         ///<summary>API-side invocation of connection abort.</summary>
-        public void Abort(ushort reasonCode, string reasonText)
+        public ValueTask Abort(ushort reasonCode, string reasonText)
         {
             if (_disposed)
             {
@@ -710,12 +697,14 @@ namespace RabbitMQ.Client.Framing.Impl
             StopRecoveryLoop();
             if (_delegate.IsOpen)
             {
-                _delegate.Abort(reasonCode, reasonText);
+                return _delegate.Abort(reasonCode, reasonText);
             }
+
+            return default;
         }
 
         ///<summary>API-side invocation of connection abort with timeout.</summary>
-        public void Abort(TimeSpan timeout)
+        public ValueTask Abort(TimeSpan timeout)
         {
             if (_disposed)
             {
@@ -725,12 +714,14 @@ namespace RabbitMQ.Client.Framing.Impl
             StopRecoveryLoop();
             if (_delegate.IsOpen)
             {
-                _delegate.Abort(timeout);
+                return _delegate.Abort(timeout);
             }
+
+            return default;
         }
 
         ///<summary>API-side invocation of connection abort with timeout.</summary>
-        public void Abort(ushort reasonCode, string reasonText, TimeSpan timeout)
+        public ValueTask Abort(ushort reasonCode, string reasonText, TimeSpan timeout)
         {
             if (_disposed)
             {
@@ -740,12 +731,14 @@ namespace RabbitMQ.Client.Framing.Impl
             StopRecoveryLoop();
             if (_delegate.IsOpen)
             {
-                _delegate.Abort(reasonCode, reasonText, timeout);
+                return _delegate.Abort(reasonCode, reasonText, timeout);
             }
+
+            return default;
         }
 
         ///<summary>API-side invocation of connection.close.</summary>
-        public void Close()
+        public ValueTask Close()
         {
             if (_disposed)
             {
@@ -755,12 +748,14 @@ namespace RabbitMQ.Client.Framing.Impl
             StopRecoveryLoop();
             if (_delegate.IsOpen)
             {
-                _delegate.Close();
+                return _delegate.Close();
             }
+
+            return default;
         }
 
         ///<summary>API-side invocation of connection.close.</summary>
-        public void Close(ushort reasonCode, string reasonText)
+        public ValueTask Close(ushort reasonCode, string reasonText)
         {
             if (_disposed)
             {
@@ -770,12 +765,14 @@ namespace RabbitMQ.Client.Framing.Impl
             StopRecoveryLoop();
             if (_delegate.IsOpen)
             {
-                _delegate.Close(reasonCode, reasonText);
+                return _delegate.Close(reasonCode, reasonText);
             }
+
+            return default;
         }
 
         ///<summary>API-side invocation of connection.close with timeout.</summary>
-        public void Close(TimeSpan timeout)
+        public ValueTask Close(TimeSpan timeout)
         {
             if (_disposed)
             {
@@ -785,12 +782,14 @@ namespace RabbitMQ.Client.Framing.Impl
             StopRecoveryLoop();
             if (_delegate.IsOpen)
             {
-                _delegate.Close(timeout);
+                return _delegate.Close(timeout);
             }
+
+            return default;
         }
 
         ///<summary>API-side invocation of connection.close with timeout.</summary>
-        public void Close(ushort reasonCode, string reasonText, TimeSpan timeout)
+        public ValueTask Close(ushort reasonCode, string reasonText, TimeSpan timeout)
         {
             if (_disposed)
             {
@@ -800,14 +799,26 @@ namespace RabbitMQ.Client.Framing.Impl
             StopRecoveryLoop();
             if (_delegate.IsOpen)
             {
-                _delegate.Close(reasonCode, reasonText, timeout);
+                return _delegate.Close(reasonCode, reasonText, timeout);
             }
+
+            return default;
         }
 
-        public IModel CreateModel()
+        public ValueTask Open()
+        {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(GetType().FullName);
+            }
+
+            return _delegate.Open();
+        }
+
+        public async ValueTask<IModel> CreateModel()
         {
             EnsureIsOpen();
-            AutorecoveringModel m = new AutorecoveringModel(this, CreateNonRecoveringModel());
+            AutorecoveringModel m = new AutorecoveringModel(this, await CreateNonRecoveringModel().ConfigureAwait(false));
             lock (_models)
             {
                 _models.Add(m);
@@ -818,6 +829,15 @@ namespace RabbitMQ.Client.Framing.Impl
         void IDisposable.Dispose()
         {
             Dispose(true);
+        }
+
+        public ValueTask HandleConnectionClose(ushort replyCode, string replyText, ushort classId, ushort methodId)
+        {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(GetType().FullName);
+            }
+            return _delegate.HandleConnectionClose(replyCode, replyText, classId, methodId);
         }
 
         public void HandleConnectionBlocked(string reason)
@@ -886,7 +906,6 @@ namespace RabbitMQ.Client.Framing.Impl
                     _recordedBlockedEventHandlers = null;
                     _recordedShutdownEventHandlers = null;
                     _recordedUnblockedEventHandlers = null;
-
                     _disposed = true;
                 }
             }
@@ -935,7 +954,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void RecoverBindings()
+        private async ValueTask RecoverBindings()
         {
             Dictionary<RecordedBinding, byte> recordedBindingsCopy;
             lock (_recordedBindings)
@@ -947,7 +966,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 try
                 {
-                    b.Recover();
+                    await b.Recover().ConfigureAwait(false);
                 }
                 catch (Exception cause)
                 {
@@ -971,7 +990,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private bool TryRecoverConnectionDelegate()
+        private async ValueTask<bool> TryRecoverConnectionDelegate()
         {
             if (_disposed)
             {
@@ -981,7 +1000,8 @@ namespace RabbitMQ.Client.Framing.Impl
             try
             {
                 IFrameHandler fh = _endpoints.SelectOne(_factory.CreateFrameHandler);
-                _delegate = new Connection(_factory, false, fh, ClientProvidedName);
+                _delegate = new Connection(_factory, fh, ClientProvidedName);
+                await Open().ConfigureAwait(false);
                 return true;
             }
             catch (Exception e)
@@ -1026,7 +1046,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _delegate.ConnectionUnblocked += _recordedUnblockedEventHandlers;
         }
 
-        private void RecoverConsumers()
+        private async ValueTask RecoverConsumers()
         {
             if (_disposed)
             {
@@ -1046,7 +1066,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
                 try
                 {
-                    string newTag = cons.Recover();
+                    string newTag = await cons.Recover().ConfigureAwait(false);
                     lock (_recordedConsumers)
                     {
                         // make sure server-generated tags are re-added
@@ -1078,7 +1098,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void RecoverEntities()
+        private async ValueTask RecoverEntities()
         {
             // The recovery sequence is the following:
             //
@@ -1086,12 +1106,12 @@ namespace RabbitMQ.Client.Framing.Impl
             // 2. Recover queues
             // 3. Recover bindings
             // 4. Recover consumers
-            RecoverExchanges();
-            RecoverQueues();
-            RecoverBindings();
+            await RecoverExchanges().ConfigureAwait(false);
+            await RecoverQueues().ConfigureAwait(false);
+            await RecoverBindings().ConfigureAwait(false);
         }
 
-        private void RecoverExchanges()
+        private async ValueTask RecoverExchanges()
         {
             Dictionary<string, RecordedExchange> recordedExchangesCopy;
             lock (_recordedEntitiesLock)
@@ -1103,7 +1123,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 try
                 {
-                    rx.Recover();
+                    await rx.Recover().ConfigureAwait(false);
                 }
                 catch (Exception cause)
                 {
@@ -1114,18 +1134,15 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void RecoverModels()
+        private async ValueTask RecoverModels()
         {
-            lock (_models)
+            foreach (AutorecoveringModel m in _models)
             {
-                foreach (AutorecoveringModel m in _models)
-                {
-                    m.AutomaticallyRecover(this);
-                }
+                await m.AutomaticallyRecover(this).ConfigureAwait(false);
             }
         }
 
-        private void RecoverQueues()
+        private async ValueTask RecoverQueues()
         {
             Dictionary<string, RecordedQueue> recordedQueuesCopy;
             lock (_recordedEntitiesLock)
@@ -1140,7 +1157,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
                 try
                 {
-                    rq.Recover();
+                    await rq.Recover().ConfigureAwait(false);
                     string newName = rq.Name;
 
                     if (!oldName.Equals(newName))
@@ -1208,10 +1225,10 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private bool ShouldTriggerConnectionRecovery(ShutdownEventArgs args)
         {
-            return args.Initiator == ShutdownInitiator.Peer ||
+            return args.ReplyCode != 403 && (args.Initiator == ShutdownInitiator.Peer ||
                     // happens when EOF is reached, e.g. due to RabbitMQ node
                     // connectivity loss or abrupt shutdown
-                    args.Initiator == ShutdownInitiator.Library;
+                    args.Initiator == ShutdownInitiator.Library);
         }
 
         private enum RecoveryCommand
@@ -1242,7 +1259,6 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private Task _recoveryTask;
         private RecoveryConnectionState _recoveryLoopState = RecoveryConnectionState.Connected;
-
         private readonly Channel<RecoveryCommand> _recoveryLoopCommandQueue = Channel.CreateUnbounded<RecoveryCommand>(new UnboundedChannelOptions { AllowSynchronousContinuations = false, SingleReader = true, SingleWriter = false });
 
         /// <summary>
@@ -1262,7 +1278,7 @@ namespace RabbitMQ.Client.Framing.Impl
                                 RecoveryLoopConnectedHandler(command);
                                 break;
                             case RecoveryConnectionState.Recovering:
-                                RecoveryLoopRecoveringHandler(command);
+                                await RecoveryLoopRecoveringHandler(command).ConfigureAwait(false);
                                 break;
                             default:
                                 ESLog.Warn("RecoveryLoop state is out of range.");
@@ -1288,9 +1304,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private void StopRecoveryLoop()
         {
             _recoveryLoopCommandQueue.Writer.Complete();
-            Task timeout = Task.Delay(_factory.RequestedConnectionTimeout);
-
-            if (Task.WhenAny(_recoveryTask, timeout).Result == timeout)
+            if (!_recoveryTask.Wait(_factory.RequestedConnectionTimeout))
             {
                 ESLog.Warn("Timeout while trying to stop background AutorecoveringConnection recovery loop.");
             }
@@ -1300,7 +1314,7 @@ namespace RabbitMQ.Client.Framing.Impl
         /// Handles commands when in the Recovering state.
         /// </summary>
         /// <param name="command"></param>
-        private void RecoveryLoopRecoveringHandler(RecoveryCommand command)
+        private async ValueTask RecoveryLoopRecoveringHandler(RecoveryCommand command)
         {
             switch (command)
             {
@@ -1308,7 +1322,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     ESLog.Info("Received request to BeginAutomaticRecovery, but already in Recovering state.");
                     break;
                 case RecoveryCommand.PerformAutomaticRecovery:
-                    if (TryPerformAutomaticRecovery())
+                    if (await TryPerformAutomaticRecovery().ConfigureAwait(false))
                     {
                         _recoveryLoopState = RecoveryConnectionState.Connected;
                     }
@@ -1350,9 +1364,11 @@ namespace RabbitMQ.Client.Framing.Impl
         /// </summary>
         private void ScheduleRecoveryRetry()
         {
-            _ = Task
-                .Delay(_factory.NetworkRecoveryInterval)
-                .ContinueWith(t => _recoveryLoopCommandQueue.Writer.TryWrite(RecoveryCommand.PerformAutomaticRecovery));
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(_factory.NetworkRecoveryInterval).ConfigureAwait(false);
+                _recoveryLoopCommandQueue.Writer.TryWrite(RecoveryCommand.PerformAutomaticRecovery);
+            });
         }
     }
 }

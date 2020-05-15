@@ -49,9 +49,6 @@ namespace RabbitMQ.Client.Impl
 
         public AutorecoveringModel Model { get; protected set; }
 
-        protected IModel ModelDelegate
-        {
-            get { return Model.Delegate; }
-        }
+        protected IModel ModelDelegate => Model.Delegate;
     }
 }

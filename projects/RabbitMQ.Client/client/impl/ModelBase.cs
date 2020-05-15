@@ -39,17 +39,17 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
-using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -57,42 +57,21 @@ namespace RabbitMQ.Client.Impl
     {
         ///<summary>Only used to kick-start a connection open
         ///sequence. See <see cref="Connection.Open"/> </summary>
-        public BlockingCell<ConnectionStartDetails> m_connectionStartCell = null;
-
-        private readonly Dictionary<string, IBasicConsumer> _consumers = new Dictionary<string, IBasicConsumer>();
-
-        private TimeSpan _handshakeContinuationTimeout = TimeSpan.FromSeconds(10);
-        private TimeSpan _continuationTimeout = TimeSpan.FromSeconds(20);
-
-        private readonly RpcContinuationQueue _continuationQueue = new RpcContinuationQueue();
-        private readonly ManualResetEventSlim _flowControlBlock = new ManualResetEventSlim(true);
+        protected readonly Channel<Command> _consumerCommandQueue = Channel.CreateUnbounded<Command>(new UnboundedChannelOptions { SingleReader = true, SingleWriter = true });
+        private readonly Dictionary<string, IAsyncBasicConsumer> _consumers = new Dictionary<string, IAsyncBasicConsumer>();
+        protected RpcContinuationQueue _continuationQueue;
+        private readonly SemaphoreSlim _flowControlSemaphore = new SemaphoreSlim(1, 1);
+        private Task _consumerTask;
 
         private readonly object _shutdownLock = new object();
-        private readonly object _rpcLock = new object();
         private readonly object _confirmLock = new object();
         private readonly LinkedList<ulong> _pendingDeliveryTags = new LinkedList<ulong>();
-        private readonly CountdownEvent _deliveryTagsCountdown = new CountdownEvent(0);
-
-        private EventHandler<ShutdownEventArgs> _modelShutdown;
-
+        private readonly SemaphoreSlim _consumerSemaphore = new SemaphoreSlim(1, 1);
+        private AsyncEventHandler<ShutdownEventArgs> _modelShutdown;
         private bool _onlyAcksReceived = true;
 
-        public IConsumerDispatcher ConsumerDispatcher { get; private set; }
-
-        public ModelBase(ISession session) : this(session, session.Connection.ConsumerWorkService)
-        { }
-
-        public ModelBase(ISession session, ConsumerWorkService workService)
+        public ModelBase(ISession session)
         {
-            if (workService is AsyncConsumerWorkService asyncConsumerWorkService)
-            {
-                ConsumerDispatcher = new AsyncConsumerDispatcher(this, asyncConsumerWorkService);
-            }
-            else
-            {
-                ConsumerDispatcher = new ConcurrentConsumerDispatcher(this, workService);
-            }
-
             Initialise(session);
         }
 
@@ -103,19 +82,72 @@ namespace RabbitMQ.Client.Impl
             Session = session;
             Session.CommandReceived = HandleCommand;
             Session.SessionShutdown += OnSessionShutdown;
+            _consumerTask = Task.Run(ConsumerDispatch);
+            _continuationQueue = new RpcContinuationQueue(session);
         }
 
-        public TimeSpan HandshakeContinuationTimeout
+        private async ValueTask ConsumerDispatch()
         {
-            get { return _handshakeContinuationTimeout; }
-            set { _handshakeContinuationTimeout = value; }
+            while (await _consumerCommandQueue.Reader.WaitToReadAsync())
+            {
+                while (_consumerCommandQueue.Reader.TryRead(out Command item))
+                {
+                    try
+                    {
+                        ValueTask task = default;
+                        switch ((item.Method.ProtocolClassId << 16) | item.Method.ProtocolMethodId)
+                        {
+                            case (ClassConstants.Basic << 16) | BasicMethodConstants.Deliver:
+                                var basicDeliver = item.Method as BasicDeliver;
+                                task = HandleBasicDeliver(basicDeliver._consumerTag, basicDeliver._deliveryTag, basicDeliver._redelivered, basicDeliver._exchange, basicDeliver._routingKey, (IBasicProperties)item.Header, item.Body);
+                                break;
+                            case (ClassConstants.Basic << 16) | BasicMethodConstants.Ack:
+                                var basicAck = item.Method as BasicAck;
+                                task = HandleBasicAck(basicAck._deliveryTag, basicAck._multiple);
+                                break;
+                            case (ClassConstants.Basic << 16) | BasicMethodConstants.Cancel:
+                                var basicCancel = item.Method as BasicCancel;
+                                task = HandleBasicCancel(basicCancel._consumerTag, basicCancel._nowait);
+                                break;
+                            case (ClassConstants.Basic << 16) | BasicMethodConstants.CancelOk:
+                                var basicCancelOk = item.Method as BasicCancelOk;
+                                task = HandleBasicCancelOk(basicCancelOk._consumerTag);
+                                break;
+                            case (ClassConstants.Basic << 16) | BasicMethodConstants.Nack:
+                                var basicNack = item.Method as BasicNack;
+                                task = HandleBasicNack(basicNack._deliveryTag, basicNack._multiple, basicNack._requeue);
+                                break;
+                            case (ClassConstants.Basic << 16) | BasicMethodConstants.Return:
+                                var basicReturn = item.Method as BasicReturn;
+                                task = HandleBasicReturn(basicReturn._replyCode, basicReturn._replyText, basicReturn._exchange, basicReturn._routingKey, (IBasicProperties)item.Header, item.Body);
+                                break;
+                            case (ClassConstants.Channel << 16) | ChannelMethodConstants.Flow:
+                                var channelFlow = item.Method as ChannelFlow;
+                                task = HandleChannelFlow(channelFlow._active);
+                                break;
+                            case (ClassConstants.Channel << 16) | ChannelMethodConstants.Close:
+                                var channelClose = item.Method as ChannelClose;
+                                task = HandleChannelClose(channelClose._replyCode, channelClose._replyText, channelClose._classId, channelClose._methodId);
+                                break;
+                            default:
+                                break;
+                        }
+
+                        if (!task.IsCompletedSuccessfully)
+                        {
+                            await task.ConfigureAwait(false);
+                        }
+                    }
+                    catch { }
+                    finally
+                    {
+                        item.Dispose();
+                    }
+                }
+            }
         }
 
-        public TimeSpan ContinuationTimeout
-        {
-            get { return _continuationTimeout; }
-            set { _continuationTimeout = value; }
-        }
+        public TimeSpan ContinuationTimeout { get; set; } = TimeSpan.FromSeconds(20);
 
         public event EventHandler<BasicAckEventArgs> BasicAcks;
         public event EventHandler<BasicNackEventArgs> BasicNacks;
@@ -123,7 +155,7 @@ namespace RabbitMQ.Client.Impl
         public event EventHandler<BasicReturnEventArgs> BasicReturn;
         public event EventHandler<CallbackExceptionEventArgs> CallbackException;
         public event EventHandler<FlowControlEventArgs> FlowControl;
-        public event EventHandler<ShutdownEventArgs> ModelShutdown
+        public event AsyncEventHandler<ShutdownEventArgs> ModelShutdown
         {
             add
             {
@@ -157,50 +189,36 @@ namespace RabbitMQ.Client.Impl
         public event EventHandler<EventArgs> Recovery;
 #pragma warning restore 67
 
-        public int ChannelNumber
-        {
-            get { return ((Session)Session).ChannelNumber; }
-        }
+        public int ChannelNumber => ((Session)Session).ChannelNumber;
 
         public ShutdownEventArgs CloseReason { get; private set; }
 
-        public IBasicConsumer DefaultConsumer { get; set; }
+        public IAsyncBasicConsumer DefaultConsumer { get; set; }
 
-        public bool IsClosed
-        {
-            get { return !IsOpen; }
-        }
+        public bool IsClosed => !IsOpen;
 
-        public bool IsOpen
-        {
-            get { return CloseReason == null; }
-        }
+        public bool IsOpen => CloseReason == null;
 
         public ulong NextPublishSeqNo { get; private set; }
 
         public ISession Session { get; private set; }
 
-        public Task Close(ushort replyCode, string replyText, bool abort)
+        public ValueTask Close(ushort replyCode, string replyText, bool abort)
         {
             return Close(new ShutdownEventArgs(ShutdownInitiator.Application,
                 replyCode, replyText),
                 abort);
         }
 
-        public async Task Close(ShutdownEventArgs reason, bool abort)
+        public async ValueTask Close(ShutdownEventArgs reason, bool abort)
         {
-            var k = new ShutdownContinuation();
-            ModelShutdown += k.OnConnectionShutdown;
-
             try
             {
-                ConsumerDispatcher.Quiesce();
                 if (SetCloseReason(reason))
                 {
-                    _Private_ChannelClose(reason.ReplyCode, reason.ReplyText, 0, 0);
+                    await TransmitAndEnqueueAsync<ChannelCloseOk>(new ChannelClose(reason.ReplyCode, reason.ReplyText, reason.ClassId, reason.MethodId), TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+                    await FinishClose().ConfigureAwait(false);
                 }
-                k.Wait(TimeSpan.FromMilliseconds(10000));
-                await ConsumerDispatcher.Shutdown(this).ConfigureAwait(false);
             }
             catch (AlreadyClosedException)
             {
@@ -225,137 +243,43 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public string ConnectionOpen(string virtualHost,
-            string capabilities,
-            bool insist)
-        {
-            var k = new ConnectionOpenContinuation();
-            lock (_rpcLock)
-            {
-                Enqueue(k);
-                try
-                {
-                    _Private_ConnectionOpen(virtualHost, capabilities, insist);
-                }
-                catch (AlreadyClosedException)
-                {
-                    // let continuation throw OperationInterruptedException,
-                    // which is a much more suitable exception before connection
-                    // negotiation finishes
-                }
-                k.GetReply(HandshakeContinuationTimeout);
-            }
-
-            return k.m_knownHosts;
-        }
-
-        public ConnectionSecureOrTune ConnectionSecureOk(byte[] response)
-        {
-            var k = new ConnectionStartRpcContinuation();
-            lock (_rpcLock)
-            {
-                Enqueue(k);
-                try
-                {
-                    _Private_ConnectionSecureOk(response);
-                }
-                catch (AlreadyClosedException)
-                {
-                    // let continuation throw OperationInterruptedException,
-                    // which is a much more suitable exception before connection
-                    // negotiation finishes
-                }
-                k.GetReply(HandshakeContinuationTimeout);
-            }
-            return k.m_result;
-        }
-
-        public ConnectionSecureOrTune ConnectionStartOk(IDictionary<string, object> clientProperties,
-            string mechanism,
-            byte[] response,
-            string locale)
-        {
-            var k = new ConnectionStartRpcContinuation();
-            lock (_rpcLock)
-            {
-                Enqueue(k);
-                try
-                {
-                    _Private_ConnectionStartOk(clientProperties, mechanism,
-                        response, locale);
-                }
-                catch (AlreadyClosedException)
-                {
-                    // let continuation throw OperationInterruptedException,
-                    // which is a much more suitable exception before connection
-                    // negotiation finishes
-                }
-                k.GetReply(HandshakeContinuationTimeout);
-            }
-            return k.m_result;
-        }
-
         public abstract bool DispatchAsynchronous(Command cmd);
 
-        public void Enqueue(IRpcContinuation k)
+        private ValueTask<T> EnqueueAsync<T>(Command cmd, TimeSpan timeout = default) where T : MethodBase
         {
-            bool ok = false;
-            if (CloseReason == null)
-            {
-                lock (_shutdownLock)
-                {
-                    if (CloseReason == null)
-                    {
-                        _continuationQueue.Enqueue(k);
-                        ok = true;
-                    }
-                }
-            }
-            if (!ok)
-            {
-                k.HandleModelShutdown(CloseReason);
-            }
+            return _continuationQueue.SendAndReceiveAsync<T>(cmd, timeout);
         }
 
-        public void FinishClose()
+        private ValueTask<Command> EnqueueAsync(Command cmd, TimeSpan timeout = default)
+        {
+            return _continuationQueue.SendAndReceiveAsync(cmd, timeout);
+        }
+
+        public async ValueTask FinishClose()
         {
             if (CloseReason != null)
             {
-                Session.Close(CloseReason);
-            }
-            if (m_connectionStartCell != null)
-            {
-                m_connectionStartCell.ContinueWithValue(null);
+                await Session.Close(CloseReason).ConfigureAwait(false);
             }
         }
 
-        public void HandleCommand(ISession session, Command cmd)
+        public ValueTask HandleCommand(ISession session, Command cmd)
         {
+#if DEBUG
+            Debug.WriteLine("Received command: " + cmd.Method.ProtocolMethodName);
+#endif
+            // If this is a Connection method, let's send it to the Connection handler
+            if (cmd.Method.ProtocolClassId == ClassConstants.Connection)
+            {
+                return Session.Connection.HandleCommand(cmd);
+            }
+
             if (!DispatchAsynchronous(cmd))// Was asynchronous. Already processed. No need to process further.
-                _continuationQueue.Next().HandleCommand(cmd);
-        }
+            {
+                _continuationQueue.HandleCommand(cmd);
+            }
 
-        public MethodBase ModelRpc(MethodBase method, ContentHeaderBase header, byte[] body)
-        {
-            var k = new SimpleBlockingRpcContinuation();
-            lock (_rpcLock)
-            {
-                TransmitAndEnqueue(new Command(method, header, body, false), k);
-                return k.GetReply(ContinuationTimeout).Method;
-            }
-        }
-
-        public void ModelSend(MethodBase method, ContentHeaderBase header, ReadOnlyMemory<byte> body)
-        {
-            if (method.HasContent)
-            {
-                _flowControlBlock.Wait();
-                Session.Transmit(new Command(method, header, body, false));
-            }
-            else
-            {
-                Session.Transmit(new Command(method, header, body, false));
-            }
+            return default;
         }
 
         public virtual void OnBasicAck(BasicAckEventArgs args)
@@ -368,7 +292,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (Exception e)
                 {
-                    OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnBasicAck"));
+                    OnCallbackException(CallbackExceptionEventArgs.Build(e));
                 }
             }
 
@@ -385,7 +309,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (Exception e)
                 {
-                    OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnBasicNack"));
+                    OnCallbackException(CallbackExceptionEventArgs.Build(e));
                 }
             }
 
@@ -402,7 +326,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (Exception e)
                 {
-                    OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnBasicRecover"));
+                    OnCallbackException(CallbackExceptionEventArgs.Build(e));
                 }
             }
         }
@@ -417,7 +341,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (Exception e)
                 {
-                    OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnBasicReturn"));
+                    OnCallbackException(CallbackExceptionEventArgs.Build(e));
                 }
             }
         }
@@ -450,7 +374,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (Exception e)
                 {
-                    OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnFlowControl"));
+                    OnCallbackException(CallbackExceptionEventArgs.Build(e));
                 }
             }
         }
@@ -467,48 +391,64 @@ namespace RabbitMQ.Client.Impl
         ///shutdown event. See the definition of Enqueue() above.
         ///</para>
         ///</remarks>
-        public virtual void OnModelShutdown(ShutdownEventArgs reason)
+        public virtual async ValueTask OnModelShutdown(ShutdownEventArgs reason)
         {
             _continuationQueue.HandleModelShutdown(reason);
-            EventHandler<ShutdownEventArgs> handler;
+            AsyncEventHandler<ShutdownEventArgs> handler;
             lock (_shutdownLock)
             {
                 handler = _modelShutdown;
                 _modelShutdown = null;
             }
+
             if (handler != null)
             {
-                foreach (EventHandler<ShutdownEventArgs> h in handler.GetInvocationList())
+                foreach (AsyncEventHandler<ShutdownEventArgs> h in handler.GetInvocationList())
                 {
                     try
                     {
-                        h(this, reason);
+                        await h(this, reason).ConfigureAwait(false);
                     }
                     catch (Exception e)
                     {
-                        OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnModelShutdown"));
+                        OnCallbackException(CallbackExceptionEventArgs.Build(e));
                     }
                 }
             }
 
-            _deliveryTagsCountdown.Reset(0);
-            _flowControlBlock.Set();
-        }
-
-        public void OnSessionShutdown(object sender, ShutdownEventArgs reason)
-        {
-            ConsumerDispatcher.Quiesce();
-            SetCloseReason(reason);
-            OnModelShutdown(reason);
-            BroadcastShutdownToConsumers(_consumers, reason);
-            ConsumerDispatcher.Shutdown(this).GetAwaiter().GetResult();;
-        }
-
-        protected void BroadcastShutdownToConsumers(Dictionary<string, IBasicConsumer> cs, ShutdownEventArgs reason)
-        {
-            foreach (KeyValuePair<string, IBasicConsumer> c in cs)
+            lock (_confirmLock)
             {
-                ConsumerDispatcher.HandleModelShutdown(c.Value, reason);
+                if (_consumerSemaphore.CurrentCount == 0)
+                {
+                    _consumerSemaphore.Release();
+                }
+            }
+
+            if (_flowControlSemaphore.CurrentCount == 0)
+            {
+                _flowControlSemaphore.Release();
+            }
+        }
+
+        public async ValueTask OnSessionShutdown(object sender, ShutdownEventArgs reason)
+        {
+            SetCloseReason(reason);
+            await OnModelShutdown(reason).ConfigureAwait(false);
+            await BroadcastShutdownToConsumers(_consumers, reason).ConfigureAwait(false);
+        }
+
+        protected async ValueTask BroadcastShutdownToConsumers(Dictionary<string, IAsyncBasicConsumer> cs, ShutdownEventArgs reason)
+        {
+            foreach (KeyValuePair<string, IAsyncBasicConsumer> c in cs)
+            {
+                try
+                {
+                    await c.Value.HandleModelShutdown(this, reason).ConfigureAwait(false);
+                }
+                catch (Exception e)
+                {
+                    OnCallbackException(CallbackExceptionEventArgs.Build(e));
+                }
             }
         }
 
@@ -538,10 +478,29 @@ namespace RabbitMQ.Client.Impl
             return Session.ToString();
         }
 
-        public void TransmitAndEnqueue(Command cmd, IRpcContinuation k)
+        public ValueTask<T> TransmitAndEnqueueAsync<T>(MethodBase method, TimeSpan timeout = default) where T : MethodBase
         {
-            Enqueue(k);
-            Session.Transmit(cmd);
+            return TransmitAndEnqueueAsync<T>(new Command(method), timeout);
+        }
+
+        public ValueTask<T> TransmitAndEnqueueAsync<T>(Command cmd, TimeSpan timeout = default) where T : MethodBase
+        {
+            if (cmd.Method.ProtocolClassId != ClassConstants.Channel && cmd.Method.ProtocolMethodId != ChannelMethodConstants.Close && CloseReason != null)
+            {
+                throw new AlreadyClosedException(CloseReason);
+            }
+
+            return EnqueueAsync<T>(cmd, timeout);
+        }
+
+        public ValueTask<Command> TransmitAndEnqueueAsync(Command cmd, TimeSpan timeout = default)
+        {
+            if(cmd.Method.ProtocolClassId != ClassConstants.Channel && cmd.Method.ProtocolMethodId != ChannelMethodConstants.Close && CloseReason != null)
+            {
+                throw new AlreadyClosedException(CloseReason);
+            }
+
+            return EnqueueAsync(cmd, timeout);
         }
 
         void IDisposable.Dispose()
@@ -560,12 +519,7 @@ namespace RabbitMQ.Client.Impl
             // dispose unmanaged resources
         }
 
-        public abstract void ConnectionTuneOk(ushort channelMax,
-            uint frameMax,
-            ushort heartbeat);
-
-        public void HandleBasicAck(ulong deliveryTag,
-            bool multiple)
+        public ValueTask HandleBasicAck(ulong deliveryTag, bool multiple)
         {
             var e = new BasicAckEventArgs
             {
@@ -573,70 +527,12 @@ namespace RabbitMQ.Client.Impl
                 Multiple = multiple
             };
             OnBasicAck(e);
+            return default;
         }
 
-        public void HandleBasicCancel(string consumerTag, bool nowait)
+        public async ValueTask HandleBasicCancel(string consumerTag, bool nowait)
         {
-            IBasicConsumer consumer;
-            lock (_consumers)
-            {
-                consumer = _consumers[consumerTag];
-                _consumers.Remove(consumerTag);
-            }
-            if (consumer == null)
-            {
-                consumer = DefaultConsumer;
-            }
-            ConsumerDispatcher.HandleBasicCancel(consumer, consumerTag);
-        }
-
-        public void HandleBasicCancelOk(string consumerTag)
-        {
-            var k =
-                (BasicConsumerRpcContinuation)_continuationQueue.Next();
-            /*
-                        Trace.Assert(k.m_consumerTag == consumerTag, string.Format(
-                            "Consumer tag mismatch during cancel: {0} != {1}",
-                            k.m_consumerTag,
-                            consumerTag
-                            ));
-            */
-            lock (_consumers)
-            {
-                k.m_consumer = _consumers[consumerTag];
-                _consumers.Remove(consumerTag);
-            }
-            ConsumerDispatcher.HandleBasicCancelOk(k.m_consumer, consumerTag);
-            k.HandleCommand(null); // release the continuation.
-        }
-
-        public void HandleBasicConsumeOk(string consumerTag)
-        {
-            var k =
-                (BasicConsumerRpcContinuation)_continuationQueue.Next();
-            k.m_consumerTag = consumerTag;
-            lock (_consumers)
-            {
-                _consumers[consumerTag] = k.m_consumer;
-            }
-            ConsumerDispatcher.HandleBasicConsumeOk(k.m_consumer, consumerTag);
-            k.HandleCommand(null); // release the continuation.
-        }
-
-        public virtual void HandleBasicDeliver(string consumerTag,
-            ulong deliveryTag,
-            bool redelivered,
-            string exchange,
-            string routingKey,
-            IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body)
-        {
-            IBasicConsumer consumer;
-            lock (_consumers)
-            {
-                consumer = _consumers[consumerTag];
-            }
-            if (consumer == null)
+            if (!_consumers.TryGetValue(consumerTag, out IAsyncBasicConsumer consumer))
             {
                 if (DefaultConsumer == null)
                 {
@@ -648,43 +544,99 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            ConsumerDispatcher.HandleBasicDeliver(consumer,
-                    consumerTag,
-                    deliveryTag,
-                    redelivered,
-                    exchange,
-                    routingKey,
-                    basicProperties,
-                    body.Span);
+            try
+            {
+                ValueTask cancel = consumer.HandleBasicCancel(consumerTag);
+                if (!cancel.IsCompletedSuccessfully)
+                {
+                    await cancel.ConfigureAwait(false);
+                }
+            }
+            catch(Exception e)
+            {
+                OnCallbackException(new CallbackExceptionEventArgs(e));
+            }
+
+            lock (_consumers)
+            {
+                _consumers.Remove(consumerTag);
+            }
         }
 
-        public void HandleBasicGetEmpty()
+        public async ValueTask HandleBasicCancelOk(string consumerTag)
         {
-            var k = (BasicGetRpcContinuation)_continuationQueue.Next();
-            k.m_result = null;
-            k.HandleCommand(null); // release the continuation.
+            IAsyncBasicConsumer consumer = _consumers[consumerTag];
+            ModelShutdown -= _consumers[consumerTag].HandleModelShutdown;
+            lock (_consumers)
+            {
+                _consumers.Remove(consumerTag);
+            }
+
+            try
+            {
+                ValueTask cancel = consumer.HandleBasicCancelOk(consumerTag);
+                if (!cancel.IsCompletedSuccessfully)
+                {
+                    await cancel.ConfigureAwait(false);
+                }
+            }
+            catch (Exception e)
+            {
+                OnCallbackException(new CallbackExceptionEventArgs(e));
+            }
         }
 
-        public virtual void HandleBasicGetOk(ulong deliveryTag,
+        public async ValueTask HandleBasicConsumeOk(string consumerTag)
+        {
+            try
+            {
+                ValueTask cancel = _consumers[consumerTag].HandleBasicConsumeOk(consumerTag);
+                if (!cancel.IsCompletedSuccessfully)
+                {
+                    await cancel.ConfigureAwait(false);
+                }
+            }
+            catch (Exception e)
+            {
+                OnCallbackException(new CallbackExceptionEventArgs(e));
+            }
+        }
+
+        public virtual async ValueTask HandleBasicDeliver(string consumerTag,
+            ulong deliveryTag,
             bool redelivered,
             string exchange,
             string routingKey,
-            uint messageCount,
             IBasicProperties basicProperties,
             ReadOnlyMemory<byte> body)
         {
-            var k = (BasicGetRpcContinuation)_continuationQueue.Next();
-            k.m_result = new BasicGetResult(deliveryTag,
-                redelivered,
-                exchange,
-                routingKey,
-                messageCount,
-                basicProperties,
-                body);
-            k.HandleCommand(null); // release the continuation.
+            if (!_consumers.TryGetValue(consumerTag, out IAsyncBasicConsumer consumer))
+            {
+                if (DefaultConsumer == null)
+                {
+                    throw new InvalidOperationException("Unsolicited delivery - see IModel.DefaultConsumer to handle this case.");
+                }
+                else
+                {
+                    consumer = DefaultConsumer;
+                }
+            }
+
+            try
+            {
+                ValueTask cancel = consumer.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body);
+                if (!cancel.IsCompletedSuccessfully)
+                {
+                    await cancel.ConfigureAwait(false);
+                }
+            }
+            catch (Exception e)
+            {
+                OnCallbackException(new CallbackExceptionEventArgs(e));
+            }
         }
 
-        public void HandleBasicNack(ulong deliveryTag,
+        public ValueTask HandleBasicNack(ulong deliveryTag,
             bool multiple,
             bool requeue)
         {
@@ -695,16 +647,16 @@ namespace RabbitMQ.Client.Impl
                 Requeue = requeue
             };
             OnBasicNack(e);
+            return default;
         }
 
-        public void HandleBasicRecoverOk()
+        public ValueTask HandleBasicRecoverOk()
         {
-            var k = (SimpleBlockingRpcContinuation)_continuationQueue.Next();
             OnBasicRecoverOk(new EventArgs());
-            k.HandleCommand(null);
+            return default;
         }
 
-        public void HandleBasicReturn(ushort replyCode,
+        public ValueTask HandleBasicReturn(ushort replyCode,
             string replyText,
             string exchange,
             string routingKey,
@@ -721,9 +673,10 @@ namespace RabbitMQ.Client.Impl
                 Body = body
             };
             OnBasicReturn(e);
+            return default;
         }
 
-        public void HandleChannelClose(ushort replyCode,
+        public async ValueTask HandleChannelClose(ushort replyCode,
             string replyText,
             ushort classId,
             ushort methodId)
@@ -734,10 +687,10 @@ namespace RabbitMQ.Client.Impl
                 classId,
                 methodId));
 
-            Session.Close(CloseReason, false);
+            await Session.Close(CloseReason, false).ConfigureAwait(false);
             try
             {
-                _Private_ChannelCloseOk();
+                await Session.Transmit(new Command(new ChannelCloseOk())).ConfigureAwait(false);
             }
             finally
             {
@@ -745,242 +698,33 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public void HandleChannelCloseOk()
+        public ValueTask HandleChannelCloseOk()
         {
-            FinishClose();
+            return FinishClose();
         }
 
-        public void HandleChannelFlow(bool active)
+        public async ValueTask HandleChannelFlow(bool active)
         {
             if (active)
             {
-                _flowControlBlock.Set();
-                _Private_ChannelFlowOk(active);
+                if(_flowControlSemaphore.CurrentCount == 0)
+                {
+                    _flowControlSemaphore.Release();
+                }
             }
             else
             {
-                _flowControlBlock.Reset();
-                _Private_ChannelFlowOk(active);
+                _flowControlSemaphore.Wait(0);
             }
+
+            await Session.Transmit(new Command(new ChannelFlowOk(active))).ConfigureAwait(false);
             OnFlowControl(new FlowControlEventArgs(active));
         }
 
-        public void HandleConnectionBlocked(string reason)
+        public ValueTask HandleQueueDeclareOk(string queue, uint messageCount, uint consumerCount)
         {
-            var cb = (Connection)Session.Connection;
-
-            cb.HandleConnectionBlocked(reason);
+            return default;
         }
-
-        public void HandleConnectionClose(ushort replyCode,
-            string replyText,
-            ushort classId,
-            ushort methodId)
-        {
-            var reason = new ShutdownEventArgs(ShutdownInitiator.Peer,
-                replyCode,
-                replyText,
-                classId,
-                methodId);
-            try
-            {
-                ((Connection)Session.Connection).InternalClose(reason);
-                _Private_ConnectionCloseOk();
-                SetCloseReason(Session.Connection.CloseReason);
-            }
-            catch (IOException)
-            {
-                // Ignored. We're only trying to be polite by sending
-                // the close-ok, after all.
-            }
-            catch (AlreadyClosedException)
-            {
-                // Ignored. We're only trying to be polite by sending
-                // the close-ok, after all.
-            }
-        }
-
-        public void HandleConnectionOpenOk(string knownHosts)
-        {
-            var k = (ConnectionOpenContinuation)_continuationQueue.Next();
-            k.m_redirect = false;
-            k.m_host = null;
-            k.m_knownHosts = knownHosts;
-            k.HandleCommand(null); // release the continuation.
-        }
-
-        public void HandleConnectionSecure(byte[] challenge)
-        {
-            var k = (ConnectionStartRpcContinuation)_continuationQueue.Next();
-            k.m_result = new ConnectionSecureOrTune
-            {
-                m_challenge = challenge
-            };
-            k.HandleCommand(null); // release the continuation.
-        }
-
-        public void HandleConnectionStart(byte versionMajor,
-            byte versionMinor,
-            IDictionary<string, object> serverProperties,
-            byte[] mechanisms,
-            byte[] locales)
-        {
-            if (m_connectionStartCell == null)
-            {
-                var reason =
-                    new ShutdownEventArgs(ShutdownInitiator.Library,
-                        Constants.CommandInvalid,
-                        "Unexpected Connection.Start");
-                ((Connection)Session.Connection).Close(reason);
-            }
-            var details = new ConnectionStartDetails
-            {
-                m_versionMajor = versionMajor,
-                m_versionMinor = versionMinor,
-                m_serverProperties = serverProperties,
-                m_mechanisms = mechanisms,
-                m_locales = locales
-            };
-            m_connectionStartCell.ContinueWithValue(details);
-            m_connectionStartCell = null;
-        }
-
-        ///<summary>Handle incoming Connection.Tune
-        ///methods.</summary>
-        public void HandleConnectionTune(ushort channelMax, uint frameMax, ushort heartbeatInSeconds)
-        {
-            var k = (ConnectionStartRpcContinuation)_continuationQueue.Next();
-            k.m_result = new ConnectionSecureOrTune
-            {
-                m_tuneDetails =
-                {
-                    m_channelMax = channelMax,
-                    m_frameMax = frameMax,
-                    m_heartbeatInSeconds = heartbeatInSeconds
-                }
-            };
-            k.HandleCommand(null); // release the continuation.
-        }
-
-        public void HandleConnectionUnblocked()
-        {
-            var cb = (Connection)Session.Connection;
-
-            cb.HandleConnectionUnblocked();
-        }
-
-        public void HandleQueueDeclareOk(string queue,
-            uint messageCount,
-            uint consumerCount)
-        {
-            var k = (QueueDeclareRpcContinuation)_continuationQueue.Next();
-            k.m_result = new QueueDeclareOk(queue, messageCount, consumerCount);
-            k.HandleCommand(null); // release the continuation.
-        }
-
-        public abstract void _Private_BasicCancel(string consumerTag,
-            bool nowait);
-
-        public abstract void _Private_BasicConsume(string queue,
-            string consumerTag,
-            bool noLocal,
-            bool autoAck,
-            bool exclusive,
-            bool nowait,
-            IDictionary<string, object> arguments);
-
-        public abstract void _Private_BasicGet(string queue,
-            bool autoAck);
-
-        public abstract void _Private_BasicPublish(string exchange,
-            string routingKey,
-            bool mandatory,
-            IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body);
-
-        public abstract void _Private_BasicRecover(bool requeue);
-
-        public abstract void _Private_ChannelClose(ushort replyCode,
-            string replyText,
-            ushort classId,
-            ushort methodId);
-
-        public abstract void _Private_ChannelCloseOk();
-
-        public abstract void _Private_ChannelFlowOk(bool active);
-
-        public abstract void _Private_ChannelOpen(string outOfBand);
-
-        public abstract void _Private_ConfirmSelect(bool nowait);
-
-        public abstract void _Private_ConnectionClose(ushort replyCode,
-            string replyText,
-            ushort classId,
-            ushort methodId);
-
-        public abstract void _Private_ConnectionCloseOk();
-
-        public abstract void _Private_ConnectionOpen(string virtualHost,
-            string capabilities,
-            bool insist);
-
-        public abstract void _Private_ConnectionSecureOk(byte[] response);
-
-        public abstract void _Private_ConnectionStartOk(IDictionary<string, object> clientProperties,
-            string mechanism,
-            byte[] response,
-            string locale);
-
-        public abstract void _Private_UpdateSecret(
-            byte[] @newSecret,
-            string @reason);
-
-        public abstract void _Private_ExchangeBind(string destination,
-            string source,
-            string routingKey,
-            bool nowait,
-            IDictionary<string, object> arguments);
-
-        public abstract void _Private_ExchangeDeclare(string exchange,
-            string type,
-            bool passive,
-            bool durable,
-            bool autoDelete,
-            bool @internal,
-            bool nowait,
-            IDictionary<string, object> arguments);
-
-        public abstract void _Private_ExchangeDelete(string exchange,
-            bool ifUnused,
-            bool nowait);
-
-        public abstract void _Private_ExchangeUnbind(string destination,
-            string source,
-            string routingKey,
-            bool nowait,
-            IDictionary<string, object> arguments);
-
-        public abstract void _Private_QueueBind(string queue,
-            string exchange,
-            string routingKey,
-            bool nowait,
-            IDictionary<string, object> arguments);
-
-        public abstract void _Private_QueueDeclare(string queue,
-            bool passive,
-            bool durable,
-            bool exclusive,
-            bool autoDelete,
-            bool nowait,
-            IDictionary<string, object> arguments);
-
-        public abstract uint _Private_QueueDelete(string queue,
-            bool ifUnused,
-            bool ifEmpty,
-            bool nowait);
-
-        public abstract uint _Private_QueuePurge(string queue,
-            bool nowait);
 
         public void Abort()
         {
@@ -992,88 +736,65 @@ namespace RabbitMQ.Client.Impl
             Close(replyCode, replyText, true);
         }
 
-        public abstract void BasicAck(ulong deliveryTag, bool multiple);
-
-        public void BasicCancel(string consumerTag)
+        public virtual ValueTask BasicAck(ulong deliveryTag, bool multiple)
         {
-            var k = new BasicConsumerRpcContinuation { m_consumerTag = consumerTag };
-
-            lock (_rpcLock)
-            {
-                Enqueue(k);
-                _Private_BasicCancel(consumerTag, false);
-                k.GetReply(ContinuationTimeout);
-            }
-
-            lock (_consumers)
-            {
-                _consumers.Remove(consumerTag);
-            }
-
-            ModelShutdown -= k.m_consumer.HandleModelShutdown;
+            return Session.Transmit(new Command(new BasicAck(deliveryTag, multiple)));
         }
 
-        public void BasicCancelNoWait(string consumerTag)
+        public ValueTask BasicCancel(string consumerTag)
         {
-            _Private_BasicCancel(consumerTag, true);
+            return Session.Transmit(new Command(new Framing.Impl.BasicCancel(consumerTag, false)));
+        }
 
+        public async ValueTask BasicCancelNoWait(string consumerTag)
+        {
+            await Session.Transmit(new Command(new Framing.Impl.BasicCancel(consumerTag, true))).ConfigureAwait(false);
             lock (_consumers)
             {
                 _consumers.Remove(consumerTag);
             }
         }
 
-        public string BasicConsume(string queue,
-            bool autoAck,
-            string consumerTag,
-            bool noLocal,
-            bool exclusive,
-            IDictionary<string, object> arguments,
-            IBasicConsumer consumer)
+        public async ValueTask<string> BasicConsume(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, IDictionary<string, object> arguments, IAsyncBasicConsumer consumer)
         {
-            // TODO: Replace with flag
-            if (ConsumerDispatcher is AsyncConsumerDispatcher)
+            Command result = await TransmitAndEnqueueAsync(new Command(new BasicConsume() { _queue = queue, _noAck = autoAck, _consumerTag = consumerTag, _noLocal = noLocal, _exclusive = exclusive, _arguments = arguments })).ConfigureAwait(false);
+            if (result.Method is Framing.Impl.BasicConsumeOk resultMethod)
             {
-                if (!(consumer is IAsyncBasicConsumer))
+                consumerTag = resultMethod._consumerTag;
+                lock (_consumers)
                 {
-                    // TODO: Friendly message
-                    throw new InvalidOperationException("In the async mode you have to use an async consumer");
+                    _consumers[consumerTag] = consumer;
+                }
+
+                await HandleBasicConsumeOk(consumerTag).ConfigureAwait(false);
+                return consumerTag;
+            }
+
+            throw new UnexpectedMethodException(result.Method);
+        }
+
+        public virtual async ValueTask<BasicGetResult> BasicGet(string queue, bool autoAck)
+        {
+            using (Command result = await TransmitAndEnqueueAsync(new Command(new BasicGet() { _queue = queue, _noAck = autoAck })).ConfigureAwait(false))
+            {
+                switch (result.Method)
+                {
+                    case BasicGetOk resultMethod:
+                        var memory = new Memory<byte>(ArrayPool<byte>.Shared.Rent(result.Body.Length), 0, result.Body.Length);
+                        result.Body.CopyTo(memory);
+                        return new BasicGetResult(resultMethod._deliveryTag, resultMethod._redelivered, resultMethod._exchange, resultMethod._routingKey, resultMethod._messageCount, result.Header as IBasicProperties, memory);
+                    case BasicGetEmpty _:
+                        return null;
+                    default:
+                        throw new UnexpectedMethodException(result.Method);
                 }
             }
-
-            var k = new BasicConsumerRpcContinuation { m_consumer = consumer };
-
-            lock (_rpcLock)
-            {
-                Enqueue(k);
-                // Non-nowait. We have an unconventional means of getting
-                // the RPC response, but a response is still expected.
-                _Private_BasicConsume(queue, consumerTag, noLocal, autoAck, exclusive,
-                    /*nowait:*/ false, arguments);
-                k.GetReply(ContinuationTimeout);
-            }
-            string actualConsumerTag = k.m_consumerTag;
-
-            return actualConsumerTag;
         }
 
-        public BasicGetResult BasicGet(string queue,
-            bool autoAck)
+        public virtual ValueTask BasicNack(ulong deliveryTag, bool multiple, bool requeue)
         {
-            var k = new BasicGetRpcContinuation();
-            lock (_rpcLock)
-            {
-                Enqueue(k);
-                _Private_BasicGet(queue, autoAck);
-                k.GetReply(ContinuationTimeout);
-            }
-
-            return k.m_result;
+            return Session.Transmit(new Command(new BasicNack(deliveryTag, multiple, requeue)));
         }
-
-        public abstract void BasicNack(ulong deliveryTag,
-            bool multiple,
-            bool requeue);
 
         internal void AllocatePublishSeqNos(int count)
         {
@@ -1081,15 +802,7 @@ namespace RabbitMQ.Client.Impl
             {
                 lock (_confirmLock)
                 {
-                    if (_deliveryTagsCountdown.IsSet)
-                    {
-                        _deliveryTagsCountdown.Reset(count);
-                    }
-                    else
-                    {
-                        _deliveryTagsCountdown.AddCount(count);
-                    }
-
+                    _consumerSemaphore.Wait(0);
                     for (int i = 0; i < count; i++)
                     {
                         _pendingDeliveryTags.AddLast(NextPublishSeqNo++);
@@ -1098,7 +811,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public void BasicPublish(string exchange,
+        public ValueTask BasicPublish(string exchange,
             string routingKey,
             bool mandatory,
             IBasicProperties basicProperties,
@@ -1118,236 +831,191 @@ namespace RabbitMQ.Client.Impl
             {
                 lock (_confirmLock)
                 {
-                    if (_deliveryTagsCountdown.IsSet)
-                    {
-                        _deliveryTagsCountdown.Reset(1);
-                    }
-                    else
-                    {
-                        _deliveryTagsCountdown.AddCount();
-                    }
-
+                    _consumerSemaphore.Wait(0);
                     _pendingDeliveryTags.AddLast(NextPublishSeqNo++);
                 }
             }
 
-            _Private_BasicPublish(exchange,
-                routingKey,
-                mandatory,
-                basicProperties,
-                body);
+            return Session.Transmit(new Command(new BasicPublish { _exchange = exchange, _routingKey = routingKey, _mandatory = mandatory }, (BasicProperties)basicProperties, body, false));
         }
 
-        public void UpdateSecret(string newSecret, string reason)
+        public async ValueTask BasicQos(uint prefetchSize, ushort prefetchCount, bool global)
         {
-            if (newSecret == null)
-            {
-                throw new ArgumentNullException(nameof(newSecret));
-            }
-
-            if (reason == null)
-            {
-                throw new ArgumentNullException(nameof(reason));
-            }
-
-            _Private_UpdateSecret(Encoding.UTF8.GetBytes(newSecret), reason);
+            await TransmitAndEnqueueAsync<BasicQosOk>(new BasicQos(prefetchSize, prefetchCount, global)).ConfigureAwait(false);
         }
 
-        public abstract void BasicQos(uint prefetchSize,
-            ushort prefetchCount,
-            bool global);
-
-        public void BasicRecover(bool requeue)
+        public async ValueTask BasicRecover(bool requeue)
         {
-            var k = new SimpleBlockingRpcContinuation();
-
-            lock (_rpcLock)
-            {
-                Enqueue(k);
-                _Private_BasicRecover(requeue);
-                k.GetReply(ContinuationTimeout);
-            }
+            var recover = await TransmitAndEnqueueAsync<BasicRecoverOk>(new Command(new BasicRecover(requeue))).ConfigureAwait(false);
+            await HandleBasicRecoverOk().ConfigureAwait(false);
         }
 
-        public abstract void BasicRecoverAsync(bool requeue);
-
-        public abstract void BasicReject(ulong deliveryTag,
-            bool requeue);
-
-        public void Close()
+        public async ValueTask BasicRecoverAsync(bool requeue)
         {
-            Close(Constants.ReplySuccess, "Goodbye");
+            await TransmitAndEnqueueAsync<BasicRecoverOk>(new BasicRecover(requeue)).ConfigureAwait(false);
         }
 
-        public void Close(ushort replyCode, string replyText)
+        public virtual ValueTask BasicReject(ulong deliveryTag, bool requeue)
         {
-            Close(replyCode, replyText, false);
+            return Session.Transmit(new Command(new BasicReject(deliveryTag, requeue)));
         }
 
-        public void ConfirmSelect()
+        public ValueTask Close()
+        {
+            return Close(Constants.ReplySuccess, "Goodbye");
+        }
+
+        public ValueTask Close(ushort replyCode, string replyText)
+        {
+            return Close(replyCode, replyText, false);
+        }
+
+        public async ValueTask ConfirmSelect()
         {
             if (NextPublishSeqNo == 0UL)
             {
                 NextPublishSeqNo = 1;
             }
 
-            _Private_ConfirmSelect(false);
+            await TransmitAndEnqueueAsync<ConfirmSelectOk>(new ConfirmSelect()).ConfigureAwait(false);
         }
 
         ///////////////////////////////////////////////////////////////////////////
 
-        public abstract IBasicProperties CreateBasicProperties();
+        public virtual IBasicProperties CreateBasicProperties()
+        {
+            return new Framing.BasicProperties();
+        }
+
         public IBasicPublishBatch CreateBasicPublishBatch()
         {
             return new BasicPublishBatch(this);
         }
 
-
-        public void ExchangeBind(string destination,
-            string source,
-            string routingKey,
-            IDictionary<string, object> arguments)
+        public async ValueTask ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments)
         {
-            _Private_ExchangeBind(destination, source, routingKey, false, arguments);
+            await TransmitAndEnqueueAsync<ExchangeBindOk>(new ExchangeBind { _destination = destination, _source = source, _routingKey = routingKey, _arguments = arguments }).ConfigureAwait(false);
         }
 
-        public void ExchangeBindNoWait(string destination,
-            string source,
-            string routingKey,
-            IDictionary<string, object> arguments)
+        public ValueTask ExchangeBindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments)
         {
-            _Private_ExchangeBind(destination, source, routingKey, true, arguments);
+            return Session.Transmit(new Command(new ExchangeBind { _destination = destination, _source = source, _routingKey = routingKey, _arguments = arguments, _nowait = true }));
         }
 
-        public void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
+        public async ValueTask ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
         {
-            _Private_ExchangeDeclare(exchange, type, false, durable, autoDelete, false, false, arguments);
+            await TransmitAndEnqueueAsync<ExchangeDeclareOk>(new ExchangeDeclare { _exchange = exchange, _type = type, _durable = durable, _autoDelete = autoDelete, _arguments = arguments }).ConfigureAwait(false);
         }
 
-        public void ExchangeDeclareNoWait(string exchange,
-            string type,
-            bool durable,
-            bool autoDelete,
-            IDictionary<string, object> arguments)
+        public ValueTask ExchangeDeclareNoWait(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
         {
-            _Private_ExchangeDeclare(exchange, type, false, durable, autoDelete, false, true, arguments);
+            return Session.Transmit(new Command(new ExchangeDeclare { _exchange = exchange, _type = type, _durable = durable, _autoDelete = autoDelete, _arguments = arguments, _nowait = true }));
         }
 
-        public void ExchangeDeclarePassive(string exchange)
+        public async ValueTask ExchangeDeclarePassive(string exchange)
         {
-            _Private_ExchangeDeclare(exchange, "", true, false, false, false, false, null);
+            await TransmitAndEnqueueAsync<ExchangeDeclareOk>(new ExchangeDeclare { _exchange = exchange, _type = string.Empty, _passive = true }).ConfigureAwait(false);
         }
 
-        public void ExchangeDelete(string exchange,
-            bool ifUnused)
+        public async ValueTask ExchangeDelete(string exchange, bool ifUnused)
         {
-            _Private_ExchangeDelete(exchange, ifUnused, false);
+            await TransmitAndEnqueueAsync<ExchangeDeleteOk>(new ExchangeDelete { _exchange = exchange, _ifUnused = ifUnused }).ConfigureAwait(false);
         }
 
-        public void ExchangeDeleteNoWait(string exchange,
-            bool ifUnused)
+        public ValueTask ExchangeDeleteNoWait(string exchange, bool ifUnused)
         {
-            _Private_ExchangeDelete(exchange, ifUnused, true);
+            return Session.Transmit(new Command(new ExchangeDelete { _exchange = exchange, _ifUnused = ifUnused, _nowait = true }));
         }
 
-        public void ExchangeUnbind(string destination,
-            string source,
-            string routingKey,
-            IDictionary<string, object> arguments)
+        public async ValueTask ExchangeUnbind(string destination, string source, string routingKey, IDictionary<string, object> arguments)
         {
-            _Private_ExchangeUnbind(destination, source, routingKey, false, arguments);
+            await TransmitAndEnqueueAsync<ExchangeUnbindOk>(new ExchangeUnbind { _destination = destination, _source = source, _routingKey = routingKey, _arguments = arguments }).ConfigureAwait(false);
         }
 
-        public void ExchangeUnbindNoWait(string destination,
-            string source,
-            string routingKey,
-            IDictionary<string, object> arguments)
+        public ValueTask ExchangeUnbindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments)
         {
-            _Private_ExchangeUnbind(destination, source, routingKey, true, arguments);
+            return Session.Transmit(new Command(new ExchangeUnbind { _destination = destination, _source = source, _routingKey = routingKey, _arguments = arguments, _nowait = true }));
         }
 
-        public void QueueBind(string queue,
-            string exchange,
-            string routingKey,
-            IDictionary<string, object> arguments)
+        public async ValueTask QueueBind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
         {
-            _Private_QueueBind(queue, exchange, routingKey, false, arguments);
+            await TransmitAndEnqueueAsync<QueueBindOk>(new QueueBind { _queue = queue, _exchange = exchange, _routingKey = routingKey, _arguments = arguments }).ConfigureAwait(false);
         }
 
-        public void QueueBindNoWait(string queue,
-            string exchange,
-            string routingKey,
-            IDictionary<string, object> arguments)
+        public ValueTask QueueBindNoWait(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
         {
-            _Private_QueueBind(queue, exchange, routingKey, true, arguments);
+            return Session.Transmit(new Command(new QueueBind { _queue = queue, _exchange = exchange, _routingKey = routingKey, _arguments = arguments, _nowait = true }));
         }
 
-        public QueueDeclareOk QueueDeclare(string queue, bool durable,
-                                           bool exclusive, bool autoDelete,
-                                           IDictionary<string, object> arguments)
+        public ValueTask<QueueDeclareOk> QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
         {
             return QueueDeclare(queue, false, durable, exclusive, autoDelete, arguments);
         }
 
-        public void QueueDeclareNoWait(string queue, bool durable, bool exclusive,
-            bool autoDelete, IDictionary<string, object> arguments)
+        public ValueTask QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
         {
-            _Private_QueueDeclare(queue, false, durable, exclusive, autoDelete, true, arguments);
+            return Session.Transmit(new Command(new QueueDeclare { _queue = queue, _durable = durable, _exclusive = exclusive, _autoDelete = autoDelete, _arguments = arguments, _nowait = true }));
         }
 
-        public QueueDeclareOk QueueDeclarePassive(string queue)
+        public ValueTask<QueueDeclareOk> QueueDeclarePassive(string queue)
         {
             return QueueDeclare(queue, true, false, false, false, null);
         }
 
-        public uint MessageCount(string queue)
+        public async ValueTask<uint> MessageCount(string queue)
         {
-            QueueDeclareOk ok = QueueDeclarePassive(queue);
-            return ok.MessageCount;
+            return (await QueueDeclarePassive(queue).ConfigureAwait(false)).MessageCount;
         }
 
-        public uint ConsumerCount(string queue)
+        public async ValueTask<uint> ConsumerCount(string queue)
         {
-            QueueDeclareOk ok = QueueDeclarePassive(queue);
-            return ok.ConsumerCount;
+            return (await QueueDeclarePassive(queue).ConfigureAwait(false)).ConsumerCount;
         }
 
-        public uint QueueDelete(string queue,
-            bool ifUnused,
-            bool ifEmpty)
+        public async ValueTask<uint> QueueDelete(string queue, bool ifUnused, bool ifEmpty)
         {
-            return _Private_QueueDelete(queue, ifUnused, ifEmpty, false);
+            QueueDeleteOk result = await TransmitAndEnqueueAsync<QueueDeleteOk>(new QueueDelete { _queue = queue, _ifUnused = ifUnused, _ifEmpty = ifEmpty }).ConfigureAwait(false);
+            return result._messageCount;
         }
 
-        public void QueueDeleteNoWait(string queue,
-            bool ifUnused,
-            bool ifEmpty)
+        public ValueTask QueueDeleteNoWait(string queue, bool ifUnused, bool ifEmpty)
         {
-            _Private_QueueDelete(queue, ifUnused, ifEmpty, true);
+            return Session.Transmit(new Command(new QueueDelete { _queue = queue, _ifUnused = ifUnused, _ifEmpty = ifEmpty, _nowait = true }));
         }
 
-        public uint QueuePurge(string queue)
+        public async ValueTask<uint> QueuePurge(string queue)
         {
-            return _Private_QueuePurge(queue, false);
+            QueuePurgeOk result = await TransmitAndEnqueueAsync<QueuePurgeOk>(new QueuePurge { _queue = queue }).ConfigureAwait(false);
+            return result._messageCount;
         }
 
-        public abstract void QueueUnbind(string queue,
-            string exchange,
-            string routingKey,
-            IDictionary<string, object> arguments);
+        public async ValueTask QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
+        {
+            await TransmitAndEnqueueAsync<QueueUnbindOk>(new QueueUnbind { _queue = queue, _exchange = exchange, _routingKey = routingKey, _arguments = arguments }).ConfigureAwait(false);
+        }
 
-        public abstract void TxCommit();
+        public async ValueTask TxCommit()
+        {
+            await TransmitAndEnqueueAsync<TxCommitOk>(new TxCommit()).ConfigureAwait(false);
+        }
 
-        public abstract void TxRollback();
+        public async ValueTask TxRollback()
+        {
+            await TransmitAndEnqueueAsync<TxRollbackOk>(new TxRollback()).ConfigureAwait(false);
+        }
 
-        public abstract void TxSelect();
+        public async ValueTask TxSelect()
+        {
+            await TransmitAndEnqueueAsync<TxSelectOk>(new TxSelect()).ConfigureAwait(false);
+        }
 
-        public bool WaitForConfirms(TimeSpan timeout, out bool timedOut)
+        public async ValueTask<bool> WaitForConfirms(TimeSpan timeout)
         {
             if (NextPublishSeqNo == 0UL)
             {
                 throw new InvalidOperationException("Confirms not selected");
             }
+
             bool isWaitInfinite = timeout.TotalMilliseconds == Timeout.Infinite;
             Stopwatch stopwatch = Stopwatch.StartNew();
             while (true)
@@ -1357,72 +1025,94 @@ namespace RabbitMQ.Client.Impl
                     throw new AlreadyClosedException(CloseReason);
                 }
 
-                if (_deliveryTagsCountdown.IsSet)
+                lock (_confirmLock)
                 {
-                    bool aux = _onlyAcksReceived;
-                    _onlyAcksReceived = true;
-                    timedOut = false;
-                    return aux;
+                    if (_consumerSemaphore.Wait(0))
+                    {
+                        try
+                        {
+                            bool aux = _onlyAcksReceived;
+                            _onlyAcksReceived = true;
+                            return aux;
+                        }
+                        finally
+                        {
+                            _consumerSemaphore.Release();
+                        }
+                    }
                 }
 
                 if (isWaitInfinite)
                 {
-                    _deliveryTagsCountdown.Wait();
+                    try
+                    {
+                        if (!_consumerSemaphore.Wait(0))
+                        {
+                            await _consumerSemaphore.WaitAsync().ConfigureAwait(false);
+                        }
+                    }
+                    finally
+                    {
+                        _consumerSemaphore.Release();
+                    }
                 }
                 else
                 {
                     TimeSpan elapsed = stopwatch.Elapsed;
-                    if (elapsed > timeout || !_deliveryTagsCountdown.Wait(timeout - elapsed))
+                    try
                     {
-                        timedOut = true;
-                        return _onlyAcksReceived;
+                        if (elapsed > timeout || !await _consumerSemaphore.WaitAsync(timeout - elapsed).ConfigureAwait(false))
+                        {
+                            throw new TimeoutException("Timed out waiting for confirms.");
+                        }
+                    }
+                    finally
+                    {
+                        if (_consumerSemaphore.CurrentCount == 0)
+                        {
+                            _consumerSemaphore.Release();
+                        }
                     }
                 }
             }
         }
 
-        public bool WaitForConfirms()
+        public ValueTask<bool> WaitForConfirms()
         {
-            return WaitForConfirms(TimeSpan.FromMilliseconds(Timeout.Infinite), out _);
+            return WaitForConfirms(TimeSpan.FromMilliseconds(Timeout.Infinite));
         }
 
-        public bool WaitForConfirms(TimeSpan timeout)
+        public ValueTask WaitForConfirmsOrDie()
         {
-            return WaitForConfirms(timeout, out _);
+            return WaitForConfirmsOrDie(TimeSpan.FromMilliseconds(Timeout.Infinite));
         }
 
-        public void WaitForConfirmsOrDie()
+        public async ValueTask WaitForConfirmsOrDie(TimeSpan timeout)
         {
-            WaitForConfirmsOrDie(TimeSpan.FromMilliseconds(Timeout.Infinite));
-        }
-
-        public void WaitForConfirmsOrDie(TimeSpan timeout)
-        {
-            bool onlyAcksReceived = WaitForConfirms(timeout, out bool timedOut);
-            if (!onlyAcksReceived)
+            try
             {
-                Close(new ShutdownEventArgs(ShutdownInitiator.Application,
-                    Constants.ReplySuccess,
-                    "Nacks Received", new IOException("nack received")),
-                    false).GetAwaiter().GetResult();
-                throw new IOException("Nacks Received");
+                bool onlyAcksReceived = await WaitForConfirms(timeout).ConfigureAwait(false);
+                if (!onlyAcksReceived)
+                {
+                    await Close(new ShutdownEventArgs(ShutdownInitiator.Application, Constants.ReplySuccess, "Nacks Received", new IOException("nack received")), false).ConfigureAwait(false);
+                    throw new IOException("Nacks Received");
+                }
             }
-            if (timedOut)
+            catch (TimeoutException)
             {
-                Close(new ShutdownEventArgs(ShutdownInitiator.Application,
-                    Constants.ReplySuccess,
-                    "Timed out waiting for acks",
-                    new IOException("timed out waiting for acks")),
-                    false).GetAwaiter().GetResult();
+                await Close(new ShutdownEventArgs(ShutdownInitiator.Application, Constants.ReplySuccess, "Timed out waiting for acks", new IOException("timed out waiting for acks")), false).ConfigureAwait(false);
                 throw new IOException("Timed out waiting for acks");
             }
         }
 
-        internal void SendCommands(IList<Command> commands)
+        internal async ValueTask SendCommands(IList<Command> commands)
         {
-            _flowControlBlock.Wait();
+            if (!_flowControlSemaphore.Wait(0))
+            {
+                await _flowControlSemaphore.WaitAsync().ConfigureAwait(false);
+            }
             AllocatePublishSeqNos(commands.Count);
-            Session.Transmit(commands);
+            await Session.Transmit(commands).ConfigureAwait(false);
         }
 
         protected virtual void handleAckNack(ulong deliveryTag, bool multiple, bool isNack)
@@ -1441,61 +1131,31 @@ namespace RabbitMQ.Client.Impl
                             while (_pendingDeliveryTags.First.Value < deliveryTag)
                             {
                                 _pendingDeliveryTags.RemoveFirst();
-                                _deliveryTagsCountdown.Signal();
                             }
                         }
 
-                        if (_pendingDeliveryTags.Remove(deliveryTag))
-                        {
-                            _deliveryTagsCountdown.Signal();
-                        }
+                        _pendingDeliveryTags.Remove(deliveryTag);
                     }
-                    
+
+                    if (_pendingDeliveryTags.Count == 0 && _consumerSemaphore.CurrentCount == 0)
+                    {
+                        _consumerSemaphore.Release();
+                    }
+
                     _onlyAcksReceived = _onlyAcksReceived && !isNack;
                 }
             }
         }
 
-        private QueueDeclareOk QueueDeclare(string queue, bool passive, bool durable, bool exclusive,
-            bool autoDelete, IDictionary<string, object> arguments)
+        private async ValueTask<QueueDeclareOk> QueueDeclare(string queue, bool passive, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
         {
-            var k = new QueueDeclareRpcContinuation();
-            lock (_rpcLock)
+            Command result = await TransmitAndEnqueueAsync(new Command(new QueueDeclare() { _queue = queue, _passive = passive, _durable = durable, _exclusive = exclusive, _autoDelete = autoDelete, _arguments = arguments, _nowait = false })).ConfigureAwait(false);
+            if (result.Method is Framing.Impl.QueueDeclareOk resultMethod)
             {
-                Enqueue(k);
-                _Private_QueueDeclare(queue, passive, durable, exclusive, autoDelete, false, arguments);
-                k.GetReply(ContinuationTimeout);
+                return new QueueDeclareOk(resultMethod._queue, resultMethod._messageCount, resultMethod._consumerCount);
             }
-            return k.m_result;
-        }
 
-
-        public class BasicConsumerRpcContinuation : SimpleBlockingRpcContinuation
-        {
-            public IBasicConsumer m_consumer;
-            public string m_consumerTag;
-        }
-
-        public class BasicGetRpcContinuation : SimpleBlockingRpcContinuation
-        {
-            public BasicGetResult m_result;
-        }
-
-        public class ConnectionOpenContinuation : SimpleBlockingRpcContinuation
-        {
-            public string m_host;
-            public string m_knownHosts;
-            public bool m_redirect;
-        }
-
-        public class ConnectionStartRpcContinuation : SimpleBlockingRpcContinuation
-        {
-            public ConnectionSecureOrTune m_result;
-        }
-
-        public class QueueDeclareRpcContinuation : SimpleBlockingRpcContinuation
-        {
-            public QueueDeclareOk m_result;
+            throw new UnexpectedMethodException(result.Method);
         }
     }
 }

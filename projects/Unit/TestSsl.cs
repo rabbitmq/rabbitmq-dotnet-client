@@ -41,7 +41,7 @@
 using System;
 using System.Net.Security;
 using System.Security.Authentication;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
@@ -49,22 +49,22 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestSsl
     {
-        public void SendReceive(ConnectionFactory cf)
+        public async ValueTask SendReceive(ConnectionFactory cf)
         {
-            using (IConnection conn = cf.CreateConnection())
+            using (IConnection conn = await cf.CreateConnection())
             {
-                IModel ch = conn.CreateModel();
+                IModel ch = await conn.CreateModel();
 
-                ch.ExchangeDeclare("Exchange_TestSslEndPoint", ExchangeType.Direct);
-                string qName = ch.QueueDeclare();
-                ch.QueueBind(qName, "Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null);
+                await ch.ExchangeDeclare("Exchange_TestSslEndPoint", ExchangeType.Direct);
+                string qName = await ch.QueueDeclare();
+                await ch.QueueBind(qName, "Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null);
 
                 string message = "Hello C# SSL Client World";
                 byte[] msgBytes = System.Text.Encoding.UTF8.GetBytes(message);
-                ch.BasicPublish("Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null, msgBytes);
+                await ch.BasicPublish("Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null, msgBytes);
 
                 bool autoAck = false;
-                BasicGetResult result = ch.BasicGet(qName, autoAck);
+                BasicGetResult result = await ch.BasicGet(qName, autoAck);
                 byte[] body = result.Body.ToArray();
                 string resultMessage = System.Text.Encoding.UTF8.GetString(body);
 
@@ -73,7 +73,7 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestServerVerifiedIgnoringNameMismatch()
+        public async ValueTask TestServerVerifiedIgnoringNameMismatch()
         {
             string sslDir = IntegrationFixture.CertificatesDirectory();
             if (null == sslDir)
@@ -86,11 +86,11 @@ namespace RabbitMQ.Client.Unit
             cf.Ssl.ServerName = "*";
             cf.Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNameMismatch;
             cf.Ssl.Enabled = true;
-            SendReceive(cf);
+            await SendReceive(cf);
         }
 
         [Test]
-        public void TestServerVerified()
+        public async ValueTask TestServerVerified()
         {
             string sslDir = IntegrationFixture.CertificatesDirectory();
             if (null == sslDir)
@@ -102,11 +102,11 @@ namespace RabbitMQ.Client.Unit
             ConnectionFactory cf = new ConnectionFactory();
             cf.Ssl.ServerName = System.Net.Dns.GetHostName();
             cf.Ssl.Enabled = true;
-            SendReceive(cf);
+            await SendReceive(cf);
         }
 
         [Test]
-        public void TestClientAndServerVerified()
+        public async ValueTask TestClientAndServerVerified()
         {
             string sslDir = IntegrationFixture.CertificatesDirectory();
             if (null == sslDir)
@@ -123,12 +123,12 @@ namespace RabbitMQ.Client.Unit
             Assert.IsNotNull(p12Password, "missing PASSWORD env var");
             cf.Ssl.CertPassphrase = p12Password;
             cf.Ssl.Enabled = true;
-            SendReceive(cf);
+            await SendReceive(cf);
         }
 
         // rabbitmq/rabbitmq-dotnet-client#46, also #44 and #45
         [Test]
-        public void TestNoClientCertificate()
+        public async ValueTask TestNoClientCertificate()
         {
             string sslDir = IntegrationFixture.CertificatesDirectory();
             if (null == sslDir)
@@ -150,7 +150,7 @@ namespace RabbitMQ.Client.Unit
             cf.Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNotAvailable |
                                         SslPolicyErrors.RemoteCertificateNameMismatch;
 
-            SendReceive(cf);
+            await SendReceive(cf);
         }
     }
 }

@@ -39,7 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
@@ -49,9 +49,9 @@ namespace RabbitMQ.Client.Unit
     {
 
         [Test]
-        public void TestNullRoutingKeyIsRejected()
+        public async ValueTask TestNullRoutingKeyIsRejected()
         {
-            IModel ch = Conn.CreateModel();
+            IModel ch = await Conn.CreateModel();
             Assert.Throws(typeof(ArgumentNullException), () => ch.BasicPublish("", null, null, encoding.GetBytes("msg")));
         }
     }

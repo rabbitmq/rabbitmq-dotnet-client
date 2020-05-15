@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -54,9 +55,9 @@ namespace RabbitMQ.Client.Impl
 
         public string Type { get; private set; }
 
-        public void Recover()
+        public ValueTask Recover()
         {
-            ModelDelegate.ExchangeDeclare(Name, Type, Durable, IsAutoDelete, Arguments);
+            return ModelDelegate.ExchangeDeclare(Name, Type, Durable, IsAutoDelete, Arguments);
         }
 
         public override string ToString()

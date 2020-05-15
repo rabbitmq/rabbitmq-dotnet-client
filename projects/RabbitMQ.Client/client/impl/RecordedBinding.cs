@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -87,8 +88,9 @@ namespace RabbitMQ.Client.Impl
                    (Arguments != null ? Arguments.GetHashCode() : 0);
         }
 
-        public virtual void Recover()
+        public virtual ValueTask Recover()
         {
+            return default;
         }
 
         public override string ToString()
@@ -128,9 +130,9 @@ namespace RabbitMQ.Client.Impl
         {
         }
 
-        public override void Recover()
+        public override ValueTask Recover()
         {
-            ModelDelegate.QueueBind(Destination, Source, RoutingKey, Arguments);
+            return ModelDelegate.QueueBind(Destination, Source, RoutingKey, Arguments);
         }
     }
 
@@ -141,9 +143,9 @@ namespace RabbitMQ.Client.Impl
         {
         }
 
-        public override void Recover()
+        public override ValueTask Recover()
         {
-            ModelDelegate.ExchangeBind(Destination, Source, RoutingKey, Arguments);
+            return ModelDelegate.ExchangeBind(Destination, Source, RoutingKey, Arguments);
         }
     }
 }

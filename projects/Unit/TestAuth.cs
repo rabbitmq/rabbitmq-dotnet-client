@@ -38,6 +38,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System.Threading.Tasks;
+
 using NUnit.Framework;
 
 using RabbitMQ.Client.Exceptions;
@@ -49,17 +51,18 @@ namespace RabbitMQ.Client.Unit
     {
 
         [Test]
-        public void TestAuthFailure()
+        public async ValueTask TestAuthFailure()
         {
             ConnectionFactory connFactory = new ConnectionFactory
             {
                 UserName = "guest",
-                Password = "incorrect-password"
+                Password = "incorrect-password",
+                ClientProvidedName = this.GetType().Name
             };
 
             try
             {
-                connFactory.CreateConnection();
+                await connFactory.CreateConnection();
                 Assert.Fail("Exception caused by authentication failure expected");
             }
             catch (BrokerUnreachableException bue)

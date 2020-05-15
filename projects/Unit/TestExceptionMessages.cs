@@ -39,7 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 using RabbitMQ.Client.Exceptions;
@@ -50,12 +50,12 @@ namespace RabbitMQ.Client.Unit
     public class TestExceptionMessages : IntegrationFixture
     {
         [Test]
-        public void TestAlreadyClosedExceptionMessage()
+        public async ValueTask TestAlreadyClosedExceptionMessage()
         {
             string uuid = System.Guid.NewGuid().ToString();
             try
             {
-                Model.QueueDeclarePassive(uuid);
+                await Model.QueueDeclarePassive(uuid);
             }
             catch (Exception e)
             {
@@ -66,7 +66,7 @@ namespace RabbitMQ.Client.Unit
 
             try
             {
-                Model.QueueDeclarePassive(uuid);
+                await Model.QueueDeclarePassive(uuid);
             }
             catch (AlreadyClosedException e)
             {

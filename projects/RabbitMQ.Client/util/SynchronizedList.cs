@@ -67,10 +67,7 @@ namespace RabbitMQ.Util
             }
         }
 
-        public bool IsReadOnly
-        {
-            get { return _list.IsReadOnly; }
-        }
+        public bool IsReadOnly => _list.IsReadOnly;
 
         public T this[int index]
         {

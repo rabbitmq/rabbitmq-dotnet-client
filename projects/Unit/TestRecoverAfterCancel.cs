@@ -40,7 +40,7 @@
 
 using System;
 using System.Text;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 using RabbitMQ.Client.Events;
@@ -64,51 +64,51 @@ namespace RabbitMQ.Client.Unit
             return ((ModelBase)model).Session.ChannelNumber;
         }
 
-        [SetUp] public void Connect()
+        [SetUp] public async ValueTask Connect()
         {
-            Connection = new ConnectionFactory().CreateConnection();
-            Channel = Connection.CreateModel();
-            Queue = Channel.QueueDeclare("", false, true, false, null);
+            Connection = await new ConnectionFactory().CreateConnection();
+            Channel = await Connection.CreateModel();
+            Queue = await Channel.QueueDeclare("", false, true, false, null);
         }
 
-        [TearDown] public void Disconnect()
+        [TearDown] public async ValueTask Disconnect()
         {
-            Connection.Abort();
+            await Connection.Abort();
         }
 
         [Test]
-        public void TestRecoverAfterCancel_()
+        public async ValueTask TestRecoverAfterCancel_()
         {
             UTF8Encoding enc = new UTF8Encoding();
-            Channel.BasicPublish("", Queue, null, enc.GetBytes("message"));
+            await Channel.BasicPublish("", Queue, null, enc.GetBytes("message"));
             EventingBasicConsumer Consumer = new EventingBasicConsumer(Channel);
             SharedQueue<(bool Redelivered, byte[] Body)> EventQueue = new SharedQueue<(bool Redelivered, byte[] Body)>();
             // Making sure we copy the delivery body since it could be disposed at any time.
             Consumer.Received += (_, e) => EventQueue.Enqueue((e.Redelivered, e.Body.ToArray()));
 
-            string CTag = Channel.BasicConsume(Queue, false, Consumer);
+            string CTag = await Channel.BasicConsume(Queue, false, Consumer);
             (bool Redelivered, byte[] Body) Event = EventQueue.Dequeue();
-            Channel.BasicCancel(CTag);
-            Channel.BasicRecover(true);
+            await Channel.BasicCancel(CTag);
+            await Channel.BasicRecover(true);
 
             EventingBasicConsumer Consumer2 = new EventingBasicConsumer(Channel);
             SharedQueue<(bool Redelivered, byte[] Body)> EventQueue2 = new SharedQueue<(bool Redelivered, byte[] Body)>();
             // Making sure we copy the delivery body since it could be disposed at any time.
             Consumer2.Received += (_, e) => EventQueue2.Enqueue((e.Redelivered, e.Body.ToArray()));
-            Channel.BasicConsume(Queue, false, Consumer2);
+            await Channel.BasicConsume(Queue, false, Consumer2);
             (bool Redelivered, byte[] Body) Event2 = EventQueue2.Dequeue();
 
-            CollectionAssert.AreEqual(Event.Body, Event2.Body);
             Assert.IsFalse(Event.Redelivered);
             Assert.IsTrue(Event2.Redelivered);
+            CollectionAssert.AreEqual(Event.Body, Event2.Body);
         }
 
         [Test]
-        public void TestRecoverCallback()
+        public async ValueTask TestRecoverCallback()
         {
             callbackCount = 0;
             Channel.BasicRecoverOk += IncrCallback;
-            Channel.BasicRecover(true);
+            await Channel.BasicRecover(true);
             Assert.AreEqual(1, callbackCount);
         }
 

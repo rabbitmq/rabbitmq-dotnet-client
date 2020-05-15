@@ -40,6 +40,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace RabbitMQ.Client.Events
 {
@@ -96,18 +97,12 @@ namespace RabbitMQ.Client.Events
         {
         }
 
-        public static CallbackExceptionEventArgs Build(Exception e,
-                                                       string context)
+        public static CallbackExceptionEventArgs Build(Exception e, [CallerMemberName] string context = "")
         {
-            var details = new Dictionary<string, object>
-            {
-                {"context", context}
-            };
-            return Build(e, details);
+            return Build(e, new Dictionary<string, object> { { "context", context } });
         }
 
-        public static CallbackExceptionEventArgs Build(Exception e,
-                                                       IDictionary<string, object> details)
+        public static CallbackExceptionEventArgs Build(Exception e, IDictionary<string, object> details, [CallerMemberName] string context = "")
         {
             var exnArgs = new CallbackExceptionEventArgs(e);
             exnArgs.UpdateDetails(details);

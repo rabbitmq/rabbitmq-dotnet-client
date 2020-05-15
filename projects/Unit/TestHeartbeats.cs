@@ -41,7 +41,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
@@ -52,18 +52,18 @@ namespace RabbitMQ.Client.Unit
         private readonly TimeSpan _heartbeatTimeout = TimeSpan.FromSeconds(2);
 
         [Test, Category("LongRunning"), MaxTimeAttribute(35000)]
-        public void TestThatHeartbeatWriterUsesConfigurableInterval()
+        public async ValueTask TestThatHeartbeatWriterUsesConfigurableInterval()
         {
             var cf = new ConnectionFactory()
             {
                 RequestedHeartbeat = _heartbeatTimeout,
                 AutomaticRecoveryEnabled = false
             };
-            RunSingleConnectionTest(cf);
+            await RunSingleConnectionTest(cf);
         }
 
         [Test]
-        public void TestThatHeartbeatWriterWithTLSEnabled()
+        public async ValueTask TestThatHeartbeatWriterWithTLSEnabled()
         {
             if (!LongRunningTestsEnabled())
             {
@@ -91,11 +91,11 @@ namespace RabbitMQ.Client.Unit
             cf.Ssl.CertPassphrase = p12Password;
             cf.Ssl.Enabled = true;
 
-            RunSingleConnectionTest(cf);
+            await RunSingleConnectionTest(cf);
         }
 
         [Test, Category("LongRunning"), MaxTimeAttribute(90000)]
-        public void TestHundredsOfConnectionsWithRandomHeartbeatInterval()
+        public async ValueTask TestHundredsOfConnectionsWithRandomHeartbeatInterval()
         {
             var rnd = new Random();
             List<IConnection> xs = new List<IConnection>();
@@ -109,13 +109,14 @@ namespace RabbitMQ.Client.Unit
                     RequestedHeartbeat = TimeSpan.FromSeconds(n),
                     AutomaticRecoveryEnabled = false
                 };
-                IConnection conn = cf.CreateConnection();
+                IConnection conn = await cf.CreateConnection();
                 xs.Add(conn);
-                IModel ch = conn.CreateModel();
+                IModel ch = await conn.CreateModel();
 
                 conn.ConnectionShutdown += (sender, evt) =>
                     {
                         CheckInitiator(evt);
+                        return default;
                     };
             }
 
@@ -123,14 +124,14 @@ namespace RabbitMQ.Client.Unit
 
             foreach (IConnection x in xs)
             {
-                x.Close();
+                await x.Close();
             }
         }
 
-        protected void RunSingleConnectionTest(ConnectionFactory cf)
+        protected async ValueTask RunSingleConnectionTest(ConnectionFactory cf)
         {
-            IConnection conn = cf.CreateConnection();
-            IModel ch = conn.CreateModel();
+            IConnection conn = await cf.CreateConnection();
+            IModel ch = await conn.CreateModel();
             bool wasShutdown = false;
 
             conn.ConnectionShutdown += (sender, evt) =>
@@ -143,13 +144,14 @@ namespace RabbitMQ.Client.Unit
                         wasShutdown = true;
                     }
                 }
+                return default;
             };
             SleepFor(30);
 
             Assert.IsFalse(wasShutdown, "shutdown event should not have been fired");
             Assert.IsTrue(conn.IsOpen, "connection should be open");
 
-            conn.Close();
+            await conn.Close();
         }
 
         private void CheckInitiator(ShutdownEventArgs evt)

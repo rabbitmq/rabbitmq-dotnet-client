@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Unit
         private readonly TimeSpan _tenSeconds = TimeSpan.FromSeconds(10);
 
         [Test]
-        public void TestUnthrottledFloodPublishing()
+        public async ValueTask TestUnthrottledFloodPublishing()
         {
             var connFactory = new ConnectionFactory()
             {
@@ -62,9 +62,9 @@ namespace RabbitMQ.Client.Unit
                 AutomaticRecoveryEnabled = false
             };
 
-            using (var conn = connFactory.CreateConnection())
+            using (IConnection conn = await connFactory.CreateConnection())
             {
-                using (var model = conn.CreateModel())
+                using (IModel model = await conn.CreateModel())
                 {
                     conn.ConnectionShutdown += (_, args) =>
                     {
@@ -72,6 +72,8 @@ namespace RabbitMQ.Client.Unit
                         {
                             Assert.Fail("Unexpected connection shutdown!");
                         }
+
+                        return default;
                     };
 
                     bool shouldStop = false;
@@ -88,7 +90,7 @@ namespace RabbitMQ.Client.Unit
                                 break;
                             }
                         }
-                        model.BasicPublish("", "", null, _body);
+                        await model.BasicPublish("", "", null, _body);
                     }
                     Assert.IsTrue(conn.IsOpen);
                 }
@@ -96,7 +98,7 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestMultithreadFloodPublishing()
+        public async ValueTask TestMultithreadFloodPublishing()
         {
             string testName = TestContext.CurrentContext.Test.FullName;
             string message = string.Format("Hello from test {0}", testName);
@@ -111,28 +113,28 @@ namespace RabbitMQ.Client.Unit
                 AutomaticRecoveryEnabled = false
             };
 
-            using (IConnection c = cf.CreateConnection())
+            using (IConnection c = await cf.CreateConnection())
             {
                 string queueName = null;
-                using (IModel m = c.CreateModel())
+                using (IModel m = await c.CreateModel())
                 {
-                    QueueDeclareOk q = m.QueueDeclare();
+                    QueueDeclareOk q = await m.QueueDeclare();
                     queueName = q.QueueName;
                 }
 
-                Task pub = Task.Run(() =>
+                Task pub = Task.Run(async () =>
                 {
-                    using (IModel m = c.CreateModel())
+                    using (IModel m = await c.CreateModel())
                     {
                         IBasicProperties bp = m.CreateBasicProperties();
                         for (int i = 0; i < publishCount; i++)
                         {
-                            m.BasicPublish(string.Empty, queueName, bp, sendBody);
+                            await m.BasicPublish(string.Empty, queueName, bp, sendBody);
                         }
                     }
                 });
 
-                using (IModel consumerModel = c.CreateModel())
+                using (IModel consumerModel = await c.CreateModel())
                 {
                     var consumer = new EventingBasicConsumer(consumerModel);
                     consumer.Received += (o, a) =>
@@ -145,7 +147,7 @@ namespace RabbitMQ.Client.Unit
                             autoResetEvent.Set();
                         }
                     };
-                    consumerModel.BasicConsume(queueName, true, consumer);
+                    await consumerModel.BasicConsume(queueName, true, consumer);
                     Assert.IsTrue(pub.Wait(_tenSeconds));
                     Assert.IsTrue(autoResetEvent.WaitOne(_tenSeconds));
                 }

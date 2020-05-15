@@ -42,10 +42,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
 {
@@ -173,7 +173,7 @@ namespace RabbitMQ.Client
         /// event handler is added to this event, the event handler
         /// will be fired immediately.
         /// </remarks>
-        event EventHandler<ShutdownEventArgs> ConnectionShutdown;
+        event AsyncEventHandler<ShutdownEventArgs> ConnectionShutdown;
 
         event EventHandler<EventArgs> ConnectionUnblocked;
 
@@ -184,7 +184,7 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <param name="newSecret">The new secret.</param>
         /// <param name="reason">The reason for the secret update.</param>
-        void UpdateSecret(string newSecret, string reason);
+        ValueTask UpdateSecret(string newSecret, string reason);
 
         /// <summary>
         /// Abort this connection and all its channels.
@@ -195,7 +195,7 @@ namespace RabbitMQ.Client
         /// <see cref="IOException"/> during closing connection.
         ///This method waits infinitely for the in-progress close operation to complete.
         /// </remarks>
-        void Abort();
+        ValueTask Abort();
 
         /// <summary>
         /// Abort this connection and all its channels.
@@ -210,7 +210,7 @@ namespace RabbitMQ.Client
         /// A message indicating the reason for closing the connection
         /// </para>
         /// </remarks>
-        void Abort(ushort reasonCode, string reasonText);
+        ValueTask Abort(ushort reasonCode, string reasonText);
 
         /// <summary>
         /// Abort this connection and all its channels and wait with a
@@ -225,7 +225,7 @@ namespace RabbitMQ.Client
         /// To wait infinitely for the close operations to complete use <see cref="Timeout.Infinite"/>.
         /// </para>
         /// </remarks>
-        void Abort(TimeSpan timeout);
+        ValueTask Abort(TimeSpan timeout);
 
         /// <summary>
         /// Abort this connection and all its channels and wait with a
@@ -241,7 +241,7 @@ namespace RabbitMQ.Client
         /// A message indicating the reason for closing the connection.
         /// </para>
         /// </remarks>
-        void Abort(ushort reasonCode, string reasonText, TimeSpan timeout);
+        ValueTask Abort(ushort reasonCode, string reasonText, TimeSpan timeout);
 
         /// <summary>
         /// Close this connection and all its channels.
@@ -254,7 +254,12 @@ namespace RabbitMQ.Client
         /// (or closing), then this method will do nothing.
         /// It can also throw <see cref="IOException"/> when socket was closed unexpectedly.
         /// </remarks>
-        void Close();
+        ValueTask Close();
+
+        /// <summary>
+        /// Initializes and opens the connection.
+        /// </summary>
+        ValueTask Open();
 
         /// <summary>
         /// Close this connection and all its channels.
@@ -269,7 +274,7 @@ namespace RabbitMQ.Client
         /// A message indicating the reason for closing the connection.
         /// </para>
         /// </remarks>
-        void Close(ushort reasonCode, string reasonText);
+        ValueTask Close(ushort reasonCode, string reasonText);
 
         /// <summary>
         /// Close this connection and all its channels
@@ -286,7 +291,7 @@ namespace RabbitMQ.Client
         /// To wait infinitely for the close operations to complete use <see cref="System.Threading.Timeout.InfiniteTimeSpan"/>.
         /// </para>
         /// </remarks>
-        void Close(TimeSpan timeout);
+        ValueTask Close(TimeSpan timeout);
 
         /// <summary>
         /// Close this connection and all its channels
@@ -305,21 +310,20 @@ namespace RabbitMQ.Client
         /// Operation timeout.
         /// </para>
         /// </remarks>
-        void Close(ushort reasonCode, string reasonText, TimeSpan timeout);
+        ValueTask Close(ushort reasonCode, string reasonText, TimeSpan timeout);
 
         /// <summary>
         /// Create and return a fresh channel, session, and model.
         /// </summary>
-        IModel CreateModel();
+        ValueTask<IModel> CreateModel();
 
-        /// <summary>
-        /// Handle incoming Connection.Blocked methods.
-        /// </summary>
+        ///<summary>Handle an incoming Connection.Blocked.</summary>
         void HandleConnectionBlocked(string reason);
 
-        /// <summary>
-        /// Handle incoming Connection.Unblocked methods.
-        /// </summary>
+        ///<summary>Handle an incoming Connection.Close. Shuts down the
+        ///connection and all sessions and models.</summary>
+        ValueTask HandleConnectionClose(ushort replyCode, string replyText, ushort classId, ushort methodId);
+
         void HandleConnectionUnblocked();
     }
 }

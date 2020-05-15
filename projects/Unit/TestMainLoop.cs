@@ -40,7 +40,7 @@
 
 using System;
 using System.Threading;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 using RabbitMQ.Client.Events;
@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Unit
         {
             public FaultyConsumer(IModel model) : base(model) {}
 
-            public override void HandleBasicDeliver(string consumerTag,
+            public override ValueTask HandleBasicDeliver(string consumerTag,
                                                ulong deliveryTag,
                                                bool redelivered,
                                                string exchange,
@@ -67,14 +67,14 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestCloseWithFaultyConsumer()
+        public async ValueTask TestCloseWithFaultyConsumer()
         {
             ConnectionFactory connFactory = new ConnectionFactory();
-            IConnection c = connFactory.CreateConnection();
-            IModel m = Conn.CreateModel();
+            IConnection c = await connFactory.CreateConnection();
+            IModel m = await Conn.CreateModel();
             object o = new object();
             string q = GenerateQueueName();
-            m.QueueDeclare(q, false, false, false, null);
+            await m.QueueDeclare(q, false, false, false, null);
 
             CallbackExceptionEventArgs ea = null;
             m.CallbackException += (_, evt) => {
@@ -82,8 +82,8 @@ namespace RabbitMQ.Client.Unit
                 c.Close();
                 Monitor.PulseAll(o);
             };
-            m.BasicConsume(q, true, new FaultyConsumer(Model));
-            m.BasicPublish("", q, null, encoding.GetBytes("message"));
+            await m.BasicConsume(q, true, new FaultyConsumer(Model));
+            await m.BasicPublish("", q, null, encoding.GetBytes("message"));
             WaitOn(o);
 
             Assert.IsNotNull(ea);

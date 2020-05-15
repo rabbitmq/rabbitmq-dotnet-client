@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
@@ -60,43 +61,25 @@ namespace RabbitMQ.Client.Impl
             MaxSeenDeliveryTag = 0;
         }
 
-        public override void HandleBasicGetOk(ulong deliveryTag,
-            bool redelivered,
-            string exchange,
-            string routingKey,
-            uint messageCount,
-            IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body)
+        public override async ValueTask<BasicGetResult> BasicGet(string queue, bool autoAck)
         {
-            if (deliveryTag > MaxSeenDeliveryTag)
+            BasicGetResult result = await base.BasicGet(queue, autoAck).ConfigureAwait(false);
+            if (result is object && result.DeliveryTag > MaxSeenDeliveryTag)
             {
-                MaxSeenDeliveryTag = deliveryTag;
+                MaxSeenDeliveryTag = result.DeliveryTag;
             }
 
-            base.HandleBasicGetOk(
-                OffsetDeliveryTag(deliveryTag),
-                redelivered,
-                exchange,
-                routingKey,
-                messageCount,
-                basicProperties,
-                body);
+            return result;
         }
 
-        public override void HandleBasicDeliver(string consumerTag,
-            ulong deliveryTag,
-            bool redelivered,
-            string exchange,
-            string routingKey,
-            IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body)
+        public override ValueTask HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
         {
             if (deliveryTag > MaxSeenDeliveryTag)
             {
                 MaxSeenDeliveryTag = deliveryTag;
             }
 
-            base.HandleBasicDeliver(consumerTag,
+            return base.HandleBasicDeliver(consumerTag,
                 OffsetDeliveryTag(deliveryTag),
                 redelivered,
                 exchange,
@@ -105,35 +88,37 @@ namespace RabbitMQ.Client.Impl
                 body);
         }
 
-        public override void BasicAck(ulong deliveryTag,
-            bool multiple)
+        public override ValueTask BasicAck(ulong deliveryTag, bool multiple)
         {
             ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
             if (realTag > 0 && realTag <= deliveryTag)
             {
-                base.BasicAck(realTag, multiple);
+                return base.BasicAck(realTag, multiple);
             }
+
+            return default;
         }
 
-        public override void BasicNack(ulong deliveryTag,
-            bool multiple,
-            bool requeue)
+        public override ValueTask BasicNack(ulong deliveryTag, bool multiple, bool requeue)
         {
             ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
             if (realTag > 0 && realTag <= deliveryTag)
             {
-                base.BasicNack(realTag, multiple, requeue);
+                return base.BasicNack(realTag, multiple, requeue);
             }
+
+            return default;
         }
 
-        public override void BasicReject(ulong deliveryTag,
-            bool requeue)
+        public override ValueTask BasicReject(ulong deliveryTag, bool requeue)
         {
             ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
             if (realTag > 0 && realTag <= deliveryTag)
             {
-                base.BasicReject(realTag, requeue);
+                return base.BasicReject(realTag, requeue);
             }
+
+            return default;
         }
 
         protected ulong OffsetDeliveryTag(ulong deliveryTag)

@@ -42,7 +42,6 @@ using System.Collections.Generic;
 
 using NUnit.Framework;
 
-using RabbitMQ.Client;
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Unit

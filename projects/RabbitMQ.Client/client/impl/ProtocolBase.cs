@@ -69,14 +69,18 @@ namespace RabbitMQ.Client.Framing.Impl
         public abstract int MinorVersion { get; }
         public abstract int Revision { get; }
 
-        public AmqpVersion Version
-        {
-            get { return new AmqpVersion(MajorVersion, MinorVersion); }
-        }
+        public AmqpVersion Version => new AmqpVersion(MajorVersion, MinorVersion);
 
         public bool CanSendWhileClosed(Command cmd)
         {
-            return cmd.Method is Impl.ChannelCloseOk;
+            switch (cmd.Method)
+            {
+                case Impl.ChannelClose _:
+                case Impl.ChannelCloseOk _:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         public void CreateChannelClose(ushort reasonCode,
@@ -123,35 +127,25 @@ namespace RabbitMQ.Client.Framing.Impl
             return Version.ToString();
         }
 
-        public IConnection CreateConnection(IConnectionFactory factory,
-            bool insist,
-            IFrameHandler frameHandler)
+        public IConnection CreateConnection(IConnectionFactory factory, IFrameHandler frameHandler)
         {
-            return new Connection(factory, insist, frameHandler, null);
+            return new Connection(factory, frameHandler, null);
         }
 
 
-        public IConnection CreateConnection(IConnectionFactory factory,
-            bool insist,
-            IFrameHandler frameHandler,
-            string clientProvidedName)
+        public IConnection CreateConnection(IConnectionFactory factory, IFrameHandler frameHandler, string clientProvidedName)
         {
-            return new Connection(factory, insist, frameHandler, clientProvidedName);
+            return new Connection(factory, frameHandler, clientProvidedName);
         }
 
-        public IConnection CreateConnection(ConnectionFactory factory,
-            IFrameHandler frameHandler,
-            bool automaticRecoveryEnabled)
+        public IConnection CreateConnection(ConnectionFactory factory, IFrameHandler frameHandler, bool automaticRecoveryEnabled)
         {
             var ac = new AutorecoveringConnection(factory, null);
             ac.Init();
             return ac;
         }
 
-        public IConnection CreateConnection(ConnectionFactory factory,
-            IFrameHandler frameHandler,
-            bool automaticRecoveryEnabled,
-            string clientProvidedName)
+        public IConnection CreateConnection(ConnectionFactory factory, IFrameHandler frameHandler, bool automaticRecoveryEnabled, string clientProvidedName)
         {
             var ac = new AutorecoveringConnection(factory, clientProvidedName);
             ac.Init();
@@ -162,11 +156,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public IModel CreateModel(ISession session)
         {
             return new Model(session);
-        }
-
-        public IModel CreateModel(ISession session, ConsumerWorkService workService)
-        {
-            return new Model(session, workService);
         }
     }
 }

@@ -39,7 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System.Threading;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 using RabbitMQ.Client.Events;
@@ -50,9 +50,9 @@ namespace RabbitMQ.Client.Unit
     public class TestEventingConsumer : IntegrationFixture {
 
         [Test]
-        public void TestEventingConsumerRegistrationEvents()
+        public async ValueTask TestEventingConsumerRegistrationEvents()
         {
-            string q = Model.QueueDeclare();
+            string q = await Model.QueueDeclare();
 
             var registeredLatch = new ManualResetEventSlim(false);
             object registeredSender = null;
@@ -72,14 +72,14 @@ namespace RabbitMQ.Client.Unit
                 unregisteredLatch.Set();
             };
 
-            string tag = Model.BasicConsume(q, false, ec);
+            string tag = await Model.BasicConsume(q, false, ec);
             Wait(registeredLatch);
 
             Assert.IsNotNull(registeredSender);
             Assert.AreEqual(ec, registeredSender);
             Assert.AreEqual(Model, ((EventingBasicConsumer)registeredSender).Model);
 
-            Model.BasicCancel(tag);
+            await Model.BasicCancel(tag);
             Wait(unregisteredLatch);
             Assert.IsNotNull(unregisteredSender);
             Assert.AreEqual(ec, unregisteredSender);
@@ -87,9 +87,9 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestEventingConsumerDeliveryEvents()
+        public async ValueTask TestEventingConsumerDeliveryEvents()
         {
-            string q = Model.QueueDeclare();
+            string q = await Model.QueueDeclare();
             object o = new object();
 
             bool receivedInvoked = false;
@@ -104,8 +104,8 @@ namespace RabbitMQ.Client.Unit
                 Monitor.PulseAll(o);
             };
 
-            Model.BasicConsume(q, true, ec);
-            Model.BasicPublish("", q, null, encoding.GetBytes("msg"));
+            await Model.BasicConsume(q, true, ec);
+            await Model.BasicPublish("", q, null, encoding.GetBytes("msg"));
 
             WaitOn(o);
             Assert.IsTrue(receivedInvoked);
@@ -124,7 +124,7 @@ namespace RabbitMQ.Client.Unit
                 Monitor.PulseAll(o);
             };
 
-            Model.Close();
+            await Model.Close();
             WaitOn(o);
 
             Assert.IsTrue(shutdownInvoked);

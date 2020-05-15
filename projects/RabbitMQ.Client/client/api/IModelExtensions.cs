@@ -40,45 +40,46 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client
 {
     public static class IModelExensions
     {
         /// <summary>Start a Basic content-class consumer.</summary>
-        public static string BasicConsume(this IModel model,
-            IBasicConsumer consumer,
+        public static ValueTask<string> BasicConsume(this IModel model,
+            IAsyncBasicConsumer consumer,
             string queue,
             bool autoAck = false,
             string consumerTag = "",
             bool noLocal = false,
             bool exclusive = false,
             IDictionary<string, object> arguments = null)
-            {
-                return model.BasicConsume(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer);
-            }
+        {
+            return model.BasicConsume(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer);
+        }
 
         /// <summary>Start a Basic content-class consumer.</summary>
-        public static string BasicConsume(this IModel model, string queue, bool autoAck, IBasicConsumer consumer)
+        public static ValueTask<string> BasicConsume(this IModel model, string queue, bool autoAck, IAsyncBasicConsumer consumer)
         {
             return model.BasicConsume(queue, autoAck, "", false, false, null, consumer);
         }
 
         /// <summary>Start a Basic content-class consumer.</summary>
-        public static string BasicConsume(this IModel model, string queue,
+        public static ValueTask<string> BasicConsume(this IModel model, string queue,
             bool autoAck,
             string consumerTag,
-            IBasicConsumer consumer)
+            IAsyncBasicConsumer consumer)
         {
             return model.BasicConsume(queue, autoAck, consumerTag, false, false, null, consumer);
         }
 
         /// <summary>Start a Basic content-class consumer.</summary>
-        public static string BasicConsume(this IModel model, string queue,
+        public static ValueTask<string> BasicConsume(this IModel model, string queue,
             bool autoAck,
             string consumerTag,
             IDictionary<string, object> arguments,
-            IBasicConsumer consumer)
+            IAsyncBasicConsumer consumer)
         {
             return model.BasicConsume(queue, autoAck, consumerTag, false, false, arguments, consumer);
         }
@@ -89,9 +90,9 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// The publication occurs with mandatory=false and immediate=false.
         /// </remarks>
-        public static void BasicPublish(this IModel model, PublicationAddress addr, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
+        public static ValueTask BasicPublish(this IModel model, PublicationAddress addr, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
         {
-            model.BasicPublish(addr.ExchangeName, addr.RoutingKey, basicProperties: basicProperties, body: body);
+            return model.BasicPublish(addr.ExchangeName, addr.RoutingKey, basicProperties: basicProperties, body: body);
         }
 
         /// <summary>
@@ -100,101 +101,100 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// The publication occurs with mandatory=false
         /// </remarks>
-        public static void BasicPublish(this IModel model, string exchange, string routingKey, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
+        public static ValueTask BasicPublish(this IModel model, string exchange, string routingKey, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
         {
-            model.BasicPublish(exchange, routingKey, false, basicProperties, body);
+            return model.BasicPublish(exchange, routingKey, false, basicProperties, body);
         }
 
         /// <summary>
         /// (Spec method) Convenience overload of BasicPublish.
         /// </summary>
-        public static void BasicPublish(this IModel model, string exchange, string routingKey, bool mandatory = false, IBasicProperties basicProperties = null, ReadOnlyMemory<byte> body = default)
+        public static ValueTask BasicPublish(this IModel model, string exchange, string routingKey, bool mandatory = false, IBasicProperties basicProperties = null, ReadOnlyMemory<byte> body = default)
         {
-            model.BasicPublish(exchange, routingKey, mandatory, basicProperties, body);
+            return model.BasicPublish(exchange, routingKey, mandatory, basicProperties, body);
         }
 
         /// <summary>
         /// (Spec method) Declare a queue.
         /// </summary>
-        public static QueueDeclareOk QueueDeclare(this IModel model, string queue = "", bool durable = false, bool exclusive = true,
+        public static ValueTask<QueueDeclareOk> QueueDeclare(this IModel model, string queue = "", bool durable = false, bool exclusive = true,
             bool autoDelete = true, IDictionary<string, object> arguments = null)
-            {
-                return model.QueueDeclare(queue, durable, exclusive, autoDelete, arguments);
-            }
+        {
+            return model.QueueDeclare(queue, durable, exclusive, autoDelete, arguments);
+        }
 
         /// <summary>
         /// (Extension method) Bind an exchange to an exchange.
         /// </summary>
-        public static void ExchangeBind(this IModel model, string destination, string source, string routingKey, IDictionary<string, object> arguments = null)
+        public static ValueTask ExchangeBind(this IModel model, string destination, string source, string routingKey, IDictionary<string, object> arguments = null)
         {
-            model.ExchangeBind(destination, source, routingKey, arguments);
+            return model.ExchangeBind(destination, source, routingKey, arguments);
         }
 
         /// <summary>
         /// (Extension method) Like exchange bind but sets nowait to true. 
         /// </summary>
-        public static void ExchangeBindNoWait(this IModel model, string destination, string source, string routingKey, IDictionary<string, object> arguments = null)
+        public static ValueTask ExchangeBindNoWait(this IModel model, string destination, string source, string routingKey, IDictionary<string, object> arguments = null)
         {
-            model.ExchangeBindNoWait(destination, source, routingKey, arguments);
+            return model.ExchangeBindNoWait(destination, source, routingKey, arguments);
         }
 
         /// <summary>
         /// (Spec method) Declare an exchange.
         /// </summary>
-        public static void ExchangeDeclare(this IModel model, string exchange, string type, bool durable = false, bool autoDelete = false,
+        public static ValueTask ExchangeDeclare(this IModel model, string exchange, string type, bool durable = false, bool autoDelete = false,
             IDictionary<string, object> arguments = null)
-            {
-                model.ExchangeDeclare(exchange, type, durable, autoDelete, arguments);
-            }
+        {
+            return model.ExchangeDeclare(exchange, type, durable, autoDelete, arguments);
+        }
 
         /// <summary>
         /// (Extension method) Like ExchangeDeclare but sets nowait to true. 
         /// </summary>
-        public static void ExchangeDeclareNoWait(this IModel model, string exchange, string type, bool durable = false, bool autoDelete = false,
-            IDictionary<string, object> arguments = null)
-            {
-                model.ExchangeDeclareNoWait(exchange, type, durable, autoDelete, arguments);
-            }
+        public static ValueTask ExchangeDeclareNoWait(this IModel model, string exchange, string type, bool durable = false, bool autoDelete = false, IDictionary<string, object> arguments = null)
+        {
+            return model.ExchangeDeclareNoWait(exchange, type, durable, autoDelete, arguments);
+        }
 
         /// <summary>
         /// (Spec method) Unbinds an exchange.
         /// </summary>
-        public static void ExchangeUnbind(this IModel model, string destination,
+        public static ValueTask ExchangeUnbind(this IModel model, string destination,
             string source,
             string routingKey,
             IDictionary<string, object> arguments = null)
-            {
-                model.ExchangeUnbind(destination, source, routingKey, arguments);
-            }
+        {
+            return model.ExchangeUnbind(destination, source, routingKey, arguments);
+        }
 
         /// <summary>
         /// (Spec method) Deletes an exchange.
         /// </summary>
-        public static void ExchangeDelete(this IModel model, string exchange, bool ifUnused = false)
+        public static ValueTask ExchangeDelete(this IModel model, string exchange, bool ifUnused = false)
         {
-            model.ExchangeDelete(exchange, ifUnused);
+            return model.ExchangeDelete(exchange, ifUnused);
         }
 
         /// <summary>
         /// (Extension method) Like ExchangeDelete but sets nowait to true.
         /// </summary>
-        public static void ExchangeDeleteNoWait(this IModel model, string exchange, bool ifUnused = false)
+        public static ValueTask ExchangeDeleteNoWait(this IModel model, string exchange, bool ifUnused = false)
         {
-            model.ExchangeDeleteNoWait(exchange, ifUnused);
+            return model.ExchangeDeleteNoWait(exchange, ifUnused);
         }
 
         /// <summary>
         /// (Spec method) Binds a queue.
         /// </summary>
-        public static void QueueBind(this IModel model, string queue, string exchange, string routingKey, IDictionary<string, object> arguments = null)
+        public static ValueTask QueueBind(this IModel model, string queue, string exchange, string routingKey, IDictionary<string, object> arguments = null)
         {
-            model.QueueBind(queue, exchange, routingKey, arguments);
+            return model.QueueBind(queue, exchange, routingKey, arguments);
         }
 
         /// <summary>
         /// (Spec method) Deletes a queue.
         /// </summary>
-        public static uint QueueDelete(this IModel model, string queue, bool ifUnused = false, bool ifEmpty = false)
+        public static ValueTask<uint> QueueDelete(this IModel model, string queue, bool ifUnused = false, bool ifEmpty = false)
         {
             return model.QueueDelete(queue, ifUnused, ifEmpty);
         }
@@ -202,17 +202,17 @@ namespace RabbitMQ.Client
         /// <summary>
         /// (Extension method) Like QueueDelete but sets nowait to true.
         /// </summary>
-        public static void QueueDeleteNoWait(this IModel model, string queue, bool ifUnused = false, bool ifEmpty = false)
+        public static ValueTask QueueDeleteNoWait(this IModel model, string queue, bool ifUnused = false, bool ifEmpty = false)
         {
-            model.QueueDeleteNoWait(queue, ifUnused, ifEmpty);
+            return model.QueueDeleteNoWait(queue, ifUnused, ifEmpty);
         }
 
         /// <summary>
         /// (Spec method) Unbinds a queue.
         /// </summary>
-        public static void QueueUnbind(this IModel model, string queue, string exchange, string routingKey, IDictionary<string, object> arguments = null)
+        public static ValueTask QueueUnbind(this IModel model, string queue, string exchange, string routingKey, IDictionary<string, object> arguments = null)
         {
-            model.QueueUnbind(queue, exchange, routingKey, arguments);
+            return model.QueueUnbind(queue, exchange, routingKey, arguments);
         }
     }
 }

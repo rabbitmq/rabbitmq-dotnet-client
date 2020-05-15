@@ -40,6 +40,7 @@
 
 using System;
 using System.Text;
+using System.Threading.Tasks;
 
 using NUnit.Framework;
 
@@ -49,15 +50,14 @@ namespace RabbitMQ.Client.Unit
     public class TestUpdateSecret : IntegrationFixture {
 
         [Test]
-        public void TestUpdatingConnectionSecret()
+        public async ValueTask TestUpdatingConnectionSecret()
         {
             if (!RabbitMQ380OrHigher())
             {
                 Console.WriteLine("Not connected to RabbitMQ 3.8 or higher, skipping test");
-                return;
             }
 
-            Conn.UpdateSecret("new-secret", "Test Case");
+            await Conn.UpdateSecret("new-secret", "Test Case");
 
             Assert.AreEqual("new-secret", ConnFactory.Password);
         }

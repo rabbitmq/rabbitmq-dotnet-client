@@ -39,7 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
@@ -47,16 +47,16 @@ namespace RabbitMQ.Client.Unit
     internal class TestMessageCount : IntegrationFixture
     {
         [Test]
-        public void TestMessageCountMethod()
+        public async ValueTask TestMessageCountMethod()
         {
-            Model.ConfirmSelect();
+            await Model.ConfirmSelect();
             string q = GenerateQueueName();
-            Model.QueueDeclare(queue: q, durable: false, exclusive: true, autoDelete: false, arguments: null);
-            Assert.AreEqual(0, Model.MessageCount(q));
+            await Model.QueueDeclare(queue: q, durable: false, exclusive: true, autoDelete: false, arguments: null);
+            Assert.AreEqual(0, await Model.MessageCount(q));
 
-            Model.BasicPublish(exchange: "", routingKey: q, basicProperties: null, body: encoding.GetBytes("msg"));
-            Model.WaitForConfirms(TimeSpan.FromSeconds(2));
-            Assert.AreEqual(1, Model.MessageCount(q));
+            await Model.BasicPublish(exchange: "", routingKey: q, basicProperties: null, body: encoding.GetBytes("msg"));
+            await Model.WaitForConfirms(TimeSpan.FromSeconds(2));
+            Assert.AreEqual(1, await Model.MessageCount(q));
         }
     }
 }

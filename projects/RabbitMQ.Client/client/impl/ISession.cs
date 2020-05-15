@@ -40,6 +40,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+
+using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
@@ -59,7 +62,7 @@ namespace RabbitMQ.Client.Impl
         ///<summary>
         /// Single recipient - no need for multiple handlers to be informed of arriving commands.
         ///</summary>
-        Action<ISession, Command> CommandReceived { get; set; }
+        Func<ISession, Command, ValueTask> CommandReceived { get; set; }
 
         /// <summary>
         /// Gets the connection.
@@ -74,13 +77,13 @@ namespace RabbitMQ.Client.Impl
         ///<summary>
         /// Multicast session shutdown event.
         ///</summary>
-        event EventHandler<ShutdownEventArgs> SessionShutdown;
+        event AsyncEventHandler<ShutdownEventArgs> SessionShutdown;
 
-        void Close(ShutdownEventArgs reason);
-        void Close(ShutdownEventArgs reason, bool notify);
-        void HandleFrame(in InboundFrame frame);
+        ValueTask Close(ShutdownEventArgs reason);
+        ValueTask Close(ShutdownEventArgs reason, bool notify);
+        ValueTask HandleFrame(in InboundFrame frame);
         void Notify();
-        void Transmit(Command cmd);
-        void Transmit(IList<Command> cmd);
+        ValueTask Transmit(Command cmd);
+        ValueTask Transmit(IList<Command> cmd);
     }
 }

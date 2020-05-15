@@ -60,11 +60,7 @@ namespace RabbitMQ.Client.Apigen
             }
         }
 
-        public int Index {
-            get {
-                return GetInt("@index");
-            }
-        }
+        public int Index => GetInt("@index");
 
         public bool NeedsProperties {
             get {

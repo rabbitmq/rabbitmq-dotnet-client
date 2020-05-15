@@ -38,8 +38,6 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using RabbitMQ.Client.Framing;
-
 namespace RabbitMQ.Client.Exceptions
 {
     /// <summary> Thrown when the server sends a frame along a channel
@@ -56,9 +54,6 @@ namespace RabbitMQ.Client.Exceptions
         ///<summary>The channel number concerned.</summary>
         public int Channel { get; private set; }
 
-        public override ushort ReplyCode
-        {
-            get { return Constants.ChannelError; }
-        }
+        public override ushort ReplyCode => Constants.ChannelError;
     }
 }

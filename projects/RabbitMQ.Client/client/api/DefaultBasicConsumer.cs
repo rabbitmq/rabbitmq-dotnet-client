@@ -41,8 +41,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
 {
@@ -55,7 +57,7 @@ namespace RabbitMQ.Client
     /// Consider using <see cref="EventingBasicConsumer"/>,  which exposes
     /// events that can be subscribed to consumer messages.
     /// </remarks>
-    public class DefaultBasicConsumer : IBasicConsumer
+    public class DefaultBasicConsumer : IAsyncBasicConsumer
     {
         private readonly HashSet<string> _consumerTags = new HashSet<string>();
 
@@ -86,13 +88,7 @@ namespace RabbitMQ.Client
         /// This value is an array because a single consumer instance can be reused to consume on
         /// multiple channels.
         /// </summary>
-        public string[] ConsumerTags
-        {
-            get
-            {
-                return _consumerTags.ToArray();
-            }
-        }
+        public string[] ConsumerTags => _consumerTags.ToArray();
 
         /// <summary>
         /// Returns true while the consumer is registered and expecting deliveries from the broker.
@@ -108,7 +104,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Signalled when the consumer gets cancelled.
         /// </summary>
-        public event EventHandler<ConsumerEventArgs> ConsumerCancelled;
+        public event AsyncEventHandler<ConsumerEventArgs> ConsumerCancelled;
 
         /// <summary>
         /// Retrieve the <see cref="IModel"/> this consumer is associated with,
@@ -122,28 +118,29 @@ namespace RabbitMQ.Client
         ///  See <see cref="HandleBasicCancelOk"/> for notification of consumer cancellation due to basicCancel
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        public virtual void HandleBasicCancel(string consumerTag)
+        public virtual ValueTask HandleBasicCancel(string consumerTag)
         {
-            OnCancel(consumerTag);
+            return OnCancel(consumerTag);
         }
 
         /// <summary>
         /// Called upon successful deregistration of the consumer from the broker.
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        public virtual void HandleBasicCancelOk(string consumerTag)
+        public virtual ValueTask HandleBasicCancelOk(string consumerTag)
         {
-            OnCancel(consumerTag);
+            return OnCancel(consumerTag);
         }
 
         /// <summary>
         /// Called upon successful registration of the consumer with the broker.
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        public virtual void HandleBasicConsumeOk(string consumerTag)
+        public virtual ValueTask HandleBasicConsumeOk(string consumerTag)
         {
             _consumerTags.Add(consumerTag);
             IsRunning = true;
+            return default;
         }
 
         /// <summary>
@@ -156,7 +153,7 @@ namespace RabbitMQ.Client
         /// Accessing the body at a later point is unsafe as its memory can
         /// be already released.
         /// </remarks>
-        public virtual void HandleBasicDeliver(string consumerTag,
+        public virtual ValueTask HandleBasicDeliver(string consumerTag,
             ulong deliveryTag,
             bool redelivered,
             string exchange,
@@ -164,6 +161,7 @@ namespace RabbitMQ.Client
             IBasicProperties properties,
             ReadOnlyMemory<byte> body)
         {
+            return default;
             // Nothing to do here.
         }
 
@@ -172,10 +170,10 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <param name="model">A channel this consumer was registered on.</param>
         /// <param name="reason">Shutdown context.</param>
-        public virtual void HandleModelShutdown(object model, ShutdownEventArgs reason)
+        public virtual ValueTask HandleModelShutdown(object model, ShutdownEventArgs reason)
         {
             ShutdownReason = reason;
-            OnCancel(_consumerTags.ToArray());
+            return OnCancel(_consumerTags.ToArray());
         }
 
         /// <summary>
@@ -185,12 +183,22 @@ namespace RabbitMQ.Client
         /// This default implementation simply sets the <see cref="IsRunning"/> 
         /// property to false, and takes no further action.
         /// </remarks>
-        public virtual void OnCancel(params string[] consumerTags)
+        public virtual async ValueTask OnCancel(params string[] consumerTags)
         {
             IsRunning = false;
-            foreach (EventHandler<ConsumerEventArgs> h in ConsumerCancelled?.GetInvocationList() ?? Array.Empty<Delegate>())
+            foreach (AsyncEventHandler<ConsumerEventArgs> h in ConsumerCancelled?.GetInvocationList() ?? Array.Empty<Delegate>())
             {
-                h(this, new ConsumerEventArgs(consumerTags));
+                try
+                {
+                    await h(this, new ConsumerEventArgs(consumerTags)).ConfigureAwait(false);
+                }
+                catch(Exception e)
+                {
+                    if (Model is ModelBase modelBase)
+                    {
+                        modelBase.OnCallbackException(CallbackExceptionEventArgs.Build(e));
+                    }
+                }
             }
 
             foreach (string consumerTag in consumerTags)

@@ -39,7 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System.Collections.Generic;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 using RabbitMQ.Client.Impl;
@@ -59,9 +59,9 @@ namespace RabbitMQ.Client.Unit
       return ((ModelBase)((AutorecoveringModel)model).Delegate).Session.ChannelNumber;
     }
 
-    [SetUp] public void Connect()
+    [SetUp] public async ValueTask Connect()
     {
-      _c = new ConnectionFactory().CreateConnection();
+      _c = await new ConnectionFactory().CreateConnection();
     }
 
     [TearDown] public void Disconnect()
@@ -70,17 +70,17 @@ namespace RabbitMQ.Client.Unit
     }
 
 
-    [Test] public void AllocateInOrder()
+    [Test] public async ValueTask AllocateInOrder()
     {
       for(int i = 1; i <= CHANNEL_COUNT; i++)
-        Assert.AreEqual(i, ModelNumber(_c.CreateModel()));
+        Assert.AreEqual(i, ModelNumber(await _c.CreateModel()));
     }
 
-    [Test] public void AllocateAfterFreeingLast() {
-      IModel ch = _c.CreateModel();
+    [Test] public async ValueTask AllocateAfterFreeingLast() {
+      IModel ch = await _c.CreateModel();
       Assert.AreEqual(1, ModelNumber(ch));
-      ch.Close();
-      ch = _c.CreateModel();
+            await ch.Close();
+      ch = await _c.CreateModel();
       Assert.AreEqual(1, ModelNumber(ch));
     }
 
@@ -91,20 +91,20 @@ namespace RabbitMQ.Client.Unit
       return (i < j) ? -1 : (i == j) ? 0 : 1;
     }
 
-    [Test] public void AllocateAfterFreeingMany() {
+    [Test] public async ValueTask AllocateAfterFreeingMany() {
       List<IModel> channels = new List<IModel>();
 
       for(int i = 1; i <= CHANNEL_COUNT; i++)
-        channels.Add(_c.CreateModel());
+        channels.Add(await _c.CreateModel());
 
       foreach(IModel channel in channels){
-        channel.Close();
+                await channel.Close();
       }
 
       channels = new List<IModel>();
 
       for(int j = 1; j <= CHANNEL_COUNT; j++)
-        channels.Add(_c.CreateModel());
+        channels.Add(await _c.CreateModel());
 
       // In the current implementation the list should actually
       // already be sorted, but we don't want to force that behaviour
