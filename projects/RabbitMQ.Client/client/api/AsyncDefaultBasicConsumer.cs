@@ -5,8 +5,6 @@ using System.Threading.Tasks;
 
 using RabbitMQ.Client.Events;
 
-using TaskExtensions = RabbitMQ.Client.Impl.TaskExtensions;
-
 namespace RabbitMQ.Client
 {
     public class AsyncDefaultBasicConsumer : IBasicConsumer, IAsyncBasicConsumer

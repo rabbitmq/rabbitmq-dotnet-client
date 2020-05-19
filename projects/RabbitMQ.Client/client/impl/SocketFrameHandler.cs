@@ -52,12 +52,14 @@ using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Impl
 {
-    static class TaskExtensions
+    internal static class TaskExtensions
     {
         public static async Task TimeoutAfter(this Task task, TimeSpan timeout)
         {
             if (task == await Task.WhenAny(task, Task.Delay(timeout)).ConfigureAwait(false))
+            {
                 await task;
+            }
             else
             {
                 Task supressErrorTask = task.ContinueWith(t => t.Exception.Handle(e => true), TaskContinuationOptions.OnlyOnFaulted);
