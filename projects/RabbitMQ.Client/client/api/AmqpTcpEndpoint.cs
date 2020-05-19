@@ -281,7 +281,7 @@ namespace RabbitMQ.Client
         /// </remarks>
         public override string ToString()
         {
-            return "amqp://" + HostName + ":" + Port;
+            return $"amqp://{HostName}:{Port}";
         }
     }
 }

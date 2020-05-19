@@ -548,7 +548,7 @@ namespace RabbitMQ.Client
             }
             else
             {
-                throw new ArgumentException("Wrong scheme in AMQP URI: " + uri.Scheme);
+                throw new ArgumentException($"Wrong scheme in AMQP URI: {uri.Scheme}");
             }
             string host = uri.Host;
             if (!string.IsNullOrEmpty(host))
@@ -569,7 +569,7 @@ namespace RabbitMQ.Client
                 string[] userPass = userInfo.Split(':');
                 if (userPass.Length > 2)
                 {
-                    throw new ArgumentException("Bad user info in AMQP " + "URI: " + userInfo);
+                    throw new ArgumentException($"Bad user info in AMQP URI: {userInfo}");
                 }
                 UserName = UriDecode(userPass[0]);
                 if (userPass.Length == 2)
@@ -582,9 +582,7 @@ namespace RabbitMQ.Client
                that has at least the path segment "/". */
             if (uri.Segments.Length > 2)
             {
-                throw new ArgumentException("Multiple segments in " +
-                                            "path of AMQP URI: " +
-                                            string.Join(", ", uri.Segments));
+                throw new ArgumentException($"Multiple segments in path of AMQP URI: {string.Join(", ", uri.Segments)}");
             }
             if (uri.Segments.Length == 2)
             {

@@ -99,7 +99,7 @@ namespace RabbitMQ.Client.Apigen
             string s = GetString(n0, path, null);
             if (s == null)
             {
-                throw new Exception("Missing spec XML node: " + path);
+                throw new Exception($"Missing spec XML node: {path}");
             }
             return s;
         }
@@ -248,7 +248,7 @@ namespace RabbitMQ.Client.Apigen
             }
             else
             {
-                Console.Error.WriteLine("Unsupported command-line option: " + opt);
+                Console.Error.WriteLine($"Unsupported command-line option: {opt}");
                 Usage();
             }
         }
@@ -294,7 +294,7 @@ namespace RabbitMQ.Client.Apigen
 
         public void LoadSpec()
         {
-            Console.WriteLine("* Loading spec from '" + m_inputXmlFilename + "'");
+            Console.WriteLine($"* Loading spec from '{m_inputXmlFilename}'");
             m_spec = new XmlDocument();
 
             using (var stream = new FileStream(m_inputXmlFilename, FileMode.Open, FileAccess.Read))
@@ -358,12 +358,12 @@ namespace RabbitMQ.Client.Apigen
 
         public string VersionToken()
         {
-            return "v" + m_majorVersion + "_" + m_minorVersion;
+            return $"v{m_majorVersion}_{m_minorVersion}";
         }
 
         public void GenerateOutput()
         {
-            Console.WriteLine("* Generating code into '" + m_outputFilename + "'");
+            Console.WriteLine($"* Generating code into '{m_outputFilename}'");
 
             string directory = Path.GetDirectoryName(m_outputFilename);
 
@@ -1069,11 +1069,11 @@ $@"namespace {ApiNamespaceBase}
             EmitLine("    {");
             if (Attribute(method, typeof(AmqpUnsupportedAttribute)) != null)
             {
-                EmitLine(string.Format("      throw new UnsupportedMethodException(\"" + method.Name + "\");"));
+                EmitLine($"      throw new UnsupportedMethodException(\"{method.Name}\");");
             }
             else
             {
-                EmitLine("      return new " + MangleClass(contentClass) + "Properties();");
+                EmitLine($"      return new {MangleClass(contentClass)}Properties();");
             }
             EmitLine("    }");
         }
@@ -1101,7 +1101,7 @@ $@"namespace {ApiNamespaceBase}
             {
                 EmitModelMethodPreamble(method);
                 EmitLine("    {");
-                EmitLine("      throw new UnsupportedMethodException(\"" + method.Name + "\");");
+                EmitLine($"      throw new UnsupportedMethodException(\"{method.Name}\");");
                 EmitLine("    }");
             }
             else
@@ -1198,7 +1198,7 @@ $@"namespace {ApiNamespaceBase}
 
             if (amqpClass == null || amqpMethod == null)
             {
-                throw new Exception("Could not find AMQP class or method for IModel method " + method.Name);
+                throw new Exception($"Could not find AMQP class or method for IModel method {method.Name}");
             }
         }
 
@@ -1227,7 +1227,7 @@ $@"namespace {ApiNamespaceBase}
                                                         : replyMapping.m_methodName);
                 if (amqpReplyMethod == null)
                 {
-                    throw new Exception("Could not find AMQP reply method for IModel method " + method.Name);
+                    throw new Exception($"Could not find AMQP reply method for IModel method {method.Name}");
                 }
             }
 
@@ -1269,7 +1269,7 @@ $@"namespace {ApiNamespaceBase}
             string contentHeaderExpr =
                 contentHeaderParameter == null
                 ? "null"
-                : " (" + MangleClass(amqpClass.Name) + "Properties) " + contentHeaderParameter.Name;
+                : $" ({MangleClass(amqpClass.Name)}Properties) {contentHeaderParameter.Name}";
             string contentBodyExpr =
                 contentBodyParameter == null ? "null" : contentBodyParameter.Name;
 
@@ -1316,15 +1316,15 @@ $@"namespace {ApiNamespaceBase}
 
             if (nowaitParameter != null)
             {
-                EmitLine("      if (" + nowaitParameter.Name + ") {");
-                EmitLine("        ModelSend(__req," + contentHeaderExpr + "," + contentBodyExpr + ");");
+                EmitLine($"      if ({nowaitParameter.Name}) {{");
+                EmitLine($"        ModelSend(__req,{contentHeaderExpr},{contentBodyExpr});");
                 if (method.ReturnType == typeof(void))
                 {
                     EmitLine("        return;");
                 }
                 else
                 {
-                    EmitLine("        return " + nowaitExpression + ";");
+                    EmitLine($"        return {nowaitExpression};");
                 }
                 EmitLine("      }");
             }
@@ -1334,7 +1334,7 @@ $@"namespace {ApiNamespaceBase}
 
             if (amqpReplyMethod == null)
             {
-                EmitLine("      ModelSend(__req," + contentHeaderExpr + "," + contentBodyExpr + ");");
+                EmitLine($"      ModelSend(__req,{contentHeaderExpr},{contentBodyExpr});");
             }
             else
             {
@@ -1358,16 +1358,16 @@ $@"namespace {ApiNamespaceBase}
                         string fieldPrefix = IsAmqpClass(method.ReturnType) ? "_" : "";
 
                         // No field mapping --> it's assumed to be a struct to fill in.
-                        EmitLine("      " + method.ReturnType + " __result = new " + method.ReturnType + "();");
+                        EmitLine($"      {method.ReturnType} __result = new {method.ReturnType}();");
                         foreach (FieldInfo fi in method.ReturnType.GetFields())
                         {
                             if (Attribute(fi, typeof(AmqpFieldMappingAttribute)) is AmqpFieldMappingAttribute returnFieldMapping)
                             {
-                                EmitLine("      __result." + fi.Name + " = __rep." + fieldPrefix + returnFieldMapping.m_fieldName + ";");
+                                EmitLine($"      __result.{fi.Name} = __rep.{fieldPrefix}{returnFieldMapping.m_fieldName};");
                             }
                             else
                             {
-                                EmitLine("      __result." + fi.Name + " = __rep." + fieldPrefix + fi.Name + ";");
+                                EmitLine($"      __result.{fi.Name} = __rep.{fieldPrefix}{fi.Name};");
                             }
                         }
                         EmitLine("      return __result;");
@@ -1375,7 +1375,7 @@ $@"namespace {ApiNamespaceBase}
                     else
                     {
                         // Field mapping --> return just the field we're interested in.
-                        EmitLine("      return __rep._" + returnMapping.m_fieldName + ";");
+                        EmitLine($"      return __rep._{returnMapping.m_fieldName};");
                     }
                 }
             }

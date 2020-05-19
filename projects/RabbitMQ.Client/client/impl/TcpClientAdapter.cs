@@ -24,7 +24,7 @@ namespace RabbitMQ.Client.Impl
             IPAddress ep = TcpClientAdapterHelper.GetMatchingHost(adds, _sock.AddressFamily);
             if (ep == default(IPAddress))
             {
-                throw new ArgumentException("No ip address could be resolved for " + host);
+                throw new ArgumentException($"No ip address could be resolved for {host}");
             }
 
 #if NET461

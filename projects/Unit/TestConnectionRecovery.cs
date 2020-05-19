@@ -419,9 +419,9 @@ namespace RabbitMQ.Client.Unit
             AssertRecordedExchanges((AutorecoveringConnection)Conn, 0);
             for (int i = 0; i < 3; i++)
             {
-                string x1 = "source-" + Guid.NewGuid();
+                string x1 = $"source-{Guid.NewGuid()}";
                 Model.ExchangeDeclare(x1, "fanout", false, true, null);
-                string x2 = "destination-" + Guid.NewGuid();
+                string x2 = $"destination-{Guid.NewGuid()}";
                 Model.ExchangeDeclare(x2, "fanout", false, false, null);
                 Model.ExchangeBind(x2, x1, "");
                 Model.ExchangeDelete(x2);
@@ -435,9 +435,9 @@ namespace RabbitMQ.Client.Unit
             AssertRecordedExchanges((AutorecoveringConnection)Conn, 0);
             for (int i = 0; i < 1000; i++)
             {
-                string x1 = "source-" + Guid.NewGuid();
+                string x1 = $"source-{Guid.NewGuid()}";
                 Model.ExchangeDeclare(x1, "fanout", false, true, null);
-                string x2 = "destination-" + Guid.NewGuid();
+                string x2 = $"destination-{Guid.NewGuid()}";
                 Model.ExchangeDeclare(x2, "fanout", false, false, null);
                 Model.ExchangeBind(x2, x1, "");
                 Model.ExchangeUnbind(x2, x1, "");

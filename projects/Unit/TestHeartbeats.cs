@@ -85,7 +85,7 @@ namespace RabbitMQ.Client.Unit
             }
             cf.Ssl.ServerName = System.Net.Dns.GetHostName();
             Assert.IsNotNull(sslDir);
-            cf.Ssl.CertPath = sslDir + "/client/keycert.p12";
+            cf.Ssl.CertPath = $"{sslDir}/client/keycert.p12";
             string p12Password = Environment.GetEnvironmentVariable("PASSWORD");
             Assert.IsNotNull(p12Password, "missing PASSWORD env var");
             cf.Ssl.CertPassphrase = p12Password;

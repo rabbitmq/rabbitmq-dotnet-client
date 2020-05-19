@@ -127,7 +127,7 @@ namespace RabbitMQ.Client.Impl
 
         public override string ToString()
         {
-            return GetType().Name + "#" + ChannelNumber + ":" + Connection;
+            return $"{GetType().Name}#{ChannelNumber}:{Connection}";
         }
 
         public void Close(ShutdownEventArgs reason)

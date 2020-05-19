@@ -93,8 +93,7 @@ namespace RabbitMQ.Client.Impl
 
         public override string ToString()
         {
-            return string.Format("{0}: source = '{1}', destination = '{2}', routingKey = '{3}', arguments = '{4}'",
-                GetType().Name, Source, Destination, RoutingKey, Arguments);
+            return $"{GetType().Name}: source = '{Source}', destination = '{Destination}', routingKey = '{RoutingKey}', arguments = '{Arguments}'";
         }
 
         public RecordedBinding WithArguments(IDictionary<string, object> value)
