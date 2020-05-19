@@ -37,6 +37,8 @@
 //  The Initial Developer of the Original Code is Pivotal Software, Inc.
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
+using System;
+
 namespace RabbitMQ.Client
 {
     public interface IBasicPublishBatch

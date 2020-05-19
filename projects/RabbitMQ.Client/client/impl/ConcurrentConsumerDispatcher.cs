@@ -62,10 +62,11 @@ namespace RabbitMQ.Client.Impl
                                        string exchange,
                                        string routingKey,
                                        IBasicProperties basicProperties,
-                                       ReadOnlyMemory<byte> body)
+                                       ReadOnlySpan<byte> body)
         {
-            IMemoryOwner<byte> memoryCopy = MemoryPool<byte>.Shared.Rent(body.Length);
-            body.CopyTo(memoryCopy.Memory);
+            byte[] memoryCopyArray = ArrayPool<byte>.Shared.Rent(body.Length);
+            Memory<byte> memoryCopy = new Memory<byte>(memoryCopyArray, 0, body.Length);
+            body.CopyTo(memoryCopy.Span);
             UnlessShuttingDown(() =>
             {
                 try
@@ -76,7 +77,7 @@ namespace RabbitMQ.Client.Impl
                                                 exchange,
                                                 routingKey,
                                                 basicProperties,
-                                                memoryCopy.Memory.Slice(0, body.Length));
+                                                memoryCopy);
                 }
                 catch (Exception e)
                 {
@@ -89,7 +90,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 finally
                 {
-                    memoryCopy.Dispose();
+                    ArrayPool<byte>.Shared.Return(memoryCopyArray);
                 }
             });
         }

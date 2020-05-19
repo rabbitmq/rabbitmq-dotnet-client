@@ -41,6 +41,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 
@@ -54,31 +55,23 @@ namespace RabbitMQ.Client.Impl
         // - 4 bytes of frame payload length
         // - 1 byte of payload trailer FrameEnd byte
         private const int EmptyFrameSize = 8;
-        private static readonly byte[] s_emptyByteArray = new byte[0];
-        private readonly IMemoryOwner<byte> _body;
+        private readonly bool _returnBufferOnDispose;
 
         static Command()
         {
             CheckEmptyFrameSize();
         }
 
-        internal Command(MethodBase method) : this(method, null, null, 0)
+        internal Command(MethodBase method) : this(method, null, null, false)
         {
         }
 
-        internal Command(MethodBase method, ContentHeaderBase header, ReadOnlyMemory<byte> body)
+        public Command(MethodBase method, ContentHeaderBase header, ReadOnlyMemory<byte> body, bool returnBufferOnDispose)
         {
             Method = method;
             Header = header;
             Body = body;
-        }
-
-        public Command(MethodBase method, ContentHeaderBase header, IMemoryOwner<byte> body, int bodySize)
-        {
-            Method = method;
-            Header = header;
-            _body = body;
-            Body = _body?.Memory.Slice(0, bodySize) ?? s_emptyByteArray;
+            _returnBufferOnDispose = returnBufferOnDispose;
         }
 
         public ReadOnlyMemory<byte> Body { get; private set; }
@@ -167,9 +160,9 @@ namespace RabbitMQ.Client.Impl
 
         public void Dispose()
         {
-            if (_body is IMemoryOwner<byte>)
+            if(_returnBufferOnDispose && MemoryMarshal.TryGetArray(Body, out ArraySegment<byte> segment))
             {
-                _body.Dispose();
+                ArrayPool<byte>.Shared.Return(segment.Array);
             }
         }
     }

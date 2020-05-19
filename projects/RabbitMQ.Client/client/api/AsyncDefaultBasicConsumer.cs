@@ -5,8 +5,6 @@ using System.Threading.Tasks;
 
 using RabbitMQ.Client.Events;
 
-using TaskExtensions = RabbitMQ.Client.Impl.TaskExtensions;
-
 namespace RabbitMQ.Client
 {
     public class AsyncDefaultBasicConsumer : IBasicConsumer, IAsyncBasicConsumer
@@ -96,7 +94,7 @@ namespace RabbitMQ.Client
         {
             _consumerTags.Add(consumerTag);
             IsRunning = true;
-            return TaskExtensions.CompletedTask;
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -118,7 +116,7 @@ namespace RabbitMQ.Client
             ReadOnlyMemory<byte> body)
         {
             // Nothing to do here.
-            return TaskExtensions.CompletedTask;
+            return Task.CompletedTask;
         }
 
         /// <summary>

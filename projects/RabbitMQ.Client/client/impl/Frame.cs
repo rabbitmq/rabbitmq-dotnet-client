@@ -42,7 +42,7 @@ using System;
 using System.Buffers;
 using System.IO;
 using System.Net.Sockets;
-
+using System.Runtime.InteropServices;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing;
 using RabbitMQ.Util;
@@ -167,10 +167,25 @@ namespace RabbitMQ.Client.Impl
 
     class InboundFrame : Frame, IDisposable
     {
-        private IMemoryOwner<byte> _payload;
-        private InboundFrame(FrameType type, int channel, IMemoryOwner<byte> payload, int payloadSize) : base(type, channel, payload.Memory.Slice(0, payloadSize))
+        private InboundFrame(FrameType type, int channel, ReadOnlyMemory<byte> payload) : base(type, channel, payload)
         {
-            _payload = payload;
+        }
+
+        public bool IsMethod()
+        {
+            return Type == FrameType.FrameMethod;
+        }
+        public bool IsHeader()
+        {
+            return Type == FrameType.FrameHeader;
+        }
+        public bool IsBody()
+        {
+            return Type == FrameType.FrameBody;
+        }
+        public bool IsHeartbeat()
+        {
+            return Type == FrameType.FrameHeartbeat;
         }
 
         private static void ProcessProtocolHeader(Stream reader)
@@ -236,42 +251,42 @@ namespace RabbitMQ.Client.Impl
                 ProcessProtocolHeader(reader);
             }
 
-            using (IMemoryOwner<byte> headerMemory = MemoryPool<byte>.Shared.Rent(6))
+            Span<byte> headerBytes = stackalloc byte[6];
+            reader.Read(headerBytes);
+            int channel = NetworkOrderDeserializer.ReadUInt16(headerBytes);
+            int payloadSize = NetworkOrderDeserializer.ReadInt32(headerBytes.Slice(2)); // FIXME - throw exn on unreasonable value
+            byte[] payloadBytes = ArrayPool<byte>.Shared.Rent(payloadSize);
+            Memory<byte> payload = new Memory<byte>(payloadBytes, 0, payloadSize);
+            int bytesRead = 0;
+            try
             {
-                Memory<byte> headerSlice = headerMemory.Memory.Slice(0, 6);
-                reader.Read(headerSlice);
-                int channel = NetworkOrderDeserializer.ReadUInt16(headerSlice);
-                int payloadSize = NetworkOrderDeserializer.ReadInt32(headerSlice.Slice(2)); // FIXME - throw exn on unreasonable value
-                IMemoryOwner<byte> payload = MemoryPool<byte>.Shared.Rent(payloadSize);
-                int bytesRead = 0;
-                try
+                while (bytesRead < payloadSize)
                 {
-                    while (bytesRead < payloadSize)
-                    {
-                        bytesRead += reader.Read(payload.Memory.Slice(bytesRead, payloadSize - bytesRead));
-                    }
+                    bytesRead += reader.Read(payload.Slice(bytesRead, payloadSize - bytesRead));
                 }
-                catch (Exception)
-                {
-                    // Early EOF.
-                    throw new MalformedFrameException($"Short frame - expected to read {payloadSize} bytes, only got {bytesRead} bytes");
-                }
-
-                int frameEndMarker = reader.ReadByte();
-                if (frameEndMarker != Constants.FrameEnd)
-                {
-                    throw new MalformedFrameException("Bad frame end marker: " + frameEndMarker);
-                }
-
-                return new InboundFrame((FrameType)type, channel, payload, payloadSize);
             }
+            catch (Exception)
+            {
+                // Early EOF.
+                ArrayPool<byte>.Shared.Return(payloadBytes);
+                throw new MalformedFrameException($"Short frame - expected to read {payloadSize} bytes, only got {bytesRead} bytes");
+            }
+
+            int frameEndMarker = reader.ReadByte();
+            if (frameEndMarker != Constants.FrameEnd)
+            {
+                ArrayPool<byte>.Shared.Return(payloadBytes);
+                throw new MalformedFrameException("Bad frame end marker: " + frameEndMarker);
+            }
+
+            return new InboundFrame((FrameType)type, channel, payload);
         }
 
         public void Dispose()
         {
-            if (_payload is IMemoryOwner<byte>)
+            if (MemoryMarshal.TryGetArray(Payload, out ArraySegment<byte> segment))
             {
-                _payload.Dispose();
+                ArrayPool<byte>.Shared.Return(segment.Array);
             }
         }
     }
@@ -306,22 +321,7 @@ namespace RabbitMQ.Client.Impl
                 Payload.Length.ToString());
         }
 
-        public bool IsMethod()
-        {
-            return Type == FrameType.FrameMethod;
-        }
-        public bool IsHeader()
-        {
-            return Type == FrameType.FrameHeader;
-        }
-        public bool IsBody()
-        {
-            return Type == FrameType.FrameBody;
-        }
-        public bool IsHeartbeat()
-        {
-            return Type == FrameType.FrameHeartbeat;
-        }
+        
     }
 
     enum FrameType : int
@@ -333,5 +333,4 @@ namespace RabbitMQ.Client.Impl
         FrameEnd = 206,
         FrameMinSize = 4096
     }
-
 }
