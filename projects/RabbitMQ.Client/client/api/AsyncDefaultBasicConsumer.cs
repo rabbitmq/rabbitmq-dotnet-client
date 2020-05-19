@@ -140,11 +140,7 @@ namespace RabbitMQ.Client
         public virtual async Task OnCancel(params string[] consumerTags)
         {
             IsRunning = false;
-            foreach (AsyncEventHandler<ConsumerEventArgs> h in ConsumerCancelled?.GetInvocationList() ?? Array.Empty<Delegate>())
-            {
-                await h(this, new ConsumerEventArgs(consumerTags)).ConfigureAwait(false);
-            }
-
+            await ConsumerCancelled.InvokeAsync(this, new ConsumerEventArgs(consumerTags)).ConfigureAwait(false);
             foreach (string consumerTag in consumerTags)
             {
                 _consumerTags.Remove(consumerTag);

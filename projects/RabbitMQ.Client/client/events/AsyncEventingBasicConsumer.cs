@@ -34,28 +34,28 @@ namespace RabbitMQ.Client.Events
         public override async Task HandleBasicCancelOk(string consumerTag)
         {
             await base.HandleBasicCancelOk(consumerTag).ConfigureAwait(false);
-            await (Unregistered?.Invoke(this, new ConsumerEventArgs(new[] { consumerTag })) ?? Task.CompletedTask).ConfigureAwait(false);
+            await Unregistered.InvokeAsync(this, new ConsumerEventArgs(new[] { consumerTag })).ConfigureAwait(false);
         }
 
         ///<summary>Fires when the server confirms successful consumer registration.</summary>
         public override async Task HandleBasicConsumeOk(string consumerTag)
         {
             await base.HandleBasicConsumeOk(consumerTag).ConfigureAwait(false);
-            await (Registered?.Invoke(this, new ConsumerEventArgs(new[] { consumerTag })) ?? Task.CompletedTask).ConfigureAwait(false);
+            await Registered.InvokeAsync(this, new ConsumerEventArgs(new[] { consumerTag })).ConfigureAwait(false);
         }
 
         ///<summary>Fires the Received event.</summary>
         public override async Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, IBasicProperties properties, ReadOnlyMemory<byte> body)
         {
-            await base.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
-            await (Received?.Invoke(this, new BasicDeliverEventArgs(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body)) ?? Task.CompletedTask).ConfigureAwait(false);
+            await base.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body).ConfigureAwait(false);
+            await Received.InvokeAsync(this, new BasicDeliverEventArgs(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body)).ConfigureAwait(false);
         }
 
         ///<summary>Fires the Shutdown event.</summary>
         public override async Task HandleModelShutdown(object model, ShutdownEventArgs reason)
         {
             await base.HandleModelShutdown(model, reason).ConfigureAwait(false);
-            await (Shutdown?.Invoke(this, reason) ?? Task.CompletedTask).ConfigureAwait(false);
+            await Shutdown.InvokeAsync(this, reason).ConfigureAwait(false);
         }
     }
 }
