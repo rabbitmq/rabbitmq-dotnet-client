@@ -42,14 +42,12 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Impl;
-
-using RabbitMQ.Util;
 using RabbitMQ.Client.Logging;
 
 namespace RabbitMQ.Client.Framing.Impl
@@ -664,7 +662,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 if (ShouldTriggerConnectionRecovery(args))
                 {
-                    _recoveryLoopCommandQueue.Enqueue(RecoveryCommand.BeginAutomaticRecovery);
+                    _recoveryLoopCommandQueue.Writer.TryWrite(RecoveryCommand.BeginAutomaticRecovery);
                 }
             };
             lock (_eventLock)
@@ -1243,9 +1241,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private Task _recoveryTask;
         private RecoveryConnectionState _recoveryLoopState = RecoveryConnectionState.Connected;
 
-        private readonly AsyncConcurrentQueue<RecoveryCommand> _recoveryLoopCommandQueue = new AsyncConcurrentQueue<RecoveryCommand>();
-        private readonly CancellationTokenSource _recoveryCancellationToken = new CancellationTokenSource();
-        private readonly TaskCompletionSource<int> _recoveryLoopComplete = new TaskCompletionSource<int>();
+        private readonly Channel<RecoveryCommand> _recoveryLoopCommandQueue = Channel.CreateUnbounded<RecoveryCommand>(new UnboundedChannelOptions { AllowSynchronousContinuations = false, SingleReader = true, SingleWriter = false });
 
         /// <summary>
         /// This is the main loop for the auto-recovery thread.
@@ -1254,21 +1250,22 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             try
             {
-                while (!_recoveryCancellationToken.IsCancellationRequested)
+                while (await _recoveryLoopCommandQueue.Reader.WaitToReadAsync().ConfigureAwait(false))
                 {
-                    var command = await _recoveryLoopCommandQueue.DequeueAsync(_recoveryCancellationToken.Token).ConfigureAwait(false);
-                    
-                    switch (_recoveryLoopState)
+                    while (_recoveryLoopCommandQueue.Reader.TryRead(out RecoveryCommand command))
                     {
-                        case RecoveryConnectionState.Connected:
-                            RecoveryLoopConnectedHandler(command);
-                            break;
-                        case RecoveryConnectionState.Recovering:
-                            RecoveryLoopRecoveringHandler(command);
-                            break;
-                        default:
-                            ESLog.Warn("RecoveryLoop state is out of range.");
-                            break;
+                        switch (_recoveryLoopState)
+                        {
+                            case RecoveryConnectionState.Connected:
+                                RecoveryLoopConnectedHandler(command);
+                                break;
+                            case RecoveryConnectionState.Recovering:
+                                RecoveryLoopRecoveringHandler(command);
+                                break;
+                            default:
+                                ESLog.Warn("RecoveryLoop state is out of range.");
+                                break;
+                        }
                     }
                 }
             }
@@ -1280,8 +1277,6 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 ESLog.Error("Main recovery loop threw unexpected exception.", e);
             }
-
-            _recoveryLoopComplete.SetResult(0);
         }
 
         /// <summary>
@@ -1290,8 +1285,10 @@ namespace RabbitMQ.Client.Framing.Impl
         /// </summary>
         private void StopRecoveryLoop()
         {
-            _recoveryCancellationToken.Cancel();
-            if (!_recoveryLoopComplete.Task.Wait(_factory.RequestedConnectionTimeout))
+            _recoveryLoopCommandQueue.Writer.Complete();
+            Task timeout = Task.Delay(_factory.RequestedConnectionTimeout);
+
+            if (Task.WhenAny(_recoveryTask, timeout).Result == timeout)
             {
                 ESLog.Warn("Timeout while trying to stop background AutorecoveringConnection recovery loop.");
             }
@@ -1351,11 +1348,9 @@ namespace RabbitMQ.Client.Framing.Impl
         /// </summary>
         private void ScheduleRecoveryRetry()
         {
-            Task.Delay(_factory.NetworkRecoveryInterval)
-                .ContinueWith(t =>
-                {
-                    _recoveryLoopCommandQueue.Enqueue(RecoveryCommand.PerformAutomaticRecovery);
-                });
+            _ = Task
+                .Delay(_factory.NetworkRecoveryInterval)
+                .ContinueWith(t => _recoveryLoopCommandQueue.Writer.TryWrite(RecoveryCommand.PerformAutomaticRecovery));
         }
     }
 }

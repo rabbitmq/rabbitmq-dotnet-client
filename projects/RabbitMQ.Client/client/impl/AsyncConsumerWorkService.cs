@@ -1,5 +1,7 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
@@ -32,19 +34,14 @@ namespace RabbitMQ.Client.Impl
 
         class WorkPool
         {
-            readonly ConcurrentQueue<Work> _workQueue;
-            readonly CancellationTokenSource _tokenSource;
+            readonly Channel<Work> _channel;
             readonly ModelBase _model;
-            readonly CancellationTokenRegistration _tokenRegistration;
-            volatile TaskCompletionSource<bool> _syncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             private Task _worker;
 
             public WorkPool(ModelBase model)
             {
                 _model = model;
-                _workQueue = new ConcurrentQueue<Work>();
-                _tokenSource = new CancellationTokenSource();
-                _tokenRegistration = _tokenSource.Token.Register(() => _syncSource.TrySetCanceled());
+                _channel = Channel.CreateUnbounded<Work>(new UnboundedChannelOptions { SingleReader = true, SingleWriter = false, AllowSynchronousContinuations = false });
             }
 
             public void Start()
@@ -54,35 +51,34 @@ namespace RabbitMQ.Client.Impl
 
             public void Enqueue(Work work)
             {
-                _workQueue.Enqueue(work);
-                _syncSource.TrySetResult(true);
+                _channel.Writer.TryWrite(work);
             }
 
             async Task Loop()
             {
-                while (_tokenSource.IsCancellationRequested == false)
+                while (await _channel.Reader.WaitToReadAsync().ConfigureAwait(false))
                 {
-                    try
+                    while (_channel.Reader.TryRead(out Work work))
                     {
-                        await _syncSource.Task.ConfigureAwait(false);
-                        _syncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                    }
-                    catch (TaskCanceledException)
-                    {
-                        // Swallowing the task cancellation in case we are stopping work.
-                    }
+                        try
+                        {
+                            Task task = work.Execute(_model);
+                            if (!task.IsCompleted)
+                            {
+                                await task.ConfigureAwait(false);
+                            }
+                        }
+                        catch(Exception)
+                        {
 
-                    while (_workQueue.TryDequeue(out Work work))
-                    {
-                        await work.Execute(_model).ConfigureAwait(false);
+                        }
                     }
                 }
             }
 
             public Task Stop()
             {
-                _tokenSource.Cancel();
-                _tokenRegistration.Dispose();
+                _channel.Writer.Complete();
                 return _worker;
             }
         }
