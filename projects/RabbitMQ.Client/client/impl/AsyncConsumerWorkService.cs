@@ -9,13 +9,20 @@ namespace RabbitMQ.Client.Impl
     internal sealed class AsyncConsumerWorkService : ConsumerWorkService
     {
         private readonly ConcurrentDictionary<IModel, WorkPool> _workPools = new ConcurrentDictionary<IModel, WorkPool>();
+        private readonly Func<IModel, WorkPool> _startNewWorkPoolFunc = model => StartNewWorkPool(model);
 
         public void Schedule<TWork>(ModelBase model, TWork work) where TWork : Work
         {
-            _workPools.GetOrAdd(model, StartNewWorkPool).Enqueue(work);
+            /*
+             * rabbitmq/rabbitmq-dotnet-client#841
+             * https://docs.microsoft.com/en-us/dotnet/api/system.collections.concurrent.concurrentdictionary-2.getoradd
+             * Note that the value delegate is not atomic but the Schedule method will not be called concurrently.
+             */
+            WorkPool workPool = _workPools.GetOrAdd(model, _startNewWorkPoolFunc);
+            workPool.Enqueue(work);
         }
 
-        private WorkPool StartNewWorkPool(IModel model)
+        private static WorkPool StartNewWorkPool(IModel model)
         {
             var newWorkPool = new WorkPool(model as ModelBase);
             newWorkPool.Start();
