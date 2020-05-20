@@ -16,8 +16,7 @@ namespace RabbitMQ.Client.Impl
             /*
              * rabbitmq/rabbitmq-dotnet-client#841
              * https://docs.microsoft.com/en-us/dotnet/api/system.collections.concurrent.concurrentdictionary-2.getoradd
-             * Note that the value delegate is not atomic but instances of this class are not meant to be used by
-             * multiple threads.
+             * Note that the value delegate is not atomic but the Schedule method will not be called concurrently.
              */
             WorkPool workPool = _workPools.GetOrAdd(model, _startNewWorkPoolFunc);
             workPool.Enqueue(work);
