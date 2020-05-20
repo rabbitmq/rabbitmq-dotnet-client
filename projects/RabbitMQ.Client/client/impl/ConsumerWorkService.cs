@@ -5,16 +5,24 @@ using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
-    class ConsumerWorkService
+    internal class ConsumerWorkService
     {
         private readonly ConcurrentDictionary<IModel, WorkPool> _workPools = new ConcurrentDictionary<IModel, WorkPool>();
+        private readonly Func<IModel, WorkPool> _startNewWorkPoolFunc = model => StartNewWorkPool(model);
 
         public void AddWork(IModel model, Action fn)
         {
-            _workPools.GetOrAdd(model, StartNewWorkPool).Enqueue(fn);
+            /*
+             * rabbitmq/rabbitmq-dotnet-client#841
+             * https://docs.microsoft.com/en-us/dotnet/api/system.collections.concurrent.concurrentdictionary-2.getoradd
+             * Note that the value delegate is not atomic but instances of this class are not meant to be used by
+             * multiple threads.
+             */
+            WorkPool workPool = _workPools.GetOrAdd(model, _startNewWorkPoolFunc);
+            workPool.Enqueue(fn);
         }
 
-        private WorkPool StartNewWorkPool(IModel model)
+        private static WorkPool StartNewWorkPool(IModel model)
         {
             var newWorkPool = new WorkPool();
             newWorkPool.Start();
