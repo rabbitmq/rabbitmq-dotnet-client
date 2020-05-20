@@ -9,20 +9,29 @@ namespace RabbitMQ.Client.Impl
     internal sealed class AsyncConsumerWorkService : ConsumerWorkService
     {
         private readonly ConcurrentDictionary<IModel, WorkPool> _workPools;
-        private readonly Func<IModel, WorkPool> _startNewWorkPoolAction;
+        private readonly Func<IModel, WorkPool> _startNewWorkPoolFunc;
 
         public AsyncConsumerWorkService()
         {
             _workPools = new ConcurrentDictionary<IModel, WorkPool>();
-            _startNewWorkPoolAction = model => StartNewWorkPool(model);
+            _startNewWorkPoolFunc = model => StartNewWorkPool(model);
         }
 
         public void Schedule<TWork>(ModelBase model, TWork work) where TWork : Work
         {
-            _workPools.GetOrAdd(model, _startNewWorkPoolAction).Enqueue(work);
+            /*
+             * rabbitmq/rabbitmq-dotnet-client#841
+             * https://docs.microsoft.com/en-us/dotnet/api/system.collections.concurrent.concurrentdictionary-2.getoradd
+             *
+             * The lock is necessary because calling the value delegate is not atomic.
+             */
+            lock (_workPools)
+            {
+                _workPools.GetOrAdd(model, _startNewWorkPoolFunc).Enqueue(work);
+            }
         }
 
-        private WorkPool StartNewWorkPool(IModel model)
+        private static WorkPool StartNewWorkPool(IModel model)
         {
             var newWorkPool = new WorkPool(model as ModelBase);
             newWorkPool.Start();
