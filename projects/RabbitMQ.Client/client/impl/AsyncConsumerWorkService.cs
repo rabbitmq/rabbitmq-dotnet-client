@@ -8,11 +8,18 @@ namespace RabbitMQ.Client.Impl
 {
     internal sealed class AsyncConsumerWorkService : ConsumerWorkService
     {
-        private readonly ConcurrentDictionary<IModel, WorkPool> _workPools = new ConcurrentDictionary<IModel, WorkPool>();
+        private readonly ConcurrentDictionary<IModel, WorkPool> _workPools;
+        private readonly Func<IModel, WorkPool> _startNewWorkPoolAction;
+
+        public AsyncConsumerWorkService()
+        {
+            _workPools = new ConcurrentDictionary<IModel, WorkPool>();
+            _startNewWorkPoolAction = model => StartNewWorkPool(model);
+        }
 
         public void Schedule<TWork>(ModelBase model, TWork work) where TWork : Work
         {
-            _workPools.GetOrAdd(model, StartNewWorkPool).Enqueue(work);
+            _workPools.GetOrAdd(model, _startNewWorkPoolAction).Enqueue(work);
         }
 
         private WorkPool StartNewWorkPool(IModel model)
