@@ -147,7 +147,7 @@ namespace RabbitMQ.Client
         /// </summary>
         public override string ToString()
         {
-            return ExchangeType + "://" + ExchangeName + "/" + RoutingKey;
+            return $"{ExchangeType}://{ExchangeName}/{RoutingKey}";
         }
     }
 }

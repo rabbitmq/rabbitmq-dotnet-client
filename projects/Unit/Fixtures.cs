@@ -244,7 +244,7 @@ namespace RabbitMQ.Client.Unit
 
         internal string GenerateExchangeName()
         {
-            return "exchange" + Guid.NewGuid().ToString();
+            return $"exchange{Guid.NewGuid()}";
         }
 
         internal byte[] RandomMessageBody()
@@ -270,7 +270,7 @@ namespace RabbitMQ.Client.Unit
 
         internal string GenerateQueueName()
         {
-            return "queue" + Guid.NewGuid().ToString();
+            return $"queue{Guid.NewGuid().ToString()}";
         }
 
         internal void WithTemporaryQueue(Action<IModel, string> action)
@@ -491,7 +491,7 @@ namespace RabbitMQ.Client.Unit
                 if (stderr.Length >  0 || proc.ExitCode > 0)
                 {
                     string stdout = proc.StandardOutput.ReadToEnd();
-                    ReportExecFailure("rabbitmqctl", args, stderr + "\n" + stdout);
+                    ReportExecFailure("rabbitmqctl", args, $"{stderr}\n{stdout}");
                 }
 
                 return proc;
@@ -533,7 +533,7 @@ namespace RabbitMQ.Client.Unit
                 cmd  = ctl;
             } else {
                 cmd  = "cmd.exe";
-                args = "/c \"\"" + ctl + "\" " + args + "\"";
+                args = $"/c \"\"{ctl}\" {args}\"";
             }
 
             try {
@@ -548,7 +548,7 @@ namespace RabbitMQ.Client.Unit
               if (stderr.Length >  0 || proc.ExitCode > 0)
               {
                     string stdout = proc.StandardOutput.ReadToEnd();
-                  ReportExecFailure(cmd, args, stderr + "\n" + stdout);
+                  ReportExecFailure(cmd, args, $"{stderr}\n{stdout}");
               }
 
               return proc;
@@ -562,7 +562,7 @@ namespace RabbitMQ.Client.Unit
 
         internal void ReportExecFailure(string cmd, string args, string msg)
         {
-            Console.WriteLine("Failure while running " + cmd + " " + args + ":\n" + msg);
+            Console.WriteLine($"Failure while running {cmd} {args}:\n{msg}");
         }
 
         public static bool IsRunningOnMonoOrDotNetCore()
@@ -621,7 +621,7 @@ namespace RabbitMQ.Client.Unit
 
             public override string ToString()
             {
-                return "pid = " + Pid + ", name: " + Name;
+                return $"pid = {Pid}, name: {Name}";
             }
         }
 
@@ -650,7 +650,7 @@ namespace RabbitMQ.Client.Unit
             }
             catch (Exception)
             {
-                Console.WriteLine("Bad response from rabbitmqctl list_connections --silent pid client_properties" + Environment.NewLine + stdout);
+                Console.WriteLine($"Bad response from rabbitmqctl list_connections --silent pid client_properties{Environment.NewLine}{stdout}");
                 throw;
             }
         }
@@ -672,9 +672,7 @@ namespace RabbitMQ.Client.Unit
 
         internal void CloseConnection(string pid)
         {
-            ExecRabbitMQCtl("close_connection \"" +
-                            pid +
-                            "\" \"Closed via rabbitmqctl\"");
+            ExecRabbitMQCtl($"close_connection \"{pid}\" \"Closed via rabbitmqctl\"");
         }
 
         internal void RestartRabbitMQ()

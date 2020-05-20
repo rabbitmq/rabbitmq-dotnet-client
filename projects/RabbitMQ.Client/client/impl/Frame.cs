@@ -276,7 +276,7 @@ namespace RabbitMQ.Client.Impl
             if (frameEndMarker != Constants.FrameEnd)
             {
                 ArrayPool<byte>.Shared.Return(payloadBytes);
-                throw new MalformedFrameException("Bad frame end marker: " + frameEndMarker);
+                throw new MalformedFrameException($"Bad frame end marker: {frameEndMarker}");
             }
 
             return new InboundFrame((FrameType)type, channel, payload);

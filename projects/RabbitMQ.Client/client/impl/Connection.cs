@@ -260,8 +260,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 ["version"] = Encoding.UTF8.GetBytes(s_version),
                 ["platform"] = Encoding.UTF8.GetBytes(".NET"),
                 ["copyright"] = Encoding.UTF8.GetBytes("Copyright (c) 2007-2020 VMware, Inc."),
-                ["information"] = Encoding.UTF8.GetBytes("Licensed under the MPL.  " +
-                                                          "See https://www.rabbitmq.com/")
+                ["information"] = Encoding.UTF8.GetBytes("Licensed under the MPL. See https://www.rabbitmq.com/")
             };
             return table;
         }
@@ -335,8 +334,7 @@ namespace RabbitMQ.Client.Framing.Impl
                         }
                         else
                         {
-                            LogCloseError("Couldn't close connection cleanly. "
-                                          + "Socket closed unexpectedly", ioe);
+                            LogCloseError("Couldn't close connection cleanly. Socket closed unexpectedly", ioe);
                         }
                     }
                 }
@@ -378,14 +376,12 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 if (_model0.CloseReason == null)
                 {
-                    LogCloseError("Connection didn't close cleanly. "
-                                  + "Socket closed unexpectedly", eose);
+                    LogCloseError("Connection didn't close cleanly. Socket closed unexpectedly", eose);
                 }
             }
             catch (IOException ioe)
             {
-                LogCloseError("Connection didn't close cleanly. "
-                              + "Socket closed unexpectedly", ioe);
+                LogCloseError("Connection didn't close cleanly. Socket closed unexpectedly", ioe);
             }
             catch (Exception e)
             {
@@ -447,7 +443,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
 
             OnShutdown();
-            LogCloseError("Unexpected connection closure: " + reason, new Exception(reason.ToString()));
+            LogCloseError($"Unexpected connection closure: {reason}", new Exception(reason.ToString()));
         }
 
         public bool HardProtocolExceptionHandler(HardProtocolException hpe)
@@ -470,8 +466,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             else
             {
-                LogCloseError("Hard Protocol Exception occured "
-                              + "while closing the connection", hpe);
+                LogCloseError("Hard Protocol Exception occured while closing the connection", hpe);
             }
 
             return false;
@@ -1117,8 +1112,7 @@ entry.ToString());
                 IAuthMechanismFactory mechanismFactory = _factory.AuthMechanismFactory(mechanisms);
                 if (mechanismFactory == null)
                 {
-                    throw new IOException("No compatible authentication mechanism found - " +
-                                          "server offered [" + mechanismsString + "]");
+                    throw new IOException($"No compatible authentication mechanism found - server offered [{mechanismsString}]");
                 }
                 IAuthMechanism mechanism = mechanismFactory.GetInstance();
                 byte[] challenge = null;

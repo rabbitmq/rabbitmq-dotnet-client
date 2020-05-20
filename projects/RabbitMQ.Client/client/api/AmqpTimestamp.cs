@@ -79,7 +79,7 @@ namespace RabbitMQ.Client
         /// </summary>
         public override string ToString()
         {
-            return "((time_t)" + UnixTime + ")";
+            return $"((time_t){UnixTime})";
         }
     }
 }

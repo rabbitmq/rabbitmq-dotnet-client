@@ -66,7 +66,7 @@ namespace RabbitMQ.Util
         {
             if (start > end)
             {
-                throw new ArgumentException("illegal range [" + start + ", " + end + "]");
+                throw new ArgumentException($"illegal range [{start}, {end}]");
             }
 
             // Fairly arbitrary heuristic for a good size for the unsorted set.

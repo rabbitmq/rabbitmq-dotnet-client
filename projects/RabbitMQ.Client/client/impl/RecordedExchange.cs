@@ -61,8 +61,7 @@ namespace RabbitMQ.Client.Impl
 
         public override string ToString()
         {
-            return string.Format("{0}: name = '{1}', type = '{2}', durable = {3}, autoDelete = {4}, arguments = '{5}'",
-                GetType().Name, Name, Type, Durable, IsAutoDelete, Arguments);
+            return $"{GetType().Name}: name = '{Name}', type = '{Type}', durable = {Durable}, autoDelete = {IsAutoDelete}, arguments = '{Arguments}'";
         }
 
         public RecordedExchange WithArguments(IDictionary<string, object> value)

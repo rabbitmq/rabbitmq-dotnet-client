@@ -82,11 +82,10 @@ namespace RabbitMQ.Client.Apigen
         public string DocumentationComment(string prefixSpaces, string docXpath, string tagname) {
             string docStr = GetString(docXpath, "").Trim();
             if (docStr.Length > 0) {
-                return (prefixSpaces + "/// <"+tagname+">\n" +
-                        GetString(docXpath, "") + "\n</"+tagname+">")
-                    .Replace("\n", "\n" + prefixSpaces + "/// ");
+                return $"{prefixSpaces}/// <{tagname}>\n{GetString(docXpath, "")}\n</{tagname}>"
+                    .Replace("\n", $"\n{prefixSpaces}/// ");
             } else {
-                return prefixSpaces + "// (no documentation)";
+                return $"{prefixSpaces}// (no documentation)";
             }
         }
     }

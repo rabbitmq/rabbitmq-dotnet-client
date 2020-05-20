@@ -110,7 +110,7 @@ namespace RabbitMQ.Client.Framing.Impl
         /// </remarks>
         public override string ToString()
         {
-            return Major + "-" + Minor;
+            return $"{Major}-{Minor}";
         }
     }
 }
