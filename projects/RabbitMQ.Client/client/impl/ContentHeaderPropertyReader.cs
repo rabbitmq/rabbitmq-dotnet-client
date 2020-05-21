@@ -45,7 +45,7 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    struct ContentHeaderPropertyReader
+    internal struct ContentHeaderPropertyReader
     {
         private ushort m_bitCount;
         private ushort m_flagWord;
@@ -143,9 +143,9 @@ namespace RabbitMQ.Client.Impl
         }
 
         /// <returns>A type of <seealso cref="System.Collections.Generic.IDictionary{TKey,TValue}"/>.</returns>
-        public IDictionary<string, object> ReadTable()
+        public Dictionary<string, object> ReadTable()
         {
-            IDictionary<string, object> result = WireFormatting.ReadTable(_memory.Slice(_memoryOffset), out int bytesRead);
+            Dictionary<string, object> result = WireFormatting.ReadTable(_memory.Slice(_memoryOffset), out int bytesRead);
             _memoryOffset += bytesRead;
             return result;
         }

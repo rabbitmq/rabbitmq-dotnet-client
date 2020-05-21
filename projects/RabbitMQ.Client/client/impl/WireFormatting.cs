@@ -49,7 +49,7 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    class WireFormatting
+    internal class WireFormatting
     {
         public static decimal AmqpToDecimal(byte scale, uint unsignedMantissa)
         {
@@ -138,7 +138,7 @@ namespace RabbitMQ.Client.Impl
                     bytesRead += 8;
                     return ReadTimestamp(slice);
                 case 'F':
-                    IDictionary<string, object> tableResult = ReadTable(slice, out int tableBytesRead);
+                    Dictionary<string, object> tableResult = ReadTable(slice, out int tableBytesRead);
                     bytesRead += tableBytesRead;
                     return tableResult;
                 case 'A':
@@ -207,10 +207,10 @@ namespace RabbitMQ.Client.Impl
         /// and F, as well as the QPid-0-8 specific b, d, f, l, s, t,
         /// x and V types and the AMQP 0-9-1 A type.
         ///</remarks>
-        /// <returns>A <seealso cref="System.Collections.Generic.IDictionary{TKey,TValue}"/>.</returns>
-        public static IDictionary<string, object> ReadTable(ReadOnlyMemory<byte> memory, out int bytesRead)
+        /// <returns>A <seealso cref="System.Collections.Generic.Dictionary{TKey,TValue}"/>.</returns>
+        public static Dictionary<string, object> ReadTable(ReadOnlyMemory<byte> memory, out int bytesRead)
         {
-            IDictionary<string, object> table = new Dictionary<string, object>();
+            Dictionary<string, object> table = new Dictionary<string, object>();
             long tableLength = NetworkOrderDeserializer.ReadUInt32(memory);
             bytesRead = 4;
             while ((bytesRead - 4) < tableLength)
@@ -476,7 +476,7 @@ namespace RabbitMQ.Client.Impl
                 int bytesWritten = 0;
                 foreach (KeyValuePair<string, object> entry in val)
                 {
-                    bytesWritten += WriteShortstr(slice.Slice(bytesWritten), entry.Key.ToString());
+                    bytesWritten += WriteShortstr(slice.Slice(bytesWritten), entry.Key);
                     bytesWritten += WriteFieldValue(slice.Slice(bytesWritten), entry.Value);
                 }
 
@@ -512,7 +512,7 @@ namespace RabbitMQ.Client.Impl
 
             foreach (KeyValuePair<string, object> entry in val)
             {
-                byteCount += Encoding.UTF8.GetByteCount(entry.Key.ToString()) + 1;
+                byteCount += Encoding.UTF8.GetByteCount(entry.Key) + 1;
                 byteCount += GetFieldValueByteCount(entry.Value);
             }
 

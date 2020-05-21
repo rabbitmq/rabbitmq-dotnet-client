@@ -67,15 +67,15 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private readonly object _recordedEntitiesLock = new object();
 
-        private readonly IDictionary<string, RecordedExchange> _recordedExchanges = new Dictionary<string, RecordedExchange>();
+        private readonly Dictionary<string, RecordedExchange> _recordedExchanges = new Dictionary<string, RecordedExchange>();
 
-        private readonly IDictionary<string, RecordedQueue> _recordedQueues = new Dictionary<string, RecordedQueue>();
+        private readonly Dictionary<string, RecordedQueue> _recordedQueues = new Dictionary<string, RecordedQueue>();
 
-        private readonly IDictionary<RecordedBinding, byte> _recordedBindings = new Dictionary<RecordedBinding, byte>();
+        private readonly Dictionary<RecordedBinding, byte> _recordedBindings = new Dictionary<RecordedBinding, byte>();
 
-        private readonly IDictionary<string, RecordedConsumer> _recordedConsumers = new Dictionary<string, RecordedConsumer>();
+        private readonly Dictionary<string, RecordedConsumer> _recordedConsumers = new Dictionary<string, RecordedConsumer>();
 
-        private readonly ICollection<AutorecoveringModel> _models = new List<AutorecoveringModel>();
+        private readonly List<AutorecoveringModel> _models = new List<AutorecoveringModel>();
 
         private EventHandler<ConnectionBlockedEventArgs> _recordedBlockedEventHandlers;
         private EventHandler<ShutdownEventArgs> _recordedShutdownEventHandlers;
@@ -485,12 +485,11 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public RecordedConsumer DeleteRecordedConsumer(string consumerTag)
         {
-            RecordedConsumer rc = null;
+            RecordedConsumer rc;
             lock (_recordedEntitiesLock)
             {
-                if (_recordedConsumers.ContainsKey(consumerTag))
+                if (_recordedConsumers.TryGetValue(consumerTag, out rc))
                 {
-                    rc = _recordedConsumers[consumerTag];
                     _recordedConsumers.Remove(consumerTag);
                 }
             }
@@ -912,10 +911,12 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             lock (_recordedBindings)
             {
-                IEnumerable<RecordedBinding> bs = _recordedBindings.Keys.Where(b => b.Destination.Equals(oldName));
-                foreach (RecordedBinding b in bs)
+                foreach (RecordedBinding b in _recordedBindings.Keys)
                 {
-                    b.Destination = newName;
+                    if (b.Destination.Equals(oldName))
+                    {
+                        b.Destination = newName;
+                    }
                 }
             }
         }
@@ -924,21 +925,22 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             lock (_recordedConsumers)
             {
-                IEnumerable<KeyValuePair<string, RecordedConsumer>> cs = _recordedConsumers.
-                    Where(pair => pair.Value.Queue.Equals(oldName));
-                foreach (KeyValuePair<string, RecordedConsumer> c in cs)
+                foreach (KeyValuePair<string, RecordedConsumer> c in _recordedConsumers)
                 {
-                    c.Value.Queue = newName;
+                    if (c.Value.Queue.Equals(oldName))
+                    {
+                        c.Value.Queue = newName;
+                    }
                 }
             }
         }
 
         private void RecoverBindings()
         {
-            IDictionary<RecordedBinding, byte> recordedBindingsCopy = null;
+            Dictionary<RecordedBinding, byte> recordedBindingsCopy;
             lock (_recordedBindings)
             {
-                recordedBindingsCopy = _recordedBindings.ToDictionary(e => e.Key, e => e.Value);
+                recordedBindingsCopy = new Dictionary<RecordedBinding, byte>(_recordedBindings);
             }
 
             foreach (RecordedBinding b in recordedBindingsCopy.Keys)
@@ -1031,10 +1033,10 @@ namespace RabbitMQ.Client.Framing.Impl
                 throw new ObjectDisposedException(GetType().FullName);
             }
 
-            IDictionary<string, RecordedConsumer> recordedConsumersCopy = null;
+            Dictionary<string, RecordedConsumer> recordedConsumersCopy;
             lock (_recordedConsumers)
             {
-                recordedConsumersCopy = _recordedConsumers.ToDictionary(e => e.Key, e => e.Value);
+                recordedConsumersCopy = new Dictionary<string, RecordedConsumer>(_recordedConsumers);
             }
 
             foreach (KeyValuePair<string, RecordedConsumer> pair in recordedConsumersCopy)
@@ -1091,10 +1093,10 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void RecoverExchanges()
         {
-            IDictionary<string, RecordedExchange> recordedExchangesCopy = null;
+            Dictionary<string, RecordedExchange> recordedExchangesCopy;
             lock (_recordedEntitiesLock)
             {
-                recordedExchangesCopy = _recordedExchanges.ToDictionary(e => e.Key, e => e.Value);
+                recordedExchangesCopy = new Dictionary<string, RecordedExchange>(_recordedExchanges);
             }
 
             foreach (RecordedExchange rx in recordedExchangesCopy.Values)
@@ -1125,10 +1127,10 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void RecoverQueues()
         {
-            IDictionary<string, RecordedQueue> recordedQueuesCopy = null;
+            Dictionary<string, RecordedQueue> recordedQueuesCopy;
             lock (_recordedEntitiesLock)
             {
-                recordedQueuesCopy = _recordedQueues.ToDictionary(entry => entry.Key, entry => entry.Value);
+                recordedQueuesCopy = new Dictionary<string, RecordedQueue>(_recordedQueues);
             }
 
             foreach (KeyValuePair<string, RecordedQueue> pair in recordedQueuesCopy)
