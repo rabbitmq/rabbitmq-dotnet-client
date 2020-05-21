@@ -7,8 +7,8 @@ Set-StrictMode -Version 2.0
 Write-Host '[INFO] Removing all existing versions of Erlang...'
 Get-ChildItem -Path 'C:\Program Files\erl*\Uninstall.exe' | %{ Start-Process -Wait -NoNewWindow -FilePath $_ -ArgumentList '/S' }
 
-$erlang_download_url = 'http://erlang.org/download/otp_win64_22.2.exe'
-$erlang_installer_path = Join-Path -Path $HOME -ChildPath 'otp_win64_22.2.exe'
+$erlang_download_url = 'http://erlang.org/download/otp_win64_23.0.1.exe'
+$erlang_installer_path = Join-Path -Path $HOME -ChildPath 'otp_win64_23.0.1.exe'
 $erlang_install_dir = Join-Path -Path $HOME -ChildPath 'erlang'
 
 Write-Host '[INFO] Downloading Erlang...'
@@ -25,8 +25,8 @@ else
 Write-Host "[INFO] Installing Erlang to $erlang_install_dir..."
 & $erlang_installer_path '/S' "/D=$erlang_install_dir" | Out-Null
 
-$rabbitmq_installer_download_url = 'https://github.com/rabbitmq/rabbitmq-server/releases/download/v3.8.2/rabbitmq-server-3.8.2.exe'
-$rabbitmq_installer_path = Join-Path -Path $HOME -ChildPath 'rabbitmq-server-3.8.2.exe'
+$rabbitmq_installer_download_url = 'https://github.com/rabbitmq/rabbitmq-server/releases/download/v3.8.3/rabbitmq-server-3.8.3.exe'
+$rabbitmq_installer_path = Join-Path -Path $HOME -ChildPath 'rabbitmq-server-3.8.3.exe'
 
 $erlang_reg_path = 'HKLM:\SOFTWARE\Ericsson\Erlang'
 if (Test-Path 'HKLM:\SOFTWARE\WOW6432Node\')
