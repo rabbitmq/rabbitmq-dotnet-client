@@ -95,8 +95,8 @@ namespace RabbitMQ.Client.Impl
 
         public static IList ReadArray(ReadOnlyMemory<byte> memory, out int bytesRead)
         {
-            IList array = new List<object>();
-            long arrayLength = NetworkOrderDeserializer.ReadUInt32(memory);
+            uint arrayLength = NetworkOrderDeserializer.ReadUInt32(memory);
+            List<object> array = new List<object>((int)arrayLength);
             bytesRead = 4;
             while (bytesRead - 4 < arrayLength)
             {
@@ -247,9 +247,9 @@ namespace RabbitMQ.Client.Impl
             else
             {
                 int bytesWritten = 0;
-                foreach (object entry in val)
+                for (int index = 0; index < val.Count; index++)
                 {
-                    bytesWritten += WriteFieldValue(memory.Slice(4 + bytesWritten), entry); ;
+                    bytesWritten += WriteFieldValue(memory.Slice(4 + bytesWritten), val[index]);
                 }
 
                 NetworkOrderSerializer.WriteUInt32(memory, (uint)bytesWritten);
@@ -265,9 +265,9 @@ namespace RabbitMQ.Client.Impl
                 return byteCount;
             }
 
-            foreach (object entry in val)
+            for (int index = 0; index < val.Count; index++)
             {
-                byteCount += GetFieldValueByteCount(entry);
+                byteCount += GetFieldValueByteCount(val[index]);
             }
 
             return byteCount;
