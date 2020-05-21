@@ -99,63 +99,19 @@ namespace RabbitMQ.Client.Impl
 
         internal void Transmit(int channelNumber, Connection connection)
         {
-            if (Method.HasContent)
-            {
-                TransmitAsFrameSet(channelNumber, connection);
-            }
-            else
-            {
-                TransmitAsSingleFrame(channelNumber, connection);
-            }
-        }
-
-        internal void TransmitAsSingleFrame(int channelNumber, Connection connection)
-        {
             connection.WriteFrame(new MethodOutboundFrame(channelNumber, Method));
-        }
-
-        internal void TransmitAsFrameSet(int channelNumber, Connection connection)
-        {
-            var frames = new List<OutboundFrame> { new MethodOutboundFrame(channelNumber, Method) };
             if (Method.HasContent)
             {
-                frames.Add(new HeaderOutboundFrame(channelNumber, Header, Body.Length));
+                connection.WriteFrame(new HeaderOutboundFrame(channelNumber, Header, Body.Length));
                 int frameMax = (int)Math.Min(int.MaxValue, connection.FrameMax);
                 int bodyPayloadMax = (frameMax == 0) ? Body.Length : frameMax - EmptyFrameSize;
                 for (int offset = 0; offset < Body.Length; offset += bodyPayloadMax)
                 {
                     int remaining = Body.Length - offset;
                     int count = (remaining < bodyPayloadMax) ? remaining : bodyPayloadMax;
-                    frames.Add(new BodySegmentOutboundFrame(channelNumber, Body.Slice(offset, count)));
+                    connection.WriteFrame(new BodySegmentOutboundFrame(channelNumber, Body.Slice(offset, count)));
                 }
             }
-
-            connection.WriteFrameSet(frames);
-        }
-
-
-        internal static List<OutboundFrame> CalculateFrames(int channelNumber, Connection connection, IList<Command> commands)
-        {
-            var frames = new List<OutboundFrame>();
-
-            foreach (Command cmd in commands)
-            {
-                frames.Add(new MethodOutboundFrame(channelNumber, cmd.Method));
-                if (cmd.Method.HasContent)
-                {
-                    frames.Add(new HeaderOutboundFrame(channelNumber, cmd.Header, cmd.Body.Length));
-                    int frameMax = (int)Math.Min(int.MaxValue, connection.FrameMax);
-                    int bodyPayloadMax = (frameMax == 0) ? cmd.Body.Length : frameMax - EmptyFrameSize;
-                    for (int offset = 0; offset < cmd.Body.Length; offset += bodyPayloadMax)
-                    {
-                        int remaining = cmd.Body.Length - offset;
-                        int count = (remaining < bodyPayloadMax) ? remaining : bodyPayloadMax;
-                        frames.Add(new BodySegmentOutboundFrame(channelNumber, cmd.Body.Slice(offset, count)));
-                    }
-                }
-            }
-
-            return frames;
         }
 
         public void Dispose()

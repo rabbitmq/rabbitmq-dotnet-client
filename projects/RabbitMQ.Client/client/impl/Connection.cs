@@ -948,11 +948,6 @@ entry.ToString());
             _frameHandler.WriteFrame(f);
         }
 
-        public void WriteFrameSet(IList<OutboundFrame> f)
-        {
-            _frameHandler.WriteFrameSet(f);
-        }
-
         public void UpdateSecret(string newSecret, string reason)
         {
             _model0.UpdateSecret(newSecret, reason);
@@ -1010,7 +1005,7 @@ entry.ToString());
         {
             EnsureIsOpen();
             ISession session = CreateSession();
-            var model = (IFullModel)Protocol.CreateModel(session, ConsumerWorkService);
+            var model = (IFullModel)Protocol.CreateModel(session);
             model.ContinuationTimeout = _factory.ContinuationTimeout;
             model._Private_ChannelOpen("");
             return model;
