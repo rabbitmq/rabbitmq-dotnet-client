@@ -55,11 +55,11 @@ namespace RabbitMQ.Client.Impl
 {
     abstract class ModelBase : IFullModel, IRecoverable
     {
-        public readonly IDictionary<string, IBasicConsumer> m_consumers = new Dictionary<string, IBasicConsumer>();
-
         ///<summary>Only used to kick-start a connection open
         ///sequence. See <see cref="Connection.Open"/> </summary>
         public BlockingCell<ConnectionStartDetails> m_connectionStartCell = null;
+
+        private readonly Dictionary<string, IBasicConsumer> _consumers = new Dictionary<string, IBasicConsumer>();
 
         private TimeSpan _handshakeContinuationTimeout = TimeSpan.FromSeconds(10);
         private TimeSpan _continuationTimeout = TimeSpan.FromSeconds(20);
@@ -500,11 +500,11 @@ namespace RabbitMQ.Client.Impl
             ConsumerDispatcher.Quiesce();
             SetCloseReason(reason);
             OnModelShutdown(reason);
-            BroadcastShutdownToConsumers(m_consumers, reason);
+            BroadcastShutdownToConsumers(_consumers, reason);
             ConsumerDispatcher.Shutdown(this).GetAwaiter().GetResult();;
         }
 
-        protected void BroadcastShutdownToConsumers(IDictionary<string, IBasicConsumer> cs, ShutdownEventArgs reason)
+        protected void BroadcastShutdownToConsumers(Dictionary<string, IBasicConsumer> cs, ShutdownEventArgs reason)
         {
             foreach (KeyValuePair<string, IBasicConsumer> c in cs)
             {
@@ -578,10 +578,10 @@ namespace RabbitMQ.Client.Impl
         public void HandleBasicCancel(string consumerTag, bool nowait)
         {
             IBasicConsumer consumer;
-            lock (m_consumers)
+            lock (_consumers)
             {
-                consumer = m_consumers[consumerTag];
-                m_consumers.Remove(consumerTag);
+                consumer = _consumers[consumerTag];
+                _consumers.Remove(consumerTag);
             }
             if (consumer == null)
             {
@@ -601,10 +601,10 @@ namespace RabbitMQ.Client.Impl
                             consumerTag
                             ));
             */
-            lock (m_consumers)
+            lock (_consumers)
             {
-                k.m_consumer = m_consumers[consumerTag];
-                m_consumers.Remove(consumerTag);
+                k.m_consumer = _consumers[consumerTag];
+                _consumers.Remove(consumerTag);
             }
             ConsumerDispatcher.HandleBasicCancelOk(k.m_consumer, consumerTag);
             k.HandleCommand(null); // release the continuation.
@@ -615,9 +615,9 @@ namespace RabbitMQ.Client.Impl
             var k =
                 (BasicConsumerRpcContinuation)_continuationQueue.Next();
             k.m_consumerTag = consumerTag;
-            lock (m_consumers)
+            lock (_consumers)
             {
-                m_consumers[consumerTag] = k.m_consumer;
+                _consumers[consumerTag] = k.m_consumer;
             }
             ConsumerDispatcher.HandleBasicConsumeOk(k.m_consumer, consumerTag);
             k.HandleCommand(null); // release the continuation.
@@ -632,9 +632,9 @@ namespace RabbitMQ.Client.Impl
             ReadOnlyMemory<byte> body)
         {
             IBasicConsumer consumer;
-            lock (m_consumers)
+            lock (_consumers)
             {
-                consumer = m_consumers[consumerTag];
+                consumer = _consumers[consumerTag];
             }
             if (consumer == null)
             {
@@ -1005,9 +1005,9 @@ namespace RabbitMQ.Client.Impl
                 k.GetReply(ContinuationTimeout);
             }
 
-            lock (m_consumers)
+            lock (_consumers)
             {
-                m_consumers.Remove(consumerTag);
+                _consumers.Remove(consumerTag);
             }
 
             ModelShutdown -= k.m_consumer.HandleModelShutdown;
@@ -1017,9 +1017,9 @@ namespace RabbitMQ.Client.Impl
         {
             _Private_BasicCancel(consumerTag, true);
 
-            lock (m_consumers)
+            lock (_consumers)
             {
-                m_consumers.Remove(consumerTag);
+                _consumers.Remove(consumerTag);
             }
         }
 
