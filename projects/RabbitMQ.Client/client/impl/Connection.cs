@@ -1005,7 +1005,7 @@ entry.ToString());
         {
             EnsureIsOpen();
             ISession session = CreateSession();
-            var model = (IFullModel)Protocol.CreateModel(session);
+            var model = (IFullModel)Protocol.CreateModel(session, ConsumerWorkService);
             model.ContinuationTimeout = _factory.ContinuationTimeout;
             model._Private_ChannelOpen("");
             return model;
