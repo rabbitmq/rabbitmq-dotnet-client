@@ -82,21 +82,23 @@ namespace RabbitMQ.Client.Unit
             UTF8Encoding enc = new UTF8Encoding();
             Channel.BasicPublish("", Queue, null, enc.GetBytes("message"));
             EventingBasicConsumer Consumer = new EventingBasicConsumer(Channel);
-            SharedQueue<BasicDeliverEventArgs> EventQueue = new SharedQueue<BasicDeliverEventArgs>();
-            Consumer.Received += (_, e) => EventQueue.Enqueue(e);
+            SharedQueue<(bool Redelivered, byte[] Body)> EventQueue = new SharedQueue<(bool Redelivered, byte[] Body)>();
+            // Making sure we copy the delivery body since it could be disposed at any time.
+            Consumer.Received += (_, e) => EventQueue.Enqueue((e.Redelivered, e.Body.ToArray()));
 
             string CTag = Channel.BasicConsume(Queue, false, Consumer);
-            BasicDeliverEventArgs Event = EventQueue.Dequeue();
+            (bool Redelivered, byte[] Body) Event = EventQueue.Dequeue();
             Channel.BasicCancel(CTag);
             Channel.BasicRecover(true);
 
             EventingBasicConsumer Consumer2 = new EventingBasicConsumer(Channel);
-            SharedQueue<BasicDeliverEventArgs> EventQueue2 = new SharedQueue<BasicDeliverEventArgs>();
-            Consumer2.Received += (_, e) => EventQueue2.Enqueue(e);
+            SharedQueue<(bool Redelivered, byte[] Body)> EventQueue2 = new SharedQueue<(bool Redelivered, byte[] Body)>();
+            // Making sure we copy the delivery body since it could be disposed at any time.
+            Consumer2.Received += (_, e) => EventQueue2.Enqueue((e.Redelivered, e.Body.ToArray()));
             Channel.BasicConsume(Queue, false, Consumer2);
-            BasicDeliverEventArgs Event2 = EventQueue2.Dequeue();
+            (bool Redelivered, byte[] Body) Event2 = EventQueue2.Dequeue();
 
-            CollectionAssert.AreEqual(Event.Body.ToArray(), Event2.Body.ToArray());
+            CollectionAssert.AreEqual(Event.Body, Event2.Body);
             Assert.IsFalse(Event.Redelivered);
             Assert.IsTrue(Event2.Redelivered);
         }
