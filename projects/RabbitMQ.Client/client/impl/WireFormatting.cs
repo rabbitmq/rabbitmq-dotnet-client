@@ -293,11 +293,11 @@ namespace RabbitMQ.Client.Impl
             {
                 case string val:
                     memory.Span[0] = (byte)'S';
-                    if (MemoryMarshal.TryGetArray(memory.Slice(5, Encoding.UTF8.GetByteCount(val)), out ArraySegment<byte> segment))
+                    if (MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> segment))
                     {
-                        NetworkOrderSerializer.WriteUInt32(slice, (uint)segment.Count);
-                        Encoding.UTF8.GetBytes(val, 0, val.Length, segment.Array, segment.Offset);
-                        return segment.Count + 5;
+                        int bytesWritten = Encoding.UTF8.GetBytes(val, 0, val.Length, segment.Array, segment.Offset +  5);
+                        NetworkOrderSerializer.WriteUInt32(slice, (uint)bytesWritten);
+                        return 5 + bytesWritten;
                     }
 
                     throw new WireFormattingException("Unable to get array segment from memory.");
@@ -429,12 +429,11 @@ namespace RabbitMQ.Client.Impl
 
         public static int WriteShortstr(Memory<byte> memory, string val)
         {
-            int stringBytesNeeded = Encoding.UTF8.GetByteCount(val);
-            if (MemoryMarshal.TryGetArray(memory.Slice(1, stringBytesNeeded), out ArraySegment<byte> segment))
+            if (MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> segment))
             {
-                memory.Span[0] = (byte)stringBytesNeeded;
-                Encoding.UTF8.GetBytes(val, 0, val.Length, segment.Array, segment.Offset);
-                return stringBytesNeeded + 1;
+                int bytesWritten = Encoding.UTF8.GetBytes(val, 0, val.Length, segment.Array, segment.Offset + 1);
+                memory.Span[0] = (byte)bytesWritten;
+                return bytesWritten + 1;
             }
 
             throw new WireFormattingException("Unable to get array segment from memory.");
