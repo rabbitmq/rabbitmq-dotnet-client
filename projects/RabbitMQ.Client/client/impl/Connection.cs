@@ -586,7 +586,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     // quiescing situation, even though technically we
                     // should be ignoring everything except
                     // connection.close-ok.
-                    _session0.HandleFrame(frame);
+                    _session0.HandleFrame(in frame);
                 }
                 else
                 {
@@ -608,7 +608,7 @@ namespace RabbitMQ.Client.Framing.Impl
                         }
                         else
                         {
-                            session.HandleFrame(frame);
+                            session.HandleFrame(in frame);
                         }
                     }
                 }

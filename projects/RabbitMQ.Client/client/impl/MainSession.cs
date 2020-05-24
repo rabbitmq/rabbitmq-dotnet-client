@@ -71,13 +71,13 @@ namespace RabbitMQ.Client.Impl
 
         public Action Handler { get; set; }
 
-        public override void HandleFrame(InboundFrame frame)
+        public override void HandleFrame(in InboundFrame frame)
         {
             lock (_closingLock)
             {
                 if (!_closing)
                 {
-                    base.HandleFrame(frame);
+                    base.HandleFrame(in frame);
                     return;
                 }
             }
@@ -88,7 +88,7 @@ namespace RabbitMQ.Client.Impl
                 if ((method.ProtocolClassId == _closeClassId)
                     && (method.ProtocolMethodId == _closeMethodId))
                 {
-                    base.HandleFrame(frame);
+                    base.HandleFrame(in frame);
                     return;
                 }
 
