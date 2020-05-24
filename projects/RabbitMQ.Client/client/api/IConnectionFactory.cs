@@ -73,11 +73,6 @@ namespace RabbitMQ.Client
         TimeSpan RequestedHeartbeat { get; set; }
 
         /// <summary>
-        /// When set to true, background threads will be used for I/O and heartbeats.
-        /// </summary>
-        bool UseBackgroundThreadsForIO { get; set; }
-
-        /// <summary>
         /// Username to use when authenticating to the server.
         /// </summary>
         string UserName { get; set; }
