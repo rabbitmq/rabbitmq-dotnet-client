@@ -90,7 +90,6 @@ namespace RabbitMQ.Client
         public RabbitMQ.Client.SslOption Ssl { get; set; }
         public bool TopologyRecoveryEnabled { get; set; }
         public System.Uri Uri { get; set; }
-        public bool UseBackgroundThreadsForIO { get; set; }
         public string UserName { get; set; }
         public string VirtualHost { get; set; }
         public static System.Net.Sockets.AddressFamily DefaultAddressFamily { get; set; }
@@ -330,7 +329,6 @@ namespace RabbitMQ.Client
         uint RequestedFrameMax { get; set; }
         System.TimeSpan RequestedHeartbeat { get; set; }
         System.Uri Uri { get; set; }
-        bool UseBackgroundThreadsForIO { get; set; }
         string UserName { get; set; }
         string VirtualHost { get; set; }
         RabbitMQ.Client.IAuthMechanismFactory AuthMechanismFactory(System.Collections.Generic.IList<string> mechanismNames);
