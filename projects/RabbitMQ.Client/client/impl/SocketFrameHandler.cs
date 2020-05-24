@@ -234,9 +234,6 @@ namespace RabbitMQ.Client.Impl
             _socket.Client.Poll(_writeableStateTimeoutMicroSeconds, SelectMode.SelectWrite);
             Write(slice.Slice(0, frame.ByteCount), flush);
             ArrayPool<byte>.Shared.Return(memoryArray);
-            return;
-
-            throw new InvalidOperationException("Unable to get array segment from memory.");
         }
 
         public void WriteFrameSet(IList<OutboundFrame> frames)
