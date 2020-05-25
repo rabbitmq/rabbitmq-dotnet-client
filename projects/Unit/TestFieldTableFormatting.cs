@@ -38,6 +38,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Collections;
 using System.Text;
 
@@ -125,6 +126,20 @@ namespace RabbitMQ.Client.Unit
                     (byte)'x', // type
                     0,0,0,2,0xaa,0x55 // value
                 });
+        }
+
+        [Test]
+        public void TestTableEncoding_LongKey()
+        {
+            const int TooLarge = 256;
+            Hashtable t = new Hashtable
+            {
+                [new string('A', TooLarge)] = null
+            };
+            int bytesNeeded = WireFormatting.GetTableByteCount(t);
+            byte[] bytes = new byte[bytesNeeded];
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => WireFormatting.WriteTable(bytes, t));
         }
 
         [Test]
