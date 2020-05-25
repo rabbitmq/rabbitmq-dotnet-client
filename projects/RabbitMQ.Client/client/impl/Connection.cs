@@ -124,7 +124,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _session0 = new MainSession(this) { Handler = NotifyReceivedCloseOk };
             _model0 = (ModelBase)Protocol.CreateModel(_session0);
 
-            StartMainLoop(factory.UseBackgroundThreadsForIO);
+            StartMainLoop();
             Open(insist);
         }
 
@@ -830,7 +830,7 @@ entry.ToString());
             }
         }
 
-        public void StartMainLoop(bool useBackgroundThread)
+        public void StartMainLoop()
         {
             _mainLoopTask = Task.Run((Action)MainLoop);
         }

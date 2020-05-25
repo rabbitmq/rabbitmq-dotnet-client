@@ -299,11 +299,6 @@ namespace RabbitMQ.Client
         public TimeSpan RequestedHeartbeat { get; set; } = DefaultHeartbeat;
 
         /// <summary>
-        /// When set to true, background thread will be used for the I/O loop.
-        /// </summary>
-        public bool UseBackgroundThreadsForIO { get; set; }
-
-        /// <summary>
         /// Username to use when authenticating to the server.
         /// </summary>
         public string UserName { get; set; } = DefaultUser;
