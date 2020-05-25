@@ -42,6 +42,7 @@ using System;
 using System.Buffers;
 using System.IO;
 using System.Net.Sockets;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing;
@@ -228,7 +229,7 @@ namespace RabbitMQ.Client.Impl
 
         internal static InboundFrame ReadFrom(Stream reader)
         {
-            int type;
+            int type = default;
 
             try
             {
@@ -247,9 +248,10 @@ namespace RabbitMQ.Client.Impl
                     !(ioe.InnerException is SocketException) ||
                     ((SocketException)ioe.InnerException).SocketErrorCode != SocketError.TimedOut)
                 {
-                    throw ioe;
+                    throw;
                 }
-                throw ioe.InnerException;
+
+                ExceptionDispatchInfo.Capture(ioe.InnerException).Throw();
             }
 
             if (type == 'A')
