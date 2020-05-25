@@ -84,21 +84,21 @@ namespace RabbitMQ.Client.Impl
             {
                 throw new MalformedFrameException("Attempted to read flag word when none advertised");
             }
-            m_flagWord = NetworkOrderDeserializer.ReadUInt16(_memory.Slice(_memoryOffset));
+            m_flagWord = NetworkOrderDeserializer.ReadUInt16(_memory.Slice(_memoryOffset).Span);
             _memoryOffset += 2;
             m_bitCount = 0;
         }
 
         public uint ReadLong()
         {
-            uint result = NetworkOrderDeserializer.ReadUInt32(_memory.Slice(_memoryOffset));
+            uint result = NetworkOrderDeserializer.ReadUInt32(_memory.Slice(_memoryOffset).Span);
             _memoryOffset += 4;
             return result;
         }
 
         public ulong ReadLonglong()
         {
-            ulong result = NetworkOrderDeserializer.ReadUInt64(_memory.Slice(_memoryOffset));
+            ulong result = NetworkOrderDeserializer.ReadUInt64(_memory.Slice(_memoryOffset).Span);
             _memoryOffset += 8;
             return result;
         }
@@ -130,7 +130,7 @@ namespace RabbitMQ.Client.Impl
 
         public ushort ReadShort()
         {
-            ushort result = NetworkOrderDeserializer.ReadUInt16(_memory.Slice(_memoryOffset));
+            ushort result = NetworkOrderDeserializer.ReadUInt16(_memory.Slice(_memoryOffset).Span);
             _memoryOffset += 2;
             return result;
         }

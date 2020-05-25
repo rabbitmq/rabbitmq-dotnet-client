@@ -82,7 +82,7 @@ namespace RabbitMQ.Client.Impl
         public uint ReadLong()
         {
             ClearBits();
-            uint result = NetworkOrderDeserializer.ReadUInt32(_memory.Slice(_memoryOffset));
+            uint result = NetworkOrderDeserializer.ReadUInt32(_memory.Slice(_memoryOffset).Span);
             _memoryOffset += 4;
             return result;
         }
@@ -90,7 +90,7 @@ namespace RabbitMQ.Client.Impl
         public ulong ReadLonglong()
         {
             ClearBits();
-            ulong result = NetworkOrderDeserializer.ReadUInt64(_memory.Slice(_memoryOffset));
+            ulong result = NetworkOrderDeserializer.ReadUInt64(_memory.Slice(_memoryOffset).Span);
             _memoryOffset += 8;
             return result;
         }
@@ -112,7 +112,7 @@ namespace RabbitMQ.Client.Impl
         public ushort ReadShort()
         {
             ClearBits();
-            ushort result = NetworkOrderDeserializer.ReadUInt16(_memory.Slice(_memoryOffset));
+            ushort result = NetworkOrderDeserializer.ReadUInt16(_memory.Slice(_memoryOffset).Span);
             _memoryOffset += 2;
             return result;
         }
