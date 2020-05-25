@@ -310,11 +310,11 @@ namespace RabbitMQ.Client.Framing.Impl
                     // Wait for CloseOk in the MainLoop
                     _session0.Transmit(ConnectionCloseWrapper(reason.ReplyCode, reason.ReplyText));
                 }
-                catch (AlreadyClosedException ace)
+                catch (AlreadyClosedException)
                 {
                     if (!abort)
                     {
-                        throw ace;
+                        throw;
                     }
                 }
 #pragma warning disable 0168
@@ -330,7 +330,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     {
                         if (!abort)
                         {
-                            throw ioe;
+                            throw;
                         }
                         else
                         {
