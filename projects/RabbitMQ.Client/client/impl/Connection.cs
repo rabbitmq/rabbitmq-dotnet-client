@@ -948,11 +948,6 @@ entry.ToString());
             _frameHandler.WriteFrame(f);
         }
 
-        public void WriteFrameSet(IList<OutboundFrame> f)
-        {
-            _frameHandler.WriteFrameSet(f);
-        }
-
         public void UpdateSecret(string newSecret, string reason)
         {
             _model0.UpdateSecret(newSecret, reason);

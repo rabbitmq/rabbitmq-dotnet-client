@@ -71,8 +71,6 @@ namespace RabbitMQ.Client.Impl
 
         void SendHeader();
 
-        void WriteFrame(OutboundFrame frame, bool flush = true);
-
-        void WriteFrameSet(IList<OutboundFrame> frames);
+        void WriteFrame(OutboundFrame frame);
     }
 }

@@ -46,6 +46,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 using RabbitMQ.Client.Exceptions;
@@ -79,7 +80,8 @@ namespace RabbitMQ.Client.Impl
         private readonly ITcpClient _socket;
         private readonly Stream _writer;
         private readonly object _semaphore = new object();
-        private readonly object _streamLock = new object();
+        private readonly Channel<OutboundFrame> _frameChannel = Channel.CreateUnbounded<OutboundFrame>(new UnboundedChannelOptions { AllowSynchronousContinuations = false, SingleReader = true, SingleWriter = false });
+        private Task _frameWriter;
         private bool _closed;
         public SocketFrameHandler(AmqpTcpEndpoint endpoint,
             Func<AddressFamily, ITcpClient> socketFactory,
@@ -124,6 +126,7 @@ namespace RabbitMQ.Client.Impl
             _writer = new BufferedStream(netstream, _socket.Client.SendBufferSize);
 
             WriteTimeout = writeTimeout;
+            _frameWriter = Task.Run(WriteFrameImpl);
         }
         public AmqpTcpEndpoint Endpoint { get; set; }
 
@@ -183,6 +186,15 @@ namespace RabbitMQ.Client.Impl
                 {
                     try
                     {
+                        _frameChannel.Writer.Complete();
+                        _frameWriter.Wait();
+                    }
+                    catch(Exception)
+                    {
+                    }
+
+                    try
+                    {
                         _socket.Close();
                     }
                     catch (Exception)
@@ -222,46 +234,31 @@ namespace RabbitMQ.Client.Impl
                 headerBytes[7] = (byte)Endpoint.Protocol.MinorVersion;
             }
 
-            Write(new ArraySegment<byte>(headerBytes), true);
+            _writer.Write(headerBytes, 0, 8);
+            _writer.Flush();
         }
 
-        public void WriteFrame(OutboundFrame frame, bool flush = true)
+        public void WriteFrame(OutboundFrame frame)
         {
-            int bufferSize = frame.GetMinimumBufferSize();
-            byte[] memoryArray = ArrayPool<byte>.Shared.Rent(bufferSize);
-            Memory<byte> slice = new Memory<byte>(memoryArray, 0, bufferSize);
-            frame.WriteTo(slice);
-            _socket.Client.Poll(_writeableStateTimeoutMicroSeconds, SelectMode.SelectWrite);
-            Write(slice.Slice(0, frame.ByteCount), flush);
-            ArrayPool<byte>.Shared.Return(memoryArray);
+            _frameChannel.Writer.TryWrite(frame);
         }
 
-        public void WriteFrameSet(IList<OutboundFrame> frames)
+        public async Task WriteFrameImpl()
         {
-            for (int i = 0; i < frames.Count; i++)
+            while (await _frameChannel.Reader.WaitToReadAsync().ConfigureAwait(false))
             {
-                WriteFrame(frames[i], false);
-            }
-
-            lock (_streamLock)
-            {
-                _writer.Flush();
-            }
-        }
-
-        private void Write(ReadOnlyMemory<byte> buffer, bool flush)
-        {
-            lock (_streamLock)
-            {
-                if (MemoryMarshal.TryGetArray(buffer, out ArraySegment<byte> segment))
+                _socket.Client.Poll(_writeableStateTimeoutMicroSeconds, SelectMode.SelectWrite);
+                while (_frameChannel.Reader.TryRead(out OutboundFrame frame))
                 {
-                    _writer.Write(segment.Array, segment.Offset, segment.Count);
-
-                    if (flush)
-                    {
-                        _writer.Flush();
-                    }
+                    int bufferSize = frame.GetMinimumBufferSize();
+                    byte[] memoryArray = ArrayPool<byte>.Shared.Rent(bufferSize);
+                    Memory<byte> slice = new Memory<byte>(memoryArray, 0, bufferSize);
+                    frame.WriteTo(slice);
+                    _writer.Write(memoryArray, 0, bufferSize);
+                    ArrayPool<byte>.Shared.Return(memoryArray);
                 }
+
+                _writer.Flush();
             }
         }
 
