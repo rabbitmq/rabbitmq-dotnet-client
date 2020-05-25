@@ -78,7 +78,7 @@ namespace RabbitMQ.Client.Impl
 
         void Close(ShutdownEventArgs reason);
         void Close(ShutdownEventArgs reason, bool notify);
-        void HandleFrame(InboundFrame frame);
+        void HandleFrame(in InboundFrame frame);
         void Notify();
         void Transmit(Command cmd);
         void Transmit(IList<Command> cmd);

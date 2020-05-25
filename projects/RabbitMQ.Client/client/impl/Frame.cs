@@ -165,10 +165,17 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    class InboundFrame : Frame, IDisposable
+    internal readonly struct InboundFrame : IDisposable
     {
-        private InboundFrame(FrameType type, int channel, ReadOnlyMemory<byte> payload) : base(type, channel, payload)
+        public readonly ReadOnlyMemory<byte> Payload;
+        public readonly int Channel;
+        public readonly FrameType Type;
+
+        private InboundFrame(FrameType type, int channel, ReadOnlyMemory<byte> payload)
         {
+            Payload = payload;
+            Type = type;
+            Channel = channel;
         }
 
         public bool IsMethod()
@@ -288,6 +295,11 @@ namespace RabbitMQ.Client.Impl
             {
                 ArrayPool<byte>.Shared.Return(segment.Array);
             }
+        }
+        
+        public override string ToString()
+        {
+            return $"(type={Type}, channel={Channel}, {Payload.Length} bytes of payload)";
         }
     }
 

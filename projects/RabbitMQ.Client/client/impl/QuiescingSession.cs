@@ -55,7 +55,7 @@ namespace RabbitMQ.Client.Impl
             m_reason = reason;
         }
 
-        public override void HandleFrame(InboundFrame frame)
+        public override void HandleFrame(in InboundFrame frame)
         {
             if (frame.IsMethod())
             {
