@@ -96,7 +96,7 @@ namespace RabbitMQ.Client.Impl
         public static IList ReadArray(ReadOnlyMemory<byte> memory, out int bytesRead)
         {
             IList array = new List<object>();
-            long arrayLength = NetworkOrderDeserializer.ReadUInt32(memory);
+            long arrayLength = NetworkOrderDeserializer.ReadUInt32(memory.Span);
             bytesRead = 4;
             while (bytesRead - 4 < arrayLength)
             {
@@ -111,7 +111,7 @@ namespace RabbitMQ.Client.Impl
         public static decimal ReadDecimal(ReadOnlyMemory<byte> memory)
         {
             byte scale = memory.Span[0];
-            uint unsignedMantissa = NetworkOrderDeserializer.ReadUInt32(memory.Slice(1));
+            uint unsignedMantissa = NetworkOrderDeserializer.ReadUInt32(memory.Slice(1).Span);
             return AmqpToDecimal(scale, unsignedMantissa);
         }
 
@@ -127,10 +127,10 @@ namespace RabbitMQ.Client.Impl
                     return result;
                 case 'I':
                     bytesRead += 4;
-                    return NetworkOrderDeserializer.ReadInt32(slice);
+                    return NetworkOrderDeserializer.ReadInt32(slice.Span);
                 case 'i':
                     bytesRead += 4;
-                    return NetworkOrderDeserializer.ReadUInt32(slice);
+                    return NetworkOrderDeserializer.ReadUInt32(slice.Span);
                 case 'D':
                     bytesRead += 5;
                     return ReadDecimal(slice);
@@ -153,16 +153,16 @@ namespace RabbitMQ.Client.Impl
                     return (sbyte)slice.Span[0];
                 case 'd':
                     bytesRead += 8;
-                    return NetworkOrderDeserializer.ReadDouble(slice);
+                    return NetworkOrderDeserializer.ReadDouble(slice.Span);
                 case 'f':
                     bytesRead += 4;
-                    return NetworkOrderDeserializer.ReadSingle(slice);
+                    return NetworkOrderDeserializer.ReadSingle(slice.Span);
                 case 'l':
                     bytesRead += 8;
-                    return NetworkOrderDeserializer.ReadInt64(slice);
+                    return NetworkOrderDeserializer.ReadInt64(slice.Span);
                 case 's':
                     bytesRead += 2;
-                    return NetworkOrderDeserializer.ReadInt16(slice);
+                    return NetworkOrderDeserializer.ReadInt16(slice.Span);
                 case 't':
                     bytesRead += 1;
                     return slice.Span[0] != 0;
@@ -179,7 +179,7 @@ namespace RabbitMQ.Client.Impl
 
         public static byte[] ReadLongstr(ReadOnlyMemory<byte> memory)
         {
-            int byteCount = (int)NetworkOrderDeserializer.ReadUInt32(memory);
+            int byteCount = (int)NetworkOrderDeserializer.ReadUInt32(memory.Span);
             if (byteCount > int.MaxValue)
             {
                 throw new SyntaxErrorException($"Long string too long; byte length={byteCount}, max={int.MaxValue}");
@@ -211,7 +211,7 @@ namespace RabbitMQ.Client.Impl
         public static IDictionary<string, object> ReadTable(ReadOnlyMemory<byte> memory, out int bytesRead)
         {
             IDictionary<string, object> table = new Dictionary<string, object>();
-            long tableLength = NetworkOrderDeserializer.ReadUInt32(memory);
+            long tableLength = NetworkOrderDeserializer.ReadUInt32(memory.Span);
             bytesRead = 4;
             while ((bytesRead - 4) < tableLength)
             {
@@ -231,7 +231,7 @@ namespace RabbitMQ.Client.Impl
 
         public static AmqpTimestamp ReadTimestamp(ReadOnlyMemory<byte> memory)
         {
-            ulong stamp = NetworkOrderDeserializer.ReadUInt64(memory);
+            ulong stamp = NetworkOrderDeserializer.ReadUInt64(memory.Span);
             // 0-9 is afaict silent on the signedness of the timestamp.
             // See also MethodArgumentWriter.WriteTimestamp and AmqpTimestamp itself
             return new AmqpTimestamp((long)stamp);
@@ -241,7 +241,7 @@ namespace RabbitMQ.Client.Impl
         {
             if (val == null)
             {
-                NetworkOrderSerializer.WriteUInt32(memory, 0);
+                NetworkOrderSerializer.WriteUInt32(memory.Span, 0);
                 return 4;
             }
             else
@@ -252,7 +252,7 @@ namespace RabbitMQ.Client.Impl
                     bytesWritten += WriteFieldValue(memory.Slice(4 + bytesWritten), entry); ;
                 }
 
-                NetworkOrderSerializer.WriteUInt32(memory, (uint)bytesWritten);
+                NetworkOrderSerializer.WriteUInt32(memory.Span, (uint)bytesWritten);
                 return 4 + bytesWritten;
             }
         }
@@ -296,7 +296,7 @@ namespace RabbitMQ.Client.Impl
                     if (MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> segment))
                     {
                         int bytesWritten = Encoding.UTF8.GetBytes(val, 0, val.Length, segment.Array, segment.Offset +  5);
-                        NetworkOrderSerializer.WriteUInt32(slice, (uint)bytesWritten);
+                        NetworkOrderSerializer.WriteUInt32(slice.Span, (uint)bytesWritten);
                         return 5 + bytesWritten;
                     }
 
@@ -306,11 +306,11 @@ namespace RabbitMQ.Client.Impl
                     return 1 + WriteLongstr(slice, val);
                 case int val:
                     memory.Span[0] = (byte)'I';
-                    NetworkOrderSerializer.WriteInt32(slice, val);
+                    NetworkOrderSerializer.WriteInt32(slice.Span, val);
                     return 5;
                 case uint val:
                     memory.Span[0] = (byte)'i';
-                    NetworkOrderSerializer.WriteUInt32(slice, val);
+                    NetworkOrderSerializer.WriteUInt32(slice.Span, val);
                     return 5;
                 case decimal val:
                     memory.Span[0] = (byte)'D';
@@ -334,19 +334,19 @@ namespace RabbitMQ.Client.Impl
                     return 2;
                 case double val:
                     memory.Span[0] = (byte)'d';
-                    NetworkOrderSerializer.WriteDouble(slice, val);
+                    NetworkOrderSerializer.WriteDouble(slice.Span, val);
                     return 9;
                 case float val:
                     memory.Span[0] = (byte)'f';
-                    NetworkOrderSerializer.WriteSingle(slice, val);
+                    NetworkOrderSerializer.WriteSingle(slice.Span, val);
                     return 5;
                 case long val:
                     memory.Span[0] = (byte)'l';
-                    NetworkOrderSerializer.WriteInt64(slice, val);
+                    NetworkOrderSerializer.WriteInt64(slice.Span, val);
                     return 9;
                 case short val:
                     memory.Span[0] = (byte)'s';
-                    NetworkOrderSerializer.WriteInt16(slice, val);
+                    NetworkOrderSerializer.WriteInt16(slice.Span, val);
                     return 3;
                 case bool val:
                     memory.Span[0] = (byte)'t';
@@ -399,13 +399,13 @@ namespace RabbitMQ.Client.Impl
 
         public static int WriteLong(Memory<byte> memory, uint val)
         {
-            NetworkOrderSerializer.WriteUInt32(memory, val);
+            NetworkOrderSerializer.WriteUInt32(memory.Span, val);
             return 4;
         }
 
         public static int WriteLonglong(Memory<byte> memory, ulong val)
         {
-            NetworkOrderSerializer.WriteUInt64(memory, val);
+            NetworkOrderSerializer.WriteUInt64(memory.Span, val);
             return 8;
         }
 
@@ -423,7 +423,7 @@ namespace RabbitMQ.Client.Impl
 
         public static int WriteShort(Memory<byte> memory, ushort val)
         {
-            NetworkOrderSerializer.WriteUInt16(memory, val);
+            NetworkOrderSerializer.WriteUInt16(memory.Span, val);
             return 2;
         }
 
@@ -443,7 +443,7 @@ namespace RabbitMQ.Client.Impl
         {
             if (val == null)
             {
-                NetworkOrderSerializer.WriteUInt32(memory, 0);
+                NetworkOrderSerializer.WriteUInt32(memory.Span, 0);
                 return 4;
             }
             else
@@ -457,7 +457,7 @@ namespace RabbitMQ.Client.Impl
                     bytesWritten += WriteFieldValue(slice.Slice(bytesWritten), entry.Value);
                 }
 
-                NetworkOrderSerializer.WriteUInt32(memory, (uint)bytesWritten);
+                NetworkOrderSerializer.WriteUInt32(memory.Span, (uint)bytesWritten);
                 return 4 + bytesWritten;
             }
         }
@@ -466,7 +466,7 @@ namespace RabbitMQ.Client.Impl
         {
             if (val == null)
             {
-                NetworkOrderSerializer.WriteUInt32(memory, 0);
+                NetworkOrderSerializer.WriteUInt32(memory.Span, 0);
                 return 4;
             }
             else
@@ -480,7 +480,7 @@ namespace RabbitMQ.Client.Impl
                     bytesWritten += WriteFieldValue(slice.Slice(bytesWritten), entry.Value);
                 }
 
-                NetworkOrderSerializer.WriteUInt32(memory, (uint)bytesWritten);
+                NetworkOrderSerializer.WriteUInt32(memory.Span, (uint)bytesWritten);
                 return 4 + bytesWritten;
             }
         }
