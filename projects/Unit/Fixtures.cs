@@ -499,7 +499,7 @@ namespace RabbitMQ.Client.Unit
             catch (Exception e)
             {
                 ReportExecFailure("rabbitmqctl", args, e.Message);
-                throw e;
+                throw;
             }
         }
 
@@ -556,7 +556,7 @@ namespace RabbitMQ.Client.Unit
             catch (Exception e)
             {
                 ReportExecFailure(cmd, args, e.Message);
-                throw e;
+                throw;
             }
         }
 
