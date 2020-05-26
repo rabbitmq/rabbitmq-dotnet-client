@@ -329,14 +329,16 @@ namespace RabbitMQ.Client
         public IAuthMechanismFactory AuthMechanismFactory(IList<string> mechanismNames)
         {
             // Our list is in order of preference, the server one is not.
-            foreach (IAuthMechanismFactory factory in AuthMechanisms)
+            for (int index = 0; index < AuthMechanisms.Count; index++)
             {
+                IAuthMechanismFactory factory = AuthMechanisms[index];
                 string factoryName = factory.Name;
                 if (mechanismNames.Any<string>(x => string.Equals(x, factoryName, StringComparison.OrdinalIgnoreCase)))
                 {
                     return factory;
                 }
             }
+
             return null;
         }
 

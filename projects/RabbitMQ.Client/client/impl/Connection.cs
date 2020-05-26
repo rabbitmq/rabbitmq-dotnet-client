@@ -730,10 +730,9 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 Console.Error.WriteLine(
 "Log of errors while closing connection {0}:", this);
-                foreach (ShutdownReportEntry entry in ShutdownReport)
+                for (int index = 0; index < ShutdownReport.Count; index++)
                 {
-                    Console.Error.WriteLine(
-entry.ToString());
+                    Console.Error.WriteLine(ShutdownReport[index].ToString());
                 }
             }
         }

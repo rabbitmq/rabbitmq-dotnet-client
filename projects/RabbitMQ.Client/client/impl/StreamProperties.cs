@@ -55,11 +55,7 @@ namespace RabbitMQ.Client.Impl
             var clone = MemberwiseClone() as StreamProperties;
             if (IsHeadersPresent())
             {
-                clone.Headers = new Dictionary<string, object>();
-                foreach (KeyValuePair<string, object> entry in Headers)
-                {
-                    clone.Headers[entry.Key] = entry.Value;
-                }
+                clone.Headers = new Dictionary<string, object>(Headers);
             }
 
             return clone;
