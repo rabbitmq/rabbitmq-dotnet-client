@@ -127,7 +127,7 @@ namespace RabbitMQ.Client.Impl
 
         private void EmitFlagWord(bool continuationBit)
         {
-            NetworkOrderSerializer.WriteUInt16(Memory.Slice(Offset), (ushort)(continuationBit ? (_flagWord | 1) : _flagWord));
+            NetworkOrderSerializer.WriteUInt16(Memory.Slice(Offset).Span, (ushort)(continuationBit ? (_flagWord | 1) : _flagWord));
             Offset += 2;
             _flagWord = 0;
             _bitCount = 0;

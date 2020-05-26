@@ -89,7 +89,7 @@ namespace RabbitMQ.Client.Impl
                     {
                         throw new UnexpectedFrameException(f.Type);
                     }
-                    m_header = m_protocol.DecodeContentHeaderFrom(NetworkOrderDeserializer.ReadUInt16(f.Payload));
+                    m_header = m_protocol.DecodeContentHeaderFrom(NetworkOrderDeserializer.ReadUInt16(f.Payload.Span));
                     ulong totalBodyBytes = m_header.ReadFrom(f.Payload.Slice(2));
                     if (totalBodyBytes > MaxArrayOfBytesSize)
                     {

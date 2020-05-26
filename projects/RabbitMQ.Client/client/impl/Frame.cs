@@ -70,7 +70,7 @@ namespace RabbitMQ.Client.Impl
         internal override int WritePayload(Memory<byte> memory)
         {
             // write protocol class id (2 bytes)
-            NetworkOrderSerializer.WriteUInt16(memory, _header.ProtocolClassId);
+            NetworkOrderSerializer.WriteUInt16(memory.Span, _header.ProtocolClassId);
             // write header (X bytes)
             int bytesWritten = _header.WriteTo(memory.Slice(2), (ulong)_bodyLength);
             return 2 + bytesWritten;
@@ -115,8 +115,8 @@ namespace RabbitMQ.Client.Impl
 
         internal override int WritePayload(Memory<byte> memory)
         {
-            NetworkOrderSerializer.WriteUInt16(memory, _method.ProtocolClassId);
-            NetworkOrderSerializer.WriteUInt16(memory.Slice(2), _method.ProtocolMethodId);
+            NetworkOrderSerializer.WriteUInt16(memory.Span, _method.ProtocolClassId);
+            NetworkOrderSerializer.WriteUInt16(memory.Slice(2).Span, _method.ProtocolMethodId);
             var argWriter = new MethodArgumentWriter(memory.Slice(4));
             _method.WriteArgumentsTo(ref argWriter);
             argWriter.Flush();
@@ -151,9 +151,9 @@ namespace RabbitMQ.Client.Impl
         internal void WriteTo(Memory<byte> memory)
         {
             memory.Span[0] = (byte)Type;
-            NetworkOrderSerializer.WriteUInt16(memory.Slice(1), (ushort)Channel);
+            NetworkOrderSerializer.WriteUInt16(memory.Slice(1).Span, (ushort)Channel);
             int bytesWritten = WritePayload(memory.Slice(7));
-            NetworkOrderSerializer.WriteUInt32(memory.Slice(3), (uint)bytesWritten);
+            NetworkOrderSerializer.WriteUInt32(memory.Slice(3).Span, (uint)bytesWritten);
             memory.Span[bytesWritten + 7] = Constants.FrameEnd;
             ByteCount = bytesWritten + 8;
         }

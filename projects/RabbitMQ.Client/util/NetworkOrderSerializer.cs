@@ -8,141 +8,160 @@ namespace RabbitMQ.Util
     internal static class NetworkOrderSerializer
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void WriteDouble(Memory<byte> memory, double val)
+        internal static void WriteDouble(Span<byte> span, double val)
         {
-            if (memory.Length < 8)
+#if NETFRAMEWORK
+            if (span.Length < 8)
             {
-                throw new ArgumentOutOfRangeException(nameof(memory), "Insufficient length to write Double to memory.");
+                throw new ArgumentOutOfRangeException(nameof(span), "Insufficient length to write Double to memory.");
             }
 
             long tempVal = BitConverter.DoubleToInt64Bits(val);
-            SerializeInt64(memory.Span, tempVal);
+            span[0] = (byte)((tempVal >> 56) & 0xFF);
+            span[1] = (byte)((tempVal >> 48) & 0xFF);
+            span[2] = (byte)((tempVal >> 40) & 0xFF);
+            span[3] = (byte)((tempVal >> 32) & 0xFF);
+            span[4] = (byte)((tempVal >> 24) & 0xFF);
+            span[5] = (byte)((tempVal >> 16) & 0xFF);
+            span[6] = (byte)((tempVal >> 8) & 0xFF);
+            span[7] = (byte)(tempVal & 0xFF);
+#elif NETSTANDARD
+            long tempVal = BitConverter.DoubleToInt64Bits(val);
+            BinaryPrimitives.WriteInt64BigEndian(span, tempVal);
+#endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void WriteInt16(Memory<byte> memory, short val)
+        internal static void WriteInt16(Span<byte> span, short val)
         {
-            if (memory.Length < 2)
+#if NETFRAMEWORK
+            if (span.Length < 2)
             {
-                throw new ArgumentOutOfRangeException(nameof(memory), "Insufficient length to write Int16 to memory.");
+                throw new ArgumentOutOfRangeException(nameof(span), "Insufficient length to write Int16 to memory.");
             }
 
-            SerializeInt16(memory.Span, val);
+            span[0] = (byte)((val >> 8) & 0xFF);
+            span[1] = (byte)(val & 0xFF);
+#elif NETSTANDARD
+            BinaryPrimitives.WriteInt16BigEndian(span, val);
+#endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void WriteInt32(Memory<byte> memory, int val)
+        internal static void WriteInt32(Span<byte> span, int val)
         {
-            if (memory.Length < 4)
+#if NETFRAMEWORK
+            if (span.Length < 4)
             {
-                throw new ArgumentOutOfRangeException(nameof(memory), "Insufficient length to write Int32 to memory.");
+                throw new ArgumentOutOfRangeException(nameof(span), "Insufficient length to write Int32 to memory.");
             }
 
-            SerializeInt32(memory.Span, val);
+            span[0] = (byte)((val >> 24) & 0xFF);
+            span[1] = (byte)((val >> 16) & 0xFF);
+            span[2] = (byte)((val >> 8) & 0xFF);
+            span[3] = (byte)(val & 0xFF);
+#elif NETSTANDARD
+            BinaryPrimitives.WriteInt32BigEndian(span, val);
+#endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void WriteInt64(Memory<byte> memory, long val)
+        internal static void WriteInt64(Span<byte> span, long val)
         {
-            if (memory.Length < 8)
+#if NETFRAMEWORK
+            if (span.Length < 8)
             {
-                throw new ArgumentOutOfRangeException(nameof(memory), "Insufficient length to write Int64 to memory.");
+                throw new ArgumentOutOfRangeException(nameof(span), "Insufficient length to write Int64 to memory.");
             }
 
-            SerializeInt64(memory.Span, val);
-        }        
+            span[0] = (byte)((val >> 56) & 0xFF);
+            span[1] = (byte)((val >> 48) & 0xFF);
+            span[2] = (byte)((val >> 40) & 0xFF);
+            span[3] = (byte)((val >> 32) & 0xFF);
+            span[4] = (byte)((val >> 24) & 0xFF);
+            span[5] = (byte)((val >> 16) & 0xFF);
+            span[6] = (byte)((val >> 8) & 0xFF);
+            span[7] = (byte)(val & 0xFF);
+#elif NETSTANDARD
+            BinaryPrimitives.WriteInt64BigEndian(span, val);
+#endif
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void WriteSingle(Memory<byte> memory, float val)
+        internal static void WriteSingle(Span<byte> span, float val)
         {
-            if (memory.Length < 4)
+#if NETFRAMEWORK
+            if (span.Length < 4)
             {
-                throw new ArgumentOutOfRangeException(nameof(memory), "Insufficient length to write Single to memory.");
+                throw new ArgumentOutOfRangeException(nameof(span), "Insufficient length to write Single to memory.");
             }
 
             int tempVal = Unsafe.As<float, int>(ref val);
-            SerializeInt32(memory.Span, tempVal);
+            span[0] = (byte)((tempVal >> 24) & 0xFF);
+            span[1] = (byte)((tempVal >> 16) & 0xFF);
+            span[2] = (byte)((tempVal >> 8) & 0xFF);
+            span[3] = (byte)(tempVal & 0xFF);
+#elif NETSTANDARD
+            int tempVal = Unsafe.As<float, int>(ref val);
+            BinaryPrimitives.WriteInt32BigEndian(span, tempVal);
+#endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void WriteUInt16(Memory<byte> memory, ushort val)
+        internal static void WriteUInt16(Span<byte> span, ushort val)
         {
-            if (memory.Length < 2)
+#if NETFRAMEWORK
+            if (span.Length < 2)
             {
-                throw new ArgumentOutOfRangeException(nameof(memory), "Insufficient length to write UInt16 to memory.");
+                throw new ArgumentOutOfRangeException(nameof(span), "Insufficient length to write UInt16 to memory.");
             }
 
-            SerializeUInt16(memory.Span, val);
+            span[0] = (byte)((val >> 8) & 0xFF);
+            span[1] = (byte)(val & 0xFF);
+#elif NETSTANDARD
+            BinaryPrimitives.WriteUInt16BigEndian(span, val);
+#endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void WriteUInt32(Memory<byte> memory, uint val)
+        internal static void WriteUInt32(Span<byte> span, uint val)
         {
-            if (memory.Length < 4)
+#if NETFRAMEWORK
+            if (span.Length < 4)
             {
-                throw new ArgumentOutOfRangeException(nameof(memory), "Insufficient length to write UInt32 to memory.");
+                throw new ArgumentOutOfRangeException(nameof(span), "Insufficient length to write UInt32 to memory.");
             }
 
-            SerializeUInt32(memory.Span, val);
+            span[0] = (byte)((val >> 24) & 0xFF);
+            span[1] = (byte)((val >> 16) & 0xFF);
+            span[2] = (byte)((val >> 8) & 0xFF);
+            span[3] = (byte)(val & 0xFF);
+#elif NETSTANDARD
+            BinaryPrimitives.WriteUInt32BigEndian(span, val);
+#endif
         }
 
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void WriteUInt64(Memory<byte> memory, ulong val)
+        internal static void WriteUInt64(Span<byte> span, ulong val)
         {
-            if (memory.Length < 8)
+            if (span.Length < 8)
             {
-                throw new ArgumentOutOfRangeException(nameof(memory), "Insufficient length to write UInt64 from memory.");
+                throw new ArgumentOutOfRangeException(nameof(span), "Insufficient length to write UInt64 from memory.");
             }
 
-            SerializeUInt64(memory.Span, val);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void SerializeInt16(Span<byte> memory, short val)
-        {
-            SerializeUInt16(memory, (ushort)val);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void SerializeUInt16(Span<byte> memory, ushort val)
-        {
-            memory[0] = (byte)((val >> 8) & 0xFF);
-            memory[1] = (byte)(val & 0xFF);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void SerializeInt32(Span<byte> memory, int val)
-        {
-            SerializeUInt32(memory, (uint)val);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void SerializeUInt32(Span<byte> memory, uint val)
-        {
-            memory[0] = (byte)((val >> 24) & 0xFF);
-            memory[1] = (byte)((val >> 16) & 0xFF);
-            memory[2] = (byte)((val >> 8) & 0xFF);
-            memory[3] = (byte)(val & 0xFF);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void SerializeInt64(Span<byte> memory, long val)
-        {
-            SerializeUInt64(memory, (ulong)val);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void SerializeUInt64(Span<byte> memory, ulong val)
-        {
-            memory[0] = (byte)((val >> 56) & 0xFF);
-            memory[1] = (byte)((val >> 48) & 0xFF);
-            memory[2] = (byte)((val >> 40) & 0xFF);
-            memory[3] = (byte)((val >> 32) & 0xFF);
-            memory[4] = (byte)((val >> 24) & 0xFF);
-            memory[5] = (byte)((val >> 16) & 0xFF);
-            memory[6] = (byte)((val >> 8) & 0xFF);
-            memory[7] = (byte)(val & 0xFF);
+#if NETFRAMEWORK
+            span[0] = (byte)((val >> 56) & 0xFF);
+            span[1] = (byte)((val >> 48) & 0xFF);
+            span[2] = (byte)((val >> 40) & 0xFF);
+            span[3] = (byte)((val >> 32) & 0xFF);
+            span[4] = (byte)((val >> 24) & 0xFF);
+            span[5] = (byte)((val >> 16) & 0xFF);
+            span[6] = (byte)((val >> 8) & 0xFF);
+            span[7] = (byte)(val & 0xFF);
+#elif NETSTANDARD
+            BinaryPrimitives.WriteUInt64BigEndian(span, val);
+#endif
         }
     }
 }
