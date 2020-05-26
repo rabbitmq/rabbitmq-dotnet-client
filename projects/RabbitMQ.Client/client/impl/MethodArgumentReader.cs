@@ -45,7 +45,7 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    struct MethodArgumentReader
+    internal struct MethodArgumentReader
     {
         private int? _bit;
         private int _bits;
@@ -125,10 +125,10 @@ namespace RabbitMQ.Client.Impl
             return result;
         }
 
-        public IDictionary<string, object> ReadTable()
+        public Dictionary<string, object> ReadTable()
         {
             ClearBits();
-            IDictionary<string, object> result = WireFormatting.ReadTable(_memory.Slice(_memoryOffset), out int bytesRead);
+            Dictionary<string, object> result = WireFormatting.ReadTable(_memory.Slice(_memoryOffset), out int bytesRead);
             _memoryOffset += bytesRead;
             return result;
         }
