@@ -291,10 +291,10 @@ namespace RabbitMQ.Client.Impl
                 ConnectOrFail(socket, endpoint, timeout);
                 return socket;
             }
-            catch (ConnectFailureException e)
+            catch (ConnectFailureException)
             {
                 socket.Dispose();
-                throw e;
+                throw;
             }
         }
 
