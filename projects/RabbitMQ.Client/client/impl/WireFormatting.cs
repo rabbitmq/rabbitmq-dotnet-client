@@ -432,8 +432,13 @@ namespace RabbitMQ.Client.Impl
             if (MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> segment))
             {
                 int bytesWritten = Encoding.UTF8.GetBytes(val, 0, val.Length, segment.Array, segment.Offset + 1);
-                memory.Span[0] = (byte)bytesWritten;
-                return bytesWritten + 1;
+                if (bytesWritten <= byte.MaxValue)
+                {
+                    memory.Span[0] = (byte)bytesWritten;
+                   return bytesWritten + 1;
+                }
+
+                throw new ArgumentOutOfRangeException(nameof(val), val, "Value exceeds the maximum allowed length of 255 bytes.");
             }
 
             throw new WireFormattingException("Unable to get array segment from memory.");
