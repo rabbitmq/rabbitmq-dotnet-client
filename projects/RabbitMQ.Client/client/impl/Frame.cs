@@ -45,7 +45,6 @@ using System.Net.Sockets;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Client.Framing;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
@@ -73,7 +72,7 @@ namespace RabbitMQ.Client.Impl
             NetworkOrderSerializer.WriteUInt16(memory.Span, _header.ProtocolClassId);
             // write header (X bytes)
             int bytesWritten = _header.WriteTo(memory.Slice(2), (ulong)_bodyLength);
-            return 2 + bytesWritten;
+            return bytesWritten + 2;
         }
     }
 
@@ -115,8 +114,9 @@ namespace RabbitMQ.Client.Impl
 
         internal override int WritePayload(Memory<byte> memory)
         {
-            NetworkOrderSerializer.WriteUInt16(memory.Span, _method.ProtocolClassId);
-            NetworkOrderSerializer.WriteUInt16(memory.Slice(2).Span, _method.ProtocolMethodId);
+            var span = memory.Span;
+            NetworkOrderSerializer.WriteUInt16(span, _method.ProtocolClassId);
+            NetworkOrderSerializer.WriteUInt16(span.Slice(2), _method.ProtocolMethodId);
             var argWriter = new MethodArgumentWriter(memory.Slice(4));
             _method.WriteArgumentsTo(ref argWriter);
             argWriter.Flush();
@@ -141,21 +141,25 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    abstract class OutboundFrame : Frame
+    internal abstract class OutboundFrame
     {
-        public int ByteCount { get; private set; } = 0;
-        public OutboundFrame(FrameType type, int channel) : base(type, channel)
+        public int Channel { get; }
+        public FrameType Type { get; }
+
+        protected OutboundFrame(FrameType type, int channel)
         {
+            Type = type;
+            Channel = channel;
         }
 
         internal void WriteTo(Memory<byte> memory)
         {
-            memory.Span[0] = (byte)Type;
-            NetworkOrderSerializer.WriteUInt16(memory.Slice(1).Span, (ushort)Channel);
+            var span = memory.Span;
+            span[0] = (byte)Type;
+            NetworkOrderSerializer.WriteUInt16(span.Slice(1), (ushort)Channel);
             int bytesWritten = WritePayload(memory.Slice(7));
-            NetworkOrderSerializer.WriteUInt32(memory.Slice(3).Span, (uint)bytesWritten);
-            memory.Span[bytesWritten + 7] = Constants.FrameEnd;
-            ByteCount = bytesWritten + 8;
+            NetworkOrderSerializer.WriteUInt32(span.Slice(3), (uint)bytesWritten);
+            span[bytesWritten + 7] = Constants.FrameEnd;
         }
 
         internal abstract int WritePayload(Memory<byte> memory);
@@ -163,6 +167,11 @@ namespace RabbitMQ.Client.Impl
         internal int GetMinimumBufferSize()
         {
             return 8 + GetMinimumPayloadBufferSize();
+        }
+        
+        public override string ToString()
+        {
+            return $"(type={Type}, channel={Channel})";
         }
     }
 
@@ -304,47 +313,12 @@ namespace RabbitMQ.Client.Impl
             return $"(type={Type}, channel={Channel}, {Payload.Length} bytes of payload)";
         }
     }
-
-    class Frame
+    
+    internal enum FrameType : int
     {
-        public Frame(FrameType type, int channel)
-        {
-            Type = type;
-            Channel = channel;
-            Payload = null;
-        }
-
-        public Frame(FrameType type, int channel, ReadOnlyMemory<byte> payload)
-        {
-            Type = type;
-            Channel = channel;
-            Payload = payload;
-        }
-
-        public int Channel { get; private set; }
-
-        public ReadOnlyMemory<byte> Payload { get; private set; }
-
-        public FrameType Type { get; private set; }
-
-        public override string ToString()
-        {
-            return string.Format("(type={0}, channel={1}, {2} bytes of payload)",
-                Type,
-                Channel,
-                Payload.Length.ToString());
-        }
-
-        
-    }
-
-    enum FrameType : int
-    {
-        FrameMethod = 1,
-        FrameHeader = 2,
-        FrameBody = 3,
-        FrameHeartbeat = 8,
-        FrameEnd = 206,
-        FrameMinSize = 4096
+        FrameMethod = Constants.FrameMethod,
+        FrameHeader = Constants.FrameHeader,
+        FrameBody = Constants.FrameBody,
+        FrameHeartbeat = Constants.FrameHeartbeat
     }
 }

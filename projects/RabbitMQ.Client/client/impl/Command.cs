@@ -57,11 +57,6 @@ namespace RabbitMQ.Client.Impl
         private const int EmptyFrameSize = 8;
         private readonly bool _returnBufferOnDispose;
 
-        static Command()
-        {
-            CheckEmptyFrameSize();
-        }
-
         internal Command(MethodBase method) : this(method, null, null, false)
         {
         }
@@ -79,23 +74,6 @@ namespace RabbitMQ.Client.Impl
         internal ContentHeaderBase Header { get; private set; }
 
         internal MethodBase Method { get; private set; }
-
-        public static void CheckEmptyFrameSize()
-        {
-            var f = new EmptyOutboundFrame();
-            byte[] b = new byte[f.GetMinimumBufferSize()];
-            f.WriteTo(b);
-            long actualLength = f.ByteCount;
-
-            if (EmptyFrameSize != actualLength)
-            {
-                string message =
-                    string.Format("EmptyFrameSize is incorrect - defined as {0} where the computed value is in fact {1}.",
-                        EmptyFrameSize,
-                        actualLength);
-                throw new ProtocolViolationException(message);
-            }
-        }
 
         internal void Transmit(int channelNumber, Connection connection)
         {
