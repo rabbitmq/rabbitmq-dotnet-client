@@ -83,14 +83,13 @@ namespace RabbitMQ.Client.Framing.Impl
         //
         // Heartbeats
         //
-
         private TimeSpan _heartbeat = TimeSpan.Zero;
         private TimeSpan _heartbeatTimeSpan = TimeSpan.FromSeconds(0);
-        private int _missedHeartbeats = 0;
+        private int _missedHeartbeats;
+        private bool _heartbeatDetected;
 
         private Timer _heartbeatWriteTimer;
         private Timer _heartbeatReadTimer;
-        private readonly AutoResetEvent _heartbeatRead = new AutoResetEvent(false);
 
         private Task _mainLoopTask;
 
@@ -615,12 +614,9 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public void NotifyHeartbeatListener()
+        private void NotifyHeartbeatListener()
         {
-            if (_heartbeat != TimeSpan.Zero)
-            {
-                _heartbeatRead.Set();
-            }
+            _heartbeatDetected = true;
         }
 
         public void NotifyReceivedCloseOk()
@@ -847,13 +843,14 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 if (!_closed)
                 {
-                    if (!_heartbeatRead.WaitOne(0))
+                    if (_heartbeatDetected)
                     {
-                        _missedHeartbeats++;
+                        _heartbeatDetected = false;
+                        _missedHeartbeats = 0;
                     }
                     else
                     {
-                        _missedHeartbeats = 0;
+                        _missedHeartbeats++;
                     }
 
                     // We check against 8 = 2 * 4 because we need to wait for at
@@ -921,7 +918,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        void MaybeStopHeartbeatTimers()
+        private void MaybeStopHeartbeatTimers()
         {
             NotifyHeartbeatListener();
             _heartbeatReadTimer?.Dispose();
