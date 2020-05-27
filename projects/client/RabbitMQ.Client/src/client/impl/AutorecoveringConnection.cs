@@ -289,6 +289,8 @@ namespace RabbitMQ.Client.Framing.Impl
                     RegisterForConnectionEvents();
 
                     RecoverModels();
+
+
                     if (m_factory.TopologyRecoveryEnabled)
                     {
                         RecoverEntities();
@@ -497,6 +499,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void RegisterForConnectionEvents()
         {
+
+            ESLog.Info("RegisterForConnectionEvents");
             m_delegate.ConnectionShutdown += OnConnectionShutdown;
             m_delegate.CallbackException += OnCallbackException;
             m_delegate.ConnectionBlocked += OnConnectionBlocked;
@@ -659,8 +663,11 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void RecoverBindings()
         {
+            ESLog.Info("RecoverBindings");
             foreach (var b in m_recordedBindings.Keys)
             {
+                ESLog.Info($"RecoverBinding source = {b.Source}");
+
                 try
                 {
                     b.Recover();
@@ -678,6 +685,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private bool TryRecoverConnectionDelegate()
         {
+            ESLog.Info("TryRecoverConnectionDelegate");
             try
             {
                 var fh = endpoints.SelectOne(m_factory.CreateFrameHandler);
@@ -767,8 +775,10 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void RecoverExchanges()
         {
+            ESLog.Info("RecoverExchanges");
             foreach (RecordedExchange rx in m_recordedExchanges.Values)
             {
+                ESLog.Info($"RecoverExchange type = {rx.Type}");
                 try
                 {
                     rx.Recover();
@@ -785,10 +795,13 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void RecoverModels()
         {
+
+            ESLog.Info("RecoverModels");
             lock (m_models)
             {
                 foreach (AutorecoveringModel m in m_models)
                 {
+                    ESLog.Info($"RecoverModel channel {m.ChannelNumber}");
                     m.AutomaticallyRecover(this, m_delegate);
                 }
             }
