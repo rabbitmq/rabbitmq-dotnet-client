@@ -81,7 +81,7 @@ namespace RabbitMQ.Client.Impl
                     {
                         throw new UnexpectedFrameException(f.Type);
                     }
-                    m_method = m_protocol.DecodeMethodFrom(f.Payload);
+                    m_method = m_protocol.DecodeMethodFrom(f.Payload.Span);
                     m_state = m_method.HasContent ? AssemblyState.ExpectingContentHeader : AssemblyState.Complete;
                     return CompletedCommand();
                 case AssemblyState.ExpectingContentHeader:
@@ -89,8 +89,10 @@ namespace RabbitMQ.Client.Impl
                     {
                         throw new UnexpectedFrameException(f.Type);
                     }
-                    m_header = m_protocol.DecodeContentHeaderFrom(NetworkOrderDeserializer.ReadUInt16(f.Payload.Span));
-                    ulong totalBodyBytes = m_header.ReadFrom(f.Payload.Slice(2));
+
+                    ReadOnlySpan<byte> span = f.Payload.Span;
+                    m_header = m_protocol.DecodeContentHeaderFrom(NetworkOrderDeserializer.ReadUInt16(span));
+                    ulong totalBodyBytes = m_header.ReadFrom(span.Slice(2));
                     if (totalBodyBytes > MaxArrayOfBytesSize)
                     {
                         throw new UnexpectedFrameException(f.Type);

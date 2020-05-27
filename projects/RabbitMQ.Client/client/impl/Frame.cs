@@ -66,12 +66,12 @@ namespace RabbitMQ.Client.Impl
             return 2 + _header.GetRequiredBufferSize();
         }
 
-        internal override int WritePayload(Memory<byte> memory)
+        internal override int WritePayload(Span<byte> span)
         {
             // write protocol class id (2 bytes)
-            NetworkOrderSerializer.WriteUInt16(memory.Span, _header.ProtocolClassId);
+            NetworkOrderSerializer.WriteUInt16(span, _header.ProtocolClassId);
             // write header (X bytes)
-            int bytesWritten = _header.WriteTo(memory.Slice(2), (ulong)_bodyLength);
+            int bytesWritten = _header.WriteTo(span.Slice(2), (ulong)_bodyLength);
             return bytesWritten + 2;
         }
     }
@@ -90,9 +90,9 @@ namespace RabbitMQ.Client.Impl
             return _body.Length;
         }
 
-        internal override int WritePayload(Memory<byte> memory)
+        internal override int WritePayload(Span<byte> span)
         {
-            _body.CopyTo(memory);
+            _body.Span.CopyTo(span);
             return _body.Length;
         }
     }
@@ -112,14 +112,12 @@ namespace RabbitMQ.Client.Impl
             return 4 + _method.GetRequiredBufferSize();
         }
 
-        internal override int WritePayload(Memory<byte> memory)
+        internal override int WritePayload(Span<byte> span)
         {
-            var span = memory.Span;
             NetworkOrderSerializer.WriteUInt16(span, _method.ProtocolClassId);
             NetworkOrderSerializer.WriteUInt16(span.Slice(2), _method.ProtocolMethodId);
-            var argWriter = new MethodArgumentWriter(memory.Slice(4));
+            var argWriter = new MethodArgumentWriter(span.Slice(4));
             _method.WriteArgumentsTo(ref argWriter);
-            argWriter.Flush();
             return 4 + argWriter.Offset;
         }
     }
@@ -135,7 +133,7 @@ namespace RabbitMQ.Client.Impl
             return 0;
         }
 
-        internal override int WritePayload(Memory<byte> memory)
+        internal override int WritePayload(Span<byte> span)
         {
             return 0;
         }
@@ -152,23 +150,22 @@ namespace RabbitMQ.Client.Impl
             Channel = channel;
         }
 
-        internal void WriteTo(Memory<byte> memory)
+        internal void WriteTo(Span<byte> span)
         {
-            var span = memory.Span;
             span[0] = (byte)Type;
             NetworkOrderSerializer.WriteUInt16(span.Slice(1), (ushort)Channel);
-            int bytesWritten = WritePayload(memory.Slice(7));
+            int bytesWritten = WritePayload(span.Slice(7));
             NetworkOrderSerializer.WriteUInt32(span.Slice(3), (uint)bytesWritten);
             span[bytesWritten + 7] = Constants.FrameEnd;
         }
 
-        internal abstract int WritePayload(Memory<byte> memory);
+        internal abstract int WritePayload(Span<byte> span);
         internal abstract int GetMinimumPayloadBufferSize();
         internal int GetMinimumBufferSize()
         {
             return 8 + GetMinimumPayloadBufferSize();
         }
-        
+
         public override string ToString()
         {
             return $"(type={Type}, channel={Channel})";
@@ -307,13 +304,13 @@ namespace RabbitMQ.Client.Impl
                 ArrayPool<byte>.Shared.Return(segment.Array);
             }
         }
-        
+
         public override string ToString()
         {
             return $"(type={Type}, channel={Channel}, {Payload.Length} bytes of payload)";
         }
     }
-    
+
     internal enum FrameType : int
     {
         FrameMethod = Constants.FrameMethod,
