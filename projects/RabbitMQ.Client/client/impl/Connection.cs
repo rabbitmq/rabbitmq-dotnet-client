@@ -83,12 +83,10 @@ namespace RabbitMQ.Client.Framing.Impl
         //
         // Heartbeats
         //
-
         private TimeSpan _heartbeat = TimeSpan.Zero;
         private TimeSpan _heartbeatTimeSpan = TimeSpan.FromSeconds(0);
         private int _missedHeartbeats;
-        private int _heartbeatCounter;
-        private int _lastHeartbeatCounter;
+        private bool _heartbeatDetected;
 
         private Timer _heartbeatWriteTimer;
         private Timer _heartbeatReadTimer;
@@ -616,14 +614,9 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public void NotifyHeartbeatListener()
+        private void NotifyHeartbeatListener()
         {
-            // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/checked-and-unchecked
-            // No worries if this overflows. What matters is that the value changes.
-            unchecked
-            {
-                _heartbeatCounter++;
-            }
+            _heartbeatDetected = true;
         }
 
         public void NotifyReceivedCloseOk()
@@ -850,16 +843,15 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 if (!_closed)
                 {
-                    if (_lastHeartbeatCounter == _heartbeatCounter)
+                    if (_heartbeatDetected)
                     {
-                        _missedHeartbeats++;
+                        _heartbeatDetected = false;
+                        _missedHeartbeats = 0;
                     }
                     else
                     {
-                        _missedHeartbeats = 0;
+                        _missedHeartbeats++;
                     }
-
-                    _lastHeartbeatCounter = _heartbeatCounter;
 
                     // We check against 8 = 2 * 4 because we need to wait for at
                     // least two complete heartbeat setting intervals before
@@ -926,7 +918,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        void MaybeStopHeartbeatTimers()
+        private void MaybeStopHeartbeatTimers()
         {
             NotifyHeartbeatListener();
             _heartbeatReadTimer?.Dispose();
