@@ -26,6 +26,7 @@
     <MinVerVerbosity>minimal</MinVerVerbosity>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageOutputPath>..\..\packages</PackageOutputPath>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(CONCOURSE_CI_BUILD)' == 'true'">

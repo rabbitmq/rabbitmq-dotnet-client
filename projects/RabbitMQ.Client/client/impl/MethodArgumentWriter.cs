@@ -44,44 +44,42 @@ using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
 {
-    struct MethodArgumentWriter
+    internal ref struct MethodArgumentWriter
     {
-        private byte _bitAccumulator;
+        private readonly Span<byte> _span;
+        private int _offset;
+        private int _bitAccumulator;
         private int _bitMask;
-        private bool _needBitFlush;
-        public int Offset { get; private set; }
-        public Memory<byte> Memory { get; private set; }
 
-        public MethodArgumentWriter(Memory<byte> memory)
+        public int Offset => _offset;
+
+        private Span<byte> Span => _span.Slice(_offset);
+
+        public MethodArgumentWriter(Span<byte> span)
         {
-            Memory = memory;
-            _needBitFlush = false;
+            _span = span;
+            _offset = 0;
             _bitAccumulator = 0;
             _bitMask = 1;
-            Offset = 0;
-        }
-
-        public void Flush()
-        {
-            BitFlush();
         }
 
         public void WriteBit(bool val)
         {
-            if (_bitMask > 0x80)
-            {
-                BitFlush();
-            }
             if (val)
             {
-                // The cast below is safe, because the combination of
-                // the test against 0x80 above, and the action of
-                // BitFlush(), causes m_bitMask never to exceed 0x80
-                // at the point the following statement executes.
-                _bitAccumulator = (byte)(_bitAccumulator | (byte)_bitMask);
+                _bitAccumulator |= _bitMask;
             }
             _bitMask <<= 1;
-            _needBitFlush = true;
+        }
+
+        public void EndBits()
+        {
+            if (_bitMask > 1)
+            {
+                _span[_offset++] = (byte)_bitAccumulator;
+                _bitAccumulator = 0;
+                _bitMask = 1;
+            }
         }
 
         public void WriteContent(byte[] val)
@@ -91,76 +89,47 @@ namespace RabbitMQ.Client.Impl
 
         public void WriteLong(uint val)
         {
-            BitFlush();
-            Offset += WireFormatting.WriteLong(Memory.Slice(Offset), val);
+            _offset += WireFormatting.WriteLong(Span, val);
         }
 
         public void WriteLonglong(ulong val)
         {
-            BitFlush();
-            Offset += WireFormatting.WriteLonglong(Memory.Slice(Offset), val);
+            _offset += WireFormatting.WriteLonglong(Span, val);
         }
 
         public void WriteLongstr(byte[] val)
         {
-            BitFlush();
-            Offset += WireFormatting.WriteLongstr(Memory.Slice(Offset), val);
+            _offset += WireFormatting.WriteLongstr(Span, val);
         }
 
         public void WriteOctet(byte val)
         {
-            BitFlush();
-            Memory.Slice(Offset++).Span[0] = val;
+            _span[_offset++] = val;
         }
 
         public void WriteShort(ushort val)
         {
-            BitFlush();
-            Offset += WireFormatting.WriteShort(Memory.Slice(Offset), val);
+            _offset += WireFormatting.WriteShort(Span, val);
         }
 
         public void WriteShortstr(string val)
         {
-            BitFlush();
-            Offset += WireFormatting.WriteShortstr(Memory.Slice(Offset), val);
+            _offset += WireFormatting.WriteShortstr(Span, val);
         }
 
         public void WriteTable(IDictionary val)
         {
-            BitFlush();
-            Offset += WireFormatting.WriteTable(Memory.Slice(Offset), val);
+            _offset += WireFormatting.WriteTable(Span, val);
         }
 
         public void WriteTable(IDictionary<string, object> val)
         {
-            BitFlush();
-            Offset += WireFormatting.WriteTable(Memory.Slice(Offset), val);
+            _offset += WireFormatting.WriteTable(Span, val);
         }
 
         public void WriteTimestamp(AmqpTimestamp val)
         {
-            BitFlush();
-            Offset += WireFormatting.WriteTimestamp(Memory.Slice(Offset), val);
+            _offset += WireFormatting.WriteTimestamp(Span, val);
         }
-
-        private void BitFlush()
-        {
-            if (_needBitFlush)
-            {
-                Memory.Slice(Offset++).Span[0] = _bitAccumulator;
-                ResetBitAccumulator();
-            }
-        }
-
-        private void ResetBitAccumulator()
-        {
-            _needBitFlush = false;
-            _bitAccumulator = 0;
-            _bitMask = 1;
-        }
-
-        // TODO: Consider using NotImplementedException (?)
-        // This is a completely bizarre consequence of the way the
-        // Message.Transfer method is marked up in the XML spec.
     }
 }

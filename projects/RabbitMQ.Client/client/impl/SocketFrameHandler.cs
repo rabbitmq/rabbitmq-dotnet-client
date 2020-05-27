@@ -252,8 +252,7 @@ namespace RabbitMQ.Client.Impl
                 {
                     int bufferSize = frame.GetMinimumBufferSize();
                     byte[] memoryArray = ArrayPool<byte>.Shared.Rent(bufferSize);
-                    Memory<byte> slice = new Memory<byte>(memoryArray, 0, bufferSize);
-                    frame.WriteTo(slice);
+                    frame.WriteTo(new Span<byte>(memoryArray, 0, bufferSize));
                     _writer.Write(memoryArray, 0, bufferSize);
                     ArrayPool<byte>.Shared.Return(memoryArray);
                 }

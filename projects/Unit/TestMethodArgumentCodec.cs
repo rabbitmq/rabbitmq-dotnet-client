@@ -62,14 +62,8 @@ namespace RabbitMQ.Client.Unit
             return new MethodArgumentReader(bytes);
         }
 
-        public byte[] Contents(MethodArgumentWriter w)
+        public void Check(byte[] actual, byte[] expected)
         {
-            return w.Memory.Slice(0, w.Offset).ToArray();
-        }
-
-        public void Check(MethodArgumentWriter w, byte[] expected)
-        {
-            byte[] actual = Contents(w);
             try
             {
                 Assert.AreEqual(expected, actual);
@@ -95,10 +89,11 @@ namespace RabbitMQ.Client.Unit
             };
 
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
-            var writer = new MethodArgumentWriter(new byte[bytesNeeded]);
+            byte[] memory = new byte[bytesNeeded];
+            var writer = new MethodArgumentWriter(memory);
             writer.WriteTable(t);
             Assert.AreEqual(bytesNeeded, writer.Offset);
-            Check(writer, new byte[] { 0x00, 0x00, 0x00, 0x0C,
+            Check(memory, new byte[] { 0x00, 0x00, 0x00, 0x0C,
                                    0x03, 0x61, 0x62, 0x63,
                                    0x53, 0x00, 0x00, 0x00,
                                    0x03, 0x64, 0x65, 0x66 });
@@ -125,10 +120,11 @@ namespace RabbitMQ.Client.Unit
             };
             t["x"] = x;
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
-            var writer = new MethodArgumentWriter(new byte[bytesNeeded]);
+            byte[] memory = new byte[bytesNeeded];
+            var writer = new MethodArgumentWriter(memory);
             writer.WriteTable(t);
             Assert.AreEqual(bytesNeeded, writer.Offset);
-            Check(writer, new byte[] { 0x00, 0x00, 0x00, 0x0E,
+            Check(memory, new byte[] { 0x00, 0x00, 0x00, 0x0E,
                                    0x01, 0x78, 0x46, 0x00,
                                    0x00, 0x00, 0x07, 0x01,
                                    0x79, 0x49, 0x12, 0x34,
