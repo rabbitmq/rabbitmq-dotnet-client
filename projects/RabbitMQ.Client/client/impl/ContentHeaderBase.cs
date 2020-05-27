@@ -83,8 +83,9 @@ namespace RabbitMQ.Client.Impl
 
         internal int WriteTo(Memory<byte> memory, ulong bodySize)
         {
-            NetworkOrderSerializer.WriteUInt16(memory.Span, ZERO); // Weight - not used
-            NetworkOrderSerializer.WriteUInt64(memory.Slice(2).Span, bodySize);
+            var span = memory.Span;
+            NetworkOrderSerializer.WriteUInt16(span, ZERO); // Weight - not used
+            NetworkOrderSerializer.WriteUInt64(span.Slice(2), bodySize);
 
             ContentHeaderPropertyWriter writer = new ContentHeaderPropertyWriter(memory.Slice(10));
             WritePropertiesTo(ref writer);
