@@ -86,9 +86,9 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private TimeSpan _heartbeat = TimeSpan.Zero;
         private TimeSpan _heartbeatTimeSpan = TimeSpan.FromSeconds(0);
-        private int _missedHeartbeats = 0;
+        private int _missedHeartbeats;
         private int _heartbeatCounter;
-        private int _lastHeartbeat;
+        private int _lastHeartbeatCounter;
 
         private Timer _heartbeatWriteTimer;
         private Timer _heartbeatReadTimer;
@@ -618,7 +618,12 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void NotifyHeartbeatListener()
         {
-            _heartbeatCounter++;
+            // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/checked-and-unchecked
+            // No worries if this overflows. What matters is that the value changes.
+            unchecked
+            {
+                _heartbeatCounter++;
+            }
         }
 
         public void NotifyReceivedCloseOk()
@@ -845,7 +850,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 if (!_closed)
                 {
-                    if (_lastHeartbeat == _heartbeatCounter)
+                    if (_lastHeartbeatCounter == _heartbeatCounter)
                     {
                         _missedHeartbeats++;
                     }
@@ -854,7 +859,7 @@ namespace RabbitMQ.Client.Framing.Impl
                         _missedHeartbeats = 0;
                     }
 
-                    _lastHeartbeat = _heartbeatCounter;
+                    _lastHeartbeatCounter = _heartbeatCounter;
 
                     // We check against 8 = 2 * 4 because we need to wait for at
                     // least two complete heartbeat setting intervals before
