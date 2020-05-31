@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -12,17 +11,9 @@ namespace RabbitMQ.Client.Impl
             _asyncConsumer = (IAsyncBasicConsumer)consumer;
         }
 
-        public async Task Execute(ModelBase model)
+        public Task Execute(ModelBase model)
         {
-            try
-            {
-                await Task.Yield();
-                await Execute(model, _asyncConsumer).ConfigureAwait(false);
-            }
-            catch (Exception)
-            {
-                // intentionally caught
-            }
+            return Execute(model, _asyncConsumer);
         }
 
         protected abstract Task Execute(ModelBase model, IAsyncBasicConsumer consumer);
