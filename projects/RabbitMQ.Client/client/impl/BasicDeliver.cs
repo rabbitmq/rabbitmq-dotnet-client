@@ -18,12 +18,12 @@ namespace RabbitMQ.Client.Impl
         readonly IBasicProperties _basicProperties;
         readonly ReadOnlyMemory<byte> _body;
 
-        public BasicDeliver(IBasicConsumer consumer, 
-            string consumerTag, 
-            ulong deliveryTag, 
-            bool redelivered, 
-            string exchange, 
-            string routingKey, 
+        public BasicDeliver(IBasicConsumer consumer,
+            string consumerTag,
+            ulong deliveryTag,
+            bool redelivered,
+            string exchange,
+            string routingKey,
             IBasicProperties basicProperties,
             ReadOnlyMemory<byte> body) : base(consumer)
         {
@@ -36,7 +36,7 @@ namespace RabbitMQ.Client.Impl
             _body = body;
         }
 
-        protected override async Task Execute(ModelBase model, IAsyncBasicConsumer consumer)
+        protected override async Task Execute(IModel model, IAsyncBasicConsumer consumer)
         {
             try
             {
@@ -50,12 +50,17 @@ namespace RabbitMQ.Client.Impl
             }
             catch (Exception e)
             {
+                if (!(model is ModelBase modelBase))
+                {
+                    return;
+                }
+
                 var details = new Dictionary<string, object>()
                 {
                     {"consumer", consumer},
                     {"context",  "HandleBasicDeliver"}
                 };
-                model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
+                modelBase.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
             }
             finally
             {

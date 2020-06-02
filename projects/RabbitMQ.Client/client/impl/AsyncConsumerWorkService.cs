@@ -16,7 +16,7 @@ namespace RabbitMQ.Client.Impl
             _startNewWorkPoolFunc = model => StartNewWorkPool(model);
         }
 
-        public void Schedule<TWork>(ModelBase model, TWork work) where TWork : Work
+        public void Schedule<TWork>(IModel model, TWork work) where TWork : Work
         {
             /*
              * rabbitmq/rabbitmq-dotnet-client#841
@@ -29,7 +29,7 @@ namespace RabbitMQ.Client.Impl
 
         private WorkPool StartNewWorkPool(IModel model)
         {
-            var newWorkPool = new WorkPool(model as ModelBase, _concurrency);
+            var newWorkPool = new WorkPool(model, _concurrency);
             newWorkPool.Start();
             return newWorkPool;
         }
@@ -47,13 +47,13 @@ namespace RabbitMQ.Client.Impl
         class WorkPool
         {
             readonly Channel<Work> _channel;
-            readonly ModelBase _model;
+            readonly IModel _model;
             private Task _worker;
             private readonly int _concurrency;
             private SemaphoreSlim _limiter;
             private CancellationTokenSource _tokenSource;
 
-            public WorkPool(ModelBase model, int concurrency)
+            public WorkPool(IModel model, int concurrency)
             {
                 _concurrency = concurrency;
                 _model = model;
@@ -125,7 +125,7 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            static async Task HandleConcurrent(Work work, ModelBase model, SemaphoreSlim limiter)
+            static async Task HandleConcurrent(Work work, IModel model, SemaphoreSlim limiter)
             {
                 try
                 {
