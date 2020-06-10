@@ -69,6 +69,13 @@ namespace RabbitMQ.Client.Unit
             if (properties.TryGetValue("version", out object versionVal))
             {
                 string versionStr = Encoding.UTF8.GetString((byte[])versionVal);
+
+                int dashIdx = versionStr.IndexOf('-');
+                if (dashIdx > 0)
+                {
+                    versionStr = versionStr.Remove(dashIdx);
+                }
+
                 if (Version.TryParse(versionStr, out Version version))
                 {
                     return version >= new Version(3, 8);
