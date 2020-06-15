@@ -39,44 +39,23 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Buffers;
-using System.Collections.Generic;
+using RabbitMQ.Client.Impl;
 
-using RabbitMQ.Client.Framing.Impl;
-
-namespace RabbitMQ.Client.Impl
+namespace RabbitMQ.Client
 {
-    class BasicPublishBatch : IBasicPublishBatch
+    public static class BasicPublishBatchExtensions
     {
-        private readonly List<Command> _commands = new List<Command>();
-        private readonly ModelBase _model;
-        internal BasicPublishBatch (ModelBase model)
+        public static void Add(this IBasicPublishBatch batch, string exchange, string routingKey, bool mandatory, IBasicProperties properties, ReadOnlyMemory<byte> body)
         {
-            _model = model;
-        }
-
-        public void Add(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, byte[] body)
-        {
-            ReadOnlyMemory<byte> bodyAsMemory = body;
-            Add(exchange, routingKey, mandatory, basicProperties, bodyAsMemory);
-        }
-
-        public void Add(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
-        {
-            IBasicProperties bp = basicProperties ?? _model.CreateBasicProperties();
-            var method = new BasicPublish
+            if (batch is BasicPublishBatch batchInternal)
             {
-                _exchange = exchange,
-                _routingKey = routingKey,
-                _mandatory = mandatory
-            };
+                batchInternal.Add(exchange, routingKey, mandatory, properties, body);
+                return;
+            }
 
-            _commands.Add(new Command(method, (ContentHeaderBase)bp, body, false));
-        }
-
-        public void Publish()
-        {
-            _model.SendCommands(_commands);
+#pragma warning disable 618
+            batch.Add(exchange, routingKey, mandatory, properties, body.ToArray());
+#pragma warning restore 618
         }
     }
 }

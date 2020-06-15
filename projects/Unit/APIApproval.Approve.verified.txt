@@ -56,6 +56,10 @@ namespace RabbitMQ.Client
         public bool Redelivered { get; }
         public string RoutingKey { get; }
     }
+    public static class BasicPublishBatchExtensions
+    {
+        public static void Add(this RabbitMQ.Client.IBasicPublishBatch batch, string exchange, string routingKey, bool mandatory, RabbitMQ.Client.IBasicProperties properties, System.ReadOnlyMemory<byte> body) { }
+    }
     public class BinaryTableValue
     {
         public BinaryTableValue() { }
@@ -291,6 +295,8 @@ namespace RabbitMQ.Client
     }
     public interface IBasicPublishBatch
     {
+        [System.Obsolete("Use Add(string exchange, string routingKey, bool mandatory, IBasicProperties prop" +
+            "erties, ReadOnlyMemory<byte> body) instead. Will be replaced in version 7.0", false)]
         void Add(string exchange, string routingKey, bool mandatory, RabbitMQ.Client.IBasicProperties properties, byte[] body);
         void Publish();
     }
