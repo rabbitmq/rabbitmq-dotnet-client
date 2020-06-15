@@ -8,7 +8,15 @@ namespace RabbitMQ.Client.Impl
     internal class ConsumerWorkService
     {
         private readonly ConcurrentDictionary<IModel, WorkPool> _workPools = new ConcurrentDictionary<IModel, WorkPool>();
-        private readonly Func<IModel, WorkPool> _startNewWorkPoolFunc = model => StartNewWorkPool(model);
+        private readonly Func<IModel, WorkPool> _startNewWorkPoolFunc;
+        protected readonly int _concurrency;
+
+        public ConsumerWorkService(int concurrency)
+        {
+            _concurrency = concurrency;
+
+            _startNewWorkPoolFunc = model => StartNewWorkPool(model);
+        }
 
         public void AddWork(IModel model, Action fn)
         {
@@ -21,9 +29,9 @@ namespace RabbitMQ.Client.Impl
             workPool.Enqueue(fn);
         }
 
-        private static WorkPool StartNewWorkPool(IModel model)
+        private WorkPool StartNewWorkPool(IModel model)
         {
-            var newWorkPool = new WorkPool();
+            var newWorkPool = new WorkPool(_concurrency);
             newWorkPool.Start();
             return newWorkPool;
         }
@@ -57,10 +65,13 @@ namespace RabbitMQ.Client.Impl
             readonly CancellationTokenSource _tokenSource;
             readonly CancellationTokenRegistration _tokenRegistration;
             volatile TaskCompletionSource<bool> _syncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            private readonly int _concurrency;
             private Task _worker;
+            private SemaphoreSlim _limiter;
 
-            public WorkPool()
+            public WorkPool(int concurrency)
             {
+                _concurrency = concurrency;
                 _actions = new ConcurrentQueue<Action>();
                 _tokenSource = new CancellationTokenSource();
                 _tokenRegistration = _tokenSource.Token.Register(() => _syncSource.TrySetCanceled());
@@ -68,7 +79,15 @@ namespace RabbitMQ.Client.Impl
 
             public void Start()
             {
-                _worker = Task.Run(Loop, CancellationToken.None);
+                if (_concurrency == 1)
+                {
+                    _worker = Task.Run(Loop, CancellationToken.None);
+                }
+                else
+                {
+                    _limiter = new SemaphoreSlim(_concurrency);
+                    _worker = Task.Run(() => LoopWithConcurrency(_tokenSource.Token), CancellationToken.None);
+                }
             }
 
             public void Enqueue(Action action)
@@ -105,10 +124,54 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
+            async Task LoopWithConcurrency(CancellationToken cancellationToken)
+            {
+                while (_tokenSource.IsCancellationRequested == false)
+                {
+                    try
+                    {
+                        await _syncSource.Task.ConfigureAwait(false);
+                        _syncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                    }
+                    catch (TaskCanceledException)
+                    {
+                        // Swallowing the task cancellation exception for the semaphore in case we are stopping.
+                    }
+
+                    while (_actions.TryDequeue(out Action action))
+                    {
+                        // Do a quick synchronous check before we resort to async/await with the state-machine overhead.
+                        if(!_limiter.Wait(0))
+                        {
+                            await _limiter.WaitAsync(cancellationToken).ConfigureAwait(false);
+                        }
+
+                        _ = OffloadToWorkerThreadPool(action, _limiter);
+                    }
+                }
+            }
+
+            static async Task OffloadToWorkerThreadPool(Action action, SemaphoreSlim limiter)
+            {
+                try
+                {
+                    await Task.Run(() => action());
+                }
+                catch (Exception)
+                {
+                    // ignored
+                }
+                finally
+                {
+                    limiter.Release();
+                }
+            }
+
             public Task Stop()
             {
                 _tokenSource.Cancel();
                 _tokenRegistration.Dispose();
+                _limiter?.Dispose();
                 return _worker;
             }
         }
