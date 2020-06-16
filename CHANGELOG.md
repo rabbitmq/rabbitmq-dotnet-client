@@ -1,3 +1,7 @@
+## Changes Between 6.1.0 and 6.1.1
+
+A full list of changes can be found in the GitHub milestone: [`6.1.0`](https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/50?closed=1).
+
 ## Changes Between 6.0.0 and 6.1.0
 
 This release continues with improvements to memory use and object allocations.
