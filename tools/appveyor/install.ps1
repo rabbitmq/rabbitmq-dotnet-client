@@ -7,8 +7,8 @@ Set-StrictMode -Version 2.0
 Write-Host '[INFO] Removing all existing versions of Erlang...'
 Get-ChildItem -Path 'C:\Program Files\erl*\Uninstall.exe' | %{ Start-Process -Wait -NoNewWindow -FilePath $_ -ArgumentList '/S' }
 
-$erlang_download_url = 'http://erlang.org/download/otp_win64_23.0.1.exe'
-$erlang_installer_path = Join-Path -Path $HOME -ChildPath 'otp_win64_23.0.1.exe'
+$erlang_download_url = 'http://erlang.org/download/otp_win64_23.0.2.exe'
+$erlang_installer_path = Join-Path -Path $HOME -ChildPath 'otp_win64_23.0.2.exe'
 $erlang_install_dir = Join-Path -Path $HOME -ChildPath 'erlang'
 
 Write-Host '[INFO] Downloading Erlang...'
