@@ -87,12 +87,12 @@ $rabbitmqctl_path = "$path\rabbitmq_server-$rabbitmq_version\sbin\rabbitmqctl.ba
 [Environment]::SetEnvironmentVariable('RABBITMQ_RABBITMQCTL_PATH', $rabbitmqctl_path, 'Machine')
 $env:RABBITMQ_RABBITMQCTL_PATH = $rabbitmqctl_path
 
-Write-Host '[INFO] Waiting for epmd to report that RabbitMQ has started'
-
 $epmd_running = $false
 [int]$count = 1
 
 $epmd = [System.IO.Path]::Combine($erlang_home, "erts-$erlang_erts_version", "bin", "epmd.exe")
+
+Write-Host "[INFO] Waiting for epmd ($epmd) to report that RabbitMQ has started"
 
 Do {
     $epmd_running = & $epmd -names | Select-String -CaseSensitive -SimpleMatch -Quiet -Pattern 'name rabbit at port 25672'
