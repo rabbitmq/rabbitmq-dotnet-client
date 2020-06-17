@@ -95,6 +95,7 @@ $epmd = [System.IO.Path]::Combine($erlang_home, "erts-$erlang_erts_version", "bi
 Write-Host "[INFO] Waiting for epmd ($epmd) to report that RabbitMQ has started"
 
 Do {
+    & $epmd -names
     $epmd_running = & $epmd -names | Select-String -CaseSensitive -SimpleMatch -Quiet -Pattern 'name rabbit at port 25672'
     if ($epmd_running -eq $true) {
         Write-Host '[INFO] epmd reports that RabbitMQ is at port 25672'
