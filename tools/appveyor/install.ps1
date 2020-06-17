@@ -95,18 +95,17 @@ $epmd = [System.IO.Path]::Combine($erlang_home, "erts-$erlang_erts_version", "bi
 Write-Host "[INFO] Waiting for epmd ($epmd) to report that RabbitMQ has started"
 
 Do {
-    & $epmd -names
-    $epmd_running = & $epmd -names | Select-String -CaseSensitive -SimpleMatch -Quiet -Pattern 'name rabbit at port 25672'
+    $epmd_running = & $epmd -names | Select-String -CaseSensitive -SimpleMatch -Quiet -Pattern 'name rabbit at port'
     if ($epmd_running -eq $true) {
-        Write-Host '[INFO] epmd reports that RabbitMQ is at port 25672'
+        Write-Host '[INFO] epmd reports that RabbitMQ is running'
         break
     }
 
     if ($count -gt 60) {
-        throw '[ERROR] too many tries waiting for epmd to report RabbitMQ on port 25672'
+        throw '[ERROR] too many tries waiting for epmd to report RabbitMQ running'
     }
 
-    Write-Host "[INFO] epmd NOT reporting yet that RabbitMQ is at port 25672, count: $count"
+    Write-Host "[INFO] epmd NOT reporting yet that RabbitMQ is running, count: $count"
     $count = $count + 1
     Start-Sleep -Seconds 5
 
