@@ -10,13 +10,13 @@ namespace RabbitMQ.Client.Unit
     public class TestBasicPublish
     {
         [Test]
-        public void TestBasicRoundtripArray()
+        public async ValueTask TestBasicRoundtripArray()
         {
             var cf = new ConnectionFactory();
-            using(IConnection c = cf.CreateConnection())
-            using(IModel m = c.CreateModel())
+            using(IConnection c = await cf.CreateConnection())
+            using(IModel m = await c.CreateModel())
             {
-                QueueDeclareOk q = m.QueueDeclare();
+                QueueDeclareOk q = await m.QueueDeclare();
                 IBasicProperties bp = m.CreateBasicProperties();
                 byte[] sendBody = System.Text.Encoding.UTF8.GetBytes("hi");
                 byte[] consumeBody = null;
@@ -28,11 +28,11 @@ namespace RabbitMQ.Client.Unit
                     are.Set();
                     await Task.Yield();
                 };
-                string tag = m.BasicConsume(q.QueueName, true, consumer);
+                string tag = await m.BasicConsume(q.QueueName, true, consumer);
 
-                m.BasicPublish("", q.QueueName, bp, sendBody);
+                await m.BasicPublish("", q.QueueName, bp, sendBody);
                 bool waitResFalse = are.WaitOne(2000);
-                m.BasicCancel(tag);
+                await m.BasicCancel(tag);
 
                 Assert.IsTrue(waitResFalse);
                 CollectionAssert.AreEqual(sendBody, consumeBody);
@@ -40,13 +40,13 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestBasicRoundtripReadOnlyMemory()
+        public async ValueTask TestBasicRoundtripReadOnlyMemory()
         {
             var cf = new ConnectionFactory();
-            using(IConnection c = cf.CreateConnection())
-            using(IModel m = c.CreateModel())
+            using(IConnection c = await cf.CreateConnection())
+            using(IModel m = await c.CreateModel())
             {
-                QueueDeclareOk q = m.QueueDeclare();
+                QueueDeclareOk q = await m.QueueDeclare();
                 IBasicProperties bp = m.CreateBasicProperties();
                 byte[] sendBody = System.Text.Encoding.UTF8.GetBytes("hi");
                 byte[] consumeBody = null;
@@ -58,11 +58,11 @@ namespace RabbitMQ.Client.Unit
                     are.Set();
                     await Task.Yield();
                 };
-                string tag = m.BasicConsume(q.QueueName, true, consumer);
+                string tag = await m.BasicConsume(q.QueueName, true, consumer);
 
-                m.BasicPublish("", q.QueueName, bp, new ReadOnlyMemory<byte>(sendBody));
+                await m.BasicPublish("", q.QueueName, bp, new ReadOnlyMemory<byte>(sendBody));
                 bool waitResFalse = are.WaitOne(2000);
-                m.BasicCancel(tag);
+                await m.BasicCancel(tag);
 
                 Assert.IsTrue(waitResFalse);
                 CollectionAssert.AreEqual(sendBody, consumeBody);

@@ -39,15 +39,16 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Buffers;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.IO.Pipelines;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Channels;
+using System.Threading;
 using System.Threading.Tasks;
+
+using Pipelines.Sockets.Unofficial;
 
 using RabbitMQ.Client.Exceptions;
 
@@ -75,14 +76,10 @@ namespace RabbitMQ.Client.Impl
         // become writeable in this amount of time, we throw
         // an exception.
         private TimeSpan _writeableStateTimeout = TimeSpan.FromSeconds(30);
-        private int _writeableStateTimeoutMicroSeconds;
-        private readonly Stream _reader;
         private readonly ITcpClient _socket;
-        private readonly Stream _writer;
-        private readonly object _semaphore = new object();
-        private readonly Channel<OutboundFrame> _frameChannel = Channel.CreateUnbounded<OutboundFrame>(new UnboundedChannelOptions { AllowSynchronousContinuations = false, SingleReader = true, SingleWriter = false });
-        private Task _frameWriter;
-        private bool _closed;
+        private readonly IDuplexPipe _pipe;
+        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
+
         public SocketFrameHandler(AmqpTcpEndpoint endpoint,
             Func<AddressFamily, ITcpClient> socketFactory,
             TimeSpan connectionTimeout, TimeSpan readTimeout, TimeSpan writeTimeout)
@@ -106,15 +103,17 @@ namespace RabbitMQ.Client.Impl
                 _socket = ConnectUsingIPv4(endpoint, socketFactory, connectionTimeout);
             }
 
-            Stream netstream = _socket.GetStream();
-            netstream.ReadTimeout = (int)readTimeout.TotalMilliseconds;
-            netstream.WriteTimeout = (int)writeTimeout.TotalMilliseconds;
+
 
             if (endpoint.Ssl.Enabled)
             {
                 try
                 {
+                    Stream netstream = _socket.GetStream();
+                    netstream.ReadTimeout = (int)readTimeout.TotalMilliseconds;
+                    netstream.WriteTimeout = (int)writeTimeout.TotalMilliseconds;
                     netstream = SslHelper.TcpUpgrade(netstream, endpoint.Ssl);
+                    _pipe = StreamConnection.GetDuplex(netstream);
                 }
                 catch (Exception)
                 {
@@ -122,33 +121,22 @@ namespace RabbitMQ.Client.Impl
                     throw;
                 }
             }
-            _reader = new BufferedStream(netstream, _socket.Client.ReceiveBufferSize);
-            _writer = new BufferedStream(netstream, _socket.Client.SendBufferSize);
+            else
+            {
+                _pipe = SocketConnection.Create(_socket.Client);
+            }
 
             WriteTimeout = writeTimeout;
-            _frameWriter = Task.Run(WriteFrameImpl);
         }
         public AmqpTcpEndpoint Endpoint { get; set; }
 
-        public EndPoint LocalEndPoint
-        {
-            get { return _socket.Client.LocalEndPoint; }
-        }
+        public EndPoint LocalEndPoint => _socket.Client.LocalEndPoint;
 
-        public int LocalPort
-        {
-            get { return ((IPEndPoint)LocalEndPoint).Port; }
-        }
+        public int LocalPort => ((IPEndPoint)LocalEndPoint).Port;
 
-        public EndPoint RemoteEndPoint
-        {
-            get { return _socket.Client.RemoteEndPoint; }
-        }
+        public EndPoint RemoteEndPoint => _socket.Client.RemoteEndPoint;
 
-        public int RemotePort
-        {
-            get { return ((IPEndPoint)LocalEndPoint).Port; }
-        }
+        public int RemotePort => ((IPEndPoint)LocalEndPoint).Port;
 
         public TimeSpan ReadTimeout
         {
@@ -174,91 +162,172 @@ namespace RabbitMQ.Client.Impl
             {
                 _writeableStateTimeout = value;
                 _socket.Client.SendTimeout = (int)_writeableStateTimeout.TotalMilliseconds;
-                _writeableStateTimeoutMicroSeconds = _socket.Client.SendTimeout * 1000;
             }
         }
 
         public void Close()
         {
-            lock (_semaphore)
+            _pipe.Output.Complete();
+            try
             {
-                if (!_closed)
+                _socket.Close();
+            }
+            catch (Exception)
+            {
+                // ignore, we are closing anyway
+            }
+        }
+
+        public async ValueTask<InboundFrame> ReadFrame()
+        {
+            Activity activity = null;
+            if (RabbitMQDiagnosticListener.Source.IsEnabled() && RabbitMQDiagnosticListener.Source.IsEnabled("RabbitMQ.Client.ReadFrame"))
+            {
+                activity = new Activity("RabbitMQ.Client.ReadFrame");
+                RabbitMQDiagnosticListener.Source.StartActivity(activity, null);
+            }
+
+            InboundFrame frame = default;
+            try
+            {
+                while (true)
                 {
-                    try
+                    if (!_pipe.Input.TryRead(out ReadResult result))
                     {
-                        _frameChannel.Writer.Complete();
-                        _frameWriter.Wait();
-                    }
-                    catch(Exception)
-                    {
+                        try
+                        {
+                            ValueTask<ReadResult> readTask = _pipe.Input.ReadAsync(_cts.Token);
+                            result = readTask.IsCompletedSuccessfully ? readTask.Result : await readTask.ConfigureAwait(false);
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            throw new EndOfStreamException("EOF reached");
+                        }
+                        catch (OperationInterruptedException)
+                        {
+                            throw new EndOfStreamException("EOF reached");
+                        }
                     }
 
-                    try
+                    if (result.Buffer.IsEmpty)
                     {
-                        _socket.Close();
+                        throw new EndOfStreamException("EOF reached");
                     }
-                    catch (Exception)
+
+                    if (InboundFrame.TryReadFrom(result.Buffer, out frame))
                     {
-                        // ignore, we are closing anyway
+                        _pipe.Input.AdvanceTo(result.Buffer.GetPosition(8 + frame.Payload.Length));
+                        return frame;
                     }
-                    finally
+                    else
                     {
-                        _closed = true;
+                        _pipe.Input.AdvanceTo(result.Buffer.Start, result.Buffer.End);
                     }
+                }
+            }
+            finally
+            {
+                // stop activity if started
+                if (activity != null)
+                {
+                    RabbitMQDiagnosticListener.Source.StopActivity(activity, new { Frame = frame });
                 }
             }
         }
 
-        public InboundFrame ReadFrame()
+        public async ValueTask SendHeader()
         {
-            return RabbitMQ.Client.Impl.InboundFrame.ReadFrom(_reader);
-        }
-
-        private static readonly byte[] s_amqp = Encoding.ASCII.GetBytes("AMQP");
-        public void SendHeader()
-        {
-            byte[] headerBytes = new byte[8];
-            Encoding.ASCII.GetBytes("AMQP", 0, 4, headerBytes, 0);
+            Memory<byte> headerBytes = _pipe.Output.GetMemory(8);
+            Encoding.ASCII.GetBytes("AMQP").CopyTo(headerBytes.Span);
             if (Endpoint.Protocol.Revision != 0)
             {
-                headerBytes[4] = 0;
-                headerBytes[5] = (byte)Endpoint.Protocol.MajorVersion;
-                headerBytes[6] = (byte)Endpoint.Protocol.MinorVersion;
-                headerBytes[7] = (byte)Endpoint.Protocol.Revision;
+                headerBytes.Span[4] = 0;
+                headerBytes.Span[5] = (byte)Endpoint.Protocol.MajorVersion;
+                headerBytes.Span[6] = (byte)Endpoint.Protocol.MinorVersion;
+                headerBytes.Span[7] = (byte)Endpoint.Protocol.Revision;
             }
             else
             {
-                headerBytes[4] = 1;
-                headerBytes[5] = 1;
-                headerBytes[6] = (byte)Endpoint.Protocol.MajorVersion;
-                headerBytes[7] = (byte)Endpoint.Protocol.MinorVersion;
+                headerBytes.Span[4] = 1;
+                headerBytes.Span[5] = 1;
+                headerBytes.Span[6] = (byte)Endpoint.Protocol.MajorVersion;
+                headerBytes.Span[7] = (byte)Endpoint.Protocol.MinorVersion;
             }
 
-            _writer.Write(headerBytes, 0, 8);
-            _writer.Flush();
+            _pipe.Output.Advance(8);
+            await _pipe.Output.FlushAsync().ConfigureAwait(false);
         }
 
-        public void WriteFrame(OutboundFrame frame)
+        public void WriteFrame(in MethodOutboundFrame frame)
         {
-            _frameChannel.Writer.TryWrite(frame);
-        }
-
-        public async Task WriteFrameImpl()
-        {
-            while (await _frameChannel.Reader.WaitToReadAsync().ConfigureAwait(false))
+            try
             {
-                _socket.Client.Poll(_writeableStateTimeoutMicroSeconds, SelectMode.SelectWrite);
-                while (_frameChannel.Reader.TryRead(out OutboundFrame frame))
-                {
-                    int bufferSize = frame.GetMinimumBufferSize();
-                    byte[] memoryArray = ArrayPool<byte>.Shared.Rent(bufferSize);
-                    Memory<byte> slice = new Memory<byte>(memoryArray, 0, bufferSize);
-                    frame.WriteTo(slice);
-                    _writer.Write(memoryArray, 0, bufferSize);
-                    ArrayPool<byte>.Shared.Return(memoryArray);
-                }
+                int bufferSize = frame.GetMinimumBufferSize();
+                Memory<byte> bytes = _pipe.Output.GetMemory(bufferSize);
+                frame.WriteTo(bytes);
+                _pipe.Output.Advance(bufferSize);
+            }
+            catch (Exception e)
+            {
+                _cts.Cancel();
+                _pipe.Output.Complete(e);
+            }
+        }
 
-                _writer.Flush();
+        public void WriteFrame(in HeaderOutboundFrame frame)
+        {
+            try
+            {
+                int bufferSize = frame.GetMinimumBufferSize();
+                Memory<byte> bytes = _pipe.Output.GetMemory(bufferSize);
+                frame.WriteTo(bytes);
+                _pipe.Output.Advance(bufferSize);
+            }
+            catch (Exception e)
+            {
+                _cts.Cancel();
+                _pipe.Output.Complete(e);
+            }
+        }
+
+        public void WriteFrame(in EmptyOutboundFrame frame)
+        {
+            try
+            {
+                int bufferSize = frame.GetMinimumBufferSize();
+                Memory<byte> bytes = _pipe.Output.GetMemory(bufferSize);
+                frame.WriteTo(bytes);
+                _pipe.Output.Advance(bufferSize);
+            }
+            catch (Exception e)
+            {
+                _cts.Cancel();
+                _pipe.Output.Complete(e);
+            }
+        }
+
+        public void WriteFrame(in BodySegmentOutboundFrame frame)
+        {
+            try
+            {
+                int bufferSize = frame.GetMinimumBufferSize();
+                Memory<byte> bytes = _pipe.Output.GetMemory(bufferSize);
+                frame.WriteTo(bytes);
+                _pipe.Output.Advance(bufferSize);
+            }
+            catch (Exception e)
+            {
+                _cts.Cancel();
+                _pipe.Output.Complete(e);
+            }
+        }
+
+        public async ValueTask Flush()
+        {
+            ValueTask<FlushResult> flushTask = _pipe.Output.FlushAsync();
+            if (!flushTask.IsCompletedSuccessfully)
+            {
+                await flushTask.ConfigureAwait(false);
             }
         }
 

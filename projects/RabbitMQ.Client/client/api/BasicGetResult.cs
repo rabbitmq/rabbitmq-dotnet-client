@@ -39,6 +39,8 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
+using System.Runtime.InteropServices;
 
 namespace RabbitMQ.Client
 {
@@ -46,8 +48,10 @@ namespace RabbitMQ.Client
     /// <remarks>
     /// Basic.Get either returns an instance of this class, or null if a Basic.GetEmpty was received.
     /// </remarks>
-    public class BasicGetResult
+    public class BasicGetResult : IDisposable
     {
+        private bool _disposedValue;
+
         /// <summary>
         /// Sets the new instance's properties from the arguments passed in.
         /// </summary>
@@ -58,8 +62,7 @@ namespace RabbitMQ.Client
         /// <param name="messageCount">The number of messages pending on the queue, excluding the message being delivered.</param>
         /// <param name="basicProperties">The Basic-class content header properties for the message.</param>
         /// <param name="body"></param>
-        public BasicGetResult(ulong deliveryTag, bool redelivered, string exchange,
-            string routingKey, uint messageCount, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
+        public BasicGetResult(ulong deliveryTag, bool redelivered, string exchange, string routingKey, uint messageCount, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
         {
             DeliveryTag = deliveryTag;
             Redelivered = redelivered;
@@ -108,5 +111,30 @@ namespace RabbitMQ.Client
         /// Retrieve the routing key with which this message was published.
         /// </summary>
         public string RoutingKey { get; private set; }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    if(MemoryMarshal.TryGetArray(Body, out ArraySegment<byte> segment))
+                    {
+                        ArrayPool<byte>.Shared.Return(segment.Array);
+                    }
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+                // TODO: set large fields to null
+                _disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
     }
 }

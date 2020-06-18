@@ -40,7 +40,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
+using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 
@@ -49,7 +51,7 @@ namespace RabbitMQ.Client.Impl
     abstract class SessionBase : ISession
     {
         private readonly object _shutdownLock = new object();
-        private EventHandler<ShutdownEventArgs> _sessionShutdown;
+        private AsyncEventHandler<ShutdownEventArgs> _sessionShutdown;
 
         public SessionBase(Connection connection, int channelNumber)
         {
@@ -62,7 +64,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public event EventHandler<ShutdownEventArgs> SessionShutdown
+        public event AsyncEventHandler<ShutdownEventArgs> SessionShutdown
         {
             add
             {
@@ -94,35 +96,32 @@ namespace RabbitMQ.Client.Impl
 
         public int ChannelNumber { get; private set; }
         public ShutdownEventArgs CloseReason { get; set; }
-        public Action<ISession, Command> CommandReceived { get; set; }
+        public Func<ISession, Command, ValueTask> CommandReceived { get; set; }
         public Connection Connection { get; private set; }
 
-        public bool IsOpen
+        public bool IsOpen => CloseReason == null;
+
+        public virtual ValueTask OnCommandReceived(Command cmd)
         {
-            get { return CloseReason == null; }
+            return (cmd is object && CommandReceived is object) ? CommandReceived(this, cmd) : default;
         }
 
-        public virtual void OnCommandReceived(Command cmd)
+        public virtual ValueTask OnConnectionShutdown(object conn, ShutdownEventArgs reason)
         {
-            CommandReceived?.Invoke(this, cmd);
+            return Close(reason);
         }
 
-        public virtual void OnConnectionShutdown(object conn, ShutdownEventArgs reason)
-        {
-            Close(reason);
-        }
-
-        public virtual void OnSessionShutdown(ShutdownEventArgs reason)
+        public virtual ValueTask OnSessionShutdown(ShutdownEventArgs reason)
         {
             Connection.ConnectionShutdown -= OnConnectionShutdown;
-            EventHandler<ShutdownEventArgs> handler;
+            AsyncEventHandler<ShutdownEventArgs> handler;
             lock (_shutdownLock)
             {
                 handler = _sessionShutdown;
                 _sessionShutdown = null;
             }
 
-            handler?.Invoke(this, reason);
+            return handler.InvokeAsync(this, reason);
         }
 
         public override string ToString()
@@ -130,12 +129,12 @@ namespace RabbitMQ.Client.Impl
             return $"{GetType().Name}#{ChannelNumber}:{Connection}";
         }
 
-        public void Close(ShutdownEventArgs reason)
+        public ValueTask Close(ShutdownEventArgs reason)
         {
-            Close(reason, true);
+            return Close(reason, true);
         }
 
-        public void Close(ShutdownEventArgs reason, bool notify)
+        public ValueTask Close(ShutdownEventArgs reason, bool notify)
         {
             if (CloseReason == null)
             {
@@ -147,13 +146,16 @@ namespace RabbitMQ.Client.Impl
                     }
                 }
             }
+
             if (notify)
             {
                 OnSessionShutdown(CloseReason);
             }
+
+            return default;
         }
 
-        public abstract void HandleFrame(in InboundFrame frame);
+        public abstract ValueTask HandleFrame(in InboundFrame frame);
 
         public void Notify()
         {
@@ -172,7 +174,7 @@ namespace RabbitMQ.Client.Impl
             OnSessionShutdown(CloseReason);
         }
 
-        public virtual void Transmit(Command cmd)
+        public virtual ValueTask Transmit(Command cmd)
         {
             if (CloseReason != null)
             {
@@ -187,18 +189,15 @@ namespace RabbitMQ.Client.Impl
                     }
                 }
             }
+
             // We used to transmit *inside* the lock to avoid interleaving
             // of frames within a channel.  But that is fixed in socket frame handler instead, so no need to lock.
-            cmd.Transmit(ChannelNumber, Connection);
+            return Connection.Transmit(cmd, ChannelNumber);
         }
 
-        public virtual void Transmit(IList<Command> commands)
+        public virtual ValueTask Transmit(IList<Command> commands)
         {
-            for (int i = 0; i < commands.Count; i++)
-            {
-                Command command = commands[i];
-                command.Transmit(ChannelNumber, Connection);
-            }
+            return Connection.Transmit(commands, ChannelNumber);
         }
     }
 }

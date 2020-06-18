@@ -44,6 +44,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using System.Xml;
 
 using RabbitMQ.Client.Apigen.Attributes;
@@ -448,6 +449,7 @@ namespace RabbitMQ.Client.Apigen
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
@@ -1032,7 +1034,6 @@ $@"namespace {ApiNamespaceBase}
         {
             EmitLine("  internal class Model: Client.Impl.ModelBase {");
             EmitLine("    public Model(Client.Impl.ISession session): base(session) {}");
-            EmitLine("    public Model(Client.Impl.ISession session, ConsumerWorkService workService): base(session, workService) {}");
             IList<MethodInfo> asynchronousHandlers = new List<MethodInfo>();
             foreach (Type t in m_modelTypes)
             {
@@ -1051,7 +1052,7 @@ $@"namespace {ApiNamespaceBase}
                         }
                         else
                         {
-                            MaybeEmitModelMethod(method);
+                            //MaybeEmitModelMethod(method);
                         }
                     }
                 }
@@ -1120,6 +1121,14 @@ $@"namespace {ApiNamespaceBase}
             {
                 return "ReadOnlyMemory<byte>";
             }
+            if(t.Equals(typeof(ValueTask<uint>)))
+            {
+                return "ValueTask<uint>";
+            }
+            else if(t.Equals(typeof(ValueTask)))
+            {
+                return "ValueTask";
+            }
 
             switch (t.FullName)
             {
@@ -1145,7 +1154,7 @@ $@"namespace {ApiNamespaceBase}
         public void EmitModelMethodPreamble(MethodInfo method)
         {
             ParameterInfo[] parameters = method.GetParameters();
-            EmitLine($"    public override {SanitisedFullName(method.ReturnType)} {method.Name} ({string.Join(", ", parameters.Select(pi => $"{SanitisedFullName(pi.ParameterType)} @{pi.Name}"))})");
+            EmitLine($"    public override {(method.ReturnType != typeof(IBasicProperties) ? "async " : "")}{SanitisedFullName(method.ReturnType)} {method.Name} ({string.Join(", ", parameters.Select(pi => $"{SanitisedFullName(pi.ParameterType)} @{pi.Name}"))})");
         }
 
         public void LookupAmqpMethod(MethodInfo method,
@@ -1288,7 +1297,7 @@ $@"namespace {ApiNamespaceBase}
                     EmitLine($"        throw new UnsupportedMethodFieldException(\"{method.Name}\", \"{unsupportedParameter.Name}\");");
                     EmitLine("      }");
                 }
-                EmitLine($"      {requestImplClass} __req = new {requestImplClass}()");
+                EmitLine($"      var __req = new {requestImplClass}()");
                 EmitLine("      {");
                 foreach (ParameterInfo pi in parameters)
                 {
@@ -1308,7 +1317,7 @@ $@"namespace {ApiNamespaceBase}
             }
             else
             {
-                EmitLine($"      {requestImplClass} __req = new {requestImplClass}();");
+                EmitLine($"      var __req = new {requestImplClass}();");
             }
 
             // If we have a nowait parameter, sometimes that can turn
@@ -1317,14 +1326,14 @@ $@"namespace {ApiNamespaceBase}
             if (nowaitParameter != null)
             {
                 EmitLine($"      if ({nowaitParameter.Name}) {{");
-                EmitLine($"        ModelSend(__req,{contentHeaderExpr},{contentBodyExpr});");
-                if (method.ReturnType == typeof(void))
+                EmitLine($"        await ModelSend(__req,{contentHeaderExpr},{contentBodyExpr}).ConfigureAwait(false);");
+                if (method.ReturnType == typeof(ValueTask<uint>))
+                {
+                    EmitLine("      return default;");
+                }
+                else if (method.ReturnType != typeof(void))
                 {
                     EmitLine("        return;");
-                }
-                else
-                {
-                    EmitLine($"        return {nowaitExpression};");
                 }
                 EmitLine("      }");
             }
@@ -1334,43 +1343,45 @@ $@"namespace {ApiNamespaceBase}
 
             if (amqpReplyMethod == null)
             {
-                EmitLine($"      ModelSend(__req,{contentHeaderExpr},{contentBodyExpr});");
+                EmitLine($"      await ModelSend(__req,{contentHeaderExpr},{contentBodyExpr}).ConfigureAwait(false);");
             }
             else
             {
                 string replyImplClass = MangleMethodClass(amqpClass, amqpReplyMethod);
 
-                EmitLine($"      Client.Impl.MethodBase __repBase = ModelRpc(__req, {contentHeaderExpr}, {contentBodyExpr});");
-                EmitLine($"      if (!(__repBase is {replyImplClass}{(method.ReturnType == typeof(void) ? "" : " __rep")}))");
-                EmitLine($"      {{");
-                EmitLine($"        throw new UnexpectedMethodException(__repBase);");
-                EmitLine($"      }}");
-
-                if (method.ReturnType == typeof(void))
+                if (method.ReturnType == typeof(ValueTask))
                 {
-                    // No need to further examine the reply.
+                    EmitLine($"      await ModelRpcAsync<{requestImplClass},{replyImplClass}>(__req, {contentHeaderExpr}, {contentBodyExpr}).ConfigureAwait(false);");
                 }
                 else
                 {
+                    EmitLine($"      {replyImplClass} __rep = await ModelRpcAsync<{requestImplClass},{replyImplClass}>(__req, {contentHeaderExpr}, {contentBodyExpr}).ConfigureAwait(false);");
                     // At this point, we have the reply method. Extract values from it.
                     if (!(Attribute(method.ReturnTypeCustomAttributes, typeof(AmqpFieldMappingAttribute)) is AmqpFieldMappingAttribute returnMapping))
                     {
                         string fieldPrefix = IsAmqpClass(method.ReturnType) ? "_" : "";
 
                         // No field mapping --> it's assumed to be a struct to fill in.
-                        EmitLine($"      {method.ReturnType} __result = new {method.ReturnType}();");
-                        foreach (FieldInfo fi in method.ReturnType.GetFields())
+                        if (method.ReturnType == typeof(ValueTask))
                         {
-                            if (Attribute(fi, typeof(AmqpFieldMappingAttribute)) is AmqpFieldMappingAttribute returnFieldMapping)
-                            {
-                                EmitLine($"      __result.{fi.Name} = __rep.{fieldPrefix}{returnFieldMapping.m_fieldName};");
-                            }
-                            else
-                            {
-                                EmitLine($"      __result.{fi.Name} = __rep.{fieldPrefix}{fi.Name};");
-                            }
+                            EmitLine("      return;");
                         }
-                        EmitLine("      return __result;");
+                        else
+                        {
+                            EmitLine($"      var __result = new {method.ReturnType}();");
+                            foreach (FieldInfo fi in method.ReturnType.GetFields())
+                            {
+                                if (Attribute(fi, typeof(AmqpFieldMappingAttribute)) is AmqpFieldMappingAttribute returnFieldMapping)
+                                {
+                                    EmitLine($"      __result.{fi.Name} = __rep.{fieldPrefix}{returnFieldMapping.m_fieldName};");
+                                }
+                                else
+                                {
+                                    EmitLine($"      __result.{fi.Name} = __rep.{fieldPrefix}{fi.Name};");
+                                }
+                            }
+                            EmitLine("      return __result;");
+                        }
                     }
                     else
                     {
@@ -1418,24 +1429,12 @@ $@"namespace {ApiNamespaceBase}
                 }
 
                 LookupAmqpMethod(method, methodName, out AmqpClass amqpClass, out AmqpMethod amqpMethod);
-
-                string implClass = MangleMethodClass(amqpClass, amqpMethod);
-
                 EmitLine($"        case (ClassConstants.{MangleConstant(amqpClass.Name)} << 16) | {MangleClass(amqpClass.Name)}MethodConstants.{MangleConstant(amqpMethod.Name)}:");
-                EmitLine("        {");
-                ParameterInfo[] parameters = method.GetParameters();
-                if (parameters.Length > 0)
-                {
-                    EmitLine($"          var __impl = ({implClass})cmd.Method;");
-                    EmitLine($"          {method.Name}({string.Join(", ", parameters.Select(GetParameterString))});");
-                }
-                else
-                {
-                    EmitLine($"          {method.Name}();");
-                }
-                EmitLine("          return true;");
-                EmitLine("        }");
             }
+            EmitLine("        {");
+            EmitLine($"          _consumerCommandQueue.Writer.TryWrite(cmd);");
+            EmitLine($"          return true;");
+            EmitLine("        }");
             EmitLine("        default: return false;");
             EmitLine("      }");
             EmitLine("    }");

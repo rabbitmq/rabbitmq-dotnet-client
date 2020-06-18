@@ -38,8 +38,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 using NUnit.Framework;
 
@@ -56,57 +56,59 @@ namespace RabbitMQ.Client.Unit
         protected string consumerTag;
 
         [Test]
-        public void TestConsumerCancelNotification()
+        public async ValueTask TestConsumerCancelNotification()
         {
-            TestConsumerCancel("queue_consumer_cancel_notify", false, ref notifiedCallback);
+            await Model.QueueDeclare("queue_consumer_cancel_notify", false, true, false, null);
+            IAsyncBasicConsumer consumer = new CancelNotificationConsumer(Model, this, false);
+            string actualConsumerTag = await Model.BasicConsume("queue_consumer_cancel_notify", false, consumer);
+
+            await Model.QueueDelete("queue_consumer_cancel_notify");
+            WaitOn(lockObject);
+            Assert.IsTrue(notifiedCallback);
+            Assert.AreEqual(actualConsumerTag, consumerTag);
         }
 
         [Test]
-        public void TestConsumerCancelEvent()
+        public async ValueTask TestConsumerCancelEvent()
         {
-            TestConsumerCancel("queue_consumer_cancel_event", true, ref notifiedEvent);
+            await Model.QueueDeclare("queue_consumer_cancel_event", false, true, false, null);
+            IAsyncBasicConsumer consumer = new CancelNotificationConsumer(Model, this, true);
+            string actualConsumerTag = await Model.BasicConsume("queue_consumer_cancel_event", false, consumer);
+
+            await Model.QueueDelete("queue_consumer_cancel_event");
+            WaitOn(lockObject);
+            Assert.IsTrue(notifiedEvent);
+            Assert.AreEqual(actualConsumerTag, consumerTag);
         }
 
         [Test]
-        public void TestCorrectConsumerTag()
+        public async ValueTask TestCorrectConsumerTag()
         {
             string q1 = GenerateQueueName();
             string q2 = GenerateQueueName();
 
-            Model.QueueDeclare(q1, false, false, false, null);
-            Model.QueueDeclare(q2, false, false, false, null);
+            await Model.QueueDeclare(q1, false, false, false, null);
+            await Model.QueueDeclare(q2, false, false, false, null);
 
             EventingBasicConsumer consumer = new EventingBasicConsumer(Model);
-            string consumerTag1 = Model.BasicConsume(q1, true, consumer);
-            string consumerTag2 = Model.BasicConsume(q2, true, consumer);
+            string consumerTag1 = await Model.BasicConsume(q1, true, consumer);
+            string consumerTag2 = await Model.BasicConsume(q2, true, consumer);
 
-            string notifiedConsumerTag = null;
+            bool notifiedConsumerTag1 = false;
             consumer.ConsumerCancelled += (sender, args) =>
             {
                 lock (lockObject)
                 {
-                    notifiedConsumerTag = args.ConsumerTags.First();
+                    notifiedConsumerTag1 = consumerTag1.Equals(args.ConsumerTags[0], System.StringComparison.OrdinalIgnoreCase);
                     Monitor.PulseAll(lockObject);
                 }
+                return default;
             };
 
-            Model.QueueDelete(q1);
+            await Model.QueueDelete(q1);
             WaitOn(lockObject);
-            Assert.AreEqual(consumerTag1, notifiedConsumerTag);
-
-            Model.QueueDelete(q2);
-        }
-
-        public void TestConsumerCancel(string queue, bool EventMode, ref bool notified)
-        {
-            Model.QueueDeclare(queue, false, true, false, null);
-            IBasicConsumer consumer = new CancelNotificationConsumer(Model, this, EventMode);
-            string actualConsumerTag = Model.BasicConsume(queue, false, consumer);
-
-            Model.QueueDelete(queue);
-            WaitOn(lockObject);
-            Assert.IsTrue(notified);
-            Assert.AreEqual(actualConsumerTag, consumerTag);
+            Assert.IsTrue(notifiedConsumerTag1);
+            await Model.QueueDelete(q2);
         }
 
         private class CancelNotificationConsumer : DefaultBasicConsumer
@@ -125,7 +127,7 @@ namespace RabbitMQ.Client.Unit
                 }
             }
 
-            public override void HandleBasicCancel(string consumerTag)
+            public override ValueTask HandleBasicCancel(string consumerTag)
             {
                 if (!_eventMode)
                 {
@@ -136,10 +138,10 @@ namespace RabbitMQ.Client.Unit
                         Monitor.PulseAll(_testClass.lockObject);
                     }
                 }
-                base.HandleBasicCancel(consumerTag);
+                return base.HandleBasicCancel(consumerTag);
             }
 
-            private void Cancelled(object sender, ConsumerEventArgs arg)
+            private ValueTask Cancelled(object sender, ConsumerEventArgs arg)
             {
                 lock (_testClass.lockObject)
                 {
@@ -147,6 +149,8 @@ namespace RabbitMQ.Client.Unit
                     _testClass.consumerTag = arg.ConsumerTags[0];
                     Monitor.PulseAll(_testClass.lockObject);
                 }
+
+                return default;
             }
         }
     }

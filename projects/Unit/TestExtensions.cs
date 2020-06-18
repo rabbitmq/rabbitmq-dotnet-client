@@ -39,7 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
@@ -48,46 +48,45 @@ namespace RabbitMQ.Client.Unit
     public class TestExtensions : IntegrationFixture
     {
         [Test]
-        public void TestConfirmBarrier()
+        public async ValueTask TestConfirmBarrier()
         {
-            Model.ConfirmSelect();
+            await Model.ConfirmSelect();
             for (int i = 0; i < 10; i++)
             {
-                Model.BasicPublish("", string.Empty, null, new byte[] {});
+                await Model.BasicPublish("", string.Empty, null, new byte[] {});
             }
-            Assert.That(Model.WaitForConfirms(), Is.True);
+            Assert.That(await Model.WaitForConfirms(), Is.True);
         }
 
         [Test]
         public void TestConfirmBeforeWait()
         {
-            Assert.Throws(typeof (InvalidOperationException), () => Model.WaitForConfirms());
+            Assert.ThrowsAsync<InvalidOperationException>(async () => await Model.WaitForConfirms());
         }
 
         [Test]
-        public void TestExchangeBinding()
+        public async ValueTask TestExchangeBinding()
         {
-            Model.ConfirmSelect();
+            await Model.ConfirmSelect();
 
-            Model.ExchangeDeclare("src", ExchangeType.Direct, false, false, null);
-            Model.ExchangeDeclare("dest", ExchangeType.Direct, false, false, null);
-            string queue = Model.QueueDeclare();
+            await Model.ExchangeDeclare("src", ExchangeType.Direct, false, false, null);
+            await Model.ExchangeDeclare("dest", ExchangeType.Direct, false, false, null);
+            string queue = await Model.QueueDeclare();
 
-            Model.ExchangeBind("dest", "src", string.Empty);
-            Model.ExchangeBind("dest", "src", string.Empty);
-            Model.QueueBind(queue, "dest", string.Empty);
+            await Model.ExchangeBind("dest", "src", string.Empty);
+            await Model.ExchangeBind("dest", "src", string.Empty);
+            await Model.QueueBind(queue, "dest", string.Empty);
 
-            Model.BasicPublish("src", string.Empty, null, new byte[] {});
-            Model.WaitForConfirms();
-            Assert.IsNotNull(Model.BasicGet(queue, true));
+            await Model.BasicPublish("src", string.Empty, null, new byte[] {});
+            await Model.WaitForConfirms();
+            Assert.IsNotNull(await Model.BasicGet(queue, true));
 
-            Model.ExchangeUnbind("dest", "src", string.Empty);
-            Model.BasicPublish("src", string.Empty, null, new byte[] {});
-            Model.WaitForConfirms();
-            Assert.IsNull(Model.BasicGet(queue, true));
+            await Model.ExchangeUnbind("dest", "src", string.Empty);
+            await Model.WaitForConfirms();
+            Assert.IsNull(await Model.BasicGet(queue, true));
 
-            Model.ExchangeDelete("src");
-            Model.ExchangeDelete("dest");
+            await Model.ExchangeDelete("src");
+            await Model.ExchangeDelete("dest");
         }
     }
 }

@@ -38,6 +38,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 using RabbitMQ.Client.Exceptions;
@@ -48,36 +49,37 @@ namespace RabbitMQ.Client.Unit
     public class TestBasicGet : IntegrationFixture
     {
         [Test]
-        public void TestBasicGetWithClosedChannel()
+        public async ValueTask TestBasicGetWithClosedChannel()
         {
-            WithNonEmptyQueue( (_, q) =>
+            await WithNonEmptyQueue( async (_, q) =>
                 {
-                    WithClosedModel(cm =>
+                    await WithClosedModel(cm =>
                     {
-                        Assert.Throws(Is.InstanceOf<AlreadyClosedException>(), () => cm.BasicGet(q, true));
+                        Assert.ThrowsAsync<AlreadyClosedException>(async () => await cm.BasicGet(q, true));
+                        return default;
                     });
                 });
         }
 
         [Test]
-        public void TestBasicGetWithEmptyResponse()
+        public async ValueTask TestBasicGetWithEmptyResponse()
         {
-            WithEmptyQueue((model, queue) =>
+            await WithEmptyQueue(async (model, queue) =>
             {
-                BasicGetResult res = model.BasicGet(queue, false);
+                BasicGetResult res = await model.BasicGet(queue, false);
                 Assert.IsNull(res);
             });
         }
 
         [Test]
-        public void TestBasicGetWithNonEmptyResponseAndAutoAckMode()
+        public async ValueTask TestBasicGetWithNonEmptyResponseAndAutoAckMode()
         {
             const string msg = "for basic.get";
-            WithNonEmptyQueue((model, queue) =>
+            await WithNonEmptyQueue(async (model, queue) =>
             {
-                BasicGetResult res = model.BasicGet(queue, true);
+                BasicGetResult res = await model.BasicGet(queue, true);
                 Assert.AreEqual(msg, encoding.GetString(res.Body.ToArray()));
-                AssertMessageCount(queue, 0);
+                await AssertMessageCount(queue, 0);
             }, msg);
         }
     }

@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -94,11 +95,11 @@ namespace RabbitMQ.Client.Impl
             return this;
         }
 
-        public void Recover()
+        public async ValueTask Recover()
         {
-            QueueDeclareOk ok = ModelDelegate.QueueDeclare(NameToUseForRecovery, _durable,
+            QueueDeclareOk ok = await ModelDelegate.QueueDeclare(NameToUseForRecovery, _durable,
                 _exclusive, IsAutoDelete,
-                _arguments);
+                _arguments).ConfigureAwait(false);
             Name = ok.QueueName;
         }
 

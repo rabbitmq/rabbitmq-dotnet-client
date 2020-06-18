@@ -59,9 +59,6 @@ namespace RabbitMQ.Client.Exceptions
         ///ShutdownInitiator.Library, and this.ReplyCode and
         ///this.Message as the reply code and text,
         ///respectively.</summary>
-        public virtual ShutdownEventArgs ShutdownReason
-        {
-            get { return new ShutdownEventArgs(ShutdownInitiator.Library, ReplyCode, Message, this); }
-        }
+        public virtual ShutdownEventArgs ShutdownReason => new ShutdownEventArgs(ShutdownInitiator.Library, ReplyCode, Message, this);
     }
 }

@@ -38,8 +38,6 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using RabbitMQ.Client.Framing;
-
 namespace RabbitMQ.Client.Exceptions
 {
     /// <summary> Thrown when our peer sends a frame that contains
@@ -50,9 +48,6 @@ namespace RabbitMQ.Client.Exceptions
         {
         }
 
-        public override ushort ReplyCode
-        {
-            get { return Constants.SyntaxError; }
-        }
+        public override ushort ReplyCode => Constants.SyntaxError;
     }
 }

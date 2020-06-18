@@ -43,7 +43,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Security;
 using System.Security.Authentication;
-
+using System.Threading.Tasks;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Impl;
@@ -182,8 +182,6 @@ namespace RabbitMQ.Client
         /// Amount of time client will wait for before re-trying  to recover connection.
         /// </summary>
         public TimeSpan NetworkRecoveryInterval { get; set; } = TimeSpan.FromSeconds(5);
-        private TimeSpan _handshakeContinuationTimeout = TimeSpan.FromSeconds(10);
-        private TimeSpan _continuationTimeout = TimeSpan.FromSeconds(20);
 
         // just here to hold the value that was set through the setter
         private Uri _uri;
@@ -192,21 +190,13 @@ namespace RabbitMQ.Client
         /// Amount of time protocol handshake operations are allowed to take before
         /// timing out.
         /// </summary>
-        public TimeSpan HandshakeContinuationTimeout
-        {
-            get { return _handshakeContinuationTimeout; }
-            set { _handshakeContinuationTimeout = value; }
-        }
+        public TimeSpan HandshakeContinuationTimeout { get; set; } = TimeSpan.FromSeconds(10);
 
         /// <summary>
         /// Amount of time protocol  operations (e.g. <code>queue.declare</code>) are allowed to take before
         /// timing out.
         /// </summary>
-        public TimeSpan ContinuationTimeout
-        {
-            get { return _continuationTimeout; }
-            set { _continuationTimeout = value; }
-        }
+        public TimeSpan ContinuationTimeout { get; set; } = TimeSpan.FromSeconds(20);
 
         /// <summary>
         /// Factory function for creating the <see cref="IEndpointResolver"/>
@@ -350,7 +340,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When the configured hostname was not reachable.
         /// </exception>
-        public IConnection CreateConnection()
+        public ValueTask<IConnection> CreateConnection()
         {
             return CreateConnection(ClientProvidedName);
         }
@@ -369,7 +359,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When the configured hostname was not reachable.
         /// </exception>
-        public IConnection CreateConnection(string clientProvidedName)
+        public ValueTask<IConnection> CreateConnection(string clientProvidedName)
         {
             return CreateConnection(EndpointResolverFactory(LocalEndpoints()), clientProvidedName);
         }
@@ -388,7 +378,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public IConnection CreateConnection(IList<string> hostnames)
+        public ValueTask<IConnection> CreateConnection(IList<string> hostnames)
         {
             return CreateConnection(hostnames, ClientProvidedName);
         }
@@ -413,7 +403,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public IConnection CreateConnection(IList<string> hostnames, string clientProvidedName)
+        public ValueTask<IConnection> CreateConnection(IList<string> hostnames, string clientProvidedName)
         {
             IEnumerable<AmqpTcpEndpoint> endpoints = hostnames.Select(h => new AmqpTcpEndpoint(h, Port, Ssl));
             return CreateConnection(EndpointResolverFactory(endpoints), clientProvidedName);
@@ -432,7 +422,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints)
+        public ValueTask<IConnection> CreateConnection(IList<AmqpTcpEndpoint> endpoints)
         {
             return CreateConnection(endpoints, ClientProvidedName);
         }
@@ -456,7 +446,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints, string clientProvidedName)
+        public ValueTask<IConnection> CreateConnection(IList<AmqpTcpEndpoint> endpoints, string clientProvidedName)
         {
             return CreateConnection(EndpointResolverFactory(endpoints), clientProvidedName);
         }
@@ -477,7 +467,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public IConnection CreateConnection(IEndpointResolver endpointResolver, string clientProvidedName)
+        public async ValueTask<IConnection> CreateConnection(IEndpointResolver endpointResolver, string clientProvidedName)
         {
             IConnection conn;
             try
@@ -491,8 +481,10 @@ namespace RabbitMQ.Client
                 else
                 {
                     var protocol = new RabbitMQ.Client.Framing.Protocol();
-                    conn = protocol.CreateConnection(this, false, endpointResolver.SelectOne(CreateFrameHandler), clientProvidedName);
+                    conn = protocol.CreateConnection(this, endpointResolver.SelectOne(CreateFrameHandler), clientProvidedName);
                 }
+
+                await conn.Open().ConfigureAwait(false);
             }
             catch (Exception e)
             {

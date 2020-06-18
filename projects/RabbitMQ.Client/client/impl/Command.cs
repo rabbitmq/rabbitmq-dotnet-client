@@ -40,21 +40,23 @@
 
 using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
+
 using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
     class Command : IDisposable
     {
-        // EmptyFrameSize, 8 = 1 + 2 + 4 + 1
-        // - 1 byte of frame type
-        // - 2 bytes of channel number
-        // - 4 bytes of frame payload length
-        // - 1 byte of payload trailer FrameEnd byte
-        private const int EmptyFrameSize = 8;
+        /*
+        Frame layout
+        +----------------------------------------------------------------------------+
+        |                |               |                    |                      |
+        | Frame type (1) | Channel # (2) | Payload length (4) | Frame-end marker (1) |
+        |                |               |                    |                      |
+        +----------------------------------------------------------------------------+
+        */
+        internal const int EmptyFrameSize = 8;
         private readonly bool _returnBufferOnDispose;
 
         static Command()
@@ -83,34 +85,12 @@ namespace RabbitMQ.Client.Impl
         public static void CheckEmptyFrameSize()
         {
             var f = new EmptyOutboundFrame();
-            byte[] b = new byte[f.GetMinimumBufferSize()];
-            f.WriteTo(b);
-            long actualLength = f.ByteCount;
+            long actualLength = f.GetMinimumBufferSize();
 
             if (EmptyFrameSize != actualLength)
             {
-                string message =
-                    string.Format("EmptyFrameSize is incorrect - defined as {0} where the computed value is in fact {1}.",
-                        EmptyFrameSize,
-                        actualLength);
+                string message = $"EmptyFrameSize is incorrect - defined as {EmptyFrameSize} where the computed value is in fact {actualLength}.";
                 throw new ProtocolViolationException(message);
-            }
-        }
-
-        internal void Transmit(int channelNumber, Connection connection)
-        {
-            connection.WriteFrame(new MethodOutboundFrame(channelNumber, Method));
-            if (Method.HasContent)
-            {
-                connection.WriteFrame(new HeaderOutboundFrame(channelNumber, Header, Body.Length));
-                int frameMax = (int)Math.Min(int.MaxValue, connection.FrameMax);
-                int bodyPayloadMax = (frameMax == 0) ? Body.Length : frameMax - EmptyFrameSize;
-                for (int offset = 0; offset < Body.Length; offset += bodyPayloadMax)
-                {
-                    int remaining = Body.Length - offset;
-                    int count = (remaining < bodyPayloadMax) ? remaining : bodyPayloadMax;
-                    connection.WriteFrame(new BodySegmentOutboundFrame(channelNumber, Body.Slice(offset, count)));
-                }
             }
         }
 
@@ -120,6 +100,11 @@ namespace RabbitMQ.Client.Impl
             {
                 ArrayPool<byte>.Shared.Return(segment.Array);
             }
+        }
+
+        public override string ToString()
+        {
+            return $"{Method.ProtocolMethodName}";
         }
     }
 }

@@ -39,7 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System.Collections.Generic;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 using RabbitMQ.Client.Exceptions;
@@ -50,26 +50,26 @@ namespace RabbitMQ.Client.Unit
     public class TestInitialConnection : IntegrationFixture
     {
         [Test]
-        public void TestBasicConnectionRecoveryWithHostnameList()
+        public async ValueTask TestBasicConnectionRecoveryWithHostnameList()
         {
-            Framing.Impl.AutorecoveringConnection c = CreateAutorecoveringConnection(new List<string>() { "127.0.0.1", "localhost" });
+            Framing.Impl.AutorecoveringConnection c = await CreateAutorecoveringConnection(new List<string>() { "127.0.0.1", "localhost" });
             Assert.IsTrue(c.IsOpen);
-            c.Close();
+            await c.Close();
         }
 
         [Test]
-        public void TestBasicConnectionRecoveryWithHostnameListAndUnreachableHosts()
+        public async ValueTask TestBasicConnectionRecoveryWithHostnameListAndUnreachableHosts()
         {
-            Framing.Impl.AutorecoveringConnection c = CreateAutorecoveringConnection(new List<string>() { "191.72.44.22", "127.0.0.1", "localhost" });
+            Framing.Impl.AutorecoveringConnection c = await CreateAutorecoveringConnection(new List<string>() { "191.72.44.22", "127.0.0.1", "localhost" });
             Assert.IsTrue(c.IsOpen);
-            c.Close();
+            await c.Close();
         }
 
         [Test]
         public void TestBasicConnectionRecoveryWithHostnameListWithOnlyUnreachableHosts()
         {
-            Assert.Throws<BrokerUnreachableException>(() => {
-                CreateAutorecoveringConnection(new List<string>() {
+            Assert.ThrowsAsync<BrokerUnreachableException>(async () => {
+                await CreateAutorecoveringConnection(new List<string>() {
                     "191.72.44.22",
                     "145.23.22.18",
                     "192.255.255.255"

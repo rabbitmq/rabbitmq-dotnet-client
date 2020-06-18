@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -51,16 +52,16 @@ namespace RabbitMQ.Client.Impl
 
         public IDictionary<string, object> Arguments { get; set; }
         public bool AutoAck { get; set; }
-        public IBasicConsumer Consumer { get; set; }
+        public IAsyncBasicConsumer Consumer { get; set; }
         public string ConsumerTag { get; set; }
         public bool Exclusive { get; set; }
         public string Queue { get; set; }
 
-        public string Recover()
+        public async ValueTask<string> Recover()
         {
-            ConsumerTag = ModelDelegate.BasicConsume(Queue, AutoAck,
+            ConsumerTag = await ModelDelegate.BasicConsume(Queue, AutoAck,
                 ConsumerTag, false, Exclusive,
-                Arguments, Consumer);
+                Arguments, Consumer).ConfigureAwait(false);
 
             return ConsumerTag;
         }
@@ -77,7 +78,7 @@ namespace RabbitMQ.Client.Impl
             return this;
         }
 
-        public RecordedConsumer WithConsumer(IBasicConsumer value)
+        public RecordedConsumer WithConsumer(IAsyncBasicConsumer value)
         {
             Consumer = value;
             return this;

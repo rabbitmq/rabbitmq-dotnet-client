@@ -60,22 +60,10 @@ namespace RabbitMQ.Client.Apigen
             }
         }
 
-        public bool HasContent {
-            get {
-                return GetString("@content", null) != null;
-            }
-        }
+        public bool HasContent => GetString("@content", null) != null;
 
-        public bool IsSimpleRpcRequest {
-            get {
-                return m_ResponseMethods.Count == 1;
-            }
-        }
+        public bool IsSimpleRpcRequest => m_ResponseMethods.Count == 1;
 
-        public int Index {
-            get {
-                return GetInt("@index");
-            }
-        }
+        public int Index => GetInt("@index");
     }
 }

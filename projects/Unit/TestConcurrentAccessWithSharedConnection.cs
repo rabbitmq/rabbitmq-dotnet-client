@@ -39,12 +39,17 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 using NUnit.Framework;
+
+using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -57,9 +62,9 @@ namespace RabbitMQ.Client.Unit
         internal TimeSpan _completionTimeout = TimeSpan.FromSeconds(90);
 
         [SetUp]
-        public override void Init()
+        public override async ValueTask Init()
         {
-            base.Init();
+            await base.Init();
             ThreadPool.SetMinThreads(Threads, Threads);
             _latch = new CountdownEvent(Threads);
         }
@@ -71,100 +76,180 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestConcurrentChannelOpenAndPublishingWithBlankMessages()
+        public async ValueTask TestConcurrentConnectionsAndChannelsMessageIntegrity()
         {
-            TestConcurrentChannelOpenAndPublishingWithBody(Encoding.ASCII.GetBytes(string.Empty), 30);
+            int messagesReceived = 0;
+            int tasksToRun = 16;
+            int itemsPerBatch = 5000;
+            var random = new Random();
+            SemaphoreSlim semaphoreSlim = new SemaphoreSlim(0, 1);
+            var hasher = SHA1.Create();
+
+            ValueTask AsyncListener_Received(object sender, BasicDeliverEventArgs @event)
+            {
+                byte[] confirmHash = default;
+                lock (hasher)
+                {
+                    confirmHash = hasher.ComputeHash(@event.Body.ToArray());
+                }
+
+                Assert.AreEqual(@event.BasicProperties.Headers["shahash"] as byte[], confirmHash);
+                if (Interlocked.Increment(ref messagesReceived) == tasksToRun * itemsPerBatch)
+                {
+                    semaphoreSlim.Release();
+                }
+
+                return default;
+            }
+
+            using (var conn = await ConnFactory.CreateConnection())
+            using (var conn2 = await ConnFactory.CreateConnection())
+            using (var conn3 = await ConnFactory.CreateConnection())
+            using (IModel subscriber = await conn.CreateModel())
+            using (IModel subscriber2 = await conn.CreateModel())
+            using (IModel subscriber3 = await conn.CreateModel())
+            {
+                await subscriber.ExchangeDeclare("test", ExchangeType.Topic, false, false);
+                await subscriber.QueueDeclare("testqueue", false, false, true);
+                await subscriber.QueueBind("testqueue", "test", "myawesome.routing.key");
+
+                var asyncListener = new AsyncEventingBasicConsumer(subscriber);
+                asyncListener.Received += AsyncListener_Received;
+                var asyncListener2 = new AsyncEventingBasicConsumer(subscriber2);
+                asyncListener2.Received += AsyncListener_Received;
+                var asyncListener3 = new AsyncEventingBasicConsumer(subscriber3);
+                asyncListener3.Received += AsyncListener_Received;
+
+                await subscriber.BasicConsume("testqueue", true, "testconsumer", asyncListener);
+                await subscriber2.BasicConsume("testqueue", true, "testconsumer2", asyncListener2);
+                await subscriber3.BasicConsume("testqueue", true, "testconsumer3", asyncListener3);
+
+                Task[] tasks = new Task[tasksToRun];
+                for (int i = 0; i < tasksToRun; i++)
+                {
+                    tasks[i] = Task.Run(async () =>
+                    {
+                        using (var conn = await ConnFactory.CreateConnection())
+                        using (IModel publisher = await conn.CreateModel())
+                        {
+                            await publisher.ConfirmSelect();
+                            for (int i = 0; i < itemsPerBatch; i++)
+                            {
+                                byte[] payload = new byte[random.Next(1, 4097)];
+                                random.NextBytes(payload);
+                                IBasicProperties properties = publisher.CreateBasicProperties();
+                                properties.Headers = new Dictionary<string, object>();
+                                lock (hasher)
+                                {
+                                    properties.Headers.Add("shahash", hasher.ComputeHash(payload));
+                                }
+                                await publisher.BasicPublish("test", "myawesome.routing.key", false, properties, payload);
+                            }
+                            await publisher.WaitForConfirmsOrDie();
+                        }
+                    });
+                }
+
+                await Task.WhenAll(tasks);
+                await semaphoreSlim.WaitAsync().ConfigureAwait(false);
+            }
         }
 
         [Test]
-        public void TestConcurrentChannelOpenAndPublishingCase1()
+        public async ValueTask TestConcurrentChannelOpenAndPublishingWithBlankMessages()
         {
-            TestConcurrentChannelOpenAndPublishingWithBodyOfSize(64);
+            await TestConcurrentChannelOpenAndPublishingWithBody(Encoding.ASCII.GetBytes(string.Empty), 30);
         }
 
         [Test]
-        public void TestConcurrentChannelOpenAndPublishingCase2()
+        public ValueTask TestConcurrentChannelOpenAndPublishingCase1()
         {
-            TestConcurrentChannelOpenAndPublishingWithBodyOfSize(256);
+            return TestConcurrentChannelOpenAndPublishingWithBodyOfSize(64);
         }
 
         [Test]
-        public void TestConcurrentChannelOpenAndPublishingCase3()
+        public async ValueTask TestConcurrentChannelOpenAndPublishingCase2()
         {
-            TestConcurrentChannelOpenAndPublishingWithBodyOfSize(1024);
+            await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(256);
         }
 
         [Test]
-        public void TestConcurrentChannelOpenAndPublishingCase4()
+        public async ValueTask TestConcurrentChannelOpenAndPublishingCase3()
         {
-            TestConcurrentChannelOpenAndPublishingWithBodyOfSize(8192);
+            await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(1024);
         }
 
         [Test]
-        public void TestConcurrentChannelOpenAndPublishingCase5()
+        public async ValueTask TestConcurrentChannelOpenAndPublishingCase4()
         {
-            TestConcurrentChannelOpenAndPublishingWithBodyOfSize(32768, 20);
+            await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(8192);
         }
 
         [Test]
-        public void TestConcurrentChannelOpenAndPublishingCase6()
+        public async ValueTask TestConcurrentChannelOpenAndPublishingCase5()
         {
-            TestConcurrentChannelOpenAndPublishingWithBodyOfSize(100000, 15);
+            await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(32768, 20);
         }
 
         [Test]
-        public void TestConcurrentChannelOpenAndPublishingCase7()
+        public async ValueTask TestConcurrentChannelOpenAndPublishingCase6()
+        {
+            await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(100000, 15);
+        }
+
+        [Test]
+        public async ValueTask TestConcurrentChannelOpenAndPublishingCase7()
         {
             // surpasses default frame size
-            TestConcurrentChannelOpenAndPublishingWithBodyOfSize(131072, 12);
+            await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(131072, 12);
         }
 
         [Test]
-        public void TestConcurrentChannelOpenAndPublishingCase8()
+        public async ValueTask TestConcurrentChannelOpenAndPublishingCase8()
         {
-            TestConcurrentChannelOpenAndPublishingWithBodyOfSize(270000, 10);
+            await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(270000, 10);
         }
 
         [Test]
-        public void TestConcurrentChannelOpenAndPublishingCase9()
+        public async ValueTask TestConcurrentChannelOpenAndPublishingCase9()
         {
-            TestConcurrentChannelOpenAndPublishingWithBodyOfSize(540000, 6);
+            await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(540000, 6);
         }
 
         [Test]
-        public void TestConcurrentChannelOpenAndPublishingCase10()
+        public async ValueTask TestConcurrentChannelOpenAndPublishingCase10()
         {
-            TestConcurrentChannelOpenAndPublishingWithBodyOfSize(1000000, 2);
+            await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(1000000, 2);
         }
 
         [Test]
-        public void TestConcurrentChannelOpenAndPublishingCase11()
+        public async ValueTask TestConcurrentChannelOpenAndPublishingCase11()
         {
-            TestConcurrentChannelOpenAndPublishingWithBodyOfSize(1500000, 1);
+            await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(1500000, 1);
         }
 
         [Test]
-        public void TestConcurrentChannelOpenAndPublishingCase12()
+        public async ValueTask TestConcurrentChannelOpenAndPublishingCase12()
         {
-            TestConcurrentChannelOpenAndPublishingWithBodyOfSize(128000000, 1);
+            await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(128000000, 1);
         }
 
         [Test]
-        public void TestConcurrentChannelOpenCloseLoop()
+        public async ValueTask TestConcurrentChannelOpenCloseLoop()
         {
-            TestConcurrentChannelOperations((conn) =>
+            await TestConcurrentChannelOperations(async (conn) =>
             {
-                IModel ch = conn.CreateModel();
-                ch.Close();
+                IModel ch = await conn.CreateModel();
+                await ch.Close();
             }, 50);
         }
 
-        internal void TestConcurrentChannelOpenAndPublishingWithBodyOfSize(int length)
+        internal ValueTask TestConcurrentChannelOpenAndPublishingWithBodyOfSize(int length)
         {
-            TestConcurrentChannelOpenAndPublishingWithBodyOfSize(length, 30);
+            return TestConcurrentChannelOpenAndPublishingWithBodyOfSize(length, 30);
         }
 
-        internal void TestConcurrentChannelOpenAndPublishingWithBodyOfSize(int length, int iterations)
+        internal ValueTask TestConcurrentChannelOpenAndPublishingWithBodyOfSize(int length, int iterations)
         {
             string s = "payload";
             if (length > s.Length)
@@ -172,48 +257,57 @@ namespace RabbitMQ.Client.Unit
                 s.PadRight(length);
             }
 
-            TestConcurrentChannelOpenAndPublishingWithBody(Encoding.ASCII.GetBytes(s), iterations);
+            return TestConcurrentChannelOpenAndPublishingWithBody(Encoding.ASCII.GetBytes(s), iterations);
         }
 
-        internal void TestConcurrentChannelOpenAndPublishingWithBody(byte[] body, int iterations)
+        internal ValueTask TestConcurrentChannelOpenAndPublishingWithBody(byte[] body, int iterations)
         {
-            TestConcurrentChannelOperations((conn) =>
+            return TestConcurrentChannelOperations(async (conn) =>
             {
                 // publishing on a shared channel is not supported
                 // and would missing the point of this test anyway
-                IModel ch = Conn.CreateModel();
-                ch.ConfirmSelect();
-                foreach (int j in Enumerable.Range(0, 200))
+                using (IModel ch = await Conn.CreateModel())
                 {
-                    ch.BasicPublish(exchange: "", routingKey: "_______", basicProperties: ch.CreateBasicProperties(), body: body);
+                    await ch.ConfirmSelect();
+                    foreach (int j in Enumerable.Range(0, 200))
+                    {
+                        await ch.BasicPublish(exchange: "", routingKey: "_______", basicProperties: ch.CreateBasicProperties(), body: body);
+                    }
+
+                    await ch.WaitForConfirms(TimeSpan.FromSeconds(40));
                 }
-                ch.WaitForConfirms(TimeSpan.FromSeconds(40));
             }, iterations);
         }
 
-        internal void TestConcurrentChannelOperations(Action<IConnection> actions,
+        internal ValueTask TestConcurrentChannelOperations(Func<IConnection, ValueTask> actions,
             int iterations)
         {
-            TestConcurrentChannelOperations(actions, iterations, _completionTimeout);
+            return TestConcurrentChannelOperations(actions, iterations, _completionTimeout);
         }
 
-        internal void TestConcurrentChannelOperations(Action<IConnection> actions,
+        internal async ValueTask TestConcurrentChannelOperations(Func<IConnection, ValueTask> actions,
             int iterations, TimeSpan timeout)
         {
-            Task[] tasks = Enumerable.Range(0, Threads).Select(x =>
+            Task[] tasks = Enumerable.Range(0, Threads).Select(async x =>
             {
-                return Task.Run(() =>
+                foreach (int j in Enumerable.Range(0, iterations))
                 {
-                    foreach (int j in Enumerable.Range(0, iterations))
-                    {
-                        actions(Conn);
-                    }
+                    await actions(Conn).ConfigureAwait(false);
+                }
 
-                    _latch.Signal();
-                });
+                _latch.Signal();
             }).ToArray();
 
-            Assert.IsTrue(_latch.Wait(timeout));
+            try
+            {
+                await Task.WhenAll(tasks).TimeoutAfter(timeout);
+            }
+            catch(TimeoutException)
+            {
+
+            }
+
+            Assert.IsTrue(_latch.IsSet);
             // incorrect frame interleaving in these tests will result
             // in an unrecoverable connection-level exception, thus
             // closing the connection

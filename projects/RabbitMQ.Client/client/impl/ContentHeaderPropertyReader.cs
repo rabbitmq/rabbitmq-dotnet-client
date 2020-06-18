@@ -60,10 +60,7 @@ namespace RabbitMQ.Client.Impl
             m_bitCount = 15; // the correct position to force a m_flagWord read
         }
 
-        public bool ContinuationBitSet
-        {
-            get { return (m_flagWord & 1) != 0; }
-        }
+        public bool ContinuationBitSet => (m_flagWord & 1) != 0;
 
         public void FinishPresence()
         {

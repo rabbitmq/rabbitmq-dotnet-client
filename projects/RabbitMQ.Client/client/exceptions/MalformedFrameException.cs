@@ -38,8 +38,6 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using RabbitMQ.Client.Framing;
-
 namespace RabbitMQ.Client.Exceptions
 {
     ///<summary>Thrown when frame parsing code detects an error in the
@@ -55,9 +53,6 @@ namespace RabbitMQ.Client.Exceptions
         {
         }
 
-        public override ushort ReplyCode
-        {
-            get { return Constants.FrameError; }
-        }
+        public override ushort ReplyCode => Constants.FrameError;
     }
 }

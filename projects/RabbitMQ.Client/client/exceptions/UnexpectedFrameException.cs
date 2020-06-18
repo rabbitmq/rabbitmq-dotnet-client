@@ -38,7 +38,6 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using RabbitMQ.Client.Framing;
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Exceptions
@@ -52,9 +51,6 @@ namespace RabbitMQ.Client.Exceptions
         {
         }
 
-        public override ushort ReplyCode
-        {
-            get { return Constants.CommandInvalid; }
-        }
+        public override ushort ReplyCode => Constants.CommandInvalid;
     }
 }

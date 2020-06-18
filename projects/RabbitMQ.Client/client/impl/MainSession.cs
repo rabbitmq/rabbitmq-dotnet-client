@@ -44,7 +44,7 @@
 // that ever changes.
 
 using System;
-
+using System.Threading.Tasks;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
@@ -54,52 +54,42 @@ namespace RabbitMQ.Client.Impl
     {
         private readonly object _closingLock = new object();
 
-        private readonly ushort _closeClassId;
-        private readonly ushort _closeMethodId;
-        private readonly ushort _closeOkClassId;
-        private readonly ushort _closeOkMethodId;
-
         private bool _closeServerInitiated;
         private bool _closing;
 
         public MainSession(Connection connection) : base(connection, 0)
         {
-            connection.Protocol.CreateConnectionClose(0, string.Empty, out Command request, out _closeOkClassId, out _closeOkMethodId);
-            _closeClassId = request.Method.ProtocolClassId;
-            _closeMethodId = request.Method.ProtocolMethodId;
         }
 
         public Action Handler { get; set; }
 
-        public override void HandleFrame(in InboundFrame frame)
+        public override ValueTask HandleFrame(in InboundFrame frame)
         {
             lock (_closingLock)
             {
                 if (!_closing)
                 {
-                    base.HandleFrame(in frame);
-                    return;
+                    return base.HandleFrame(in frame);
                 }
             }
 
             if (!_closeServerInitiated && frame.IsMethod())
             {
                 MethodBase method = Connection.Protocol.DecodeMethodFrom(frame.Payload);
-                if ((method.ProtocolClassId == _closeClassId)
-                    && (method.ProtocolMethodId == _closeMethodId))
+                if ((method.ProtocolClassId == ClassConstants.Connection) && (method.ProtocolMethodId == ConnectionMethodConstants.Close))
                 {
-                    base.HandleFrame(in frame);
-                    return;
+                    return base.HandleFrame(in frame);
                 }
 
-                if ((method.ProtocolClassId == _closeOkClassId)
-                    && (method.ProtocolMethodId == _closeOkMethodId))
+                if ((method.ProtocolClassId == ClassConstants.Connection) && (method.ProtocolMethodId == ConnectionMethodConstants.CloseOk))
                 {
                     // This is the reply (CloseOk) we were looking for
                     // Call any listener attached to this session
                     Handler();
                 }
             }
+
+            return default;
 
             // Either a non-method frame, or not what we were looking
             // for. Ignore it - we're quiescing.
@@ -123,29 +113,27 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public override void Transmit(Command cmd)
+        public override ValueTask Transmit(Command cmd)
         {
+            // Allow always for sending close ok
+            // Or if application initiated, allow also for sending close
+            MethodBase method = cmd.Method;
+            if (((method.ProtocolClassId == ClassConstants.Connection) && (method.ProtocolMethodId == ConnectionMethodConstants.CloseOk))
+                ||
+                (!_closeServerInitiated && (method.ProtocolClassId == ClassConstants.Connection) && (method.ProtocolMethodId == ConnectionMethodConstants.Close)))
+            {
+                return base.Transmit(cmd);
+            }
+
             lock (_closingLock)
             {
                 if (!_closing)
                 {
-                    base.Transmit(cmd);
-                    return;
+                    return base.Transmit(cmd);
                 }
             }
 
-            // Allow always for sending close ok
-            // Or if application initiated, allow also for sending close
-            MethodBase method = cmd.Method;
-            if (((method.ProtocolClassId == _closeOkClassId)
-                 && (method.ProtocolMethodId == _closeOkMethodId))
-                || (!_closeServerInitiated &&
-                    (method.ProtocolClassId == _closeClassId) &&
-                    (method.ProtocolMethodId == _closeMethodId)
-                    ))
-            {
-                base.Transmit(cmd);
-            }
+            return default;
         }
     }
 }

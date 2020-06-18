@@ -38,6 +38,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 using RabbitMQ.Client.Events;
@@ -47,17 +48,17 @@ namespace RabbitMQ.Client.Unit
     internal class TestConsumerCount : IntegrationFixture
     {
         [Test]
-        public void TestConsumerCountMethod()
+        public async ValueTask TestConsumerCountMethod()
         {
             string q = GenerateQueueName();
-            Model.QueueDeclare(queue: q, durable: false, exclusive: true, autoDelete: false, arguments: null);
-            Assert.AreEqual(0, Model.ConsumerCount(q));
+            await Model.QueueDeclare(queue: q, durable: false, exclusive: true, autoDelete: false, arguments: null);
+            Assert.AreEqual(0, await Model.ConsumerCount(q));
 
-            string tag = Model.BasicConsume(q, true, new EventingBasicConsumer(Model));
-            Assert.AreEqual(1, Model.ConsumerCount(q));
+            string tag = await Model.BasicConsume(q, true, new EventingBasicConsumer(Model));
+            Assert.AreEqual(1, await Model.ConsumerCount(q));
 
-            Model.BasicCancel(tag);
-            Assert.AreEqual(0, Model.ConsumerCount(q));
+            await Model.BasicCancel(tag);
+            Assert.AreEqual(0, await Model.ConsumerCount(q));
         }
     }
 }

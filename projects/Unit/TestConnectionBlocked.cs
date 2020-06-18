@@ -40,7 +40,7 @@
 
 using System;
 using System.Threading;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 using RabbitMQ.Client.Events;
@@ -74,12 +74,12 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestConnectionBlockedNotification()
+        public async ValueTask TestConnectionBlockedNotification()
         {
             Conn.ConnectionBlocked += HandleBlocked;
             Conn.ConnectionUnblocked += HandleUnblocked;
 
-            Block();
+            await Block();
             lock (_lockObject)
             {
                 if (!_notified)

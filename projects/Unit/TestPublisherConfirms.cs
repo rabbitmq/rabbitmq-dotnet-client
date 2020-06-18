@@ -40,7 +40,7 @@
 
 using System;
 using System.Threading;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 using RabbitMQ.Client.Impl;
@@ -53,53 +53,54 @@ namespace RabbitMQ.Client.Unit
         private const string QueueName = "RabbitMQ.Client.Unit.TestPublisherConfirms";
 
         [Test]
-        public void TestWaitForConfirmsWithoutTimeout()
+        public async ValueTask TestWaitForConfirmsWithoutTimeout()
         {
-            TestWaitForConfirms(200, (ch) =>
+            await TestWaitForConfirms(200, async (ch) =>
             {
-                Assert.IsTrue(ch.WaitForConfirms());
+                Assert.IsTrue(await ch.WaitForConfirms());
             });
         }
 
         [Test]
-        public void TestWaitForConfirmsWithTimeout()
+        public async ValueTask TestWaitForConfirmsWithTimeout()
         {
-            TestWaitForConfirms(200, (ch) =>
+            await TestWaitForConfirms(200, async (ch) =>
             {
-                Assert.IsTrue(ch.WaitForConfirms(TimeSpan.FromSeconds(4)));
+                Assert.IsTrue(await ch.WaitForConfirms(TimeSpan.FromSeconds(4)));
             });
         }
 
         [Test]
-        public void TestWaitForConfirmsWithTimeout_AllMessagesAcked_WaitingHasTimedout_ReturnTrue()
+        public async ValueTask TestWaitForConfirmsWithTimeout_AllMessagesAcked_WaitingHasTimedout_ReturnTrue()
         {
-            TestWaitForConfirms(200, (ch) =>
+            await TestWaitForConfirms(2000, (ch) =>
             {
-                Assert.IsTrue(ch.WaitForConfirms(TimeSpan.FromMilliseconds(1)));
+                Assert.ThrowsAsync<TimeoutException>(async () => await ch.WaitForConfirms(TimeSpan.FromMilliseconds(1)));
+                return default;
             });
         }
 
         [Test]
-        public void TestWaitForConfirmsWithTimeout_MessageNacked_WaitingHasTimedout_ReturnFalse()
+        public async ValueTask TestWaitForConfirmsWithTimeout_MessageNacked_WaitingHasTimedout_ReturnFalse()
         {
-            TestWaitForConfirms(200, (ch) =>
+            await TestWaitForConfirms(200, async (ch) =>
             {
-                BasicGetResult message = ch.BasicGet(QueueName, false);
+                BasicGetResult message = await ch.BasicGet(QueueName, false);
 
                 var fullModel = ch as IFullModel;
-                fullModel.HandleBasicNack(message.DeliveryTag, false, false);
+                await fullModel.HandleBasicNack(message.DeliveryTag, false, false);
 
-                Assert.IsFalse(ch.WaitForConfirms(TimeSpan.FromMilliseconds(1)));
+                Assert.IsFalse(await ch.WaitForConfirms(TimeSpan.FromMilliseconds(1)));
             });
         }
 
         [Test]
-        public void TestWaitForConfirmsWithEvents()
+        public async ValueTask TestWaitForConfirmsWithEvents()
         {
-            IModel ch = Conn.CreateModel();
-            ch.ConfirmSelect();
+            IModel ch = await Conn.CreateModel();
+            await ch.ConfirmSelect();
 
-            ch.QueueDeclare(QueueName);
+            await ch.QueueDeclare(QueueName);
             int n = 200;
             // number of event handler invocations
             int c = 0;
@@ -112,10 +113,10 @@ namespace RabbitMQ.Client.Unit
             {
                 for (int i = 0; i < n; i++)
                 {
-                    ch.BasicPublish("", QueueName, null, encoding.GetBytes("msg"));
+                    await ch.BasicPublish("", QueueName, null, encoding.GetBytes("msg"));
                 }
-                Thread.Sleep(TimeSpan.FromSeconds(1));
-                ch.WaitForConfirms(TimeSpan.FromSeconds(5));
+                await Task.Delay(TimeSpan.FromSeconds(1));
+                await ch.WaitForConfirms(TimeSpan.FromSeconds(5));
 
                 // Note: number of event invocations is not guaranteed
                 // to be equal to N because acks can be batched,
@@ -125,31 +126,31 @@ namespace RabbitMQ.Client.Unit
             }
             finally
             {
-                ch.QueueDelete(QueueName);
-                ch.Close();
+                await ch.QueueDelete(QueueName);
+                await ch.Close();
             }
         }
 
-        protected void TestWaitForConfirms(int numberOfMessagesToPublish, Action<IModel> fn)
+        protected async ValueTask TestWaitForConfirms(int numberOfMessagesToPublish, Func<IModel, ValueTask> fn)
         {
-            IModel ch = Conn.CreateModel();
-            ch.ConfirmSelect();
+            IModel ch = await Conn.CreateModel();
+            await ch.ConfirmSelect();
 
-            ch.QueueDeclare(QueueName);
+            await ch.QueueDeclare(QueueName);
 
             for (int i = 0; i < numberOfMessagesToPublish; i++)
             {
-                ch.BasicPublish("", QueueName, null, encoding.GetBytes("msg"));
+                await ch.BasicPublish("", QueueName, null, encoding.GetBytes("msg"));
             }
 
             try
             {
-                fn(ch);
+                await fn(ch);
             }
             finally
             {
-                ch.QueueDelete(QueueName);
-                ch.Close();
+                await ch.QueueDelete(QueueName);
+                await ch.Close();
             }
         }
     }

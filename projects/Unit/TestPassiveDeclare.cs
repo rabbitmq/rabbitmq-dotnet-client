@@ -52,15 +52,15 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestPassiveExchangeDeclareWhenExchangeDoesNotExist()
         {
-            Assert.Throws(Is.InstanceOf<OperationInterruptedException>(),
-                () => Model.ExchangeDeclarePassive(Guid.NewGuid().ToString()));
+            Assert.ThrowsAsync(Is.InstanceOf<OperationInterruptedException>(),
+                async () => await Model.ExchangeDeclarePassive(Guid.NewGuid().ToString()));
         }
 
         [Test]
         public void TestPassiveQueueDeclareWhenQueueDoesNotExist()
         {
-            Assert.Throws(Is.InstanceOf<OperationInterruptedException>(),
-                () => Model.QueueDeclarePassive(Guid.NewGuid().ToString()));
+            Assert.ThrowsAsync(Is.InstanceOf<OperationInterruptedException>(),
+                async () => await Model.QueueDeclarePassive(Guid.NewGuid().ToString()));
         }
     }
 }

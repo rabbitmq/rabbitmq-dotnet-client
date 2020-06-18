@@ -40,7 +40,7 @@
 
 using System;
 using System.Collections.Generic;
-
+using System.Threading.Tasks;
 using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client
@@ -101,7 +101,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Create a connection to the specified endpoint.
         /// </summary>
-        IConnection CreateConnection();
+        ValueTask<IConnection> CreateConnection();
 
         /// <summary>
         /// Create a connection to the specified endpoint.
@@ -113,14 +113,14 @@ namespace RabbitMQ.Client
         /// This value is supposed to be human-readable.
         /// </param>
         /// <returns>Open connection</returns>
-        IConnection CreateConnection(string clientProvidedName);
+        ValueTask<IConnection> CreateConnection(string clientProvidedName);
 
         /// <summary>
         /// Connects to the first reachable hostname from the list.
         /// </summary>
         /// <param name="hostnames">List of host names to use</param>
         /// <returns>Open connection</returns>
-        IConnection CreateConnection(IList<string> hostnames);
+        ValueTask<IConnection> CreateConnection(IList<string> hostnames);
 
         /// <summary>
         /// Connects to the first reachable hostname from the list.
@@ -133,7 +133,7 @@ namespace RabbitMQ.Client
         /// This value is supposed to be human-readable.
         /// </param>
         /// <returns>Open connection</returns>
-        IConnection CreateConnection(IList<string> hostnames, string clientProvidedName);
+        ValueTask<IConnection> CreateConnection(IList<string> hostnames, string clientProvidedName);
 
         /// <summary>
         /// Create a connection using a list of endpoints.
@@ -147,7 +147,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints);
+        ValueTask<IConnection> CreateConnection(IList<AmqpTcpEndpoint> endpoints);
 
         /// <summary>
         /// Create a connection using a list of endpoints.
@@ -167,7 +167,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints, string clientProvidedName);
+        ValueTask<IConnection> CreateConnection(IList<AmqpTcpEndpoint> endpoints, string clientProvidedName);
 
         /// <summary>
         /// Amount of time protocol handshake operations are allowed to take before

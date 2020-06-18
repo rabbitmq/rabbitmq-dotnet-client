@@ -38,6 +38,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System.Threading.Tasks;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
@@ -55,7 +56,7 @@ namespace RabbitMQ.Client.Impl
             m_reason = reason;
         }
 
-        public override void HandleFrame(in InboundFrame frame)
+        public override ValueTask HandleFrame(in InboundFrame frame)
         {
             if (frame.IsMethod())
             {
@@ -66,7 +67,7 @@ namespace RabbitMQ.Client.Impl
                     // This is the reply we were looking for. Release
                     // the channel with the reason we were passed in
                     // our constructor.
-                    Close(m_reason);
+                    return Close(m_reason);
                 }
                 else if ((method.ProtocolClassId == ClassConstants.Channel)
                          && (method.ProtocolMethodId == ChannelMethodConstants.Close))
@@ -76,6 +77,8 @@ namespace RabbitMQ.Client.Impl
                     Transmit(CreateChannelCloseOk());
                 }
             }
+
+            return default;
 
             // Either a non-method frame, or not what we were looking
             // for. Ignore it - we're quiescing.

@@ -45,19 +45,20 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 
 using NUnit.Framework;
 
-using RabbitMQ.Client.Framing;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Unit
 {
 
-    public class IntegrationFixture
+    public class IntegrationFixture : IDisposable
     {
         internal IConnectionFactory ConnFactory;
         internal IConnection Conn;
@@ -67,26 +68,35 @@ namespace RabbitMQ.Client.Unit
         public static TimeSpan RECOVERY_INTERVAL = TimeSpan.FromSeconds(2);
 
         [SetUp]
-        public virtual void Init()
+        public virtual async ValueTask Init()
         {
+
             ConnFactory = new ConnectionFactory();
-            Conn = ConnFactory.CreateConnection();
-            Model = Conn.CreateModel();
+            ConnFactory.ClientProvidedName = GetType().Name;
+            Conn = await ConnFactory.CreateConnection();
+            Model = await Conn.CreateModel();
         }
 
         [TearDown]
-        public void Dispose()
+
+        public async ValueTask TearDown()
         {
-            if(Model.IsOpen)
+            if (Model.IsOpen)
             {
-                Model.Close();
+                await Model.Close();
             }
-            if(Conn.IsOpen)
+
+            if (Conn.IsOpen)
             {
-                Conn.Close();
+                await Conn.Close();
             }
 
             ReleaseResources();
+        }
+
+        public void Dispose()
+        {
+
         }
 
         protected virtual void ReleaseResources()
@@ -98,40 +108,28 @@ namespace RabbitMQ.Client.Unit
         // Connections
         //
 
-        internal AutorecoveringConnection CreateAutorecoveringConnection()
+        internal ValueTask<AutorecoveringConnection> CreateAutorecoveringConnection([CallerMemberName] string name = "")
         {
-            return CreateAutorecoveringConnection(RECOVERY_INTERVAL);
+            return CreateAutorecoveringConnection(RECOVERY_INTERVAL, name);
         }
 
-        internal AutorecoveringConnection CreateAutorecoveringConnection(IList<string> hostnames)
+        internal ValueTask<AutorecoveringConnection> CreateAutorecoveringConnection(IList<string> hostnames, [CallerMemberName] string name = "")
         {
-            return CreateAutorecoveringConnection(RECOVERY_INTERVAL, hostnames);
+            return CreateAutorecoveringConnection(RECOVERY_INTERVAL, hostnames, name);
         }
 
-        internal AutorecoveringConnection CreateAutorecoveringConnection(TimeSpan interval)
-        {
-            var cf = new ConnectionFactory
-            {
-                AutomaticRecoveryEnabled = true,
-                NetworkRecoveryInterval = interval
-            };
-            return (AutorecoveringConnection)cf.CreateConnection($"UNIT_CONN:{Guid.NewGuid()}");
-        }
-
-        internal AutorecoveringConnection CreateAutorecoveringConnection(TimeSpan interval, IList<string> hostnames)
+        internal async ValueTask<AutorecoveringConnection> CreateAutorecoveringConnection(TimeSpan interval, [CallerMemberName] string name = "")
         {
             var cf = new ConnectionFactory
             {
                 AutomaticRecoveryEnabled = true,
-                // tests that use this helper will likely list unreachable hosts,
-                // make sure we time out quickly on those
-                RequestedConnectionTimeout = TimeSpan.FromSeconds(1),
-                NetworkRecoveryInterval = interval
+                NetworkRecoveryInterval = interval,
+                ClientProvidedName = name
             };
-            return (AutorecoveringConnection)cf.CreateConnection(hostnames, $"UNIT_CONN:{Guid.NewGuid()}");
+            return (AutorecoveringConnection)await cf.CreateConnection();
         }
 
-        internal AutorecoveringConnection CreateAutorecoveringConnection(IList<AmqpTcpEndpoint> endpoints)
+        internal async ValueTask<AutorecoveringConnection> CreateAutorecoveringConnection(TimeSpan interval, IList<string> hostnames, string name)
         {
             var cf = new ConnectionFactory
             {
@@ -139,12 +137,27 @@ namespace RabbitMQ.Client.Unit
                 // tests that use this helper will likely list unreachable hosts,
                 // make sure we time out quickly on those
                 RequestedConnectionTimeout = TimeSpan.FromSeconds(1),
-                NetworkRecoveryInterval = RECOVERY_INTERVAL
+                NetworkRecoveryInterval = interval,
+                ClientProvidedName = name
             };
-            return (AutorecoveringConnection)cf.CreateConnection(endpoints, $"UNIT_CONN:{Guid.NewGuid()}");
+            return (AutorecoveringConnection)await cf.CreateConnection(hostnames);
         }
 
-        internal AutorecoveringConnection CreateAutorecoveringConnectionWithTopologyRecoveryDisabled()
+        internal async ValueTask<AutorecoveringConnection> CreateAutorecoveringConnection(IList<AmqpTcpEndpoint> endpoints, [CallerMemberName] string name = "")
+        {
+            var cf = new ConnectionFactory
+            {
+                AutomaticRecoveryEnabled = true,
+                // tests that use this helper will likely list unreachable hosts,
+                // make sure we time out quickly on those
+                RequestedConnectionTimeout = TimeSpan.FromSeconds(1),
+                NetworkRecoveryInterval = RECOVERY_INTERVAL,
+                ClientProvidedName = name
+            };
+            return (AutorecoveringConnection)await cf.CreateConnection(endpoints);
+        }
+
+        internal async ValueTask<AutorecoveringConnection> CreateAutorecoveringConnectionWithTopologyRecoveryDisabled([CallerMemberName] string name = "")
         {
             var cf = new ConnectionFactory
             {
@@ -152,10 +165,11 @@ namespace RabbitMQ.Client.Unit
                 TopologyRecoveryEnabled = false,
                 NetworkRecoveryInterval = RECOVERY_INTERVAL
             };
-            return (AutorecoveringConnection)cf.CreateConnection($"UNIT_CONN:{Guid.NewGuid()}");
+
+            return (AutorecoveringConnection)await cf.CreateConnection(name);
         }
 
-        internal IConnection CreateNonRecoveringConnection()
+        internal ValueTask<IConnection> CreateNonRecoveringConnection()
         {
             var cf = new ConnectionFactory
             {
@@ -165,7 +179,7 @@ namespace RabbitMQ.Client.Unit
             return cf.CreateConnection($"UNIT_CONN:{Guid.NewGuid()}");
         }
 
-        internal IConnection CreateConnectionWithContinuationTimeout(bool automaticRecoveryEnabled, TimeSpan continuationTimeout)
+        internal ValueTask<IConnection> CreateConnectionWithContinuationTimeout(bool automaticRecoveryEnabled, TimeSpan continuationTimeout)
         {
             var cf = new ConnectionFactory
             {
@@ -179,31 +193,31 @@ namespace RabbitMQ.Client.Unit
         // Channels
         //
 
-        internal void WithTemporaryAutorecoveringConnection(Action<AutorecoveringConnection> action)
+        internal async ValueTask WithTemporaryAutorecoveringConnection(Action<AutorecoveringConnection> action)
         {
             var factory = new ConnectionFactory
             {
                 AutomaticRecoveryEnabled = true
             };
 
-            var connection = (AutorecoveringConnection)factory.CreateConnection($"UNIT_CONN:{Guid.NewGuid()}");
+            var connection = (AutorecoveringConnection)await factory.CreateConnection($"UNIT_CONN:{Guid.NewGuid()}");
             try
             {
                 action(connection);
             }
             finally
             {
-                connection.Abort();
+                await connection.Abort();
             }
         }
 
-        internal void WithTemporaryModel(IConnection connection, Action<IModel> action)
+        internal async ValueTask WithTemporaryModel(IConnection connection, Func<IModel, ValueTask> action)
         {
-            IModel model = connection.CreateModel();
+            IModel model = await connection.CreateModel();
 
             try
             {
-                action(model);
+                await action(model);
             }
             finally
             {
@@ -211,13 +225,13 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        internal void WithTemporaryModel(Action<IModel> action)
+        internal async ValueTask WithTemporaryModel(Func<IModel, ValueTask> action)
         {
-            IModel model = Conn.CreateModel();
+            IModel model = await Conn.CreateModel();
 
             try
             {
-                action(model);
+                await action(model);
             }
             finally
             {
@@ -225,15 +239,15 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        internal void WithClosedModel(Action<IModel> action)
+        internal async ValueTask WithClosedModel(Func<IModel, ValueTask> action)
         {
-            IModel model = Conn.CreateModel();
-            model.Close();
+            IModel model = await Conn.CreateModel();
+            await model.Close();
 
-            action(model);
+            await action(model);
         }
 
-        internal bool WaitForConfirms(IModel m)
+        internal ValueTask<bool> WaitForConfirms(IModel m)
         {
             return m.WaitForConfirms(TimeSpan.FromSeconds(4));
         }
@@ -270,122 +284,122 @@ namespace RabbitMQ.Client.Unit
 
         internal string GenerateQueueName()
         {
-            return $"queue{Guid.NewGuid().ToString()}";
+            return $"queue{Guid.NewGuid()}";
         }
 
-        internal void WithTemporaryQueue(Action<IModel, string> action)
+        internal async ValueTask WithTemporaryQueue(Func<IModel, string, ValueTask> action)
         {
-            WithTemporaryQueue(Model, action);
+            await WithTemporaryQueue(Model, action);
         }
 
-        internal void WithTemporaryNonExclusiveQueue(Action<IModel, string> action)
+        internal async ValueTask WithTemporaryNonExclusiveQueue(Func<IModel, string, ValueTask> action)
         {
-            WithTemporaryNonExclusiveQueue(Model, action);
+            await WithTemporaryNonExclusiveQueue(Model, action);
         }
 
-        internal void WithTemporaryQueue(IModel model, Action<IModel, string> action)
+        internal async ValueTask WithTemporaryQueue(IModel model, Func<IModel, string, ValueTask> action)
         {
-            WithTemporaryQueue(model, action, GenerateQueueName());
+            await WithTemporaryQueue(model, action, GenerateQueueName());
         }
 
-        internal void WithTemporaryNonExclusiveQueue(IModel model, Action<IModel, string> action)
+        internal async ValueTask WithTemporaryNonExclusiveQueue(IModel model, Func<IModel, string, ValueTask> action)
         {
-            WithTemporaryNonExclusiveQueue(model, action, GenerateQueueName());
+            await WithTemporaryNonExclusiveQueue(model, action, GenerateQueueName());
         }
 
-        internal void WithTemporaryQueue(Action<IModel, string> action, string q)
+        internal async ValueTask WithTemporaryQueue(Func<IModel, string, ValueTask> action, string q)
         {
-            WithTemporaryQueue(Model, action, q);
+            await WithTemporaryQueue(Model, action, q);
         }
 
-        internal void WithTemporaryQueue(IModel model, Action<IModel, string> action, string queue)
-        {
-            try
-            {
-                model.QueueDeclare(queue, false, true, false, null);
-                action(model, queue);
-            } finally
-            {
-                WithTemporaryModel(x => x.QueueDelete(queue));
-            }
-        }
-
-        internal void WithTemporaryNonExclusiveQueue(IModel model, Action<IModel, string> action, string queue)
+        internal async ValueTask WithTemporaryQueue(IModel model, Func<IModel, string, ValueTask> action, string queue)
         {
             try
             {
-                model.QueueDeclare(queue, false, false, false, null);
-                action(model, queue);
+                await model.QueueDeclare(queue, false, true, false, null);
+                await action(model, queue);
             } finally
             {
-                WithTemporaryModel(tm => tm.QueueDelete(queue));
+                await WithTemporaryModel(async x => await x.QueueDelete(queue));
             }
         }
 
-        internal void WithTemporaryQueueNoWait(IModel model, Action<IModel, string> action, string queue)
+        internal async ValueTask WithTemporaryNonExclusiveQueue(IModel model, Func<IModel, string, ValueTask> action, string queue)
         {
             try
             {
-                model.QueueDeclareNoWait(queue, false, true, false, null);
-                action(model, queue);
+                await model.QueueDeclare(queue, false, false, false, null);
+                await action(model, queue);
             } finally
             {
-                WithTemporaryModel(x => x.QueueDelete(queue));
+                await WithTemporaryModel(async tm => await tm.QueueDelete(queue));
             }
         }
 
-        internal void EnsureNotEmpty(string q)
+        internal async ValueTask WithTemporaryQueueNoWait(IModel model, Func<IModel, string, ValueTask> action, string queue)
         {
-            EnsureNotEmpty(q, "msg");
-        }
-
-        internal void EnsureNotEmpty(string q, string body)
-        {
-            WithTemporaryModel(x => x.BasicPublish("", q, null, encoding.GetBytes(body)));
-        }
-
-        internal void WithNonEmptyQueue(Action<IModel, string> action)
-        {
-            WithNonEmptyQueue(action, "msg");
-        }
-
-        internal void WithNonEmptyQueue(Action<IModel, string> action, string msg)
-        {
-            WithTemporaryNonExclusiveQueue((m, q) =>
+            try
             {
-                EnsureNotEmpty(q, msg);
-                action(m, q);
+                await model.QueueDeclareNoWait(queue, false, true, false, null);
+                await action(model, queue);
+            } finally
+            {
+                await WithTemporaryModel(async x => await x.QueueDelete(queue));
+            }
+        }
+
+        internal async ValueTask EnsureNotEmpty(string q)
+        {
+            await EnsureNotEmpty(q, "msg");
+        }
+
+        internal async ValueTask EnsureNotEmpty(string q, string body)
+        {
+            await WithTemporaryModel(async x => { await x.BasicPublish("", q, null, encoding.GetBytes(body)); await Task.Delay(100);; });
+        }
+
+        internal async ValueTask WithNonEmptyQueue(Func<IModel, string, ValueTask> action)
+        {
+            await WithNonEmptyQueue(action, "msg");
+        }
+
+        internal async ValueTask WithNonEmptyQueue(Func<IModel, string, ValueTask> action, string msg)
+        {
+            await WithTemporaryNonExclusiveQueue(async (m, q) =>
+            {
+                await EnsureNotEmpty(q, msg);
+                await action(m, q);
             });
         }
 
-        internal void WithEmptyQueue(Action<IModel, string> action)
+        internal async ValueTask WithEmptyQueue(Func<IModel, string, ValueTask> action)
         {
-            WithTemporaryNonExclusiveQueue((model, queue) =>
+            await WithTemporaryNonExclusiveQueue(async (model, queue) =>
             {
-                model.QueuePurge(queue);
-                action(model, queue);
+                await model.QueuePurge(queue);
+                await action(model, queue);
             });
         }
 
-        internal void AssertMessageCount(string q, int count)
+        internal async ValueTask AssertMessageCount(string q, int count)
         {
-            WithTemporaryModel((m) => {
-                QueueDeclareOk ok = m.QueueDeclarePassive(q);
+            await WithTemporaryModel(async (m) => {
+                QueueDeclareOk ok = await m.QueueDeclarePassive(q);
                 Assert.AreEqual(count, ok.MessageCount);
             });
         }
 
-        internal void AssertConsumerCount(string q, int count)
+        internal async ValueTask AssertConsumerCount(string q, int count)
         {
-            WithTemporaryModel((m) => {
-                QueueDeclareOk ok = m.QueueDeclarePassive(q);
+            await WithTemporaryModel(async (m) => {
+                QueueDeclareOk ok = await m.QueueDeclarePassive(q);
                 Assert.AreEqual(count, ok.ConsumerCount);
             });
         }
 
-        internal void AssertConsumerCount(IModel m, string q, int count)
+        internal async ValueTask AssertConsumerCount(IModel m, string q, int count)
         {
-            QueueDeclareOk ok = m.QueueDeclarePassive(q);
+            QueueDeclareOk ok = await m.QueueDeclarePassive(q);
             Assert.AreEqual(count, ok.ConsumerCount);
         }
 
@@ -578,12 +592,12 @@ namespace RabbitMQ.Client.Unit
         // Flow Control
         //
 
-        internal void Block()
+        internal async ValueTask Block()
         {
             ExecRabbitMQCtl("set_vm_memory_high_watermark 0.000000001");
             // give rabbitmqctl some time to do its job
-            Thread.Sleep(1200);
-            Publish(Conn);
+            await Task.Delay(1200);
+            await Publish(Conn);
         }
 
         internal void Unblock()
@@ -591,10 +605,10 @@ namespace RabbitMQ.Client.Unit
             ExecRabbitMQCtl("set_vm_memory_high_watermark 0.4");
         }
 
-        internal void Publish(IConnection conn)
+        internal async ValueTask Publish(IConnection conn)
         {
-            IModel ch = conn.CreateModel();
-            ch.BasicPublish("amq.fanout", "", null, encoding.GetBytes("message"));
+            IModel ch = await conn.CreateModel();
+            await ch.BasicPublish("amq.fanout", "", null, encoding.GetBytes("message"));
         }
 
         //
@@ -698,7 +712,7 @@ namespace RabbitMQ.Client.Unit
 
         internal void Wait(ManualResetEventSlim latch)
         {
-            Assert.IsTrue(latch.Wait(TimeSpan.FromSeconds(10)), "waiting on a latch timed out");
+            Assert.IsTrue(latch.Wait(TimeSpan.FromSeconds(20)), "waiting on a latch timed out");
         }
 
         internal void Wait(ManualResetEventSlim latch, TimeSpan timeSpan)

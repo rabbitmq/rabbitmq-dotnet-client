@@ -39,6 +39,8 @@
 //---------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
+
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Util;
@@ -106,7 +108,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public void HandleSessionShutdown(object sender, ShutdownEventArgs reason)
+        public ValueTask HandleSessionShutdown(object sender, ShutdownEventArgs reason)
         {
             lock (_sessionMap)
             {
@@ -114,6 +116,7 @@ namespace RabbitMQ.Client.Impl
                 _sessionMap.Remove(session.ChannelNumber);
                 _ints.Free(session.ChannelNumber);
             }
+            return default;
         }
 
         public ISession Lookup(int number)

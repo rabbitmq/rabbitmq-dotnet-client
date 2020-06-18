@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Events
 {
-    public class AsyncEventingBasicConsumer : AsyncDefaultBasicConsumer
+    public class AsyncEventingBasicConsumer : DefaultBasicConsumer
     {
         ///<summary>Constructor which sets the Model property to the
         ///given value.</summary>
@@ -31,31 +34,134 @@ namespace RabbitMQ.Client.Events
         public event AsyncEventHandler<ConsumerEventArgs> Unregistered;
 
         ///<summary>Fires when the server confirms successful consumer cancelation.</summary>
-        public override async Task HandleBasicCancelOk(string consumerTag)
+        public override async ValueTask HandleBasicCancelOk(string consumerTag)
         {
-            await base.HandleBasicCancelOk(consumerTag).ConfigureAwait(false);
-            await Unregistered.InvokeAsync(this, new ConsumerEventArgs(new[] { consumerTag })).ConfigureAwait(false);
+            ValueTask baseTask = base.HandleBasicCancelOk(consumerTag);
+            if(!baseTask.IsCompletedSuccessfully)
+            {
+                await baseTask.ConfigureAwait(false);
+            }
+
+            if (Unregistered != null)
+            {
+                var args = new ConsumerEventArgs(new[] { consumerTag });
+                foreach (AsyncEventHandler<ConsumerEventArgs> handlerInstance in Unregistered.GetInvocationList())
+                {
+                    try
+                    {
+                        ValueTask handlerTask = handlerInstance(this, args);
+                        if (!handlerTask.IsCompletedSuccessfully)
+                        {
+                            await handlerTask.ConfigureAwait(false);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        if (Model is ModelBase modelBase)
+                        {
+                            modelBase.OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object> { { "consumer", this } }));
+                        }
+                    }
+                }
+            }
         }
 
         ///<summary>Fires when the server confirms successful consumer registration.</summary>
-        public override async Task HandleBasicConsumeOk(string consumerTag)
+        public override async ValueTask HandleBasicConsumeOk(string consumerTag)
         {
-            await base.HandleBasicConsumeOk(consumerTag).ConfigureAwait(false);
-            await Registered.InvokeAsync(this, new ConsumerEventArgs(new[] { consumerTag })).ConfigureAwait(false);
+            ValueTask baseTask = base.HandleBasicConsumeOk(consumerTag);
+            if (!baseTask.IsCompletedSuccessfully)
+            {
+                await baseTask.ConfigureAwait(false);
+            }
+
+            if (Registered != null)
+            {
+                var args = new ConsumerEventArgs(new[] { consumerTag });
+                foreach (AsyncEventHandler<ConsumerEventArgs> handlerInstance in Registered.GetInvocationList())
+                {
+                    try
+                    {
+                        ValueTask handlerTask = handlerInstance(this, args);
+                        if (!handlerTask.IsCompletedSuccessfully)
+                        {
+                            await handlerTask.ConfigureAwait(false);
+                        }
+                    }
+                    catch(Exception e)
+                    {
+                        if(Model is ModelBase modelBase)
+                        {
+                            modelBase.OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object> { { "consumer", this } }));
+                        }
+                    }
+                }
+            }
         }
 
         ///<summary>Fires the Received event.</summary>
-        public override async Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, IBasicProperties properties, ReadOnlyMemory<byte> body)
+        public override async ValueTask HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, IBasicProperties properties, ReadOnlyMemory<byte> body)
         {
-            await base.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body).ConfigureAwait(false);
-            await Received.InvokeAsync(this, new BasicDeliverEventArgs(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body)).ConfigureAwait(false);
+            ValueTask baseTask = base.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
+            if (!baseTask.IsCompletedSuccessfully)
+            {
+                await baseTask.ConfigureAwait(false);
+            }
+
+            if (Received != null)
+            {
+                var args = new BasicDeliverEventArgs(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
+                foreach (AsyncEventHandler<BasicDeliverEventArgs> handlerInstance in Received.GetInvocationList())
+                {
+                    try
+                    {
+                        ValueTask handlerTask = handlerInstance(this, args);
+                        if (!handlerTask.IsCompletedSuccessfully)
+                        {
+                            await handlerTask.ConfigureAwait(false);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        if (Model is ModelBase modelBase)
+                        {
+                            modelBase.OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object> { { "consumer", this } }));
+                        }
+                    }
+                }
+            }
         }
 
         ///<summary>Fires the Shutdown event.</summary>
-        public override async Task HandleModelShutdown(object model, ShutdownEventArgs reason)
+        public override async ValueTask HandleModelShutdown(object model, ShutdownEventArgs reason)
         {
-            await base.HandleModelShutdown(model, reason).ConfigureAwait(false);
-            await Shutdown.InvokeAsync(this, reason).ConfigureAwait(false);
+            ValueTask baseTask = base.HandleModelShutdown(model, reason);
+            if (!baseTask.IsCompletedSuccessfully)
+            {
+                await baseTask.ConfigureAwait(false);
+            }
+
+            if (Shutdown != null)
+            {
+                foreach (AsyncEventHandler<ShutdownEventArgs> handlerInstance in Shutdown.GetInvocationList())
+                {
+                    try
+                    {
+                        ValueTask handlerTask = handlerInstance(this, reason);
+                        if (!handlerTask.IsCompletedSuccessfully)
+                        {
+                            await handlerTask.ConfigureAwait(false);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        if (Model is ModelBase modelBase)
+                        {
+                            modelBase.OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object> { { "consumer", this } }));
+                        }
+                    }
+                }
+            }
         }
     }
 }

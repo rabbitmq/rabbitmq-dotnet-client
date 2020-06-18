@@ -38,9 +38,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-using System.Buffers;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 using RabbitMQ.Client.Framing.Impl;
 
@@ -68,9 +67,9 @@ namespace RabbitMQ.Client.Impl
             _commands.Add(new Command(method, (ContentHeaderBase)bp, body, false));
         }
 
-        public void Publish()
+        public ValueTask Publish()
         {
-            _model.SendCommands(_commands);
+            return _model.SendCommands(_commands);
         }
     }
 }

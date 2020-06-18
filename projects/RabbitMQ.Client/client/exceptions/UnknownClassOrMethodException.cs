@@ -38,8 +38,6 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using RabbitMQ.Client.Framing;
-
 namespace RabbitMQ.Client.Exceptions
 {
     /// <summary>
@@ -61,10 +59,7 @@ namespace RabbitMQ.Client.Exceptions
         ///<summary>The AMQP method ID within the content-class, or 0 if none.</summary>
         public ushort MethodId { get; private set; }
 
-        public override ushort ReplyCode
-        {
-            get { return Constants.NotImplemented; }
-        }
+        public override ushort ReplyCode => Constants.NotImplemented;
 
         public override string ToString()
         {

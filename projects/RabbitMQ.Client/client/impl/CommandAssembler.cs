@@ -40,6 +40,7 @@
 
 using System;
 using System.Buffers;
+
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Util;
@@ -129,6 +130,11 @@ namespace RabbitMQ.Client.Impl
             {
                 Command result = new Command(m_method, m_header, m_body, true);
                 Reset();
+                if(RabbitMQDiagnosticListener.Source.IsEnabled() && RabbitMQDiagnosticListener.Source.IsEnabled("RabbitMQ.Client.CommandReceived"))
+                {
+                    RabbitMQDiagnosticListener.Source.Write("RabbitMQ.Client.CommandReceived", new { Command = result });
+                }
+
                 return result;
             }
             else

@@ -45,10 +45,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// The name of the authentication mechanism, as negotiated on the wire.
         /// </summary>
-        public string Name
-        {
-            get { return "EXTERNAL"; }
-        }
+        public string Name => "EXTERNAL";
 
         /// <summary>
         /// Return a new authentication mechanism implementation.

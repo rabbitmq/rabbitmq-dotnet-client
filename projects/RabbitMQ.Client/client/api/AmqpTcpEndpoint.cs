@@ -166,10 +166,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Retrieve IProtocol of this <see cref="AmqpTcpEndpoint"/>.
         /// </summary>
-        public IProtocol Protocol
-        {
-            get { return Protocols.DefaultProtocol; }
-        }
+        public IProtocol Protocol => Protocols.DefaultProtocol;
 
         /// <summary>
         /// Used to force the address family of the endpoint.

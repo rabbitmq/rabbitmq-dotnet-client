@@ -39,7 +39,12 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
+using System.Threading.Tasks.Sources;
+
+using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -52,20 +57,16 @@ namespace RabbitMQ.Client.Impl
     /// under a somewhat generous reading.
     ///</para>
     ///</remarks>
-    class RpcContinuationQueue
+    class RpcContinuationQueue : IValueTaskSource<Command>, IValueTaskSource
     {
-        private class EmptyRpcContinuation : IRpcContinuation
+        private readonly ISession _session;
+        private readonly SemaphoreSlim _continuationLock = new SemaphoreSlim(1, 1);
+        public RpcContinuationQueue(ISession session)
         {
-            public void HandleCommand(Command cmd)
-            {
-            }
-
-            public void HandleModelShutdown(ShutdownEventArgs reason)
-            {
-            }
+            _session = session;
         }
-        static readonly EmptyRpcContinuation s_tmp = new EmptyRpcContinuation();
-        IRpcContinuation _outstandingRpc = s_tmp;
+
+        private ManualResetValueTaskSourceCore<Command> _vts = new ManualResetValueTaskSourceCore<Command>() { RunContinuationsAsynchronously = true };
 
         ///<summary>Enqueue a continuation, marking a pending RPC.</summary>
         ///<remarks>
@@ -79,13 +80,38 @@ namespace RabbitMQ.Client.Impl
         /// NotSupportedException being thrown.
         ///</para>
         ///</remarks>
-        public void Enqueue(IRpcContinuation k)
+        public async ValueTask<T> SendAndReceiveAsync<T>(Command command, TimeSpan timeout = default) where T : MethodBase
         {
-            IRpcContinuation result = Interlocked.CompareExchange(ref _outstandingRpc, k, s_tmp);
-            if (!(result is EmptyRpcContinuation))
+            Command response = await SendAndReceiveAsync(command, timeout).ConfigureAwait(false);
+            return (response.Method as T) ?? throw new UnexpectedMethodException(response.Method);
+        }
+
+        public async ValueTask<T> SendAndReceiveAsync<T>(MethodBase method, TimeSpan timeout = default) where T : MethodBase
+        {
+            Command response = await SendAndReceiveAsync(new Command(method), timeout).ConfigureAwait(false);
+            return (response.Method as T) ?? throw new UnexpectedMethodException(response.Method);
+        }
+
+        public ValueTask<Command> SendAndReceiveAsync(Command command, TimeSpan timeout = default)
+        {
+            return _continuationLock.Wait(0) ? GetAwaiter(command, timeout) : SendAndReceiveAsyncSlow(command, timeout);
+        }
+
+        private async ValueTask<Command> SendAndReceiveAsyncSlow(Command command, TimeSpan timeout = default)
+        {
+            if (timeout != default)
             {
-                throw new NotSupportedException("Pipelining of requests forbidden");
+                var timer = Stopwatch.StartNew();
+                if (await _continuationLock.WaitAsync(timeout).ConfigureAwait(false))
+                {
+                    return await GetAwaiter(command, timeout - timer.Elapsed).ConfigureAwait(false);
+                }
+
+                throw new TimeoutException();
             }
+
+            await _continuationLock.WaitAsync().ConfigureAwait(false);
+            return await GetAwaiter(command, timeout).ConfigureAwait(false);
         }
 
         ///<summary>Interrupt all waiting continuations.</summary>
@@ -97,24 +123,88 @@ namespace RabbitMQ.Client.Impl
         ///</remarks>
         public void HandleModelShutdown(ShutdownEventArgs reason)
         {
-            Next().HandleModelShutdown(reason);
+            if (_continuationLock.CurrentCount == 0)
+            {
+                // Only set an exception if we have an outstanding task.
+                _vts.SetException(new OperationInterruptedException(reason));
+            }
         }
 
-        ///<summary>Retrieve the next waiting continuation.</summary>
-        ///<remarks>
-        ///<para>
-        /// It is an error to call this method when there are no
-        /// waiting continuations. In the current implementation, if
-        /// this happens, null will be returned (which will usually
-        /// result in an immediate NullPointerException in the
-        /// caller). Correct code will always arrange for a
-        /// continuation to have been Enqueue()d before calling this
-        /// method.
-        ///</para>
-        ///</remarks>
-        public IRpcContinuation Next()
+        public void HandleCommand(Command responseCommand)
         {
-            return Interlocked.Exchange(ref _outstandingRpc, s_tmp);
+            _vts.SetResult(responseCommand);
+        }
+
+        private ValueTask<Command> GetAwaiter(Command command, TimeSpan timeout = default)
+        {
+            _vts.Reset();
+            if (timeout != default)
+            {
+                return GetAwaiterWithTimeout(command, timeout);
+            }
+
+            ValueTask transmitTask = (command is object) ? _session.Transmit(command) : default;
+            if (transmitTask.IsCompletedSuccessfully)
+            {
+                return new ValueTask<Command>(this, _vts.Version);
+            }
+
+            return AwaitTransmitAndCreate(transmitTask);
+        }
+
+        private async ValueTask<Command> AwaitTransmitAndCreate(ValueTask transmitTask)
+        {
+            await transmitTask.ConfigureAwait(false);
+            return await new ValueTask<Command>(this, _vts.Version);
+        }
+
+        private async ValueTask<Command> GetAwaiterWithTimeout(Command command, TimeSpan timeout)
+        {
+            ValueTask transmitTask = (command is object) ? _session.Transmit(command) : default;
+            if (!transmitTask.IsCompletedSuccessfully)
+            {
+                await transmitTask.ConfigureAwait(false);
+            }
+
+            using (CancellationTokenSource cts = new CancellationTokenSource(timeout))
+            using (cts.Token.Register(() => _vts.SetException(new TaskCanceledException())))
+            {
+                try
+                {
+                    return await new ValueTask<Command>(this, _vts.Version).ConfigureAwait(false);
+                }
+                catch (TaskCanceledException)
+                {
+                    throw new TimeoutException();
+                }
+            }
+        }
+
+        public Command GetResult(short token)
+        {
+            try
+            {
+                return _vts.GetResult(token);
+            }
+            finally
+            {
+                _continuationLock.Release();
+            }
+        }
+
+        public ValueTaskSourceStatus GetStatus(short token)
+        {
+            return _vts.GetStatus(token);
+        }
+
+        public void OnCompleted(Action<object> continuation, object state, short token, ValueTaskSourceOnCompletedFlags flags)
+        {
+            _vts.OnCompleted(continuation, state, token, flags);
+        }
+
+        void IValueTaskSource.GetResult(short token)
+        {
+            _vts.GetResult(token);
         }
     }
 }
