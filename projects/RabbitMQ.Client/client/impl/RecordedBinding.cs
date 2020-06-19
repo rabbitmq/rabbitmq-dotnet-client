@@ -54,14 +54,11 @@ namespace RabbitMQ.Client.Impl
         public string RoutingKey { get; protected set; }
         public string Source { get; protected set; }
 
-        public bool Equals(RecordedBinding other)
-        {
-            return other != null &&
+        public bool Equals(RecordedBinding other) => other != null &&
                 Source.Equals(other.Source) &&
                 Destination.Equals(other.Destination) &&
                 RoutingKey.Equals(other.RoutingKey) &&
                 (Arguments == other.Arguments);
-        }
 
         public override bool Equals(object obj)
         {
@@ -80,23 +77,14 @@ namespace RabbitMQ.Client.Impl
             return Equals(other);
         }
 
-        public override int GetHashCode()
-        {
-            return Source.GetHashCode() ^
+        public override int GetHashCode() => Source.GetHashCode() ^
                    Destination.GetHashCode() ^
                    RoutingKey.GetHashCode() ^
                    (Arguments != null ? Arguments.GetHashCode() : 0);
-        }
 
-        public virtual ValueTask Recover()
-        {
-            return default;
-        }
+        public virtual ValueTask Recover() => default;
 
-        public override string ToString()
-        {
-            return $"{GetType().Name}: source = '{Source}', destination = '{Destination}', routingKey = '{RoutingKey}', arguments = '{Arguments}'";
-        }
+        public override string ToString() => $"{GetType().Name}: source = '{Source}', destination = '{Destination}', routingKey = '{RoutingKey}', arguments = '{Arguments}'";
 
         public RecordedBinding WithArguments(IDictionary<string, object> value)
         {
@@ -130,10 +118,7 @@ namespace RabbitMQ.Client.Impl
         {
         }
 
-        public override ValueTask Recover()
-        {
-            return ModelDelegate.QueueBind(Destination, Source, RoutingKey, Arguments);
-        }
+        public override ValueTask Recover() => ModelDelegate.QueueBind(Destination, Source, RoutingKey, Arguments);
     }
 
 
@@ -143,9 +128,6 @@ namespace RabbitMQ.Client.Impl
         {
         }
 
-        public override ValueTask Recover()
-        {
-            return ModelDelegate.ExchangeBind(Destination, Source, RoutingKey, Arguments);
-        }
+        public override ValueTask Recover() => ModelDelegate.ExchangeBind(Destination, Source, RoutingKey, Arguments);
     }
 }

@@ -52,7 +52,7 @@ namespace RabbitMQ.Client.Unit
         [Test, Category("MonoBug")]
         public void TestAmqpUriParseFail()
         {
-            if(IsRunningOnMono() == false)
+            if (IsRunningOnMono() == false)
             {
                 /* Various failure cases */
                 ParseFailWith<ArgumentException>("https://www.rabbitmq.com");
@@ -76,7 +76,7 @@ namespace RabbitMQ.Client.Unit
         [Test, Category("MonoBug")]
         public void TestAmqpUriParseSucceed()
         {
-            if(IsRunningOnMono() == false)
+            if (IsRunningOnMono() == false)
             {
                 /* From the spec */
                 ParseSuccess("amqp://user:pass@host:10000/vhost",
@@ -205,13 +205,12 @@ namespace RabbitMQ.Client.Unit
             Assert.IsTrue(Array.IndexOf(hosts, factory.HostName) != -1);
         }
 
-        public static bool IsRunningOnMono()
-        {
-            #if NETCOREAPP
-            return false;
-            #else
+        public static bool IsRunningOnMono() =>
+#if NETCOREAPP
+            false;
+#else
             return Type.GetType("Mono.Runtime") != null;
-            #endif
-        }
+#endif
+
     }
 }

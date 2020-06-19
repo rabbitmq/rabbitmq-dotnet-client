@@ -42,7 +42,7 @@ using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
 {
-    abstract class BasicProperties : ContentHeaderBase, IBasicProperties
+    internal abstract class BasicProperties : ContentHeaderBase, IBasicProperties
     {
         /// <summary>
         /// Application Id.
@@ -94,8 +94,8 @@ namespace RabbitMQ.Client.Impl
         /// </summary>
         public bool Persistent
         {
-            get { return DeliveryMode == 2; }
-            set { DeliveryMode = value ? (byte)2 : (byte)1; }
+            get => DeliveryMode == 2;
+            set => DeliveryMode = value ? (byte)2 : (byte)1;
         }
 
         /// <summary>
@@ -115,11 +115,12 @@ namespace RabbitMQ.Client.Impl
         /// </summary>
         public PublicationAddress ReplyToAddress
         {
-            get { 
+            get
+            {
                 PublicationAddress.TryParse(ReplyTo, out var result);
                 return result;
             }
-            set { ReplyTo = value.ToString(); }
+            set => ReplyTo = value.ToString();
         }
 
         /// <summary>

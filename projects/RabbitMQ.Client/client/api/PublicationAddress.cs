@@ -145,9 +145,6 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Reconstruct the "uri" from its constituents.
         /// </summary>
-        public override string ToString()
-        {
-            return $"{ExchangeType}://{ExchangeName}/{RoutingKey}";
-        }
+        public override string ToString() => $"{ExchangeType}://{ExchangeName}/{RoutingKey}";
     }
 }

@@ -123,20 +123,14 @@ namespace RabbitMQ.Client
         /// Clones the endpoint.
         /// </summary>
         /// <returns>A copy with the same hostname, port, and TLS settings</returns>
-        public object Clone()
-        {
-            return new AmqpTcpEndpoint(HostName, _port, Ssl);
-        }
+        public object Clone() => new AmqpTcpEndpoint(HostName, _port, Ssl);
 
         /// <summary>
         /// Clones the endpoint using the provided hostname.
         /// </summary>
         /// <param name="hostname">Hostname to use</param>
         /// <returns>A copy with the provided hostname and port/TLS settings of this endpoint</returns>
-        public AmqpTcpEndpoint CloneWithHostname(string hostname)
-        {
-            return new AmqpTcpEndpoint(hostname, _port, Ssl);
-        }
+        public AmqpTcpEndpoint CloneWithHostname(string hostname) => new AmqpTcpEndpoint(hostname, _port, Ssl);
 
         /// <summary>
         /// Retrieve or set the hostname of this <see cref="AmqpTcpEndpoint"/>.
@@ -160,7 +154,7 @@ namespace RabbitMQ.Client
                 }
                 return Protocol.DefaultPort;
             }
-            set { _port = value; }
+            set => _port = value;
         }
 
         /// <summary>
@@ -228,7 +222,7 @@ namespace RabbitMQ.Client
         /// </remarks>
         public static AmqpTcpEndpoint[] ParseMultiple(string addresses)
         {
-            string[] partsArr = addresses.Split(new[] {','});
+            string[] partsArr = addresses.Split(new[] { ',' });
             var results = new List<AmqpTcpEndpoint>();
             foreach (string partRaw in partsArr)
             {
@@ -265,10 +259,7 @@ namespace RabbitMQ.Client
         /// Implementation of hash code depending on protocol, hostname and port,
         /// to line up with the implementation of <see cref="Equals"/>.
         /// </summary>
-        public override int GetHashCode()
-        {
-            return HostName.GetHashCode() ^ Port;
-        }
+        public override int GetHashCode() => HostName.GetHashCode() ^ Port;
 
         /// <summary>
         /// Returns a URI-like string of the form amqp-PROTOCOL://HOSTNAME:PORTNUMBER.
@@ -276,9 +267,6 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// This method is intended mainly for debugging and logging use.
         /// </remarks>
-        public override string ToString()
-        {
-            return $"{(Ssl.Enabled ? "amqps" : "amqp")}://{HostName}:{Port}";
-        }
+        public override string ToString() => $"{(Ssl.Enabled ? "amqps" : "amqp")}://{HostName}:{Port}";
     }
 }

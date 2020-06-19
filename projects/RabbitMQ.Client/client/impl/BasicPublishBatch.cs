@@ -45,14 +45,11 @@ using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
-    class BasicPublishBatch : IBasicPublishBatch
+    internal class BasicPublishBatch : IBasicPublishBatch
     {
         private readonly List<Command> _commands = new List<Command>();
-        private readonly ModelBase _model;
-        internal BasicPublishBatch (ModelBase model)
-        {
-            _model = model;
-        }
+        private readonly Model _model;
+        internal BasicPublishBatch(Model model) => _model = model;
 
         public void Add(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, byte[] body)
         {
@@ -67,9 +64,6 @@ namespace RabbitMQ.Client.Impl
             _commands.Add(new Command(method, (ContentHeaderBase)bp, body, false));
         }
 
-        public ValueTask Publish()
-        {
-            return _model.SendCommands(_commands);
-        }
+        public ValueTask Publish() => _model.SendCommands(_commands);
     }
 }

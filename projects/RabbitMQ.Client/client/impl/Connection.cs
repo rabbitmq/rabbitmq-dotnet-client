@@ -74,7 +74,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private volatile bool _running = true;
 
         private Guid _id = Guid.NewGuid();
-        internal readonly ModelBase _model0;
+        internal readonly Model _model0;
         private readonly MainSession _session0;
         private SessionManager _sessionManager;
 
@@ -95,7 +95,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _frameHandler = frameHandler;
             _sessionManager = new SessionManager(this, 0);
             _session0 = new MainSession(this) { Handler = NotifyReceivedCloseOk };
-            _model0 = (ModelBase)Protocol.CreateModel(_session0);
+            _model0 = (Model)Protocol.CreateModel(_session0);
             _rpcContinuationQueue = new RpcContinuationQueue(_session0);
         }
 
@@ -159,7 +159,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public TimeSpan Heartbeat
         {
-            get { return _heartbeat; }
+            get => _heartbeat;
             set
             {
                 _heartbeat = value;
@@ -206,15 +206,9 @@ namespace RabbitMQ.Client.Framing.Impl
             return table;
         }
 
-        public ValueTask Abort(ushort reasonCode, string reasonText, ShutdownInitiator initiator, TimeSpan timeout)
-        {
-            return Close(new ShutdownEventArgs(initiator, reasonCode, reasonText), true, timeout);
-        }
+        public ValueTask Abort(ushort reasonCode, string reasonText, ShutdownInitiator initiator, TimeSpan timeout) => Close(new ShutdownEventArgs(initiator, reasonCode, reasonText), true, timeout);
 
-        public ValueTask Close(ShutdownEventArgs reason)
-        {
-            return Close(reason, false, Timeout.InfiniteTimeSpan);
-        }
+        public ValueTask Close(ShutdownEventArgs reason) => Close(reason, false, Timeout.InfiniteTimeSpan);
 
         ///<summary>Try to close connection in a graceful way</summary>
         ///<remarks>
@@ -335,19 +329,12 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public Command ConnectionCloseWrapper(ushort reasonCode, string reasonText)
         {
-            Protocol.CreateConnectionClose(reasonCode, reasonText, out Command request, out _, out _);
-            return request;
+            return new Command(new Impl.ConnectionClose(reasonCode, reasonText, 0, 0));
         }
 
-        public ISession CreateSession()
-        {
-            return _sessionManager.Create();
-        }
+        public ISession CreateSession() => _sessionManager.Create();
 
-        public ISession CreateSession(int channelNumber)
-        {
-            return _sessionManager.Create(channelNumber);
-        }
+        public ISession CreateSession(int channelNumber) => _sessionManager.Create(channelNumber);
 
         public void EnsureIsOpen()
         {
@@ -371,10 +358,7 @@ namespace RabbitMQ.Client.Framing.Impl
         /// We need to close the socket, otherwise attempting to unload the domain
         /// could cause a CannotUnloadAppDomainException
         /// </remarks>
-        public void HandleDomainUnload(object sender, EventArgs ea)
-        {
-            Abort(Constants.InternalError, "Domain Unload");
-        }
+        public void HandleDomainUnload(object sender, EventArgs ea) => Abort(Constants.InternalError, "Domain Unload");
 
         public ValueTask HandleMainLoopException(ShutdownEventArgs reason)
         {
@@ -444,7 +428,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     try
                     {
                         ValueTask task = MainLoopIteration();
-                        if(!task.IsCompletedSuccessfully)
+                        if (!task.IsCompletedSuccessfully)
                         {
                             await task.ConfigureAwait(false);
                         }
@@ -525,7 +509,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     // should be ignoring everything except
                     // connection.close-ok.
                     ValueTask session0Task = _session0.HandleFrame(in frame);
-                    if(!session0Task.IsCompletedSuccessfully)
+                    if (!session0Task.IsCompletedSuccessfully)
                     {
                         await session0Task.ConfigureAwait(false);
                     }
@@ -867,86 +851,44 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private async ValueTask<T> SendAndReceiveAsync<T>(Client.Impl.MethodBase method) where T : Client.Impl.MethodBase
-        {
-            return await _rpcContinuationQueue.SendAndReceiveAsync<T>(new Command(method)).ConfigureAwait(false);
-        }
+        private async ValueTask<T> SendAndReceiveAsync<T>(Client.Impl.MethodBase method) where T : Client.Impl.MethodBase => await _rpcContinuationQueue.SendAndReceiveAsync<T>(new Command(method)).ConfigureAwait(false);
 
-        private async ValueTask<Client.Impl.MethodBase> SendAndReceiveAsync(Client.Impl.MethodBase method)
-        {
-            return (await _rpcContinuationQueue.SendAndReceiveAsync(new Command(method)).ConfigureAwait(false)).Method;
-        }
+        private async ValueTask<Client.Impl.MethodBase> SendAndReceiveAsync(Client.Impl.MethodBase method) => (await _rpcContinuationQueue.SendAndReceiveAsync(new Command(method)).ConfigureAwait(false)).Method;
 
         ///<remarks>
         /// May be called more than once. Should therefore be idempotent.
         ///</remarks>
-        public void TerminateMainloop()
-        {
-            _running = false;
-        }
+        public void TerminateMainloop() => _running = false;
 
-        public override string ToString()
-        {
-            return $"Connection({_id},{Endpoint})";
-        }
+        public override string ToString() => $"Connection({_id},{Endpoint})";
 
-        public ValueTask Flush()
-        {
-            return _frameHandler.Flush();
-        }
+        public ValueTask Flush() => _frameHandler.Flush();
 
-        public async ValueTask UpdateSecret(string newSecret, string reason)
-        {
-            await SendAndReceiveAsync<ConnectionUpdateSecretOk>(new ConnectionUpdateSecret(Encoding.UTF8.GetBytes(newSecret), reason)).ConfigureAwait(false);
-        }
+        public async ValueTask UpdateSecret(string newSecret, string reason) => await SendAndReceiveAsync<ConnectionUpdateSecretOk>(new ConnectionUpdateSecret(Encoding.UTF8.GetBytes(newSecret), reason)).ConfigureAwait(false);
 
         ///<summary>API-side invocation of connection abort.</summary>
-        public ValueTask Abort()
-        {
-            return Abort(Timeout.InfiniteTimeSpan);
-        }
+        public ValueTask Abort() => Abort(Timeout.InfiniteTimeSpan);
 
         ///<summary>API-side invocation of connection abort.</summary>
-        public ValueTask Abort(ushort reasonCode, string reasonText)
-        {
-            return Abort(reasonCode, reasonText, Timeout.InfiniteTimeSpan);
-        }
+        public ValueTask Abort(ushort reasonCode, string reasonText) => Abort(reasonCode, reasonText, Timeout.InfiniteTimeSpan);
 
         ///<summary>API-side invocation of connection abort with timeout.</summary>
-        public ValueTask Abort(TimeSpan timeout)
-        {
-            return Abort(Constants.ReplySuccess, "Connection close forced", timeout);
-        }
+        public ValueTask Abort(TimeSpan timeout) => Abort(Constants.ReplySuccess, "Connection close forced", timeout);
 
         ///<summary>API-side invocation of connection abort with timeout.</summary>
-        public ValueTask Abort(ushort reasonCode, string reasonText, TimeSpan timeout)
-        {
-            return Abort(reasonCode, reasonText, ShutdownInitiator.Application, timeout);
-        }
+        public ValueTask Abort(ushort reasonCode, string reasonText, TimeSpan timeout) => Abort(reasonCode, reasonText, ShutdownInitiator.Application, timeout);
 
         ///<summary>API-side invocation of connection.close.</summary>
-        public ValueTask Close()
-        {
-            return Close(Constants.ReplySuccess, "Goodbye", Timeout.InfiniteTimeSpan);
-        }
+        public ValueTask Close() => Close(Constants.ReplySuccess, "Goodbye", Timeout.InfiniteTimeSpan);
 
         ///<summary>API-side invocation of connection.close.</summary>
-        public ValueTask Close(ushort reasonCode, string reasonText)
-        {
-            return Close(reasonCode, reasonText, Timeout.InfiniteTimeSpan);
-        }
+        public ValueTask Close(ushort reasonCode, string reasonText) => Close(reasonCode, reasonText, Timeout.InfiniteTimeSpan);
 
         ///<summary>API-side invocation of connection.close with timeout.</summary>
-        public ValueTask Close(TimeSpan timeout)
-        {
-            return Close(Constants.ReplySuccess, "Goodbye", timeout);
-        }
+        public ValueTask Close(TimeSpan timeout) => Close(Constants.ReplySuccess, "Goodbye", timeout);
 
         ///<summary>API-side invocation of connection.close with timeout.</summary>
-        public ValueTask Close(ushort reasonCode, string reasonText, TimeSpan timeout)
-        {
-            return Close(new ShutdownEventArgs(ShutdownInitiator.Application, reasonCode, reasonText), false, timeout);
-        }
+        public ValueTask Close(ushort reasonCode, string reasonText, TimeSpan timeout) => Close(new ShutdownEventArgs(ShutdownInitiator.Application, reasonCode, reasonText), false, timeout);
 
         public async ValueTask<IModel> CreateModel()
         {
@@ -954,14 +896,11 @@ namespace RabbitMQ.Client.Framing.Impl
             ISession session = CreateSession();
             var model = (IFullModel)Protocol.CreateModel(session);
             model.ContinuationTimeout = _factory.ContinuationTimeout;
-            await (model as ModelBase).TransmitAndEnqueueAsync<ChannelOpenOk>(new ChannelOpen(string.Empty)).ConfigureAwait(false);
+            await (model as Model).TransmitAndEnqueueAsync<ChannelOpenOk>(new ChannelOpen(string.Empty)).ConfigureAwait(false);
             return model;
         }
 
-        void IDisposable.Dispose()
-        {
-            Dispose(true);
-        }
+        void IDisposable.Dispose() => Dispose(true);
 
         private void Dispose(bool disposing)
         {
@@ -992,13 +931,12 @@ namespace RabbitMQ.Client.Framing.Impl
             // dispose unmanaged resources
         }
 
-        Command ChannelCloseWrapper(ushort reasonCode, string reasonText)
+        private Command ChannelCloseWrapper(ushort reasonCode, string reasonText)
         {
-            Protocol.CreateChannelClose(reasonCode, reasonText, out Command request, out _, out _);
-            return request;
+            return new Command(new ChannelClose(reasonCode, reasonText, 0, 0));
         }
 
-        async ValueTask StartAndTune()
+        private async ValueTask StartAndTune()
         {
             // Send header
             await _frameHandler.SendHeader().ConfigureAwait(false);
@@ -1045,7 +983,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     // Send Connection.SecureOk and get a Connection.Tune back
                     expectedConnectionSecureOrTune = await SendAndReceiveAsync<ConnectionTune>(new ConnectionSecureOk(mechanism.handleChallenge(connectionSecureMethod._challenge, _factory)));
                 }
-                else if(expectedConnectionSecureOrTune is ConnectionClose connectionClose)
+                else if (expectedConnectionSecureOrTune is ConnectionClose connectionClose)
                 {
                     throw new OperationInterruptedException(new ShutdownEventArgs(ShutdownInitiator.Peer, connectionClose._replyCode, connectionClose._replyText));
                 }
@@ -1080,11 +1018,8 @@ namespace RabbitMQ.Client.Framing.Impl
             await Transmit(new Command(new ConnectionTuneOk(channelMax, frameMax, (ushort)Heartbeat.TotalSeconds)), 0).ConfigureAwait(false);
         }
 
-        private static uint NegotiatedMaxValue(uint clientValue, uint serverValue)
-        {
-            return (clientValue == 0 || serverValue == 0) ?
+        private static uint NegotiatedMaxValue(uint clientValue, uint serverValue) => (clientValue == 0 || serverValue == 0) ?
                 Math.Max(clientValue, serverValue) :
                 Math.Min(clientValue, serverValue);
-        }
     }
 }

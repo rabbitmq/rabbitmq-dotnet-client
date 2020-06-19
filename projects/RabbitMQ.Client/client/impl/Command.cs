@@ -46,7 +46,7 @@ using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Impl
 {
-    class Command : IDisposable
+    internal class Command : IDisposable
     {
         /*
         Frame layout
@@ -59,10 +59,7 @@ namespace RabbitMQ.Client.Impl
         internal const int EmptyFrameSize = 8;
         private readonly bool _returnBufferOnDispose;
 
-        static Command()
-        {
-            CheckEmptyFrameSize();
-        }
+        static Command() => CheckEmptyFrameSize();
 
         internal Command(MethodBase method) : this(method, null, null, false)
         {
@@ -96,15 +93,12 @@ namespace RabbitMQ.Client.Impl
 
         public void Dispose()
         {
-            if(_returnBufferOnDispose && MemoryMarshal.TryGetArray(Body, out ArraySegment<byte> segment))
+            if (_returnBufferOnDispose && MemoryMarshal.TryGetArray(Body, out ArraySegment<byte> segment))
             {
                 ArrayPool<byte>.Shared.Return(segment.Array);
             }
         }
 
-        public override string ToString()
-        {
-            return $"{Method.ProtocolMethodName}";
-        }
+        public override string ToString() => $"{Method.ProtocolMethodName}";
     }
 }

@@ -49,11 +49,12 @@ using System.Threading.Tasks;
 
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Framing;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
-    abstract class ModelBase : IFullModel, IRecoverable
+    internal class Model : IFullModel, IRecoverable
     {
         ///<summary>Only used to kick-start a connection open
         ///sequence. See <see cref="Connection.Open"/> </summary>
@@ -70,10 +71,7 @@ namespace RabbitMQ.Client.Impl
         private AsyncEventHandler<ShutdownEventArgs> _modelShutdown;
         private bool _onlyAcksReceived = true;
 
-        public ModelBase(ISession session)
-        {
-            Initialise(session);
-        }
+        internal Model(ISession session) => Initialise(session);
 
         protected void Initialise(ISession session)
         {
@@ -95,37 +93,37 @@ namespace RabbitMQ.Client.Impl
                     try
                     {
                         ValueTask task = default;
-                        switch ((item.Method.ProtocolClassId << 16) | item.Method.ProtocolMethodId)
+                        switch (item.Method.ProtocolCommandId)
                         {
-                            case (ClassConstants.Basic << 16) | BasicMethodConstants.Deliver:
+                            case MethodConstants.BasicDeliver:
                                 var basicDeliver = item.Method as BasicDeliver;
                                 task = HandleBasicDeliver(basicDeliver._consumerTag, basicDeliver._deliveryTag, basicDeliver._redelivered, basicDeliver._exchange, basicDeliver._routingKey, (IBasicProperties)item.Header, item.Body);
                                 break;
-                            case (ClassConstants.Basic << 16) | BasicMethodConstants.Ack:
+                            case MethodConstants.BasicAck:
                                 var basicAck = item.Method as BasicAck;
                                 task = HandleBasicAck(basicAck._deliveryTag, basicAck._multiple);
                                 break;
-                            case (ClassConstants.Basic << 16) | BasicMethodConstants.Cancel:
+                            case MethodConstants.BasicCancel:
                                 var basicCancel = item.Method as BasicCancel;
                                 task = HandleBasicCancel(basicCancel._consumerTag, basicCancel._nowait);
                                 break;
-                            case (ClassConstants.Basic << 16) | BasicMethodConstants.CancelOk:
+                            case MethodConstants.BasicCancelOk:
                                 var basicCancelOk = item.Method as BasicCancelOk;
                                 task = HandleBasicCancelOk(basicCancelOk._consumerTag);
                                 break;
-                            case (ClassConstants.Basic << 16) | BasicMethodConstants.Nack:
+                            case MethodConstants.BasicNack:
                                 var basicNack = item.Method as BasicNack;
                                 task = HandleBasicNack(basicNack._deliveryTag, basicNack._multiple, basicNack._requeue);
                                 break;
-                            case (ClassConstants.Basic << 16) | BasicMethodConstants.Return:
+                            case MethodConstants.BasicReturn:
                                 var basicReturn = item.Method as BasicReturn;
                                 task = HandleBasicReturn(basicReturn._replyCode, basicReturn._replyText, basicReturn._exchange, basicReturn._routingKey, (IBasicProperties)item.Header, item.Body);
                                 break;
-                            case (ClassConstants.Channel << 16) | ChannelMethodConstants.Flow:
+                            case MethodConstants.ChannelFlow:
                                 var channelFlow = item.Method as ChannelFlow;
                                 task = HandleChannelFlow(channelFlow._active);
                                 break;
-                            case (ClassConstants.Channel << 16) | ChannelMethodConstants.Close:
+                            case MethodConstants.ChannelClose:
                                 var channelClose = item.Method as ChannelClose;
                                 task = HandleChannelClose(channelClose._replyCode, channelClose._replyText, channelClose._classId, channelClose._methodId);
                                 break;
@@ -203,12 +201,9 @@ namespace RabbitMQ.Client.Impl
 
         public ISession Session { get; private set; }
 
-        public ValueTask Close(ushort replyCode, string replyText, bool abort)
-        {
-            return Close(new ShutdownEventArgs(ShutdownInitiator.Application,
+        public ValueTask Close(ushort replyCode, string replyText, bool abort) => Close(new ShutdownEventArgs(ShutdownInitiator.Application,
                 replyCode, replyText),
                 abort);
-        }
 
         public async ValueTask Close(ShutdownEventArgs reason, bool abort)
         {
@@ -243,17 +238,29 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public abstract bool DispatchAsynchronous(Command cmd);
-
-        private ValueTask<T> EnqueueAsync<T>(Command cmd, TimeSpan timeout = default) where T : MethodBase
+        public bool DispatchAsynchronous(Command cmd)
         {
-            return _continuationQueue.SendAndReceiveAsync<T>(cmd, timeout);
+            switch (cmd.Method.ProtocolCommandId)
+            {
+                case MethodConstants.BasicAck:
+                case MethodConstants.BasicCancel:
+                case MethodConstants.BasicCancelOk:
+                case MethodConstants.BasicDeliver:
+                case MethodConstants.BasicNack:
+                case MethodConstants.BasicReturn:
+                case MethodConstants.ChannelClose:
+                case MethodConstants.ChannelFlow:
+                    {
+                        _consumerCommandQueue.Writer.TryWrite(cmd);
+                        return true;
+                    }
+                default: return false;
+            }
         }
 
-        private ValueTask<Command> EnqueueAsync(Command cmd, TimeSpan timeout = default)
-        {
-            return _continuationQueue.SendAndReceiveAsync(cmd, timeout);
-        }
+        private ValueTask<T> EnqueueAsync<T>(Command cmd, TimeSpan timeout = default) where T : MethodBase => _continuationQueue.SendAndReceiveAsync<T>(cmd, timeout);
+
+        private ValueTask<Command> EnqueueAsync(Command cmd, TimeSpan timeout = default) => _continuationQueue.SendAndReceiveAsync(cmd, timeout);
 
         public async ValueTask FinishClose()
         {
@@ -269,7 +276,7 @@ namespace RabbitMQ.Client.Impl
             Debug.WriteLine("Received command: " + cmd.Method.ProtocolMethodName);
 #endif
             // If this is a Connection method, let's send it to the Connection handler
-            if (cmd.Method.ProtocolClassId == ClassConstants.Connection)
+            if ((cmd.Method.ProtocolCommandId >> 16) == ClassConstants.Connection)
             {
                 return Session.Connection.HandleCommand(cmd);
             }
@@ -470,22 +477,18 @@ namespace RabbitMQ.Client.Impl
                 }
             }
             else
+            {
                 return false;
+            }
         }
 
-        public override string ToString()
-        {
-            return Session.ToString();
-        }
+        public override string ToString() => Session.ToString();
 
-        public ValueTask<T> TransmitAndEnqueueAsync<T>(MethodBase method, TimeSpan timeout = default) where T : MethodBase
-        {
-            return TransmitAndEnqueueAsync<T>(new Command(method), timeout);
-        }
+        public ValueTask<T> TransmitAndEnqueueAsync<T>(MethodBase method, TimeSpan timeout = default) where T : MethodBase => TransmitAndEnqueueAsync<T>(new Command(method), timeout);
 
         public ValueTask<T> TransmitAndEnqueueAsync<T>(Command cmd, TimeSpan timeout = default) where T : MethodBase
         {
-            if (cmd.Method.ProtocolClassId != ClassConstants.Channel && cmd.Method.ProtocolMethodId != ChannelMethodConstants.Close && CloseReason != null)
+            if (CloseReason != null && cmd.Method.ProtocolCommandId != MethodConstants.ChannelClose)
             {
                 throw new AlreadyClosedException(CloseReason);
             }
@@ -495,7 +498,7 @@ namespace RabbitMQ.Client.Impl
 
         public ValueTask<Command> TransmitAndEnqueueAsync(Command cmd, TimeSpan timeout = default)
         {
-            if(cmd.Method.ProtocolClassId != ClassConstants.Channel && cmd.Method.ProtocolMethodId != ChannelMethodConstants.Close && CloseReason != null)
+            if (CloseReason != null && cmd.Method.ProtocolCommandId != MethodConstants.ChannelClose)
             {
                 throw new AlreadyClosedException(CloseReason);
             }
@@ -503,10 +506,7 @@ namespace RabbitMQ.Client.Impl
             return EnqueueAsync(cmd, timeout);
         }
 
-        void IDisposable.Dispose()
-        {
-            Dispose(true);
-        }
+        void IDisposable.Dispose() => Dispose(true);
 
         protected virtual void Dispose(bool disposing)
         {
@@ -552,7 +552,7 @@ namespace RabbitMQ.Client.Impl
                     await cancel.ConfigureAwait(false);
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 OnCallbackException(new CallbackExceptionEventArgs(e));
             }
@@ -698,16 +698,13 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public ValueTask HandleChannelCloseOk()
-        {
-            return FinishClose();
-        }
+        public ValueTask HandleChannelCloseOk() => FinishClose();
 
         public async ValueTask HandleChannelFlow(bool active)
         {
             if (active)
             {
-                if(_flowControlSemaphore.CurrentCount == 0)
+                if (_flowControlSemaphore.CurrentCount == 0)
                 {
                     _flowControlSemaphore.Release();
                 }
@@ -721,30 +718,15 @@ namespace RabbitMQ.Client.Impl
             OnFlowControl(new FlowControlEventArgs(active));
         }
 
-        public ValueTask HandleQueueDeclareOk(string queue, uint messageCount, uint consumerCount)
-        {
-            return default;
-        }
+        public ValueTask HandleQueueDeclareOk(string queue, uint messageCount, uint consumerCount) => default;
 
-        public void Abort()
-        {
-            Abort(Constants.ReplySuccess, "Goodbye");
-        }
+        public void Abort() => Abort(Constants.ReplySuccess, "Goodbye");
 
-        public void Abort(ushort replyCode, string replyText)
-        {
-            Close(replyCode, replyText, true);
-        }
+        public void Abort(ushort replyCode, string replyText) => Close(replyCode, replyText, true);
 
-        public virtual ValueTask BasicAck(ulong deliveryTag, bool multiple)
-        {
-            return Session.Transmit(new Command(new BasicAck(deliveryTag, multiple)));
-        }
+        public virtual ValueTask BasicAck(ulong deliveryTag, bool multiple) => Session.Transmit(new Command(new BasicAck(deliveryTag, multiple)));
 
-        public ValueTask BasicCancel(string consumerTag)
-        {
-            return Session.Transmit(new Command(new Framing.Impl.BasicCancel(consumerTag, false)));
-        }
+        public ValueTask BasicCancel(string consumerTag) => Session.Transmit(new Command(new Framing.Impl.BasicCancel(consumerTag, false)));
 
         public async ValueTask BasicCancelNoWait(string consumerTag)
         {
@@ -791,10 +773,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public virtual ValueTask BasicNack(ulong deliveryTag, bool multiple, bool requeue)
-        {
-            return Session.Transmit(new Command(new BasicNack(deliveryTag, multiple, requeue)));
-        }
+        public virtual ValueTask BasicNack(ulong deliveryTag, bool multiple, bool requeue) => Session.Transmit(new Command(new BasicNack(deliveryTag, multiple, requeue)));
 
         internal void AllocatePublishSeqNos(int count)
         {
@@ -839,10 +818,7 @@ namespace RabbitMQ.Client.Impl
             return Session.Transmit(new Command(new BasicPublish { _exchange = exchange, _routingKey = routingKey, _mandatory = mandatory }, (BasicProperties)basicProperties, body, false));
         }
 
-        public async ValueTask BasicQos(uint prefetchSize, ushort prefetchCount, bool global)
-        {
-            await TransmitAndEnqueueAsync<BasicQosOk>(new BasicQos(prefetchSize, prefetchCount, global)).ConfigureAwait(false);
-        }
+        public async ValueTask BasicQos(uint prefetchSize, ushort prefetchCount, bool global) => await TransmitAndEnqueueAsync<BasicQosOk>(new BasicQos(prefetchSize, prefetchCount, global)).ConfigureAwait(false);
 
         public async ValueTask BasicRecover(bool requeue)
         {
@@ -850,25 +826,13 @@ namespace RabbitMQ.Client.Impl
             await HandleBasicRecoverOk().ConfigureAwait(false);
         }
 
-        public async ValueTask BasicRecoverAsync(bool requeue)
-        {
-            await TransmitAndEnqueueAsync<BasicRecoverOk>(new BasicRecover(requeue)).ConfigureAwait(false);
-        }
+        public async ValueTask BasicRecoverAsync(bool requeue) => await TransmitAndEnqueueAsync<BasicRecoverOk>(new BasicRecover(requeue)).ConfigureAwait(false);
 
-        public virtual ValueTask BasicReject(ulong deliveryTag, bool requeue)
-        {
-            return Session.Transmit(new Command(new BasicReject(deliveryTag, requeue)));
-        }
+        public virtual ValueTask BasicReject(ulong deliveryTag, bool requeue) => Session.Transmit(new Command(new BasicReject(deliveryTag, requeue)));
 
-        public ValueTask Close()
-        {
-            return Close(Constants.ReplySuccess, "Goodbye");
-        }
+        public ValueTask Close() => Close(Constants.ReplySuccess, "Goodbye");
 
-        public ValueTask Close(ushort replyCode, string replyText)
-        {
-            return Close(replyCode, replyText, false);
-        }
+        public ValueTask Close(ushort replyCode, string replyText) => Close(replyCode, replyText, false);
 
         public async ValueTask ConfirmSelect()
         {
@@ -882,95 +846,41 @@ namespace RabbitMQ.Client.Impl
 
         ///////////////////////////////////////////////////////////////////////////
 
-        public virtual IBasicProperties CreateBasicProperties()
-        {
-            return new Framing.BasicProperties();
-        }
+        public virtual IBasicProperties CreateBasicProperties() => new Framing.BasicProperties();
 
-        public IBasicPublishBatch CreateBasicPublishBatch()
-        {
-            return new BasicPublishBatch(this);
-        }
+        public IBasicPublishBatch CreateBasicPublishBatch() => new BasicPublishBatch(this);
 
-        public async ValueTask ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments)
-        {
-            await TransmitAndEnqueueAsync<ExchangeBindOk>(new ExchangeBind { _destination = destination, _source = source, _routingKey = routingKey, _arguments = arguments }).ConfigureAwait(false);
-        }
+        public async ValueTask ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments) => await TransmitAndEnqueueAsync<ExchangeBindOk>(new ExchangeBind { _destination = destination, _source = source, _routingKey = routingKey, _arguments = arguments }).ConfigureAwait(false);
 
-        public ValueTask ExchangeBindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments)
-        {
-            return Session.Transmit(new Command(new ExchangeBind { _destination = destination, _source = source, _routingKey = routingKey, _arguments = arguments, _nowait = true }));
-        }
+        public ValueTask ExchangeBindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments) => Session.Transmit(new Command(new ExchangeBind { _destination = destination, _source = source, _routingKey = routingKey, _arguments = arguments, _nowait = true }));
 
-        public async ValueTask ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
-        {
-            await TransmitAndEnqueueAsync<ExchangeDeclareOk>(new ExchangeDeclare { _exchange = exchange, _type = type, _durable = durable, _autoDelete = autoDelete, _arguments = arguments }).ConfigureAwait(false);
-        }
+        public async ValueTask ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments) => await TransmitAndEnqueueAsync<ExchangeDeclareOk>(new ExchangeDeclare { _exchange = exchange, _type = type, _durable = durable, _autoDelete = autoDelete, _arguments = arguments }).ConfigureAwait(false);
 
-        public ValueTask ExchangeDeclareNoWait(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
-        {
-            return Session.Transmit(new Command(new ExchangeDeclare { _exchange = exchange, _type = type, _durable = durable, _autoDelete = autoDelete, _arguments = arguments, _nowait = true }));
-        }
+        public ValueTask ExchangeDeclareNoWait(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments) => Session.Transmit(new Command(new ExchangeDeclare { _exchange = exchange, _type = type, _durable = durable, _autoDelete = autoDelete, _arguments = arguments, _nowait = true }));
 
-        public async ValueTask ExchangeDeclarePassive(string exchange)
-        {
-            await TransmitAndEnqueueAsync<ExchangeDeclareOk>(new ExchangeDeclare { _exchange = exchange, _type = string.Empty, _passive = true }).ConfigureAwait(false);
-        }
+        public async ValueTask ExchangeDeclarePassive(string exchange) => await TransmitAndEnqueueAsync<ExchangeDeclareOk>(new ExchangeDeclare { _exchange = exchange, _type = string.Empty, _passive = true }).ConfigureAwait(false);
 
-        public async ValueTask ExchangeDelete(string exchange, bool ifUnused)
-        {
-            await TransmitAndEnqueueAsync<ExchangeDeleteOk>(new ExchangeDelete { _exchange = exchange, _ifUnused = ifUnused }).ConfigureAwait(false);
-        }
+        public async ValueTask ExchangeDelete(string exchange, bool ifUnused) => await TransmitAndEnqueueAsync<ExchangeDeleteOk>(new ExchangeDelete { _exchange = exchange, _ifUnused = ifUnused }).ConfigureAwait(false);
 
-        public ValueTask ExchangeDeleteNoWait(string exchange, bool ifUnused)
-        {
-            return Session.Transmit(new Command(new ExchangeDelete { _exchange = exchange, _ifUnused = ifUnused, _nowait = true }));
-        }
+        public ValueTask ExchangeDeleteNoWait(string exchange, bool ifUnused) => Session.Transmit(new Command(new ExchangeDelete { _exchange = exchange, _ifUnused = ifUnused, _nowait = true }));
 
-        public async ValueTask ExchangeUnbind(string destination, string source, string routingKey, IDictionary<string, object> arguments)
-        {
-            await TransmitAndEnqueueAsync<ExchangeUnbindOk>(new ExchangeUnbind { _destination = destination, _source = source, _routingKey = routingKey, _arguments = arguments }).ConfigureAwait(false);
-        }
+        public async ValueTask ExchangeUnbind(string destination, string source, string routingKey, IDictionary<string, object> arguments) => await TransmitAndEnqueueAsync<ExchangeUnbindOk>(new ExchangeUnbind { _destination = destination, _source = source, _routingKey = routingKey, _arguments = arguments }).ConfigureAwait(false);
 
-        public ValueTask ExchangeUnbindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments)
-        {
-            return Session.Transmit(new Command(new ExchangeUnbind { _destination = destination, _source = source, _routingKey = routingKey, _arguments = arguments, _nowait = true }));
-        }
+        public ValueTask ExchangeUnbindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments) => Session.Transmit(new Command(new ExchangeUnbind { _destination = destination, _source = source, _routingKey = routingKey, _arguments = arguments, _nowait = true }));
 
-        public async ValueTask QueueBind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
-        {
-            await TransmitAndEnqueueAsync<QueueBindOk>(new QueueBind { _queue = queue, _exchange = exchange, _routingKey = routingKey, _arguments = arguments }).ConfigureAwait(false);
-        }
+        public async ValueTask QueueBind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments) => await TransmitAndEnqueueAsync<QueueBindOk>(new QueueBind { _queue = queue, _exchange = exchange, _routingKey = routingKey, _arguments = arguments }).ConfigureAwait(false);
 
-        public ValueTask QueueBindNoWait(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
-        {
-            return Session.Transmit(new Command(new QueueBind { _queue = queue, _exchange = exchange, _routingKey = routingKey, _arguments = arguments, _nowait = true }));
-        }
+        public ValueTask QueueBindNoWait(string queue, string exchange, string routingKey, IDictionary<string, object> arguments) => Session.Transmit(new Command(new QueueBind { _queue = queue, _exchange = exchange, _routingKey = routingKey, _arguments = arguments, _nowait = true }));
 
-        public ValueTask<QueueDeclareOk> QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
-        {
-            return QueueDeclare(queue, false, durable, exclusive, autoDelete, arguments);
-        }
+        public ValueTask<QueueDeclareOk> QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments) => QueueDeclare(queue, false, durable, exclusive, autoDelete, arguments);
 
-        public ValueTask QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
-        {
-            return Session.Transmit(new Command(new QueueDeclare { _queue = queue, _durable = durable, _exclusive = exclusive, _autoDelete = autoDelete, _arguments = arguments, _nowait = true }));
-        }
+        public ValueTask QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments) => Session.Transmit(new Command(new QueueDeclare { _queue = queue, _durable = durable, _exclusive = exclusive, _autoDelete = autoDelete, _arguments = arguments, _nowait = true }));
 
-        public ValueTask<QueueDeclareOk> QueueDeclarePassive(string queue)
-        {
-            return QueueDeclare(queue, true, false, false, false, null);
-        }
+        public ValueTask<QueueDeclareOk> QueueDeclarePassive(string queue) => QueueDeclare(queue, true, false, false, false, null);
 
-        public async ValueTask<uint> MessageCount(string queue)
-        {
-            return (await QueueDeclarePassive(queue).ConfigureAwait(false)).MessageCount;
-        }
+        public async ValueTask<uint> MessageCount(string queue) => (await QueueDeclarePassive(queue).ConfigureAwait(false)).MessageCount;
 
-        public async ValueTask<uint> ConsumerCount(string queue)
-        {
-            return (await QueueDeclarePassive(queue).ConfigureAwait(false)).ConsumerCount;
-        }
+        public async ValueTask<uint> ConsumerCount(string queue) => (await QueueDeclarePassive(queue).ConfigureAwait(false)).ConsumerCount;
 
         public async ValueTask<uint> QueueDelete(string queue, bool ifUnused, bool ifEmpty)
         {
@@ -978,10 +888,7 @@ namespace RabbitMQ.Client.Impl
             return result._messageCount;
         }
 
-        public ValueTask QueueDeleteNoWait(string queue, bool ifUnused, bool ifEmpty)
-        {
-            return Session.Transmit(new Command(new QueueDelete { _queue = queue, _ifUnused = ifUnused, _ifEmpty = ifEmpty, _nowait = true }));
-        }
+        public ValueTask QueueDeleteNoWait(string queue, bool ifUnused, bool ifEmpty) => Session.Transmit(new Command(new QueueDelete { _queue = queue, _ifUnused = ifUnused, _ifEmpty = ifEmpty, _nowait = true }));
 
         public async ValueTask<uint> QueuePurge(string queue)
         {
@@ -989,25 +896,13 @@ namespace RabbitMQ.Client.Impl
             return result._messageCount;
         }
 
-        public async ValueTask QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
-        {
-            await TransmitAndEnqueueAsync<QueueUnbindOk>(new QueueUnbind { _queue = queue, _exchange = exchange, _routingKey = routingKey, _arguments = arguments }).ConfigureAwait(false);
-        }
+        public async ValueTask QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments) => await TransmitAndEnqueueAsync<QueueUnbindOk>(new QueueUnbind { _queue = queue, _exchange = exchange, _routingKey = routingKey, _arguments = arguments }).ConfigureAwait(false);
 
-        public async ValueTask TxCommit()
-        {
-            await TransmitAndEnqueueAsync<TxCommitOk>(new TxCommit()).ConfigureAwait(false);
-        }
+        public async ValueTask TxCommit() => await TransmitAndEnqueueAsync<TxCommitOk>(new TxCommit()).ConfigureAwait(false);
 
-        public async ValueTask TxRollback()
-        {
-            await TransmitAndEnqueueAsync<TxRollbackOk>(new TxRollback()).ConfigureAwait(false);
-        }
+        public async ValueTask TxRollback() => await TransmitAndEnqueueAsync<TxRollbackOk>(new TxRollback()).ConfigureAwait(false);
 
-        public async ValueTask TxSelect()
-        {
-            await TransmitAndEnqueueAsync<TxSelectOk>(new TxSelect()).ConfigureAwait(false);
-        }
+        public async ValueTask TxSelect() => await TransmitAndEnqueueAsync<TxSelectOk>(new TxSelect()).ConfigureAwait(false);
 
         public async ValueTask<bool> WaitForConfirms(TimeSpan timeout)
         {
@@ -1077,15 +972,9 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public ValueTask<bool> WaitForConfirms()
-        {
-            return WaitForConfirms(TimeSpan.FromMilliseconds(Timeout.Infinite));
-        }
+        public ValueTask<bool> WaitForConfirms() => WaitForConfirms(TimeSpan.FromMilliseconds(Timeout.Infinite));
 
-        public ValueTask WaitForConfirmsOrDie()
-        {
-            return WaitForConfirmsOrDie(TimeSpan.FromMilliseconds(Timeout.Infinite));
-        }
+        public ValueTask WaitForConfirmsOrDie() => WaitForConfirmsOrDie(TimeSpan.FromMilliseconds(Timeout.Infinite));
 
         public async ValueTask WaitForConfirmsOrDie(TimeSpan timeout)
         {

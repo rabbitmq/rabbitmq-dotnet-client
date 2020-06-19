@@ -44,6 +44,7 @@ using System.Linq;
 using System.Net.Security;
 using System.Security.Authentication;
 using System.Threading.Tasks;
+
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Impl;
@@ -244,17 +245,14 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Construct a fresh instance, with all fields set to their respective defaults.
         /// </summary>
-        public ConnectionFactory()
-        {
-            ClientProperties = Connection.DefaultClientProperties();
-        }
+        public ConnectionFactory() => ClientProperties = Connection.DefaultClientProperties();
 
         /// <summary>
         /// Connection endpoint.
         /// </summary>
         public AmqpTcpEndpoint Endpoint
         {
-            get { return new AmqpTcpEndpoint(HostName, Port, Ssl); }
+            get => new AmqpTcpEndpoint(HostName, Port, Ssl);
             set
             {
                 Port = value.Port;
@@ -303,8 +301,8 @@ namespace RabbitMQ.Client
         /// </summary>
         public Uri Uri
         {
-            get { return _uri; }
-            set { SetUri(value); }
+            get => _uri;
+            set => SetUri(value);
         }
 
         /// <summary>
@@ -340,10 +338,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When the configured hostname was not reachable.
         /// </exception>
-        public ValueTask<IConnection> CreateConnection()
-        {
-            return CreateConnection(ClientProvidedName);
-        }
+        public ValueTask<IConnection> CreateConnection() => CreateConnection(ClientProvidedName);
 
         /// <summary>
         /// Create a connection to one of the endpoints provided by the IEndpointResolver
@@ -359,10 +354,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When the configured hostname was not reachable.
         /// </exception>
-        public ValueTask<IConnection> CreateConnection(string clientProvidedName)
-        {
-            return CreateConnection(EndpointResolverFactory(LocalEndpoints()), clientProvidedName);
-        }
+        public ValueTask<IConnection> CreateConnection(string clientProvidedName) => CreateConnection(EndpointResolverFactory(LocalEndpoints()), clientProvidedName);
 
         /// <summary>
         /// Create a connection using a list of hostnames using the configured port.
@@ -378,10 +370,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public ValueTask<IConnection> CreateConnection(IList<string> hostnames)
-        {
-            return CreateConnection(hostnames, ClientProvidedName);
-        }
+        public ValueTask<IConnection> CreateConnection(IList<string> hostnames) => CreateConnection(hostnames, ClientProvidedName);
 
         /// <summary>
         /// Create a connection using a list of hostnames using the configured port.
@@ -422,10 +411,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public ValueTask<IConnection> CreateConnection(IList<AmqpTcpEndpoint> endpoints)
-        {
-            return CreateConnection(endpoints, ClientProvidedName);
-        }
+        public ValueTask<IConnection> CreateConnection(IList<AmqpTcpEndpoint> endpoints) => CreateConnection(endpoints, ClientProvidedName);
 
         /// <summary>
         /// Create a connection using a list of endpoints. By default each endpoint will be tried
@@ -446,10 +432,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public ValueTask<IConnection> CreateConnection(IList<AmqpTcpEndpoint> endpoints, string clientProvidedName)
-        {
-            return CreateConnection(EndpointResolverFactory(endpoints), clientProvidedName);
-        }
+        public ValueTask<IConnection> CreateConnection(IList<AmqpTcpEndpoint> endpoints, string clientProvidedName) => CreateConnection(EndpointResolverFactory(endpoints), clientProvidedName);
 
         /// <summary>
         /// Create a connection using an IEndpointResolver.
@@ -584,14 +567,8 @@ namespace RabbitMQ.Client
         ///<summary>
         /// Unescape a string, protecting '+'.
         /// </summary>
-        private static string UriDecode(string uri)
-        {
-            return System.Uri.UnescapeDataString(uri.Replace("+", "%2B"));
-        }
+        private static string UriDecode(string uri) => System.Uri.UnescapeDataString(uri.Replace("+", "%2B"));
 
-        private List<AmqpTcpEndpoint> LocalEndpoints()
-        {
-            return new List<AmqpTcpEndpoint> { Endpoint };
-        }
+        private List<AmqpTcpEndpoint> LocalEndpoints() => new List<AmqpTcpEndpoint> { Endpoint };
     }
 }

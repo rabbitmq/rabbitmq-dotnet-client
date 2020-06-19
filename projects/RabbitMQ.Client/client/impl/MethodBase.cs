@@ -42,19 +42,11 @@ using System.Text;
 
 namespace RabbitMQ.Client.Impl
 {
-    abstract class MethodBase : IMethod
+    internal abstract class MethodBase : IMethod
     {
         public abstract bool HasContent { get; }
 
-        /// <summary>
-        /// Retrieves the class ID number of this method, as defined in the AMQP specification XML.
-        /// </summary>
-        public abstract ushort ProtocolClassId { get; }
-
-        /// <summary>
-        /// Retrieves the method ID number of this method, as defined in the AMQP specification XML.
-        /// </summary>
-        public abstract ushort ProtocolMethodId { get; }
+        public abstract uint ProtocolCommandId { get; }
 
         /// <summary>
         /// Retrieves the name of this method - for debugging use.

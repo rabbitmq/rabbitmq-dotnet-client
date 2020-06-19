@@ -40,6 +40,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 using RabbitMQ.Client.Events;
@@ -48,7 +49,7 @@ using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
-    abstract class SessionBase : ISession
+    internal abstract class SessionBase : ISession
     {
         private readonly object _shutdownLock = new object();
         private AsyncEventHandler<ShutdownEventArgs> _sessionShutdown;
@@ -101,15 +102,9 @@ namespace RabbitMQ.Client.Impl
 
         public bool IsOpen => CloseReason == null;
 
-        public virtual ValueTask OnCommandReceived(Command cmd)
-        {
-            return (cmd is object && CommandReceived is object) ? CommandReceived(this, cmd) : default;
-        }
+        public virtual ValueTask OnCommandReceived(Command cmd) => (cmd is object && CommandReceived is object) ? CommandReceived(this, cmd) : default;
 
-        public virtual ValueTask OnConnectionShutdown(object conn, ShutdownEventArgs reason)
-        {
-            return Close(reason);
-        }
+        public virtual ValueTask OnConnectionShutdown(object conn, ShutdownEventArgs reason) => Close(reason);
 
         public virtual ValueTask OnSessionShutdown(ShutdownEventArgs reason)
         {
@@ -124,15 +119,9 @@ namespace RabbitMQ.Client.Impl
             return handler.InvokeAsync(this, reason);
         }
 
-        public override string ToString()
-        {
-            return $"{GetType().Name}#{ChannelNumber}:{Connection}";
-        }
+        public override string ToString() => $"{GetType().Name}#{ChannelNumber}:{Connection}";
 
-        public ValueTask Close(ShutdownEventArgs reason)
-        {
-            return Close(reason, true);
-        }
+        public ValueTask Close(ShutdownEventArgs reason) => Close(reason, true);
 
         public ValueTask Close(ShutdownEventArgs reason, bool notify)
         {
@@ -192,12 +181,12 @@ namespace RabbitMQ.Client.Impl
 
             // We used to transmit *inside* the lock to avoid interleaving
             // of frames within a channel.  But that is fixed in socket frame handler instead, so no need to lock.
+#if DEBUG
+            Debug.WriteLine($"Transmitting command {cmd.Method.ProtocolMethodName}");
+#endif
             return Connection.Transmit(cmd, ChannelNumber);
         }
 
-        public virtual ValueTask Transmit(IList<Command> commands)
-        {
-            return Connection.Transmit(commands, ChannelNumber);
-        }
+        public virtual ValueTask Transmit(IList<Command> commands) => Connection.Transmit(commands, ChannelNumber);
     }
 }

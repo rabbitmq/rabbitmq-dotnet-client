@@ -47,7 +47,8 @@ using NUnit.Framework;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestQueueDeclare : IntegrationFixture {
+    public class TestQueueDeclare : IntegrationFixture
+    {
 
         [Test]
         [Category("RequireSMP")]
@@ -58,7 +59,7 @@ namespace RabbitMQ.Client.Unit
 
             List<Thread> ts = new List<Thread>();
             System.NotSupportedException nse = null;
-            for(int i = 0; i < 256; i++)
+            for (int i = 0; i < 256; i++)
             {
                 Thread t = new Thread(() =>
                         {
@@ -68,7 +69,8 @@ namespace RabbitMQ.Client.Unit
                                 // of thread interleaving. MK.
                                 Thread.Sleep(rnd.Next(5, 500));
                                 Model.QueueDeclare(q, false, false, false, null);
-                            } catch (System.NotSupportedException e)
+                            }
+                            catch (System.NotSupportedException e)
                             {
                                 nse = e;
                             }

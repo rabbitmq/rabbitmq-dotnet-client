@@ -118,15 +118,12 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        void MaybeStopHeartbeatTimers()
+        private void MaybeStopHeartbeatTimers()
         {
             NotifyHeartbeatListener();
             _heartbeatCancellation.Cancel();
         }
 
-        public void NotifyHeartbeatListener()
-        {
-            _lastHeartbeat = DateTime.UtcNow;
-        }
+        public void NotifyHeartbeatListener() => _lastHeartbeat = DateTime.UtcNow;
     }
 }

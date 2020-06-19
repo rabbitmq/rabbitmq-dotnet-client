@@ -45,10 +45,7 @@ namespace RabbitMQ.Client.Impl
 {
     internal class RecordedConsumer : RecordedEntity
     {
-        public RecordedConsumer(AutorecoveringModel model, string queue) : base(model)
-        {
-            Queue = queue;
-        }
+        public RecordedConsumer(AutorecoveringModel model, string queue) : base(model) => Queue = queue;
 
         public IDictionary<string, object> Arguments { get; set; }
         public bool AutoAck { get; set; }

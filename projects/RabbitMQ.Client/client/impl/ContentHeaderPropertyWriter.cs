@@ -45,7 +45,7 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    struct ContentHeaderPropertyWriter
+    internal struct ContentHeaderPropertyWriter
     {
         private int _bitCount;
         private ushort _flagWord;
@@ -60,35 +60,17 @@ namespace RabbitMQ.Client.Impl
             Offset = 0;
         }
 
-        public void FinishPresence()
-        {
-            EmitFlagWord(false);
-        }
+        public void FinishPresence() => EmitFlagWord(false);
 
-        public void WriteBit(bool bit)
-        {
-            WritePresence(bit);
-        }
+        public void WriteBit(bool bit) => WritePresence(bit);
 
-        public void WriteLong(uint val)
-        {
-            Offset += WireFormatting.WriteLong(Memory.Slice(Offset), val);
-        }
+        public void WriteLong(uint val) => Offset += WireFormatting.WriteLong(Memory.Slice(Offset), val);
 
-        public void WriteLonglong(ulong val)
-        {
-            Offset += WireFormatting.WriteLonglong(Memory.Slice(Offset), val);
-        }
+        public void WriteLonglong(ulong val) => Offset += WireFormatting.WriteLonglong(Memory.Slice(Offset), val);
 
-        public void WriteLongstr(byte[] val)
-        {
-            Offset += WireFormatting.WriteLongstr(Memory.Slice(Offset), val);
-        }
+        public void WriteLongstr(byte[] val) => Offset += WireFormatting.WriteLongstr(Memory.Slice(Offset), val);
 
-        public void WriteOctet(byte val)
-        {
-            Memory.Slice(Offset++).Span[0] = val;
-        }
+        public void WriteOctet(byte val) => Memory.Slice(Offset++).Span[0] = val;
 
         public void WritePresence(bool present)
         {
@@ -105,25 +87,13 @@ namespace RabbitMQ.Client.Impl
             _bitCount++;
         }
 
-        public void WriteShort(ushort val)
-        {
-            Offset += WireFormatting.WriteShort(Memory.Slice(Offset), val);
-        }
+        public void WriteShort(ushort val) => Offset += WireFormatting.WriteShort(Memory.Slice(Offset), val);
 
-        public void WriteShortstr(string val)
-        {
-            Offset += WireFormatting.WriteShortstr(Memory.Slice(Offset), val);
-        }
+        public void WriteShortstr(string val) => Offset += WireFormatting.WriteShortstr(Memory.Slice(Offset), val);
 
-        public void WriteTable(IDictionary<string, object> val)
-        {
-            Offset += WireFormatting.WriteTable(Memory.Slice(Offset), val);
-        }
+        public void WriteTable(IDictionary<string, object> val) => Offset += WireFormatting.WriteTable(Memory.Slice(Offset), val);
 
-        public void WriteTimestamp(AmqpTimestamp val)
-        {
-            Offset += WireFormatting.WriteTimestamp(Memory.Slice(Offset), val);
-        }
+        public void WriteTimestamp(AmqpTimestamp val) => Offset += WireFormatting.WriteTimestamp(Memory.Slice(Offset), val);
 
         private void EmitFlagWord(bool continuationBit)
         {

@@ -55,15 +55,9 @@ namespace RabbitMQ.Client.Impl
 
         public string Type { get; private set; }
 
-        public ValueTask Recover()
-        {
-            return ModelDelegate.ExchangeDeclare(Name, Type, Durable, IsAutoDelete, Arguments);
-        }
+        public ValueTask Recover() => ModelDelegate.ExchangeDeclare(Name, Type, Durable, IsAutoDelete, Arguments);
 
-        public override string ToString()
-        {
-            return $"{GetType().Name}: name = '{Name}', type = '{Type}', durable = {Durable}, autoDelete = {IsAutoDelete}, arguments = '{Arguments}'";
-        }
+        public override string ToString() => $"{GetType().Name}: name = '{Name}', type = '{Type}', durable = {Durable}, autoDelete = {IsAutoDelete}, arguments = '{Arguments}'";
 
         public RecordedExchange WithArguments(IDictionary<string, object> value)
         {

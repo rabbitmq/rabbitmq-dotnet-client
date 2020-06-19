@@ -47,10 +47,7 @@ namespace RabbitMQ.Client.Events
     /// </summary>
     public class ConnectionBlockedEventArgs : EventArgs
     {
-        public ConnectionBlockedEventArgs(string reason)
-        {
-            Reason = reason;
-        }
+        public ConnectionBlockedEventArgs(string reason) => Reason = reason;
 
         /// <summary>
         /// Access the reason why connection is blocked.

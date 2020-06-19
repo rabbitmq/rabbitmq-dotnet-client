@@ -57,10 +57,7 @@ namespace RabbitMQ.Client.Framing.Impl
             return default;
         }
 
-        public void HandleConnectionUnblocked()
-        {
-            OnConnectionUnblocked();
-        }
+        public void HandleConnectionUnblocked() => OnConnectionUnblocked();
 
         public void HandleConnectionBlocked(string reason)
         {

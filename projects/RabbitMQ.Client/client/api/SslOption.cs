@@ -127,7 +127,7 @@ namespace RabbitMQ.Client
                 };
                 return collection;
             }
-            set { _certificateCollection = value; }
+            set => _certificateCollection = value;
         }
 
         /// <summary>
@@ -172,7 +172,7 @@ namespace RabbitMQ.Client
         /// </summary>
         internal SslProtocols UseFallbackTlsVersions()
         {
-            this.Version = SslProtocols.Tls12;
+            Version = SslProtocols.Tls12;
             return Version;
         }
     }

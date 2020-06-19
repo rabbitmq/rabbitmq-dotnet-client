@@ -45,9 +45,6 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Handle one round of challenge-response.
         /// </summary>
-        public byte[] handleChallenge(byte[] challenge, IConnectionFactory factory)
-        {
-            return new byte[0];
-        }
+        public byte[] handleChallenge(byte[] challenge, IConnectionFactory factory) => new byte[0];
     }
 }

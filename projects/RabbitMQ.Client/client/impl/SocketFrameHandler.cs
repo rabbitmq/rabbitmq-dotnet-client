@@ -70,7 +70,7 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    class SocketFrameHandler : IFrameHandler
+    internal class SocketFrameHandler : IFrameHandler
     {
         // Socket poll timeout in ms. If the socket does not
         // become writeable in this amount of time, we throw
@@ -331,24 +331,15 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        private bool ShouldTryIPv6(AmqpTcpEndpoint endpoint)
-        {
-            return Socket.OSSupportsIPv6 && endpoint.AddressFamily != AddressFamily.InterNetwork;
-        }
+        private bool ShouldTryIPv6(AmqpTcpEndpoint endpoint) => Socket.OSSupportsIPv6 && endpoint.AddressFamily != AddressFamily.InterNetwork;
 
         private ITcpClient ConnectUsingIPv6(AmqpTcpEndpoint endpoint,
                                             Func<AddressFamily, ITcpClient> socketFactory,
-                                            TimeSpan timeout)
-        {
-            return ConnectUsingAddressFamily(endpoint, socketFactory, timeout, AddressFamily.InterNetworkV6);
-        }
+                                            TimeSpan timeout) => ConnectUsingAddressFamily(endpoint, socketFactory, timeout, AddressFamily.InterNetworkV6);
 
         private ITcpClient ConnectUsingIPv4(AmqpTcpEndpoint endpoint,
                                             Func<AddressFamily, ITcpClient> socketFactory,
-                                            TimeSpan timeout)
-        {
-            return ConnectUsingAddressFamily(endpoint, socketFactory, timeout, AddressFamily.InterNetwork);
-        }
+                                            TimeSpan timeout) => ConnectUsingAddressFamily(endpoint, socketFactory, timeout, AddressFamily.InterNetwork);
 
         private ITcpClient ConnectUsingAddressFamily(AmqpTcpEndpoint endpoint,
                                                     Func<AddressFamily, ITcpClient> socketFactory,

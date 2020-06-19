@@ -74,10 +74,7 @@ namespace RabbitMQ.Client.Impl
             return result;
         }
 
-        public byte[] ReadContent()
-        {
-            throw new NotSupportedException("ReadContent should not be called");
-        }
+        public byte[] ReadContent() => throw new NotSupportedException("ReadContent should not be called");
 
         public uint ReadLong()
         {

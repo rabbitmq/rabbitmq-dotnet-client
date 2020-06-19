@@ -40,6 +40,7 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using NUnit.Framework;
 
 using RabbitMQ.Client.Impl;
@@ -48,71 +49,77 @@ namespace RabbitMQ.Client.Unit
 {
 
     [TestFixture]
-  public class TestIModelAllocation
-  {
-    public const int CHANNEL_COUNT = 100;
-
-    IConnection _c;
-
-    public int ModelNumber(IModel model)
+    public class TestIModelAllocation
     {
-      return ((ModelBase)((AutorecoveringModel)model).Delegate).Session.ChannelNumber;
-    }
+        public const int CHANNEL_COUNT = 100;
+        private IConnection _c;
 
-    [SetUp] public async ValueTask Connect()
-    {
-      _c = await new ConnectionFactory().CreateConnection();
-    }
+        public int ModelNumber(IModel model) => ((Model)((AutorecoveringModel)model).Delegate).Session.ChannelNumber;
 
-    [TearDown] public void Disconnect()
-    {
-      _c.Close();
-    }
+        [SetUp]
+        public async ValueTask Connect() => _c = await new ConnectionFactory().CreateConnection();
+
+        [TearDown]
+        public void Disconnect() => _c.Close();
 
 
-    [Test] public async ValueTask AllocateInOrder()
-    {
-      for(int i = 1; i <= CHANNEL_COUNT; i++)
-        Assert.AreEqual(i, ModelNumber(await _c.CreateModel()));
-    }
+        [Test]
+        public async ValueTask AllocateInOrder()
+        {
+            for (int i = 1; i <= CHANNEL_COUNT; i++)
+            {
+                Assert.AreEqual(i, ModelNumber(await _c.CreateModel()));
+            }
+        }
 
-    [Test] public async ValueTask AllocateAfterFreeingLast() {
-      IModel ch = await _c.CreateModel();
-      Assert.AreEqual(1, ModelNumber(ch));
+        [Test]
+        public async ValueTask AllocateAfterFreeingLast()
+        {
+            IModel ch = await _c.CreateModel();
+            Assert.AreEqual(1, ModelNumber(ch));
             await ch.Close();
-      ch = await _c.CreateModel();
-      Assert.AreEqual(1, ModelNumber(ch));
-    }
+            ch = await _c.CreateModel();
+            Assert.AreEqual(1, ModelNumber(ch));
+        }
 
-    public int CompareModels(IModel x, IModel y)
-    {
-      int i = ModelNumber(x);
-      int j = ModelNumber(y);
-      return (i < j) ? -1 : (i == j) ? 0 : 1;
-    }
+        public int CompareModels(IModel x, IModel y)
+        {
+            int i = ModelNumber(x);
+            int j = ModelNumber(y);
+            return (i < j) ? -1 : (i == j) ? 0 : 1;
+        }
 
-    [Test] public async ValueTask AllocateAfterFreeingMany() {
-      List<IModel> channels = new List<IModel>();
+        [Test]
+        public async ValueTask AllocateAfterFreeingMany()
+        {
+            List<IModel> channels = new List<IModel>();
 
-      for(int i = 1; i <= CHANNEL_COUNT; i++)
-        channels.Add(await _c.CreateModel());
+            for (int i = 1; i <= CHANNEL_COUNT; i++)
+            {
+                channels.Add(await _c.CreateModel());
+            }
 
-      foreach(IModel channel in channels){
+            foreach (IModel channel in channels)
+            {
                 await channel.Close();
-      }
+            }
 
-      channels = new List<IModel>();
+            channels = new List<IModel>();
 
-      for(int j = 1; j <= CHANNEL_COUNT; j++)
-        channels.Add(await _c.CreateModel());
+            for (int j = 1; j <= CHANNEL_COUNT; j++)
+            {
+                channels.Add(await _c.CreateModel());
+            }
 
-      // In the current implementation the list should actually
-      // already be sorted, but we don't want to force that behaviour
-      channels.Sort(CompareModels);
+            // In the current implementation the list should actually
+            // already be sorted, but we don't want to force that behaviour
+            channels.Sort(CompareModels);
 
-      int k = 1;
-      foreach(IModel channel in channels)
-        Assert.AreEqual(k++, ModelNumber(channel));
+            int k = 1;
+            foreach (IModel channel in channels)
+            {
+                Assert.AreEqual(k++, ModelNumber(channel));
+            }
+        }
     }
-  }
 }

@@ -47,10 +47,7 @@ namespace RabbitMQ.Client.Events
     /// </summary>
     public class FlowControlEventArgs : EventArgs
     {
-        public FlowControlEventArgs(bool active)
-        {
-            Active = active;
-        }
+        public FlowControlEventArgs(bool active) => Active = active;
 
         /// <summary>
         /// Access the flow control setting.

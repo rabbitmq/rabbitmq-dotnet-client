@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System.Threading.Tasks;
+
 using NUnit.Framework;
 
 using RabbitMQ.Client.Events;

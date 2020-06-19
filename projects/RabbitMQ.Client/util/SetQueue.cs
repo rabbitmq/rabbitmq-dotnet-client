@@ -42,14 +42,14 @@ using System.Collections.Generic;
 
 namespace RabbitMQ.Util
 {
-    class SetQueue<T>
+    internal class SetQueue<T>
     {
         private readonly HashSet<T> _members = new HashSet<T>();
         private readonly LinkedList<T> _queue = new LinkedList<T>();
 
         public bool Enqueue(T item)
         {
-            if(_members.Contains(item))
+            if (_members.Contains(item))
             {
                 return false;
             }
@@ -70,15 +70,9 @@ namespace RabbitMQ.Util
             return item;
         }
 
-        public bool Contains(T item)
-        {
-            return _members.Contains(item);
-        }
+        public bool Contains(T item) => _members.Contains(item);
 
-        public bool IsEmpty()
-        {
-            return _members.Count == 0;
-        }
+        public bool IsEmpty() => _members.Count == 0;
 
         public bool Remove(T item)
         {

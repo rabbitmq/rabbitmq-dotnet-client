@@ -49,13 +49,10 @@ namespace RabbitMQ.Util
     ///<remarks>
     ///Not part of the public API.
     ///</remarks>
-    static class DebugUtil
+    internal static class DebugUtil
     {
         ///<summary>Print a hex dump of the supplied bytes to stdout.</summary>
-        public static void Dump(byte[] bytes)
-        {
-            Dump(bytes, Console.Out);
-        }
+        public static void Dump(byte[] bytes) => Dump(bytes, Console.Out);
 
         ///<summary>Print a hex dump of the supplied bytes to the supplied TextWriter.</summary>
         public static void Dump(byte[] bytes, TextWriter writer)
@@ -112,33 +109,33 @@ namespace RabbitMQ.Util
             {
                 writer.WriteLine("(null)");
             }
-            else if (value is string)
+            else if (value is string @string)
             {
-                writer.WriteLine($"\"{((string)value).Replace("\"", "\\\"")}\"");
+                writer.WriteLine($"\"{@string.Replace("\"", "\\\"")}\"");
             }
-            else if (value is byte[])
+            else if (value is byte[] v1)
             {
                 writer.WriteLine("byte[]");
-                Dump((byte[])value, writer);
+                Dump(v1, writer);
             }
             else if (value is ValueType)
             {
                 writer.WriteLine(value);
             }
-            else if (value is IDictionary)
+            else if (value is IDictionary dictionary)
             {
                 Type t = value.GetType();
                 writer.WriteLine(t.FullName);
-                foreach (DictionaryEntry entry in (IDictionary)value)
+                foreach (DictionaryEntry entry in dictionary)
                 {
                     DumpKeyValue(entry.Key.ToString(), entry.Value, writer, indent);
                 }
             }
-            else if (value is IEnumerable)
+            else if (value is IEnumerable enumerable)
             {
                 writer.WriteLine("IEnumerable");
                 int index = 0;
-                foreach (object v in (IEnumerable)value)
+                foreach (object v in enumerable)
                 {
                     DumpKeyValue(index.ToString(), v, writer, indent);
                     index++;

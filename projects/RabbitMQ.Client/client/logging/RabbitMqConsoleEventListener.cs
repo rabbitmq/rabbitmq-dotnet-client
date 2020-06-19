@@ -46,14 +46,11 @@ namespace RabbitMQ.Client.Logging
 {
     public sealed class RabbitMqConsoleEventListener : EventListener, IDisposable
     {
-        public RabbitMqConsoleEventListener()
-        {
-            EnableEvents(RabbitMqClientEventSource.Log, EventLevel.Informational, RabbitMqClientEventSource.Keywords.Log);
-        }
+        public RabbitMqConsoleEventListener() => EnableEvents(RabbitMqClientEventSource.Log, EventLevel.Informational, RabbitMqClientEventSource.Keywords.Log);
 
         protected override void OnEventWritten(EventWrittenEventArgs eventData)
         {
-            foreach(object pl in eventData.Payload)
+            foreach (object pl in eventData.Payload)
             {
                 if (pl is IDictionary<string, object> dict)
                 {
@@ -67,9 +64,6 @@ namespace RabbitMQ.Client.Logging
             }
         }
 
-        public override void Dispose()
-        {
-            DisableEvents(RabbitMqClientEventSource.Log);
-        }
+        public override void Dispose() => DisableEvents(RabbitMqClientEventSource.Log);
     }
 }

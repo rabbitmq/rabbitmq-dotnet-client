@@ -47,7 +47,7 @@ using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
-    interface ISession
+    internal interface ISession
     {
         /// <summary>
         /// Gets the channel number.

@@ -61,11 +61,8 @@ namespace RabbitMQ.Client.Exceptions
 
         public override ushort ReplyCode => Constants.NotImplemented;
 
-        public override string ToString()
-        {
-            return MethodId == 0
+        public override string ToString() => MethodId == 0
                 ? $"{base.ToString()}<{ClassId}>"
                 : $"{base.ToString()}<{ClassId}.{MethodId}>";
-        }
     }
 }

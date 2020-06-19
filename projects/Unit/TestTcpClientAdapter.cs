@@ -42,6 +42,7 @@ using System.Net;
 using System.Net.Sockets;
 
 using NUnit.Framework;
+
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Unit

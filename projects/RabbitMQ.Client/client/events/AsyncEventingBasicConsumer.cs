@@ -37,7 +37,7 @@ namespace RabbitMQ.Client.Events
         public override async ValueTask HandleBasicCancelOk(string consumerTag)
         {
             ValueTask baseTask = base.HandleBasicCancelOk(consumerTag);
-            if(!baseTask.IsCompletedSuccessfully)
+            if (!baseTask.IsCompletedSuccessfully)
             {
                 await baseTask.ConfigureAwait(false);
             }
@@ -57,7 +57,7 @@ namespace RabbitMQ.Client.Events
                     }
                     catch (Exception e)
                     {
-                        if (Model is ModelBase modelBase)
+                        if (Model is Model modelBase)
                         {
                             modelBase.OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object> { { "consumer", this } }));
                         }
@@ -88,9 +88,9 @@ namespace RabbitMQ.Client.Events
                             await handlerTask.ConfigureAwait(false);
                         }
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
-                        if(Model is ModelBase modelBase)
+                        if (Model is Model modelBase)
                         {
                             modelBase.OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object> { { "consumer", this } }));
                         }
@@ -123,7 +123,7 @@ namespace RabbitMQ.Client.Events
                     }
                     catch (Exception e)
                     {
-                        if (Model is ModelBase modelBase)
+                        if (Model is Model modelBase)
                         {
                             modelBase.OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object> { { "consumer", this } }));
                         }
@@ -155,7 +155,7 @@ namespace RabbitMQ.Client.Events
                     }
                     catch (Exception e)
                     {
-                        if (Model is ModelBase modelBase)
+                        if (Model is Model modelBase)
                         {
                             modelBase.OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object> { { "consumer", this } }));
                         }

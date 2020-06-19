@@ -50,22 +50,13 @@ using RabbitMQ.Util;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    class TestMethodArgumentCodec
+    internal class TestMethodArgumentCodec
     {
-        public static MethodArgumentWriter Writer()
-        {
-            return new MethodArgumentWriter(new byte[1024]);
-        }
+        public static MethodArgumentWriter Writer() => new MethodArgumentWriter(new byte[1024]);
 
-        public static MethodArgumentReader Reader(byte[] bytes)
-        {
-            return new MethodArgumentReader(bytes);
-        }
+        public static MethodArgumentReader Reader(byte[] bytes) => new MethodArgumentReader(bytes);
 
-        public byte[] Contents(MethodArgumentWriter w)
-        {
-            return w.Memory.Slice(0, w.Offset).ToArray();
-        }
+        public byte[] Contents(MethodArgumentWriter w) => w.Memory.Slice(0, w.Offset).ToArray();
 
         public void Check(MethodArgumentWriter w, byte[] expected)
         {

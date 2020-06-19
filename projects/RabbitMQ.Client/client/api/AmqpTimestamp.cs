@@ -64,10 +64,7 @@ namespace RabbitMQ.Client
         /// Construct an <see cref="AmqpTimestamp"/>.
         /// </summary>
         /// <param name="unixTime">Unix time.</param>
-        public AmqpTimestamp(long unixTime) : this()
-        {
-            UnixTime = unixTime;
-        }
+        public AmqpTimestamp(long unixTime) : this() => UnixTime = unixTime;
 
         /// <summary>
         /// Unix time.
@@ -77,9 +74,6 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Provides a debugger-friendly display.
         /// </summary>
-        public override string ToString()
-        {
-            return $"((time_t){UnixTime})";
-        }
+        public override string ToString() => $"((time_t){UnixTime})";
     }
 }

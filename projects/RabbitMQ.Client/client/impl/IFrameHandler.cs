@@ -44,7 +44,7 @@ using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
-    interface IFrameHandler
+    internal interface IFrameHandler
     {
         AmqpTcpEndpoint Endpoint { get; }
 

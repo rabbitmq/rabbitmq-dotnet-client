@@ -47,7 +47,7 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    enum AssemblyState
+    internal enum AssemblyState
     {
         ExpectingMethod,
         ExpectingContentHeader,
@@ -55,7 +55,7 @@ namespace RabbitMQ.Client.Impl
         Complete
     }
 
-    class CommandAssembler
+    internal class CommandAssembler
     {
         private const int MaxArrayOfBytesSize = 2_147_483_591;
 
@@ -73,8 +73,9 @@ namespace RabbitMQ.Client.Impl
             Reset();
         }
 
-        public Command HandleFrame(in InboundFrame f)
+        public bool TryReadCommand(in InboundFrame f, out Command command)
         {
+            command = null;
             switch (m_state)
             {
                 case AssemblyState.ExpectingMethod:
@@ -82,26 +83,41 @@ namespace RabbitMQ.Client.Impl
                     {
                         throw new UnexpectedFrameException(f.Type);
                     }
+
                     m_method = m_protocol.DecodeMethodFrom(f.Payload);
-                    m_state = m_method.HasContent ? AssemblyState.ExpectingContentHeader : AssemblyState.Complete;
-                    return CompletedCommand();
+
+                    if (m_method.HasContent)
+                    {
+                        m_state = AssemblyState.ExpectingContentHeader;
+                        return false;
+                    }
+
+                    break;
                 case AssemblyState.ExpectingContentHeader:
                     if (!f.IsHeader())
                     {
                         throw new UnexpectedFrameException(f.Type);
                     }
+
                     m_header = m_protocol.DecodeContentHeaderFrom(NetworkOrderDeserializer.ReadUInt16(f.Payload.Span));
-                    ulong totalBodyBytes = m_header.ReadFrom(f.Payload.Slice(2));
-                    if (totalBodyBytes > MaxArrayOfBytesSize)
+                    m_remainingBodyBytes = (int)m_header.ReadFrom(f.Payload.Slice(2));
+                    if (m_remainingBodyBytes > MaxArrayOfBytesSize)
                     {
                         throw new UnexpectedFrameException(f.Type);
                     }
 
-                    m_remainingBodyBytes = (int)totalBodyBytes;
-                    byte[] bodyBytes = ArrayPool<byte>.Shared.Rent(m_remainingBodyBytes);
-                    m_body = new Memory<byte>(bodyBytes, 0, m_remainingBodyBytes);
-                    UpdateContentBodyState();
-                    return CompletedCommand();
+                    if (m_remainingBodyBytes > 0)
+                    {
+                        m_body = new Memory<byte>(ArrayPool<byte>.Shared.Rent(m_remainingBodyBytes), 0, m_remainingBodyBytes);
+                        m_state = AssemblyState.ExpectingContentBody;
+                        return false;
+                    }
+                    else
+                    {
+                        m_body = new Memory<byte>(Array.Empty<byte>());
+                    }
+
+                    break;
                 case AssemblyState.ExpectingContentBody:
                     if (!f.IsBody())
                     {
@@ -115,32 +131,31 @@ namespace RabbitMQ.Client.Impl
 
                     f.Payload.CopyTo(m_body.Slice(_offset));
                     m_remainingBodyBytes -= f.Payload.Length;
-                    _offset += f.Payload.Length;
-                    UpdateContentBodyState();
-                    return CompletedCommand();
-                case AssemblyState.Complete:
+                    if (m_remainingBodyBytes > 0)
+                    {
+                        _offset += f.Payload.Length;
+                        return false;
+                    }
+
+                    break;
                 default:
-                    return null;
+                    break;
             }
+
+            command = CompletedCommand();
+            return true;
         }
 
         private Command CompletedCommand()
         {
-            if (m_state == AssemblyState.Complete)
+            Command result = new Command(m_method, m_header, m_body, true);
+            Reset();
+            if (RabbitMQDiagnosticListener.Source.IsEnabled() && RabbitMQDiagnosticListener.Source.IsEnabled("RabbitMQ.Client.CommandReceived"))
             {
-                Command result = new Command(m_method, m_header, m_body, true);
-                Reset();
-                if(RabbitMQDiagnosticListener.Source.IsEnabled() && RabbitMQDiagnosticListener.Source.IsEnabled("RabbitMQ.Client.CommandReceived"))
-                {
-                    RabbitMQDiagnosticListener.Source.Write("RabbitMQ.Client.CommandReceived", new { Command = result });
-                }
+                RabbitMQDiagnosticListener.Source.Write("RabbitMQ.Client.CommandReceived", new { Command = result });
+            }
 
-                return result;
-            }
-            else
-            {
-                return null;
-            }
+            return result;
         }
 
         private void Reset()
@@ -151,13 +166,6 @@ namespace RabbitMQ.Client.Impl
             m_body = null;
             _offset = 0;
             m_remainingBodyBytes = 0;
-        }
-
-        private void UpdateContentBodyState()
-        {
-            m_state = (m_remainingBodyBytes > 0)
-                ? AssemblyState.ExpectingContentBody
-                : AssemblyState.Complete;
         }
     }
 }

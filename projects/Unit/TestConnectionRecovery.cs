@@ -42,6 +42,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+
 using NUnit.Framework;
 
 using RabbitMQ.Client.Events;
@@ -53,19 +54,13 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Unit
 {
-    class DisposableConnection : IDisposable
+    internal class DisposableConnection : IDisposable
     {
-        public DisposableConnection(AutorecoveringConnection c)
-        {
-            Connection = c;
-        }
+        public DisposableConnection(AutorecoveringConnection c) => Connection = c;
 
         public AutorecoveringConnection Connection { get; private set; }
 
-        public void Dispose()
-        {
-            Connection.Close();
-        }
+        public void Dispose() => Connection.Close();
     }
     [TestFixture]
     public class TestConnectionRecovery : IntegrationFixture
@@ -78,10 +73,7 @@ namespace RabbitMQ.Client.Unit
         }
 
         [TearDown]
-        public async ValueTask CleanUp()
-        {
-            await Conn.Close();
-        }
+        public async ValueTask CleanUp() => await Conn.Close();
 
         [Test]
         public async ValueTask TestBasicAckAfterChannelRecovery()
@@ -909,10 +901,7 @@ namespace RabbitMQ.Client.Unit
             });
         }
 
-        internal async ValueTask AssertQueueRecovery(IModel m, string q)
-        {
-            await AssertQueueRecovery(m, q, true);
-        }
+        internal async ValueTask AssertQueueRecovery(IModel m, string q) => await AssertQueueRecovery(m, q, true);
 
         internal async ValueTask AssertQueueRecovery(IModel m, string q, bool exclusive)
         {
@@ -926,20 +915,11 @@ namespace RabbitMQ.Client.Unit
             Assert.AreEqual(ok2.MessageCount, 1);
         }
 
-        internal void AssertRecordedExchanges(AutorecoveringConnection c, int n)
-        {
-            Assert.AreEqual(n, c.RecordedExchangesCount);
-        }
+        internal void AssertRecordedExchanges(AutorecoveringConnection c, int n) => Assert.AreEqual(n, c.RecordedExchangesCount);
 
-        internal void AssertRecordedQueues(AutorecoveringConnection c, int n)
-        {
-            Assert.AreEqual(n, c.RecordedQueuesCount);
-        }
+        internal void AssertRecordedQueues(AutorecoveringConnection c, int n) => Assert.AreEqual(n, c.RecordedQueuesCount);
 
-        internal void CloseAllAndWaitForRecovery()
-        {
-            CloseAllAndWaitForRecovery((AutorecoveringConnection)Conn);
-        }
+        internal void CloseAllAndWaitForRecovery() => CloseAllAndWaitForRecovery((AutorecoveringConnection)Conn);
 
         internal void CloseAllAndWaitForRecovery(AutorecoveringConnection conn)
         {
@@ -948,10 +928,7 @@ namespace RabbitMQ.Client.Unit
             Wait(rl);
         }
 
-        internal void CloseAndWaitForRecovery()
-        {
-            CloseAndWaitForRecovery((AutorecoveringConnection)Conn);
-        }
+        internal void CloseAndWaitForRecovery() => CloseAndWaitForRecovery((AutorecoveringConnection)Conn);
 
         internal void CloseAndWaitForRecovery(AutorecoveringConnection conn)
         {
@@ -985,15 +962,9 @@ namespace RabbitMQ.Client.Unit
             return latch;
         }
 
-        protected override void ReleaseResources()
-        {
-            Unblock();
-        }
+        protected override void ReleaseResources() => Unblock();
 
-        internal void RestartServerAndWaitForRecovery()
-        {
-            RestartServerAndWaitForRecovery((AutorecoveringConnection)Conn);
-        }
+        internal void RestartServerAndWaitForRecovery() => RestartServerAndWaitForRecovery((AutorecoveringConnection)Conn);
 
         internal void RestartServerAndWaitForRecovery(AutorecoveringConnection conn)
         {
@@ -1027,25 +998,13 @@ namespace RabbitMQ.Client.Unit
             await Model.QueueDelete(q);
         }
 
-        internal void WaitForRecovery()
-        {
-            Wait(PrepareForRecovery((AutorecoveringConnection)Conn));
-        }
+        internal void WaitForRecovery() => Wait(PrepareForRecovery((AutorecoveringConnection)Conn));
 
-        internal void WaitForRecovery(AutorecoveringConnection conn)
-        {
-            Wait(PrepareForRecovery(conn));
-        }
+        internal void WaitForRecovery(AutorecoveringConnection conn) => Wait(PrepareForRecovery(conn));
 
-        internal void WaitForShutdown()
-        {
-            Wait(PrepareForShutdown(Conn));
-        }
+        internal void WaitForShutdown() => Wait(PrepareForShutdown(Conn));
 
-        internal void WaitForShutdown(IConnection conn)
-        {
-            Wait(PrepareForShutdown(conn));
-        }
+        internal void WaitForShutdown(IConnection conn) => Wait(PrepareForShutdown(conn));
 
         public class AckingBasicConsumer : TestBasicConsumer1
         {
@@ -1053,10 +1012,7 @@ namespace RabbitMQ.Client.Unit
             {
             }
 
-            public override ValueTask PostHandleDelivery(ulong deliveryTag)
-            {
-                return Model.BasicAck(deliveryTag, false);
-            }
+            public override ValueTask PostHandleDelivery(ulong deliveryTag) => Model.BasicAck(deliveryTag, false);
         }
 
         public class NackingBasicConsumer : TestBasicConsumer1
@@ -1066,10 +1022,7 @@ namespace RabbitMQ.Client.Unit
             {
             }
 
-            public override ValueTask PostHandleDelivery(ulong deliveryTag)
-            {
-                return Model.BasicNack(deliveryTag, false, false);
-            }
+            public override ValueTask PostHandleDelivery(ulong deliveryTag) => Model.BasicNack(deliveryTag, false, false);
         }
 
         public class RejectingBasicConsumer : TestBasicConsumer1
@@ -1079,10 +1032,7 @@ namespace RabbitMQ.Client.Unit
             {
             }
 
-            public override ValueTask PostHandleDelivery(ulong deliveryTag)
-            {
-                return Model.BasicReject(deliveryTag, false);
-            }
+            public override ValueTask PostHandleDelivery(ulong deliveryTag) => Model.BasicReject(deliveryTag, false);
         }
 
         public class TestBasicConsumer1 : DefaultBasicConsumer
@@ -1125,10 +1075,7 @@ namespace RabbitMQ.Client.Unit
                 }
             }
 
-            public virtual ValueTask PostHandleDelivery(ulong deliveryTag)
-            {
-                return default;
-            }
+            public virtual ValueTask PostHandleDelivery(ulong deliveryTag) => default;
         }
     }
 }

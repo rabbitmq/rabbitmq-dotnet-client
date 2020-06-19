@@ -39,15 +39,19 @@
 //---------------------------------------------------------------------------
 
 using System.Threading.Tasks;
+
 using NUnit.Framework;
+
 using PublicApiGenerator;
+
 using Verify;
+
 using VerifyNUnit;
 
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    [Platform(Exclude="Mono")]
+    [Platform(Exclude = "Mono")]
     public class APIApproval
     {
         [Test]

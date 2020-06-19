@@ -57,14 +57,11 @@ namespace RabbitMQ.Client.Impl
     /// under a somewhat generous reading.
     ///</para>
     ///</remarks>
-    class RpcContinuationQueue : IValueTaskSource<Command>, IValueTaskSource
+    internal class RpcContinuationQueue : IValueTaskSource<Command>, IValueTaskSource
     {
         private readonly ISession _session;
         private readonly SemaphoreSlim _continuationLock = new SemaphoreSlim(1, 1);
-        public RpcContinuationQueue(ISession session)
-        {
-            _session = session;
-        }
+        public RpcContinuationQueue(ISession session) => _session = session;
 
         private ManualResetValueTaskSourceCore<Command> _vts = new ManualResetValueTaskSourceCore<Command>() { RunContinuationsAsynchronously = true };
 
@@ -92,10 +89,7 @@ namespace RabbitMQ.Client.Impl
             return (response.Method as T) ?? throw new UnexpectedMethodException(response.Method);
         }
 
-        public ValueTask<Command> SendAndReceiveAsync(Command command, TimeSpan timeout = default)
-        {
-            return _continuationLock.Wait(0) ? GetAwaiter(command, timeout) : SendAndReceiveAsyncSlow(command, timeout);
-        }
+        public ValueTask<Command> SendAndReceiveAsync(Command command, TimeSpan timeout = default) => _continuationLock.Wait(0) ? GetAwaiter(command, timeout) : SendAndReceiveAsyncSlow(command, timeout);
 
         private async ValueTask<Command> SendAndReceiveAsyncSlow(Command command, TimeSpan timeout = default)
         {
@@ -130,10 +124,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public void HandleCommand(Command responseCommand)
-        {
-            _vts.SetResult(responseCommand);
-        }
+        public void HandleCommand(Command responseCommand) => _vts.SetResult(responseCommand);
 
         private ValueTask<Command> GetAwaiter(Command command, TimeSpan timeout = default)
         {
@@ -192,19 +183,10 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public ValueTaskSourceStatus GetStatus(short token)
-        {
-            return _vts.GetStatus(token);
-        }
+        public ValueTaskSourceStatus GetStatus(short token) => _vts.GetStatus(token);
 
-        public void OnCompleted(Action<object> continuation, object state, short token, ValueTaskSourceOnCompletedFlags flags)
-        {
-            _vts.OnCompleted(continuation, state, token, flags);
-        }
+        public void OnCompleted(Action<object> continuation, object state, short token, ValueTaskSourceOnCompletedFlags flags) => _vts.OnCompleted(continuation, state, token, flags);
 
-        void IValueTaskSource.GetResult(short token)
-        {
-            _vts.GetResult(token);
-        }
+        void IValueTaskSource.GetResult(short token) => _vts.GetResult(token);
     }
 }

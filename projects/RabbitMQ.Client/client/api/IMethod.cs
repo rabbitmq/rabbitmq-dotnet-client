@@ -58,18 +58,10 @@ namespace RabbitMQ.Client
     public interface IMethod
     {
         /// <summary>
-        /// Retrieves the class ID number of this method, as defined in the AMQP specification XML.
+        /// Retrieves the protocol command id (which is made up of two ushort values, the class id and method id).
         /// </summary>
-        ushort ProtocolClassId { get; }
+        uint ProtocolCommandId { get; }
 
-        /// <summary>
-        /// Retrieves the method ID number of this method, as defined in the AMQP specification XML.
-        /// </summary>
-        ushort ProtocolMethodId { get; }
-
-        /// <summary>
-        /// Retrieves the name of this method - for debugging use.
-        /// </summary>
         string ProtocolMethodName { get; }
     }
 }

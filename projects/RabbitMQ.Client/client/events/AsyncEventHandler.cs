@@ -11,9 +11,9 @@ namespace RabbitMQ.Client.Events
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static async ValueTask InvokeAsync<TEvent>(this AsyncEventHandler<TEvent> eventHandler, object sender, TEvent @event) where TEvent : EventArgs
         {
-            if(eventHandler != null)
+            if (eventHandler != null)
             {
-                foreach(AsyncEventHandler<TEvent> handlerInstance in eventHandler.GetInvocationList())
+                foreach (AsyncEventHandler<TEvent> handlerInstance in eventHandler.GetInvocationList())
                 {
                     ValueTask handlerTask = handlerInstance(sender, @event);
                     if (!handlerTask.IsCompletedSuccessfully)

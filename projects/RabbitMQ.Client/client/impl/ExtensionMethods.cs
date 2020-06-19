@@ -45,7 +45,7 @@ using System.Linq;
 
 namespace RabbitMQ.Client.Impl
 {
-    static class ExtensionMethods
+    internal static class ExtensionMethods
     {
         /// <summary>
         /// Returns a random item from the list.

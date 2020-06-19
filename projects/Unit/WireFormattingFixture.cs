@@ -46,7 +46,7 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Unit
 {
-    class WireFormattingFixture
+    internal class WireFormattingFixture
     {
         public void Check(byte[] actual, byte[] expected)
         {

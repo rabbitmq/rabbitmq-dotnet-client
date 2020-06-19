@@ -50,16 +50,10 @@ namespace RabbitMQ.Client.Unit
     public class TestPropertiesClone
     {
         [Test]
-        public void TestBasicPropertiesCloneV0_9_1()
-        {
-            TestBasicPropertiesClone(new RabbitMQ.Client.Framing.BasicProperties());
-        }
+        public void TestBasicPropertiesCloneV0_9_1() => TestBasicPropertiesClone(new RabbitMQ.Client.Framing.BasicProperties());
 
         [Test]
-        public void TestBasicPropertiesNoneCloneV0_9_1()
-        {
-            TestBasicPropertiesNoneClone(new RabbitMQ.Client.Framing.BasicProperties());
-        }
+        public void TestBasicPropertiesNoneCloneV0_9_1() => TestBasicPropertiesNoneClone(new RabbitMQ.Client.Framing.BasicProperties());
 
         private void TestBasicPropertiesClone(BasicProperties bp)
         {

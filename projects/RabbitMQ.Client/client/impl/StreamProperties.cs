@@ -42,7 +42,7 @@ using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
 {
-    abstract class StreamProperties : ContentHeaderBase, IStreamProperties
+    internal abstract class StreamProperties : ContentHeaderBase, IStreamProperties
     {
         public abstract string ContentEncoding { get; set; }
         public abstract string ContentType { get; set; }

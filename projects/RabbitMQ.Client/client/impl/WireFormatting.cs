@@ -295,7 +295,7 @@ namespace RabbitMQ.Client.Impl
                     memory.Span[0] = (byte)'S';
                     if (MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> segment))
                     {
-                        int bytesWritten = Encoding.UTF8.GetBytes(val, 0, val.Length, segment.Array, segment.Offset +  5);
+                        int bytesWritten = Encoding.UTF8.GetBytes(val, 0, val.Length, segment.Array, segment.Offset + 5);
                         NetworkOrderSerializer.WriteUInt32(slice.Span, (uint)bytesWritten);
                         return 5 + bytesWritten;
                     }
@@ -409,10 +409,7 @@ namespace RabbitMQ.Client.Impl
             return 8;
         }
 
-        public static int WriteLongstr(Memory<byte> memory, byte[] val)
-        {
-            return WriteLongstr(memory, val, 0, val.Length);
-        }
+        public static int WriteLongstr(Memory<byte> memory, byte[] val) => WriteLongstr(memory, val, 0, val.Length);
 
         public static int WriteLongstr(Memory<byte> memory, byte[] val, int index, int count)
         {
@@ -435,7 +432,7 @@ namespace RabbitMQ.Client.Impl
                 if (bytesWritten <= byte.MaxValue)
                 {
                     memory.Span[0] = (byte)bytesWritten;
-                   return bytesWritten + 1;
+                    return bytesWritten + 1;
                 }
 
                 throw new ArgumentOutOfRangeException(nameof(val), val, "Value exceeds the maximum allowed length of 255 bytes.");
@@ -524,11 +521,9 @@ namespace RabbitMQ.Client.Impl
             return byteCount;
         }
 
-        public static int WriteTimestamp(Memory<byte> memory, AmqpTimestamp val)
-        {
+        public static int WriteTimestamp(Memory<byte> memory, AmqpTimestamp val) =>
             // 0-9 is afaict silent on the signedness of the timestamp.
             // See also MethodArgumentReader.ReadTimestamp and AmqpTimestamp itself
-            return WriteLonglong(memory, (ulong)val.UnixTime);
-        }
+            WriteLonglong(memory, (ulong)val.UnixTime);
     }
 }

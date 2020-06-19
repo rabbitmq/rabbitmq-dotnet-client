@@ -45,9 +45,6 @@ namespace RabbitMQ.Client.Exceptions
     ///<summary>Thrown to indicate that the peer does not support the
     ///wire protocol version we requested immediately after opening
     ///the TCP socket.</summary>
-#if !NETSTANDARD1_5
-    [Serializable]
-#endif
     public class ProtocolVersionMismatchException : ProtocolViolationException
     {
         ///<summary>Fills the new instance's properties with the values passed in.</summary>
@@ -75,9 +72,6 @@ namespace RabbitMQ.Client.Exceptions
         ///<summary>The peer's AMQP specification minor version.</summary>
         public int ServerMinor { get; private set; }
 
-        private static string positiveOrUnknown(int version)
-        {
-            return version >= 0 ? version.ToString() : "unknown";
-        }
+        private static string positiveOrUnknown(int version) => version >= 0 ? version.ToString() : "unknown";
     }
 }

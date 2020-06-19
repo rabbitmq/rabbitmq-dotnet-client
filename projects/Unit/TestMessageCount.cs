@@ -40,6 +40,7 @@
 
 using System;
 using System.Threading.Tasks;
+
 using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit

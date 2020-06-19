@@ -41,6 +41,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+
 using NUnit.Framework;
 
 using RabbitMQ.Client.Events;
@@ -48,11 +49,12 @@ using RabbitMQ.Client.Events;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestMainLoop : IntegrationFixture {
+    public class TestMainLoop : IntegrationFixture
+    {
 
         private class FaultyConsumer : DefaultBasicConsumer
         {
-            public FaultyConsumer(IModel model) : base(model) {}
+            public FaultyConsumer(IModel model) : base(model) { }
 
             public override ValueTask HandleBasicDeliver(string consumerTag,
                                                ulong deliveryTag,
@@ -60,10 +62,7 @@ namespace RabbitMQ.Client.Unit
                                                string exchange,
                                                string routingKey,
                                                IBasicProperties properties,
-                                               ReadOnlyMemory<byte> body)
-            {
-                throw new Exception("I am a bad consumer");
-            }
+                                               ReadOnlyMemory<byte> body) => throw new Exception("I am a bad consumer");
         }
 
         [Test]
@@ -77,7 +76,8 @@ namespace RabbitMQ.Client.Unit
             await m.QueueDeclare(q, false, false, false, null);
 
             CallbackExceptionEventArgs ea = null;
-            m.CallbackException += (_, evt) => {
+            m.CallbackException += (_, evt) =>
+            {
                 ea = evt;
                 c.Close();
                 Monitor.PulseAll(o);

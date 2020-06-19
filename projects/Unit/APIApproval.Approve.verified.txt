@@ -338,8 +338,7 @@ namespace RabbitMQ.Client
     }
     public interface IMethod
     {
-        ushort ProtocolClassId { get; }
-        ushort ProtocolMethodId { get; }
+        uint ProtocolCommandId { get; }
         string ProtocolMethodName { get; }
     }
     public interface IModel : System.IDisposable

@@ -57,7 +57,7 @@ namespace RabbitMQ.Client.Unit
             {
                 UserName = "guest",
                 Password = "incorrect-password",
-                ClientProvidedName = this.GetType().Name
+                ClientProvidedName = GetType().Name
             };
 
             try

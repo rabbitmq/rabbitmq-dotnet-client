@@ -45,12 +45,14 @@
 
 using System;
 using System.Threading.Tasks;
+
+using RabbitMQ.Client.Framing;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
     ///<summary>Small ISession implementation used only for channel 0.</summary>
-    class MainSession : Session
+    internal class MainSession : Session
     {
         private readonly object _closingLock = new object();
 
@@ -76,12 +78,12 @@ namespace RabbitMQ.Client.Impl
             if (!_closeServerInitiated && frame.IsMethod())
             {
                 MethodBase method = Connection.Protocol.DecodeMethodFrom(frame.Payload);
-                if ((method.ProtocolClassId == ClassConstants.Connection) && (method.ProtocolMethodId == ConnectionMethodConstants.Close))
+                if (method.ProtocolCommandId == MethodConstants.ConnectionClose)
                 {
                     return base.HandleFrame(in frame);
                 }
 
-                if ((method.ProtocolClassId == ClassConstants.Connection) && (method.ProtocolMethodId == ConnectionMethodConstants.CloseOk))
+                if (method.ProtocolCommandId == MethodConstants.ConnectionCloseOk)
                 {
                     // This is the reply (CloseOk) we were looking for
                     // Call any listener attached to this session
@@ -117,14 +119,15 @@ namespace RabbitMQ.Client.Impl
         {
             // Allow always for sending close ok
             // Or if application initiated, allow also for sending close
-            MethodBase method = cmd.Method;
-            if (((method.ProtocolClassId == ClassConstants.Connection) && (method.ProtocolMethodId == ConnectionMethodConstants.CloseOk))
-                ||
-                (!_closeServerInitiated && (method.ProtocolClassId == ClassConstants.Connection) && (method.ProtocolMethodId == ConnectionMethodConstants.Close)))
+            if(cmd.Method.ProtocolCommandId == MethodConstants.ConnectionCloseOk)
             {
                 return base.Transmit(cmd);
             }
-
+            else if(!_closeServerInitiated && cmd.Method.ProtocolCommandId == MethodConstants.ConnectionClose)
+            {
+                return base.Transmit(cmd);
+            }
+            
             lock (_closingLock)
             {
                 if (!_closing)

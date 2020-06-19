@@ -118,19 +118,13 @@ namespace RabbitMQ.Client
         ///  See <see cref="HandleBasicCancelOk"/> for notification of consumer cancellation due to basicCancel
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        public virtual ValueTask HandleBasicCancel(string consumerTag)
-        {
-            return OnCancel(consumerTag);
-        }
+        public virtual ValueTask HandleBasicCancel(string consumerTag) => OnCancel(consumerTag);
 
         /// <summary>
         /// Called upon successful deregistration of the consumer from the broker.
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        public virtual ValueTask HandleBasicCancelOk(string consumerTag)
-        {
-            return OnCancel(consumerTag);
-        }
+        public virtual ValueTask HandleBasicCancelOk(string consumerTag) => OnCancel(consumerTag);
 
         /// <summary>
         /// Called upon successful registration of the consumer with the broker.
@@ -159,11 +153,7 @@ namespace RabbitMQ.Client
             string exchange,
             string routingKey,
             IBasicProperties properties,
-            ReadOnlyMemory<byte> body)
-        {
-            return default;
-            // Nothing to do here.
-        }
+            ReadOnlyMemory<byte> body) => default;// Nothing to do here.
 
         /// <summary>
         /// Called when the model (channel) this consumer was registered on terminates.
@@ -192,9 +182,9 @@ namespace RabbitMQ.Client
                 {
                     await h(this, new ConsumerEventArgs(consumerTags)).ConfigureAwait(false);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
-                    if (Model is ModelBase modelBase)
+                    if (Model is Model modelBase)
                     {
                         modelBase.OnCallbackException(CallbackExceptionEventArgs.Build(e));
                     }

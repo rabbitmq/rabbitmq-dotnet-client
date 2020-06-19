@@ -44,7 +44,7 @@ using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
 {
-    struct MethodArgumentWriter
+    internal struct MethodArgumentWriter
     {
         private byte _bitAccumulator;
         private int _bitMask;
@@ -61,10 +61,7 @@ namespace RabbitMQ.Client.Impl
             Offset = 0;
         }
 
-        public void Flush()
-        {
-            BitFlush();
-        }
+        public void Flush() => BitFlush();
 
         public void WriteBit(bool val)
         {
@@ -84,10 +81,7 @@ namespace RabbitMQ.Client.Impl
             _needBitFlush = true;
         }
 
-        public void WriteContent(byte[] val)
-        {
-            throw new NotSupportedException("WriteContent should not be called");
-        }
+        public void WriteContent(byte[] val) => throw new NotSupportedException("WriteContent should not be called");
 
         public void WriteLong(uint val)
         {

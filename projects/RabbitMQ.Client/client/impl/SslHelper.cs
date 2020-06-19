@@ -50,14 +50,11 @@ namespace RabbitMQ.Client.Impl
     /// Represents an <see cref="SslHelper"/> which does the actual heavy lifting to set up an SSL connection,
     ///  using the config options in an <see cref="SslOption"/> to make things cleaner.
     /// </summary>
-    class SslHelper
+    internal class SslHelper
     {
         private readonly SslOption _sslOption;
 
-        private SslHelper(SslOption sslOption)
-        {
-            _sslOption = sslOption;
-        }
+        private SslHelper(SslOption sslOption) => _sslOption = sslOption;
 
         /// <summary>
         /// Upgrade a Tcp stream to an Ssl stream using the TLS options provided.
@@ -73,13 +70,17 @@ namespace RabbitMQ.Client.Impl
 
             var sslStream = new SslStream(tcpStream, false, remoteCertValidator, localCertSelector);
 
-            Action<SslOption> TryAuthenticating = (SslOption opts) => {
+            Action<SslOption> TryAuthenticating = (SslOption opts) =>
+            {
                 sslStream.AuthenticateAsClientAsync(opts.ServerName, opts.Certs, opts.Version,
                                                     opts.CheckCertificateRevocation).GetAwaiter().GetResult();
             };
-            try {
+            try
+            {
                 TryAuthenticating(options);
-            } catch(ArgumentException e) when (e.ParamName == "sslProtocolType" && options.Version == SslProtocols.None) {
+            }
+            catch (ArgumentException e) when (e.ParamName == "sslProtocolType" && options.Version == SslProtocols.None)
+            {
                 // SslProtocols.None is dysfunctional in this environment, possibly due to TLS version restrictions
                 // in the app context, system or .NET version-specific behavior. See rabbitmq/rabbitmq-dotnet-client#764
                 // for background.
@@ -113,9 +114,6 @@ namespace RabbitMQ.Client.Impl
         }
 
         private bool CertificateValidationCallback(object sender, X509Certificate certificate,
-            X509Chain chain, SslPolicyErrors sslPolicyErrors)
-        {
-            return (sslPolicyErrors & ~_sslOption.AcceptablePolicyErrors) == SslPolicyErrors.None;
-        }
+            X509Chain chain, SslPolicyErrors sslPolicyErrors) => (sslPolicyErrors & ~_sslOption.AcceptablePolicyErrors) == SslPolicyErrors.None;
     }
 }

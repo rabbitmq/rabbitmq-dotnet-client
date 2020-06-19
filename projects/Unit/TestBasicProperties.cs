@@ -44,7 +44,7 @@ namespace RabbitMQ.Client.Unit
 {
 
     [TestFixture]
-    class TestBasicProperties
+    internal class TestBasicProperties
     {
         [Test]
         public void TestPersistentPropertyChangesDeliveryMode_PersistentTrueDelivery2()
@@ -132,8 +132,7 @@ namespace RabbitMQ.Client.Unit
 
             // Assert
             bool isReplyToPresent = replyTo != null;
-            PublicationAddress result;
-            PublicationAddress.TryParse(replyTo, out result);
+            PublicationAddress.TryParse(replyTo, out PublicationAddress result);
             string replyToAddress = result?.ToString();
             Assert.AreEqual(isReplyToPresent, subject.IsReplyToPresent());
 

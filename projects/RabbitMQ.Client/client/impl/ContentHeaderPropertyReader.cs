@@ -40,6 +40,7 @@
 
 using System;
 using System.Collections.Generic;
+
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
 
@@ -70,10 +71,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public bool ReadBit()
-        {
-            return ReadPresence();
-        }
+        public bool ReadBit() => ReadPresence();
 
         public void ReadFlagWord()
         {
@@ -107,10 +105,7 @@ namespace RabbitMQ.Client.Impl
             return result;
         }
 
-        public byte ReadOctet()
-        {
-            return _memory.Span[_memoryOffset++];
-        }
+        public byte ReadOctet() => _memory.Span[_memoryOffset++];
 
         public bool ReadPresence()
         {

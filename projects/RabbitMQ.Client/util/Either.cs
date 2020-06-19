@@ -41,7 +41,7 @@
 namespace RabbitMQ.Util
 {
     ///<summary>Used internally by class Either.</summary>
-    enum EitherAlternative
+    internal enum EitherAlternative
     {
         Left,
         Right
@@ -51,7 +51,7 @@ namespace RabbitMQ.Util
     ///<summary>Models the disjoint union of two alternatives, a
     ///"left" alternative and a "right" alternative.</summary>
     ///<remarks>Borrowed from ML, Haskell etc.</remarks>
-    class Either<L, R>
+    internal class Either<L, R>
     {
         ///<summary>Private constructor. Use the static methods Left, Right instead.</summary>
         private Either(EitherAlternative alternative, L valueL, R valueR)
@@ -69,15 +69,9 @@ namespace RabbitMQ.Util
         public R RightValue { get; private set; }
 
         ///<summary>Constructs an Either instance representing a Left alternative.</summary>
-        public static Either<L, R> Left(L value)
-        {
-            return new Either<L, R>(EitherAlternative.Left, value, default);
-        }
+        public static Either<L, R> Left(L value) => new Either<L, R>(EitherAlternative.Left, value, default);
 
         ///<summary>Constructs an Either instance representing a Right alternative.</summary>
-        public static Either<L, R> Right(R value)
-        {
-            return new Either<L, R>(EitherAlternative.Right, default, value);
-        }
+        public static Either<L, R> Right(R value) => new Either<L, R>(EitherAlternative.Right, default, value);
     }
 }

@@ -43,7 +43,8 @@ using NUnit.Framework;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestNoWait : IntegrationFixture {
+    public class TestNoWait : IntegrationFixture
+    {
         [Test]
         public void TestQueueDeclareNoWait()
         {
@@ -76,7 +77,9 @@ namespace RabbitMQ.Client.Unit
             {
                 Model.ExchangeDeclareNoWait(x, "fanout", false, true, null);
                 Model.ExchangeDeclarePassive(x);
-            } finally {
+            }
+            finally
+            {
                 Model.ExchangeDelete(x);
             }
         }
@@ -89,7 +92,9 @@ namespace RabbitMQ.Client.Unit
             {
                 Model.ExchangeDeclareNoWait(x, "fanout", false, true, null);
                 Model.ExchangeBindNoWait(x, "amq.fanout", "", null);
-            } finally {
+            }
+            finally
+            {
                 Model.ExchangeDelete(x);
             }
         }
@@ -103,7 +108,9 @@ namespace RabbitMQ.Client.Unit
                 Model.ExchangeDeclare(x, "fanout", false, true, null);
                 Model.ExchangeBind(x, "amq.fanout", "", null);
                 Model.ExchangeUnbindNoWait(x, "amq.fanout", "", null);
-            } finally {
+            }
+            finally
+            {
                 Model.ExchangeDelete(x);
             }
         }

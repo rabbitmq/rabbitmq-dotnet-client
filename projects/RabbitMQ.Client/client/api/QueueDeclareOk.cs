@@ -73,9 +73,6 @@ namespace RabbitMQ.Client
         /// </summary>
         public string QueueName { get; private set; }
 
-        public static implicit operator string(QueueDeclareOk declareOk)
-        {
-            return declareOk.QueueName;
-        }
+        public static implicit operator string(QueueDeclareOk declareOk) => declareOk.QueueName;
     }
 }

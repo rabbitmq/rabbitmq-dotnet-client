@@ -41,6 +41,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+
 using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
@@ -60,10 +61,7 @@ namespace RabbitMQ.Client.Unit
                 string exchange,
                 string routingKey,
                 IBasicProperties properties,
-                ReadOnlyMemory<byte> body)
-            {
-                throw new Exception("oops");
-            }
+                ReadOnlyMemory<byte> body) => throw new Exception("oops");
         }
 
         private class ConsumerFailingOnCancel : DefaultBasicConsumer
@@ -72,10 +70,7 @@ namespace RabbitMQ.Client.Unit
             {
             }
 
-            public override ValueTask HandleBasicCancel(string consumerTag)
-            {
-                throw new Exception("oops");
-            }
+            public override ValueTask HandleBasicCancel(string consumerTag) => throw new Exception("oops");
         }
 
         private class ConsumerFailingOnShutdown : DefaultBasicConsumer
@@ -84,10 +79,7 @@ namespace RabbitMQ.Client.Unit
             {
             }
 
-            public override ValueTask HandleModelShutdown(object model, ShutdownEventArgs reason)
-            {
-                throw new Exception("oops");
-            }
+            public override ValueTask HandleModelShutdown(object model, ShutdownEventArgs reason) => throw new Exception("oops");
         }
 
         private class ConsumerFailingOnConsumeOk : DefaultBasicConsumer
@@ -96,10 +88,7 @@ namespace RabbitMQ.Client.Unit
             {
             }
 
-            public override ValueTask HandleBasicConsumeOk(string consumerTag)
-            {
-                throw new Exception("oops");
-            }
+            public override ValueTask HandleBasicConsumeOk(string consumerTag) => throw new Exception("oops");
         }
 
         private class ConsumerFailingOnCancelOk : DefaultBasicConsumer
@@ -108,10 +97,7 @@ namespace RabbitMQ.Client.Unit
             {
             }
 
-            public override ValueTask HandleBasicCancelOk(string consumerTag)
-            {
-                throw new Exception("oops");
-            }
+            public override ValueTask HandleBasicCancelOk(string consumerTag) => throw new Exception("oops");
         }
 
         protected async ValueTask TestExceptionHandlingWith(IAsyncBasicConsumer consumer,

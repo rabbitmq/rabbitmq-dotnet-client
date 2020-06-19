@@ -41,6 +41,7 @@
 using System;
 using System.Text;
 using System.Threading.Tasks;
+
 using NUnit.Framework;
 
 using RabbitMQ.Client.Events;
@@ -54,27 +55,23 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestRecoverAfterCancel
     {
-        IConnection Connection;
-        IModel Channel;
-        string Queue;
-        int callbackCount;
+        private IConnection Connection;
+        private IModel Channel;
+        private string Queue;
+        private int callbackCount;
 
-        public int ModelNumber(IModel model)
-        {
-            return ((ModelBase)model).Session.ChannelNumber;
-        }
+        public int ModelNumber(IModel model) => ((Model)model).Session.ChannelNumber;
 
-        [SetUp] public async ValueTask Connect()
+        [SetUp]
+        public async ValueTask Connect()
         {
             Connection = await new ConnectionFactory().CreateConnection();
             Channel = await Connection.CreateModel();
             Queue = await Channel.QueueDeclare("", false, true, false, null);
         }
 
-        [TearDown] public async ValueTask Disconnect()
-        {
-            await Connection.Abort();
-        }
+        [TearDown]
+        public async ValueTask Disconnect() => await Connection.Abort();
 
         [Test]
         public async ValueTask TestRecoverAfterCancel_()
@@ -112,10 +109,7 @@ namespace RabbitMQ.Client.Unit
             Assert.AreEqual(1, callbackCount);
         }
 
-        void IncrCallback(object sender, EventArgs args)
-        {
-            callbackCount++;
-        }
+        private void IncrCallback(object sender, EventArgs args) => callbackCount++;
 
     }
 }

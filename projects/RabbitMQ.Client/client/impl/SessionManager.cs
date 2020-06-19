@@ -47,7 +47,7 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    class SessionManager
+    internal class SessionManager
     {
         public readonly ushort ChannelMax;
         private readonly IntAllocator _ints;

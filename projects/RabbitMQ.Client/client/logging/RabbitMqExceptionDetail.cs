@@ -44,10 +44,7 @@ using System.Diagnostics.Tracing;
 
 namespace RabbitMQ.Client.Logging
 {
-#if NET452
-#else
     [EventData]
-#endif
     public class RabbitMqExceptionDetail
     {
         public RabbitMqExceptionDetail(Exception ex)
@@ -55,7 +52,7 @@ namespace RabbitMQ.Client.Logging
             Type = ex.GetType().FullName;
             Message = ex.Message;
             StackTrace = ex.StackTrace;
-            if(ex.InnerException != null)
+            if (ex.InnerException != null)
             {
                 InnerException = ex.InnerException.ToString();
             }
@@ -77,9 +74,6 @@ namespace RabbitMQ.Client.Logging
         public string StackTrace { get; private set; }
         public string InnerException { get; private set; }
 
-        public override string ToString()
-        {
-            return $"Exception: {Type}\r\n{Message}\r\n\r\n{StackTrace}\r\nInnerException:\r\n{InnerException}";
-        }
+        public override string ToString() => $"Exception: {Type}\r\n{Message}\r\n\r\n{StackTrace}\r\nInnerException:\r\n{InnerException}";
     }
 }

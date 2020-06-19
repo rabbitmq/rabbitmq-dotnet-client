@@ -84,7 +84,7 @@ namespace RabbitMQ.Client.Unit
             int range = 100;
             IList<int> allocated = new List<int>();
             IntAllocator intAllocator = new IntAllocator(0, range);
-            for (int i=0; i <= range; i++)
+            for (int i = 0; i <= range; i++)
             {
                 int a = intAllocator.Allocate();
                 Assert.AreNotEqual(-1, a);

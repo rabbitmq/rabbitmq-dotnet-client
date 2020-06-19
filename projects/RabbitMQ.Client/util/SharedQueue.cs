@@ -47,13 +47,13 @@ using System.Threading;
 namespace RabbitMQ.Util
 {
     ///<summary>A thread-safe shared queue implementation.</summary>
-    class SharedQueue : SharedQueue<object>
+    internal class SharedQueue : SharedQueue<object>
     {
     }
 
 
     ///<summary>A thread-safe shared queue implementation.</summary>
-    class SharedQueue<T> : IEnumerable<T>
+    internal class SharedQueue<T> : IEnumerable<T>
     {
         ///<summary>Flag holding our current status.</summary>
         protected bool m_isOpen = true;
@@ -222,18 +222,12 @@ namespace RabbitMQ.Util
         ///<summary>Implementation of the IEnumerable interface, for
         ///permitting SharedQueue to be used in foreach
         ///loops.</summary>
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return new SharedQueueEnumerator<T>(this);
-        }
+        IEnumerator IEnumerable.GetEnumerator() => new SharedQueueEnumerator<T>(this);
 
         ///<summary>Implementation of the IEnumerable interface, for
         ///permitting SharedQueue to be used in foreach
         ///loops.</summary>
-        IEnumerator<T> IEnumerable<T>.GetEnumerator()
-        {
-            return new SharedQueueEnumerator<T>(this);
-        }
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => new SharedQueueEnumerator<T>(this);
 
         ///<summary>Call only when the lock on m_queue is held.</summary>
         /// <exception cref="EndOfStreamException" />
@@ -249,7 +243,7 @@ namespace RabbitMQ.Util
 
     ///<summary>Implementation of the IEnumerator interface, for
     ///permitting SharedQueue to be used in foreach loops.</summary>
-    struct SharedQueueEnumerator<T> : IEnumerator<T>
+    internal struct SharedQueueEnumerator<T> : IEnumerator<T>
     {
         private readonly SharedQueue<T> _queue;
         private T _current;
@@ -307,9 +301,6 @@ namespace RabbitMQ.Util
         ///<summary>Reset()ting a SharedQueue doesn't make sense, so
         ///this method always throws
         ///InvalidOperationException.</summary>
-        void IEnumerator.Reset()
-        {
-            throw new InvalidOperationException("SharedQueue.Reset() does not make sense");
-        }
+        void IEnumerator.Reset() => throw new InvalidOperationException("SharedQueue.Reset() does not make sense");
     }
 }

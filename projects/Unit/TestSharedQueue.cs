@@ -49,7 +49,7 @@ using RabbitMQ.Util;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    class TestSharedQueue : TimingFixture
+    internal class TestSharedQueue : TimingFixture
     {
         //wrapper to work around C#'s lack of local volatiles
         public class VolatileInt
@@ -76,25 +76,13 @@ namespace RabbitMQ.Client.Unit
                 m_q.Enqueue(m_v);
             }
 
-            public void Dequeue()
-            {
-                m_q.Dequeue();
-            }
+            public void Dequeue() => m_q.Dequeue();
 
-            public void DequeueNoWaitZero()
-            {
-                m_q.DequeueNoWait(0);
-            }
+            public void DequeueNoWaitZero() => m_q.DequeueNoWait(0);
 
-            public void DequeueAfterOneIntoV()
-            {
-                m_q.Dequeue(TimeSpan.FromMilliseconds(1), out m_v);
-            }
+            public void DequeueAfterOneIntoV() => m_q.Dequeue(TimeSpan.FromMilliseconds(1), out m_v);
 
-            public void BackgroundEofExpectingDequeue()
-            {
-                ExpectEof(Dequeue);
-            }
+            public void BackgroundEofExpectingDequeue() => ExpectEof(Dequeue);
         }
 
         public static void EnqueueAfter(TimeSpan delay, SharedQueue queue, object v)
@@ -117,15 +105,9 @@ namespace RabbitMQ.Client.Unit
 
         public DateTime m_startTime;
 
-        public void ResetTimer()
-        {
-            m_startTime = DateTime.Now;
-        }
+        public void ResetTimer() => m_startTime = DateTime.Now;
 
-        public TimeSpan ElapsedMs()
-        {
-            return DateTime.Now - m_startTime;
-        }
+        public TimeSpan ElapsedMs() => DateTime.Now - m_startTime;
 
         [Test]
         public void TestBgLong()
@@ -283,8 +265,8 @@ namespace RabbitMQ.Client.Unit
             var queue = new SharedQueue();
             var c1 = new VolatileInt();
             var c2 = new VolatileInt();
-            var thread1 = new Thread(() => { foreach (int v in queue) c1.v += v; });
-            var thread2 = new Thread(() => { foreach (int v in queue) c2.v += v; });
+            var thread1 = new Thread(() => { foreach (int v in queue) { c1.v += v; } });
+            var thread2 = new Thread(() => { foreach (int v in queue) { c2.v += v; } });
             thread1.Start();
             thread2.Start();
             queue.Enqueue(1);

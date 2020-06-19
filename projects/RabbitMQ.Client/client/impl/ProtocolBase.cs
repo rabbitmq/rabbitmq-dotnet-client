@@ -45,22 +45,19 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    abstract class ProtocolBase : IProtocol
+    internal abstract class ProtocolBase : IProtocol
     {
         public IDictionary<string, bool> Capabilities;
 
-        public ProtocolBase()
+        public ProtocolBase() => Capabilities = new Dictionary<string, bool>
         {
-            Capabilities = new Dictionary<string, bool>
-            {
-                ["publisher_confirms"] = true,
-                ["exchange_exchange_bindings"] = true,
-                ["basic.nack"] = true,
-                ["consumer_cancel_notify"] = true,
-                ["connection.blocked"] = true,
-                ["authentication_failure_close"] = true
-            };
-        }
+            ["publisher_confirms"] = true,
+            ["exchange_exchange_bindings"] = true,
+            ["basic.nack"] = true,
+            ["consumer_cancel_notify"] = true,
+            ["connection.blocked"] = true,
+            ["authentication_failure_close"] = true
+        };
 
         public abstract string ApiName { get; }
         public abstract int DefaultPort { get; }
@@ -73,70 +70,29 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public bool CanSendWhileClosed(Command cmd)
         {
-            switch (cmd.Method)
+            switch (cmd.Method.ProtocolCommandId)
             {
-                case Impl.ChannelClose _:
-                case Impl.ChannelCloseOk _:
+                case MethodConstants.ChannelClose:
+                case MethodConstants.ChannelCloseOk:
                     return true;
                 default:
                     return false;
             }
         }
 
-        public void CreateChannelClose(ushort reasonCode,
-            string reasonText,
-            out Command request,
-            out ushort replyClassId,
-            out ushort replyMethodId)
-        {
-            request = new Command(new Impl.ChannelClose(reasonCode,
-                reasonText,
-                0, 0));
-            replyClassId = ClassConstants.Channel;
-            replyMethodId = ChannelMethodConstants.CloseOk;
-        }
-
-        public void CreateConnectionClose(ushort reasonCode,
-            string reasonText,
-            out Command request,
-            out ushort replyClassId,
-            out ushort replyMethodId)
-        {
-            request = new Command(new Impl.ConnectionClose(reasonCode,
-                reasonText,
-                0, 0));
-            replyClassId = ClassConstants.Connection;
-            replyMethodId = ConnectionMethodConstants.CloseOk;
-        }
-
         internal abstract ContentHeaderBase DecodeContentHeaderFrom(ushort classId);
         internal abstract MethodBase DecodeMethodFrom(ReadOnlyMemory<byte> reader);
 
-        public override bool Equals(object obj)
-        {
-            return GetType() == obj.GetType();
-        }
+        public override bool Equals(object obj) => GetType() == obj.GetType();
 
-        public override int GetHashCode()
-        {
-            return GetType().GetHashCode();
-        }
+        public override int GetHashCode() => GetType().GetHashCode();
 
-        public override string ToString()
-        {
-            return Version.ToString();
-        }
+        public override string ToString() => Version.ToString();
 
-        public IConnection CreateConnection(IConnectionFactory factory, IFrameHandler frameHandler)
-        {
-            return new Connection(factory, frameHandler, null);
-        }
+        public IConnection CreateConnection(IConnectionFactory factory, IFrameHandler frameHandler) => new Connection(factory, frameHandler, null);
 
 
-        public IConnection CreateConnection(IConnectionFactory factory, IFrameHandler frameHandler, string clientProvidedName)
-        {
-            return new Connection(factory, frameHandler, clientProvidedName);
-        }
+        public IConnection CreateConnection(IConnectionFactory factory, IFrameHandler frameHandler, string clientProvidedName) => new Connection(factory, frameHandler, clientProvidedName);
 
         public IConnection CreateConnection(ConnectionFactory factory, IFrameHandler frameHandler, bool automaticRecoveryEnabled)
         {
@@ -153,9 +109,6 @@ namespace RabbitMQ.Client.Framing.Impl
         }
 
 
-        public IModel CreateModel(ISession session)
-        {
-            return new Model(session);
-        }
+        public IModel CreateModel(ISession session) => new Model(session);
     }
 }

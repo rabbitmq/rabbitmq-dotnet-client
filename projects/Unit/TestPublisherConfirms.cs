@@ -41,6 +41,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+
 using NUnit.Framework;
 
 using RabbitMQ.Client.Impl;
@@ -53,46 +54,34 @@ namespace RabbitMQ.Client.Unit
         private const string QueueName = "RabbitMQ.Client.Unit.TestPublisherConfirms";
 
         [Test]
-        public async ValueTask TestWaitForConfirmsWithoutTimeout()
-        {
-            await TestWaitForConfirms(200, async (ch) =>
-            {
-                Assert.IsTrue(await ch.WaitForConfirms());
-            });
-        }
+        public async ValueTask TestWaitForConfirmsWithoutTimeout() => await TestWaitForConfirms(200, async (ch) =>
+                                                                    {
+                                                                        Assert.IsTrue(await ch.WaitForConfirms());
+                                                                    });
 
         [Test]
-        public async ValueTask TestWaitForConfirmsWithTimeout()
-        {
-            await TestWaitForConfirms(200, async (ch) =>
-            {
-                Assert.IsTrue(await ch.WaitForConfirms(TimeSpan.FromSeconds(4)));
-            });
-        }
+        public async ValueTask TestWaitForConfirmsWithTimeout() => await TestWaitForConfirms(200, async (ch) =>
+                                                                 {
+                                                                     Assert.IsTrue(await ch.WaitForConfirms(TimeSpan.FromSeconds(4)));
+                                                                 });
 
         [Test]
-        public async ValueTask TestWaitForConfirmsWithTimeout_AllMessagesAcked_WaitingHasTimedout_ReturnTrue()
-        {
-            await TestWaitForConfirms(2000, (ch) =>
-            {
-                Assert.ThrowsAsync<TimeoutException>(async () => await ch.WaitForConfirms(TimeSpan.FromMilliseconds(1)));
-                return default;
-            });
-        }
+        public async ValueTask TestWaitForConfirmsWithTimeout_AllMessagesAcked_WaitingHasTimedout_ReturnTrue() => await TestWaitForConfirms(2000, (ch) =>
+                                                                                                                {
+                                                                                                                    Assert.ThrowsAsync<TimeoutException>(async () => await ch.WaitForConfirms(TimeSpan.FromMilliseconds(1)));
+                                                                                                                    return default;
+                                                                                                                });
 
         [Test]
-        public async ValueTask TestWaitForConfirmsWithTimeout_MessageNacked_WaitingHasTimedout_ReturnFalse()
-        {
-            await TestWaitForConfirms(200, async (ch) =>
-            {
-                BasicGetResult message = await ch.BasicGet(QueueName, false);
+        public async ValueTask TestWaitForConfirmsWithTimeout_MessageNacked_WaitingHasTimedout_ReturnFalse() => await TestWaitForConfirms(200, async (ch) =>
+                                                                                                              {
+                                                                                                                  BasicGetResult message = await ch.BasicGet(QueueName, false);
 
-                var fullModel = ch as IFullModel;
-                await fullModel.HandleBasicNack(message.DeliveryTag, false, false);
+                                                                                                                  var fullModel = ch as IFullModel;
+                                                                                                                  await fullModel.HandleBasicNack(message.DeliveryTag, false, false);
 
-                Assert.IsFalse(await ch.WaitForConfirms(TimeSpan.FromMilliseconds(1)));
-            });
-        }
+                                                                                                                  Assert.IsFalse(await ch.WaitForConfirms(TimeSpan.FromMilliseconds(1)));
+                                                                                                              });
 
         [Test]
         public async ValueTask TestWaitForConfirmsWithEvents()

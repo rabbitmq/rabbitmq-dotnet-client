@@ -40,6 +40,7 @@
 
 using System;
 using System.Threading.Tasks;
+
 using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
@@ -53,8 +54,8 @@ namespace RabbitMQ.Client.Unit
             await Model.QueueDeclare(queue: "test-message-batch-a", durable: false);
             await Model.QueueDeclare(queue: "test-message-batch-b", durable: false);
             IBasicPublishBatch batch = Model.CreateBasicPublishBatch();
-            batch.Add("", "test-message-batch-a", false, null, new byte [] {});
-            batch.Add("", "test-message-batch-b", false, null, new byte [] {});
+            batch.Add("", "test-message-batch-a", false, null, new byte[] { });
+            batch.Add("", "test-message-batch-b", false, null, new byte[] { });
             await batch.Publish();
             await Model.WaitForConfirmsOrDie(TimeSpan.FromSeconds(15));
             BasicGetResult resultA = await Model.BasicGet("test-message-batch-a", true);

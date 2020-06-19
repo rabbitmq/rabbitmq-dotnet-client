@@ -48,18 +48,12 @@ namespace RabbitMQ.Client.Unit
     public class TestEndpointResolver : IEndpointResolver
     {
         private readonly IEnumerable<AmqpTcpEndpoint> _endpoints;
-        public TestEndpointResolver (IEnumerable<AmqpTcpEndpoint> endpoints)
-        {
-            _endpoints = endpoints;
-        }
+        public TestEndpointResolver(IEnumerable<AmqpTcpEndpoint> endpoints) => _endpoints = endpoints;
 
-        public IEnumerable<AmqpTcpEndpoint> All()
-        {
-            return _endpoints;
-        }
+        public IEnumerable<AmqpTcpEndpoint> All() => _endpoints;
     }
 
-    class TestEndpointException : Exception
+    internal class TestEndpointException : Exception
     {
         public TestEndpointException(string message) : base(message)
         {
@@ -78,7 +72,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void SelectOneShouldRaiseThrownExceptionWhenThereAreOnlyInaccessibleEndpoints()
         {
-            var ep = new TestEndpointResolver(new List<AmqpTcpEndpoint> { new AmqpTcpEndpoint()});
+            var ep = new TestEndpointResolver(new List<AmqpTcpEndpoint> { new AmqpTcpEndpoint() });
             AggregateException thrown = Assert.Throws<AggregateException>(() => ep.SelectOne<AmqpTcpEndpoint>((x) => { throw new TestEndpointException("bananas"); }));
             Assert.That(thrown.InnerExceptions, Has.Exactly(1).TypeOf<TestEndpointException>());
         }
@@ -86,7 +80,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void SelectOneShouldReturnFoundEndpoint()
         {
-            var ep = new TestEndpointResolver(new List<AmqpTcpEndpoint> { new AmqpTcpEndpoint()});
+            var ep = new TestEndpointResolver(new List<AmqpTcpEndpoint> { new AmqpTcpEndpoint() });
             Assert.IsNotNull(ep.SelectOne<AmqpTcpEndpoint>((e) => e));
         }
     }

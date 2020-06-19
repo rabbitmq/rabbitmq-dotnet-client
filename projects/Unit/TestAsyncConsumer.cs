@@ -51,16 +51,16 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestAsyncConsumer
     {
-        static IDisposable networkSubscription = null;
-        static IDisposable listenerSubscription = null;
+        private static IDisposable networkSubscription = null;
+        private static IDisposable listenerSubscription = null;
 
         [Test]
         public async ValueTask TestBasicRoundtrip()
         {
-            var cf = new ConnectionFactory{ DispatchConsumersAsync = true };
-            cf.ClientProvidedName = this.GetType().Name;
-            using(IConnection c = await cf.CreateConnection())
-            using(IModel m = await c.CreateModel())
+            var cf = new ConnectionFactory { DispatchConsumersAsync = true };
+            cf.ClientProvidedName = GetType().Name;
+            using (IConnection c = await cf.CreateConnection())
+            using (IModel m = await c.CreateModel())
             {
                 QueueDeclareOk q = await m.QueueDeclare(Guid.NewGuid().ToString());
                 IBasicProperties bp = m.CreateBasicProperties();
@@ -88,8 +88,8 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public async ValueTask TestBasicRoundtripNoWait()
         {
-            var cf = new ConnectionFactory{ DispatchConsumersAsync = true };
-            cf.ClientProvidedName = this.GetType().Name;
+            var cf = new ConnectionFactory { DispatchConsumersAsync = true };
+            cf.ClientProvidedName = GetType().Name;
             using (IConnection c = await cf.CreateConnection())
             {
                 using (IModel m = await c.CreateModel())

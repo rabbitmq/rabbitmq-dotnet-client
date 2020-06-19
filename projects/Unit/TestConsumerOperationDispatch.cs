@@ -42,6 +42,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+
 using NUnit.Framework;
 
 using RabbitMQ.Client.Events;
@@ -86,10 +87,7 @@ namespace RabbitMQ.Client.Unit
             public List<ulong> DeliveryTags { get; private set; }
 
             public CollectingConsumer(IModel model)
-                : base(model)
-            {
-                DeliveryTags = new List<ulong>();
-            }
+                : base(model) => DeliveryTags = new List<ulong>();
 
             public override async ValueTask HandleBasicDeliver(string consumerTag,
                 ulong deliveryTag, bool redelivered, string exchange, string routingKey,
@@ -192,9 +190,12 @@ namespace RabbitMQ.Client.Unit
             public override ValueTask HandleModelShutdown(object model, ShutdownEventArgs reason)
             {
                 // keep track of duplicates
-                if (Latch.Wait(0)){
+                if (Latch.Wait(0))
+                {
                     DuplicateLatch.Set();
-                } else {
+                }
+                else
+                {
                     Latch.Set();
                 }
                 return default;

@@ -39,25 +39,22 @@
 //---------------------------------------------------------------------------
 
 using System.Threading.Tasks;
+
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
     ///<summary>Normal ISession implementation used during normal channel operation.</summary>
-    class Session : SessionBase
+    internal class Session : SessionBase
     {
         private readonly CommandAssembler _assembler;
 
         public Session(Connection connection, int channelNumber)
-            : base(connection, channelNumber)
-        {
-            _assembler = new CommandAssembler(connection.Protocol);
-        }
+            : base(connection, channelNumber) => _assembler = new CommandAssembler(connection.Protocol);
 
         public override ValueTask HandleFrame(in InboundFrame frame)
         {
-            Command cmd = _assembler.HandleFrame(in frame);
-            if (cmd is object)
+            if (_assembler.TryReadCommand(in frame, out Command cmd))
             {
                 return OnCommandReceived(cmd);
             }

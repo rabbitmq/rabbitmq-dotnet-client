@@ -50,9 +50,6 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Return a new authentication mechanism implementation.
         /// </summary>
-        public IAuthMechanism GetInstance()
-        {
-            return new PlainMechanism();
-        }
+        public IAuthMechanism GetInstance() => new PlainMechanism();
     }
 }

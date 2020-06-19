@@ -39,38 +39,35 @@
 //---------------------------------------------------------------------------
 
 using System.Threading.Tasks;
+
+using RabbitMQ.Client.Framing;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
     ///<summary>Small ISession implementation used during channel quiescing.</summary>
-    class QuiescingSession : SessionBase
+    internal class QuiescingSession : SessionBase
     {
         public ShutdownEventArgs m_reason;
 
         public QuiescingSession(Connection connection,
             int channelNumber,
             ShutdownEventArgs reason)
-            : base(connection, channelNumber)
-        {
-            m_reason = reason;
-        }
+            : base(connection, channelNumber) => m_reason = reason;
 
         public override ValueTask HandleFrame(in InboundFrame frame)
         {
             if (frame.IsMethod())
             {
                 MethodBase method = Connection.Protocol.DecodeMethodFrom(frame.Payload);
-                if ((method.ProtocolClassId == ClassConstants.Channel)
-                    && (method.ProtocolMethodId == ChannelMethodConstants.CloseOk))
+                if (method.ProtocolCommandId == MethodConstants.ChannelCloseOk)
                 {
                     // This is the reply we were looking for. Release
                     // the channel with the reason we were passed in
                     // our constructor.
                     return Close(m_reason);
                 }
-                else if ((method.ProtocolClassId == ClassConstants.Channel)
-                         && (method.ProtocolMethodId == ChannelMethodConstants.Close))
+                else if (method.ProtocolCommandId == MethodConstants.ChannelClose)
                 {
                     // We're already shutting down the channel, so
                     // just send back an ok.
@@ -84,9 +81,6 @@ namespace RabbitMQ.Client.Impl
             // for. Ignore it - we're quiescing.
         }
 
-        protected Command CreateChannelCloseOk()
-        {
-            return new Command(new ConnectionCloseOk());
-        }
+        protected Command CreateChannelCloseOk() => new Command(new ConnectionCloseOk());
     }
 }

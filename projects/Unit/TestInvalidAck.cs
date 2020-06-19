@@ -45,7 +45,8 @@ using NUnit.Framework;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestInvalidAck : IntegrationFixture {
+    public class TestInvalidAck : IntegrationFixture
+    {
 
         [Test]
         public void TestAckWithUnknownConsumerTagAndMultipleFalse()

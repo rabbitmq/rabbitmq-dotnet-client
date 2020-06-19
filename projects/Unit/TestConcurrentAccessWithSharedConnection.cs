@@ -70,10 +70,7 @@ namespace RabbitMQ.Client.Unit
         }
 
         [TearDown]
-        protected override void ReleaseResources()
-        {
-            _latch.Dispose();
-        }
+        protected override void ReleaseResources() => _latch.Dispose();
 
         [Test]
         public async ValueTask TestConcurrentConnectionsAndChannelsMessageIntegrity()
@@ -156,98 +153,54 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public async ValueTask TestConcurrentChannelOpenAndPublishingWithBlankMessages()
-        {
-            await TestConcurrentChannelOpenAndPublishingWithBody(Encoding.ASCII.GetBytes(string.Empty), 30);
-        }
+        public async ValueTask TestConcurrentChannelOpenAndPublishingWithBlankMessages() => await TestConcurrentChannelOpenAndPublishingWithBody(Encoding.ASCII.GetBytes(string.Empty), 30);
 
         [Test]
-        public ValueTask TestConcurrentChannelOpenAndPublishingCase1()
-        {
-            return TestConcurrentChannelOpenAndPublishingWithBodyOfSize(64);
-        }
+        public ValueTask TestConcurrentChannelOpenAndPublishingCase1() => TestConcurrentChannelOpenAndPublishingWithBodyOfSize(64);
 
         [Test]
-        public async ValueTask TestConcurrentChannelOpenAndPublishingCase2()
-        {
-            await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(256);
-        }
+        public async ValueTask TestConcurrentChannelOpenAndPublishingCase2() => await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(256);
 
         [Test]
-        public async ValueTask TestConcurrentChannelOpenAndPublishingCase3()
-        {
-            await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(1024);
-        }
+        public async ValueTask TestConcurrentChannelOpenAndPublishingCase3() => await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(1024);
 
         [Test]
-        public async ValueTask TestConcurrentChannelOpenAndPublishingCase4()
-        {
-            await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(8192);
-        }
+        public async ValueTask TestConcurrentChannelOpenAndPublishingCase4() => await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(8192);
 
         [Test]
-        public async ValueTask TestConcurrentChannelOpenAndPublishingCase5()
-        {
-            await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(32768, 20);
-        }
+        public async ValueTask TestConcurrentChannelOpenAndPublishingCase5() => await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(32768, 20);
 
         [Test]
-        public async ValueTask TestConcurrentChannelOpenAndPublishingCase6()
-        {
-            await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(100000, 15);
-        }
+        public async ValueTask TestConcurrentChannelOpenAndPublishingCase6() => await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(100000, 15);
 
         [Test]
-        public async ValueTask TestConcurrentChannelOpenAndPublishingCase7()
-        {
+        public async ValueTask TestConcurrentChannelOpenAndPublishingCase7() =>
             // surpasses default frame size
             await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(131072, 12);
-        }
 
         [Test]
-        public async ValueTask TestConcurrentChannelOpenAndPublishingCase8()
-        {
-            await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(270000, 10);
-        }
+        public async ValueTask TestConcurrentChannelOpenAndPublishingCase8() => await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(270000, 10);
 
         [Test]
-        public async ValueTask TestConcurrentChannelOpenAndPublishingCase9()
-        {
-            await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(540000, 6);
-        }
+        public async ValueTask TestConcurrentChannelOpenAndPublishingCase9() => await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(540000, 6);
 
         [Test]
-        public async ValueTask TestConcurrentChannelOpenAndPublishingCase10()
-        {
-            await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(1000000, 2);
-        }
+        public async ValueTask TestConcurrentChannelOpenAndPublishingCase10() => await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(1000000, 2);
 
         [Test]
-        public async ValueTask TestConcurrentChannelOpenAndPublishingCase11()
-        {
-            await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(1500000, 1);
-        }
+        public async ValueTask TestConcurrentChannelOpenAndPublishingCase11() => await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(1500000, 1);
 
         [Test]
-        public async ValueTask TestConcurrentChannelOpenAndPublishingCase12()
-        {
-            await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(128000000, 1);
-        }
+        public async ValueTask TestConcurrentChannelOpenAndPublishingCase12() => await TestConcurrentChannelOpenAndPublishingWithBodyOfSize(128000000, 1);
 
         [Test]
-        public async ValueTask TestConcurrentChannelOpenCloseLoop()
-        {
-            await TestConcurrentChannelOperations(async (conn) =>
-            {
-                IModel ch = await conn.CreateModel();
-                await ch.Close();
-            }, 50);
-        }
+        public async ValueTask TestConcurrentChannelOpenCloseLoop() => await TestConcurrentChannelOperations(async (conn) =>
+                                                                     {
+                                                                         IModel ch = await conn.CreateModel();
+                                                                         await ch.Close();
+                                                                     }, 50);
 
-        internal ValueTask TestConcurrentChannelOpenAndPublishingWithBodyOfSize(int length)
-        {
-            return TestConcurrentChannelOpenAndPublishingWithBodyOfSize(length, 30);
-        }
+        internal ValueTask TestConcurrentChannelOpenAndPublishingWithBodyOfSize(int length) => TestConcurrentChannelOpenAndPublishingWithBodyOfSize(length, 30);
 
         internal ValueTask TestConcurrentChannelOpenAndPublishingWithBodyOfSize(int length, int iterations)
         {
@@ -260,30 +213,24 @@ namespace RabbitMQ.Client.Unit
             return TestConcurrentChannelOpenAndPublishingWithBody(Encoding.ASCII.GetBytes(s), iterations);
         }
 
-        internal ValueTask TestConcurrentChannelOpenAndPublishingWithBody(byte[] body, int iterations)
-        {
-            return TestConcurrentChannelOperations(async (conn) =>
-            {
-                // publishing on a shared channel is not supported
-                // and would missing the point of this test anyway
-                using (IModel ch = await Conn.CreateModel())
-                {
-                    await ch.ConfirmSelect();
-                    foreach (int j in Enumerable.Range(0, 200))
-                    {
-                        await ch.BasicPublish(exchange: "", routingKey: "_______", basicProperties: ch.CreateBasicProperties(), body: body);
-                    }
+        internal ValueTask TestConcurrentChannelOpenAndPublishingWithBody(byte[] body, int iterations) => TestConcurrentChannelOperations(async (conn) =>
+                                                                                                                    {
+                                                                                                                        // publishing on a shared channel is not supported
+                                                                                                                        // and would missing the point of this test anyway
+                                                                                                                        using (IModel ch = await Conn.CreateModel())
+                                                                                                                        {
+                                                                                                                            await ch.ConfirmSelect();
+                                                                                                                            foreach (int j in Enumerable.Range(0, 200))
+                                                                                                                            {
+                                                                                                                                await ch.BasicPublish(exchange: "", routingKey: "_______", basicProperties: ch.CreateBasicProperties(), body: body);
+                                                                                                                            }
 
-                    await ch.WaitForConfirms(TimeSpan.FromSeconds(40));
-                }
-            }, iterations);
-        }
+                                                                                                                            await ch.WaitForConfirms(TimeSpan.FromSeconds(40));
+                                                                                                                        }
+                                                                                                                    }, iterations);
 
         internal ValueTask TestConcurrentChannelOperations(Func<IConnection, ValueTask> actions,
-            int iterations)
-        {
-            return TestConcurrentChannelOperations(actions, iterations, _completionTimeout);
-        }
+            int iterations) => TestConcurrentChannelOperations(actions, iterations, _completionTimeout);
 
         internal async ValueTask TestConcurrentChannelOperations(Func<IConnection, ValueTask> actions,
             int iterations, TimeSpan timeout)
@@ -302,7 +249,7 @@ namespace RabbitMQ.Client.Unit
             {
                 await Task.WhenAll(tasks).TimeoutAfter(timeout);
             }
-            catch(TimeoutException)
+            catch (TimeoutException)
             {
 
             }

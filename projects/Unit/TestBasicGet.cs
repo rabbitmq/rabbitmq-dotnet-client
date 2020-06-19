@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System.Threading.Tasks;
+
 using NUnit.Framework;
 
 using RabbitMQ.Client.Exceptions;
@@ -49,27 +50,21 @@ namespace RabbitMQ.Client.Unit
     public class TestBasicGet : IntegrationFixture
     {
         [Test]
-        public async ValueTask TestBasicGetWithClosedChannel()
-        {
-            await WithNonEmptyQueue( async (_, q) =>
-                {
-                    await WithClosedModel(cm =>
-                    {
-                        Assert.ThrowsAsync<AlreadyClosedException>(async () => await cm.BasicGet(q, true));
-                        return default;
-                    });
-                });
-        }
+        public async ValueTask TestBasicGetWithClosedChannel() => await WithNonEmptyQueue(async (_, q) =>
+                                                                   {
+                                                                       await WithClosedModel(cm =>
+                                                                       {
+                                                                           Assert.ThrowsAsync<AlreadyClosedException>(async () => await cm.BasicGet(q, true));
+                                                                           return default;
+                                                                       });
+                                                                   });
 
         [Test]
-        public async ValueTask TestBasicGetWithEmptyResponse()
-        {
-            await WithEmptyQueue(async (model, queue) =>
-            {
-                BasicGetResult res = await model.BasicGet(queue, false);
-                Assert.IsNull(res);
-            });
-        }
+        public async ValueTask TestBasicGetWithEmptyResponse() => await WithEmptyQueue(async (model, queue) =>
+                                                                {
+                                                                    BasicGetResult res = await model.BasicGet(queue, false);
+                                                                    Assert.IsNull(res);
+                                                                });
 
         [Test]
         public async ValueTask TestBasicGetWithNonEmptyResponseAndAutoAckMode()

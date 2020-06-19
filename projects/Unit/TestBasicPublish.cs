@@ -1,7 +1,9 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+
 using NUnit.Framework;
+
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Unit
@@ -13,8 +15,8 @@ namespace RabbitMQ.Client.Unit
         public async ValueTask TestBasicRoundtripArray()
         {
             var cf = new ConnectionFactory();
-            using(IConnection c = await cf.CreateConnection())
-            using(IModel m = await c.CreateModel())
+            using (IConnection c = await cf.CreateConnection())
+            using (IModel m = await c.CreateModel())
             {
                 QueueDeclareOk q = await m.QueueDeclare();
                 IBasicProperties bp = m.CreateBasicProperties();
@@ -43,8 +45,8 @@ namespace RabbitMQ.Client.Unit
         public async ValueTask TestBasicRoundtripReadOnlyMemory()
         {
             var cf = new ConnectionFactory();
-            using(IConnection c = await cf.CreateConnection())
-            using(IModel m = await c.CreateModel())
+            using (IConnection c = await cf.CreateConnection())
+            using (IModel m = await c.CreateModel())
             {
                 QueueDeclareOk q = await m.QueueDeclare();
                 IBasicProperties bp = m.CreateBasicProperties();

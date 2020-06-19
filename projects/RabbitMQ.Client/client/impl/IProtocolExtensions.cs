@@ -46,7 +46,7 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    static class IProtocolExtensions
+    internal static class IProtocolExtensions
     {
         public static IFrameHandler CreateFrameHandler(
             this IProtocol protocol,
@@ -54,9 +54,6 @@ namespace RabbitMQ.Client.Framing.Impl
             Func<AddressFamily, ITcpClient> socketFactory,
             TimeSpan connectionTimeout,
             TimeSpan readTimeout,
-            TimeSpan writeTimeout)
-        {
-            return new SocketFrameHandler(endpoint, socketFactory, connectionTimeout, readTimeout, writeTimeout);
-        }
+            TimeSpan writeTimeout) => new SocketFrameHandler(endpoint, socketFactory, connectionTimeout, readTimeout, writeTimeout);
     }
 }

@@ -41,6 +41,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Framing.Impl;
 
@@ -411,10 +412,7 @@ namespace RabbitMQ.Client.Impl
             return _delegate.ToString();
         }
 
-        void IDisposable.Dispose()
-        {
-            Dispose(true);
-        }
+        void IDisposable.Dispose() => Dispose(true);
 
         private void Dispose(bool disposing)
         {

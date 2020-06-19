@@ -40,6 +40,7 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using NUnit.Framework;
 
 using RabbitMQ.Client.Exceptions;
@@ -66,15 +67,13 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestBasicConnectionRecoveryWithHostnameListWithOnlyUnreachableHosts()
+        public void TestBasicConnectionRecoveryWithHostnameListWithOnlyUnreachableHosts() => Assert.ThrowsAsync<BrokerUnreachableException>(async () =>
         {
-            Assert.ThrowsAsync<BrokerUnreachableException>(async () => {
-                await CreateAutorecoveringConnection(new List<string>() {
+            await CreateAutorecoveringConnection(new List<string>() {
                     "191.72.44.22",
                     "145.23.22.18",
                     "192.255.255.255"
                 });
-            });
-        }
+        });
     }
 }

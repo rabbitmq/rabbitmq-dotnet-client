@@ -57,22 +57,15 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestParseFailWithANE()
-        {
-            Assert.That(()=> PublicationAddress.Parse(null), Throws.ArgumentNullException);
-        }
+        public void TestParseFailWithANE() => Assert.That(() => PublicationAddress.Parse(null), Throws.ArgumentNullException);
 
         [Test]
-        public void TestParseFailWithUnparseableInput()
-        {
-            Assert.IsNull(PublicationAddress.Parse("not a valid URI"));
-        }
+        public void TestParseFailWithUnparseableInput() => Assert.IsNull(PublicationAddress.Parse("not a valid URI"));
 
         [Test]
         public void TestTryParseFail()
         {
-            PublicationAddress result;
-            PublicationAddress.TryParse(null, out result);
+            PublicationAddress.TryParse(null, out PublicationAddress result);
             Assert.IsNull(result);
 
             PublicationAddress.TryParse("not a valid URI", out result);
@@ -121,9 +114,6 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestMissingExchangeType()
-        {
-            Assert.IsNull(PublicationAddress.Parse("://exch/key"));
-        }
+        public void TestMissingExchangeType() => Assert.IsNull(PublicationAddress.Parse("://exch/key"));
     }
 }

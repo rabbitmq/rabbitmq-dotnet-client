@@ -40,6 +40,7 @@
 
 using System;
 using System.Net.Sockets;
+
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client

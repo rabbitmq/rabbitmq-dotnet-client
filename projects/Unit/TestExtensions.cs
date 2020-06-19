@@ -40,6 +40,7 @@
 
 using System;
 using System.Threading.Tasks;
+
 using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
@@ -53,16 +54,13 @@ namespace RabbitMQ.Client.Unit
             await Model.ConfirmSelect();
             for (int i = 0; i < 10; i++)
             {
-                await Model.BasicPublish("", string.Empty, null, new byte[] {});
+                await Model.BasicPublish("", string.Empty, null, new byte[] { });
             }
             Assert.That(await Model.WaitForConfirms(), Is.True);
         }
 
         [Test]
-        public void TestConfirmBeforeWait()
-        {
-            Assert.ThrowsAsync<InvalidOperationException>(async () => await Model.WaitForConfirms());
-        }
+        public void TestConfirmBeforeWait() => Assert.ThrowsAsync<InvalidOperationException>(async () => await Model.WaitForConfirms());
 
         [Test]
         public async ValueTask TestExchangeBinding()
@@ -77,7 +75,7 @@ namespace RabbitMQ.Client.Unit
             await Model.ExchangeBind("dest", "src", string.Empty);
             await Model.QueueBind(queue, "dest", string.Empty);
 
-            await Model.BasicPublish("src", string.Empty, null, new byte[] {});
+            await Model.BasicPublish("src", string.Empty, null, new byte[] { });
             await Model.WaitForConfirms();
             Assert.IsNotNull(await Model.BasicGet(queue, true));
 

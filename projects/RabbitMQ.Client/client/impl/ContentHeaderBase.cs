@@ -45,7 +45,7 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    abstract class ContentHeaderBase : IContentHeader
+    internal abstract class ContentHeaderBase : IContentHeader
     {
         ///<summary>
         /// Retrieve the AMQP class ID of this content header.
@@ -57,10 +57,7 @@ namespace RabbitMQ.Client.Impl
         ///</summary>
         public abstract string ProtocolClassName { get; }
 
-        public virtual object Clone()
-        {
-            throw new NotImplementedException();
-        }
+        public virtual object Clone() => throw new NotImplementedException();
 
         public abstract void AppendPropertyDebugStringTo(StringBuilder stringBuilder);
 
@@ -90,11 +87,9 @@ namespace RabbitMQ.Client.Impl
             WritePropertiesTo(ref writer);
             return 10 + writer.Offset;
         }
-        public int GetRequiredBufferSize()
-        {
+        public int GetRequiredBufferSize() =>
             // The first 10 bytes are the Weight (2 bytes) + body size (8 bytes)
-            return 10 + GetRequiredPayloadBufferSize();
-        }
+            10 + GetRequiredPayloadBufferSize();
 
         public abstract int GetRequiredPayloadBufferSize();
     }

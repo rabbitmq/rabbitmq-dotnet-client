@@ -55,7 +55,8 @@ namespace RabbitMQ.Client.Unit
         {
             var latch = new ManualResetEventSlim(false);
 
-            Model.ModelShutdown += (model, args) => {
+            Model.ModelShutdown += (model, args) =>
+            {
                 latch.Set();
                 return default;
             };

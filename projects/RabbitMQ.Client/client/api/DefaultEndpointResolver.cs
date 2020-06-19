@@ -49,14 +49,8 @@ namespace RabbitMQ.Client
         private readonly List<AmqpTcpEndpoint> _endpoints;
         private readonly Random _rnd = new Random();
 
-        public DefaultEndpointResolver (IEnumerable<AmqpTcpEndpoint> tcpEndpoints)
-        {
-           _endpoints = tcpEndpoints.ToList();
-        }
+        public DefaultEndpointResolver(IEnumerable<AmqpTcpEndpoint> tcpEndpoints) => _endpoints = tcpEndpoints.ToList();
 
-        public IEnumerable<AmqpTcpEndpoint> All()
-        {
-            return _endpoints.OrderBy(item => _rnd.Next());
-        }
+        public IEnumerable<AmqpTcpEndpoint> All() => _endpoints.OrderBy(item => _rnd.Next());
     }
 }

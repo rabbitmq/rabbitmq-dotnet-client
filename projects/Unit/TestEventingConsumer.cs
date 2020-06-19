@@ -40,6 +40,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+
 using NUnit.Framework;
 
 using RabbitMQ.Client.Events;
@@ -47,7 +48,8 @@ using RabbitMQ.Client.Events;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestEventingConsumer : IntegrationFixture {
+    public class TestEventingConsumer : IntegrationFixture
+    {
 
         [Test]
         public async ValueTask TestEventingConsumerRegistrationEvents()

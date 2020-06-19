@@ -47,7 +47,8 @@ using NUnit.Framework;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestUpdateSecret : IntegrationFixture {
+    public class TestUpdateSecret : IntegrationFixture
+    {
 
         [Test]
         public async ValueTask TestUpdatingConnectionSecret()

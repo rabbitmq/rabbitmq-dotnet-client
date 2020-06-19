@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Framing.Impl
     /// special-cases 8-0, rewriting it at construction time to be 0-8 instead.
     /// </para>
     /// </remarks>
-    class AmqpVersion
+    internal class AmqpVersion
     {
         /// <summary>
         /// Construct an <see cref="AmqpVersion"/> from major and minor version numbers.
@@ -89,18 +89,12 @@ namespace RabbitMQ.Client.Framing.Impl
         /// <summary>
         /// Implement value-equality comparison.
         /// </summary>
-        public override bool Equals(object other)
-        {
-            return (other is AmqpVersion version) && (version.Major == Major) && (version.Minor == Minor);
-        }
+        public override bool Equals(object other) => (other is AmqpVersion version) && (version.Major == Major) && (version.Minor == Minor);
 
         /// <summary>
         /// Implement hashing as for value-equality.
         /// </summary>
-        public override int GetHashCode()
-        {
-            return 31*Major.GetHashCode() + Minor.GetHashCode();
-        }
+        public override int GetHashCode() => 31 * Major.GetHashCode() + Minor.GetHashCode();
 
         /// <summary>
         /// Format appropriately for display.
@@ -108,9 +102,6 @@ namespace RabbitMQ.Client.Framing.Impl
         /// <remarks>
         /// The specification currently uses "MAJOR-MINOR" as a display format.
         /// </remarks>
-        public override string ToString()
-        {
-            return $"{Major}-{Minor}";
-        }
+        public override string ToString() => $"{Major}-{Minor}";
     }
 }

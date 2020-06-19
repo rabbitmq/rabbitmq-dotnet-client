@@ -617,10 +617,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public void Init()
-        {
-            Init(_factory.EndpointResolverFactory(new List<AmqpTcpEndpoint> { _factory.Endpoint }));
-        }
+        public void Init() => Init(_factory.EndpointResolverFactory(new List<AmqpTcpEndpoint> { _factory.Endpoint }));
 
         public void Init(IEndpointResolver endpoints)
         {
@@ -826,10 +823,7 @@ namespace RabbitMQ.Client.Framing.Impl
             return m;
         }
 
-        void IDisposable.Dispose()
-        {
-            Dispose(true);
-        }
+        void IDisposable.Dispose() => Dispose(true);
 
         public ValueTask HandleConnectionClose(ushort replyCode, string replyText, ushort classId, ushort methodId)
         {
@@ -921,10 +915,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _delegate.EnsureIsOpen();
         }
 
-        private void HandleTopologyRecoveryException(TopologyRecoveryException e)
-        {
-            ESLog.Error("Topology recovery exception", e);
-        }
+        private void HandleTopologyRecoveryException(TopologyRecoveryException e) => ESLog.Error("Topology recovery exception", e);
 
         private void PropagateQueueNameChangeToBindings(string oldName, string newName)
         {
@@ -1223,13 +1214,10 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private bool ShouldTriggerConnectionRecovery(ShutdownEventArgs args)
-        {
-            return args.ReplyCode != 403 && (args.Initiator == ShutdownInitiator.Peer ||
+        private bool ShouldTriggerConnectionRecovery(ShutdownEventArgs args) => args.ReplyCode != 403 && (args.Initiator == ShutdownInitiator.Peer ||
                     // happens when EOF is reached, e.g. due to RabbitMQ node
                     // connectivity loss or abrupt shutdown
                     args.Initiator == ShutdownInitiator.Library);
-        }
 
         private enum RecoveryCommand
         {
@@ -1362,13 +1350,10 @@ namespace RabbitMQ.Client.Framing.Impl
         /// <summary>
         /// Schedule a background Task to signal the command queue when the retry duration has elapsed.
         /// </summary>
-        private void ScheduleRecoveryRetry()
-        {
-            _ = Task.Run(async () =>
-            {
-                await Task.Delay(_factory.NetworkRecoveryInterval).ConfigureAwait(false);
-                _recoveryLoopCommandQueue.Writer.TryWrite(RecoveryCommand.PerformAutomaticRecovery);
-            });
-        }
+        private void ScheduleRecoveryRetry() => _ = Task.Run(async () =>
+                                              {
+                                                  await Task.Delay(_factory.NetworkRecoveryInterval).ConfigureAwait(false);
+                                                  _recoveryLoopCommandQueue.Writer.TryWrite(RecoveryCommand.PerformAutomaticRecovery);
+                                              });
     }
 }

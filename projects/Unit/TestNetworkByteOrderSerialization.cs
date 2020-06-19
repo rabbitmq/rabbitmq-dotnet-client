@@ -47,7 +47,7 @@ using RabbitMQ.Util;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    class TestNetworkByteOrderSerialization
+    internal class TestNetworkByteOrderSerialization
     {
         public void Check(byte[] actual, byte[] expected)
         {
@@ -67,14 +67,11 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        readonly byte[] expectedDoubleBytes = new byte[] { 63, 243, 190, 118, 200, 180, 57, 88 };
-        readonly byte[] expectedSingleBytes = new byte[] { 63, 157, 243, 182 };
+        private readonly byte[] expectedDoubleBytes = new byte[] { 63, 243, 190, 118, 200, 180, 57, 88 };
+        private readonly byte[] expectedSingleBytes = new byte[] { 63, 157, 243, 182 };
 
         [Test]
-        public void TestSingleDecoding()
-        {
-            Assert.AreEqual(1.234f, NetworkOrderDeserializer.ReadSingle(expectedSingleBytes.AsSpan()));
-        }
+        public void TestSingleDecoding() => Assert.AreEqual(1.234f, NetworkOrderDeserializer.ReadSingle(expectedSingleBytes.AsSpan()));
 
         [Test]
         public void TestSingleEncoding()
@@ -85,10 +82,7 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestDoubleDecoding()
-        {
-            Assert.AreEqual(1.234, NetworkOrderDeserializer.ReadDouble(expectedDoubleBytes.AsSpan()));
-        }
+        public void TestDoubleDecoding() => Assert.AreEqual(1.234, NetworkOrderDeserializer.ReadDouble(expectedDoubleBytes.AsSpan()));
 
         [Test]
         public void TestDoubleEncoding()
@@ -123,16 +117,10 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestReadInt16()
-        {
-            Assert.AreEqual(0x1234, NetworkOrderDeserializer.ReadInt16(new byte[] { 0x12, 0x34 }.AsSpan()));
-        }
+        public void TestReadInt16() => Assert.AreEqual(0x1234, NetworkOrderDeserializer.ReadInt16(new byte[] { 0x12, 0x34 }.AsSpan()));
 
         [Test]
-        public void TestReadUInt16()
-        {
-            Assert.AreEqual(0x89AB, NetworkOrderDeserializer.ReadUInt16(new byte[] { 0x89, 0xAB }.AsSpan()));
-        }
+        public void TestReadUInt16() => Assert.AreEqual(0x89AB, NetworkOrderDeserializer.ReadUInt16(new byte[] { 0x89, 0xAB }.AsSpan()));
 
         [Test]
         public void TestWriteInt32_positive()
@@ -159,16 +147,10 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestReadInt32()
-        {
-            Assert.AreEqual(0x12345678, NetworkOrderDeserializer.ReadInt32(new byte[] { 0x12, 0x34, 0x56, 0x78 }.AsSpan()));
-        }
+        public void TestReadInt32() => Assert.AreEqual(0x12345678, NetworkOrderDeserializer.ReadInt32(new byte[] { 0x12, 0x34, 0x56, 0x78 }.AsSpan()));
 
         [Test]
-        public void TestReadUInt32()
-        {
-            Assert.AreEqual(0x89ABCDEF, NetworkOrderDeserializer.ReadUInt32(new byte[] { 0x89, 0xAB, 0xCD, 0xEF }.AsSpan()));
-        }
+        public void TestReadUInt32() => Assert.AreEqual(0x89ABCDEF, NetworkOrderDeserializer.ReadUInt32(new byte[] { 0x89, 0xAB, 0xCD, 0xEF }.AsSpan()));
 
 
         [Test]
@@ -196,15 +178,9 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestReadInt64()
-        {
-            Assert.AreEqual(0x123456789ABCDEF0, NetworkOrderDeserializer.ReadInt64(new byte[] { 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0 }.AsSpan()));
-        }
+        public void TestReadInt64() => Assert.AreEqual(0x123456789ABCDEF0, NetworkOrderDeserializer.ReadInt64(new byte[] { 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0 }.AsSpan()));
 
         [Test]
-        public void TestReadUInt64()
-        {
-            Assert.AreEqual(0x89ABCDEF01234567, NetworkOrderDeserializer.ReadUInt64(new byte[] { 0x89, 0xAB, 0xCD, 0xEF, 0x01, 0x23, 0x45, 0x67 }.AsSpan()));
-        }
+        public void TestReadUInt64() => Assert.AreEqual(0x89ABCDEF01234567, NetworkOrderDeserializer.ReadUInt64(new byte[] { 0x89, 0xAB, 0xCD, 0xEF, 0x01, 0x23, 0x45, 0x67 }.AsSpan()));
     }
 }

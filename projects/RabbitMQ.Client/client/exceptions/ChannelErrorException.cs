@@ -46,10 +46,7 @@ namespace RabbitMQ.Client.Exceptions
     public class ChannelErrorException : HardProtocolException
     {
         public ChannelErrorException(int channel)
-            : base($"Frame received for invalid channel {channel}")
-        {
-            Channel = channel;
-        }
+            : base($"Frame received for invalid channel {channel}") => Channel = channel;
 
         ///<summary>The channel number concerned.</summary>
         public int Channel { get; private set; }

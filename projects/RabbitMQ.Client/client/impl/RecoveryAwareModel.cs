@@ -40,7 +40,6 @@
 
 using System;
 using System.Threading.Tasks;
-using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -121,9 +120,6 @@ namespace RabbitMQ.Client.Impl
             return default;
         }
 
-        protected ulong OffsetDeliveryTag(ulong deliveryTag)
-        {
-            return deliveryTag + ActiveDeliveryTagOffset;
-        }
+        protected ulong OffsetDeliveryTag(ulong deliveryTag) => deliveryTag + ActiveDeliveryTagOffset;
     }
 }

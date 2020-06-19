@@ -63,7 +63,9 @@ namespace RabbitMQ.Util
             get
             {
                 lock (SyncRoot)
+                {
                     return _list.Count;
+                }
             }
         }
 
@@ -74,12 +76,16 @@ namespace RabbitMQ.Util
             get
             {
                 lock (SyncRoot)
+                {
                     return _list[index];
+                }
             }
             set
             {
                 lock (SyncRoot)
+                {
                     _list[index] = value;
+                }
             }
         }
 
@@ -88,61 +94,81 @@ namespace RabbitMQ.Util
         public void Add(T item)
         {
             lock (SyncRoot)
+            {
                 _list.Add(item);
+            }
         }
 
         public void Clear()
         {
             lock (SyncRoot)
+            {
                 _list.Clear();
+            }
         }
 
         public bool Contains(T item)
         {
             lock (SyncRoot)
+            {
                 return _list.Contains(item);
+            }
         }
 
         public void CopyTo(T[] array, int arrayIndex)
         {
             lock (SyncRoot)
+            {
                 _list.CopyTo(array, arrayIndex);
+            }
         }
 
         public bool Remove(T item)
         {
             lock (SyncRoot)
+            {
                 return _list.Remove(item);
+            }
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
             lock (SyncRoot)
+            {
                 return _list.GetEnumerator();
+            }
         }
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
             lock (SyncRoot)
+            {
                 return _list.GetEnumerator();
+            }
         }
 
         public int IndexOf(T item)
         {
             lock (SyncRoot)
+            {
                 return _list.IndexOf(item);
+            }
         }
 
         public void Insert(int index, T item)
         {
             lock (SyncRoot)
+            {
                 _list.Insert(index, item);
+            }
         }
 
         public void RemoveAt(int index)
         {
             lock (SyncRoot)
+            {
                 _list.RemoveAt(index);
+            }
         }
     }
 }

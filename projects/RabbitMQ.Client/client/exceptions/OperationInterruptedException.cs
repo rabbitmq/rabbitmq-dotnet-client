@@ -49,9 +49,6 @@ namespace RabbitMQ.Client.Exceptions
     /// operation, an OperationInterruptedException will be thrown to
     /// the caller of IModel.QueueDeclare.
     /// </summary>
-#if !NETSTANDARD1_5
-    [Serializable]
-#endif
     public class OperationInterruptedException
         // TODO: inherit from OperationCanceledException
         : RabbitMQClientException
@@ -60,19 +57,13 @@ namespace RabbitMQ.Client.Exceptions
         ///the passed-in explanation, if any.</summary>
         public OperationInterruptedException(ShutdownEventArgs reason)
             : base(reason == null ? "The AMQP operation was interrupted" :
-                $"The AMQP operation was interrupted: {reason}")
-        {
-            ShutdownReason = reason;
-        }
+                $"The AMQP operation was interrupted: {reason}") => ShutdownReason = reason;
 
         ///<summary>Construct an OperationInterruptedException with
         ///the passed-in explanation and prefix, if any.</summary>
         public OperationInterruptedException(ShutdownEventArgs reason, string prefix)
             : base(reason == null ? $"{prefix}: The AMQP operation was interrupted" :
-                $"{prefix}: The AMQP operation was interrupted: {reason}")
-        {
-            ShutdownReason = reason;
-        }
+                $"{prefix}: The AMQP operation was interrupted: {reason}") => ShutdownReason = reason;
 
         protected OperationInterruptedException()
         {

@@ -42,6 +42,7 @@ using System;
 using System.Net.Security;
 using System.Security.Authentication;
 using System.Threading.Tasks;
+
 using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit

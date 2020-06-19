@@ -118,7 +118,7 @@ namespace RabbitMQ.Client
             {
                 if (disposing)
                 {
-                    if(MemoryMarshal.TryGetArray(Body, out ArraySegment<byte> segment))
+                    if (MemoryMarshal.TryGetArray(Body, out ArraySegment<byte> segment))
                     {
                         ArrayPool<byte>.Shared.Return(segment.Array);
                     }

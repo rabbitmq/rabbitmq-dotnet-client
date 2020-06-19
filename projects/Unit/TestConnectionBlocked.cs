@@ -41,6 +41,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+
 using NUnit.Framework;
 
 using RabbitMQ.Client.Events;
@@ -53,10 +54,7 @@ namespace RabbitMQ.Client.Unit
         private readonly object _lockObject = new object();
         private bool _notified;
 
-        public void HandleBlocked(object sender, ConnectionBlockedEventArgs args)
-        {
-            Unblock();
-        }
+        public void HandleBlocked(object sender, ConnectionBlockedEventArgs args) => Unblock();
 
 
         public void HandleUnblocked(object sender, EventArgs ea)
@@ -68,10 +66,7 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        protected override void ReleaseResources()
-        {
-            Unblock();
-        }
+        protected override void ReleaseResources() => Unblock();
 
         [Test]
         public async ValueTask TestConnectionBlockedNotification()

@@ -108,15 +108,9 @@ namespace RabbitMQ.Client.Unit
         // Connections
         //
 
-        internal ValueTask<AutorecoveringConnection> CreateAutorecoveringConnection([CallerMemberName] string name = "")
-        {
-            return CreateAutorecoveringConnection(RECOVERY_INTERVAL, name);
-        }
+        internal ValueTask<AutorecoveringConnection> CreateAutorecoveringConnection([CallerMemberName] string name = "") => CreateAutorecoveringConnection(RECOVERY_INTERVAL, name);
 
-        internal ValueTask<AutorecoveringConnection> CreateAutorecoveringConnection(IList<string> hostnames, [CallerMemberName] string name = "")
-        {
-            return CreateAutorecoveringConnection(RECOVERY_INTERVAL, hostnames, name);
-        }
+        internal ValueTask<AutorecoveringConnection> CreateAutorecoveringConnection(IList<string> hostnames, [CallerMemberName] string name = "") => CreateAutorecoveringConnection(RECOVERY_INTERVAL, hostnames, name);
 
         internal async ValueTask<AutorecoveringConnection> CreateAutorecoveringConnection(TimeSpan interval, [CallerMemberName] string name = "")
         {
@@ -200,71 +194,53 @@ namespace RabbitMQ.Client.Unit
                 AutomaticRecoveryEnabled = true
             };
 
-            var connection = (AutorecoveringConnection)await factory.CreateConnection($"UNIT_CONN:{Guid.NewGuid()}");
-            try
+            using (var connection = (AutorecoveringConnection)await factory.CreateConnection($"UNIT_CONN:{Guid.NewGuid()}"))
             {
-                action(connection);
-            }
-            finally
-            {
-                await connection.Abort();
+                try
+                {
+                    action(connection);
+                }
+                finally
+                {
+                    await connection.Abort();
+                }
             }
         }
 
         internal async ValueTask WithTemporaryModel(IConnection connection, Func<IModel, ValueTask> action)
         {
-            IModel model = await connection.CreateModel();
-
-            try
+            using (IModel model = await connection.CreateModel())
             {
                 await action(model);
-            }
-            finally
-            {
-                model.Abort();
             }
         }
 
         internal async ValueTask WithTemporaryModel(Func<IModel, ValueTask> action)
         {
-            IModel model = await Conn.CreateModel();
-
-            try
+            using (IModel model = await Conn.CreateModel())
             {
                 await action(model);
-            }
-            finally
-            {
-                model.Abort();
             }
         }
 
         internal async ValueTask WithClosedModel(Func<IModel, ValueTask> action)
         {
-            IModel model = await Conn.CreateModel();
-            await model.Close();
-
-            await action(model);
+            using (IModel model = await Conn.CreateModel())
+            {
+                await model.Close();
+                await action(model);
+            }
         }
 
-        internal ValueTask<bool> WaitForConfirms(IModel m)
-        {
-            return m.WaitForConfirms(TimeSpan.FromSeconds(4));
-        }
+        internal ValueTask<bool> WaitForConfirms(IModel m) => m.WaitForConfirms(TimeSpan.FromSeconds(4));
 
         //
         // Exchanges
         //
 
-        internal string GenerateExchangeName()
-        {
-            return $"exchange{Guid.NewGuid()}";
-        }
+        internal string GenerateExchangeName() => $"exchange{Guid.NewGuid()}";
 
-        internal byte[] RandomMessageBody()
-        {
-            return encoding.GetBytes(Guid.NewGuid().ToString());
-        }
+        internal byte[] RandomMessageBody() => encoding.GetBytes(Guid.NewGuid().ToString());
 
         internal string DeclareNonDurableExchange(IModel m, string x)
         {
@@ -282,35 +258,17 @@ namespace RabbitMQ.Client.Unit
         // Queues
         //
 
-        internal string GenerateQueueName()
-        {
-            return $"queue{Guid.NewGuid()}";
-        }
+        internal string GenerateQueueName() => $"queue{Guid.NewGuid()}";
 
-        internal async ValueTask WithTemporaryQueue(Func<IModel, string, ValueTask> action)
-        {
-            await WithTemporaryQueue(Model, action);
-        }
+        internal async ValueTask WithTemporaryQueue(Func<IModel, string, ValueTask> action) => await WithTemporaryQueue(Model, action);
 
-        internal async ValueTask WithTemporaryNonExclusiveQueue(Func<IModel, string, ValueTask> action)
-        {
-            await WithTemporaryNonExclusiveQueue(Model, action);
-        }
+        internal async ValueTask WithTemporaryNonExclusiveQueue(Func<IModel, string, ValueTask> action) => await WithTemporaryNonExclusiveQueue(Model, action);
 
-        internal async ValueTask WithTemporaryQueue(IModel model, Func<IModel, string, ValueTask> action)
-        {
-            await WithTemporaryQueue(model, action, GenerateQueueName());
-        }
+        internal async ValueTask WithTemporaryQueue(IModel model, Func<IModel, string, ValueTask> action) => await WithTemporaryQueue(model, action, GenerateQueueName());
 
-        internal async ValueTask WithTemporaryNonExclusiveQueue(IModel model, Func<IModel, string, ValueTask> action)
-        {
-            await WithTemporaryNonExclusiveQueue(model, action, GenerateQueueName());
-        }
+        internal async ValueTask WithTemporaryNonExclusiveQueue(IModel model, Func<IModel, string, ValueTask> action) => await WithTemporaryNonExclusiveQueue(model, action, GenerateQueueName());
 
-        internal async ValueTask WithTemporaryQueue(Func<IModel, string, ValueTask> action, string q)
-        {
-            await WithTemporaryQueue(Model, action, q);
-        }
+        internal async ValueTask WithTemporaryQueue(Func<IModel, string, ValueTask> action, string q) => await WithTemporaryQueue(Model, action, q);
 
         internal async ValueTask WithTemporaryQueue(IModel model, Func<IModel, string, ValueTask> action, string queue)
         {
@@ -318,7 +276,8 @@ namespace RabbitMQ.Client.Unit
             {
                 await model.QueueDeclare(queue, false, true, false, null);
                 await action(model, queue);
-            } finally
+            }
+            finally
             {
                 await WithTemporaryModel(async x => await x.QueueDelete(queue));
             }
@@ -330,7 +289,8 @@ namespace RabbitMQ.Client.Unit
             {
                 await model.QueueDeclare(queue, false, false, false, null);
                 await action(model, queue);
-            } finally
+            }
+            finally
             {
                 await WithTemporaryModel(async tm => await tm.QueueDelete(queue));
             }
@@ -342,60 +302,42 @@ namespace RabbitMQ.Client.Unit
             {
                 await model.QueueDeclareNoWait(queue, false, true, false, null);
                 await action(model, queue);
-            } finally
+            }
+            finally
             {
                 await WithTemporaryModel(async x => await x.QueueDelete(queue));
             }
         }
 
-        internal async ValueTask EnsureNotEmpty(string q)
-        {
-            await EnsureNotEmpty(q, "msg");
-        }
+        internal async ValueTask EnsureNotEmpty(string q) => await EnsureNotEmpty(q, "msg");
 
-        internal async ValueTask EnsureNotEmpty(string q, string body)
-        {
-            await WithTemporaryModel(async x => { await x.BasicPublish("", q, null, encoding.GetBytes(body)); await Task.Delay(100);; });
-        }
+        internal async ValueTask EnsureNotEmpty(string q, string body) => await WithTemporaryModel(async x => { await x.BasicPublish("", q, null, encoding.GetBytes(body)); await Task.Delay(100); ; });
 
-        internal async ValueTask WithNonEmptyQueue(Func<IModel, string, ValueTask> action)
-        {
-            await WithNonEmptyQueue(action, "msg");
-        }
+        internal async ValueTask WithNonEmptyQueue(Func<IModel, string, ValueTask> action) => await WithNonEmptyQueue(action, "msg");
 
-        internal async ValueTask WithNonEmptyQueue(Func<IModel, string, ValueTask> action, string msg)
-        {
-            await WithTemporaryNonExclusiveQueue(async (m, q) =>
-            {
-                await EnsureNotEmpty(q, msg);
-                await action(m, q);
-            });
-        }
+        internal async ValueTask WithNonEmptyQueue(Func<IModel, string, ValueTask> action, string msg) => await WithTemporaryNonExclusiveQueue(async (m, q) =>
+                                                                                                        {
+                                                                                                            await EnsureNotEmpty(q, msg);
+                                                                                                            await action(m, q);
+                                                                                                        });
 
-        internal async ValueTask WithEmptyQueue(Func<IModel, string, ValueTask> action)
-        {
-            await WithTemporaryNonExclusiveQueue(async (model, queue) =>
-            {
-                await model.QueuePurge(queue);
-                await action(model, queue);
-            });
-        }
+        internal async ValueTask WithEmptyQueue(Func<IModel, string, ValueTask> action) => await WithTemporaryNonExclusiveQueue(async (model, queue) =>
+                                                                                         {
+                                                                                             await model.QueuePurge(queue);
+                                                                                             await action(model, queue);
+                                                                                         });
 
-        internal async ValueTask AssertMessageCount(string q, int count)
+        internal async ValueTask AssertMessageCount(string q, int count) => await WithTemporaryModel(async (m) =>
         {
-            await WithTemporaryModel(async (m) => {
-                QueueDeclareOk ok = await m.QueueDeclarePassive(q);
-                Assert.AreEqual(count, ok.MessageCount);
-            });
-        }
+            QueueDeclareOk ok = await m.QueueDeclarePassive(q);
+            Assert.AreEqual(count, ok.MessageCount);
+        });
 
-        internal async ValueTask AssertConsumerCount(string q, int count)
+        internal async ValueTask AssertConsumerCount(string q, int count) => await WithTemporaryModel(async (m) =>
         {
-            await WithTemporaryModel(async (m) => {
-                QueueDeclareOk ok = await m.QueueDeclarePassive(q);
-                Assert.AreEqual(count, ok.ConsumerCount);
-            });
-        }
+            QueueDeclareOk ok = await m.QueueDeclarePassive(q);
+            Assert.AreEqual(count, ok.ConsumerCount);
+        });
 
         internal async ValueTask AssertConsumerCount(IModel m, string q, int count)
         {
@@ -407,20 +349,11 @@ namespace RabbitMQ.Client.Unit
         // Shutdown
         //
 
-        internal void AssertShutdownError(ShutdownEventArgs args, int code)
-        {
-            Assert.AreEqual(args.ReplyCode, code);
-        }
+        internal void AssertShutdownError(ShutdownEventArgs args, int code) => Assert.AreEqual(args.ReplyCode, code);
 
-        internal void AssertPreconditionFailed(ShutdownEventArgs args)
-        {
-            AssertShutdownError(args, Constants.PreconditionFailed);
-        }
+        internal void AssertPreconditionFailed(ShutdownEventArgs args) => AssertShutdownError(args, Constants.PreconditionFailed);
 
-        internal bool InitiatedByPeerOrLibrary(ShutdownEventArgs evt)
-        {
-            return !(evt.Initiator == ShutdownInitiator.Application);
-        }
+        internal bool InitiatedByPeerOrLibrary(ShutdownEventArgs evt) => !(evt.Initiator == ShutdownInitiator.Application);
 
         //
         // Concurrency
@@ -428,7 +361,7 @@ namespace RabbitMQ.Client.Unit
 
         internal void WaitOn(object o)
         {
-            lock(o)
+            lock (o)
             {
                 Monitor.Wait(o, TimingFixture.TestTimeout);
             }
@@ -452,7 +385,9 @@ namespace RabbitMQ.Client.Unit
                 if (match.Success)
                 {
                     return ExecRabbitMqCtlUsingDocker(args, match.Groups["dockerMachine"].Value);
-                } else {
+                }
+                else
+                {
                     rabbitmqctlPath = envVariable;
                 }
             }
@@ -467,14 +402,19 @@ namespace RabbitMQ.Client.Unit
                 {
                     umbrellaRabbitmqctlPath = "../../../../../../rabbit/scripts/rabbitmqctl";
                     providedRabbitmqctlPath = "rabbitmqctl";
-                } else {
+                }
+                else
+                {
                     umbrellaRabbitmqctlPath = @"..\..\..\..\..\..\rabbit\scripts\rabbitmqctl.bat";
                     providedRabbitmqctlPath = "rabbitmqctl.bat";
                 }
 
-                if (File.Exists(umbrellaRabbitmqctlPath)) {
+                if (File.Exists(umbrellaRabbitmqctlPath))
+                {
                     rabbitmqctlPath = umbrellaRabbitmqctlPath;
-                } else {
+                }
+                else
+                {
                     rabbitmqctlPath = providedRabbitmqctlPath;
                 }
             }
@@ -493,7 +433,8 @@ namespace RabbitMQ.Client.Unit
                 }
             };
 
-            try {
+            try
+            {
                 proc.StartInfo.FileName = "docker";
                 proc.StartInfo.Arguments = $"exec {dockerMachineName} rabbitmqctl {args}";
                 proc.StartInfo.RedirectStandardError = true;
@@ -502,7 +443,7 @@ namespace RabbitMQ.Client.Unit
                 proc.Start();
                 string stderr = proc.StandardError.ReadToEnd();
                 proc.WaitForExit();
-                if (stderr.Length >  0 || proc.ExitCode > 0)
+                if (stderr.Length > 0 || proc.ExitCode > 0)
                 {
                     string stdout = proc.StandardOutput.ReadToEnd();
                     ReportExecFailure("rabbitmqctl", args, $"{stderr}\n{stdout}");
@@ -517,15 +458,9 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        internal Process ExecCommand(string command)
-        {
-            return ExecCommand(command, "");
-        }
+        internal Process ExecCommand(string command) => ExecCommand(command, "");
 
-        internal Process ExecCommand(string command, string args)
-        {
-            return ExecCommand(command, args, null);
-        }
+        internal Process ExecCommand(string command, string args) => ExecCommand(command, args, null);
 
         internal Process ExecCommand(string ctl, string args, string changeDirTo)
         {
@@ -537,35 +472,39 @@ namespace RabbitMQ.Client.Unit
                     UseShellExecute = false
                 }
             };
-            if(changeDirTo != null)
+            if (changeDirTo != null)
             {
                 proc.StartInfo.WorkingDirectory = changeDirTo;
             }
 
             string cmd;
-            if(IsRunningOnMonoOrDotNetCore()) {
-                cmd  = ctl;
-            } else {
-                cmd  = "cmd.exe";
+            if (IsRunningOnMonoOrDotNetCore())
+            {
+                cmd = ctl;
+            }
+            else
+            {
+                cmd = "cmd.exe";
                 args = $"/c \"\"{ctl}\" {args}\"";
             }
 
-            try {
-              proc.StartInfo.FileName = cmd;
-              proc.StartInfo.Arguments = args;
-              proc.StartInfo.RedirectStandardError = true;
-              proc.StartInfo.RedirectStandardOutput = true;
+            try
+            {
+                proc.StartInfo.FileName = cmd;
+                proc.StartInfo.Arguments = args;
+                proc.StartInfo.RedirectStandardError = true;
+                proc.StartInfo.RedirectStandardOutput = true;
 
-              proc.Start();
+                proc.Start();
                 string stderr = proc.StandardError.ReadToEnd();
-              proc.WaitForExit();
-              if (stderr.Length >  0 || proc.ExitCode > 0)
-              {
+                proc.WaitForExit();
+                if (stderr.Length > 0 || proc.ExitCode > 0)
+                {
                     string stdout = proc.StandardOutput.ReadToEnd();
-                  ReportExecFailure(cmd, args, $"{stderr}\n{stdout}");
-              }
+                    ReportExecFailure(cmd, args, $"{stderr}\n{stdout}");
+                }
 
-              return proc;
+                return proc;
             }
             catch (Exception e)
             {
@@ -574,19 +513,15 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        internal void ReportExecFailure(string cmd, string args, string msg)
-        {
-            Console.WriteLine($"Failure while running {cmd} {args}:\n{msg}");
-        }
+        internal void ReportExecFailure(string cmd, string args, string msg) => Console.WriteLine($"Failure while running {cmd} {args}:\n{msg}");
 
-        public static bool IsRunningOnMonoOrDotNetCore()
-        {
-            #if NETCOREAPP
-            return true;
-            #else
+        public static bool IsRunningOnMonoOrDotNetCore() =>
+#if NETCOREAPP
+            true;
+#else
             return Type.GetType("Mono.Runtime") != null;
-            #endif
-        }
+#endif
+
 
         //
         // Flow Control
@@ -600,10 +535,7 @@ namespace RabbitMQ.Client.Unit
             await Publish(Conn);
         }
 
-        internal void Unblock()
-        {
-            ExecRabbitMQCtl("set_vm_memory_high_watermark 0.4");
-        }
+        internal void Unblock() => ExecRabbitMQCtl("set_vm_memory_high_watermark 0.4");
 
         internal async ValueTask Publish(IConnection conn)
         {
@@ -633,24 +565,21 @@ namespace RabbitMQ.Client.Unit
                 Name = name;
             }
 
-            public override string ToString()
-            {
-                return $"pid = {Pid}, name: {Name}";
-            }
+            public override string ToString() => $"pid = {Pid}, name: {Name}";
         }
 
         private static readonly Regex GetConnectionName = new Regex(@"\{""connection_name"",""(?<connection_name>[^""]+)""\}");
 
         internal List<ConnectionInfo> ListConnections()
         {
-            Process proc  = ExecRabbitMQCtl("list_connections --silent pid client_properties");
+            Process proc = ExecRabbitMQCtl("list_connections --silent pid client_properties");
             string stdout = proc.StandardOutput.ReadToEnd();
 
             try
             {
                 // {Environment.NewLine} is not sufficient
                 string[] splitOn = new string[] { "\r\n", "\n" };
-                string[] lines   = stdout.Split(splitOn, StringSplitOptions.RemoveEmptyEntries);
+                string[] lines = stdout.Split(splitOn, StringSplitOptions.RemoveEmptyEntries);
                 // line: <rabbit@mercurio.1.11491.0>	{.../*client_properties*/...}
                 return lines.Select(s =>
                 {
@@ -678,16 +607,13 @@ namespace RabbitMQ.Client.Unit
         internal void CloseAllConnections()
         {
             List<ConnectionInfo> cs = ListConnections();
-            foreach(ConnectionInfo c in cs)
+            foreach (ConnectionInfo c in cs)
             {
                 CloseConnection(c.Pid);
             }
         }
 
-        internal void CloseConnection(string pid)
-        {
-            ExecRabbitMQCtl($"close_connection \"{pid}\" \"Closed via rabbitmqctl\"");
-        }
+        internal void CloseConnection(string pid) => ExecRabbitMQCtl($"close_connection \"{pid}\" \"Closed via rabbitmqctl\"");
 
         internal void RestartRabbitMQ()
         {
@@ -696,38 +622,23 @@ namespace RabbitMQ.Client.Unit
             StartRabbitMQ();
         }
 
-        internal void StopRabbitMQ()
-        {
-            ExecRabbitMQCtl("stop_app");
-        }
+        internal void StopRabbitMQ() => ExecRabbitMQCtl("stop_app");
 
-        internal void StartRabbitMQ()
-        {
-            ExecRabbitMQCtl("start_app");
-        }
+        internal void StartRabbitMQ() => ExecRabbitMQCtl("start_app");
 
         //
         // Concurrency and Coordination
         //
 
-        internal void Wait(ManualResetEventSlim latch)
-        {
-            Assert.IsTrue(latch.Wait(TimeSpan.FromSeconds(20)), "waiting on a latch timed out");
-        }
+        internal void Wait(ManualResetEventSlim latch) => Assert.IsTrue(latch.Wait(TimeSpan.FromSeconds(20)), "waiting on a latch timed out");
 
-        internal void Wait(ManualResetEventSlim latch, TimeSpan timeSpan)
-        {
-            Assert.IsTrue(latch.Wait(timeSpan), "waiting on a latch timed out");
-        }
+        internal void Wait(ManualResetEventSlim latch, TimeSpan timeSpan) => Assert.IsTrue(latch.Wait(timeSpan), "waiting on a latch timed out");
 
         //
         // TLS
         //
 
-        public static string CertificatesDirectory()
-        {
-            return Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
-        }
+        public static string CertificatesDirectory() => Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
     }
 
     public class TimingFixture

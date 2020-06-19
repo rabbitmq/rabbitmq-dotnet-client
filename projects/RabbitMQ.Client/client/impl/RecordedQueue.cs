@@ -109,9 +109,6 @@ namespace RabbitMQ.Client.Impl
             return this;
         }
 
-        public override string ToString()
-        {
-            return $"{GetType().Name}: name = '{Name}', durable = {_durable}, exlusive = {_exclusive}, autoDelete = {IsAutoDelete}, arguments = '{_arguments}'";
-        }
+        public override string ToString() => $"{GetType().Name}: name = '{Name}', durable = {_durable}, exlusive = {_exclusive}, autoDelete = {IsAutoDelete}, arguments = '{_arguments}'";
     }
 }

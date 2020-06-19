@@ -50,17 +50,11 @@ namespace RabbitMQ.Client.Unit
     public class TestPassiveDeclare : IntegrationFixture
     {
         [Test]
-        public void TestPassiveExchangeDeclareWhenExchangeDoesNotExist()
-        {
-            Assert.ThrowsAsync(Is.InstanceOf<OperationInterruptedException>(),
+        public void TestPassiveExchangeDeclareWhenExchangeDoesNotExist() => Assert.ThrowsAsync(Is.InstanceOf<OperationInterruptedException>(),
                 async () => await Model.ExchangeDeclarePassive(Guid.NewGuid().ToString()));
-        }
 
         [Test]
-        public void TestPassiveQueueDeclareWhenQueueDoesNotExist()
-        {
-            Assert.ThrowsAsync(Is.InstanceOf<OperationInterruptedException>(),
+        public void TestPassiveQueueDeclareWhenQueueDoesNotExist() => Assert.ThrowsAsync(Is.InstanceOf<OperationInterruptedException>(),
                 async () => await Model.QueueDeclarePassive(Guid.NewGuid().ToString()));
-        }
     }
 }

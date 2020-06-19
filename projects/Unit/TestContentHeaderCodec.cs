@@ -48,7 +48,7 @@ using RabbitMQ.Util;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    class TestContentHeaderCodec
+    internal class TestContentHeaderCodec
     {
         public void Check(ReadOnlyMemory<byte> actual, ReadOnlyMemory<byte> expected)
         {

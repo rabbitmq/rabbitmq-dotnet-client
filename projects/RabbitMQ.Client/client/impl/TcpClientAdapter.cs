@@ -8,14 +8,11 @@ namespace RabbitMQ.Client.Impl
     /// <summary>
     /// Simple wrapper around TcpClient.
     /// </summary>
-    class TcpClientAdapter : ITcpClient
+    internal class TcpClientAdapter : ITcpClient
     {
         private Socket _sock;
 
-        public TcpClientAdapter(Socket socket)
-        {
-            _sock = socket ?? throw new InvalidOperationException("socket must not be null");
-        }
+        public TcpClientAdapter(Socket socket) => _sock = socket ?? throw new InvalidOperationException("socket must not be null");
 
         public virtual async Task ConnectAsync(string host, int port)
         {
@@ -40,10 +37,7 @@ namespace RabbitMQ.Client.Impl
         }
 
         [Obsolete("Override Dispose(bool) instead.")]
-        public virtual void Dispose()
-        {
-            Dispose(true);
-        }
+        public virtual void Dispose() => Dispose(true);
 
         protected virtual void Dispose(bool disposing)
         {
@@ -68,7 +62,11 @@ namespace RabbitMQ.Client.Impl
         {
             get
             {
-                if(_sock == null) return false;
+                if (_sock == null)
+                {
+                    return false;
+                }
+
                 return _sock.Connected;
             }
         }
@@ -89,7 +87,7 @@ namespace RabbitMQ.Client.Impl
 
         private void AssertSocket()
         {
-            if(_sock == null)
+            if (_sock == null)
             {
                 throw new InvalidOperationException("Cannot perform operation as socket is null");
             }
