@@ -92,7 +92,8 @@ namespace RabbitMQ.Client.Impl
 
                     ReadOnlySpan<byte> span = f.Payload.Span;
                     m_header = m_protocol.DecodeContentHeaderFrom(NetworkOrderDeserializer.ReadUInt16(span));
-                    ulong totalBodyBytes = m_header.ReadFrom(span.Slice(2));
+                    m_header.ReadFrom(span.Slice(12));
+                    ulong totalBodyBytes = NetworkOrderDeserializer.ReadUInt64(span.Slice(4));
                     if (totalBodyBytes > MaxArrayOfBytesSize)
                     {
                         throw new UnexpectedFrameException(f.Type);

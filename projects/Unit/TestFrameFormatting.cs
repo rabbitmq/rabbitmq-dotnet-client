@@ -39,8 +39,7 @@
 //---------------------------------------------------------------------------
 
 using NUnit.Framework;
-
-using RabbitMQ.Client.Impl;
+using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -48,23 +47,113 @@ namespace RabbitMQ.Client.Unit
     class TestFrameFormatting : WireFormattingFixture
     {
         [Test]
-        public void EmptyOutboundFrame()
+        public void HeartbeatFrame()
         {
-            var frame = new EmptyOutboundFrame();
-            var body = new byte[frame.GetMinimumBufferSize()];
+            var frameBytes = Impl.Framing.Heartbeat.Payload.ToArray();
 
-            frame.WriteTo(body);
+            Assert.AreEqual(8, frameBytes.Length);
+            Assert.AreEqual(Constants.FrameHeartbeat, frameBytes[0]);
+            Assert.AreEqual(0, frameBytes[1]); // channel
+            Assert.AreEqual(0, frameBytes[2]); // channel
+            Assert.AreEqual(0, frameBytes[3]); // payload size
+            Assert.AreEqual(0, frameBytes[4]); // payload size
+            Assert.AreEqual(0, frameBytes[5]); // payload size
+            Assert.AreEqual(0, frameBytes[6]); // payload size
+            Assert.AreEqual(Constants.FrameEnd, frameBytes[7]);
+        }
 
-            Assert.AreEqual(0, frame.GetMinimumPayloadBufferSize());
-            Assert.AreEqual(8, frame.GetMinimumBufferSize());
-            Assert.AreEqual(Constants.FrameHeartbeat, body[0]);
-            Assert.AreEqual(0, body[1]); // channel
-            Assert.AreEqual(0, body[2]); // channel
-            Assert.AreEqual(0, body[3]); // payload size
-            Assert.AreEqual(0, body[4]); // payload size
-            Assert.AreEqual(0, body[5]); // payload size
-            Assert.AreEqual(0, body[6]); // payload size
-            Assert.AreEqual(Constants.FrameEnd, body[7]);
+        [Test]
+        public void HeaderFrame()
+        {
+            const int Channel = 3;
+            const int BodyLength = 10;
+
+            var basicProperties = new Framing.BasicProperties { AppId = "A" };
+            int payloadSize = basicProperties.GetRequiredPayloadBufferSize();
+            var frameBytes = new byte[Impl.Framing.Header.FrameSize + BodyLength + payloadSize];
+            Impl.Framing.Header.WriteTo(frameBytes, Channel, basicProperties, BodyLength);
+
+            Assert.AreEqual(20, Impl.Framing.Header.FrameSize);
+            Assert.AreEqual(Constants.FrameHeader, frameBytes[0]);
+            Assert.AreEqual(0, frameBytes[1]);       // channel
+            Assert.AreEqual(Channel, frameBytes[2]); // channel
+            Assert.AreEqual(0, frameBytes[3]);                // payload size
+            Assert.AreEqual(0, frameBytes[4]);                // payload size
+            Assert.AreEqual(0, frameBytes[5]);                // payload size
+            Assert.AreEqual(12 + payloadSize, frameBytes[6]); // payload size
+            Assert.AreEqual(0, frameBytes[7]);                    // ProtocolClassId
+            Assert.AreEqual(ClassConstants.Basic, frameBytes[8]); // ProtocolClassId
+            Assert.AreEqual(0, frameBytes[9]);  // Weight
+            Assert.AreEqual(0, frameBytes[10]); // Weight
+            Assert.AreEqual(0, frameBytes[11]);          // BodyLength
+            Assert.AreEqual(0, frameBytes[12]);          // BodyLength
+            Assert.AreEqual(0, frameBytes[13]);          // BodyLength
+            Assert.AreEqual(0, frameBytes[14]);          // BodyLength
+            Assert.AreEqual(0, frameBytes[15]);          // BodyLength
+            Assert.AreEqual(0, frameBytes[16]);          // BodyLength
+            Assert.AreEqual(0, frameBytes[17]);          // BodyLength
+            Assert.AreEqual(BodyLength, frameBytes[18]); // BodyLength
+            Assert.AreEqual(0b0000_0000, frameBytes[19]); // Presence
+            Assert.AreEqual(0b0000_1000, frameBytes[20]); // Presence
+            Assert.AreEqual(1, frameBytes[21]); // AppId Length
+            Assert.AreEqual((byte)'A', frameBytes[22]); // AppId payload
+            Assert.AreEqual(Constants.FrameEnd, frameBytes[23]);
+        }
+
+        [Test]
+        public void MethodFrame()
+        {
+            const int Channel = 3;
+
+            var method = new BasicPublish(0, "E", "R", true, true);
+            int payloadSize = method.GetRequiredBufferSize();
+            var frameBytes = new byte[Impl.Framing.Method.FrameSize + payloadSize];
+            Impl.Framing.Method.WriteTo(frameBytes, Channel, method);
+
+            Assert.AreEqual(12, Impl.Framing.Method.FrameSize);
+            Assert.AreEqual(Constants.FrameMethod, frameBytes[0]);
+            Assert.AreEqual(0, frameBytes[1]);       // channel
+            Assert.AreEqual(Channel, frameBytes[2]); // channel
+            Assert.AreEqual(0, frameBytes[3]);               // payload size
+            Assert.AreEqual(0, frameBytes[4]);               // payload size
+            Assert.AreEqual(0, frameBytes[5]);               // payload size
+            Assert.AreEqual(4 + payloadSize, frameBytes[6]); // payload size
+            Assert.AreEqual(0, frameBytes[7]);                    // ProtocolClassId
+            Assert.AreEqual(ClassConstants.Basic, frameBytes[8]); // ProtocolClassId
+            Assert.AreEqual(0, frameBytes[9]);                             // ProtocolMethodId
+            Assert.AreEqual(BasicMethodConstants.Publish, frameBytes[10]); // ProtocolMethodId
+            Assert.AreEqual(0, frameBytes[11]); // reserved1
+            Assert.AreEqual(0, frameBytes[12]); // reserved1
+            Assert.AreEqual(1, frameBytes[13]);         // Exchange length
+            Assert.AreEqual((byte)'E', frameBytes[14]); // Exchange payload
+            Assert.AreEqual(1, frameBytes[15]);         // RoutingKey length
+            Assert.AreEqual((byte)'R', frameBytes[16]); // RoutingKey payload
+            Assert.AreEqual(0b0000_0011, frameBytes[17]); // Mandatory & Immediate flags
+            Assert.AreEqual(Constants.FrameEnd, frameBytes[18]);
+        }
+
+        [Test]
+        public void BodySegmentFrame()
+        {
+            const int Channel = 3;
+
+            var payload = new byte[4];
+            var frameBytes = new byte[Impl.Framing.BodySegment.FrameSize + payload.Length];
+            Impl.Framing.BodySegment.WriteTo(frameBytes, Channel, payload);
+
+            Assert.AreEqual(8, Impl.Framing.BodySegment.FrameSize);
+            Assert.AreEqual(Constants.FrameBody, frameBytes[0]);
+            Assert.AreEqual(0, frameBytes[1]);       // channel
+            Assert.AreEqual(Channel, frameBytes[2]); // channel
+            Assert.AreEqual(0, frameBytes[3]);              // payload size
+            Assert.AreEqual(0, frameBytes[4]);              // payload size
+            Assert.AreEqual(0, frameBytes[5]);              // payload size
+            Assert.AreEqual(payload.Length, frameBytes[6]); // payload size
+            Assert.AreEqual(0, frameBytes[7]);  // payload
+            Assert.AreEqual(0, frameBytes[8]);  // payload
+            Assert.AreEqual(0, frameBytes[9]);  // payload
+            Assert.AreEqual(0, frameBytes[10]); // payload
+            Assert.AreEqual(Constants.FrameEnd, frameBytes[11]);
         }
     }
 }

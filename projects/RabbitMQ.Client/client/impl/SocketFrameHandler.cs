@@ -40,12 +40,12 @@
 
 using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
@@ -76,18 +76,30 @@ namespace RabbitMQ.Client.Impl
         // an exception.
         private TimeSpan _writeableStateTimeout = TimeSpan.FromSeconds(30);
         private int _writeableStateTimeoutMicroSeconds;
-        private readonly Stream _reader;
         private readonly ITcpClient _socket;
+        private readonly Stream _reader;
         private readonly Stream _writer;
+        private readonly ChannelWriter<Memory<byte>> _channelWriter;
+        private readonly ChannelReader<Memory<byte>> _channelReader;
+        private readonly Task _writerTask;
         private readonly object _semaphore = new object();
-        private readonly Channel<OutboundFrame> _frameChannel = Channel.CreateUnbounded<OutboundFrame>(new UnboundedChannelOptions { AllowSynchronousContinuations = false, SingleReader = true, SingleWriter = false });
-        private Task _frameWriter;
         private bool _closed;
+
         public SocketFrameHandler(AmqpTcpEndpoint endpoint,
             Func<AddressFamily, ITcpClient> socketFactory,
             TimeSpan connectionTimeout, TimeSpan readTimeout, TimeSpan writeTimeout)
         {
             Endpoint = endpoint;
+            var channel = Channel.CreateUnbounded<Memory<byte>>(
+                new UnboundedChannelOptions
+                {
+                    AllowSynchronousContinuations = false,
+                    SingleReader = true,
+                    SingleWriter = false
+                });
+
+            _channelReader = channel.Reader;
+            _channelWriter = channel.Writer;
 
             if (ShouldTryIPv6(endpoint))
             {
@@ -122,11 +134,12 @@ namespace RabbitMQ.Client.Impl
                     throw;
                 }
             }
+
             _reader = new BufferedStream(netstream, _socket.Client.ReceiveBufferSize);
             _writer = new BufferedStream(netstream, _socket.Client.SendBufferSize);
 
             WriteTimeout = writeTimeout;
-            _frameWriter = Task.Run(WriteFrameImpl);
+            _writerTask = Task.Run(WriteLoop, CancellationToken.None);
         }
         public AmqpTcpEndpoint Endpoint { get; set; }
 
@@ -186,8 +199,8 @@ namespace RabbitMQ.Client.Impl
                 {
                     try
                     {
-                        _frameChannel.Writer.Complete();
-                        _frameWriter.Wait();
+                        _channelWriter.Complete();
+                        _writerTask.Wait();
                     }
                     catch(Exception)
                     {
@@ -214,7 +227,6 @@ namespace RabbitMQ.Client.Impl
             return RabbitMQ.Client.Impl.InboundFrame.ReadFrom(_reader);
         }
 
-        private static readonly byte[] s_amqp = Encoding.ASCII.GetBytes("AMQP");
         public void SendHeader()
         {
             byte[] headerBytes = new byte[8];
@@ -238,30 +250,28 @@ namespace RabbitMQ.Client.Impl
             _writer.Flush();
         }
 
-        public void WriteFrame(OutboundFrame frame)
+        public void Write(Memory<byte> memory)
         {
-            _frameChannel.Writer.TryWrite(frame);
+            _channelWriter.TryWrite(memory);
         }
 
-        public async Task WriteFrameImpl()
+        private async Task WriteLoop()
         {
-            while (await _frameChannel.Reader.WaitToReadAsync().ConfigureAwait(false))
+            while (await _channelReader.WaitToReadAsync().ConfigureAwait(false))
             {
                 _socket.Client.Poll(_writeableStateTimeoutMicroSeconds, SelectMode.SelectWrite);
-                while (_frameChannel.Reader.TryRead(out OutboundFrame frame))
+                while (_channelReader.TryRead(out var memory))
                 {
-                    int bufferSize = frame.GetMinimumBufferSize();
-                    byte[] memoryArray = ArrayPool<byte>.Shared.Rent(bufferSize);
-                    frame.WriteTo(new Span<byte>(memoryArray, 0, bufferSize));
-                    _writer.Write(memoryArray, 0, bufferSize);
-                    ArrayPool<byte>.Shared.Return(memoryArray);
+                    MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> segment);
+                    await _writer.WriteAsync(segment.Array, segment.Offset, segment.Count).ConfigureAwait(false);
+                    ArrayPool<byte>.Shared.Return(segment.Array);
                 }
 
-                _writer.Flush();
+                await _writer.FlushAsync().ConfigureAwait(false);
             }
         }
 
-        private bool ShouldTryIPv6(AmqpTcpEndpoint endpoint)
+        private static bool ShouldTryIPv6(AmqpTcpEndpoint endpoint)
         {
             return Socket.OSSupportsIPv6 && endpoint.AddressFamily != AddressFamily.InterNetwork;
         }
