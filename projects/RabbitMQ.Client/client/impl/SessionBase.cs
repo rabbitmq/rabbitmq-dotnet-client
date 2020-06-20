@@ -189,7 +189,7 @@ namespace RabbitMQ.Client.Impl
             }
             // We used to transmit *inside* the lock to avoid interleaving
             // of frames within a channel.  But that is fixed in socket frame handler instead, so no need to lock.
-            cmd.Transmit(ChannelNumber, Connection);
+            cmd.Transmit((ushort)ChannelNumber, Connection);
         }
 
         public virtual void Transmit(IList<Command> commands)
@@ -197,7 +197,7 @@ namespace RabbitMQ.Client.Impl
             for (int i = 0; i < commands.Count; i++)
             {
                 Command command = commands[i];
-                command.Transmit(ChannelNumber, Connection);
+                command.Transmit((ushort)ChannelNumber, Connection);
             }
         }
     }

@@ -1450,7 +1450,7 @@ namespace RabbitMQ.Client.Impl
                             _deliveryTagsCountdown.Signal();
                         }
                     }
-                    
+
                     _onlyAcksReceived = _onlyAcksReceived && !isNack;
                 }
             }

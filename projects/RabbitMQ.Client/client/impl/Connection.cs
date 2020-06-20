@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -62,7 +63,6 @@ namespace RabbitMQ.Client.Framing.Impl
         private readonly object _eventLock = new object();
 
         ///<summary>Heartbeat frame for transmission. Reusable across connections.</summary>
-        private readonly EmptyOutboundFrame _heartbeatFrame = new EmptyOutboundFrame();
 
         private readonly ManualResetEventSlim _appContinuation = new ManualResetEventSlim(false);
 
@@ -902,7 +902,9 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 if (!_closed)
                 {
-                    WriteFrame(_heartbeatFrame);
+                    var memory = new Memory<byte>(ArrayPool<byte>.Shared.Rent(Client.Impl.Framing.Heartbeat.FrameSize), 0, Client.Impl.Framing.Heartbeat.FrameSize);
+                    Client.Impl.Framing.Heartbeat.Payload.CopyTo(memory.Span);
+                    Write(memory);
                     _heartbeatWriteTimer?.Change((int)_heartbeatTimeSpan.TotalMilliseconds, Timeout.Infinite);
                 }
             }
@@ -939,9 +941,9 @@ namespace RabbitMQ.Client.Framing.Impl
             return string.Format("Connection({0},{1})", _id, Endpoint);
         }
 
-        public void WriteFrame(OutboundFrame f)
+        public void Write(Memory<byte> memory)
         {
-            _frameHandler.WriteFrame(f);
+            _frameHandler.Write(memory);
         }
 
         public void UpdateSecret(string newSecret, string reason)
