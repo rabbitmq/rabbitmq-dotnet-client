@@ -175,6 +175,16 @@ namespace RabbitMQ.Client
         /// </summary>
         public bool DispatchConsumersAsync { get; set; } = false;
 
+        /// <summary>
+        /// Set to a value greater than one to enable concurrent processing. For a concurrency greater than one <see cref="IBasicConsumer"/>
+        /// will be offloaded to the worker thread pool so it is important to choose the value for the concurrency wisely to avoid thread pool overloading.
+        /// <see cref="IAsyncBasicConsumer"/> can handle concurrency much more efficiently due to the non-blocking nature of the consumer.
+        /// Defaults to 1.
+        /// </summary>
+        /// <remarks>For concurrency greater than one this removes the guarantee that consumers handle messages in the order they receive them.
+        /// In addition to that consumers need to be thread/concurrency safe.</remarks>
+        public int ProcessingConcurrency { get; set; } = 1;
+
         /// <summary>The host to connect to.</summary>
         public string HostName { get; set; } = "localhost";
 
