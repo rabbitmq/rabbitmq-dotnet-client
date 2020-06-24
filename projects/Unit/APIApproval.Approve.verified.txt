@@ -56,6 +56,12 @@ namespace RabbitMQ.Client
         public bool Redelivered { get; }
         public string RoutingKey { get; }
     }
+    public class BinaryTableValue
+    {
+        public BinaryTableValue() { }
+        public BinaryTableValue(byte[] bytes) { }
+        public byte[] Bytes { get; set; }
+    }
     public sealed class ConnectionFactory : RabbitMQ.Client.ConnectionFactoryBase, RabbitMQ.Client.IAsyncConnectionFactory, RabbitMQ.Client.IConnectionFactory
     {
         public const ushort DefaultChannelMax = 2047;
