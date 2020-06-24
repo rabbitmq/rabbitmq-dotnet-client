@@ -1,4 +1,4 @@
-// This source code is dual-licensed under the Apache License, version
+﻿// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 1.1.
 //
 // The APL v2.0:
@@ -38,7 +38,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-namespace RabbitMQ.Client.Impl
+namespace RabbitMQ.Client
 {
     /// <summary>Wrapper for a byte[]. May appear as values read from
     ///and written to AMQP field tables.</summary>
@@ -67,7 +67,7 @@ namespace RabbitMQ.Client.Impl
     /// of this class must be used.
     /// </para>
     /// </remarks>
-    class BinaryTableValue
+    public class BinaryTableValue
     {
         /// <summary>
         /// Creates a new instance of the <see cref="BinaryTableValue"/> with null for its Bytes property.
