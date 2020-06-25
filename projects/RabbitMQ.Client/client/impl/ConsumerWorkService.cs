@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
@@ -61,20 +62,16 @@ namespace RabbitMQ.Client.Impl
 
         class WorkPool
         {
-            readonly ConcurrentQueue<Action> _actions;
-            readonly CancellationTokenSource _tokenSource;
-            readonly CancellationTokenRegistration _tokenRegistration;
-            volatile TaskCompletionSource<bool> _syncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            private readonly Channel<Action> _channel;
             private readonly int _concurrency;
             private Task _worker;
+            CancellationTokenSource _tokenSource;
             private SemaphoreSlim _limiter;
 
             public WorkPool(int concurrency)
             {
                 _concurrency = concurrency;
-                _actions = new ConcurrentQueue<Action>();
-                _tokenSource = new CancellationTokenSource();
-                _tokenRegistration = _tokenSource.Token.Register(() => _syncSource.TrySetCanceled());
+                _channel = Channel.CreateUnbounded<Action>(new UnboundedChannelOptions { SingleReader = true, SingleWriter = false, AllowSynchronousContinuations = false });
             }
 
             public void Start()
@@ -86,37 +83,27 @@ namespace RabbitMQ.Client.Impl
                 else
                 {
                     _limiter = new SemaphoreSlim(_concurrency);
+                    _tokenSource = new CancellationTokenSource();
                     _worker = Task.Run(() => LoopWithConcurrency(_tokenSource.Token), CancellationToken.None);
                 }
             }
 
             public void Enqueue(Action action)
             {
-                _actions.Enqueue(action);
-                _syncSource.TrySetResult(true);
+                _channel.Writer.TryWrite(action);
             }
 
             async Task Loop()
             {
-                while (_tokenSource.IsCancellationRequested == false)
+                while (await _channel.Reader.WaitToReadAsync().ConfigureAwait(false))
                 {
-                    try
-                    {
-                        await _syncSource.Task.ConfigureAwait(false);
-                        _syncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                    }
-                    catch (TaskCanceledException)
-                    {
-                        // Swallowing the task cancellation exception for the semaphore in case we are stopping.
-                    }
-
-                    while (_actions.TryDequeue(out Action action))
+                    while (_channel.Reader.TryRead(out Action work))
                     {
                         try
                         {
-                            action();
+                            work();
                         }
-                        catch (Exception)
+                        catch(Exception)
                         {
                             // ignored
                         }
@@ -126,28 +113,25 @@ namespace RabbitMQ.Client.Impl
 
             async Task LoopWithConcurrency(CancellationToken cancellationToken)
             {
-                while (_tokenSource.IsCancellationRequested == false)
+                try
                 {
-                    try
+                    while (await _channel.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
                     {
-                        await _syncSource.Task.ConfigureAwait(false);
-                        _syncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                    }
-                    catch (TaskCanceledException)
-                    {
-                        // Swallowing the task cancellation exception for the semaphore in case we are stopping.
-                    }
-
-                    while (_actions.TryDequeue(out Action action))
-                    {
-                        // Do a quick synchronous check before we resort to async/await with the state-machine overhead.
-                        if(!_limiter.Wait(0))
+                        while (_channel.Reader.TryRead(out Action action))
                         {
-                            await _limiter.WaitAsync(cancellationToken).ConfigureAwait(false);
-                        }
+                            // Do a quick synchronous check before we resort to async/await with the state-machine overhead.
+                            if(!_limiter.Wait(0))
+                            {
+                                await _limiter.WaitAsync(cancellationToken).ConfigureAwait(false);
+                            }
 
-                        _ = OffloadToWorkerThreadPool(action, _limiter);
+                            _ = OffloadToWorkerThreadPool(action, _limiter);
+                        }
                     }
+                }
+                catch (OperationCanceledException)
+                {
+                    // ignored
                 }
             }
 
@@ -155,7 +139,11 @@ namespace RabbitMQ.Client.Impl
             {
                 try
                 {
-                    await Task.Run(() => action());
+                    // like Task.Run but doesn't closure allocate
+                    await Task.Factory.StartNew(state =>
+                    {
+                        ((Action)state)();
+                    }, action, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
                 }
                 catch (Exception)
                 {
@@ -169,8 +157,8 @@ namespace RabbitMQ.Client.Impl
 
             public Task Stop()
             {
-                _tokenSource.Cancel();
-                _tokenRegistration.Dispose();
+                _channel.Writer.Complete();
+                _tokenSource?.Cancel();
                 _limiter?.Dispose();
                 return _worker;
             }
