@@ -145,7 +145,10 @@ namespace RabbitMQ.Client.Impl
             /* Empty frame */
             public const int FrameSize = BaseFrameSize;
 
-            public static Span<byte> Payload => new byte[]
+            /// <summary>
+            /// Compiler trick to directly refer to static data in the assembly, see here: https://github.com/dotnet/roslyn/pull/24621
+            /// </summary>
+            private static ReadOnlySpan<byte> Payload => new byte[]
             {
                 Constants.FrameHeartbeat,
                 0, 0, // channel
@@ -153,6 +156,13 @@ namespace RabbitMQ.Client.Impl
                 Constants.FrameEnd
             };
 
+            public static Memory<byte> GetHeartbeatFrame()
+            {
+                // Is returned by SocketFrameHandler.WriteLoop
+                var buffer = ArrayPool<byte>.Shared.Rent(FrameSize);
+                Payload.CopyTo(buffer);
+                return new Memory<byte>(buffer, 0, FrameSize);
+            }
         }
     }
 
@@ -254,6 +264,8 @@ namespace RabbitMQ.Client.Impl
             reader.Read(headerBytes);
             int channel = NetworkOrderDeserializer.ReadUInt16(headerBytes);
             int payloadSize = NetworkOrderDeserializer.ReadInt32(headerBytes.Slice(2)); // FIXME - throw exn on unreasonable value
+
+            // Is returned by InboundFrame.Dispose in Connection.MainLoopIteration
             byte[] payloadBytes = ArrayPool<byte>.Shared.Rent(payloadSize);
             Memory<byte> payload = new Memory<byte>(payloadBytes, 0, payloadSize);
             int bytesRead = 0;

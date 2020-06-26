@@ -100,6 +100,8 @@ namespace RabbitMQ.Client.Impl
                     }
 
                     m_remainingBodyBytes = (int)totalBodyBytes;
+
+                    // Is returned by Command.Dispose in Session.HandleFrame
                     byte[] bodyBytes = ArrayPool<byte>.Shared.Rent(m_remainingBodyBytes);
                     m_body = new Memory<byte>(bodyBytes, 0, m_remainingBodyBytes);
                     UpdateContentBodyState();

@@ -38,6 +38,9 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+using System.Buffers;
+using System.Runtime.InteropServices;
 using NUnit.Framework;
 using RabbitMQ.Client.Framing.Impl;
 
@@ -49,17 +52,28 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void HeartbeatFrame()
         {
-            var frameBytes = Impl.Framing.Heartbeat.Payload.ToArray();
+            var memory = Impl.Framing.Heartbeat.GetHeartbeatFrame();
+            var frameSpan = memory.Span;
 
-            Assert.AreEqual(8, frameBytes.Length);
-            Assert.AreEqual(Constants.FrameHeartbeat, frameBytes[0]);
-            Assert.AreEqual(0, frameBytes[1]); // channel
-            Assert.AreEqual(0, frameBytes[2]); // channel
-            Assert.AreEqual(0, frameBytes[3]); // payload size
-            Assert.AreEqual(0, frameBytes[4]); // payload size
-            Assert.AreEqual(0, frameBytes[5]); // payload size
-            Assert.AreEqual(0, frameBytes[6]); // payload size
-            Assert.AreEqual(Constants.FrameEnd, frameBytes[7]);
+            try
+            {
+                Assert.AreEqual(8, frameSpan.Length);
+                Assert.AreEqual(Constants.FrameHeartbeat, frameSpan[0]);
+                Assert.AreEqual(0, frameSpan[1]); // channel
+                Assert.AreEqual(0, frameSpan[2]); // channel
+                Assert.AreEqual(0, frameSpan[3]); // payload size
+                Assert.AreEqual(0, frameSpan[4]); // payload size
+                Assert.AreEqual(0, frameSpan[5]); // payload size
+                Assert.AreEqual(0, frameSpan[6]); // payload size
+                Assert.AreEqual(Constants.FrameEnd, frameSpan[7]);
+            }
+            finally
+            {
+                if (MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> segment))
+                {
+                    ArrayPool<byte>.Shared.Return(segment.Array);
+                }
+            }
         }
 
         [Test]
