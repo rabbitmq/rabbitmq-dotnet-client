@@ -64,7 +64,7 @@ namespace RabbitMQ.Client.Impl
 
         public MainSession(Connection connection) : base(connection, 0)
         {
-            connection.Protocol.CreateConnectionClose(0, string.Empty, out Command request, out _closeOkClassId, out _closeOkMethodId);
+            connection.Protocol.CreateConnectionClose(0, string.Empty, out OutgoingCommand request, out _closeOkClassId, out _closeOkMethodId);
             _closeClassId = request.Method.ProtocolClassId;
             _closeMethodId = request.Method.ProtocolMethodId;
         }
@@ -82,7 +82,7 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            if (!_closeServerInitiated && frame.IsMethod())
+            if (!_closeServerInitiated && frame.Type == FrameType.FrameMethod)
             {
                 MethodBase method = Connection.Protocol.DecodeMethodFrom(frame.Payload.Span);
                 if ((method.ProtocolClassId == _closeClassId)
@@ -123,13 +123,13 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public override void Transmit(Command cmd)
+        public override void Transmit(in OutgoingCommand cmd)
         {
             lock (_closingLock)
             {
                 if (!_closing)
                 {
-                    base.Transmit(cmd);
+                    base.Transmit(in cmd);
                     return;
                 }
             }

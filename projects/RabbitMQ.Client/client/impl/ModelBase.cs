@@ -296,7 +296,7 @@ namespace RabbitMQ.Client.Impl
             return k.m_result;
         }
 
-        public abstract bool DispatchAsynchronous(Command cmd);
+        public abstract bool DispatchAsynchronous(in IncomingCommand cmd);
 
         public void Enqueue(IRpcContinuation k)
         {
@@ -330,10 +330,10 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public void HandleCommand(ISession session, Command cmd)
+        public void HandleCommand(in IncomingCommand cmd)
         {
-            if (!DispatchAsynchronous(cmd))// Was asynchronous. Already processed. No need to process further.
-                _continuationQueue.Next().HandleCommand(cmd);
+            if (!DispatchAsynchronous(in cmd))// Was asynchronous. Already processed. No need to process further.
+                _continuationQueue.Next().HandleCommand(in cmd);
         }
 
         public MethodBase ModelRpc(MethodBase method, ContentHeaderBase header, byte[] body)
@@ -341,7 +341,7 @@ namespace RabbitMQ.Client.Impl
             var k = new SimpleBlockingRpcContinuation();
             lock (_rpcLock)
             {
-                TransmitAndEnqueue(new Command(method, header, body, false), k);
+                TransmitAndEnqueue(new OutgoingCommand(method, header, body), k);
                 return k.GetReply(ContinuationTimeout).Method;
             }
         }
@@ -351,11 +351,11 @@ namespace RabbitMQ.Client.Impl
             if (method.HasContent)
             {
                 _flowControlBlock.Wait();
-                Session.Transmit(new Command(method, header, body, false));
+                Session.Transmit(new OutgoingCommand(method, header, body));
             }
             else
             {
-                Session.Transmit(new Command(method, header, body, false));
+                Session.Transmit(new OutgoingCommand(method, header, body));
             }
         }
 
@@ -539,7 +539,7 @@ namespace RabbitMQ.Client.Impl
             return Session.ToString();
         }
 
-        public void TransmitAndEnqueue(Command cmd, IRpcContinuation k)
+        public void TransmitAndEnqueue(in OutgoingCommand cmd, IRpcContinuation k)
         {
             Enqueue(k);
             Session.Transmit(cmd);
@@ -608,7 +608,7 @@ namespace RabbitMQ.Client.Impl
                 _consumers.Remove(consumerTag);
             }
             ConsumerDispatcher.HandleBasicCancelOk(k.m_consumer, consumerTag);
-            k.HandleCommand(null); // release the continuation.
+            k.HandleCommand(IncomingCommand.Empty); // release the continuation.
         }
 
         public void HandleBasicConsumeOk(string consumerTag)
@@ -621,7 +621,7 @@ namespace RabbitMQ.Client.Impl
                 _consumers[consumerTag] = k.m_consumer;
             }
             ConsumerDispatcher.HandleBasicConsumeOk(k.m_consumer, consumerTag);
-            k.HandleCommand(null); // release the continuation.
+            k.HandleCommand(IncomingCommand.Empty); // release the continuation.
         }
 
         public virtual void HandleBasicDeliver(string consumerTag,
@@ -663,7 +663,7 @@ namespace RabbitMQ.Client.Impl
         {
             var k = (BasicGetRpcContinuation)_continuationQueue.Next();
             k.m_result = null;
-            k.HandleCommand(null); // release the continuation.
+            k.HandleCommand(IncomingCommand.Empty); // release the continuation.
         }
 
         public virtual void HandleBasicGetOk(ulong deliveryTag,
@@ -682,7 +682,7 @@ namespace RabbitMQ.Client.Impl
                 messageCount,
                 basicProperties,
                 body);
-            k.HandleCommand(null); // release the continuation.
+            k.HandleCommand(IncomingCommand.Empty); // release the continuation.
         }
 
         public void HandleBasicNack(ulong deliveryTag,
@@ -702,7 +702,7 @@ namespace RabbitMQ.Client.Impl
         {
             var k = (SimpleBlockingRpcContinuation)_continuationQueue.Next();
             OnBasicRecoverOk(new EventArgs());
-            k.HandleCommand(null);
+            k.HandleCommand(IncomingCommand.Empty);
         }
 
         public void HandleBasicReturn(ushort replyCode,
@@ -807,7 +807,7 @@ namespace RabbitMQ.Client.Impl
             k.m_redirect = false;
             k.m_host = null;
             k.m_knownHosts = knownHosts;
-            k.HandleCommand(null); // release the continuation.
+            k.HandleCommand(IncomingCommand.Empty); // release the continuation.
         }
 
         public void HandleConnectionSecure(byte[] challenge)
@@ -817,7 +817,7 @@ namespace RabbitMQ.Client.Impl
             {
                 m_challenge = challenge
             };
-            k.HandleCommand(null); // release the continuation.
+            k.HandleCommand(IncomingCommand.Empty); // release the continuation.
         }
 
         public void HandleConnectionStart(byte versionMajor,
@@ -860,7 +860,7 @@ namespace RabbitMQ.Client.Impl
                     m_heartbeatInSeconds = heartbeatInSeconds
                 }
             };
-            k.HandleCommand(null); // release the continuation.
+            k.HandleCommand(IncomingCommand.Empty); // release the continuation.
         }
 
         public void HandleConnectionUnblocked()
@@ -876,7 +876,7 @@ namespace RabbitMQ.Client.Impl
         {
             var k = (QueueDeclareRpcContinuation)_continuationQueue.Next();
             k.m_result = new QueueDeclareOk(queue, messageCount, consumerCount);
-            k.HandleCommand(null); // release the continuation.
+            k.HandleCommand(IncomingCommand.Empty); // release the continuation.
         }
 
         public abstract void _Private_BasicCancel(string consumerTag,
@@ -1424,7 +1424,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        internal void SendCommands(IList<Command> commands)
+        internal void SendCommands(IList<OutgoingCommand> commands)
         {
             _flowControlBlock.Wait();
             AllocatePublishSeqNos(commands.Count);

@@ -45,7 +45,7 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    abstract class ProtocolBase : IProtocol
+    internal abstract class ProtocolBase : IProtocol
     {
         public IDictionary<string, bool> Capabilities;
 
@@ -74,33 +74,29 @@ namespace RabbitMQ.Client.Framing.Impl
             get { return new AmqpVersion(MajorVersion, MinorVersion); }
         }
 
-        public bool CanSendWhileClosed(Command cmd)
+        public bool CanSendWhileClosed(MethodBase method)
         {
-            return cmd.Method is Impl.ChannelCloseOk;
+            return method is Impl.ChannelCloseOk;
         }
 
         public void CreateChannelClose(ushort reasonCode,
             string reasonText,
-            out Command request,
+            out OutgoingCommand request,
             out ushort replyClassId,
             out ushort replyMethodId)
         {
-            request = new Command(new Impl.ChannelClose(reasonCode,
-                reasonText,
-                0, 0));
+            request = new OutgoingCommand(new Impl.ChannelClose(reasonCode, reasonText, 0, 0));
             replyClassId = ClassConstants.Channel;
             replyMethodId = ChannelMethodConstants.CloseOk;
         }
 
         public void CreateConnectionClose(ushort reasonCode,
             string reasonText,
-            out Command request,
+            out OutgoingCommand request,
             out ushort replyClassId,
             out ushort replyMethodId)
         {
-            request = new Command(new Impl.ConnectionClose(reasonCode,
-                reasonText,
-                0, 0));
+            request = new OutgoingCommand(new Impl.ConnectionClose(reasonCode, reasonText, 0, 0));
             replyClassId = ClassConstants.Connection;
             replyMethodId = ConnectionMethodConstants.CloseOk;
         }
