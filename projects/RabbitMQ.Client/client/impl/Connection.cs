@@ -903,9 +903,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 if (!_closed)
                 {
-                    var memory = new Memory<byte>(ArrayPool<byte>.Shared.Rent(Client.Impl.Framing.Heartbeat.FrameSize), 0, Client.Impl.Framing.Heartbeat.FrameSize);
-                    Client.Impl.Framing.Heartbeat.Payload.CopyTo(memory.Span);
-                    Write(memory);
+                    Write(Client.Impl.Framing.Heartbeat.GetHeartbeatFrame());
                     _heartbeatWriteTimer?.Change((int)_heartbeatTimeSpan.TotalMilliseconds, Timeout.Infinite);
                 }
             }

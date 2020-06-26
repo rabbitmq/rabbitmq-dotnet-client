@@ -200,7 +200,7 @@ namespace RabbitMQ.Client.Impl
                     try
                     {
                         _channelWriter.Complete();
-                        _writerTask.Wait();
+                        _writerTask.GetAwaiter().GetResult();
                     }
                     catch(Exception)
                     {
