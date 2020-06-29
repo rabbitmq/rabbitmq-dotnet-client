@@ -41,7 +41,7 @@
 using System.Reflection;
 
 [assembly: AssemblyTitle("RabbitMQ Client Library for .NET")]
-[assembly: AssemblyDescription("See https://rabbitmq.com")]
+[assembly: AssemblyDescription("Customized version with Autorecovery improvements by michac and enhanced Autorecovery logging by jcampbell-unwired360-com")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Pivotal Software, Inc.")]
 [assembly: AssemblyProduct("RabbitMQ")]

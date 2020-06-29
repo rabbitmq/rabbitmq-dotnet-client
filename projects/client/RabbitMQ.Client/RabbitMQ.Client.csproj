@@ -25,6 +25,9 @@
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
     <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <FileVersion>6.0.0.0</FileVersion>
+    <Version>6.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
