@@ -48,7 +48,7 @@ using System.Threading;
 using NUnit.Framework;
 
 using RabbitMQ.Client.Framing.Impl;
-using static RabbitMQ.Client.Unit.RabbitMqServerController;
+using static RabbitMQ.Client.Unit.RabbitMQCtl;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -421,17 +421,17 @@ namespace RabbitMQ.Client.Unit
 
         internal void Block()
         {
-            RabbitMqServerController.Block(Conn, encoding);
+            RabbitMQCtl.Block(Conn, encoding);
         }
 
         internal void Unblock()
         {
-            RabbitMqServerController.Unblock();
+            RabbitMQCtl.Unblock();
         }
 
         internal void Publish(IConnection conn)
         {
-            RabbitMqServerController.Publish(conn, encoding);
+            RabbitMQCtl.Publish(conn, encoding);
         }
 
         //
@@ -440,37 +440,37 @@ namespace RabbitMQ.Client.Unit
 
         internal List<ConnectionInfo> ListConnections()
         {
-            return RabbitMqServerController.ListConnections();
+            return RabbitMQCtl.ListConnections();
         }
 
         internal void CloseConnection(IConnection conn)
         {
-            RabbitMqServerController.CloseConnection(conn);
+            RabbitMQCtl.CloseConnection(conn);
         }
 
         internal void CloseAllConnections()
         {
-            RabbitMqServerController.CloseAllConnections();
+            RabbitMQCtl.CloseAllConnections();
         }
 
         internal void CloseConnection(string pid)
         {
-            RabbitMqServerController.CloseConnection(pid);
+            RabbitMQCtl.CloseConnection(pid);
         }
 
         internal void RestartRabbitMQ()
         {
-            RabbitMqServerController.RestartRabbitMQ();
+            RabbitMQCtl.RestartRabbitMQ();
         }
 
         internal void StopRabbitMQ()
         {
-            RabbitMqServerController.StopRabbitMQ();
+            RabbitMQCtl.StopRabbitMQ();
         }
 
         internal void StartRabbitMQ()
         {
-            RabbitMqServerController.StartRabbitMQ();
+            RabbitMQCtl.StartRabbitMQ();
         }
 
         //
