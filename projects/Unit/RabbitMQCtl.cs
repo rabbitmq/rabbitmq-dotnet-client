@@ -51,7 +51,7 @@ using System.Threading;
 
 namespace RabbitMQ.Client.Unit
 {
-    public static class RabbitMqServerController
+    public static class RabbitMQCtl
     {
         //
         // Shelling Out
@@ -69,7 +69,7 @@ namespace RabbitMQ.Client.Unit
 
                 if (match.Success)
                 {
-                    return ExecRabbitMqCtlUsingDocker(args, match.Groups["dockerMachine"].Value);
+                    return ExecRabbitMQCtlUsingDocker(args, match.Groups["dockerMachine"].Value);
                 }
                 else
                 {
@@ -107,7 +107,7 @@ namespace RabbitMQ.Client.Unit
             return ExecCommand(rabbitmqctlPath, args);
         }
 
-        public static Process ExecRabbitMqCtlUsingDocker(string args, string dockerMachineName)
+        public static Process ExecRabbitMQCtlUsingDocker(string args, string dockerMachineName)
         {
             var proc = new Process
             {
