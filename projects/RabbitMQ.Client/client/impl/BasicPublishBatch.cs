@@ -63,7 +63,6 @@ namespace RabbitMQ.Client.Impl
 
         public void Add(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, byte[] body)
         {
-            IBasicProperties bp = basicProperties ?? _model.CreateBasicProperties();
             var method = new BasicPublish
             {
                 _exchange = exchange,
@@ -71,7 +70,7 @@ namespace RabbitMQ.Client.Impl
                 _mandatory = mandatory
             };
 
-            _commands.Add(new Command(method, (ContentHeaderBase)bp, body, false));
+            _commands.Add(new Command(method, (ContentHeaderBase)(basicProperties ?? _model._emptyBasicProperties), body, false));
         }
 
         public void Publish()
