@@ -58,6 +58,7 @@ namespace RabbitMQ.Client.Impl
         ///<summary>Only used to kick-start a connection open
         ///sequence. See <see cref="Connection.Open"/> </summary>
         public BlockingCell<ConnectionStartDetails> m_connectionStartCell = null;
+        internal readonly IBasicProperties _emptyBasicProperties;
 
         private readonly Dictionary<string, IBasicConsumer> _consumers = new Dictionary<string, IBasicConsumer>();
 
@@ -72,7 +73,6 @@ namespace RabbitMQ.Client.Impl
         private readonly object _confirmLock = new object();
         private readonly LinkedList<ulong> _pendingDeliveryTags = new LinkedList<ulong>();
         private readonly CountdownEvent _deliveryTagsCountdown = new CountdownEvent(0);
-
         private EventHandler<ShutdownEventArgs> _modelShutdown;
 
         private bool _onlyAcksReceived = true;
@@ -93,6 +93,7 @@ namespace RabbitMQ.Client.Impl
                 ConsumerDispatcher = new ConcurrentConsumerDispatcher(this, workService);
             }
 
+            _emptyBasicProperties = CreateBasicProperties();
             Initialise(session);
         }
 
@@ -1111,7 +1112,7 @@ namespace RabbitMQ.Client.Impl
 
             if (basicProperties == null)
             {
-                basicProperties = CreateBasicProperties();
+                basicProperties = _emptyBasicProperties;
             }
 
             if (NextPublishSeqNo > 0)
