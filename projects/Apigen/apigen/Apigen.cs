@@ -588,34 +588,11 @@ $@"namespace {ApiNamespaceBase}
             EmitLine("");
             foreach (AmqpField f in c.m_Fields)
             {
-                if (!IsBoolean(f))
-                {
-                    EmitLine($"    private bool _{MangleMethod(f.Name)}_present = false;");
-                }
-            }
-            EmitLine("");
-            foreach (AmqpField f in c.m_Fields)
-            {
                 EmitSpecComment(f.DocumentationComment("    ", "@label"));
                 EmitLine($"    public {maybeOverride}{MapDomain(f.Domain)} {MangleClass(f.Name)}");
                 EmitLine("    {");
                 EmitLine($"      get => _{MangleMethod(f.Name)};");
-                EmitLine("      set");
-                EmitLine("      {");
-                if (!IsBoolean(f))
-                {
-                    if (IsReferenceType(f))
-                    {
-                        EmitLine($"        _{MangleMethod(f.Name)}_present = value != null;");
-
-                    }
-                    else
-                    {
-                        EmitLine($"        _{MangleMethod(f.Name)}_present = true;");
-                    }
-                }
-                EmitLine($"        _{MangleMethod(f.Name)} = value;");
-                EmitLine("      }");
+                EmitLine($"      set => _{MangleMethod(f.Name)} = value;");
                 EmitLine("    }");
                 EmitLine("");
             }
@@ -623,7 +600,7 @@ $@"namespace {ApiNamespaceBase}
             {
                 if (!IsBoolean(f))
                 {
-                    EmitLine($"    public {maybeOverride}void Clear{MangleClass(f.Name)}() => _{MangleMethod(f.Name)}_present = false;");
+                    EmitLine($"    public {maybeOverride}void Clear{MangleClass(f.Name)}() => _{MangleMethod(f.Name)} = default;");
                     EmitLine("");
                 }
             }
@@ -632,7 +609,7 @@ $@"namespace {ApiNamespaceBase}
             {
                 if (!IsBoolean(f))
                 {
-                    EmitLine($"    public {maybeOverride}bool Is{MangleClass(f.Name)}Present() => _{MangleMethod(f.Name)}_present;");
+                    EmitLine($"    public {maybeOverride}bool Is{MangleClass(f.Name)}Present() => _{MangleMethod(f.Name)} != default;");
                     EmitLine("");
                 }
             }
@@ -647,11 +624,11 @@ $@"namespace {ApiNamespaceBase}
             {
                 if (IsBoolean(f))
                 {
-                    EmitLine($"      _{MangleMethod(f.Name)} = reader.ReadBit();");
+                    EmitLine($"      var {MangleMethod(f.Name)} = reader.ReadBit();");
                 }
                 else
                 {
-                    EmitLine($"      _{MangleMethod(f.Name)}_present = reader.ReadPresence();");
+                    EmitLine($"      var {MangleMethod(f.Name)}_present = reader.ReadPresence();");
                 }
             }
             EmitLine("      reader.FinishPresence();");
@@ -659,7 +636,7 @@ $@"namespace {ApiNamespaceBase}
             {
                 if (!IsBoolean(f))
                 {
-                    EmitLine($"      if (_{MangleMethod(f.Name)}_present) {{ _{MangleMethod(f.Name)} = reader.Read{MangleClass(ResolveDomain(f.Domain))}(); }}");
+                    EmitLine($"      if ({MangleMethod(f.Name)}_present) {{ _{MangleMethod(f.Name)} = reader.Read{MangleClass(ResolveDomain(f.Domain))}(); }}");
                 }
             }
             EmitLine("    }");
@@ -674,7 +651,7 @@ $@"namespace {ApiNamespaceBase}
                 }
                 else
                 {
-                    EmitLine($"      writer.WritePresence(_{MangleMethod(f.Name)}_present);");
+                    EmitLine($"      writer.WritePresence(Is{MangleClass(f.Name)}Present());");
                 }
             }
             EmitLine("      writer.FinishPresence();");
@@ -682,50 +659,48 @@ $@"namespace {ApiNamespaceBase}
             {
                 if (!IsBoolean(f))
                 {
-                    EmitLine($"      if (_{MangleMethod(f.Name)}_present) {{ writer.Write{MangleClass(ResolveDomain(f.Domain))}(_{MangleMethod(f.Name)}); }}");
+                    EmitLine($"      if (Is{MangleClass(f.Name)}Present()) {{ writer.Write{MangleClass(ResolveDomain(f.Domain))}(_{MangleMethod(f.Name)}); }}");
                 }
             }
             EmitLine("    }");
             EmitLine("");
             EmitLine("    public override int GetRequiredPayloadBufferSize()");
             EmitLine("    {");
-            EmitLine("      int bufferSize = 0;");
-            EmitLine("      int fieldCount = 0;");
+            EmitLine($"      int bufferSize = {Math.Max((int)Math.Ceiling(c.m_Fields.Count / 15.0), 1) * 2}; // number of presence fields ({c.m_Fields.Count}) in 2 bytes blocks");
             foreach (AmqpField f in c.m_Fields)
             {
                 switch (MapDomain(f.Domain))
                 {
                     case "byte":
-                        EmitLine($"      if (_{MangleMethod(f.Name)}_present) {{ fieldCount++; bufferSize++; }} // _{MangleMethod(f.Name)} in bytes");
+                        EmitLine($"      if (Is{MangleClass(f.Name)}Present()) {{ bufferSize++; }} // _{MangleMethod(f.Name)} in bytes");
                         break;
                     case "string":
-                        EmitLine($"      if (_{MangleMethod(f.Name)}_present) {{ fieldCount++; bufferSize += 1 + Encoding.UTF8.GetByteCount(_{MangleMethod(f.Name)}); }} // _{MangleMethod(f.Name)} in bytes");
+                        EmitLine($"      if (Is{MangleClass(f.Name)}Present()) {{ bufferSize += 1 + Encoding.UTF8.GetByteCount(_{MangleMethod(f.Name)}); }} // _{MangleMethod(f.Name)} in bytes");
                         break;
                     case "byte[]":
-                        EmitLine($"      if (_{MangleMethod(f.Name)}_present) {{ fieldCount++; bufferSize += 4 + _{MangleMethod(f.Name)}.Length; }} // _{MangleMethod(f.Name)} in bytes");
+                        EmitLine($"      if (Is{MangleClass(f.Name)}Present()) {{ bufferSize += 4 + _{MangleMethod(f.Name)}.Length; }} // _{MangleMethod(f.Name)} in bytes");
                         break;
                     case "ushort":
-                        EmitLine($"      if (_{MangleMethod(f.Name)}_present) {{ fieldCount++; bufferSize += 2; }} // _{MangleMethod(f.Name)} in bytes");
+                        EmitLine($"      if (Is{MangleClass(f.Name)}Present()) {{ bufferSize += 2; }} // _{MangleMethod(f.Name)} in bytes");
                         break;
                     case "uint":
-                        EmitLine($"      if (_{MangleMethod(f.Name)}_present) {{ fieldCount++; bufferSize += 4; }} // _{MangleMethod(f.Name)} in bytes");
+                        EmitLine($"      if (Is{MangleClass(f.Name)}Present()) {{ bufferSize += 4; }} // _{MangleMethod(f.Name)} in bytes");
                         break;
                     case "ulong":
                     case "AmqpTimestamp":
-                        EmitLine($"      if (_{MangleMethod(f.Name)}_present) {{ fieldCount++; bufferSize += 8; }} // _{MangleMethod(f.Name)} in bytes");
+                        EmitLine($"      if (Is{MangleClass(f.Name)}Present()) {{ bufferSize += 8; }} // _{MangleMethod(f.Name)} in bytes");
                         break;
                     case "bool":
                         // TODO: implement if used, not used anywhere yet
                         break;
                     case "IDictionary<string, object>":
-                        EmitLine($"      if (_{MangleMethod(f.Name)}_present) {{ fieldCount++; bufferSize += WireFormatting.GetTableByteCount(_{MangleMethod(f.Name)}); }} // _{MangleMethod(f.Name)} in bytes");
+                        EmitLine($"      if (Is{MangleClass(f.Name)}Present()) {{ bufferSize += WireFormatting.GetTableByteCount(_{MangleMethod(f.Name)}); }} // _{MangleMethod(f.Name)} in bytes");
                         break;
                     default:
                         throw new ArgumentOutOfRangeException($"Can't handle size calculations for type = {f.Domain};");
                 }
             }
 
-            EmitLine($"      bufferSize += Math.Max((int)Math.Ceiling(fieldCount / 15.0), 1) * 2; // number of presence fields in bytes");
             EmitLine("      return bufferSize;");
             EmitLine("    }");
             EmitLine("");
@@ -736,31 +711,23 @@ $@"namespace {ApiNamespaceBase}
                 int remaining = c.m_Fields.Count;
                 foreach (AmqpField f in c.m_Fields)
                 {
-                    Emit($"      sb.Append(\"{f.Name}=\");");
+                    Emit($"      sb.Append(\"{f.Name}=\")");
                     if (IsBoolean(f))
                     {
-                        Emit($" sb.Append(_{MangleMethod(f.Name)});");
+                        Emit($".Append(_{MangleMethod(f.Name)})");
                     }
                     else
                     {
-                        string x = MangleMethod(f.Name);
-                        if (IsReferenceType(f))
-                        {
-                            Emit($" sb.Append(_{x}_present ? (_{x} == null ? \"(null)\" : _{x}.ToString()) : \"_\");");
-                        }
-                        else
-                        {
-                            Emit($" sb.Append(_{x}_present ? _{x}.ToString() : \"_\");");
-                        }
+                        Emit($".Append(Is{MangleClass(f.Name)}Present() ? _{MangleMethod(f.Name)}.ToString() : \"_\")");
                     }
                     remaining--;
                     if (remaining > 0)
                     {
-                        EmitLine(" sb.Append(\", \");");
+                        EmitLine(".Append(\", \");");
                     }
                     else
                     {
-                        EmitLine("");
+                        EmitLine(";");
                     }
                 }
             }
@@ -817,7 +784,6 @@ $@"namespace {ApiNamespaceBase}
                 EmitAutogeneratedSummary("  ", "Private implementation class - do not use directly.");
                 EmitLine($"  internal sealed class {MangleMethodClass(c, m)} : Client.Impl.MethodBase, I{MangleMethodClass(c, m)}");
                 EmitLine("  {");
-                EmitLine("");
                 foreach (AmqpField f in m.m_Fields)
                 {
                     EmitLine($"    public {MapDomain(f.Domain)} _{MangleMethod(f.Name)};");
@@ -863,33 +829,82 @@ $@"namespace {ApiNamespaceBase}
                 EmitLine("");
                 EmitLine("    public override int GetRequiredBufferSize()");
                 EmitLine("    {");
-                EmitLine("      int bufferSize = 0;");
+
                 int bitCount = 0;
+                int bytesSize = 0;
+                var commentBuilder = new StringBuilder(" // bytes for ");
                 foreach (AmqpField f in m.m_Fields)
                 {
                     switch (MapDomain(f.Domain))
                     {
                         case "byte":
-                            EmitLine($"      bufferSize++; // _{MangleMethod(f.Name)} in bytes");
+                            bytesSize++;
+                            commentBuilder.Append('_').Append(MangleMethod(f.Name)).Append(", ");
                             break;
                         case "string":
-                            EmitLine($"      bufferSize += 1 + Encoding.UTF8.GetByteCount(_{MangleMethod(f.Name)}); // _{MangleMethod(f.Name)} in bytes");
+                            bytesSize++;
+                            commentBuilder.Append("length of _").Append(MangleMethod(f.Name)).Append(", ");
                             break;
                         case "byte[]":
-                            EmitLine($"      bufferSize += 4 + _{MangleMethod(f.Name)}.Length; // _{MangleMethod(f.Name)} in bytes");
+                            bytesSize += 4;
+                            commentBuilder.Append("length of _").Append(MangleMethod(f.Name)).Append(", ");
                             break;
                         case "ushort":
-                            EmitLine($"      bufferSize += 2; // _{MangleMethod(f.Name)} in bytes");
+                            bytesSize += 2;
+                            commentBuilder.Append('_').Append(MangleMethod(f.Name)).Append(", ");
                             break;
                         case "uint":
-                            EmitLine($"      bufferSize += 4; // _{MangleMethod(f.Name)} in bytes");
+                            bytesSize += 4;
+                            commentBuilder.Append('_').Append(MangleMethod(f.Name)).Append(", ");
                             break;
                         case "ulong":
                         case "AmqpTimestamp":
-                            EmitLine($"      bufferSize += 8; // _{MangleMethod(f.Name)} in bytes");
+                            bytesSize += 8;
+                            commentBuilder.Append('_').Append(MangleMethod(f.Name)).Append(", ");
                             break;
                         case "bool":
+                            if (bitCount == 0)
+                            {
+                                commentBuilder.Append("bit fields, ");
+                            }
                             bitCount++;
+                            break;
+                        case "IDictionary<string, object>":
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException($"Can't handle size calculations for type = {f.Domain};");
+                    }
+                }
+
+                // 13 = " // bytes for "
+                if (commentBuilder.Length > 14)
+                {
+                    // cut of last ", "
+                    commentBuilder.Length -= 2;
+                }
+                else
+                {
+                    commentBuilder.Clear();
+                }
+                bytesSize += (int)Math.Ceiling(bitCount / 8.0);
+                EmitLine($"      int bufferSize = {bytesSize};{commentBuilder}");
+                foreach (AmqpField f in m.m_Fields)
+                {
+                    switch (MapDomain(f.Domain))
+                    {
+                        case "byte":
+                        case "ushort":
+                        case "uint":
+                        case "ulong":
+                        case "AmqpTimestamp":
+                        case "bool":
+                            // size already calculated
+                            break;
+                        case "string":
+                            EmitLine($"      bufferSize += Encoding.UTF8.GetByteCount(_{MangleMethod(f.Name)}); // _{MangleMethod(f.Name)} in bytes");
+                            break;
+                        case "byte[]":
+                            EmitLine($"      bufferSize += _{MangleMethod(f.Name)}.Length; // _{MangleMethod(f.Name)} in bytes");
                             break;
                         case "IDictionary<string, object>":
                             EmitLine($"      bufferSize += WireFormatting.GetTableByteCount(_{MangleMethod(f.Name)}); // _{MangleMethod(f.Name)} in bytes");
@@ -899,33 +914,29 @@ $@"namespace {ApiNamespaceBase}
                     }
                 }
 
-                if (bitCount > 0)
-                {
-                    EmitLine($"      bufferSize += {Math.Ceiling(bitCount / 8.0)}; // number of bit fields in bytes");
-                }
                 EmitLine("      return bufferSize;");
                 EmitLine("    }");
                 EmitLine("");
                 EmitLine("    public override void AppendArgumentDebugStringTo(StringBuilder sb)");
                 EmitLine("    {");
-                EmitLine("      sb.Append(\"(\");");
+                EmitLine("      sb.Append('(');");
                 {
                     int remaining = m.m_Fields.Count;
                     foreach (AmqpField f in m.m_Fields)
                     {
-                        Emit($"      sb.Append(_{MangleMethod(f.Name)});");
+                        Emit($"      sb.Append(_{MangleMethod(f.Name)})");
                         remaining--;
                         if (remaining > 0)
                         {
-                            EmitLine(" sb.Append(\",\");");
+                            EmitLine(".Append(',');");
                         }
                         else
                         {
-                            EmitLine("");
+                            EmitLine(";");
                         }
                     }
                 }
-                EmitLine("      sb.Append(\")\");");
+                EmitLine("      sb.Append(')');");
                 EmitLine("    }");
                 EmitLine("  }");
             }
