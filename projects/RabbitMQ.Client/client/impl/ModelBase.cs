@@ -1203,6 +1203,11 @@ namespace RabbitMQ.Client.Impl
             return new BasicPublishBatch(this);
         }
 
+        public IBasicPublishBatch CreateBasicPublishBatch(int sizeHint)
+        {
+            return new BasicPublishBatch(this, sizeHint);
+        }
+
 
         public void ExchangeBind(string destination,
             string source,

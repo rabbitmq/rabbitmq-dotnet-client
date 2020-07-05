@@ -396,6 +396,7 @@ namespace RabbitMQ.Client
         uint ConsumerCount(string queue);
         RabbitMQ.Client.IBasicProperties CreateBasicProperties();
         RabbitMQ.Client.IBasicPublishBatch CreateBasicPublishBatch();
+        RabbitMQ.Client.IBasicPublishBatch CreateBasicPublishBatch(int sizeHint);
         void ExchangeBind(string destination, string source, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments);
         void ExchangeBindNoWait(string destination, string source, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments);
         void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, System.Collections.Generic.IDictionary<string, object> arguments);
