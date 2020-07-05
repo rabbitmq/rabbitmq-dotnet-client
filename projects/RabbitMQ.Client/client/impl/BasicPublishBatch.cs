@@ -38,21 +38,27 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-using System.Buffers;
 using System.Collections.Generic;
 
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
-    class BasicPublishBatch : IBasicPublishBatch
+    internal sealed class BasicPublishBatch : IBasicPublishBatch
     {
-        private readonly List<Command> _commands = new List<Command>();
+        private readonly List<Command> _commands;
         private readonly ModelBase _model;
+
         internal BasicPublishBatch (ModelBase model)
         {
             _model = model;
+            _commands = new List<Command>();
+        }
+
+        internal BasicPublishBatch (ModelBase model, int sizeHint)
+        {
+            _model = model;
+            _commands = new List<Command>(sizeHint);
         }
 
         public void Add(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, byte[] body)

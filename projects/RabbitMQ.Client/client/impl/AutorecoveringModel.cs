@@ -1960,5 +1960,15 @@ namespace RabbitMQ.Client.Impl
 
             return ((IFullModel)_delegate).CreateBasicPublishBatch();
         }
+
+        public IBasicPublishBatch CreateBasicPublishBatch(int sizeHint)
+        {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(GetType().FullName);
+            }
+
+            return ((IFullModel)_delegate).CreateBasicPublishBatch(sizeHint);
+        }
     }
 }
