@@ -101,21 +101,38 @@ namespace RabbitMQ.Client.Impl
             _channelReader = channel.Reader;
             _channelWriter = channel.Writer;
 
-            if (ShouldTryIPv6(endpoint))
+            // Resolve the hostname to know if it's even possible to even try IPv6
+            IPAddress[] adds = Dns.GetHostAddresses(endpoint.HostName);
+            IPAddress ipv6 = TcpClientAdapterHelper.GetMatchingHost(adds, AddressFamily.InterNetworkV6);
+
+            if (ipv6 == default(IPAddress))
+            {
+                if (endpoint.AddressFamily == AddressFamily.InterNetworkV6)
+                {
+                    throw new ConnectFailureException("Connection failed", new ArgumentException($"No IPv6 address could be resolved for {endpoint.HostName}"));
+                }
+            }
+            else if (ShouldTryIPv6(endpoint))
             {
                 try
                 {
-                    _socket = ConnectUsingIPv6(endpoint, socketFactory, connectionTimeout);
+                    _socket = ConnectUsingIPv6(new IPEndPoint(ipv6, endpoint.Port), socketFactory, connectionTimeout);
                 }
                 catch (ConnectFailureException)
                 {
+                    // We resolved to a ipv6 address and tried it but it still didn't connect, try IPv4
                     _socket = null;
                 }
             }
 
-            if (_socket == null && endpoint.AddressFamily != AddressFamily.InterNetworkV6)
+            if (_socket == null)
             {
-                _socket = ConnectUsingIPv4(endpoint, socketFactory, connectionTimeout);
+                IPAddress ipv4 = TcpClientAdapterHelper.GetMatchingHost(adds, AddressFamily.InterNetwork);
+                if (ipv4 == default(IPAddress))
+                {
+                    throw new ConnectFailureException("Connection failed", new ArgumentException($"No ip address could be resolved for {endpoint.HostName}"));
+                }
+                _socket = ConnectUsingIPv4(new IPEndPoint(ipv4, endpoint.Port), socketFactory, connectionTimeout);
             }
 
             Stream netstream = _socket.GetStream();
@@ -276,21 +293,21 @@ namespace RabbitMQ.Client.Impl
             return Socket.OSSupportsIPv6 && endpoint.AddressFamily != AddressFamily.InterNetwork;
         }
 
-        private ITcpClient ConnectUsingIPv6(AmqpTcpEndpoint endpoint,
+        private ITcpClient ConnectUsingIPv6(IPEndPoint endpoint,
                                             Func<AddressFamily, ITcpClient> socketFactory,
                                             TimeSpan timeout)
         {
             return ConnectUsingAddressFamily(endpoint, socketFactory, timeout, AddressFamily.InterNetworkV6);
         }
 
-        private ITcpClient ConnectUsingIPv4(AmqpTcpEndpoint endpoint,
+        private ITcpClient ConnectUsingIPv4(IPEndPoint endpoint,
                                             Func<AddressFamily, ITcpClient> socketFactory,
                                             TimeSpan timeout)
         {
             return ConnectUsingAddressFamily(endpoint, socketFactory, timeout, AddressFamily.InterNetwork);
         }
 
-        private ITcpClient ConnectUsingAddressFamily(AmqpTcpEndpoint endpoint,
+        private ITcpClient ConnectUsingAddressFamily(IPEndPoint endpoint,
                                                     Func<AddressFamily, ITcpClient> socketFactory,
                                                     TimeSpan timeout, AddressFamily family)
         {
@@ -307,11 +324,11 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        private void ConnectOrFail(ITcpClient socket, AmqpTcpEndpoint endpoint, TimeSpan timeout)
+        private void ConnectOrFail(ITcpClient socket, IPEndPoint endpoint, TimeSpan timeout)
         {
             try
             {
-                socket.ConnectAsync(endpoint.HostName, endpoint.Port)
+                socket.ConnectAsync(endpoint.Address, endpoint.Port)
                      .TimeoutAfter(timeout)
                      .ConfigureAwait(false)
                      // this ensures exceptions aren't wrapped in an AggregateException
