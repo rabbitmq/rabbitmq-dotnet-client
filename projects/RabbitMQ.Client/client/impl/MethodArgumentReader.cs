@@ -45,32 +45,34 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal struct MethodArgumentReader
+    internal ref struct MethodArgumentReader
     {
-        private int? _bit;
+        private readonly ReadOnlySpan<byte> _span;
+        private int _offset;
+        private int _bitMask;
         private int _bits;
 
-        public MethodArgumentReader(ReadOnlyMemory<byte> memory)
-        {
-            _memory = memory;
-            _memoryOffset = 0;
-            _bits = 0;
-            _bit = null;
-        }
+        private ReadOnlySpan<byte> Span => _span.Slice(_offset);
 
-        private readonly ReadOnlyMemory<byte> _memory;
-        private int _memoryOffset;
+        public MethodArgumentReader(ReadOnlySpan<byte> span)
+        {
+            _span = span;
+            _offset = 0;
+            _bitMask = 0;
+            _bits = 0;
+        }
 
         public bool ReadBit()
         {
-            if (!_bit.HasValue)
+            int bit = _bitMask;
+            if (bit == 0)
             {
-                _bits = _memory.Span[_memoryOffset++];
-                _bit = 0x01;
+                _bits = _span[_offset++];
+                bit = 1;
             }
 
-            bool result = (_bits & _bit.Value) != 0;
-            _bit <<= 1;
+            bool result = (_bits & bit) != 0;
+            _bitMask = bit << 1;
             return result;
         }
 
@@ -81,74 +83,56 @@ namespace RabbitMQ.Client.Impl
 
         public uint ReadLong()
         {
-            ClearBits();
-            uint result = NetworkOrderDeserializer.ReadUInt32(_memory.Slice(_memoryOffset).Span);
-            _memoryOffset += 4;
+            uint result = NetworkOrderDeserializer.ReadUInt32(Span);
+            _offset += 4;
             return result;
         }
 
         public ulong ReadLonglong()
         {
-            ClearBits();
-            ulong result = NetworkOrderDeserializer.ReadUInt64(_memory.Slice(_memoryOffset).Span);
-            _memoryOffset += 8;
+            ulong result = NetworkOrderDeserializer.ReadUInt64(Span);
+            _offset += 8;
             return result;
         }
 
         public byte[] ReadLongstr()
         {
-            ClearBits();
-            byte[] result = WireFormatting.ReadLongstr(_memory.Slice(_memoryOffset));
-            _memoryOffset += 4 + result.Length;
+            byte[] result = WireFormatting.ReadLongstr(Span);
+            _offset += 4 + result.Length;
             return result;
         }
 
         public byte ReadOctet()
         {
-            ClearBits();
-            return _memory.Span[_memoryOffset++];
+            return _span[_offset++];
         }
 
         public ushort ReadShort()
         {
-            ClearBits();
-            ushort result = NetworkOrderDeserializer.ReadUInt16(_memory.Slice(_memoryOffset).Span);
-            _memoryOffset += 2;
+            ushort result = NetworkOrderDeserializer.ReadUInt16(Span);
+            _offset += 2;
             return result;
         }
 
         public string ReadShortstr()
         {
-            ClearBits();
-            string result = WireFormatting.ReadShortstr(_memory.Slice(_memoryOffset), out int bytesRead);
-            _memoryOffset += bytesRead;
+            string result = WireFormatting.ReadShortstr(Span, out int bytesRead);
+            _offset += bytesRead;
             return result;
         }
 
         public Dictionary<string, object> ReadTable()
         {
-            ClearBits();
-            Dictionary<string, object> result = WireFormatting.ReadTable(_memory.Slice(_memoryOffset), out int bytesRead);
-            _memoryOffset += bytesRead;
+            Dictionary<string, object> result = WireFormatting.ReadTable(Span, out int bytesRead);
+            _offset += bytesRead;
             return result;
         }
 
         public AmqpTimestamp ReadTimestamp()
         {
-            ClearBits();
-            AmqpTimestamp result = WireFormatting.ReadTimestamp(_memory.Slice(_memoryOffset));
-            _memoryOffset += 8;
+            AmqpTimestamp result = WireFormatting.ReadTimestamp(Span);
+            _offset += 8;
             return result;
         }
-
-        private void ClearBits()
-        {
-            _bits = 0;
-            _bit = null;
-        }
-
-        // TODO: Consider using NotImplementedException (?)
-        // This is a completely bizarre consequence of the way the
-        // Message.Transfer method is marked up in the XML spec.
     }
 }

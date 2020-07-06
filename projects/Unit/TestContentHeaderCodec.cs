@@ -71,19 +71,21 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestPresence()
         {
-            var m_w = new ContentHeaderPropertyWriter(new byte[1024]);
+            var memory = new byte[1024];
+            var m_w = new ContentHeaderPropertyWriter(memory);
             m_w.WritePresence(false);
             m_w.WritePresence(true);
             m_w.WritePresence(false);
             m_w.WritePresence(true);
             m_w.FinishPresence();
-            Check(m_w.Memory.Slice(0, m_w.Offset), new byte[] { 0x50, 0x00 });
+            Check(memory.AsMemory().Slice(0, m_w.Offset), new byte[] { 0x50, 0x00 });
         }
 
         [Test]
         public void TestLongPresence()
         {
-            var m_w = new ContentHeaderPropertyWriter(new byte[1024]);
+            var memory = new byte[1024];
+            var m_w = new ContentHeaderPropertyWriter(memory);
 
             m_w.WritePresence(false);
             m_w.WritePresence(true);
@@ -95,29 +97,16 @@ namespace RabbitMQ.Client.Unit
             }
             m_w.WritePresence(true);
             m_w.FinishPresence();
-            Check(m_w.Memory.Slice(0, m_w.Offset), new byte[] { 0x50, 0x01, 0x00, 0x40 });
+            Check(memory.AsMemory().Slice(0, m_w.Offset), new byte[] { 0x50, 0x01, 0x00, 0x40 });
         }
 
         [Test]
         public void TestNoPresence()
         {
-            var m_w = new ContentHeaderPropertyWriter(new byte[1024]);
+            var memory = new byte[1024];
+            var m_w = new ContentHeaderPropertyWriter(memory);
             m_w.FinishPresence();
-            Check(m_w.Memory.Slice(0, m_w.Offset), new byte[] { 0x00, 0x00 });
-        }
-
-        [Test]
-        public void TestBodyLength()
-        {
-            RabbitMQ.Client.Framing.BasicProperties prop =
-                new RabbitMQ.Client.Framing.BasicProperties();
-            int bytesNeeded = prop.GetRequiredBufferSize();
-            byte[] bytes = new byte[bytesNeeded];
-            int bytesWritten = prop.WriteTo(bytes, 0x123456789ABCDEF0UL);
-            prop.WriteTo(bytes, 0x123456789ABCDEF0UL);
-            Check(bytes.AsMemory().Slice(0, bytesWritten), new byte[] { 0x00, 0x00, // weight
-			          0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0, // body len
-			          0x00, 0x00}); // props flags
+            Check(memory.AsMemory().Slice(0, m_w.Offset), new byte[] { 0x00, 0x00 });
         }
 
         [Test]
@@ -128,16 +117,15 @@ namespace RabbitMQ.Client.Unit
                 {
                     ContentType = "text/plain"
                 };
-            int bytesNeeded = prop.GetRequiredBufferSize();
+            int bytesNeeded = prop.GetRequiredPayloadBufferSize();
             byte[] bytes = new byte[bytesNeeded];
-            int bytesWritten = prop.WriteTo(bytes, 0x123456789ABCDEF0UL);
-            Check(bytes.AsMemory().Slice(0, bytesWritten), new byte[] { 0x00, 0x00, // weight
-			          0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0, // body len
-			          0x80, 0x00, // props flags
-			          0x0A, // shortstr len
-			          0x74, 0x65, 0x78, 0x74,
-                      0x2F, 0x70, 0x6C, 0x61,
-                      0x69, 0x6E });
+            var m_w = new ContentHeaderPropertyWriter(bytes);
+            prop.WritePropertiesTo(ref m_w);
+            Check(bytes.AsMemory().Slice(0, m_w.Offset), new byte[] {
+                     0x80, 0x00, // props flags
+                     0x0A, // shortstr len
+                     0x74, 0x65, 0x78, 0x74, 0x2F, 0x70, 0x6C, 0x61, 0x69, 0x6E // text/plain
+            });
         }
     }
 }

@@ -45,25 +45,27 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal struct ContentHeaderPropertyReader
+    internal ref struct ContentHeaderPropertyReader
     {
-        private ushort m_bitCount;
-        private ushort m_flagWord;
-        private int _memoryOffset;
-        private readonly ReadOnlyMemory<byte> _memory;
+        private const int StartBitMask = 0b1000_0000_0000_0000;
+        private const int EndBitMask = 0b0000_0000_0000_0001;
 
-        public ContentHeaderPropertyReader(ReadOnlyMemory<byte> memory)
+        private readonly ReadOnlySpan<byte> _span;
+        private int _offset;
+        private int _bitMask;
+        private int _bits;
+
+        private ReadOnlySpan<byte> Span => _span.Slice(_offset);
+
+        public ContentHeaderPropertyReader(ReadOnlySpan<byte> span)
         {
-            _memory = memory;
-            _memoryOffset = 0;
-            m_flagWord = 1; // just the continuation bit
-            m_bitCount = 15; // the correct position to force a m_flagWord read
+            _span = span;
+            _offset = 0;
+            _bitMask = EndBitMask; // force a flag read
+            _bits = 1; // just the continuation bit
         }
 
-        public bool ContinuationBitSet
-        {
-            get { return (m_flagWord & 1) != 0; }
-        }
+        private bool ContinuationBitSet => (_bits & EndBitMask) != 0;
 
         public void FinishPresence()
         {
@@ -78,82 +80,81 @@ namespace RabbitMQ.Client.Impl
             return ReadPresence();
         }
 
-        public void ReadFlagWord()
+        private void ReadBits()
         {
             if (!ContinuationBitSet)
             {
                 throw new MalformedFrameException("Attempted to read flag word when none advertised");
             }
-            m_flagWord = NetworkOrderDeserializer.ReadUInt16(_memory.Slice(_memoryOffset).Span);
-            _memoryOffset += 2;
-            m_bitCount = 0;
+            _bits = NetworkOrderDeserializer.ReadUInt16(Span);
+            _offset += 2;
+            _bitMask = StartBitMask;
         }
 
         public uint ReadLong()
         {
-            uint result = NetworkOrderDeserializer.ReadUInt32(_memory.Slice(_memoryOffset).Span);
-            _memoryOffset += 4;
+            uint result = NetworkOrderDeserializer.ReadUInt32(Span);
+            _offset += 4;
             return result;
         }
 
         public ulong ReadLonglong()
         {
-            ulong result = NetworkOrderDeserializer.ReadUInt64(_memory.Slice(_memoryOffset).Span);
-            _memoryOffset += 8;
+            ulong result = NetworkOrderDeserializer.ReadUInt64(Span);
+            _offset += 8;
             return result;
         }
 
         public byte[] ReadLongstr()
         {
-            byte[] result = WireFormatting.ReadLongstr(_memory.Slice(_memoryOffset));
-            _memoryOffset += 4 + result.Length;
+            byte[] result = WireFormatting.ReadLongstr(Span);
+            _offset += 4 + result.Length;
             return result;
         }
 
         public byte ReadOctet()
         {
-            return _memory.Span[_memoryOffset++];
+            return _span[_offset++];
         }
 
         public bool ReadPresence()
         {
-            if (m_bitCount == 15)
+            if (_bitMask == EndBitMask)
             {
-                ReadFlagWord();
+                ReadBits();
             }
 
-            int bit = 15 - m_bitCount;
-            bool result = (m_flagWord & (1 << bit)) != 0;
-            m_bitCount++;
+            bool result = (_bits & _bitMask) != 0;
+            _bitMask >>= 1;
             return result;
         }
 
         public ushort ReadShort()
         {
-            ushort result = NetworkOrderDeserializer.ReadUInt16(_memory.Slice(_memoryOffset).Span);
-            _memoryOffset += 2;
+            ushort result = NetworkOrderDeserializer.ReadUInt16(Span);
+            _offset += 2;
             return result;
         }
 
         public string ReadShortstr()
         {
-            string result = WireFormatting.ReadShortstr(_memory.Slice(_memoryOffset), out int bytesRead);
-            _memoryOffset += bytesRead;
+            string result = WireFormatting.ReadShortstr(Span, out int bytesRead);
+            _offset += bytesRead;
             return result;
         }
 
         /// <returns>A type of <seealso cref="System.Collections.Generic.IDictionary{TKey,TValue}"/>.</returns>
         public Dictionary<string, object> ReadTable()
         {
-            Dictionary<string, object> result = WireFormatting.ReadTable(_memory.Slice(_memoryOffset), out int bytesRead);
-            _memoryOffset += bytesRead;
+            Dictionary<string, object> result = WireFormatting.ReadTable(Span, out int bytesRead);
+            _offset += bytesRead;
             return result;
         }
 
         public AmqpTimestamp ReadTimestamp()
         {
-            AmqpTimestamp result = WireFormatting.ReadTimestamp(_memory.Slice(_memoryOffset));
-            _memoryOffset += 8;
+            AmqpTimestamp result = WireFormatting.ReadTimestamp(Span);
+            _offset += 8;
             return result;
         }
     }

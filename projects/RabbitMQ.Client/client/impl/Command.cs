@@ -40,9 +40,7 @@
 
 using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
@@ -56,11 +54,6 @@ namespace RabbitMQ.Client.Impl
         // - 1 byte of payload trailer FrameEnd byte
         private const int EmptyFrameSize = 8;
         private readonly bool _returnBufferOnDispose;
-
-        static Command()
-        {
-            CheckEmptyFrameSize();
-        }
 
         internal Command(MethodBase method) : this(method, null, null, false)
         {
@@ -80,38 +73,57 @@ namespace RabbitMQ.Client.Impl
 
         internal MethodBase Method { get; private set; }
 
-        public static void CheckEmptyFrameSize()
+        internal void Transmit(ushort channelNumber, Connection connection)
         {
-            var f = new EmptyOutboundFrame();
-            byte[] b = new byte[f.GetMinimumBufferSize()];
-            f.WriteTo(b);
-            long actualLength = f.ByteCount;
+            int maxBodyPayloadBytes = (int)(connection.FrameMax == 0 ? int.MaxValue : connection.FrameMax - EmptyFrameSize);
+            var size = GetMaxSize(maxBodyPayloadBytes);
 
-            if (EmptyFrameSize != actualLength)
-            {
-                string message =
-                    string.Format("EmptyFrameSize is incorrect - defined as {0} where the computed value is in fact {1}.",
-                        EmptyFrameSize,
-                        actualLength);
-                throw new ProtocolViolationException(message);
-            }
-        }
+            // Will be returned by SocketFrameWriter.WriteLoop
+            var memory = new Memory<byte>(ArrayPool<byte>.Shared.Rent(size), 0, size);
+            var span = memory.Span;
 
-        internal void Transmit(int channelNumber, Connection connection)
-        {
-            connection.WriteFrame(new MethodOutboundFrame(channelNumber, Method));
+            var offset = Framing.Method.WriteTo(span, channelNumber, Method);
             if (Method.HasContent)
             {
-                connection.WriteFrame(new HeaderOutboundFrame(channelNumber, Header, Body.Length));
-                int frameMax = (int)Math.Min(int.MaxValue, connection.FrameMax);
-                int bodyPayloadMax = (frameMax == 0) ? Body.Length : frameMax - EmptyFrameSize;
-                for (int offset = 0; offset < Body.Length; offset += bodyPayloadMax)
+                int remainingBodyBytes = Body.Length;
+                offset += Framing.Header.WriteTo(span.Slice(offset), channelNumber, Header, remainingBodyBytes);
+                var bodySpan = Body.Span;
+                while (remainingBodyBytes > 0)
                 {
-                    int remaining = Body.Length - offset;
-                    int count = (remaining < bodyPayloadMax) ? remaining : bodyPayloadMax;
-                    connection.WriteFrame(new BodySegmentOutboundFrame(channelNumber, Body.Slice(offset, count)));
+                    int frameSize = remainingBodyBytes > maxBodyPayloadBytes ? maxBodyPayloadBytes : remainingBodyBytes;
+                    offset += Framing.BodySegment.WriteTo(span.Slice(offset), channelNumber, bodySpan.Slice(bodySpan.Length - remainingBodyBytes, frameSize));
+                    remainingBodyBytes -= frameSize;
                 }
             }
+
+            if (offset != size)
+            {
+                throw new InvalidOperationException($"Serialized to wrong size, expect {size}, offset {offset}");
+            }
+
+            connection.Write(memory);
+        }
+
+        private int GetMaxSize(int maxPayloadBytes)
+        {
+            if (!Method.HasContent)
+            {
+                return Framing.Method.FrameSize + Method.GetRequiredBufferSize();
+            }
+
+            return Framing.Method.FrameSize + Method.GetRequiredBufferSize() +
+                   Framing.Header.FrameSize + Header.GetRequiredPayloadBufferSize() +
+                   Framing.BodySegment.FrameSize * GetBodyFrameCount(maxPayloadBytes) + Body.Length;
+        }
+
+        private int GetBodyFrameCount(int maxPayloadBytes)
+        {
+            if (maxPayloadBytes == int.MaxValue)
+            {
+                return 1;
+            }
+
+            return (Body.Length + maxPayloadBytes - 1) / maxPayloadBytes;
         }
 
         public void Dispose()

@@ -68,5 +68,38 @@ namespace RabbitMQ.Client.Unit
                 CollectionAssert.AreEqual(sendBody, consumeBody);
             }
         }
+
+        [Test]
+        public void CanNotModifyPayloadAfterPublish()
+        {
+            var cf = new ConnectionFactory();
+            using(IConnection c = cf.CreateConnection())
+            using(IModel m = c.CreateModel())
+            {
+                QueueDeclareOk q = m.QueueDeclare();
+                IBasicProperties bp = m.CreateBasicProperties();
+                byte[] sendBody = new byte[1000];
+                var consumer = new EventingBasicConsumer(m);
+                var are = new AutoResetEvent(false);
+                bool modified = true;
+                consumer.Received += (o, a) =>
+                {
+                    if (a.Body.Span.IndexOf((byte)1) < 0)
+                    {
+                        modified = false;
+                    }
+                    are.Set();
+                };
+                string tag = m.BasicConsume(q.QueueName, true, consumer);
+
+                m.BasicPublish("", q.QueueName, bp, sendBody);
+                sendBody.AsSpan().Fill(1);
+
+                Assert.IsTrue(are.WaitOne(2000));
+                Assert.IsFalse(modified, "Payload was modified after the return of BasicPublish");
+
+                m.BasicCancel(tag);
+            }
+        }
     }
 }
