@@ -38,6 +38,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 
 using RabbitMQ.Client.Framing.Impl;
@@ -62,6 +63,12 @@ namespace RabbitMQ.Client.Impl
         }
 
         public void Add(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, byte[] body)
+        {
+            ReadOnlyMemory<byte> bodyAsMemory = body;
+            Add(exchange, routingKey, mandatory, basicProperties, bodyAsMemory);
+        }
+
+        public void Add(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
         {
             var method = new BasicPublish
             {

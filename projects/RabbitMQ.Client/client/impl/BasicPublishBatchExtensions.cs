@@ -39,13 +39,23 @@
 //---------------------------------------------------------------------------
 
 using System;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
 {
-    public interface IBasicPublishBatch
+    public static class BasicPublishBatchExtensions
     {
-        [Obsolete("Use Add(string exchange, string routingKey, bool mandatory, IBasicProperties properties, ReadOnlyMemory<byte> body) instead. Will be replaced in version 7.0", false)]
-        void Add(string exchange, string routingKey, bool mandatory, IBasicProperties properties, byte[] body);
-        void Publish();
+        public static void Add(this IBasicPublishBatch batch, string exchange, string routingKey, bool mandatory, IBasicProperties properties, ReadOnlyMemory<byte> body)
+        {
+            if (batch is BasicPublishBatch batchInternal)
+            {
+                batchInternal.Add(exchange, routingKey, mandatory, properties, body);
+                return;
+            }
+
+#pragma warning disable 618
+            batch.Add(exchange, routingKey, mandatory, properties, body.ToArray());
+#pragma warning restore 618
+        }
     }
 }
