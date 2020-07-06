@@ -38,6 +38,7 @@
 //  Copyright (c) 2011-2020 VMware, Inc. or its affiliates.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
@@ -104,12 +105,13 @@ namespace RabbitMQ.Client.Unit
             bool isMessageIdPresent = messageId != null;
             Assert.AreEqual(isMessageIdPresent, subject.IsMessageIdPresent());
 
-            var writer = new Impl.ContentHeaderPropertyWriter(new byte[1024]);
+            Span<byte> span = new byte[1024];
+            var writer = new Impl.ContentHeaderPropertyWriter(span);
             subject.WritePropertiesTo(ref writer);
 
             // Read from Stream
             var propertiesFromStream = new Framing.BasicProperties();
-            var reader = new Impl.ContentHeaderPropertyReader(writer.Memory.Slice(0, writer.Offset));
+            var reader = new Impl.ContentHeaderPropertyReader(span.Slice(0, writer.Offset));
             propertiesFromStream.ReadPropertiesFrom(ref reader);
 
             Assert.AreEqual(clusterId, propertiesFromStream.ClusterId);
@@ -137,12 +139,13 @@ namespace RabbitMQ.Client.Unit
             string replyToAddress = result?.ToString();
             Assert.AreEqual(isReplyToPresent, subject.IsReplyToPresent());
 
-            var writer = new Impl.ContentHeaderPropertyWriter(new byte[1024]);
+            Span<byte> span = new byte[1024];
+            var writer = new Impl.ContentHeaderPropertyWriter(span);
             subject.WritePropertiesTo(ref writer);
 
             // Read from Stream
             var propertiesFromStream = new Framing.BasicProperties();
-            var reader = new Impl.ContentHeaderPropertyReader(writer.Memory.Slice(0, writer.Offset));
+            var reader = new Impl.ContentHeaderPropertyReader(span.Slice(0, writer.Offset));
             propertiesFromStream.ReadPropertiesFrom(ref reader);
 
             Assert.AreEqual(replyTo, propertiesFromStream.ReplyTo);

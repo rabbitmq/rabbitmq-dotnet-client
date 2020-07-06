@@ -39,7 +39,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Net;
 
 namespace RabbitMQ.Client.Impl
@@ -71,6 +70,6 @@ namespace RabbitMQ.Client.Impl
 
         void SendHeader();
 
-        void WriteFrame(OutboundFrame frame);
+        void Write(Memory<byte> memory);
     }
 }

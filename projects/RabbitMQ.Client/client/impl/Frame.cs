@@ -42,127 +42,127 @@ using System;
 using System.Buffers;
 using System.IO;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Client.Framing;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    class HeaderOutboundFrame : OutboundFrame
+    internal static class Framing
     {
-        private readonly ContentHeaderBase _header;
-        private readonly int _bodyLength;
+        /* +------------+---------+----------------+---------+------------------+
+         * | Frame Type | Channel | Payload length | Payload | Frame End Marker |
+         * +------------+---------+----------------+---------+------------------+
+         * | 1 byte     | 2 bytes | 4 bytes        | x bytes | 1 byte           |
+         * +------------+---------+----------------+---------+------------------+ */
+        private const int BaseFrameSize = 1 + 2 + 4 + 1;
+        private const int StartPayload = 7;
 
-        internal HeaderOutboundFrame(int channel, ContentHeaderBase header, int bodyLength) : base(FrameType.FrameHeader, channel)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int WriteBaseFrame(Span<byte> span, FrameType type, ushort channel, int payloadLength)
         {
-            _header = header;
-            _bodyLength = bodyLength;
+            const int StartFrameType = 0;
+            const int StartChannel = 1;
+            const int StartPayloadSize = 3;
+
+            span[StartFrameType] = (byte)type;
+            NetworkOrderSerializer.WriteUInt16(span.Slice(StartChannel), channel);
+            NetworkOrderSerializer.WriteUInt32(span.Slice(StartPayloadSize), (uint)payloadLength);
+            span[StartPayload + payloadLength] = Constants.FrameEnd;
+            return StartPayload + 1 + payloadLength;
         }
 
-        internal override int GetMinimumPayloadBufferSize()
+        internal static class Method
         {
-            // ProtocolClassId (2) + header (X bytes)
-            return 2 + _header.GetRequiredBufferSize();
+            /* +----------+-----------+-----------+
+             * | Class Id | Method Id | Arguments |
+             * +----------+-----------+-----------+
+             * | 2 bytes  | 2 bytes   | x bytes   |
+             * +----------+-----------+-----------+ */
+            public const int FrameSize = BaseFrameSize + 2 + 2;
+
+            public static int WriteTo(Span<byte> span, ushort channel, MethodBase method)
+            {
+                const int StartClassId = StartPayload;
+                const int StartMethodId = StartPayload + 2;
+                const int StartMethodArguments = StartPayload + 4;
+
+                NetworkOrderSerializer.WriteUInt16(span.Slice(StartClassId), method.ProtocolClassId);
+                NetworkOrderSerializer.WriteUInt16(span.Slice(StartMethodId), method.ProtocolMethodId);
+                var argWriter = new MethodArgumentWriter(span.Slice(StartMethodArguments));
+                method.WriteArgumentsTo(ref argWriter);
+                return WriteBaseFrame(span, FrameType.FrameMethod, channel, StartMethodArguments - StartPayload + argWriter.Offset);
+            }
         }
 
-        internal override int WritePayload(Memory<byte> memory)
+        internal static class Header
         {
-            // write protocol class id (2 bytes)
-            NetworkOrderSerializer.WriteUInt16(memory.Span, _header.ProtocolClassId);
-            // write header (X bytes)
-            int bytesWritten = _header.WriteTo(memory.Slice(2), (ulong)_bodyLength);
-            return 2 + bytesWritten;
-        }
-    }
+            /* +----------+----------+-------------------+-----------+
+             * | Class Id | (unused) | Total body length | Arguments |
+             * +----------+----------+-------------------+-----------+
+             * | 2 bytes  | 2 bytes  | 8 bytes           | x bytes   |
+             * +----------+----------+-------------------+-----------+ */
+            public const int FrameSize = BaseFrameSize + 2 + 2 + 8;
 
-    class BodySegmentOutboundFrame : OutboundFrame
-    {
-        private readonly ReadOnlyMemory<byte> _body;
+            public static int WriteTo(Span<byte> span, ushort channel, ContentHeaderBase header, int bodyLength)
+            {
+                const int StartClassId = StartPayload;
+                const int StartWeight = StartPayload + 2;
+                const int StartBodyLength = StartPayload + 4;
+                const int StartHeaderArguments = StartPayload + 12;
 
-        internal BodySegmentOutboundFrame(int channel, ReadOnlyMemory<byte> bodySegment) : base(FrameType.FrameBody, channel)
-        {
-            _body = bodySegment;
-        }
-
-        internal override int GetMinimumPayloadBufferSize()
-        {
-            return _body.Length;
-        }
-
-        internal override int WritePayload(Memory<byte> memory)
-        {
-            _body.CopyTo(memory);
-            return _body.Length;
-        }
-    }
-
-    class MethodOutboundFrame : OutboundFrame
-    {
-        private readonly MethodBase _method;
-
-        internal MethodOutboundFrame(int channel, MethodBase method) : base(FrameType.FrameMethod, channel)
-        {
-            _method = method;
+                NetworkOrderSerializer.WriteUInt16(span.Slice(StartClassId), header.ProtocolClassId);
+                NetworkOrderSerializer.WriteUInt16(span.Slice(StartWeight), 0); // Weight - not used
+                NetworkOrderSerializer.WriteUInt64(span.Slice(StartBodyLength), (ulong)bodyLength);
+                var headerWriter = new ContentHeaderPropertyWriter(span.Slice(StartHeaderArguments));
+                header.WritePropertiesTo(ref headerWriter);
+                return WriteBaseFrame(span, FrameType.FrameHeader, channel, StartHeaderArguments - StartPayload + headerWriter.Offset);
+            }
         }
 
-        internal override int GetMinimumPayloadBufferSize()
+        internal static class BodySegment
         {
-            // class id (2 bytes) + method id (2 bytes) + arguments (X bytes)
-            return 4 + _method.GetRequiredBufferSize();
+            /* +--------------+
+             * | Body segment |
+             * +--------------+
+             * | x bytes      |
+             * +--------------+ */
+            public const int FrameSize = BaseFrameSize;
+
+            public static int WriteTo(Span<byte> span, ushort channel, ReadOnlySpan<byte> body)
+            {
+                const int StartBodyArgument = StartPayload;
+
+                body.CopyTo(span.Slice(StartBodyArgument));
+                return WriteBaseFrame(span, FrameType.FrameBody, channel, StartBodyArgument - StartPayload + body.Length);
+            }
         }
 
-        internal override int WritePayload(Memory<byte> memory)
+        internal static class Heartbeat
         {
-            NetworkOrderSerializer.WriteUInt16(memory.Span, _method.ProtocolClassId);
-            NetworkOrderSerializer.WriteUInt16(memory.Slice(2).Span, _method.ProtocolMethodId);
-            var argWriter = new MethodArgumentWriter(memory.Slice(4));
-            _method.WriteArgumentsTo(ref argWriter);
-            argWriter.Flush();
-            return 4 + argWriter.Offset;
-        }
-    }
+            /* Empty frame */
+            public const int FrameSize = BaseFrameSize;
 
-    class EmptyOutboundFrame : OutboundFrame
-    {
-        public EmptyOutboundFrame() : base(FrameType.FrameHeartbeat, 0)
-        {
-        }
+            /// <summary>
+            /// Compiler trick to directly refer to static data in the assembly, see here: https://github.com/dotnet/roslyn/pull/24621
+            /// </summary>
+            private static ReadOnlySpan<byte> Payload => new byte[]
+            {
+                Constants.FrameHeartbeat,
+                0, 0, // channel
+                0, 0, 0, 0, // payload length
+                Constants.FrameEnd
+            };
 
-        internal override int GetMinimumPayloadBufferSize()
-        {
-            return 0;
-        }
-
-        internal override int WritePayload(Memory<byte> memory)
-        {
-            return 0;
-        }
-    }
-
-    abstract class OutboundFrame : Frame
-    {
-        public int ByteCount { get; private set; } = 0;
-        public OutboundFrame(FrameType type, int channel) : base(type, channel)
-        {
-        }
-
-        internal void WriteTo(Memory<byte> memory)
-        {
-            memory.Span[0] = (byte)Type;
-            NetworkOrderSerializer.WriteUInt16(memory.Slice(1).Span, (ushort)Channel);
-            int bytesWritten = WritePayload(memory.Slice(7));
-            NetworkOrderSerializer.WriteUInt32(memory.Slice(3).Span, (uint)bytesWritten);
-            memory.Span[bytesWritten + 7] = Constants.FrameEnd;
-            ByteCount = bytesWritten + 8;
-        }
-
-        internal abstract int WritePayload(Memory<byte> memory);
-        internal abstract int GetMinimumPayloadBufferSize();
-        internal int GetMinimumBufferSize()
-        {
-            return 8 + GetMinimumPayloadBufferSize();
+            public static Memory<byte> GetHeartbeatFrame()
+            {
+                // Is returned by SocketFrameHandler.WriteLoop
+                var buffer = ArrayPool<byte>.Shared.Rent(FrameSize);
+                Payload.CopyTo(buffer);
+                return new Memory<byte>(buffer, 0, FrameSize);
+            }
         }
     }
 
@@ -264,6 +264,8 @@ namespace RabbitMQ.Client.Impl
             reader.Read(headerBytes);
             int channel = NetworkOrderDeserializer.ReadUInt16(headerBytes);
             int payloadSize = NetworkOrderDeserializer.ReadInt32(headerBytes.Slice(2)); // FIXME - throw exn on unreasonable value
+
+            // Is returned by InboundFrame.Dispose in Connection.MainLoopIteration
             byte[] payloadBytes = ArrayPool<byte>.Shared.Rent(payloadSize);
             Memory<byte> payload = new Memory<byte>(payloadBytes, 0, payloadSize);
             int bytesRead = 0;
@@ -298,53 +300,18 @@ namespace RabbitMQ.Client.Impl
                 ArrayPool<byte>.Shared.Return(segment.Array);
             }
         }
-        
+
         public override string ToString()
         {
             return $"(type={Type}, channel={Channel}, {Payload.Length} bytes of payload)";
         }
     }
 
-    class Frame
+    internal enum FrameType : int
     {
-        public Frame(FrameType type, int channel)
-        {
-            Type = type;
-            Channel = channel;
-            Payload = null;
-        }
-
-        public Frame(FrameType type, int channel, ReadOnlyMemory<byte> payload)
-        {
-            Type = type;
-            Channel = channel;
-            Payload = payload;
-        }
-
-        public int Channel { get; private set; }
-
-        public ReadOnlyMemory<byte> Payload { get; private set; }
-
-        public FrameType Type { get; private set; }
-
-        public override string ToString()
-        {
-            return string.Format("(type={0}, channel={1}, {2} bytes of payload)",
-                Type,
-                Channel,
-                Payload.Length.ToString());
-        }
-
-        
-    }
-
-    enum FrameType : int
-    {
-        FrameMethod = 1,
-        FrameHeader = 2,
-        FrameBody = 3,
-        FrameHeartbeat = 8,
-        FrameEnd = 206,
-        FrameMinSize = 4096
+        FrameMethod = Constants.FrameMethod,
+        FrameHeader = Constants.FrameHeader,
+        FrameBody = Constants.FrameBody,
+        FrameHeartbeat = Constants.FrameHeartbeat
     }
 }
