@@ -44,8 +44,7 @@ namespace RabbitMQ.Client
 {
     public interface IBasicPublishBatch
     {
-        [Obsolete("Use Add(string exchange, string routingKey, bool mandatory, IBasicProperties properties, ReadOnlyMemory<byte> body) instead. Will be replaced in version 7.0", false)]
-        void Add(string exchange, string routingKey, bool mandatory, IBasicProperties properties, byte[] body);
+        void Add(string exchange, string routingKey, bool mandatory, IBasicProperties properties, ReadOnlyMemory<byte> body);
         void Publish();
     }
 }
