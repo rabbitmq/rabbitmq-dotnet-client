@@ -11,11 +11,11 @@ namespace RabbitMQ.Client.Impl
             _asyncConsumer = (IAsyncBasicConsumer)consumer;
         }
 
-        public Task Execute(ModelBase model)
+        public Task Execute(IModel model)
         {
             return Execute(model, _asyncConsumer);
         }
 
-        protected abstract Task Execute(ModelBase model, IAsyncBasicConsumer consumer);
+        protected abstract Task Execute(IModel model, IAsyncBasicConsumer consumer);
     }
 }
