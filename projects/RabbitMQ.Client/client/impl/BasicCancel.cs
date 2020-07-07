@@ -15,7 +15,7 @@ namespace RabbitMQ.Client.Impl
             _consumerTag = consumerTag;
         }
 
-        protected override async Task Execute(ModelBase model, IAsyncBasicConsumer consumer)
+        protected override async Task Execute(IModel model, IAsyncBasicConsumer consumer)
         {
             try
             {
@@ -23,12 +23,17 @@ namespace RabbitMQ.Client.Impl
             }
             catch (Exception e)
             {
+                if (!(model is ModelBase modelBase))
+                {
+                    return;
+                }
+
                 var details = new Dictionary<string, object>
                 {
                     {"consumer", consumer},
                     {"context",  "HandleBasicCancel"}
                 };
-                model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
+                modelBase.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
             }
         }
     }
