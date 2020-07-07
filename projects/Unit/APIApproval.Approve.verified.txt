@@ -23,11 +23,16 @@ namespace RabbitMQ.Client
         public static RabbitMQ.Client.AmqpTcpEndpoint Parse(string address) { }
         public static RabbitMQ.Client.AmqpTcpEndpoint[] ParseMultiple(string addresses) { }
     }
-    public struct AmqpTimestamp
+    public struct AmqpTimestamp : System.IEquatable<RabbitMQ.Client.AmqpTimestamp>
     {
         public AmqpTimestamp(long unixTime) { }
         public long UnixTime { get; }
+        public bool Equals(RabbitMQ.Client.AmqpTimestamp other) { }
+        public override bool Equals(object obj) { }
+        public override int GetHashCode() { }
         public override string ToString() { }
+        public static bool !=(RabbitMQ.Client.AmqpTimestamp left, RabbitMQ.Client.AmqpTimestamp right) { }
+        public static bool ==(RabbitMQ.Client.AmqpTimestamp left, RabbitMQ.Client.AmqpTimestamp right) { }
     }
     public class AsyncDefaultBasicConsumer : RabbitMQ.Client.IAsyncBasicConsumer, RabbitMQ.Client.IBasicConsumer
     {
