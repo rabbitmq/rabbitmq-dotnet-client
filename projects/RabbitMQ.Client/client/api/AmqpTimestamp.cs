@@ -38,6 +38,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+
 namespace RabbitMQ.Client
 {
     // time representations in mainstream languages: the horror, the horror
@@ -58,7 +60,7 @@ namespace RabbitMQ.Client
     /// timestamps are signed or unsigned.
     /// </para>
     /// </remarks>
-    public struct AmqpTimestamp
+    public struct AmqpTimestamp : IEquatable<AmqpTimestamp>
     {
         /// <summary>
         /// Construct an <see cref="AmqpTimestamp"/>.
@@ -73,6 +75,16 @@ namespace RabbitMQ.Client
         /// Unix time.
         /// </summary>
         public long UnixTime { get; private set; }
+
+        public bool Equals(AmqpTimestamp other) => UnixTime == other.UnixTime;
+
+        public override bool Equals(object obj) => obj is AmqpTimestamp other && Equals(other);
+
+        public override int GetHashCode() => UnixTime.GetHashCode();
+
+        public static bool operator ==(AmqpTimestamp left, AmqpTimestamp right) => left.Equals(right);
+
+        public static bool operator !=(AmqpTimestamp left, AmqpTimestamp right) => !left.Equals(right);
 
         /// <summary>
         /// Provides a debugger-friendly display.
