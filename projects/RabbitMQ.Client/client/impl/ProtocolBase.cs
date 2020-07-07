@@ -106,7 +106,7 @@ namespace RabbitMQ.Client.Framing.Impl
         }
 
         internal abstract ContentHeaderBase DecodeContentHeaderFrom(ushort classId);
-        internal abstract MethodBase DecodeMethodFrom(ReadOnlyMemory<byte> reader);
+        internal abstract MethodBase DecodeMethodFrom(ReadOnlySpan<byte> reader);
 
         public override bool Equals(object obj)
         {

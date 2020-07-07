@@ -45,24 +45,31 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    struct ContentHeaderPropertyWriter
+    internal ref struct ContentHeaderPropertyWriter
     {
-        private int _bitCount;
-        private ushort _flagWord;
-        public int Offset { get; private set; }
-        public Memory<byte> Memory { get; private set; }
+        private const ushort StartBitMask = 0b1000_0000_0000_0000;
+        private const ushort EndBitMask = 0b0000_0000_0000_0001;
 
-        public ContentHeaderPropertyWriter(Memory<byte> memory)
+        private readonly Span<byte> _span;
+        private int _offset;
+        private ushort _bitAccumulator;
+        private ushort _bitMask;
+
+        public int Offset => _offset;
+
+        private Span<byte> Span => _span.Slice(_offset);
+
+        public ContentHeaderPropertyWriter(Span<byte> span)
         {
-            Memory = memory;
-            _flagWord = 0;
-            _bitCount = 0;
-            Offset = 0;
+            _span = span;
+            _offset = 0;
+            _bitAccumulator = 0;
+            _bitMask = StartBitMask;
         }
 
         public void FinishPresence()
         {
-            EmitFlagWord(false);
+            WriteBits();
         }
 
         public void WriteBit(bool bit)
@@ -72,65 +79,67 @@ namespace RabbitMQ.Client.Impl
 
         public void WriteLong(uint val)
         {
-            Offset += WireFormatting.WriteLong(Memory.Slice(Offset), val);
+            _offset += WireFormatting.WriteLong(Span, val);
         }
 
         public void WriteLonglong(ulong val)
         {
-            Offset += WireFormatting.WriteLonglong(Memory.Slice(Offset), val);
+            _offset += WireFormatting.WriteLonglong(Span, val);
         }
 
         public void WriteLongstr(byte[] val)
         {
-            Offset += WireFormatting.WriteLongstr(Memory.Slice(Offset), val);
+            _offset += WireFormatting.WriteLongstr(Span, val);
         }
 
         public void WriteOctet(byte val)
         {
-            Memory.Slice(Offset++).Span[0] = val;
+            _span[_offset++] = val;
         }
 
         public void WritePresence(bool present)
         {
-            if (_bitCount == 15)
+            if (_bitMask == EndBitMask)
             {
-                EmitFlagWord(true);
+                // Mark continuation
+                _bitAccumulator |= _bitMask;
+                WriteBits();
             }
 
             if (present)
             {
-                int bit = 15 - _bitCount;
-                _flagWord = (ushort)(_flagWord | (1 << bit));
+                _bitAccumulator |= _bitMask;
             }
-            _bitCount++;
+
+            _bitMask >>= 1;
         }
 
         public void WriteShort(ushort val)
         {
-            Offset += WireFormatting.WriteShort(Memory.Slice(Offset), val);
+            _offset += WireFormatting.WriteShort(Span, val);
         }
 
         public void WriteShortstr(string val)
         {
-            Offset += WireFormatting.WriteShortstr(Memory.Slice(Offset), val);
+            _offset += WireFormatting.WriteShortstr(Span, val);
         }
 
         public void WriteTable(IDictionary<string, object> val)
         {
-            Offset += WireFormatting.WriteTable(Memory.Slice(Offset), val);
+            _offset += WireFormatting.WriteTable(Span, val);
         }
 
         public void WriteTimestamp(AmqpTimestamp val)
         {
-            Offset += WireFormatting.WriteTimestamp(Memory.Slice(Offset), val);
+            _offset += WireFormatting.WriteTimestamp(Span, val);
         }
 
-        private void EmitFlagWord(bool continuationBit)
+        private void WriteBits()
         {
-            NetworkOrderSerializer.WriteUInt16(Memory.Slice(Offset).Span, (ushort)(continuationBit ? (_flagWord | 1) : _flagWord));
-            Offset += 2;
-            _flagWord = 0;
-            _bitCount = 0;
+            NetworkOrderSerializer.WriteUInt16(Span, _bitAccumulator);
+            _offset += 2;
+            _bitMask = StartBitMask;
+            _bitAccumulator = 0;
         }
     }
 }

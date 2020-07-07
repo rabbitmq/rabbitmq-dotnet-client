@@ -41,6 +41,8 @@
 using NUnit.Framework;
 using RabbitMQ.Client.Events;
 using System;
+using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -62,6 +64,7 @@ namespace RabbitMQ.Client.Unit
                 AutomaticRecoveryEnabled = false
             };
 
+            var closeWatch = new Stopwatch();
             using (var conn = connFactory.CreateConnection())
             {
                 using (var model = conn.CreateModel())
@@ -74,25 +77,35 @@ namespace RabbitMQ.Client.Unit
                         }
                     };
 
-                    bool shouldStop = false;
-                    DateTime now = DateTime.Now;
-                    DateTime stopTime = DateTime.Now.Add(_tenSeconds);
-                    for (int i = 0; i < 65535*64; i++)
+                    var stopwatch = Stopwatch.StartNew();
+                    int i = 0;
+                    try
                     {
-                        if (i % 65536 == 0)
+                        for (i = 0; i < 65535 * 64; i++)
                         {
-                            now = DateTime.Now;
-                            shouldStop = DateTime.Now > stopTime;
-                            if (shouldStop)
+                            if (i % 65536 == 0)
                             {
-                                break;
+                                if (stopwatch.Elapsed > _tenSeconds)
+                                {
+                                    break;
+                                }
                             }
+
+                            model.BasicPublish("", "", null, _body);
                         }
-                        model.BasicPublish("", "", null, _body);
                     }
+                    finally
+                    {
+                        stopwatch.Stop();
+                        Console.WriteLine($"sent {i}, done in {stopwatch.Elapsed.TotalMilliseconds} ms");
+                    }
+
                     Assert.IsTrue(conn.IsOpen);
+                    closeWatch.Start();
                 }
             }
+            closeWatch.Stop();
+            Console.WriteLine($"Closing took {closeWatch.Elapsed.TotalMilliseconds} ms");
         }
 
         [Test]

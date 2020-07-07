@@ -292,6 +292,12 @@ namespace RabbitMQ.Client
         IBasicPublishBatch CreateBasicPublishBatch();
 
         /// <summary>
+        ///  Creates a BasicPublishBatch instance
+        /// </summary>
+        [AmqpMethodDoNotImplement(null)]
+        IBasicPublishBatch CreateBasicPublishBatch(int sizeHint);
+
+        /// <summary>
         /// Construct a completely empty content header for use with the Basic content class.
         /// </summary>
         [AmqpContentHeaderFactory("basic")]

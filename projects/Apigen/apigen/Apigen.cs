@@ -821,9 +821,28 @@ $@"namespace {ApiNamespaceBase}
                 EmitLine("");
                 EmitLine("    public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)");
                 EmitLine("    {");
+                var lastWasBitClass = false;
                 foreach (AmqpField f in m.m_Fields)
                 {
-                    EmitLine($"      writer.Write{MangleClass(ResolveDomain(f.Domain))}(_{MangleMethod(f.Name)});");
+                    string mangleClass = MangleClass(ResolveDomain(f.Domain));
+                    if (mangleClass != "Bit")
+                    {
+                        if (lastWasBitClass)
+                        {
+                            EmitLine($"      writer.EndBits();");
+                            lastWasBitClass = false;
+                        }
+                    }
+                    else
+                    {
+                        lastWasBitClass = true;
+                    }
+
+                    EmitLine($"      writer.Write{mangleClass}(_{MangleMethod(f.Name)});");
+                }
+                if (lastWasBitClass)
+                {
+                    EmitLine($"      writer.EndBits();");
                 }
                 EmitLine("    }");
                 EmitLine("");
@@ -944,14 +963,14 @@ $@"namespace {ApiNamespaceBase}
 
         public void EmitMethodArgumentReader()
         {
-            EmitLine("    internal override Client.Impl.MethodBase DecodeMethodFrom(ReadOnlyMemory<byte> memory)");
+            EmitLine("    internal override Client.Impl.MethodBase DecodeMethodFrom(ReadOnlySpan<byte> span)");
             EmitLine("    {");
-            EmitLine("      ushort classId = Util.NetworkOrderDeserializer.ReadUInt16(memory.Span);");
-            EmitLine("      ushort methodId = Util.NetworkOrderDeserializer.ReadUInt16(memory.Slice(2).Span);");
+            EmitLine("      ushort classId = Util.NetworkOrderDeserializer.ReadUInt16(span);");
+            EmitLine("      ushort methodId = Util.NetworkOrderDeserializer.ReadUInt16(span.Slice(2));");
             EmitLine("      Client.Impl.MethodBase result = DecodeMethodFrom(classId, methodId);");
             EmitLine("      if(result != null)");
             EmitLine("      {");
-            EmitLine("        Client.Impl.MethodArgumentReader reader = new Client.Impl.MethodArgumentReader(memory.Slice(4));");
+            EmitLine("        Client.Impl.MethodArgumentReader reader = new Client.Impl.MethodArgumentReader(span.Slice(4));");
             EmitLine("        result.ReadArgumentsFrom(ref reader);");
             EmitLine("        return result;");
             EmitLine("      }");

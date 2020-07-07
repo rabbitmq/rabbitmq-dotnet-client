@@ -39,25 +39,31 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
-    class BasicPublishBatch : IBasicPublishBatch
+    internal sealed class BasicPublishBatch : IBasicPublishBatch
     {
-        private readonly List<Command> _commands = new List<Command>();
+        private readonly List<Command> _commands;
         private readonly ModelBase _model;
+
         internal BasicPublishBatch (ModelBase model)
         {
             _model = model;
+            _commands = new List<Command>();
         }
 
-        public void Add(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, byte[] body)
+        internal BasicPublishBatch (ModelBase model, int sizeHint)
         {
-            IBasicProperties bp = basicProperties ?? _model.CreateBasicProperties();
+            _model = model;
+            _commands = new List<Command>(sizeHint);
+        }
+
+        public void Add(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
+        {
             var method = new BasicPublish
             {
                 _exchange = exchange,
@@ -65,7 +71,7 @@ namespace RabbitMQ.Client.Impl
                 _mandatory = mandatory
             };
 
-            _commands.Add(new Command(method, (ContentHeaderBase)bp, body, false));
+            _commands.Add(new Command(method, (ContentHeaderBase)(basicProperties ?? _model._emptyBasicProperties), body, false));
         }
 
         public void Publish()
