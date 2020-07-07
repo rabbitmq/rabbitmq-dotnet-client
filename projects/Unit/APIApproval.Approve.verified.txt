@@ -493,6 +493,7 @@ namespace RabbitMQ.Client
         bool Connected { get; }
         System.TimeSpan ReceiveTimeout { get; set; }
         void Close();
+        System.Threading.Tasks.Task ConnectAsync(System.Net.IPAddress host, int port);
         System.Threading.Tasks.Task ConnectAsync(string host, int port);
         System.Net.Sockets.NetworkStream GetStream();
     }
