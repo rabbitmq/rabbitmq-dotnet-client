@@ -23,11 +23,16 @@ namespace RabbitMQ.Client
         public static RabbitMQ.Client.AmqpTcpEndpoint Parse(string address) { }
         public static RabbitMQ.Client.AmqpTcpEndpoint[] ParseMultiple(string addresses) { }
     }
-    public struct AmqpTimestamp
+    public struct AmqpTimestamp : System.IEquatable<RabbitMQ.Client.AmqpTimestamp>
     {
         public AmqpTimestamp(long unixTime) { }
         public long UnixTime { get; }
+        public bool Equals(RabbitMQ.Client.AmqpTimestamp other) { }
+        public override bool Equals(object obj) { }
+        public override int GetHashCode() { }
         public override string ToString() { }
+        public static bool !=(RabbitMQ.Client.AmqpTimestamp left, RabbitMQ.Client.AmqpTimestamp right) { }
+        public static bool ==(RabbitMQ.Client.AmqpTimestamp left, RabbitMQ.Client.AmqpTimestamp right) { }
     }
     public class AsyncDefaultBasicConsumer : RabbitMQ.Client.IAsyncBasicConsumer, RabbitMQ.Client.IBasicConsumer
     {
@@ -55,10 +60,6 @@ namespace RabbitMQ.Client
         public uint MessageCount { get; }
         public bool Redelivered { get; }
         public string RoutingKey { get; }
-    }
-    public static class BasicPublishBatchExtensions
-    {
-        public static void Add(this RabbitMQ.Client.IBasicPublishBatch batch, string exchange, string routingKey, bool mandatory, RabbitMQ.Client.IBasicProperties properties, System.ReadOnlyMemory<byte> body) { }
     }
     public class BinaryTableValue
     {
@@ -295,9 +296,7 @@ namespace RabbitMQ.Client
     }
     public interface IBasicPublishBatch
     {
-        [System.Obsolete("Use Add(string exchange, string routingKey, bool mandatory, IBasicProperties prop" +
-            "erties, ReadOnlyMemory<byte> body) instead. Will be replaced in version 7.0", false)]
-        void Add(string exchange, string routingKey, bool mandatory, RabbitMQ.Client.IBasicProperties properties, byte[] body);
+        void Add(string exchange, string routingKey, bool mandatory, RabbitMQ.Client.IBasicProperties properties, System.ReadOnlyMemory<byte> body);
         void Publish();
     }
     public interface IConnection : RabbitMQ.Client.INetworkConnection, System.IDisposable
@@ -494,6 +493,7 @@ namespace RabbitMQ.Client
         bool Connected { get; }
         System.TimeSpan ReceiveTimeout { get; set; }
         void Close();
+        System.Threading.Tasks.Task ConnectAsync(System.Net.IPAddress host, int port);
         System.Threading.Tasks.Task ConnectAsync(string host, int port);
         System.Net.Sockets.NetworkStream GetStream();
     }

@@ -62,12 +62,6 @@ namespace RabbitMQ.Client.Impl
             _commands = new List<OutgoingCommand>(sizeHint);
         }
 
-        public void Add(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, byte[] body)
-        {
-            ReadOnlyMemory<byte> bodyAsMemory = body;
-            Add(exchange, routingKey, mandatory, basicProperties, bodyAsMemory);
-        }
-
         public void Add(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
         {
             var method = new BasicPublish

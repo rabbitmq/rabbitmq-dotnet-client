@@ -42,10 +42,16 @@ Two options to accomplish this are covered below.
 
 ### Option One: Using a RabbitMQ Release
 
-It is possible to install and run a node using any [binary build](https://www.rabbitmq.com/download.html) suitable
-for the platform. Its [CLI tools]() then must be added to `PATH` so that `rabbitmqctl` (`rabbitmqctl.bat` on Windows)
-can be invoked directly without using an absolute file path.
+It is possible to install and run a node using any [binary build](https://www.rabbitmq.com/download.html)
+suitable for the platform. Its [CLI tools]() then must be added to `PATH` so that `rabbitmqctl` can be
+invoked directly without using an absolute file path. Note that this method does *not* work on Windows.
 
+On Windows, you must run unit tests as follows (replace `X.Y.Z` with your RabbitMQ version):
+
+```
+set RABBITMQ_RABBITMQCTL_PATH="C:\Program Files\RabbitMQ Server\rabbitmq_server-X.Y.Z\sbin\rabbitmqctl.bat"
+.\run-test.bat
+```
 
 ### Option Two: Using RabbitMQ Umbrella Repository
 
