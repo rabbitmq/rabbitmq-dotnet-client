@@ -85,7 +85,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public async Task TestBasicRoundtripConcurrent()
         {
-            var cf = new ConnectionFactory{ DispatchConsumersAsync = true, ProcessingConcurrency = 2 };
+            var cf = new ConnectionFactory{ DispatchConsumersAsync = true, ConsumerDispatchConcurrency = 2 };
             using(IConnection c = cf.CreateConnection())
             using(IModel m = c.CreateModel())
             {
