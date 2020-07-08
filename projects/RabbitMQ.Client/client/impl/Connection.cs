@@ -110,14 +110,13 @@ namespace RabbitMQ.Client.Framing.Impl
             _factory = factory;
             _frameHandler = frameHandler;
 
-            int processingConcurrency = (factory as ConnectionFactory)?.ProcessingConcurrency ?? 1;
             if (factory is IAsyncConnectionFactory asyncConnectionFactory && asyncConnectionFactory.DispatchConsumersAsync)
             {
-                ConsumerWorkService = new AsyncConsumerWorkService(processingConcurrency);
+                ConsumerWorkService = new AsyncConsumerWorkService(factory.ProcessingConcurrency);
             }
             else
             {
-                ConsumerWorkService = new ConsumerWorkService(processingConcurrency);
+                ConsumerWorkService = new ConsumerWorkService(factory.ProcessingConcurrency);
             }
 
             _sessionManager = new SessionManager(this, 0);

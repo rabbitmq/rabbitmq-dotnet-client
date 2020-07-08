@@ -337,6 +337,7 @@ namespace RabbitMQ.Client
         System.TimeSpan ContinuationTimeout { get; set; }
         System.TimeSpan HandshakeContinuationTimeout { get; set; }
         string Password { get; set; }
+        int ProcessingConcurrency { get; set; }
         ushort RequestedChannelMax { get; set; }
         uint RequestedFrameMax { get; set; }
         System.TimeSpan RequestedHeartbeat { get; set; }
