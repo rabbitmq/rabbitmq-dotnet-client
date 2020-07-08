@@ -168,32 +168,15 @@ namespace RabbitMQ.Client.Impl
 
     internal readonly struct InboundFrame : IDisposable
     {
-        public readonly ReadOnlyMemory<byte> Payload;
-        public readonly int Channel;
         public readonly FrameType Type;
+        public readonly int Channel;
+        public readonly ReadOnlyMemory<byte> Payload;
 
         private InboundFrame(FrameType type, int channel, ReadOnlyMemory<byte> payload)
         {
-            Payload = payload;
             Type = type;
             Channel = channel;
-        }
-
-        public bool IsMethod()
-        {
-            return Type == FrameType.FrameMethod;
-        }
-        public bool IsHeader()
-        {
-            return Type == FrameType.FrameHeader;
-        }
-        public bool IsBody()
-        {
-            return Type == FrameType.FrameBody;
-        }
-        public bool IsHeartbeat()
-        {
-            return Type == FrameType.FrameHeartbeat;
+            Payload = payload;
         }
 
         private static void ProcessProtocolHeader(Stream reader)

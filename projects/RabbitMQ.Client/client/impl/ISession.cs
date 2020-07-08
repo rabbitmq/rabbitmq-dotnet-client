@@ -44,12 +44,14 @@ using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
-    interface ISession
+    delegate void CommandReceivedAction(in IncomingCommand cmd);
+
+    internal interface ISession
     {
         /// <summary>
         /// Gets the channel number.
         /// </summary>
-        int ChannelNumber { get; }
+        ushort ChannelNumber { get; }
 
         /// <summary>
         /// Gets the close reason.
@@ -59,7 +61,7 @@ namespace RabbitMQ.Client.Impl
         ///<summary>
         /// Single recipient - no need for multiple handlers to be informed of arriving commands.
         ///</summary>
-        Action<ISession, Command> CommandReceived { get; set; }
+        CommandReceivedAction CommandReceived { get; set; }
 
         /// <summary>
         /// Gets the connection.
@@ -80,7 +82,8 @@ namespace RabbitMQ.Client.Impl
         void Close(ShutdownEventArgs reason, bool notify);
         void HandleFrame(in InboundFrame frame);
         void Notify();
-        void Transmit(Command cmd);
-        void Transmit(IList<Command> cmd);
+        void Transmit(in OutgoingCommand cmd);
+        void Transmit(IList<OutgoingCommand> cmds);
+
     }
 }

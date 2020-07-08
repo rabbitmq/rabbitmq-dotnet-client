@@ -68,10 +68,10 @@ namespace RabbitMQ.Client.Impl
         {
             get
             {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
+                if (_disposed)
+                {
+                    throw new ObjectDisposedException(GetType().FullName);
+                }
 
                 return _delegate.ConsumerDispatcher;
             }
@@ -477,14 +477,14 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public bool DispatchAsynchronous(Command cmd)
+        public bool DispatchAsynchronous(in IncomingCommand cmd)
         {
             if (_disposed)
             {
                 throw new ObjectDisposedException(GetType().FullName);
             }
 
-            return _delegate.DispatchAsynchronous(cmd);
+            return _delegate.DispatchAsynchronous(in cmd);
         }
 
         public void FinishClose()
@@ -495,16 +495,6 @@ namespace RabbitMQ.Client.Impl
             }
 
             _delegate.FinishClose();
-        }
-
-        public void HandleCommand(ISession session, Command cmd)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.HandleCommand(session, cmd);
         }
 
         public void OnBasicAck(BasicAckEventArgs args)

@@ -48,7 +48,7 @@ namespace RabbitMQ.Client.Impl
         public ShutdownEventArgs m_reason;
 
         public QuiescingSession(Connection connection,
-            int channelNumber,
+            ushort channelNumber,
             ShutdownEventArgs reason)
             : base(connection, channelNumber)
         {
@@ -57,7 +57,7 @@ namespace RabbitMQ.Client.Impl
 
         public override void HandleFrame(in InboundFrame frame)
         {
-            if (frame.IsMethod())
+            if (frame.Type == FrameType.FrameMethod)
             {
                 MethodBase method = Connection.Protocol.DecodeMethodFrom(frame.Payload.Span);
                 if ((method.ProtocolClassId == ClassConstants.Channel)
@@ -81,9 +81,9 @@ namespace RabbitMQ.Client.Impl
             // for. Ignore it - we're quiescing.
         }
 
-        protected Command CreateChannelCloseOk()
+        protected OutgoingCommand CreateChannelCloseOk()
         {
-            return new Command(new ConnectionCloseOk());
+            return new OutgoingCommand(new ConnectionCloseOk());
         }
     }
 }
