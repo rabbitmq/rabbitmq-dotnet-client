@@ -1425,7 +1425,7 @@ $@"namespace {ApiNamespaceBase}
                 throw new NotImplementedException();
             }
 
-            EmitLine("    public override bool DispatchAsynchronous(Client.Impl.Command cmd) {");
+            EmitLine("    public override bool DispatchAsynchronous(in IncomingCommand cmd) {");
             EmitLine("      switch ((cmd.Method.ProtocolClassId << 16) | cmd.Method.ProtocolMethodId)");
             EmitLine("      {");
             foreach (MethodInfo method in asynchronousHandlers)

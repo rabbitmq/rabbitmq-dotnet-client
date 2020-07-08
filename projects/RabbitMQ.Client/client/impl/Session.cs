@@ -43,11 +43,11 @@ using RabbitMQ.Client.Framing.Impl;
 namespace RabbitMQ.Client.Impl
 {
     ///<summary>Normal ISession implementation used during normal channel operation.</summary>
-    class Session : SessionBase
+    internal class Session : SessionBase
     {
         private readonly CommandAssembler _assembler;
 
-        public Session(Connection connection, int channelNumber)
+        public Session(Connection connection, ushort channelNumber)
             : base(connection, channelNumber)
         {
             _assembler = new CommandAssembler(connection.Protocol);
@@ -55,12 +55,12 @@ namespace RabbitMQ.Client.Impl
 
         public override void HandleFrame(in InboundFrame frame)
         {
-            Command cmd = _assembler.HandleFrame(in frame);
-            if (cmd != null)
+            var cmd = _assembler.HandleFrame(in frame);
+            if (!cmd.IsEmpty)
             {
                 using (cmd)
                 {
-                    OnCommandReceived(cmd);
+                    CommandReceived.Invoke(in cmd);
                 }
             }
         }
