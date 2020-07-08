@@ -83,6 +83,7 @@ namespace RabbitMQ.Client
         public bool AutomaticRecoveryEnabled { get; set; }
         public System.Collections.Generic.IDictionary<string, object> ClientProperties { get; set; }
         public string ClientProvidedName { get; set; }
+        public int ConsumerDispatchConcurrency { get; set; }
         public System.TimeSpan ContinuationTimeout { get; set; }
         public bool DispatchConsumersAsync { get; set; }
         public RabbitMQ.Client.AmqpTcpEndpoint Endpoint { get; set; }
@@ -92,7 +93,6 @@ namespace RabbitMQ.Client
         public System.TimeSpan NetworkRecoveryInterval { get; set; }
         public string Password { get; set; }
         public int Port { get; set; }
-        public int ProcessingConcurrency { get; set; }
         public ushort RequestedChannelMax { get; set; }
         public System.TimeSpan RequestedConnectionTimeout { get; set; }
         public uint RequestedFrameMax { get; set; }
@@ -334,10 +334,10 @@ namespace RabbitMQ.Client
     {
         System.Collections.Generic.IDictionary<string, object> ClientProperties { get; set; }
         string ClientProvidedName { get; set; }
+        int ConsumerDispatchConcurrency { get; set; }
         System.TimeSpan ContinuationTimeout { get; set; }
         System.TimeSpan HandshakeContinuationTimeout { get; set; }
         string Password { get; set; }
-        int ProcessingConcurrency { get; set; }
         ushort RequestedChannelMax { get; set; }
         uint RequestedFrameMax { get; set; }
         System.TimeSpan RequestedHeartbeat { get; set; }
