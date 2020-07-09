@@ -389,9 +389,9 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public Command ConnectionCloseWrapper(ushort reasonCode, string reasonText)
+        public OutgoingCommand ConnectionCloseWrapper(ushort reasonCode, string reasonText)
         {
-            Protocol.CreateConnectionClose(reasonCode, reasonText, out Command request, out _, out _);
+            Protocol.CreateConnectionClose(reasonCode, reasonText, out OutgoingCommand request, out _, out _);
             return request;
         }
 
@@ -567,7 +567,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 NotifyHeartbeatListener();
                 // We have received an actual frame.
-                if (frame.IsHeartbeat())
+                if (frame.Type == FrameType.FrameHeartbeat)
                 {
                     // Ignore it: we've already just reset the heartbeat
                     // latch.
@@ -769,7 +769,7 @@ namespace RabbitMQ.Client.Framing.Impl
             // the quiesce process.
 
             ISession newSession = new QuiescingSession(this,
-                pe.Channel,
+                (ushort)pe.Channel,
                 pe.ShutdownReason);
 
             // Here we detach the session from the connection. It's
@@ -1053,9 +1053,9 @@ namespace RabbitMQ.Client.Framing.Impl
             // dispose unmanaged resources
         }
 
-        Command ChannelCloseWrapper(ushort reasonCode, string reasonText)
+        internal OutgoingCommand ChannelCloseWrapper(ushort reasonCode, string reasonText)
         {
-            Protocol.CreateChannelClose(reasonCode, reasonText, out Command request, out _, out _);
+            Protocol.CreateChannelClose(reasonCode, reasonText, out OutgoingCommand request, out _, out _);
             return request;
         }
 

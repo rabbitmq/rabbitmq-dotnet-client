@@ -148,7 +148,7 @@ namespace RabbitMQ.Client.Impl
         {
             lock (_sessionMap)
             {
-                ISession session = new Session(_connection, channelNumber);
+                ISession session = new Session(_connection, (ushort)channelNumber);
                 session.SessionShutdown += HandleSessionShutdown;
                 _sessionMap[channelNumber] = session;
                 return session;

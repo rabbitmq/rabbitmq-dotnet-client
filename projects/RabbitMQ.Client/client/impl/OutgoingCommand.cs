@@ -40,12 +40,11 @@
 
 using System;
 using System.Buffers;
-using System.Runtime.InteropServices;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
-    class Command : IDisposable
+    internal readonly struct OutgoingCommand
     {
         // EmptyFrameSize, 8 = 1 + 2 + 4 + 1
         // - 1 byte of frame type
@@ -53,25 +52,22 @@ namespace RabbitMQ.Client.Impl
         // - 4 bytes of frame payload length
         // - 1 byte of payload trailer FrameEnd byte
         private const int EmptyFrameSize = 8;
-        private readonly bool _returnBufferOnDispose;
 
-        internal Command(MethodBase method) : this(method, null, null, false)
+        public readonly MethodBase Method;
+        private readonly ContentHeaderBase Header;
+        private readonly ReadOnlyMemory<byte> Body;
+
+        public OutgoingCommand(MethodBase method)
+            : this(method, null, ReadOnlyMemory<byte>.Empty)
         {
         }
 
-        public Command(MethodBase method, ContentHeaderBase header, ReadOnlyMemory<byte> body, bool returnBufferOnDispose)
+        public OutgoingCommand(MethodBase method, ContentHeaderBase header, ReadOnlyMemory<byte> body)
         {
             Method = method;
             Header = header;
             Body = body;
-            _returnBufferOnDispose = returnBufferOnDispose;
         }
-
-        public ReadOnlyMemory<byte> Body { get; private set; }
-
-        internal ContentHeaderBase Header { get; private set; }
-
-        internal MethodBase Method { get; private set; }
 
         internal void Transmit(ushort channelNumber, Connection connection)
         {
@@ -124,14 +120,6 @@ namespace RabbitMQ.Client.Impl
             }
 
             return (Body.Length + maxPayloadBytes - 1) / maxPayloadBytes;
-        }
-
-        public void Dispose()
-        {
-            if(_returnBufferOnDispose && MemoryMarshal.TryGetArray(Body, out ArraySegment<byte> segment))
-            {
-                ArrayPool<byte>.Shared.Return(segment.Array);
-            }
         }
     }
 }

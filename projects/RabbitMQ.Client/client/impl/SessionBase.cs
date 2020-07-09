@@ -46,12 +46,12 @@ using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
-    abstract class SessionBase : ISession
+    internal abstract class SessionBase : ISession
     {
         private readonly object _shutdownLock = new object();
         private EventHandler<ShutdownEventArgs> _sessionShutdown;
 
-        public SessionBase(Connection connection, int channelNumber)
+        protected SessionBase(Connection connection, ushort channelNumber)
         {
             CloseReason = null;
             Connection = connection;
@@ -92,19 +92,15 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public int ChannelNumber { get; private set; }
+        public ushort ChannelNumber { get; }
+
         public ShutdownEventArgs CloseReason { get; set; }
-        public Action<ISession, Command> CommandReceived { get; set; }
+        public CommandReceivedAction CommandReceived { get; set; }
         public Connection Connection { get; private set; }
 
         public bool IsOpen
         {
             get { return CloseReason == null; }
-        }
-
-        public virtual void OnCommandReceived(Command cmd)
-        {
-            CommandReceived?.Invoke(this, cmd);
         }
 
         public virtual void OnConnectionShutdown(object conn, ShutdownEventArgs reason)
@@ -172,7 +168,7 @@ namespace RabbitMQ.Client.Impl
             OnSessionShutdown(CloseReason);
         }
 
-        public virtual void Transmit(Command cmd)
+        public virtual void Transmit(in OutgoingCommand cmd)
         {
             if (CloseReason != null)
             {
@@ -180,7 +176,7 @@ namespace RabbitMQ.Client.Impl
                 {
                     if (CloseReason != null)
                     {
-                        if (!Connection.Protocol.CanSendWhileClosed(cmd))
+                        if (!Connection.Protocol.CanSendWhileClosed(cmd.Method))
                         {
                             throw new AlreadyClosedException(CloseReason);
                         }
@@ -189,15 +185,14 @@ namespace RabbitMQ.Client.Impl
             }
             // We used to transmit *inside* the lock to avoid interleaving
             // of frames within a channel.  But that is fixed in socket frame handler instead, so no need to lock.
-            cmd.Transmit((ushort)ChannelNumber, Connection);
+            cmd.Transmit(ChannelNumber, Connection);
         }
 
-        public virtual void Transmit(IList<Command> commands)
+        public virtual void Transmit(IList<OutgoingCommand> cmds)
         {
-            for (int i = 0; i < commands.Count; i++)
+            for (int i = 0; i < cmds.Count; i++)
             {
-                Command command = commands[i];
-                command.Transmit((ushort)ChannelNumber, Connection);
+                cmds[i].Transmit(ChannelNumber, Connection);
             }
         }
     }
