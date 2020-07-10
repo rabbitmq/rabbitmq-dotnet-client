@@ -4,18 +4,24 @@ namespace RabbitMQ.Client.Impl
 {
     internal abstract class Work
     {
-        readonly IAsyncBasicConsumer _asyncConsumer;
+        public IAsyncBasicConsumer Consumer { get; }
+
+        public abstract string Context { get; }
 
         protected Work(IBasicConsumer consumer)
         {
-            _asyncConsumer = (IAsyncBasicConsumer)consumer;
+            Consumer = (IAsyncBasicConsumer)consumer;
         }
 
         public Task Execute(IModel model)
         {
-            return Execute(model, _asyncConsumer);
+            return Execute(model, Consumer);
         }
 
         protected abstract Task Execute(IModel model, IAsyncBasicConsumer consumer);
+
+        public virtual void PostExecute()
+        {
+        }
     }
 }
