@@ -13,7 +13,7 @@ namespace RabbitMQ.Client.Impl
             _consumerTag = consumerTag;
         }
 
-        protected override Task Execute(IModel model, IAsyncBasicConsumer consumer)
+        protected override Task Execute(IAsyncBasicConsumer consumer)
         {
             return consumer.HandleBasicCancelOk(_consumerTag);
         }

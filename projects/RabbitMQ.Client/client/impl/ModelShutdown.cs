@@ -5,17 +5,19 @@ namespace RabbitMQ.Client.Impl
     internal sealed class ModelShutdown : Work
     {
         private readonly ShutdownEventArgs _reason;
+        private readonly IModel _model;
 
         public override string Context => "HandleModelShutdown";
 
-        public ModelShutdown(IBasicConsumer consumer, ShutdownEventArgs reason) : base(consumer)
+        public ModelShutdown(IBasicConsumer consumer, ShutdownEventArgs reason, IModel model) : base(consumer)
         {
             _reason = reason;
+            _model = model;
         }
 
-        protected override Task Execute(IModel model, IAsyncBasicConsumer consumer)
+        protected override Task Execute(IAsyncBasicConsumer consumer)
         {
-            return consumer.HandleModelShutdown(model, _reason);
+            return consumer.HandleModelShutdown(_model, _reason);
         }
     }
 }

@@ -35,7 +35,7 @@ namespace RabbitMQ.Client.Impl
             _body = body;
         }
 
-        protected override Task Execute(IModel model, IAsyncBasicConsumer consumer)
+        protected override Task Execute(IAsyncBasicConsumer consumer)
         {
              return consumer.HandleBasicDeliver(_consumerTag,
                      _deliveryTag,

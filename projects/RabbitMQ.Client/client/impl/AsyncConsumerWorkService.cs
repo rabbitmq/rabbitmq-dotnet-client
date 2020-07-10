@@ -89,7 +89,7 @@ namespace RabbitMQ.Client.Impl
                     {
                         try
                         {
-                            Task task = work.Execute(_model);
+                            Task task = work.Execute();
                             if (!task.IsCompleted)
                             {
                                 await task.ConfigureAwait(false);
@@ -145,7 +145,7 @@ namespace RabbitMQ.Client.Impl
             {
                 try
                 {
-                    Task task = work.Execute(model);
+                    Task task = work.Execute();
                     if (!task.IsCompleted)
                     {
                         await task.ConfigureAwait(false);
