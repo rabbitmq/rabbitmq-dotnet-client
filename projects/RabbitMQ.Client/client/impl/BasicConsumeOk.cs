@@ -1,40 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
-using RabbitMQ.Client.Events;
+﻿using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
-    sealed class BasicConsumeOk : Work
+    internal sealed class BasicConsumeOk : Work
     {
-        readonly string _consumerTag;
+        private readonly string _consumerTag;
+
+        public override string Context => "HandleBasicConsumeOk";
 
         public BasicConsumeOk(IBasicConsumer consumer, string consumerTag) : base(consumer)
         {
             _consumerTag = consumerTag;
         }
 
-        protected override async Task Execute(IModel model, IAsyncBasicConsumer consumer)
+        protected override Task Execute(IAsyncBasicConsumer consumer)
         {
-            try
-            {
-                await consumer.HandleBasicConsumeOk(_consumerTag).ConfigureAwait(false);
-            }
-            catch (Exception e)
-            {
-                if (!(model is ModelBase modelBase))
-                {
-                    return;
-                }
-
-                var details = new Dictionary<string, object>()
-                {
-                    {"consumer", consumer},
-                    {"context",  "HandleBasicConsumeOk"}
-                };
-                modelBase.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
-            }
+            return consumer.HandleBasicConsumeOk(_consumerTag);
         }
     }
 }
