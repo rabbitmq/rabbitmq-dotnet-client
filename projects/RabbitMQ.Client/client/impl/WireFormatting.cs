@@ -445,7 +445,6 @@ namespace RabbitMQ.Client.Impl
                 {
                     throw new ArgumentOutOfRangeException(nameof(val), val, $"Value exceeds the maximum allowed length of {maxLength} bytes.");
                 }
-                
             }
         }
 
