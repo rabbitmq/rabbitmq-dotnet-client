@@ -66,7 +66,7 @@ namespace RabbitMQ.Client.Impl
         public void HandleModelShutdown(IBasicConsumer consumer, ShutdownEventArgs reason)
         {
             // the only case where we ignore the shutdown flag.
-            Schedule(new ModelShutdown(consumer, reason));
+            Schedule(new ModelShutdown(consumer, reason, _model));
         }
 
         private void ScheduleUnlessShuttingDown<TWork>(TWork work)
