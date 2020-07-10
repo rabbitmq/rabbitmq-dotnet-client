@@ -435,9 +435,16 @@ namespace RabbitMQ.Client.Impl
             fixed (char* chars = val)
             fixed (byte* bytes = &span.Slice(1).GetPinnableReference())
             {
-                int bytesWritten = Encoding.UTF8.GetBytes(chars, val.Length, bytes, maxLength);
-                span[0] = (byte)bytesWritten;
-                return bytesWritten + 1;
+                try
+                {
+                    int bytesWritten = Encoding.UTF8.GetBytes(chars, val.Length, bytes, maxLength);
+                    span[0] = (byte)bytesWritten;
+                    return bytesWritten + 1;
+                }
+                catch (ArgumentException)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(val), val, $"Value exceeds the maximum allowed length of {maxLength} bytes.");
+                }
             }
         }
 
