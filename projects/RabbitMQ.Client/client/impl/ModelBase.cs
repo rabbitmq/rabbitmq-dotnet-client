@@ -359,40 +359,6 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public virtual void OnBasicAck(BasicAckEventArgs args)
-        {
-            foreach (EventHandler<BasicAckEventArgs> h in BasicAcks?.GetInvocationList() ?? Array.Empty<Delegate>())
-            {
-                try
-                {
-                    h(this, args);
-                }
-                catch (Exception e)
-                {
-                    OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnBasicAck"));
-                }
-            }
-
-            handleAckNack(args.DeliveryTag, args.Multiple, false);
-        }
-
-        public virtual void OnBasicNack(BasicNackEventArgs args)
-        {
-            foreach (EventHandler<BasicNackEventArgs> h in BasicNacks?.GetInvocationList() ?? Array.Empty<Delegate>())
-            {
-                try
-                {
-                    h(this, args);
-                }
-                catch (Exception e)
-                {
-                    OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnBasicNack"));
-                }
-            }
-
-            handleAckNack(args.DeliveryTag, args.Multiple, true);
-        }
-
         public virtual void OnBasicRecoverOk(EventArgs args)
         {
             foreach (EventHandler<EventArgs> h in BasicRecoverOk?.GetInvocationList() ?? Array.Empty<Delegate>())
@@ -565,15 +531,102 @@ namespace RabbitMQ.Client.Impl
             uint frameMax,
             ushort heartbeat);
 
-        public void HandleBasicAck(ulong deliveryTag,
-            bool multiple)
+        public void HandleBasicAck(ulong deliveryTag, bool multiple)
         {
-            var e = new BasicAckEventArgs
+            var @event = BasicAcks;
+            if (@event != null)
             {
-                DeliveryTag = deliveryTag,
-                Multiple = multiple
-            };
-            OnBasicAck(e);
+                var args = new BasicAckEventArgs
+                {
+                    DeliveryTag = deliveryTag,
+                    Multiple = multiple
+                };
+                foreach (EventHandler<BasicAckEventArgs> h in @event.GetInvocationList())
+                {
+                    try
+                    {
+                        h(this, args);
+                    }
+                    catch (Exception e)
+                    {
+                        OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnBasicAck"));
+                    }
+                }
+            }
+
+            HandleAckNack(deliveryTag, multiple, false);
+        }
+
+        public void HandleBasicNack(ulong deliveryTag, bool multiple, bool requeue)
+        {
+            var @event = BasicNacks;
+            if (@event != null)
+            {
+                var args = new BasicNackEventArgs
+                {
+                    DeliveryTag = deliveryTag,
+                    Multiple = multiple,
+                    Requeue = requeue
+                };
+                foreach (EventHandler<BasicNackEventArgs> h in @event.GetInvocationList())
+                {
+                    try
+                    {
+                        h(this, args);
+                    }
+                    catch (Exception e1)
+                    {
+                        OnCallbackException(CallbackExceptionEventArgs.Build(e1, "OnBasicNack"));
+                    }
+                }
+            }
+
+            HandleAckNack(deliveryTag, multiple, true);
+        }
+
+        protected void HandleAckNack(ulong deliveryTag, bool multiple, bool isNack)
+        {
+            // No need to do this if publisher confirms have never been enabled.
+            if (NextPublishSeqNo > 0)
+            {
+                // let's take a lock so we can assume that deliveryTags are unique, never duplicated and always sorted
+                lock (_confirmLock)
+                {
+                    // No need to do anything if there are no delivery tags in the list
+                    if (_pendingDeliveryTags.Count > 0)
+                    {
+                        if (multiple)
+                        {
+                            int count = 0;
+                            while (_pendingDeliveryTags.First.Value < deliveryTag)
+                            {
+                                _pendingDeliveryTags.RemoveFirst();
+                                count++;
+                            }
+
+                            if (_pendingDeliveryTags.First.Value == deliveryTag)
+                            {
+                                _pendingDeliveryTags.RemoveFirst();
+                                count++;
+                            }
+
+                            if (count > 0)
+                            {
+                                _deliveryTagsCountdown.Signal(count);
+                            }
+                        }
+                        else
+                        {
+                            if (_pendingDeliveryTags.Remove(deliveryTag))
+                            {
+                                _deliveryTagsCountdown.Signal();
+                            }
+                        }
+                    }
+
+                    _onlyAcksReceived = _onlyAcksReceived && !isNack;
+                }
+            }
         }
 
         public void HandleBasicCancel(string consumerTag, bool nowait)
@@ -683,19 +736,6 @@ namespace RabbitMQ.Client.Impl
                 basicProperties,
                 body);
             k.HandleCommand(IncomingCommand.Empty); // release the continuation.
-        }
-
-        public void HandleBasicNack(ulong deliveryTag,
-            bool multiple,
-            bool requeue)
-        {
-            var e = new BasicNackEventArgs
-            {
-                DeliveryTag = deliveryTag,
-                Multiple = multiple,
-                Requeue = requeue
-            };
-            OnBasicNack(e);
         }
 
         public void HandleBasicRecoverOk()
@@ -1424,37 +1464,6 @@ namespace RabbitMQ.Client.Impl
             _flowControlBlock.Wait();
             AllocatePublishSeqNos(commands.Count);
             Session.Transmit(commands);
-        }
-
-        protected virtual void handleAckNack(ulong deliveryTag, bool multiple, bool isNack)
-        {
-            // No need to do this if publisher confirms have never been enabled.
-            if (NextPublishSeqNo > 0)
-            {
-                // let's take a lock so we can assume that deliveryTags are unique, never duplicated and always sorted
-                lock (_confirmLock)
-                {
-                    // No need to do anything if there are no delivery tags in the list
-                    if (_pendingDeliveryTags.Count > 0)
-                    {
-                        if (multiple)
-                        {
-                            while (_pendingDeliveryTags.First.Value < deliveryTag)
-                            {
-                                _pendingDeliveryTags.RemoveFirst();
-                                _deliveryTagsCountdown.Signal();
-                            }
-                        }
-
-                        if (_pendingDeliveryTags.Remove(deliveryTag))
-                        {
-                            _deliveryTagsCountdown.Signal();
-                        }
-                    }
-
-                    _onlyAcksReceived = _onlyAcksReceived && !isNack;
-                }
-            }
         }
 
         private QueueDeclareOk QueueDeclare(string queue, bool passive, bool durable, bool exclusive,

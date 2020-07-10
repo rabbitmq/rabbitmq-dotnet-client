@@ -477,116 +477,6 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public bool DispatchAsynchronous(in IncomingCommand cmd)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            return _delegate.DispatchAsynchronous(in cmd);
-        }
-
-        public void FinishClose()
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.FinishClose();
-        }
-
-        public void OnBasicAck(BasicAckEventArgs args)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.OnBasicAck(args);
-        }
-
-        public void OnBasicNack(BasicNackEventArgs args)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.OnBasicNack(args);
-        }
-
-        public void OnBasicRecoverOk(EventArgs args)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.OnBasicRecoverOk(args);
-        }
-
-        public void OnBasicReturn(BasicReturnEventArgs args)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.OnBasicReturn(args);
-        }
-
-        public void OnCallbackException(CallbackExceptionEventArgs args)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.OnCallbackException(args);
-        }
-
-        public void OnFlowControl(FlowControlEventArgs args)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.OnFlowControl(args);
-        }
-
-        public void OnModelShutdown(ShutdownEventArgs reason)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.OnModelShutdown(reason);
-        }
-
-        public void OnSessionShutdown(ISession session, ShutdownEventArgs reason)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.OnSessionShutdown(session, reason);
-        }
-
-        public bool SetCloseReason(ShutdownEventArgs reason)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            return _delegate.SetCloseReason(reason);
-        }
-
         public override string ToString()
         {
             if (_disposed)
@@ -637,8 +527,7 @@ namespace RabbitMQ.Client.Impl
             _delegate.ConnectionTuneOk(channelMax, frameMax, heartbeat);
         }
 
-        public void HandleBasicAck(ulong deliveryTag,
-            bool multiple)
+        public void HandleBasicAck(ulong deliveryTag, bool multiple)
         {
             if (_disposed)
             {
