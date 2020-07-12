@@ -139,7 +139,7 @@ namespace RabbitMQ.Client.Unit
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
             byte[] bytes = new byte[bytesNeeded];
 
-            Assert.Throws<ArgumentException>(() => WireFormatting.WriteTable(bytes, t));
+            Assert.Throws<ArgumentOutOfRangeException>(() => WireFormatting.WriteTable(bytes, t));
         }
 
         [Test]
