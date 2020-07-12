@@ -83,6 +83,7 @@ namespace RabbitMQ.Client.Impl
         private readonly ChannelReader<Memory<byte>> _channelReader;
         private readonly Task _writerTask;
         private readonly object _semaphore = new object();
+        private readonly byte[] _frameHeaderBuffer;
         private bool _closed;
 
         public SocketFrameHandler(AmqpTcpEndpoint endpoint,
@@ -90,6 +91,7 @@ namespace RabbitMQ.Client.Impl
             TimeSpan connectionTimeout, TimeSpan readTimeout, TimeSpan writeTimeout)
         {
             Endpoint = endpoint;
+            _frameHeaderBuffer = new byte[6];
             var channel = Channel.CreateUnbounded<Memory<byte>>(
                 new UnboundedChannelOptions
                 {
@@ -224,7 +226,7 @@ namespace RabbitMQ.Client.Impl
 
         public InboundFrame ReadFrame()
         {
-            return RabbitMQ.Client.Impl.InboundFrame.ReadFrom(_reader);
+            return InboundFrame.ReadFrom(_reader, _frameHeaderBuffer);
         }
 
         public void SendHeader()
