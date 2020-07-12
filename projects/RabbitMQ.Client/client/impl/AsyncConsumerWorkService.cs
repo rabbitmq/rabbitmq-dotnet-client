@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -79,7 +81,7 @@ namespace RabbitMQ.Client.Impl
                 _channel.Writer.TryWrite(work);
             }
 
-            async Task Loop()
+            private async Task Loop()
             {
                 while (await _channel.Reader.WaitToReadAsync().ConfigureAwait(false))
                 {
@@ -87,21 +89,35 @@ namespace RabbitMQ.Client.Impl
                     {
                         try
                         {
-                            Task task = work.Execute(_model);
+                            Task task = work.Execute();
                             if (!task.IsCompleted)
                             {
                                 await task.ConfigureAwait(false);
                             }
                         }
-                        catch(Exception)
+                        catch (Exception e)
                         {
+                            if (!(_model is ModelBase modelBase))
+                            {
+                                return;
+                            }
 
+                            var details = new Dictionary<string, object>
+                            {
+                                { "consumer", work.Consumer },
+                                { "context", work.Consumer }
+                            };
+                            modelBase.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
+                        }
+                        finally
+                        {
+                            work.PostExecute();
                         }
                     }
                 }
             }
 
-            async Task LoopWithConcurrency(CancellationToken cancellationToken)
+            private async Task LoopWithConcurrency(CancellationToken cancellationToken)
             {
                 try
                 {
@@ -125,22 +141,33 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            static async Task HandleConcurrent(Work work, IModel model, SemaphoreSlim limiter)
+            private static async Task HandleConcurrent(Work work, IModel model, SemaphoreSlim limiter)
             {
                 try
                 {
-                    Task task = work.Execute(model);
+                    Task task = work.Execute();
                     if (!task.IsCompleted)
                     {
                         await task.ConfigureAwait(false);
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    // ignored
+                    if (!(model is ModelBase modelBase))
+                    {
+                        return;
+                    }
+
+                    var details = new Dictionary<string, object>
+                    {
+                        { "consumer", work.Consumer },
+                        { "context", work.Consumer }
+                    };
+                    modelBase.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
                 }
                 finally
                 {
+                    work.PostExecute();
                     limiter.Release();
                 }
             }
