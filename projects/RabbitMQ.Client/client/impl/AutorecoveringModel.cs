@@ -573,15 +573,15 @@ namespace RabbitMQ.Client.Impl
             string exchange,
             string routingKey,
             IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body)
+            ReadOnlyMemory<byte> body,
+            byte[] rentedArray)
         {
             if (_disposed)
             {
                 throw new ObjectDisposedException(GetType().FullName);
             }
 
-            _delegate.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange,
-                routingKey, basicProperties, body);
+            _delegate.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body, rentedArray);
         }
 
         public void HandleBasicGetEmpty()
@@ -600,15 +600,15 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             uint messageCount,
             IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body)
+            ReadOnlyMemory<byte> body,
+            byte[] rentedArray)
         {
             if (_disposed)
             {
                 throw new ObjectDisposedException(GetType().FullName);
             }
 
-            _delegate.HandleBasicGetOk(deliveryTag, redelivered, exchange, routingKey,
-                messageCount, basicProperties, body);
+            _delegate.HandleBasicGetOk(deliveryTag, redelivered, exchange, routingKey, messageCount, basicProperties, body, rentedArray);
         }
 
         public void HandleBasicNack(ulong deliveryTag,
@@ -638,15 +638,15 @@ namespace RabbitMQ.Client.Impl
             string exchange,
             string routingKey,
             IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body)
+            ReadOnlyMemory<byte> body,
+            byte[] rentedArray)
         {
             if (_disposed)
             {
                 throw new ObjectDisposedException(GetType().FullName);
             }
 
-            _delegate.HandleBasicReturn(replyCode, replyText, exchange,
-                routingKey, basicProperties, body);
+            _delegate.HandleBasicReturn(replyCode, replyText, exchange, routingKey, basicProperties, body, rentedArray);
         }
 
         public void HandleChannelClose(ushort replyCode,

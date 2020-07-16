@@ -43,47 +43,39 @@ using RabbitMQ.Client.Framing.Impl;
 namespace RabbitMQ.Client.Impl
 {
     ///<summary>Small ISession implementation used during channel quiescing.</summary>
-    class QuiescingSession : SessionBase
+    internal sealed class QuiescingSession : SessionBase
     {
-        public ShutdownEventArgs m_reason;
+        private readonly ShutdownEventArgs _reason;
 
-        public QuiescingSession(Connection connection,
-            ushort channelNumber,
-            ShutdownEventArgs reason)
+        public QuiescingSession(Connection connection, ushort channelNumber, ShutdownEventArgs reason)
             : base(connection, channelNumber)
         {
-            m_reason = reason;
+            _reason = reason;
         }
 
-        public override void HandleFrame(in InboundFrame frame)
+        public override bool HandleFrame(in InboundFrame frame)
         {
             if (frame.Type == FrameType.FrameMethod)
             {
                 MethodBase method = Connection.Protocol.DecodeMethodFrom(frame.Payload.Span);
-                if ((method.ProtocolClassId == ClassConstants.Channel)
-                    && (method.ProtocolMethodId == ChannelMethodConstants.CloseOk))
+                if (method.ProtocolClassId == ClassConstants.Channel && method.ProtocolMethodId == ChannelMethodConstants.CloseOk)
                 {
                     // This is the reply we were looking for. Release
                     // the channel with the reason we were passed in
                     // our constructor.
-                    Close(m_reason);
+                    Close(_reason);
                 }
-                else if ((method.ProtocolClassId == ClassConstants.Channel)
-                         && (method.ProtocolMethodId == ChannelMethodConstants.Close))
+                else if (method.ProtocolClassId == ClassConstants.Channel && method.ProtocolMethodId == ChannelMethodConstants.Close)
                 {
                     // We're already shutting down the channel, so
                     // just send back an ok.
-                    Transmit(CreateChannelCloseOk());
+                    Transmit(new OutgoingCommand(new ConnectionCloseOk()));
                 }
             }
 
             // Either a non-method frame, or not what we were looking
             // for. Ignore it - we're quiescing.
-        }
-
-        protected OutgoingCommand CreateChannelCloseOk()
-        {
-            return new OutgoingCommand(new ConnectionCloseOk());
+            return true;
         }
     }
 }

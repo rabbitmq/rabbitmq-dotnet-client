@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Buffers;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
@@ -14,6 +13,7 @@ namespace RabbitMQ.Client.Impl
         private readonly string _routingKey;
         private readonly IBasicProperties _basicProperties;
         private readonly ReadOnlyMemory<byte> _body;
+        private readonly byte[] _rentedBytes;
 
         public override string Context => "HandleBasicDeliver";
 
@@ -24,7 +24,8 @@ namespace RabbitMQ.Client.Impl
             string exchange,
             string routingKey,
             IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body) : base(consumer)
+            ReadOnlyMemory<byte> body,
+            byte[] rentedBytes) : base(consumer)
         {
             _consumerTag = consumerTag;
             _deliveryTag = deliveryTag;
@@ -33,6 +34,7 @@ namespace RabbitMQ.Client.Impl
             _routingKey = routingKey;
             _basicProperties = basicProperties;
             _body = body;
+            _rentedBytes = rentedBytes;
         }
 
         protected override Task Execute(IAsyncBasicConsumer consumer)
@@ -48,10 +50,7 @@ namespace RabbitMQ.Client.Impl
 
         public override void PostExecute()
         {
-            if (MemoryMarshal.TryGetArray(_body, out ArraySegment<byte> segment))
-            {
-                ArrayPool<byte>.Shared.Return(segment.Array);
-            }
+            ArrayPool<byte>.Shared.Return(_rentedBytes);
         }
     }
 }

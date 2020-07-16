@@ -39,6 +39,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
 
 namespace RabbitMQ.Client
 {
@@ -46,8 +47,10 @@ namespace RabbitMQ.Client
     /// <remarks>
     /// Basic.Get either returns an instance of this class, or null if a Basic.GetEmpty was received.
     /// </remarks>
-    public class BasicGetResult
+    public sealed class BasicGetResult : IDisposable
     {
+        private readonly byte[] _rentedArray;
+
         /// <summary>
         /// Sets the new instance's properties from the arguments passed in.
         /// </summary>
@@ -57,9 +60,9 @@ namespace RabbitMQ.Client
         /// <param name="routingKey">Routing key with which the message was published.</param>
         /// <param name="messageCount">The number of messages pending on the queue, excluding the message being delivered.</param>
         /// <param name="basicProperties">The Basic-class content header properties for the message.</param>
-        /// <param name="body"></param>
-        public BasicGetResult(ulong deliveryTag, bool redelivered, string exchange,
-            string routingKey, uint messageCount, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
+        /// <param name="body">The body</param>
+        public BasicGetResult(ulong deliveryTag, bool redelivered, string exchange, string routingKey,
+            uint messageCount, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
         {
             DeliveryTag = deliveryTag;
             Redelivered = redelivered;
@@ -68,6 +71,30 @@ namespace RabbitMQ.Client
             MessageCount = messageCount;
             BasicProperties = basicProperties;
             Body = body;
+        }
+
+        /// <summary>
+        /// Sets the new instance's properties from the arguments passed in.
+        /// </summary>
+        /// <param name="deliveryTag">Delivery tag for the message.</param>
+        /// <param name="redelivered">Redelivered flag for the message</param>
+        /// <param name="exchange">The exchange this message was published to.</param>
+        /// <param name="routingKey">Routing key with which the message was published.</param>
+        /// <param name="messageCount">The number of messages pending on the queue, excluding the message being delivered.</param>
+        /// <param name="basicProperties">The Basic-class content header properties for the message.</param>
+        /// <param name="body">The body</param>
+        /// <param name="rentedArray">The rented array which body is part of.</param>
+        public BasicGetResult(ulong deliveryTag, bool redelivered, string exchange, string routingKey,
+            uint messageCount, IBasicProperties basicProperties, ReadOnlyMemory<byte> body, byte[] rentedArray)
+        {
+            DeliveryTag = deliveryTag;
+            Redelivered = redelivered;
+            Exchange = exchange;
+            RoutingKey = routingKey;
+            MessageCount = messageCount;
+            BasicProperties = basicProperties;
+            Body = body;
+            _rentedArray = rentedArray;
         }
 
         /// <summary>
@@ -108,5 +135,14 @@ namespace RabbitMQ.Client
         /// Retrieve the routing key with which this message was published.
         /// </summary>
         public string RoutingKey { get; private set; }
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            if (!(_rentedArray is null))
+            {
+                ArrayPool<byte>.Shared.Return(_rentedArray);
+            }
+        }
     }
 }

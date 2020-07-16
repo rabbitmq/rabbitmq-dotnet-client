@@ -53,16 +53,16 @@ namespace RabbitMQ.Client.Impl
             _assembler = new CommandAssembler(connection.Protocol);
         }
 
-        public override void HandleFrame(in InboundFrame frame)
+        public override bool HandleFrame(in InboundFrame frame)
         {
-            var cmd = _assembler.HandleFrame(in frame);
+            var shallReturnFramePayload = _assembler.HandleFrame(in frame, out var cmd);
+
             if (!cmd.IsEmpty)
             {
-                using (cmd)
-                {
-                    CommandReceived.Invoke(in cmd);
-                }
+                CommandReceived.Invoke(in cmd);
             }
+
+            return shallReturnFramePayload;
         }
     }
 }
