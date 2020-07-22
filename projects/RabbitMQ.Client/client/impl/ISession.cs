@@ -35,7 +35,7 @@ using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
-    delegate void CommandReceivedAction(in IncomingCommand cmd);
+    internal delegate void CommandReceivedAction(in IncomingCommand cmd);
 
     internal interface ISession
     {
@@ -71,7 +71,7 @@ namespace RabbitMQ.Client.Impl
 
         void Close(ShutdownEventArgs reason);
         void Close(ShutdownEventArgs reason, bool notify);
-        void HandleFrame(in InboundFrame frame);
+        bool HandleFrame(in InboundFrame frame);
         void Notify();
         void Transmit(in OutgoingCommand cmd);
         void Transmit(IList<OutgoingCommand> cmds);

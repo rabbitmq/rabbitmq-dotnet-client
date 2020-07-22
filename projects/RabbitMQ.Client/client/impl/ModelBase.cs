@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -323,8 +324,10 @@ namespace RabbitMQ.Client.Impl
 
         public void HandleCommand(in IncomingCommand cmd)
         {
-            if (!DispatchAsynchronous(in cmd))// Was asynchronous. Already processed. No need to process further.
+            if (!DispatchAsynchronous(in cmd)) // Was asynchronous. Already processed. No need to process further.
+            {
                 _continuationQueue.Next().HandleCommand(in cmd);
+            }
         }
 
         public MethodBase ModelRpc(MethodBase method, ContentHeaderBase header, byte[] body)
@@ -361,21 +364,6 @@ namespace RabbitMQ.Client.Impl
                 catch (Exception e)
                 {
                     OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnBasicRecover"));
-                }
-            }
-        }
-
-        public virtual void OnBasicReturn(BasicReturnEventArgs args)
-        {
-            foreach (EventHandler<BasicReturnEventArgs> h in BasicReturn?.GetInvocationList() ?? Array.Empty<Delegate>())
-            {
-                try
-                {
-                    h(this, args);
-                }
-                catch (Exception e)
-                {
-                    OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnBasicReturn"));
                 }
             }
         }
@@ -674,7 +662,8 @@ namespace RabbitMQ.Client.Impl
             string exchange,
             string routingKey,
             IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body)
+            ReadOnlyMemory<byte> body,
+            byte[] rentedArray)
         {
             IBasicConsumer consumer;
             lock (_consumers)
@@ -700,7 +689,8 @@ namespace RabbitMQ.Client.Impl
                     exchange,
                     routingKey,
                     basicProperties,
-                    body.Span);
+                    body,
+                    rentedArray);
         }
 
         public void HandleBasicGetEmpty()
@@ -716,23 +706,18 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             uint messageCount,
             IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body)
+            ReadOnlyMemory<byte> body,
+            byte[] rentedArray)
         {
             var k = (BasicGetRpcContinuation)_continuationQueue.Next();
-            k.m_result = new BasicGetResult(deliveryTag,
-                redelivered,
-                exchange,
-                routingKey,
-                messageCount,
-                basicProperties,
-                body);
+            k.m_result = new BasicGetResult(deliveryTag, redelivered, exchange, routingKey, messageCount, basicProperties, body, rentedArray);
             k.HandleCommand(IncomingCommand.Empty); // release the continuation.
         }
 
         public void HandleBasicRecoverOk()
         {
             var k = (SimpleBlockingRpcContinuation)_continuationQueue.Next();
-            OnBasicRecoverOk(new EventArgs());
+            OnBasicRecoverOk(EventArgs.Empty);
             k.HandleCommand(IncomingCommand.Empty);
         }
 
@@ -741,18 +726,34 @@ namespace RabbitMQ.Client.Impl
             string exchange,
             string routingKey,
             IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body)
+            ReadOnlyMemory<byte> body,
+            byte[] rentedArray)
         {
-            var e = new BasicReturnEventArgs
+            var @event = BasicReturn;
+            if (@event != null)
             {
-                ReplyCode = replyCode,
-                ReplyText = replyText,
-                Exchange = exchange,
-                RoutingKey = routingKey,
-                BasicProperties = basicProperties,
-                Body = body
-            };
-            OnBasicReturn(e);
+                var e = new BasicReturnEventArgs
+                {
+                    ReplyCode = replyCode,
+                    ReplyText = replyText,
+                    Exchange = exchange,
+                    RoutingKey = routingKey,
+                    BasicProperties = basicProperties,
+                    Body = body
+                };
+                foreach (EventHandler<BasicReturnEventArgs> h in @event.GetInvocationList())
+                {
+                    try
+                    {
+                        h(this, e);
+                    }
+                    catch (Exception e1)
+                    {
+                        OnCallbackException(CallbackExceptionEventArgs.Build(e1, "OnBasicReturn"));
+                    }
+                }
+            }
+            ArrayPool<byte>.Shared.Return(rentedArray);
         }
 
         public void HandleChannelClose(ushort replyCode,
@@ -1089,8 +1090,7 @@ namespace RabbitMQ.Client.Impl
             return actualConsumerTag;
         }
 
-        public BasicGetResult BasicGet(string queue,
-            bool autoAck)
+        public BasicGetResult BasicGet(string queue, bool autoAck)
         {
             var k = new BasicGetRpcContinuation();
             lock (_rpcLock)

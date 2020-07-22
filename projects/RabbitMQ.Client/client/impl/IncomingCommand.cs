@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Buffers;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal readonly struct IncomingCommand : IDisposable
+    internal readonly struct IncomingCommand
     {
         public static readonly IncomingCommand Empty = default;
 
@@ -22,12 +21,9 @@ namespace RabbitMQ.Client.Impl
             _rentedArray = rentedArray;
         }
 
-        public void Dispose()
+        public byte[] TakeoverPayload()
         {
-            if (_rentedArray != null)
-            {
-                ArrayPool<byte>.Shared.Return(_rentedArray);
-            }
+            return _rentedArray;
         }
     }
 }

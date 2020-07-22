@@ -57,21 +57,16 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             uint messageCount,
             IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body)
+            ReadOnlyMemory<byte> body,
+            byte[] rentedArray)
         {
             if (deliveryTag > MaxSeenDeliveryTag)
             {
                 MaxSeenDeliveryTag = deliveryTag;
             }
 
-            base.HandleBasicGetOk(
-                OffsetDeliveryTag(deliveryTag),
-                redelivered,
-                exchange,
-                routingKey,
-                messageCount,
-                basicProperties,
-                body);
+            base.HandleBasicGetOk(OffsetDeliveryTag(deliveryTag), redelivered, exchange,
+                routingKey, messageCount, basicProperties, body, rentedArray);
         }
 
         public override void HandleBasicDeliver(string consumerTag,
@@ -80,7 +75,8 @@ namespace RabbitMQ.Client.Impl
             string exchange,
             string routingKey,
             IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body)
+            ReadOnlyMemory<byte> body,
+            byte[] rentedArray)
         {
             if (deliveryTag > MaxSeenDeliveryTag)
             {
@@ -93,7 +89,8 @@ namespace RabbitMQ.Client.Impl
                 exchange,
                 routingKey,
                 basicProperties,
-                body);
+                body,
+                rentedArray);
         }
 
         public override void BasicAck(ulong deliveryTag,

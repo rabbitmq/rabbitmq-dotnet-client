@@ -157,7 +157,7 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    internal readonly struct InboundFrame : IDisposable
+    internal readonly ref struct InboundFrame
     {
         public readonly FrameType Type;
         public readonly int Channel;
@@ -240,7 +240,7 @@ namespace RabbitMQ.Client.Impl
             int payloadSize = NetworkOrderDeserializer.ReadInt32(new ReadOnlySpan<byte>(frameHeaderBuffer, 2, 4)); // FIXME - throw exn on unreasonable value
 
             const int EndMarkerLength = 1;
-            // Is returned by InboundFrame.Dispose in Connection.MainLoopIteration
+            // Is returned by InboundFrame.ReturnPayload in Connection.MainLoopIteration
             var readSize = payloadSize + EndMarkerLength;
             byte[] payloadBytes = ArrayPool<byte>.Shared.Rent(readSize);
             int bytesRead = 0;
@@ -267,7 +267,12 @@ namespace RabbitMQ.Client.Impl
             return new InboundFrame((FrameType)type, channel, new Memory<byte>(payloadBytes, 0, payloadSize), payloadBytes);
         }
 
-        public void Dispose()
+        public byte[] TakeoverPayload()
+        {
+            return _rentedArray;
+        }
+
+        public void ReturnPayload()
         {
             ArrayPool<byte>.Shared.Return(_rentedArray);
         }

@@ -50,9 +50,10 @@ namespace RabbitMQ.Client
         public virtual System.Threading.Tasks.Task HandleModelShutdown(object model, RabbitMQ.Client.ShutdownEventArgs reason) { }
         public virtual System.Threading.Tasks.Task OnCancel(params string[] consumerTags) { }
     }
-    public class BasicGetResult
+    public sealed class BasicGetResult : System.IDisposable
     {
         public BasicGetResult(ulong deliveryTag, bool redelivered, string exchange, string routingKey, uint messageCount, RabbitMQ.Client.IBasicProperties basicProperties, System.ReadOnlyMemory<byte> body) { }
+        public BasicGetResult(ulong deliveryTag, bool redelivered, string exchange, string routingKey, uint messageCount, RabbitMQ.Client.IBasicProperties basicProperties, System.ReadOnlyMemory<byte> body, byte[] rentedArray) { }
         public RabbitMQ.Client.IBasicProperties BasicProperties { get; }
         public System.ReadOnlyMemory<byte> Body { get; }
         public ulong DeliveryTag { get; }
@@ -60,6 +61,7 @@ namespace RabbitMQ.Client
         public uint MessageCount { get; }
         public bool Redelivered { get; }
         public string RoutingKey { get; }
+        public void Dispose() { }
     }
     public class BinaryTableValue
     {

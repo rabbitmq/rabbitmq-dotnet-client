@@ -140,7 +140,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public abstract void HandleFrame(in InboundFrame frame);
+        public abstract bool HandleFrame(in InboundFrame frame);
 
         public void Notify()
         {

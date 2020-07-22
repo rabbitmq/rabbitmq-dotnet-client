@@ -41,7 +41,7 @@ using RabbitMQ.Client.Framing.Impl;
 namespace RabbitMQ.Client.Impl
 {
     ///<summary>Small ISession implementation used only for channel 0.</summary>
-    class MainSession : Session
+    internal sealed class MainSession : Session
     {
         private readonly object _closingLock = new object();
 
@@ -62,29 +62,25 @@ namespace RabbitMQ.Client.Impl
 
         public Action Handler { get; set; }
 
-        public override void HandleFrame(in InboundFrame frame)
+        public override bool HandleFrame(in InboundFrame frame)
         {
             lock (_closingLock)
             {
                 if (!_closing)
                 {
-                    base.HandleFrame(in frame);
-                    return;
+                    return base.HandleFrame(in frame);
                 }
             }
 
             if (!_closeServerInitiated && frame.Type == FrameType.FrameMethod)
             {
                 MethodBase method = Connection.Protocol.DecodeMethodFrom(frame.Payload.Span);
-                if ((method.ProtocolClassId == _closeClassId)
-                    && (method.ProtocolMethodId == _closeMethodId))
+                if (method.ProtocolClassId == _closeClassId && method.ProtocolMethodId == _closeMethodId)
                 {
-                    base.HandleFrame(in frame);
-                    return;
+                    return base.HandleFrame(in frame);
                 }
 
-                if ((method.ProtocolClassId == _closeOkClassId)
-                    && (method.ProtocolMethodId == _closeOkMethodId))
+                if (method.ProtocolClassId == _closeOkClassId && method.ProtocolMethodId == _closeOkMethodId)
                 {
                     // This is the reply (CloseOk) we were looking for
                     // Call any listener attached to this session
@@ -94,6 +90,7 @@ namespace RabbitMQ.Client.Impl
 
             // Either a non-method frame, or not what we were looking
             // for. Ignore it - we're quiescing.
+            return true;
         }
 
         ///<summary> Set channel 0 as quiescing </summary>

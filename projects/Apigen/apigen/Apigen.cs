@@ -1410,6 +1410,10 @@ $@"namespace {ApiNamespaceBase}
                 {
                     return "cmd.Body";
                 }
+                else if (Attribute(pi, typeof(AmqpContentBodyArrayMappingAttribute)) != null)
+                {
+                    return "cmd.TakeoverPayload()";
+                }
                 else
                 {
                     return $"__impl._{(!(Attribute(pi, typeof(AmqpFieldMappingAttribute)) is AmqpFieldMappingAttribute fieldMapping) ? pi.Name : fieldMapping.m_fieldName)}";

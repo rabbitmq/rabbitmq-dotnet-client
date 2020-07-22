@@ -45,7 +45,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (Exception e)
                 {
-                    var details = new Dictionary<string, object>()
+                    var details = new Dictionary<string, object>
                     {
                         {"consumer", consumer},
                         {"context",  "HandleBasicConsumeOk"}
@@ -62,11 +62,9 @@ namespace RabbitMQ.Client.Impl
                                        string exchange,
                                        string routingKey,
                                        IBasicProperties basicProperties,
-                                       ReadOnlySpan<byte> body)
+                                       ReadOnlyMemory<byte> body,
+                                       byte[] rentedArray)
         {
-            byte[] memoryCopyArray = ArrayPool<byte>.Shared.Rent(body.Length);
-            Memory<byte> memoryCopy = new Memory<byte>(memoryCopyArray, 0, body.Length);
-            body.CopyTo(memoryCopy.Span);
             UnlessShuttingDown(() =>
             {
                 try
@@ -77,11 +75,11 @@ namespace RabbitMQ.Client.Impl
                                                 exchange,
                                                 routingKey,
                                                 basicProperties,
-                                                memoryCopy);
+                                                body);
                 }
                 catch (Exception e)
                 {
-                    var details = new Dictionary<string, object>()
+                    var details = new Dictionary<string, object>
                     {
                         {"consumer", consumer},
                         {"context",  "HandleBasicDeliver"}
@@ -90,7 +88,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 finally
                 {
-                    ArrayPool<byte>.Shared.Return(memoryCopyArray);
+                    ArrayPool<byte>.Shared.Return(rentedArray);
                 }
             });
         }
@@ -105,7 +103,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (Exception e)
                 {
-                    var details = new Dictionary<string, object>()
+                    var details = new Dictionary<string, object>
                     {
                         {"consumer", consumer},
                         {"context",  "HandleBasicCancelOk"}
@@ -125,7 +123,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (Exception e)
                 {
-                    var details = new Dictionary<string, object>()
+                    var details = new Dictionary<string, object>
                     {
                         {"consumer", consumer},
                         {"context",  "HandleBasicCancel"}
@@ -144,7 +142,7 @@ namespace RabbitMQ.Client.Impl
             }
             catch (Exception e)
             {
-                var details = new Dictionary<string, object>()
+                var details = new Dictionary<string, object>
                     {
                         {"consumer", consumer},
                         {"context",  "HandleModelShutdown"}

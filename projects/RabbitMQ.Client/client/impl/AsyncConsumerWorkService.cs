@@ -18,7 +18,7 @@ namespace RabbitMQ.Client.Impl
             _startNewWorkPoolFunc = model => StartNewWorkPool(model);
         }
 
-        public void Schedule<TWork>(IModel model, TWork work) where TWork : Work
+        public void Schedule(IModel model, Work work)
         {
             /*
              * rabbitmq/rabbitmq-dotnet-client#841
