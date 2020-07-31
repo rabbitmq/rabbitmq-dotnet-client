@@ -52,7 +52,7 @@ See [Contributing](CONTRIBUTING.md) and [How to Run Tests](RUNNING_TESTS.md).
 ## License
 
 This package, the RabbitMQ .NET client library, is double-licensed under
-the Mozilla Public License 1.1 ("MPL") and the Apache License version 2 ("ASL").
+the Mozilla Public License 2.0 ("MPL") and the Apache License version 2 ("ASL").
 
 This means that the user can consider the library to be licensed under **any of the licenses from the list** above.
 For example, you may choose the Apache Public License 2.0 and include this client into a commercial product.

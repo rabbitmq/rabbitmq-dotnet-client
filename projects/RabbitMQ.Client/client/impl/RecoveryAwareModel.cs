@@ -1,5 +1,5 @@
 // This source code is dual-licensed under the Apache License, version
-// 2.0, and the Mozilla Public License, version 1.1.
+// 2.0, and the Mozilla Public License, version 2.0.
 //
 // The APL v2.0:
 //
@@ -19,22 +19,13 @@
 //   limitations under the License.
 //---------------------------------------------------------------------------
 //
-// The MPL v1.1:
+// The MPL v2.0:
 //
 //---------------------------------------------------------------------------
-//  The contents of this file are subject to the Mozilla Public License
-//  Version 1.1 (the "License"); you may not use this file except in
-//  compliance with the License. You may obtain a copy of the License
-//  at https://www.mozilla.org/MPL/
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-//  Software distributed under the License is distributed on an "AS IS"
-//  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
-//  the License for the specific language governing rights and
-//  limitations under the License.
-//
-//  The Original Code is RabbitMQ.
-//
-//  The Initial Developer of the Original Code is Pivotal Software, Inc.
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
@@ -66,21 +57,16 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             uint messageCount,
             IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body)
+            ReadOnlyMemory<byte> body,
+            byte[] rentedArray)
         {
             if (deliveryTag > MaxSeenDeliveryTag)
             {
                 MaxSeenDeliveryTag = deliveryTag;
             }
 
-            base.HandleBasicGetOk(
-                OffsetDeliveryTag(deliveryTag),
-                redelivered,
-                exchange,
-                routingKey,
-                messageCount,
-                basicProperties,
-                body);
+            base.HandleBasicGetOk(OffsetDeliveryTag(deliveryTag), redelivered, exchange,
+                routingKey, messageCount, basicProperties, body, rentedArray);
         }
 
         public override void HandleBasicDeliver(string consumerTag,
@@ -89,7 +75,8 @@ namespace RabbitMQ.Client.Impl
             string exchange,
             string routingKey,
             IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body)
+            ReadOnlyMemory<byte> body,
+            byte[] rentedArray)
         {
             if (deliveryTag > MaxSeenDeliveryTag)
             {
@@ -102,7 +89,8 @@ namespace RabbitMQ.Client.Impl
                 exchange,
                 routingKey,
                 basicProperties,
-                body);
+                body,
+                rentedArray);
         }
 
         public override void BasicAck(ulong deliveryTag,

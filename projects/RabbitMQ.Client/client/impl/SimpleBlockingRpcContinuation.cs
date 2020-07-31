@@ -1,5 +1,5 @@
 // This source code is dual-licensed under the Apache License, version
-// 2.0, and the Mozilla Public License, version 1.1.
+// 2.0, and the Mozilla Public License, version 2.0.
 //
 // The APL v2.0:
 //
@@ -19,27 +19,17 @@
 //   limitations under the License.
 //---------------------------------------------------------------------------
 //
-// The MPL v1.1:
+// The MPL v2.0:
 //
 //---------------------------------------------------------------------------
-//  The contents of this file are subject to the Mozilla Public License
-//  Version 1.1 (the "License"); you may not use this file except in
-//  compliance with the License. You may obtain a copy of the License
-//  at https://www.mozilla.org/MPL/
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-//  Software distributed under the License is distributed on an "AS IS"
-//  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
-//  the License for the specific language governing rights and
-//  limitations under the License.
-//
-//  The Original Code is RabbitMQ.
-//
-//  The Initial Developer of the Original Code is Pivotal Software, Inc.
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
-
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
 
@@ -47,11 +37,11 @@ namespace RabbitMQ.Client.Impl
 {
     class SimpleBlockingRpcContinuation : IRpcContinuation
     {
-        public readonly BlockingCell<Either<Command, ShutdownEventArgs>> m_cell = new BlockingCell<Either<Command, ShutdownEventArgs>>();
+        public readonly BlockingCell<Either<IncomingCommand, ShutdownEventArgs>> m_cell = new BlockingCell<Either<IncomingCommand, ShutdownEventArgs>>();
 
-        public virtual Command GetReply()
+        public virtual IncomingCommand GetReply()
         {
-            Either<Command, ShutdownEventArgs> result = m_cell.WaitForValue();
+            Either<IncomingCommand, ShutdownEventArgs> result = m_cell.WaitForValue();
             switch (result.Alternative)
             {
                 case EitherAlternative.Left:
@@ -59,13 +49,13 @@ namespace RabbitMQ.Client.Impl
                 case EitherAlternative.Right:
                     throw new OperationInterruptedException(result.RightValue);
                 default:
-                    return null;
+                    return default;
             }
         }
 
-        public virtual Command GetReply(TimeSpan timeout)
+        public virtual IncomingCommand GetReply(TimeSpan timeout)
         {
-            Either<Command, ShutdownEventArgs> result = m_cell.WaitForValue(timeout);
+            Either<IncomingCommand, ShutdownEventArgs> result = m_cell.WaitForValue(timeout);
             switch (result.Alternative)
             {
                 case EitherAlternative.Left:
@@ -73,18 +63,18 @@ namespace RabbitMQ.Client.Impl
                 case EitherAlternative.Right:
                     throw new OperationInterruptedException(result.RightValue);
                 default:
-                    return null;
+                    return default;
             }
         }
 
-        public virtual void HandleCommand(Command cmd)
+        public virtual void HandleCommand(in IncomingCommand cmd)
         {
-            m_cell.ContinueWithValue(Either<Command,ShutdownEventArgs>.Left(cmd));
+            m_cell.ContinueWithValue(Either<IncomingCommand, ShutdownEventArgs>.Left(cmd));
         }
 
         public virtual void HandleModelShutdown(ShutdownEventArgs reason)
         {
-            m_cell.ContinueWithValue(Either<Command,ShutdownEventArgs>.Right(reason));
+            m_cell.ContinueWithValue(Either<IncomingCommand, ShutdownEventArgs>.Right(reason));
         }
     }
 }

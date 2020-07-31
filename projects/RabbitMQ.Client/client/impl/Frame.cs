@@ -1,5 +1,5 @@
 // This source code is dual-licensed under the Apache License, version
-// 2.0, and the Mozilla Public License, version 1.1.
+// 2.0, and the Mozilla Public License, version 2.0.
 //
 // The APL v2.0:
 //
@@ -19,22 +19,13 @@
 //   limitations under the License.
 //---------------------------------------------------------------------------
 //
-// The MPL v1.1:
+// The MPL v2.0:
 //
 //---------------------------------------------------------------------------
-//  The contents of this file are subject to the Mozilla Public License
-//  Version 1.1 (the "License"); you may not use this file except in
-//  compliance with the License. You may obtain a copy of the License
-//  at https://www.mozilla.org/MPL/
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-//  Software distributed under the License is distributed on an "AS IS"
-//  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
-//  the License for the specific language governing rights and
-//  limitations under the License.
-//
-//  The Original Code is RabbitMQ.
-//
-//  The Initial Developer of the Original Code is Pivotal Software, Inc.
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
@@ -166,34 +157,19 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    internal readonly struct InboundFrame : IDisposable
+    internal readonly ref struct InboundFrame
     {
-        public readonly ReadOnlyMemory<byte> Payload;
-        public readonly int Channel;
         public readonly FrameType Type;
+        public readonly int Channel;
+        public readonly ReadOnlyMemory<byte> Payload;
+        private readonly byte[] _rentedArray;
 
-        private InboundFrame(FrameType type, int channel, ReadOnlyMemory<byte> payload)
+        private InboundFrame(FrameType type, int channel, ReadOnlyMemory<byte> payload, byte[] rentedArray)
         {
-            Payload = payload;
             Type = type;
             Channel = channel;
-        }
-
-        public bool IsMethod()
-        {
-            return Type == FrameType.FrameMethod;
-        }
-        public bool IsHeader()
-        {
-            return Type == FrameType.FrameHeader;
-        }
-        public bool IsBody()
-        {
-            return Type == FrameType.FrameBody;
-        }
-        public bool IsHeartbeat()
-        {
-            return Type == FrameType.FrameHeartbeat;
+            Payload = payload;
+            _rentedArray = rentedArray;
         }
 
         private static void ProcessProtocolHeader(Stream reader)
@@ -227,17 +203,12 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        internal static InboundFrame ReadFrom(Stream reader)
+        internal static InboundFrame ReadFrom(Stream reader, byte[] frameHeaderBuffer)
         {
             int type = default;
-
             try
             {
                 type = reader.ReadByte();
-                if (type == -1)
-                {
-                    throw new EndOfStreamException("Reached the end of the stream. Possible authentication failure.");
-                }
             }
             catch (IOException ioe)
             {
@@ -254,51 +225,56 @@ namespace RabbitMQ.Client.Impl
                 ExceptionDispatchInfo.Capture(ioe.InnerException).Throw();
             }
 
-            if (type == 'A')
+            switch (type)
             {
-                // Probably an AMQP protocol header, otherwise meaningless
-                ProcessProtocolHeader(reader);
+                case -1:
+                    throw new EndOfStreamException("Reached the end of the stream. Possible authentication failure.");
+                case 'A':
+                    // Probably an AMQP protocol header, otherwise meaningless
+                    ProcessProtocolHeader(reader);
+                    break;
             }
 
-            Span<byte> headerBytes = stackalloc byte[6];
-            reader.Read(headerBytes);
-            int channel = NetworkOrderDeserializer.ReadUInt16(headerBytes);
-            int payloadSize = NetworkOrderDeserializer.ReadInt32(headerBytes.Slice(2)); // FIXME - throw exn on unreasonable value
+            reader.Read(frameHeaderBuffer, 0, frameHeaderBuffer.Length);
+            int channel = NetworkOrderDeserializer.ReadUInt16(new ReadOnlySpan<byte>(frameHeaderBuffer));
+            int payloadSize = NetworkOrderDeserializer.ReadInt32(new ReadOnlySpan<byte>(frameHeaderBuffer, 2, 4)); // FIXME - throw exn on unreasonable value
 
-            // Is returned by InboundFrame.Dispose in Connection.MainLoopIteration
-            byte[] payloadBytes = ArrayPool<byte>.Shared.Rent(payloadSize);
-            Memory<byte> payload = new Memory<byte>(payloadBytes, 0, payloadSize);
+            const int EndMarkerLength = 1;
+            // Is returned by InboundFrame.ReturnPayload in Connection.MainLoopIteration
+            var readSize = payloadSize + EndMarkerLength;
+            byte[] payloadBytes = ArrayPool<byte>.Shared.Rent(readSize);
             int bytesRead = 0;
             try
             {
-                while (bytesRead < payloadSize)
+                while (bytesRead < readSize)
                 {
-                    bytesRead += reader.Read(payload.Slice(bytesRead, payloadSize - bytesRead));
+                    bytesRead += reader.Read(payloadBytes, bytesRead, readSize - bytesRead);
                 }
             }
             catch (Exception)
             {
                 // Early EOF.
                 ArrayPool<byte>.Shared.Return(payloadBytes);
-                throw new MalformedFrameException($"Short frame - expected to read {payloadSize} bytes, only got {bytesRead} bytes");
+                throw new MalformedFrameException($"Short frame - expected to read {readSize} bytes, only got {bytesRead} bytes");
             }
 
-            int frameEndMarker = reader.ReadByte();
-            if (frameEndMarker != Constants.FrameEnd)
+            if (payloadBytes[payloadSize] != Constants.FrameEnd)
             {
                 ArrayPool<byte>.Shared.Return(payloadBytes);
-                throw new MalformedFrameException($"Bad frame end marker: {frameEndMarker}");
+                throw new MalformedFrameException($"Bad frame end marker: {payloadBytes[payloadSize]}");
             }
 
-            return new InboundFrame((FrameType)type, channel, payload);
+            return new InboundFrame((FrameType)type, channel, new Memory<byte>(payloadBytes, 0, payloadSize), payloadBytes);
         }
 
-        public void Dispose()
+        public byte[] TakeoverPayload()
         {
-            if (MemoryMarshal.TryGetArray(Payload, out ArraySegment<byte> segment))
-            {
-                ArrayPool<byte>.Shared.Return(segment.Array);
-            }
+            return _rentedArray;
+        }
+
+        public void ReturnPayload()
+        {
+            ArrayPool<byte>.Shared.Return(_rentedArray);
         }
 
         public override string ToString()

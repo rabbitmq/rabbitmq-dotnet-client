@@ -45,12 +45,10 @@ namespace RabbitMQ.Client.Impl
             string exchange,
             string routingKey,
             IBasicProperties basicProperties,
-            ReadOnlySpan<byte> body)
+            ReadOnlyMemory<byte> body,
+            byte[] rentedArray)
         {
-            byte[] bodyBytes = ArrayPool<byte>.Shared.Rent(body.Length);
-            Memory<byte> bodyCopy = new Memory<byte>(bodyBytes, 0, body.Length);
-            body.CopyTo(bodyCopy.Span);
-            ScheduleUnlessShuttingDown(new BasicDeliver(consumer, consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, bodyCopy));
+            ScheduleUnlessShuttingDown(new BasicDeliver(consumer, consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body, rentedArray));
         }
 
         public void HandleBasicCancelOk(IBasicConsumer consumer, string consumerTag)
@@ -66,11 +64,10 @@ namespace RabbitMQ.Client.Impl
         public void HandleModelShutdown(IBasicConsumer consumer, ShutdownEventArgs reason)
         {
             // the only case where we ignore the shutdown flag.
-            Schedule(new ModelShutdown(consumer, reason));
+            Schedule(new ModelShutdown(consumer, reason, _model));
         }
 
-        private void ScheduleUnlessShuttingDown<TWork>(TWork work)
-            where TWork : Work
+        private void ScheduleUnlessShuttingDown(Work work)
         {
             if (!IsShutdown)
             {
@@ -78,8 +75,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        private void Schedule<TWork>(TWork work)
-            where TWork : Work
+        private void Schedule(Work work)
         {
             _workService.Schedule(_model, work);
         }

@@ -1,5 +1,5 @@
 // This source code is dual-licensed under the Apache License, version
-// 2.0, and the Mozilla Public License, version 1.1.
+// 2.0, and the Mozilla Public License, version 2.0.
 //
 // The APL v2.0:
 //
@@ -19,22 +19,13 @@
 //   limitations under the License.
 //---------------------------------------------------------------------------
 //
-// The MPL v1.1:
+// The MPL v2.0:
 //
 //---------------------------------------------------------------------------
-//  The contents of this file are subject to the Mozilla Public License
-//  Version 1.1 (the "License"); you may not use this file except in
-//  compliance with the License. You may obtain a copy of the License
-//  at https://www.mozilla.org/MPL/
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-//  Software distributed under the License is distributed on an "AS IS"
-//  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
-//  the License for the specific language governing rights and
-//  limitations under the License.
-//
-//  The Original Code is RabbitMQ.
-//
-//  The Initial Developer of the Original Code is Pivotal Software, Inc.
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
@@ -45,7 +36,7 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    abstract class ProtocolBase : IProtocol
+    internal abstract class ProtocolBase : IProtocol
     {
         public IDictionary<string, bool> Capabilities;
 
@@ -74,33 +65,29 @@ namespace RabbitMQ.Client.Framing.Impl
             get { return new AmqpVersion(MajorVersion, MinorVersion); }
         }
 
-        public bool CanSendWhileClosed(Command cmd)
+        public bool CanSendWhileClosed(MethodBase method)
         {
-            return cmd.Method is Impl.ChannelCloseOk;
+            return method is Impl.ChannelCloseOk;
         }
 
         public void CreateChannelClose(ushort reasonCode,
             string reasonText,
-            out Command request,
+            out OutgoingCommand request,
             out ushort replyClassId,
             out ushort replyMethodId)
         {
-            request = new Command(new Impl.ChannelClose(reasonCode,
-                reasonText,
-                0, 0));
+            request = new OutgoingCommand(new Impl.ChannelClose(reasonCode, reasonText, 0, 0));
             replyClassId = ClassConstants.Channel;
             replyMethodId = ChannelMethodConstants.CloseOk;
         }
 
         public void CreateConnectionClose(ushort reasonCode,
             string reasonText,
-            out Command request,
+            out OutgoingCommand request,
             out ushort replyClassId,
             out ushort replyMethodId)
         {
-            request = new Command(new Impl.ConnectionClose(reasonCode,
-                reasonText,
-                0, 0));
+            request = new OutgoingCommand(new Impl.ConnectionClose(reasonCode, reasonText, 0, 0));
             replyClassId = ClassConstants.Connection;
             replyMethodId = ConnectionMethodConstants.CloseOk;
         }

@@ -1,6 +1,24 @@
 ## Changes Between 6.1.0 and 6.2.0
 
+This releases primarily focuses on efficiency improvements and addressing
+bugs introduced in `6.x` releases.
+
 A full list of changes can be found in the GitHub milestone: [`6.2.0`](https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/49?closed=1).
+
+Key highlights include:
+
+ * Concurrent publishing on a shared channel is now safer. We still recommend avoiding it when possible
+   but safety properties have been improved by changing how outgoing frame sequences are serialised.
+   
+   Contributed by @bollhals.
+
+   GitHub issue: [#878](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/878)
+
+ * Batch publishing using `System.ReadOnlyMemory<byte>` payloads instead of byte arrays.
+ 
+   Contributed by @danielmarbach.
+
+   GitHub issue: [#865](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/865), [#892](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/892)
 
 ## Changes Between 6.0.0 and 6.1.0
 

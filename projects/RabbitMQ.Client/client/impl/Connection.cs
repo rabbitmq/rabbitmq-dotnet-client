@@ -1,5 +1,5 @@
 // This source code is dual-licensed under the Apache License, version
-// 2.0, and the Mozilla Public License, version 1.1.
+// 2.0, and the Mozilla Public License, version 2.0.
 //
 // The APL v2.0:
 //
@@ -19,22 +19,13 @@
 //   limitations under the License.
 //---------------------------------------------------------------------------
 //
-// The MPL v1.1:
+// The MPL v2.0:
 //
 //---------------------------------------------------------------------------
-//  The contents of this file are subject to the Mozilla Public License
-//  Version 1.1 (the "License"); you may not use this file except in
-//  compliance with the License. You may obtain a copy of the License
-//  at https://www.mozilla.org/MPL/
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-//  Software distributed under the License is distributed on an "AS IS"
-//  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
-//  the License for the specific language governing rights and
-//  limitations under the License.
-//
-//  The Original Code is RabbitMQ.
-//
-//  The Initial Developer of the Original Code is Pivotal Software, Inc.
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
@@ -110,14 +101,13 @@ namespace RabbitMQ.Client.Framing.Impl
             _factory = factory;
             _frameHandler = frameHandler;
 
-            int processingConcurrency = (factory as ConnectionFactory)?.ProcessingConcurrency ?? 1;
             if (factory is IAsyncConnectionFactory asyncConnectionFactory && asyncConnectionFactory.DispatchConsumersAsync)
             {
-                ConsumerWorkService = new AsyncConsumerWorkService(processingConcurrency);
+                ConsumerWorkService = new AsyncConsumerWorkService(factory.ConsumerDispatchConcurrency);
             }
             else
             {
-                ConsumerWorkService = new ConsumerWorkService(processingConcurrency);
+                ConsumerWorkService = new ConsumerWorkService(factory.ConsumerDispatchConcurrency);
             }
 
             _sessionManager = new SessionManager(this, 0);
@@ -389,9 +379,9 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public Command ConnectionCloseWrapper(ushort reasonCode, string reasonText)
+        public OutgoingCommand ConnectionCloseWrapper(ushort reasonCode, string reasonText)
         {
-            Protocol.CreateConnectionClose(reasonCode, reasonText, out Command request, out _, out _);
+            Protocol.CreateConnectionClose(reasonCode, reasonText, out OutgoingCommand request, out _, out _);
             return request;
         }
 
@@ -563,55 +553,49 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void MainLoopIteration()
         {
-            using (InboundFrame frame = _frameHandler.ReadFrame())
-            {
-                NotifyHeartbeatListener();
-                // We have received an actual frame.
-                if (frame.IsHeartbeat())
-                {
-                    // Ignore it: we've already just reset the heartbeat
-                    // latch.
-                    return;
-                }
+            InboundFrame frame = _frameHandler.ReadFrame();
+            NotifyHeartbeatListener();
 
-                if (frame.Channel == 0)
+            bool shallReturn = true;
+            // We have received an actual frame.
+            if (frame.Type == FrameType.FrameHeartbeat)
+            {
+                // Ignore it: we've already just reset the heartbeat
+            }
+            else if (frame.Channel == 0)
+            {
+                // In theory, we could get non-connection.close-ok
+                // frames here while we're quiescing (m_closeReason !=
+                // null). In practice, there's a limited number of
+                // things the server can ask of us on channel 0 -
+                // essentially, just connection.close. That, combined
+                // with the restrictions on pipelining, mean that
+                // we're OK here to handle channel 0 traffic in a
+                // quiescing situation, even though technically we
+                // should be ignoring everything except
+                // connection.close-ok.
+                shallReturn = _session0.HandleFrame(in frame);
+            }
+            else
+            {
+                // If we're still m_running, but have a m_closeReason,
+                // then we must be quiescing, which means any inbound
+                // frames for non-zero channels (and any inbound
+                // commands on channel zero that aren't
+                // Connection.CloseOk) must be discarded.
+                if (_closeReason is null)
                 {
-                    // In theory, we could get non-connection.close-ok
-                    // frames here while we're quiescing (m_closeReason !=
-                    // null). In practice, there's a limited number of
-                    // things the server can ask of us on channel 0 -
-                    // essentially, just connection.close. That, combined
-                    // with the restrictions on pipelining, mean that
-                    // we're OK here to handle channel 0 traffic in a
-                    // quiescing situation, even though technically we
-                    // should be ignoring everything except
-                    // connection.close-ok.
-                    _session0.HandleFrame(in frame);
+                    // No close reason, not quiescing the
+                    // connection. Handle the frame. (Of course, the
+                    // Session itself may be quiescing this particular
+                    // channel, but that's none of our concern.)
+                    shallReturn = _sessionManager.Lookup(frame.Channel).HandleFrame(in frame);
                 }
-                else
-                {
-                    // If we're still m_running, but have a m_closeReason,
-                    // then we must be quiescing, which means any inbound
-                    // frames for non-zero channels (and any inbound
-                    // commands on channel zero that aren't
-                    // Connection.CloseOk) must be discarded.
-                    if (_closeReason == null)
-                    {
-                        // No close reason, not quiescing the
-                        // connection. Handle the frame. (Of course, the
-                        // Session itself may be quiescing this particular
-                        // channel, but that's none of our concern.)
-                        ISession session = _sessionManager.Lookup(frame.Channel);
-                        if (session == null)
-                        {
-                            throw new ChannelErrorException(frame.Channel);
-                        }
-                        else
-                        {
-                            session.HandleFrame(in frame);
-                        }
-                    }
-                }
+            }
+
+            if (shallReturn)
+            {
+                frame.ReturnPayload();
             }
         }
 
@@ -769,7 +753,7 @@ namespace RabbitMQ.Client.Framing.Impl
             // the quiesce process.
 
             ISession newSession = new QuiescingSession(this,
-                pe.Channel,
+                (ushort)pe.Channel,
                 pe.ShutdownReason);
 
             // Here we detach the session from the connection. It's
@@ -1053,9 +1037,9 @@ namespace RabbitMQ.Client.Framing.Impl
             // dispose unmanaged resources
         }
 
-        Command ChannelCloseWrapper(ushort reasonCode, string reasonText)
+        internal OutgoingCommand ChannelCloseWrapper(ushort reasonCode, string reasonText)
         {
-            Protocol.CreateChannelClose(reasonCode, reasonText, out Command request, out _, out _);
+            Protocol.CreateChannelClose(reasonCode, reasonText, out OutgoingCommand request, out _, out _);
             return request;
         }
 

@@ -1,35 +1,23 @@
-using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-
-using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Impl
 {
-    sealed class ModelShutdown : Work
+    internal sealed class ModelShutdown : Work
     {
-        readonly ShutdownEventArgs _reason;
+        private readonly ShutdownEventArgs _reason;
+        private readonly IModel _model;
 
-        public ModelShutdown(IBasicConsumer consumer, ShutdownEventArgs reason) : base(consumer)
+        public override string Context => "HandleModelShutdown";
+
+        public ModelShutdown(IBasicConsumer consumer, ShutdownEventArgs reason, IModel model) : base(consumer)
         {
             _reason = reason;
+            _model = model;
         }
 
-        protected override async Task Execute(ModelBase model, IAsyncBasicConsumer consumer)
+        protected override Task Execute(IAsyncBasicConsumer consumer)
         {
-            try
-            {
-                await consumer.HandleModelShutdown(model, _reason).ConfigureAwait(false);
-            }
-            catch (Exception e)
-            {
-                var details = new Dictionary<string, object>()
-                {
-                    { "consumer", consumer },
-                    { "context", "HandleModelShutdown" }
-                };
-                model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
-            }
+            return consumer.HandleModelShutdown(_model, _reason);
         }
     }
 }

@@ -27,7 +27,7 @@ namespace RabbitMQ.Client.Impl
                 throw new ArgumentException($"No ip address could be resolved for {host}");
             }
 
-            await ConnectAsync(ep, port);
+            await ConnectAsync(ep, port).ConfigureAwait(false);
         }
 
         public virtual async Task ConnectAsync(IPAddress ep, int port)

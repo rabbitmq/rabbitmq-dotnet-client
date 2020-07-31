@@ -1,5 +1,5 @@
 // This source code is dual-licensed under the Apache License, version
-// 2.0, and the Mozilla Public License, version 1.1.
+// 2.0, and the Mozilla Public License, version 2.0.
 //
 // The APL v2.0:
 //
@@ -19,22 +19,13 @@
 //   limitations under the License.
 //---------------------------------------------------------------------------
 //
-// The MPL v1.1:
+// The MPL v2.0:
 //
 //---------------------------------------------------------------------------
-//  The contents of this file are subject to the Mozilla Public License
-//  Version 1.1 (the "License"); you may not use this file except in
-//  compliance with the License. You may obtain a copy of the License
-//  at https://www.mozilla.org/MPL/
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-//  Software distributed under the License is distributed on an "AS IS"
-//  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
-//  the License for the specific language governing rights and
-//  limitations under the License.
-//
-//  The Original Code is RabbitMQ.
-//
-//  The Initial Developer of the Original Code is Pivotal Software, Inc.
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
@@ -68,10 +59,10 @@ namespace RabbitMQ.Client.Impl
         {
             get
             {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
+                if (_disposed)
+                {
+                    throw new ObjectDisposedException(GetType().FullName);
+                }
 
                 return _delegate.ConsumerDispatcher;
             }
@@ -477,126 +468,6 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public bool DispatchAsynchronous(Command cmd)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            return _delegate.DispatchAsynchronous(cmd);
-        }
-
-        public void FinishClose()
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.FinishClose();
-        }
-
-        public void HandleCommand(ISession session, Command cmd)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.HandleCommand(session, cmd);
-        }
-
-        public void OnBasicAck(BasicAckEventArgs args)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.OnBasicAck(args);
-        }
-
-        public void OnBasicNack(BasicNackEventArgs args)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.OnBasicNack(args);
-        }
-
-        public void OnBasicRecoverOk(EventArgs args)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.OnBasicRecoverOk(args);
-        }
-
-        public void OnBasicReturn(BasicReturnEventArgs args)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.OnBasicReturn(args);
-        }
-
-        public void OnCallbackException(CallbackExceptionEventArgs args)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.OnCallbackException(args);
-        }
-
-        public void OnFlowControl(FlowControlEventArgs args)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.OnFlowControl(args);
-        }
-
-        public void OnModelShutdown(ShutdownEventArgs reason)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.OnModelShutdown(reason);
-        }
-
-        public void OnSessionShutdown(ISession session, ShutdownEventArgs reason)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.OnSessionShutdown(session, reason);
-        }
-
-        public bool SetCloseReason(ShutdownEventArgs reason)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            return _delegate.SetCloseReason(reason);
-        }
-
         public override string ToString()
         {
             if (_disposed)
@@ -647,8 +518,7 @@ namespace RabbitMQ.Client.Impl
             _delegate.ConnectionTuneOk(channelMax, frameMax, heartbeat);
         }
 
-        public void HandleBasicAck(ulong deliveryTag,
-            bool multiple)
+        public void HandleBasicAck(ulong deliveryTag, bool multiple)
         {
             if (_disposed)
             {
@@ -694,15 +564,15 @@ namespace RabbitMQ.Client.Impl
             string exchange,
             string routingKey,
             IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body)
+            ReadOnlyMemory<byte> body,
+            byte[] rentedArray)
         {
             if (_disposed)
             {
                 throw new ObjectDisposedException(GetType().FullName);
             }
 
-            _delegate.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange,
-                routingKey, basicProperties, body);
+            _delegate.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body, rentedArray);
         }
 
         public void HandleBasicGetEmpty()
@@ -721,15 +591,15 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             uint messageCount,
             IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body)
+            ReadOnlyMemory<byte> body,
+            byte[] rentedArray)
         {
             if (_disposed)
             {
                 throw new ObjectDisposedException(GetType().FullName);
             }
 
-            _delegate.HandleBasicGetOk(deliveryTag, redelivered, exchange, routingKey,
-                messageCount, basicProperties, body);
+            _delegate.HandleBasicGetOk(deliveryTag, redelivered, exchange, routingKey, messageCount, basicProperties, body, rentedArray);
         }
 
         public void HandleBasicNack(ulong deliveryTag,
@@ -759,15 +629,15 @@ namespace RabbitMQ.Client.Impl
             string exchange,
             string routingKey,
             IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body)
+            ReadOnlyMemory<byte> body,
+            byte[] rentedArray)
         {
             if (_disposed)
             {
                 throw new ObjectDisposedException(GetType().FullName);
             }
 
-            _delegate.HandleBasicReturn(replyCode, replyText, exchange,
-                routingKey, basicProperties, body);
+            _delegate.HandleBasicReturn(replyCode, replyText, exchange, routingKey, basicProperties, body, rentedArray);
         }
 
         public void HandleChannelClose(ushort replyCode,

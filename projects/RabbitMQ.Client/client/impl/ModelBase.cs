@@ -1,5 +1,5 @@
 // This source code is dual-licensed under the Apache License, version
-// 2.0, and the Mozilla Public License, version 1.1.
+// 2.0, and the Mozilla Public License, version 2.0.
 //
 // The APL v2.0:
 //
@@ -19,26 +19,18 @@
 //   limitations under the License.
 //---------------------------------------------------------------------------
 //
-// The MPL v1.1:
+// The MPL v2.0:
 //
 //---------------------------------------------------------------------------
-//  The contents of this file are subject to the Mozilla Public License
-//  Version 1.1 (the "License"); you may not use this file except in
-//  compliance with the License. You may obtain a copy of the License
-//  at https://www.mozilla.org/MPL/
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-//  Software distributed under the License is distributed on an "AS IS"
-//  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
-//  the License for the specific language governing rights and
-//  limitations under the License.
-//
-//  The Original Code is RabbitMQ.
-//
-//  The Initial Developer of the Original Code is Pivotal Software, Inc.
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -296,7 +288,7 @@ namespace RabbitMQ.Client.Impl
             return k.m_result;
         }
 
-        public abstract bool DispatchAsynchronous(Command cmd);
+        public abstract bool DispatchAsynchronous(in IncomingCommand cmd);
 
         public void Enqueue(IRpcContinuation k)
         {
@@ -330,10 +322,12 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public void HandleCommand(ISession session, Command cmd)
+        public void HandleCommand(in IncomingCommand cmd)
         {
-            if (!DispatchAsynchronous(cmd))// Was asynchronous. Already processed. No need to process further.
-                _continuationQueue.Next().HandleCommand(cmd);
+            if (!DispatchAsynchronous(in cmd)) // Was asynchronous. Already processed. No need to process further.
+            {
+                _continuationQueue.Next().HandleCommand(in cmd);
+            }
         }
 
         public MethodBase ModelRpc(MethodBase method, ContentHeaderBase header, byte[] body)
@@ -341,7 +335,7 @@ namespace RabbitMQ.Client.Impl
             var k = new SimpleBlockingRpcContinuation();
             lock (_rpcLock)
             {
-                TransmitAndEnqueue(new Command(method, header, body, false), k);
+                TransmitAndEnqueue(new OutgoingCommand(method, header, body), k);
                 return k.GetReply(ContinuationTimeout).Method;
             }
         }
@@ -351,46 +345,12 @@ namespace RabbitMQ.Client.Impl
             if (method.HasContent)
             {
                 _flowControlBlock.Wait();
-                Session.Transmit(new Command(method, header, body, false));
+                Session.Transmit(new OutgoingCommand(method, header, body));
             }
             else
             {
-                Session.Transmit(new Command(method, header, body, false));
+                Session.Transmit(new OutgoingCommand(method, header, body));
             }
-        }
-
-        public virtual void OnBasicAck(BasicAckEventArgs args)
-        {
-            foreach (EventHandler<BasicAckEventArgs> h in BasicAcks?.GetInvocationList() ?? Array.Empty<Delegate>())
-            {
-                try
-                {
-                    h(this, args);
-                }
-                catch (Exception e)
-                {
-                    OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnBasicAck"));
-                }
-            }
-
-            handleAckNack(args.DeliveryTag, args.Multiple, false);
-        }
-
-        public virtual void OnBasicNack(BasicNackEventArgs args)
-        {
-            foreach (EventHandler<BasicNackEventArgs> h in BasicNacks?.GetInvocationList() ?? Array.Empty<Delegate>())
-            {
-                try
-                {
-                    h(this, args);
-                }
-                catch (Exception e)
-                {
-                    OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnBasicNack"));
-                }
-            }
-
-            handleAckNack(args.DeliveryTag, args.Multiple, true);
         }
 
         public virtual void OnBasicRecoverOk(EventArgs args)
@@ -404,21 +364,6 @@ namespace RabbitMQ.Client.Impl
                 catch (Exception e)
                 {
                     OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnBasicRecover"));
-                }
-            }
-        }
-
-        public virtual void OnBasicReturn(BasicReturnEventArgs args)
-        {
-            foreach (EventHandler<BasicReturnEventArgs> h in BasicReturn?.GetInvocationList() ?? Array.Empty<Delegate>())
-            {
-                try
-                {
-                    h(this, args);
-                }
-                catch (Exception e)
-                {
-                    OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnBasicReturn"));
                 }
             }
         }
@@ -539,7 +484,7 @@ namespace RabbitMQ.Client.Impl
             return Session.ToString();
         }
 
-        public void TransmitAndEnqueue(Command cmd, IRpcContinuation k)
+        public void TransmitAndEnqueue(in OutgoingCommand cmd, IRpcContinuation k)
         {
             Enqueue(k);
             Session.Transmit(cmd);
@@ -565,15 +510,102 @@ namespace RabbitMQ.Client.Impl
             uint frameMax,
             ushort heartbeat);
 
-        public void HandleBasicAck(ulong deliveryTag,
-            bool multiple)
+        public void HandleBasicAck(ulong deliveryTag, bool multiple)
         {
-            var e = new BasicAckEventArgs
+            var @event = BasicAcks;
+            if (@event != null)
             {
-                DeliveryTag = deliveryTag,
-                Multiple = multiple
-            };
-            OnBasicAck(e);
+                var args = new BasicAckEventArgs
+                {
+                    DeliveryTag = deliveryTag,
+                    Multiple = multiple
+                };
+                foreach (EventHandler<BasicAckEventArgs> h in @event.GetInvocationList())
+                {
+                    try
+                    {
+                        h(this, args);
+                    }
+                    catch (Exception e)
+                    {
+                        OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnBasicAck"));
+                    }
+                }
+            }
+
+            HandleAckNack(deliveryTag, multiple, false);
+        }
+
+        public void HandleBasicNack(ulong deliveryTag, bool multiple, bool requeue)
+        {
+            var @event = BasicNacks;
+            if (@event != null)
+            {
+                var args = new BasicNackEventArgs
+                {
+                    DeliveryTag = deliveryTag,
+                    Multiple = multiple,
+                    Requeue = requeue
+                };
+                foreach (EventHandler<BasicNackEventArgs> h in @event.GetInvocationList())
+                {
+                    try
+                    {
+                        h(this, args);
+                    }
+                    catch (Exception e1)
+                    {
+                        OnCallbackException(CallbackExceptionEventArgs.Build(e1, "OnBasicNack"));
+                    }
+                }
+            }
+
+            HandleAckNack(deliveryTag, multiple, true);
+        }
+
+        protected void HandleAckNack(ulong deliveryTag, bool multiple, bool isNack)
+        {
+            // No need to do this if publisher confirms have never been enabled.
+            if (NextPublishSeqNo > 0)
+            {
+                // let's take a lock so we can assume that deliveryTags are unique, never duplicated and always sorted
+                lock (_confirmLock)
+                {
+                    // No need to do anything if there are no delivery tags in the list
+                    if (_pendingDeliveryTags.Count > 0)
+                    {
+                        if (multiple)
+                        {
+                            int count = 0;
+                            while (_pendingDeliveryTags.First.Value < deliveryTag)
+                            {
+                                _pendingDeliveryTags.RemoveFirst();
+                                count++;
+                            }
+
+                            if (_pendingDeliveryTags.First.Value == deliveryTag)
+                            {
+                                _pendingDeliveryTags.RemoveFirst();
+                                count++;
+                            }
+
+                            if (count > 0)
+                            {
+                                _deliveryTagsCountdown.Signal(count);
+                            }
+                        }
+                        else
+                        {
+                            if (_pendingDeliveryTags.Remove(deliveryTag))
+                            {
+                                _deliveryTagsCountdown.Signal();
+                            }
+                        }
+                    }
+
+                    _onlyAcksReceived = _onlyAcksReceived && !isNack;
+                }
+            }
         }
 
         public void HandleBasicCancel(string consumerTag, bool nowait)
@@ -608,7 +640,7 @@ namespace RabbitMQ.Client.Impl
                 _consumers.Remove(consumerTag);
             }
             ConsumerDispatcher.HandleBasicCancelOk(k.m_consumer, consumerTag);
-            k.HandleCommand(null); // release the continuation.
+            k.HandleCommand(IncomingCommand.Empty); // release the continuation.
         }
 
         public void HandleBasicConsumeOk(string consumerTag)
@@ -621,7 +653,7 @@ namespace RabbitMQ.Client.Impl
                 _consumers[consumerTag] = k.m_consumer;
             }
             ConsumerDispatcher.HandleBasicConsumeOk(k.m_consumer, consumerTag);
-            k.HandleCommand(null); // release the continuation.
+            k.HandleCommand(IncomingCommand.Empty); // release the continuation.
         }
 
         public virtual void HandleBasicDeliver(string consumerTag,
@@ -630,7 +662,8 @@ namespace RabbitMQ.Client.Impl
             string exchange,
             string routingKey,
             IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body)
+            ReadOnlyMemory<byte> body,
+            byte[] rentedArray)
         {
             IBasicConsumer consumer;
             lock (_consumers)
@@ -656,14 +689,15 @@ namespace RabbitMQ.Client.Impl
                     exchange,
                     routingKey,
                     basicProperties,
-                    body.Span);
+                    body,
+                    rentedArray);
         }
 
         public void HandleBasicGetEmpty()
         {
             var k = (BasicGetRpcContinuation)_continuationQueue.Next();
             k.m_result = null;
-            k.HandleCommand(null); // release the continuation.
+            k.HandleCommand(IncomingCommand.Empty); // release the continuation.
         }
 
         public virtual void HandleBasicGetOk(ulong deliveryTag,
@@ -672,37 +706,19 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             uint messageCount,
             IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body)
+            ReadOnlyMemory<byte> body,
+            byte[] rentedArray)
         {
             var k = (BasicGetRpcContinuation)_continuationQueue.Next();
-            k.m_result = new BasicGetResult(deliveryTag,
-                redelivered,
-                exchange,
-                routingKey,
-                messageCount,
-                basicProperties,
-                body);
-            k.HandleCommand(null); // release the continuation.
-        }
-
-        public void HandleBasicNack(ulong deliveryTag,
-            bool multiple,
-            bool requeue)
-        {
-            var e = new BasicNackEventArgs
-            {
-                DeliveryTag = deliveryTag,
-                Multiple = multiple,
-                Requeue = requeue
-            };
-            OnBasicNack(e);
+            k.m_result = new BasicGetResult(deliveryTag, redelivered, exchange, routingKey, messageCount, basicProperties, body, rentedArray);
+            k.HandleCommand(IncomingCommand.Empty); // release the continuation.
         }
 
         public void HandleBasicRecoverOk()
         {
             var k = (SimpleBlockingRpcContinuation)_continuationQueue.Next();
-            OnBasicRecoverOk(new EventArgs());
-            k.HandleCommand(null);
+            OnBasicRecoverOk(EventArgs.Empty);
+            k.HandleCommand(IncomingCommand.Empty);
         }
 
         public void HandleBasicReturn(ushort replyCode,
@@ -710,18 +726,34 @@ namespace RabbitMQ.Client.Impl
             string exchange,
             string routingKey,
             IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body)
+            ReadOnlyMemory<byte> body,
+            byte[] rentedArray)
         {
-            var e = new BasicReturnEventArgs
+            var @event = BasicReturn;
+            if (@event != null)
             {
-                ReplyCode = replyCode,
-                ReplyText = replyText,
-                Exchange = exchange,
-                RoutingKey = routingKey,
-                BasicProperties = basicProperties,
-                Body = body
-            };
-            OnBasicReturn(e);
+                var e = new BasicReturnEventArgs
+                {
+                    ReplyCode = replyCode,
+                    ReplyText = replyText,
+                    Exchange = exchange,
+                    RoutingKey = routingKey,
+                    BasicProperties = basicProperties,
+                    Body = body
+                };
+                foreach (EventHandler<BasicReturnEventArgs> h in @event.GetInvocationList())
+                {
+                    try
+                    {
+                        h(this, e);
+                    }
+                    catch (Exception e1)
+                    {
+                        OnCallbackException(CallbackExceptionEventArgs.Build(e1, "OnBasicReturn"));
+                    }
+                }
+            }
+            ArrayPool<byte>.Shared.Return(rentedArray);
         }
 
         public void HandleChannelClose(ushort replyCode,
@@ -807,7 +839,7 @@ namespace RabbitMQ.Client.Impl
             k.m_redirect = false;
             k.m_host = null;
             k.m_knownHosts = knownHosts;
-            k.HandleCommand(null); // release the continuation.
+            k.HandleCommand(IncomingCommand.Empty); // release the continuation.
         }
 
         public void HandleConnectionSecure(byte[] challenge)
@@ -817,7 +849,7 @@ namespace RabbitMQ.Client.Impl
             {
                 m_challenge = challenge
             };
-            k.HandleCommand(null); // release the continuation.
+            k.HandleCommand(IncomingCommand.Empty); // release the continuation.
         }
 
         public void HandleConnectionStart(byte versionMajor,
@@ -860,7 +892,7 @@ namespace RabbitMQ.Client.Impl
                     m_heartbeatInSeconds = heartbeatInSeconds
                 }
             };
-            k.HandleCommand(null); // release the continuation.
+            k.HandleCommand(IncomingCommand.Empty); // release the continuation.
         }
 
         public void HandleConnectionUnblocked()
@@ -876,7 +908,7 @@ namespace RabbitMQ.Client.Impl
         {
             var k = (QueueDeclareRpcContinuation)_continuationQueue.Next();
             k.m_result = new QueueDeclareOk(queue, messageCount, consumerCount);
-            k.HandleCommand(null); // release the continuation.
+            k.HandleCommand(IncomingCommand.Empty); // release the continuation.
         }
 
         public abstract void _Private_BasicCancel(string consumerTag,
@@ -1058,8 +1090,7 @@ namespace RabbitMQ.Client.Impl
             return actualConsumerTag;
         }
 
-        public BasicGetResult BasicGet(string queue,
-            bool autoAck)
+        public BasicGetResult BasicGet(string queue, bool autoAck)
         {
             var k = new BasicGetRpcContinuation();
             lock (_rpcLock)
@@ -1424,42 +1455,11 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        internal void SendCommands(IList<Command> commands)
+        internal void SendCommands(IList<OutgoingCommand> commands)
         {
             _flowControlBlock.Wait();
             AllocatePublishSeqNos(commands.Count);
             Session.Transmit(commands);
-        }
-
-        protected virtual void handleAckNack(ulong deliveryTag, bool multiple, bool isNack)
-        {
-            // No need to do this if publisher confirms have never been enabled.
-            if (NextPublishSeqNo > 0)
-            {
-                // let's take a lock so we can assume that deliveryTags are unique, never duplicated and always sorted
-                lock (_confirmLock)
-                {
-                    // No need to do anything if there are no delivery tags in the list
-                    if (_pendingDeliveryTags.Count > 0)
-                    {
-                        if (multiple)
-                        {
-                            while (_pendingDeliveryTags.First.Value < deliveryTag)
-                            {
-                                _pendingDeliveryTags.RemoveFirst();
-                                _deliveryTagsCountdown.Signal();
-                            }
-                        }
-
-                        if (_pendingDeliveryTags.Remove(deliveryTag))
-                        {
-                            _deliveryTagsCountdown.Signal();
-                        }
-                    }
-
-                    _onlyAcksReceived = _onlyAcksReceived && !isNack;
-                }
-            }
         }
 
         private QueueDeclareOk QueueDeclare(string queue, bool passive, bool durable, bool exclusive,
