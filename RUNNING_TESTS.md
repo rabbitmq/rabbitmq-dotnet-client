@@ -49,7 +49,7 @@ invoked directly without using an absolute file path. Note that this method does
 On Windows, you must run unit tests as follows (replace `X.Y.Z` with your RabbitMQ version):
 
 ```
-set RABBITMQ_RABBITMQCTL_PATH="C:\Program Files\RabbitMQ Server\rabbitmq_server-X.Y.Z\sbin\rabbitmqctl.bat"
+set "RABBITMQ_RABBITMQCTL_PATH=C:\Program Files\RabbitMQ Server\rabbitmq_server-X.Y.Z\sbin\rabbitmqctl.bat"
 .\run-test.bat
 ```
 
