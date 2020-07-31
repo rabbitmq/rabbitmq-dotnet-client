@@ -50,9 +50,10 @@ namespace RabbitMQ.Client
         public virtual System.Threading.Tasks.Task HandleModelShutdown(object model, RabbitMQ.Client.ShutdownEventArgs reason) { }
         public virtual System.Threading.Tasks.Task OnCancel(params string[] consumerTags) { }
     }
-    public class BasicGetResult
+    public sealed class BasicGetResult : System.IDisposable
     {
         public BasicGetResult(ulong deliveryTag, bool redelivered, string exchange, string routingKey, uint messageCount, RabbitMQ.Client.IBasicProperties basicProperties, System.ReadOnlyMemory<byte> body) { }
+        public BasicGetResult(ulong deliveryTag, bool redelivered, string exchange, string routingKey, uint messageCount, RabbitMQ.Client.IBasicProperties basicProperties, System.ReadOnlyMemory<byte> body, byte[] rentedArray) { }
         public RabbitMQ.Client.IBasicProperties BasicProperties { get; }
         public System.ReadOnlyMemory<byte> Body { get; }
         public ulong DeliveryTag { get; }
@@ -60,6 +61,7 @@ namespace RabbitMQ.Client
         public uint MessageCount { get; }
         public bool Redelivered { get; }
         public string RoutingKey { get; }
+        public void Dispose() { }
     }
     public class BinaryTableValue
     {
@@ -83,6 +85,7 @@ namespace RabbitMQ.Client
         public bool AutomaticRecoveryEnabled { get; set; }
         public System.Collections.Generic.IDictionary<string, object> ClientProperties { get; set; }
         public string ClientProvidedName { get; set; }
+        public int ConsumerDispatchConcurrency { get; set; }
         public System.TimeSpan ContinuationTimeout { get; set; }
         public bool DispatchConsumersAsync { get; set; }
         public RabbitMQ.Client.AmqpTcpEndpoint Endpoint { get; set; }
@@ -92,7 +95,6 @@ namespace RabbitMQ.Client
         public System.TimeSpan NetworkRecoveryInterval { get; set; }
         public string Password { get; set; }
         public int Port { get; set; }
-        public int ProcessingConcurrency { get; set; }
         public ushort RequestedChannelMax { get; set; }
         public System.TimeSpan RequestedConnectionTimeout { get; set; }
         public uint RequestedFrameMax { get; set; }
@@ -334,6 +336,7 @@ namespace RabbitMQ.Client
     {
         System.Collections.Generic.IDictionary<string, object> ClientProperties { get; set; }
         string ClientProvidedName { get; set; }
+        int ConsumerDispatchConcurrency { get; set; }
         System.TimeSpan ContinuationTimeout { get; set; }
         System.TimeSpan HandshakeContinuationTimeout { get; set; }
         string Password { get; set; }

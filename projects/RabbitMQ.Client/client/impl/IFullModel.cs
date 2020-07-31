@@ -1,5 +1,5 @@
 // This source code is dual-licensed under the Apache License, version
-// 2.0, and the Mozilla Public License, version 1.1.
+// 2.0, and the Mozilla Public License, version 2.0.
 //
 // The APL v2.0:
 //
@@ -19,22 +19,13 @@
 //   limitations under the License.
 //---------------------------------------------------------------------------
 //
-// The MPL v1.1:
+// The MPL v2.0:
 //
 //---------------------------------------------------------------------------
-//  The contents of this file are subject to the Mozilla Public License
-//  Version 1.1 (the "License"); you may not use this file except in
-//  compliance with the License. You may obtain a copy of the License
-//  at https://www.mozilla.org/MPL/
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-//  Software distributed under the License is distributed on an "AS IS"
-//  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
-//  the License for the specific language governing rights and
-//  limitations under the License.
-//
-//  The Original Code is RabbitMQ.
-//
-//  The Initial Developer of the Original Code is Pivotal Software, Inc.
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
@@ -68,19 +59,6 @@ namespace RabbitMQ.Client.Impl
             uint frameMax,
             ushort heartbeat);
 
-        ///<summary>Handle incoming Basic.Ack methods. Signals a
-        ///BasicAckEvent.</summary>
-        void HandleBasicAck(ulong deliveryTag,
-            bool multiple);
-
-        void HandleBasicCancel(string consumerTag, bool nowait);
-
-        ///<summary>Handle incoming Basic.CancelOk methods.</summary>
-        void HandleBasicCancelOk(string consumerTag);
-
-        ///<summary>Handle incoming Basic.ConsumeOk methods.</summary>
-        void HandleBasicConsumeOk(string consumerTag);
-
         ///<summary>Handle incoming Basic.Deliver methods. Dispatches
         ///to waiting consumers.</summary>
         void HandleBasicDeliver(string consumerTag,
@@ -89,7 +67,20 @@ namespace RabbitMQ.Client.Impl
             string exchange,
             string routingKey,
             [AmqpContentHeaderMapping] IBasicProperties basicProperties,
-            [AmqpContentBodyMapping] ReadOnlyMemory<byte> body);
+            [AmqpContentBodyMapping] ReadOnlyMemory<byte> body,
+            [AmqpContentBodyArrayMapping] byte[] rentedArray);
+
+        ///<summary>Handle incoming Basic.Ack methods. Signals a
+        ///BasicAckEvent.</summary>
+        void HandleBasicAck(ulong deliveryTag, bool multiple);
+
+        void HandleBasicCancel(string consumerTag, bool nowait);
+
+        ///<summary>Handle incoming Basic.CancelOk methods.</summary>
+        void HandleBasicCancelOk(string consumerTag);
+
+        ///<summary>Handle incoming Basic.ConsumeOk methods.</summary>
+        void HandleBasicConsumeOk(string consumerTag);
 
         ///<summary>Handle incoming Basic.GetEmpty methods. Routes the
         ///information to a waiting Basic.Get continuation.</summary>
@@ -108,7 +99,8 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             uint messageCount,
             [AmqpContentHeaderMapping] IBasicProperties basicProperties,
-            [AmqpContentBodyMapping] ReadOnlyMemory<byte> body);
+            [AmqpContentBodyMapping] ReadOnlyMemory<byte> body,
+            [AmqpContentBodyArrayMapping] byte[] rentedArray);
 
         ///<summary>Handle incoming Basic.Nack methods. Signals a
         ///BasicNackEvent.</summary>
@@ -128,7 +120,8 @@ namespace RabbitMQ.Client.Impl
             string exchange,
             string routingKey,
             [AmqpContentHeaderMapping] IBasicProperties basicProperties,
-            [AmqpContentBodyMapping] ReadOnlyMemory<byte> body);
+            [AmqpContentBodyMapping] ReadOnlyMemory<byte> body,
+            [AmqpContentBodyArrayMapping] byte[] takeoverPayload);
 
         ///<summary>Handle an incoming Channel.Close. Shuts down the
         ///session and model.</summary>
@@ -560,6 +553,12 @@ namespace RabbitMQ.Client.Apigen.Attributes
     ///content-carrying IModel method, causes it to be sent as part of
     ///the content body frame.</summary>
     class AmqpContentBodyMappingAttribute : Attribute
+    {
+    }
+
+    ///<summary>This attribute, if placed on a parameter in a
+    ///content-carrying IModel method, causes it to be calling TakeoverPayload.</summary>
+    class AmqpContentBodyArrayMappingAttribute : Attribute
     {
     }
 

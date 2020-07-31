@@ -1,5 +1,5 @@
 // This source code is dual-licensed under the Apache License, version
-// 2.0, and the Mozilla Public License, version 1.1.
+// 2.0, and the Mozilla Public License, version 2.0.
 //
 // The APL v2.0:
 //
@@ -19,22 +19,13 @@
 //   limitations under the License.
 //---------------------------------------------------------------------------
 //
-// The MPL v1.1:
+// The MPL v2.0:
 //
 //---------------------------------------------------------------------------
-//  The contents of this file are subject to the Mozilla Public License
-//  Version 1.1 (the "License"); you may not use this file except in
-//  compliance with the License. You may obtain a copy of the License
-//  at https://www.mozilla.org/MPL/
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-//  Software distributed under the License is distributed on an "AS IS"
-//  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
-//  the License for the specific language governing rights and
-//  limitations under the License.
-//
-//  The Original Code is RabbitMQ.
-//
-//  The Initial Developer of the Original Code is Pivotal Software, Inc.
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
@@ -44,12 +35,14 @@ using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
-    interface ISession
+    internal delegate void CommandReceivedAction(in IncomingCommand cmd);
+
+    internal interface ISession
     {
         /// <summary>
         /// Gets the channel number.
         /// </summary>
-        int ChannelNumber { get; }
+        ushort ChannelNumber { get; }
 
         /// <summary>
         /// Gets the close reason.
@@ -59,7 +52,7 @@ namespace RabbitMQ.Client.Impl
         ///<summary>
         /// Single recipient - no need for multiple handlers to be informed of arriving commands.
         ///</summary>
-        Action<ISession, Command> CommandReceived { get; set; }
+        CommandReceivedAction CommandReceived { get; set; }
 
         /// <summary>
         /// Gets the connection.
@@ -78,9 +71,10 @@ namespace RabbitMQ.Client.Impl
 
         void Close(ShutdownEventArgs reason);
         void Close(ShutdownEventArgs reason, bool notify);
-        void HandleFrame(in InboundFrame frame);
+        bool HandleFrame(in InboundFrame frame);
         void Notify();
-        void Transmit(Command cmd);
-        void Transmit(IList<Command> cmd);
+        void Transmit(in OutgoingCommand cmd);
+        void Transmit(IList<OutgoingCommand> cmds);
+
     }
 }

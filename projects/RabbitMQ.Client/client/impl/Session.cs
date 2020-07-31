@@ -1,5 +1,5 @@
 // This source code is dual-licensed under the Apache License, version
-// 2.0, and the Mozilla Public License, version 1.1.
+// 2.0, and the Mozilla Public License, version 2.0.
 //
 // The APL v2.0:
 //
@@ -19,22 +19,13 @@
 //   limitations under the License.
 //---------------------------------------------------------------------------
 //
-// The MPL v1.1:
+// The MPL v2.0:
 //
 //---------------------------------------------------------------------------
-//  The contents of this file are subject to the Mozilla Public License
-//  Version 1.1 (the "License"); you may not use this file except in
-//  compliance with the License. You may obtain a copy of the License
-//  at https://www.mozilla.org/MPL/
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-//  Software distributed under the License is distributed on an "AS IS"
-//  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
-//  the License for the specific language governing rights and
-//  limitations under the License.
-//
-//  The Original Code is RabbitMQ.
-//
-//  The Initial Developer of the Original Code is Pivotal Software, Inc.
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
@@ -43,26 +34,26 @@ using RabbitMQ.Client.Framing.Impl;
 namespace RabbitMQ.Client.Impl
 {
     ///<summary>Normal ISession implementation used during normal channel operation.</summary>
-    class Session : SessionBase
+    internal class Session : SessionBase
     {
         private readonly CommandAssembler _assembler;
 
-        public Session(Connection connection, int channelNumber)
+        public Session(Connection connection, ushort channelNumber)
             : base(connection, channelNumber)
         {
             _assembler = new CommandAssembler(connection.Protocol);
         }
 
-        public override void HandleFrame(in InboundFrame frame)
+        public override bool HandleFrame(in InboundFrame frame)
         {
-            Command cmd = _assembler.HandleFrame(in frame);
-            if (cmd != null)
+            var shallReturnFramePayload = _assembler.HandleFrame(in frame, out var cmd);
+
+            if (!cmd.IsEmpty)
             {
-                using (cmd)
-                {
-                    OnCommandReceived(cmd);
-                }
+                CommandReceived.Invoke(in cmd);
             }
+
+            return shallReturnFramePayload;
         }
     }
 }
