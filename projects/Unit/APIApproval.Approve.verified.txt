@@ -433,7 +433,7 @@ namespace RabbitMQ.Client
         void WaitForConfirmsOrDie();
         void WaitForConfirmsOrDie(System.TimeSpan timeout);
     }
-    public static class IModelExensions
+    public static class IModelExtensions
     {
         public static string BasicConsume(this RabbitMQ.Client.IModel model, string queue, bool autoAck, RabbitMQ.Client.IBasicConsumer consumer) { }
         public static string BasicConsume(this RabbitMQ.Client.IModel model, string queue, bool autoAck, string consumerTag, RabbitMQ.Client.IBasicConsumer consumer) { }

@@ -34,7 +34,7 @@ using System.Collections.Generic;
 
 namespace RabbitMQ.Client
 {
-    public static class IModelExensions
+    public static class IModelExtensions
     {
         /// <summary>Start a Basic content-class consumer.</summary>
         public static string BasicConsume(this IModel model,
