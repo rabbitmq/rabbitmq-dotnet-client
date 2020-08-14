@@ -60,12 +60,12 @@ namespace RabbitMQ.Client.Impl
             return Task.CompletedTask;
         }
 
-        class WorkPool
+        private class WorkPool
         {
             private readonly Channel<Action> _channel;
             private readonly int _concurrency;
             private Task _worker;
-            CancellationTokenSource _tokenSource;
+            private CancellationTokenSource _tokenSource;
             private SemaphoreSlim _limiter;
 
             public WorkPool(int concurrency)
@@ -93,7 +93,7 @@ namespace RabbitMQ.Client.Impl
                 _channel.Writer.TryWrite(action);
             }
 
-            async Task Loop()
+            private async Task Loop()
             {
                 while (await _channel.Reader.WaitToReadAsync().ConfigureAwait(false))
                 {
@@ -111,7 +111,7 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            async Task LoopWithConcurrency(CancellationToken cancellationToken)
+            private async Task LoopWithConcurrency(CancellationToken cancellationToken)
             {
                 try
                 {
@@ -135,7 +135,7 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            static async Task OffloadToWorkerThreadPool(Action action, SemaphoreSlim limiter)
+            private static async Task OffloadToWorkerThreadPool(Action action, SemaphoreSlim limiter)
             {
                 try
                 {

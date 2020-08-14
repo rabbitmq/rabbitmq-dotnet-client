@@ -31,7 +31,7 @@
 
 namespace RabbitMQ.Client.Impl
 {
-    abstract class MethodBase : IMethod
+    internal abstract class MethodBase : IMethod
     {
         public abstract bool HasContent { get; }
 

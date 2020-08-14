@@ -33,14 +33,14 @@ using System.Collections.Generic;
 
 namespace RabbitMQ.Util
 {
-    class SetQueue<T>
+    internal class SetQueue<T>
     {
         private readonly HashSet<T> _members = new HashSet<T>();
         private readonly LinkedList<T> _queue = new LinkedList<T>();
 
         public bool Enqueue(T item)
         {
-            if(_members.Contains(item))
+            if (_members.Contains(item))
             {
                 return false;
             }

@@ -1828,7 +1828,7 @@ namespace RabbitMQ.Client.Impl
                 throw new ObjectDisposedException(GetType().FullName);
             }
 
-            return ((IFullModel)_delegate).CreateBasicPublishBatch();
+            return _delegate.CreateBasicPublishBatch();
         }
 
         public IBasicPublishBatch CreateBasicPublishBatch(int sizeHint)
@@ -1838,7 +1838,7 @@ namespace RabbitMQ.Client.Impl
                 throw new ObjectDisposedException(GetType().FullName);
             }
 
-            return ((IFullModel)_delegate).CreateBasicPublishBatch(sizeHint);
+            return _delegate.CreateBasicPublishBatch(sizeHint);
         }
     }
 }

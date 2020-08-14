@@ -37,9 +37,7 @@ namespace RabbitMQ.Util
     /**
    * A class for allocating integer IDs in a given range.
    */
-
-
-    class IntAllocator
+    internal class IntAllocator
     {
         private readonly int[] _unsorted;
         private IntervalList _base;
