@@ -31,7 +31,6 @@
 
 using System;
 using System.Collections.Generic;
-using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
@@ -95,11 +94,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override void _Private_ChannelOpen(string outOfBand)
         {
-            MethodBase __repBase = ModelRpc(new ChannelOpen(outOfBand));
-            if (!(__repBase is ChannelOpenOk))
-            {
-                throw new UnexpectedMethodException(__repBase);
-            }
+            ModelRpc<ChannelOpenOk>(new ChannelOpen(outOfBand));
         }
 
         public override void _Private_ConfirmSelect(bool nowait)
@@ -111,21 +106,13 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             else
             {
-                MethodBase __repBase = ModelRpc(method);
-                if (!(__repBase is ConfirmSelectOk))
-                {
-                    throw new UnexpectedMethodException(__repBase);
-                }
+                ModelRpc<ConfirmSelectOk>(method);
             }
         }
 
         public override void _Private_ConnectionClose(ushort replyCode, string replyText, ushort classId, ushort methodId)
         {
-            MethodBase __repBase = ModelRpc(new ConnectionClose(replyCode, replyText, classId, methodId));
-            if (!(__repBase is ConnectionCloseOk))
-            {
-                throw new UnexpectedMethodException(__repBase);
-            }
+            ModelRpc<ConnectionCloseOk>(new ConnectionClose(replyCode, replyText, classId, methodId));
         }
 
         public override void _Private_ConnectionCloseOk()
@@ -150,11 +137,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override void _Private_UpdateSecret(byte[] newSecret, string reason)
         {
-            MethodBase __repBase = ModelRpc(new ConnectionUpdateSecret(newSecret, reason));
-            if (!(__repBase is ConnectionUpdateSecretOk))
-            {
-                throw new UnexpectedMethodException(__repBase);
-            }
+            ModelRpc<ConnectionUpdateSecretOk>(new ConnectionUpdateSecret(newSecret, reason));
         }
 
         public override void _Private_ExchangeBind(string destination, string source, string routingKey, bool nowait, IDictionary<string, object> arguments)
@@ -166,11 +149,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             else
             {
-                MethodBase __repBase = ModelRpc(method);
-                if (!(__repBase is ExchangeBindOk))
-                {
-                    throw new UnexpectedMethodException(__repBase);
-                }
+                ModelRpc<ExchangeBindOk>(method);
             }
         }
 
@@ -183,11 +162,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             else
             {
-                MethodBase __repBase = ModelRpc(method);
-                if (!(__repBase is ExchangeDeclareOk))
-                {
-                    throw new UnexpectedMethodException(__repBase);
-                }
+                ModelRpc<ExchangeDeclareOk>(method);
             }
         }
 
@@ -200,11 +175,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             else
             {
-                MethodBase __repBase = ModelRpc(method);
-                if (!(__repBase is ExchangeDeleteOk))
-                {
-                    throw new UnexpectedMethodException(__repBase);
-                }
+                ModelRpc<ExchangeDeleteOk>(method);
             }
         }
 
@@ -217,11 +188,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             else
             {
-                MethodBase __repBase = ModelRpc(method);
-                if (!(__repBase is ExchangeUnbindOk))
-                {
-                    throw new UnexpectedMethodException(__repBase);
-                }
+                ModelRpc<ExchangeUnbindOk>(method);
             }
         }
 
@@ -234,11 +201,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             else
             {
-                MethodBase __repBase = ModelRpc(method);
-                if (!(__repBase is QueueBindOk))
-                {
-                    throw new UnexpectedMethodException(__repBase);
-                }
+                ModelRpc<QueueBindOk>(method);
             }
         }
 
@@ -264,12 +227,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 return 0xFFFFFFFF;
             }
 
-            MethodBase __repBase = ModelRpc(method);
-            if (!(__repBase is QueueDeleteOk __rep))
-            {
-                throw new UnexpectedMethodException(__repBase);
-            }
-            return __rep._messageCount;
+            return ModelRpc<QueueDeleteOk>(method)._messageCount;
         }
 
         public override uint _Private_QueuePurge(string queue, bool nowait)
@@ -281,12 +239,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 return 0xFFFFFFFF;
             }
 
-            MethodBase __repBase = ModelRpc(method);
-            if (!(__repBase is QueuePurgeOk __rep))
-            {
-                throw new UnexpectedMethodException(__repBase);
-            }
-            return __rep._messageCount;
+            return ModelRpc<QueuePurgeOk>(method)._messageCount;
         }
 
         public override void BasicAck(ulong deliveryTag, bool multiple)
@@ -301,11 +254,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override void BasicQos(uint prefetchSize, ushort prefetchCount, bool global)
         {
-            MethodBase __repBase = ModelRpc(new BasicQos(prefetchSize, prefetchCount, global));
-            if (!(__repBase is BasicQosOk))
-            {
-                throw new UnexpectedMethodException(__repBase);
-            }
+            ModelRpc<BasicQosOk>(new BasicQos(prefetchSize, prefetchCount, global));
         }
 
         public override void BasicRecoverAsync(bool requeue)
@@ -325,38 +274,22 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override void QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
         {
-            MethodBase __repBase = ModelRpc(new QueueUnbind(default, queue, exchange, routingKey, arguments));
-            if (!(__repBase is QueueUnbindOk))
-            {
-                throw new UnexpectedMethodException(__repBase);
-            }
+            ModelRpc<QueueUnbindOk>(new QueueUnbind(default, queue, exchange, routingKey, arguments));
         }
 
         public override void TxCommit()
         {
-            MethodBase __repBase = ModelRpc(new TxCommit());
-            if (!(__repBase is TxCommitOk))
-            {
-                throw new UnexpectedMethodException(__repBase);
-            }
+            ModelRpc<TxCommitOk>(new TxCommit());
         }
 
         public override void TxRollback()
         {
-            MethodBase __repBase = ModelRpc(new TxRollback());
-            if (!(__repBase is TxRollbackOk))
-            {
-                throw new UnexpectedMethodException(__repBase);
-            }
+            ModelRpc<TxRollbackOk>(new TxRollback());
         }
 
         public override void TxSelect()
         {
-            MethodBase __repBase = ModelRpc(new TxSelect());
-            if (!(__repBase is TxSelectOk))
-            {
-                throw new UnexpectedMethodException(__repBase);
-            }
+            ModelRpc<TxSelectOk>(new TxSelect());
         }
 
         public override bool DispatchAsynchronous(in IncomingCommand cmd)

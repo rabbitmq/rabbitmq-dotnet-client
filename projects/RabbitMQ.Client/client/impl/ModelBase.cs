@@ -330,14 +330,23 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public MethodBase ModelRpc(MethodBase method)
+        public T ModelRpc<T>(MethodBase method) where T : MethodBase
         {
             var k = new SimpleBlockingRpcContinuation();
+            var outgoingCommand = new OutgoingCommand(method);
+            MethodBase baseResult;
             lock (_rpcLock)
             {
-                TransmitAndEnqueue(new OutgoingCommand(method), k);
-                return k.GetReply(ContinuationTimeout).Method;
+                TransmitAndEnqueue(outgoingCommand, k);
+                baseResult = k.GetReply(ContinuationTimeout).Method;
             }
+
+            if (baseResult is T result)
+            {
+                return result;
+            }
+
+            throw new UnexpectedMethodException(baseResult);
         }
 
         public void ModelSend(MethodBase method)
