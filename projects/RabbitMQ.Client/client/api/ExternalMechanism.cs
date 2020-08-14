@@ -29,6 +29,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+
 namespace RabbitMQ.Client
 {
     public class ExternalMechanism : IAuthMechanism
@@ -38,7 +40,7 @@ namespace RabbitMQ.Client
         /// </summary>
         public byte[] handleChallenge(byte[] challenge, IConnectionFactory factory)
         {
-            return new byte[0];
+            return Array.Empty<byte>();
         }
     }
 }

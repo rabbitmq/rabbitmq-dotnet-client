@@ -222,7 +222,7 @@ namespace RabbitMQ.Client
         /// </remarks>
         public static AmqpTcpEndpoint[] ParseMultiple(string addresses)
         {
-            string[] partsArr = addresses.Split(new[] {','});
+            string[] partsArr = addresses.Split(',');
             var results = new List<AmqpTcpEndpoint>();
             foreach (string partRaw in partsArr)
             {

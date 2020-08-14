@@ -32,7 +32,7 @@
 namespace RabbitMQ.Util
 {
     ///<summary>Used internally by class Either.</summary>
-    enum EitherAlternative
+    internal enum EitherAlternative
     {
         Left,
         Right
@@ -42,7 +42,7 @@ namespace RabbitMQ.Util
     ///<summary>Models the disjoint union of two alternatives, a
     ///"left" alternative and a "right" alternative.</summary>
     ///<remarks>Borrowed from ML, Haskell etc.</remarks>
-    class Either<L, R>
+    internal class Either<L, R>
     {
         ///<summary>Private constructor. Use the static methods Left, Right instead.</summary>
         private Either(EitherAlternative alternative, L valueL, R valueR)

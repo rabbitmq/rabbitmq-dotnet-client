@@ -100,7 +100,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             unchecked
             {
-                return (Major * 397) ^ Minor;
+                return (Major, Minor).GetHashCode();
             }
         }
 

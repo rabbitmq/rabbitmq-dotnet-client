@@ -8,7 +8,7 @@ namespace RabbitMQ.Client.Impl
     /// <summary>
     /// Simple wrapper around TcpClient.
     /// </summary>
-    class TcpClientAdapter : ITcpClient
+    internal class TcpClientAdapter : ITcpClient
     {
         private Socket _sock;
 
@@ -42,10 +42,7 @@ namespace RabbitMQ.Client.Impl
 
         public virtual void Close()
         {
-            if (_sock != null)
-            {
-                _sock.Dispose();
-            }
+            _sock?.Dispose();
             _sock = null;
         }
 
@@ -84,7 +81,10 @@ namespace RabbitMQ.Client.Impl
         {
             get
             {
-                if(_sock == null) return false;
+                if (_sock is null)
+                {
+                    return false;
+                }
                 return _sock.Connected;
             }
         }
@@ -105,7 +105,7 @@ namespace RabbitMQ.Client.Impl
 
         private void AssertSocket()
         {
-            if(_sock == null)
+            if (_sock is null)
             {
                 throw new InvalidOperationException("Cannot perform operation as socket is null");
             }

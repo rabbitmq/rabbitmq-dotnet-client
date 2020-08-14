@@ -1043,7 +1043,7 @@ namespace RabbitMQ.Client.Framing.Impl
             return request;
         }
 
-        void StartAndTune()
+        private void StartAndTune()
         {
             var connectionStartCell = new BlockingCell<ConnectionStartDetails>();
             _model0.m_connectionStartCell = connectionStartCell;

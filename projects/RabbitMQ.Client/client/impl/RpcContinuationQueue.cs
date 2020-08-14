@@ -43,7 +43,7 @@ namespace RabbitMQ.Client.Impl
     /// under a somewhat generous reading.
     ///</para>
     ///</remarks>
-    class RpcContinuationQueue
+    internal class RpcContinuationQueue
     {
         private class EmptyRpcContinuation : IRpcContinuation
         {
@@ -55,8 +55,9 @@ namespace RabbitMQ.Client.Impl
             {
             }
         }
-        static readonly EmptyRpcContinuation s_tmp = new EmptyRpcContinuation();
-        IRpcContinuation _outstandingRpc = s_tmp;
+
+        private static readonly EmptyRpcContinuation s_tmp = new EmptyRpcContinuation();
+        private IRpcContinuation _outstandingRpc = s_tmp;
 
         ///<summary>Enqueue a continuation, marking a pending RPC.</summary>
         ///<remarks>

@@ -9,9 +9,9 @@ namespace RabbitMQ.Client.Events
     {
         public static async Task InvokeAsync<TEvent>(this AsyncEventHandler<TEvent> eventHandler, object sender, TEvent @event) where TEvent : EventArgs
         {
-            if(eventHandler != null)
+            if (eventHandler != null)
             {
-                foreach(AsyncEventHandler<TEvent> handlerInstance in eventHandler.GetInvocationList())
+                foreach (AsyncEventHandler<TEvent> handlerInstance in eventHandler.GetInvocationList())
                 {
                     await handlerInstance(sender, @event).ConfigureAwait(false);
                 }
