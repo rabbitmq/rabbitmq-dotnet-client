@@ -36,444 +36,337 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal class Model: Client.Impl.ModelBase
+    internal class Model: ModelBase
     {
-        public Model(Client.Impl.ISession session): base(session) {}
-        public Model(Client.Impl.ISession session, ConsumerWorkService workService): base(session, workService) {}
-        public override void ConnectionTuneOk (ushort @channelMax, uint @frameMax, ushort @heartbeat)
+        public Model(ISession session)
+            : base(session)
         {
-            ConnectionTuneOk __req = new ConnectionTuneOk()
-            {
-                _channelMax = @channelMax,
-                _frameMax = @frameMax,
-                _heartbeat = @heartbeat,
-            };
-            ModelSend(__req,null,null);
         }
-        public override void _Private_BasicCancel (string @consumerTag, bool @nowait)
+
+        public Model(ISession session, ConsumerWorkService workService)
+            : base(session, workService)
         {
-            BasicCancel __req = new BasicCancel()
-            {
-                _consumerTag = @consumerTag,
-                _nowait = @nowait,
-            };
-            ModelSend(__req,null,null);
         }
-        public override void _Private_BasicConsume (string @queue, string @consumerTag, bool @noLocal, bool @autoAck, bool @exclusive, bool @nowait, IDictionary<string, object> @arguments)
+
+        public override void ConnectionTuneOk(ushort channelMax, uint frameMax, ushort heartbeat)
         {
-            BasicConsume __req = new BasicConsume()
-            {
-                _queue = @queue,
-                _consumerTag = @consumerTag,
-                _noLocal = @noLocal,
-                _noAck = @autoAck,
-                _exclusive = @exclusive,
-                _nowait = @nowait,
-                _arguments = @arguments,
-            };
-            ModelSend(__req,null,null);
+            ModelSend(new ConnectionTuneOk(channelMax, frameMax, heartbeat));
         }
-        public override void _Private_BasicGet (string @queue, bool @autoAck)
+
+        public override void _Private_BasicCancel(string consumerTag, bool nowait)
         {
-            BasicGet __req = new BasicGet()
-            {
-                _queue = @queue,
-                _noAck = @autoAck,
-            };
-            ModelSend(__req,null,null);
+            ModelSend(new BasicCancel(consumerTag, nowait));
         }
-        public override void _Private_BasicPublish (string @exchange, string @routingKey, bool @mandatory, RabbitMQ.Client.IBasicProperties @basicProperties, ReadOnlyMemory<byte> @body)
+
+        public override void _Private_BasicConsume(string queue, string consumerTag, bool noLocal, bool autoAck, bool exclusive, bool nowait, IDictionary<string, object> arguments)
         {
-            BasicPublish __req = new BasicPublish()
-            {
-                _exchange = @exchange,
-                _routingKey = @routingKey,
-                _mandatory = @mandatory,
-            };
-            ModelSend(__req, (BasicProperties) basicProperties,body);
+            ModelSend(new BasicConsume(default, queue, consumerTag, noLocal, autoAck, exclusive, nowait, arguments));
         }
-        public override void _Private_BasicRecover (bool @requeue)
+
+        public override void _Private_BasicGet(string queue, bool autoAck)
         {
-            BasicRecover __req = new BasicRecover()
-            {
-                _requeue = @requeue,
-            };
-            ModelSend(__req,null,null);
+            ModelSend(new BasicGet(default, queue, autoAck));
         }
-        public override void _Private_ChannelClose (ushort @replyCode, string @replyText, ushort @classId, ushort @methodId)
+
+        public override void _Private_BasicPublish(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
         {
-            ChannelClose __req = new ChannelClose()
-            {
-                _replyCode = @replyCode,
-                _replyText = @replyText,
-                _classId = @classId,
-                _methodId = @methodId,
-            };
-            ModelSend(__req,null,null);
+            ModelSend(new BasicPublish(default, exchange, routingKey, mandatory, default), (BasicProperties) basicProperties, body);
         }
-        public override void _Private_ChannelCloseOk ()
+
+        public override void _Private_BasicRecover(bool requeue)
         {
-            ChannelCloseOk __req = new ChannelCloseOk();
-            ModelSend(__req,null,null);
+            ModelSend(new BasicRecover(requeue));
         }
-        public override void _Private_ChannelFlowOk (bool @active)
+
+        public override void _Private_ChannelClose(ushort replyCode, string replyText, ushort classId, ushort methodId)
         {
-            ChannelFlowOk __req = new ChannelFlowOk()
-            {
-                _active = @active,
-            };
-            ModelSend(__req,null,null);
+            ModelSend(new ChannelClose(replyCode, replyText, classId, methodId));
         }
-        public override void _Private_ChannelOpen (string @outOfBand)
+
+        public override void _Private_ChannelCloseOk()
         {
-            ChannelOpen __req = new ChannelOpen()
-            {
-                _reserved1 = @outOfBand,
-            };
-            Client.Impl.MethodBase __repBase = ModelRpc(__req, null, null);
+            ModelSend(new ChannelCloseOk());
+        }
+
+        public override void _Private_ChannelFlowOk(bool active)
+        {
+            ModelSend(new ChannelFlowOk(active));
+        }
+
+        public override void _Private_ChannelOpen(string outOfBand)
+        {
+            MethodBase __repBase = ModelRpc(new ChannelOpen(outOfBand));
             if (!(__repBase is ChannelOpenOk))
             {
                 throw new UnexpectedMethodException(__repBase);
             }
         }
-        public override void _Private_ConfirmSelect (bool @nowait)
+
+        public override void _Private_ConfirmSelect(bool nowait)
         {
-            ConfirmSelect __req = new ConfirmSelect()
+            var method = new ConfirmSelect(nowait);
+            if (nowait)
             {
-                _nowait = @nowait,
-            };
-            if (nowait) {
-                ModelSend(__req,null,null);
-                return;
+                ModelSend(method);
             }
-            Client.Impl.MethodBase __repBase = ModelRpc(__req, null, null);
-            if (!(__repBase is ConfirmSelectOk))
+            else
             {
-                throw new UnexpectedMethodException(__repBase);
+                MethodBase __repBase = ModelRpc(method);
+                if (!(__repBase is ConfirmSelectOk))
+                {
+                    throw new UnexpectedMethodException(__repBase);
+                }
             }
         }
-        public override void _Private_ConnectionClose (ushort @replyCode, string @replyText, ushort @classId, ushort @methodId)
+
+        public override void _Private_ConnectionClose(ushort replyCode, string replyText, ushort classId, ushort methodId)
         {
-            ConnectionClose __req = new ConnectionClose()
-            {
-                _replyCode = @replyCode,
-                _replyText = @replyText,
-                _classId = @classId,
-                _methodId = @methodId,
-            };
-            Client.Impl.MethodBase __repBase = ModelRpc(__req, null, null);
+            MethodBase __repBase = ModelRpc(new ConnectionClose(replyCode, replyText, classId, methodId));
             if (!(__repBase is ConnectionCloseOk))
             {
                 throw new UnexpectedMethodException(__repBase);
             }
         }
-        public override void _Private_ConnectionCloseOk ()
+
+        public override void _Private_ConnectionCloseOk()
         {
-            ConnectionCloseOk __req = new ConnectionCloseOk();
-            ModelSend(__req,null,null);
+            ModelSend(new ConnectionCloseOk());
         }
-        public override void _Private_ConnectionOpen (string @virtualHost, string @capabilities, bool @insist)
+
+        public override void _Private_ConnectionOpen(string virtualHost, string capabilities, bool insist)
         {
-            ConnectionOpen __req = new ConnectionOpen()
-            {
-                _virtualHost = @virtualHost,
-                _reserved1 = @capabilities,
-                _reserved2 = @insist,
-            };
-            ModelSend(__req,null,null);
+            ModelSend(new ConnectionOpen(virtualHost, capabilities, insist));
         }
-        public override void _Private_ConnectionSecureOk (byte[] @response)
+
+        public override void _Private_ConnectionSecureOk(byte[] response)
         {
-            ConnectionSecureOk __req = new ConnectionSecureOk()
-            {
-                _response = @response,
-            };
-            ModelSend(__req,null,null);
+            ModelSend(new ConnectionSecureOk(response));
         }
-        public override void _Private_ConnectionStartOk (IDictionary<string, object> @clientProperties, string @mechanism, byte[] @response, string @locale)
+
+        public override void _Private_ConnectionStartOk(IDictionary<string, object> clientProperties, string mechanism, byte[] response, string locale)
         {
-            ConnectionStartOk __req = new ConnectionStartOk()
-            {
-                _clientProperties = @clientProperties,
-                _mechanism = @mechanism,
-                _response = @response,
-                _locale = @locale,
-            };
-            ModelSend(__req,null,null);
+            ModelSend(new ConnectionStartOk(clientProperties, mechanism, response, locale));
         }
-        public override void _Private_UpdateSecret (byte[] @newSecret, string @reason)
+
+        public override void _Private_UpdateSecret(byte[] newSecret, string reason)
         {
-            ConnectionUpdateSecret __req = new ConnectionUpdateSecret()
-            {
-                _newSecret = @newSecret,
-                _reason = @reason,
-            };
-            Client.Impl.MethodBase __repBase = ModelRpc(__req, null, null);
+            MethodBase __repBase = ModelRpc(new ConnectionUpdateSecret(newSecret, reason));
             if (!(__repBase is ConnectionUpdateSecretOk))
             {
                 throw new UnexpectedMethodException(__repBase);
             }
         }
-        public override void _Private_ExchangeBind (string @destination, string @source, string @routingKey, bool @nowait, IDictionary<string, object> @arguments)
+
+        public override void _Private_ExchangeBind(string destination, string source, string routingKey, bool nowait, IDictionary<string, object> arguments)
         {
-            ExchangeBind __req = new ExchangeBind()
+            ExchangeBind method = new ExchangeBind(default, destination, source, routingKey, nowait, arguments);
+            if (nowait)
             {
-                _destination = @destination,
-                _source = @source,
-                _routingKey = @routingKey,
-                _nowait = @nowait,
-                _arguments = @arguments,
-            };
-            if (nowait) {
-                ModelSend(__req,null,null);
-                return;
+                ModelSend(method);
             }
-            Client.Impl.MethodBase __repBase = ModelRpc(__req, null, null);
-            if (!(__repBase is ExchangeBindOk))
+            else
             {
-                throw new UnexpectedMethodException(__repBase);
+                MethodBase __repBase = ModelRpc(method);
+                if (!(__repBase is ExchangeBindOk))
+                {
+                    throw new UnexpectedMethodException(__repBase);
+                }
             }
         }
-        public override void _Private_ExchangeDeclare (string @exchange, string @type, bool @passive, bool @durable, bool @autoDelete, bool @internal, bool @nowait, IDictionary<string, object> @arguments)
+
+        public override void _Private_ExchangeDeclare(string exchange, string type, bool passive, bool durable, bool autoDelete, bool @internal, bool nowait, IDictionary<string, object> arguments)
         {
-            ExchangeDeclare __req = new ExchangeDeclare()
+            ExchangeDeclare method = new ExchangeDeclare(default, exchange, type, passive, durable, autoDelete, @internal, nowait, arguments);
+            if (nowait)
             {
-                _exchange = @exchange,
-                _type = @type,
-                _passive = @passive,
-                _durable = @durable,
-                _autoDelete = @autoDelete,
-                _internal = @internal,
-                _nowait = @nowait,
-                _arguments = @arguments,
-            };
-            if (nowait) {
-                ModelSend(__req,null,null);
-                return;
+                ModelSend(method);
             }
-            Client.Impl.MethodBase __repBase = ModelRpc(__req, null, null);
-            if (!(__repBase is ExchangeDeclareOk))
+            else
             {
-                throw new UnexpectedMethodException(__repBase);
+                MethodBase __repBase = ModelRpc(method);
+                if (!(__repBase is ExchangeDeclareOk))
+                {
+                    throw new UnexpectedMethodException(__repBase);
+                }
             }
         }
-        public override void _Private_ExchangeDelete (string @exchange, bool @ifUnused, bool @nowait)
+
+        public override void _Private_ExchangeDelete(string exchange, bool ifUnused, bool nowait)
         {
-            ExchangeDelete __req = new ExchangeDelete()
+            ExchangeDelete method = new ExchangeDelete(default, exchange, ifUnused, nowait);
+            if (nowait)
             {
-                _exchange = @exchange,
-                _ifUnused = @ifUnused,
-                _nowait = @nowait,
-            };
-            if (nowait) {
-                ModelSend(__req,null,null);
-                return;
+                ModelSend(method);
             }
-            Client.Impl.MethodBase __repBase = ModelRpc(__req, null, null);
-            if (!(__repBase is ExchangeDeleteOk))
+            else
             {
-                throw new UnexpectedMethodException(__repBase);
+                MethodBase __repBase = ModelRpc(method);
+                if (!(__repBase is ExchangeDeleteOk))
+                {
+                    throw new UnexpectedMethodException(__repBase);
+                }
             }
         }
-        public override void _Private_ExchangeUnbind (string @destination, string @source, string @routingKey, bool @nowait, IDictionary<string, object> @arguments)
+
+        public override void _Private_ExchangeUnbind(string destination, string source, string routingKey, bool nowait, IDictionary<string, object> arguments)
         {
-            ExchangeUnbind __req = new ExchangeUnbind()
+            ExchangeUnbind method = new ExchangeUnbind(default, destination, source, routingKey, nowait, arguments);
+            if (nowait)
             {
-                _destination = @destination,
-                _source = @source,
-                _routingKey = @routingKey,
-                _nowait = @nowait,
-                _arguments = @arguments,
-            };
-            if (nowait) {
-                ModelSend(__req,null,null);
-                return;
+                ModelSend(method);
             }
-            Client.Impl.MethodBase __repBase = ModelRpc(__req, null, null);
-            if (!(__repBase is ExchangeUnbindOk))
+            else
             {
-                throw new UnexpectedMethodException(__repBase);
+                MethodBase __repBase = ModelRpc(method);
+                if (!(__repBase is ExchangeUnbindOk))
+                {
+                    throw new UnexpectedMethodException(__repBase);
+                }
             }
         }
-        public override void _Private_QueueBind (string @queue, string @exchange, string @routingKey, bool @nowait, IDictionary<string, object> @arguments)
+
+        public override void _Private_QueueBind(string queue, string exchange, string routingKey, bool nowait, IDictionary<string, object> arguments)
         {
-            QueueBind __req = new QueueBind()
+            QueueBind method = new QueueBind(default, queue, exchange, routingKey, nowait, arguments);
+            if (nowait)
             {
-                _queue = @queue,
-                _exchange = @exchange,
-                _routingKey = @routingKey,
-                _nowait = @nowait,
-                _arguments = @arguments,
-            };
-            if (nowait) {
-                ModelSend(__req,null,null);
-                return;
+                ModelSend(method);
             }
-            Client.Impl.MethodBase __repBase = ModelRpc(__req, null, null);
-            if (!(__repBase is QueueBindOk))
+            else
             {
-                throw new UnexpectedMethodException(__repBase);
+                MethodBase __repBase = ModelRpc(method);
+                if (!(__repBase is QueueBindOk))
+                {
+                    throw new UnexpectedMethodException(__repBase);
+                }
             }
         }
-        public override void _Private_QueueDeclare (string @queue, bool @passive, bool @durable, bool @exclusive, bool @autoDelete, bool @nowait, IDictionary<string, object> @arguments)
+
+        public override void _Private_QueueDeclare(string queue, bool passive, bool durable, bool exclusive, bool autoDelete, bool nowait, IDictionary<string, object> arguments)
         {
-            QueueDeclare __req = new QueueDeclare()
+            QueueDeclare method = new QueueDeclare(default, queue, passive, durable, exclusive, autoDelete, nowait, arguments);
+            if (nowait)
             {
-                _queue = @queue,
-                _passive = @passive,
-                _durable = @durable,
-                _exclusive = @exclusive,
-                _autoDelete = @autoDelete,
-                _nowait = @nowait,
-                _arguments = @arguments,
-            };
-            if (nowait) {
-                ModelSend(__req,null,null);
-                return;
+                ModelSend(method);
             }
-            ModelSend(__req,null,null);
-        }
-        public override uint _Private_QueueDelete (string @queue, bool @ifUnused, bool @ifEmpty, bool @nowait)
-        {
-            QueueDelete __req = new QueueDelete()
+            else
             {
-                _queue = @queue,
-                _ifUnused = @ifUnused,
-                _ifEmpty = @ifEmpty,
-                _nowait = @nowait,
-            };
-            if (nowait) {
-                ModelSend(__req,null,null);
+                ModelSend(method);
+            }
+        }
+
+        public override uint _Private_QueueDelete(string queue, bool ifUnused, bool ifEmpty, bool nowait)
+        {
+            QueueDelete method = new QueueDelete(default, queue, ifUnused, ifEmpty, nowait);
+            if (nowait)
+            {
+                ModelSend(method);
                 return 0xFFFFFFFF;
             }
-            Client.Impl.MethodBase __repBase = ModelRpc(__req, null, null);
+
+            MethodBase __repBase = ModelRpc(method);
             if (!(__repBase is QueueDeleteOk __rep))
             {
                 throw new UnexpectedMethodException(__repBase);
             }
             return __rep._messageCount;
         }
-        public override uint _Private_QueuePurge (string @queue, bool @nowait)
+
+        public override uint _Private_QueuePurge(string queue, bool nowait)
         {
-            QueuePurge __req = new QueuePurge()
+            QueuePurge method = new QueuePurge(default, queue, nowait);
+            if (nowait)
             {
-                _queue = @queue,
-                _nowait = @nowait,
-            };
-            if (nowait) {
-                ModelSend(__req,null,null);
+                ModelSend(method);
                 return 0xFFFFFFFF;
             }
-            Client.Impl.MethodBase __repBase = ModelRpc(__req, null, null);
+
+            MethodBase __repBase = ModelRpc(method);
             if (!(__repBase is QueuePurgeOk __rep))
             {
                 throw new UnexpectedMethodException(__repBase);
             }
             return __rep._messageCount;
         }
-        public override void BasicAck (ulong @deliveryTag, bool @multiple)
+
+        public override void BasicAck(ulong deliveryTag, bool multiple)
         {
-            BasicAck __req = new BasicAck()
-            {
-                _deliveryTag = @deliveryTag,
-                _multiple = @multiple,
-            };
-            ModelSend(__req,null,null);
+            ModelSend(new BasicAck(deliveryTag, multiple));
         }
-        public override void BasicNack (ulong @deliveryTag, bool @multiple, bool @requeue)
+
+        public override void BasicNack(ulong deliveryTag, bool multiple, bool requeue)
         {
-            BasicNack __req = new BasicNack()
-            {
-                _deliveryTag = @deliveryTag,
-                _multiple = @multiple,
-                _requeue = @requeue,
-            };
-            ModelSend(__req,null,null);
+            ModelSend(new BasicNack(deliveryTag, multiple, requeue));
         }
-        public override void BasicQos (uint @prefetchSize, ushort @prefetchCount, bool @global)
+
+        public override void BasicQos(uint prefetchSize, ushort prefetchCount, bool global)
         {
-            BasicQos __req = new BasicQos()
-            {
-                _prefetchSize = @prefetchSize,
-                _prefetchCount = @prefetchCount,
-                _global = @global,
-            };
-            Client.Impl.MethodBase __repBase = ModelRpc(__req, null, null);
+            MethodBase __repBase = ModelRpc(new BasicQos(prefetchSize, prefetchCount, global));
             if (!(__repBase is BasicQosOk))
             {
                 throw new UnexpectedMethodException(__repBase);
             }
         }
-        public override void BasicRecoverAsync (bool @requeue)
+
+        public override void BasicRecoverAsync(bool requeue)
         {
-            BasicRecoverAsync __req = new BasicRecoverAsync()
-            {
-                _requeue = @requeue,
-            };
-            ModelSend(__req,null,null);
+            ModelSend(new BasicRecoverAsync(requeue));
         }
-        public override void BasicReject (ulong @deliveryTag, bool @requeue)
+
+        public override void BasicReject(ulong deliveryTag, bool requeue)
         {
-            BasicReject __req = new BasicReject()
-            {
-                _deliveryTag = @deliveryTag,
-                _requeue = @requeue,
-            };
-            ModelSend(__req,null,null);
+            ModelSend(new BasicReject(deliveryTag, requeue));
         }
-        public override RabbitMQ.Client.IBasicProperties CreateBasicProperties ()
+
+        public override IBasicProperties CreateBasicProperties()
         {
             return new BasicProperties();
         }
-        public override void QueueUnbind (string @queue, string @exchange, string @routingKey, IDictionary<string, object> @arguments)
+
+        public override void QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
         {
-            QueueUnbind __req = new QueueUnbind()
-            {
-                _queue = @queue,
-                _exchange = @exchange,
-                _routingKey = @routingKey,
-                _arguments = @arguments,
-            };
-            Client.Impl.MethodBase __repBase = ModelRpc(__req, null, null);
+            MethodBase __repBase = ModelRpc(new QueueUnbind(default, queue, exchange, routingKey, arguments));
             if (!(__repBase is QueueUnbindOk))
             {
                 throw new UnexpectedMethodException(__repBase);
             }
         }
-        public override void TxCommit ()
+
+        public override void TxCommit()
         {
-            TxCommit __req = new TxCommit();
-            Client.Impl.MethodBase __repBase = ModelRpc(__req, null, null);
+            MethodBase __repBase = ModelRpc(new TxCommit());
             if (!(__repBase is TxCommitOk))
             {
                 throw new UnexpectedMethodException(__repBase);
             }
         }
-        public override void TxRollback ()
+
+        public override void TxRollback()
         {
-            TxRollback __req = new TxRollback();
-            Client.Impl.MethodBase __repBase = ModelRpc(__req, null, null);
+            MethodBase __repBase = ModelRpc(new TxRollback());
             if (!(__repBase is TxRollbackOk))
             {
                 throw new UnexpectedMethodException(__repBase);
             }
         }
-        public override void TxSelect ()
+
+        public override void TxSelect()
         {
-            TxSelect __req = new TxSelect();
-            Client.Impl.MethodBase __repBase = ModelRpc(__req, null, null);
+            MethodBase __repBase = ModelRpc(new TxSelect());
             if (!(__repBase is TxSelectOk))
             {
                 throw new UnexpectedMethodException(__repBase);
             }
         }
-        public override bool DispatchAsynchronous(in IncomingCommand cmd) {
+
+        public override bool DispatchAsynchronous(in IncomingCommand cmd)
+        {
             switch ((cmd.Method.ProtocolClassId << 16) | cmd.Method.ProtocolMethodId)
             {
                 case (ClassConstants.Basic << 16) | BasicMethodConstants.Deliver:
                 {
                     var __impl = (BasicDeliver)cmd.Method;
-                    HandleBasicDeliver(__impl._consumerTag, __impl._deliveryTag, __impl._redelivered, __impl._exchange, __impl._routingKey, (RabbitMQ.Client.IBasicProperties) cmd.Header, cmd.Body, cmd.TakeoverPayload());
+                    HandleBasicDeliver(__impl._consumerTag, __impl._deliveryTag, __impl._redelivered, __impl._exchange, __impl._routingKey, (IBasicProperties) cmd.Header, cmd.Body, cmd.TakeoverPayload());
                     return true;
                 }
                 case (ClassConstants.Basic << 16) | BasicMethodConstants.Ack:
@@ -508,7 +401,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 case (ClassConstants.Basic << 16) | BasicMethodConstants.GetOk:
                 {
                     var __impl = (BasicGetOk)cmd.Method;
-                    HandleBasicGetOk(__impl._deliveryTag, __impl._redelivered, __impl._exchange, __impl._routingKey, __impl._messageCount, (RabbitMQ.Client.IBasicProperties) cmd.Header, cmd.Body, cmd.TakeoverPayload());
+                    HandleBasicGetOk(__impl._deliveryTag, __impl._redelivered, __impl._exchange, __impl._routingKey, __impl._messageCount, (IBasicProperties) cmd.Header, cmd.Body, cmd.TakeoverPayload());
                     return true;
                 }
                 case (ClassConstants.Basic << 16) | BasicMethodConstants.Nack:
@@ -525,7 +418,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 case (ClassConstants.Basic << 16) | BasicMethodConstants.Return:
                 {
                     var __impl = (BasicReturn)cmd.Method;
-                    HandleBasicReturn(__impl._replyCode, __impl._replyText, __impl._exchange, __impl._routingKey, (RabbitMQ.Client.IBasicProperties) cmd.Header, cmd.Body, cmd.TakeoverPayload());
+                    HandleBasicReturn(__impl._replyCode, __impl._replyText, __impl._exchange, __impl._routingKey, (IBasicProperties) cmd.Header, cmd.Body, cmd.TakeoverPayload());
                     return true;
                 }
                 case (ClassConstants.Channel << 16) | ChannelMethodConstants.Close:
