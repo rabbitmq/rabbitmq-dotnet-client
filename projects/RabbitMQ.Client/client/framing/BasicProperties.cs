@@ -193,11 +193,14 @@ namespace RabbitMQ.Client.Framing
 
         public override bool IsClusterIdPresent() => _clusterId != default;
 
-        public BasicProperties() { }
+        public BasicProperties()
+        {
+        }
+
         public override ushort ProtocolClassId => 60;
         public override string ProtocolClassName => "basic";
 
-        internal override void ReadPropertiesFrom(ref Client.Impl.ContentHeaderPropertyReader reader)
+        internal override void ReadPropertiesFrom(ref ContentHeaderPropertyReader reader)
         {
             var contentType_present = reader.ReadPresence();
             var contentEncoding_present = reader.ReadPresence();
@@ -230,7 +233,7 @@ namespace RabbitMQ.Client.Framing
             if (clusterId_present) { _clusterId = reader.ReadShortstr(); }
         }
 
-        internal override void WritePropertiesTo(ref Client.Impl.ContentHeaderPropertyWriter writer)
+        internal override void WritePropertiesTo(ref ContentHeaderPropertyWriter writer)
         {
             writer.WritePresence(IsContentTypePresent());
             writer.WritePresence(IsContentEncodingPresent());
@@ -281,26 +284,6 @@ namespace RabbitMQ.Client.Framing
             if (IsAppIdPresent()) { bufferSize += 1 + Encoding.UTF8.GetByteCount(_appId); } // _appId in bytes
             if (IsClusterIdPresent()) { bufferSize += 1 + Encoding.UTF8.GetByteCount(_clusterId); } // _clusterId in bytes
             return bufferSize;
-        }
-
-        public override void AppendPropertyDebugStringTo(StringBuilder sb)
-        {
-            sb.Append("(");
-            sb.Append("content-type=").Append(IsContentTypePresent() ? _contentType.ToString() : "_").Append(", ");
-            sb.Append("content-encoding=").Append(IsContentEncodingPresent() ? _contentEncoding.ToString() : "_").Append(", ");
-            sb.Append("headers=").Append(IsHeadersPresent() ? _headers.ToString() : "_").Append(", ");
-            sb.Append("delivery-mode=").Append(IsDeliveryModePresent() ? _deliveryMode.ToString() : "_").Append(", ");
-            sb.Append("priority=").Append(IsPriorityPresent() ? _priority.ToString() : "_").Append(", ");
-            sb.Append("correlation-id=").Append(IsCorrelationIdPresent() ? _correlationId.ToString() : "_").Append(", ");
-            sb.Append("reply-to=").Append(IsReplyToPresent() ? _replyTo.ToString() : "_").Append(", ");
-            sb.Append("expiration=").Append(IsExpirationPresent() ? _expiration.ToString() : "_").Append(", ");
-            sb.Append("message-id=").Append(IsMessageIdPresent() ? _messageId.ToString() : "_").Append(", ");
-            sb.Append("timestamp=").Append(IsTimestampPresent() ? _timestamp.ToString() : "_").Append(", ");
-            sb.Append("type=").Append(IsTypePresent() ? _type.ToString() : "_").Append(", ");
-            sb.Append("user-id=").Append(IsUserIdPresent() ? _userId.ToString() : "_").Append(", ");
-            sb.Append("app-id=").Append(IsAppIdPresent() ? _appId.ToString() : "_").Append(", ");
-            sb.Append("cluster-id=").Append(IsClusterIdPresent() ? _clusterId.ToString() : "_");
-            sb.Append(")");
         }
     }
 }

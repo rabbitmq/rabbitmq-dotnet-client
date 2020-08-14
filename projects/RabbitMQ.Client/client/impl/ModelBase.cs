@@ -330,14 +330,19 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public MethodBase ModelRpc(MethodBase method, ContentHeaderBase header, byte[] body)
+        public MethodBase ModelRpc(MethodBase method)
         {
             var k = new SimpleBlockingRpcContinuation();
             lock (_rpcLock)
             {
-                TransmitAndEnqueue(new OutgoingCommand(method, header, body), k);
+                TransmitAndEnqueue(new OutgoingCommand(method), k);
                 return k.GetReply(ContinuationTimeout).Method;
             }
+        }
+
+        public void ModelSend(MethodBase method)
+        {
+            ModelSend(method, null, ReadOnlyMemory<byte>.Empty);
         }
 
         public void ModelSend(MethodBase method, ContentHeaderBase header, ReadOnlyMemory<byte> body)

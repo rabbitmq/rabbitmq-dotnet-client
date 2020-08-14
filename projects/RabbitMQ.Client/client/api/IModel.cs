@@ -32,7 +32,6 @@
 using System;
 using System.Collections.Generic;
 
-using RabbitMQ.Client.Apigen.Attributes;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client
@@ -154,7 +153,6 @@ namespace RabbitMQ.Client
         /// In comparison to normal <see cref="Close()"/> method, <see cref="Abort()"/> will not throw
         /// <see cref="Exceptions.AlreadyClosedException"/> or <see cref="System.IO.IOException"/> or any other <see cref="Exception"/> during closing model.
         /// </remarks>
-        [AmqpMethodDoNotImplement(null)]
         void Abort();
 
         /// <summary>
@@ -170,7 +168,6 @@ namespace RabbitMQ.Client
         /// A message indicating the reason for closing the model
         /// </para>
         /// </remarks>
-        [AmqpMethodDoNotImplement(null)]
         void Abort(ushort replyCode, string replyText);
 
         /// <summary>
@@ -181,7 +178,6 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Delete a Basic content-class consumer.
         /// </summary>
-        [AmqpMethodDoNotImplement(null)]
         void BasicCancel(string consumerTag);
 
         /// <summary>
@@ -191,7 +187,6 @@ namespace RabbitMQ.Client
         void BasicCancelNoWait(string consumerTag);
 
         /// <summary>Start a Basic content-class consumer.</summary>
-        [AmqpMethodDoNotImplement(null)]
         string BasicConsume(
             string queue,
             bool autoAck,
@@ -206,7 +201,6 @@ namespace RabbitMQ.Client
         /// one is available; returns null if the server answers that
         /// no messages are currently available. See also <see cref="IModel.BasicAck"/>.
         /// </summary>
-        [AmqpMethodDoNotImplement(null)]
         BasicGetResult BasicGet(string queue, bool autoAck);
 
         /// <summary>Reject one or more delivered message(s).</summary>
@@ -220,9 +214,7 @@ namespace RabbitMQ.Client
         ///     Routing key must be shorter than 255 bytes.
         ///   </para>
         /// </remarks>
-        [AmqpMethodDoNotImplement(null)]
-        void BasicPublish(string exchange, string routingKey, bool mandatory,
-            IBasicProperties basicProperties, ReadOnlyMemory<byte> body);
+        void BasicPublish(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, ReadOnlyMemory<byte> body);
 
         /// <summary>
         /// Configures QoS parameters of the Basic content-class.
@@ -233,7 +225,6 @@ namespace RabbitMQ.Client
         /// Indicates that a consumer has recovered.
         /// Deprecated. Should not be used.
         /// </summary>
-        [AmqpMethodDoNotImplement(null)]
         void BasicRecover(bool requeue);
 
         /// <summary>
@@ -252,7 +243,6 @@ namespace RabbitMQ.Client
         /// operation to complete. This method will not return to the
         /// caller until the shutdown is complete.
         /// </remarks>
-        [AmqpMethodDoNotImplement(null)]
         void Close();
 
         /// <summary>Close this session.</summary>
@@ -267,31 +257,26 @@ namespace RabbitMQ.Client
         /// A message indicating the reason for closing the model
         /// </para>
         /// </remarks>
-        [AmqpMethodDoNotImplement(null)]
         void Close(ushort replyCode, string replyText);
 
         /// <summary>
         /// Enable publisher acknowledgements.
         /// </summary>
-        [AmqpMethodDoNotImplement(null)]
         void ConfirmSelect();
 
         /// <summary>
         ///  Creates a BasicPublishBatch instance
         /// </summary>
-        [AmqpMethodDoNotImplement(null)]
         IBasicPublishBatch CreateBasicPublishBatch();
 
         /// <summary>
         ///  Creates a BasicPublishBatch instance
         /// </summary>
-        [AmqpMethodDoNotImplement(null)]
         IBasicPublishBatch CreateBasicPublishBatch(int sizeHint);
 
         /// <summary>
         /// Construct a completely empty content header for use with the Basic content class.
         /// </summary>
-        [AmqpContentHeaderFactory("basic")]
         IBasicProperties CreateBasicProperties();
 
         /// <summary>
@@ -301,8 +286,7 @@ namespace RabbitMQ.Client
         ///   <para>
         ///     Routing key must be shorter than 255 bytes.
         ///   </para>
-        /// </remarks>        
-        [AmqpMethodDoNotImplement(null)]
+        /// </remarks>
         void ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments);
 
         /// <summary>
@@ -312,25 +296,21 @@ namespace RabbitMQ.Client
         ///   <para>
         ///     Routing key must be shorter than 255 bytes.
         ///   </para>
-        /// </remarks>        
-        void ExchangeBindNoWait(string destination, string source, string routingKey,
-            IDictionary<string, object> arguments);
+        /// </remarks>
+        void ExchangeBindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments);
 
         /// <summary>Declare an exchange.</summary>
         /// <remarks>
         /// The exchange is declared non-passive and non-internal.
         /// The "nowait" option is not exercised.
         /// </remarks>
-        [AmqpMethodDoNotImplement(null)]
-        void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete,
-            IDictionary<string, object> arguments);
+        void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments);
 
         /// <summary>
         /// Same as ExchangeDeclare but sets nowait to true and returns void (as there
         /// will be no response from the server).
         /// </summary>
-        void ExchangeDeclareNoWait(string exchange, string type, bool durable, bool autoDelete,
-            IDictionary<string, object> arguments);
+        void ExchangeDeclareNoWait(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments);
 
         /// <summary>
         /// Do a passive exchange declaration.
@@ -341,13 +321,11 @@ namespace RabbitMQ.Client
         /// It will do nothing if the exchange already exists and result
         /// in a channel-level protocol exception (channel closure) if not.
         /// </remarks>
-        [AmqpMethodDoNotImplement(null)]
         void ExchangeDeclarePassive(string exchange);
 
         /// <summary>
         /// Delete an exchange.
         /// </summary>
-        [AmqpMethodDoNotImplement(null)]
         void ExchangeDelete(string exchange, bool ifUnused);
 
         /// <summary>
@@ -361,11 +339,7 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
         /// </remarks>
-        [AmqpMethodDoNotImplement(null)]
-        void ExchangeUnbind(string destination,
-            string source,
-            string routingKey,
-            IDictionary<string, object> arguments);
+        void ExchangeUnbind(string destination, string source, string routingKey, IDictionary<string, object> arguments);
 
         /// <summary>
         /// Like ExchangeUnbind but sets nowait to true.
@@ -375,9 +349,7 @@ namespace RabbitMQ.Client
         ///     Routing key must be shorter than 255 bytes.
         ///   </para>
         /// </remarks>
-        [AmqpMethodDoNotImplement(null)]
-        void ExchangeUnbindNoWait(string destination, string source, string routingKey,
-            IDictionary<string, object> arguments);
+        void ExchangeUnbindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments);
 
         /// <summary>
         /// Bind a queue to an exchange.
@@ -386,8 +358,7 @@ namespace RabbitMQ.Client
         ///   <para>
         ///     Routing key must be shorter than 255 bytes.
         ///   </para>
-        /// </remarks>        
-        [AmqpMethodDoNotImplement(null)]
+        /// </remarks>
         void QueueBind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
 
         /// <summary>Same as QueueBind but sets nowait parameter to true.</summary>
@@ -395,21 +366,17 @@ namespace RabbitMQ.Client
         ///   <para>
         ///     Routing key must be shorter than 255 bytes.
         ///   </para>
-        /// </remarks>        
+        /// </remarks>
         void QueueBindNoWait(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
 
         /// <summary> Declare a queue.</summary>
-        [AmqpMethodDoNotImplement(null)]
-        QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive,
-            bool autoDelete, IDictionary<string, object> arguments);
+        QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments);
 
         /// <summary>
         /// Same as QueueDeclare but sets nowait to true and returns void (as there
         /// will be no response from the server).
         /// </summary>
-        void QueueDeclareNoWait(string queue, bool durable,
-                                bool exclusive, bool autoDelete,
-                                IDictionary<string, object> arguments);
+        void QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments);
 
         /// <summary>Declare a queue passively.</summary>
         /// <remarks>
@@ -417,7 +384,6 @@ namespace RabbitMQ.Client
         ///non-exclusive, and non-autodelete, with no arguments.
         ///The queue is declared passively; i.e. only check if it exists.
         /// </remarks>
-        [AmqpMethodDoNotImplement(null)]
         QueueDeclareOk QueueDeclarePassive(string queue);
 
         /// <summary>
@@ -426,7 +392,6 @@ namespace RabbitMQ.Client
         /// an exception will be closed with an exception.
         /// </summary>
         /// <param name="queue">The name of the queue</param>
-        [AmqpMethodDoNotImplement(null)]
         uint MessageCount(string queue);
 
         /// <summary>
@@ -435,7 +400,6 @@ namespace RabbitMQ.Client
         /// an exception will be closed with an exception.
         /// </summary>
         /// <param name="queue">The name of the queue</param>
-        [AmqpMethodDoNotImplement(null)]
         uint ConsumerCount(string queue);
 
         /// <summary>
@@ -445,7 +409,6 @@ namespace RabbitMQ.Client
         ///Returns the number of messages purged during queue deletion.
         /// <code>uint.MaxValue</code>.
         /// </remarks>
-        [AmqpMethodDoNotImplement(null)]
         uint QueueDelete(string queue, bool ifUnused, bool ifEmpty);
 
         /// <summary>
@@ -460,7 +423,6 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// Returns the number of messages purged.
         /// </remarks>
-        [AmqpMethodDoNotImplement(null)]
         uint QueuePurge(string queue);
 
         /// <summary>
@@ -470,7 +432,7 @@ namespace RabbitMQ.Client
         ///   <para>
         ///     Routing key must be shorter than 255 bytes.
         ///   </para>
-        /// </remarks>        
+        /// </remarks>
         void QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
 
         /// <summary>
@@ -496,7 +458,6 @@ namespace RabbitMQ.Client
         /// all the messages were ack'd (and none were nack'd). Note,
         /// throws an exception when called on a non-Confirm channel.
         /// </remarks>
-        [AmqpMethodDoNotImplement(null)]
         bool WaitForConfirms();
 
         /// <summary>
@@ -512,7 +473,6 @@ namespace RabbitMQ.Client
         /// all the messages were ack'd (and none were nack'd). Note,
         /// throws an exception when called on a non-Confirm channel.
         /// </remarks>
-        [AmqpMethodDoNotImplement(null)]
         bool WaitForConfirms(TimeSpan timeout);
 
         /// <summary>
@@ -531,7 +491,6 @@ namespace RabbitMQ.Client
         /// all the messages were ack'd (and none were nack'd). Note,
         /// throws an exception when called on a non-Confirm channel.
         /// </remarks>
-        [AmqpMethodDoNotImplement(null)]
         bool WaitForConfirms(TimeSpan timeout, out bool timedOut);
 
         /// <summary>
@@ -542,7 +501,6 @@ namespace RabbitMQ.Client
         /// been ack'd by the broker.  If a nack is received, throws an
         /// OperationInterrupedException exception immediately.
         /// </remarks>
-        [AmqpMethodDoNotImplement(null)]
         void WaitForConfirmsOrDie();
 
         /// <summary>
@@ -553,7 +511,6 @@ namespace RabbitMQ.Client
         /// been ack'd by the broker.  If a nack is received or the timeout
         /// elapses, throws an OperationInterrupedException exception immediately.
         /// </remarks>
-        [AmqpMethodDoNotImplement(null)]
         void WaitForConfirmsOrDie(TimeSpan timeout);
 
         /// <summary>
