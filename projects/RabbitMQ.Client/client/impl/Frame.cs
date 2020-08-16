@@ -35,7 +35,6 @@ using System.IO;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
-using System.Runtime.InteropServices;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
 
@@ -68,20 +67,20 @@ namespace RabbitMQ.Client.Impl
         internal static class Method
         {
             /* +----------+-----------+-----------+
-             * | Class Id | Method Id | Arguments |
+             * | CommandId (combined) | Arguments |    
+             * | Class Id | Method Id |           |
              * +----------+-----------+-----------+
-             * | 2 bytes  | 2 bytes   | x bytes   |
+             * | 4 bytes (combined)   | x bytes   |
+             * | 2 bytes  | 2 bytes   |           |
              * +----------+-----------+-----------+ */
             public const int FrameSize = BaseFrameSize + 2 + 2;
 
             public static int WriteTo(Span<byte> span, ushort channel, MethodBase method)
             {
                 const int StartClassId = StartPayload;
-                const int StartMethodId = StartPayload + 2;
                 const int StartMethodArguments = StartPayload + 4;
 
-                NetworkOrderSerializer.WriteUInt16(span.Slice(StartClassId), method.ProtocolClassId);
-                NetworkOrderSerializer.WriteUInt16(span.Slice(StartMethodId), method.ProtocolMethodId);
+                NetworkOrderSerializer.WriteUInt32(span.Slice(StartClassId), (uint)method.ProtocolCommandId);
                 var argWriter = new MethodArgumentWriter(span.Slice(StartMethodArguments));
                 method.WriteArgumentsTo(ref argWriter);
                 return WriteBaseFrame(span, FrameType.FrameMethod, channel, StartMethodArguments - StartPayload + argWriter.Offset);

@@ -29,6 +29,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client.client.framing;
+
 namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class ExchangeUnbindOk : Client.Impl.MethodBase
@@ -37,8 +39,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Exchange;
-        public override ushort ProtocolMethodId => ExchangeMethodConstants.UnbindOk;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ExchangeUnbindOk;
         public override string ProtocolMethodName => "exchange.unbind-ok";
         public override bool HasContent => false;
 

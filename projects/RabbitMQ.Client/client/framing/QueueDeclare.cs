@@ -31,6 +31,7 @@
 
 using System.Collections.Generic;
 using System.Text;
+using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
@@ -62,8 +63,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _arguments = Arguments;
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Queue;
-        public override ushort ProtocolMethodId => QueueMethodConstants.Declare;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueueDeclare;
         public override string ProtocolMethodName => "queue.declare";
         public override bool HasContent => false;
 

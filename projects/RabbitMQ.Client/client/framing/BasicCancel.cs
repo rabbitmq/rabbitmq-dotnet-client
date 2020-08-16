@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System.Text;
+using RabbitMQ.Client.client.framing;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -48,8 +49,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _nowait = Nowait;
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Basic;
-        public override ushort ProtocolMethodId => BasicMethodConstants.Cancel;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicCancel;
         public override string ProtocolMethodName => "basic.cancel";
         public override bool HasContent => false;
 

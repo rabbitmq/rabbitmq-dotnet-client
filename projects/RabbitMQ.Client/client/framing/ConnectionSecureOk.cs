@@ -29,6 +29,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client.client.framing;
+
 namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class ConnectionSecureOk : Client.Impl.MethodBase
@@ -44,8 +46,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _response = Response;
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Connection;
-        public override ushort ProtocolMethodId => ConnectionMethodConstants.SecureOk;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionSecureOk;
         public override string ProtocolMethodName => "connection.secure-ok";
         public override bool HasContent => false;
 

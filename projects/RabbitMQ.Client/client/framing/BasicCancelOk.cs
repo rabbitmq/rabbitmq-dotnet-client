@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System.Text;
+using RabbitMQ.Client.client.framing;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -46,8 +47,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _consumerTag = ConsumerTag;
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Basic;
-        public override ushort ProtocolMethodId => BasicMethodConstants.CancelOk;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicCancelOk;
         public override string ProtocolMethodName => "basic.cancel-ok";
         public override bool HasContent => false;
 

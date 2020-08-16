@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
@@ -55,8 +56,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _locales = Locales;
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Connection;
-        public override ushort ProtocolMethodId => ConnectionMethodConstants.Start;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionStart;
         public override string ProtocolMethodName => "connection.start";
         public override bool HasContent => false;
 

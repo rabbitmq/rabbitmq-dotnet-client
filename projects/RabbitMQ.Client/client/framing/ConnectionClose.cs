@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System.Text;
+using RabbitMQ.Client.client.framing;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -52,8 +53,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _methodId = MethodId;
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Connection;
-        public override ushort ProtocolMethodId => ConnectionMethodConstants.Close;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionClose;
         public override string ProtocolMethodName => "connection.close";
         public override bool HasContent => false;
 

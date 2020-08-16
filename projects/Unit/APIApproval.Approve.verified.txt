@@ -363,12 +363,6 @@ namespace RabbitMQ.Client
     {
         System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint> All();
     }
-    public interface IMethod
-    {
-        ushort ProtocolClassId { get; }
-        ushort ProtocolMethodId { get; }
-        string ProtocolMethodName { get; }
-    }
     public interface IModel : System.IDisposable
     {
         int ChannelNumber { get; }
@@ -795,8 +789,10 @@ namespace RabbitMQ.Client.Exceptions
     }
     public class UnexpectedMethodException : RabbitMQ.Client.Exceptions.ProtocolViolationException
     {
-        public UnexpectedMethodException(RabbitMQ.Client.IMethod method) { }
-        public RabbitMQ.Client.IMethod Method { get; }
+        public UnexpectedMethodException(ushort classId, ushort methodId, string methodName) { }
+        public ushort ProtocolClassId { get; }
+        public ushort ProtocolMethodId { get; }
+        public string ProtocolMethodName { get; }
     }
     public class UnknownClassOrMethodException : RabbitMQ.Client.Exceptions.HardProtocolException
     {

@@ -29,6 +29,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client.client.framing;
+
 namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class QueuePurgeOk : Client.Impl.MethodBase
@@ -44,8 +46,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _messageCount = MessageCount;
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Queue;
-        public override ushort ProtocolMethodId => QueueMethodConstants.PurgeOk;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueuePurgeOk;
         public override string ProtocolMethodName => "queue.purge-ok";
         public override bool HasContent => false;
 

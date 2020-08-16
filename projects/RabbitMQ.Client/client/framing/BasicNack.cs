@@ -29,6 +29,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client.client.framing;
+
 namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class BasicNack : Client.Impl.MethodBase
@@ -48,8 +50,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _requeue = Requeue;
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Basic;
-        public override ushort ProtocolMethodId => BasicMethodConstants.Nack;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicNack;
         public override string ProtocolMethodName => "basic.nack";
         public override bool HasContent => false;
 

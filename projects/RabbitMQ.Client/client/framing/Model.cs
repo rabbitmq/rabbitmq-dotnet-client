@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
@@ -294,125 +295,125 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override bool DispatchAsynchronous(in IncomingCommand cmd)
         {
-            switch ((cmd.Method.ProtocolClassId << 16) | cmd.Method.ProtocolMethodId)
+            switch (cmd.Method.ProtocolCommandId)
             {
-                case (ClassConstants.Basic << 16) | BasicMethodConstants.Deliver:
+                case ProtocolCommandId.BasicDeliver:
                 {
                     var __impl = (BasicDeliver)cmd.Method;
                     HandleBasicDeliver(__impl._consumerTag, __impl._deliveryTag, __impl._redelivered, __impl._exchange, __impl._routingKey, (IBasicProperties) cmd.Header, cmd.Body, cmd.TakeoverPayload());
                     return true;
                 }
-                case (ClassConstants.Basic << 16) | BasicMethodConstants.Ack:
+                case ProtocolCommandId.BasicAck:
                 {
                     var __impl = (BasicAck)cmd.Method;
                     HandleBasicAck(__impl._deliveryTag, __impl._multiple);
                     return true;
                 }
-                case (ClassConstants.Basic << 16) | BasicMethodConstants.Cancel:
+                case ProtocolCommandId.BasicCancel:
                 {
                     var __impl = (BasicCancel)cmd.Method;
                     HandleBasicCancel(__impl._consumerTag, __impl._nowait);
                     return true;
                 }
-                case (ClassConstants.Basic << 16) | BasicMethodConstants.CancelOk:
+                case ProtocolCommandId.BasicCancelOk:
                 {
                     var __impl = (BasicCancelOk)cmd.Method;
                     HandleBasicCancelOk(__impl._consumerTag);
                     return true;
                 }
-                case (ClassConstants.Basic << 16) | BasicMethodConstants.ConsumeOk:
+                case ProtocolCommandId.BasicConsumeOk:
                 {
                     var __impl = (BasicConsumeOk)cmd.Method;
                     HandleBasicConsumeOk(__impl._consumerTag);
                     return true;
                 }
-                case (ClassConstants.Basic << 16) | BasicMethodConstants.GetEmpty:
+                case ProtocolCommandId.BasicGetEmpty:
                 {
                     HandleBasicGetEmpty();
                     return true;
                 }
-                case (ClassConstants.Basic << 16) | BasicMethodConstants.GetOk:
+                case ProtocolCommandId.BasicGetOk:
                 {
                     var __impl = (BasicGetOk)cmd.Method;
                     HandleBasicGetOk(__impl._deliveryTag, __impl._redelivered, __impl._exchange, __impl._routingKey, __impl._messageCount, (IBasicProperties) cmd.Header, cmd.Body, cmd.TakeoverPayload());
                     return true;
                 }
-                case (ClassConstants.Basic << 16) | BasicMethodConstants.Nack:
+                case ProtocolCommandId.BasicNack:
                 {
                     var __impl = (BasicNack)cmd.Method;
                     HandleBasicNack(__impl._deliveryTag, __impl._multiple, __impl._requeue);
                     return true;
                 }
-                case (ClassConstants.Basic << 16) | BasicMethodConstants.RecoverOk:
+                case ProtocolCommandId.BasicRecoverOk:
                 {
                     HandleBasicRecoverOk();
                     return true;
                 }
-                case (ClassConstants.Basic << 16) | BasicMethodConstants.Return:
+                case ProtocolCommandId.BasicReturn:
                 {
                     var __impl = (BasicReturn)cmd.Method;
                     HandleBasicReturn(__impl._replyCode, __impl._replyText, __impl._exchange, __impl._routingKey, (IBasicProperties) cmd.Header, cmd.Body, cmd.TakeoverPayload());
                     return true;
                 }
-                case (ClassConstants.Channel << 16) | ChannelMethodConstants.Close:
+                case ProtocolCommandId.ChannelClose:
                 {
                     var __impl = (ChannelClose)cmd.Method;
                     HandleChannelClose(__impl._replyCode, __impl._replyText, __impl._classId, __impl._methodId);
                     return true;
                 }
-                case (ClassConstants.Channel << 16) | ChannelMethodConstants.CloseOk:
+                case ProtocolCommandId.ChannelCloseOk:
                 {
                     HandleChannelCloseOk();
                     return true;
                 }
-                case (ClassConstants.Channel << 16) | ChannelMethodConstants.Flow:
+                case ProtocolCommandId.ChannelFlow:
                 {
                     var __impl = (ChannelFlow)cmd.Method;
                     HandleChannelFlow(__impl._active);
                     return true;
                 }
-                case (ClassConstants.Connection << 16) | ConnectionMethodConstants.Blocked:
+                case ProtocolCommandId.ConnectionBlocked:
                 {
                     var __impl = (ConnectionBlocked)cmd.Method;
                     HandleConnectionBlocked(__impl._reason);
                     return true;
                 }
-                case (ClassConstants.Connection << 16) | ConnectionMethodConstants.Close:
+                case ProtocolCommandId.ConnectionClose:
                 {
                     var __impl = (ConnectionClose)cmd.Method;
                     HandleConnectionClose(__impl._replyCode, __impl._replyText, __impl._classId, __impl._methodId);
                     return true;
                 }
-                case (ClassConstants.Connection << 16) | ConnectionMethodConstants.OpenOk:
+                case ProtocolCommandId.ConnectionOpenOk:
                 {
                     var __impl = (ConnectionOpenOk)cmd.Method;
                     HandleConnectionOpenOk(__impl._reserved1);
                     return true;
                 }
-                case (ClassConstants.Connection << 16) | ConnectionMethodConstants.Secure:
+                case ProtocolCommandId.ConnectionSecure:
                 {
                     var __impl = (ConnectionSecure)cmd.Method;
                     HandleConnectionSecure(__impl._challenge);
                     return true;
                 }
-                case (ClassConstants.Connection << 16) | ConnectionMethodConstants.Start:
+                case ProtocolCommandId.ConnectionStart:
                 {
                     var __impl = (ConnectionStart)cmd.Method;
                     HandleConnectionStart(__impl._versionMajor, __impl._versionMinor, __impl._serverProperties, __impl._mechanisms, __impl._locales);
                     return true;
                 }
-                case (ClassConstants.Connection << 16) | ConnectionMethodConstants.Tune:
+                case ProtocolCommandId.ConnectionTune:
                 {
                     var __impl = (ConnectionTune)cmd.Method;
                     HandleConnectionTune(__impl._channelMax, __impl._frameMax, __impl._heartbeat);
                     return true;
                 }
-                case (ClassConstants.Connection << 16) | ConnectionMethodConstants.Unblocked:
+                case ProtocolCommandId.ConnectionUnblocked:
                 {
                     HandleConnectionUnblocked();
                     return true;
                 }
-                case (ClassConstants.Queue << 16) | QueueMethodConstants.DeclareOk:
+                case ProtocolCommandId.QueueDeclareOk:
                 {
                     var __impl = (QueueDeclareOk)cmd.Method;
                     HandleQueueDeclareOk(__impl._queue, __impl._messageCount, __impl._consumerCount);

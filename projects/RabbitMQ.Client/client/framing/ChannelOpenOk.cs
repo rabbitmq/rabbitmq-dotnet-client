@@ -29,6 +29,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client.client.framing;
+
 namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class ChannelOpenOk : Client.Impl.MethodBase
@@ -44,8 +46,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _reserved1 = Reserved1;
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Channel;
-        public override ushort ProtocolMethodId => ChannelMethodConstants.OpenOk;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ChannelOpenOk;
         public override string ProtocolMethodName => "channel.open-ok";
         public override bool HasContent => false;
 

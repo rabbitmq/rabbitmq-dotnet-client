@@ -29,6 +29,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client.client.framing;
+
 namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class BasicRecoverOk : Client.Impl.MethodBase
@@ -37,8 +39,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Basic;
-        public override ushort ProtocolMethodId => BasicMethodConstants.RecoverOk;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicRecoverOk;
         public override string ProtocolMethodName => "basic.recover-ok";
         public override bool HasContent => false;
 

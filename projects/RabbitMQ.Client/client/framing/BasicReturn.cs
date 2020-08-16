@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System.Text;
+using RabbitMQ.Client.client.framing;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -52,8 +53,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _routingKey = RoutingKey;
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Basic;
-        public override ushort ProtocolMethodId => BasicMethodConstants.Return;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicReturn;
         public override string ProtocolMethodName => "basic.return";
         public override bool HasContent => true;
 
