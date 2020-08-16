@@ -29,6 +29,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client.client.framing;
+
 namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class ConfirmSelect : Client.Impl.MethodBase
@@ -44,8 +46,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _nowait = Nowait;
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Confirm;
-        public override ushort ProtocolMethodId => ConfirmMethodConstants.Select;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConfirmSelect;
         public override string ProtocolMethodName => "confirm.select";
         public override bool HasContent => false;
 

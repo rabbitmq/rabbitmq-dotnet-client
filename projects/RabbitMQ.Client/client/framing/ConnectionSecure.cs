@@ -29,6 +29,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client.client.framing;
+
 namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class ConnectionSecure : Client.Impl.MethodBase
@@ -44,8 +46,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _challenge = Challenge;
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Connection;
-        public override ushort ProtocolMethodId => ConnectionMethodConstants.Secure;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionSecure;
         public override string ProtocolMethodName => "connection.secure";
         public override bool HasContent => false;
 

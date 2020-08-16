@@ -29,21 +29,25 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client.client.framing;
+
 namespace RabbitMQ.Client.Impl
 {
-    internal abstract class MethodBase : IMethod
+    internal abstract class MethodBase
     {
         public abstract bool HasContent { get; }
+
+        public abstract ProtocolCommandId ProtocolCommandId { get; }
 
         /// <summary>
         /// Retrieves the class ID number of this method, as defined in the AMQP specification XML.
         /// </summary>
-        public abstract ushort ProtocolClassId { get; }
+        public ushort ProtocolClassId => (ushort)((uint)ProtocolCommandId >> 16);
 
         /// <summary>
         /// Retrieves the method ID number of this method, as defined in the AMQP specification XML.
         /// </summary>
-        public abstract ushort ProtocolMethodId { get; }
+        public ushort ProtocolMethodId => (ushort)((uint)ProtocolCommandId & 0xFFFF);
 
         /// <summary>
         /// Retrieves the name of this method - for debugging use.

@@ -29,6 +29,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client.client.framing;
+
 namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class TxCommit : Client.Impl.MethodBase
@@ -37,8 +39,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Tx;
-        public override ushort ProtocolMethodId => TxMethodConstants.Commit;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.TxCommit;
         public override string ProtocolMethodName => "tx.commit";
         public override bool HasContent => false;
 

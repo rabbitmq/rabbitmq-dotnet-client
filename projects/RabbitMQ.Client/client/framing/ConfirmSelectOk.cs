@@ -29,6 +29,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client.client.framing;
+
 namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class ConfirmSelectOk : Client.Impl.MethodBase
@@ -37,8 +39,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Confirm;
-        public override ushort ProtocolMethodId => ConfirmMethodConstants.SelectOk;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConfirmSelectOk;
         public override string ProtocolMethodName => "confirm.select-ok";
         public override bool HasContent => false;
 

@@ -29,6 +29,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client.client.framing;
+
 namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class ChannelCloseOk : Client.Impl.MethodBase
@@ -37,8 +39,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Channel;
-        public override ushort ProtocolMethodId => ChannelMethodConstants.CloseOk;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ChannelCloseOk;
         public override string ProtocolMethodName => "channel.close-ok";
         public override bool HasContent => false;
 

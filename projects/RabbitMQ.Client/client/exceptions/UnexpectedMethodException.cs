@@ -41,12 +41,26 @@ namespace RabbitMQ.Client.Exceptions
 #endif
     public class UnexpectedMethodException : ProtocolViolationException
     {
-        public UnexpectedMethodException(IMethod method)
+        public UnexpectedMethodException(ushort classId, ushort methodId, string methodName)
         {
-            Method = method;
+            ProtocolClassId = classId;
+            ProtocolMethodId = methodId;
+            ProtocolMethodName = methodName;
         }
 
-        ///<summary>The unexpected reply method.</summary>
-        public IMethod Method { get; private set; }
+        /// <summary>
+        /// Retrieves the class ID number of this method, as defined in the AMQP specification XML.
+        /// </summary>
+        public ushort ProtocolClassId { get; }
+
+        /// <summary>
+        /// Retrieves the method ID number of this method, as defined in the AMQP specification XML.
+        /// </summary>
+        public ushort ProtocolMethodId { get; }
+
+        /// <summary>
+        /// Retrieves the name of this method - for debugging use.
+        /// </summary>
+        public string ProtocolMethodName { get; }
     }
 }

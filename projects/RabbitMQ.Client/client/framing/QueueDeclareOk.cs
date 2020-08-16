@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System.Text;
+using RabbitMQ.Client.client.framing;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -50,8 +51,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _consumerCount = ConsumerCount;
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Queue;
-        public override ushort ProtocolMethodId => QueueMethodConstants.DeclareOk;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueueDeclareOk;
         public override string ProtocolMethodName => "queue.declare-ok";
         public override bool HasContent => false;
 
