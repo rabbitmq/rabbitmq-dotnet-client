@@ -1060,16 +1060,12 @@ namespace RabbitMQ.Client.Framing.Impl
 
             ServerProperties = connectionStart.m_serverProperties;
 
-            var serverVersion = new AmqpVersion(connectionStart.m_versionMajor,
-                connectionStart.m_versionMinor);
+            var serverVersion = new AmqpVersion(connectionStart.m_versionMajor, connectionStart.m_versionMinor);
             if (!serverVersion.Equals(Protocol.Version))
             {
                 TerminateMainloop();
                 FinishClose();
-                throw new ProtocolVersionMismatchException(Protocol.MajorVersion,
-                    Protocol.MinorVersion,
-                    serverVersion.Major,
-                    serverVersion.Minor);
+                throw new ProtocolVersionMismatchException(Protocol.MajorVersion, Protocol.MinorVersion, serverVersion.Major, serverVersion.Minor);
             }
 
             ClientProperties = new Dictionary<string, object>(_factory.ClientProperties)
