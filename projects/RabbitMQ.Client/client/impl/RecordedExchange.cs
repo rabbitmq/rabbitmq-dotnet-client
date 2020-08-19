@@ -42,7 +42,6 @@ namespace RabbitMQ.Client.Impl
         public IDictionary<string, object> Arguments { get; private set; }
         public bool Durable { get; private set; }
         public bool IsAutoDelete { get; private set; }
-
         public string Type { get; private set; }
 
         public void Recover()

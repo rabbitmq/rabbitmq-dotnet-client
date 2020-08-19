@@ -256,7 +256,7 @@ namespace RabbitMQ.Client.Unit
 
         internal string GenerateQueueName()
         {
-            return $"queue{Guid.NewGuid().ToString()}";
+            return $"queue{Guid.NewGuid()}";
         }
 
         internal void WithTemporaryQueue(Action<IModel, string> action)

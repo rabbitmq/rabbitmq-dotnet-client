@@ -49,9 +49,9 @@ namespace RabbitMQ.Client.Exceptions
         }
 
         ///<summary>The name of the unsupported field.</summary>
-        public string FieldName { get; private set; }
+        public string FieldName { get; }
 
         ///<summary>The name of the method involved.</summary>
-        public string MethodName { get; private set; }
+        public string MethodName { get; }
     }
 }

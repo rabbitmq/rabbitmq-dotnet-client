@@ -79,17 +79,17 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Retrieve the exchange name.
         /// </summary>
-        public string ExchangeName { get; private set; }
+        public string ExchangeName { get; }
 
         /// <summary>
         /// Retrieve the exchange type string.
         /// </summary>
-        public string ExchangeType { get; private set; }
+        public string ExchangeType { get; }
 
         /// <summary>
         ///Retrieve the routing key.
         /// </summary>
-        public string RoutingKey { get; private set; }
+        public string RoutingKey { get; }
 
         /// <summary>
         /// Parse a <see cref="PublicationAddress"/> out of the given string,

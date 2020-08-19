@@ -163,7 +163,7 @@ namespace RabbitMQ.Client
         /// </summary>
         internal SslProtocols UseFallbackTlsVersions()
         {
-            this.Version = SslProtocols.Tls12;
+            Version = SslProtocols.Tls12;
             return Version;
         }
     }

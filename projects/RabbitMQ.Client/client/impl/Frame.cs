@@ -215,8 +215,8 @@ namespace RabbitMQ.Client.Impl
                 // This might happen when the limit of half-open connections is
                 // reached.
                 if (ioe.InnerException == null ||
-                    !(ioe.InnerException is SocketException) ||
-                    ((SocketException)ioe.InnerException).SocketErrorCode != SocketError.TimedOut)
+                    !(ioe.InnerException is SocketException exception) ||
+                    exception.SocketErrorCode != SocketError.TimedOut)
                 {
                     throw;
                 }

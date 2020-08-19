@@ -63,10 +63,10 @@ namespace RabbitMQ.Client.Logging
             }
         }
 
-        public string Type { get; private set; }
-        public string Message { get; private set; }
-        public string StackTrace { get; private set; }
-        public string InnerException { get; private set; }
+        public string Type { get; }
+        public string Message { get; }
+        public string StackTrace { get; }
+        public string InnerException { get; }
 
         public override string ToString()
         {

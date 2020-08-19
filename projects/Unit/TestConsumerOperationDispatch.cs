@@ -74,7 +74,7 @@ namespace RabbitMQ.Client.Unit
 
         private class CollectingConsumer : DefaultBasicConsumer
         {
-            public List<ulong> DeliveryTags { get; private set; }
+            public List<ulong> DeliveryTags { get; }
 
             public CollectingConsumer(IModel model)
                 : base(model)
@@ -171,8 +171,8 @@ namespace RabbitMQ.Client.Unit
 
         private class ShutdownLatchConsumer : DefaultBasicConsumer
         {
-            public ManualResetEventSlim Latch { get; private set; }
-            public ManualResetEventSlim DuplicateLatch { get; private set; }
+            public ManualResetEventSlim Latch { get; }
+            public ManualResetEventSlim DuplicateLatch { get; }
 
             public ShutdownLatchConsumer(ManualResetEventSlim latch, ManualResetEventSlim duplicateLatch)
             {

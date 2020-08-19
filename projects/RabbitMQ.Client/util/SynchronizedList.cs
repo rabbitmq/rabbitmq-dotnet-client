@@ -77,7 +77,7 @@ namespace RabbitMQ.Util
             }
         }
 
-        public object SyncRoot { get; private set; }
+        public object SyncRoot { get; }
 
         public void Add(T item)
         {

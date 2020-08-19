@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.Unit
             Connection = c;
         }
 
-        public AutorecoveringConnection Connection { get; private set; }
+        public AutorecoveringConnection Connection { get; }
 
         public void Dispose()
         {

@@ -47,10 +47,10 @@ namespace RabbitMQ.Client.Exceptions
         }
 
         ///<summary>The AMQP content-class ID.</summary>
-        public ushort ClassId { get; private set; }
+        public ushort ClassId { get; }
 
         ///<summary>The AMQP method ID within the content-class, or 0 if none.</summary>
-        public ushort MethodId { get; private set; }
+        public ushort MethodId { get; }
 
         public override ushort ReplyCode
         {

@@ -53,10 +53,6 @@ namespace RabbitMQ.Client.Impl
         internal readonly IBasicProperties _emptyBasicProperties;
 
         private readonly Dictionary<string, IBasicConsumer> _consumers = new Dictionary<string, IBasicConsumer>();
-
-        private TimeSpan _handshakeContinuationTimeout = TimeSpan.FromSeconds(10);
-        private TimeSpan _continuationTimeout = TimeSpan.FromSeconds(20);
-
         private readonly RpcContinuationQueue _continuationQueue = new RpcContinuationQueue();
         private readonly ManualResetEventSlim _flowControlBlock = new ManualResetEventSlim(true);
 
@@ -69,7 +65,7 @@ namespace RabbitMQ.Client.Impl
 
         private bool _onlyAcksReceived = true;
 
-        public IConsumerDispatcher ConsumerDispatcher { get; private set; }
+        public IConsumerDispatcher ConsumerDispatcher { get; }
 
         public ModelBase(ISession session) : this(session, session.Connection.ConsumerWorkService)
         { }
@@ -98,18 +94,8 @@ namespace RabbitMQ.Client.Impl
             Session.SessionShutdown += OnSessionShutdown;
         }
 
-        public TimeSpan HandshakeContinuationTimeout
-        {
-            get { return _handshakeContinuationTimeout; }
-            set { _handshakeContinuationTimeout = value; }
-        }
-
-        public TimeSpan ContinuationTimeout
-        {
-            get { return _continuationTimeout; }
-            set { _continuationTimeout = value; }
-        }
-
+        public TimeSpan HandshakeContinuationTimeout { get; set; } = TimeSpan.FromSeconds(10);
+        public TimeSpan ContinuationTimeout { get; set; } = TimeSpan.FromSeconds(20);
         public event EventHandler<BasicAckEventArgs> BasicAcks;
         public event EventHandler<BasicNackEventArgs> BasicNacks;
         public event EventHandler<EventArgs> BasicRecoverOk;
@@ -150,24 +136,15 @@ namespace RabbitMQ.Client.Impl
         public event EventHandler<EventArgs> Recovery;
 #pragma warning restore 67
 
-        public int ChannelNumber
-        {
-            get { return ((Session)Session).ChannelNumber; }
-        }
+        public int ChannelNumber => ((Session)Session).ChannelNumber;
 
         public ShutdownEventArgs CloseReason { get; private set; }
 
         public IBasicConsumer DefaultConsumer { get; set; }
 
-        public bool IsClosed
-        {
-            get { return !IsOpen; }
-        }
+        public bool IsClosed => !IsOpen;
 
-        public bool IsOpen
-        {
-            get { return CloseReason == null; }
-        }
+        public bool IsOpen => CloseReason == null;
 
         public ulong NextPublishSeqNo { get; private set; }
 
