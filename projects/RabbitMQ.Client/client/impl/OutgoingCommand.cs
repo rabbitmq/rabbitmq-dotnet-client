@@ -66,8 +66,8 @@ namespace RabbitMQ.Client.Impl
             var size = GetMaxSize(maxBodyPayloadBytes);
 
             // Will be returned by SocketFrameWriter.WriteLoop
-            var memory = new Memory<byte>(ArrayPool<byte>.Shared.Rent(size), 0, size);
-            var span = memory.Span;
+            var rentedArray = ArrayPool<byte>.Shared.Rent(size);
+            var span = rentedArray.AsSpan(0, size);
 
             var offset = Framing.Method.WriteTo(span, channelNumber, Method);
             if (Method.HasContent)
@@ -88,7 +88,7 @@ namespace RabbitMQ.Client.Impl
                 throw new InvalidOperationException($"Serialized to wrong size, expect {size}, offset {offset}");
             }
 
-            connection.Write(memory);
+            connection.Write(new ReadOnlyMemory<byte>(rentedArray, 0, size));
         }
 
         private int GetMaxSize(int maxPayloadBytes)
