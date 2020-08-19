@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System.Text;
+using RabbitMQ.Client.client.framing;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -48,8 +49,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _reason = Reason;
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Connection;
-        public override ushort ProtocolMethodId => ConnectionMethodConstants.UpdateSecret;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionUpdateSecret;
         public override string ProtocolMethodName => "connection.update-secret";
         public override bool HasContent => false;
 

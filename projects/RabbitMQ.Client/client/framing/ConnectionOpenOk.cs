@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System.Text;
+using RabbitMQ.Client.client.framing;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -46,8 +47,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _reserved1 = Reserved1;
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Connection;
-        public override ushort ProtocolMethodId => ConnectionMethodConstants.OpenOk;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionOpenOk;
         public override string ProtocolMethodName => "connection.open-ok";
         public override bool HasContent => false;
 

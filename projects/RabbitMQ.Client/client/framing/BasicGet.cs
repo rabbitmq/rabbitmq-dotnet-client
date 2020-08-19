@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System.Text;
+using RabbitMQ.Client.client.framing;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -50,8 +51,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _noAck = NoAck;
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Basic;
-        public override ushort ProtocolMethodId => BasicMethodConstants.Get;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicGet;
         public override string ProtocolMethodName => "basic.get";
         public override bool HasContent => false;
 

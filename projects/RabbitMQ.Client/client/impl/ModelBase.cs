@@ -346,7 +346,7 @@ namespace RabbitMQ.Client.Impl
                 return result;
             }
 
-            throw new UnexpectedMethodException(baseResult);
+            throw new UnexpectedMethodException(baseResult.ProtocolClassId, baseResult.ProtocolMethodId, baseResult.ProtocolMethodName);
         }
 
         public void ModelSend(MethodBase method)

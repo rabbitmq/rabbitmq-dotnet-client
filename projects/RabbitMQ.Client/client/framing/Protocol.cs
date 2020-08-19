@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Framing
@@ -53,88 +54,84 @@ namespace RabbitMQ.Client.Framing
 
         internal override Client.Impl.MethodBase DecodeMethodFrom(ReadOnlySpan<byte> span)
         {
-            ushort classId = Util.NetworkOrderDeserializer.ReadUInt16(span);
-            ushort methodId = Util.NetworkOrderDeserializer.ReadUInt16(span.Slice(2));
-            Client.Impl.MethodBase result = DecodeMethodFrom(classId, methodId);
-            if(result != null)
-            {
-                Client.Impl.MethodArgumentReader reader = new Client.Impl.MethodArgumentReader(span.Slice(4));
-                result.ReadArgumentsFrom(ref reader);
-                return result;
-            }
-
-            throw new Exceptions.UnknownClassOrMethodException(classId, methodId);
+            var commandId = (ProtocolCommandId)Util.NetworkOrderDeserializer.ReadUInt32(span);
+            Client.Impl.MethodBase result = DecodeMethodFrom(commandId);
+            Client.Impl.MethodArgumentReader reader = new Client.Impl.MethodArgumentReader(span.Slice(4));
+            result.ReadArgumentsFrom(ref reader);
+            return result;
         }
 
-        internal Client.Impl.MethodBase DecodeMethodFrom(ushort classId, ushort methodId)
+        internal Client.Impl.MethodBase DecodeMethodFrom(ProtocolCommandId commandId)
         {
-            switch ((classId << 16) | methodId)
+            switch (commandId)
             {
-                case (ClassConstants.Connection << 16) | ConnectionMethodConstants.Start: return new ConnectionStart();
-                case (ClassConstants.Connection << 16) | ConnectionMethodConstants.StartOk: return new ConnectionStartOk();
-                case (ClassConstants.Connection << 16) | ConnectionMethodConstants.Secure: return new ConnectionSecure();
-                case (ClassConstants.Connection << 16) | ConnectionMethodConstants.SecureOk: return new ConnectionSecureOk();
-                case (ClassConstants.Connection << 16) | ConnectionMethodConstants.Tune: return new ConnectionTune();
-                case (ClassConstants.Connection << 16) | ConnectionMethodConstants.TuneOk: return new ConnectionTuneOk();
-                case (ClassConstants.Connection << 16) | ConnectionMethodConstants.Open: return new ConnectionOpen();
-                case (ClassConstants.Connection << 16) | ConnectionMethodConstants.OpenOk: return new ConnectionOpenOk();
-                case (ClassConstants.Connection << 16) | ConnectionMethodConstants.Close: return new ConnectionClose();
-                case (ClassConstants.Connection << 16) | ConnectionMethodConstants.CloseOk: return new ConnectionCloseOk();
-                case (ClassConstants.Connection << 16) | ConnectionMethodConstants.Blocked: return new ConnectionBlocked();
-                case (ClassConstants.Connection << 16) | ConnectionMethodConstants.Unblocked: return new ConnectionUnblocked();
-                case (ClassConstants.Connection << 16) | ConnectionMethodConstants.UpdateSecret: return new ConnectionUpdateSecret();
-                case (ClassConstants.Connection << 16) | ConnectionMethodConstants.UpdateSecretOk: return new ConnectionUpdateSecretOk();
-                case (ClassConstants.Channel << 16) | ChannelMethodConstants.Open: return new ChannelOpen();
-                case (ClassConstants.Channel << 16) | ChannelMethodConstants.OpenOk: return new ChannelOpenOk();
-                case (ClassConstants.Channel << 16) | ChannelMethodConstants.Flow: return new ChannelFlow();
-                case (ClassConstants.Channel << 16) | ChannelMethodConstants.FlowOk: return new ChannelFlowOk();
-                case (ClassConstants.Channel << 16) | ChannelMethodConstants.Close: return new ChannelClose();
-                case (ClassConstants.Channel << 16) | ChannelMethodConstants.CloseOk: return new ChannelCloseOk();
-                case (ClassConstants.Exchange << 16) | ExchangeMethodConstants.Declare: return new ExchangeDeclare();
-                case (ClassConstants.Exchange << 16) | ExchangeMethodConstants.DeclareOk: return new ExchangeDeclareOk();
-                case (ClassConstants.Exchange << 16) | ExchangeMethodConstants.Delete: return new ExchangeDelete();
-                case (ClassConstants.Exchange << 16) | ExchangeMethodConstants.DeleteOk: return new ExchangeDeleteOk();
-                case (ClassConstants.Exchange << 16) | ExchangeMethodConstants.Bind: return new ExchangeBind();
-                case (ClassConstants.Exchange << 16) | ExchangeMethodConstants.BindOk: return new ExchangeBindOk();
-                case (ClassConstants.Exchange << 16) | ExchangeMethodConstants.Unbind: return new ExchangeUnbind();
-                case (ClassConstants.Exchange << 16) | ExchangeMethodConstants.UnbindOk: return new ExchangeUnbindOk();
-                case (ClassConstants.Queue << 16) | QueueMethodConstants.Declare: return new QueueDeclare();
-                case (ClassConstants.Queue << 16) | QueueMethodConstants.DeclareOk: return new Impl.QueueDeclareOk();
-                case (ClassConstants.Queue << 16) | QueueMethodConstants.Bind: return new QueueBind();
-                case (ClassConstants.Queue << 16) | QueueMethodConstants.BindOk: return new QueueBindOk();
-                case (ClassConstants.Queue << 16) | QueueMethodConstants.Unbind: return new QueueUnbind();
-                case (ClassConstants.Queue << 16) | QueueMethodConstants.UnbindOk: return new QueueUnbindOk();
-                case (ClassConstants.Queue << 16) | QueueMethodConstants.Purge: return new QueuePurge();
-                case (ClassConstants.Queue << 16) | QueueMethodConstants.PurgeOk: return new QueuePurgeOk();
-                case (ClassConstants.Queue << 16) | QueueMethodConstants.Delete: return new QueueDelete();
-                case (ClassConstants.Queue << 16) | QueueMethodConstants.DeleteOk: return new QueueDeleteOk();
-                case (ClassConstants.Basic << 16) | BasicMethodConstants.Qos: return new BasicQos();
-                case (ClassConstants.Basic << 16) | BasicMethodConstants.QosOk: return new BasicQosOk();
-                case (ClassConstants.Basic << 16) | BasicMethodConstants.Consume: return new BasicConsume();
-                case (ClassConstants.Basic << 16) | BasicMethodConstants.ConsumeOk: return new BasicConsumeOk();
-                case (ClassConstants.Basic << 16) | BasicMethodConstants.Cancel: return new BasicCancel();
-                case (ClassConstants.Basic << 16) | BasicMethodConstants.CancelOk: return new BasicCancelOk();
-                case (ClassConstants.Basic << 16) | BasicMethodConstants.Publish: return new BasicPublish();
-                case (ClassConstants.Basic << 16) | BasicMethodConstants.Return: return new BasicReturn();
-                case (ClassConstants.Basic << 16) | BasicMethodConstants.Deliver: return new BasicDeliver();
-                case (ClassConstants.Basic << 16) | BasicMethodConstants.Get: return new BasicGet();
-                case (ClassConstants.Basic << 16) | BasicMethodConstants.GetOk: return new BasicGetOk();
-                case (ClassConstants.Basic << 16) | BasicMethodConstants.GetEmpty: return new BasicGetEmpty();
-                case (ClassConstants.Basic << 16) | BasicMethodConstants.Ack: return new BasicAck();
-                case (ClassConstants.Basic << 16) | BasicMethodConstants.Reject: return new BasicReject();
-                case (ClassConstants.Basic << 16) | BasicMethodConstants.RecoverAsync: return new BasicRecoverAsync();
-                case (ClassConstants.Basic << 16) | BasicMethodConstants.Recover: return new BasicRecover();
-                case (ClassConstants.Basic << 16) | BasicMethodConstants.RecoverOk: return new BasicRecoverOk();
-                case (ClassConstants.Basic << 16) | BasicMethodConstants.Nack: return new BasicNack();
-                case (ClassConstants.Tx << 16) | TxMethodConstants.Select: return new TxSelect();
-                case (ClassConstants.Tx << 16) | TxMethodConstants.SelectOk: return new TxSelectOk();
-                case (ClassConstants.Tx << 16) | TxMethodConstants.Commit: return new TxCommit();
-                case (ClassConstants.Tx << 16) | TxMethodConstants.CommitOk: return new TxCommitOk();
-                case (ClassConstants.Tx << 16) | TxMethodConstants.Rollback: return new TxRollback();
-                case (ClassConstants.Tx << 16) | TxMethodConstants.RollbackOk: return new TxRollbackOk();
-                case (ClassConstants.Confirm << 16) | ConfirmMethodConstants.Select: return new ConfirmSelect();
-                case (ClassConstants.Confirm << 16) | ConfirmMethodConstants.SelectOk: return new ConfirmSelectOk();
-                default: return null;
+                case ProtocolCommandId.ConnectionStart: return new ConnectionStart();
+                case ProtocolCommandId.ConnectionStartOk: return new ConnectionStartOk();
+                case ProtocolCommandId.ConnectionSecure: return new ConnectionSecure();
+                case ProtocolCommandId.ConnectionSecureOk: return new ConnectionSecureOk();
+                case ProtocolCommandId.ConnectionTune: return new ConnectionTune();
+                case ProtocolCommandId.ConnectionTuneOk: return new ConnectionTuneOk();
+                case ProtocolCommandId.ConnectionOpen: return new ConnectionOpen();
+                case ProtocolCommandId.ConnectionOpenOk: return new ConnectionOpenOk();
+                case ProtocolCommandId.ConnectionClose: return new ConnectionClose();
+                case ProtocolCommandId.ConnectionCloseOk: return new ConnectionCloseOk();
+                case ProtocolCommandId.ConnectionBlocked: return new ConnectionBlocked();
+                case ProtocolCommandId.ConnectionUnblocked: return new ConnectionUnblocked();
+                case ProtocolCommandId.ConnectionUpdateSecret: return new ConnectionUpdateSecret();
+                case ProtocolCommandId.ConnectionUpdateSecretOk: return new ConnectionUpdateSecretOk();
+                case ProtocolCommandId.ChannelOpen: return new ChannelOpen();
+                case ProtocolCommandId.ChannelOpenOk: return new ChannelOpenOk();
+                case ProtocolCommandId.ChannelFlow: return new ChannelFlow();
+                case ProtocolCommandId.ChannelFlowOk: return new ChannelFlowOk();
+                case ProtocolCommandId.ChannelClose: return new ChannelClose();
+                case ProtocolCommandId.ChannelCloseOk: return new ChannelCloseOk();
+                case ProtocolCommandId.ExchangeDeclare: return new ExchangeDeclare();
+                case ProtocolCommandId.ExchangeDeclareOk: return new ExchangeDeclareOk();
+                case ProtocolCommandId.ExchangeDelete: return new ExchangeDelete();
+                case ProtocolCommandId.ExchangeDeleteOk: return new ExchangeDeleteOk();
+                case ProtocolCommandId.ExchangeBind: return new ExchangeBind();
+                case ProtocolCommandId.ExchangeBindOk: return new ExchangeBindOk();
+                case ProtocolCommandId.ExchangeUnbind: return new ExchangeUnbind();
+                case ProtocolCommandId.ExchangeUnbindOk: return new ExchangeUnbindOk();
+                case ProtocolCommandId.QueueDeclare: return new QueueDeclare();
+                case ProtocolCommandId.QueueDeclareOk: return new Impl.QueueDeclareOk();
+                case ProtocolCommandId.QueueBind: return new QueueBind();
+                case ProtocolCommandId.QueueBindOk: return new QueueBindOk();
+                case ProtocolCommandId.QueueUnbind: return new QueueUnbind();
+                case ProtocolCommandId.QueueUnbindOk: return new QueueUnbindOk();
+                case ProtocolCommandId.QueuePurge: return new QueuePurge();
+                case ProtocolCommandId.QueuePurgeOk: return new QueuePurgeOk();
+                case ProtocolCommandId.QueueDelete: return new QueueDelete();
+                case ProtocolCommandId.QueueDeleteOk: return new QueueDeleteOk();
+                case ProtocolCommandId.BasicQos: return new BasicQos();
+                case ProtocolCommandId.BasicQosOk: return new BasicQosOk();
+                case ProtocolCommandId.BasicConsume: return new BasicConsume();
+                case ProtocolCommandId.BasicConsumeOk: return new BasicConsumeOk();
+                case ProtocolCommandId.BasicCancel: return new BasicCancel();
+                case ProtocolCommandId.BasicCancelOk: return new BasicCancelOk();
+                case ProtocolCommandId.BasicPublish: return new BasicPublish();
+                case ProtocolCommandId.BasicReturn: return new BasicReturn();
+                case ProtocolCommandId.BasicDeliver: return new BasicDeliver();
+                case ProtocolCommandId.BasicGet: return new BasicGet();
+                case ProtocolCommandId.BasicGetOk: return new BasicGetOk();
+                case ProtocolCommandId.BasicGetEmpty: return new BasicGetEmpty();
+                case ProtocolCommandId.BasicAck: return new BasicAck();
+                case ProtocolCommandId.BasicReject: return new BasicReject();
+                case ProtocolCommandId.BasicRecoverAsync: return new BasicRecoverAsync();
+                case ProtocolCommandId.BasicRecover: return new BasicRecover();
+                case ProtocolCommandId.BasicRecoverOk: return new BasicRecoverOk();
+                case ProtocolCommandId.BasicNack: return new BasicNack();
+                case ProtocolCommandId.TxSelect: return new TxSelect();
+                case ProtocolCommandId.TxSelectOk: return new TxSelectOk();
+                case ProtocolCommandId.TxCommit: return new TxCommit();
+                case ProtocolCommandId.TxCommitOk: return new TxCommitOk();
+                case ProtocolCommandId.TxRollback: return new TxRollback();
+                case ProtocolCommandId.TxRollbackOk: return new TxRollbackOk();
+                case ProtocolCommandId.ConfirmSelect: return new ConfirmSelect();
+                case ProtocolCommandId.ConfirmSelectOk: return new ConfirmSelectOk();
+                default:
+                    //TODO Check if valid
+                    throw new Exceptions.UnknownClassOrMethodException((ushort)((uint)commandId >> 16), (ushort)((uint)commandId & 0xFFFF));
             }
         }
 

@@ -31,7 +31,7 @@
 
 using System;
 using System.Collections.Generic;
-
+using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
@@ -72,24 +72,15 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void CreateChannelClose(ushort reasonCode,
             string reasonText,
-            out OutgoingCommand request,
-            out ushort replyClassId,
-            out ushort replyMethodId)
+            out OutgoingCommand request)
         {
             request = new OutgoingCommand(new Impl.ChannelClose(reasonCode, reasonText, 0, 0));
-            replyClassId = ClassConstants.Channel;
-            replyMethodId = ChannelMethodConstants.CloseOk;
         }
 
-        public void CreateConnectionClose(ushort reasonCode,
-            string reasonText,
-            out OutgoingCommand request,
-            out ushort replyClassId,
-            out ushort replyMethodId)
+        public void CreateConnectionClose(ushort reasonCode, string reasonText, out OutgoingCommand request, out ProtocolCommandId replyProtocolCommandId)
         {
             request = new OutgoingCommand(new Impl.ConnectionClose(reasonCode, reasonText, 0, 0));
-            replyClassId = ClassConstants.Connection;
-            replyMethodId = ConnectionMethodConstants.CloseOk;
+            replyProtocolCommandId = ProtocolCommandId.ConnectionCloseOk;
         }
 
         internal abstract ContentHeaderBase DecodeContentHeaderFrom(ushort classId);

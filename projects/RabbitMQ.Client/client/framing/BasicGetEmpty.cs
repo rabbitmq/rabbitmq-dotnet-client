@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System.Text;
+using RabbitMQ.Client.client.framing;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -46,8 +47,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _reserved1 = Reserved1;
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Basic;
-        public override ushort ProtocolMethodId => BasicMethodConstants.GetEmpty;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicGetEmpty;
         public override string ProtocolMethodName => "basic.get-empty";
         public override bool HasContent => false;
 

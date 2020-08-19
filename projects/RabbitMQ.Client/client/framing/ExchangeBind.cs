@@ -31,6 +31,7 @@
 
 using System.Collections.Generic;
 using System.Text;
+using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
@@ -58,8 +59,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _arguments = Arguments;
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Exchange;
-        public override ushort ProtocolMethodId => ExchangeMethodConstants.Bind;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ExchangeBind;
         public override string ProtocolMethodName => "exchange.bind";
         public override bool HasContent => false;
 

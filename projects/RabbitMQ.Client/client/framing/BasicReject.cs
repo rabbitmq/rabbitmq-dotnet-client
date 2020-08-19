@@ -29,6 +29,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client.client.framing;
+
 namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class BasicReject : Client.Impl.MethodBase
@@ -46,8 +48,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _requeue = Requeue;
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Basic;
-        public override ushort ProtocolMethodId => BasicMethodConstants.Reject;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicReject;
         public override string ProtocolMethodName => "basic.reject";
         public override bool HasContent => false;
 

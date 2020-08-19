@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System.Text;
+using RabbitMQ.Client.client.framing;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -54,8 +55,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _messageCount = MessageCount;
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Basic;
-        public override ushort ProtocolMethodId => BasicMethodConstants.GetOk;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicGetOk;
         public override string ProtocolMethodName => "basic.get-ok";
         public override bool HasContent => true;
 

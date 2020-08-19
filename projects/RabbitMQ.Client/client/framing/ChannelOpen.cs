@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System.Text;
+using RabbitMQ.Client.client.framing;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -46,8 +47,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _reserved1 = Reserved1;
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Channel;
-        public override ushort ProtocolMethodId => ChannelMethodConstants.Open;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ChannelOpen;
         public override string ProtocolMethodName => "channel.open";
         public override bool HasContent => false;
 

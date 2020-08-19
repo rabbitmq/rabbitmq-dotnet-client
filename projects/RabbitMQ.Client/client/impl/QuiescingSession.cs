@@ -29,6 +29,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
@@ -49,18 +50,19 @@ namespace RabbitMQ.Client.Impl
             if (frame.Type == FrameType.FrameMethod)
             {
                 MethodBase method = Connection.Protocol.DecodeMethodFrom(frame.Payload.Span);
-                if (method.ProtocolClassId == ClassConstants.Channel && method.ProtocolMethodId == ChannelMethodConstants.CloseOk)
+                switch (method.ProtocolCommandId)
                 {
-                    // This is the reply we were looking for. Release
-                    // the channel with the reason we were passed in
-                    // our constructor.
-                    Close(_reason);
-                }
-                else if (method.ProtocolClassId == ClassConstants.Channel && method.ProtocolMethodId == ChannelMethodConstants.Close)
-                {
-                    // We're already shutting down the channel, so
-                    // just send back an ok.
-                    Transmit(new OutgoingCommand(new ConnectionCloseOk()));
+                    case ProtocolCommandId.ChannelCloseOk:
+                        // This is the reply we were looking for. Release
+                        // the channel with the reason we were passed in
+                        // our constructor.
+                        Close(_reason);
+                        break;
+                    case ProtocolCommandId.ChannelClose:
+                        // We're already shutting down the channel, so
+                        // just send back an ok.
+                        Transmit(new OutgoingCommand(new ConnectionCloseOk()));
+                        break;
                 }
             }
 

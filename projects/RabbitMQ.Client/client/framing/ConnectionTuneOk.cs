@@ -29,6 +29,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client.client.framing;
+
 namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class ConnectionTuneOk : Client.Impl.MethodBase
@@ -48,8 +50,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _heartbeat = Heartbeat;
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Connection;
-        public override ushort ProtocolMethodId => ConnectionMethodConstants.TuneOk;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionTuneOk;
         public override string ProtocolMethodName => "connection.tune-ok";
         public override bool HasContent => false;
 

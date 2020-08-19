@@ -29,6 +29,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client.client.framing;
+
 namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class TxRollback : Client.Impl.MethodBase
@@ -37,8 +39,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Tx;
-        public override ushort ProtocolMethodId => TxMethodConstants.Rollback;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.TxRollback;
         public override string ProtocolMethodName => "tx.rollback";
         public override bool HasContent => false;
 

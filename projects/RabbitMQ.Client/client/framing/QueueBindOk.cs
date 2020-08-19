@@ -29,6 +29,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client.client.framing;
+
 namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class QueueBindOk : Client.Impl.MethodBase
@@ -37,8 +39,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Queue;
-        public override ushort ProtocolMethodId => QueueMethodConstants.BindOk;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueueBindOk;
         public override string ProtocolMethodName => "queue.bind-ok";
         public override bool HasContent => false;
 

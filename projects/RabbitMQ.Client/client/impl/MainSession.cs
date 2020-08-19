@@ -35,7 +35,7 @@
 // that ever changes.
 
 using System;
-
+using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
@@ -45,19 +45,16 @@ namespace RabbitMQ.Client.Impl
     {
         private readonly object _closingLock = new object();
 
-        private readonly ushort _closeClassId;
-        private readonly ushort _closeMethodId;
-        private readonly ushort _closeOkClassId;
-        private readonly ushort _closeOkMethodId;
+        private readonly ProtocolCommandId _closeProtocolId;
+        private readonly ProtocolCommandId _closeOkProtocolId;
 
         private bool _closeServerInitiated;
         private bool _closing;
 
         public MainSession(Connection connection) : base(connection, 0)
         {
-            connection.Protocol.CreateConnectionClose(0, string.Empty, out OutgoingCommand request, out _closeOkClassId, out _closeOkMethodId);
-            _closeClassId = request.Method.ProtocolClassId;
-            _closeMethodId = request.Method.ProtocolMethodId;
+            connection.Protocol.CreateConnectionClose(0, string.Empty, out OutgoingCommand request, out _closeOkProtocolId);
+            _closeProtocolId = request.Method.ProtocolCommandId;
         }
 
         public Action Handler { get; set; }
@@ -75,12 +72,12 @@ namespace RabbitMQ.Client.Impl
             if (!_closeServerInitiated && frame.Type == FrameType.FrameMethod)
             {
                 MethodBase method = Connection.Protocol.DecodeMethodFrom(frame.Payload.Span);
-                if (method.ProtocolClassId == _closeClassId && method.ProtocolMethodId == _closeMethodId)
+                if (method.ProtocolCommandId == _closeProtocolId)
                 {
                     return base.HandleFrame(in frame);
                 }
 
-                if (method.ProtocolClassId == _closeOkClassId && method.ProtocolMethodId == _closeOkMethodId)
+                if (method.ProtocolCommandId == _closeOkProtocolId)
                 {
                     // This is the reply (CloseOk) we were looking for
                     // Call any listener attached to this session
@@ -125,12 +122,8 @@ namespace RabbitMQ.Client.Impl
             // Allow always for sending close ok
             // Or if application initiated, allow also for sending close
             MethodBase method = cmd.Method;
-            if (((method.ProtocolClassId == _closeOkClassId)
-                 && (method.ProtocolMethodId == _closeOkMethodId))
-                || (!_closeServerInitiated &&
-                    (method.ProtocolClassId == _closeClassId) &&
-                    (method.ProtocolMethodId == _closeMethodId)
-                    ))
+            if (method.ProtocolCommandId == _closeOkProtocolId ||
+                (!_closeServerInitiated && method.ProtocolCommandId == _closeProtocolId))
             {
                 base.Transmit(cmd);
             }

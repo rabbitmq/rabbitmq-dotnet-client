@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System.Text;
+using RabbitMQ.Client.client.framing;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -54,8 +55,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _nowait = Nowait;
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Queue;
-        public override ushort ProtocolMethodId => QueueMethodConstants.Delete;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueueDelete;
         public override string ProtocolMethodName => "queue.delete";
         public override bool HasContent => false;
 

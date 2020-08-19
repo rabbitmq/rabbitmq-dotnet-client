@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System.Text;
+using RabbitMQ.Client.client.framing;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -46,8 +47,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _reason = Reason;
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Connection;
-        public override ushort ProtocolMethodId => ConnectionMethodConstants.Blocked;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionBlocked;
         public override string ProtocolMethodName => "connection.blocked";
         public override bool HasContent => false;
 

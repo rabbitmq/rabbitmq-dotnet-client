@@ -381,7 +381,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public OutgoingCommand ConnectionCloseWrapper(ushort reasonCode, string reasonText)
         {
-            Protocol.CreateConnectionClose(reasonCode, reasonText, out OutgoingCommand request, out _, out _);
+            Protocol.CreateConnectionClose(reasonCode, reasonText, out OutgoingCommand request, out _);
             return request;
         }
 
@@ -1039,7 +1039,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         internal OutgoingCommand ChannelCloseWrapper(ushort reasonCode, string reasonText)
         {
-            Protocol.CreateChannelClose(reasonCode, reasonText, out OutgoingCommand request, out _, out _);
+            Protocol.CreateChannelClose(reasonCode, reasonText, out OutgoingCommand request);
             return request;
         }
 

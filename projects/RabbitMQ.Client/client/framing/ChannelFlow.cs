@@ -29,6 +29,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client.client.framing;
+
 namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class ChannelFlow : Client.Impl.MethodBase
@@ -44,8 +46,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _active = Active;
         }
 
-        public override ushort ProtocolClassId => ClassConstants.Channel;
-        public override ushort ProtocolMethodId => ChannelMethodConstants.Flow;
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ChannelFlow;
         public override string ProtocolMethodName => "channel.flow";
         public override bool HasContent => false;
 
