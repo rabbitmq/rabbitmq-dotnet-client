@@ -924,7 +924,7 @@ namespace RabbitMQ.Client.Framing.Impl
             return string.Format("Connection({0},{1})", _id, Endpoint);
         }
 
-        public void Write(Memory<byte> memory)
+        public void Write(ReadOnlyMemory<byte> memory)
         {
             _frameHandler.Write(memory);
         }

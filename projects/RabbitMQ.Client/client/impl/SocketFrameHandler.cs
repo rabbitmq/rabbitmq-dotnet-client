@@ -70,8 +70,8 @@ namespace RabbitMQ.Client.Impl
         private readonly ITcpClient _socket;
         private readonly Stream _reader;
         private readonly Stream _writer;
-        private readonly ChannelWriter<Memory<byte>> _channelWriter;
-        private readonly ChannelReader<Memory<byte>> _channelReader;
+        private readonly ChannelWriter<ReadOnlyMemory<byte>> _channelWriter;
+        private readonly ChannelReader<ReadOnlyMemory<byte>> _channelReader;
         private readonly Task _writerTask;
         private readonly object _semaphore = new object();
         private readonly byte[] _frameHeaderBuffer;
@@ -83,7 +83,7 @@ namespace RabbitMQ.Client.Impl
         {
             Endpoint = endpoint;
             _frameHeaderBuffer = new byte[6];
-            var channel = Channel.CreateUnbounded<Memory<byte>>(
+            var channel = Channel.CreateUnbounded<ReadOnlyMemory<byte>>(
                 new UnboundedChannelOptions
                 {
                     AllowSynchronousContinuations = false,
@@ -260,7 +260,7 @@ namespace RabbitMQ.Client.Impl
             _writer.Flush();
         }
 
-        public void Write(Memory<byte> memory)
+        public void Write(ReadOnlyMemory<byte> memory)
         {
             _channelWriter.TryWrite(memory);
         }
