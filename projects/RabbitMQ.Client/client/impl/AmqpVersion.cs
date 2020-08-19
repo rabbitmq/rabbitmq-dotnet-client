@@ -29,6 +29,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+
 namespace RabbitMQ.Client.Framing.Impl
 {
     /// <summary>Represents a version of the AMQP specification.</summary>
@@ -45,7 +47,7 @@ namespace RabbitMQ.Client.Framing.Impl
     /// special-cases 8-0, rewriting it at construction time to be 0-8 instead.
     /// </para>
     /// </remarks>
-    internal class AmqpVersion
+    internal readonly struct AmqpVersion : IEquatable<AmqpVersion>
     {
         /// <summary>
         /// Construct an <see cref="AmqpVersion"/> from major and minor version numbers.
@@ -70,27 +72,36 @@ namespace RabbitMQ.Client.Framing.Impl
         /// <summary>
         /// The AMQP specification major version number.
         /// </summary>
-        public int Major { get; private set; }
+        public int Major { get; }
 
         /// <summary>
         /// The AMQP specification minor version number.
         /// </summary>
-        public int Minor { get; private set; }
+        public int Minor { get; }
 
         /// <summary>
         /// Implement value-equality comparison.
         /// </summary>
         public override bool Equals(object other)
         {
-            return (other is AmqpVersion version) && (version.Major == Major) && (version.Minor == Minor);
+            return other is AmqpVersion version && Equals(version);
         }
+
+        public bool Equals(AmqpVersion other) => Major == other.Major && Minor == other.Minor;
+
+        public static bool operator ==(AmqpVersion left, AmqpVersion right) => left.Equals(right);
+
+        public static bool operator !=(AmqpVersion left, AmqpVersion right) => !left.Equals(right);
 
         /// <summary>
         /// Implement hashing as for value-equality.
         /// </summary>
         public override int GetHashCode()
         {
-            return 31*Major.GetHashCode() + Minor.GetHashCode();
+            unchecked
+            {
+                return (Major * 397) ^ Minor;
+            }
         }
 
         /// <summary>
