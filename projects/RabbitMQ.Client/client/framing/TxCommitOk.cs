@@ -29,44 +29,30 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Collections.Generic;
-using System.Xml;
-
-namespace RabbitMQ.Client.Apigen
+namespace RabbitMQ.Client.Framing.Impl
 {
-    public class AmqpMethod: AmqpEntity {
-        public IList<AmqpField> m_Fields;
-        public IList<string> m_ResponseMethods;
-
-        public AmqpMethod(XmlNode n)
-            : base(n)
+    internal sealed class TxCommitOk : Client.Impl.MethodBase
+    {
+        public TxCommitOk()
         {
-            m_Fields = new List<AmqpField>();
-            foreach (XmlNode f in n.SelectNodes("field")) {
-                m_Fields.Add(new AmqpField(f));
-            }
-            m_ResponseMethods = new List<string>();
-            foreach (XmlNode r in n.SelectNodes("response")) {
-                m_ResponseMethods.Add(Apigen.GetString(r, "@name"));
-            }
         }
 
-        public bool HasContent {
-            get {
-                return GetString("@content", null) != null;
-            }
+        public override ushort ProtocolClassId => ClassConstants.Tx;
+        public override ushort ProtocolMethodId => TxMethodConstants.CommitOk;
+        public override string ProtocolMethodName => "tx.commit-ok";
+        public override bool HasContent => false;
+
+        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
+        {
         }
 
-        public bool IsSimpleRpcRequest {
-            get {
-                return m_ResponseMethods.Count == 1;
-            }
+        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
+        {
         }
 
-        public int Index {
-            get {
-                return GetInt("@index");
-            }
+        public override int GetRequiredBufferSize()
+        {
+            return 0;
         }
     }
 }

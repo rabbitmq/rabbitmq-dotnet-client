@@ -45,7 +45,7 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    abstract class ModelBase : IFullModel, IRecoverable
+    internal abstract class ModelBase : IFullModel, IRecoverable
     {
         ///<summary>Only used to kick-start a connection open
         ///sequence. See <see cref="Connection.Open"/> </summary>
@@ -330,14 +330,28 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public MethodBase ModelRpc(MethodBase method, ContentHeaderBase header, byte[] body)
+        public T ModelRpc<T>(MethodBase method) where T : MethodBase
         {
             var k = new SimpleBlockingRpcContinuation();
+            var outgoingCommand = new OutgoingCommand(method);
+            MethodBase baseResult;
             lock (_rpcLock)
             {
-                TransmitAndEnqueue(new OutgoingCommand(method, header, body), k);
-                return k.GetReply(ContinuationTimeout).Method;
+                TransmitAndEnqueue(outgoingCommand, k);
+                baseResult = k.GetReply(ContinuationTimeout).Method;
             }
+
+            if (baseResult is T result)
+            {
+                return result;
+            }
+
+            throw new UnexpectedMethodException(baseResult);
+        }
+
+        public void ModelSend(MethodBase method)
+        {
+            ModelSend(method, null, ReadOnlyMemory<byte>.Empty);
         }
 
         public void ModelSend(MethodBase method, ContentHeaderBase header, ReadOnlyMemory<byte> body)

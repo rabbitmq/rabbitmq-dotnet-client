@@ -40,12 +40,12 @@ namespace RabbitMQ.Client
         {
             var t = default(T);
             var exceptions = new List<Exception>();
-            foreach(AmqpTcpEndpoint ep in resolver.All())
+            foreach (AmqpTcpEndpoint ep in resolver.All())
             {
                 try
                 {
                     t = selector(ep);
-                    if(t.Equals(default(T)) == false)
+                    if (t.Equals(default(T)) == false)
                     {
                         return t;
                     }
@@ -56,7 +56,7 @@ namespace RabbitMQ.Client
                 }
             }
 
-            if(Object.Equals(t, default(T)) && exceptions.Count > 0)
+            if (Object.Equals(t, default(T)) && exceptions.Count > 0)
             {
                 throw new AggregateException(exceptions);
             }

@@ -46,10 +46,10 @@ namespace RabbitMQ.Client.Impl
             return Task.CompletedTask;
         }
 
-        class WorkPool
+        private class WorkPool
         {
-            readonly Channel<Work> _channel;
-            readonly IModel _model;
+            private readonly Channel<Work> _channel;
+            private readonly IModel _model;
             private Task _worker;
             private readonly int _concurrency;
             private SemaphoreSlim _limiter;

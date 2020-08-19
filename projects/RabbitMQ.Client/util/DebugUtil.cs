@@ -40,7 +40,7 @@ namespace RabbitMQ.Util
     ///<remarks>
     ///Not part of the public API.
     ///</remarks>
-    static class DebugUtil
+    internal static class DebugUtil
     {
         ///<summary>Print a hex dump of the supplied bytes to stdout.</summary>
         public static void Dump(byte[] bytes)

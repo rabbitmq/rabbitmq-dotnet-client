@@ -1,0 +1,104 @@
+// This source code is dual-licensed under the Apache License, version
+// 2.0, and the Mozilla Public License, version 2.0.
+//
+// The APL v2.0:
+//
+//---------------------------------------------------------------------------
+//   Copyright (c) 2007-2020 VMware, Inc.
+//
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
+//
+//       https://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+//---------------------------------------------------------------------------
+//
+// The MPL v2.0:
+//
+//---------------------------------------------------------------------------
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+//
+//  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
+//---------------------------------------------------------------------------
+
+using System.Collections.Generic;
+using System.Text;
+using RabbitMQ.Client.Impl;
+
+namespace RabbitMQ.Client.Framing.Impl
+{
+    internal sealed class BasicConsume : MethodBase
+    {
+        public ushort _reserved1;
+        public string _queue;
+        public string _consumerTag;
+        public bool _noLocal;
+        public bool _noAck;
+        public bool _exclusive;
+        public bool _nowait;
+        public IDictionary<string, object> _arguments;
+
+        public BasicConsume()
+        {
+        }
+
+        public BasicConsume(ushort Reserved1, string Queue, string ConsumerTag, bool NoLocal, bool NoAck, bool Exclusive, bool Nowait, IDictionary<string, object> Arguments)
+        {
+            _reserved1 = Reserved1;
+            _queue = Queue;
+            _consumerTag = ConsumerTag;
+            _noLocal = NoLocal;
+            _noAck = NoAck;
+            _exclusive = Exclusive;
+            _nowait = Nowait;
+            _arguments = Arguments;
+        }
+
+        public override ushort ProtocolClassId => ClassConstants.Basic;
+        public override ushort ProtocolMethodId => BasicMethodConstants.Consume;
+        public override string ProtocolMethodName => "basic.consume";
+        public override bool HasContent => false;
+
+        public override void ReadArgumentsFrom(ref MethodArgumentReader reader)
+        {
+            _reserved1 = reader.ReadShort();
+            _queue = reader.ReadShortstr();
+            _consumerTag = reader.ReadShortstr();
+            _noLocal = reader.ReadBit();
+            _noAck = reader.ReadBit();
+            _exclusive = reader.ReadBit();
+            _nowait = reader.ReadBit();
+            _arguments = reader.ReadTable();
+        }
+
+        public override void WriteArgumentsTo(ref MethodArgumentWriter writer)
+        {
+            writer.WriteShort(_reserved1);
+            writer.WriteShortstr(_queue);
+            writer.WriteShortstr(_consumerTag);
+            writer.WriteBit(_noLocal);
+            writer.WriteBit(_noAck);
+            writer.WriteBit(_exclusive);
+            writer.WriteBit(_nowait);
+            writer.EndBits();
+            writer.WriteTable(_arguments);
+        }
+
+        public override int GetRequiredBufferSize()
+        {
+            int bufferSize = 2 + 1 + 1 + 1; // bytes for _reserved1, length of _queue, length of _consumerTag, bit fields
+            bufferSize += Encoding.UTF8.GetByteCount(_queue); // _queue in bytes
+            bufferSize += Encoding.UTF8.GetByteCount(_consumerTag); // _consumerTag in bytes
+            bufferSize += WireFormatting.GetTableByteCount(_arguments); // _arguments in bytes
+            return bufferSize;
+        }
+    }
+}

@@ -29,11 +29,9 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Text;
-
 namespace RabbitMQ.Client.Impl
 {
-    abstract class MethodBase : IMethod
+    internal abstract class MethodBase : IMethod
     {
         public abstract bool HasContent { get; }
 
@@ -52,7 +50,6 @@ namespace RabbitMQ.Client.Impl
         /// </summary>
         public abstract string ProtocolMethodName { get; }
 
-        public abstract void AppendArgumentDebugStringTo(StringBuilder stringBuilder);
         public abstract void ReadArgumentsFrom(ref MethodArgumentReader reader);
         public abstract void WriteArgumentsTo(ref MethodArgumentWriter writer);
         public abstract int GetRequiredBufferSize();

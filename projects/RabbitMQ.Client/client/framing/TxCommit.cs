@@ -29,51 +29,30 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Collections.Generic;
-using System.Xml;
-
-namespace RabbitMQ.Client.Apigen
+namespace RabbitMQ.Client.Framing.Impl
 {
-    public class AmqpClass: AmqpEntity {
-        public IList<AmqpMethod> m_Methods;
-        public IList<AmqpField> m_Fields;
-
-        public AmqpClass(XmlNode n)
-            : base(n)
+    internal sealed class TxCommit : Client.Impl.MethodBase
+    {
+        public TxCommit()
         {
-            m_Methods = new List<AmqpMethod>();
-            foreach (XmlNode m in n.SelectNodes("method")) {
-                m_Methods.Add(new AmqpMethod(m));
-            }
-            m_Fields = new List<AmqpField>();
-            foreach (XmlNode f in n.SelectNodes("field")) {
-                m_Fields.Add(new AmqpField(f));
-            }
         }
 
-        public int Index {
-            get {
-                return GetInt("@index");
-            }
+        public override ushort ProtocolClassId => ClassConstants.Tx;
+        public override ushort ProtocolMethodId => TxMethodConstants.Commit;
+        public override string ProtocolMethodName => "tx.commit";
+        public override bool HasContent => false;
+
+        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
+        {
         }
 
-        public bool NeedsProperties {
-            get {
-                foreach (AmqpMethod m in m_Methods) {
-                    if (m.HasContent) return true;
-                }
-                return false;
-            }
+        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
+        {
         }
 
-        public AmqpMethod MethodNamed(string name) {
-            foreach (AmqpMethod m in m_Methods)
-            {
-                if (m.Name == name) {
-                    return m;
-                }
-            }
-            return null;
+        public override int GetRequiredBufferSize()
+        {
+            return 0;
         }
     }
 }

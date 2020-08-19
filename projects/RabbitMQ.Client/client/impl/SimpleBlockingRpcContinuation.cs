@@ -35,7 +35,7 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    class SimpleBlockingRpcContinuation : IRpcContinuation
+    internal class SimpleBlockingRpcContinuation : IRpcContinuation
     {
         public readonly BlockingCell<Either<IncomingCommand, ShutdownEventArgs>> m_cell = new BlockingCell<Either<IncomingCommand, ShutdownEventArgs>>();
 

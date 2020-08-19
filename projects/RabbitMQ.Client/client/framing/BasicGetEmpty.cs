@@ -29,27 +29,43 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Diagnostics;
-using System.Xml;
+using System.Text;
 
-namespace RabbitMQ.Client.Apigen
+namespace RabbitMQ.Client.Framing.Impl
 {
-    [DebuggerDisplay("{Domain,nq} {Name,nq}")]
-    public class AmqpField : AmqpEntity
+    internal sealed class BasicGetEmpty : Client.Impl.MethodBase
     {
-        public AmqpField(XmlNode n) : base(n) { }
+        public string _reserved1;
 
-        public string Domain
+        public BasicGetEmpty()
         {
-            get
-            {
-                string result = GetString("@domain", "");
-                if (result.Equals(""))
-                {
-                    result = GetString("@type");
-                }
-                return result;
-            }
+        }
+
+        public BasicGetEmpty(string Reserved1)
+        {
+            _reserved1 = Reserved1;
+        }
+
+        public override ushort ProtocolClassId => ClassConstants.Basic;
+        public override ushort ProtocolMethodId => BasicMethodConstants.GetEmpty;
+        public override string ProtocolMethodName => "basic.get-empty";
+        public override bool HasContent => false;
+
+        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
+        {
+            _reserved1 = reader.ReadShortstr();
+        }
+
+        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
+        {
+            writer.WriteShortstr(_reserved1);
+        }
+
+        public override int GetRequiredBufferSize()
+        {
+            int bufferSize = 1; // bytes for length of _reserved1
+            bufferSize += Encoding.UTF8.GetByteCount(_reserved1); // _reserved1 in bytes
+            return bufferSize;
         }
     }
 }
