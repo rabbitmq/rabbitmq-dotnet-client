@@ -32,8 +32,8 @@
 using System.Threading.Tasks;
 using NUnit.Framework;
 using PublicApiGenerator;
-using Verify;
 using VerifyNUnit;
+using VerifyTests;
 
 namespace RabbitMQ.Client.Unit
 {
