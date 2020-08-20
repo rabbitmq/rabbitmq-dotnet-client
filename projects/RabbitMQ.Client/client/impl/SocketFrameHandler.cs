@@ -270,7 +270,7 @@ namespace RabbitMQ.Client.Impl
             while (await _channelReader.WaitToReadAsync().ConfigureAwait(false))
             {
                 _socket.Client.Poll(_writeableStateTimeoutMicroSeconds, SelectMode.SelectWrite);
-                while (_channelReader.TryRead(out Memory<byte> memory))
+                while (_channelReader.TryRead(out ReadOnlyMemory<byte> memory))
                 {
                     MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> segment);
                     await _writer.WriteAsync(segment.Array, segment.Offset, segment.Count).ConfigureAwait(false);
