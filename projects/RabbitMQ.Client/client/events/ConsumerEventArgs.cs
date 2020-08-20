@@ -46,6 +46,6 @@ namespace RabbitMQ.Client.Events
 
         ///<summary>Access the consumer-tags of the consumer the event
         ///relates to.</summary>
-        public string[] ConsumerTags { get; private set; }
+        public string[] ConsumerTags { get; }
     }
 }

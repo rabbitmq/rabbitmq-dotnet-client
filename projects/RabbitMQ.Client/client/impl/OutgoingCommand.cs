@@ -45,8 +45,8 @@ namespace RabbitMQ.Client.Impl
         private const int EmptyFrameSize = 8;
 
         public readonly MethodBase Method;
-        private readonly ContentHeaderBase Header;
-        private readonly ReadOnlyMemory<byte> Body;
+        private readonly ContentHeaderBase _header;
+        private readonly ReadOnlyMemory<byte> _body;
 
         public OutgoingCommand(MethodBase method)
             : this(method, null, ReadOnlyMemory<byte>.Empty)
@@ -56,25 +56,25 @@ namespace RabbitMQ.Client.Impl
         public OutgoingCommand(MethodBase method, ContentHeaderBase header, ReadOnlyMemory<byte> body)
         {
             Method = method;
-            Header = header;
-            Body = body;
+            _header = header;
+            _body = body;
         }
 
         internal void Transmit(ushort channelNumber, Connection connection)
         {
             int maxBodyPayloadBytes = (int)(connection.FrameMax == 0 ? int.MaxValue : connection.FrameMax - EmptyFrameSize);
-            var size = GetMaxSize(maxBodyPayloadBytes);
+            int size = GetMaxSize(maxBodyPayloadBytes);
 
             // Will be returned by SocketFrameWriter.WriteLoop
-            var rentedArray = ArrayPool<byte>.Shared.Rent(size);
-            var span = rentedArray.AsSpan(0, size);
+            byte[] rentedArray = ArrayPool<byte>.Shared.Rent(size);
+            Span<byte> span = rentedArray.AsSpan(0, size);
 
-            var offset = Framing.Method.WriteTo(span, channelNumber, Method);
+            int offset = Framing.Method.WriteTo(span, channelNumber, Method);
             if (Method.HasContent)
             {
-                int remainingBodyBytes = Body.Length;
-                offset += Framing.Header.WriteTo(span.Slice(offset), channelNumber, Header, remainingBodyBytes);
-                var bodySpan = Body.Span;
+                int remainingBodyBytes = _body.Length;
+                offset += Framing.Header.WriteTo(span.Slice(offset), channelNumber, _header, remainingBodyBytes);
+                ReadOnlySpan<byte> bodySpan = _body.Span;
                 while (remainingBodyBytes > 0)
                 {
                     int frameSize = remainingBodyBytes > maxBodyPayloadBytes ? maxBodyPayloadBytes : remainingBodyBytes;
@@ -99,8 +99,8 @@ namespace RabbitMQ.Client.Impl
             }
 
             return Framing.Method.FrameSize + Method.GetRequiredBufferSize() +
-                   Framing.Header.FrameSize + Header.GetRequiredPayloadBufferSize() +
-                   Framing.BodySegment.FrameSize * GetBodyFrameCount(maxPayloadBytes) + Body.Length;
+                   Framing.Header.FrameSize + _header.GetRequiredPayloadBufferSize() +
+                   Framing.BodySegment.FrameSize * GetBodyFrameCount(maxPayloadBytes) + _body.Length;
         }
 
         private int GetBodyFrameCount(int maxPayloadBytes)
@@ -110,7 +110,7 @@ namespace RabbitMQ.Client.Impl
                 return 1;
             }
 
-            return (Body.Length + maxPayloadBytes - 1) / maxPayloadBytes;
+            return (_body.Length + maxPayloadBytes - 1) / maxPayloadBytes;
         }
     }
 }

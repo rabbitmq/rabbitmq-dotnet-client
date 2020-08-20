@@ -36,6 +36,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -91,7 +92,7 @@ namespace RabbitMQ.Client.Framing.Impl
         // true if we haven't finished connection negotiation.
         // In this state socket exceptions are treated as fatal connection
         // errors, otherwise as read timeouts
-        public ConsumerWorkService ConsumerWorkService { get; private set; }
+        public ConsumerWorkService ConsumerWorkService { get; }
 
         public Connection(IConnectionFactory factory, bool insist, IFrameHandler frameHandler, string clientProvidedName = null)
         {
@@ -118,7 +119,7 @@ namespace RabbitMQ.Client.Framing.Impl
             Open(insist);
         }
 
-        public Guid Id { get { return _id; } }
+        public Guid Id => _id;
 
         public event EventHandler<CallbackExceptionEventArgs> CallbackException;
 
@@ -128,15 +129,11 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             add
             {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
+                ThrowIfDisposed();
                 bool ok = false;
                 lock (_eventLock)
                 {
-                    if (_closeReason == null)
+                    if (_closeReason is null)
                     {
                         _connectionShutdown += value;
                         ok = true;
@@ -149,11 +146,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             remove
             {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
+                ThrowIfDisposed();
                 lock (_eventLock)
                 {
                     _connectionShutdown -= value;
@@ -161,33 +154,26 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
+        
+
         public event EventHandler<EventArgs> ConnectionUnblocked;
 
 
-        public string ClientProvidedName { get; private set; }
+        public string ClientProvidedName { get; }
 
-        public ushort ChannelMax
-        {
-            get { return _sessionManager.ChannelMax; }
-        }
+        public ushort ChannelMax => _sessionManager.ChannelMax;
 
         public IDictionary<string, object> ClientProperties { get; set; }
 
-        public ShutdownEventArgs CloseReason
-        {
-            get { return _closeReason; }
-        }
+        public ShutdownEventArgs CloseReason => _closeReason;
 
-        public AmqpTcpEndpoint Endpoint
-        {
-            get { return _frameHandler.Endpoint; }
-        }
+        public AmqpTcpEndpoint Endpoint => _frameHandler.Endpoint;
 
         public uint FrameMax { get; set; }
 
         public TimeSpan Heartbeat
         {
-            get { return _heartbeat; }
+            get => _heartbeat;
             set
             {
                 _heartbeat = value;
@@ -198,49 +184,28 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public bool IsOpen
-        {
-            get { return CloseReason == null; }
-        }
+        public bool IsOpen => CloseReason is null;
 
         public AmqpTcpEndpoint[] KnownHosts { get; set; }
 
-        public EndPoint LocalEndPoint
-        {
-            get { return _frameHandler.LocalEndPoint; }
-        }
+        public EndPoint LocalEndPoint => _frameHandler.LocalEndPoint;
 
-        public int LocalPort
-        {
-            get { return _frameHandler.LocalPort; }
-        }
+        public int LocalPort => _frameHandler.LocalPort;
 
         ///<summary>Another overload of a Protocol property, useful
         ///for exposing a tighter type.</summary>
-        public ProtocolBase Protocol
-        {
-            get { return (ProtocolBase)Endpoint.Protocol; }
-        }
+        public ProtocolBase Protocol => (ProtocolBase)Endpoint.Protocol;
 
-        public EndPoint RemoteEndPoint
-        {
-            get { return _frameHandler.RemoteEndPoint; }
-        }
+        public EndPoint RemoteEndPoint => _frameHandler.RemoteEndPoint;
 
-        public int RemotePort
-        {
-            get { return _frameHandler.RemotePort; }
-        }
+        public int RemotePort => _frameHandler.RemotePort;
 
         public IDictionary<string, object> ServerProperties { get; set; }
 
         public IList<ShutdownReportEntry> ShutdownReport { get; } = new SynchronizedList<ShutdownReportEntry>(new List<ShutdownReportEntry>());
 
         ///<summary>Explicit implementation of IConnection.Protocol.</summary>
-        IProtocol IConnection.Protocol
-        {
-            get { return Endpoint.Protocol; }
-        }
+        IProtocol IConnection.Protocol => Endpoint.Protocol;
 
         public static IDictionary<string, object> DefaultClientProperties()
         {
@@ -316,7 +281,7 @@ namespace RabbitMQ.Client.Framing.Impl
 #pragma warning restore 0168
                 catch (IOException ioe)
                 {
-                    if (_model0.CloseReason == null)
+                    if (_model0.CloseReason is null)
                     {
                         if (!abort)
                         {
@@ -364,7 +329,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             catch (EndOfStreamException eose)
             {
-                if (_model0.CloseReason == null)
+                if (_model0.CloseReason is null)
                 {
                     LogCloseError("Connection didn't close cleanly. Socket closed unexpectedly", eose);
                 }
@@ -661,11 +626,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>Broadcasts notification of the final shutdown of the connection.</summary>
         public void OnShutdown()
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             EventHandler<ShutdownEventArgs> handler;
             ShutdownEventArgs reason;
             lock (_eventLock)
@@ -780,7 +741,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             lock (_eventLock)
             {
-                if (_closeReason == null)
+                if (_closeReason is null)
                 {
                     _closeReason = reason;
                     return true;
@@ -796,13 +757,13 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             if (Heartbeat != TimeSpan.Zero)
             {
-                if (_heartbeatWriteTimer == null)
+                if (_heartbeatWriteTimer is null)
                 {
                     _heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback, null, Timeout.Infinite, Timeout.Infinite);
                     _heartbeatWriteTimer.Change(200, Timeout.Infinite);
                 }
 
-                if (_heartbeatReadTimer == null)
+                if (_heartbeatReadTimer is null)
                 {
                     _heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback, null, Timeout.Infinite, Timeout.Infinite);
                     _heartbeatReadTimer.Change(300, Timeout.Infinite);
@@ -817,7 +778,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void HeartbeatReadTimerCallback(object state)
         {
-            if (_heartbeatReadTimer == null)
+            if (_heartbeatReadTimer is null)
             {
                 return;
             }
@@ -878,7 +839,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void HeartbeatWriteTimerCallback(object state)
         {
-            if (_heartbeatWriteTimer == null)
+            if (_heartbeatWriteTimer is null)
             {
                 return;
             }
@@ -1053,7 +1014,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
             ConnectionStartDetails connectionStart = connectionStartCell.WaitForValue();
 
-            if (connectionStart == null)
+            if (connectionStart is null)
             {
                 throw new IOException("connection.start was never received, likely due to a network timeout");
             }
@@ -1082,7 +1043,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 string mechanismsString = Encoding.UTF8.GetString(connectionStart.m_mechanisms, 0, connectionStart.m_mechanisms.Length);
                 string[] mechanisms = mechanismsString.Split(' ');
                 IAuthMechanismFactory mechanismFactory = _factory.AuthMechanismFactory(mechanisms);
-                if (mechanismFactory == null)
+                if (mechanismFactory is null)
                 {
                     throw new IOException($"No compatible authentication mechanism found - server offered [{mechanismsString}]");
                 }
@@ -1092,7 +1053,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 {
                     byte[] response = mechanism.handleChallenge(challenge, _factory);
                     ConnectionSecureOrTune res;
-                    if (challenge == null)
+                    if (challenge is null)
                     {
                         res = _model0.ConnectionStartOk(ClientProperties,
                             mechanismFactory.Name,
@@ -1104,7 +1065,7 @@ namespace RabbitMQ.Client.Framing.Impl
                         res = _model0.ConnectionSecureOk(response);
                     }
 
-                    if (res.m_challenge == null)
+                    if (res.m_challenge is null)
                     {
                         connectionTune = res.m_tuneDetails;
                         tuned = true;
@@ -1143,6 +1104,15 @@ namespace RabbitMQ.Client.Framing.Impl
 
             // now we can start heartbeat timers
             MaybeStartHeartbeatTimers();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void ThrowIfDisposed()
+        {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(GetType().FullName);
+            }
         }
 
         private static uint NegotiatedMaxValue(uint clientValue, uint serverValue)

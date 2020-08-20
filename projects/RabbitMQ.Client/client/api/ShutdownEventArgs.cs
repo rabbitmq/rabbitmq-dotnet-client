@@ -67,32 +67,32 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Object causing the shutdown, or null if none.
         /// </summary>
-        public object Cause { get; private set; }
+        public object Cause { get; }
 
         /// <summary>
         /// AMQP content-class ID, or 0 if none.
         /// </summary>
-        public ushort ClassId { get; private set; }
+        public ushort ClassId { get; }
 
         /// <summary>
         /// Returns the source of the shutdown event: either the application, the library, or the remote peer.
         /// </summary>
-        public ShutdownInitiator Initiator { get; private set; }
+        public ShutdownInitiator Initiator { get; }
 
         /// <summary>
         /// AMQP method ID within a content-class, or 0 if none.
         /// </summary>
-        public ushort MethodId { get; private set; }
+        public ushort MethodId { get; }
 
         /// <summary>
         /// One of the standardised AMQP reason codes. See RabbitMQ.Client.Framing.*.Constants.
         /// </summary>
-        public ushort ReplyCode { get; private set; }
+        public ushort ReplyCode { get; }
 
         /// <summary>
         /// Informative human-readable reason text.
         /// </summary>
-        public string ReplyText { get; private set; }
+        public string ReplyText { get; }
 
         /// <summary>
         /// Override ToString to be useful for debugging.

@@ -45,10 +45,10 @@ namespace RabbitMQ.Client.Events
 
         ///<summary>Access helpful information about the context in
         ///which the wrapped exception was thrown.</summary>
-        public IDictionary<string, object> Detail { get; private set; }
+        public IDictionary<string, object> Detail { get; }
 
         ///<summary>Access the wrapped exception.</summary>
-        public Exception Exception { get; private set; }
+        public Exception Exception { get; }
 
         public IDictionary<string, object> UpdateDetails(IDictionary<string, object> other)
         {

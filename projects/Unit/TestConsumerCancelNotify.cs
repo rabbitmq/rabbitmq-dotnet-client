@@ -64,12 +64,12 @@ namespace RabbitMQ.Client.Unit
             string q1 = GenerateQueueName();
             string q2 = GenerateQueueName();
 
-            Model.QueueDeclare(q1, false, false, false, null);
-            Model.QueueDeclare(q2, false, false, false, null);
+            _model.QueueDeclare(q1, false, false, false, null);
+            _model.QueueDeclare(q2, false, false, false, null);
 
-            EventingBasicConsumer consumer = new EventingBasicConsumer(Model);
-            string consumerTag1 = Model.BasicConsume(q1, true, consumer);
-            string consumerTag2 = Model.BasicConsume(q2, true, consumer);
+            EventingBasicConsumer consumer = new EventingBasicConsumer(_model);
+            string consumerTag1 = _model.BasicConsume(q1, true, consumer);
+            string consumerTag2 = _model.BasicConsume(q2, true, consumer);
 
             string notifiedConsumerTag = null;
             consumer.ConsumerCancelled += (sender, args) =>
@@ -81,20 +81,20 @@ namespace RabbitMQ.Client.Unit
                 }
             };
 
-            Model.QueueDelete(q1);
+            _model.QueueDelete(q1);
             WaitOn(lockObject);
             Assert.AreEqual(consumerTag1, notifiedConsumerTag);
 
-            Model.QueueDelete(q2);
+            _model.QueueDelete(q2);
         }
 
         public void TestConsumerCancel(string queue, bool EventMode, ref bool notified)
         {
-            Model.QueueDeclare(queue, false, true, false, null);
-            IBasicConsumer consumer = new CancelNotificationConsumer(Model, this, EventMode);
-            string actualConsumerTag = Model.BasicConsume(queue, false, consumer);
+            _model.QueueDeclare(queue, false, true, false, null);
+            IBasicConsumer consumer = new CancelNotificationConsumer(_model, this, EventMode);
+            string actualConsumerTag = _model.BasicConsume(queue, false, consumer);
 
-            Model.QueueDelete(queue);
+            _model.QueueDelete(queue);
             WaitOn(lockObject);
             Assert.IsTrue(notified);
             Assert.AreEqual(actualConsumerTag, consumerTag);

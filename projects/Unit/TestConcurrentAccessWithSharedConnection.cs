@@ -172,7 +172,7 @@ namespace RabbitMQ.Client.Unit
             {
                 // publishing on a shared channel is not supported
                 // and would missing the point of this test anyway
-                IModel ch = Conn.CreateModel();
+                IModel ch = _conn.CreateModel();
                 ch.ConfirmSelect();
                 foreach (int j in Enumerable.Range(0, 200))
                 {
@@ -197,7 +197,7 @@ namespace RabbitMQ.Client.Unit
                 {
                     foreach (int j in Enumerable.Range(0, iterations))
                     {
-                        actions(Conn);
+                        actions(_conn);
                     }
 
                     _latch.Signal();
@@ -208,7 +208,7 @@ namespace RabbitMQ.Client.Unit
             // incorrect frame interleaving in these tests will result
             // in an unrecoverable connection-level exception, thus
             // closing the connection
-            Assert.IsTrue(Conn.IsOpen);
+            Assert.IsTrue(_conn.IsOpen);
         }
     }
 }

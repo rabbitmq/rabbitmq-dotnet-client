@@ -38,18 +38,17 @@ namespace RabbitMQ.Client.Impl
     internal ref struct MethodArgumentWriter
     {
         private readonly Span<byte> _span;
-        private int _offset;
         private int _bitAccumulator;
         private int _bitMask;
 
-        public int Offset => _offset;
+        public int Offset { get; private set; }
 
-        private Span<byte> Span => _span.Slice(_offset);
+        private Span<byte> Span => _span.Slice(Offset);
 
         public MethodArgumentWriter(Span<byte> span)
         {
             _span = span;
-            _offset = 0;
+            Offset = 0;
             _bitAccumulator = 0;
             _bitMask = 1;
         }
@@ -67,7 +66,7 @@ namespace RabbitMQ.Client.Impl
         {
             if (_bitMask > 1)
             {
-                _span[_offset++] = (byte)_bitAccumulator;
+                _span[Offset++] = (byte)_bitAccumulator;
                 _bitAccumulator = 0;
                 _bitMask = 1;
             }
@@ -80,47 +79,47 @@ namespace RabbitMQ.Client.Impl
 
         public void WriteLong(uint val)
         {
-            _offset += WireFormatting.WriteLong(Span, val);
+            Offset += WireFormatting.WriteLong(Span, val);
         }
 
         public void WriteLonglong(ulong val)
         {
-            _offset += WireFormatting.WriteLonglong(Span, val);
+            Offset += WireFormatting.WriteLonglong(Span, val);
         }
 
         public void WriteLongstr(byte[] val)
         {
-            _offset += WireFormatting.WriteLongstr(Span, val);
+            Offset += WireFormatting.WriteLongstr(Span, val);
         }
 
         public void WriteOctet(byte val)
         {
-            _span[_offset++] = val;
+            _span[Offset++] = val;
         }
 
         public void WriteShort(ushort val)
         {
-            _offset += WireFormatting.WriteShort(Span, val);
+            Offset += WireFormatting.WriteShort(Span, val);
         }
 
         public void WriteShortstr(string val)
         {
-            _offset += WireFormatting.WriteShortstr(Span, val);
+            Offset += WireFormatting.WriteShortstr(Span, val);
         }
 
         public void WriteTable(IDictionary val)
         {
-            _offset += WireFormatting.WriteTable(Span, val);
+            Offset += WireFormatting.WriteTable(Span, val);
         }
 
         public void WriteTable(IDictionary<string, object> val)
         {
-            _offset += WireFormatting.WriteTable(Span, val);
+            Offset += WireFormatting.WriteTable(Span, val);
         }
 
         public void WriteTimestamp(AmqpTimestamp val)
         {
-            _offset += WireFormatting.WriteTimestamp(Span, val);
+            Offset += WireFormatting.WriteTimestamp(Span, val);
         }
     }
 }

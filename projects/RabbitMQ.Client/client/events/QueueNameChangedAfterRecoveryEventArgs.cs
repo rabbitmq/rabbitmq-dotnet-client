@@ -49,11 +49,11 @@ namespace RabbitMQ.Client.Events
         /// <summary>
         /// Gets the name before.
         /// </summary>
-        public string NameBefore { get; private set; }
+        public string NameBefore { get; }
 
         /// <summary>
         /// Gets the name after.
         /// </summary>
-        public string NameAfter { get; private set; }
+        public string NameAfter { get; }
     }
 }

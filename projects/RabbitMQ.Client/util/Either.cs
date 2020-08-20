@@ -53,11 +53,11 @@ namespace RabbitMQ.Util
         }
 
         ///<summary>Retrieve the alternative represented by this instance.</summary>
-        public EitherAlternative Alternative { get; private set; }
+        public EitherAlternative Alternative { get; }
 
         ///<summary>Retrieve the value carried by this instance.</summary>
-        public L LeftValue { get; private set; }
-        public R RightValue { get; private set; }
+        public L LeftValue { get; }
+        public R RightValue { get; }
 
         ///<summary>Constructs an Either instance representing a Left alternative.</summary>
         public static Either<L, R> Left(L value)

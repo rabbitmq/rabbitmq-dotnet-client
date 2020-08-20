@@ -39,25 +39,25 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestConfirmSelectIdempotency()
         {
-            Model.ConfirmSelect();
-            Assert.AreEqual(1, Model.NextPublishSeqNo);
+            _model.ConfirmSelect();
+            Assert.AreEqual(1, _model.NextPublishSeqNo);
             Publish();
-            Assert.AreEqual(2, Model.NextPublishSeqNo);
+            Assert.AreEqual(2, _model.NextPublishSeqNo);
             Publish();
-            Assert.AreEqual(3, Model.NextPublishSeqNo);
+            Assert.AreEqual(3, _model.NextPublishSeqNo);
 
-            Model.ConfirmSelect();
+            _model.ConfirmSelect();
             Publish();
-            Assert.AreEqual(4, Model.NextPublishSeqNo);
+            Assert.AreEqual(4, _model.NextPublishSeqNo);
             Publish();
-            Assert.AreEqual(5, Model.NextPublishSeqNo);
+            Assert.AreEqual(5, _model.NextPublishSeqNo);
             Publish();
-            Assert.AreEqual(6, Model.NextPublishSeqNo);
+            Assert.AreEqual(6, _model.NextPublishSeqNo);
         }
 
         protected void Publish()
         {
-            Model.BasicPublish("", "amq.fanout", null, encoding.GetBytes("message"));
+            _model.BasicPublish("", "amq.fanout", null, _encoding.GetBytes("message"));
         }
     }
 }

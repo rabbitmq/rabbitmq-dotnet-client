@@ -62,7 +62,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestPresence()
         {
-            var memory = new byte[1024];
+            byte[] memory = new byte[1024];
             var m_w = new ContentHeaderPropertyWriter(memory);
             m_w.WritePresence(false);
             m_w.WritePresence(true);
@@ -75,7 +75,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestLongPresence()
         {
-            var memory = new byte[1024];
+            byte[] memory = new byte[1024];
             var m_w = new ContentHeaderPropertyWriter(memory);
 
             m_w.WritePresence(false);
@@ -94,7 +94,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestNoPresence()
         {
-            var memory = new byte[1024];
+            byte[] memory = new byte[1024];
             var m_w = new ContentHeaderPropertyWriter(memory);
             m_w.FinishPresence();
             Check(memory.AsMemory().Slice(0, m_w.Offset), new byte[] { 0x00, 0x00 });

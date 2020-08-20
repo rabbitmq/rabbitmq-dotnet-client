@@ -53,7 +53,6 @@ namespace RabbitMQ.Client.Impl
         /// Retrieves the name of this method - for debugging use.
         /// </summary>
         public abstract string ProtocolMethodName { get; }
-
         public abstract void ReadArgumentsFrom(ref MethodArgumentReader reader);
         public abstract void WriteArgumentsTo(ref MethodArgumentWriter writer);
         public abstract int GetRequiredBufferSize();

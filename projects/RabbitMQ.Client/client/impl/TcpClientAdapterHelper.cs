@@ -10,7 +10,7 @@ namespace RabbitMQ.Client.Impl
         public static IPAddress GetMatchingHost(IReadOnlyCollection<IPAddress> addresses, AddressFamily addressFamily)
         {
             IPAddress ep = addresses.FirstOrDefault(a => a.AddressFamily == addressFamily);
-            if (ep == null && addresses.Count == 1 && addressFamily == AddressFamily.Unspecified)
+            if (ep is null && addresses.Count == 1 && addressFamily == AddressFamily.Unspecified)
             {
                 return addresses.Single();
             }

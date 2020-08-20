@@ -91,22 +91,22 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Retrieves the Basic-class content header properties for this message.
         /// </summary>
-        public IBasicProperties BasicProperties { get; private set; }
+        public IBasicProperties BasicProperties { get; }
 
         /// <summary>
         /// Retrieves the body of this message.
         /// </summary>
-        public ReadOnlyMemory<byte> Body { get; private set; }
+        public ReadOnlyMemory<byte> Body { get; }
 
         /// <summary>
         /// Retrieve the delivery tag for this message. See also <see cref="IModel.BasicAck"/>.
         /// </summary>
-        public ulong DeliveryTag { get; private set; }
+        public ulong DeliveryTag { get; }
 
         /// <summary>
         /// Retrieve the exchange this message was published to.
         /// </summary>
-        public string Exchange { get; private set; }
+        public string Exchange { get; }
 
         /// <summary>
         /// Retrieve the number of messages pending on the queue, excluding the message being delivered.
@@ -115,17 +115,17 @@ namespace RabbitMQ.Client
         /// Note that this figure is indicative, not reliable, and can
         /// change arbitrarily as messages are added to the queue and removed by other clients.
         /// </remarks>
-        public uint MessageCount { get; private set; }
+        public uint MessageCount { get; }
 
         /// <summary>
         /// Retrieve the redelivered flag for this message.
         /// </summary>
-        public bool Redelivered { get; private set; }
+        public bool Redelivered { get; }
 
         /// <summary>
         /// Retrieve the routing key with which this message was published.
         /// </summary>
-        public string RoutingKey { get; private set; }
+        public string RoutingKey { get; }
 
         /// <inheritdoc />
         public void Dispose()

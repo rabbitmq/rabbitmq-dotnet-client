@@ -55,16 +55,16 @@ namespace RabbitMQ.Client.Exceptions
         }
 
         ///<summary>The client's AMQP specification major version.</summary>
-        public int ClientMajor { get; private set; }
+        public int ClientMajor { get; }
 
         ///<summary>The client's AMQP specification minor version.</summary>
-        public int ClientMinor { get; private set; }
+        public int ClientMinor { get; }
 
         ///<summary>The peer's AMQP specification major version.</summary>
-        public int ServerMajor { get; private set; }
+        public int ServerMajor { get; }
 
         ///<summary>The peer's AMQP specification minor version.</summary>
-        public int ServerMinor { get; private set; }
+        public int ServerMinor { get; }
 
         private static string positiveOrUnknown(int version)
         {

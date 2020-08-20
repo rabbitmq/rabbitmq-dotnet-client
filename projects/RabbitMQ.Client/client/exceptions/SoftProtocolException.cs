@@ -41,6 +41,6 @@ namespace RabbitMQ.Client.Exceptions
             Channel = channelNumber;
         }
 
-        public int Channel { get; private set; }
+        public int Channel { get; }
     }
 }

@@ -33,6 +33,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
@@ -78,17 +79,15 @@ namespace RabbitMQ.Client.Framing.Impl
             ClientProvidedName = clientProvidedName;
         }
 
+        private Connection Delegate => !_disposed ? _delegate : throw new ObjectDisposedException(GetType().FullName);
+
         public event EventHandler<EventArgs> RecoverySucceeded;
         public event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError;
         public event EventHandler<CallbackExceptionEventArgs> CallbackException
         {
             add
             {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
+                ThrowIfDisposed();
                 lock (_eventLock)
                 {
                     _delegate.CallbackException += value;
@@ -96,11 +95,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             remove
             {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
+                ThrowIfDisposed();
                 lock (_eventLock)
                 {
                     _delegate.CallbackException -= value;
@@ -112,11 +107,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             add
             {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
+                ThrowIfDisposed();
                 lock (_eventLock)
                 {
                     _recordedBlockedEventHandlers += value;
@@ -125,11 +116,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             remove
             {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
+                ThrowIfDisposed();
                 lock (_eventLock)
                 {
                     _recordedBlockedEventHandlers -= value;
@@ -142,11 +129,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             add
             {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
+                ThrowIfDisposed();
                 lock (_eventLock)
                 {
                     _recordedShutdownEventHandlers += value;
@@ -155,11 +138,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             remove
             {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
+                ThrowIfDisposed();
                 lock (_eventLock)
                 {
                     _recordedShutdownEventHandlers -= value;
@@ -172,11 +151,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             add
             {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
+                ThrowIfDisposed();
                 lock (_eventLock)
                 {
                     _recordedUnblockedEventHandlers += value;
@@ -185,11 +160,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             remove
             {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
+                ThrowIfDisposed();
                 lock (_eventLock)
                 {
                     _recordedUnblockedEventHandlers -= value;
@@ -201,209 +172,45 @@ namespace RabbitMQ.Client.Framing.Impl
         public event EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery;
         public event EventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangeAfterRecovery;
 
-        public string ClientProvidedName { get; private set; }
+        public string ClientProvidedName { get; }
 
-        public ushort ChannelMax
-        {
-            get
-            {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
+        public ushort ChannelMax => Delegate.ChannelMax;
 
-                return _delegate.ChannelMax;
-            }
-        }
+        public ConsumerWorkService ConsumerWorkService => Delegate.ConsumerWorkService;
 
-        public ConsumerWorkService ConsumerWorkService
-        {
-            get
-            {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
+        public IDictionary<string, object> ClientProperties => Delegate.ClientProperties;
 
-                return _delegate.ConsumerWorkService;
-            }
-        }
+        public ShutdownEventArgs CloseReason => Delegate.CloseReason;
 
-        public IDictionary<string, object> ClientProperties
-        {
-            get
-            {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
+        public AmqpTcpEndpoint Endpoint => Delegate.Endpoint;
 
-                return _delegate.ClientProperties;
-            }
-        }
+        public uint FrameMax => Delegate.FrameMax;
 
-        public ShutdownEventArgs CloseReason
-        {
-            get
-            {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
+        public TimeSpan Heartbeat => Delegate.Heartbeat;
 
-                return _delegate.CloseReason;
-            }
-        }
-
-        public AmqpTcpEndpoint Endpoint
-        {
-            get
-            {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
-                return _delegate.Endpoint;
-            }
-        }
-
-        public uint FrameMax
-        {
-            get
-            {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
-                return _delegate.FrameMax;
-            }
-        }
-
-        public TimeSpan Heartbeat
-        {
-            get
-            {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
-                return _delegate.Heartbeat;
-            }
-        }
-
-        public bool IsOpen
-        {
-            get
-            {
-                if (_delegate == null)
-                {
-                    return false;
-                }
-                else
-                {
-                    return _delegate.IsOpen;
-                }
-            }
-        }
+        public bool IsOpen => _delegate?.IsOpen ?? false;
 
         public AmqpTcpEndpoint[] KnownHosts
         {
-            get
-            {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
-                return _delegate.KnownHosts;
-            }
-            set
-            {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
-                _delegate.KnownHosts = value;
-            }
+            get => Delegate.KnownHosts;
+            set => Delegate.KnownHosts = value;
         }
 
-        public int LocalPort
-        {
-            get
-            {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
+        public int LocalPort => Delegate.LocalPort;
 
-                return _delegate.LocalPort;
-            }
-        }
-
-        public ProtocolBase Protocol
-        {
-            get
-            {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
-                return _delegate.Protocol;
-            }
-        }
+        public ProtocolBase Protocol => Delegate.Protocol;
 
         public IDictionary<string, RecordedExchange> RecordedExchanges { get; } = new ConcurrentDictionary<string, RecordedExchange>();
 
         public IDictionary<string, RecordedQueue> RecordedQueues { get; } = new ConcurrentDictionary<string, RecordedQueue>();
 
-        public int RemotePort
-        {
-            get
-            {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
+        public int RemotePort => Delegate.RemotePort;
 
-                return _delegate.RemotePort;
-            }
-        }
+        public IDictionary<string, object> ServerProperties => Delegate.ServerProperties;
 
-        public IDictionary<string, object> ServerProperties
-        {
-            get
-            {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
+        public IList<ShutdownReportEntry> ShutdownReport => Delegate.ShutdownReport;
 
-                return _delegate.ServerProperties;
-            }
-        }
-
-        public IList<ShutdownReportEntry> ShutdownReport
-        {
-            get
-            {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
-                return _delegate.ShutdownReport;
-            }
-        }
-
-        IProtocol IConnection.Protocol
-        {
-            get { return Endpoint.Protocol; }
-        }
+        IProtocol IConnection.Protocol => Endpoint.Protocol;
 
         private bool TryPerformAutomaticRecovery()
         {
@@ -442,26 +249,12 @@ namespace RabbitMQ.Client.Framing.Impl
             return false;
         }
 
-        public void Close(ShutdownEventArgs reason)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.Close(reason);
-        }
+        public void Close(ShutdownEventArgs reason) => Delegate.Close(reason);
 
         public RecoveryAwareModel CreateNonRecoveringModel()
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            ISession session = _delegate.CreateSession();
-            var result = new RecoveryAwareModel(session);
-            result.ContinuationTimeout = _factory.ContinuationTimeout;
+            ISession session = Delegate.CreateSession();
+            var result = new RecoveryAwareModel(session) { ContinuationTimeout = _factory.ContinuationTimeout };
             result._Private_ChannelOpen("");
             return result;
         }
@@ -606,15 +399,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public override string ToString()
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            return string.Format("AutorecoveringConnection({0},{1},{2})", _delegate.Id, Endpoint, GetHashCode());
-        }
+        public override string ToString() => $"AutorecoveringConnection({Delegate.Id},{Endpoint},{GetHashCode()})";
 
         public void UnregisterModel(AutorecoveringModel model)
         {
@@ -624,10 +409,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public void Init()
-        {
-            Init(_factory.EndpointResolverFactory(new List<AmqpTcpEndpoint> { _factory.Endpoint }));
-        }
+        public void Init() => Init(_factory.EndpointResolverFactory(new List<AmqpTcpEndpoint> { _factory.Endpoint }));
 
         public void Init(IEndpointResolver endpoints)
         {
@@ -638,11 +420,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void Init(IFrameHandler fh)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate = new Connection(_factory, false,
                 fh, ClientProvidedName);
 
@@ -662,14 +440,12 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
+        
+
         ///<summary>API-side invocation of updating the secret.</summary>
         public void UpdateSecret(string newSecret, string reason)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             EnsureIsOpen();
             _delegate.UpdateSecret(newSecret, reason);
             _factory.Password = newSecret;
@@ -678,11 +454,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection abort.</summary>
         public void Abort()
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             StopRecoveryLoop();
             if (_delegate.IsOpen)
             {
@@ -693,11 +465,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection abort.</summary>
         public void Abort(ushort reasonCode, string reasonText)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             StopRecoveryLoop();
             if (_delegate.IsOpen)
             {
@@ -708,11 +476,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection abort with timeout.</summary>
         public void Abort(TimeSpan timeout)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             StopRecoveryLoop();
             if (_delegate.IsOpen)
             {
@@ -723,11 +487,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection abort with timeout.</summary>
         public void Abort(ushort reasonCode, string reasonText, TimeSpan timeout)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             StopRecoveryLoop();
             if (_delegate.IsOpen)
             {
@@ -738,11 +498,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection.close.</summary>
         public void Close()
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             StopRecoveryLoop();
             if (_delegate.IsOpen)
             {
@@ -753,11 +509,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection.close.</summary>
         public void Close(ushort reasonCode, string reasonText)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             StopRecoveryLoop();
             if (_delegate.IsOpen)
             {
@@ -768,11 +520,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection.close with timeout.</summary>
         public void Close(TimeSpan timeout)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             StopRecoveryLoop();
             if (_delegate.IsOpen)
             {
@@ -783,11 +531,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection.close with timeout.</summary>
         public void Close(ushort reasonCode, string reasonText, TimeSpan timeout)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             StopRecoveryLoop();
             if (_delegate.IsOpen)
             {
@@ -806,30 +550,11 @@ namespace RabbitMQ.Client.Framing.Impl
             return m;
         }
 
-        void IDisposable.Dispose()
-        {
-            Dispose(true);
-        }
+        void IDisposable.Dispose() => Dispose(true);
 
-        public void HandleConnectionBlocked(string reason)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
+        public void HandleConnectionBlocked(string reason) => Delegate.HandleConnectionBlocked(reason);
 
-            _delegate.HandleConnectionBlocked(reason);
-        }
-
-        public void HandleConnectionUnblocked()
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.HandleConnectionUnblocked();
-        }
+        public void HandleConnectionUnblocked() => Delegate.HandleConnectionUnblocked();
 
         internal int RecordedExchangesCount
         {
@@ -883,20 +608,9 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void EnsureIsOpen()
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
+        private void EnsureIsOpen() => Delegate.EnsureIsOpen();
 
-            _delegate.EnsureIsOpen();
-        }
-
-        private void HandleTopologyRecoveryException(TopologyRecoveryException e)
-        {
-            ESLog.Error("Topology recovery exception", e);
-        }
+        private void HandleTopologyRecoveryException(TopologyRecoveryException e) => ESLog.Error("Topology recovery exception", e);
 
         private void PropagateQueueNameChangeToBindings(string oldName, string newName)
         {
@@ -951,11 +665,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void RecoverConnectionBlockedHandlers()
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             lock (_eventLock)
             {
                 _delegate.ConnectionBlocked += _recordedBlockedEventHandlers;
@@ -964,11 +674,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private bool TryRecoverConnectionDelegate()
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             try
             {
                 IFrameHandler fh = _endpoints.SelectOne(_factory.CreateFrameHandler);
@@ -997,33 +703,13 @@ namespace RabbitMQ.Client.Framing.Impl
             return false;
         }
 
-        private void RecoverConnectionShutdownHandlers()
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
+        private void RecoverConnectionShutdownHandlers() => Delegate.ConnectionShutdown += _recordedShutdownEventHandlers;
 
-            _delegate.ConnectionShutdown += _recordedShutdownEventHandlers;
-        }
-
-        private void RecoverConnectionUnblockedHandlers()
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.ConnectionUnblocked += _recordedUnblockedEventHandlers;
-        }
+        private void RecoverConnectionUnblockedHandlers() => Delegate.ConnectionUnblocked += _recordedUnblockedEventHandlers;
 
         private void RecoverConsumers()
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             Dictionary<string, RecordedConsumer> recordedConsumersCopy;
             lock (_recordedConsumers)
             {
@@ -1177,11 +863,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void RunRecoveryEventHandlers()
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             foreach (EventHandler<EventArgs> reh in RecoverySucceeded?.GetInvocationList() ?? Array.Empty<Delegate>())
             {
                 try
@@ -1197,13 +879,10 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private bool ShouldTriggerConnectionRecovery(ShutdownEventArgs args)
-        {
-            return args.Initiator == ShutdownInitiator.Peer ||
+        private bool ShouldTriggerConnectionRecovery(ShutdownEventArgs args) => args.Initiator == ShutdownInitiator.Peer ||
                     // happens when EOF is reached, e.g. due to RabbitMQ node
                     // connectivity loss or abrupt shutdown
                     args.Initiator == ShutdownInitiator.Library;
-        }
 
         private enum RecoveryCommand
         {
@@ -1339,11 +1018,17 @@ namespace RabbitMQ.Client.Framing.Impl
         /// <summary>
         /// Schedule a background Task to signal the command queue when the retry duration has elapsed.
         /// </summary>
-        private void ScheduleRecoveryRetry()
-        {
-            _ = Task
+        private void ScheduleRecoveryRetry() => _ = Task
                 .Delay(_factory.NetworkRecoveryInterval)
                 .ContinueWith(t => _recoveryLoopCommandQueue.Writer.TryWrite(RecoveryCommand.PerformAutomaticRecovery));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void ThrowIfDisposed()
+        {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(GetType().FullName);
+            }
         }
     }
 }

@@ -42,8 +42,8 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestNullRoutingKeyIsRejected()
         {
-            IModel ch = Conn.CreateModel();
-            Assert.Throws(typeof(ArgumentNullException), () => ch.BasicPublish("", null, null, encoding.GetBytes("msg")));
+            IModel ch = _conn.CreateModel();
+            Assert.Throws(typeof(ArgumentNullException), () => ch.BasicPublish("", null, null, _encoding.GetBytes("msg")));
         }
     }
 }

@@ -43,8 +43,8 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void HeartbeatFrame()
         {
-            var memory = Impl.Framing.Heartbeat.GetHeartbeatFrame();
-            var frameSpan = memory.Span;
+            Memory<byte> memory = Impl.Framing.Heartbeat.GetHeartbeatFrame();
+            Span<byte> frameSpan = memory.Span;
 
             try
             {
@@ -75,7 +75,7 @@ namespace RabbitMQ.Client.Unit
 
             var basicProperties = new Framing.BasicProperties { AppId = "A" };
             int payloadSize = basicProperties.GetRequiredPayloadBufferSize();
-            var frameBytes = new byte[Impl.Framing.Header.FrameSize + BodyLength + payloadSize];
+            byte[] frameBytes = new byte[Impl.Framing.Header.FrameSize + BodyLength + payloadSize];
             Impl.Framing.Header.WriteTo(frameBytes, Channel, basicProperties, BodyLength);
 
             Assert.AreEqual(20, Impl.Framing.Header.FrameSize);
@@ -112,7 +112,7 @@ namespace RabbitMQ.Client.Unit
 
             var method = new BasicPublish(0, "E", "R", true, true);
             int payloadSize = method.GetRequiredBufferSize();
-            var frameBytes = new byte[Impl.Framing.Method.FrameSize + payloadSize];
+            byte[] frameBytes = new byte[Impl.Framing.Method.FrameSize + payloadSize];
             Impl.Framing.Method.WriteTo(frameBytes, Channel, method);
 
             Assert.AreEqual(12, Impl.Framing.Method.FrameSize);
@@ -142,8 +142,8 @@ namespace RabbitMQ.Client.Unit
         {
             const int Channel = 3;
 
-            var payload = new byte[4];
-            var frameBytes = new byte[Impl.Framing.BodySegment.FrameSize + payload.Length];
+            byte[] payload = new byte[4];
+            byte[] frameBytes = new byte[Impl.Framing.BodySegment.FrameSize + payload.Length];
             Impl.Framing.BodySegment.WriteTo(frameBytes, Channel, payload);
 
             Assert.AreEqual(8, Impl.Framing.BodySegment.FrameSize);

@@ -99,55 +99,62 @@ namespace RabbitMQ.Util
         ///<summary>Dump properties of objects to the supplied writer.</summary>
         public static void DumpProperties(object value, TextWriter writer, int indent)
         {
-            if (value == null)
+            switch (value)
             {
-                writer.WriteLine("(null)");
-            }
-            else if (value is string)
-            {
-                writer.WriteLine($"\"{((string)value).Replace("\"", "\\\"")}\"");
-            }
-            else if (value is byte[])
-            {
-                writer.WriteLine("byte[]");
-                Dump((byte[])value, writer);
-            }
-            else if (value is ValueType)
-            {
-                writer.WriteLine(value);
-            }
-            else if (value is IDictionary)
-            {
-                Type t = value.GetType();
-                writer.WriteLine(t.FullName);
-                foreach (DictionaryEntry entry in (IDictionary)value)
-                {
-                    DumpKeyValue(entry.Key.ToString(), entry.Value, writer, indent);
-                }
-            }
-            else if (value is IEnumerable)
-            {
-                writer.WriteLine("IEnumerable");
-                int index = 0;
-                foreach (object v in (IEnumerable)value)
-                {
-                    DumpKeyValue(index.ToString(), v, writer, indent);
-                    index++;
-                }
-            }
-            else
-            {
-                Type t = value.GetType();
-                writer.WriteLine(t.FullName);
-                foreach (PropertyInfo pi in t.GetProperties(BindingFlags.Instance
-                                                            | BindingFlags.Public
-                                                            | BindingFlags.DeclaredOnly))
-                {
-                    if (pi.GetIndexParameters().Length == 0)
+                case null:
+                    writer.WriteLine("(null)");
+                    break;
+                case string stringVal:
+                    writer.WriteLine($"\"{stringVal.Replace("\"", "\\\"")}\"");
+                    break;
+                case byte[] byteVal:
+                    writer.WriteLine("byte[]");
+                    Dump(byteVal, writer);
+                    break;
+                case ValueType _:
+                    writer.WriteLine(value);
+                    break;
+                case IDictionary dictionary:
                     {
-                        DumpKeyValue(pi.Name, pi.GetValue(value, new object[0]), writer, indent);
+                        Type t = value.GetType();
+                        writer.WriteLine(t.FullName);
+                        foreach (DictionaryEntry entry in dictionary)
+                        {
+                            DumpKeyValue(entry.Key.ToString(), entry.Value, writer, indent);
+                        }
+
+                        break;
                     }
-                }
+
+                case IEnumerable enumerable:
+                    {
+                        writer.WriteLine("IEnumerable");
+                        int index = 0;
+                        foreach (object v in enumerable)
+                        {
+                            DumpKeyValue(index.ToString(), v, writer, indent);
+                            index++;
+                        }
+
+                        break;
+                    }
+
+                default:
+                    {
+                        Type t = value.GetType();
+                        writer.WriteLine(t.FullName);
+                        foreach (PropertyInfo pi in t.GetProperties(BindingFlags.Instance
+                                                                    | BindingFlags.Public
+                                                                    | BindingFlags.DeclaredOnly))
+                        {
+                            if (pi.GetIndexParameters().Length == 0)
+                            {
+                                DumpKeyValue(pi.Name, pi.GetValue(value, new object[0]), writer, indent);
+                            }
+                        }
+
+                        break;
+                    }
             }
         }
     }

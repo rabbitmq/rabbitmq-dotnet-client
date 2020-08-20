@@ -31,6 +31,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Xml.Schema;
 
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Framing.Impl;
@@ -55,40 +57,12 @@ namespace RabbitMQ.Client.Impl
         private bool _usesPublisherConfirms = false;
         private bool _usesTransactions = false;
 
-        public IConsumerDispatcher ConsumerDispatcher
-        {
-            get
-            {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
-                return _delegate.ConsumerDispatcher;
-            }
-        }
+        public IConsumerDispatcher ConsumerDispatcher => !_disposed ? _delegate.ConsumerDispatcher : throw new ObjectDisposedException(GetType().FullName);
 
         public TimeSpan ContinuationTimeout
         {
-            get
-            {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
-                return _delegate.ContinuationTimeout;
-            }
-
-            set
-            {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
-                _delegate.ContinuationTimeout = value;
-            }
+            get => Delegate.ContinuationTimeout;
+            set => Delegate.ContinuationTimeout = value;
         }
 
         public AutorecoveringModel(AutorecoveringConnection conn, RecoveryAwareModel _delegate)
@@ -101,11 +75,7 @@ namespace RabbitMQ.Client.Impl
         {
             add
             {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
+                ThrowIfDisposed();
                 lock (_eventLock)
                 {
                     _recordedBasicAckEventHandlers += value;
@@ -114,11 +84,7 @@ namespace RabbitMQ.Client.Impl
             }
             remove
             {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
+                ThrowIfDisposed();
                 lock (_eventLock)
                 {
                     _recordedBasicAckEventHandlers -= value;
@@ -131,11 +97,7 @@ namespace RabbitMQ.Client.Impl
         {
             add
             {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
+                ThrowIfDisposed();
                 lock (_eventLock)
                 {
                     _recordedBasicNackEventHandlers += value;
@@ -144,11 +106,7 @@ namespace RabbitMQ.Client.Impl
             }
             remove
             {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
+                ThrowIfDisposed();
                 lock (_eventLock)
                 {
                     _recordedBasicNackEventHandlers -= value;
@@ -161,22 +119,12 @@ namespace RabbitMQ.Client.Impl
         {
             add
             {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
                 // TODO: record and re-add handlers
-                _delegate.BasicRecoverOk += value;
+                Delegate.BasicRecoverOk += value;
             }
             remove
             {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
-                _delegate.BasicRecoverOk -= value;
+                Delegate.BasicRecoverOk -= value;
             }
         }
 
@@ -184,11 +132,7 @@ namespace RabbitMQ.Client.Impl
         {
             add
             {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
+                ThrowIfDisposed();
                 lock (_eventLock)
                 {
                     _recordedBasicReturnEventHandlers += value;
@@ -197,11 +141,7 @@ namespace RabbitMQ.Client.Impl
             }
             remove
             {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
+                ThrowIfDisposed();
                 lock (_eventLock)
                 {
                     _recordedBasicReturnEventHandlers -= value;
@@ -214,11 +154,7 @@ namespace RabbitMQ.Client.Impl
         {
             add
             {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
+                ThrowIfDisposed();
                 lock (_eventLock)
                 {
                     _recordedCallbackExceptionEventHandlers += value;
@@ -227,11 +163,7 @@ namespace RabbitMQ.Client.Impl
             }
             remove
             {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
+                ThrowIfDisposed();
                 lock (_eventLock)
                 {
                     _recordedCallbackExceptionEventHandlers -= value;
@@ -242,36 +174,15 @@ namespace RabbitMQ.Client.Impl
 
         public event EventHandler<FlowControlEventArgs> FlowControl
         {
-            add
-            {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
-                // TODO: record and re-add handlers
-                _delegate.FlowControl += value;
-            }
-            remove
-            {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
-                _delegate.FlowControl -= value;
-            }
+            add { Delegate.FlowControl += value; }
+            remove { Delegate.FlowControl -= value; }
         }
 
         public event EventHandler<ShutdownEventArgs> ModelShutdown
         {
             add
             {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
+                ThrowIfDisposed();
                 lock (_eventLock)
                 {
                     _recordedShutdownEventHandlers += value;
@@ -280,11 +191,7 @@ namespace RabbitMQ.Client.Impl
             }
             remove
             {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
+                ThrowIfDisposed();
                 lock (_eventLock)
                 {
                     _recordedShutdownEventHandlers -= value;
@@ -295,117 +202,28 @@ namespace RabbitMQ.Client.Impl
 
         public event EventHandler<EventArgs> Recovery;
 
-        public int ChannelNumber
-        {
-            get
-            {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
+        public int ChannelNumber => Delegate.ChannelNumber;
 
-                return _delegate.ChannelNumber;
-            }
-        }
-
-        public ShutdownEventArgs CloseReason
-        {
-            get
-            {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
-                return _delegate.CloseReason;
-            }
-        }
+        public ShutdownEventArgs CloseReason => Delegate.CloseReason;
 
         public IBasicConsumer DefaultConsumer
         {
-            get
-            {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
-                return _delegate.DefaultConsumer;
-            }
-            set
-            {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
-                _delegate.DefaultConsumer = value;
-            }
+            get => Delegate.DefaultConsumer;
+            set => Delegate.DefaultConsumer = value;
         }
 
-        public IModel Delegate
-        {
-            get
-            {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
+        public IModel Delegate => RecoveryAwareDelegate;
+        private RecoveryAwareModel RecoveryAwareDelegate => !_disposed ? _delegate : throw new ObjectDisposedException(GetType().FullName);
 
-                return _delegate;
-            }
-        }
+        public bool IsClosed => _delegate is object && _delegate.IsClosed;
 
-        public bool IsClosed
-        {
-            get
-            {
-                if (_delegate == null)
-                {
-                    return false;
-                }
-                else
-                {
-                    return _delegate.IsClosed;
-                }
-            }
-        }
+        public bool IsOpen => _delegate is object && _delegate.IsOpen;
 
-        public bool IsOpen
-        {
-            get
-            {
-                if (_delegate == null)
-                {
-                    return false;
-                }
-                else
-                {
-                    return _delegate.IsOpen;
-                }
-            }
-        }
-
-        public ulong NextPublishSeqNo
-        {
-            get
-            {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().FullName);
-                }
-
-                return _delegate.NextPublishSeqNo;
-            }
-        }
+        public ulong NextPublishSeqNo => Delegate.NextPublishSeqNo;
 
         public void AutomaticallyRecover(AutorecoveringConnection conn)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _connection = conn;
             RecoveryAwareModel defunctModel = _delegate;
 
@@ -424,23 +242,11 @@ namespace RabbitMQ.Client.Impl
         }
 
         public void BasicQos(ushort prefetchCount,
-            bool global)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.BasicQos(0, prefetchCount, global);
-        }
+            bool global) => Delegate.BasicQos(0, prefetchCount, global);
 
         public void Close(ushort replyCode, string replyText, bool abort)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             try
             {
                 _delegate.Close(replyCode, replyText, abort);
@@ -453,11 +259,7 @@ namespace RabbitMQ.Client.Impl
 
         public void Close(ShutdownEventArgs reason, bool abort)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             try
             {
                 _delegate.Close(reason, abort).GetAwaiter().GetResult();;
@@ -468,20 +270,9 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public override string ToString()
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
+        public override string ToString() => Delegate.ToString();
 
-            return _delegate.ToString();
-        }
-
-        void IDisposable.Dispose()
-        {
-            Dispose(true);
-        }
+        void IDisposable.Dispose() => Dispose(true);
 
         private void Dispose(bool disposing)
         {
@@ -510,51 +301,31 @@ namespace RabbitMQ.Client.Impl
             uint frameMax,
             ushort heartbeat)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate.ConnectionTuneOk(channelMax, frameMax, heartbeat);
         }
 
         public void HandleBasicAck(ulong deliveryTag, bool multiple)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate.HandleBasicAck(deliveryTag, multiple);
         }
 
         public void HandleBasicCancel(string consumerTag, bool nowait)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate.HandleBasicCancel(consumerTag, nowait);
         }
 
         public void HandleBasicCancelOk(string consumerTag)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate.HandleBasicCancelOk(consumerTag);
         }
 
         public void HandleBasicConsumeOk(string consumerTag)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate.HandleBasicConsumeOk(consumerTag);
         }
 
@@ -567,21 +338,13 @@ namespace RabbitMQ.Client.Impl
             ReadOnlyMemory<byte> body,
             byte[] rentedArray)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body, rentedArray);
         }
 
         public void HandleBasicGetEmpty()
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate.HandleBasicGetEmpty();
         }
 
@@ -594,11 +357,7 @@ namespace RabbitMQ.Client.Impl
             ReadOnlyMemory<byte> body,
             byte[] rentedArray)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate.HandleBasicGetOk(deliveryTag, redelivered, exchange, routingKey, messageCount, basicProperties, body, rentedArray);
         }
 
@@ -606,21 +365,13 @@ namespace RabbitMQ.Client.Impl
             bool multiple,
             bool requeue)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate.HandleBasicNack(deliveryTag, multiple, requeue);
         }
 
         public void HandleBasicRecoverOk()
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate.HandleBasicRecoverOk();
         }
 
@@ -632,11 +383,7 @@ namespace RabbitMQ.Client.Impl
             ReadOnlyMemory<byte> body,
             byte[] rentedArray)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate.HandleBasicReturn(replyCode, replyText, exchange, routingKey, basicProperties, body, rentedArray);
         }
 
@@ -645,41 +392,25 @@ namespace RabbitMQ.Client.Impl
             ushort classId,
             ushort methodId)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate.HandleChannelClose(replyCode, replyText, classId, methodId);
         }
 
         public void HandleChannelCloseOk()
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate.HandleChannelCloseOk();
         }
 
         public void HandleChannelFlow(bool active)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate.HandleChannelFlow(active);
         }
 
         public void HandleConnectionBlocked(string reason)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate.HandleConnectionBlocked(reason);
         }
 
@@ -688,31 +419,19 @@ namespace RabbitMQ.Client.Impl
             ushort classId,
             ushort methodId)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate.HandleConnectionClose(replyCode, replyText, classId, methodId);
         }
 
         public void HandleConnectionOpenOk(string knownHosts)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate.HandleConnectionOpenOk(knownHosts);
         }
 
         public void HandleConnectionSecure(byte[] challenge)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate.HandleConnectionSecure(challenge);
         }
 
@@ -722,11 +441,7 @@ namespace RabbitMQ.Client.Impl
             byte[] mechanisms,
             byte[] locales)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate.HandleConnectionStart(versionMajor, versionMinor, serverProperties,
                 mechanisms, locales);
         }
@@ -735,21 +450,13 @@ namespace RabbitMQ.Client.Impl
             uint frameMax,
             ushort heartbeat)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate.HandleConnectionTune(channelMax, frameMax, heartbeat);
         }
 
         public void HandleConnectionUnblocked()
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate.HandleConnectionUnblocked();
         }
 
@@ -757,22 +464,14 @@ namespace RabbitMQ.Client.Impl
             uint messageCount,
             uint consumerCount)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate.HandleQueueDeclareOk(queue, messageCount, consumerCount);
         }
 
         public void _Private_BasicCancel(string consumerTag,
             bool nowait)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate._Private_BasicCancel(consumerTag, nowait);
         }
 
@@ -784,11 +483,7 @@ namespace RabbitMQ.Client.Impl
             bool nowait,
             IDictionary<string, object> arguments)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate._Private_BasicConsume(queue,
                 consumerTag,
                 noLocal,
@@ -800,11 +495,7 @@ namespace RabbitMQ.Client.Impl
 
         public void _Private_BasicGet(string queue, bool autoAck)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate._Private_BasicGet(queue, autoAck);
         }
 
@@ -814,27 +505,19 @@ namespace RabbitMQ.Client.Impl
             IBasicProperties basicProperties,
             ReadOnlyMemory<byte> body)
         {
-            if (routingKey == null)
+            if (routingKey is null)
             {
                 throw new ArgumentNullException(nameof(routingKey));
             }
 
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate._Private_BasicPublish(exchange, routingKey, mandatory,
                 basicProperties, body);
         }
 
         public void _Private_BasicRecover(bool requeue)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate._Private_BasicRecover(requeue);
         }
 
@@ -843,52 +526,32 @@ namespace RabbitMQ.Client.Impl
             ushort classId,
             ushort methodId)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate._Private_ChannelClose(replyCode, replyText,
                 classId, methodId);
         }
 
         public void _Private_ChannelCloseOk()
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate._Private_ChannelCloseOk();
         }
 
         public void _Private_ChannelFlowOk(bool active)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate._Private_ChannelFlowOk(active);
         }
 
         public void _Private_ChannelOpen(string outOfBand)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate._Private_ChannelOpen(outOfBand);
         }
 
         public void _Private_ConfirmSelect(bool nowait)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate._Private_ConfirmSelect(nowait);
         }
 
@@ -897,22 +560,14 @@ namespace RabbitMQ.Client.Impl
             ushort classId,
             ushort methodId)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate._Private_ConnectionClose(replyCode, replyText,
                 classId, methodId);
         }
 
         public void _Private_ConnectionCloseOk()
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate._Private_ConnectionCloseOk();
         }
 
@@ -920,43 +575,27 @@ namespace RabbitMQ.Client.Impl
             string capabilities,
             bool insist)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate._Private_ConnectionOpen(virtualHost, capabilities, insist);
         }
 
         public void _Private_ConnectionSecureOk(byte[] response)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate._Private_ConnectionSecureOk(response);
         }
 
         public void _Private_ConnectionStartOk(IDictionary<string, object> clientProperties,
             string mechanism, byte[] response, string locale)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate._Private_ConnectionStartOk(clientProperties, mechanism,
                 response, locale);
         }
 
         public void _Private_UpdateSecret(byte[] newSecret, string reason)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate._Private_UpdateSecret(newSecret, reason);
         }
 
@@ -966,11 +605,7 @@ namespace RabbitMQ.Client.Impl
             bool nowait,
             IDictionary<string, object> arguments)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate._Private_ExchangeBind(destination, source, routingKey,
                 nowait, arguments);
         }
@@ -984,11 +619,7 @@ namespace RabbitMQ.Client.Impl
             bool nowait,
             IDictionary<string, object> arguments)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate._Private_ExchangeDeclare(exchange, type, passive,
                 durable, autoDelete, @internal,
                 nowait, arguments);
@@ -998,11 +629,7 @@ namespace RabbitMQ.Client.Impl
             bool ifUnused,
             bool nowait)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate._Private_ExchangeDelete(exchange, ifUnused, nowait);
         }
 
@@ -1012,11 +639,7 @@ namespace RabbitMQ.Client.Impl
             bool nowait,
             IDictionary<string, object> arguments)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate._Private_ExchangeUnbind(destination, source, routingKey,
                 nowait, arguments);
         }
@@ -1027,11 +650,7 @@ namespace RabbitMQ.Client.Impl
             bool nowait,
             IDictionary<string, object> arguments)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate._Private_QueueBind(queue, exchange, routingKey,
                 nowait, arguments);
         }
@@ -1042,50 +661,17 @@ namespace RabbitMQ.Client.Impl
             bool exclusive,
             bool autoDelete,
             bool nowait,
-            IDictionary<string, object> arguments)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate._Private_QueueDeclare(queue, passive,
+            IDictionary<string, object> arguments) => RecoveryAwareDelegate._Private_QueueDeclare(queue, passive,
                 durable, exclusive, autoDelete,
                 nowait, arguments);
-        }
 
-        public uint _Private_QueueDelete(string queue,
-            bool ifUnused,
-            bool ifEmpty,
-            bool nowait)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
+        public uint _Private_QueueDelete(string queue, bool ifUnused, bool ifEmpty, bool nowait) => RecoveryAwareDelegate._Private_QueueDelete(queue, ifUnused, ifEmpty, nowait);
 
-            return _delegate._Private_QueueDelete(queue, ifUnused,
-                ifEmpty, nowait);
-        }
-
-        public uint _Private_QueuePurge(string queue,
-            bool nowait)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            return _delegate._Private_QueuePurge(queue, nowait);
-        }
+        public uint _Private_QueuePurge(string queue, bool nowait) => RecoveryAwareDelegate._Private_QueuePurge(queue, nowait);
 
         public void Abort()
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             try
             {
                 _delegate.Abort();
@@ -1098,11 +684,7 @@ namespace RabbitMQ.Client.Impl
 
         public void Abort(ushort replyCode, string replyText)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             try
             {
                 _delegate.Abort(replyCode, replyText);
@@ -1114,23 +696,11 @@ namespace RabbitMQ.Client.Impl
         }
 
         public void BasicAck(ulong deliveryTag,
-            bool multiple)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.BasicAck(deliveryTag, multiple);
-        }
+            bool multiple) => Delegate.BasicAck(deliveryTag, multiple);
 
         public void BasicCancel(string consumerTag)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             RecordedConsumer cons = _connection.DeleteRecordedConsumer(consumerTag);
             if (cons != null)
             {
@@ -1141,11 +711,7 @@ namespace RabbitMQ.Client.Impl
 
         public void BasicCancelNoWait(string consumerTag)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             RecordedConsumer cons = _connection.DeleteRecordedConsumer(consumerTag);
             if (cons != null)
             {
@@ -1163,12 +729,7 @@ namespace RabbitMQ.Client.Impl
             IDictionary<string, object> arguments,
             IBasicConsumer consumer)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            string result = _delegate.BasicConsume(queue, autoAck, consumerTag, noLocal,
+            string result = Delegate.BasicConsume(queue, autoAck, consumerTag, noLocal,
                 exclusive, arguments, consumer);
             RecordedConsumer rc = new RecordedConsumer(this, queue).
                 WithConsumerTag(result).
@@ -1181,27 +742,11 @@ namespace RabbitMQ.Client.Impl
         }
 
         public BasicGetResult BasicGet(string queue,
-            bool autoAck)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            return _delegate.BasicGet(queue, autoAck);
-        }
+            bool autoAck) => Delegate.BasicGet(queue, autoAck);
 
         public void BasicNack(ulong deliveryTag,
             bool multiple,
-            bool requeue)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.BasicNack(deliveryTag, multiple, requeue);
-        }
+            bool requeue) => Delegate.BasicNack(deliveryTag, multiple, requeue);
 
         public void BasicPublish(string exchange,
             string routingKey,
@@ -1209,17 +754,12 @@ namespace RabbitMQ.Client.Impl
             IBasicProperties basicProperties,
             ReadOnlyMemory<byte> body)
         {
-            if (routingKey == null)
+            if (routingKey is null)
             {
                 throw new ArgumentNullException(nameof(routingKey));
             }
 
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.BasicPublish(exchange,
+            Delegate.BasicPublish(exchange,
                 routingKey,
                 mandatory,
                 basicProperties,
@@ -1230,11 +770,7 @@ namespace RabbitMQ.Client.Impl
             ushort prefetchCount,
             bool global)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             if (global)
             {
                 _prefetchCountGlobal = prefetchCount;
@@ -1246,44 +782,16 @@ namespace RabbitMQ.Client.Impl
             _delegate.BasicQos(prefetchSize, prefetchCount, global);
         }
 
-        public void BasicRecover(bool requeue)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
+        public void BasicRecover(bool requeue) => Delegate.BasicRecover(requeue);
 
-            _delegate.BasicRecover(requeue);
-        }
-
-        public void BasicRecoverAsync(bool requeue)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.BasicRecoverAsync(requeue);
-        }
+        public void BasicRecoverAsync(bool requeue) => Delegate.BasicRecoverAsync(requeue);
 
         public void BasicReject(ulong deliveryTag,
-            bool requeue)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.BasicReject(deliveryTag, requeue);
-        }
+            bool requeue) => Delegate.BasicReject(deliveryTag, requeue);
 
         public void Close()
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             try
             {
                 _delegate.Close();
@@ -1296,11 +804,7 @@ namespace RabbitMQ.Client.Impl
 
         public void Close(ushort replyCode, string replyText)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             try
             {
                 _delegate.Close(replyCode, replyText);
@@ -1313,35 +817,18 @@ namespace RabbitMQ.Client.Impl
 
         public void ConfirmSelect()
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            Delegate.ConfirmSelect();
             _usesPublisherConfirms = true;
-            _delegate.ConfirmSelect();
         }
 
-        public IBasicProperties CreateBasicProperties()
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            return _delegate.CreateBasicProperties();
-        }
+        public IBasicProperties CreateBasicProperties() => Delegate.CreateBasicProperties();
 
         public void ExchangeBind(string destination,
             string source,
             string routingKey,
             IDictionary<string, object> arguments)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             RecordedBinding eb = new RecordedExchangeBinding(this).
                 WithSource(source).
                 WithDestination(destination).
@@ -1354,24 +841,12 @@ namespace RabbitMQ.Client.Impl
         public void ExchangeBindNoWait(string destination,
             string source,
             string routingKey,
-            IDictionary<string, object> arguments)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.ExchangeBindNoWait(destination, source, routingKey, arguments);
-        }
+            IDictionary<string, object> arguments) => Delegate.ExchangeBindNoWait(destination, source, routingKey, arguments);
 
         public void ExchangeDeclare(string exchange, string type, bool durable,
             bool autoDelete, IDictionary<string, object> arguments)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             RecordedExchange rx = new RecordedExchange(this, exchange).
                 WithType(type).
                 WithDurable(durable).
@@ -1388,11 +863,7 @@ namespace RabbitMQ.Client.Impl
             bool autoDelete,
             IDictionary<string, object> arguments)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             RecordedExchange rx = new RecordedExchange(this, exchange).
                 WithType(type).
                 WithDurable(durable).
@@ -1403,37 +874,19 @@ namespace RabbitMQ.Client.Impl
             _connection.RecordExchange(exchange, rx);
         }
 
-        public void ExchangeDeclarePassive(string exchange)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.ExchangeDeclarePassive(exchange);
-        }
+        public void ExchangeDeclarePassive(string exchange) => Delegate.ExchangeDeclarePassive(exchange);
 
         public void ExchangeDelete(string exchange,
             bool ifUnused)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.ExchangeDelete(exchange, ifUnused);
+            Delegate.ExchangeDelete(exchange, ifUnused);
             _connection.DeleteRecordedExchange(exchange);
         }
 
         public void ExchangeDeleteNoWait(string exchange,
             bool ifUnused)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.ExchangeDeleteNoWait(exchange, ifUnused);
+            Delegate.ExchangeDeleteNoWait(exchange, ifUnused);
             _connection.DeleteRecordedExchange(exchange);
         }
 
@@ -1442,11 +895,7 @@ namespace RabbitMQ.Client.Impl
             string routingKey,
             IDictionary<string, object> arguments)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             RecordedBinding eb = new RecordedExchangeBinding(this).
                 WithSource(source).
                 WithDestination(destination).
@@ -1460,26 +909,14 @@ namespace RabbitMQ.Client.Impl
         public void ExchangeUnbindNoWait(string destination,
             string source,
             string routingKey,
-            IDictionary<string, object> arguments)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.ExchangeUnbind(destination, source, routingKey, arguments);
-        }
+            IDictionary<string, object> arguments) => Delegate.ExchangeUnbind(destination, source, routingKey, arguments);
 
         public void QueueBind(string queue,
             string exchange,
             string routingKey,
             IDictionary<string, object> arguments)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             RecordedBinding qb = new RecordedQueueBinding(this).
                 WithSource(exchange).
                 WithDestination(queue).
@@ -1492,25 +929,13 @@ namespace RabbitMQ.Client.Impl
         public void QueueBindNoWait(string queue,
             string exchange,
             string routingKey,
-            IDictionary<string, object> arguments)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.QueueBind(queue, exchange, routingKey, arguments);
-        }
+            IDictionary<string, object> arguments) => Delegate.QueueBind(queue, exchange, routingKey, arguments);
 
         public QueueDeclareOk QueueDeclare(string queue, bool durable,
                                            bool exclusive, bool autoDelete,
                                            IDictionary<string, object> arguments)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             QueueDeclareOk result = _delegate.QueueDeclare(queue, durable, exclusive,
                 autoDelete, arguments);
             RecordedQueue rq = new RecordedQueue(this, result.QueueName).
@@ -1527,11 +952,7 @@ namespace RabbitMQ.Client.Impl
                                        bool exclusive, bool autoDelete,
                                        IDictionary<string, object> arguments)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             _delegate.QueueDeclareNoWait(queue, durable, exclusive,
                 autoDelete, arguments);
             RecordedQueue rq = new RecordedQueue(this, queue).
@@ -1543,45 +964,17 @@ namespace RabbitMQ.Client.Impl
             _connection.RecordQueue(queue, rq);
         }
 
-        public QueueDeclareOk QueueDeclarePassive(string queue)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
+        public QueueDeclareOk QueueDeclarePassive(string queue) => Delegate.QueueDeclarePassive(queue);
 
-            return _delegate.QueueDeclarePassive(queue);
-        }
+        public uint MessageCount(string queue) => Delegate.MessageCount(queue);
 
-        public uint MessageCount(string queue)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            return _delegate.MessageCount(queue);
-        }
-
-        public uint ConsumerCount(string queue)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            return _delegate.ConsumerCount(queue);
-        }
+        public uint ConsumerCount(string queue) => Delegate.ConsumerCount(queue);
 
         public uint QueueDelete(string queue,
             bool ifUnused,
             bool ifEmpty)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             uint result = _delegate.QueueDelete(queue, ifUnused, ifEmpty);
             _connection.DeleteRecordedQueue(queue);
             return result;
@@ -1591,35 +984,18 @@ namespace RabbitMQ.Client.Impl
             bool ifUnused,
             bool ifEmpty)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.QueueDeleteNoWait(queue, ifUnused, ifEmpty);
+            Delegate.QueueDeleteNoWait(queue, ifUnused, ifEmpty);
             _connection.DeleteRecordedQueue(queue);
         }
 
-        public uint QueuePurge(string queue)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            return _delegate.QueuePurge(queue);
-        }
+        public uint QueuePurge(string queue) => Delegate.QueuePurge(queue);
 
         public void QueueUnbind(string queue,
             string exchange,
             string routingKey,
             IDictionary<string, object> arguments)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             RecordedBinding qb = new RecordedQueueBinding(this).
                 WithSource(exchange).
                 WithDestination(queue).
@@ -1630,94 +1006,29 @@ namespace RabbitMQ.Client.Impl
             _connection.MaybeDeleteRecordedAutoDeleteExchange(exchange);
         }
 
-        public void TxCommit()
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
+        public void TxCommit() => Delegate.TxCommit();
 
-            _delegate.TxCommit();
-        }
-
-        public void TxRollback()
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.TxRollback();
-        }
+        public void TxRollback() => Delegate.TxRollback();
 
         public void TxSelect()
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            Delegate.TxSelect();
             _usesTransactions = true;
-            _delegate.TxSelect();
         }
 
-        public bool WaitForConfirms(TimeSpan timeout, out bool timedOut)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
+        public bool WaitForConfirms(TimeSpan timeout, out bool timedOut) => Delegate.WaitForConfirms(timeout, out timedOut);
 
-            return _delegate.WaitForConfirms(timeout, out timedOut);
-        }
+        public bool WaitForConfirms(TimeSpan timeout) => Delegate.WaitForConfirms(timeout);
 
-        public bool WaitForConfirms(TimeSpan timeout)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
+        public bool WaitForConfirms() => Delegate.WaitForConfirms();
 
-            return _delegate.WaitForConfirms(timeout);
-        }
+        public void WaitForConfirmsOrDie() => Delegate.WaitForConfirmsOrDie();
 
-        public bool WaitForConfirms()
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            return _delegate.WaitForConfirms();
-        }
-
-        public void WaitForConfirmsOrDie()
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.WaitForConfirmsOrDie();
-        }
-
-        public void WaitForConfirmsOrDie(TimeSpan timeout)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            _delegate.WaitForConfirmsOrDie(timeout);
-        }
+        public void WaitForConfirmsOrDie(TimeSpan timeout) => Delegate.WaitForConfirmsOrDie(timeout);
 
         private void RecoverBasicAckHandlers()
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             lock (_eventLock)
             {
                 _delegate.BasicAcks += _recordedBasicAckEventHandlers;
@@ -1726,11 +1037,7 @@ namespace RabbitMQ.Client.Impl
 
         private void RecoverBasicNackHandlers()
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             lock (_eventLock)
             {
                 _delegate.BasicNacks += _recordedBasicNackEventHandlers;
@@ -1739,11 +1046,7 @@ namespace RabbitMQ.Client.Impl
 
         private void RecoverBasicReturnHandlers()
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             lock (_eventLock)
             {
                 _delegate.BasicReturn += _recordedBasicReturnEventHandlers;
@@ -1752,11 +1055,7 @@ namespace RabbitMQ.Client.Impl
 
         private void RecoverCallbackExceptionHandlers()
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             lock (_eventLock)
             {
                 _delegate.CallbackException += _recordedCallbackExceptionEventHandlers;
@@ -1765,11 +1064,7 @@ namespace RabbitMQ.Client.Impl
 
         private void RecoverModelShutdownHandlers()
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             lock (_eventLock)
             {
                 _delegate.ModelShutdown += _recordedShutdownEventHandlers;
@@ -1801,11 +1096,7 @@ namespace RabbitMQ.Client.Impl
 
         private void RunRecoveryEventHandlers()
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
+            ThrowIfDisposed();
             foreach (EventHandler<EventArgs> reh in Recovery?.GetInvocationList() ?? Array.Empty<Delegate>())
             {
                 try
@@ -1821,24 +1112,17 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public IBasicPublishBatch CreateBasicPublishBatch()
+        public IBasicPublishBatch CreateBasicPublishBatch() => Delegate.CreateBasicPublishBatch();
+
+        public IBasicPublishBatch CreateBasicPublishBatch(int sizeHint) => Delegate.CreateBasicPublishBatch(sizeHint);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void ThrowIfDisposed()
         {
             if (_disposed)
             {
                 throw new ObjectDisposedException(GetType().FullName);
             }
-
-            return _delegate.CreateBasicPublishBatch();
-        }
-
-        public IBasicPublishBatch CreateBasicPublishBatch(int sizeHint)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            return _delegate.CreateBasicPublishBatch(sizeHint);
         }
     }
 }

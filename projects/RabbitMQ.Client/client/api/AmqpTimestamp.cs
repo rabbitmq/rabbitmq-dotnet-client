@@ -65,7 +65,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Unix time.
         /// </summary>
-        public long UnixTime { get; private set; }
+        public long UnixTime { get; }
 
         public bool Equals(AmqpTimestamp other) => UnixTime == other.UnixTime;
 

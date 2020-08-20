@@ -60,15 +60,15 @@ namespace RabbitMQ.Client.Exceptions
         }
 
         ///<summary>The peer's AMQP specification major version.</summary>
-        public int ServerMajor { get; private set; }
+        public int ServerMajor { get; }
 
         ///<summary>The peer's AMQP specification minor version.</summary>
-        public int ServerMinor { get; private set; }
+        public int ServerMinor { get; }
 
         ///<summary>The peer's high transport byte.</summary>
-        public int TransportHigh { get; private set; }
+        public int TransportHigh { get; }
 
         ///<summary>The peer's low transport byte.</summary>
-        public int TransportLow { get; private set; }
+        public int TransportLow { get; }
     }
 }

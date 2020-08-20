@@ -49,11 +49,11 @@ namespace RabbitMQ.Client.Events
         /// <summary>
         /// Gets the tag before.
         /// </summary>
-        public string TagBefore { get; private set; }
+        public string TagBefore { get; }
 
         /// <summary>
         /// Gets the tag after.
         /// </summary>
-        public string TagAfter { get; private set; }
+        public string TagAfter { get; }
     }
 }

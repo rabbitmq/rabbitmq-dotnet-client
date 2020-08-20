@@ -45,7 +45,7 @@ namespace RabbitMQ.Client.Exceptions
         }
 
         ///<summary>The channel number concerned.</summary>
-        public int Channel { get; private set; }
+        public int Channel { get; }
 
         public override ushort ReplyCode
         {

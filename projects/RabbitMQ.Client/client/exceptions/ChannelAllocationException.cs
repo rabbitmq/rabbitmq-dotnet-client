@@ -64,6 +64,6 @@ namespace RabbitMQ.Client.Exceptions
         ///return -1 in the case where "no more free channels" is
         ///being signaled, or a non-negative integer when "channel is
         ///in use" is being signaled.</summary>
-        public int Channel { get; private set; }
+        public int Channel { get; }
     }
 }

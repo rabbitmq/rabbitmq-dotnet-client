@@ -67,7 +67,7 @@ namespace RabbitMQ.Client.Unit
             WithNonEmptyQueue((model, queue) =>
             {
                 BasicGetResult res = model.BasicGet(queue, true);
-                Assert.AreEqual(msg, encoding.GetString(res.Body.ToArray()));
+                Assert.AreEqual(msg, _encoding.GetString(res.Body.ToArray()));
                 AssertMessageCount(queue, 0);
             }, msg);
         }

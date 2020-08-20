@@ -48,14 +48,14 @@ namespace RabbitMQ.Client.Unit
                 return;
             }
 
-            Conn.UpdateSecret("new-secret", "Test Case");
+            _conn.UpdateSecret("new-secret", "Test Case");
 
-            Assert.AreEqual("new-secret", ConnFactory.Password);
+            Assert.AreEqual("new-secret", _connFactory.Password);
         }
 
         private bool RabbitMQ380OrHigher()
         {
-            System.Collections.Generic.IDictionary<string, object> properties = Conn.ServerProperties;
+            System.Collections.Generic.IDictionary<string, object> properties = _conn.ServerProperties;
 
             if (properties.TryGetValue("version", out object versionVal))
             {

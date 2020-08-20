@@ -158,7 +158,7 @@ namespace RabbitMQ.Client.Unit
         private bool LongRunningTestsEnabled()
         {
             string s = Environment.GetEnvironmentVariable("RABBITMQ_LONG_RUNNING_TESTS");
-            if (s == null || s.Equals(""))
+            if (s is null || s.Equals(""))
             {
                 return false;
             }

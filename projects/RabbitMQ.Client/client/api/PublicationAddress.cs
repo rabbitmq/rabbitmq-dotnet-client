@@ -79,17 +79,17 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Retrieve the exchange name.
         /// </summary>
-        public string ExchangeName { get; private set; }
+        public string ExchangeName { get; }
 
         /// <summary>
         /// Retrieve the exchange type string.
         /// </summary>
-        public string ExchangeType { get; private set; }
+        public string ExchangeType { get; }
 
         /// <summary>
         ///Retrieve the routing key.
         /// </summary>
-        public string RoutingKey { get; private set; }
+        public string RoutingKey { get; }
 
         /// <summary>
         /// Parse a <see cref="PublicationAddress"/> out of the given string,
@@ -112,7 +112,7 @@ namespace RabbitMQ.Client
             // Callers such as IBasicProperties.ReplyToAddress
             // expect null result for invalid input.
             // The regex.Match() throws on null arguments so we perform explicit check here
-            if (uriLikeString == null)
+            if (uriLikeString is null)
             {
                 result = null;
                 return false;
@@ -121,7 +121,7 @@ namespace RabbitMQ.Client
             {
                 try
                 {
-                    var res = Parse(uriLikeString);
+                    PublicationAddress res = Parse(uriLikeString);
                     result = res;
                     return true;
                 }

@@ -46,10 +46,10 @@ namespace RabbitMQ.Client.Unit
         {
             var latch = new ManualResetEventSlim(false);
 
-            Model.ModelShutdown += (model, args) => {
+            _model.ModelShutdown += (model, args) => {
                 latch.Set();
             };
-            Conn.Close();
+            _conn.Close();
 
             Wait(latch, TimeSpan.FromSeconds(3));
         }
@@ -57,15 +57,15 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestConsumerDispatcherShutdown()
         {
-            var m = (AutorecoveringModel)Model;
+            var m = (AutorecoveringModel)_model;
             var latch = new ManualResetEventSlim(false);
 
-            Model.ModelShutdown += (model, args) =>
+            _model.ModelShutdown += (model, args) =>
             {
                 latch.Set();
             };
             Assert.IsFalse(m.ConsumerDispatcher.IsShutdown, "dispatcher should NOT be shut down before Close");
-            Conn.Close();
+            _conn.Close();
             Wait(latch, TimeSpan.FromSeconds(3));
             Assert.IsTrue(m.ConsumerDispatcher.IsShutdown, "dispatcher should be shut down after Close");
         }
