@@ -56,7 +56,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" PrivateAssets="All" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
-    <PackageReference Include="MinVer" Version="2.2.0" PrivateAssets="All" />
+    <PackageReference Include="MinVer" Version="2.3.0" PrivateAssets="All" />
     <PackageReference Include="System.Memory" Version="4.5.4" />
     <PackageReference Include="System.Threading.Channels" Version="4.7.1" />
   </ItemGroup>
