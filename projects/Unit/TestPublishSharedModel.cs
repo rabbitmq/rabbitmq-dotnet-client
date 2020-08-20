@@ -59,7 +59,7 @@ namespace RabbitMQ.Client.Unit
                 AutomaticRecoveryEnabled = false
             };
 
-            using (var conn = connFactory.CreateConnection())
+            using (IConnection conn = connFactory.CreateConnection())
             {
                 conn.ConnectionShutdown += (_, args) =>
                 {
@@ -69,7 +69,7 @@ namespace RabbitMQ.Client.Unit
                     }
                 };
 
-                using (var model = conn.CreateModel())
+                using (IModel model = conn.CreateModel())
                 {
                     model.ExchangeDeclare(ExchangeName, "topic", durable: false, autoDelete: true);
                     model.QueueDeclare(QueueName, false, false, true, null);

@@ -67,8 +67,8 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestConnectionBlockedNotification()
         {
-            Conn.ConnectionBlocked += HandleBlocked;
-            Conn.ConnectionUnblocked += HandleUnblocked;
+            _conn.ConnectionBlocked += HandleBlocked;
+            _conn.ConnectionUnblocked += HandleUnblocked;
 
             Block();
             lock (_lockObject)

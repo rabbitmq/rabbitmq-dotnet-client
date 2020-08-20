@@ -133,7 +133,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 bool ok = false;
                 lock (_eventLock)
                 {
-                    if (_closeReason == null)
+                    if (_closeReason is null)
                     {
                         _connectionShutdown += value;
                         ok = true;
@@ -184,7 +184,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public bool IsOpen => CloseReason == null;
+        public bool IsOpen => CloseReason is null;
 
         public AmqpTcpEndpoint[] KnownHosts { get; set; }
 
@@ -281,7 +281,7 @@ namespace RabbitMQ.Client.Framing.Impl
 #pragma warning restore 0168
                 catch (IOException ioe)
                 {
-                    if (_model0.CloseReason == null)
+                    if (_model0.CloseReason is null)
                     {
                         if (!abort)
                         {
@@ -329,7 +329,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             catch (EndOfStreamException eose)
             {
-                if (_model0.CloseReason == null)
+                if (_model0.CloseReason is null)
                 {
                     LogCloseError("Connection didn't close cleanly. Socket closed unexpectedly", eose);
                 }
@@ -741,7 +741,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             lock (_eventLock)
             {
-                if (_closeReason == null)
+                if (_closeReason is null)
                 {
                     _closeReason = reason;
                     return true;
@@ -757,13 +757,13 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             if (Heartbeat != TimeSpan.Zero)
             {
-                if (_heartbeatWriteTimer == null)
+                if (_heartbeatWriteTimer is null)
                 {
                     _heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback, null, Timeout.Infinite, Timeout.Infinite);
                     _heartbeatWriteTimer.Change(200, Timeout.Infinite);
                 }
 
-                if (_heartbeatReadTimer == null)
+                if (_heartbeatReadTimer is null)
                 {
                     _heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback, null, Timeout.Infinite, Timeout.Infinite);
                     _heartbeatReadTimer.Change(300, Timeout.Infinite);
@@ -778,7 +778,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void HeartbeatReadTimerCallback(object state)
         {
-            if (_heartbeatReadTimer == null)
+            if (_heartbeatReadTimer is null)
             {
                 return;
             }
@@ -839,7 +839,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void HeartbeatWriteTimerCallback(object state)
         {
-            if (_heartbeatWriteTimer == null)
+            if (_heartbeatWriteTimer is null)
             {
                 return;
             }
@@ -1014,7 +1014,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
             ConnectionStartDetails connectionStart = connectionStartCell.WaitForValue();
 
-            if (connectionStart == null)
+            if (connectionStart is null)
             {
                 throw new IOException("connection.start was never received, likely due to a network timeout");
             }
@@ -1043,7 +1043,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 string mechanismsString = Encoding.UTF8.GetString(connectionStart.m_mechanisms, 0, connectionStart.m_mechanisms.Length);
                 string[] mechanisms = mechanismsString.Split(' ');
                 IAuthMechanismFactory mechanismFactory = _factory.AuthMechanismFactory(mechanisms);
-                if (mechanismFactory == null)
+                if (mechanismFactory is null)
                 {
                     throw new IOException($"No compatible authentication mechanism found - server offered [{mechanismsString}]");
                 }
@@ -1053,7 +1053,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 {
                     byte[] response = mechanism.handleChallenge(challenge, _factory);
                     ConnectionSecureOrTune res;
-                    if (challenge == null)
+                    if (challenge is null)
                     {
                         res = _model0.ConnectionStartOk(ClientProperties,
                             mechanismFactory.Name,
@@ -1065,7 +1065,7 @@ namespace RabbitMQ.Client.Framing.Impl
                         res = _model0.ConnectionSecureOk(response);
                     }
 
-                    if (res.m_challenge == null)
+                    if (res.m_challenge is null)
                     {
                         connectionTune = res.m_tuneDetails;
                         tuned = true;

@@ -40,14 +40,14 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestMessageCountMethod()
         {
-            Model.ConfirmSelect();
+            _model.ConfirmSelect();
             string q = GenerateQueueName();
-            Model.QueueDeclare(queue: q, durable: false, exclusive: true, autoDelete: false, arguments: null);
-            Assert.AreEqual(0, Model.MessageCount(q));
+            _model.QueueDeclare(queue: q, durable: false, exclusive: true, autoDelete: false, arguments: null);
+            Assert.AreEqual(0, _model.MessageCount(q));
 
-            Model.BasicPublish(exchange: "", routingKey: q, basicProperties: null, body: encoding.GetBytes("msg"));
-            Model.WaitForConfirms(TimeSpan.FromSeconds(2));
-            Assert.AreEqual(1, Model.MessageCount(q));
+            _model.BasicPublish(exchange: "", routingKey: q, basicProperties: null, body: _encoding.GetBytes("msg"));
+            _model.WaitForConfirms(TimeSpan.FromSeconds(2));
+            Assert.AreEqual(1, _model.MessageCount(q));
         }
     }
 }

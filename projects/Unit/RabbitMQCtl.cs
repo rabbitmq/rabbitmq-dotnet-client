@@ -233,7 +233,7 @@ namespace RabbitMQ.Client.Unit
             ExecRabbitMQCtl("set_vm_memory_high_watermark 0.4");
         }
 
-        private static readonly Regex GetConnectionName = new Regex(@"\{""connection_name"",""(?<connection_name>[^""]+)""\}");
+        private static readonly Regex s_getConnectionName = new Regex(@"\{""connection_name"",""(?<connection_name>[^""]+)""\}");
         public class ConnectionInfo
         {
             public string Pid
@@ -273,7 +273,7 @@ namespace RabbitMQ.Client.Unit
                     string[] columns = s.Split('\t');
                     Debug.Assert(!string.IsNullOrEmpty(columns[0]), "columns[0] is null or empty!");
                     Debug.Assert(!string.IsNullOrEmpty(columns[1]), "columns[1] is null or empty!");
-                    Match match = GetConnectionName.Match(columns[1]);
+                    Match match = s_getConnectionName.Match(columns[1]);
                     Debug.Assert(match.Success, "columns[1] is not in expected format.");
                     return new ConnectionInfo(columns[0], match.Groups["connection_name"].Value);
                 }).ToList();

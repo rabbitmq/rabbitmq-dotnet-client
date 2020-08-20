@@ -44,14 +44,14 @@ namespace RabbitMQ.Client.Unit
             object o = new object();
             bool shutdownFired = false;
             ShutdownEventArgs shutdownArgs = null;
-            Model.ModelShutdown += (s, args) =>
+            _model.ModelShutdown += (s, args) =>
             {
                 shutdownFired = true;
                 shutdownArgs = args;
                 Monitor.PulseAll(o);
             };
 
-            Model.BasicAck(123456, false);
+            _model.BasicAck(123456, false);
             WaitOn(o);
             Assert.IsTrue(shutdownFired);
             AssertPreconditionFailed(shutdownArgs);

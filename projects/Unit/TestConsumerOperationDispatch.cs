@@ -103,12 +103,12 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestDeliveryOrderingWithSingleChannel()
         {
-            IModel Ch = Conn.CreateModel();
+            IModel Ch = _conn.CreateModel();
             Ch.ExchangeDeclare(_x, "fanout", durable: false);
 
             for (int i = 0; i < Y; i++)
             {
-                IModel ch = Conn.CreateModel();
+                IModel ch = _conn.CreateModel();
                 QueueDeclareOk q = ch.QueueDeclare("", durable: false, exclusive: true, autoDelete: true, arguments: null);
                 ch.QueueBind(queue: q, exchange: _x, routingKey: "");
                 _channels.Add(ch);
@@ -122,7 +122,7 @@ namespace RabbitMQ.Client.Unit
             {
                 Ch.BasicPublish(exchange: _x, routingKey: "",
                     basicProperties: new BasicProperties(),
-                    body: encoding.GetBytes("msg"));
+                    body: _encoding.GetBytes("msg"));
             }
             counter.Wait(TimeSpan.FromSeconds(120));
 
@@ -146,9 +146,9 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestChannelShutdownDoesNotShutDownDispatcher()
         {
-            IModel ch1 = Conn.CreateModel();
-            IModel ch2 = Conn.CreateModel();
-            Model.ExchangeDeclare(_x, "fanout", durable: false);
+            IModel ch1 = _conn.CreateModel();
+            IModel ch2 = _conn.CreateModel();
+            _model.ExchangeDeclare(_x, "fanout", durable: false);
 
             string q1 = ch1.QueueDeclare().QueueName;
             string q2 = ch2.QueueDeclare().QueueName;
@@ -165,7 +165,7 @@ namespace RabbitMQ.Client.Unit
             // closing this channel must not affect ch2
             ch1.Close();
 
-            ch2.BasicPublish(exchange: _x, basicProperties: null, body: encoding.GetBytes("msg"), routingKey: "");
+            ch2.BasicPublish(exchange: _x, basicProperties: null, body: _encoding.GetBytes("msg"), routingKey: "");
             Wait(latch);
         }
 
@@ -196,11 +196,11 @@ namespace RabbitMQ.Client.Unit
         {
             var latch = new ManualResetEventSlim(false);
             var duplicateLatch = new ManualResetEventSlim(false);
-            string q = Model.QueueDeclare().QueueName;
+            string q = _model.QueueDeclare().QueueName;
             var c = new ShutdownLatchConsumer(latch, duplicateLatch);
 
-            Model.BasicConsume(queue: q, autoAck: true, consumer: c);
-            Model.Close();
+            _model.BasicConsume(queue: q, autoAck: true, consumer: c);
+            _model.Close();
             Wait(latch, TimeSpan.FromSeconds(5));
             Assert.IsFalse(duplicateLatch.Wait(TimeSpan.FromSeconds(5)),
                            "event handler fired more than once");

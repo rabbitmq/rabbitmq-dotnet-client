@@ -39,24 +39,24 @@ namespace RabbitMQ.Client.Unit
         public void TestQueueDeclareNoWait()
         {
             string q = GenerateQueueName();
-            Model.QueueDeclareNoWait(q, false, true, false, null);
-            Model.QueueDeclarePassive(q);
+            _model.QueueDeclareNoWait(q, false, true, false, null);
+            _model.QueueDeclarePassive(q);
         }
 
         [Test]
         public void TestQueueBindNoWait()
         {
             string q = GenerateQueueName();
-            Model.QueueDeclareNoWait(q, false, true, false, null);
-            Model.QueueBindNoWait(q, "amq.fanout", "", null);
+            _model.QueueDeclareNoWait(q, false, true, false, null);
+            _model.QueueBindNoWait(q, "amq.fanout", "", null);
         }
 
         [Test]
         public void TestQueueDeleteNoWait()
         {
             string q = GenerateQueueName();
-            Model.QueueDeclareNoWait(q, false, true, false, null);
-            Model.QueueDeleteNoWait(q, false, false);
+            _model.QueueDeclareNoWait(q, false, true, false, null);
+            _model.QueueDeleteNoWait(q, false, false);
         }
 
         [Test]
@@ -65,10 +65,10 @@ namespace RabbitMQ.Client.Unit
             string x = GenerateExchangeName();
             try
             {
-                Model.ExchangeDeclareNoWait(x, "fanout", false, true, null);
-                Model.ExchangeDeclarePassive(x);
+                _model.ExchangeDeclareNoWait(x, "fanout", false, true, null);
+                _model.ExchangeDeclarePassive(x);
             } finally {
-                Model.ExchangeDelete(x);
+                _model.ExchangeDelete(x);
             }
         }
 
@@ -78,10 +78,10 @@ namespace RabbitMQ.Client.Unit
             string x = GenerateExchangeName();
             try
             {
-                Model.ExchangeDeclareNoWait(x, "fanout", false, true, null);
-                Model.ExchangeBindNoWait(x, "amq.fanout", "", null);
+                _model.ExchangeDeclareNoWait(x, "fanout", false, true, null);
+                _model.ExchangeBindNoWait(x, "amq.fanout", "", null);
             } finally {
-                Model.ExchangeDelete(x);
+                _model.ExchangeDelete(x);
             }
         }
 
@@ -91,11 +91,11 @@ namespace RabbitMQ.Client.Unit
             string x = GenerateExchangeName();
             try
             {
-                Model.ExchangeDeclare(x, "fanout", false, true, null);
-                Model.ExchangeBind(x, "amq.fanout", "", null);
-                Model.ExchangeUnbindNoWait(x, "amq.fanout", "", null);
+                _model.ExchangeDeclare(x, "fanout", false, true, null);
+                _model.ExchangeBind(x, "amq.fanout", "", null);
+                _model.ExchangeUnbindNoWait(x, "amq.fanout", "", null);
             } finally {
-                Model.ExchangeDelete(x);
+                _model.ExchangeDelete(x);
             }
         }
 
@@ -103,8 +103,8 @@ namespace RabbitMQ.Client.Unit
         public void TestExchangeDeleteNoWait()
         {
             string x = GenerateExchangeName();
-            Model.ExchangeDeclareNoWait(x, "fanout", false, true, null);
-            Model.ExchangeDeleteNoWait(x, false);
+            _model.ExchangeDeclareNoWait(x, "fanout", false, true, null);
+            _model.ExchangeDeleteNoWait(x, false);
         }
     }
 }

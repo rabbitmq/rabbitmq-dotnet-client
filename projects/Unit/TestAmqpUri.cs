@@ -38,7 +38,7 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestAmqpUri
     {
-        private readonly string[] IPv6Loopbacks = { "[0000:0000:0000:0000:0000:0000:0000:0001]", "[::1]" };
+        private readonly string[] _iPv6Loopbacks = { "[0000:0000:0000:0000:0000:0000:0000:0001]", "[::1]" };
 
         [Test, Category("MonoBug")]
         public void TestAmqpUriParseFail()
@@ -93,13 +93,13 @@ namespace RabbitMQ.Client.Unit
                 ParseSuccess("amqp://host/%2f",
                     "guest", "guest", "host", 5672, "/");
                 ParseSuccess("amqp://[::1]", "guest", "guest",
-                    IPv6Loopbacks,
+                    _iPv6Loopbacks,
                     5672, "/", false);
                 ParseSuccess("AMQPS://[::1]", "guest", "guest",
-                    IPv6Loopbacks,
+                    _iPv6Loopbacks,
                     5671, "/", true);
                 ParseSuccess("AMQPS://[::1]", "guest", "guest",
-                    IPv6Loopbacks,
+                    _iPv6Loopbacks,
                     5671, "/", true);
 
                 /* Various other success cases */
@@ -107,7 +107,7 @@ namespace RabbitMQ.Client.Unit
                     "guest", "guest", "host", 100, "/");
                 ParseSuccess("amqp://[::1]:100",
                     "guest", "guest",
-                    IPv6Loopbacks,
+                    _iPv6Loopbacks,
                     100, "/");
 
                 ParseSuccess("amqp://host/blah",
@@ -118,11 +118,11 @@ namespace RabbitMQ.Client.Unit
                     "guest", "guest", "localhost", 100, "blah");
                 ParseSuccess("amqp://[::1]/blah",
                     "guest", "guest",
-                    IPv6Loopbacks,
+                    _iPv6Loopbacks,
                     5672, "blah");
                 ParseSuccess("amqp://[::1]:100/blah",
                     "guest", "guest",
-                    IPv6Loopbacks,
+                    _iPv6Loopbacks,
                     100, "blah");
 
                 ParseSuccess("amqp://user:pass@host",
@@ -133,11 +133,11 @@ namespace RabbitMQ.Client.Unit
                     "user", "pass", "localhost", 100, "/");
                 ParseSuccess("amqp://user:pass@[::1]",
                     "user", "pass",
-                    IPv6Loopbacks,
+                    _iPv6Loopbacks,
                     5672, "/");
                 ParseSuccess("amqp://user:pass@[::1]:100",
                     "user", "pass",
-                    IPv6Loopbacks,
+                    _iPv6Loopbacks,
                     100, "/");
 
                 ParseSuccess("amqps://user:pass@host",
@@ -148,11 +148,11 @@ namespace RabbitMQ.Client.Unit
                     "user", "pass", "localhost", 100, "/", true);
                 ParseSuccess("amqps://user:pass@[::1]",
                     "user", "pass",
-                    IPv6Loopbacks,
+                    _iPv6Loopbacks,
                     5671, "/", true);
                 ParseSuccess("amqps://user:pass@[::1]:100",
                     "user", "pass",
-                    IPv6Loopbacks,
+                    _iPv6Loopbacks,
                     100, "/", true);
             }
         }

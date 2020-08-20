@@ -202,20 +202,20 @@ namespace RabbitMQ.Client.Framing
 
         internal override void ReadPropertiesFrom(ref ContentHeaderPropertyReader reader)
         {
-            var contentType_present = reader.ReadPresence();
-            var contentEncoding_present = reader.ReadPresence();
-            var headers_present = reader.ReadPresence();
-            var deliveryMode_present = reader.ReadPresence();
-            var priority_present = reader.ReadPresence();
-            var correlationId_present = reader.ReadPresence();
-            var replyTo_present = reader.ReadPresence();
-            var expiration_present = reader.ReadPresence();
-            var messageId_present = reader.ReadPresence();
-            var timestamp_present = reader.ReadPresence();
-            var type_present = reader.ReadPresence();
-            var userId_present = reader.ReadPresence();
-            var appId_present = reader.ReadPresence();
-            var clusterId_present = reader.ReadPresence();
+            bool contentType_present = reader.ReadPresence();
+            bool contentEncoding_present = reader.ReadPresence();
+            bool headers_present = reader.ReadPresence();
+            bool deliveryMode_present = reader.ReadPresence();
+            bool priority_present = reader.ReadPresence();
+            bool correlationId_present = reader.ReadPresence();
+            bool replyTo_present = reader.ReadPresence();
+            bool expiration_present = reader.ReadPresence();
+            bool messageId_present = reader.ReadPresence();
+            bool timestamp_present = reader.ReadPresence();
+            bool type_present = reader.ReadPresence();
+            bool userId_present = reader.ReadPresence();
+            bool appId_present = reader.ReadPresence();
+            bool clusterId_present = reader.ReadPresence();
             reader.FinishPresence();
             if (contentType_present) { _contentType = reader.ReadShortstr(); }
             if (contentEncoding_present) { _contentEncoding = reader.ReadShortstr(); }

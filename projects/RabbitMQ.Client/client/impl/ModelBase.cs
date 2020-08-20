@@ -107,11 +107,11 @@ namespace RabbitMQ.Client.Impl
             add
             {
                 bool ok = false;
-                if (CloseReason == null)
+                if (CloseReason is null)
                 {
                     lock (_shutdownLock)
                     {
-                        if (CloseReason == null)
+                        if (CloseReason is null)
                         {
                             _modelShutdown += value;
                             ok = true;
@@ -144,7 +144,7 @@ namespace RabbitMQ.Client.Impl
 
         public bool IsClosed => !IsOpen;
 
-        public bool IsOpen => CloseReason == null;
+        public bool IsOpen => CloseReason is null;
 
         public ulong NextPublishSeqNo { get; private set; }
 
@@ -270,11 +270,11 @@ namespace RabbitMQ.Client.Impl
         public void Enqueue(IRpcContinuation k)
         {
             bool ok = false;
-            if (CloseReason == null)
+            if (CloseReason is null)
             {
                 lock (_shutdownLock)
                 {
-                    if (CloseReason == null)
+                    if (CloseReason is null)
                     {
                         _continuationQueue.Enqueue(k);
                         ok = true;
@@ -398,7 +398,7 @@ namespace RabbitMQ.Client.Impl
         ///Do not call anywhere other than at the end of OnSessionShutdown.
         ///</para>
         ///<para>
-        ///Must not be called when m_closeReason == null, because
+        ///Must not be called when m_closeReason is null, because
         ///otherwise there's a window when a new continuation could be
         ///being enqueued at the same time as we're broadcasting the
         ///shutdown event. See the definition of Enqueue() above.
@@ -451,11 +451,11 @@ namespace RabbitMQ.Client.Impl
 
         public bool SetCloseReason(ShutdownEventArgs reason)
         {
-            if (CloseReason == null)
+            if (CloseReason is null)
             {
                 lock (_shutdownLock)
                 {
-                    if (CloseReason == null)
+                    if (CloseReason is null)
                     {
                         CloseReason = reason;
                         return true;
@@ -503,7 +503,7 @@ namespace RabbitMQ.Client.Impl
 
         public void HandleBasicAck(ulong deliveryTag, bool multiple)
         {
-            var @event = BasicAcks;
+            EventHandler<BasicAckEventArgs> @event = BasicAcks;
             if (@event != null)
             {
                 var args = new BasicAckEventArgs
@@ -529,7 +529,7 @@ namespace RabbitMQ.Client.Impl
 
         public void HandleBasicNack(ulong deliveryTag, bool multiple, bool requeue)
         {
-            var @event = BasicNacks;
+            EventHandler<BasicNackEventArgs> @event = BasicNacks;
             if (@event != null)
             {
                 var args = new BasicNackEventArgs
@@ -607,7 +607,7 @@ namespace RabbitMQ.Client.Impl
                 consumer = _consumers[consumerTag];
                 _consumers.Remove(consumerTag);
             }
-            if (consumer == null)
+            if (consumer is null)
             {
                 consumer = DefaultConsumer;
             }
@@ -661,9 +661,9 @@ namespace RabbitMQ.Client.Impl
             {
                 consumer = _consumers[consumerTag];
             }
-            if (consumer == null)
+            if (consumer is null)
             {
-                if (DefaultConsumer == null)
+                if (DefaultConsumer is null)
                 {
                     throw new InvalidOperationException("Unsolicited delivery - see IModel.DefaultConsumer to handle this case.");
                 }
@@ -720,7 +720,7 @@ namespace RabbitMQ.Client.Impl
             ReadOnlyMemory<byte> body,
             byte[] rentedArray)
         {
-            var @event = BasicReturn;
+            EventHandler<BasicReturnEventArgs> @event = BasicReturn;
             if (@event != null)
             {
                 var e = new BasicReturnEventArgs
@@ -849,7 +849,7 @@ namespace RabbitMQ.Client.Impl
             byte[] mechanisms,
             byte[] locales)
         {
-            if (m_connectionStartCell == null)
+            if (m_connectionStartCell is null)
             {
                 var reason =
                     new ShutdownEventArgs(ShutdownInitiator.Library,
@@ -1127,12 +1127,12 @@ namespace RabbitMQ.Client.Impl
             IBasicProperties basicProperties,
             ReadOnlyMemory<byte> body)
         {
-            if (routingKey == null)
+            if (routingKey is null)
             {
                 throw new ArgumentNullException(nameof(routingKey));
             }
 
-            if (basicProperties == null)
+            if (basicProperties is null)
             {
                 basicProperties = _emptyBasicProperties;
             }
@@ -1163,12 +1163,12 @@ namespace RabbitMQ.Client.Impl
 
         public void UpdateSecret(string newSecret, string reason)
         {
-            if (newSecret == null)
+            if (newSecret is null)
             {
                 throw new ArgumentNullException(nameof(newSecret));
             }
 
-            if (reason == null)
+            if (reason is null)
             {
                 throw new ArgumentNullException(nameof(reason));
             }

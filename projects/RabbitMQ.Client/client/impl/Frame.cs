@@ -149,7 +149,7 @@ namespace RabbitMQ.Client.Impl
             public static Memory<byte> GetHeartbeatFrame()
             {
                 // Is returned by SocketFrameHandler.WriteLoop
-                var buffer = ArrayPool<byte>.Shared.Rent(FrameSize);
+                byte[] buffer = ArrayPool<byte>.Shared.Rent(FrameSize);
                 Payload.CopyTo(buffer);
                 return new Memory<byte>(buffer, 0, FrameSize);
             }
@@ -214,7 +214,7 @@ namespace RabbitMQ.Client.Impl
                 // If it's a WSAETIMEDOUT SocketException, unwrap it.
                 // This might happen when the limit of half-open connections is
                 // reached.
-                if (ioe.InnerException == null ||
+                if (ioe.InnerException is null ||
                     !(ioe.InnerException is SocketException exception) ||
                     exception.SocketErrorCode != SocketError.TimedOut)
                 {
@@ -240,7 +240,7 @@ namespace RabbitMQ.Client.Impl
 
             const int EndMarkerLength = 1;
             // Is returned by InboundFrame.ReturnPayload in Connection.MainLoopIteration
-            var readSize = payloadSize + EndMarkerLength;
+            int readSize = payloadSize + EndMarkerLength;
             byte[] payloadBytes = ArrayPool<byte>.Shared.Rent(readSize);
             int bytesRead = 0;
             try

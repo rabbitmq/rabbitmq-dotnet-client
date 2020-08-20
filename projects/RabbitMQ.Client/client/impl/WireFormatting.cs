@@ -240,7 +240,7 @@ namespace RabbitMQ.Client.Impl
 
         public static int WriteArray(Span<byte> span, IList val)
         {
-            if (val == null)
+            if (val is null)
             {
                 NetworkOrderSerializer.WriteUInt32(span, 0);
                 return 4;
@@ -261,7 +261,7 @@ namespace RabbitMQ.Client.Impl
         public static int GetArrayByteCount(IList val)
         {
             int byteCount = 4;
-            if (val == null)
+            if (val is null)
             {
                 return byteCount;
             }
@@ -283,7 +283,7 @@ namespace RabbitMQ.Client.Impl
 
         public static int WriteFieldValue(Span<byte> span, object value)
         {
-            if (value == null)
+            if (value is null)
             {
                 span[0] = (byte)'V';
                 return 1;
@@ -452,7 +452,7 @@ namespace RabbitMQ.Client.Impl
 
         public static int WriteTable(Span<byte> span, IDictionary val)
         {
-            if (val == null || val.Count == 0)
+            if (val is null || val.Count == 0)
             {
                 NetworkOrderSerializer.WriteUInt32(span, 0);
                 return 4;
@@ -475,7 +475,7 @@ namespace RabbitMQ.Client.Impl
 
         public static int WriteTable(Span<byte> span, IDictionary<string, object> val)
         {
-            if (val == null || val.Count == 0)
+            if (val is null || val.Count == 0)
             {
                 NetworkOrderSerializer.WriteUInt32(span, 0);
                 return 4;
@@ -510,7 +510,7 @@ namespace RabbitMQ.Client.Impl
         public static int GetTableByteCount(IDictionary val)
         {
             int byteCount = 4;
-            if (val == null)
+            if (val is null)
             {
                 return byteCount;
             }
@@ -527,7 +527,7 @@ namespace RabbitMQ.Client.Impl
         public static int GetTableByteCount(IDictionary<string, object> val)
         {
             int byteCount = 4;
-            if (val == null)
+            if (val is null)
             {
                 return byteCount;
             }

@@ -203,7 +203,7 @@ namespace RabbitMQ.Util
 
                     var interval = new IntervalList(xs[start], xs[i]);
 
-                    if (result == null)
+                    if (result is null)
                     {
                         result = interval;
                         current = interval;
@@ -220,11 +220,11 @@ namespace RabbitMQ.Util
 
             public static IntervalList Merge(IntervalList x, IntervalList y)
             {
-                if (x == null)
+                if (x is null)
                 {
                     return y;
                 }
-                if (y == null)
+                if (y is null)
                 {
                     return x;
                 }

@@ -87,7 +87,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestWaitForConfirmsWithEvents()
         {
-            IModel ch = Conn.CreateModel();
+            IModel ch = _conn.CreateModel();
             ch.ConfirmSelect();
 
             ch.QueueDeclare(QueueName);
@@ -103,7 +103,7 @@ namespace RabbitMQ.Client.Unit
             {
                 for (int i = 0; i < n; i++)
                 {
-                    ch.BasicPublish("", QueueName, null, encoding.GetBytes("msg"));
+                    ch.BasicPublish("", QueueName, null, _encoding.GetBytes("msg"));
                 }
                 Thread.Sleep(TimeSpan.FromSeconds(1));
                 ch.WaitForConfirms(TimeSpan.FromSeconds(5));
@@ -123,14 +123,14 @@ namespace RabbitMQ.Client.Unit
 
         protected void TestWaitForConfirms(int numberOfMessagesToPublish, Action<IModel> fn)
         {
-            IModel ch = Conn.CreateModel();
+            IModel ch = _conn.CreateModel();
             ch.ConfirmSelect();
 
             ch.QueueDeclare(QueueName);
 
             for (int i = 0; i < numberOfMessagesToPublish; i++)
             {
-                ch.BasicPublish("", QueueName, null, encoding.GetBytes("msg"));
+                ch.BasicPublish("", QueueName, null, _encoding.GetBytes("msg"));
             }
 
             try

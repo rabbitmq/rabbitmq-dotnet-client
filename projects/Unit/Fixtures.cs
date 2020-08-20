@@ -46,30 +46,30 @@ namespace RabbitMQ.Client.Unit
 
     public class IntegrationFixture
     {
-        internal IConnectionFactory ConnFactory;
-        internal IConnection Conn;
-        internal IModel Model;
-        internal Encoding encoding = new UTF8Encoding();
+        internal IConnectionFactory _connFactory;
+        internal IConnection _conn;
+        internal IModel _model;
+        internal Encoding _encoding = new UTF8Encoding();
         public static TimeSpan RECOVERY_INTERVAL = TimeSpan.FromSeconds(2);
 
         [SetUp]
         public virtual void Init()
         {
-            ConnFactory = new ConnectionFactory();
-            Conn = ConnFactory.CreateConnection();
-            Model = Conn.CreateModel();
+            _connFactory = new ConnectionFactory();
+            _conn = _connFactory.CreateConnection();
+            _model = _conn.CreateModel();
         }
 
         [TearDown]
         public void Dispose()
         {
-            if(Model.IsOpen)
+            if(_model.IsOpen)
             {
-                Model.Close();
+                _model.Close();
             }
-            if(Conn.IsOpen)
+            if(_conn.IsOpen)
             {
-                Conn.Close();
+                _conn.Close();
             }
 
             ReleaseResources();
@@ -199,7 +199,7 @@ namespace RabbitMQ.Client.Unit
 
         internal void WithTemporaryModel(Action<IModel> action)
         {
-            IModel model = Conn.CreateModel();
+            IModel model = _conn.CreateModel();
 
             try
             {
@@ -213,7 +213,7 @@ namespace RabbitMQ.Client.Unit
 
         internal void WithClosedModel(Action<IModel> action)
         {
-            IModel model = Conn.CreateModel();
+            IModel model = _conn.CreateModel();
             model.Close();
 
             action(model);
@@ -235,7 +235,7 @@ namespace RabbitMQ.Client.Unit
 
         internal byte[] RandomMessageBody()
         {
-            return encoding.GetBytes(Guid.NewGuid().ToString());
+            return _encoding.GetBytes(Guid.NewGuid().ToString());
         }
 
         internal string DeclareNonDurableExchange(IModel m, string x)
@@ -261,12 +261,12 @@ namespace RabbitMQ.Client.Unit
 
         internal void WithTemporaryQueue(Action<IModel, string> action)
         {
-            WithTemporaryQueue(Model, action);
+            WithTemporaryQueue(_model, action);
         }
 
         internal void WithTemporaryNonExclusiveQueue(Action<IModel, string> action)
         {
-            WithTemporaryNonExclusiveQueue(Model, action);
+            WithTemporaryNonExclusiveQueue(_model, action);
         }
 
         internal void WithTemporaryQueue(IModel model, Action<IModel, string> action)
@@ -281,7 +281,7 @@ namespace RabbitMQ.Client.Unit
 
         internal void WithTemporaryQueue(Action<IModel, string> action, string q)
         {
-            WithTemporaryQueue(Model, action, q);
+            WithTemporaryQueue(_model, action, q);
         }
 
         internal void WithTemporaryQueue(IModel model, Action<IModel, string> action, string queue)
@@ -327,7 +327,7 @@ namespace RabbitMQ.Client.Unit
 
         internal void EnsureNotEmpty(string q, string body)
         {
-            WithTemporaryModel(x => x.BasicPublish("", q, null, encoding.GetBytes(body)));
+            WithTemporaryModel(x => x.BasicPublish("", q, null, _encoding.GetBytes(body)));
         }
 
         internal void WithNonEmptyQueue(Action<IModel, string> action)
@@ -412,7 +412,7 @@ namespace RabbitMQ.Client.Unit
 
         internal void Block()
         {
-            RabbitMQCtl.Block(Conn, encoding);
+            RabbitMQCtl.Block(_conn, _encoding);
         }
 
         internal void Unblock()
@@ -422,7 +422,7 @@ namespace RabbitMQ.Client.Unit
 
         internal void Publish(IConnection conn)
         {
-            RabbitMQCtl.Publish(conn, encoding);
+            RabbitMQCtl.Publish(conn, _encoding);
         }
 
         //

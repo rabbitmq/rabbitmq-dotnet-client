@@ -79,6 +79,8 @@ namespace RabbitMQ.Client.Framing.Impl
             ClientProvidedName = clientProvidedName;
         }
 
+        private Connection Delegate => !_disposed ? _delegate : throw new ObjectDisposedException(GetType().FullName);
+
         public event EventHandler<EventArgs> RecoverySucceeded;
         public event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError;
         public event EventHandler<CallbackExceptionEventArgs> CallbackException
@@ -172,41 +174,41 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public string ClientProvidedName { get; }
 
-        public ushort ChannelMax => !_disposed ? _delegate.ChannelMax : throw new ObjectDisposedException(GetType().FullName);
+        public ushort ChannelMax => Delegate.ChannelMax;
 
-        public ConsumerWorkService ConsumerWorkService => !_disposed ? _delegate.ConsumerWorkService : throw new ObjectDisposedException(GetType().FullName);
+        public ConsumerWorkService ConsumerWorkService => Delegate.ConsumerWorkService;
 
-        public IDictionary<string, object> ClientProperties => !_disposed ? _delegate.ClientProperties : throw new ObjectDisposedException(GetType().FullName);
+        public IDictionary<string, object> ClientProperties => Delegate.ClientProperties;
 
-        public ShutdownEventArgs CloseReason => !_disposed ? _delegate.CloseReason : throw new ObjectDisposedException(GetType().FullName);
+        public ShutdownEventArgs CloseReason => Delegate.CloseReason;
 
-        public AmqpTcpEndpoint Endpoint => !_disposed ? _delegate.Endpoint : throw new ObjectDisposedException(GetType().FullName);
+        public AmqpTcpEndpoint Endpoint => Delegate.Endpoint;
 
-        public uint FrameMax => !_disposed ? _delegate.FrameMax : throw new ObjectDisposedException(GetType().FullName);
+        public uint FrameMax => Delegate.FrameMax;
 
-        public TimeSpan Heartbeat => !_disposed ? _delegate.Heartbeat : throw new ObjectDisposedException(GetType().FullName);
+        public TimeSpan Heartbeat => Delegate.Heartbeat;
 
-        public bool IsOpen => _delegate != null && _delegate.IsOpen;
+        public bool IsOpen => _delegate?.IsOpen ?? false;
 
         public AmqpTcpEndpoint[] KnownHosts
         {
-            get => _disposed ? throw new ObjectDisposedException(GetType().FullName) : _delegate.KnownHosts;
-            set => _delegate.KnownHosts = !_disposed ? value : throw new ObjectDisposedException(GetType().FullName);
+            get => Delegate.KnownHosts;
+            set => Delegate.KnownHosts = value;
         }
 
-        public int LocalPort => !_disposed ? _delegate.LocalPort : throw new ObjectDisposedException(GetType().FullName);
+        public int LocalPort => Delegate.LocalPort;
 
-        public ProtocolBase Protocol => !_disposed ? _delegate.Protocol : throw new ObjectDisposedException(GetType().FullName);
+        public ProtocolBase Protocol => Delegate.Protocol;
 
         public IDictionary<string, RecordedExchange> RecordedExchanges { get; } = new ConcurrentDictionary<string, RecordedExchange>();
 
         public IDictionary<string, RecordedQueue> RecordedQueues { get; } = new ConcurrentDictionary<string, RecordedQueue>();
 
-        public int RemotePort => !_disposed ? _delegate.RemotePort : throw new ObjectDisposedException(GetType().FullName);
+        public int RemotePort => Delegate.RemotePort;
 
-        public IDictionary<string, object> ServerProperties => !_disposed ? _delegate.ServerProperties : throw new ObjectDisposedException(GetType().FullName);
+        public IDictionary<string, object> ServerProperties => Delegate.ServerProperties;
 
-        public IList<ShutdownReportEntry> ShutdownReport => !_disposed ? _delegate.ShutdownReport : throw new ObjectDisposedException(GetType().FullName);
+        public IList<ShutdownReportEntry> ShutdownReport => Delegate.ShutdownReport;
 
         IProtocol IConnection.Protocol => Endpoint.Protocol;
 
@@ -247,18 +249,12 @@ namespace RabbitMQ.Client.Framing.Impl
             return false;
         }
 
-        public void Close(ShutdownEventArgs reason)
-        {
-            ThrowIfDisposed();
-            _delegate.Close(reason);
-        }
+        public void Close(ShutdownEventArgs reason) => Delegate.Close(reason);
 
         public RecoveryAwareModel CreateNonRecoveringModel()
         {
-            ThrowIfDisposed();
-            ISession session = _delegate.CreateSession();
-            var result = new RecoveryAwareModel(session);
-            result.ContinuationTimeout = _factory.ContinuationTimeout;
+            ISession session = Delegate.CreateSession();
+            var result = new RecoveryAwareModel(session) { ContinuationTimeout = _factory.ContinuationTimeout };
             result._Private_ChannelOpen("");
             return result;
         }
@@ -403,9 +399,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public override string ToString() => !_disposed
-                ? $"AutorecoveringConnection({_delegate.Id},{Endpoint},{GetHashCode()})"
-                : throw new ObjectDisposedException(GetType().FullName);
+        public override string ToString() => $"AutorecoveringConnection({Delegate.Id},{Endpoint},{GetHashCode()})";
 
         public void UnregisterModel(AutorecoveringModel model)
         {
@@ -415,10 +409,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public void Init()
-        {
-            Init(_factory.EndpointResolverFactory(new List<AmqpTcpEndpoint> { _factory.Endpoint }));
-        }
+        public void Init() => Init(_factory.EndpointResolverFactory(new List<AmqpTcpEndpoint> { _factory.Endpoint }));
 
         public void Init(IEndpointResolver endpoints)
         {
@@ -559,22 +550,11 @@ namespace RabbitMQ.Client.Framing.Impl
             return m;
         }
 
-        void IDisposable.Dispose()
-        {
-            Dispose(true);
-        }
+        void IDisposable.Dispose() => Dispose(true);
 
-        public void HandleConnectionBlocked(string reason)
-        {
-            ThrowIfDisposed();
-            _delegate.HandleConnectionBlocked(reason);
-        }
+        public void HandleConnectionBlocked(string reason) => Delegate.HandleConnectionBlocked(reason);
 
-        public void HandleConnectionUnblocked()
-        {
-            ThrowIfDisposed();
-            _delegate.HandleConnectionUnblocked();
-        }
+        public void HandleConnectionUnblocked() => Delegate.HandleConnectionUnblocked();
 
         internal int RecordedExchangesCount
         {
@@ -628,16 +608,9 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void EnsureIsOpen()
-        {
-            ThrowIfDisposed();
-            _delegate.EnsureIsOpen();
-        }
+        private void EnsureIsOpen() => Delegate.EnsureIsOpen();
 
-        private void HandleTopologyRecoveryException(TopologyRecoveryException e)
-        {
-            ESLog.Error("Topology recovery exception", e);
-        }
+        private void HandleTopologyRecoveryException(TopologyRecoveryException e) => ESLog.Error("Topology recovery exception", e);
 
         private void PropagateQueueNameChangeToBindings(string oldName, string newName)
         {
@@ -730,17 +703,9 @@ namespace RabbitMQ.Client.Framing.Impl
             return false;
         }
 
-        private void RecoverConnectionShutdownHandlers()
-        {
-            ThrowIfDisposed();
-            _delegate.ConnectionShutdown += _recordedShutdownEventHandlers;
-        }
+        private void RecoverConnectionShutdownHandlers() => Delegate.ConnectionShutdown += _recordedShutdownEventHandlers;
 
-        private void RecoverConnectionUnblockedHandlers()
-        {
-            ThrowIfDisposed();
-            _delegate.ConnectionUnblocked += _recordedUnblockedEventHandlers;
-        }
+        private void RecoverConnectionUnblockedHandlers() => Delegate.ConnectionUnblocked += _recordedUnblockedEventHandlers;
 
         private void RecoverConsumers()
         {
@@ -914,13 +879,10 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private bool ShouldTriggerConnectionRecovery(ShutdownEventArgs args)
-        {
-            return args.Initiator == ShutdownInitiator.Peer ||
+        private bool ShouldTriggerConnectionRecovery(ShutdownEventArgs args) => args.Initiator == ShutdownInitiator.Peer ||
                     // happens when EOF is reached, e.g. due to RabbitMQ node
                     // connectivity loss or abrupt shutdown
                     args.Initiator == ShutdownInitiator.Library;
-        }
 
         private enum RecoveryCommand
         {
@@ -1056,12 +1018,9 @@ namespace RabbitMQ.Client.Framing.Impl
         /// <summary>
         /// Schedule a background Task to signal the command queue when the retry duration has elapsed.
         /// </summary>
-        private void ScheduleRecoveryRetry()
-        {
-            _ = Task
+        private void ScheduleRecoveryRetry() => _ = Task
                 .Delay(_factory.NetworkRecoveryInterval)
                 .ContinueWith(t => _recoveryLoopCommandQueue.Writer.TryWrite(RecoveryCommand.PerformAutomaticRecovery));
-        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ThrowIfDisposed()

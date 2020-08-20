@@ -58,11 +58,11 @@ namespace RabbitMQ.Client.Impl
             add
             {
                 bool ok = false;
-                if (CloseReason == null)
+                if (CloseReason is null)
                 {
                     lock (_shutdownLock)
                     {
-                        if (CloseReason == null)
+                        if (CloseReason is null)
                         {
                             _sessionShutdown += value;
                             ok = true;
@@ -91,7 +91,7 @@ namespace RabbitMQ.Client.Impl
 
         public bool IsOpen
         {
-            get { return CloseReason == null; }
+            get { return CloseReason is null; }
         }
 
         public virtual void OnConnectionShutdown(object conn, ShutdownEventArgs reason)
@@ -124,11 +124,11 @@ namespace RabbitMQ.Client.Impl
 
         public void Close(ShutdownEventArgs reason, bool notify)
         {
-            if (CloseReason == null)
+            if (CloseReason is null)
             {
                 lock (_shutdownLock)
                 {
-                    if (CloseReason == null)
+                    if (CloseReason is null)
                     {
                         CloseReason = reason;
                     }
@@ -146,11 +146,11 @@ namespace RabbitMQ.Client.Impl
         {
             // Ensure that we notify only when session is already closed
             // If not, throw exception, since this is a serious bug in the library
-            if (CloseReason == null)
+            if (CloseReason is null)
             {
                 lock (_shutdownLock)
                 {
-                    if (CloseReason == null)
+                    if (CloseReason is null)
                     {
                         throw new Exception("Internal Error in Session.Close");
                     }

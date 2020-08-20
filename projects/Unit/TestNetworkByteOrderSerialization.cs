@@ -58,13 +58,13 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        readonly byte[] expectedDoubleBytes = new byte[] { 63, 243, 190, 118, 200, 180, 57, 88 };
-        readonly byte[] expectedSingleBytes = new byte[] { 63, 157, 243, 182 };
+        readonly byte[] _expectedDoubleBytes = new byte[] { 63, 243, 190, 118, 200, 180, 57, 88 };
+        readonly byte[] _expectedSingleBytes = new byte[] { 63, 157, 243, 182 };
 
         [Test]
         public void TestSingleDecoding()
         {
-            Assert.AreEqual(1.234f, NetworkOrderDeserializer.ReadSingle(expectedSingleBytes.AsSpan()));
+            Assert.AreEqual(1.234f, NetworkOrderDeserializer.ReadSingle(_expectedSingleBytes.AsSpan()));
         }
 
         [Test]
@@ -72,13 +72,13 @@ namespace RabbitMQ.Client.Unit
         {
             byte[] bytes = new byte[4];
             NetworkOrderSerializer.WriteSingle(bytes, 1.234f);
-            Check(bytes, expectedSingleBytes);
+            Check(bytes, _expectedSingleBytes);
         }
 
         [Test]
         public void TestDoubleDecoding()
         {
-            Assert.AreEqual(1.234, NetworkOrderDeserializer.ReadDouble(expectedDoubleBytes.AsSpan()));
+            Assert.AreEqual(1.234, NetworkOrderDeserializer.ReadDouble(_expectedDoubleBytes.AsSpan()));
         }
 
         [Test]
@@ -86,7 +86,7 @@ namespace RabbitMQ.Client.Unit
         {
             byte[] bytes = new byte[8];
             NetworkOrderSerializer.WriteDouble(bytes, 1.234);
-            Check(bytes, expectedDoubleBytes);
+            Check(bytes, _expectedDoubleBytes);
         }
 
         [Test]

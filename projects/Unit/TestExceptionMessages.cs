@@ -46,18 +46,18 @@ namespace RabbitMQ.Client.Unit
             string uuid = System.Guid.NewGuid().ToString();
             try
             {
-                Model.QueueDeclarePassive(uuid);
+                _model.QueueDeclarePassive(uuid);
             }
             catch (Exception e)
             {
                 Assert.That(e, Is.TypeOf(typeof(OperationInterruptedException)));
             }
 
-            Assert.IsFalse(Model.IsOpen);
+            Assert.IsFalse(_model.IsOpen);
 
             try
             {
-                Model.QueueDeclarePassive(uuid);
+                _model.QueueDeclarePassive(uuid);
             }
             catch (AlreadyClosedException e)
             {

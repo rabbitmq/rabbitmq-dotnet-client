@@ -56,9 +56,9 @@ namespace RabbitMQ.Client.Unit
             };
 
             var closeWatch = new Stopwatch();
-            using (var conn = connFactory.CreateConnection())
+            using (IConnection conn = connFactory.CreateConnection())
             {
-                using (var model = conn.CreateModel())
+                using (IModel model = conn.CreateModel())
                 {
                     conn.ConnectionShutdown += (_, args) =>
                     {

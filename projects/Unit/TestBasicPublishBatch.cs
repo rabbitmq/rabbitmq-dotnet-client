@@ -40,53 +40,53 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestBasicPublishBatchSend()
         {
-            Model.ConfirmSelect();
-            Model.QueueDeclare(queue: "test-message-batch-a", durable: false);
-            Model.QueueDeclare(queue: "test-message-batch-b", durable: false);
-            IBasicPublishBatch batch = Model.CreateBasicPublishBatch();
+            _model.ConfirmSelect();
+            _model.QueueDeclare(queue: "test-message-batch-a", durable: false);
+            _model.QueueDeclare(queue: "test-message-batch-b", durable: false);
+            IBasicPublishBatch batch = _model.CreateBasicPublishBatch();
             batch.Add("", "test-message-batch-a", false, null, new ReadOnlyMemory<byte>());
             batch.Add("", "test-message-batch-b", false, null, new ReadOnlyMemory<byte>());
             batch.Publish();
-            Model.WaitForConfirmsOrDie(TimeSpan.FromSeconds(15));
-            BasicGetResult resultA = Model.BasicGet("test-message-batch-a", true);
+            _model.WaitForConfirmsOrDie(TimeSpan.FromSeconds(15));
+            BasicGetResult resultA = _model.BasicGet("test-message-batch-a", true);
             Assert.NotNull(resultA);
-            BasicGetResult resultB = Model.BasicGet("test-message-batch-b", true);
+            BasicGetResult resultB = _model.BasicGet("test-message-batch-b", true);
             Assert.NotNull(resultB);
         }
 
         [Test]
         public void TestBasicPublishBatchSendWithSizeHint()
         {
-            Model.ConfirmSelect();
-            Model.QueueDeclare(queue: "test-message-batch-a", durable: false);
-            Model.QueueDeclare(queue: "test-message-batch-b", durable: false);
-            IBasicPublishBatch batch = Model.CreateBasicPublishBatch(2);
+            _model.ConfirmSelect();
+            _model.QueueDeclare(queue: "test-message-batch-a", durable: false);
+            _model.QueueDeclare(queue: "test-message-batch-b", durable: false);
+            IBasicPublishBatch batch = _model.CreateBasicPublishBatch(2);
             ReadOnlyMemory<byte> bodyAsMemory = new byte [] {};
             batch.Add("", "test-message-batch-a", false, null, bodyAsMemory);
             batch.Add("", "test-message-batch-b", false, null, bodyAsMemory);
             batch.Publish();
-            Model.WaitForConfirmsOrDie(TimeSpan.FromSeconds(15));
-            BasicGetResult resultA = Model.BasicGet("test-message-batch-a", true);
+            _model.WaitForConfirmsOrDie(TimeSpan.FromSeconds(15));
+            BasicGetResult resultA = _model.BasicGet("test-message-batch-a", true);
             Assert.NotNull(resultA);
-            BasicGetResult resultB = Model.BasicGet("test-message-batch-b", true);
+            BasicGetResult resultB = _model.BasicGet("test-message-batch-b", true);
             Assert.NotNull(resultB);
         }
 
         [Test]
         public void TestBasicPublishBatchSendWithWrongSizeHint()
         {
-            Model.ConfirmSelect();
-            Model.QueueDeclare(queue: "test-message-batch-a", durable: false);
-            Model.QueueDeclare(queue: "test-message-batch-b", durable: false);
-            IBasicPublishBatch batch = Model.CreateBasicPublishBatch(1);
+            _model.ConfirmSelect();
+            _model.QueueDeclare(queue: "test-message-batch-a", durable: false);
+            _model.QueueDeclare(queue: "test-message-batch-b", durable: false);
+            IBasicPublishBatch batch = _model.CreateBasicPublishBatch(1);
             ReadOnlyMemory<byte> bodyAsMemory = new byte [] {};
             batch.Add("", "test-message-batch-a", false, null, bodyAsMemory);
             batch.Add("", "test-message-batch-b", false, null, bodyAsMemory);
             batch.Publish();
-            Model.WaitForConfirmsOrDie(TimeSpan.FromSeconds(15));
-            BasicGetResult resultA = Model.BasicGet("test-message-batch-a", true);
+            _model.WaitForConfirmsOrDie(TimeSpan.FromSeconds(15));
+            BasicGetResult resultA = _model.BasicGet("test-message-batch-a", true);
             Assert.NotNull(resultA);
-            BasicGetResult resultB = Model.BasicGet("test-message-batch-b", true);
+            BasicGetResult resultB = _model.BasicGet("test-message-batch-b", true);
             Assert.NotNull(resultB);
         }
     }

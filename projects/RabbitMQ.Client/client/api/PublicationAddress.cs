@@ -112,7 +112,7 @@ namespace RabbitMQ.Client
             // Callers such as IBasicProperties.ReplyToAddress
             // expect null result for invalid input.
             // The regex.Match() throws on null arguments so we perform explicit check here
-            if (uriLikeString == null)
+            if (uriLikeString is null)
             {
                 result = null;
                 return false;
@@ -121,7 +121,7 @@ namespace RabbitMQ.Client
             {
                 try
                 {
-                    var res = Parse(uriLikeString);
+                    PublicationAddress res = Parse(uriLikeString);
                     result = res;
                     return true;
                 }

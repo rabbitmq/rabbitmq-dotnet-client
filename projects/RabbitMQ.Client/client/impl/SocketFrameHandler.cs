@@ -118,7 +118,7 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            if (_socket == null)
+            if (_socket is null)
             {
                 IPAddress ipv4 = TcpClientAdapterHelper.GetMatchingHost(adds, AddressFamily.InterNetwork);
                 if (ipv4 == default(IPAddress))
@@ -270,7 +270,7 @@ namespace RabbitMQ.Client.Impl
             while (await _channelReader.WaitToReadAsync().ConfigureAwait(false))
             {
                 _socket.Client.Poll(_writeableStateTimeoutMicroSeconds, SelectMode.SelectWrite);
-                while (_channelReader.TryRead(out var memory))
+                while (_channelReader.TryRead(out Memory<byte> memory))
                 {
                     MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> segment);
                     await _writer.WriteAsync(segment.Array, segment.Offset, segment.Count).ConfigureAwait(false);

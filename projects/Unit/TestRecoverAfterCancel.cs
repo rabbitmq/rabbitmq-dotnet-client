@@ -45,10 +45,10 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestRecoverAfterCancel
     {
-        IConnection Connection;
-        IModel Channel;
-        string Queue;
-        int callbackCount;
+        IConnection _connection;
+        IModel _channel;
+        string _queue;
+        int _callbackCount;
 
         public int ModelNumber(IModel model)
         {
@@ -57,36 +57,36 @@ namespace RabbitMQ.Client.Unit
 
         [SetUp] public void Connect()
         {
-            Connection = new ConnectionFactory().CreateConnection();
-            Channel = Connection.CreateModel();
-            Queue = Channel.QueueDeclare("", false, true, false, null);
+            _connection = new ConnectionFactory().CreateConnection();
+            _channel = _connection.CreateModel();
+            _queue = _channel.QueueDeclare("", false, true, false, null);
         }
 
         [TearDown] public void Disconnect()
         {
-            Connection.Abort();
+            _connection.Abort();
         }
 
         [Test]
         public void TestRecoverAfterCancel_()
         {
             UTF8Encoding enc = new UTF8Encoding();
-            Channel.BasicPublish("", Queue, null, enc.GetBytes("message"));
-            EventingBasicConsumer Consumer = new EventingBasicConsumer(Channel);
+            _channel.BasicPublish("", _queue, null, enc.GetBytes("message"));
+            EventingBasicConsumer Consumer = new EventingBasicConsumer(_channel);
             SharedQueue<(bool Redelivered, byte[] Body)> EventQueue = new SharedQueue<(bool Redelivered, byte[] Body)>();
             // Making sure we copy the delivery body since it could be disposed at any time.
             Consumer.Received += (_, e) => EventQueue.Enqueue((e.Redelivered, e.Body.ToArray()));
 
-            string CTag = Channel.BasicConsume(Queue, false, Consumer);
+            string CTag = _channel.BasicConsume(_queue, false, Consumer);
             (bool Redelivered, byte[] Body) Event = EventQueue.Dequeue();
-            Channel.BasicCancel(CTag);
-            Channel.BasicRecover(true);
+            _channel.BasicCancel(CTag);
+            _channel.BasicRecover(true);
 
-            EventingBasicConsumer Consumer2 = new EventingBasicConsumer(Channel);
+            EventingBasicConsumer Consumer2 = new EventingBasicConsumer(_channel);
             SharedQueue<(bool Redelivered, byte[] Body)> EventQueue2 = new SharedQueue<(bool Redelivered, byte[] Body)>();
             // Making sure we copy the delivery body since it could be disposed at any time.
             Consumer2.Received += (_, e) => EventQueue2.Enqueue((e.Redelivered, e.Body.ToArray()));
-            Channel.BasicConsume(Queue, false, Consumer2);
+            _channel.BasicConsume(_queue, false, Consumer2);
             (bool Redelivered, byte[] Body) Event2 = EventQueue2.Dequeue();
 
             CollectionAssert.AreEqual(Event.Body, Event2.Body);
@@ -97,15 +97,15 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestRecoverCallback()
         {
-            callbackCount = 0;
-            Channel.BasicRecoverOk += IncrCallback;
-            Channel.BasicRecover(true);
-            Assert.AreEqual(1, callbackCount);
+            _callbackCount = 0;
+            _channel.BasicRecoverOk += IncrCallback;
+            _channel.BasicRecover(true);
+            Assert.AreEqual(1, _callbackCount);
         }
 
         void IncrCallback(object sender, EventArgs args)
         {
-            callbackCount++;
+            _callbackCount++;
         }
 
     }

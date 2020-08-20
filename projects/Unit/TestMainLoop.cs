@@ -62,7 +62,7 @@ namespace RabbitMQ.Client.Unit
         {
             ConnectionFactory connFactory = new ConnectionFactory();
             IConnection c = connFactory.CreateConnection();
-            IModel m = Conn.CreateModel();
+            IModel m = _conn.CreateModel();
             object o = new object();
             string q = GenerateQueueName();
             m.QueueDeclare(q, false, false, false, null);
@@ -73,8 +73,8 @@ namespace RabbitMQ.Client.Unit
                 c.Close();
                 Monitor.PulseAll(o);
             };
-            m.BasicConsume(q, true, new FaultyConsumer(Model));
-            m.BasicPublish("", q, null, encoding.GetBytes("message"));
+            m.BasicConsume(q, true, new FaultyConsumer(_model));
+            m.BasicPublish("", q, null, _encoding.GetBytes("message"));
             WaitOn(o);
 
             Assert.IsNotNull(ea);

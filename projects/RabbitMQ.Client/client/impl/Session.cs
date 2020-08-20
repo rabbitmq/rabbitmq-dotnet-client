@@ -46,7 +46,7 @@ namespace RabbitMQ.Client.Impl
 
         public override bool HandleFrame(in InboundFrame frame)
         {
-            var shallReturnFramePayload = _assembler.HandleFrame(in frame, out var cmd);
+            bool shallReturnFramePayload = _assembler.HandleFrame(in frame, out IncomingCommand cmd);
 
             if (!cmd.IsEmpty)
             {
