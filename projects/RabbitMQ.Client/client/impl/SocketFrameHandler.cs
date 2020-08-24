@@ -50,11 +50,11 @@ namespace RabbitMQ.Client.Impl
         {
             if (task == await Task.WhenAny(task, Task.Delay(timeout)).ConfigureAwait(false))
             {
-                await task;
+                await task.ConfigureAwait(false);
             }
             else
             {
-                Task supressErrorTask = task.ContinueWith(t => t.Exception.Handle(e => true), TaskContinuationOptions.OnlyOnFaulted);
+                Task supressErrorTask = task.ContinueWith((t, s) => t.Exception.Handle(e => true), null, CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
                 throw new TimeoutException();
             }
         }
