@@ -403,6 +403,108 @@ namespace RabbitMQ.Client.Impl
             return 8;
         }
 
+        public static int WriteBits(Span<byte> span, bool val)
+        {
+            span[0] = val ? (byte) 1 : (byte) 0;
+            return 1;
+        }
+
+        public static int WriteBits(Span<byte> span, bool val1, bool val2)
+        {
+            byte bits = 0;
+            if (val1)
+            {
+                bits |= 1 << 0;
+            }
+
+            if (val2)
+            {
+                bits |= 1 << 1;
+            }
+            span[0] = bits;
+            return 1;
+        }
+
+        public static int WriteBits(Span<byte> span, bool val1, bool val2, bool val3)
+        {
+            byte bits = 0;
+            if (val1)
+            {
+                bits |= 1 << 0;
+            }
+
+            if (val2)
+            {
+                bits |= 1 << 1;
+            }
+
+            if (val3)
+            {
+                bits |= 1 << 2;
+            }
+
+            span[0] = bits;
+            return 1;
+        }
+
+        public static int WriteBits(Span<byte> span, bool val1, bool val2, bool val3, bool val4)
+        {
+            byte bits = 0;
+            if (val1)
+            {
+                bits |= 1 << 0;
+            }
+
+            if (val2)
+            {
+                bits |= 1 << 1;
+            }
+
+            if (val3)
+            {
+                bits |= 1 << 2;
+            }
+
+            if (val4)
+            {
+                bits |= 1 << 3;
+            }
+
+            span[0] = bits;
+            return 1;
+        }
+
+        public static int WriteBits(Span<byte> span, bool val1, bool val2, bool val3, bool val4, bool val5)
+        {
+            byte bits = 0;
+            if (val1)
+            {
+                bits |= 1 << 0;
+            }
+
+            if (val2)
+            {
+                bits |= 1 << 1;
+            }
+
+            if (val3)
+            {
+                bits |= 1 << 2;
+            }
+
+            if (val4)
+            {
+                bits |= 1 << 3;
+            }
+
+            if (val5)
+            {
+                bits |= 1 << 4;
+            }
+            span[0] = bits;
+            return 1;
+        }
+
         public static int WriteLongstr(Span<byte> span, ReadOnlySpan<byte> val)
         {
             WriteLong(span, (uint)val.Length);

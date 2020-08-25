@@ -145,12 +145,12 @@ namespace RabbitMQ.Util
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void WriteUInt64(Span<byte> span, ulong val)
         {
+#if NETFRAMEWORK
             if (span.Length < 8)
             {
                 throw new ArgumentOutOfRangeException(nameof(span), "Insufficient length to write UInt64 from memory.");
             }
 
-#if NETFRAMEWORK
             span[0] = (byte)((val >> 56) & 0xFF);
             span[1] = (byte)((val >> 48) & 0xFF);
             span[2] = (byte)((val >> 40) & 0xFF);

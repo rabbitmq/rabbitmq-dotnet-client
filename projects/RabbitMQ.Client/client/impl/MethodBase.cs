@@ -29,6 +29,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using RabbitMQ.Client.client.framing;
 
 namespace RabbitMQ.Client.Impl
@@ -55,6 +56,7 @@ namespace RabbitMQ.Client.Impl
         public abstract string ProtocolMethodName { get; }
         public abstract void ReadArgumentsFrom(ref MethodArgumentReader reader);
         public abstract void WriteArgumentsTo(ref MethodArgumentWriter writer);
+        public abstract int WriteArgumentsTo(Span<byte> span);
         public abstract int GetRequiredBufferSize();
     }
 }

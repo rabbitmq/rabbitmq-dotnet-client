@@ -29,6 +29,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
@@ -76,6 +77,15 @@ namespace RabbitMQ.Client.Framing.Impl
             writer.WriteTable(_serverProperties);
             writer.WriteLongstr(_mechanisms);
             writer.WriteLongstr(_locales);
+        }
+
+        public override int WriteArgumentsTo(Span<byte> span)
+        {
+            span[0] = _versionMajor;
+            span[1] = _versionMinor;
+            int offset = 2 + WireFormatting.WriteTable(span.Slice(2), _serverProperties);
+            offset += WireFormatting.WriteLongstr(span.Slice(offset), _mechanisms);
+            return offset + WireFormatting.WriteLongstr(span.Slice(offset), _locales);
         }
 
         public override int GetRequiredBufferSize()

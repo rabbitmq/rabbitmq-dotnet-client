@@ -29,8 +29,10 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Text;
 using RabbitMQ.Client.client.framing;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -59,6 +61,11 @@ namespace RabbitMQ.Client.Framing.Impl
         public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
         {
             writer.WriteShortstr(_reason);
+        }
+
+        public override int WriteArgumentsTo(Span<byte> span)
+        {
+            return WireFormatting.WriteShortstr(span, _reason);
         }
 
         public override int GetRequiredBufferSize()
