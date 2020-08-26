@@ -46,5 +46,8 @@ namespace RabbitMQ.Client
     {
         event EventHandler<EventArgs> RecoverySucceeded;
         event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError;
+
+        event EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery;
+        event EventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangeAfterRecovery;
     }
 }
