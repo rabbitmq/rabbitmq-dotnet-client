@@ -237,6 +237,8 @@ namespace RabbitMQ.Client
     public interface IAutorecoveringConnection : RabbitMQ.Client.IConnection, RabbitMQ.Client.INetworkConnection, System.IDisposable
     {
         event System.EventHandler<RabbitMQ.Client.Events.ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError;
+        event System.EventHandler<RabbitMQ.Client.Events.ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery;
+        event System.EventHandler<RabbitMQ.Client.Events.QueueNameChangedAfterRecoveryEventArgs> QueueNameChangeAfterRecovery;
         event System.EventHandler<System.EventArgs> RecoverySucceeded;
     }
     public interface IBasicConsumer
