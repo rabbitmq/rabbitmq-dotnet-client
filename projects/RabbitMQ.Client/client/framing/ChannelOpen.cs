@@ -49,6 +49,11 @@ namespace RabbitMQ.Client.Framing.Impl
             _reserved1 = Reserved1;
         }
 
+        public ChannelOpen(ReadOnlySpan<byte> span)
+        {
+            WireFormatting.ReadShortstr(span, out _reserved1);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ChannelOpen;
         public override string ProtocolMethodName => "channel.open";
         public override bool HasContent => false;

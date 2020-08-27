@@ -57,6 +57,14 @@ namespace RabbitMQ.Client.Framing.Impl
             _immediate = Immediate;
         }
 
+        public BasicPublish(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadShort(span, out _reserved1);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _exchange);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _routingKey);
+            WireFormatting.ReadBits(span.Slice(offset), out _mandatory, out _immediate);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicPublish;
         public override string ProtocolMethodName => "basic.publish";
         public override bool HasContent => true;

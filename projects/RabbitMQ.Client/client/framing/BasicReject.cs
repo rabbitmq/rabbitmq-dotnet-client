@@ -50,6 +50,12 @@ namespace RabbitMQ.Client.Framing.Impl
             _requeue = Requeue;
         }
 
+        public BasicReject(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadLonglong(span, out _deliveryTag);
+            WireFormatting.ReadBits(span.Slice(offset), out _requeue);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicReject;
         public override string ProtocolMethodName => "basic.reject";
         public override bool HasContent => false;

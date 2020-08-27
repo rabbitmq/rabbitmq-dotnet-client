@@ -30,7 +30,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Buffers.Binary;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -49,6 +48,12 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             _deliveryTag = DeliveryTag;
             _multiple = Multiple;
+        }
+
+        public BasicAck(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadLonglong(span, out _deliveryTag);
+            WireFormatting.ReadBits(span.Slice(offset), out _multiple);
         }
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicAck;
@@ -72,12 +77,6 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             int offset = WireFormatting.WriteLonglong(span, _deliveryTag);
             return offset + WireFormatting.WriteBits(span.Slice(offset), _multiple);
-        }
-
-        public void WriteArgumentsToSpan(Span<byte> span)
-        {
-            BinaryPrimitives.WriteUInt64BigEndian(span, _deliveryTag);
-            span[8] = _multiple ? (byte) 1 : (byte) 0;
         }
 
         public override int GetRequiredBufferSize()

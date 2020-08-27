@@ -57,6 +57,13 @@ namespace RabbitMQ.Client.Framing.Impl
             _nowait = Nowait;
         }
 
+        public QueueDelete(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadShort(span, out _reserved1);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _queue);
+            WireFormatting.ReadBits(span.Slice(offset), out _ifUnused, out _ifEmpty, out _nowait);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueueDelete;
         public override string ProtocolMethodName => "queue.delete";
         public override bool HasContent => false;

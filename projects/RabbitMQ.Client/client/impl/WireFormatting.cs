@@ -32,6 +32,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 using RabbitMQ.Client.Exceptions;
@@ -177,6 +178,19 @@ namespace RabbitMQ.Client.Impl
             return span.Slice(4, (int)byteCount).ToArray();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ReadLongstr(ReadOnlySpan<byte> span, out byte[] value)
+        {
+            uint byteCount = NetworkOrderDeserializer.ReadUInt32(span);
+            if (byteCount > int.MaxValue)
+            {
+                throw new SyntaxErrorException($"Long string too long; byte length={byteCount}, max={int.MaxValue}");
+            }
+
+            value = span.Slice(4, (int)byteCount).ToArray();
+            return 4 + value.Length;
+        }
+
         public static unsafe string ReadShortstr(ReadOnlySpan<byte> span, out int bytesRead)
         {
             int byteCount = span[0];
@@ -195,6 +209,103 @@ namespace RabbitMQ.Client.Impl
             }
 
             throw new ArgumentOutOfRangeException(nameof(span), $"Span has not enough space ({span.Length} instead of {byteCount + 1})");
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe int ReadShortstr(ReadOnlySpan<byte> span, out string value)
+        {
+            int byteCount = span[0];
+            if (byteCount == 0)
+            {
+                value = string.Empty;
+                return 1;
+            }
+            if (span.Length >= byteCount + 1)
+            {
+                fixed (byte* bytes = &span.Slice(1).GetPinnableReference())
+                {
+                    value = Encoding.UTF8.GetString(bytes, byteCount);
+                    return 1 + byteCount;
+                }
+            }
+
+            value = string.Empty;
+            return ThrowArgumentOutOfRangeException(span.Length, byteCount + 1);
+        }
+
+        private static int ThrowArgumentOutOfRangeException(int orig, int expected)
+        {
+            throw new ArgumentOutOfRangeException("span", $"Span has not enough space ({orig} instead of {expected})");
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ReadBits(ReadOnlySpan<byte> span, out bool val)
+        {
+            val = (span[0] & 0b0000_0001) != 0;
+            return 1;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ReadBits(ReadOnlySpan<byte> span, out bool val1, out bool val2)
+        {
+            byte bits = span[0];
+            val1 = (bits & 0b0000_0001) != 0;
+            val2 = (bits & 0b0000_0010) != 0;
+            return 1;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ReadBits(ReadOnlySpan<byte> span, out bool val1, out bool val2, out bool val3)
+        {
+            byte bits = span[0];
+            val1 = (bits & 0b0000_0001) != 0;
+            val2 = (bits & 0b0000_0010) != 0;
+            val3 = (bits & 0b0000_0100) != 0;
+            return 1;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ReadBits(ReadOnlySpan<byte> span, out bool val1, out bool val2, out bool val3, out bool val4)
+        {
+            byte bits = span[0];
+            val1 = (bits & 0b0000_0001) != 0;
+            val2 = (bits & 0b0000_0010) != 0;
+            val3 = (bits & 0b0000_0100) != 0;
+            val4 = (bits & 0b0000_1000) != 0;
+            return 1;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ReadBits(ReadOnlySpan<byte> span, out bool val1, out bool val2, out bool val3, out bool val4, out bool val5)
+        {
+            byte bits = span[0];
+            val1 = (bits & 0b0000_0001) != 0;
+            val2 = (bits & 0b0000_0010) != 0;
+            val3 = (bits & 0b0000_0100) != 0;
+            val4 = (bits & 0b0000_1000) != 0;
+            val5 = (bits & 0b0001_0000) != 0;
+            return 1;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ReadShort(ReadOnlySpan<byte> span, out ushort value)
+        {
+            value = NetworkOrderDeserializer.ReadUInt16(span);
+            return 2;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ReadLong(ReadOnlySpan<byte> span, out uint value)
+        {
+            value = NetworkOrderDeserializer.ReadUInt32(span);
+            return 4;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ReadLonglong(ReadOnlySpan<byte> span, out ulong value)
+        {
+            value = NetworkOrderDeserializer.ReadUInt64(span);
+            return 8;
         }
 
         ///<summary>Reads an AMQP "table" definition from the reader.</summary>
@@ -228,6 +339,40 @@ namespace RabbitMQ.Client.Impl
             }
 
             return table;
+        }
+
+        ///<summary>Reads an AMQP "table" definition from the reader.</summary>
+        ///<remarks>
+        /// Supports the AMQP 0-8/0-9 standard entry types S, I, D, T
+        /// and F, as well as the QPid-0-8 specific b, d, f, l, s, t,
+        /// x and V types and the AMQP 0-9-1 A type.
+        ///</remarks>
+        /// <returns>A <seealso cref="System.Collections.Generic.Dictionary{TKey,TValue}"/>.</returns>
+        public static int ReadDictionary(ReadOnlySpan<byte> span, out Dictionary<string, object> valueDictionary)
+        {
+            long tableLength = NetworkOrderDeserializer.ReadUInt32(span);
+            if (tableLength == 0)
+            {
+                valueDictionary = null;
+                return 4;
+            }
+
+            span = span.Slice(4);
+            valueDictionary = new Dictionary<string, object>();
+            int bytesRead = 0;
+            while (bytesRead < tableLength)
+            {
+                bytesRead += ReadShortstr(span.Slice(bytesRead), out string key);
+                object value = ReadFieldValue(span.Slice(bytesRead), out int valueBytesRead);
+                bytesRead += valueBytesRead;
+
+                if (!valueDictionary.ContainsKey(key))
+                {
+                    valueDictionary[key] = value;
+                }
+            }
+
+            return 4 + bytesRead;
         }
 
         public static AmqpTimestamp ReadTimestamp(ReadOnlySpan<byte> span)

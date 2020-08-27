@@ -48,6 +48,11 @@ namespace RabbitMQ.Client.Framing.Impl
             _response = Response;
         }
 
+        public ConnectionSecureOk(ReadOnlySpan<byte> span)
+        {
+            WireFormatting.ReadLongstr(span, out _response);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionSecureOk;
         public override string ProtocolMethodName => "connection.secure-ok";
         public override bool HasContent => false;

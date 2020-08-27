@@ -57,6 +57,15 @@ namespace RabbitMQ.Client.Framing.Impl
             _messageCount = MessageCount;
         }
 
+        public BasicGetOk(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadLonglong(span, out _deliveryTag);
+            offset += WireFormatting.ReadBits(span.Slice(offset), out _redelivered);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _exchange);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _routingKey);
+            WireFormatting.ReadLong(span.Slice(offset), out _messageCount);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicGetOk;
         public override string ProtocolMethodName => "basic.get-ok";
         public override bool HasContent => true;

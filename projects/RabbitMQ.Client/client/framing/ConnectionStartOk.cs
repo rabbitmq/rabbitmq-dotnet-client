@@ -56,6 +56,15 @@ namespace RabbitMQ.Client.Framing.Impl
             _locale = Locale;
         }
 
+        public ConnectionStartOk(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadDictionary(span, out var tmpDictionary);
+            _clientProperties = tmpDictionary;
+            offset += WireFormatting.ReadShortstr(span, out _mechanism);
+            offset += WireFormatting.ReadLongstr(span, out _response);
+            WireFormatting.ReadShortstr(span.Slice(offset), out _locale);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionStartOk;
         public override string ProtocolMethodName => "connection.start-ok";
         public override bool HasContent => false;

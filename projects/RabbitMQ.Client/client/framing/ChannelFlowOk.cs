@@ -48,6 +48,11 @@ namespace RabbitMQ.Client.Framing.Impl
             _active = Active;
         }
 
+        public ChannelFlowOk(ReadOnlySpan<byte> span)
+        {
+            WireFormatting.ReadBits(span, out _active);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ChannelFlowOk;
         public override string ProtocolMethodName => "channel.flow-ok";
         public override bool HasContent => false;

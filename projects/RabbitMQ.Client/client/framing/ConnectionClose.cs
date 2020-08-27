@@ -55,6 +55,14 @@ namespace RabbitMQ.Client.Framing.Impl
             _methodId = MethodId;
         }
 
+        public ConnectionClose(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadShort(span, out _replyCode);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _replyText);
+            offset += WireFormatting.ReadShort(span.Slice(offset), out _classId);
+            WireFormatting.ReadShort(span.Slice(offset), out _methodId);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionClose;
         public override string ProtocolMethodName => "connection.close";
         public override bool HasContent => false;

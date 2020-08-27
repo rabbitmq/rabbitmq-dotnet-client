@@ -48,6 +48,11 @@ namespace RabbitMQ.Client.Framing.Impl
             _reserved1 = Reserved1;
         }
 
+        public ChannelOpenOk(ReadOnlySpan<byte> span)
+        {
+            WireFormatting.ReadLongstr(span, out _reserved1);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ChannelOpenOk;
         public override string ProtocolMethodName => "channel.open-ok";
         public override bool HasContent => false;

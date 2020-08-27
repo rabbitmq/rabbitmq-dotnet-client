@@ -48,6 +48,11 @@ namespace RabbitMQ.Client.Framing.Impl
             _challenge = Challenge;
         }
 
+        public ConnectionSecure(ReadOnlySpan<byte> span)
+        {
+            WireFormatting.ReadLongstr(span, out _challenge);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionSecure;
         public override string ProtocolMethodName => "connection.secure";
         public override bool HasContent => false;

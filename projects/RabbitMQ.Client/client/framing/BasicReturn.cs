@@ -55,6 +55,14 @@ namespace RabbitMQ.Client.Framing.Impl
             _routingKey = RoutingKey;
         }
 
+        public BasicReturn(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadShort(span, out _replyCode);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _replyText);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _exchange);
+            WireFormatting.ReadShortstr(span.Slice(offset), out _routingKey);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicReturn;
         public override string ProtocolMethodName => "basic.return";
         public override bool HasContent => true;

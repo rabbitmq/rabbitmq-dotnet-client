@@ -64,6 +64,16 @@ namespace RabbitMQ.Client.Framing.Impl
             _arguments = Arguments;
         }
 
+        public BasicConsume(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadShort(span, out _reserved1);
+            offset += WireFormatting.ReadShortstr(span, out _queue);
+            offset += WireFormatting.ReadShortstr(span, out _consumerTag);
+            offset += WireFormatting.ReadBits(span.Slice(offset), out _noLocal, out _noAck, out _exclusive, out _nowait);
+            WireFormatting.ReadDictionary(span.Slice(offset), out var tmpDictionary);
+            _arguments = tmpDictionary;
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicConsume;
         public override string ProtocolMethodName => "basic.consume";
         public override bool HasContent => false;

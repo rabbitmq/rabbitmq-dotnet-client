@@ -48,6 +48,11 @@ namespace RabbitMQ.Client.Framing.Impl
             _messageCount = MessageCount;
         }
 
+        public QueuePurgeOk(ReadOnlySpan<byte> span)
+        {
+            WireFormatting.ReadLong(span, out _messageCount);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueuePurgeOk;
         public override string ProtocolMethodName => "queue.purge-ok";
         public override bool HasContent => false;

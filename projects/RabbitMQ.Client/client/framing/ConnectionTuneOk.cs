@@ -52,6 +52,13 @@ namespace RabbitMQ.Client.Framing.Impl
             _heartbeat = Heartbeat;
         }
 
+        public ConnectionTuneOk(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadShort(span, out _channelMax);
+            offset += WireFormatting.ReadLong(span.Slice(offset), out _frameMax);
+            WireFormatting.ReadShort(span.Slice(offset), out _heartbeat);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionTuneOk;
         public override string ProtocolMethodName => "connection.tune-ok";
         public override bool HasContent => false;

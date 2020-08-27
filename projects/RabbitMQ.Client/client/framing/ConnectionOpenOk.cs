@@ -49,6 +49,11 @@ namespace RabbitMQ.Client.Framing.Impl
             _reserved1 = Reserved1;
         }
 
+        public ConnectionOpenOk(ReadOnlySpan<byte> span)
+        {
+            WireFormatting.ReadShortstr(span, out _reserved1);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionOpenOk;
         public override string ProtocolMethodName => "connection.open-ok";
         public override bool HasContent => false;

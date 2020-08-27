@@ -53,6 +53,13 @@ namespace RabbitMQ.Client.Framing.Impl
             _noAck = NoAck;
         }
 
+        public BasicGet(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadShort(span, out _reserved1);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _queue);
+            WireFormatting.ReadBits(span.Slice(offset), out _noAck);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicGet;
         public override string ProtocolMethodName => "basic.get";
         public override bool HasContent => false;

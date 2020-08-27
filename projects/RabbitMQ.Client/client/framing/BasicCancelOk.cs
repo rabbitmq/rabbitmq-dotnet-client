@@ -49,6 +49,11 @@ namespace RabbitMQ.Client.Framing.Impl
             _consumerTag = ConsumerTag;
         }
 
+        public BasicCancelOk(ReadOnlySpan<byte> span)
+        {
+            WireFormatting.ReadShortstr(span, out _consumerTag);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicCancelOk;
         public override string ProtocolMethodName => "basic.cancel-ok";
         public override bool HasContent => false;

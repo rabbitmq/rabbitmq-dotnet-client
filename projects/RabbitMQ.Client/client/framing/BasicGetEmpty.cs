@@ -49,6 +49,11 @@ namespace RabbitMQ.Client.Framing.Impl
             _reserved1 = Reserved1;
         }
 
+        public BasicGetEmpty(ReadOnlySpan<byte> span)
+        {
+            WireFormatting.ReadShortstr(span, out _reserved1);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicGetEmpty;
         public override string ProtocolMethodName => "basic.get-empty";
         public override bool HasContent => false;

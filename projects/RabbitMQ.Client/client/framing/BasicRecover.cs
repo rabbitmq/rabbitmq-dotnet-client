@@ -48,6 +48,11 @@ namespace RabbitMQ.Client.Framing.Impl
             _requeue = Requeue;
         }
 
+        public BasicRecover(ReadOnlySpan<byte> span)
+        {
+            WireFormatting.ReadBits(span, out _requeue);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicRecover;
         public override string ProtocolMethodName => "basic.recover";
         public override bool HasContent => false;

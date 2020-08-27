@@ -58,6 +58,15 @@ namespace RabbitMQ.Client.Framing.Impl
             _routingKey = RoutingKey;
         }
 
+        public BasicDeliver(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadShortstr(span, out _consumerTag);
+            offset += WireFormatting.ReadLonglong(span.Slice(offset), out _deliveryTag);
+            offset += WireFormatting.ReadBits(span.Slice(offset), out _redelivered);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _exchange);
+            WireFormatting.ReadShortstr(span.Slice(offset), out _routingKey);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicDeliver;
         public override string ProtocolMethodName => "basic.deliver";
         public override bool HasContent => true;
@@ -88,15 +97,6 @@ namespace RabbitMQ.Client.Framing.Impl
             offset += WireFormatting.WriteBits(span.Slice(offset), _redelivered);
             offset += WireFormatting.WriteShortstr(span.Slice(offset), _exchange);
             return offset + WireFormatting.WriteShortstr(span.Slice(offset), _routingKey);
-        }
-
-        public void WriteArgumentsToSpan(Span<byte> span)
-        {
-            WireFormatting.WriteShortstr(ref span, _consumerTag);
-            WireFormatting.WriteLonglong(ref span, _deliveryTag);
-            WireFormatting.WriteBits(ref span, _redelivered);
-            WireFormatting.WriteShortstr(ref span, _exchange);
-            WireFormatting.WriteShortstr(ref span, _routingKey);
         }
 
         public override int GetRequiredBufferSize()

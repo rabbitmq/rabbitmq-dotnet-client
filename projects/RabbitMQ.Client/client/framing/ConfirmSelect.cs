@@ -48,6 +48,11 @@ namespace RabbitMQ.Client.Framing.Impl
             _nowait = Nowait;
         }
 
+        public ConfirmSelect(ReadOnlySpan<byte> span)
+        {
+            WireFormatting.ReadBits(span, out _nowait);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConfirmSelect;
         public override string ProtocolMethodName => "confirm.select";
         public override bool HasContent => false;

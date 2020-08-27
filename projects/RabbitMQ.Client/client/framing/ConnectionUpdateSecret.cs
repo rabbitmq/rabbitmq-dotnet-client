@@ -51,6 +51,12 @@ namespace RabbitMQ.Client.Framing.Impl
             _reason = Reason;
         }
 
+        public ConnectionUpdateSecret(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadLongstr(span, out _newSecret);
+            WireFormatting.ReadShortstr(span.Slice(offset), out _reason);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionUpdateSecret;
         public override string ProtocolMethodName => "connection.update-secret";
         public override bool HasContent => false;

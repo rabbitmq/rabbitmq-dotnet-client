@@ -58,6 +58,16 @@ namespace RabbitMQ.Client.Framing.Impl
             _arguments = Arguments;
         }
 
+        public QueueUnbind(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadShort(span, out _reserved1);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _queue);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _exchange);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _routingKey);
+            WireFormatting.ReadDictionary(span.Slice(offset), out var tmpDictionary);
+            _arguments = tmpDictionary;
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueueUnbind;
         public override string ProtocolMethodName => "queue.unbind";
         public override bool HasContent => false;

@@ -51,6 +51,12 @@ namespace RabbitMQ.Client.Framing.Impl
             _nowait = Nowait;
         }
 
+        public BasicCancel(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadShortstr(span, out _consumerTag);
+            WireFormatting.ReadBits(span.Slice(offset), out _nowait);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicCancel;
         public override string ProtocolMethodName => "basic.cancel";
         public override bool HasContent => false;

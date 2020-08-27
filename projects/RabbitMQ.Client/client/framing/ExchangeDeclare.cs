@@ -66,6 +66,16 @@ namespace RabbitMQ.Client.Framing.Impl
             _arguments = Arguments;
         }
 
+        public ExchangeDeclare(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadShort(span, out _reserved1);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _exchange);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _type);
+            offset += WireFormatting.ReadBits(span.Slice(offset), out _passive, out _durable, out _autoDelete, out _internal, out _nowait);
+            WireFormatting.ReadDictionary(span.Slice(offset), out var tmpDictionary);
+            _arguments = tmpDictionary;
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ExchangeDeclare;
         public override string ProtocolMethodName => "exchange.declare";
         public override bool HasContent => false;

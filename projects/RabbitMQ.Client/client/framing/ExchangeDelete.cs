@@ -55,6 +55,13 @@ namespace RabbitMQ.Client.Framing.Impl
             _nowait = Nowait;
         }
 
+        public ExchangeDelete(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadShort(span, out _reserved1);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _exchange);
+            WireFormatting.ReadBits(span.Slice(offset), out _ifUnused, out _nowait);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ExchangeDelete;
         public override string ProtocolMethodName => "exchange.delete";
         public override bool HasContent => false;

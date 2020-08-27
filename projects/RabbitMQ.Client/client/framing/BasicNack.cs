@@ -52,6 +52,12 @@ namespace RabbitMQ.Client.Framing.Impl
             _requeue = Requeue;
         }
 
+        public BasicNack(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadLonglong(span, out _deliveryTag);
+            WireFormatting.ReadBits(span.Slice(offset), out _multiple, out _requeue);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicNack;
         public override string ProtocolMethodName => "basic.nack";
         public override bool HasContent => false;

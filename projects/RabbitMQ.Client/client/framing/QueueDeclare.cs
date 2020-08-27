@@ -64,6 +64,15 @@ namespace RabbitMQ.Client.Framing.Impl
             _arguments = Arguments;
         }
 
+        public QueueDeclare(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadShort(span, out _reserved1);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _queue);
+            offset += WireFormatting.ReadBits(span.Slice(offset), out _passive,  out _durable, out _exclusive, out _autoDelete, out _nowait);
+            WireFormatting.ReadDictionary(span.Slice(offset), out var tmpDictionary);
+            _arguments = tmpDictionary;
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueueDeclare;
         public override string ProtocolMethodName => "queue.declare";
         public override bool HasContent => false;

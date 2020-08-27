@@ -52,6 +52,13 @@ namespace RabbitMQ.Client.Framing.Impl
             _global = Global;
         }
 
+        public BasicQos(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadLong(span, out _prefetchSize);
+            offset += WireFormatting.ReadShort(span.Slice(offset), out _prefetchCount);
+            WireFormatting.ReadBits(span.Slice(offset), out _global);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicQos;
         public override string ProtocolMethodName => "basic.qos";
         public override bool HasContent => false;

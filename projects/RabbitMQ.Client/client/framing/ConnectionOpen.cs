@@ -53,6 +53,13 @@ namespace RabbitMQ.Client.Framing.Impl
             _reserved2 = Reserved2;
         }
 
+        public ConnectionOpen(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadShortstr(span, out _virtualHost);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _reserved1);
+            WireFormatting.ReadBits(span.Slice(offset), out _reserved2);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionOpen;
         public override string ProtocolMethodName => "connection.open";
         public override bool HasContent => false;

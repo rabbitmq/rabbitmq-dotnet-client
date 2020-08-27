@@ -53,6 +53,13 @@ namespace RabbitMQ.Client.Framing.Impl
             _consumerCount = ConsumerCount;
         }
 
+        public QueueDeclareOk(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadShortstr(span, out _queue);
+            offset += WireFormatting.ReadLong(span.Slice(offset), out _messageCount);
+            WireFormatting.ReadLong(span.Slice(offset), out _consumerCount);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueueDeclareOk;
         public override string ProtocolMethodName => "queue.declare-ok";
         public override bool HasContent => false;

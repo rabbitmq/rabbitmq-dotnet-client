@@ -49,6 +49,11 @@ namespace RabbitMQ.Client.Framing.Impl
             _consumerTag = ConsumerTag;
         }
 
+        public BasicConsumeOk(ReadOnlySpan<byte> span)
+        {
+            WireFormatting.ReadShortstr(span, out _consumerTag);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicConsumeOk;
         public override string ProtocolMethodName => "basic.consume-ok";
         public override bool HasContent => false;

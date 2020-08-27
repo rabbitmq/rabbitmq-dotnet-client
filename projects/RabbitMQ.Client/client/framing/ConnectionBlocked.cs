@@ -49,6 +49,11 @@ namespace RabbitMQ.Client.Framing.Impl
             _reason = Reason;
         }
 
+        public ConnectionBlocked(ReadOnlySpan<byte> span)
+        {
+            WireFormatting.ReadShortstr(span, out _reason);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionBlocked;
         public override string ProtocolMethodName => "connection.blocked";
         public override bool HasContent => false;
