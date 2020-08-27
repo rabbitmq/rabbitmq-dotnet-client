@@ -66,23 +66,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public override string ProtocolMethodName => "exchange.delete";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
-        {
-            _reserved1 = reader.ReadShort();
-            _exchange = reader.ReadShortstr();
-            _ifUnused = reader.ReadBit();
-            _nowait = reader.ReadBit();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteShort(_reserved1);
-            writer.WriteShortstr(_exchange);
-            writer.WriteBit(_ifUnused);
-            writer.WriteBit(_nowait);
-            writer.EndBits();
-        }
-
         public override int WriteArgumentsTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteShort(span, _reserved1);

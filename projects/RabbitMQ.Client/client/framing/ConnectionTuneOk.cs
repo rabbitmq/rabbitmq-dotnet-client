@@ -63,20 +63,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public override string ProtocolMethodName => "connection.tune-ok";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
-        {
-            _channelMax = reader.ReadShort();
-            _frameMax = reader.ReadLong();
-            _heartbeat = reader.ReadShort();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteShort(_channelMax);
-            writer.WriteLong(_frameMax);
-            writer.WriteShort(_heartbeat);
-        }
-
         public override int WriteArgumentsTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteShort(span, _channelMax);

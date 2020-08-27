@@ -57,16 +57,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public override string ProtocolMethodName => "queue.purge-ok";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
-        {
-            _messageCount = reader.ReadLong();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteLong(_messageCount);
-        }
-
         public override int WriteArgumentsTo(Span<byte> span)
         {
             return WireFormatting.WriteLong(span, _messageCount);

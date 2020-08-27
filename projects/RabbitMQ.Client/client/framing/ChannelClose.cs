@@ -67,22 +67,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public override string ProtocolMethodName => "channel.close";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
-        {
-            _replyCode = reader.ReadShort();
-            _replyText = reader.ReadShortstr();
-            _classId = reader.ReadShort();
-            _methodId = reader.ReadShort();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteShort(_replyCode);
-            writer.WriteShortstr(_replyText);
-            writer.WriteShort(_classId);
-            writer.WriteShort(_methodId);
-        }
-
         public override int WriteArgumentsTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteShort(span, _replyCode);

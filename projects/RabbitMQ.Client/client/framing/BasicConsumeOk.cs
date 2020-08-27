@@ -58,16 +58,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public override string ProtocolMethodName => "basic.consume-ok";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
-        {
-            _consumerTag = reader.ReadShortstr();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteShortstr(_consumerTag);
-        }
-
         public override int WriteArgumentsTo(Span<byte> span)
         {
             return WireFormatting.WriteShortstr(span, _consumerTag);

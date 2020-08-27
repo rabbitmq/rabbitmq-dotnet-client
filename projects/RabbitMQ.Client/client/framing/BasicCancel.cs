@@ -61,19 +61,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public override string ProtocolMethodName => "basic.cancel";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
-        {
-            _consumerTag = reader.ReadShortstr();
-            _nowait = reader.ReadBit();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteShortstr(_consumerTag);
-            writer.WriteBit(_nowait);
-            writer.EndBits();
-        }
-
         public override int WriteArgumentsTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteShortstr(span, _consumerTag);

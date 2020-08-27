@@ -58,16 +58,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public override string ProtocolMethodName => "channel.open";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
-        {
-            _reserved1 = reader.ReadShortstr();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteShortstr(_reserved1);
-        }
-
         public override int WriteArgumentsTo(Span<byte> span)
         {
             return WireFormatting.WriteShortstr(span, _reserved1);

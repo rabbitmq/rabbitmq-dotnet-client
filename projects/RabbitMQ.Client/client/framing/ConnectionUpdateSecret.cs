@@ -61,18 +61,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public override string ProtocolMethodName => "connection.update-secret";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
-        {
-            _newSecret = reader.ReadLongstr();
-            _reason = reader.ReadShortstr();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteLongstr(_newSecret);
-            writer.WriteShortstr(_reason);
-        }
-
         public override int WriteArgumentsTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteLongstr(span, _newSecret);

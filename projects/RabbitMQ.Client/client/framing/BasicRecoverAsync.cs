@@ -57,17 +57,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public override string ProtocolMethodName => "basic.recover-async";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
-        {
-            _requeue = reader.ReadBit();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteBit(_requeue);
-            writer.EndBits();
-        }
-
         public override int WriteArgumentsTo(Span<byte> span)
         {
             return WireFormatting.WriteBits(span, _requeue);

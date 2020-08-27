@@ -72,24 +72,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public override string ProtocolMethodName => "queue.unbind";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref MethodArgumentReader reader)
-        {
-            _reserved1 = reader.ReadShort();
-            _queue = reader.ReadShortstr();
-            _exchange = reader.ReadShortstr();
-            _routingKey = reader.ReadShortstr();
-            _arguments = reader.ReadTable();
-        }
-
-        public override void WriteArgumentsTo(ref MethodArgumentWriter writer)
-        {
-            writer.WriteShort(_reserved1);
-            writer.WriteShortstr(_queue);
-            writer.WriteShortstr(_exchange);
-            writer.WriteShortstr(_routingKey);
-            writer.WriteTable(_arguments);
-        }
-
         public override int WriteArgumentsTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteShort(span, _reserved1);

@@ -64,21 +64,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public override string ProtocolMethodName => "basic.get";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
-        {
-            _reserved1 = reader.ReadShort();
-            _queue = reader.ReadShortstr();
-            _noAck = reader.ReadBit();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteShort(_reserved1);
-            writer.WriteShortstr(_queue);
-            writer.WriteBit(_noAck);
-            writer.EndBits();
-        }
-
         public override int WriteArgumentsTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteShort(span, _reserved1);

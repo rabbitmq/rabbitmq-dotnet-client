@@ -1,7 +1,6 @@
 ﻿using System;
 using BenchmarkDotNet.Attributes;
 using RabbitMQ.Client.Framing.Impl;
-using RabbitMQ.Client.Impl;
 
 namespace Benchmarks.WireFormatting
 {
@@ -14,15 +13,6 @@ namespace Benchmarks.WireFormatting
         public WireFormatting_Read_BasicAck()
         {
             new BasicAck(ulong.MaxValue, true).WriteArgumentsTo(_buffer);
-        }
-
-        [Benchmark]
-        public object ReadArgumentsFrom_MethodArgumentReader()
-        {
-            var reader = new MethodArgumentReader(new ReadOnlySpan<byte>(_buffer));
-            MethodBase basicAck = new BasicAck();
-            basicAck.ReadArgumentsFrom(ref reader);
-            return basicAck;
         }
 
         [Benchmark(Baseline = true)]

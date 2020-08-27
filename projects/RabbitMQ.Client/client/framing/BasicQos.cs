@@ -63,21 +63,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public override string ProtocolMethodName => "basic.qos";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
-        {
-            _prefetchSize = reader.ReadLong();
-            _prefetchCount = reader.ReadShort();
-            _global = reader.ReadBit();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteLong(_prefetchSize);
-            writer.WriteShort(_prefetchCount);
-            writer.WriteBit(_global);
-            writer.EndBits();
-        }
-
         public override int WriteArgumentsTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteLong(span, _prefetchSize);

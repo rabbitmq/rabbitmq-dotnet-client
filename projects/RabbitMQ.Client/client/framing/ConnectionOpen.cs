@@ -64,21 +64,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public override string ProtocolMethodName => "connection.open";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
-        {
-            _virtualHost = reader.ReadShortstr();
-            _reserved1 = reader.ReadShortstr();
-            _reserved2 = reader.ReadBit();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteShortstr(_virtualHost);
-            writer.WriteShortstr(_reserved1);
-            writer.WriteBit(_reserved2);
-            writer.EndBits();
-        }
-
         public override int WriteArgumentsTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteShortstr(span, _virtualHost);

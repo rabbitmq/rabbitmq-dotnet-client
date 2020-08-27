@@ -44,14 +44,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public override string ProtocolMethodName => "exchange.declare-ok";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
-        {
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-        }
-
         public override int WriteArgumentsTo(Span<byte> span)
         {
             return 0;

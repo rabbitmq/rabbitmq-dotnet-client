@@ -71,25 +71,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public override string ProtocolMethodName => "basic.deliver";
         public override bool HasContent => true;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
-        {
-            _consumerTag = reader.ReadShortstr();
-            _deliveryTag = reader.ReadLonglong();
-            _redelivered = reader.ReadBit();
-            _exchange = reader.ReadShortstr();
-            _routingKey = reader.ReadShortstr();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteShortstr(_consumerTag);
-            writer.WriteLonglong(_deliveryTag);
-            writer.WriteBit(_redelivered);
-            writer.EndBits();
-            writer.WriteShortstr(_exchange);
-            writer.WriteShortstr(_routingKey);
-        }
-
         public override int WriteArgumentsTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteShortstr(span, _consumerTag);

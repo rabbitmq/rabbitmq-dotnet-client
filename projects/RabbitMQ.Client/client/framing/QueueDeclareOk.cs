@@ -64,20 +64,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public override string ProtocolMethodName => "queue.declare-ok";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
-        {
-            _queue = reader.ReadShortstr();
-            _messageCount = reader.ReadLong();
-            _consumerCount = reader.ReadLong();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteShortstr(_queue);
-            writer.WriteLong(_messageCount);
-            writer.WriteLong(_consumerCount);
-        }
-
         public override int WriteArgumentsTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteShortstr(span, _queue);

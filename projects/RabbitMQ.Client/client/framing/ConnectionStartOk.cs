@@ -69,22 +69,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public override string ProtocolMethodName => "connection.start-ok";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref MethodArgumentReader reader)
-        {
-            _clientProperties = reader.ReadTable();
-            _mechanism = reader.ReadShortstr();
-            _response = reader.ReadLongstr();
-            _locale = reader.ReadShortstr();
-        }
-
-        public override void WriteArgumentsTo(ref MethodArgumentWriter writer)
-        {
-            writer.WriteTable(_clientProperties);
-            writer.WriteShortstr(_mechanism);
-            writer.WriteLongstr(_response);
-            writer.WriteShortstr(_locale);
-        }
-
         public override int WriteArgumentsTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteTable(span, _clientProperties);

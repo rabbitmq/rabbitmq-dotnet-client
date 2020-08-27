@@ -57,16 +57,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public override string ProtocolMethodName => "channel.open-ok";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
-        {
-            _reserved1 = reader.ReadLongstr();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteLongstr(_reserved1);
-        }
-
         public override int WriteArgumentsTo(Span<byte> span)
         {
             return WireFormatting.WriteLongstr(span, _reserved1);

@@ -70,25 +70,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public override string ProtocolMethodName => "basic.get-ok";
         public override bool HasContent => true;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
-        {
-            _deliveryTag = reader.ReadLonglong();
-            _redelivered = reader.ReadBit();
-            _exchange = reader.ReadShortstr();
-            _routingKey = reader.ReadShortstr();
-            _messageCount = reader.ReadLong();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteLonglong(_deliveryTag);
-            writer.WriteBit(_redelivered);
-            writer.EndBits();
-            writer.WriteShortstr(_exchange);
-            writer.WriteShortstr(_routingKey);
-            writer.WriteLong(_messageCount);
-        }
-
         public override int WriteArgumentsTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteLonglong(span, _deliveryTag);

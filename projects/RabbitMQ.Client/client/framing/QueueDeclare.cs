@@ -77,31 +77,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public override string ProtocolMethodName => "queue.declare";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref MethodArgumentReader reader)
-        {
-            _reserved1 = reader.ReadShort();
-            _queue = reader.ReadShortstr();
-            _passive = reader.ReadBit();
-            _durable = reader.ReadBit();
-            _exclusive = reader.ReadBit();
-            _autoDelete = reader.ReadBit();
-            _nowait = reader.ReadBit();
-            _arguments = reader.ReadTable();
-        }
-
-        public override void WriteArgumentsTo(ref MethodArgumentWriter writer)
-        {
-            writer.WriteShort(_reserved1);
-            writer.WriteShortstr(_queue);
-            writer.WriteBit(_passive);
-            writer.WriteBit(_durable);
-            writer.WriteBit(_exclusive);
-            writer.WriteBit(_autoDelete);
-            writer.WriteBit(_nowait);
-            writer.EndBits();
-            writer.WriteTable(_arguments);
-        }
-
         public override int WriteArgumentsTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteShort(span, _reserved1);

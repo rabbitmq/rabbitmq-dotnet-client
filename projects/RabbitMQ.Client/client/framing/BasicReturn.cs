@@ -67,22 +67,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public override string ProtocolMethodName => "basic.return";
         public override bool HasContent => true;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
-        {
-            _replyCode = reader.ReadShort();
-            _replyText = reader.ReadShortstr();
-            _exchange = reader.ReadShortstr();
-            _routingKey = reader.ReadShortstr();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteShort(_replyCode);
-            writer.WriteShortstr(_replyText);
-            writer.WriteShortstr(_exchange);
-            writer.WriteShortstr(_routingKey);
-        }
-
         public override int WriteArgumentsTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteShort(span, _replyCode);

@@ -62,21 +62,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public override string ProtocolMethodName => "basic.nack";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
-        {
-            _deliveryTag = reader.ReadLonglong();
-            _multiple = reader.ReadBit();
-            _requeue = reader.ReadBit();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteLonglong(_deliveryTag);
-            writer.WriteBit(_multiple);
-            writer.WriteBit(_requeue);
-            writer.EndBits();
-        }
-
         public override int WriteArgumentsTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteLonglong(span, _deliveryTag);
