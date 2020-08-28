@@ -131,11 +131,11 @@ namespace RabbitMQ.Client.Framing
             }
         }
 
-        internal override Client.Impl.ContentHeaderBase DecodeContentHeaderFrom(ushort classId)
+        internal override Client.Impl.ContentHeaderBase DecodeContentHeaderFrom(ushort classId, ReadOnlySpan<byte> span)
         {
             switch (classId)
             {
-                case 60: return new BasicProperties();
+                case 60: return new BasicProperties(span);
                 default: throw new Exceptions.UnknownClassOrMethodException(classId, 0);
             }
         }

@@ -220,7 +220,9 @@ namespace RabbitMQ.Client.Impl
                 value = string.Empty;
                 return 1;
             }
-            if (span.Length >= byteCount + 1)
+
+            // equals span.Length >= byteCount + 1
+            if (span.Length > byteCount)
             {
                 fixed (byte* bytes = &span.Slice(1).GetPinnableReference())
                 {
@@ -285,6 +287,31 @@ namespace RabbitMQ.Client.Impl
             val4 = (bits & 0b0000_1000) != 0;
             val5 = (bits & 0b0001_0000) != 0;
             return 1;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ReadBits(ReadOnlySpan<byte> span,
+            out bool val1, out bool val2, out bool val3, out bool val4, out bool val5,
+            out bool val6, out bool val7, out bool val8, out bool val9, out bool val10,
+            out bool val11, out bool val12, out bool val13, out bool val14)
+        {
+            byte bits = span[0];
+            val1  = (bits & 0b1000_0000) != 0;
+            val2  = (bits & 0b0100_0000) != 0;
+            val3  = (bits & 0b0010_0000) != 0;
+            val4  = (bits & 0b0001_0000) != 0;
+            val5  = (bits & 0b0000_1000) != 0;
+            val6  = (bits & 0b0000_0100) != 0;
+            val7  = (bits & 0b0000_0010) != 0;
+            val8  = (bits & 0b0000_0001) != 0;
+            bits = span[1];
+            val9  = (bits & 0b1000_0000) != 0;
+            val10 = (bits & 0b0100_0000) != 0;
+            val11 = (bits & 0b0010_0000) != 0;
+            val12 = (bits & 0b0001_0000) != 0;
+            val13 = (bits & 0b0000_1000) != 0;
+            val14 = (bits & 0b0000_0100) != 0;
+            return 2;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -381,6 +408,15 @@ namespace RabbitMQ.Client.Impl
             // 0-9 is afaict silent on the signedness of the timestamp.
             // See also MethodArgumentWriter.WriteTimestamp and AmqpTimestamp itself
             return new AmqpTimestamp((long)stamp);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ReadTimestamp(ReadOnlySpan<byte> span, out AmqpTimestamp value)
+        {
+            // 0-9 is afaict silent on the signedness of the timestamp.
+            // See also MethodArgumentWriter.WriteTimestamp and AmqpTimestamp itself
+            value = new AmqpTimestamp((long)NetworkOrderDeserializer.ReadUInt64(span));
+            return 8;
         }
 
         public static int WriteArray(Span<byte> span, IList val)
@@ -650,6 +686,87 @@ namespace RabbitMQ.Client.Impl
             return 1;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int WriteBits(Span<byte> span,
+            bool val1, bool val2, bool val3, bool val4, bool val5,
+            bool val6, bool val7, bool val8, bool val9, bool val10,
+            bool val11, bool val12, bool val13, bool val14)
+        {
+            byte bits = 0;
+            if (val1)
+            {
+                bits |= 1 << 7;
+            }
+
+            if (val2)
+            {
+                bits |= 1 << 6;
+            }
+
+            if (val3)
+            {
+                bits |= 1 << 5;
+            }
+
+            if (val4)
+            {
+                bits |= 1 << 4;
+            }
+
+            if (val5)
+            {
+                bits |= 1 << 3;
+            }
+
+            if (val6)
+            {
+                bits |= 1 << 2;
+            }
+
+            if (val7)
+            {
+                bits |= 1 << 1;
+            }
+
+            if (val8)
+            {
+                bits |= 1 << 0;
+            }
+            span[0] = bits;
+            bits = 0;
+            if (val9)
+            {
+                bits |= 1 << 7;
+            }
+
+            if (val10)
+            {
+                bits |= 1 << 6;
+            }
+
+            if (val11)
+            {
+                bits |= 1 << 5;
+            }
+
+            if (val12)
+            {
+                bits |= 1 << 4;
+            }
+
+            if (val13)
+            {
+                bits |= 1 << 3;
+            }
+
+            if (val14)
+            {
+                bits |= 1 << 2;
+            }
+            span[1] = bits;
+            return 2;
+        }
+
         public static int WriteLongstr(Span<byte> span, ReadOnlySpan<byte> val)
         {
             WriteLong(span, (uint)val.Length);
@@ -663,6 +780,7 @@ namespace RabbitMQ.Client.Impl
             return 2;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe int WriteShortstr(Span<byte> span, string val)
         {
             int maxLength = span.Length - 1;

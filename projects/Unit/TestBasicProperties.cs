@@ -79,7 +79,6 @@ namespace RabbitMQ.Client.Unit
             // Arrange
             var subject = new Framing.BasicProperties
             {
-
                 // Act
                 ClusterId = clusterId,
                 CorrelationId = correlationId,
@@ -97,13 +96,10 @@ namespace RabbitMQ.Client.Unit
             Assert.AreEqual(isMessageIdPresent, subject.IsMessageIdPresent());
 
             Span<byte> span = new byte[1024];
-            var writer = new Impl.ContentHeaderPropertyWriter(span);
-            subject.WritePropertiesTo(ref writer);
+            int offset = subject.WritePropertiesTo(span);
 
             // Read from Stream
-            var propertiesFromStream = new Framing.BasicProperties();
-            var reader = new Impl.ContentHeaderPropertyReader(span.Slice(0, writer.Offset));
-            propertiesFromStream.ReadPropertiesFrom(ref reader);
+            var propertiesFromStream = new Framing.BasicProperties(span.Slice(0, offset));
 
             Assert.AreEqual(clusterId, propertiesFromStream.ClusterId);
             Assert.AreEqual(correlationId, propertiesFromStream.CorrelationId);
@@ -130,13 +126,10 @@ namespace RabbitMQ.Client.Unit
             Assert.AreEqual(isReplyToPresent, subject.IsReplyToPresent());
 
             Span<byte> span = new byte[1024];
-            var writer = new Impl.ContentHeaderPropertyWriter(span);
-            subject.WritePropertiesTo(ref writer);
+            int offset = subject.WritePropertiesTo(span);
 
             // Read from Stream
-            var propertiesFromStream = new Framing.BasicProperties();
-            var reader = new Impl.ContentHeaderPropertyReader(span.Slice(0, writer.Offset));
-            propertiesFromStream.ReadPropertiesFrom(ref reader);
+            var propertiesFromStream = new Framing.BasicProperties(span.Slice(0, offset));
 
             Assert.AreEqual(replyTo, propertiesFromStream.ReplyTo);
             Assert.AreEqual(isReplyToPresent, propertiesFromStream.IsReplyToPresent());
