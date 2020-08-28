@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <AssemblyOriginatorKeyFile>../projects/rabbit.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>../rabbit.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\projects\RabbitMQ.Client\RabbitMQ.Client.csproj" />
+    <ProjectReference Include="..\RabbitMQ.Client\RabbitMQ.Client.csproj" />
   </ItemGroup>
 
 </Project>
