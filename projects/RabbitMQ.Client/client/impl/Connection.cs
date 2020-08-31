@@ -102,14 +102,9 @@ namespace RabbitMQ.Client.Framing.Impl
             _factory = factory;
             _frameHandler = frameHandler;
 
-            if (factory is IAsyncConnectionFactory asyncConnectionFactory && asyncConnectionFactory.DispatchConsumersAsync)
-            {
-                ConsumerWorkService = new AsyncConsumerWorkService(factory.ConsumerDispatchConcurrency);
-            }
-            else
-            {
-                ConsumerWorkService = new ConsumerWorkService(factory.ConsumerDispatchConcurrency);
-            }
+            ConsumerWorkService = factory.DispatchConsumersAsync
+                ? new AsyncConsumerWorkService(factory.ConsumerDispatchConcurrency)
+                : new ConsumerWorkService(factory.ConsumerDispatchConcurrency);
 
             _sessionManager = new SessionManager(this, 0);
             _session0 = new MainSession(this) { Handler = NotifyReceivedCloseOk };
@@ -154,7 +149,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        
+
 
         public event EventHandler<EventArgs> ConnectionUnblocked;
 
