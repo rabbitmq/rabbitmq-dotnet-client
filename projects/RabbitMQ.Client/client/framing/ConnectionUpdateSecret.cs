@@ -29,8 +29,10 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Text;
 using RabbitMQ.Client.client.framing;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -49,20 +51,20 @@ namespace RabbitMQ.Client.Framing.Impl
             _reason = Reason;
         }
 
+        public ConnectionUpdateSecret(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadLongstr(span, out _newSecret);
+            WireFormatting.ReadShortstr(span.Slice(offset), out _reason);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionUpdateSecret;
         public override string ProtocolMethodName => "connection.update-secret";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
+        public override int WriteArgumentsTo(Span<byte> span)
         {
-            _newSecret = reader.ReadLongstr();
-            _reason = reader.ReadShortstr();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteLongstr(_newSecret);
-            writer.WriteShortstr(_reason);
+            int offset = WireFormatting.WriteLongstr(span, _newSecret);
+            return offset + WireFormatting.WriteShortstr(span.Slice(offset), _reason);
         }
 
         public override int GetRequiredBufferSize()

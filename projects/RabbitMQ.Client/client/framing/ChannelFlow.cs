@@ -29,7 +29,9 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using RabbitMQ.Client.client.framing;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -46,19 +48,18 @@ namespace RabbitMQ.Client.Framing.Impl
             _active = Active;
         }
 
+        public ChannelFlow(ReadOnlySpan<byte> span)
+        {
+            WireFormatting.ReadBits(span, out _active);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ChannelFlow;
         public override string ProtocolMethodName => "channel.flow";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
+        public override int WriteArgumentsTo(Span<byte> span)
         {
-            _active = reader.ReadBit();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteBit(_active);
-            writer.EndBits();
+            return WireFormatting.WriteBits(span, _active);
         }
 
         public override int GetRequiredBufferSize()

@@ -29,7 +29,9 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using RabbitMQ.Client.client.framing;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -50,22 +52,22 @@ namespace RabbitMQ.Client.Framing.Impl
             _heartbeat = Heartbeat;
         }
 
+        public ConnectionTune(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadShort(span, out _channelMax);
+            offset += WireFormatting.ReadLong(span.Slice(offset), out _frameMax);
+            WireFormatting.ReadShort(span.Slice(offset), out _heartbeat);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionTune;
         public override string ProtocolMethodName => "connection.tune";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
+        public override int WriteArgumentsTo(Span<byte> span)
         {
-            _channelMax = reader.ReadShort();
-            _frameMax = reader.ReadLong();
-            _heartbeat = reader.ReadShort();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteShort(_channelMax);
-            writer.WriteLong(_frameMax);
-            writer.WriteShort(_heartbeat);
+            int offset = WireFormatting.WriteShort(span, _channelMax);
+            offset += WireFormatting.WriteLong(span.Slice(offset), _frameMax);
+            return offset + WireFormatting.WriteShort(span.Slice(offset), _heartbeat);
         }
 
         public override int GetRequiredBufferSize()

@@ -29,7 +29,9 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using RabbitMQ.Client.client.framing;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -46,18 +48,18 @@ namespace RabbitMQ.Client.Framing.Impl
             _challenge = Challenge;
         }
 
+        public ConnectionSecure(ReadOnlySpan<byte> span)
+        {
+            WireFormatting.ReadLongstr(span, out _challenge);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionSecure;
         public override string ProtocolMethodName => "connection.secure";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
+        public override int WriteArgumentsTo(Span<byte> span)
         {
-            _challenge = reader.ReadLongstr();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteLongstr(_challenge);
+            return WireFormatting.WriteLongstr(span, _challenge);
         }
 
         public override int GetRequiredBufferSize()

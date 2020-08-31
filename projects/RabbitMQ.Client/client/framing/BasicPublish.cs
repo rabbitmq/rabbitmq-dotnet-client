@@ -29,8 +29,10 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Text;
 using RabbitMQ.Client.client.framing;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -55,27 +57,24 @@ namespace RabbitMQ.Client.Framing.Impl
             _immediate = Immediate;
         }
 
+        public BasicPublish(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadShort(span, out _reserved1);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _exchange);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _routingKey);
+            WireFormatting.ReadBits(span.Slice(offset), out _mandatory, out _immediate);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicPublish;
         public override string ProtocolMethodName => "basic.publish";
         public override bool HasContent => true;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
+        public override int WriteArgumentsTo(Span<byte> span)
         {
-            _reserved1 = reader.ReadShort();
-            _exchange = reader.ReadShortstr();
-            _routingKey = reader.ReadShortstr();
-            _mandatory = reader.ReadBit();
-            _immediate = reader.ReadBit();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteShort(_reserved1);
-            writer.WriteShortstr(_exchange);
-            writer.WriteShortstr(_routingKey);
-            writer.WriteBit(_mandatory);
-            writer.WriteBit(_immediate);
-            writer.EndBits();
+            int offset = WireFormatting.WriteShort(span, _reserved1);
+            offset += WireFormatting.WriteShortstr(span.Slice(offset), _exchange);
+            offset += WireFormatting.WriteShortstr(span.Slice(offset), _routingKey);
+            return offset + WireFormatting.WriteBits(span.Slice(offset), _mandatory, _immediate);
         }
 
         public override int GetRequiredBufferSize()

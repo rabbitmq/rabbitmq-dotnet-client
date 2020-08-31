@@ -32,22 +32,24 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
-
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal class WireFormatting
+    internal static class WireFormatting
     {
-        public static decimal AmqpToDecimal(byte scale, uint unsignedMantissa)
+        public static decimal ReadDecimal(ReadOnlySpan<byte> span)
         {
+            byte scale = span[0];
             if (scale > 28)
             {
                 throw new SyntaxErrorException($"Unrepresentable AMQP decimal table field: scale={scale}");
             }
 
+            uint unsignedMantissa = NetworkOrderDeserializer.ReadUInt32(span.Slice(1));
             return new decimal(
                 // The low 32 bits of a 96-bit integer
                 lo: (int)(unsignedMantissa & 0x7FFFFFFF),
@@ -58,29 +60,6 @@ namespace RabbitMQ.Client.Impl
                 isNegative: (unsignedMantissa & 0x80000000) != 0,
                 // A power of 10 ranging from 0 to 28.
                 scale: scale);
-        }
-
-        public static void DecimalToAmqp(decimal value, out byte scale, out int mantissa)
-        {
-            // According to the documentation :-
-            //  - word 0: low-order "mantissa"
-            //  - word 1, word 2: medium- and high-order "mantissa"
-            //  - word 3: mostly reserved; "exponent" and sign bit
-            // In one way, this is broader than AMQP: the mantissa is larger.
-            // In another way, smaller: the exponent ranges 0-28 inclusive.
-            // We need to be careful about the range of word 0, too: we can
-            // only take 31 bits worth of it, since the sign bit needs to
-            // fit in there too.
-            int[] bitRepresentation = decimal.GetBits(value);
-            if (bitRepresentation[1] != 0 || // mantissa extends into middle word
-                bitRepresentation[2] != 0 || // mantissa extends into top word
-                bitRepresentation[0] < 0) // mantissa extends beyond 31 bits
-            {
-                throw new WireFormattingException("Decimal overflow in AMQP encoding", value);
-            }
-            scale = (byte)((((uint)bitRepresentation[3]) >> 16) & 0xFF);
-            mantissa = (int)((((uint)bitRepresentation[3]) & 0x80000000) |
-                             (((uint)bitRepresentation[0]) & 0x7FFFFFFF));
         }
 
         public static IList ReadArray(ReadOnlySpan<byte> span, out int bytesRead)
@@ -98,22 +77,14 @@ namespace RabbitMQ.Client.Impl
             return array;
         }
 
-        public static decimal ReadDecimal(ReadOnlySpan<byte> span)
-        {
-            byte scale = span[0];
-            uint unsignedMantissa = NetworkOrderDeserializer.ReadUInt32(span.Slice(1));
-            return AmqpToDecimal(scale, unsignedMantissa);
-        }
-
         public static object ReadFieldValue(ReadOnlySpan<byte> span, out int bytesRead)
         {
             bytesRead = 1;
             switch ((char)span[0])
             {
                 case 'S':
-                    byte[] result = ReadLongstr(span.Slice(1));
-                    bytesRead += result.Length + 4;
-                    return result;
+                    bytesRead += ReadLongstr(span.Slice(1), out var bytes);
+                    return bytes;
                 case 'I':
                     bytesRead += 4;
                     return NetworkOrderDeserializer.ReadInt32(span.Slice(1));
@@ -124,12 +95,11 @@ namespace RabbitMQ.Client.Impl
                     bytesRead += 5;
                     return ReadDecimal(span.Slice(1));
                 case 'T':
-                    bytesRead += 8;
-                    return ReadTimestamp(span.Slice(1));
+                    bytesRead += ReadTimestamp(span.Slice(1), out var timestamp);
+                    return timestamp;
                 case 'F':
-                    Dictionary<string, object> tableResult = ReadTable(span.Slice(1), out int tableBytesRead);
-                    bytesRead += tableBytesRead;
-                    return tableResult;
+                    bytesRead += ReadDictionary(span.Slice(1), out var dictionary);
+                    return dictionary;
                 case 'A':
                     IList arrayResult = ReadArray(span.Slice(1), out int arrayBytesRead);
                     bytesRead += arrayBytesRead;
@@ -156,8 +126,7 @@ namespace RabbitMQ.Client.Impl
                     bytesRead += 1;
                     return span[1] != 0;
                 case 'x':
-                    byte[] binaryTableResult = ReadLongstr(span.Slice(1));
-                    bytesRead += binaryTableResult.Length + 4;
+                    bytesRead += ReadLongstr(span.Slice(1), out var binaryTableResult);
                     return new BinaryTableValue(binaryTableResult);
                 case 'V':
                     return null;
@@ -166,35 +135,137 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public static byte[] ReadLongstr(ReadOnlySpan<byte> span)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ReadLongstr(ReadOnlySpan<byte> span, out byte[] value)
         {
             uint byteCount = NetworkOrderDeserializer.ReadUInt32(span);
             if (byteCount > int.MaxValue)
             {
-                throw new SyntaxErrorException($"Long string too long; byte length={byteCount}, max={int.MaxValue}");
+                value = null;
+                return ThrowSyntaxErrorException(byteCount);
             }
 
-            return span.Slice(4, (int)byteCount).ToArray();
+            value = span.Slice(4, (int)byteCount).ToArray();
+            return 4 + value.Length;
         }
 
-        public static unsafe string ReadShortstr(ReadOnlySpan<byte> span, out int bytesRead)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe int ReadShortstr(ReadOnlySpan<byte> span, out string value)
         {
             int byteCount = span[0];
             if (byteCount == 0)
             {
-                bytesRead = 1;
-                return string.Empty;
+                value = string.Empty;
+                return 1;
             }
-            if (span.Length >= byteCount + 1)
+
+            // equals span.Length >= byteCount + 1
+            if (span.Length > byteCount)
             {
-                bytesRead = 1 + byteCount;
                 fixed (byte* bytes = &span.Slice(1).GetPinnableReference())
                 {
-                    return Encoding.UTF8.GetString(bytes, byteCount);
+                    value = Encoding.UTF8.GetString(bytes, byteCount);
+                    return 1 + byteCount;
                 }
             }
 
-            throw new ArgumentOutOfRangeException(nameof(span), $"Span has not enough space ({span.Length} instead of {byteCount + 1})");
+            value = string.Empty;
+            return ThrowArgumentOutOfRangeException(span.Length, byteCount + 1);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ReadBits(ReadOnlySpan<byte> span, out bool val)
+        {
+            val = (span[0] & 0b0000_0001) != 0;
+            return 1;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ReadBits(ReadOnlySpan<byte> span, out bool val1, out bool val2)
+        {
+            byte bits = span[0];
+            val1 = (bits & 0b0000_0001) != 0;
+            val2 = (bits & 0b0000_0010) != 0;
+            return 1;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ReadBits(ReadOnlySpan<byte> span, out bool val1, out bool val2, out bool val3)
+        {
+            byte bits = span[0];
+            val1 = (bits & 0b0000_0001) != 0;
+            val2 = (bits & 0b0000_0010) != 0;
+            val3 = (bits & 0b0000_0100) != 0;
+            return 1;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ReadBits(ReadOnlySpan<byte> span, out bool val1, out bool val2, out bool val3, out bool val4)
+        {
+            byte bits = span[0];
+            val1 = (bits & 0b0000_0001) != 0;
+            val2 = (bits & 0b0000_0010) != 0;
+            val3 = (bits & 0b0000_0100) != 0;
+            val4 = (bits & 0b0000_1000) != 0;
+            return 1;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ReadBits(ReadOnlySpan<byte> span, out bool val1, out bool val2, out bool val3, out bool val4, out bool val5)
+        {
+            byte bits = span[0];
+            val1 = (bits & 0b0000_0001) != 0;
+            val2 = (bits & 0b0000_0010) != 0;
+            val3 = (bits & 0b0000_0100) != 0;
+            val4 = (bits & 0b0000_1000) != 0;
+            val5 = (bits & 0b0001_0000) != 0;
+            return 1;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ReadBits(ReadOnlySpan<byte> span,
+            out bool val1, out bool val2, out bool val3, out bool val4, out bool val5,
+            out bool val6, out bool val7, out bool val8, out bool val9, out bool val10,
+            out bool val11, out bool val12, out bool val13, out bool val14)
+        {
+            byte bits = span[0];
+            val1  = (bits & 0b1000_0000) != 0;
+            val2  = (bits & 0b0100_0000) != 0;
+            val3  = (bits & 0b0010_0000) != 0;
+            val4  = (bits & 0b0001_0000) != 0;
+            val5  = (bits & 0b0000_1000) != 0;
+            val6  = (bits & 0b0000_0100) != 0;
+            val7  = (bits & 0b0000_0010) != 0;
+            val8  = (bits & 0b0000_0001) != 0;
+            bits = span[1];
+            val9  = (bits & 0b1000_0000) != 0;
+            val10 = (bits & 0b0100_0000) != 0;
+            val11 = (bits & 0b0010_0000) != 0;
+            val12 = (bits & 0b0001_0000) != 0;
+            val13 = (bits & 0b0000_1000) != 0;
+            val14 = (bits & 0b0000_0100) != 0;
+            return 2;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ReadShort(ReadOnlySpan<byte> span, out ushort value)
+        {
+            value = NetworkOrderDeserializer.ReadUInt16(span);
+            return 2;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ReadLong(ReadOnlySpan<byte> span, out uint value)
+        {
+            value = NetworkOrderDeserializer.ReadUInt32(span);
+            return 4;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ReadLonglong(ReadOnlySpan<byte> span, out ulong value)
+        {
+            value = NetworkOrderDeserializer.ReadUInt64(span);
+            return 8;
         }
 
         ///<summary>Reads an AMQP "table" definition from the reader.</summary>
@@ -204,38 +275,37 @@ namespace RabbitMQ.Client.Impl
         /// x and V types and the AMQP 0-9-1 A type.
         ///</remarks>
         /// <returns>A <seealso cref="System.Collections.Generic.Dictionary{TKey,TValue}"/>.</returns>
-        public static Dictionary<string, object> ReadTable(ReadOnlySpan<byte> span, out int bytesRead)
+        public static int ReadDictionary(ReadOnlySpan<byte> span, out Dictionary<string, object> valueDictionary)
         {
-            bytesRead = 4;
             long tableLength = NetworkOrderDeserializer.ReadUInt32(span);
             if (tableLength == 0)
             {
-                return null;
+                valueDictionary = null;
+                return 4;
             }
 
-            Dictionary<string, object> table = new Dictionary<string, object>();
-            while ((bytesRead - 4) < tableLength)
+            span = span.Slice(4);
+            valueDictionary = new Dictionary<string, object>();
+            int bytesRead = 0;
+            while (bytesRead < tableLength)
             {
-                string key = ReadShortstr(span.Slice(bytesRead), out int keyBytesRead);
-                bytesRead += keyBytesRead;
+                bytesRead += ReadShortstr(span.Slice(bytesRead), out string key);
                 object value = ReadFieldValue(span.Slice(bytesRead), out int valueBytesRead);
                 bytesRead += valueBytesRead;
 
-                if (!table.ContainsKey(key))
-                {
-                    table[key] = value;
-                }
+                valueDictionary[key] = value;
             }
 
-            return table;
+            return 4 + bytesRead;
         }
 
-        public static AmqpTimestamp ReadTimestamp(ReadOnlySpan<byte> span)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ReadTimestamp(ReadOnlySpan<byte> span, out AmqpTimestamp value)
         {
-            ulong stamp = NetworkOrderDeserializer.ReadUInt64(span);
             // 0-9 is afaict silent on the signedness of the timestamp.
             // See also MethodArgumentWriter.WriteTimestamp and AmqpTimestamp itself
-            return new AmqpTimestamp((long)stamp);
+            value = new AmqpTimestamp((long)NetworkOrderDeserializer.ReadUInt64(span));
+            return 8;
         }
 
         public static int WriteArray(Span<byte> span, IList val)
@@ -245,17 +315,15 @@ namespace RabbitMQ.Client.Impl
                 NetworkOrderSerializer.WriteUInt32(span, 0);
                 return 4;
             }
-            else
-            {
-                int bytesWritten = 0;
-                for (int index = 0; index < val.Count; index++)
-                {
-                    bytesWritten += WriteFieldValue(span.Slice(4 + bytesWritten), val[index]);
-                }
 
-                NetworkOrderSerializer.WriteUInt32(span, (uint)bytesWritten);
-                return 4 + bytesWritten;
+            int bytesWritten = 4;
+            for (int index = 0; index < val.Count; index++)
+            {
+                bytesWritten += WriteFieldValue(span.Slice(bytesWritten), val[index]);
             }
+
+            NetworkOrderSerializer.WriteUInt32(span, (uint)bytesWritten - 4u);
+            return bytesWritten;
         }
 
         public static int GetArrayByteCount(IList val)
@@ -279,6 +347,29 @@ namespace RabbitMQ.Client.Impl
             DecimalToAmqp(value, out byte scale, out int mantissa);
             span[0] = scale;
             return 1 + WriteLong(span.Slice(1), (uint)mantissa);
+        }
+
+        private static void DecimalToAmqp(decimal value, out byte scale, out int mantissa)
+        {
+            // According to the documentation :-
+            //  - word 0: low-order "mantissa"
+            //  - word 1, word 2: medium- and high-order "mantissa"
+            //  - word 3: mostly reserved; "exponent" and sign bit
+            // In one way, this is broader than AMQP: the mantissa is larger.
+            // In another way, smaller: the exponent ranges 0-28 inclusive.
+            // We need to be careful about the range of word 0, too: we can
+            // only take 31 bits worth of it, since the sign bit needs to
+            // fit in there too.
+            int[] bitRepresentation = decimal.GetBits(value);
+            if (bitRepresentation[1] != 0 || // mantissa extends into middle word
+                bitRepresentation[2] != 0 || // mantissa extends into top word
+                bitRepresentation[0] < 0) // mantissa extends beyond 31 bits
+            {
+                throw new WireFormattingException("Decimal overflow in AMQP encoding", value);
+            }
+            scale = (byte)((((uint)bitRepresentation[3]) >> 16) & 0xFF);
+            mantissa = (int)((((uint)bitRepresentation[3]) & 0x80000000) |
+                             (((uint)bitRepresentation[0]) & 0x7FFFFFFF));
         }
 
         public static int WriteFieldValue(Span<byte> span, object value)
@@ -391,18 +482,209 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteLong(Span<byte> span, uint val)
         {
             NetworkOrderSerializer.WriteUInt32(span, val);
             return 4;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteLonglong(Span<byte> span, ulong val)
         {
             NetworkOrderSerializer.WriteUInt64(span, val);
             return 8;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int WriteBits(Span<byte> span, bool val)
+        {
+            span[0] = val ? (byte) 1 : (byte) 0;
+            return 1;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int WriteBits(Span<byte> span, bool val1, bool val2)
+        {
+            byte bits = 0;
+            if (val1)
+            {
+                bits |= 1 << 0;
+            }
+
+            if (val2)
+            {
+                bits |= 1 << 1;
+            }
+            span[0] = bits;
+            return 1;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int WriteBits(Span<byte> span, bool val1, bool val2, bool val3)
+        {
+            byte bits = 0;
+            if (val1)
+            {
+                bits |= 1 << 0;
+            }
+
+            if (val2)
+            {
+                bits |= 1 << 1;
+            }
+
+            if (val3)
+            {
+                bits |= 1 << 2;
+            }
+
+            span[0] = bits;
+            return 1;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int WriteBits(Span<byte> span, bool val1, bool val2, bool val3, bool val4)
+        {
+            byte bits = 0;
+            if (val1)
+            {
+                bits |= 1 << 0;
+            }
+
+            if (val2)
+            {
+                bits |= 1 << 1;
+            }
+
+            if (val3)
+            {
+                bits |= 1 << 2;
+            }
+
+            if (val4)
+            {
+                bits |= 1 << 3;
+            }
+
+            span[0] = bits;
+            return 1;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int WriteBits(Span<byte> span, bool val1, bool val2, bool val3, bool val4, bool val5)
+        {
+            byte bits = 0;
+            if (val1)
+            {
+                bits |= 1 << 0;
+            }
+
+            if (val2)
+            {
+                bits |= 1 << 1;
+            }
+
+            if (val3)
+            {
+                bits |= 1 << 2;
+            }
+
+            if (val4)
+            {
+                bits |= 1 << 3;
+            }
+
+            if (val5)
+            {
+                bits |= 1 << 4;
+            }
+            span[0] = bits;
+            return 1;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int WriteBits(Span<byte> span,
+            bool val1, bool val2, bool val3, bool val4, bool val5,
+            bool val6, bool val7, bool val8, bool val9, bool val10,
+            bool val11, bool val12, bool val13, bool val14)
+        {
+            byte bits = 0;
+            if (val1)
+            {
+                bits |= 1 << 7;
+            }
+
+            if (val2)
+            {
+                bits |= 1 << 6;
+            }
+
+            if (val3)
+            {
+                bits |= 1 << 5;
+            }
+
+            if (val4)
+            {
+                bits |= 1 << 4;
+            }
+
+            if (val5)
+            {
+                bits |= 1 << 3;
+            }
+
+            if (val6)
+            {
+                bits |= 1 << 2;
+            }
+
+            if (val7)
+            {
+                bits |= 1 << 1;
+            }
+
+            if (val8)
+            {
+                bits |= 1 << 0;
+            }
+            span[0] = bits;
+            bits = 0;
+            if (val9)
+            {
+                bits |= 1 << 7;
+            }
+
+            if (val10)
+            {
+                bits |= 1 << 6;
+            }
+
+            if (val11)
+            {
+                bits |= 1 << 5;
+            }
+
+            if (val12)
+            {
+                bits |= 1 << 4;
+            }
+
+            if (val13)
+            {
+                bits |= 1 << 3;
+            }
+
+            if (val14)
+            {
+                bits |= 1 << 2;
+            }
+            span[1] = bits;
+            return 2;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteLongstr(Span<byte> span, ReadOnlySpan<byte> val)
         {
             WriteLong(span, (uint)val.Length);
@@ -410,12 +692,14 @@ namespace RabbitMQ.Client.Impl
             return 4 + val.Length;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteShort(Span<byte> span, ushort val)
         {
             NetworkOrderSerializer.WriteUInt16(span, val);
             return 2;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe int WriteShortstr(Span<byte> span, string val)
         {
             int maxLength = span.Length - 1;
@@ -434,11 +718,12 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (ArgumentException)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(val), val, $"Value exceeds the maximum allowed length of {maxLength} bytes.");
+                    return ThrowArgumentOutOfRangeException(val, maxLength);
                 }
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe int WriteLongstr(Span<byte> span, string val)
         {
             fixed (char* chars = val)
@@ -454,23 +739,21 @@ namespace RabbitMQ.Client.Impl
         {
             if (val is null || val.Count == 0)
             {
-                NetworkOrderSerializer.WriteUInt32(span, 0);
+                NetworkOrderSerializer.WriteUInt32(span, 0u);
                 return 4;
             }
-            else
-            {
-                // Let's only write after the length header.
-                Span<byte> slice = span.Slice(4);
-                int bytesWritten = 0;
-                foreach (DictionaryEntry entry in val)
-                {
-                    bytesWritten += WriteShortstr(slice.Slice(bytesWritten), entry.Key.ToString());
-                    bytesWritten += WriteFieldValue(slice.Slice(bytesWritten), entry.Value);
-                }
 
-                NetworkOrderSerializer.WriteUInt32(span, (uint)bytesWritten);
-                return 4 + bytesWritten;
+            // Let's only write after the length header.
+            Span<byte> slice = span.Slice(4);
+            int bytesWritten = 0;
+            foreach (DictionaryEntry entry in val)
+            {
+                bytesWritten += WriteShortstr(slice.Slice(bytesWritten), entry.Key.ToString());
+                bytesWritten += WriteFieldValue(slice.Slice(bytesWritten), entry.Value);
             }
+
+            NetworkOrderSerializer.WriteUInt32(span, (uint)bytesWritten);
+            return 4 + bytesWritten;
         }
 
         public static int WriteTable(Span<byte> span, IDictionary<string, object> val)
@@ -480,31 +763,29 @@ namespace RabbitMQ.Client.Impl
                 NetworkOrderSerializer.WriteUInt32(span, 0);
                 return 4;
             }
+
+            // Let's only write after the length header.
+            Span<byte> slice = span.Slice(4);
+            int bytesWritten = 0;
+            if (val is Dictionary<string, object> dict)
+            {
+                foreach (KeyValuePair<string, object> entry in dict)
+                {
+                    bytesWritten += WriteShortstr(slice.Slice(bytesWritten), entry.Key);
+                    bytesWritten += WriteFieldValue(slice.Slice(bytesWritten), entry.Value);
+                }
+            }
             else
             {
-                // Let's only write after the length header.
-                Span<byte> slice = span.Slice(4);
-                int bytesWritten = 0;
-                if (val is Dictionary<string, object> dict)
+                foreach (KeyValuePair<string, object> entry in val)
                 {
-                    foreach (KeyValuePair<string, object> entry in dict)
-                    {
-                        bytesWritten += WriteShortstr(slice.Slice(bytesWritten), entry.Key);
-                        bytesWritten += WriteFieldValue(slice.Slice(bytesWritten), entry.Value);
-                    }
+                    bytesWritten += WriteShortstr(slice.Slice(bytesWritten), entry.Key);
+                    bytesWritten += WriteFieldValue(slice.Slice(bytesWritten), entry.Value);
                 }
-                else
-                {
-                    foreach (KeyValuePair<string, object> entry in val)
-                    {
-                        bytesWritten += WriteShortstr(slice.Slice(bytesWritten), entry.Key);
-                        bytesWritten += WriteFieldValue(slice.Slice(bytesWritten), entry.Value);
-                    }
-                }
-
-                NetworkOrderSerializer.WriteUInt32(span, (uint)bytesWritten);
-                return 4 + bytesWritten;
             }
+
+            NetworkOrderSerializer.WriteUInt32(span, (uint)bytesWritten);
+            return 4 + bytesWritten;
         }
 
         public static int GetTableByteCount(IDictionary val)
@@ -552,11 +833,27 @@ namespace RabbitMQ.Client.Impl
             return byteCount;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteTimestamp(Span<byte> span, AmqpTimestamp val)
         {
             // 0-9 is afaict silent on the signedness of the timestamp.
             // See also MethodArgumentReader.ReadTimestamp and AmqpTimestamp itself
             return WriteLonglong(span, (ulong)val.UnixTime);
+        }
+
+        public static int ThrowArgumentOutOfRangeException(int orig, int expected)
+        {
+            throw new ArgumentOutOfRangeException("span", $"Span has not enough space ({orig} instead of {expected})");
+        }
+
+        public static int ThrowArgumentOutOfRangeException(string val, int maxLength)
+        {
+            throw new ArgumentOutOfRangeException(nameof(val), val, $"Value exceeds the maximum allowed length of {maxLength} bytes.");
+        }
+
+        public static int ThrowSyntaxErrorException(uint byteCount)
+        {
+            throw new SyntaxErrorException($"Long string too long; byte length={byteCount}, max={int.MaxValue}");
         }
     }
 }

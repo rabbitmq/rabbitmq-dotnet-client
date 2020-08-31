@@ -29,7 +29,9 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using RabbitMQ.Client.client.framing;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -50,23 +52,22 @@ namespace RabbitMQ.Client.Framing.Impl
             _global = Global;
         }
 
+        public BasicQos(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadLong(span, out _prefetchSize);
+            offset += WireFormatting.ReadShort(span.Slice(offset), out _prefetchCount);
+            WireFormatting.ReadBits(span.Slice(offset), out _global);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicQos;
         public override string ProtocolMethodName => "basic.qos";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
+        public override int WriteArgumentsTo(Span<byte> span)
         {
-            _prefetchSize = reader.ReadLong();
-            _prefetchCount = reader.ReadShort();
-            _global = reader.ReadBit();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteLong(_prefetchSize);
-            writer.WriteShort(_prefetchCount);
-            writer.WriteBit(_global);
-            writer.EndBits();
+            int offset = WireFormatting.WriteLong(span, _prefetchSize);
+            offset += WireFormatting.WriteShort(span.Slice(offset), _prefetchCount);
+            return offset + WireFormatting.WriteBits(span.Slice(offset), _global);
         }
 
         public override int GetRequiredBufferSize()

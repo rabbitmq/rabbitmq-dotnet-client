@@ -29,8 +29,10 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Text;
 using RabbitMQ.Client.client.framing;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -55,27 +57,22 @@ namespace RabbitMQ.Client.Framing.Impl
             _nowait = Nowait;
         }
 
+        public QueueDelete(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadShort(span, out _reserved1);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _queue);
+            WireFormatting.ReadBits(span.Slice(offset), out _ifUnused, out _ifEmpty, out _nowait);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueueDelete;
         public override string ProtocolMethodName => "queue.delete";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
+        public override int WriteArgumentsTo(Span<byte> span)
         {
-            _reserved1 = reader.ReadShort();
-            _queue = reader.ReadShortstr();
-            _ifUnused = reader.ReadBit();
-            _ifEmpty = reader.ReadBit();
-            _nowait = reader.ReadBit();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteShort(_reserved1);
-            writer.WriteShortstr(_queue);
-            writer.WriteBit(_ifUnused);
-            writer.WriteBit(_ifEmpty);
-            writer.WriteBit(_nowait);
-            writer.EndBits();
+            int offset = WireFormatting.WriteShort(span, _reserved1);
+            offset += WireFormatting.WriteShortstr(span.Slice(offset), _queue);
+            return offset + WireFormatting.WriteBits(span.Slice(offset), _ifUnused, _ifEmpty, _nowait);
         }
 
         public override int GetRequiredBufferSize()

@@ -29,8 +29,10 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Text;
 using RabbitMQ.Client.client.framing;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -47,18 +49,18 @@ namespace RabbitMQ.Client.Framing.Impl
             _consumerTag = ConsumerTag;
         }
 
+        public BasicCancelOk(ReadOnlySpan<byte> span)
+        {
+            WireFormatting.ReadShortstr(span, out _consumerTag);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicCancelOk;
         public override string ProtocolMethodName => "basic.cancel-ok";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
+        public override int WriteArgumentsTo(Span<byte> span)
         {
-            _consumerTag = reader.ReadShortstr();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteShortstr(_consumerTag);
+            return WireFormatting.WriteShortstr(span, _consumerTag);
         }
 
         public override int GetRequiredBufferSize()

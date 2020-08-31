@@ -29,7 +29,9 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using RabbitMQ.Client.client.framing;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -50,23 +52,20 @@ namespace RabbitMQ.Client.Framing.Impl
             _requeue = Requeue;
         }
 
+        public BasicNack(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadLonglong(span, out _deliveryTag);
+            WireFormatting.ReadBits(span.Slice(offset), out _multiple, out _requeue);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicNack;
         public override string ProtocolMethodName => "basic.nack";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
+        public override int WriteArgumentsTo(Span<byte> span)
         {
-            _deliveryTag = reader.ReadLonglong();
-            _multiple = reader.ReadBit();
-            _requeue = reader.ReadBit();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteLonglong(_deliveryTag);
-            writer.WriteBit(_multiple);
-            writer.WriteBit(_requeue);
-            writer.EndBits();
+            int offset = WireFormatting.WriteLonglong(span, _deliveryTag);
+            return offset + WireFormatting.WriteBits(span.Slice(offset), _multiple, _requeue);
         }
 
         public override int GetRequiredBufferSize()

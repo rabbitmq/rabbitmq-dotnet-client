@@ -81,9 +81,8 @@ namespace RabbitMQ.Client.Impl
                 const int StartMethodArguments = StartPayload + 4;
 
                 NetworkOrderSerializer.WriteUInt32(span.Slice(StartClassId), (uint)method.ProtocolCommandId);
-                var argWriter = new MethodArgumentWriter(span.Slice(StartMethodArguments));
-                method.WriteArgumentsTo(ref argWriter);
-                return WriteBaseFrame(span, FrameType.FrameMethod, channel, StartMethodArguments - StartPayload + argWriter.Offset);
+                int offset = method.WriteArgumentsTo(span.Slice(StartMethodArguments));
+                return WriteBaseFrame(span, FrameType.FrameMethod, channel, StartMethodArguments - StartPayload + offset);
             }
         }
 
@@ -106,9 +105,8 @@ namespace RabbitMQ.Client.Impl
                 NetworkOrderSerializer.WriteUInt16(span.Slice(StartClassId), header.ProtocolClassId);
                 NetworkOrderSerializer.WriteUInt16(span.Slice(StartWeight), 0); // Weight - not used
                 NetworkOrderSerializer.WriteUInt64(span.Slice(StartBodyLength), (ulong)bodyLength);
-                var headerWriter = new ContentHeaderPropertyWriter(span.Slice(StartHeaderArguments));
-                header.WritePropertiesTo(ref headerWriter);
-                return WriteBaseFrame(span, FrameType.FrameHeader, channel, StartHeaderArguments - StartPayload + headerWriter.Offset);
+                int offset = header.WritePropertiesTo(span.Slice(StartHeaderArguments));
+                return WriteBaseFrame(span, FrameType.FrameHeader, channel, StartHeaderArguments - StartPayload + offset);
             }
         }
 

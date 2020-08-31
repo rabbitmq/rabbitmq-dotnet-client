@@ -30,10 +30,9 @@
 //---------------------------------------------------------------------------
 
 using System;
-
+using System.Collections.Generic;
 using NUnit.Framework;
 
-using RabbitMQ.Client.Impl;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Unit
@@ -60,62 +59,61 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestPresence()
-        {
-            byte[] memory = new byte[1024];
-            var m_w = new ContentHeaderPropertyWriter(memory);
-            m_w.WritePresence(false);
-            m_w.WritePresence(true);
-            m_w.WritePresence(false);
-            m_w.WritePresence(true);
-            m_w.FinishPresence();
-            Check(memory.AsMemory().Slice(0, m_w.Offset), new byte[] { 0x50, 0x00 });
-        }
-
-        [Test]
-        public void TestLongPresence()
-        {
-            byte[] memory = new byte[1024];
-            var m_w = new ContentHeaderPropertyWriter(memory);
-
-            m_w.WritePresence(false);
-            m_w.WritePresence(true);
-            m_w.WritePresence(false);
-            m_w.WritePresence(true);
-            for (int i = 0; i < 20; i++)
-            {
-                m_w.WritePresence(false);
-            }
-            m_w.WritePresence(true);
-            m_w.FinishPresence();
-            Check(memory.AsMemory().Slice(0, m_w.Offset), new byte[] { 0x50, 0x01, 0x00, 0x40 });
-        }
-
-        [Test]
-        public void TestNoPresence()
-        {
-            byte[] memory = new byte[1024];
-            var m_w = new ContentHeaderPropertyWriter(memory);
-            m_w.FinishPresence();
-            Check(memory.AsMemory().Slice(0, m_w.Offset), new byte[] { 0x00, 0x00 });
-        }
-
-        [Test]
         public void TestSimpleProperties()
         {
-            RabbitMQ.Client.Framing.BasicProperties prop =
-                new RabbitMQ.Client.Framing.BasicProperties
+            Framing.BasicProperties prop = new Framing.BasicProperties
                 {
                     ContentType = "text/plain"
                 };
             int bytesNeeded = prop.GetRequiredPayloadBufferSize();
             byte[] bytes = new byte[bytesNeeded];
-            var m_w = new ContentHeaderPropertyWriter(bytes);
-            prop.WritePropertiesTo(ref m_w);
-            Check(bytes.AsMemory().Slice(0, m_w.Offset), new byte[] {
+            int offset = prop.WritePropertiesTo(bytes);
+            Check(bytes.AsMemory().Slice(0, offset), new byte[] {
                      0x80, 0x00, // props flags
                      0x0A, // shortstr len
                      0x74, 0x65, 0x78, 0x74, 0x2F, 0x70, 0x6C, 0x61, 0x69, 0x6E // text/plain
+            });
+        }
+
+        [Test]
+        public void TestFullProperties()
+        {
+            Framing.BasicProperties prop = new Framing.BasicProperties
+                {
+                    AppId = "A",
+                    ContentType = "B",
+                    ContentEncoding = "C",
+                    ClusterId = "D",
+                    CorrelationId = "E",
+                    DeliveryMode = 1,
+                    Expiration = "F",
+                    MessageId = "G",
+                    Priority = 2,
+                    Timestamp = new AmqpTimestamp(3),
+                    Type = "H",
+                    ReplyTo = "I",
+                    UserId = "J",
+                    Headers = new Dictionary<string, object>(0)
+                };
+            int bytesNeeded = prop.GetRequiredPayloadBufferSize();
+            byte[] bytes = new byte[bytesNeeded];
+            int offset = prop.WritePropertiesTo(bytes);
+            Check(bytes.AsMemory().Slice(0, offset), new byte[] {
+                     0b1111_1111, 0b1111_1100, // props flags (all set)
+                     0x01, 0x42, // ContentType
+                     0x01, 0x43, // ContentEncoding
+                     0x00, 0x00, 0x00, 0x00, // Headers (length 0)
+                     0x01,       // DeliveryMode
+                     0x02,       // Priority
+                     0x01, 0x45, // CorrelationId
+                     0x01, 0x49, // ReplyTo
+                     0x01, 0x46, // Expiration
+                     0x01, 0x47, // MessageId
+                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, // Timestamp
+                     0x01, 0x48, // Type
+                     0x01, 0x4A, // UserId
+                     0x01, 0x41, // AppId
+                     0x01, 0x44, // ClusterId
             });
         }
     }

@@ -29,7 +29,9 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using RabbitMQ.Client.client.framing;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -46,18 +48,18 @@ namespace RabbitMQ.Client.Framing.Impl
             _response = Response;
         }
 
+        public ConnectionSecureOk(ReadOnlySpan<byte> span)
+        {
+            WireFormatting.ReadLongstr(span, out _response);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionSecureOk;
         public override string ProtocolMethodName => "connection.secure-ok";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
+        public override int WriteArgumentsTo(Span<byte> span)
         {
-            _response = reader.ReadLongstr();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteLongstr(_response);
+            return WireFormatting.WriteLongstr(span, _response);
         }
 
         public override int GetRequiredBufferSize()

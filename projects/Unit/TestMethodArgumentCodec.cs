@@ -41,18 +41,8 @@ using RabbitMQ.Util;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    class TestMethodArgumentCodec
+    public class TestMethodArgumentCodec
     {
-        public static MethodArgumentWriter Writer()
-        {
-            return new MethodArgumentWriter(new byte[1024]);
-        }
-
-        public static MethodArgumentReader Reader(byte[] bytes)
-        {
-            return new MethodArgumentReader(bytes);
-        }
-
         public void Check(byte[] actual, byte[] expected)
         {
             try
@@ -81,9 +71,8 @@ namespace RabbitMQ.Client.Unit
 
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
             byte[] memory = new byte[bytesNeeded];
-            var writer = new MethodArgumentWriter(memory);
-            writer.WriteTable(t);
-            Assert.AreEqual(bytesNeeded, writer.Offset);
+            int offset = WireFormatting.WriteTable(memory.AsSpan(), t);
+            Assert.AreEqual(bytesNeeded, offset);
             Check(memory, new byte[] { 0x00, 0x00, 0x00, 0x0C,
                                    0x03, 0x61, 0x62, 0x63,
                                    0x53, 0x00, 0x00, 0x00,
@@ -91,12 +80,13 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestTableLengthRead()
+        public void TestDictionaryLengthRead()
         {
-            IDictionary t = (IDictionary)Reader(new byte[] { 0x00, 0x00, 0x00, 0x0C,
-                                                             0x03, 0x61, 0x62, 0x63,
-                                                             0x53, 0x00, 0x00, 0x00,
-                                                             0x03, 0x64, 0x65, 0x66 }).ReadTable();
+            WireFormatting.ReadDictionary(new byte[] {
+                0x00, 0x00, 0x00, 0x0C,
+                0x03, 0x61, 0x62, 0x63,
+                0x53, 0x00, 0x00, 0x00,
+                0x03, 0x64, 0x65, 0x66 }, out var t);
             Assert.AreEqual(Encoding.UTF8.GetBytes("def"), t["abc"]);
             Assert.AreEqual(1, t.Count);
         }
@@ -112,9 +102,8 @@ namespace RabbitMQ.Client.Unit
             t["x"] = x;
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
             byte[] memory = new byte[bytesNeeded];
-            var writer = new MethodArgumentWriter(memory);
-            writer.WriteTable(t);
-            Assert.AreEqual(bytesNeeded, writer.Offset);
+            int offset = WireFormatting.WriteTable(memory.AsSpan(), t);
+            Assert.AreEqual(bytesNeeded, offset);
             Check(memory, new byte[] { 0x00, 0x00, 0x00, 0x0E,
                                    0x01, 0x78, 0x46, 0x00,
                                    0x00, 0x00, 0x07, 0x01,

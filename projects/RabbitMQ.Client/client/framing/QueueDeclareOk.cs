@@ -29,8 +29,10 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Text;
 using RabbitMQ.Client.client.framing;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -51,22 +53,22 @@ namespace RabbitMQ.Client.Framing.Impl
             _consumerCount = ConsumerCount;
         }
 
+        public QueueDeclareOk(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadShortstr(span, out _queue);
+            offset += WireFormatting.ReadLong(span.Slice(offset), out _messageCount);
+            WireFormatting.ReadLong(span.Slice(offset), out _consumerCount);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueueDeclareOk;
         public override string ProtocolMethodName => "queue.declare-ok";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
+        public override int WriteArgumentsTo(Span<byte> span)
         {
-            _queue = reader.ReadShortstr();
-            _messageCount = reader.ReadLong();
-            _consumerCount = reader.ReadLong();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteShortstr(_queue);
-            writer.WriteLong(_messageCount);
-            writer.WriteLong(_consumerCount);
+            int offset = WireFormatting.WriteShortstr(span, _queue);
+            offset += WireFormatting.WriteLong(span.Slice(offset), _messageCount);
+            return offset + WireFormatting.WriteLong(span.Slice(offset), _consumerCount);
         }
 
         public override int GetRequiredBufferSize()

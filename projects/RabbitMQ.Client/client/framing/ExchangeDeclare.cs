@@ -29,6 +29,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Text;
 using RabbitMQ.Client.client.framing;
@@ -65,35 +66,27 @@ namespace RabbitMQ.Client.Framing.Impl
             _arguments = Arguments;
         }
 
+        public ExchangeDeclare(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadShort(span, out _reserved1);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _exchange);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _type);
+            offset += WireFormatting.ReadBits(span.Slice(offset), out _passive, out _durable, out _autoDelete, out _internal, out _nowait);
+            WireFormatting.ReadDictionary(span.Slice(offset), out var tmpDictionary);
+            _arguments = tmpDictionary;
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ExchangeDeclare;
         public override string ProtocolMethodName => "exchange.declare";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref MethodArgumentReader reader)
+        public override int WriteArgumentsTo(Span<byte> span)
         {
-            _reserved1 = reader.ReadShort();
-            _exchange = reader.ReadShortstr();
-            _type = reader.ReadShortstr();
-            _passive = reader.ReadBit();
-            _durable = reader.ReadBit();
-            _autoDelete = reader.ReadBit();
-            _internal = reader.ReadBit();
-            _nowait = reader.ReadBit();
-            _arguments = reader.ReadTable();
-        }
-
-        public override void WriteArgumentsTo(ref MethodArgumentWriter writer)
-        {
-            writer.WriteShort(_reserved1);
-            writer.WriteShortstr(_exchange);
-            writer.WriteShortstr(_type);
-            writer.WriteBit(_passive);
-            writer.WriteBit(_durable);
-            writer.WriteBit(_autoDelete);
-            writer.WriteBit(_internal);
-            writer.WriteBit(_nowait);
-            writer.EndBits();
-            writer.WriteTable(_arguments);
+            int offset = WireFormatting.WriteShort(span, _reserved1);
+            offset += WireFormatting.WriteShortstr(span.Slice(offset), _exchange);
+            offset += WireFormatting.WriteShortstr(span.Slice(offset), _type);
+            offset += WireFormatting.WriteBits(span.Slice(offset), _passive, _durable, _autoDelete, _internal, _nowait);
+            return offset + WireFormatting.WriteTable(span.Slice(offset), _arguments);
         }
 
         public override int GetRequiredBufferSize()

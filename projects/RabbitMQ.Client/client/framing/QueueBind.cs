@@ -29,6 +29,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Text;
 using RabbitMQ.Client.client.framing;
@@ -59,29 +60,29 @@ namespace RabbitMQ.Client.Framing.Impl
             _arguments = Arguments;
         }
 
+        public QueueBind(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadShort(span, out _reserved1);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _queue);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _exchange);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _routingKey);
+            offset += WireFormatting.ReadBits(span.Slice(offset), out _nowait);
+            WireFormatting.ReadDictionary(span.Slice(offset), out var tmpDictionary);
+            _arguments = tmpDictionary;
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueueBind;
         public override string ProtocolMethodName => "queue.bind";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref MethodArgumentReader reader)
+        public override int WriteArgumentsTo(Span<byte> span)
         {
-            _reserved1 = reader.ReadShort();
-            _queue = reader.ReadShortstr();
-            _exchange = reader.ReadShortstr();
-            _routingKey = reader.ReadShortstr();
-            _nowait = reader.ReadBit();
-            _arguments = reader.ReadTable();
-        }
-
-        public override void WriteArgumentsTo(ref MethodArgumentWriter writer)
-        {
-            writer.WriteShort(_reserved1);
-            writer.WriteShortstr(_queue);
-            writer.WriteShortstr(_exchange);
-            writer.WriteShortstr(_routingKey);
-            writer.WriteBit(_nowait);
-            writer.EndBits();
-            writer.WriteTable(_arguments);
+            int offset = WireFormatting.WriteShort(span, _reserved1);
+            offset += WireFormatting.WriteShortstr(span.Slice(offset), _queue);
+            offset += WireFormatting.WriteShortstr(span.Slice(offset), _exchange);
+            offset += WireFormatting.WriteShortstr(span.Slice(offset), _routingKey);
+            offset += WireFormatting.WriteBits(span.Slice(offset), _nowait);
+            return offset + WireFormatting.WriteTable(span.Slice(offset), _arguments);
         }
 
         public override int GetRequiredBufferSize()

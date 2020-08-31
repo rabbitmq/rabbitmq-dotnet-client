@@ -29,6 +29,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
@@ -39,7 +40,7 @@ namespace RabbitMQ.Client.Framing.Impl
     {
         public byte _versionMajor;
         public byte _versionMinor;
-        public IDictionary<string, object> _serverProperties;
+        public Dictionary<string, object> _serverProperties;
         public byte[] _mechanisms;
         public byte[] _locales;
 
@@ -47,7 +48,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
         }
 
-        public ConnectionStart(byte VersionMajor, byte VersionMinor, IDictionary<string, object> ServerProperties, byte[] Mechanisms, byte[] Locales)
+        public ConnectionStart(byte VersionMajor, byte VersionMinor, Dictionary<string, object> ServerProperties, byte[] Mechanisms, byte[] Locales)
         {
             _versionMajor = VersionMajor;
             _versionMinor = VersionMinor;
@@ -56,32 +57,32 @@ namespace RabbitMQ.Client.Framing.Impl
             _locales = Locales;
         }
 
+        public ConnectionStart(ReadOnlySpan<byte> span)
+        {
+            _versionMajor = span[0];
+            _versionMinor = span[1];
+            int offset = 2 + WireFormatting.ReadDictionary(span.Slice(2), out _serverProperties);
+            offset += WireFormatting.ReadLongstr(span.Slice(offset), out _mechanisms);
+            WireFormatting.ReadLongstr(span.Slice(offset), out _locales);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionStart;
         public override string ProtocolMethodName => "connection.start";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref MethodArgumentReader reader)
+        public override int WriteArgumentsTo(Span<byte> span)
         {
-            _versionMajor = reader.ReadOctet();
-            _versionMinor = reader.ReadOctet();
-            _serverProperties = reader.ReadTable();
-            _mechanisms = reader.ReadLongstr();
-            _locales = reader.ReadLongstr();
-        }
-
-        public override void WriteArgumentsTo(ref MethodArgumentWriter writer)
-        {
-            writer.WriteOctet(_versionMajor);
-            writer.WriteOctet(_versionMinor);
-            writer.WriteTable(_serverProperties);
-            writer.WriteLongstr(_mechanisms);
-            writer.WriteLongstr(_locales);
+            span[0] = _versionMajor;
+            span[1] = _versionMinor;
+            int offset = 2 + WireFormatting.WriteTable(span.Slice(2), (IDictionary<string, object>)_serverProperties);
+            offset += WireFormatting.WriteLongstr(span.Slice(offset), _mechanisms);
+            return offset + WireFormatting.WriteLongstr(span.Slice(offset), _locales);
         }
 
         public override int GetRequiredBufferSize()
         {
             int bufferSize = 1 + 1 + 4 + 4; // bytes for _versionMajor, _versionMinor, length of _mechanisms, length of _locales
-            bufferSize += WireFormatting.GetTableByteCount(_serverProperties); // _serverProperties in bytes
+            bufferSize += WireFormatting.GetTableByteCount((IDictionary<string, object>)_serverProperties); // _serverProperties in bytes
             bufferSize += _mechanisms.Length; // _mechanisms in bytes
             bufferSize += _locales.Length; // _locales in bytes
             return bufferSize;

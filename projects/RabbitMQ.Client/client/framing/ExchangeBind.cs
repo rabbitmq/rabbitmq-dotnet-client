@@ -29,6 +29,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Text;
 using RabbitMQ.Client.client.framing;
@@ -59,29 +60,29 @@ namespace RabbitMQ.Client.Framing.Impl
             _arguments = Arguments;
         }
 
+        public ExchangeBind(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadShort(span, out _reserved1);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _destination);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _source);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _routingKey);
+            offset += WireFormatting.ReadBits(span.Slice(offset), out _nowait);
+            WireFormatting.ReadDictionary(span.Slice(offset), out var tmpDictionary);
+            _arguments = tmpDictionary;
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ExchangeBind;
         public override string ProtocolMethodName => "exchange.bind";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref MethodArgumentReader reader)
+        public override int WriteArgumentsTo(Span<byte> span)
         {
-            _reserved1 = reader.ReadShort();
-            _destination = reader.ReadShortstr();
-            _source = reader.ReadShortstr();
-            _routingKey = reader.ReadShortstr();
-            _nowait = reader.ReadBit();
-            _arguments = reader.ReadTable();
-        }
-
-        public override void WriteArgumentsTo(ref MethodArgumentWriter writer)
-        {
-            writer.WriteShort(_reserved1);
-            writer.WriteShortstr(_destination);
-            writer.WriteShortstr(_source);
-            writer.WriteShortstr(_routingKey);
-            writer.WriteBit(_nowait);
-            writer.EndBits();
-            writer.WriteTable(_arguments);
+            int offset = WireFormatting.WriteShort(span, _reserved1);
+            offset += WireFormatting.WriteShortstr(span.Slice(offset), _destination);
+            offset += WireFormatting.WriteShortstr(span.Slice(offset), _source);
+            offset += WireFormatting.WriteShortstr(span.Slice(offset), _routingKey);
+            offset += WireFormatting.WriteBits(span.Slice(offset), _nowait);
+            return offset + WireFormatting.WriteTable(span.Slice(offset), _arguments);
         }
 
         public override int GetRequiredBufferSize()

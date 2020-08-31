@@ -65,7 +65,7 @@ namespace RabbitMQ.Client.Unit
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
             byte[] bytes = new byte[bytesNeeded];
             WireFormatting.WriteTable(bytes, t);
-            IDictionary nt = (IDictionary)WireFormatting.ReadTable(bytes, out int bytesRead);
+            int bytesRead = WireFormatting.ReadDictionary(bytes, out var nt);
             Assert.AreEqual(bytesNeeded, bytesRead);
             Assert.AreEqual(Encoding.UTF8.GetBytes("Hello"), nt["string"]);
             Assert.AreEqual(1234, nt["int"]);
@@ -89,7 +89,7 @@ namespace RabbitMQ.Client.Unit
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
             byte[] bytes = new byte[bytesNeeded];
             WireFormatting.WriteTable(bytes, t);
-            WireFormatting.ReadTable(bytes, out int bytesRead);
+            int bytesRead = WireFormatting.ReadDictionary(bytes, out _);
             Assert.AreEqual(bytesNeeded, bytesRead);
             Check(bytes, new byte[] {
                     0,0,0,9, // table length
@@ -109,7 +109,7 @@ namespace RabbitMQ.Client.Unit
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
             byte[] bytes = new byte[bytesNeeded];
             WireFormatting.WriteTable(bytes, t);
-            WireFormatting.ReadTable(bytes, out int bytesRead);
+            int bytesRead = WireFormatting.ReadDictionary(bytes, out _);
             Assert.AreEqual(bytesNeeded, bytesRead);
             Check(bytes, new byte[] {
                     0,0,0,9, // table length
@@ -152,7 +152,7 @@ namespace RabbitMQ.Client.Unit
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
             byte[] bytes = new byte[bytesNeeded];
             WireFormatting.WriteTable(bytes, t);
-            IDictionary nt = (IDictionary)WireFormatting.ReadTable(bytes, out int bytesRead);
+            int bytesRead = WireFormatting.ReadDictionary(bytes, out var nt);
             Assert.AreEqual(bytesNeeded, bytesRead);
             Assert.AreEqual(typeof(byte), nt["B"].GetType()); Assert.AreEqual((byte)255, nt["B"]);
             Assert.AreEqual(typeof(sbyte), nt["b"].GetType()); Assert.AreEqual((sbyte)-128, nt["b"]);

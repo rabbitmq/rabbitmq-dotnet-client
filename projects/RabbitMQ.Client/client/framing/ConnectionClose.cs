@@ -29,8 +29,10 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Text;
 using RabbitMQ.Client.client.framing;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -53,24 +55,24 @@ namespace RabbitMQ.Client.Framing.Impl
             _methodId = MethodId;
         }
 
+        public ConnectionClose(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadShort(span, out _replyCode);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _replyText);
+            offset += WireFormatting.ReadShort(span.Slice(offset), out _classId);
+            WireFormatting.ReadShort(span.Slice(offset), out _methodId);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionClose;
         public override string ProtocolMethodName => "connection.close";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
+        public override int WriteArgumentsTo(Span<byte> span)
         {
-            _replyCode = reader.ReadShort();
-            _replyText = reader.ReadShortstr();
-            _classId = reader.ReadShort();
-            _methodId = reader.ReadShort();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteShort(_replyCode);
-            writer.WriteShortstr(_replyText);
-            writer.WriteShort(_classId);
-            writer.WriteShort(_methodId);
+            int offset = WireFormatting.WriteShort(span, _replyCode);
+            offset += WireFormatting.WriteShortstr(span.Slice(offset), _replyText);
+            offset += WireFormatting.WriteShort(span.Slice(offset), _classId);
+            return offset + WireFormatting.WriteShort(span.Slice(offset), _methodId);
         }
 
         public override int GetRequiredBufferSize()

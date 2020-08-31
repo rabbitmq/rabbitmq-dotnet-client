@@ -29,6 +29,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using RabbitMQ.Client.client.framing;
 
 namespace RabbitMQ.Client.Framing.Impl
@@ -43,12 +44,9 @@ namespace RabbitMQ.Client.Framing.Impl
         public override string ProtocolMethodName => "basic.recover-ok";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
+        public override int WriteArgumentsTo(Span<byte> span)
         {
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
+            return 0;
         }
 
         public override int GetRequiredBufferSize()

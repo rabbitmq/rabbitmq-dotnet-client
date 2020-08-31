@@ -50,17 +50,7 @@ namespace RabbitMQ.Client.Impl
             throw new NotImplementedException();
         }
 
-        ///<summary>
-        /// Fill this instance from the given byte buffer stream.
-        ///</summary>
-        internal void ReadFrom(ReadOnlySpan<byte> span)
-        {
-            ContentHeaderPropertyReader reader = new ContentHeaderPropertyReader(span);
-            ReadPropertiesFrom(ref reader);
-        }
-
-        internal abstract void ReadPropertiesFrom(ref ContentHeaderPropertyReader reader);
-        internal abstract void WritePropertiesTo(ref ContentHeaderPropertyWriter writer);
+        internal abstract int WritePropertiesTo(Span<byte> span);
 
         public abstract int GetRequiredPayloadBufferSize();
     }

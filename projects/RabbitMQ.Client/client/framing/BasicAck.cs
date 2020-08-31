@@ -29,7 +29,9 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using RabbitMQ.Client.client.framing;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -48,21 +50,20 @@ namespace RabbitMQ.Client.Framing.Impl
             _multiple = Multiple;
         }
 
+        public BasicAck(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadLonglong(span, out _deliveryTag);
+            WireFormatting.ReadBits(span.Slice(offset), out _multiple);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicAck;
         public override string ProtocolMethodName => "basic.ack";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
+        public override int WriteArgumentsTo(Span<byte> span)
         {
-            _deliveryTag = reader.ReadLonglong();
-            _multiple = reader.ReadBit();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteLonglong(_deliveryTag);
-            writer.WriteBit(_multiple);
-            writer.EndBits();
+            int offset = WireFormatting.WriteLonglong(span, _deliveryTag);
+            return offset + WireFormatting.WriteBits(span.Slice(offset), _multiple);
         }
 
         public override int GetRequiredBufferSize()

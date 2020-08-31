@@ -29,8 +29,11 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+using System.Buffers.Binary;
 using System.Text;
 using RabbitMQ.Client.client.framing;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -55,27 +58,26 @@ namespace RabbitMQ.Client.Framing.Impl
             _routingKey = RoutingKey;
         }
 
+        public BasicDeliver(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadShortstr(span, out _consumerTag);
+            offset += WireFormatting.ReadLonglong(span.Slice(offset), out _deliveryTag);
+            offset += WireFormatting.ReadBits(span.Slice(offset), out _redelivered);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _exchange);
+            WireFormatting.ReadShortstr(span.Slice(offset), out _routingKey);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicDeliver;
         public override string ProtocolMethodName => "basic.deliver";
         public override bool HasContent => true;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
+        public override int WriteArgumentsTo(Span<byte> span)
         {
-            _consumerTag = reader.ReadShortstr();
-            _deliveryTag = reader.ReadLonglong();
-            _redelivered = reader.ReadBit();
-            _exchange = reader.ReadShortstr();
-            _routingKey = reader.ReadShortstr();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteShortstr(_consumerTag);
-            writer.WriteLonglong(_deliveryTag);
-            writer.WriteBit(_redelivered);
-            writer.EndBits();
-            writer.WriteShortstr(_exchange);
-            writer.WriteShortstr(_routingKey);
+            int offset = WireFormatting.WriteShortstr(span, _consumerTag);
+            offset += WireFormatting.WriteLonglong(span.Slice(offset), _deliveryTag);
+            offset += WireFormatting.WriteBits(span.Slice(offset), _redelivered);
+            offset += WireFormatting.WriteShortstr(span.Slice(offset), _exchange);
+            return offset + WireFormatting.WriteShortstr(span.Slice(offset), _routingKey);
         }
 
         public override int GetRequiredBufferSize()

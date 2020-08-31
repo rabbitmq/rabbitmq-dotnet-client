@@ -29,6 +29,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Text;
 using RabbitMQ.Client.client.framing;
@@ -55,24 +56,25 @@ namespace RabbitMQ.Client.Framing.Impl
             _locale = Locale;
         }
 
+        public ConnectionStartOk(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadDictionary(span, out var tmpDictionary);
+            _clientProperties = tmpDictionary;
+            offset += WireFormatting.ReadShortstr(span, out _mechanism);
+            offset += WireFormatting.ReadLongstr(span, out _response);
+            WireFormatting.ReadShortstr(span.Slice(offset), out _locale);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionStartOk;
         public override string ProtocolMethodName => "connection.start-ok";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref MethodArgumentReader reader)
+        public override int WriteArgumentsTo(Span<byte> span)
         {
-            _clientProperties = reader.ReadTable();
-            _mechanism = reader.ReadShortstr();
-            _response = reader.ReadLongstr();
-            _locale = reader.ReadShortstr();
-        }
-
-        public override void WriteArgumentsTo(ref MethodArgumentWriter writer)
-        {
-            writer.WriteTable(_clientProperties);
-            writer.WriteShortstr(_mechanism);
-            writer.WriteLongstr(_response);
-            writer.WriteShortstr(_locale);
+            int offset = WireFormatting.WriteTable(span, _clientProperties);
+            offset += WireFormatting.WriteShortstr(span.Slice(offset), _mechanism);
+            offset += WireFormatting.WriteLongstr(span.Slice(offset), _response);
+            return offset + WireFormatting.WriteShortstr(span.Slice(offset), _locale);
         }
 
         public override int GetRequiredBufferSize()

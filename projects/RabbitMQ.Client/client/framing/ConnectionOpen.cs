@@ -29,8 +29,10 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Text;
 using RabbitMQ.Client.client.framing;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -51,23 +53,22 @@ namespace RabbitMQ.Client.Framing.Impl
             _reserved2 = Reserved2;
         }
 
+        public ConnectionOpen(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadShortstr(span, out _virtualHost);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _reserved1);
+            WireFormatting.ReadBits(span.Slice(offset), out _reserved2);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionOpen;
         public override string ProtocolMethodName => "connection.open";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
+        public override int WriteArgumentsTo(Span<byte> span)
         {
-            _virtualHost = reader.ReadShortstr();
-            _reserved1 = reader.ReadShortstr();
-            _reserved2 = reader.ReadBit();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteShortstr(_virtualHost);
-            writer.WriteShortstr(_reserved1);
-            writer.WriteBit(_reserved2);
-            writer.EndBits();
+            int offset = WireFormatting.WriteShortstr(span, _virtualHost);
+            offset += WireFormatting.WriteShortstr(span.Slice(offset), _reserved1);
+            return offset + WireFormatting.WriteBits(span.Slice(offset), _reserved2);
         }
 
         public override int GetRequiredBufferSize()

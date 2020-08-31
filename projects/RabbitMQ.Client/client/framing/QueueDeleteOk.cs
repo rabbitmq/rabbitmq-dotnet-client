@@ -29,7 +29,9 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using RabbitMQ.Client.client.framing;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -46,18 +48,18 @@ namespace RabbitMQ.Client.Framing.Impl
             _messageCount = MessageCount;
         }
 
+        public QueueDeleteOk(ReadOnlySpan<byte> span)
+        {
+            WireFormatting.ReadLong(span, out _messageCount);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueueDeleteOk;
         public override string ProtocolMethodName => "queue.delete-ok";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
+        public override int WriteArgumentsTo(Span<byte> span)
         {
-            _messageCount = reader.ReadLong();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteLong(_messageCount);
+            return WireFormatting.WriteLong(span, _messageCount);
         }
 
         public override int GetRequiredBufferSize()

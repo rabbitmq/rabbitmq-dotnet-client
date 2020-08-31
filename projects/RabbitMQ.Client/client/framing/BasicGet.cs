@@ -29,8 +29,10 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Text;
 using RabbitMQ.Client.client.framing;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -51,23 +53,22 @@ namespace RabbitMQ.Client.Framing.Impl
             _noAck = NoAck;
         }
 
+        public BasicGet(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadShort(span, out _reserved1);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _queue);
+            WireFormatting.ReadBits(span.Slice(offset), out _noAck);
+        }
+
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicGet;
         public override string ProtocolMethodName => "basic.get";
         public override bool HasContent => false;
 
-        public override void ReadArgumentsFrom(ref Client.Impl.MethodArgumentReader reader)
+        public override int WriteArgumentsTo(Span<byte> span)
         {
-            _reserved1 = reader.ReadShort();
-            _queue = reader.ReadShortstr();
-            _noAck = reader.ReadBit();
-        }
-
-        public override void WriteArgumentsTo(ref Client.Impl.MethodArgumentWriter writer)
-        {
-            writer.WriteShort(_reserved1);
-            writer.WriteShortstr(_queue);
-            writer.WriteBit(_noAck);
-            writer.EndBits();
+            int offset = WireFormatting.WriteShort(span, _reserved1);
+            offset += WireFormatting.WriteShortstr(span.Slice(offset), _queue);
+            return offset + WireFormatting.WriteBits(span.Slice(offset), _noAck);
         }
 
         public override int GetRequiredBufferSize()
