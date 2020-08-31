@@ -85,7 +85,7 @@ namespace RabbitMQ.Client
     ///"amqp://foo/" (note the trailing slash) also represent the
     ///default virtual host.  The latter issue means that virtual
     ///hosts with an empty name are not addressable. </para></remarks>
-    public sealed class ConnectionFactory : ConnectionFactoryBase, IAsyncConnectionFactory
+    public sealed class ConnectionFactory : ConnectionFactoryBase, IConnectionFactory
     {
         /// <summary>
         /// Default value for the desired maximum channel number. Default: 2047.

@@ -70,7 +70,7 @@ namespace RabbitMQ.Client
         public BinaryTableValue(byte[] bytes) { }
         public byte[] Bytes { get; set; }
     }
-    public sealed class ConnectionFactory : RabbitMQ.Client.ConnectionFactoryBase, RabbitMQ.Client.IAsyncConnectionFactory, RabbitMQ.Client.IConnectionFactory
+    public sealed class ConnectionFactory : RabbitMQ.Client.ConnectionFactoryBase, RabbitMQ.Client.IConnectionFactory
     {
         public const ushort DefaultChannelMax = 2047;
         public const uint DefaultFrameMax = 0u;
@@ -222,10 +222,6 @@ namespace RabbitMQ.Client
         System.Threading.Tasks.Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, RabbitMQ.Client.IBasicProperties properties, System.ReadOnlyMemory<byte> body);
         System.Threading.Tasks.Task HandleModelShutdown(object model, RabbitMQ.Client.ShutdownEventArgs reason);
     }
-    public interface IAsyncConnectionFactory : RabbitMQ.Client.IConnectionFactory
-    {
-        bool DispatchConsumersAsync { get; set; }
-    }
     public interface IAuthMechanism
     {
         byte[] handleChallenge(byte[] challenge, RabbitMQ.Client.IConnectionFactory factory);
@@ -341,6 +337,7 @@ namespace RabbitMQ.Client
         string ClientProvidedName { get; set; }
         int ConsumerDispatchConcurrency { get; set; }
         System.TimeSpan ContinuationTimeout { get; set; }
+        bool DispatchConsumersAsync { get; set; }
         System.TimeSpan HandshakeContinuationTimeout { get; set; }
         string Password { get; set; }
         ushort RequestedChannelMax { get; set; }
