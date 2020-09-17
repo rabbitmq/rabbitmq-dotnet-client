@@ -231,13 +231,6 @@ namespace RabbitMQ.Client
         string Name { get; }
         RabbitMQ.Client.IAuthMechanism GetInstance();
     }
-    public interface IAutorecoveringConnection : RabbitMQ.Client.IConnection, RabbitMQ.Client.INetworkConnection, System.IDisposable
-    {
-        event System.EventHandler<RabbitMQ.Client.Events.ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError;
-        event System.EventHandler<RabbitMQ.Client.Events.ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery;
-        event System.EventHandler<RabbitMQ.Client.Events.QueueNameChangedAfterRecoveryEventArgs> QueueNameChangeAfterRecovery;
-        event System.EventHandler<System.EventArgs> RecoverySucceeded;
-    }
     public interface IBasicConsumer
     {
         RabbitMQ.Client.IModel Model { get; }
@@ -316,8 +309,12 @@ namespace RabbitMQ.Client
         System.Collections.Generic.IList<RabbitMQ.Client.ShutdownReportEntry> ShutdownReport { get; }
         event System.EventHandler<RabbitMQ.Client.Events.CallbackExceptionEventArgs> CallbackException;
         event System.EventHandler<RabbitMQ.Client.Events.ConnectionBlockedEventArgs> ConnectionBlocked;
+        event System.EventHandler<RabbitMQ.Client.Events.ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError;
         event System.EventHandler<RabbitMQ.Client.ShutdownEventArgs> ConnectionShutdown;
         event System.EventHandler<System.EventArgs> ConnectionUnblocked;
+        event System.EventHandler<RabbitMQ.Client.Events.ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery;
+        event System.EventHandler<RabbitMQ.Client.Events.QueueNameChangedAfterRecoveryEventArgs> QueueNameChangeAfterRecovery;
+        event System.EventHandler<System.EventArgs> RecoverySucceeded;
         void Abort();
         void Abort(System.TimeSpan timeout);
         void Abort(ushort reasonCode, string reasonText);

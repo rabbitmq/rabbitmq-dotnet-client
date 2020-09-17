@@ -166,6 +166,43 @@ namespace RabbitMQ.Client
         /// </remarks>
         event EventHandler<ShutdownEventArgs> ConnectionShutdown;
 
+        /// <summary>
+        /// Raised when the connection completes recovery.
+        /// </summary>
+        /// <remarks>
+        /// This event will never fire for connections that disable automatic recovery.
+        /// </remarks>
+        event EventHandler<EventArgs> RecoverySucceeded;
+
+        /// <summary>
+        /// Raised when the connection recovery fails, e.g. because reconnection or topology
+        /// recovery failed.
+        /// </summary>
+        /// <remarks>
+        /// This event will never fire for connections that disable automatic recovery.
+        /// </remarks>
+        event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError;
+
+        /// <summary>
+        /// Raised when the server-generated tag of a consumer registered on this connection changes during
+        /// connection recovery. This allows applications that need to be aware of server-generated
+        /// consumer tag values to keep track of the changes.
+        /// </summary>
+        /// <remarks>
+        /// This event will never fire for connections that disable automatic recovery.
+        /// </remarks>
+        event EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery;
+
+        /// <summary>
+        /// Raised when the name of a server-named queue declared on this connection changes during
+        /// connection recovery. This allows applications that need to be aware of server-named
+        /// queue names to keep track of the changes.
+        /// </summary>
+        /// <remarks>
+        /// This event will never fire for connections that disable automatic recovery.
+        /// </remarks>
+        event EventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangeAfterRecovery;
+
         event EventHandler<EventArgs> ConnectionUnblocked;
 
         /// <summary>
