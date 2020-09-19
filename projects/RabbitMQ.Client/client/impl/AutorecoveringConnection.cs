@@ -44,7 +44,7 @@ using RabbitMQ.Client.Logging;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class AutorecoveringConnection : IAutorecoveringConnection
+    internal sealed class AutorecoveringConnection : IConnection
     {
         private bool _disposed = false;
         private readonly object _eventLock = new object();
