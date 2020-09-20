@@ -1,7 +1,7 @@
 ## RabbitMQ .NET Client
 
-* AppVeyor: [![AppVeyor Build status](https://ci.appveyor.com/api/projects/status/33srpo7owl1h3y4e?svg=true)](https://ci.appveyor.com/project/rabbitmq/rabbitmq-dotnet-client)
-* TravisCI: [![Travis CI Build Status](https://travis-ci.org/rabbitmq/rabbitmq-dotnet-client.svg?branch=master)](https://travis-ci.org/rabbitmq/rabbitmq-dotnet-client)
+[![AppVeyor Build status](https://ci.appveyor.com/api/projects/status/33srpo7owl1h3y4e?svg=true)](https://ci.appveyor.com/project/rabbitmq/rabbitmq-dotnet-client)
+[![Travis CI Build Status](https://travis-ci.org/rabbitmq/rabbitmq-dotnet-client.svg?branch=master)](https://travis-ci.org/rabbitmq/rabbitmq-dotnet-client)
 
 This repository contains source code of the [RabbitMQ .NET client](https://www.rabbitmq.com/dotnet.html).
 The client is maintained by the [RabbitMQ team at VMware](https://github.com/rabbitmq/).
