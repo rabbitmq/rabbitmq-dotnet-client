@@ -9,8 +9,6 @@ The client is maintained by the [RabbitMQ team at VMware](https://github.com/rab
 
 ## Dependency (NuGet Artifact)
 
-### Modern Versions
-
 The client is [distributed via NuGet](https://www.nuget.org/packages/RabbitMQ.Client/).
 
 
