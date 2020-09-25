@@ -90,7 +90,16 @@ namespace RabbitMQ.Client.Impl
                         try
                         {
                             Task task = work.Execute();
-                            await task.ConfigureAwait(false);
+                            if (!task.IsCompleted)
+                            {
+                                await task.ConfigureAwait(false);
+                            }
+
+                            // Without await, the exception will disappear
+                            if(task.Exception != null)
+                            {
+                                throw task.Exception.InnerException;
+                            }
                         }
                         catch (Exception e)
                         {
@@ -143,7 +152,16 @@ namespace RabbitMQ.Client.Impl
                 try
                 {
                     Task task = work.Execute();
-                    await task.ConfigureAwait(false);
+                    if (!task.IsCompleted)
+                    {
+                        await task.ConfigureAwait(false);
+                    }
+
+                    // Without await, the exception will disappear
+                    if (task.Exception != null)
+                    {
+                        throw task.Exception.InnerException;
+                    }
                 }
                 catch (Exception e)
                 {
