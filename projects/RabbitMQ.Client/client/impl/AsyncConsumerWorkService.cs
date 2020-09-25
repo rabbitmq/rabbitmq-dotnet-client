@@ -94,11 +94,10 @@ namespace RabbitMQ.Client.Impl
                             {
                                 await task.ConfigureAwait(false);
                             }
-
-                            // Without await, the exception will disappear
-                            if(task.Exception != null)
+                            else
                             {
-                                throw task.Exception.InnerException;
+                                // to materialize exceptions if any
+                                task.GetAwaiter().GetResult();
                             }
                         }
                         catch (Exception e)
@@ -156,11 +155,10 @@ namespace RabbitMQ.Client.Impl
                     {
                         await task.ConfigureAwait(false);
                     }
-
-                    // Without await, the exception will disappear
-                    if (task.Exception != null)
+                    else
                     {
-                        throw task.Exception.InnerException;
+                        // to materialize exceptions if any
+                        task.GetAwaiter().GetResult();
                     }
                 }
                 catch (Exception e)
