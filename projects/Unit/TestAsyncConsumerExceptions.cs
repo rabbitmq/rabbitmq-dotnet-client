@@ -40,72 +40,6 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestAsyncConsumerExceptions : IntegrationFixture
     {
-        private class ConsumerFailingOnDelivery : AsyncEventingBasicConsumer
-        {
-            public ConsumerFailingOnDelivery(IModel model) : base(model)
-            {
-            }
-
-            public override Task HandleBasicDeliver(string consumerTag,
-                ulong deliveryTag,
-                bool redelivered,
-                string exchange,
-                string routingKey,
-                IBasicProperties properties,
-                ReadOnlyMemory<byte> body)
-            {
-                throw new Exception("oops");
-            }
-        }
-
-        private class ConsumerFailingOnCancel : AsyncEventingBasicConsumer
-        {
-            public ConsumerFailingOnCancel(IModel model) : base(model)
-            {
-            }
-
-            public override Task HandleBasicCancel(string consumerTag)
-            {
-                throw new Exception("oops");
-            }
-        }
-
-        private class ConsumerFailingOnShutdown : AsyncEventingBasicConsumer
-        {
-            public ConsumerFailingOnShutdown(IModel model) : base(model)
-            {
-            }
-
-            public override Task HandleModelShutdown(object model, ShutdownEventArgs reason)
-            {
-                throw new Exception("oops");
-            }
-        }
-
-        private class ConsumerFailingOnConsumeOk : AsyncEventingBasicConsumer
-        {
-            public ConsumerFailingOnConsumeOk(IModel model) : base(model)
-            {
-            }
-
-            public override Task HandleBasicConsumeOk(string consumerTag)
-            {
-                throw new Exception("oops");
-            }
-        }
-
-        private class ConsumerFailingOnCancelOk : AsyncEventingBasicConsumer
-        {
-            public ConsumerFailingOnCancelOk(IModel model) : base(model)
-            {
-            }
-
-            public override Task HandleBasicCancelOk(string consumerTag)
-            {
-                throw new Exception("oops");
-            }
-        }
-
         protected void TestExceptionHandlingWith(IBasicConsumer consumer,
             Action<IModel, string, IBasicConsumer, string> action)
         {
@@ -125,6 +59,18 @@ namespace RabbitMQ.Client.Unit
             WaitOn(o);
 
             Assert.IsTrue(notified);
+        }
+
+        [SetUp]
+        public override void Init()
+        {
+            _connFactory = new ConnectionFactory
+            {
+                DispatchConsumersAsync = true
+            };
+
+            _conn = _connFactory.CreateConnection();
+            _model = _conn.CreateModel();
         }
 
         [Test]
@@ -160,6 +106,77 @@ namespace RabbitMQ.Client.Unit
         {
             IBasicConsumer consumer = new ConsumerFailingOnDelivery(_model);
             TestExceptionHandlingWith(consumer, (m, q, c, ct) => m.BasicPublish("", q, null, _encoding.GetBytes("msg")));
+        }
+
+        private class ConsumerFailingOnDelivery : AsyncEventingBasicConsumer
+        {
+            public ConsumerFailingOnDelivery(IModel model) : base(model)
+            {
+            }
+
+            public override async Task HandleBasicDeliver(string consumerTag,
+                ulong deliveryTag,
+                bool redelivered,
+                string exchange,
+                string routingKey,
+                IBasicProperties properties,
+                ReadOnlyMemory<byte> body)
+            {
+                await Task.Delay(0);
+                throw new Exception("oops");
+            }
+        }
+
+        private class ConsumerFailingOnCancel : AsyncEventingBasicConsumer
+        {
+            public ConsumerFailingOnCancel(IModel model) : base(model)
+            {
+            }
+
+            public override async Task HandleBasicCancel(string consumerTag)
+            {
+                await Task.Delay(0);
+                throw new Exception("oops");
+            }
+        }
+
+        private class ConsumerFailingOnShutdown : AsyncEventingBasicConsumer
+        {
+            public ConsumerFailingOnShutdown(IModel model) : base(model)
+            {
+            }
+
+            public override async Task HandleModelShutdown(object model, ShutdownEventArgs reason)
+            {
+                await Task.Delay(0);
+                throw new Exception("oops");
+            }
+        }
+
+        private class ConsumerFailingOnConsumeOk : AsyncEventingBasicConsumer
+        {
+            public ConsumerFailingOnConsumeOk(IModel model) : base(model)
+            {
+            }
+
+            public override async Task HandleBasicConsumeOk(string consumerTag)
+            {
+                await Task.Delay(0);
+                throw new Exception("oops");
+            }
+        }
+
+        private class ConsumerFailingOnCancelOk : AsyncEventingBasicConsumer
+        {
+            public ConsumerFailingOnCancelOk(IModel model) : base(model)
+            {
+            }
+
+            public override async Task HandleBasicCancelOk(string consumerTag)
+            {
+                await Task.Delay(0);
+                throw new Exception("oops");
+            }
         }
     }
 }
