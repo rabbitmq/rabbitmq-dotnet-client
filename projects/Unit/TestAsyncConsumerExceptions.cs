@@ -114,7 +114,7 @@ namespace RabbitMQ.Client.Unit
             {
             }
 
-            public override async Task HandleBasicDeliver(string consumerTag,
+            public override Task HandleBasicDeliver(string consumerTag,
                 ulong deliveryTag,
                 bool redelivered,
                 string exchange,
@@ -122,8 +122,7 @@ namespace RabbitMQ.Client.Unit
                 IBasicProperties properties,
                 ReadOnlyMemory<byte> body)
             {
-                await Task.Delay(0);
-                throw new Exception("oops");
+                return Task.FromException(new Exception("oops"));
             }
         }
 
@@ -133,10 +132,9 @@ namespace RabbitMQ.Client.Unit
             {
             }
 
-            public override async Task HandleBasicCancel(string consumerTag)
+            public override Task HandleBasicCancel(string consumerTag)
             {
-                await Task.Delay(0);
-                throw new Exception("oops");
+                return Task.FromException(new Exception("oops"));
             }
         }
 
@@ -146,10 +144,9 @@ namespace RabbitMQ.Client.Unit
             {
             }
 
-            public override async Task HandleModelShutdown(object model, ShutdownEventArgs reason)
+            public override Task HandleModelShutdown(object model, ShutdownEventArgs reason)
             {
-                await Task.Delay(0);
-                throw new Exception("oops");
+                return Task.FromException(new Exception("oops"));
             }
         }
 
@@ -159,10 +156,9 @@ namespace RabbitMQ.Client.Unit
             {
             }
 
-            public override async Task HandleBasicConsumeOk(string consumerTag)
+            public override Task HandleBasicConsumeOk(string consumerTag)
             {
-                await Task.Delay(0);
-                throw new Exception("oops");
+                return Task.FromException(new Exception("oops"));
             }
         }
 
@@ -172,10 +168,9 @@ namespace RabbitMQ.Client.Unit
             {
             }
 
-            public override async Task HandleBasicCancelOk(string consumerTag)
+            public override Task HandleBasicCancelOk(string consumerTag)
             {
-                await Task.Delay(0);
-                throw new Exception("oops");
+                return Task.FromException(new Exception("oops"));
             }
         }
     }
