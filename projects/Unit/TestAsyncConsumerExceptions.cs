@@ -40,23 +40,26 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestAsyncConsumerExceptions : IntegrationFixture
     {
+        private static Exception TestException = new Exception("oops");
+
         protected void TestExceptionHandlingWith(IBasicConsumer consumer,
             Action<IModel, string, IBasicConsumer, string> action)
         {
-            object o = new object();
+            var resetEvent = new AutoResetEvent(false);
             bool notified = false;
             string q = _model.QueueDeclare();
 
-
             _model.CallbackException += (m, evt) =>
             {
+                if (evt.Exception != TestException) return;
+
                 notified = true;
-                Monitor.PulseAll(o);
+                resetEvent.Set();
             };
 
             string tag = _model.BasicConsume(q, true, consumer);
             action(_model, q, consumer, tag);
-            WaitOn(o);
+            resetEvent.WaitOne();
 
             Assert.IsTrue(notified);
         }
@@ -122,7 +125,7 @@ namespace RabbitMQ.Client.Unit
                 IBasicProperties properties,
                 ReadOnlyMemory<byte> body)
             {
-                return Task.FromException(new Exception("oops"));
+                return Task.FromException(TestException);
             }
         }
 
@@ -134,7 +137,7 @@ namespace RabbitMQ.Client.Unit
 
             public override Task HandleBasicCancel(string consumerTag)
             {
-                return Task.FromException(new Exception("oops"));
+                return Task.FromException(TestException);
             }
         }
 
@@ -146,7 +149,7 @@ namespace RabbitMQ.Client.Unit
 
             public override Task HandleModelShutdown(object model, ShutdownEventArgs reason)
             {
-                return Task.FromException(new Exception("oops"));
+                return Task.FromException(TestException);
             }
         }
 
@@ -158,7 +161,7 @@ namespace RabbitMQ.Client.Unit
 
             public override Task HandleBasicConsumeOk(string consumerTag)
             {
-                return Task.FromException(new Exception("oops"));
+                return Task.FromException(TestException);
             }
         }
 
@@ -170,7 +173,7 @@ namespace RabbitMQ.Client.Unit
 
             public override Task HandleBasicCancelOk(string consumerTag)
             {
-                return Task.FromException(new Exception("oops"));
+                return Task.FromException(TestException);
             }
         }
     }
