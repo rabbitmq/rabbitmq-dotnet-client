@@ -47,9 +47,9 @@ namespace RabbitMQ.Client.Unit
         {
             var resetEvent = new AutoResetEvent(false);
             bool notified = false;
-            string q = _model.QueueDeclare();
+            string q = this.Model.QueueDeclare();
 
-            _model.CallbackException += (m, evt) =>
+            this.Model.CallbackException += (m, evt) =>
             {
                 if (evt.Exception != TestException) return;
 
@@ -57,8 +57,8 @@ namespace RabbitMQ.Client.Unit
                 resetEvent.Set();
             };
 
-            string tag = _model.BasicConsume(q, true, consumer);
-            action(_model, q, consumer, tag);
+            string tag = this.Model.BasicConsume(q, true, consumer);
+            action(this.Model, q, consumer, tag);
             resetEvent.WaitOne();
 
             Assert.IsTrue(notified);
@@ -67,48 +67,48 @@ namespace RabbitMQ.Client.Unit
         [SetUp]
         public override void Init()
         {
-            _connFactory = new ConnectionFactory
+            ConnFactory = new ConnectionFactory
             {
                 DispatchConsumersAsync = true
             };
 
-            _conn = _connFactory.CreateConnection();
-            _model = _conn.CreateModel();
+            Conn = ConnFactory.CreateConnection();
+            Model = Conn.CreateModel();
         }
 
         [Test]
         public void TestCancelNotificationExceptionHandling()
         {
-            IBasicConsumer consumer = new ConsumerFailingOnCancel(_model);
+            IBasicConsumer consumer = new ConsumerFailingOnCancel(this.Model);
             TestExceptionHandlingWith(consumer, (m, q, c, ct) => m.QueueDelete(q));
         }
 
         [Test]
         public void TestConsumerCancelOkExceptionHandling()
         {
-            IBasicConsumer consumer = new ConsumerFailingOnCancelOk(_model);
+            IBasicConsumer consumer = new ConsumerFailingOnCancelOk(this.Model);
             TestExceptionHandlingWith(consumer, (m, q, c, ct) => m.BasicCancel(ct));
         }
 
         [Test]
         public void TestConsumerConsumeOkExceptionHandling()
         {
-            IBasicConsumer consumer = new ConsumerFailingOnConsumeOk(_model);
+            IBasicConsumer consumer = new ConsumerFailingOnConsumeOk(this.Model);
             TestExceptionHandlingWith(consumer, (m, q, c, ct) => { });
         }
 
         [Test]
         public void TestConsumerShutdownExceptionHandling()
         {
-            IBasicConsumer consumer = new ConsumerFailingOnShutdown(_model);
+            IBasicConsumer consumer = new ConsumerFailingOnShutdown(this.Model);
             TestExceptionHandlingWith(consumer, (m, q, c, ct) => m.Close());
         }
 
         [Test]
         public void TestDeliveryExceptionHandling()
         {
-            IBasicConsumer consumer = new ConsumerFailingOnDelivery(_model);
-            TestExceptionHandlingWith(consumer, (m, q, c, ct) => m.BasicPublish("", q, null, _encoding.GetBytes("msg")));
+            IBasicConsumer consumer = new ConsumerFailingOnDelivery(this.Model);
+            TestExceptionHandlingWith(consumer, (m, q, c, ct) => m.BasicPublish("", q, null, encoding.GetBytes("msg")));
         }
 
         private class ConsumerFailingOnDelivery : AsyncEventingBasicConsumer
