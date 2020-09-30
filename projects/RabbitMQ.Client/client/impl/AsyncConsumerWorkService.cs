@@ -94,6 +94,11 @@ namespace RabbitMQ.Client.Impl
                             {
                                 await task.ConfigureAwait(false);
                             }
+                            else
+                            {
+                                // to materialize exceptions if any
+                                task.GetAwaiter().GetResult();
+                            }
                         }
                         catch (Exception e)
                         {
@@ -126,7 +131,7 @@ namespace RabbitMQ.Client.Impl
                         while (_channel.Reader.TryRead(out Work work))
                         {
                             // Do a quick synchronous check before we resort to async/await with the state-machine overhead.
-                            if(!_limiter.Wait(0))
+                            if (!_limiter.Wait(0))
                             {
                                 await _limiter.WaitAsync(cancellationToken).ConfigureAwait(false);
                             }
@@ -149,6 +154,11 @@ namespace RabbitMQ.Client.Impl
                     if (!task.IsCompleted)
                     {
                         await task.ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        // to materialize exceptions if any
+                        task.GetAwaiter().GetResult();
                     }
                 }
                 catch (Exception e)
