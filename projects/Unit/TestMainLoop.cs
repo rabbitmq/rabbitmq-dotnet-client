@@ -39,11 +39,12 @@ using RabbitMQ.Client.Events;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestMainLoop : IntegrationFixture {
+    public class TestMainLoop : IntegrationFixture
+    {
 
         private class FaultyConsumer : DefaultBasicConsumer
         {
-            public FaultyConsumer(IModel model) : base(model) {}
+            public FaultyConsumer(IModel model) : base(model) { }
 
             public override void HandleBasicDeliver(string consumerTag,
                                                ulong deliveryTag,
@@ -68,7 +69,8 @@ namespace RabbitMQ.Client.Unit
             m.QueueDeclare(q, false, false, false, null);
 
             CallbackExceptionEventArgs ea = null;
-            m.CallbackException += (_, evt) => {
+            m.CallbackException += (_, evt) =>
+            {
                 ea = evt;
                 c.Close();
                 Monitor.PulseAll(o);
@@ -80,6 +82,7 @@ namespace RabbitMQ.Client.Unit
             Assert.IsNotNull(ea);
             Assert.AreEqual(c.IsOpen, false);
             Assert.AreEqual(c.CloseReason.ReplyCode, 200);
+            m.QueueDelete(q);
         }
     }
 }

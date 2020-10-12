@@ -30,20 +30,21 @@ namespace RabbitMQ.Client.Impl
             await ConnectAsync(ep, port).ConfigureAwait(false);
         }
 
-        public virtual async Task ConnectAsync(IPAddress ep, int port)
+        public virtual Task ConnectAsync(IPAddress ep, int port)
         {
             AssertSocket();
 #if NET461
-            await Task.Run(() => _sock.Connect(ep, port)).ConfigureAwait(false);
+            return Task.Run(() => _sock.Connect(ep, port));
 #else
-            await _sock.ConnectAsync(ep, port).ConfigureAwait(false);
+            return _sock.ConnectAsync(ep, port);
 #endif
         }
 
         public virtual void Close()
         {
-            _sock?.Dispose();
-            _sock = null;
+            try { _sock.Shutdown(SocketShutdown.Both); } catch { }
+            try { _sock.Close(); } catch { }
+            try { _sock.Dispose(); } catch { }
         }
 
         [Obsolete("Override Dispose(bool) instead.")]

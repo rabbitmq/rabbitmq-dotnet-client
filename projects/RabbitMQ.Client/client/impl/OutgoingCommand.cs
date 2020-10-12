@@ -30,11 +30,63 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Buffers;
+
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
+    internal readonly struct OutgoingFrame
+    {
+        internal FrameType FrameType { get; }
+        internal ushort Channel { get; }
+        internal MethodBase Method { get; }
+        internal ContentHeaderBase Header { get; }
+        internal ReadOnlyMemory<byte> Body { get; }
+        internal int MaxBodyPayloadBytes { get; }
+
+        private OutgoingFrame(FrameType frameType, ushort channel, MethodBase methodBase, ContentHeaderBase contentHeaderBase, ReadOnlyMemory<byte> body, int maxBodyPayloadBytes)
+        {
+            FrameType = frameType;
+            Channel = channel;
+            Method = methodBase;
+            Header = contentHeaderBase;
+            Body = body;
+            MaxBodyPayloadBytes = maxBodyPayloadBytes;
+        }
+
+        internal static OutgoingFrame CreateHeartbeat()
+        {
+            return new OutgoingFrame(FrameType.FrameHeartbeat, 0, null, null, ReadOnlyMemory<byte>.Empty, 0);
+        }
+
+        internal static OutgoingFrame CreateMethod(ushort channel, MethodBase methodBase, ContentHeaderBase contentHeaderBase, ReadOnlyMemory<byte> body, int maxBodyPayloadSize)
+        {
+            return new OutgoingFrame(FrameType.FrameMethod, channel, methodBase, contentHeaderBase, body, maxBodyPayloadSize);
+        }
+
+        internal int GetMaxSize(int maxPayloadBytes)
+        {
+            if (!Method.HasContent)
+            {
+                return Framing.Method.FrameSize + Method.GetRequiredBufferSize();
+            }
+
+            return Framing.Method.FrameSize + Method.GetRequiredBufferSize() +
+                   Framing.Header.FrameSize + Header.GetRequiredPayloadBufferSize() +
+                   Framing.BodySegment.FrameSize * GetBodyFrameCount(maxPayloadBytes) + Body.Length;
+        }
+
+        private int GetBodyFrameCount(int maxPayloadBytes)
+        {
+            if (maxPayloadBytes == int.MaxValue)
+            {
+                return 1;
+            }
+
+            return (Body.Length + maxPayloadBytes - 1) / maxPayloadBytes;
+        }
+    }
+
     internal readonly struct OutgoingCommand
     {
         // EmptyFrameSize, 8 = 1 + 2 + 4 + 1
@@ -63,32 +115,7 @@ namespace RabbitMQ.Client.Impl
         internal void Transmit(ushort channelNumber, Connection connection)
         {
             int maxBodyPayloadBytes = (int)(connection.FrameMax == 0 ? int.MaxValue : connection.FrameMax - EmptyFrameSize);
-            int size = GetMaxSize(maxBodyPayloadBytes);
-
-            // Will be returned by SocketFrameWriter.WriteLoop
-            byte[] rentedArray = ArrayPool<byte>.Shared.Rent(size);
-            Span<byte> span = rentedArray.AsSpan(0, size);
-
-            int offset = Framing.Method.WriteTo(span, channelNumber, Method);
-            if (Method.HasContent)
-            {
-                int remainingBodyBytes = _body.Length;
-                offset += Framing.Header.WriteTo(span.Slice(offset), channelNumber, _header, remainingBodyBytes);
-                ReadOnlySpan<byte> bodySpan = _body.Span;
-                while (remainingBodyBytes > 0)
-                {
-                    int frameSize = remainingBodyBytes > maxBodyPayloadBytes ? maxBodyPayloadBytes : remainingBodyBytes;
-                    offset += Framing.BodySegment.WriteTo(span.Slice(offset), channelNumber, bodySpan.Slice(bodySpan.Length - remainingBodyBytes, frameSize));
-                    remainingBodyBytes -= frameSize;
-                }
-            }
-
-            if (offset != size)
-            {
-                throw new InvalidOperationException($"Serialized to wrong size, expect {size}, offset {offset}");
-            }
-
-            connection.Write(new ReadOnlyMemory<byte>(rentedArray, 0, size));
+            connection.Write(OutgoingFrame.CreateMethod(channelNumber, Method, _header, _body, maxBodyPayloadBytes));
         }
 
         private int GetMaxSize(int maxPayloadBytes)

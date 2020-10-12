@@ -39,6 +39,7 @@ using System.Threading;
 using NUnit.Framework;
 
 using RabbitMQ.Client.Framing.Impl;
+
 using static RabbitMQ.Client.Unit.RabbitMQCtl;
 
 namespace RabbitMQ.Client.Unit
@@ -63,11 +64,11 @@ namespace RabbitMQ.Client.Unit
         [TearDown]
         public void Dispose()
         {
-            if(_model.IsOpen)
+            if (_model.IsOpen)
             {
                 _model.Close();
             }
-            if(_conn.IsOpen)
+            if (_conn.IsOpen)
             {
                 _conn.Close();
             }
@@ -254,9 +255,9 @@ namespace RabbitMQ.Client.Unit
         // Queues
         //
 
-        internal string GenerateQueueName()
+        internal string GenerateQueueName([System.Runtime.CompilerServices.CallerMemberName] string memberName = "")
         {
-            return $"queue{Guid.NewGuid()}";
+            return $"queue_{Guid.NewGuid()}_{memberName}";
         }
 
         internal void WithTemporaryQueue(Action<IModel, string> action)
@@ -290,7 +291,8 @@ namespace RabbitMQ.Client.Unit
             {
                 model.QueueDeclare(queue, false, true, false, null);
                 action(model, queue);
-            } finally
+            }
+            finally
             {
                 WithTemporaryModel(x => x.QueueDelete(queue));
             }
@@ -302,7 +304,8 @@ namespace RabbitMQ.Client.Unit
             {
                 model.QueueDeclare(queue, false, false, false, null);
                 action(model, queue);
-            } finally
+            }
+            finally
             {
                 WithTemporaryModel(tm => tm.QueueDelete(queue));
             }
@@ -314,7 +317,8 @@ namespace RabbitMQ.Client.Unit
             {
                 model.QueueDeclareNoWait(queue, false, true, false, null);
                 action(model, queue);
-            } finally
+            }
+            finally
             {
                 WithTemporaryModel(x => x.QueueDelete(queue));
             }
@@ -355,7 +359,8 @@ namespace RabbitMQ.Client.Unit
 
         internal void AssertMessageCount(string q, int count)
         {
-            WithTemporaryModel((m) => {
+            WithTemporaryModel((m) =>
+            {
                 QueueDeclareOk ok = m.QueueDeclarePassive(q);
                 Assert.AreEqual(count, ok.MessageCount);
             });
@@ -363,7 +368,8 @@ namespace RabbitMQ.Client.Unit
 
         internal void AssertConsumerCount(string q, int count)
         {
-            WithTemporaryModel((m) => {
+            WithTemporaryModel((m) =>
+            {
                 QueueDeclareOk ok = m.QueueDeclarePassive(q);
                 Assert.AreEqual(count, ok.ConsumerCount);
             });
@@ -400,7 +406,7 @@ namespace RabbitMQ.Client.Unit
 
         internal void WaitOn(object o)
         {
-            lock(o)
+            lock (o)
             {
                 Monitor.Wait(o, TimingFixture.TestTimeout);
             }

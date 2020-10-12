@@ -30,9 +30,9 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Buffers;
-using System.Runtime.InteropServices;
+
 using NUnit.Framework;
+
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Unit
@@ -43,28 +43,18 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void HeartbeatFrame()
         {
-            Memory<byte> memory = Impl.Framing.Heartbeat.GetHeartbeatFrame();
-            Span<byte> frameSpan = memory.Span;
+            Span<byte> frameSpan = stackalloc byte[8];
+            Impl.Framing.Heartbeat.WriteTo(frameSpan);
 
-            try
-            {
-                Assert.AreEqual(8, frameSpan.Length);
-                Assert.AreEqual(Constants.FrameHeartbeat, frameSpan[0]);
-                Assert.AreEqual(0, frameSpan[1]); // channel
-                Assert.AreEqual(0, frameSpan[2]); // channel
-                Assert.AreEqual(0, frameSpan[3]); // payload size
-                Assert.AreEqual(0, frameSpan[4]); // payload size
-                Assert.AreEqual(0, frameSpan[5]); // payload size
-                Assert.AreEqual(0, frameSpan[6]); // payload size
-                Assert.AreEqual(Constants.FrameEnd, frameSpan[7]);
-            }
-            finally
-            {
-                if (MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> segment))
-                {
-                    ArrayPool<byte>.Shared.Return(segment.Array);
-                }
-            }
+            Assert.AreEqual(8, frameSpan.Length);
+            Assert.AreEqual(Constants.FrameHeartbeat, frameSpan[0]);
+            Assert.AreEqual(0, frameSpan[1]); // channel
+            Assert.AreEqual(0, frameSpan[2]); // channel
+            Assert.AreEqual(0, frameSpan[3]); // payload size
+            Assert.AreEqual(0, frameSpan[4]); // payload size
+            Assert.AreEqual(0, frameSpan[5]); // payload size
+            Assert.AreEqual(0, frameSpan[6]); // payload size
+            Assert.AreEqual(Constants.FrameEnd, frameSpan[7]);
         }
 
         [Test]

@@ -308,7 +308,7 @@ namespace RabbitMQ.Client.Unit
         public static void RestartRabbitMQ()
         {
             StopRabbitMQ();
-            Thread.Sleep(500);
+            Thread.Sleep(1000);
             StartRabbitMQ();
         }
 
