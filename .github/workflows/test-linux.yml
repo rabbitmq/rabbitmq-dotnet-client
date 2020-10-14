@@ -1,0 +1,34 @@
+name: Build (Linux)
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      rabbitmq:
+        image: rabbitmq:3.8.9-management
+        ports:
+         - 5672:5672
+         - 15672:15672
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.x
+
+    - name: Build
+      run: dotnet build --configuration Release
+
+    - name: Test
+      run: dotnet test --configuration Release --framework 'netcoreapp3.1' --no-build
+      env:
+        RABBITMQ_RABBITMQCTL_PATH: DOCKER:${{job.services.rabbitmq.id}}
