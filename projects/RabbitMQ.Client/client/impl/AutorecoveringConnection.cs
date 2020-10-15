@@ -196,6 +196,8 @@ namespace RabbitMQ.Client.Framing.Impl
             set => Delegate.KnownHosts = value;
         }
 
+        internal IFrameHandler FrameHandler => Delegate.FrameHandler;
+
         public int LocalPort => Delegate.LocalPort;
 
         public ProtocolBase Protocol => Delegate.Protocol;
@@ -248,8 +250,6 @@ namespace RabbitMQ.Client.Framing.Impl
 
             return false;
         }
-
-        public void Close(ShutdownEventArgs reason) => Delegate.Close(reason);
 
         public RecoveryAwareModel CreateNonRecoveringModel()
         {
@@ -514,6 +514,16 @@ namespace RabbitMQ.Client.Framing.Impl
             if (_delegate.IsOpen)
             {
                 _delegate.Close(reasonCode, reasonText);
+            }
+        }
+
+        public void Close(ShutdownEventArgs reason)
+        {
+            ThrowIfDisposed();
+            StopRecoveryLoop();
+            if (_delegate.IsOpen)
+            {
+                _delegate.Close(reason);
             }
         }
 

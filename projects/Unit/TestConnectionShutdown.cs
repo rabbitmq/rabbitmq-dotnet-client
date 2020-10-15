@@ -35,12 +35,57 @@ using System.Threading;
 using NUnit.Framework;
 
 using RabbitMQ.Client.Impl;
+using RabbitMQ.Client.Framing.Impl;
+
 
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
     public class TestConnectionShutdown : IntegrationFixture
     {
+
+        [Test]
+        public void TestCleanClosureWithSocketClosedOutOfBand()
+        {
+            _conn = CreateAutorecoveringConnection();
+            _model = _conn.CreateModel();
+
+            var c = (AutorecoveringConnection)_conn;
+            c.FrameHandler.Close();
+
+            var latch = new ManualResetEventSlim(false);
+            _conn.Close(TimeSpan.FromSeconds(4));
+            Wait(latch, TimeSpan.FromSeconds(5));
+        }
+
+        [Test]
+        public void TestAbortWithSocketClosedOutOfBand()
+        {
+            _conn = CreateAutorecoveringConnection();
+            _model = _conn.CreateModel();
+
+            var c = (AutorecoveringConnection)_conn;
+            c.FrameHandler.Close();
+
+            var latch = new ManualResetEventSlim(false);
+            _conn.Abort();
+            // default Connection.Abort() timeout and then some
+            Wait(latch, Connection.DefaultConnectionAbortTimeout + TimeSpan.FromSeconds(1));
+        }
+
+        public void TestDisposedWithSocketClosedOutOfBand()
+        {
+            _conn = CreateAutorecoveringConnection();
+            _model = _conn.CreateModel();
+
+            var c = (AutorecoveringConnection)_conn;
+            c.FrameHandler.Close();
+
+            var latch = new ManualResetEventSlim(false);
+            _conn.Dispose();
+            Wait(latch, TimeSpan.FromSeconds(3));
+        }
+
         [Test]
         public void TestShutdownSignalPropagationToChannels()
         {
