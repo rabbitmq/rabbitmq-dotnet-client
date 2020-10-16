@@ -37,7 +37,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
+using RabbitMQ.Client.client.impl;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
@@ -75,6 +75,10 @@ namespace RabbitMQ.Client.Impl
             if (workService is AsyncConsumerWorkService asyncConsumerWorkService)
             {
                 ConsumerDispatcher = new AsyncConsumerDispatcher(this, asyncConsumerWorkService);
+            }
+            else if (workService is InlineWorkService)
+            {
+                ConsumerDispatcher = new InlineConsumerDispatcher(this);
             }
             else
             {

@@ -16,6 +16,7 @@ namespace Benchmarks.Networking
                .WithName("rabbitmq")
                .WithEnvironment("NODENAME=rabbit1")
                .ExecuteOnRunning("rabbitmqctl --node rabbit1 await_startup ")
+               .KeepContainer()
                .Build()
                .Start();
 

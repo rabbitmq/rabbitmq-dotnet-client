@@ -323,6 +323,9 @@ namespace RabbitMQ.Client
         /// </summary>
         public string ClientProvidedName { get; set; }
 
+        /// <inheritdoc/>
+        public bool DispatchConsumerInline { get; set; }
+
         /// <summary>
         /// Given a list of mechanism names supported by the server, select a preferred mechanism,
         ///  or null if we have none in common.

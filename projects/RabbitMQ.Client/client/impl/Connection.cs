@@ -40,7 +40,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
+using RabbitMQ.Client.client.impl;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Impl;
@@ -104,7 +104,9 @@ namespace RabbitMQ.Client.Framing.Impl
 
             ConsumerWorkService = factory.DispatchConsumersAsync
                 ? new AsyncConsumerWorkService(factory.ConsumerDispatchConcurrency)
-                : new ConsumerWorkService(factory.ConsumerDispatchConcurrency);
+                : factory.DispatchConsumerInline
+                    ? new InlineWorkService(factory.ConsumerDispatchConcurrency)
+                    : new ConsumerWorkService(factory.ConsumerDispatchConcurrency);
 
             _sessionManager = new SessionManager(this, 0);
             _session0 = new MainSession(this) { Handler = NotifyReceivedCloseOk };

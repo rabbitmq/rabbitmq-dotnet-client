@@ -19,7 +19,7 @@ namespace Benchmarks.Networking
         [GlobalSetup]
         public void GlobalSetup()
         {
-            _container = RabbitMQBroker.Start(); 
+            _container = RabbitMQBroker.Start();
         }
 
         [GlobalCleanup]
@@ -32,6 +32,16 @@ namespace Benchmarks.Networking
         public async Task Publish_Hello_World()
         {
             var cf = new ConnectionFactory { ConsumerDispatchConcurrency = 2 };
+            using (var connection = cf.CreateConnection())
+            {
+                await Publish_Hello_World(connection);
+            }
+        }
+
+        [Benchmark()]
+        public async Task Publish_Hello_World_Inline()
+        {
+            var cf = new ConnectionFactory { DispatchConsumerInline = true };
             using (var connection = cf.CreateConnection())
             {
                 await Publish_Hello_World(connection);
