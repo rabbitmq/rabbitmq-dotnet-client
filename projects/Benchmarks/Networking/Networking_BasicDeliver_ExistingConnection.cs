@@ -19,7 +19,7 @@ namespace Benchmarks.Networking
         [GlobalSetup]
         public void GlobalSetup()
         {
-            container = RabbitMqBroker.Start();
+            container = RabbitMQBroker.Start();
 
             var cf = new ConnectionFactory { ConsumerDispatchConcurrency = 2 };
             connection = cf.CreateConnection();
