@@ -14,7 +14,8 @@ namespace Benchmarks.Networking
                .WaitForPort("5672/tcp", 40000 /*40s*/)
                .ReuseIfExists()
                .WithName("rabbitmq")
-               .ExecuteOnRunning("rabbitmqctl await_startup")
+               .WithEnvironment("NODENAME=rabbit1")
+               .ExecuteOnRunning("rabbitmqctl --node rabbit1 await_startup ")
                .Build()
                .Start();
 
