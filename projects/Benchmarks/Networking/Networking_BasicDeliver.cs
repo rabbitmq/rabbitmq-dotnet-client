@@ -18,7 +18,7 @@ namespace Benchmarks.Networking
         [GlobalSetup]
         public void GlobalSetup()
         {
-            container = RabbitMqBroker.Start(); 
+            container = RabbitMQBroker.Start(); 
         }
 
         [GlobalCleanup]

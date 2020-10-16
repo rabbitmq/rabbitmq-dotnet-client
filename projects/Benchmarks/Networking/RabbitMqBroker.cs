@@ -4,7 +4,7 @@ using Ductus.FluentDocker.Builders;
 
 namespace Benchmarks.Networking
 {
-    public class RabbitMqBroker
+    public class RabbitMQBroker
     {
         public static IDisposable Start()
         {
@@ -14,10 +14,9 @@ namespace Benchmarks.Networking
                .WaitForPort("5672/tcp", 40000 /*40s*/)
                .ReuseIfExists()
                .WithName("rabbitmq")
+               .ExecuteOnRunning("rabbitmqctl await_startup")
                .Build()
                .Start();
-
-            Thread.Sleep(5000); // the broker needs some more time after the port is open to be operational
 
             return broker;
         }
