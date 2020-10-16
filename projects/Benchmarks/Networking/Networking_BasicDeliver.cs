@@ -11,20 +11,20 @@ namespace Benchmarks.Networking
     [MemoryDiagnoser]
     public class Networking_BasicDeliver
     {
-        private int messageCount = 10000;
+        private const int messageCount = 10000;
 
-        private IDisposable container;
+        private IDisposable _container;
 
         [GlobalSetup]
         public void GlobalSetup()
         {
-            container = RabbitMQBroker.Start(); 
+            _container = RabbitMQBroker.Start(); 
         }
 
         [GlobalCleanup]
         public void GlobalCleanup()
         {
-            container.Dispose();
+            _container.Dispose();
         }
 
 
@@ -33,10 +33,17 @@ namespace Benchmarks.Networking
         {
             var cf = new ConnectionFactory { ConsumerDispatchConcurrency = 2 };
             using (var connection = cf.CreateConnection())
+            {
+                await Publish_Hello_World(connection);
+            }
+        }
+
+        public static async Task Publish_Hello_World(IConnection connection)
+        {
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             using (var model = connection.CreateModel())
             {
                 var queue = model.QueueDeclare();
-                var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 var consumed = 0;
                 var consumer = new EventingBasicConsumer(model);
                 consumer.Received += (s, args) =>
@@ -50,9 +57,9 @@ namespace Benchmarks.Networking
 
                 const string publish1 = "hello world";
                 byte[] body = Encoding.UTF8.GetBytes(publish1);
-                var bp = model.CreateBasicProperties();
                 for (int i = 0; i < messageCount; i++)
                 {
+                    var bp = model.CreateBasicProperties();
                     model.BasicPublish("", queue.QueueName, bp, body);
                 }
 
