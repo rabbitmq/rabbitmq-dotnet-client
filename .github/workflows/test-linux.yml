@@ -12,7 +12,7 @@ jobs:
 
     services:
       rabbitmq:
-        image: rabbitmq:3.8.9-management-alpine
+        image: rabbitmq:3.8.9-management
         ports:
          - 5672:5672
          - 15672:15672
