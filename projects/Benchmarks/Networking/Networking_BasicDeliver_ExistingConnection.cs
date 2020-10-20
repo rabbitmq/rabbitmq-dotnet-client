@@ -26,7 +26,8 @@ namespace Benchmarks.Networking
         [GlobalCleanup]
         public void GlobalCleanup()
         {
-            _connection.Dispose();
+            _inlineconnection.Dispose();
+            _defaultconnection.Dispose();
             _container.Dispose();
         }
 
