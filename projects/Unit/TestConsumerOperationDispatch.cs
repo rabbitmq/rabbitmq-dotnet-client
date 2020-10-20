@@ -173,27 +173,29 @@ namespace RabbitMQ.Client.Unit
         public async Task TestConsumerExceptionRaisesEventInModel()
         {
             var tcs = new TaskCompletionSource<CallbackExceptionEventArgs>(TaskCreationOptions.RunContinuationsAsynchronously);
-            var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-            cts.Token.Register(() => tcs.SetCanceled());
-            IModel ch1 = _conn.CreateModel();
-            ch1.CallbackException += (sender, args) => tcs.TrySetResult(args);
-
-            string q1 = ch1.QueueDeclare().QueueName;
-
-            var errorMsg = "boom";
-            var c1 = new EventingBasicConsumer(ch1);
-            c1.Received += (object sender, BasicDeliverEventArgs e) =>
+            using (var ch1 = _conn.CreateModel())
+            using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5)))
+            using (cts.Token.Register(() => tcs.SetCanceled()))
             {
-                throw new Exception(errorMsg);
-            };
-            ch1.BasicConsume(q1, true, c1);
-            ch1.BasicPublish("", q1, body: _encoding.GetBytes("msg"));
+                ch1.CallbackException += (sender, args) => tcs.TrySetResult(args);
 
-            var error = await tcs.Task;
+                string q1 = ch1.QueueDeclare().QueueName;
 
-            Assert.AreEqual(errorMsg, error.Exception.Message);
-            Assert.AreEqual(c1, error.Detail[CallbackExceptionEventArgs.Consumer]);
-            Assert.AreEqual(nameof(Impl.IConsumerDispatcher.HandleBasicDeliver), error.Detail[CallbackExceptionEventArgs.Context]);
+                var errorMsg = "boom";
+                var c1 = new EventingBasicConsumer(ch1);
+                c1.Received += (object sender, BasicDeliverEventArgs e) =>
+                {
+                    throw new Exception(errorMsg);
+                };
+                ch1.BasicConsume(q1, true, c1);
+                ch1.BasicPublish("", q1, body: _encoding.GetBytes("msg"));
+
+                var error = await tcs.Task;
+
+                Assert.AreEqual(errorMsg, error.Exception.Message);
+                Assert.AreEqual(c1, error.Detail[CallbackExceptionEventArgs.Consumer]);
+                Assert.AreEqual(nameof(Impl.IConsumerDispatcher.HandleBasicDeliver), error.Detail[CallbackExceptionEventArgs.Context]);
+            }
         }
 
         private class ShutdownLatchConsumer : DefaultBasicConsumer
