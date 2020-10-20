@@ -1,9 +1,6 @@
-﻿using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 using System;
 
 namespace Benchmarks.Networking
@@ -11,8 +8,6 @@ namespace Benchmarks.Networking
     [MemoryDiagnoser]
     public class Networking_BasicDeliver_ExistingConnection
     {
-        private int messageCount = 10000;
-
         private IDisposable _container;
         private IConnection _connection;
 
@@ -28,10 +23,9 @@ namespace Benchmarks.Networking
         [GlobalCleanup]
         public void GlobalCleanup()
         {
-            _container.Dispose();
             _connection.Dispose();
+            _container.Dispose();
         }
-
 
         [Benchmark(Baseline = true)]
         public async Task Publish_Hello_World()
