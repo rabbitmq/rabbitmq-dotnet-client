@@ -14,6 +14,7 @@ namespace Benchmarks.Networking
         private const int messageCount = 10000;
 
         private IDisposable _container;
+        private static byte[] _body = Encoding.UTF8.GetBytes("hello world");
 
         [GlobalSetup]
         public void GlobalSetup()
@@ -26,7 +27,6 @@ namespace Benchmarks.Networking
         {
             _container.Dispose();
         }
-
 
         [Benchmark(Baseline = true)]
         public async Task Publish_Hello_World()
@@ -55,12 +55,9 @@ namespace Benchmarks.Networking
                 };
                 model.BasicConsume(queue.QueueName, true, consumer);
 
-                const string publish1 = "hello world";
-                byte[] body = Encoding.UTF8.GetBytes(publish1);
                 for (int i = 0; i < messageCount; i++)
                 {
-                    var bp = model.CreateBasicProperties();
-                    model.BasicPublish("", queue.QueueName, bp, body);
+                    model.BasicPublish("", queue.QueueName, null, _body);
                 }
 
                 await tcs.Task;
