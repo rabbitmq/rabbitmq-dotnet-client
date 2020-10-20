@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace RabbitMQ.Client.Events
 {
@@ -83,6 +84,9 @@ namespace RabbitMQ.Client.Events
     ///</remarks>
     public class CallbackExceptionEventArgs : BaseExceptionEventArgs
     {
+        internal const string Context = "context";
+        internal const string Consumer = "consumer";
+
         public CallbackExceptionEventArgs(Exception e) : base(e)
         {
         }
@@ -92,7 +96,7 @@ namespace RabbitMQ.Client.Events
         {
             var details = new Dictionary<string, object>
             {
-                {"context", context}
+                {Context, context}
             };
             return Build(e, details);
         }

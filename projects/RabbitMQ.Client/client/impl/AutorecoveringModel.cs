@@ -1106,7 +1106,7 @@ namespace RabbitMQ.Client.Impl
                 catch (Exception e)
                 {
                     var args = new CallbackExceptionEventArgs(e);
-                    args.Detail["context"] = "OnModelRecovery";
+                    args.Detail[CallbackExceptionEventArgs.Context] = "OnModelRecovery";
                     _delegate.OnCallbackException(args);
                 }
             }

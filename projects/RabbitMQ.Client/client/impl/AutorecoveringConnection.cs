@@ -694,7 +694,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     catch (Exception ex)
                     {
                         var a = new CallbackExceptionEventArgs(ex);
-                        a.Detail["context"] = "OnConnectionRecoveryError";
+                        a.Detail[CallbackExceptionEventArgs.Context] = "OnConnectionRecoveryError";
                         _delegate.OnCallbackException(a);
                     }
                 }
@@ -741,7 +741,7 @@ namespace RabbitMQ.Client.Framing.Impl
                         catch (Exception e)
                         {
                             var args = new CallbackExceptionEventArgs(e);
-                            args.Detail["context"] = "OnConsumerRecovery";
+                            args.Detail[CallbackExceptionEventArgs.Context] = "OnConsumerRecovery";
                             _delegate.OnCallbackException(args);
                         }
                     }
@@ -846,7 +846,7 @@ namespace RabbitMQ.Client.Framing.Impl
                             catch (Exception e)
                             {
                                 var args = new CallbackExceptionEventArgs(e);
-                                args.Detail["context"] = "OnQueueRecovery";
+                                args.Detail[CallbackExceptionEventArgs.Context] = "OnQueueRecovery";
                                 _delegate.OnCallbackException(args);
                             }
                         }
@@ -873,7 +873,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 catch (Exception e)
                 {
                     var args = new CallbackExceptionEventArgs(e);
-                    args.Detail["context"] = "OnConnectionRecovery";
+                    args.Detail[CallbackExceptionEventArgs.Context] = "OnConnectionRecovery";
                     _delegate.OnCallbackException(args);
                 }
             }

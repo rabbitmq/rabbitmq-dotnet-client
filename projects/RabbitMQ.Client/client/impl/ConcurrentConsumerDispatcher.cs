@@ -47,8 +47,8 @@ namespace RabbitMQ.Client.Impl
                 {
                     var details = new Dictionary<string, object>
                     {
-                        {"consumer", consumer},
-                        {"context",  "HandleBasicConsumeOk"}
+                        {CallbackExceptionEventArgs.Consumer, consumer},
+                        {CallbackExceptionEventArgs.Context,  nameof(HandleBasicConsumeOk)}
                     };
                     _model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
                 }
@@ -81,8 +81,8 @@ namespace RabbitMQ.Client.Impl
                 {
                     var details = new Dictionary<string, object>
                     {
-                        {"consumer", consumer},
-                        {"context",  "HandleBasicDeliver"}
+                        {CallbackExceptionEventArgs.Consumer, consumer},
+                        {CallbackExceptionEventArgs.Context,  nameof(HandleBasicDeliver)}
                     };
                     _model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
                 }
@@ -105,8 +105,8 @@ namespace RabbitMQ.Client.Impl
                 {
                     var details = new Dictionary<string, object>
                     {
-                        {"consumer", consumer},
-                        {"context",  "HandleBasicCancelOk"}
+                        {CallbackExceptionEventArgs.Consumer, consumer},
+                        {CallbackExceptionEventArgs.Context,  nameof(HandleBasicCancelOk)}
                     };
                     _model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
                 }
@@ -125,8 +125,8 @@ namespace RabbitMQ.Client.Impl
                 {
                     var details = new Dictionary<string, object>
                     {
-                        {"consumer", consumer},
-                        {"context",  "HandleBasicCancel"}
+                        {CallbackExceptionEventArgs.Consumer, consumer},
+                        {CallbackExceptionEventArgs.Context,  nameof(HandleBasicCancel)}
                     };
                     _model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
                 }
@@ -144,8 +144,8 @@ namespace RabbitMQ.Client.Impl
             {
                 var details = new Dictionary<string, object>
                     {
-                        {"consumer", consumer},
-                        {"context",  "HandleModelShutdown"}
+                        {CallbackExceptionEventArgs.Consumer, consumer},
+                        {CallbackExceptionEventArgs.Context, nameof(HandleModelShutdown)}
                     };
                 _model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
             };

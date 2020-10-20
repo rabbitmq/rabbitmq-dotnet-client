@@ -358,7 +358,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (Exception e)
                 {
-                    OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnBasicRecover"));
+                    OnCallbackException(CallbackExceptionEventArgs.Build(e, nameof(OnBasicRecoverOk)));
                 }
             }
         }
@@ -391,7 +391,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (Exception e)
                 {
-                    OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnFlowControl"));
+                    OnCallbackException(CallbackExceptionEventArgs.Build(e, nameof(OnFlowControl)));
                 }
             }
         }
@@ -427,7 +427,7 @@ namespace RabbitMQ.Client.Impl
                     }
                     catch (Exception e)
                     {
-                        OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnModelShutdown"));
+                        OnCallbackException(CallbackExceptionEventArgs.Build(e, nameof(OnModelShutdown)));
                     }
                 }
             }
@@ -523,7 +523,7 @@ namespace RabbitMQ.Client.Impl
                     }
                     catch (Exception e)
                     {
-                        OnCallbackException(CallbackExceptionEventArgs.Build(e, "OnBasicAck"));
+                        OnCallbackException(CallbackExceptionEventArgs.Build(e, nameof(HandleBasicAck)));
                     }
                 }
             }
@@ -550,7 +550,7 @@ namespace RabbitMQ.Client.Impl
                     }
                     catch (Exception e1)
                     {
-                        OnCallbackException(CallbackExceptionEventArgs.Build(e1, "OnBasicNack"));
+                        OnCallbackException(CallbackExceptionEventArgs.Build(e1, nameof(HandleBasicNack)));
                     }
                 }
             }
@@ -744,7 +744,7 @@ namespace RabbitMQ.Client.Impl
                     }
                     catch (Exception e1)
                     {
-                        OnCallbackException(CallbackExceptionEventArgs.Build(e1, "OnBasicReturn"));
+                        OnCallbackException(CallbackExceptionEventArgs.Build(e1, nameof(HandleBasicReturn)));
                     }
                 }
             }

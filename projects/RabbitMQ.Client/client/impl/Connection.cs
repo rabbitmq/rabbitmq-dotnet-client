@@ -628,7 +628,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
                 catch (Exception e)
                 {
-                    OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object> { { "context", "OnConnectionBlocked" } }));
+                    OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object> { { CallbackExceptionEventArgs.Context, nameof(OnConnectionBlocked) } }));
                 }
             }
         }
@@ -643,7 +643,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
                 catch (Exception e)
                 {
-                    OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object> { { "context", "OnConnectionUnblocked" } }));
+                    OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object> { { CallbackExceptionEventArgs.Context, nameof(OnConnectionUnblocked) } }));
                 }
             }
         }
@@ -673,7 +673,7 @@ namespace RabbitMQ.Client.Framing.Impl
                         OnCallbackException(CallbackExceptionEventArgs.Build(e,
                             new Dictionary<string, object>
                             {
-                                {"context", "OnShutdown"}
+                                {CallbackExceptionEventArgs.Context, nameof(OnShutdown)}
                             }));
                     }
                 }

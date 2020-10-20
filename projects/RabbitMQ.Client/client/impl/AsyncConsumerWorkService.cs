@@ -109,8 +109,8 @@ namespace RabbitMQ.Client.Impl
 
                             var details = new Dictionary<string, object>
                             {
-                                { "consumer", work.Consumer },
-                                { "context", work.Consumer }
+                                { CallbackExceptionEventArgs.Consumer, work.Consumer },
+                                { CallbackExceptionEventArgs.Context, work.Context }
                             };
                             modelBase.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
                         }
@@ -170,8 +170,8 @@ namespace RabbitMQ.Client.Impl
 
                     var details = new Dictionary<string, object>
                     {
-                        { "consumer", work.Consumer },
-                        { "context", work.Consumer }
+                        { CallbackExceptionEventArgs.Consumer, work.Consumer },
+                        { CallbackExceptionEventArgs.Context, work.Consumer }
                     };
                     modelBase.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
                 }

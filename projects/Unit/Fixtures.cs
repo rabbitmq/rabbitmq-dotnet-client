@@ -63,11 +63,11 @@ namespace RabbitMQ.Client.Unit
         [TearDown]
         public void Dispose()
         {
-            if(_model.IsOpen)
+            if(_model != null && _model.IsOpen)
             {
                 _model.Close();
             }
-            if(_conn.IsOpen)
+            if(_conn != null && _conn.IsOpen)
             {
                 _conn.Close();
             }

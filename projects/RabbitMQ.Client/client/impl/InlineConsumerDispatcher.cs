@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.client.impl
 {
     internal sealed class InlineConsumerDispatcher : IConsumerDispatcher
     {
-        private readonly IModel _model;
+        private readonly ModelBase _model;
 
-        public InlineConsumerDispatcher(IModel model)
+        public InlineConsumerDispatcher(ModelBase model)
         {
             _model = model;
         }
@@ -18,28 +20,86 @@ namespace RabbitMQ.Client.client.impl
 
         public void HandleBasicCancel(IBasicConsumer consumer, string consumerTag)
         {
-            consumer.HandleBasicCancel(consumerTag);
+            try
+            {
+                consumer.HandleBasicCancel(consumerTag);
+            }
+            catch (Exception e)
+            {
+                _model.OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object>
+                {
+                    { CallbackExceptionEventArgs.Consumer, consumer },
+                    { CallbackExceptionEventArgs.Context, nameof(HandleBasicDeliver) }
+                }));
+            }
         }
 
         public void HandleBasicCancelOk(IBasicConsumer consumer, string consumerTag)
         {
-            consumer.HandleBasicCancelOk(consumerTag);
+            try
+            {
+                consumer.HandleBasicCancelOk(consumerTag);
+            }
+            catch (Exception e)
+            {
+                _model.OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object>
+                {
+                    { CallbackExceptionEventArgs.Consumer, consumer },
+                    { CallbackExceptionEventArgs.Context, nameof(HandleBasicCancelOk) }
+                }));
+            }
         }
 
         public void HandleBasicConsumeOk(IBasicConsumer consumer, string consumerTag)
         {
-            consumer.HandleBasicConsumeOk(consumerTag);
+            try
+            {
+                consumer.HandleBasicConsumeOk(consumerTag);
+            }
+            catch (Exception e)
+            {
+                _model.OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object>
+                {
+                    { CallbackExceptionEventArgs.Consumer, consumer },
+                    { CallbackExceptionEventArgs.Context, nameof(HandleBasicConsumeOk) }
+                }));
+            }
         }
 
         public void HandleBasicDeliver(IBasicConsumer consumer, string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, IBasicProperties basicProperties, ReadOnlyMemory<byte> body, byte[] rentedArray)
         {
-            consumer.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body);
-            ArrayPool<byte>.Shared.Return(rentedArray);
+            try
+            {
+                consumer.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body);
+            }
+            catch (Exception e)
+            {
+                _model.OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object>
+                {
+                    { CallbackExceptionEventArgs.Consumer, consumer },
+                    { CallbackExceptionEventArgs.Context, nameof(HandleBasicDeliver) }
+                }));
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(rentedArray);
+            }
         }
 
         public void HandleModelShutdown(IBasicConsumer consumer, ShutdownEventArgs reason)
         {
-            consumer.HandleModelShutdown(_model, reason);
+            try
+            {
+                consumer.HandleModelShutdown(_model, reason);
+            }
+            catch (Exception e)
+            {
+                _model.OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object>
+                {
+                    { CallbackExceptionEventArgs.Consumer, consumer },
+                    { CallbackExceptionEventArgs.Context, nameof(HandleModelShutdown) }
+                }));
+            }
         }
 
         public void Quiesce()
