@@ -29,6 +29,6 @@ jobs:
       run: dotnet build --configuration Release
 
     - name: Test
-      run: dotnet test --configuration Release --framework 'netcoreapp3.1' --no-build
+      run: dotnet test --configuration Release --framework 'netcoreapp3.1' --no-build --logger:'console;verbosity=normal'
       env:
         RABBITMQ_RABBITMQCTL_PATH: DOCKER:${{job.services.rabbitmq.id}}
