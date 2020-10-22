@@ -171,7 +171,7 @@ namespace RabbitMQ.Client.Impl
                     var details = new Dictionary<string, object>
                     {
                         { CallbackExceptionEventArgs.Consumer, work.Consumer },
-                        { CallbackExceptionEventArgs.Context, work.Consumer }
+                        { CallbackExceptionEventArgs.Context, work.Context }
                     };
                     modelBase.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
                 }
