@@ -369,23 +369,24 @@ namespace RabbitMQ.Client
         /// </remarks>
         void QueueBindNoWait(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
 
-        /// <summary> Declare a queue.</summary>        
-        /// <param name="queue">The name of the queue</param>
-        /// <param name="durable">The queue will survive a broker restart</param>
-        /// <param name="exclusive">Used by only one connection and the queue will be deleted when that connection closes</param>
-        /// <param name="autoDelete">Queue that has had at least one consumer is deleted when last consumer unsubscribes</param>
-        /// <param name="arguments">Optional; used by plugins and broker-specific features such as message TTL, queue length limit, etc</param>
+        /// <summary>
+        /// Declares a queue. See the <a href="https://www.rabbitmq.com/queues.html">Queues guide</a> to learn more.
+        /// </summary>
+        /// <param name="queue">The name of the queue. Pass an empty string to make the server generate a name.</param>
+        /// <param name="durable">Should this queue will survive a broker restart?</param>
+        /// <param name="exclusive">Should this queue use be limited to its declaring connection? Such a queue will be deleted when its declaring connection closes.</param>
+        /// <param name="autoDelete">Should this queue be auto-deleted when its last consumer (if any) unsubscribes?</param>
+        /// <param name="arguments">Optional; additional queue arguments, e.g. "x-queue-type"</param>
         QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments);
 
         /// <summary>
-        /// Same as QueueDeclare but sets nowait to true and returns void (as there
-        /// will be no response from the server).
+        /// Declares a queue. See the <a href="https://www.rabbitmq.com/queues.html">Queues guide</a> to learn more.
         /// </summary>
-		/// <param name="queue">The name of the queue</param>
-        /// <param name="durable">The queue will survive a broker restart</param>
-        /// <param name="exclusive">Used by only one connection and the queue will be deleted when that connection closes</param>
-        /// <param name="autoDelete">Queue that has had at least one consumer is deleted when last consumer unsubscribes</param>
-        /// <param name="arguments">Optional; used by plugins and broker-specific features such as message TTL, queue length limit, etc</param>
+        /// <param name="queue">The name of the queue. Pass an empty string to make the server generate a name.</param>
+        /// <param name="durable">Should this queue will survive a broker restart?</param>
+        /// <param name="exclusive">Should this queue use be limited to its declaring connection? Such a queue will be deleted when its declaring connection closes.</param>
+        /// <param name="autoDelete">Should this queue be auto-deleted when its last consumer (if any) unsubscribes?</param>
+        /// <param name="arguments">Optional; additional queue arguments, e.g. "x-queue-type"</param>
         void QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments);
 
         /// <summary>Declare a queue passively.</summary>
