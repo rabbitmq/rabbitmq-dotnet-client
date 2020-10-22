@@ -295,7 +295,7 @@ namespace RabbitMQ.Client
         ///   <para>
         ///     Routing key must be shorter than 255 bytes.
         ///   </para>
-        /// </remarks>        
+        /// </remarks>
         [AmqpMethodDoNotImplement(null)]
         void ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments);
 
@@ -306,7 +306,7 @@ namespace RabbitMQ.Client
         ///   <para>
         ///     Routing key must be shorter than 255 bytes.
         ///   </para>
-        /// </remarks>        
+        /// </remarks>
         void ExchangeBindNoWait(string destination, string source, string routingKey,
             IDictionary<string, object> arguments);
 
@@ -380,7 +380,7 @@ namespace RabbitMQ.Client
         ///   <para>
         ///     Routing key must be shorter than 255 bytes.
         ///   </para>
-        /// </remarks>        
+        /// </remarks>
         [AmqpMethodDoNotImplement(null)]
         void QueueBind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
 
@@ -389,10 +389,17 @@ namespace RabbitMQ.Client
         ///   <para>
         ///     Routing key must be shorter than 255 bytes.
         ///   </para>
-        /// </remarks>        
+        /// </remarks>
         void QueueBindNoWait(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
 
-        /// <summary> Declare a queue.</summary>
+        /// <summary>
+        /// Declares a queue. See the <a href="https://www.rabbitmq.com/queues.html">Queues guide</a> to learn more.
+        /// </summary>
+        /// <param name="queue">The name of the queue. Pass an empty string to make the server generate a name.</param>
+        /// <param name="durable">Should this queue will survive a broker restart?</param>
+        /// <param name="exclusive">Should this queue use be limited to its declaring connection? Such a queue will be deleted when its declaring connection closes.</param>
+        /// <param name="autoDelete">Should this queue be auto-deleted when its last consumer (if any) unsubscribes?</param>
+        /// <param name="arguments">Optional; additional queue arguments, e.g. "x-queue-type"</param>
         [AmqpMethodDoNotImplement(null)]
         QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive,
             bool autoDelete, IDictionary<string, object> arguments);
@@ -464,7 +471,7 @@ namespace RabbitMQ.Client
         ///   <para>
         ///     Routing key must be shorter than 255 bytes.
         ///   </para>
-        /// </remarks>        
+        /// </remarks>
         void QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
 
         /// <summary>
