@@ -6,16 +6,21 @@ using BenchmarkDotNet.Attributes;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Impl;
 
+using BasicProperties = RabbitMQ.Client.Framing.BasicProperties;
+
 namespace RabbitMQ.Benchmarks
 {
     [Config(typeof(Config))]
     [BenchmarkCategory("Framing")]
     public class MethodFramingBasicAck
     {
-        private readonly OutgoingCommand _basicAck = new OutgoingCommand(new BasicAck(ulong.MaxValue, true));
+        private readonly BasicAck _basicAck = new BasicAck(ulong.MaxValue, true);
+
+        [Params(0)]
+        public ushort Channel { get; set; }
 
         [Benchmark]
-        public ReadOnlyMemory<byte> BasicAckWrite() => _basicAck.SerializeToFrames(0, 1024 * 1024);
+        public ReadOnlyMemory<byte> BasicAckWrite() => Framing.SerializeToFrames(_basicAck, Channel);
     }
 
     [Config(typeof(Config))]
@@ -23,23 +28,39 @@ namespace RabbitMQ.Benchmarks
     public class MethodFramingBasicPublish
     {
         private const string StringValue = "Exchange_OR_RoutingKey";
-        private readonly OutgoingContentCommand _basicPublish = new OutgoingContentCommand(new BasicPublish(StringValue, StringValue, false, false), new Client.Framing.BasicProperties(), ReadOnlyMemory<byte>.Empty);
-        private readonly OutgoingContentCommand _basicPublishMemory = new OutgoingContentCommand(new BasicPublishMemory(Encoding.UTF8.GetBytes(StringValue), Encoding.UTF8.GetBytes(StringValue), false, false), new Client.Framing.BasicProperties(), ReadOnlyMemory<byte>.Empty);
+        private readonly BasicPublish _basicPublish = new BasicPublish(StringValue, StringValue, false, false);
+        private readonly BasicPublishMemory _basicPublishMemory = new BasicPublishMemory(Encoding.UTF8.GetBytes(StringValue), Encoding.UTF8.GetBytes(StringValue), false, false);
+        private readonly BasicProperties _propertiesEmpty = new BasicProperties();
+        private readonly BasicProperties _properties = new BasicProperties { AppId = "Application id", MessageId = "Random message id" };
+        private readonly ReadOnlyMemory<byte> _bodyEmpty = ReadOnlyMemory<byte>.Empty;
+        private readonly ReadOnlyMemory<byte> _body = new byte[512];
+
+        [Params(0)]
+        public ushort Channel { get; set; }
+
+        [Params(0xFFFF)]
+        public int FrameMax { get; set; }
 
         [Benchmark]
-        public ReadOnlyMemory<byte> BasicPublishWrite() => _basicPublish.SerializeToFrames(0, 1024 * 1024);
+        public ReadOnlyMemory<byte> BasicPublishWriteNonEmpty() => Framing.SerializeToFrames(_basicPublish, _properties, _body, Channel, FrameMax);
 
         [Benchmark]
-        public ReadOnlyMemory<byte> BasicPublishMemoryWrite() => _basicPublishMemory.SerializeToFrames(0, 1024 * 1024);
+        public ReadOnlyMemory<byte> BasicPublishWrite() => Framing.SerializeToFrames(_basicPublish, _propertiesEmpty, _bodyEmpty, Channel, FrameMax);
+
+        [Benchmark]
+        public ReadOnlyMemory<byte> BasicPublishMemoryWrite() => Framing.SerializeToFrames(_basicPublishMemory, _propertiesEmpty, _bodyEmpty, Channel, FrameMax);
     }
 
     [Config(typeof(Config))]
     [BenchmarkCategory("Framing")]
     public class MethodFramingChannelClose
     {
-        private readonly OutgoingCommand _channelClose = new OutgoingCommand(new ChannelClose(333, string.Empty, 0099, 2999));
+        private readonly ChannelClose _channelClose = new ChannelClose(333, string.Empty, 0099, 2999);
+
+        [Params(0)]
+        public ushort Channel { get; set; }
 
         [Benchmark]
-        public ReadOnlyMemory<byte> ChannelCloseWrite() => _channelClose.SerializeToFrames(0, 1024 * 1024);
+        public ReadOnlyMemory<byte> ChannelCloseWrite() => Framing.SerializeToFrames(_channelClose, Channel);
     }
 }

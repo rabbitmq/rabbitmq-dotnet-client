@@ -34,21 +34,16 @@ using RabbitMQ.Client.client.framing;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class TxSelect : Client.Impl.MethodBase
+    internal readonly struct TxSelect : IOutgoingAmqpMethod
     {
-        public TxSelect()
-        {
-        }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.TxSelect;
 
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.TxSelect;
-        public override string ProtocolMethodName => "tx.select";
-
-        public override int WriteArgumentsTo(Span<byte> span)
+        public int WriteArgumentsTo(Span<byte> span)
         {
             return 0;
         }
 
-        public override int GetRequiredBufferSize()
+        public int GetRequiredBufferSize()
         {
             return 0;
         }

@@ -35,15 +35,11 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class BasicNack : Client.Impl.MethodBase
+    internal readonly struct BasicNack : IOutgoingAmqpMethod
     {
-        public ulong _deliveryTag;
-        public bool _multiple;
-        public bool _requeue;
-
-        public BasicNack()
-        {
-        }
+        public readonly ulong _deliveryTag;
+        public readonly bool _multiple;
+        public readonly bool _requeue;
 
         public BasicNack(ulong DeliveryTag, bool Multiple, bool Requeue)
         {
@@ -58,16 +54,15 @@ namespace RabbitMQ.Client.Framing.Impl
             WireFormatting.ReadBits(span.Slice(offset), out _multiple, out _requeue);
         }
 
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicNack;
-        public override string ProtocolMethodName => "basic.nack";
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicNack;
 
-        public override int WriteArgumentsTo(Span<byte> span)
+        public int WriteArgumentsTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteLonglong(ref span.GetStart(), _deliveryTag);
             return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _multiple, _requeue);
         }
 
-        public override int GetRequiredBufferSize()
+        public int GetRequiredBufferSize()
         {
             return 8 + 1; // bytes for _deliveryTag, bit fields
         }

@@ -45,7 +45,7 @@ namespace RabbitMQ.Util
     internal class Either<L, R>
     {
         ///<summary>Private constructor. Use the static methods Left, Right instead.</summary>
-        private Either(EitherAlternative alternative, L valueL, R valueR)
+        private Either(EitherAlternative alternative, in L valueL, R valueR)
         {
             Alternative = alternative;
             LeftValue = valueL;
@@ -60,7 +60,7 @@ namespace RabbitMQ.Util
         public R RightValue { get; }
 
         ///<summary>Constructs an Either instance representing a Left alternative.</summary>
-        public static Either<L, R> Left(L value)
+        public static Either<L, R> Left(in L value)
         {
             return new Either<L, R>(EitherAlternative.Left, value, default);
         }

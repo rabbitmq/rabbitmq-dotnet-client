@@ -29,28 +29,15 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using RabbitMQ.Client.client.framing;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class ChannelOpenOk : Client.Impl.MethodBase
+    internal readonly struct ChannelOpenOk : IAmqpMethod
     {
         // deprecated
         // byte[] _reserved1
 
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ChannelOpenOk;
-        public override string ProtocolMethodName => "channel.open-ok";
-
-        public override int WriteArgumentsTo(Span<byte> span)
-        {
-            span[0] = 0; // _reserved1
-            return 1;
-        }
-
-        public override int GetRequiredBufferSize()
-        {
-            return 4; // bytes for length of _reserved1
-        }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ChannelOpenOk;
     }
 }

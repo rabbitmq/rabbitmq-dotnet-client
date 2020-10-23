@@ -29,28 +29,12 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using RabbitMQ.Client.client.framing;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class ConnectionUpdateSecretOk : Client.Impl.MethodBase
+    internal readonly struct ConnectionUpdateSecretOk : IAmqpMethod
     {
-        public ConnectionUpdateSecretOk()
-        {
-        }
-
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionUpdateSecretOk;
-        public override string ProtocolMethodName => "connection.update-secret-ok";
-
-        public override int WriteArgumentsTo(Span<byte> span)
-        {
-            return 0;
-        }
-
-        public override int GetRequiredBufferSize()
-        {
-            return 0;
-        }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionUpdateSecretOk;
     }
 }

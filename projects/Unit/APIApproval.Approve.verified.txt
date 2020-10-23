@@ -785,7 +785,9 @@ namespace RabbitMQ.Client.Exceptions
     [System.Serializable]
     public class UnexpectedMethodException : RabbitMQ.Client.Exceptions.ProtocolViolationException
     {
-        public UnexpectedMethodException(ushort classId, ushort methodId, string methodName) { }
+        public ushort ExpectedProtocolClassId { get; }
+        public ushort ExpectedProtocolMethodId { get; }
+        public string ExpectedProtocolMethodName { get; }
         public ushort ProtocolClassId { get; }
         public ushort ProtocolMethodId { get; }
         public string ProtocolMethodName { get; }

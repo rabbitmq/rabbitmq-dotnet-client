@@ -24,7 +24,7 @@ namespace RabbitMQ.Benchmarks
         public override void SetUp() => _basicAck.WriteArgumentsTo(_buffer.Span);
 
         [Benchmark]
-        public object BasicAckRead() => new BasicAck(_buffer.Span);
+        public ulong BasicAckRead() => new BasicAck(_buffer.Span)._deliveryTag; // return one property to not box when returning an object instead
 
         [Benchmark]
         public int BasicAckWrite() => _basicAck.WriteArgumentsTo(_buffer.Span);
@@ -47,7 +47,7 @@ namespace RabbitMQ.Benchmarks
         }
 
         [Benchmark]
-        public object BasicDeliverRead() => new BasicDeliver(_buffer.Span);
+        public object BasicDeliverRead() => new BasicDeliver(_buffer.Span)._consumerTag; // return one property to not box when returning an object instead
 
         [Benchmark]
         public int BasicPublishWrite() => _basicPublish.WriteArgumentsTo(_buffer.Span);
@@ -69,7 +69,7 @@ namespace RabbitMQ.Benchmarks
         public override void SetUp() => _channelClose.WriteArgumentsTo(_buffer.Span);
 
         [Benchmark]
-        public object ChannelCloseRead() => new ChannelClose(_buffer.Span);
+        public object ChannelCloseRead() => new ChannelClose(_buffer.Span)._replyText; // return one property to not box when returning an object instead
 
         [Benchmark]
         public int ChannelCloseWrite() => _channelClose.WriteArgumentsTo(_buffer.Span);

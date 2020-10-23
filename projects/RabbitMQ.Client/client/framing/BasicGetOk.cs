@@ -36,26 +36,13 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class BasicGetOk : Client.Impl.MethodBase
+    internal readonly struct BasicGetOk : IAmqpMethod
     {
-        public ulong _deliveryTag;
-        public bool _redelivered;
-        public string _exchange;
-        public string _routingKey;
-        public uint _messageCount;
-
-        public BasicGetOk()
-        {
-        }
-
-        public BasicGetOk(ulong DeliveryTag, bool Redelivered, string Exchange, string RoutingKey, uint MessageCount)
-        {
-            _deliveryTag = DeliveryTag;
-            _redelivered = Redelivered;
-            _exchange = Exchange;
-            _routingKey = RoutingKey;
-            _messageCount = MessageCount;
-        }
+        public readonly ulong _deliveryTag;
+        public readonly bool _redelivered;
+        public readonly string _exchange;
+        public readonly string _routingKey;
+        public readonly uint _messageCount;
 
         public BasicGetOk(ReadOnlySpan<byte> span)
         {
@@ -66,25 +53,6 @@ namespace RabbitMQ.Client.Framing.Impl
             WireFormatting.ReadLong(span.Slice(offset), out _messageCount);
         }
 
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicGetOk;
-        public override string ProtocolMethodName => "basic.get-ok";
-
-        public override int WriteArgumentsTo(Span<byte> span)
-        {
-            int length = span.Length;
-            int offset = WireFormatting.WriteLonglong(ref span.GetStart(), _deliveryTag);
-            offset += WireFormatting.WriteBits(ref span.GetOffset(offset), _redelivered);
-            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _exchange);
-            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _routingKey);
-            return offset + WireFormatting.WriteLong(ref span.GetOffset(offset), _messageCount);
-        }
-
-        public override int GetRequiredBufferSize()
-        {
-            int bufferSize = 8 + 1 + 1 + 1 + 4; // bytes for _deliveryTag, bit fields, length of _exchange, length of _routingKey, _messageCount
-            bufferSize += WireFormatting.GetByteCount(_exchange); // _exchange in bytes
-            bufferSize += WireFormatting.GetByteCount(_routingKey); // _routingKey in bytes
-            return bufferSize;
-        }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicGetOk;
     }
 }

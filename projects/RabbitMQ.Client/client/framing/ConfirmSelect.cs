@@ -35,33 +35,23 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class ConfirmSelect : Client.Impl.MethodBase
+    internal readonly struct ConfirmSelect : IOutgoingAmqpMethod
     {
-        public bool _nowait;
-
-        public ConfirmSelect()
-        {
-        }
+        public readonly bool _nowait;
 
         public ConfirmSelect(bool Nowait)
         {
             _nowait = Nowait;
         }
 
-        public ConfirmSelect(ReadOnlySpan<byte> span)
-        {
-            WireFormatting.ReadBits(span, out _nowait);
-        }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConfirmSelect;
 
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConfirmSelect;
-        public override string ProtocolMethodName => "confirm.select";
-
-        public override int WriteArgumentsTo(Span<byte> span)
+        public int WriteArgumentsTo(Span<byte> span)
         {
             return WireFormatting.WriteBits(ref span.GetStart(), _nowait);
         }
 
-        public override int GetRequiredBufferSize()
+        public int GetRequiredBufferSize()
         {
             return 1; // bytes for bit fields
         }

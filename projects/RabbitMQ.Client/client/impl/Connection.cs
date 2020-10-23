@@ -35,7 +35,6 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Impl;
@@ -218,6 +217,13 @@ namespace RabbitMQ.Client.Framing.Impl
             return _sessionManager.Create();
         }
 
+        /// <summary>
+        /// The maximum payload size for this connection.
+        /// </summary>
+        /// <remarks>Compared to <see cref="FrameMax"/> unlimited, unlimited means here <see cref="int.MaxValue"/>.
+        /// Also it is reduced by the required framing bytes as in <see cref="RabbitMQ.Client.Impl.Framing.BaseFrameSize"/>.</remarks>
+        internal int MaxPayloadSize { get; private set; }
+
         internal void EnsureIsOpen()
         {
             if (!IsOpen)
@@ -264,7 +270,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 try
                 {
                     // Try to send connection.close wait for CloseOk in the MainLoop
-                    _session0.Transmit(new OutgoingCommand(new ConnectionClose(reason.ReplyCode, reason.ReplyText, 0, 0)));
+                    _session0.Transmit(new ConnectionClose(reason.ReplyCode, reason.ReplyText, 0, 0));
                 }
                 catch (AlreadyClosedException)
                 {

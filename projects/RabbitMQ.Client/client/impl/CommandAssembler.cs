@@ -31,7 +31,7 @@
 
 using System;
 using System.Buffers;
-
+using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Logging;
@@ -45,7 +45,9 @@ namespace RabbitMQ.Client.Impl
 
         private readonly ProtocolBase _protocol;
 
-        private MethodBase _method;
+        private ReadOnlyMemory<byte> _methodBytes;
+        private byte[] _rentedMethodArray;
+        private ProtocolCommandId _commandId;
         private ContentHeaderBase _header;
         private byte[] _bodyBytes;
         private ReadOnlyMemory<byte> _body;
@@ -61,7 +63,9 @@ namespace RabbitMQ.Client.Impl
 
         private void Reset()
         {
-            _method = null;
+            _methodBytes = ReadOnlyMemory<byte>.Empty;
+            _rentedMethodArray = null;
+            _commandId = default;
             _header = null;
             _bodyBytes = null;
             _body = ReadOnlyMemory<byte>.Empty;
@@ -77,6 +81,7 @@ namespace RabbitMQ.Client.Impl
             {
                 case AssemblyState.ExpectingMethod:
                     ParseMethodFrame(in frame);
+                    shallReturn = false;
                     break;
                 case AssemblyState.ExpectingContentHeader:
                     ParseHeaderFrame(in frame);
@@ -89,11 +94,11 @@ namespace RabbitMQ.Client.Impl
             if (_state != AssemblyState.Complete)
             {
                 command = IncomingCommand.Empty;
-                return true;
+                return shallReturn;
             }
 
             RabbitMqClientEventSource.Log.CommandReceived();
-            command = new IncomingCommand(_method, _header, _body, _bodyBytes);
+            command = new IncomingCommand(_commandId, _methodBytes, _rentedMethodArray, _header, _body, _bodyBytes);
             Reset();
             return shallReturn;
         }
@@ -105,8 +110,22 @@ namespace RabbitMQ.Client.Impl
                 throw new UnexpectedFrameException(frame.Type);
             }
 
-            _method = _protocol.DecodeMethodFrom(frame.Payload.Span);
-            _state = _method.ProtocolCommandId.HasContent() ? AssemblyState.ExpectingContentHeader : AssemblyState.Complete;
+            _rentedMethodArray = frame.TakeoverPayload();
+            _commandId = (ProtocolCommandId)NetworkOrderDeserializer.ReadUInt32(frame.Payload.Span);
+            _methodBytes = frame.Payload.Slice(4);
+
+            switch (_commandId)
+            {
+                // Commands with payload
+                case ProtocolCommandId.BasicGetOk:
+                case ProtocolCommandId.BasicDeliver:
+                case ProtocolCommandId.BasicReturn:
+                    _state = AssemblyState.ExpectingContentHeader;
+                    break;
+                default:
+                    _state = AssemblyState.Complete;
+                    break;
+            }
         }
 
         private void ParseHeaderFrame(in InboundFrame frame)

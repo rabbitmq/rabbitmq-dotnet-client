@@ -35,15 +35,11 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class ConnectionTuneOk : Client.Impl.MethodBase
+    internal readonly struct ConnectionTuneOk : IOutgoingAmqpMethod
     {
-        public ushort _channelMax;
-        public uint _frameMax;
-        public ushort _heartbeat;
-
-        public ConnectionTuneOk()
-        {
-        }
+        public readonly ushort _channelMax;
+        public readonly uint _frameMax;
+        public readonly ushort _heartbeat;
 
         public ConnectionTuneOk(ushort ChannelMax, uint FrameMax, ushort Heartbeat)
         {
@@ -52,24 +48,16 @@ namespace RabbitMQ.Client.Framing.Impl
             _heartbeat = Heartbeat;
         }
 
-        public ConnectionTuneOk(ReadOnlySpan<byte> span)
-        {
-            int offset = WireFormatting.ReadShort(span, out _channelMax);
-            offset += WireFormatting.ReadLong(span.Slice(offset), out _frameMax);
-            WireFormatting.ReadShort(span.Slice(offset), out _heartbeat);
-        }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionTuneOk;
 
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionTuneOk;
-        public override string ProtocolMethodName => "connection.tune-ok";
-
-        public override int WriteArgumentsTo(Span<byte> span)
+        public int WriteArgumentsTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteShort(ref span.GetStart(), _channelMax);
             offset += WireFormatting.WriteLong(ref span.GetOffset(offset), _frameMax);
             return offset + WireFormatting.WriteShort(ref span.GetOffset(offset), _heartbeat);
         }
 
-        public override int GetRequiredBufferSize()
+        public int GetRequiredBufferSize()
         {
             return 2 + 4 + 2; // bytes for _channelMax, _frameMax, _heartbeat
         }

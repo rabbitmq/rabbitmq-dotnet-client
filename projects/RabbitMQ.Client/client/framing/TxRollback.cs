@@ -34,21 +34,16 @@ using RabbitMQ.Client.client.framing;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class TxRollback : Client.Impl.MethodBase
+    internal readonly struct TxRollback : IOutgoingAmqpMethod
     {
-        public TxRollback()
-        {
-        }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.TxRollback;
 
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.TxRollback;
-        public override string ProtocolMethodName => "tx.rollback";
-
-        public override int WriteArgumentsTo(Span<byte> span)
+        public int WriteArgumentsTo(Span<byte> span)
         {
             return 0;
         }
 
-        public override int GetRequiredBufferSize()
+        public int GetRequiredBufferSize()
         {
             return 0;
         }

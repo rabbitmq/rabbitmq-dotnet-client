@@ -34,21 +34,16 @@ using RabbitMQ.Client.client.framing;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class ChannelCloseOk : Client.Impl.MethodBase
+    internal readonly struct ChannelCloseOk : IOutgoingAmqpMethod
     {
-        public ChannelCloseOk()
-        {
-        }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ChannelCloseOk;
 
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ChannelCloseOk;
-        public override string ProtocolMethodName => "channel.close-ok";
-
-        public override int WriteArgumentsTo(Span<byte> span)
+        public int WriteArgumentsTo(Span<byte> span)
         {
             return 0;
         }
 
-        public override int GetRequiredBufferSize()
+        public int GetRequiredBufferSize()
         {
             return 0;
         }

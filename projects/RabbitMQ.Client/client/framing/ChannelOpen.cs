@@ -34,21 +34,20 @@ using RabbitMQ.Client.client.framing;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class ChannelOpen : Client.Impl.MethodBase
+    internal readonly struct ChannelOpen : IOutgoingAmqpMethod
     {
         // deprecated
         // string _reserved1
 
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ChannelOpen;
-        public override string ProtocolMethodName => "channel.open";
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ChannelOpen;
 
-        public override int WriteArgumentsTo(Span<byte> span)
+        public int WriteArgumentsTo(Span<byte> span)
         {
             span[0] = 0; // _reserved1
             return 1;
         }
 
-        public override int GetRequiredBufferSize()
+        public int GetRequiredBufferSize()
         {
             return 1; // bytes for length of _reserved1
         }

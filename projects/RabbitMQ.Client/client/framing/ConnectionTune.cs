@@ -35,22 +35,11 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class ConnectionTune : Client.Impl.MethodBase
+    internal readonly struct ConnectionTune : IAmqpMethod
     {
-        public ushort _channelMax;
-        public uint _frameMax;
-        public ushort _heartbeat;
-
-        public ConnectionTune()
-        {
-        }
-
-        public ConnectionTune(ushort ChannelMax, uint FrameMax, ushort Heartbeat)
-        {
-            _channelMax = ChannelMax;
-            _frameMax = FrameMax;
-            _heartbeat = Heartbeat;
-        }
+        public readonly ushort _channelMax;
+        public readonly uint _frameMax;
+        public readonly ushort _heartbeat;
 
         public ConnectionTune(ReadOnlySpan<byte> span)
         {
@@ -59,19 +48,6 @@ namespace RabbitMQ.Client.Framing.Impl
             WireFormatting.ReadShort(span.Slice(offset), out _heartbeat);
         }
 
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionTune;
-        public override string ProtocolMethodName => "connection.tune";
-
-        public override int WriteArgumentsTo(Span<byte> span)
-        {
-            int offset = WireFormatting.WriteShort(ref span.GetStart(), _channelMax);
-            offset += WireFormatting.WriteLong(ref span.GetOffset(offset), _frameMax);
-            return offset + WireFormatting.WriteShort(ref span.GetOffset(offset), _heartbeat);
-        }
-
-        public override int GetRequiredBufferSize()
-        {
-            return 2 + 4 + 2; // bytes for _channelMax, _frameMax, _heartbeat
-        }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionTune;
     }
 }

@@ -36,14 +36,10 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class BasicCancel : Client.Impl.MethodBase
+    internal readonly struct BasicCancel : IOutgoingAmqpMethod
     {
-        public string _consumerTag;
-        public bool _nowait;
-
-        public BasicCancel()
-        {
-        }
+        public readonly string _consumerTag;
+        public readonly bool _nowait;
 
         public BasicCancel(string ConsumerTag, bool Nowait)
         {
@@ -57,16 +53,15 @@ namespace RabbitMQ.Client.Framing.Impl
             WireFormatting.ReadBits(span.Slice(offset), out _nowait);
         }
 
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicCancel;
-        public override string ProtocolMethodName => "basic.cancel";
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicCancel;
 
-        public override int WriteArgumentsTo(Span<byte> span)
+        public int WriteArgumentsTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteShortstr(ref span.GetStart(), _consumerTag);
             return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _nowait);
         }
 
-        public override int GetRequiredBufferSize()
+        public int GetRequiredBufferSize()
         {
             int bufferSize = 1 + 1; // bytes for length of _consumerTag, bit fields
             bufferSize += WireFormatting.GetByteCount(_consumerTag); // _consumerTag in bytes

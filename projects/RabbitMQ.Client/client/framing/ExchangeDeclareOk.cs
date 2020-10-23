@@ -29,28 +29,12 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using RabbitMQ.Client.client.framing;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class ExchangeDeclareOk : Client.Impl.MethodBase
+    internal readonly struct ExchangeDeclareOk : IAmqpMethod
     {
-        public ExchangeDeclareOk()
-        {
-        }
-
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ExchangeDeclareOk;
-        public override string ProtocolMethodName => "exchange.declare-ok";
-
-        public override int WriteArgumentsTo(Span<byte> span)
-        {
-            return 0;
-        }
-
-        public override int GetRequiredBufferSize()
-        {
-            return 0;
-        }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ExchangeDeclareOk;
     }
 }

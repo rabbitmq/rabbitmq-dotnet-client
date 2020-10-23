@@ -34,23 +34,11 @@ using RabbitMQ.Client.client.framing;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class ConnectionOpenOk : Client.Impl.MethodBase
+    internal readonly struct ConnectionOpenOk : IAmqpMethod
     {
         //deprecated
         // string _reserved1
 
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionOpenOk;
-        public override string ProtocolMethodName => "connection.open-ok";
-
-        public override int WriteArgumentsTo(Span<byte> span)
-        {
-            span[0] = 0; // _reserved1
-            return 1;
-        }
-
-        public override int GetRequiredBufferSize()
-        {
-            return 1; // bytes for length of _reserved1
-        }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionOpenOk;
     }
 }

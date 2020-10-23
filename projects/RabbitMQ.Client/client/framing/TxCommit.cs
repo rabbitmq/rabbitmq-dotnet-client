@@ -34,21 +34,16 @@ using RabbitMQ.Client.client.framing;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class TxCommit : Client.Impl.MethodBase
+    internal readonly struct TxCommit : IOutgoingAmqpMethod
     {
-        public TxCommit()
-        {
-        }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.TxCommit;
 
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.TxCommit;
-        public override string ProtocolMethodName => "tx.commit";
-
-        public override int WriteArgumentsTo(Span<byte> span)
+        public int WriteArgumentsTo(Span<byte> span)
         {
             return 0;
         }
 
-        public override int GetRequiredBufferSize()
+        public int GetRequiredBufferSize()
         {
             return 0;
         }
