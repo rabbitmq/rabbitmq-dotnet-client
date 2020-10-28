@@ -45,8 +45,8 @@ namespace RabbitMQ.Client.Impl
          * +------------+---------+----------------+---------+------------------+
          * | 1 byte     | 2 bytes | 4 bytes        | x bytes | 1 byte           |
          * +------------+---------+----------------+---------+------------------+ */
-        private const int BaseFrameSize = 1 + 2 + 4 + 1;
-        private const int StartPayload = 7;
+        internal const int BaseFrameSize = 1 + 2 + 4 + 1;
+        internal const int StartPayload = 7;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int WriteBaseFrame(Span<byte> span, FrameType type, ushort channel, int payloadLength)
@@ -152,51 +152,90 @@ namespace RabbitMQ.Client.Impl
             _rentedArray = rentedArray;
         }
 
-        private static void ProcessProtocolHeader(ReadOnlySpan<byte> protocolError)
-        {
-            byte b1 = protocolError[0];
-            byte b2 = protocolError[1];
-            byte b3 = protocolError[2];
-            if (b1 != 'M' || b2 != 'Q' || b3 != 'P')
-            {
-                throw new MalformedFrameException("Invalid AMQP protocol header from server");
-            }
-
-            int transportHigh = protocolError[3];
-            int transportLow = protocolError[4];
-            int serverMajor = protocolError[5];
-            int serverMinor = protocolError[6];
-            throw new PacketNotRecognizedException(transportHigh, transportLow, serverMajor, serverMinor);
-        }
-
         internal static bool TryReadFrame(ref ReadOnlySequence<byte> buffer, out InboundFrame frame)
         {
-            // We'll always need to read at least 8 bytes (type (1) + channel (2) + payloadSize (4) + end marker (1)) or (8 bytes of protocol error, see ProcessProtocolHeader).
-            if (buffer.Length < 8)
+            // We'll always need to read at least 8 bytes (the Framing.BaseFrameSize) or 8 bytes of protocol error (see ProcessProtocolHeader).
+            if (buffer.Length < Framing.BaseFrameSize)
             {
                 frame = default;
                 return false;
             }
 
+            // Let's first check if we have a protocol header.
             if (buffer.First.Span[0] == 'A')
             {
-                // Probably an AMQP protocol header, otherwise meaningless
-                if (buffer.First.Length >= 8)
-                {
-                    ProcessProtocolHeader(buffer.First.Span.Slice(1, 7));
-                }
-                else
-                {
-                    Span<byte> protocolError = stackalloc byte[7];
-                    buffer.Slice(1, 7).CopyTo(protocolError);
-                    ProcessProtocolHeader(protocolError);
-                }
+                ProcessProtocolHeader(buffer);
             }
 
             int type = buffer.First.Span[0];
-            int channel;
-            int payloadSize;
+            ParseFrameHeader(buffer, out int channel, out int payloadSize);
 
+            // We'll need to read the payloadSize + FrameEndMarker (1 byte)
+            int readSize = payloadSize + 1;
+
+            // Do we have enough bytes to read the rest of the frame
+            if (buffer.Length < (Framing.StartPayload + readSize))
+            {
+                frame = default;
+                return false;
+            }
+
+            // The rented array is returned by InboundFrame.ReturnPayload in Connection.MainLoopIteration
+            byte[] payloadBytes = ArrayPool<byte>.Shared.Rent(readSize);
+            Memory<byte> payloadMemory = payloadBytes.AsMemory(0, readSize);
+            ReadOnlySequence<byte> payloadSlice = buffer.Slice(7, readSize);
+            payloadSlice.CopyTo(payloadMemory.Span);
+
+            // Let's validate that the frame contains a valid Frame End Marker
+            if (payloadBytes[payloadSize] != Constants.FrameEnd)
+            {
+                ArrayPool<byte>.Shared.Return(payloadBytes);
+                throw new MalformedFrameException($"Bad frame end marker: {payloadBytes[payloadSize]}");
+            }
+
+            // We have a frame!
+            frame = new InboundFrame((FrameType)type, channel, payloadMemory.Slice(0, payloadSize), payloadBytes);
+
+            // Update the buffer
+            buffer = buffer.Slice(payloadSlice.End);
+            return true;
+        }
+
+        private static void ProcessProtocolHeader(ReadOnlySequence<byte> buffer)
+        {
+            if (buffer.First.Length >= 8)
+            {
+                EvaluateProtocolError(buffer.First.Span.Slice(1, 7));
+            }
+            else
+            {
+                Span<byte> tempBuffer = stackalloc byte[7];
+                buffer.Slice(1, 7).CopyTo(tempBuffer);
+                EvaluateProtocolError(tempBuffer);
+            }
+
+            void EvaluateProtocolError(ReadOnlySpan<byte> protocolError)
+            {
+                byte b1 = protocolError[0];
+                byte b2 = protocolError[1];
+                byte b3 = protocolError[2];
+                if (b1 != 'M' || b2 != 'Q' || b3 != 'P')
+                {
+                    throw new MalformedFrameException("Invalid AMQP protocol header from server");
+                }
+
+                int transportHigh = protocolError[3];
+                int transportLow = protocolError[4];
+                int serverMajor = protocolError[5];
+                int serverMinor = protocolError[6];
+                throw new PacketNotRecognizedException(transportHigh, transportLow, serverMajor, serverMinor);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
+        private static void ParseFrameHeader(ReadOnlySequence<byte> buffer, out int channel, out int payloadSize)
+        {
             if (buffer.First.Length >= 7)
             {
                 channel = NetworkOrderDeserializer.ReadUInt16(buffer.First.Span.Slice(1, 2));
@@ -209,31 +248,6 @@ namespace RabbitMQ.Client.Impl
                 channel = NetworkOrderDeserializer.ReadUInt16(headerBytes.Slice(0, 2));
                 payloadSize = NetworkOrderDeserializer.ReadInt32(headerBytes.Slice(2, 4)); // FIXME - throw exn on unreasonable value
             }
-
-            const int EndMarkerLength = 1;
-            int readSize = payloadSize + EndMarkerLength;
-
-            // Do we have enough bytes to read an entire frame (type + channel + payloadSize + payload + end marker)
-            if (buffer.Length < (7 + readSize))
-            {
-                frame = default;
-                return false;
-            }
-
-            // Is returned by InboundFrame.ReturnPayload in Connection.MainLoopIteration
-            byte[] payloadBytes = ArrayPool<byte>.Shared.Rent(readSize);
-            Memory<byte> payloadMemory = payloadBytes.AsMemory(0, readSize);
-            ReadOnlySequence<byte> payloadSlice = buffer.Slice(7, readSize);
-            payloadSlice.CopyTo(payloadMemory.Span);
-            if (payloadBytes[payloadSize] != Constants.FrameEnd)
-            {
-                ArrayPool<byte>.Shared.Return(payloadBytes);
-                throw new MalformedFrameException($"Bad frame end marker: {payloadBytes[payloadSize]}");
-            }
-
-            buffer = buffer.Slice(payloadSlice.End);
-            frame = new InboundFrame((FrameType)type, channel, payloadMemory.Slice(0, payloadSize), payloadBytes);
-            return true;
         }
 
         public byte[] TakeoverPayload()

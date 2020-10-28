@@ -10,7 +10,7 @@ namespace RabbitMQ.Client.Impl
     /// </summary>
     internal class TcpClientAdapter : ITcpClient
     {
-        private Socket _sock;
+        private readonly Socket _sock;
 
         public TcpClientAdapter(Socket socket)
         {
