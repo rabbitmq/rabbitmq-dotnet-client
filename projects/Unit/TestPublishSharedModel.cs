@@ -29,10 +29,11 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+
+using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -80,6 +81,7 @@ namespace RabbitMQ.Client.Unit
                     var pubTask2 = Task.Run(() => NewFunction(model));
 
                     await Task.WhenAll(pubTask, pubTask2);
+                    model.QueueDelete(QueueName);
                 }
             }
 

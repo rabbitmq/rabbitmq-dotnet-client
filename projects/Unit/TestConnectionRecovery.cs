@@ -286,7 +286,6 @@ namespace RabbitMQ.Client.Unit
             {
                 RestartServerAndWaitForRecovery();
                 AssertQueueRecovery(m, q, false);
-                _model.QueueDelete(q);
             }, s);
         }
 
@@ -758,7 +757,8 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestThatCancelledConsumerDoesNotReappearOnRecovery()
         {
-            string q = _model.QueueDeclare(GenerateQueueName(), false, false, false, null).QueueName;
+            var queueName = GenerateQueueName();
+            string q = _model.QueueDeclare(queueName, false, false, false, null).QueueName;
             int n = 1024;
 
             for (int i = 0; i < n; i++)

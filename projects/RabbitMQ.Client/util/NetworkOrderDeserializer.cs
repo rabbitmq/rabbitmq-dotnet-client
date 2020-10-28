@@ -15,7 +15,7 @@ namespace RabbitMQ.Util
                 throw new ArgumentOutOfRangeException(nameof(span), "Insufficient length to decode Double from memory.");
             }
             ulong val = ReadUInt64(span);
-#elif NETSTANDARD
+#else
             ulong val = BinaryPrimitives.ReadUInt64BigEndian(span);
 #endif
             return Unsafe.As<ulong, double>(ref val);
@@ -31,7 +31,7 @@ namespace RabbitMQ.Util
             }
 
             return (short)ReadUInt16(span);
-#elif NETSTANDARD
+#else
             return BinaryPrimitives.ReadInt16BigEndian(span);
 #endif
         }
@@ -46,7 +46,7 @@ namespace RabbitMQ.Util
             }
 
             return (int)ReadUInt32(span);
-#elif NETSTANDARD
+#else
             return BinaryPrimitives.ReadInt32BigEndian(span);
 #endif
         }
@@ -61,7 +61,7 @@ namespace RabbitMQ.Util
             }
 
             return (long)ReadUInt64(span);
-#elif NETSTANDARD
+#else
             return BinaryPrimitives.ReadInt64BigEndian(span);
 #endif
         }
@@ -76,7 +76,7 @@ namespace RabbitMQ.Util
             }
 
             uint num = ReadUInt32(span);
-#elif NETSTANDARD
+#else
             uint num = BinaryPrimitives.ReadUInt32BigEndian(span);
 #endif
             return Unsafe.As<uint, float>(ref num);
@@ -92,7 +92,7 @@ namespace RabbitMQ.Util
             }
 
             return (ushort)((span[0] << 8) | span[1]);
-#elif NETSTANDARD
+#else
             return BinaryPrimitives.ReadUInt16BigEndian(span);
 #endif
         }
@@ -107,7 +107,7 @@ namespace RabbitMQ.Util
             }
 
             return (uint)((span[0] << 24) | (span[1] << 16) | (span[2] << 8) | span[3]);
-#elif NETSTANDARD
+#else
             return BinaryPrimitives.ReadUInt32BigEndian(span);
 #endif
         }
@@ -124,7 +124,7 @@ namespace RabbitMQ.Util
             uint num1 = (uint)((span[0] << 24) | (span[1] << 16) | (span[2] << 8) | span[3]);
             uint num2 = (uint)((span[4] << 24) | (span[5] << 16) | (span[6] << 8) | span[7]);
             return ((ulong)num1 << 32) | num2;
-#elif NETSTANDARD
+#else
             return BinaryPrimitives.ReadUInt64BigEndian(span);
 #endif
         }

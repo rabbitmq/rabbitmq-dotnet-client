@@ -30,17 +30,20 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Buffers;
 using System.IO;
+using System.IO.Pipelines;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
+using Pipelines.Sockets.Unofficial;
+using Pipelines.Sockets.Unofficial.Threading;
+
 using RabbitMQ.Client.Exceptions;
+
+using static Pipelines.Sockets.Unofficial.Threading.MutexSlim;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -68,27 +71,26 @@ namespace RabbitMQ.Client.Impl
         private TimeSpan _writeableStateTimeout = TimeSpan.FromSeconds(30);
         private int _writeableStateTimeoutMicroSeconds;
         private readonly ITcpClient _socket;
-        private readonly Stream _reader;
-        private readonly Stream _writer;
-        private readonly ChannelWriter<ReadOnlyMemory<byte>> _channelWriter;
-        private readonly ChannelReader<ReadOnlyMemory<byte>> _channelReader;
-        private readonly Task _writerTask;
-        private readonly object _semaphore = new object();
-        private readonly byte[] _frameHeaderBuffer;
-        private bool _closed;
+        private readonly ChannelWriter<OutgoingFrame> _channelWriter;
+        private readonly ChannelReader<OutgoingFrame> _channelReader;
+        public PipeReader PipeReader { get; private set; }
 
-        public SocketFrameHandler(AmqpTcpEndpoint endpoint,
-            Func<AddressFamily, ITcpClient> socketFactory,
-            TimeSpan connectionTimeout, TimeSpan readTimeout, TimeSpan writeTimeout)
+        private readonly PipeWriter _pipeWriter;
+        private Task _writerTask;
+        private readonly object _semaphore = new object();
+        private readonly IMeasuredDuplexPipe _pipe;
+        private bool _closed;
+        private readonly MutexSlim _singleWriterMutex;
+
+        public SocketFrameHandler(AmqpTcpEndpoint endpoint, Func<AddressFamily, ITcpClient> socketFactory, TimeSpan connectionTimeout, TimeSpan readTimeout, TimeSpan writeTimeout)
         {
             Endpoint = endpoint;
-            _frameHeaderBuffer = new byte[6];
-            var channel = Channel.CreateUnbounded<ReadOnlyMemory<byte>>(
+            var channel = Channel.CreateUnbounded<OutgoingFrame>(
                 new UnboundedChannelOptions
                 {
-                    AllowSynchronousContinuations = false,
+                    AllowSynchronousContinuations = true,
                     SingleReader = true,
-                    SingleWriter = false
+                    SingleWriter = true
                 });
 
             _channelReader = channel.Reader;
@@ -128,15 +130,18 @@ namespace RabbitMQ.Client.Impl
                 _socket = ConnectUsingIPv4(new IPEndPoint(ipv4, endpoint.Port), socketFactory, connectionTimeout);
             }
 
-            Stream netstream = _socket.GetStream();
-            netstream.ReadTimeout = (int)readTimeout.TotalMilliseconds;
-            netstream.WriteTimeout = (int)writeTimeout.TotalMilliseconds;
+            var SendPipeOptions = new PipeOptions(pauseWriterThreshold: 512 * 1024, resumeWriterThreshold: 384 * 1024, useSynchronizationContext: false);
+            var ReceivePipeOptions = new PipeOptions(pauseWriterThreshold: 512 * 1024, resumeWriterThreshold: 384 * 1024, useSynchronizationContext: false);
 
             if (endpoint.Ssl.Enabled)
             {
                 try
                 {
+                    Stream netstream = _socket.GetStream();
+                    netstream.ReadTimeout = (int)readTimeout.TotalMilliseconds;
+                    netstream.WriteTimeout = (int)writeTimeout.TotalMilliseconds;
                     netstream = SslHelper.TcpUpgrade(netstream, endpoint.Ssl);
+                    _pipe = StreamConnection.GetDuplex(netstream, SendPipeOptions, ReceivePipeOptions) as IMeasuredDuplexPipe;
                 }
                 catch (Exception)
                 {
@@ -144,12 +149,16 @@ namespace RabbitMQ.Client.Impl
                     throw;
                 }
             }
+            else
+            {
+                _pipe = SocketConnection.Create(_socket.Client, SendPipeOptions, ReceivePipeOptions);
+            }
 
-            _reader = new BufferedStream(netstream, _socket.Client.ReceiveBufferSize);
-            _writer = new BufferedStream(netstream, _socket.Client.SendBufferSize);
+            PipeReader = _pipe.Input;
+            _pipeWriter = _pipe.Output;
 
             WriteTimeout = writeTimeout;
-            _writerTask = Task.Run(WriteLoop, CancellationToken.None);
+            _singleWriterMutex = new MutexSlim((int)writeTimeout.TotalMilliseconds);
         }
         public AmqpTcpEndpoint Endpoint { get; set; }
 
@@ -207,40 +216,31 @@ namespace RabbitMQ.Client.Impl
             {
                 if (!_closed)
                 {
-                    try
+                    _channelWriter.TryComplete();
+                    //try { _writerTask.GetAwaiter().GetResult(); } catch { }
+
+                    if (_pipe != null)
                     {
-                        _channelWriter.Complete();
-                        _writerTask.GetAwaiter().GetResult();
-                    }
-                    catch(Exception)
-                    {
+                        try { _pipe.Input?.CancelPendingRead(); } catch { }
+                        try { _pipe.Input?.Complete(); } catch { }
+                        try { _pipe.Output?.CancelPendingFlush(); } catch { }
+                        try { _pipe.Output?.Complete(); } catch { }
+                        try { using (_pipe as IDisposable) { } } catch { }
                     }
 
-                    try
-                    {
-                        _socket.Close();
-                    }
-                    catch (Exception)
-                    {
-                        // ignore, we are closing anyway
-                    }
-                    finally
-                    {
-                        _closed = true;
-                    }
+                    try { _socket.Close(); } catch { }
+                    _closed = true;
                 }
             }
         }
 
-        public InboundFrame ReadFrame()
-        {
-            return InboundFrame.ReadFrom(_reader, _frameHeaderBuffer);
-        }
-
         public void SendHeader()
         {
-            byte[] headerBytes = new byte[8];
-            Encoding.ASCII.GetBytes("AMQP", 0, 4, headerBytes, 0);
+            Span<byte> headerBytes = _pipeWriter.GetSpan(8);
+            headerBytes[0] = (byte)'A';
+            headerBytes[1] = (byte)'M';
+            headerBytes[2] = (byte)'Q';
+            headerBytes[3] = (byte)'P';
             if (Endpoint.Protocol.Revision != 0)
             {
                 headerBytes[4] = 0;
@@ -256,29 +256,134 @@ namespace RabbitMQ.Client.Impl
                 headerBytes[7] = (byte)Endpoint.Protocol.MinorVersion;
             }
 
-            _writer.Write(headerBytes, 0, 8);
-            _writer.Flush();
+            _pipeWriter.Advance(8);
+            if (!_pipeWriter.FlushAsync().AsTask().Wait(_writeableStateTimeout))
+            {
+                var timeout = new TimeoutException();
+                _pipeWriter.Complete(timeout);
+                _channelWriter.Complete(timeout);
+            }
         }
 
-        public void Write(ReadOnlyMemory<byte> memory)
+        public void Write(OutgoingFrame frame)
         {
-            _channelWriter.TryWrite(memory);
+            LockToken token = default;
+            try
+            {
+                token = _singleWriterMutex.TryWait(WaitOptions.NoDelay);
+                if (!token.Success)
+                {
+                    // Didn't get the lock immediately, let's backlog the write and start the backlog writer task.
+                    if (_channelWriter.TryWrite(frame))
+                    {
+                        if (_writerTask == null || _writerTask.Status == TaskStatus.RanToCompletion)
+                        {
+                            _writerTask = Task.Run(WriteLoop, CancellationToken.None);
+                        }
+
+                        return;
+                    }
+
+                    token = _singleWriterMutex.TryWait();
+                    if (!token.Success)
+                    {
+                        throw new TimeoutException();
+                    }
+                }
+
+                ValueTask<bool> task = WriteFrameToPipe(frame);
+                if (!task.IsCompleted)
+                {
+                    task.AsTask().Wait();
+                }
+            }
+            finally
+            {
+                token.Dispose();
+            }
+        }
+
+        private ValueTask<bool> WriteFrameToPipe(OutgoingFrame frame)
+        {
+            switch (frame.FrameType)
+            {
+                case FrameType.FrameHeartbeat:
+                    Memory<byte> memory = _pipeWriter.GetMemory(Framing.Heartbeat.FrameSize);
+                    Framing.Heartbeat.WriteTo(memory.Span);
+                    _pipeWriter.Advance(Framing.Heartbeat.FrameSize);
+                    break;
+                case FrameType.FrameMethod:
+                    int size = frame.GetMaxSize(frame.MaxBodyPayloadBytes);
+
+                    // Will be returned by SocketFrameWriter.WriteLoop
+                    Memory<byte> methodMemory = _pipeWriter.GetMemory(size);
+                    int offset = Framing.Method.WriteTo(methodMemory.Span, frame.Channel, frame.Method);
+                    if (frame.Method.HasContent)
+                    {
+                        int remainingBodyBytes = frame.Body.Length;
+                        offset += Framing.Header.WriteTo(methodMemory.Span.Slice(offset), frame.Channel, frame.Header, remainingBodyBytes);
+                        while (remainingBodyBytes > 0)
+                        {
+                            int frameSize = remainingBodyBytes > frame.MaxBodyPayloadBytes ? frame.MaxBodyPayloadBytes : remainingBodyBytes;
+                            offset += Framing.BodySegment.WriteTo(methodMemory.Span.Slice(offset), frame.Channel, frame.Body.Span.Slice(frame.Body.Span.Length - remainingBodyBytes, frameSize));
+                            remainingBodyBytes -= frameSize;
+                        }
+                    }
+
+                    _pipeWriter.Advance(size);
+                    break;
+            }
+
+            return Flush(_pipeWriter);
         }
 
         private async Task WriteLoop()
         {
-            while (await _channelReader.WaitToReadAsync().ConfigureAwait(false))
+            LockToken token = default;
+            try
             {
-                _socket.Client.Poll(_writeableStateTimeoutMicroSeconds, SelectMode.SelectWrite);
-                while (_channelReader.TryRead(out ReadOnlyMemory<byte> memory))
+                // Let's start by getting the writer mutex
+                token = _singleWriterMutex.TryWait(WaitOptions.NoDelay);
+                if (!token.Success)
                 {
-                    MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> segment);
-                    await _writer.WriteAsync(segment.Array, segment.Offset, segment.Count).ConfigureAwait(false);
-                    ArrayPool<byte>.Shared.Return(segment.Array);
+                    token = await _singleWriterMutex.TryWaitAsync(options: WaitOptions.DisableAsyncContext).ConfigureAwait(false);
+                    if (!token.Success)
+                    {
+                        throw new TimeoutException();
+                    }
                 }
 
-                await _writer.FlushAsync().ConfigureAwait(false);
+                while (_channelReader.TryRead(out OutgoingFrame outgoingFrame))
+                {
+                    ValueTask<bool> task = WriteFrameToPipe(outgoingFrame);
+                    if (!task.IsCompleted)
+                    {
+                        await task.ConfigureAwait(false);
+                    }
+                }
             }
+            finally
+            {
+                token.Dispose();
+            }
+        }
+
+        private static ValueTask<bool> Flush(PipeWriter writer)
+        {
+            bool GetResult(FlushResult flush)
+                // tell the calling code whether any more messages
+                // should be written
+                => !(flush.IsCanceled || flush.IsCompleted);
+
+            async ValueTask<bool> Awaited(ValueTask<FlushResult> incomplete)
+                => GetResult(await incomplete.ConfigureAwait(false));
+
+            // apply back-pressure etc
+            ValueTask<FlushResult> flushTask = writer.FlushAsync();
+
+            return flushTask.IsCompletedSuccessfully
+                ? new ValueTask<bool>(GetResult(flushTask.Result))
+                : Awaited(flushTask);
         }
 
         private static bool ShouldTryIPv6(AmqpTcpEndpoint endpoint)

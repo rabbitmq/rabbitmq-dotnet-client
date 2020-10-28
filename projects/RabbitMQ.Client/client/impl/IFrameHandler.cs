@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.IO.Pipelines;
 using System.Net;
 
 namespace RabbitMQ.Client.Impl
@@ -52,15 +53,12 @@ namespace RabbitMQ.Client.Impl
         ///<summary>Socket write timeout. System.Threading.Timeout.InfiniteTimeSpan signals "infinity".</summary>
         TimeSpan WriteTimeout { set; }
 
-        void Close();
+        PipeReader PipeReader { get; }
 
-        ///<summary>Read a frame from the underlying
-        ///transport. Returns null if the read operation timed out
-        ///(see Timeout property).</summary>
-        InboundFrame ReadFrame();
+        void Close();
 
         void SendHeader();
 
-        void Write(ReadOnlyMemory<byte> memory);
+        void Write(OutgoingFrame outgoingFrame);
     }
 }
