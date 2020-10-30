@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -83,7 +84,7 @@ namespace RabbitMQ.Client.Framing.Impl
             replyProtocolCommandId = ProtocolCommandId.ConnectionCloseOk;
         }
 
-        internal abstract ContentHeaderBase DecodeContentHeaderFrom(ushort classId, ReadOnlySpan<byte> span);
+        internal abstract ContentHeaderBase DecodeContentHeaderFrom(ushort classId, ReadOnlyMemory<byte> rentedMemory);
         internal abstract MethodBase DecodeMethodFrom(ReadOnlySpan<byte> reader);
 
         public override bool Equals(object obj)

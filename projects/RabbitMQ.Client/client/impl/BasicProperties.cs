@@ -106,7 +106,8 @@ namespace RabbitMQ.Client.Impl
         /// </summary>
         public PublicationAddress ReplyToAddress
         {
-            get { 
+            get
+            {
                 PublicationAddress.TryParse(ReplyTo, out PublicationAddress result);
                 return result;
             }
@@ -280,5 +281,7 @@ namespace RabbitMQ.Client.Impl
 
             return clone;
         }
+
+        internal abstract void TryCleanup();
     }
 }

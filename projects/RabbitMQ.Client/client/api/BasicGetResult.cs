@@ -134,6 +134,8 @@ namespace RabbitMQ.Client
             {
                 ArrayPool<byte>.Shared.Return(_rentedArray);
             }
+
+            (BasicProperties as Impl.BasicProperties)?.TryCleanup();
         }
     }
 }

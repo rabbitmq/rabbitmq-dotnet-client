@@ -1,5 +1,6 @@
-﻿using System;
+﻿
 using BenchmarkDotNet.Attributes;
+
 using BasicProperties = RabbitMQ.Client.Framing.BasicProperties;
 
 namespace Benchmarks.WireFormatting
@@ -23,7 +24,7 @@ namespace Benchmarks.WireFormatting
         [Benchmark(Baseline = true)]
         public object ReadFromSpan()
         {
-            return new BasicProperties(new ReadOnlySpan<byte>(_buffer));
+            return new BasicProperties(_buffer);
         }
     }
 }

@@ -30,6 +30,8 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
+
 using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
@@ -95,11 +97,11 @@ namespace RabbitMQ.Client.Unit
             bool isMessageIdPresent = messageId != null;
             Assert.AreEqual(isMessageIdPresent, subject.IsMessageIdPresent());
 
-            Span<byte> span = new byte[1024];
+            Span<byte> span = ArrayPool<byte>.Shared.Rent(1024);
             int offset = subject.WritePropertiesTo(span);
 
             // Read from Stream
-            var propertiesFromStream = new Framing.BasicProperties(span.Slice(0, offset));
+            var propertiesFromStream = new Framing.BasicProperties(span.Slice(0, offset).ToArray());
 
             Assert.AreEqual(clusterId, propertiesFromStream.ClusterId);
             Assert.AreEqual(correlationId, propertiesFromStream.CorrelationId);
@@ -125,11 +127,11 @@ namespace RabbitMQ.Client.Unit
             string replyToAddress = result?.ToString();
             Assert.AreEqual(isReplyToPresent, subject.IsReplyToPresent());
 
-            Span<byte> span = new byte[1024];
+            Span<byte> span = ArrayPool<byte>.Shared.Rent(1024);
             int offset = subject.WritePropertiesTo(span);
 
             // Read from Stream
-            var propertiesFromStream = new Framing.BasicProperties(span.Slice(0, offset));
+            var propertiesFromStream = new Framing.BasicProperties(span.Slice(0, offset).ToArray());
 
             Assert.AreEqual(replyTo, propertiesFromStream.ReplyTo);
             Assert.AreEqual(isReplyToPresent, propertiesFromStream.IsReplyToPresent());
