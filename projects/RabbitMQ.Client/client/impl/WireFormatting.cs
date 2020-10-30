@@ -34,13 +34,16 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
+
 using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.util;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
     internal static class WireFormatting
     {
+        private static LRUCache<int, Tuple<string, int>> s_stringCache = new LRUCache<int, Tuple<string, int>>(1000);
         public static decimal ReadDecimal(ReadOnlySpan<byte> span)
         {
             byte scale = span[0];
@@ -159,13 +162,24 @@ namespace RabbitMQ.Client.Impl
                 return 1;
             }
 
-            // equals span.Length >= byteCount + 1
             if (span.Length > byteCount)
             {
-                fixed (byte* bytes = &span.Slice(1).GetPinnableReference())
+                ReadOnlySpan<byte> stringSlice = span.Slice(1, byteCount);
+                int hashCode = GetHashCode(stringSlice);
+                var item = s_stringCache.get(hashCode);
+                if (item != null && item.Item2 == byteCount)
                 {
-                    value = Encoding.UTF8.GetString(bytes, byteCount);
-                    return 1 + byteCount;
+                    value = item.Item1;
+                    return 1 + item.Item2;
+                }
+                else
+                {
+                    fixed (byte* bytes = &stringSlice.GetPinnableReference())
+                    {
+                        value = string.Intern(Encoding.UTF8.GetString(bytes, byteCount));
+                        s_stringCache.add(hashCode, new Tuple<string, int>(value, byteCount));
+                        return 1 + byteCount;
+                    }
                 }
             }
 
@@ -229,16 +243,16 @@ namespace RabbitMQ.Client.Impl
             out bool val11, out bool val12, out bool val13, out bool val14)
         {
             byte bits = span[0];
-            val1  = (bits & 0b1000_0000) != 0;
-            val2  = (bits & 0b0100_0000) != 0;
-            val3  = (bits & 0b0010_0000) != 0;
-            val4  = (bits & 0b0001_0000) != 0;
-            val5  = (bits & 0b0000_1000) != 0;
-            val6  = (bits & 0b0000_0100) != 0;
-            val7  = (bits & 0b0000_0010) != 0;
-            val8  = (bits & 0b0000_0001) != 0;
+            val1 = (bits & 0b1000_0000) != 0;
+            val2 = (bits & 0b0100_0000) != 0;
+            val3 = (bits & 0b0010_0000) != 0;
+            val4 = (bits & 0b0001_0000) != 0;
+            val5 = (bits & 0b0000_1000) != 0;
+            val6 = (bits & 0b0000_0100) != 0;
+            val7 = (bits & 0b0000_0010) != 0;
+            val8 = (bits & 0b0000_0001) != 0;
             bits = span[1];
-            val9  = (bits & 0b1000_0000) != 0;
+            val9 = (bits & 0b1000_0000) != 0;
             val10 = (bits & 0b0100_0000) != 0;
             val11 = (bits & 0b0010_0000) != 0;
             val12 = (bits & 0b0001_0000) != 0;
@@ -499,7 +513,7 @@ namespace RabbitMQ.Client.Impl
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteBits(Span<byte> span, bool val)
         {
-            span[0] = val ? (byte) 1 : (byte) 0;
+            span[0] = val ? (byte)1 : (byte)0;
             return 1;
         }
 
@@ -854,6 +868,17 @@ namespace RabbitMQ.Client.Impl
         public static int ThrowSyntaxErrorException(uint byteCount)
         {
             throw new SyntaxErrorException($"Long string too long; byte length={byteCount}, max={int.MaxValue}");
+        }
+
+        private static int GetHashCode(ReadOnlySpan<byte> span)
+        {
+            unchecked
+            {
+                int result = 0;
+                foreach (byte b in span)
+                    result = (result * 31) ^ b;
+                return result;
+            }
         }
     }
 }
