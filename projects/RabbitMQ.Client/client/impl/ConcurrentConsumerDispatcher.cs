@@ -2,6 +2,7 @@
 using System.Buffers;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Impl
@@ -89,6 +90,7 @@ namespace RabbitMQ.Client.Impl
                 finally
                 {
                     ArrayPool<byte>.Shared.Return(rentedArray);
+                    (basicProperties as BasicProperties).TryCleanup();
                 }
             });
         }

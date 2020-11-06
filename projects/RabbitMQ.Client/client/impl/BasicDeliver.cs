@@ -39,18 +39,19 @@ namespace RabbitMQ.Client.Impl
 
         protected override Task Execute(IAsyncBasicConsumer consumer)
         {
-             return consumer.HandleBasicDeliver(_consumerTag,
-                     _deliveryTag,
-                     _redelivered,
-                     _exchange,
-                     _routingKey,
-                     _basicProperties,
-                     _body);
+            return consumer.HandleBasicDeliver(_consumerTag,
+                    _deliveryTag,
+                    _redelivered,
+                    _exchange,
+                    _routingKey,
+                    _basicProperties,
+                    _body);
         }
 
         public override void PostExecute()
         {
             ArrayPool<byte>.Shared.Return(_rentedBytes);
+            (_basicProperties as BasicProperties)?.TryCleanup();
         }
     }
 }

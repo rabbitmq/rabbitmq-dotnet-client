@@ -336,12 +336,9 @@ namespace RabbitMQ.Client.Impl
             if (method.HasContent)
             {
                 _flowControlBlock.Wait();
-                Session.Transmit(new OutgoingCommand(method, header, body));
             }
-            else
-            {
-                Session.Transmit(new OutgoingCommand(method, header, body));
-            }
+
+            Session.Transmit(new OutgoingCommand(method, header, body));
         }
 
         public virtual void OnBasicRecoverOk(EventArgs args)
@@ -438,7 +435,7 @@ namespace RabbitMQ.Client.Impl
             SetCloseReason(reason);
             OnModelShutdown(reason);
             BroadcastShutdownToConsumers(_consumers, reason);
-            ConsumerDispatcher.Shutdown(this).GetAwaiter().GetResult();;
+            ConsumerDispatcher.Shutdown(this).GetAwaiter().GetResult();
         }
 
         protected void BroadcastShutdownToConsumers(Dictionary<string, IBasicConsumer> cs, ShutdownEventArgs reason)
@@ -744,7 +741,9 @@ namespace RabbitMQ.Client.Impl
                     }
                 }
             }
+
             ArrayPool<byte>.Shared.Return(rentedArray);
+            (basicProperties as BasicProperties)?.TryCleanup();
         }
 
         public void HandleChannelClose(ushort replyCode,
@@ -779,13 +778,13 @@ namespace RabbitMQ.Client.Impl
             if (active)
             {
                 _flowControlBlock.Set();
-                _Private_ChannelFlowOk(active);
             }
             else
             {
                 _flowControlBlock.Reset();
-                _Private_ChannelFlowOk(active);
             }
+
+            _Private_ChannelFlowOk(active);
             OnFlowControl(new FlowControlEventArgs(active));
         }
 

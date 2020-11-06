@@ -31,6 +31,7 @@
 
 using System;
 using System.Buffers;
+
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Util;
@@ -74,10 +75,10 @@ namespace RabbitMQ.Client.Impl
             switch (_state)
             {
                 case AssemblyState.ExpectingMethod:
-                    ParseMethodFrame(in frame);
+                    shallReturn = ParseMethodFrame(in frame);
                     break;
                 case AssemblyState.ExpectingContentHeader:
-                    ParseHeaderFrame(in frame);
+                    shallReturn = ParseHeaderFrame(in frame);
                     break;
                 case AssemblyState.ExpectingContentBody:
                     shallReturn = ParseBodyFrame(in frame);
@@ -87,7 +88,7 @@ namespace RabbitMQ.Client.Impl
             if (_state != AssemblyState.Complete)
             {
                 command = IncomingCommand.Empty;
-                return true;
+                return shallReturn;
             }
 
             command = new IncomingCommand(_method, _header, _body, _bodyBytes);
@@ -95,7 +96,7 @@ namespace RabbitMQ.Client.Impl
             return shallReturn;
         }
 
-        private void ParseMethodFrame(in InboundFrame frame)
+        private bool ParseMethodFrame(in InboundFrame frame)
         {
             if (frame.Type != FrameType.FrameMethod)
             {
@@ -104,9 +105,10 @@ namespace RabbitMQ.Client.Impl
 
             _method = _protocol.DecodeMethodFrom(frame.Payload.Span);
             _state = _method.HasContent ? AssemblyState.ExpectingContentHeader : AssemblyState.Complete;
+            return true;
         }
 
-        private void ParseHeaderFrame(in InboundFrame frame)
+        private bool ParseHeaderFrame(in InboundFrame frame)
         {
             if (frame.Type != FrameType.FrameHeader)
             {
@@ -114,15 +116,16 @@ namespace RabbitMQ.Client.Impl
             }
 
             ReadOnlySpan<byte> span = frame.Payload.Span;
-            _header = _protocol.DecodeContentHeaderFrom(NetworkOrderDeserializer.ReadUInt16(span), span.Slice(12));
+            _header = _protocol.DecodeContentHeaderFrom(NetworkOrderDeserializer.ReadUInt16(span), frame.TakeoverPayload().AsMemory(12, frame.Payload.Length - 12));
             ulong totalBodyBytes = NetworkOrderDeserializer.ReadUInt64(span.Slice(4));
             if (totalBodyBytes > MaxArrayOfBytesSize)
             {
                 throw new UnexpectedFrameException(frame.Type);
             }
 
-            _remainingBodyBytes = (int) totalBodyBytes;
+            _remainingBodyBytes = (int)totalBodyBytes;
             UpdateContentBodyState();
+            return false;
         }
 
         private bool ParseBodyFrame(in InboundFrame frame)
