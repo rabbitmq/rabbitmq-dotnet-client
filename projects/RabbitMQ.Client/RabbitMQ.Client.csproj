@@ -26,7 +26,6 @@
     <MinVerVerbosity>minimal</MinVerVerbosity>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageOutputPath>..\..\packages</PackageOutputPath>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <CodeAnalysisRuleSet>RabbitMQ.ruleset</CodeAnalysisRuleSet>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
