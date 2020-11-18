@@ -150,23 +150,15 @@ namespace RabbitMQ.Client.Impl
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe int ReadShortstr(ReadOnlySpan<byte> span, out string value)
+        public static int ReadShortstr(ReadOnlySpan<byte> span, out string value)
         {
             int byteCount = span[0];
-            if (byteCount == 0)
-            {
-                value = string.Empty;
-                return 1;
-            }
 
             // equals span.Length >= byteCount + 1
             if (span.Length > byteCount)
             {
-                fixed (byte* bytes = &span.Slice(1).GetPinnableReference())
-                {
-                    value = Encoding.UTF8.GetString(bytes, byteCount);
-                    return 1 + byteCount;
-                }
+                value = Encoding.UTF8.GetString(span.Slice(1));
+                return 1 + byteCount;
             }
 
             value = string.Empty;
@@ -700,39 +692,31 @@ namespace RabbitMQ.Client.Impl
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe int WriteShortstr(Span<byte> span, string val)
+        public static int WriteShortstr(Span<byte> span, string val)
         {
             int maxLength = span.Length - 1;
             if (maxLength > byte.MaxValue)
             {
                 maxLength = byte.MaxValue;
             }
-            fixed (char* chars = val)
-            fixed (byte* bytes = &span.Slice(1).GetPinnableReference())
+            try
             {
-                try
-                {
-                    int bytesWritten = Encoding.UTF8.GetBytes(chars, val.Length, bytes, maxLength);
-                    span[0] = (byte)bytesWritten;
-                    return bytesWritten + 1;
-                }
-                catch (ArgumentException)
-                {
-                    return ThrowArgumentOutOfRangeException(val, maxLength);
-                }
+                int bytesWritten = Encoding.UTF8.GetBytes(val.AsSpan(), span.Slice(1));
+                span[0] = (byte)bytesWritten;
+                return bytesWritten + 1;
+            }
+            catch (ArgumentException)
+            {
+                return ThrowArgumentOutOfRangeException(val, maxLength);
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe int WriteLongstr(Span<byte> span, string val)
+        public static int WriteLongstr(Span<byte> span, string val)
         {
-            fixed (char* chars = val)
-            fixed (byte* bytes = &span.Slice(4).GetPinnableReference())
-            {
-                int bytesWritten = Encoding.UTF8.GetBytes(chars, val.Length, bytes, span.Length);
-                NetworkOrderSerializer.WriteUInt32(span, (uint)bytesWritten);
-                return bytesWritten + 4;
-            }
+            int bytesWritten = Encoding.UTF8.GetBytes(val.AsSpan(), span.Slice(4));
+            NetworkOrderSerializer.WriteUInt32(span, (uint)bytesWritten);
+            return bytesWritten + 4;
         }
 
         public static int WriteTable(Span<byte> span, IDictionary val)
