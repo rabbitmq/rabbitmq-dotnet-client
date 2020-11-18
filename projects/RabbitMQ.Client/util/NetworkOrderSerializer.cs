@@ -33,8 +33,7 @@ namespace RabbitMQ.Util
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void WriteSingle(Span<byte> span, float val)
         {
-            int tempVal = Unsafe.As<float, int>(ref val);
-            BinaryPrimitives.WriteInt32BigEndian(span, tempVal);
+            BinaryPrimitives.WriteSingleBigEndian(span, val);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

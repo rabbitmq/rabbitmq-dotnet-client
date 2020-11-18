@@ -33,8 +33,7 @@ namespace RabbitMQ.Util
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static float ReadSingle(ReadOnlySpan<byte> span)
         {
-            uint num = BinaryPrimitives.ReadUInt32BigEndian(span);
-            return Unsafe.As<uint, float>(ref num);
+            return BinaryPrimitives.ReadSingleBigEndian(span);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
