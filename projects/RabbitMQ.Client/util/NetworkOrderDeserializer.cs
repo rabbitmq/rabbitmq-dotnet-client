@@ -33,7 +33,7 @@ namespace RabbitMQ.Util
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static float ReadSingle(ReadOnlySpan<byte> span)
         {
-            return BinaryPrimitives.ReadSingleBigEndian(span);
+            return BitConverter.Int32BitsToSingle(ReadInt32(span));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -33,7 +33,7 @@ namespace RabbitMQ.Util
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void WriteSingle(Span<byte> span, float val)
         {
-            BinaryPrimitives.WriteSingleBigEndian(span, val);
+            BinaryPrimitives.WriteInt32BigEndian(span, BitConverter.SingleToInt32Bits(val));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
