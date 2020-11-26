@@ -71,7 +71,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             int bufferSize = 4 + 1; // bytes for length of _newSecret, length of _reason
             bufferSize += _newSecret.Length; // _newSecret in bytes
-            bufferSize += Encoding.UTF8.GetByteCount(_reason); // _reason in bytes
+            bufferSize += WireFormatting.GetUTF8ByteCount(_reason); // _reason in bytes
             return bufferSize;
         }
     }

@@ -260,20 +260,20 @@ namespace RabbitMQ.Client.Framing
         public override int GetRequiredPayloadBufferSize()
         {
             int bufferSize = 2; // number of presence fields (14) in 2 bytes blocks
-            if (IsContentTypePresent()) { bufferSize += 1 + Encoding.UTF8.GetByteCount(_contentType); } // _contentType in bytes
-            if (IsContentEncodingPresent()) { bufferSize += 1 + Encoding.UTF8.GetByteCount(_contentEncoding); } // _contentEncoding in bytes
+            if (IsContentTypePresent()) { bufferSize += 1 + WireFormatting.GetUTF8ByteCount(_contentType); } // _contentType in bytes
+            if (IsContentEncodingPresent()) { bufferSize += 1 + WireFormatting.GetUTF8ByteCount(_contentEncoding); } // _contentEncoding in bytes
             if (IsHeadersPresent()) { bufferSize += WireFormatting.GetTableByteCount(_headers); } // _headers in bytes
             if (IsDeliveryModePresent()) { bufferSize++; } // _deliveryMode in bytes
             if (IsPriorityPresent()) { bufferSize++; } // _priority in bytes
-            if (IsCorrelationIdPresent()) { bufferSize += 1 + Encoding.UTF8.GetByteCount(_correlationId); } // _correlationId in bytes
-            if (IsReplyToPresent()) { bufferSize += 1 + Encoding.UTF8.GetByteCount(_replyTo); } // _replyTo in bytes
-            if (IsExpirationPresent()) { bufferSize += 1 + Encoding.UTF8.GetByteCount(_expiration); } // _expiration in bytes
-            if (IsMessageIdPresent()) { bufferSize += 1 + Encoding.UTF8.GetByteCount(_messageId); } // _messageId in bytes
+            if (IsCorrelationIdPresent()) { bufferSize += 1 + WireFormatting.GetUTF8ByteCount(_correlationId); } // _correlationId in bytes
+            if (IsReplyToPresent()) { bufferSize += 1 + WireFormatting.GetUTF8ByteCount(_replyTo); } // _replyTo in bytes
+            if (IsExpirationPresent()) { bufferSize += 1 + WireFormatting.GetUTF8ByteCount(_expiration); } // _expiration in bytes
+            if (IsMessageIdPresent()) { bufferSize += 1 + WireFormatting.GetUTF8ByteCount(_messageId); } // _messageId in bytes
             if (IsTimestampPresent()) { bufferSize += 8; } // _timestamp in bytes
-            if (IsTypePresent()) { bufferSize += 1 + Encoding.UTF8.GetByteCount(_type); } // _type in bytes
-            if (IsUserIdPresent()) { bufferSize += 1 + Encoding.UTF8.GetByteCount(_userId); } // _userId in bytes
-            if (IsAppIdPresent()) { bufferSize += 1 + Encoding.UTF8.GetByteCount(_appId); } // _appId in bytes
-            if (IsClusterIdPresent()) { bufferSize += 1 + Encoding.UTF8.GetByteCount(_clusterId); } // _clusterId in bytes
+            if (IsTypePresent()) { bufferSize += 1 + WireFormatting.GetUTF8ByteCount(_type); } // _type in bytes
+            if (IsUserIdPresent()) { bufferSize += 1 + WireFormatting.GetUTF8ByteCount(_userId); } // _userId in bytes
+            if (IsAppIdPresent()) { bufferSize += 1 + WireFormatting.GetUTF8ByteCount(_appId); } // _appId in bytes
+            if (IsClusterIdPresent()) { bufferSize += 1 + WireFormatting.GetUTF8ByteCount(_clusterId); } // _clusterId in bytes
             return bufferSize;
         }
     }

@@ -33,6 +33,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
@@ -83,7 +84,7 @@ namespace RabbitMQ.Client.Impl
             switch ((char)span[0])
             {
                 case 'S':
-                    bytesRead += ReadLongstr(span.Slice(1), out var bytes);
+                    bytesRead += ReadLongstr(span.Slice(1), out byte[] bytes);
                     return bytes;
                 case 'I':
                     bytesRead += 4;
@@ -95,10 +96,10 @@ namespace RabbitMQ.Client.Impl
                     bytesRead += 5;
                     return ReadDecimal(span.Slice(1));
                 case 'T':
-                    bytesRead += ReadTimestamp(span.Slice(1), out var timestamp);
+                    bytesRead += ReadTimestamp(span.Slice(1), out AmqpTimestamp timestamp);
                     return timestamp;
                 case 'F':
-                    bytesRead += ReadDictionary(span.Slice(1), out var dictionary);
+                    bytesRead += ReadDictionary(span.Slice(1), out Dictionary<string, object> dictionary);
                     return dictionary;
                 case 'A':
                     IList arrayResult = ReadArray(span.Slice(1), out int arrayBytesRead);
@@ -126,7 +127,7 @@ namespace RabbitMQ.Client.Impl
                     bytesRead += 1;
                     return span[1] != 0;
                 case 'x':
-                    bytesRead += ReadLongstr(span.Slice(1), out var binaryTableResult);
+                    bytesRead += ReadLongstr(span.Slice(1), out byte[] binaryTableResult);
                     return new BinaryTableValue(binaryTableResult);
                 case 'V':
                     return null;
@@ -139,6 +140,12 @@ namespace RabbitMQ.Client.Impl
         public static int ReadLongstr(ReadOnlySpan<byte> span, out byte[] value)
         {
             uint byteCount = NetworkOrderDeserializer.ReadUInt32(span);
+            if (byteCount == 0)
+            {
+                value = Array.Empty<byte>();
+                return 4;
+            }
+
             if (byteCount > int.MaxValue)
             {
                 value = null;
@@ -150,7 +157,7 @@ namespace RabbitMQ.Client.Impl
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe int ReadShortstr(ReadOnlySpan<byte> span, out string value)
+        public static int ReadShortstr(ReadOnlySpan<byte> span, out string value)
         {
             int byteCount = span[0];
             if (byteCount == 0)
@@ -162,14 +169,22 @@ namespace RabbitMQ.Client.Impl
             // equals span.Length >= byteCount + 1
             if (span.Length > byteCount)
             {
-                fixed (byte* bytes = &span.Slice(1).GetPinnableReference())
+#if NETCOREAPP
+                value = Encoding.UTF8.GetString(span.Slice(1, byteCount));
+                return 1 + byteCount;
+#else
+                unsafe
                 {
-                    value = Encoding.UTF8.GetString(bytes, byteCount);
-                    return 1 + byteCount;
+                    fixed (byte* bytes = &MemoryMarshal.GetReference(span.Slice(1)))
+                    {
+                        value = Encoding.UTF8.GetString(bytes, byteCount);
+                        return 1 + byteCount;
+                    }
                 }
+#endif
             }
 
-            value = string.Empty;
+            value = null;
             return ThrowArgumentOutOfRangeException(span.Length, byteCount + 1);
         }
 
@@ -229,16 +244,16 @@ namespace RabbitMQ.Client.Impl
             out bool val11, out bool val12, out bool val13, out bool val14)
         {
             byte bits = span[0];
-            val1  = (bits & 0b1000_0000) != 0;
-            val2  = (bits & 0b0100_0000) != 0;
-            val3  = (bits & 0b0010_0000) != 0;
-            val4  = (bits & 0b0001_0000) != 0;
-            val5  = (bits & 0b0000_1000) != 0;
-            val6  = (bits & 0b0000_0100) != 0;
-            val7  = (bits & 0b0000_0010) != 0;
-            val8  = (bits & 0b0000_0001) != 0;
+            val1 = (bits & 0b1000_0000) != 0;
+            val2 = (bits & 0b0100_0000) != 0;
+            val3 = (bits & 0b0010_0000) != 0;
+            val4 = (bits & 0b0001_0000) != 0;
+            val5 = (bits & 0b0000_1000) != 0;
+            val6 = (bits & 0b0000_0100) != 0;
+            val7 = (bits & 0b0000_0010) != 0;
+            val8 = (bits & 0b0000_0001) != 0;
             bits = span[1];
-            val9  = (bits & 0b1000_0000) != 0;
+            val9 = (bits & 0b1000_0000) != 0;
             val10 = (bits & 0b0100_0000) != 0;
             val11 = (bits & 0b0010_0000) != 0;
             val12 = (bits & 0b0001_0000) != 0;
@@ -310,7 +325,7 @@ namespace RabbitMQ.Client.Impl
 
         public static int WriteArray(Span<byte> span, IList val)
         {
-            if (val is null)
+            if (val is null || val.Count == 0)
             {
                 NetworkOrderSerializer.WriteUInt32(span, 0);
                 return 4;
@@ -329,7 +344,7 @@ namespace RabbitMQ.Client.Impl
         public static int GetArrayByteCount(IList val)
         {
             int byteCount = 4;
-            if (val is null)
+            if (val is null || val.Count == 0)
             {
                 return byteCount;
             }
@@ -468,7 +483,7 @@ namespace RabbitMQ.Client.Impl
                 case long _:
                     return 9;
                 case string val:
-                    return 5 + Encoding.UTF8.GetByteCount(val);
+                    return 5 + GetUTF8ByteCount(val);
                 case byte[] val:
                     return 5 + val.Length;
                 case IDictionary val:
@@ -481,6 +496,13 @@ namespace RabbitMQ.Client.Impl
                     throw new WireFormattingException($"Value of type '{value.GetType().Name}' cannot appear as table value", value);
             }
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#if NETCOREAPP
+        public static int GetUTF8ByteCount(ReadOnlySpan<char> val) => val.IsEmpty ? 0 : Encoding.UTF8.GetByteCount(val);
+#else
+        public static int GetUTF8ByteCount(string val) => string.IsNullOrEmpty(val) ? 0 : Encoding.UTF8.GetByteCount(val);
+#endif
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteLong(Span<byte> span, uint val)
@@ -499,7 +521,7 @@ namespace RabbitMQ.Client.Impl
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteBits(Span<byte> span, bool val)
         {
-            span[0] = val ? (byte) 1 : (byte) 0;
+            span[0] = (byte)(val ? 1 : 0);
             return 1;
         }
 
@@ -700,39 +722,77 @@ namespace RabbitMQ.Client.Impl
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe int WriteShortstr(Span<byte> span, string val)
+        public static int WriteShortstr(Span<byte> span, string val)
         {
+            if (string.IsNullOrEmpty(val))
+            {
+                span[0] = 0;
+                return 1;
+            }
+
             int maxLength = span.Length - 1;
             if (maxLength > byte.MaxValue)
             {
                 maxLength = byte.MaxValue;
             }
-            fixed (char* chars = val)
-            fixed (byte* bytes = &span.Slice(1).GetPinnableReference())
+
+#if NETCOREAPP
+            try
             {
-                try
+                int bytesWritten = Encoding.UTF8.GetBytes(val, span.Slice(1, maxLength));
+                span[0] = (byte)bytesWritten;
+                return bytesWritten + 1;
+            }
+            catch (ArgumentException)
+            {
+                return ThrowArgumentOutOfRangeException(nameof(val), val, maxLength);
+            }
+#else
+            unsafe
+            {
+                fixed (char* chars = val)
+                fixed (byte* bytes = &MemoryMarshal.GetReference(span.Slice(1)))
                 {
-                    int bytesWritten = Encoding.UTF8.GetBytes(chars, val.Length, bytes, maxLength);
-                    span[0] = (byte)bytesWritten;
-                    return bytesWritten + 1;
-                }
-                catch (ArgumentException)
-                {
-                    return ThrowArgumentOutOfRangeException(val, maxLength);
+                    try
+                    {
+                        int bytesWritten = Encoding.UTF8.GetBytes(chars, val.Length, bytes, maxLength);
+                        span[0] = (byte)bytesWritten;
+                        return bytesWritten + 1;
+                    }
+                    catch (ArgumentException)
+                    {
+                        return ThrowArgumentOutOfRangeException(nameof(val), val, maxLength);
+                    }
                 }
             }
+#endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe int WriteLongstr(Span<byte> span, string val)
+        public static int WriteLongstr(Span<byte> span, string val)
         {
-            fixed (char* chars = val)
-            fixed (byte* bytes = &span.Slice(4).GetPinnableReference())
+            if (string.IsNullOrEmpty(val))
             {
-                int bytesWritten = Encoding.UTF8.GetBytes(chars, val.Length, bytes, span.Length);
-                NetworkOrderSerializer.WriteUInt32(span, (uint)bytesWritten);
-                return bytesWritten + 4;
+                NetworkOrderSerializer.WriteUInt32(span, 0);
+                return 4;
             }
+
+#if NETCOREAPP
+            int bytesWritten = Encoding.UTF8.GetBytes(val, span.Slice(4));
+            NetworkOrderSerializer.WriteUInt32(span, (uint)bytesWritten);
+            return bytesWritten + 4;
+#else
+            unsafe
+            {
+                fixed (char* chars = val)
+                fixed (byte* bytes = &MemoryMarshal.GetReference(span.Slice(4)))
+                {
+                    int bytesWritten = Encoding.UTF8.GetBytes(chars, val.Length, bytes, span.Length);
+                    NetworkOrderSerializer.WriteUInt32(span, (uint)bytesWritten);
+                    return bytesWritten + 4;
+                }
+            }
+#endif
         }
 
         public static int WriteTable(Span<byte> span, IDictionary val)
@@ -767,9 +827,9 @@ namespace RabbitMQ.Client.Impl
             // Let's only write after the length header.
             Span<byte> slice = span.Slice(4);
             int bytesWritten = 0;
-            if (val is Dictionary<string, object> dict)
+            if (val is Dictionary<string, object> dictVal)
             {
-                foreach (KeyValuePair<string, object> entry in dict)
+                foreach (KeyValuePair<string, object> entry in dictVal)
                 {
                     bytesWritten += WriteShortstr(slice.Slice(bytesWritten), entry.Key);
                     bytesWritten += WriteFieldValue(slice.Slice(bytesWritten), entry.Value);
@@ -791,14 +851,14 @@ namespace RabbitMQ.Client.Impl
         public static int GetTableByteCount(IDictionary val)
         {
             int byteCount = 4;
-            if (val is null)
+            if (val is null || val.Count == 0)
             {
                 return byteCount;
             }
 
             foreach (DictionaryEntry entry in val)
             {
-                byteCount += Encoding.UTF8.GetByteCount(entry.Key.ToString()) + 1;
+                byteCount += GetUTF8ByteCount(entry.Key.ToString()) + 1;
                 byteCount += GetFieldValueByteCount(entry.Value);
             }
 
@@ -808,16 +868,16 @@ namespace RabbitMQ.Client.Impl
         public static int GetTableByteCount(IDictionary<string, object> val)
         {
             int byteCount = 4;
-            if (val is null)
+            if (val is null || val.Count == 0)
             {
                 return byteCount;
             }
 
-            if (val is Dictionary<string, object> dict)
+            if (val is Dictionary<string, object> valDict)
             {
-                foreach (KeyValuePair<string, object> entry in dict)
+                foreach (KeyValuePair<string, object> entry in valDict)
                 {
-                    byteCount += Encoding.UTF8.GetByteCount(entry.Key) + 1;
+                    byteCount += GetUTF8ByteCount(entry.Key) + 1;
                     byteCount += GetFieldValueByteCount(entry.Value);
                 }
             }
@@ -825,7 +885,7 @@ namespace RabbitMQ.Client.Impl
             {
                 foreach (KeyValuePair<string, object> entry in val)
                 {
-                    byteCount += Encoding.UTF8.GetByteCount(entry.Key) + 1;
+                    byteCount += GetUTF8ByteCount(entry.Key) + 1;
                     byteCount += GetFieldValueByteCount(entry.Value);
                 }
             }
@@ -846,9 +906,9 @@ namespace RabbitMQ.Client.Impl
             throw new ArgumentOutOfRangeException("span", $"Span has not enough space ({orig} instead of {expected})");
         }
 
-        public static int ThrowArgumentOutOfRangeException(string val, int maxLength)
+        public static int ThrowArgumentOutOfRangeException(string paramName, string val, int maxLength)
         {
-            throw new ArgumentOutOfRangeException(nameof(val), val, $"Value exceeds the maximum allowed length of {maxLength} bytes.");
+            throw new ArgumentOutOfRangeException(paramName, val, $"Value exceeds the maximum allowed length of {maxLength} bytes.");
         }
 
         public static int ThrowSyntaxErrorException(uint byteCount)
