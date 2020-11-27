@@ -357,14 +357,8 @@ namespace RabbitMQ.Client.Impl
             return byteCount;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteDecimal(Span<byte> span, decimal value)
-        {
-            DecimalToAmqp(value, out byte scale, out int mantissa);
-            span[0] = scale;
-            return 1 + WriteLong(span.Slice(1), (uint)mantissa);
-        }
-
-        private static void DecimalToAmqp(decimal value, out byte scale, out int mantissa)
         {
             // According to the documentation :-
             //  - word 0: low-order "mantissa"
@@ -380,12 +374,14 @@ namespace RabbitMQ.Client.Impl
                 bitRepresentation[2] != 0 || // mantissa extends into top word
                 bitRepresentation[0] < 0) // mantissa extends beyond 31 bits
             {
-                throw new WireFormattingException("Decimal overflow in AMQP encoding", value);
+                ThrowWireFormattingException(value);
             }
-            scale = (byte)((((uint)bitRepresentation[3]) >> 16) & 0xFF);
-            mantissa = (int)((((uint)bitRepresentation[3]) & 0x80000000) |
-                             (((uint)bitRepresentation[0]) & 0x7FFFFFFF));
+
+            span[0] = (byte)((((uint)bitRepresentation[3]) >> 16) & 0xFF);
+            return 1 + WriteLong(span.Slice(1), (((uint)bitRepresentation[3]) & 0x80000000) | (((uint)bitRepresentation[0]) & 0x7FFFFFFF));
         }
+
+        private static void ThrowWireFormattingException(decimal value) => throw new WireFormattingException("Decimal overflow in AMQP encoding", value);
 
         public static int WriteFieldValue(Span<byte> span, object value)
         {
@@ -736,36 +732,34 @@ namespace RabbitMQ.Client.Impl
                 maxLength = byte.MaxValue;
             }
 
-#if NETCOREAPP
+            return WriteShortStrImpl(span, val, maxLength);
+        }
+
+        private static int WriteShortStrImpl(Span<byte> span, string val, int maxLength)
+        {
             try
             {
+#if NETCOREAPP
                 int bytesWritten = Encoding.UTF8.GetBytes(val, span.Slice(1, maxLength));
                 span[0] = (byte)bytesWritten;
                 return bytesWritten + 1;
-            }
-            catch (ArgumentException)
-            {
-                return ThrowArgumentOutOfRangeException(nameof(val), val, maxLength);
-            }
 #else
-            unsafe
-            {
-                fixed (char* chars = val)
-                fixed (byte* bytes = &MemoryMarshal.GetReference(span.Slice(1)))
+                unsafe
                 {
-                    try
+                    fixed (char* chars = val)
+                    fixed (byte* bytes = &MemoryMarshal.GetReference(span.Slice(1)))
                     {
                         int bytesWritten = Encoding.UTF8.GetBytes(chars, val.Length, bytes, maxLength);
                         span[0] = (byte)bytesWritten;
                         return bytesWritten + 1;
                     }
-                    catch (ArgumentException)
-                    {
-                        return ThrowArgumentOutOfRangeException(nameof(val), val, maxLength);
-                    }
                 }
-            }
 #endif
+            }
+            catch (ArgumentException)
+            {
+                return ThrowArgumentOutOfRangeException(nameof(val), val, maxLength);
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
