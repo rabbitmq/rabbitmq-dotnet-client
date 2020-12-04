@@ -29,8 +29,10 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System.Threading.Tasks;
 using NUnit.Framework;
 
+using RabbitMQ.Client.client.impl.Channel;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Unit
@@ -38,17 +40,17 @@ namespace RabbitMQ.Client.Unit
     internal class TestConsumerCount : IntegrationFixture
     {
         [Test]
-        public void TestConsumerCountMethod()
+        public async Task TestConsumerCountMethod()
         {
             string q = GenerateQueueName();
-            _model.QueueDeclare(queue: q, durable: false, exclusive: true, autoDelete: false, arguments: null);
-            Assert.AreEqual(0, _model.ConsumerCount(q));
+            await _channel.DeclareQueueAsync(q, false, true, false).ConfigureAwait(false);
+            Assert.AreEqual(0, await _channel.GetQueueConsumerCountAsync(q).ConfigureAwait(false));
 
-            string tag = _model.BasicConsume(q, true, new EventingBasicConsumer(_model));
-            Assert.AreEqual(1, _model.ConsumerCount(q));
+            string tag = await _channel.ActivateConsumerAsync(new EventingBasicConsumer(_channel), q, true).ConfigureAwait(false);
+            Assert.AreEqual(1, await _channel.GetQueueConsumerCountAsync(q).ConfigureAwait(false));
 
-            _model.BasicCancel(tag);
-            Assert.AreEqual(0, _model.ConsumerCount(q));
+            await _channel.CancelConsumerAsync(tag).ConfigureAwait(false);
+            Assert.AreEqual(0, await _channel.GetQueueConsumerCountAsync(q).ConfigureAwait(false));
         }
     }
 }

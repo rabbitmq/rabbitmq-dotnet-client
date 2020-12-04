@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
@@ -38,22 +39,24 @@ namespace RabbitMQ.Client.Unit
     internal class TestConnectionFactoryContinuationTimeout : IntegrationFixture
     {
         [Test]
-        public void TestConnectionFactoryContinuationTimeoutOnRecoveringConnection()
+        public async Task TestConnectionFactoryContinuationTimeoutOnRecoveringConnection()
         {
             var continuationTimeout = TimeSpan.FromSeconds(777);
             using (IConnection c = CreateConnectionWithContinuationTimeout(true, continuationTimeout))
             {
-                Assert.AreEqual(continuationTimeout, c.CreateModel().ContinuationTimeout);
+                await using var channel = await c.CreateChannelAsync().ConfigureAwait(false);
+                Assert.AreEqual(continuationTimeout, channel.ContinuationTimeout);
             }
         }
 
         [Test]
-        public void TestConnectionFactoryContinuationTimeoutOnNonRecoveringConnection()
+        public async Task TestConnectionFactoryContinuationTimeoutOnNonRecoveringConnection()
         {
             var continuationTimeout = TimeSpan.FromSeconds(777);
             using (IConnection c = CreateConnectionWithContinuationTimeout(false, continuationTimeout))
             {
-                Assert.AreEqual(continuationTimeout, c.CreateModel().ContinuationTimeout);
+                await using var channel = await c.CreateChannelAsync().ConfigureAwait(false);
+                Assert.AreEqual(continuationTimeout, channel.ContinuationTimeout);
             }
         }
     }

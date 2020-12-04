@@ -32,78 +32,76 @@
 using System;
 using System.Net.Security;
 using System.Security.Authentication;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
+using RabbitMQ.Client.client.impl.Channel;
 
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
     public class TestSsl
     {
-        public void SendReceive(ConnectionFactory cf)
+        public async Task SendReceiveAsync(ConnectionFactory cf)
         {
             using (IConnection conn = cf.CreateConnection())
+            await using (IChannel ch = await conn.CreateChannelAsync().ConfigureAwait(false))
             {
-                IModel ch = conn.CreateModel();
-
-                ch.ExchangeDeclare("Exchange_TestSslEndPoint", ExchangeType.Direct);
-                string qName = ch.QueueDeclare();
-                ch.QueueBind(qName, "Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null);
+                await ch.DeclareExchangeAsync("Exchange_TestSslEndPoint", ExchangeType.Direct).ConfigureAwait(false);
+                string qName = (await ch.DeclareQueueAsync().ConfigureAwait(false)).QueueName;
+                await ch.BindQueueAsync(qName, "Exchange_TestSslEndPoint", "Key_TestSslEndpoint").ConfigureAwait(false);
 
                 string message = "Hello C# SSL Client World";
                 byte[] msgBytes = System.Text.Encoding.UTF8.GetBytes(message);
-                ch.BasicPublish("Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null, msgBytes);
+                await ch.PublishMessageAsync("Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null, msgBytes);
 
-                bool autoAck = false;
-                BasicGetResult result = ch.BasicGet(qName, autoAck);
-                byte[] body = result.Body.ToArray();
-                string resultMessage = System.Text.Encoding.UTF8.GetString(body);
+                SingleMessageRetrieval? result = await ch.RetrieveSingleMessageAsync(qName, false).ConfigureAwait(false);
+                string resultMessage = System.Text.Encoding.UTF8.GetString(result?.Body.ToArray() ?? Array.Empty<byte>());
 
                 Assert.AreEqual(message, resultMessage);
             }
         }
 
         [Test]
-        public void TestServerVerifiedIgnoringNameMismatch()
+        public Task TestServerVerifiedIgnoringNameMismatch()
         {
             string sslDir = IntegrationFixture.CertificatesDirectory();
             if (null == sslDir)
             {
                 Console.WriteLine("SSL_CERT_DIR is not configured, skipping test");
-                return;
+                return Task.CompletedTask;
             }
 
             ConnectionFactory cf = new ConnectionFactory();
             cf.Ssl.ServerName = "*";
             cf.Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNameMismatch;
             cf.Ssl.Enabled = true;
-            SendReceive(cf);
+            return SendReceiveAsync(cf);
         }
 
         [Test]
-        public void TestServerVerified()
+        public Task TestServerVerified()
         {
             string sslDir = IntegrationFixture.CertificatesDirectory();
             if (null == sslDir)
             {
                 Console.WriteLine("SSL_CERT_DIR is not configured, skipping test");
-                return;
+                return Task.CompletedTask;
             }
 
             ConnectionFactory cf = new ConnectionFactory();
             cf.Ssl.ServerName = System.Net.Dns.GetHostName();
             cf.Ssl.Enabled = true;
-            SendReceive(cf);
+            return SendReceiveAsync(cf);
         }
 
         [Test]
-        public void TestClientAndServerVerified()
+        public Task TestClientAndServerVerified()
         {
             string sslDir = IntegrationFixture.CertificatesDirectory();
             if (null == sslDir)
             {
                 Console.WriteLine("SSL_CERT_DIR is not configured, skipping test");
-                return;
+                return Task.CompletedTask;
             }
 
             ConnectionFactory cf = new ConnectionFactory();
@@ -114,23 +112,23 @@ namespace RabbitMQ.Client.Unit
             Assert.IsNotNull(p12Password, "missing PASSWORD env var");
             cf.Ssl.CertPassphrase = p12Password;
             cf.Ssl.Enabled = true;
-            SendReceive(cf);
+            return SendReceiveAsync(cf);
         }
 
         // rabbitmq/rabbitmq-dotnet-client#46, also #44 and #45
         [Test]
-        public void TestNoClientCertificate()
+        public Task TestNoClientCertificate()
         {
             string sslDir = IntegrationFixture.CertificatesDirectory();
             if (null == sslDir)
             {
                 Console.WriteLine("SSL_CERT_DIR is not configured, skipping test");
-                return;
+                return Task.CompletedTask;
             }
 
             ConnectionFactory cf = new ConnectionFactory
             {
-                Ssl = new SslOption()
+                Ssl = new SslOption
                 {
                     CertPath = null,
                     Enabled = true,
@@ -138,10 +136,9 @@ namespace RabbitMQ.Client.Unit
             };
 
             cf.Ssl.Version = SslProtocols.None;
-            cf.Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNotAvailable |
-                                        SslPolicyErrors.RemoteCertificateNameMismatch;
+            cf.Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNotAvailable | SslPolicyErrors.RemoteCertificateNameMismatch;
 
-            SendReceive(cf);
+            return SendReceiveAsync(cf);
         }
     }
 }

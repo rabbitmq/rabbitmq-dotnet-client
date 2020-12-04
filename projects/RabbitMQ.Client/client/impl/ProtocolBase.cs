@@ -32,6 +32,7 @@
 using System;
 using System.Collections.Generic;
 using RabbitMQ.Client.client.framing;
+using RabbitMQ.Client.client.impl.Channel;
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
@@ -101,20 +102,15 @@ namespace RabbitMQ.Client.Framing.Impl
             return Version.ToString();
         }
 
-        public IConnection CreateConnection(IConnectionFactory factory,
-            bool insist,
-            IFrameHandler frameHandler)
+        public IConnection CreateConnection(IConnectionFactory factory, IFrameHandler frameHandler)
         {
-            return new Connection(factory, insist, frameHandler, null);
+            return new Connection(factory, frameHandler);
         }
 
 
-        public IConnection CreateConnection(IConnectionFactory factory,
-            bool insist,
-            IFrameHandler frameHandler,
-            string clientProvidedName)
+        public IConnection CreateConnection(IConnectionFactory factory, IFrameHandler frameHandler, string clientProvidedName)
         {
-            return new Connection(factory, insist, frameHandler, clientProvidedName);
+            return new Connection(factory, frameHandler, clientProvidedName);
         }
 
         public IConnection CreateConnection(ConnectionFactory factory,
@@ -136,15 +132,9 @@ namespace RabbitMQ.Client.Framing.Impl
             return ac;
         }
 
-
-        public IModel CreateModel(ISession session)
+        public Channel CreateChannel(ISession session, ConsumerWorkService workService)
         {
-            return new Model(session);
-        }
-
-        public IModel CreateModel(ISession session, ConsumerWorkService workService)
-        {
-            return new Model(session, workService);
+            return new Channel(session, workService);
         }
     }
 }

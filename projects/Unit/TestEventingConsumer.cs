@@ -30,27 +30,28 @@
 //---------------------------------------------------------------------------
 
 using System.Threading;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
 
+using RabbitMQ.Client.client.impl.Channel;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestEventingConsumer : IntegrationFixture {
-
+    public class TestEventingConsumer : IntegrationFixture
+    {
         [Test]
-        public void TestEventingConsumerRegistrationEvents()
+        public async Task TestEventingConsumerRegistrationEvents()
         {
-            string q = _model.QueueDeclare();
+            (string q, _, _) = await _channel.DeclareQueueAsync().ConfigureAwait(false);
 
             var registeredLatch = new ManualResetEventSlim(false);
             object registeredSender = null;
             var unregisteredLatch = new ManualResetEventSlim(false);
             object unregisteredSender = null;
 
-            EventingBasicConsumer ec = new EventingBasicConsumer(_model);
+            EventingBasicConsumer ec = new EventingBasicConsumer(_channel);
             ec.Registered += (s, args) =>
             {
                 registeredSender = s;
@@ -63,46 +64,46 @@ namespace RabbitMQ.Client.Unit
                 unregisteredLatch.Set();
             };
 
-            string tag = _model.BasicConsume(q, false, ec);
+            string tag = await _channel.ActivateConsumerAsync(ec, q, false).ConfigureAwait(false);
             Wait(registeredLatch);
 
             Assert.IsNotNull(registeredSender);
             Assert.AreEqual(ec, registeredSender);
-            Assert.AreEqual(_model, ((EventingBasicConsumer)registeredSender).Model);
+            Assert.AreEqual(_channel, ((EventingBasicConsumer)registeredSender).Channel);
 
-            _model.BasicCancel(tag);
+            await _channel.CancelConsumerAsync(tag).ConfigureAwait(false);
             Wait(unregisteredLatch);
             Assert.IsNotNull(unregisteredSender);
             Assert.AreEqual(ec, unregisteredSender);
-            Assert.AreEqual(_model, ((EventingBasicConsumer)unregisteredSender).Model);
+            Assert.AreEqual(_channel, ((EventingBasicConsumer)unregisteredSender).Channel);
         }
 
         [Test]
-        public void TestEventingConsumerDeliveryEvents()
+        public async Task TestEventingConsumerDeliveryEvents()
         {
-            string q = _model.QueueDeclare();
-            object o = new object();
+            (string q, _, _) = await _channel.DeclareQueueAsync().ConfigureAwait(false);
+            var latch = new ManualResetEventSlim(false);
 
             bool receivedInvoked = false;
             object receivedSender = null;
 
-            EventingBasicConsumer ec = new EventingBasicConsumer(_model);
+            EventingBasicConsumer ec = new EventingBasicConsumer(_channel);
             ec.Received += (s, args) =>
             {
                 receivedInvoked = true;
                 receivedSender = s;
 
-                Monitor.PulseAll(o);
+                latch.Set();
             };
 
-            _model.BasicConsume(q, true, ec);
-            _model.BasicPublish("", q, null, _encoding.GetBytes("msg"));
+            await _channel.ActivateConsumerAsync(ec, q, true).ConfigureAwait(false);
+            await _channel.PublishMessageAsync("", q, null, _encoding.GetBytes("msg")).ConfigureAwait(false);
 
-            WaitOn(o);
+            Wait(latch);
             Assert.IsTrue(receivedInvoked);
             Assert.IsNotNull(receivedSender);
             Assert.AreEqual(ec, receivedSender);
-            Assert.AreEqual(_model, ((EventingBasicConsumer)receivedSender).Model);
+            Assert.AreEqual(_channel, ((EventingBasicConsumer)receivedSender).Channel);
 
             bool shutdownInvoked = false;
             object shutdownSender = null;
@@ -112,16 +113,17 @@ namespace RabbitMQ.Client.Unit
                 shutdownInvoked = true;
                 shutdownSender = s;
 
-                Monitor.PulseAll(o);
+                latch.Set();
             };
 
-            _model.Close();
-            WaitOn(o);
+            latch.Reset();
+            await _channel.CloseAsync().ConfigureAwait(false);
+            Wait(latch);
 
             Assert.IsTrue(shutdownInvoked);
             Assert.IsNotNull(shutdownSender);
             Assert.AreEqual(ec, shutdownSender);
-            Assert.AreEqual(_model, ((EventingBasicConsumer)shutdownSender).Model);
+            Assert.AreEqual(_channel, ((EventingBasicConsumer)shutdownSender).Channel);
         }
     }
 }

@@ -34,11 +34,12 @@ using System;
 using NUnit.Framework;
 
 using RabbitMQ.Util;
+using Unit;
 
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    class TestNetworkByteOrderSerialization
+    public class TestNetworkByteOrderSerialization
     {
         public void Check(byte[] actual, byte[] expected)
         {

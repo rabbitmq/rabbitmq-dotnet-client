@@ -30,15 +30,14 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.IO;
 
 using NUnit.Framework;
 
-using RabbitMQ.Util;
+using Unit;
 
 namespace RabbitMQ.Client.Unit
 {
-    class WireFormattingFixture
+    internal class WireFormattingFixture
     {
         public void Check(byte[] actual, byte[] expected)
         {

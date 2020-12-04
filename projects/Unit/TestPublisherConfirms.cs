@@ -30,11 +30,11 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Reflection;
 using System.Threading;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
-
-using RabbitMQ.Client.Impl;
+using RabbitMQ.Client.client.impl.Channel;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -44,66 +44,68 @@ namespace RabbitMQ.Client.Unit
         private const string QueueName = "RabbitMQ.Client.Unit.TestPublisherConfirms";
 
         [Test]
-        public void TestWaitForConfirmsWithoutTimeout()
+        public Task TestWaitForConfirmsWithoutTimeout()
         {
-            TestWaitForConfirms(200, (ch) =>
+            return TestWaitForConfirmsAsync(200, ch =>
             {
                 Assert.IsTrue(ch.WaitForConfirms());
             });
         }
 
         [Test]
-        public void TestWaitForConfirmsWithTimeout()
+        public Task TestWaitForConfirmsWithTimeout()
         {
-            TestWaitForConfirms(200, (ch) =>
+            return TestWaitForConfirmsAsync(200, ch =>
             {
                 Assert.IsTrue(ch.WaitForConfirms(TimeSpan.FromSeconds(4)));
             });
         }
 
         [Test]
-        public void TestWaitForConfirmsWithTimeout_AllMessagesAcked_WaitingHasTimedout_ReturnTrue()
+        public Task TestWaitForConfirmsWithTimeout_AllMessagesAcked_WaitingHasTimedout_ReturnTrue()
         {
-            TestWaitForConfirms(200, (ch) =>
+            return TestWaitForConfirmsAsync(200, ch =>
             {
                 Assert.IsTrue(ch.WaitForConfirms(TimeSpan.FromMilliseconds(1)));
             });
         }
 
         [Test]
-        public void TestWaitForConfirmsWithTimeout_MessageNacked_WaitingHasTimedout_ReturnFalse()
+        public Task TestWaitForConfirmsWithTimeout_MessageNacked_WaitingHasTimedout_ReturnFalse()
         {
-            TestWaitForConfirms(200, (ch) =>
+            return TestWaitForConfirmsAsync(200, ch =>
             {
-                BasicGetResult message = ch.BasicGet(QueueName, false);
+                SingleMessageRetrieval message = ch.RetrieveSingleMessageAsync(QueueName, false).AsTask().GetAwaiter().GetResult();
 
-                var fullModel = ch as IFullModel;
-                fullModel.HandleBasicNack(message.DeliveryTag, false, false);
+                // Fake a nack retrieval
+                typeof(Channel)
+                  .GetMethod("HandleBasicNack", BindingFlags.Instance | BindingFlags.NonPublic)
+                  .Invoke(((AutorecoveringChannel)ch).NonDisposedDelegate, new object []{ message.DeliveryTag, false });
 
                 Assert.IsFalse(ch.WaitForConfirms(TimeSpan.FromMilliseconds(1)));
             });
         }
 
         [Test]
-        public void TestWaitForConfirmsWithEvents()
+        public async Task TestWaitForConfirmsWithEvents()
         {
-            IModel ch = _conn.CreateModel();
-            ch.ConfirmSelect();
+            IChannel ch = await _conn.CreateChannelAsync().ConfigureAwait(false);
+            await ch.ActivatePublishTagsAsync().ConfigureAwait(false);
 
-            ch.QueueDeclare(QueueName);
+            await ch.DeclareQueueAsync(QueueName).ConfigureAwait(false);
             int n = 200;
             // number of event handler invocations
             int c = 0;
 
-            ch.BasicAcks += (_, args) =>
+            ch.PublishTagAcknowledged += (_, __, ___) =>
             {
-                Interlocked.Increment(ref c);
+                System.Threading.Interlocked.Increment(ref c);
             };
             try
             {
                 for (int i = 0; i < n; i++)
                 {
-                    ch.BasicPublish("", QueueName, null, _encoding.GetBytes("msg"));
+                    await ch.PublishMessageAsync("", QueueName, null, _encoding.GetBytes("msg")).ConfigureAwait(false);
                 }
                 Thread.Sleep(TimeSpan.FromSeconds(1));
                 ch.WaitForConfirms(TimeSpan.FromSeconds(5));
@@ -116,21 +118,20 @@ namespace RabbitMQ.Client.Unit
             }
             finally
             {
-                ch.QueueDelete(QueueName);
-                ch.Close();
+                await ch.DeleteQueueAsync(QueueName).ConfigureAwait(false);
+                await ch.CloseAsync().ConfigureAwait(false);
             }
         }
 
-        protected void TestWaitForConfirms(int numberOfMessagesToPublish, Action<IModel> fn)
+        protected async Task TestWaitForConfirmsAsync(int numberOfMessagesToPublish, Action<IChannel> fn)
         {
-            IModel ch = _conn.CreateModel();
-            ch.ConfirmSelect();
-
-            ch.QueueDeclare(QueueName);
+            var ch = await _conn.CreateChannelAsync().ConfigureAwait(false);
+            await ch.ActivatePublishTagsAsync().ConfigureAwait(false);
+            await ch.DeclareQueueAsync(QueueName).ConfigureAwait(false);
 
             for (int i = 0; i < numberOfMessagesToPublish; i++)
             {
-                ch.BasicPublish("", QueueName, null, _encoding.GetBytes("msg"));
+                await ch.PublishMessageAsync("", QueueName, null, _encoding.GetBytes("msg")).ConfigureAwait(false);
             }
 
             try
@@ -139,8 +140,8 @@ namespace RabbitMQ.Client.Unit
             }
             finally
             {
-                ch.QueueDelete(QueueName);
-                ch.Close();
+                await ch.DeleteQueueAsync(QueueName).ConfigureAwait(false);
+                await ch.CloseAsync().ConfigureAwait(false);
             }
         }
     }

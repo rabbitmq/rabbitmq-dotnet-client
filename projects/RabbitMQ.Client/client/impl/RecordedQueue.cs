@@ -30,73 +30,36 @@
 //---------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using RabbitMQ.Client.client.impl.Channel;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal class RecordedQueue : RecordedNamedEntity
+    #nullable enable
+    internal sealed class RecordedQueue : RecordedNamedEntity
     {
-        private IDictionary<string, object> _arguments;
-        private bool _durable;
-        private bool _exclusive;
+        private readonly IDictionary<string, object>? _arguments;
+        private readonly bool _durable;
+        private readonly bool _exclusive;
 
-        public RecordedQueue(AutorecoveringModel model, string name) : base(model, name)
+        public bool IsAutoDelete { get; }
+        public bool IsServerNamed { get; }
+
+        public RecordedQueue(AutorecoveringChannel channel, string name, bool isServerNamed, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object>? arguments)
+            : base(channel, name)
         {
+            _arguments = arguments;
+            _durable = durable;
+            _exclusive = exclusive;
+            IsAutoDelete = autoDelete;
+            IsServerNamed = isServerNamed;
         }
 
-        public bool IsAutoDelete { get; private set; }
-        public bool IsServerNamed { get; private set; }
-
-        protected string NameToUseForRecovery
+        public override async ValueTask RecoverAsync()
         {
-            get
-            {
-                if (IsServerNamed)
-                {
-                    return string.Empty;
-                }
-                else
-                {
-                    return Name;
-                }
-            }
-        }
-
-        public RecordedQueue Arguments(IDictionary<string, object> value)
-        {
-            _arguments = value;
-            return this;
-        }
-
-        public RecordedQueue AutoDelete(bool value)
-        {
-            IsAutoDelete = value;
-            return this;
-        }
-
-        public RecordedQueue Durable(bool value)
-        {
-            _durable = value;
-            return this;
-        }
-
-        public RecordedQueue Exclusive(bool value)
-        {
-            _exclusive = value;
-            return this;
-        }
-
-        public void Recover()
-        {
-            QueueDeclareOk ok = ModelDelegate.QueueDeclare(NameToUseForRecovery, _durable,
-                _exclusive, IsAutoDelete,
-                _arguments);
-            Name = ok.QueueName;
-        }
-
-        public RecordedQueue ServerNamed(bool value)
-        {
-            IsServerNamed = value;
-            return this;
+            var queueName = IsServerNamed ? string.Empty : Name;
+            var tuple = await Channel.DeclareQueueAsync(queueName, _durable, _exclusive, IsAutoDelete, true, _arguments).ConfigureAwait(false);
+            Name = tuple.QueueName;
         }
 
         public override string ToString()

@@ -121,6 +121,12 @@ namespace RabbitMQ.Client.Impl
                 throw new UnexpectedFrameException(frame.Type);
             }
 
+            if (totalBodyBytes == 0)
+            {
+                // If the body size is 0, there is no body frame coming, so assign an empty array
+                _bodyBytes = Array.Empty<byte>();
+            }
+
             _remainingBodyBytes = (int) totalBodyBytes;
             UpdateContentBodyState();
         }

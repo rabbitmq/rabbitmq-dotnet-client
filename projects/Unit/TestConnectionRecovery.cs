@@ -32,40 +32,25 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
-
+using RabbitMQ.Client.client.impl.Channel;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
-using RabbitMQ.Client.Impl;
 
 #pragma warning disable 0618
 
 namespace RabbitMQ.Client.Unit
 {
-    class DisposableConnection : IDisposable
-    {
-        public DisposableConnection(AutorecoveringConnection c)
-        {
-            Connection = c;
-        }
-
-        public AutorecoveringConnection Connection { get; }
-
-        public void Dispose()
-        {
-            Connection.Close();
-        }
-    }
     [TestFixture]
     public class TestConnectionRecovery : IntegrationFixture
     {
         [SetUp]
-        public override void Init()
+        public override async Task Init()
         {
             _conn = CreateAutorecoveringConnection();
-            _model = _conn.CreateModel();
+            _channel = await _conn.CreateChannelAsync().ConfigureAwait(false);
         }
 
         [TearDown]
@@ -75,46 +60,48 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestBasicAckAfterChannelRecovery()
+        public Task TestBasicAckAfterChannelRecovery()
         {
             var latch = new ManualResetEventSlim(false);
-            var cons = new AckingBasicConsumer(_model, latch, CloseAndWaitForRecovery);
+            var cons = new AckingBasicConsumer(_channel, latch, CloseAndWaitForRecovery);
 
-            TestDelayedBasicAckNackAfterChannelRecovery(cons, latch);
+            return TestDelayedBasicAckNackAfterChannelRecovery(cons, latch);
         }
 
         [Test]
-        public void TestBasicAckAfterBasicGetAndChannelRecovery()
+        public async Task TestBasicAckAfterBasicGetAndChannelRecovery()
         {
             string q = GenerateQueueName();
-            _model.QueueDeclare(q, false, false, false, null);
+            await _channel.DeclareQueueAsync(q, false, false, false).ConfigureAwait(false);
             // create an offset
-            IBasicProperties bp = _model.CreateBasicProperties();
-            _model.BasicPublish("", q, bp, new byte[] { });
+            await _channel.PublishMessageAsync("", q, null, Array.Empty<byte>()).ConfigureAwait(false);
             Thread.Sleep(50);
-            BasicGetResult g = _model.BasicGet(q, false);
+            SingleMessageRetrieval g = await _channel.RetrieveSingleMessageAsync(q, false).ConfigureAwait(false);
+            Assert.IsFalse(g.IsEmpty);
             CloseAndWaitForRecovery();
             Assert.IsTrue(_conn.IsOpen);
-            Assert.IsTrue(_model.IsOpen);
+            Assert.IsTrue(_channel.IsOpen);
             // ack the message after recovery - this should be out of range and ignored
-            _model.BasicAck(g.DeliveryTag, false);
+            await _channel.AckMessageAsync(g.DeliveryTag, false);
             // do a sync operation to 'check' there is no channel exception 
-            _model.BasicGet(q, false);
+            await _channel.RetrieveSingleMessageAsync(q, false).ConfigureAwait(false);
         }
 
         [Test]
-        public void TestBasicAckEventHandlerRecovery()
+        public async Task TestBasicAckEventHandlerRecovery()
         {
-            _model.ConfirmSelect();
+            await _channel.ActivatePublishTagsAsync().ConfigureAwait(false);
             var latch = new ManualResetEventSlim(false);
-            ((AutorecoveringModel)_model).BasicAcks += (m, args) => latch.Set();
-            ((AutorecoveringModel)_model).BasicNacks += (m, args) => latch.Set();
+            ((AutorecoveringChannel)_channel).PublishTagAcknowledged += (_, __, ___) => latch.Set();
 
             CloseAndWaitForRecovery();
             CloseAndWaitForRecovery();
-            Assert.IsTrue(_model.IsOpen);
+            Assert.IsTrue(_channel.IsOpen);
 
-            WithTemporaryNonExclusiveQueue(_model, (m, q) => m.BasicPublish("", q, null, _encoding.GetBytes("")));
+            await WithTemporaryNonExclusiveQueueAsync(
+                _channel,
+                (ch, q) => ch.PublishMessageAsync("", q, null, _encoding.GetBytes("")).AsTask())
+                .ConfigureAwait(false);
             Wait(latch);
         }
 
@@ -208,163 +195,153 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestBasicModelRecovery()
+        public void TestChannelRecovery()
         {
-            Assert.IsTrue(_model.IsOpen);
+            Assert.IsTrue(_channel.IsOpen);
             CloseAndWaitForRecovery();
-            Assert.IsTrue(_model.IsOpen);
+            Assert.IsTrue(_channel.IsOpen);
         }
 
         [Test]
-        public void TestBasicModelRecoveryOnServerRestart()
+        public void TestChannelRecoveryOnServerRestart()
         {
-            Assert.IsTrue(_model.IsOpen);
+            Assert.IsTrue(_channel.IsOpen);
             RestartServerAndWaitForRecovery();
-            Assert.IsTrue(_model.IsOpen);
+            Assert.IsTrue(_channel.IsOpen);
         }
 
         [Test]
-        public void TestBasicNackAfterChannelRecovery()
+        public Task TestBasicNackAfterChannelRecovery()
         {
             var latch = new ManualResetEventSlim(false);
-            var cons = new NackingBasicConsumer(_model, latch, CloseAndWaitForRecovery);
+            var cons = new NackingBasicConsumer(_channel, latch, CloseAndWaitForRecovery);
 
-            TestDelayedBasicAckNackAfterChannelRecovery(cons, latch);
+            return TestDelayedBasicAckNackAfterChannelRecovery(cons, latch);
         }
 
         [Test]
-        public void TestBasicRejectAfterChannelRecovery()
-        {
-            var latch = new ManualResetEventSlim(false);
-            var cons = new RejectingBasicConsumer(_model, latch, CloseAndWaitForRecovery);
-
-            TestDelayedBasicAckNackAfterChannelRecovery(cons, latch);
-        }
-
-        [Test]
-        public void TestBlockedListenersRecovery()
+        public async Task TestBlockedListenersRecovery()
         {
             var latch = new ManualResetEventSlim(false);
             _conn.ConnectionBlocked += (c, reason) => latch.Set();
             CloseAndWaitForRecovery();
             CloseAndWaitForRecovery();
 
-            Block();
+            await BlockAsync().ConfigureAwait(false);
             Wait(latch);
 
             Unblock();
         }
 
         [Test]
-        public void TestClientNamedQueueRecovery()
+        public Task TestClientNamedQueueRecovery()
         {
             string s = "dotnet-client.test.recovery.q1";
-            WithTemporaryNonExclusiveQueue(_model, (m, q) =>
+            return WithTemporaryNonExclusiveQueueAsync(_channel, async (ch, q) =>
             {
                 CloseAndWaitForRecovery();
-                AssertQueueRecovery(m, q, false);
-                _model.QueueDelete(q);
+                await AssertQueueRecoveryAsync(ch, q, false).ConfigureAwait(false);
+                await _channel.DeleteQueueAsync(q).ConfigureAwait(false);
             }, s);
         }
 
         [Test]
-        public void TestClientNamedQueueRecoveryNoWait()
+        public Task TestClientNamedQueueRecoveryNoWait()
         {
             string s = "dotnet-client.test.recovery.q1-nowait";
-            WithTemporaryQueueNoWait(_model, (m, q) =>
+            return WithTemporaryQueueNoWaitAsync(_channel, (ch, q) =>
             {
                 CloseAndWaitForRecovery();
-                AssertQueueRecovery(m, q);
+                return AssertQueueRecoveryAsync(ch, q);
             }, s);
         }
 
         [Test]
-        public void TestClientNamedQueueRecoveryOnServerRestart()
+        public Task TestClientNamedQueueRecoveryOnServerRestart()
         {
             string s = "dotnet-client.test.recovery.q1";
-            WithTemporaryNonExclusiveQueue(_model, (m, q) =>
+            return WithTemporaryNonExclusiveQueueAsync(_channel, async (ch, q) =>
             {
                 RestartServerAndWaitForRecovery();
-                AssertQueueRecovery(m, q, false);
-                _model.QueueDelete(q);
+                await AssertQueueRecoveryAsync(ch, q, false).ConfigureAwait(false);
+                await _channel.DeleteQueueAsync(q).ConfigureAwait(false);
             }, s);
         }
 
         [Test]
-        public void TestConsumerWorkServiceRecovery()
+        public async Task TestConsumerWorkServiceRecovery()
         {
             using (AutorecoveringConnection c = CreateAutorecoveringConnection())
             {
-                IModel m = c.CreateModel();
-                string q = m.QueueDeclare("dotnet-client.recovery.consumer_work_pool1",
-                    false, false, false, null).QueueName;
-                var cons = new EventingBasicConsumer(m);
-                m.BasicConsume(q, true, cons);
-                AssertConsumerCount(m, q, 1);
+                IChannel ch = await c.CreateChannelAsync().ConfigureAwait(false);
+                (string q, _, _) = await ch.DeclareQueueAsync("dotnet-client.recovery.consumer_work_pool1", false, false, false).ConfigureAwait(false);
+                var cons = new EventingBasicConsumer(ch);
+                await ch.ActivateConsumerAsync(cons, q, true).ConfigureAwait(false);
+                await AssertConsumerCountAsync(ch, q, 1).ConfigureAwait(false);
 
                 CloseAndWaitForRecovery(c);
 
-                Assert.IsTrue(m.IsOpen);
+                Assert.IsTrue(ch.IsOpen);
                 var latch = new ManualResetEventSlim(false);
                 cons.Received += (s, args) => latch.Set();
 
-                m.BasicPublish("", q, null, _encoding.GetBytes("msg"));
+                await ch.PublishMessageAsync("", q, null, _encoding.GetBytes("msg")).ConfigureAwait(false);
                 Wait(latch);
 
-                m.QueueDelete(q);
+                await ch.DeleteQueueAsync(q).ConfigureAwait(false);
             }
         }
 
         [Test]
-        public void TestConsumerRecoveryOnClientNamedQueueWithOneRecovery()
+        public async Task TestConsumerRecoveryOnClientNamedQueueWithOneRecovery()
         {
             string q0 = "dotnet-client.recovery.queue1";
             using (AutorecoveringConnection c = CreateAutorecoveringConnection())
             {
-                IModel m = c.CreateModel();
-                string q1 = m.QueueDeclare(q0, false, false, false, null).QueueName;
+                IChannel ch = await c.CreateChannelAsync().ConfigureAwait(false);
+                (string q1, _, _) = await ch.DeclareQueueAsync(q0, false, false, false).ConfigureAwait(false);
                 Assert.AreEqual(q0, q1);
 
-                var cons = new EventingBasicConsumer(m);
-                m.BasicConsume(q1, true, cons);
-                AssertConsumerCount(m, q1, 1);
+                var cons = new EventingBasicConsumer(ch);
+                await ch.ActivateConsumerAsync(cons, q1, true).ConfigureAwait(false);
+                await AssertConsumerCountAsync(ch, q1, 1).ConfigureAwait(false);
 
                 bool queueNameChangeAfterRecoveryCalled = false;
 
                 c.QueueNameChangeAfterRecovery += (source, ea) => { queueNameChangeAfterRecoveryCalled = true; };
 
                 CloseAndWaitForRecovery(c);
-                AssertConsumerCount(m, q1, 1);
+                await AssertConsumerCountAsync(ch, q1, 1).ConfigureAwait(false);
                 Assert.False(queueNameChangeAfterRecoveryCalled);
 
                 CloseAndWaitForRecovery(c);
-                AssertConsumerCount(m, q1, 1);
+                await AssertConsumerCountAsync(ch, q1, 1).ConfigureAwait(false);
                 Assert.False(queueNameChangeAfterRecoveryCalled);
 
                 CloseAndWaitForRecovery(c);
-                AssertConsumerCount(m, q1, 1);
+                await AssertConsumerCountAsync(ch, q1, 1).ConfigureAwait(false);
                 Assert.False(queueNameChangeAfterRecoveryCalled);
 
                 var latch = new ManualResetEventSlim(false);
                 cons.Received += (s, args) => latch.Set();
 
-                m.BasicPublish("", q1, null, _encoding.GetBytes("msg"));
+                await ch.PublishMessageAsync("", q1, null, _encoding.GetBytes("msg")).ConfigureAwait(false);
                 Wait(latch);
 
-                m.QueueDelete(q1);
+                await ch.DeleteQueueAsync(q1).ConfigureAwait(false);
             }
         }
 
         [Test]
-        public void TestConsumerRecoveryWithManyConsumers()
+        public async Task TestConsumerRecoveryWithManyConsumers()
         {
-            string q = _model.QueueDeclare(GenerateQueueName(), false, false, false, null).QueueName;
+            (string q, _, _) = await _channel.DeclareQueueAsync(GenerateQueueName(), false, false, false).ConfigureAwait(false);
             int n = 1024;
 
             for (int i = 0; i < n; i++)
             {
-                var cons = new EventingBasicConsumer(_model);
-                _model.BasicConsume(q, true, cons);
+                var cons = new EventingBasicConsumer(_channel);
+                await _channel.ActivateConsumerAsync(cons, q, true).ConfigureAwait(false);
             }
 
             var latch = new ManualResetEventSlim(false);
@@ -372,12 +349,12 @@ namespace RabbitMQ.Client.Unit
 
             CloseAndWaitForRecovery();
             Wait(latch);
-            Assert.IsTrue(_model.IsOpen);
-            AssertConsumerCount(q, n);
+            Assert.IsTrue(_channel.IsOpen);
+            await AssertConsumerCountAsync(q, n).ConfigureAwait(false);
         }
 
         [Test]
-        public void TestCreateModelOnClosedAutorecoveringConnectionDoesNotHang()
+        public async Task TestCreateChannelOnClosedAutorecoveringConnectionDoesNotHang()
         {
             // we don't want this to recover quickly in this test
             AutorecoveringConnection c = CreateAutorecoveringConnection(TimeSpan.FromSeconds(20));
@@ -387,7 +364,7 @@ namespace RabbitMQ.Client.Unit
                 c.Close();
                 WaitForShutdown(c);
                 Assert.IsFalse(c.IsOpen);
-                c.CreateModel();
+                await c.CreateChannelAsync().ConfigureAwait(false);
                 Assert.Fail("Expected an exception");
             }
             catch (AlreadyClosedException)
@@ -405,183 +382,184 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestDeclarationOfManyAutoDeleteExchangesWithTransientExchangesThatAreDeleted()
+        public async Task TestDeclarationOfManyAutoDeleteExchangesWithTransientExchangesThatAreDeleted()
         {
             AssertRecordedExchanges((AutorecoveringConnection)_conn, 0);
             for (int i = 0; i < 3; i++)
             {
                 string x1 = $"source-{Guid.NewGuid()}";
-                _model.ExchangeDeclare(x1, "fanout", false, true, null);
+                await _channel.DeclareExchangeAsync(x1, "fanout", false, true).ConfigureAwait(false);
                 string x2 = $"destination-{Guid.NewGuid()}";
-                _model.ExchangeDeclare(x2, "fanout", false, false, null);
-                _model.ExchangeBind(x2, x1, "");
-                _model.ExchangeDelete(x2);
+                await _channel.DeclareExchangeAsync(x2, "fanout", false, false).ConfigureAwait(false);
+                await _channel.BindExchangeAsync(x2, x1, "").ConfigureAwait(false);
+                await _channel.DeleteExchangeAsync(x2).ConfigureAwait(false);
             }
             AssertRecordedExchanges((AutorecoveringConnection)_conn, 0);
         }
 
         [Test]
-        public void TestDeclarationOfManyAutoDeleteExchangesWithTransientExchangesThatAreUnbound()
+        public async Task TestDeclarationOfManyAutoDeleteExchangesWithTransientExchangesThatAreUnbound()
         {
             AssertRecordedExchanges((AutorecoveringConnection)_conn, 0);
             for (int i = 0; i < 1000; i++)
             {
                 string x1 = $"source-{Guid.NewGuid()}";
-                _model.ExchangeDeclare(x1, "fanout", false, true, null);
+                await _channel.DeclareExchangeAsync(x1, "fanout", false, true).ConfigureAwait(false);
                 string x2 = $"destination-{Guid.NewGuid()}";
-                _model.ExchangeDeclare(x2, "fanout", false, false, null);
-                _model.ExchangeBind(x2, x1, "");
-                _model.ExchangeUnbind(x2, x1, "");
-                _model.ExchangeDelete(x2);
+                await _channel.DeclareExchangeAsync(x2, "fanout", false, false).ConfigureAwait(false);
+                await _channel.BindExchangeAsync(x2, x1, "").ConfigureAwait(false);
+                await _channel.UnbindExchangeAsync(x2, x1, "").ConfigureAwait(false);
+                await _channel.DeleteExchangeAsync(x2).ConfigureAwait(false);
             }
             AssertRecordedExchanges((AutorecoveringConnection)_conn, 0);
         }
 
         [Test]
-        public void TestDeclarationOfManyAutoDeleteExchangesWithTransientQueuesThatAreDeleted()
+        public async Task TestDeclarationOfManyAutoDeleteExchangesWithTransientQueuesThatAreDeleted()
         {
             AssertRecordedExchanges((AutorecoveringConnection)_conn, 0);
             for (int i = 0; i < 1000; i++)
             {
                 string x = Guid.NewGuid().ToString();
-                _model.ExchangeDeclare(x, "fanout", false, true, null);
-                QueueDeclareOk q = _model.QueueDeclare();
-                _model.QueueBind(q, x, "");
-                _model.QueueDelete(q);
+                await _channel.DeclareExchangeAsync(x, "fanout", false, true).ConfigureAwait(false);
+                (string q, _, _) = await _channel.DeclareQueueAsync().ConfigureAwait(false);
+                await _channel.BindQueueAsync(q, x, "").ConfigureAwait(false);
+                await _channel.DeleteQueueAsync(q).ConfigureAwait(false);
             }
             AssertRecordedExchanges((AutorecoveringConnection)_conn, 0);
         }
 
         [Test]
-        public void TestDeclarationOfManyAutoDeleteExchangesWithTransientQueuesThatAreUnbound()
+        public async Task TestDeclarationOfManyAutoDeleteExchangesWithTransientQueuesThatAreUnbound()
         {
             AssertRecordedExchanges((AutorecoveringConnection)_conn, 0);
             for (int i = 0; i < 1000; i++)
             {
                 string x = Guid.NewGuid().ToString();
-                _model.ExchangeDeclare(x, "fanout", false, true, null);
-                QueueDeclareOk q = _model.QueueDeclare();
-                _model.QueueBind(q, x, "");
-                _model.QueueUnbind(q, x, "", null);
+                await _channel.DeclareExchangeAsync(x, "fanout", false, true).ConfigureAwait(false);
+                (string q, _, _) = await _channel.DeclareQueueAsync().ConfigureAwait(false);
+                await _channel.BindQueueAsync(q, x, "").ConfigureAwait(false);
+                await _channel.UnbindQueueAsync(q, x, "").ConfigureAwait(false);
             }
             AssertRecordedExchanges((AutorecoveringConnection)_conn, 0);
         }
 
         [Test]
-        public void TestDeclarationOfManyAutoDeleteQueuesWithTransientConsumer()
+        public async Task TestDeclarationOfManyAutoDeleteQueuesWithTransientConsumer()
         {
             AssertRecordedQueues((AutorecoveringConnection)_conn, 0);
             for (int i = 0; i < 1000; i++)
             {
                 string q = Guid.NewGuid().ToString();
-                _model.QueueDeclare(q, false, false, true, null);
-                var dummy = new EventingBasicConsumer(_model);
-                string tag = _model.BasicConsume(q, true, dummy);
-                _model.BasicCancel(tag);
+                await _channel.DeclareQueueAsync(q, false, false, true).ConfigureAwait(false);
+                var dummy = new EventingBasicConsumer(_channel);
+                string tag = await _channel.ActivateConsumerAsync(dummy, q, true).ConfigureAwait(false);
+                await _channel.CancelConsumerAsync(tag).ConfigureAwait(false);
             }
             AssertRecordedQueues((AutorecoveringConnection)_conn, 0);
         }
 
         [Test]
-        public void TestExchangeRecovery()
+        public async Task TestExchangeRecovery()
         {
             string x = "dotnet-client.test.recovery.x1";
-            DeclareNonDurableExchange(_model, x);
+            await _channel.DeclareExchangeAsync(x, "fanout", false).ConfigureAwait(false);
             CloseAndWaitForRecovery();
-            AssertExchangeRecovery(_model, x);
-            _model.ExchangeDelete(x);
+            await AssertExchangeRecoveryAsync(_channel, x).ConfigureAwait(false);
+            await _channel.DeleteExchangeAsync(x).ConfigureAwait(false);
         }
 
         [Test]
-        public void TestExchangeRecoveryWithNoWait()
+        public async Task TestExchangeRecoveryWithNoWait()
         {
             string x = "dotnet-client.test.recovery.x1-nowait";
-            DeclareNonDurableExchangeNoWait(_model, x);
+            await _channel.DeclareExchangeAsync(x, "fanout", false, false, waitForConfirmation: false);
             CloseAndWaitForRecovery();
-            AssertExchangeRecovery(_model, x);
-            _model.ExchangeDelete(x);
+            await AssertExchangeRecoveryAsync(_channel, x).ConfigureAwait(false);
+            await _channel.DeleteExchangeAsync(x).ConfigureAwait(false);
         }
 
         [Test]
-        public void TestExchangeToExchangeBindingRecovery()
+        public async Task TestExchangeToExchangeBindingRecovery()
         {
-            string q = _model.QueueDeclare("", false, false, false, null).QueueName;
+            (string q, _, _) = await _channel.DeclareQueueAsync("", false, false, false).ConfigureAwait(false);
             string x1 = "amq.fanout";
             string x2 = GenerateExchangeName();
 
-            _model.ExchangeDeclare(x2, "fanout");
-            _model.ExchangeBind(x1, x2, "");
-            _model.QueueBind(q, x1, "");
+            await _channel.DeclareExchangeAsync(x2, "fanout").ConfigureAwait(false);
+            await _channel.BindExchangeAsync(x1, x2, "").ConfigureAwait(false);
+            await _channel.BindQueueAsync(q, x1, "").ConfigureAwait(false);
 
             try
             {
                 CloseAndWaitForRecovery();
-                Assert.IsTrue(_model.IsOpen);
-                _model.BasicPublish(x2, "", null, _encoding.GetBytes("msg"));
-                AssertMessageCount(q, 1);
+                Assert.IsTrue(_channel.IsOpen);
+                await _channel.PublishMessageAsync(x2, "", null, _encoding.GetBytes("msg")).ConfigureAwait(false);
+                await AssertMessageCountAsync(q, 1).ConfigureAwait(false);
             }
             finally
             {
-                WithTemporaryModel(m =>
+                await WithTemporaryChannelAsync(async ch =>
                 {
-                    m.ExchangeDelete(x2);
-                    m.QueueDelete(q);
+                    await ch.DeleteExchangeAsync(x2).ConfigureAwait(false);
+                    await ch.DeleteQueueAsync(q).ConfigureAwait(false);
                 });
             }
         }
 
         [Test]
-        public void TestQueueRecoveryWithManyQueues()
+        public async Task TestQueueRecoveryWithManyQueues()
         {
             var qs = new List<string>();
             int n = 1024;
             for (int i = 0; i < n; i++)
             {
-                qs.Add(_model.QueueDeclare(GenerateQueueName(), false, false, false, null).QueueName);
+                (string queueName, _, _) = await _channel.DeclareQueueAsync(GenerateQueueName(), false, false, false).ConfigureAwait(false);
+                qs.Add(queueName);
             }
             CloseAndWaitForRecovery();
-            Assert.IsTrue(_model.IsOpen);
+            Assert.IsTrue(_channel.IsOpen);
             foreach (string q in qs)
             {
-                AssertQueueRecovery(_model, q, false);
-                _model.QueueDelete(q);
+                await AssertQueueRecoveryAsync(_channel, q, false).ConfigureAwait(false);
+                await _channel.DeleteQueueAsync(q).ConfigureAwait(false);
             }
         }
 
         // rabbitmq/rabbitmq-dotnet-client#43
         [Test]
-        public void TestClientNamedTransientAutoDeleteQueueAndBindingRecovery()
+        public async Task TestClientNamedTransientAutoDeleteQueueAndBindingRecovery()
         {
             string q = Guid.NewGuid().ToString();
             string x = "tmp-fanout";
-            IModel ch = _conn.CreateModel();
-            ch.QueueDelete(q);
-            ch.ExchangeDelete(x);
-            ch.ExchangeDeclare(exchange: x, type: "fanout");
-            ch.QueueDeclare(queue: q, durable: false, exclusive: false, autoDelete: true, arguments: null);
-            ch.QueueBind(queue: q, exchange: x, routingKey: "");
+            IChannel ch = await _conn.CreateChannelAsync().ConfigureAwait(false);
+            await ch.DeleteQueueAsync(q).ConfigureAwait(false);
+            await ch.DeleteExchangeAsync(x).ConfigureAwait(false);
+            await ch.DeclareExchangeAsync(exchange: x, type: "fanout").ConfigureAwait(false);
+            await ch.DeclareQueueAsync(queue: q, durable: false, exclusive: false, autoDelete: true, arguments: null).ConfigureAwait(false);
+            await ch.BindQueueAsync(queue: q, exchange: x, routingKey: "").ConfigureAwait(false);
             RestartServerAndWaitForRecovery();
             Assert.IsTrue(ch.IsOpen);
-            ch.ConfirmSelect();
-            ch.QueuePurge(q);
-            ch.ExchangeDeclare(exchange: x, type: "fanout");
-            ch.BasicPublish(exchange: x, routingKey: "", basicProperties: null, body: _encoding.GetBytes("msg"));
+            await ch.ActivatePublishTagsAsync().ConfigureAwait(false);
+            await ch.PurgeQueueAsync(q).ConfigureAwait(false);
+            await ch.DeclareExchangeAsync(exchange: x, type: "fanout").ConfigureAwait(false);
+            await ch.PublishMessageAsync(exchange: x, routingKey: "", basicProperties: null, body: _encoding.GetBytes("msg")).ConfigureAwait(false);
             WaitForConfirms(ch);
-            QueueDeclareOk ok = ch.QueueDeclare(queue: q, durable: false, exclusive: false, autoDelete: true, arguments: null);
-            Assert.AreEqual(1, ok.MessageCount);
-            ch.QueueDelete(q);
-            ch.ExchangeDelete(x);
+            uint messageCount = await ch.GetQueueMessageCountAsync(q).ConfigureAwait(false);
+            Assert.AreEqual(1, messageCount);
+            await ch.DeleteQueueAsync(q).ConfigureAwait(false);
+            await ch.DeleteExchangeAsync(x).ConfigureAwait(false);
         }
 
         // rabbitmq/rabbitmq-dotnet-client#43
         [Test]
-        public void TestServerNamedTransientAutoDeleteQueueAndBindingRecovery()
+        public async Task TestServerNamedTransientAutoDeleteQueueAndBindingRecovery()
         {
             string x = "tmp-fanout";
-            IModel ch = _conn.CreateModel();
-            ch.ExchangeDelete(x);
-            ch.ExchangeDeclare(exchange: x, type: "fanout");
-            string q = ch.QueueDeclare(queue: "", durable: false, exclusive: false, autoDelete: true, arguments: null).QueueName;
+            IChannel ch = await _conn.CreateChannelAsync().ConfigureAwait(false);
+            await ch.DeleteExchangeAsync(x).ConfigureAwait(false);
+            await ch.DeclareExchangeAsync(exchange: x, type: "fanout").ConfigureAwait(false);
+            (string q, _, _) = await ch.DeclareQueueAsync(queue: "", durable: false, exclusive: false, autoDelete: true).ConfigureAwait(false);
             string nameBefore = q;
             string nameAfter = null;
             var latch = new ManualResetEventSlim(false);
@@ -591,26 +569,26 @@ namespace RabbitMQ.Client.Unit
                 nameAfter = ea.NameAfter;
                 latch.Set();
             };
-            ch.QueueBind(queue: nameBefore, exchange: x, routingKey: "");
+            await ch.BindQueueAsync(queue: nameBefore, exchange: x, routingKey: "").ConfigureAwait(false);
             RestartServerAndWaitForRecovery();
             Wait(latch);
             Assert.IsTrue(ch.IsOpen);
             Assert.AreNotEqual(nameBefore, nameAfter);
-            ch.ConfirmSelect();
-            ch.ExchangeDeclare(exchange: x, type: "fanout");
-            ch.BasicPublish(exchange: x, routingKey: "", basicProperties: null, body: _encoding.GetBytes("msg"));
+            await ch.ActivatePublishTagsAsync().ConfigureAwait(false);
+            await ch.DeclareExchangeAsync(exchange: x, type: "fanout").ConfigureAwait(false);
+            await ch.PublishMessageAsync(exchange: x, routingKey: "", basicProperties: null, body: _encoding.GetBytes("msg")).ConfigureAwait(false);
             WaitForConfirms(ch);
-            QueueDeclareOk ok = ch.QueueDeclarePassive(nameAfter);
-            Assert.AreEqual(1, ok.MessageCount);
-            ch.QueueDelete(q);
-            ch.ExchangeDelete(x);
+            uint messageCount = await ch.GetQueueMessageCountAsync(nameAfter).ConfigureAwait(false);
+            Assert.AreEqual(1, messageCount);
+            await ch.DeleteQueueAsync(q).ConfigureAwait(false);
+            await ch.DeleteExchangeAsync(x).ConfigureAwait(false);
         }
 
         [Test]
         public void TestRecoveryEventHandlersOnChannel()
         {
             int counter = 0;
-            ((AutorecoveringModel)_model).Recovery += (source, ea) => Interlocked.Increment(ref counter);
+            ((AutorecoveringChannel)_channel).Recovery += (source, ea) => System.Threading.Interlocked.Increment(ref counter);
 
             CloseAndWaitForRecovery();
             CloseAndWaitForRecovery();
@@ -620,51 +598,21 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestRecoveryEventHandlersOnConnection()
-        {
-            int counter = 0;
-            ((AutorecoveringConnection)_conn).RecoverySucceeded += (source, ea) => Interlocked.Increment(ref counter);
-
-            CloseAndWaitForRecovery();
-            CloseAndWaitForRecovery();
-            CloseAndWaitForRecovery();
-            CloseAndWaitForRecovery();
-            Assert.IsTrue(_conn.IsOpen);
-
-            Assert.IsTrue(counter >= 3);
-        }
-
-        [Test]
-        public void TestRecoveryEventHandlersOnModel()
-        {
-            int counter = 0;
-            ((AutorecoveringModel)_model).Recovery += (source, ea) => Interlocked.Increment(ref counter);
-
-            CloseAndWaitForRecovery();
-            CloseAndWaitForRecovery();
-            CloseAndWaitForRecovery();
-            CloseAndWaitForRecovery();
-            Assert.IsTrue(_model.IsOpen);
-
-            Assert.IsTrue(counter >= 3);
-        }
-
-        [Test]
-        public void TestRecoveryWithTopologyDisabled()
+        public async Task TestRecoveryWithTopologyDisabled()
         {
             AutorecoveringConnection conn = CreateAutorecoveringConnectionWithTopologyRecoveryDisabled();
-            IModel ch = conn.CreateModel();
+            IChannel ch = await conn.CreateChannelAsync().ConfigureAwait(false);
             string s = "dotnet-client.test.recovery.q2";
-            ch.QueueDelete(s);
-            ch.QueueDeclare(s, false, true, false, null);
-            ch.QueueDeclarePassive(s);
+            await ch.DeleteQueueAsync(s).ConfigureAwait(false);
+            await ch.DeclareQueueAsync(s, false, true, false).ConfigureAwait(false);
+            await ch.DeclareQueuePassiveAsync(s).ConfigureAwait(false);
             Assert.IsTrue(ch.IsOpen);
 
             try
             {
                 CloseAndWaitForRecovery(conn);
                 Assert.IsTrue(ch.IsOpen);
-                ch.QueueDeclarePassive(s);
+                await ch.DeclareQueuePassiveAsync(s).ConfigureAwait(false);
                 Assert.Fail("Expected an exception");
             }
             catch (OperationInterruptedException)
@@ -678,11 +626,11 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestServerNamedQueueRecovery()
+        public async Task TestServerNamedQueueRecovery()
         {
-            string q = _model.QueueDeclare("", false, false, false, null).QueueName;
+            (string q, _, _) = await _channel.DeclareQueueAsync("", false, false, false).ConfigureAwait(false);
             string x = "amq.fanout";
-            _model.QueueBind(q, x, "");
+            await _channel.BindQueueAsync(q, x, "").ConfigureAwait(false);
 
             string nameBefore = q;
             string nameAfter = null;
@@ -700,14 +648,14 @@ namespace RabbitMQ.Client.Unit
             Assert.IsTrue(nameAfter.StartsWith("amq."));
             Assert.AreNotEqual(nameBefore, nameAfter);
 
-            _model.QueueDeclarePassive(nameAfter);
+            await _channel.DeclareQueuePassiveAsync(nameAfter).ConfigureAwait(false);
         }
 
         [Test]
         public void TestShutdownEventHandlersRecoveryOnConnection()
         {
             int counter = 0;
-            _conn.ConnectionShutdown += (c, args) => Interlocked.Increment(ref counter);
+            _conn.ConnectionShutdown += (c, args) => System.Threading.Interlocked.Increment(ref counter);
 
             Assert.IsTrue(_conn.IsOpen);
             CloseAndWaitForRecovery();
@@ -723,7 +671,7 @@ namespace RabbitMQ.Client.Unit
         public void TestShutdownEventHandlersRecoveryOnConnectionAfterDelayedServerRestart()
         {
             int counter = 0;
-            _conn.ConnectionShutdown += (c, args) => Interlocked.Increment(ref counter);
+            _conn.ConnectionShutdown += (c, args) => System.Threading.Interlocked.Increment(ref counter);
             ManualResetEventSlim shutdownLatch = PrepareForShutdown(_conn);
             ManualResetEventSlim recoveryLatch = PrepareForRecovery((AutorecoveringConnection)_conn);
 
@@ -740,79 +688,79 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestShutdownEventHandlersRecoveryOnModel()
+        public void TestShutdownEventHandlersRecoveryOnChannel()
         {
             int counter = 0;
-            _model.ModelShutdown += (c, args) => Interlocked.Increment(ref counter);
+            _channel.Shutdown += args => System.Threading.Interlocked.Increment(ref counter);
 
-            Assert.IsTrue(_model.IsOpen);
+            Assert.IsTrue(_channel.IsOpen);
             CloseAndWaitForRecovery();
             CloseAndWaitForRecovery();
             CloseAndWaitForRecovery();
             CloseAndWaitForRecovery();
-            Assert.IsTrue(_model.IsOpen);
+            Assert.IsTrue(_channel.IsOpen);
 
-            Assert.IsTrue(counter >= 3);
+            Assert.GreaterOrEqual(3, counter);
         }
 
         [Test]
-        public void TestThatCancelledConsumerDoesNotReappearOnRecovery()
+        public async Task TestThatCancelledConsumerDoesNotReappearOnRecovery()
         {
-            string q = _model.QueueDeclare(GenerateQueueName(), false, false, false, null).QueueName;
+            (string q, _, _) = await _channel.DeclareQueueAsync(GenerateQueueName(), false, false, false).ConfigureAwait(false);
             int n = 1024;
 
             for (int i = 0; i < n; i++)
             {
-                var cons = new EventingBasicConsumer(_model);
-                string tag = _model.BasicConsume(q, true, cons);
-                _model.BasicCancel(tag);
+                var cons = new EventingBasicConsumer(_channel);
+                string tag = await _channel.ActivateConsumerAsync(cons, q, true);
+                await _channel.CancelConsumerAsync(tag).ConfigureAwait(false);
             }
             CloseAndWaitForRecovery();
-            Assert.IsTrue(_model.IsOpen);
-            AssertConsumerCount(q, 0);
+            Assert.IsTrue(_channel.IsOpen);
+            await AssertConsumerCountAsync(q, 0);
         }
 
         [Test]
-        public void TestThatDeletedExchangeBindingsDontReappearOnRecovery()
+        public async Task TestThatDeletedExchangeBindingsDontReappearOnRecovery()
         {
-            string q = _model.QueueDeclare("", false, false, false, null).QueueName;
+            (string q, _, _) = await _channel.DeclareQueueAsync("", false, false, false).ConfigureAwait(false);
             string x1 = "amq.fanout";
             string x2 = GenerateExchangeName();
 
-            _model.ExchangeDeclare(x2, "fanout");
-            _model.ExchangeBind(x1, x2, "");
-            _model.QueueBind(q, x1, "");
-            _model.ExchangeUnbind(x1, x2, "", null);
+            await _channel.DeclareExchangeAsync(x2, "fanout").ConfigureAwait(false);
+            await _channel.BindExchangeAsync(x1, x2, "").ConfigureAwait(false);
+            await _channel.BindQueueAsync(q, x1, "").ConfigureAwait(false);
+            await _channel.UnbindExchangeAsync(x1, x2, "").ConfigureAwait(false);
 
             try
             {
                 CloseAndWaitForRecovery();
-                Assert.IsTrue(_model.IsOpen);
-                _model.BasicPublish(x2, "", null, _encoding.GetBytes("msg"));
-                AssertMessageCount(q, 0);
+                Assert.IsTrue(_channel.IsOpen);
+                await _channel.PublishMessageAsync(x2, "", null, _encoding.GetBytes("msg")).ConfigureAwait(false);
+                await AssertMessageCountAsync(q, 0).ConfigureAwait(false);
             }
             finally
             {
-                WithTemporaryModel(m =>
+                await WithTemporaryChannelAsync(async ch =>
                 {
-                    m.ExchangeDelete(x2);
-                    m.QueueDelete(q);
+                    await ch.DeleteExchangeAsync(x2).ConfigureAwait(false);
+                    await ch.DeleteQueueAsync(q).ConfigureAwait(false);
                 });
             }
         }
 
         [Test]
-        public void TestThatDeletedExchangesDontReappearOnRecovery()
+        public async Task TestThatDeletedExchangesDontReappearOnRecovery()
         {
             string x = GenerateExchangeName();
-            _model.ExchangeDeclare(x, "fanout");
-            _model.ExchangeDelete(x);
+            await _channel.DeclareExchangeAsync(x, "fanout").ConfigureAwait(false);
+            await _channel.DeleteExchangeAsync(x).ConfigureAwait(false);
 
             try
             {
                 CloseAndWaitForRecovery();
-                Assert.IsTrue(_model.IsOpen);
-                _model.ExchangeDeclarePassive(x);
+                Assert.IsTrue(_channel.IsOpen);
+                await _channel.DeclareExchangePassiveAsync(x).ConfigureAwait(false);
                 Assert.Fail("Expected an exception");
             }
             catch (OperationInterruptedException e)
@@ -823,46 +771,46 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestThatDeletedQueueBindingsDontReappearOnRecovery()
+        public async Task TestThatDeletedQueueBindingsDontReappearOnRecovery()
         {
-            string q = _model.QueueDeclare("", false, false, false, null).QueueName;
+            (string q, _, _) = await _channel.DeclareQueueAsync("", false, false, false).ConfigureAwait(false);
             string x1 = "amq.fanout";
             string x2 = GenerateExchangeName();
 
-            _model.ExchangeDeclare(x2, "fanout");
-            _model.ExchangeBind(x1, x2, "");
-            _model.QueueBind(q, x1, "");
-            _model.QueueUnbind(q, x1, "", null);
+            await _channel.DeclareExchangeAsync(x2, "fanout").ConfigureAwait(false);
+            await _channel.BindExchangeAsync(x1, x2, "").ConfigureAwait(false);
+            await _channel.BindQueueAsync(q, x1, "").ConfigureAwait(false);
+            await _channel.UnbindQueueAsync(q, x1, "").ConfigureAwait(false);
 
             try
             {
                 CloseAndWaitForRecovery();
-                Assert.IsTrue(_model.IsOpen);
-                _model.BasicPublish(x2, "", null, _encoding.GetBytes("msg"));
-                AssertMessageCount(q, 0);
+                Assert.IsTrue(_channel.IsOpen);
+                await _channel.PublishMessageAsync(x2, "", null, _encoding.GetBytes("msg")).ConfigureAwait(false);
+                await AssertMessageCountAsync(q, 0);
             }
             finally
             {
-                WithTemporaryModel(m =>
+                await WithTemporaryChannelAsync(async ch =>
                 {
-                    m.ExchangeDelete(x2);
-                    m.QueueDelete(q);
+                    await ch.DeleteExchangeAsync(x2).ConfigureAwait(false);
+                    await ch.DeleteQueueAsync(q).ConfigureAwait(false);
                 });
             }
         }
 
         [Test]
-        public void TestThatDeletedQueuesDontReappearOnRecovery()
+        public async Task TestThatDeletedQueuesDontReappearOnRecovery()
         {
             string q = "dotnet-client.recovery.q1";
-            _model.QueueDeclare(q, false, false, false, null);
-            _model.QueueDelete(q);
+            await _channel.DeclareQueueAsync(q, false, false, false).ConfigureAwait(false);
+            await _channel.DeleteQueueAsync(q).ConfigureAwait(false);
 
             try
             {
                 CloseAndWaitForRecovery();
-                Assert.IsTrue(_model.IsOpen);
-                _model.QueueDeclarePassive(q);
+                Assert.IsTrue(_channel.IsOpen);
+                await _channel.DeclareQueuePassiveAsync(q).ConfigureAwait(false);
                 Assert.Fail("Expected an exception");
             }
             catch (OperationInterruptedException e)
@@ -873,47 +821,42 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestUnblockedListenersRecovery()
+        public async Task TestUnblockedListenersRecovery()
         {
             var latch = new ManualResetEventSlim(false);
             _conn.ConnectionUnblocked += (source, ea) => latch.Set();
             CloseAndWaitForRecovery();
             CloseAndWaitForRecovery();
 
-            Block();
+            await BlockAsync().ConfigureAwait(false);
             Unblock();
             Wait(latch);
         }
 
-        internal void AssertExchangeRecovery(IModel m, string x)
+        internal async Task AssertExchangeRecoveryAsync(IChannel ch, string x)
         {
-            m.ConfirmSelect();
-            WithTemporaryNonExclusiveQueue(m, (_, q) =>
+            await ch.ActivatePublishTagsAsync().ConfigureAwait(false);
+            await WithTemporaryNonExclusiveQueueAsync(ch, async (_, q) =>
             {
                 string rk = "routing-key";
-                m.QueueBind(q, x, rk);
+                await ch.BindQueueAsync(q, x, rk).ConfigureAwait(false);
                 byte[] mb = RandomMessageBody();
-                m.BasicPublish(x, rk, null, mb);
+                await ch.PublishMessageAsync(x, rk, null, mb).ConfigureAwait(false);
 
-                Assert.IsTrue(WaitForConfirms(m));
-                m.ExchangeDeclarePassive(x);
+                Assert.IsTrue(WaitForConfirms(ch));
+                await ch.DeclareExchangePassiveAsync(x).ConfigureAwait(false);
             });
         }
 
-        internal void AssertQueueRecovery(IModel m, string q)
+        internal async Task AssertQueueRecoveryAsync(IChannel ch, string q, bool exclusive = true)
         {
-            AssertQueueRecovery(m, q, true);
-        }
-
-        internal void AssertQueueRecovery(IModel m, string q, bool exclusive)
-        {
-            m.ConfirmSelect();
-            m.QueueDeclarePassive(q);
-            QueueDeclareOk ok1 = m.QueueDeclare(q, false, exclusive, false, null);
+            await ch.ActivatePublishTagsAsync().ConfigureAwait(false);
+            await ch.DeclareQueuePassiveAsync(q).ConfigureAwait(false);
+            var ok1 = await ch.DeclareQueueAsync(q, false, exclusive, false).ConfigureAwait(false);
             Assert.AreEqual(ok1.MessageCount, 0);
-            m.BasicPublish("", q, null, _encoding.GetBytes(""));
-            Assert.IsTrue(WaitForConfirms(m));
-            QueueDeclareOk ok2 = m.QueueDeclare(q, false, exclusive, false, null);
+            await ch.PublishMessageAsync("", q, null, _encoding.GetBytes("")).ConfigureAwait(false);
+            Assert.IsTrue(WaitForConfirms(ch));
+            var ok2 = await ch.DeclareQueueAsync(q, false, exclusive, false).ConfigureAwait(false);
             Assert.AreEqual(ok2.MessageCount, 1);
         }
 
@@ -925,11 +868,6 @@ namespace RabbitMQ.Client.Unit
         internal void AssertRecordedQueues(AutorecoveringConnection c, int n)
         {
             Assert.AreEqual(n, c.RecordedQueuesCount);
-        }
-
-        internal void CloseAllAndWaitForRecovery()
-        {
-            CloseAllAndWaitForRecovery((AutorecoveringConnection)_conn);
         }
 
         internal void CloseAllAndWaitForRecovery(AutorecoveringConnection conn)
@@ -951,13 +889,6 @@ namespace RabbitMQ.Client.Unit
             CloseConnection(conn);
             Wait(sl);
             Wait(rl);
-        }
-
-        internal void CloseAndWaitForShutdown(AutorecoveringConnection conn)
-        {
-            ManualResetEventSlim sl = PrepareForShutdown(conn);
-            CloseConnection(conn);
-            Wait(sl);
         }
 
         internal ManualResetEventSlim PrepareForRecovery(AutorecoveringConnection conn)
@@ -995,40 +926,25 @@ namespace RabbitMQ.Client.Unit
             Wait(rl);
         }
 
-        internal void TestDelayedBasicAckNackAfterChannelRecovery(TestBasicConsumer1 cons, ManualResetEventSlim latch)
+        internal async Task TestDelayedBasicAckNackAfterChannelRecovery(TestBasicConsumer1 cons, ManualResetEventSlim latch)
         {
-            string q = _model.QueueDeclare(GenerateQueueName(), false, false, false, null).QueueName;
+            (string q, _, _) = await _channel.DeclareQueueAsync(GenerateQueueName(), false, false, false).ConfigureAwait(false);
             int n = 30;
-            _model.BasicQos(0, 1, false);
-            _model.BasicConsume(q, false, cons);
+            await _channel.SetQosAsync(0, 1, false).ConfigureAwait(false);
+            await _channel.ActivateConsumerAsync(cons, q, false).ConfigureAwait(false);
 
             AutorecoveringConnection publishingConn = CreateAutorecoveringConnection();
-            IModel publishingModel = publishingConn.CreateModel();
+            IChannel publishingChannel = await publishingConn.CreateChannelAsync().ConfigureAwait(false);
 
             for (int i = 0; i < n; i++)
             {
-                publishingModel.BasicPublish("", q, null, _encoding.GetBytes(""));
+                await publishingChannel.PublishMessageAsync("", q, null, _encoding.GetBytes("")).ConfigureAwait(false);
             }
 
             Wait(latch, TimeSpan.FromSeconds(20));
-            _model.QueueDelete(q);
-            publishingModel.Close();
+            await _channel.DeleteQueueAsync(q);
+            await publishingChannel.CloseAsync().ConfigureAwait(false);
             publishingConn.Close();
-        }
-
-        internal void WaitForRecovery()
-        {
-            Wait(PrepareForRecovery((AutorecoveringConnection)_conn));
-        }
-
-        internal void WaitForRecovery(AutorecoveringConnection conn)
-        {
-            Wait(PrepareForRecovery(conn));
-        }
-
-        internal void WaitForShutdown()
-        {
-            Wait(PrepareForShutdown(_conn));
         }
 
         internal void WaitForShutdown(IConnection conn)
@@ -1038,51 +954,37 @@ namespace RabbitMQ.Client.Unit
 
         public class AckingBasicConsumer : TestBasicConsumer1
         {
-            public AckingBasicConsumer(IModel model, ManualResetEventSlim latch, Action fn)
-                : base(model, latch, fn)
+            public AckingBasicConsumer(IChannel channel, ManualResetEventSlim latch, Action fn)
+                : base(channel, latch, fn)
             {
             }
 
             public override void PostHandleDelivery(ulong deliveryTag)
             {
-                Model.BasicAck(deliveryTag, false);
+                Channel.AckMessageAsync(deliveryTag, false).AsTask().GetAwaiter().GetResult();
             }
         }
 
         public class NackingBasicConsumer : TestBasicConsumer1
         {
-            public NackingBasicConsumer(IModel model, ManualResetEventSlim latch, Action fn)
-                : base(model, latch, fn)
+            public NackingBasicConsumer(IChannel channel, ManualResetEventSlim latch, Action fn)
+                : base(channel, latch, fn)
             {
             }
 
             public override void PostHandleDelivery(ulong deliveryTag)
             {
-                Model.BasicNack(deliveryTag, false, false);
+                Channel.NackMessageAsync(deliveryTag, false, false).AsTask().GetAwaiter().GetResult();
             }
         }
-
-        public class RejectingBasicConsumer : TestBasicConsumer1
-        {
-            public RejectingBasicConsumer(IModel model, ManualResetEventSlim latch, Action fn)
-                : base(model, latch, fn)
-            {
-            }
-
-            public override void PostHandleDelivery(ulong deliveryTag)
-            {
-                Model.BasicReject(deliveryTag, false);
-            }
-        }
-
         public class TestBasicConsumer1 : DefaultBasicConsumer
         {
             private readonly Action _action;
             private readonly ManualResetEventSlim _latch;
             private ushort _counter = 0;
 
-            public TestBasicConsumer1(IModel model, ManualResetEventSlim latch, Action fn)
-                : base(model)
+            public TestBasicConsumer1(IChannel channel, ManualResetEventSlim latch, Action fn)
+                : base(channel)
             {
                 _latch = latch;
                 _action = fn;

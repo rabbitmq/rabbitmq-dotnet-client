@@ -62,6 +62,6 @@ namespace RabbitMQ.Client.Impl
 
         void Quiesce();
 
-        Task Shutdown(IModel model);
+        Task Shutdown();
     }
 }

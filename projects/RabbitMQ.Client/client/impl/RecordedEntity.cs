@@ -29,20 +29,23 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System.Threading.Tasks;
+using RabbitMQ.Client.client.impl.Channel;
+
 namespace RabbitMQ.Client.Impl
 {
+    #nullable enable
     internal abstract class RecordedEntity
     {
-        public RecordedEntity(AutorecoveringModel model)
+        private readonly AutorecoveringChannel _channel;
+
+        protected RecoveryAwareChannel Channel => _channel.NonDisposedDelegate;
+
+        protected RecordedEntity(AutorecoveringChannel channel)
         {
-            Model = model;
+            _channel = channel;
         }
 
-        public AutorecoveringModel Model { get; protected set; }
-
-        protected IModel ModelDelegate
-        {
-            get { return Model.Delegate; }
-        }
+        public abstract ValueTask RecoverAsync();
     }
 }

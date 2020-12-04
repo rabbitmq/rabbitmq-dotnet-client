@@ -38,11 +38,9 @@ namespace RabbitMQ.Client.Exceptions
     /// broker. For example, if a TCP connection dropping causes the
     /// destruction of a session in the middle of a QueueDeclare
     /// operation, an OperationInterruptedException will be thrown to
-    /// the caller of IModel.QueueDeclare.
+    /// the caller of IChannel.DeclareQueueAsync.
     /// </summary>
-#if !NETSTANDARD1_5
     [Serializable]
-#endif
     public class OperationInterruptedException
         // TODO: inherit from OperationCanceledException
         : RabbitMQClientException

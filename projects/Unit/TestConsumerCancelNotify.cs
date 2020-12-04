@@ -31,9 +31,9 @@
 
 using System.Linq;
 using System.Threading;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
-
+using RabbitMQ.Client.client.impl.Channel;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Unit
@@ -41,63 +41,63 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestConsumerCancelNotify : IntegrationFixture
     {
-        protected readonly object lockObject = new object();
-        protected bool notifiedCallback;
-        protected bool notifiedEvent;
-        protected string consumerTag;
+        private readonly ManualResetEventSlim _latch = new ManualResetEventSlim(false);
+        private bool _notifiedCallback;
+        private bool _notifiedEvent;
+        private string _consumerTag;
 
         [Test]
-        public void TestConsumerCancelNotification()
+        public Task TestConsumerCancelNotification()
         {
-            TestConsumerCancel("queue_consumer_cancel_notify", false, ref notifiedCallback);
+            return TestConsumerCancelAsync("queue_consumer_cancel_notify", false);
         }
 
         [Test]
-        public void TestConsumerCancelEvent()
+        public Task TestConsumerCancelEvent()
         {
-            TestConsumerCancel("queue_consumer_cancel_event", true, ref notifiedEvent);
+            return TestConsumerCancelAsync("queue_consumer_cancel_event", true);
         }
 
         [Test]
-        public void TestCorrectConsumerTag()
+        public async Task TestCorrectConsumerTag()
         {
             string q1 = GenerateQueueName();
             string q2 = GenerateQueueName();
 
-            _model.QueueDeclare(q1, false, false, false, null);
-            _model.QueueDeclare(q2, false, false, false, null);
+            await _channel.DeclareQueueAsync(q1, false, false, false).ConfigureAwait(false);
+            await _channel.DeclareQueueAsync(q2, false, false, false).ConfigureAwait(false);
 
-            EventingBasicConsumer consumer = new EventingBasicConsumer(_model);
-            string consumerTag1 = _model.BasicConsume(q1, true, consumer);
-            string consumerTag2 = _model.BasicConsume(q2, true, consumer);
+            EventingBasicConsumer consumer = new EventingBasicConsumer(_channel);
+            string consumerTag1 = await _channel.ActivateConsumerAsync(consumer, q1, true).ConfigureAwait(false);
+            string consumerTag2 = await _channel.ActivateConsumerAsync(consumer, q2, true).ConfigureAwait(false);
 
             string notifiedConsumerTag = null;
             consumer.ConsumerCancelled += (sender, args) =>
             {
-                lock (lockObject)
-                {
-                    notifiedConsumerTag = args.ConsumerTags.First();
-                    Monitor.PulseAll(lockObject);
-                }
+                notifiedConsumerTag = args.ConsumerTags.First();
+                _latch.Set();
             };
 
-            _model.QueueDelete(q1);
-            WaitOn(lockObject);
+            _latch.Reset();
+            await _channel.DeleteQueueAsync(q1).ConfigureAwait(false);
+            Wait(_latch);
+
             Assert.AreEqual(consumerTag1, notifiedConsumerTag);
 
-            _model.QueueDelete(q2);
+            await _channel.DeleteQueueAsync(q2).ConfigureAwait(false);
         }
 
-        public void TestConsumerCancel(string queue, bool EventMode, ref bool notified)
+        public async Task TestConsumerCancelAsync(string queue, bool EventMode)
         {
-            _model.QueueDeclare(queue, false, true, false, null);
-            IBasicConsumer consumer = new CancelNotificationConsumer(_model, this, EventMode);
-            string actualConsumerTag = _model.BasicConsume(queue, false, consumer);
+            await _channel.DeclareQueueAsync(queue, false, true, false).ConfigureAwait(false);
+            IBasicConsumer consumer = new CancelNotificationConsumer(_channel, this, EventMode);
+            string actualConsumerTag = await _channel.ActivateConsumerAsync(consumer, queue, false).ConfigureAwait(false);
 
-            _model.QueueDelete(queue);
-            WaitOn(lockObject);
-            Assert.IsTrue(notified);
-            Assert.AreEqual(actualConsumerTag, consumerTag);
+            await _channel.DeleteQueueAsync(queue).ConfigureAwait(false);
+            Wait(_latch);
+
+            Assert.IsTrue(EventMode ? _notifiedEvent : _notifiedCallback);
+            Assert.AreEqual(actualConsumerTag, _consumerTag);
         }
 
         private class CancelNotificationConsumer : DefaultBasicConsumer
@@ -105,8 +105,8 @@ namespace RabbitMQ.Client.Unit
             private readonly TestConsumerCancelNotify _testClass;
             private readonly bool _eventMode;
 
-            public CancelNotificationConsumer(IModel model, TestConsumerCancelNotify tc, bool EventMode)
-                : base(model)
+            public CancelNotificationConsumer(IChannel channel, TestConsumerCancelNotify tc, bool EventMode)
+                : base(channel)
             {
                 _testClass = tc;
                 _eventMode = EventMode;
@@ -114,30 +114,29 @@ namespace RabbitMQ.Client.Unit
                 {
                     ConsumerCancelled += Cancelled;
                 }
+
+                tc._consumerTag = default;
+                tc._notifiedCallback = default;
+                tc._notifiedEvent = default;
+                tc._latch.Reset();
             }
 
             public override void HandleBasicCancel(string consumerTag)
             {
                 if (!_eventMode)
                 {
-                    lock (_testClass.lockObject)
-                    {
-                        _testClass.notifiedCallback = true;
-                        _testClass.consumerTag = consumerTag;
-                        Monitor.PulseAll(_testClass.lockObject);
-                    }
+                    _testClass._notifiedCallback = true;
+                    _testClass._consumerTag = consumerTag;
+                    _testClass._latch.Set();
                 }
                 base.HandleBasicCancel(consumerTag);
             }
 
             private void Cancelled(object sender, ConsumerEventArgs arg)
             {
-                lock (_testClass.lockObject)
-                {
-                    _testClass.notifiedEvent = true;
-                    _testClass.consumerTag = arg.ConsumerTags[0];
-                    Monitor.PulseAll(_testClass.lockObject);
-                }
+                _testClass._notifiedEvent = true;
+                _testClass._consumerTag = arg.ConsumerTags[0];
+                _testClass._latch.Set();
             }
         }
     }

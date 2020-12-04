@@ -30,9 +30,9 @@
 //---------------------------------------------------------------------------
 
 using System;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
-
+using RabbitMQ.Client.client.impl.Channel;
 using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Unit
@@ -41,23 +41,23 @@ namespace RabbitMQ.Client.Unit
     public class TestExceptionMessages : IntegrationFixture
     {
         [Test]
-        public void TestAlreadyClosedExceptionMessage()
+        public async Task TestAlreadyClosedExceptionMessage()
         {
-            string uuid = System.Guid.NewGuid().ToString();
+            string uuid = Guid.NewGuid().ToString();
             try
             {
-                _model.QueueDeclarePassive(uuid);
+                await _channel.DeclareQueuePassiveAsync(uuid).ConfigureAwait(false);
             }
             catch (Exception e)
             {
                 Assert.That(e, Is.TypeOf(typeof(OperationInterruptedException)));
             }
 
-            Assert.IsFalse(_model.IsOpen);
+            Assert.IsFalse(_channel.IsOpen);
 
             try
             {
-                _model.QueueDeclarePassive(uuid);
+                await _channel.DeclareQueuePassiveAsync(uuid).ConfigureAwait(false);
             }
             catch (AlreadyClosedException e)
             {

@@ -38,7 +38,7 @@ using RabbitMQ.Client.Framing.Impl;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    class TestFrameFormatting : WireFormattingFixture
+    internal class TestFrameFormatting : WireFormattingFixture
     {
         [Test]
         public void HeartbeatFrame()

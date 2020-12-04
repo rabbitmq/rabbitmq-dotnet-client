@@ -33,7 +33,7 @@ using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal abstract class BasicProperties : ContentHeaderBase, IBasicProperties
+    public abstract class BasicProperties : ContentHeaderBase, IBasicProperties
     {
         /// <summary>
         /// Application Id.

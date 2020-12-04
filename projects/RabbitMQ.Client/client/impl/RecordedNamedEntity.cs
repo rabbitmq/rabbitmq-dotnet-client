@@ -29,11 +29,15 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client.client.impl.Channel;
+
 namespace RabbitMQ.Client.Impl
 {
-    internal class RecordedNamedEntity : RecordedEntity
+    #nullable enable
+    internal abstract class RecordedNamedEntity : RecordedEntity
     {
-        public RecordedNamedEntity(AutorecoveringModel model, string name) : base(model)
+        protected RecordedNamedEntity(AutorecoveringChannel channel, string name)
+            : base(channel)
         {
             Name = name;
         }

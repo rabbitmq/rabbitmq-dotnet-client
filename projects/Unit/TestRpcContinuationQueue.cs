@@ -69,7 +69,7 @@ namespace RabbitMQ.Client.Unit
             var inputContinuation = new SimpleBlockingRpcContinuation();
             var inputContinuation1 = new SimpleBlockingRpcContinuation();
             queue.Enqueue(inputContinuation);
-            Assert.Throws(typeof(NotSupportedException), () => 
+            Assert.Throws(typeof(NotSupportedException), () =>
             {
                 queue.Enqueue(inputContinuation1);
             });

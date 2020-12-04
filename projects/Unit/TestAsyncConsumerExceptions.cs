@@ -33,6 +33,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using RabbitMQ.Client.client.impl.Channel;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Unit
@@ -40,32 +41,34 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestAsyncConsumerExceptions : IntegrationFixture
     {
-        private static Exception TestException = new Exception("oops");
+        private static readonly Exception TestException = new Exception("oops");
 
-        protected void TestExceptionHandlingWith(IBasicConsumer consumer,
-            Action<IModel, string, IBasicConsumer, string> action)
+        protected async Task TestExceptionHandlingWith(IBasicConsumer consumer, Func<IChannel, string, IBasicConsumer, string, Task> action)
         {
             var resetEvent = new AutoResetEvent(false);
             bool notified = false;
-            string q = _model.QueueDeclare();
+            (string q, _, _) = await _channel.DeclareQueueAsync().ConfigureAwait(false);
 
-            _model.CallbackException += (m, evt) =>
+            _channel.UnhandledExceptionOccurred += (ex, _) =>
             {
-                if (evt.Exception != TestException) return;
+                if (ex != TestException)
+                {
+                    return;
+                }
 
                 notified = true;
                 resetEvent.Set();
             };
 
-            string tag = _model.BasicConsume(q, true, consumer);
-            action(_model, q, consumer, tag);
+            string tag = await _channel.ActivateConsumerAsync(consumer, q, true);
+            await action(_channel, q, consumer, tag).ConfigureAwait(false);
             resetEvent.WaitOne();
 
             Assert.IsTrue(notified);
         }
 
         [SetUp]
-        public override void Init()
+        public override async Task Init()
         {
             _connFactory = new ConnectionFactory
             {
@@ -73,47 +76,47 @@ namespace RabbitMQ.Client.Unit
             };
 
             _conn = _connFactory.CreateConnection();
-            _model = _conn.CreateModel();
+            _channel = await _conn.CreateChannelAsync().ConfigureAwait(false);
         }
 
         [Test]
-        public void TestCancelNotificationExceptionHandling()
+        public Task TestCancelNotificationExceptionHandling()
         {
-            IBasicConsumer consumer = new ConsumerFailingOnCancel(_model);
-            TestExceptionHandlingWith(consumer, (m, q, c, ct) => m.QueueDelete(q));
+            IBasicConsumer consumer = new ConsumerFailingOnCancel(_channel);
+            return TestExceptionHandlingWith(consumer, (ch, q, c, ct) => ch.DeleteQueueAsync(q).AsTask());
         }
 
         [Test]
-        public void TestConsumerCancelOkExceptionHandling()
+        public Task TestConsumerCancelOkExceptionHandling()
         {
-            IBasicConsumer consumer = new ConsumerFailingOnCancelOk(_model);
-            TestExceptionHandlingWith(consumer, (m, q, c, ct) => m.BasicCancel(ct));
+            IBasicConsumer consumer = new ConsumerFailingOnCancelOk(_channel);
+            return TestExceptionHandlingWith(consumer, (ch, q, c, ct) => ch.CancelConsumerAsync(ct).AsTask());
         }
 
         [Test]
-        public void TestConsumerConsumeOkExceptionHandling()
+        public Task TestConsumerConsumeOkExceptionHandling()
         {
-            IBasicConsumer consumer = new ConsumerFailingOnConsumeOk(_model);
-            TestExceptionHandlingWith(consumer, (m, q, c, ct) => { });
+            IBasicConsumer consumer = new ConsumerFailingOnConsumeOk(_channel);
+            return TestExceptionHandlingWith(consumer, (ch, q, c, ct) => Task.CompletedTask);
         }
 
         [Test]
-        public void TestConsumerShutdownExceptionHandling()
+        public Task TestConsumerShutdownExceptionHandling()
         {
-            IBasicConsumer consumer = new ConsumerFailingOnShutdown(_model);
-            TestExceptionHandlingWith(consumer, (m, q, c, ct) => m.Close());
+            IBasicConsumer consumer = new ConsumerFailingOnShutdown(_channel);
+            return TestExceptionHandlingWith(consumer, (ch, q, c, ct) => ch.CloseAsync().AsTask());
         }
 
         [Test]
-        public void TestDeliveryExceptionHandling()
+        public Task TestDeliveryExceptionHandling()
         {
-            IBasicConsumer consumer = new ConsumerFailingOnDelivery(_model);
-            TestExceptionHandlingWith(consumer, (m, q, c, ct) => m.BasicPublish("", q, null, _encoding.GetBytes("msg")));
+            IBasicConsumer consumer = new ConsumerFailingOnDelivery(_channel);
+            return TestExceptionHandlingWith(consumer, (ch, q, c, ct) => ch.PublishMessageAsync("", q, null, _encoding.GetBytes("msg")).AsTask());
         }
 
         private class ConsumerFailingOnDelivery : AsyncEventingBasicConsumer
         {
-            public ConsumerFailingOnDelivery(IModel model) : base(model)
+            public ConsumerFailingOnDelivery(IChannel channel) : base(channel)
             {
             }
 
@@ -131,7 +134,7 @@ namespace RabbitMQ.Client.Unit
 
         private class ConsumerFailingOnCancel : AsyncEventingBasicConsumer
         {
-            public ConsumerFailingOnCancel(IModel model) : base(model)
+            public ConsumerFailingOnCancel(IChannel channel) : base(channel)
             {
             }
 
@@ -143,11 +146,11 @@ namespace RabbitMQ.Client.Unit
 
         private class ConsumerFailingOnShutdown : AsyncEventingBasicConsumer
         {
-            public ConsumerFailingOnShutdown(IModel model) : base(model)
+            public ConsumerFailingOnShutdown(IChannel channel) : base(channel)
             {
             }
 
-            public override Task HandleModelShutdown(object model, ShutdownEventArgs reason)
+            public override Task HandleModelShutdown(object channel, ShutdownEventArgs reason)
             {
                 return Task.FromException(TestException);
             }
@@ -155,7 +158,7 @@ namespace RabbitMQ.Client.Unit
 
         private class ConsumerFailingOnConsumeOk : AsyncEventingBasicConsumer
         {
-            public ConsumerFailingOnConsumeOk(IModel model) : base(model)
+            public ConsumerFailingOnConsumeOk(IChannel channel) : base(channel)
             {
             }
 
@@ -167,7 +170,7 @@ namespace RabbitMQ.Client.Unit
 
         private class ConsumerFailingOnCancelOk : AsyncEventingBasicConsumer
         {
-            public ConsumerFailingOnCancelOk(IModel model) : base(model)
+            public ConsumerFailingOnCancelOk(IChannel channel) : base(channel)
             {
             }
 

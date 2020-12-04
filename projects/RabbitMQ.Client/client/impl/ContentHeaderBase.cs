@@ -33,7 +33,7 @@ using System;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal abstract class ContentHeaderBase : IContentHeader
+    public abstract class ContentHeaderBase : IContentHeader
     {
         ///<summary>
         /// Retrieve the AMQP class ID of this content header.

@@ -3,7 +3,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using RabbitMQ.Client.client.impl.Channel;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -15,18 +17,18 @@ namespace RabbitMQ.Client.Unit
         {
             var cf = new ConnectionFactory{ ConsumerDispatchConcurrency = 2 };
             using(IConnection c = cf.CreateConnection())
-            using(IModel m = c.CreateModel())
+            await using(IChannel channel = await c.CreateChannelAsync().ConfigureAwait(false))
             {
-                QueueDeclareOk q = m.QueueDeclare();
-                IBasicProperties bp = m.CreateBasicProperties();
+                (string queueName, _, _) = await channel.DeclareQueueAsync().ConfigureAwait(false);
+                BasicProperties bp = new BasicProperties();
                 const string publish1 = "sync-hi-1";
                 byte[] body = Encoding.UTF8.GetBytes(publish1);
-                m.BasicPublish("", q.QueueName, bp, body);
+                await channel.PublishMessageAsync("", queueName, bp, body).ConfigureAwait(false);
                 const string publish2 = "sync-hi-2";
                 body = Encoding.UTF8.GetBytes(publish2);
-                m.BasicPublish("", q.QueueName, bp, body);
+                await channel.PublishMessageAsync("", queueName, bp, body).ConfigureAwait(false);
 
-                var consumer = new EventingBasicConsumer(m);
+                var consumer = new EventingBasicConsumer(channel);
 
                 var publish1SyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 var publish2SyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -53,7 +55,7 @@ namespace RabbitMQ.Client.Unit
                     }
                 };
 
-                m.BasicConsume(q.QueueName, true, consumer);
+                await channel.ActivateConsumerAsync(consumer, queueName, true).ConfigureAwait(false);
 
                 await Task.WhenAll(publish1SyncSource.Task, publish2SyncSource.Task);
 

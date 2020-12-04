@@ -34,9 +34,8 @@ using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
 {
-
     [TestFixture]
-    class TestBasicProperties
+    public class TestBasicProperties
     {
         [Test]
         public void TestPersistentPropertyChangesDeliveryMode_PersistentTrueDelivery2()

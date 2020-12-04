@@ -29,82 +29,91 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System.Threading.Tasks;
 using NUnit.Framework;
+using RabbitMQ.Client.client.impl.Channel;
 
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestNoWait : IntegrationFixture {
+    public class TestNoWait : IntegrationFixture
+    {
         [Test]
-        public void TestQueueDeclareNoWait()
+        public async Task TestQueueDeclareNoWait()
         {
             string q = GenerateQueueName();
-            _model.QueueDeclareNoWait(q, false, true, false, null);
-            _model.QueueDeclarePassive(q);
+            await _channel.DeclareQueueWithoutConfirmationAsync(q, false, true, false).ConfigureAwait(false);
+            await _channel.DeclareQueuePassiveAsync(q).ConfigureAwait(false);
         }
 
         [Test]
-        public void TestQueueBindNoWait()
+        public async Task TestQueueBindNoWait()
         {
             string q = GenerateQueueName();
-            _model.QueueDeclareNoWait(q, false, true, false, null);
-            _model.QueueBindNoWait(q, "amq.fanout", "", null);
+            await _channel.DeclareQueueWithoutConfirmationAsync(q, false, true, false).ConfigureAwait(false);
+            await _channel.BindQueueAsync(q, "amq.fanout", "", waitForConfirmation:false).ConfigureAwait(false);
         }
 
         [Test]
-        public void TestQueueDeleteNoWait()
+        public async Task TestQueueDeleteNoWait()
         {
             string q = GenerateQueueName();
-            _model.QueueDeclareNoWait(q, false, true, false, null);
-            _model.QueueDeleteNoWait(q, false, false);
+            await _channel.DeclareQueueWithoutConfirmationAsync(q, false, true, false).ConfigureAwait(false);
+            await _channel.DeleteQueueWithoutConfirmationAsync(q).ConfigureAwait(false);
         }
 
         [Test]
-        public void TestExchangeDeclareNoWait()
+        public async Task TestExchangeDeclareNoWait()
         {
             string x = GenerateExchangeName();
             try
             {
-                _model.ExchangeDeclareNoWait(x, "fanout", false, true, null);
-                _model.ExchangeDeclarePassive(x);
-            } finally {
-                _model.ExchangeDelete(x);
+                await _channel.DeclareExchangeAsync(x, "fanout", false, true, waitForConfirmation:false).ConfigureAwait(false);
+                await _channel.DeclareExchangePassiveAsync(x).ConfigureAwait(false);
+            }
+            finally
+            {
+                await _channel.DeleteExchangeAsync(x).ConfigureAwait(false);
             }
         }
 
         [Test]
-        public void TestExchangeBindNoWait()
+        public async Task TestExchangeBindNoWait()
         {
             string x = GenerateExchangeName();
             try
             {
-                _model.ExchangeDeclareNoWait(x, "fanout", false, true, null);
-                _model.ExchangeBindNoWait(x, "amq.fanout", "", null);
-            } finally {
-                _model.ExchangeDelete(x);
+                await _channel.DeclareExchangeAsync(x, "fanout", false, true, waitForConfirmation:false).ConfigureAwait(false);
+                await _channel.BindExchangeAsync(x, "amq.fanout", "", waitForConfirmation:false).ConfigureAwait(false);
+            }
+            finally
+            {
+                await _channel.DeleteExchangeAsync(x).ConfigureAwait(false);
             }
         }
 
         [Test]
-        public void TestExchangeUnbindNoWait()
+        public async Task TestExchangeUnbindNoWait()
         {
             string x = GenerateExchangeName();
             try
             {
-                _model.ExchangeDeclare(x, "fanout", false, true, null);
-                _model.ExchangeBind(x, "amq.fanout", "", null);
-                _model.ExchangeUnbindNoWait(x, "amq.fanout", "", null);
-            } finally {
-                _model.ExchangeDelete(x);
+                await _channel.DeclareExchangeAsync(x, "fanout", false, true).ConfigureAwait(false);
+                await _channel.BindExchangeAsync(x, "amq.fanout", "").ConfigureAwait(false);
+                await _channel.UnbindExchangeAsync(x, "amq.fanout", "", waitForConfirmation:false).ConfigureAwait(false);
+            }
+            finally
+            {
+                await _channel.DeleteExchangeAsync(x);
             }
         }
 
         [Test]
-        public void TestExchangeDeleteNoWait()
+        public async Task TestExchangeDeleteNoWait()
         {
             string x = GenerateExchangeName();
-            _model.ExchangeDeclareNoWait(x, "fanout", false, true, null);
-            _model.ExchangeDeleteNoWait(x, false);
+            await _channel.DeclareExchangeAsync(x, "fanout", false, true, waitForConfirmation:false).ConfigureAwait(false);
+            await _channel.DeleteExchangeAsync(x, waitForConfirmation:false).ConfigureAwait(false);
         }
     }
 }

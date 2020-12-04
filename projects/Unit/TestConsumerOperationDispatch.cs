@@ -32,9 +32,9 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
-
+using RabbitMQ.Client.client.impl.Channel;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Framing;
 
@@ -44,7 +44,7 @@ namespace RabbitMQ.Client.Unit
     internal class TestConsumerOperationDispatch : IntegrationFixture
     {
         private readonly string _x = "dotnet.tests.consumer-operation-dispatch.fanout";
-        private readonly List<IModel> _channels = new List<IModel>();
+        private readonly List<IChannel> _channels = new List<IChannel>();
         private readonly List<string> _queues = new List<string>();
         private readonly List<CollectingConsumer> _consumers = new List<CollectingConsumer>();
 
@@ -59,11 +59,11 @@ namespace RabbitMQ.Client.Unit
         [TearDown]
         protected override void ReleaseResources()
         {
-            foreach (IModel ch in _channels)
+            foreach (IChannel ch in _channels)
             {
                 if (ch.IsOpen)
                 {
-                    ch.Close();
+                    ch.CloseAsync().GetAwaiter().GetResult();
                 }
             }
             _queues.Clear();
@@ -76,15 +76,13 @@ namespace RabbitMQ.Client.Unit
         {
             public List<ulong> DeliveryTags { get; }
 
-            public CollectingConsumer(IModel model)
-                : base(model)
+            public CollectingConsumer(IChannel channel)
+                : base(channel)
             {
                 DeliveryTags = new List<ulong>();
             }
 
-            public override void HandleBasicDeliver(string consumerTag,
-                ulong deliveryTag, bool redelivered, string exchange, string routingKey,
-                IBasicProperties properties, ReadOnlyMemory<byte> body)
+            public override void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, IBasicProperties properties, ReadOnlyMemory<byte> body)
             {
                 // we test concurrent dispatch from the moment basic.delivery is returned.
                 // delivery tags have guaranteed ordering and we verify that it is preserved
@@ -96,33 +94,32 @@ namespace RabbitMQ.Client.Unit
                     counter.Signal();
                 }
 
-                Model.BasicAck(deliveryTag: deliveryTag, multiple: false);
+                Channel.AckMessageAsync(deliveryTag, false).GetAwaiter().GetResult();
             }
         }
 
         [Test]
-        public void TestDeliveryOrderingWithSingleChannel()
+        public async Task TestDeliveryOrderingWithSingleChannel()
         {
-            IModel Ch = _conn.CreateModel();
-            Ch.ExchangeDeclare(_x, "fanout", durable: false);
+            IChannel Ch = await _conn.CreateChannelAsync().ConfigureAwait(false);
+            await Ch.DeclareExchangeAsync(_x, "fanout", false, false).ConfigureAwait(false);
 
             for (int i = 0; i < Y; i++)
             {
-                IModel ch = _conn.CreateModel();
-                QueueDeclareOk q = ch.QueueDeclare("", durable: false, exclusive: true, autoDelete: true, arguments: null);
-                ch.QueueBind(queue: q, exchange: _x, routingKey: "");
+                IChannel ch = await _conn.CreateChannelAsync().ConfigureAwait(false);
+                (string q, _, _) = await ch.DeclareQueueAsync("", false, true, true).ConfigureAwait(false);
+                await ch.BindQueueAsync(q, _x, "").ConfigureAwait(false);
                 _channels.Add(ch);
                 _queues.Add(q);
                 var cons = new CollectingConsumer(ch);
                 _consumers.Add(cons);
-                ch.BasicConsume(queue: q, autoAck: false, consumer: cons);
+                await ch.ActivateConsumerAsync(cons, q, false).ConfigureAwait(false);
             }
 
+            byte[] body = _encoding.GetBytes("msg");
             for (int i = 0; i < N; i++)
             {
-                Ch.BasicPublish(exchange: _x, routingKey: "",
-                    basicProperties: new BasicProperties(),
-                    body: _encoding.GetBytes("msg"));
+                await Ch.PublishMessageAsync(_x, "", null, body).ConfigureAwait(false);
             }
             counter.Wait(TimeSpan.FromSeconds(120));
 
@@ -144,28 +141,28 @@ namespace RabbitMQ.Client.Unit
 
         // see rabbitmq/rabbitmq-dotnet-client#61
         [Test]
-        public void TestChannelShutdownDoesNotShutDownDispatcher()
+        public async Task TestChannelShutdownDoesNotShutDownDispatcher()
         {
-            IModel ch1 = _conn.CreateModel();
-            IModel ch2 = _conn.CreateModel();
-            _model.ExchangeDeclare(_x, "fanout", durable: false);
+            IChannel ch1 = await _conn.CreateChannelAsync().ConfigureAwait(false);
+            IChannel ch2 = await _conn.CreateChannelAsync().ConfigureAwait(false);
+            await _channel.DeclareExchangeAsync(_x, "fanout").ConfigureAwait(false);
 
-            string q1 = ch1.QueueDeclare().QueueName;
-            string q2 = ch2.QueueDeclare().QueueName;
-            ch2.QueueBind(queue: q2, exchange: _x, routingKey: "");
+            (string q1, _, _) = await ch1.DeclareQueueAsync().ConfigureAwait(false);
+            (string q2, _, _) = await ch2.DeclareQueueAsync().ConfigureAwait(false);
+            await ch2.BindQueueAsync(q2, _x, "").ConfigureAwait(false);
 
             var latch = new ManualResetEventSlim(false);
-            ch1.BasicConsume(q1, true, new EventingBasicConsumer(ch1));
+            await ch1.ActivateConsumerAsync(new EventingBasicConsumer(ch1), q1, true);
             var c2 = new EventingBasicConsumer(ch2);
             c2.Received += (object sender, BasicDeliverEventArgs e) =>
             {
                 latch.Set();
             };
-            ch2.BasicConsume(q2, true, c2);
+            await ch2.ActivateConsumerAsync(c2, q2, true).ConfigureAwait(false);
             // closing this channel must not affect ch2
-            ch1.Close();
+            await ch1.CloseAsync().ConfigureAwait(false);
 
-            ch2.BasicPublish(exchange: _x, basicProperties: null, body: _encoding.GetBytes("msg"), routingKey: "");
+            await ch2.PublishMessageAsync(_x, "", null, _encoding.GetBytes("msg"));
             Wait(latch);
         }
 
@@ -192,18 +189,17 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestModelShutdownHandler()
+        public async Task TestModelShutdownHandler()
         {
             var latch = new ManualResetEventSlim(false);
             var duplicateLatch = new ManualResetEventSlim(false);
-            string q = _model.QueueDeclare().QueueName;
+            (string q, _, _) = await _channel.DeclareQueueAsync().ConfigureAwait(false);
             var c = new ShutdownLatchConsumer(latch, duplicateLatch);
 
-            _model.BasicConsume(queue: q, autoAck: true, consumer: c);
-            _model.Close();
+            await _channel.ActivateConsumerAsync(c, q, true).ConfigureAwait(false);
+            await _channel.CloseAsync().ConfigureAwait(false);
             Wait(latch, TimeSpan.FromSeconds(5));
-            Assert.IsFalse(duplicateLatch.Wait(TimeSpan.FromSeconds(5)),
-                           "event handler fired more than once");
+            Assert.IsFalse(duplicateLatch.Wait(TimeSpan.FromSeconds(5)), "event handler fired more than once");
         }
     }
 }

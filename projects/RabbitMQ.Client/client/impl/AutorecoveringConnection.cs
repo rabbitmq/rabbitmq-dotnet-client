@@ -30,26 +30,24 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-
+using RabbitMQ.Client.client.impl.Channel;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Client.Logging;
+using Channel = System.Threading.Channels.Channel;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class AutorecoveringConnection : IConnection
     {
-        private bool _disposed = false;
-        private readonly object _eventLock = new object();
-
         private Connection _delegate;
+        private readonly object _eventLock = new object();
         private readonly ConnectionFactory _factory;
 
         // list of endpoints provided on initial connection.
@@ -60,18 +58,16 @@ namespace RabbitMQ.Client.Framing.Impl
         private readonly object _recordedEntitiesLock = new object();
 
         private readonly Dictionary<string, RecordedExchange> _recordedExchanges = new Dictionary<string, RecordedExchange>();
-
         private readonly Dictionary<string, RecordedQueue> _recordedQueues = new Dictionary<string, RecordedQueue>();
-
         private readonly Dictionary<RecordedBinding, byte> _recordedBindings = new Dictionary<RecordedBinding, byte>();
-
         private readonly Dictionary<string, RecordedConsumer> _recordedConsumers = new Dictionary<string, RecordedConsumer>();
-
-        private readonly List<AutorecoveringModel> _models = new List<AutorecoveringModel>();
+        private readonly List<AutorecoveringChannel> _channels = new List<AutorecoveringChannel>();
 
         private EventHandler<ConnectionBlockedEventArgs> _recordedBlockedEventHandlers;
         private EventHandler<ShutdownEventArgs> _recordedShutdownEventHandlers;
         private EventHandler<EventArgs> _recordedUnblockedEventHandlers;
+
+        private bool _disposed;
 
         public AutorecoveringConnection(ConnectionFactory factory, string clientProvidedName = null)
         {
@@ -200,10 +196,6 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public ProtocolBase Protocol => Delegate.Protocol;
 
-        public IDictionary<string, RecordedExchange> RecordedExchanges { get; } = new ConcurrentDictionary<string, RecordedExchange>();
-
-        public IDictionary<string, RecordedQueue> RecordedQueues { get; } = new ConcurrentDictionary<string, RecordedQueue>();
-
         public int RemotePort => Delegate.RemotePort;
 
         public IDictionary<string, object> ServerProperties => Delegate.ServerProperties;
@@ -224,11 +216,11 @@ namespace RabbitMQ.Client.Framing.Impl
                     RecoverConnectionBlockedHandlers();
                     RecoverConnectionUnblockedHandlers();
 
-                    RecoverModels();
+                    RecoverChannelsAsync().GetAwaiter().GetResult();
                     if (_factory.TopologyRecoveryEnabled)
                     {
-                        RecoverEntities();
-                        RecoverConsumers();
+                        RecoverEntitiesAsync().GetAwaiter().GetResult();
+                        RecoverConsumersAsync().GetAwaiter().GetResult();
                     }
 
                     ESLog.Info("Connection recovery completed");
@@ -251,12 +243,11 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void Close(ShutdownEventArgs reason) => Delegate.Close(reason);
 
-        public RecoveryAwareModel CreateNonRecoveringModel()
+        internal async ValueTask<RecoveryAwareChannel> CreateNonRecoveringChannelAsync()
         {
-            ISession session = Delegate.CreateSession();
-            var result = new RecoveryAwareModel(session) { ContinuationTimeout = _factory.ContinuationTimeout };
-            result._Private_ChannelOpen("");
-            return result;
+            var channel = new RecoveryAwareChannel(Delegate.CreateSession(), ConsumerWorkService) { ContinuationTimeout = _factory.ContinuationTimeout };
+            await channel.OpenChannelAsync().ConfigureAwait(false);
+            return channel;
         }
 
         public void DeleteRecordedBinding(RecordedBinding rb)
@@ -336,7 +327,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     // last binding where this exchange is the source is gone,
                     // remove recorded exchange
                     // if it is auto-deleted. See bug 26364.
-                    if ((rx != null) && rx.IsAutoDelete)
+                    if (rx != null && rx.IsAutoDelete)
                     {
                         _recordedExchanges.Remove(exchange);
                     }
@@ -353,7 +344,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     _recordedQueues.TryGetValue(queue, out RecordedQueue rq);
                     // last consumer on this connection is gone, remove recorded queue
                     // if it is auto-deleted. See bug 26364.
-                    if ((rq != null) && rq.IsAutoDelete)
+                    if (rq != null && rq.IsAutoDelete)
                     {
                         _recordedQueues.Remove(queue);
                     }
@@ -401,11 +392,11 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override string ToString() => $"AutorecoveringConnection({Delegate.Id},{Endpoint},{GetHashCode()})";
 
-        public void UnregisterModel(AutorecoveringModel model)
+        public void UnregisterChannel(AutorecoveringChannel channel)
         {
-            lock (_models)
+            lock (_channels)
             {
-                _models.Remove(model);
+                _channels.Remove(channel);
             }
         }
 
@@ -421,8 +412,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private void Init(IFrameHandler fh)
         {
             ThrowIfDisposed();
-            _delegate = new Connection(_factory, false,
-                fh, ClientProvidedName);
+            _delegate = new Connection(_factory, fh, ClientProvidedName);
 
             _recoveryTask = Task.Run(MainRecoveryLoop);
 
@@ -439,8 +429,6 @@ namespace RabbitMQ.Client.Framing.Impl
                 _recordedShutdownEventHandlers += recoveryListener;
             }
         }
-
-        
 
         ///<summary>API-side invocation of updating the secret.</summary>
         public void UpdateSecret(string newSecret, string reason)
@@ -539,15 +527,15 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public IModel CreateModel()
+        public async ValueTask<IChannel> CreateChannelAsync()
         {
             EnsureIsOpen();
-            AutorecoveringModel m = new AutorecoveringModel(this, CreateNonRecoveringModel());
-            lock (_models)
+            AutorecoveringChannel channel = new AutorecoveringChannel(this, await CreateNonRecoveringChannelAsync().ConfigureAwait(false));
+            lock (_channels)
             {
-                _models.Add(m);
+                _channels.Add(channel);
             }
-            return m;
+            return channel;
         }
 
         void IDisposable.Dispose() => Dispose(true);
@@ -597,7 +585,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
                 finally
                 {
-                    _models.Clear();
+                    _channels.Clear();
                     _delegate = null;
                     _recordedBlockedEventHandlers = null;
                     _recordedShutdownEventHandlers = null;
@@ -640,7 +628,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void RecoverBindings()
+        private async Task RecoverBindingsAsync()
         {
             Dictionary<RecordedBinding, byte> recordedBindingsCopy;
             lock (_recordedBindings)
@@ -652,12 +640,11 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 try
                 {
-                    b.Recover();
+                    await b.RecoverAsync().ConfigureAwait(false);
                 }
                 catch (Exception cause)
                 {
-                    string s = string.Format("Caught an exception while recovering binding between {0} and {1}: {2}",
-                        b.Source, b.Destination, cause.Message);
+                    string s = $"Caught an exception while recovering binding between {b.Source} and {b.Destination}: {cause.Message}";
                     HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
                 }
             }
@@ -678,7 +665,7 @@ namespace RabbitMQ.Client.Framing.Impl
             try
             {
                 IFrameHandler fh = _endpoints.SelectOne(_factory.CreateFrameHandler);
-                _delegate = new Connection(_factory, false, fh, ClientProvidedName);
+                _delegate = new Connection(_factory, fh, ClientProvidedName);
                 return true;
             }
             catch (Exception e)
@@ -707,7 +694,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void RecoverConnectionUnblockedHandlers() => Delegate.ConnectionUnblocked += _recordedUnblockedEventHandlers;
 
-        private void RecoverConsumers()
+        private async Task RecoverConsumersAsync()
         {
             ThrowIfDisposed();
             Dictionary<string, RecordedConsumer> recordedConsumersCopy;
@@ -723,7 +710,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
                 try
                 {
-                    string newTag = cons.Recover();
+                    await cons.RecoverAsync().ConfigureAwait(false);
+                    string newTag = cons.ConsumerTag;
                     lock (_recordedConsumers)
                     {
                         // make sure server-generated tags are re-added
@@ -748,14 +736,13 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
                 catch (Exception cause)
                 {
-                    string s = string.Format("Caught an exception while recovering consumer {0} on queue {1}: {2}",
-                        tag, cons.Queue, cause.Message);
+                    string s = $"Caught an exception while recovering consumer {tag} on queue {cons.Queue}: {cause.Message}";
                     HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
                 }
             }
         }
 
-        private void RecoverEntities()
+        private async Task RecoverEntitiesAsync()
         {
             // The recovery sequence is the following:
             //
@@ -763,12 +750,12 @@ namespace RabbitMQ.Client.Framing.Impl
             // 2. Recover queues
             // 3. Recover bindings
             // 4. Recover consumers
-            RecoverExchanges();
-            RecoverQueues();
-            RecoverBindings();
+            await RecoverExchangesAsync().ConfigureAwait(false);
+            await RecoverQueuesAsync().ConfigureAwait(false);
+            await RecoverBindingsAsync().ConfigureAwait(false);
         }
 
-        private void RecoverExchanges()
+        private async Task RecoverExchangesAsync()
         {
             Dictionary<string, RecordedExchange> recordedExchangesCopy;
             lock (_recordedEntitiesLock)
@@ -780,7 +767,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 try
                 {
-                    rx.Recover();
+                    await rx.RecoverAsync().ConfigureAwait(false);
                 }
                 catch (Exception cause)
                 {
@@ -791,18 +778,21 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void RecoverModels()
+        private async Task RecoverChannelsAsync()
         {
-            lock (_models)
+            AutorecoveringChannel[] copy;
+            lock (_channels)
             {
-                foreach (AutorecoveringModel m in _models)
-                {
-                    m.AutomaticallyRecover(this);
-                }
+                copy = _channels.ToArray();
+            }
+
+            foreach (AutorecoveringChannel m in copy)
+            {
+                await m.AutomaticallyRecoverAsync(this).ConfigureAwait(false);
             }
         }
 
-        private void RecoverQueues()
+        private async Task RecoverQueuesAsync()
         {
             Dictionary<string, RecordedQueue> recordedQueuesCopy;
             lock (_recordedEntitiesLock)
@@ -817,7 +807,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
                 try
                 {
-                    rq.Recover();
+                    await rq.RecoverAsync().ConfigureAwait(false);
                     string newName = rq.Name;
 
                     if (!oldName.Equals(newName))

@@ -39,12 +39,6 @@ namespace RabbitMQ.Client
     /// </summary>
     /// <remarks>
     /// <para>
-    /// The specification code generator provides
-    /// protocol-version-specific implementations of this interface. To
-    /// obtain an implementation of this interface in a
-    /// protocol-version-neutral way, use IModel.CreateStreamProperties().
-    /// </para>
-    /// <para>
     /// Each property is readable, writable and clearable: a cleared
     /// property will not be transmitted over the wire. Properties on a fresh instance are clear by default.
     /// </para>

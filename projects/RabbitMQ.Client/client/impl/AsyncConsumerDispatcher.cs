@@ -1,17 +1,17 @@
 ﻿using System;
-using System.Buffers;
 using System.Threading.Tasks;
+using RabbitMQ.Client.client.impl.Channel;
 
 namespace RabbitMQ.Client.Impl
 {
     internal sealed class AsyncConsumerDispatcher : IConsumerDispatcher
     {
-        private readonly ModelBase _model;
+        private readonly ChannelBase _channelBase;
         private readonly AsyncConsumerWorkService _workService;
 
-        public AsyncConsumerDispatcher(ModelBase model, AsyncConsumerWorkService ws)
+        public AsyncConsumerDispatcher(ChannelBase channelBase, AsyncConsumerWorkService ws)
         {
-            _model = model;
+            _channelBase = channelBase;
             _workService = ws;
             IsShutdown = false;
         }
@@ -21,9 +21,9 @@ namespace RabbitMQ.Client.Impl
             IsShutdown = true;
         }
 
-        public Task Shutdown(IModel model)
+        public Task Shutdown()
         {
-            return _workService.Stop(model);
+            return _workService.Stop(_channelBase);
         }
 
         public bool IsShutdown
@@ -64,7 +64,7 @@ namespace RabbitMQ.Client.Impl
         public void HandleModelShutdown(IBasicConsumer consumer, ShutdownEventArgs reason)
         {
             // the only case where we ignore the shutdown flag.
-            Schedule(new ModelShutdown(consumer, reason, _model));
+            Schedule(new ModelShutdown(consumer, reason, _channelBase));
         }
 
         private void ScheduleUnlessShuttingDown(Work work)
@@ -77,7 +77,7 @@ namespace RabbitMQ.Client.Impl
 
         private void Schedule(Work work)
         {
-            _workService.Schedule(_model, work);
+            _workService.Schedule(_channelBase, work);
         }
     }
 }

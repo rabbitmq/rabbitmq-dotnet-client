@@ -29,6 +29,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 using RabbitMQ.Client.Exceptions;
@@ -39,36 +40,36 @@ namespace RabbitMQ.Client.Unit
     public class TestBasicGet : IntegrationFixture
     {
         [Test]
-        public void TestBasicGetWithClosedChannel()
+        public Task TestBasicGetWithClosedChannel()
         {
-            WithNonEmptyQueue( (_, q) =>
-                {
-                    WithClosedModel(cm =>
-                    {
-                        Assert.Throws(Is.InstanceOf<AlreadyClosedException>(), () => cm.BasicGet(q, true));
-                    });
-                });
-        }
-
-        [Test]
-        public void TestBasicGetWithEmptyResponse()
-        {
-            WithEmptyQueue((model, queue) =>
+            return WithNonEmptyQueueAsync((_, q) =>
             {
-                BasicGetResult res = model.BasicGet(queue, false);
-                Assert.IsNull(res);
+                return WithClosedChannelAsync(cm =>
+                {
+                    Assert.ThrowsAsync<AlreadyClosedException>(() => cm.RetrieveSingleMessageAsync(q, true).AsTask());
+                });
             });
         }
 
         [Test]
-        public void TestBasicGetWithNonEmptyResponseAndAutoAckMode()
+        public Task TestBasicGetWithEmptyResponse()
+        {
+            return WithEmptyQueueAsync(async (channel, queue) =>
+            {
+                SingleMessageRetrieval res = await channel.RetrieveSingleMessageAsync(queue, false).ConfigureAwait(false);
+                Assert.IsTrue(res.IsEmpty);
+            });
+        }
+
+        [Test]
+        public Task TestBasicGetWithNonEmptyResponseAndAutoAckMode()
         {
             const string msg = "for basic.get";
-            WithNonEmptyQueue((model, queue) =>
+            return WithNonEmptyQueueAsync(async (channel, queue) =>
             {
-                BasicGetResult res = model.BasicGet(queue, true);
+                SingleMessageRetrieval res = await channel.RetrieveSingleMessageAsync(queue, true).ConfigureAwait(false);
                 Assert.AreEqual(msg, _encoding.GetString(res.Body.ToArray()));
-                AssertMessageCount(queue, 0);
+                await AssertMessageCountAsync(queue, 0).ConfigureAwait(false);
             }, msg);
         }
     }
