@@ -8,61 +8,61 @@ using RabbitMQ.Client.Framing.Impl;
 namespace RabbitMQ.Benchmarks
 {
     [Config(typeof(Config))]
-    public class MethodSerialization
+    [BenchmarkCategory("Methods")]
+    public class MethodSerializationBase
     {
-        private readonly BasicAck _basicAck = new BasicAck(ulong.MaxValue, true);
-        private readonly BasicDeliver _basicDeliver = new BasicDeliver(string.Empty, 0, false, string.Empty, string.Empty);
-        private readonly BasicProperties _basicProperties = new BasicProperties
-        {
-            Persistent = true,
-            AppId = "AppId",
-            ContentEncoding = "content",
-        };
-        private readonly ChannelClose _channelClose = new ChannelClose(333, string.Empty, 0099, 2999);
-
-
-        private readonly Memory<byte> _basicAckBuffer = new byte[1024];
-        private readonly Memory<byte> _basicDeliverBuffer = new byte[1024];
-        private readonly Memory<byte> _basicPropertiesBuffer = new byte[1024];
-        private readonly Memory<byte> _channelCloseBuffer = new byte[1024];
-        private readonly Memory<byte> _writeBuffer = new byte[1024];
+        protected readonly Memory<byte> _buffer = new byte[1024];
 
         [GlobalSetup]
-        public void SetUp()
-        {
-            new BasicAck(ulong.MaxValue, true).WriteArgumentsTo(_basicAckBuffer.Span);
-            new BasicDeliver(string.Empty, 0, false, string.Empty, string.Empty).WriteArgumentsTo(_basicDeliverBuffer.Span);
-            new BasicProperties
-            {
-                Persistent = true,
-                AppId = "AppId",
-                ContentEncoding = "content"
-            }.WritePropertiesTo(_basicPropertiesBuffer.Span);
-            new ChannelClose(333, string.Empty, 0099, 2999).WriteArgumentsTo(_channelCloseBuffer.Span);
-        }
+        public virtual void SetUp() { }
+    }
+
+    public class MethodBasicAck : MethodSerializationBase
+    {
+        private readonly BasicAck _basicAck = new BasicAck(ulong.MaxValue, true);
+        public override void SetUp() => _basicAck.WriteArgumentsTo(_buffer.Span);
 
         [Benchmark]
-        public object BasicAckRead() => new BasicAck(_basicAckBuffer.Span);
+        public object BasicAckRead() => new BasicAck(_buffer.Span);
 
         [Benchmark]
-        public int BasicAckWrite() => _basicAck.WriteArgumentsTo(_writeBuffer.Span);
+        public int BasicAckWrite() => _basicAck.WriteArgumentsTo(_buffer.Span);
+    }
+
+    public class MethodBasicDeliver : MethodSerializationBase
+    {
+        private readonly BasicDeliver _basicDeliver = new BasicDeliver(string.Empty, 0, false, string.Empty, string.Empty);
+        public override void SetUp() => _basicDeliver.WriteArgumentsTo(_buffer.Span);
 
         [Benchmark]
-        public object BasicDeliverRead() => new BasicDeliver(_basicDeliverBuffer.Span);
+        public object BasicDeliverRead() => new BasicAck(_buffer.Span);
 
         [Benchmark]
-        public int BasicDeliverWrite() => _basicDeliver.WriteArgumentsTo(_writeBuffer.Span);
+        public int BasicDeliverWrite() => _basicDeliver.WriteArgumentsTo(_buffer.Span);
+    }
+
+    public class MethodChannelClose : MethodSerializationBase
+    {
+        private readonly ChannelClose _channelClose = new ChannelClose(333, string.Empty, 0099, 2999);
+
+        public override void SetUp() => _channelClose.WriteArgumentsTo(_buffer.Span);
 
         [Benchmark]
-        public object BasicPropertiesRead() => new BasicProperties(_basicPropertiesBuffer.Span);
+        public object ChannelCloseRead() => new BasicAck(_buffer.Span);
 
         [Benchmark]
-        public void BasicPropertiesWrite() => _basicProperties.WritePropertiesTo(_writeBuffer.Span);
+        public int ChannelCloseWrite() => _channelClose.WriteArgumentsTo(_buffer.Span);
+    }
+
+    public class MethodBasicProperties : MethodSerializationBase
+    {
+        private readonly BasicProperties _basicProperties = new BasicProperties { Persistent = true, AppId = "AppId", ContentEncoding = "content", };
+        public override void SetUp() => _basicProperties.WritePropertiesTo(_buffer.Span);
 
         [Benchmark]
-        public object ChannelCloseRead() => new ChannelClose(_channelCloseBuffer.Span);
+        public object BasicPropertiesRead() => new BasicProperties(_buffer.Span);
 
         [Benchmark]
-        public int ChannelCloseWrite() => _channelClose.WriteArgumentsTo(_writeBuffer.Span);
+        public int BasicPropertiesWrite() => _basicProperties.WritePropertiesTo(_buffer.Span);
     }
 }

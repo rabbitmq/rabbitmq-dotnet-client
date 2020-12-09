@@ -8,53 +8,69 @@ using RabbitMQ.Client.Impl;
 namespace RabbitMQ.Benchmarks
 {
     [Config(typeof(Config))]
-    public class PrimitivesSerialization
+    [BenchmarkCategory("Primitives")]
+    public class PrimitivesBase
     {
-        Memory<byte> _decimalBuffer = new byte[8];
-        Memory<byte> _longBuffer = new byte[4];
-        Memory<byte> _longLongBuffer = new byte[8];
-        Memory<byte> _shortBuffer = new byte[2];
-        Memory<byte> _timestampBuffer = new byte[8];
-        AmqpTimestamp _timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+        protected Memory<byte> _buffer = new byte[16];
 
         [GlobalSetup]
-        public void Setup()
-        {
-            WireFormatting.WriteDecimal(_decimalBuffer.Span, 123.45m);
-            WireFormatting.WriteLong(_longBuffer.Span, 12345u);
-            WireFormatting.WriteLonglong(_longLongBuffer.Span, 12345ul);
-            WireFormatting.WriteShort(_shortBuffer.Span, 12345);
-            WireFormatting.WriteTimestamp(_timestampBuffer.Span, _timestamp);
-        }
+        public virtual void Setup() { }
+    }
+
+    public class PrimitivesDecimal : PrimitivesBase
+    {
+        public override void Setup() => WireFormatting.WriteDecimal(_buffer.Span, 123.45m);
 
         [Benchmark]
-        public decimal DecimalRead() => WireFormatting.ReadDecimal(_decimalBuffer.Span);
+        public decimal DecimalRead() => WireFormatting.ReadDecimal(_buffer.Span);
 
         [Benchmark]
-        public int DecimalWrite() => WireFormatting.WriteDecimal(_decimalBuffer.Span, 123.45m);
+        public int DecimalWrite() => WireFormatting.WriteDecimal(_buffer.Span, 123.45m);
+    }
+
+    public class PrimitivesLong : PrimitivesBase
+    {
+        public override void Setup() => WireFormatting.WriteLong(_buffer.Span, 12345u);
 
         [Benchmark]
-        public int LongRead() => WireFormatting.ReadLong(_longBuffer.Span, out _);
+        public int LongRead() => WireFormatting.ReadLong(_buffer.Span, out _);
 
         [Benchmark]
-        public int LongWrite() => WireFormatting.WriteLong(_longBuffer.Span, 12345u);
+        public int LongWrite() => WireFormatting.WriteLong(_buffer.Span, 12345u);
+    }
+
+    public class PrimitivesLonglong : PrimitivesBase
+    {
+        public override void Setup() => WireFormatting.WriteLonglong(_buffer.Span, 12345ul);
 
         [Benchmark]
-        public int LonglongRead() => WireFormatting.ReadLonglong(_longLongBuffer.Span, out _);
+        public int LonglongRead() => WireFormatting.ReadLonglong(_buffer.Span, out _);
 
         [Benchmark]
-        public int LonglongWrite() => WireFormatting.WriteLonglong(_longLongBuffer.Span, 12345ul);
+        public int LonglongWrite() => WireFormatting.WriteLonglong(_buffer.Span, 12345ul);
+    }
+
+    public class PrimitivesShort : PrimitivesBase
+    {
+        public override void Setup() => WireFormatting.WriteShort(_buffer.Span, 12345);
 
         [Benchmark]
-        public int ShortRead() => WireFormatting.ReadShort(_shortBuffer.Span, out _);
+        public int ShortRead() => WireFormatting.ReadShort(_buffer.Span, out _);
 
         [Benchmark]
-        public int ShortWrite() => WireFormatting.WriteShort(_shortBuffer.Span, 12345);
+        public int ShortWrite() => WireFormatting.WriteShort(_buffer.Span, 12345);
+    }
+
+    public class PrimitivesTimestamp : PrimitivesBase
+    {
+        AmqpTimestamp _timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+
+        public override void Setup() => WireFormatting.WriteTimestamp(_buffer.Span, _timestamp);
 
         [Benchmark]
-        public int TimestampRead() => WireFormatting.ReadTimestamp(_timestampBuffer.Span, out _);
+        public int TimestampRead() => WireFormatting.ReadTimestamp(_buffer.Span, out _);
 
         [Benchmark]
-        public int TimestampWrite() => WireFormatting.WriteTimestamp(_timestampBuffer.Span, _timestamp);
+        public int TimestampWrite() => WireFormatting.WriteTimestamp(_buffer.Span, _timestamp);
     }
 }
