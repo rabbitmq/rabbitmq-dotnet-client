@@ -770,7 +770,6 @@ namespace RabbitMQ.Client.Impl
 #else
         public static int WriteLongstr(Span<byte> span, string val)
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             static int GetBytes(Span<byte> span, string val)
             {
                 unsafe
