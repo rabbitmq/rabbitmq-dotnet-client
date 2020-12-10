@@ -78,7 +78,7 @@ namespace RabbitMQ.Client.Framing.Impl
         public override int GetRequiredBufferSize()
         {
             int bufferSize = 2 + 1 + 1; // bytes for _reserved1, length of _queue, bit fields
-            bufferSize += Encoding.UTF8.GetByteCount(_queue); // _queue in bytes
+            bufferSize += WireFormatting.GetByteCount(_queue); // _queue in bytes
             return bufferSize;
         }
     }

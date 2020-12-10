@@ -88,9 +88,9 @@ namespace RabbitMQ.Client.Framing.Impl
         public override int GetRequiredBufferSize()
         {
             int bufferSize = 2 + 1 + 1 + 1 + 1; // bytes for _reserved1, length of _destination, length of _source, length of _routingKey, bit fields
-            bufferSize += Encoding.UTF8.GetByteCount(_destination); // _destination in bytes
-            bufferSize += Encoding.UTF8.GetByteCount(_source); // _source in bytes
-            bufferSize += Encoding.UTF8.GetByteCount(_routingKey); // _routingKey in bytes
+            bufferSize += WireFormatting.GetByteCount(_destination); // _destination in bytes
+            bufferSize += WireFormatting.GetByteCount(_source); // _source in bytes
+            bufferSize += WireFormatting.GetByteCount(_routingKey); // _routingKey in bytes
             bufferSize += WireFormatting.GetTableByteCount(_arguments); // _arguments in bytes
             return bufferSize;
         }
