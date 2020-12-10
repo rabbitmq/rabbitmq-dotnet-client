@@ -35,7 +35,7 @@ namespace RabbitMQ.Benchmarks
         public override void SetUp() => _basicDeliver.WriteArgumentsTo(_buffer.Span);
 
         [Benchmark]
-        public object BasicDeliverRead() => new BasicAck(_buffer.Span);
+        public object BasicDeliverRead() => new BasicDeliver(_buffer.Span);
 
         [Benchmark]
         public int BasicDeliverWrite() => _basicDeliver.WriteArgumentsTo(_buffer.Span);
@@ -48,7 +48,7 @@ namespace RabbitMQ.Benchmarks
         public override void SetUp() => _channelClose.WriteArgumentsTo(_buffer.Span);
 
         [Benchmark]
-        public object ChannelCloseRead() => new BasicAck(_buffer.Span);
+        public object ChannelCloseRead() => new ChannelClose(_buffer.Span);
 
         [Benchmark]
         public int ChannelCloseWrite() => _channelClose.WriteArgumentsTo(_buffer.Span);
