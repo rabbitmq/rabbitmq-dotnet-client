@@ -200,7 +200,11 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public event EventHandler<EventArgs> Recovery;
+        public event EventHandler<EventArgs> Recovery
+        {
+            add { RecoveryAwareDelegate.Recovery += value; }
+            remove { RecoveryAwareDelegate.Recovery -= value; }
+        }
 
         public int ChannelNumber => Delegate.ChannelNumber;
 
@@ -228,7 +232,7 @@ namespace RabbitMQ.Client.Impl
             RecoveryAwareModel defunctModel = _delegate;
 
             _delegate = conn.CreateNonRecoveringModel();
-            _delegate.InheritOffsetFrom(defunctModel);
+            _delegate.TakeOver(defunctModel);
 
             RecoverModelShutdownHandlers();
             RecoverState();
@@ -1100,19 +1104,7 @@ namespace RabbitMQ.Client.Impl
         private void RunRecoveryEventHandlers()
         {
             ThrowIfDisposed();
-            foreach (EventHandler<EventArgs> reh in Recovery?.GetInvocationList() ?? Array.Empty<Delegate>())
-            {
-                try
-                {
-                    reh(this, EventArgs.Empty);
-                }
-                catch (Exception e)
-                {
-                    var args = new CallbackExceptionEventArgs(e);
-                    args.Detail["context"] = "OnModelRecovery";
-                    _delegate.OnCallbackException(args);
-                }
-            }
+            _delegate.RunRecoveryEventHandlers(this);
         }
 
         public IBasicPublishBatch CreateBasicPublishBatch() => Delegate.CreateBasicPublishBatch();
