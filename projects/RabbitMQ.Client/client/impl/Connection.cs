@@ -106,7 +106,12 @@ namespace RabbitMQ.Client.Framing.Impl
                 ? new AsyncConsumerWorkService(factory.ConsumerDispatchConcurrency)
                 : new ConsumerWorkService(factory.ConsumerDispatchConcurrency);
 
-            _sessionManager = new SessionManager(this, 0);
+            Action<Exception, string> onException = (exception, context) => OnCallbackException(CallbackExceptionEventArgs.Build(exception, context));
+            _callbackExceptionWrapper = new EventingWrapper<CallbackExceptionEventArgs>(string.Empty, (exception, context) => { });
+            _connectionBlockedWrapper = new EventingWrapper<ConnectionBlockedEventArgs>("OnConnectionBlocked", onException);
+            _connectionUnblockedWrapper = new EventingWrapper<EventArgs>("OnConnectionUnblocked", onException);
+
+                _sessionManager = new SessionManager(this, 0);
             _session0 = new MainSession(this) { Handler = NotifyReceivedCloseOk };
             _model0 = (ModelBase)Protocol.CreateModel(_session0);
 
@@ -116,10 +121,26 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public Guid Id => _id;
 
-        public event EventHandler<CallbackExceptionEventArgs> CallbackException;
+        public event EventHandler<CallbackExceptionEventArgs> CallbackException
+        {
+            add => _callbackExceptionWrapper.AddHandler(value);
+            remove => _callbackExceptionWrapper.RemoveHandler(value);
+        }
+        private EventingWrapper<CallbackExceptionEventArgs> _callbackExceptionWrapper;
 
-        public event EventHandler<ConnectionBlockedEventArgs> ConnectionBlocked;
-        public event EventHandler<EventArgs> ConnectionUnblocked;
+        public event EventHandler<ConnectionBlockedEventArgs> ConnectionBlocked
+        {
+            add => _connectionBlockedWrapper.AddHandler(value);
+            remove => _connectionBlockedWrapper.RemoveHandler(value);
+        }
+        private EventingWrapper<ConnectionBlockedEventArgs> _connectionBlockedWrapper;
+
+        public event EventHandler<EventArgs> ConnectionUnblocked
+        {
+            add => _connectionUnblockedWrapper.AddHandler(value);
+            remove => _connectionUnblockedWrapper.RemoveHandler(value);
+        }
+        private EventingWrapper<EventArgs> _connectionUnblockedWrapper;
 
         public event EventHandler<ShutdownEventArgs> ConnectionShutdown
         {
@@ -600,50 +621,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void OnCallbackException(CallbackExceptionEventArgs args)
         {
-            foreach (EventHandler<CallbackExceptionEventArgs> h in CallbackException?.GetInvocationList() ?? Array.Empty<Delegate>())
-            {
-                try
-                {
-                    h(this, args);
-                }
-                catch
-                {
-                    // Exception in
-                    // Callback-exception-handler. That was the
-                    // app's last chance. Swallow the exception.
-                    // FIXME: proper logging
-                }
-            }
-        }
-
-        public void OnConnectionBlocked(ConnectionBlockedEventArgs args)
-        {
-            foreach (EventHandler<ConnectionBlockedEventArgs> h in ConnectionBlocked?.GetInvocationList() ?? Array.Empty<Delegate>())
-            {
-                try
-                {
-                    h(this, args);
-                }
-                catch (Exception e)
-                {
-                    OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object> { { "context", "OnConnectionBlocked" } }));
-                }
-            }
-        }
-
-        public void OnConnectionUnblocked()
-        {
-            foreach (EventHandler<EventArgs> h in ConnectionUnblocked?.GetInvocationList() ?? Array.Empty<Delegate>())
-            {
-                try
-                {
-                    h(this, EventArgs.Empty);
-                }
-                catch (Exception e)
-                {
-                    OnCallbackException(CallbackExceptionEventArgs.Build(e, new Dictionary<string, object> { { "context", "OnConnectionUnblocked" } }));
-                }
-            }
+            _callbackExceptionWrapper.Invoke(this, args);
         }
 
         ///<summary>Broadcasts notification of the final shutdown of the connection.</summary>
@@ -978,13 +956,18 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void HandleConnectionBlocked(string reason)
         {
-            var args = new ConnectionBlockedEventArgs(reason);
-            OnConnectionBlocked(args);
+            if (!_connectionBlockedWrapper.IsEmpty)
+            {
+                _connectionBlockedWrapper.Invoke(this, new ConnectionBlockedEventArgs(reason));
+            }
         }
 
         public void HandleConnectionUnblocked()
         {
-            OnConnectionUnblocked();
+            if (!_connectionUnblockedWrapper.IsEmpty)
+            {
+                _connectionUnblockedWrapper.Invoke(this, EventArgs.Empty);
+            }
         }
 
         void IDisposable.Dispose()

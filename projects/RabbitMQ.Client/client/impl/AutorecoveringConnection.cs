@@ -30,7 +30,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -77,12 +76,30 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             _factory = factory;
             ClientProvidedName = clientProvidedName;
+
+            Action<Exception, string> onException = (exception, context) => _delegate.OnCallbackException(CallbackExceptionEventArgs.Build(exception, context));
+            _recoverySucceededWrapper = new EventingWrapper<EventArgs>("OnConnectionRecovery", onException);
+            _connectionRecoveryErrorWrapper = new EventingWrapper<ConnectionRecoveryErrorEventArgs>("OnConnectionRecoveryError", onException);
+            _consumerTagChangeAfterRecoveryWrapper = new EventingWrapper<ConsumerTagChangedAfterRecoveryEventArgs>("OnConsumerRecovery", onException);
+            _queueNameChangeAfterRecoveryWrapper = new EventingWrapper<QueueNameChangedAfterRecoveryEventArgs>("OnQueueRecovery", onException);
         }
 
         private Connection Delegate => !_disposed ? _delegate : throw new ObjectDisposedException(GetType().FullName);
 
-        public event EventHandler<EventArgs> RecoverySucceeded;
-        public event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError;
+        public event EventHandler<EventArgs> RecoverySucceeded
+        {
+            add => _recoverySucceededWrapper.AddHandler(value);
+            remove => _recoverySucceededWrapper.RemoveHandler(value);
+        }
+        private EventingWrapper<EventArgs> _recoverySucceededWrapper;
+
+        public event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError
+        {
+            add => _connectionRecoveryErrorWrapper.AddHandler(value);
+            remove => _connectionRecoveryErrorWrapper.RemoveHandler(value);
+        }
+        private EventingWrapper<ConnectionRecoveryErrorEventArgs> _connectionRecoveryErrorWrapper;
+
         public event EventHandler<CallbackExceptionEventArgs> CallbackException
         {
             add
@@ -169,8 +186,19 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public event EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery;
-        public event EventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangeAfterRecovery;
+        public event EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery
+        {
+            add => _consumerTagChangeAfterRecoveryWrapper.AddHandler(value);
+            remove => _consumerTagChangeAfterRecoveryWrapper.RemoveHandler(value);
+        }
+        private EventingWrapper<ConsumerTagChangedAfterRecoveryEventArgs> _consumerTagChangeAfterRecoveryWrapper;
+
+        public event EventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangeAfterRecovery
+        {
+            add => _queueNameChangeAfterRecoveryWrapper.AddHandler(value);
+            remove => _queueNameChangeAfterRecoveryWrapper.RemoveHandler(value);
+        }
+        private EventingWrapper<QueueNameChangedAfterRecoveryEventArgs> _queueNameChangeAfterRecoveryWrapper;
 
         public string ClientProvidedName { get; }
 
@@ -200,10 +228,6 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public ProtocolBase Protocol => Delegate.Protocol;
 
-        public IDictionary<string, RecordedExchange> RecordedExchanges { get; } = new ConcurrentDictionary<string, RecordedExchange>();
-
-        public IDictionary<string, RecordedQueue> RecordedQueues { get; } = new ConcurrentDictionary<string, RecordedQueue>();
-
         public int RemotePort => Delegate.RemotePort;
 
         public IDictionary<string, object> ServerProperties => Delegate.ServerProperties;
@@ -232,7 +256,8 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
 
                     ESLog.Info("Connection recovery completed");
-                    RunRecoveryEventHandlers();
+                    ThrowIfDisposed();
+                    _recoverySucceededWrapper.Invoke(this, EventArgs.Empty);
 
                     return true;
                 }
@@ -439,8 +464,6 @@ namespace RabbitMQ.Client.Framing.Impl
                 _recordedShutdownEventHandlers += recoveryListener;
             }
         }
-
-        
 
         ///<summary>API-side invocation of updating the secret.</summary>
         public void UpdateSecret(string newSecret, string reason)
@@ -685,18 +708,9 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 ESLog.Error("Connection recovery exception.", e);
                 // Trigger recovery error events
-                foreach (EventHandler<ConnectionRecoveryErrorEventArgs> h in ConnectionRecoveryError?.GetInvocationList() ?? Array.Empty<Delegate>())
+                if (!_connectionRecoveryErrorWrapper.IsEmpty)
                 {
-                    try
-                    {
-                        h(this, new ConnectionRecoveryErrorEventArgs(e));
-                    }
-                    catch (Exception ex)
-                    {
-                        var a = new CallbackExceptionEventArgs(ex);
-                        a.Detail["context"] = "OnConnectionRecoveryError";
-                        _delegate.OnCallbackException(a);
-                    }
+                    _connectionRecoveryErrorWrapper.Invoke(this, new ConnectionRecoveryErrorEventArgs(e));
                 }
             }
 
@@ -731,19 +745,9 @@ namespace RabbitMQ.Client.Framing.Impl
                         _recordedConsumers.Add(newTag, cons);
                     }
 
-                    foreach (EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> h in ConsumerTagChangeAfterRecovery?.GetInvocationList() ?? Array.Empty<Delegate>())
+                    if (!_consumerTagChangeAfterRecoveryWrapper.IsEmpty)
                     {
-                        try
-                        {
-                            var eventArgs = new ConsumerTagChangedAfterRecoveryEventArgs(tag, newTag);
-                            h(this, eventArgs);
-                        }
-                        catch (Exception e)
-                        {
-                            var args = new CallbackExceptionEventArgs(e);
-                            args.Detail["context"] = "OnConsumerRecovery";
-                            _delegate.OnCallbackException(args);
-                        }
+                        _consumerTagChangeAfterRecoveryWrapper.Invoke(this, new ConsumerTagChangedAfterRecoveryEventArgs(tag, newTag));
                     }
                 }
                 catch (Exception cause)
@@ -836,19 +840,9 @@ namespace RabbitMQ.Client.Framing.Impl
                         }
                         RecordQueue(newName, rq);
 
-                        foreach (EventHandler<QueueNameChangedAfterRecoveryEventArgs> h in QueueNameChangeAfterRecovery?.GetInvocationList() ?? Array.Empty<Delegate>())
+                        if (!_queueNameChangeAfterRecoveryWrapper.IsEmpty)
                         {
-                            try
-                            {
-                                var eventArgs = new QueueNameChangedAfterRecoveryEventArgs(oldName, newName);
-                                h(this, eventArgs);
-                            }
-                            catch (Exception e)
-                            {
-                                var args = new CallbackExceptionEventArgs(e);
-                                args.Detail["context"] = "OnQueueRecovery";
-                                _delegate.OnCallbackException(args);
-                            }
+                            _queueNameChangeAfterRecoveryWrapper.Invoke(this, new QueueNameChangedAfterRecoveryEventArgs(oldName, newName));
                         }
                     }
                 }
@@ -861,28 +855,10 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void RunRecoveryEventHandlers()
-        {
-            ThrowIfDisposed();
-            foreach (EventHandler<EventArgs> reh in RecoverySucceeded?.GetInvocationList() ?? Array.Empty<Delegate>())
-            {
-                try
-                {
-                    reh(this, EventArgs.Empty);
-                }
-                catch (Exception e)
-                {
-                    var args = new CallbackExceptionEventArgs(e);
-                    args.Detail["context"] = "OnConnectionRecovery";
-                    _delegate.OnCallbackException(args);
-                }
-            }
-        }
-
-        private bool ShouldTriggerConnectionRecovery(ShutdownEventArgs args) => args.Initiator == ShutdownInitiator.Peer ||
-                    // happens when EOF is reached, e.g. due to RabbitMQ node
-                    // connectivity loss or abrupt shutdown
-                    args.Initiator == ShutdownInitiator.Library;
+        private static bool ShouldTriggerConnectionRecovery(ShutdownEventArgs args) => args.Initiator == ShutdownInitiator.Peer ||
+                                                                                       // happens when EOF is reached, e.g. due to RabbitMQ node
+                                                                                       // connectivity loss or abrupt shutdown
+                                                                                       args.Initiator == ShutdownInitiator.Library;
 
         private enum RecoveryCommand
         {

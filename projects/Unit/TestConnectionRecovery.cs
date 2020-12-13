@@ -616,7 +616,7 @@ namespace RabbitMQ.Client.Unit
             CloseAndWaitForRecovery();
             Assert.IsTrue(_conn.IsOpen);
 
-            Assert.IsTrue(counter >= 1);
+            Assert.GreaterOrEqual(counter, 1);
         }
 
         [Test]
@@ -631,7 +631,7 @@ namespace RabbitMQ.Client.Unit
             CloseAndWaitForRecovery();
             Assert.IsTrue(_conn.IsOpen);
 
-            Assert.IsTrue(counter >= 3);
+            Assert.GreaterOrEqual(counter, 3);
         }
 
         [Test]
@@ -646,7 +646,7 @@ namespace RabbitMQ.Client.Unit
             CloseAndWaitForRecovery();
             Assert.IsTrue(_model.IsOpen);
 
-            Assert.IsTrue(counter >= 3);
+            Assert.GreaterOrEqual(counter, 3);
         }
 
         [Test]
@@ -716,7 +716,7 @@ namespace RabbitMQ.Client.Unit
             CloseAndWaitForRecovery();
             Assert.IsTrue(_conn.IsOpen);
 
-            Assert.IsTrue(counter >= 3);
+            Assert.GreaterOrEqual(counter, 3);
         }
 
         [Test]
@@ -736,7 +736,7 @@ namespace RabbitMQ.Client.Unit
             Wait(recoveryLatch, TimeSpan.FromSeconds(30));
             Assert.IsTrue(_conn.IsOpen);
 
-            Assert.IsTrue(counter >= 1);
+            Assert.GreaterOrEqual(counter, 1);
         }
 
         [Test]
@@ -752,7 +752,7 @@ namespace RabbitMQ.Client.Unit
             CloseAndWaitForRecovery();
             Assert.IsTrue(_model.IsOpen);
 
-            Assert.IsTrue(counter >= 3);
+            Assert.GreaterOrEqual(counter, 3);
         }
 
         [Test]
