@@ -159,6 +159,63 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
+        public void ConcurrentEventingTestForReceived()
+        {
+            const int NumberOfThreads = 4;
+            const int NumberOfRegistrations = 5000;
+
+            var called = new byte[NumberOfThreads * NumberOfRegistrations];
+
+            var cf = new ConnectionFactory{ DispatchConsumersAsync = true };
+            using (IConnection c = cf.CreateConnection())
+            using (IModel m = c.CreateModel())
+            {
+                QueueDeclareOk q = m.QueueDeclare();
+                var consumer = new AsyncEventingBasicConsumer(m);
+                m.BasicConsume(q.QueueName, true, consumer);
+                var countdownEvent = new CountdownEvent(NumberOfThreads);
+                var tasks = new Task[NumberOfThreads];
+                for (int i = 0; i < NumberOfThreads; i++)
+                {
+                    int threadIndex = i;
+                    tasks[i] = Task.Run(() =>
+                    {
+                        countdownEvent.Signal();
+                        countdownEvent.Wait();
+                        int start = threadIndex * NumberOfRegistrations;
+                        for (int j = start; j < start + NumberOfRegistrations; j++)
+                        {
+                            int receivedIndex = j;
+                            consumer.Received += (sender, eventArgs) =>
+                            {
+                                called[receivedIndex] = 1;
+                                return Task.CompletedTask;
+                            };
+                        }
+                    });
+                }
+
+                countdownEvent.Wait();
+                Task.WaitAll(tasks);
+
+                // Add last receiver
+                var are = new AutoResetEvent(false);
+                consumer.Received += (o, a) =>
+                {
+                    are.Set();
+                    return Task.CompletedTask;
+                };
+
+                // Send message
+                m.BasicPublish("", q.QueueName, null, ReadOnlyMemory<byte>.Empty);
+                are.WaitOne(TimingFixture.TestTimeout);
+            }
+
+            // Check received messages
+            Assert.AreEqual(-1, called.AsSpan().IndexOf((byte)0));
+        }
+
+        [Test]
         public void NonAsyncConsumerShouldThrowInvalidOperationException()
         {
             var cf = new ConnectionFactory{ DispatchConsumersAsync = true };
