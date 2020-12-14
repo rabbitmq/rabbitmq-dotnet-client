@@ -41,23 +41,45 @@ namespace RabbitMQ.Client.Impl
 {
     internal class WireFormatting
     {
-        public static decimal AmqpToDecimal(byte scale, uint unsignedMantissa)
+        // * DESCRIPTION TAKEN FROM MS REFERENCE SOURCE *
+        // https://github.com/microsoft/referencesource/blob/master/mscorlib/system/decimal.cs
+        // The lo, mid, hi, and flags fields contain the representation of the
+        // Decimal value. The lo, mid, and hi fields contain the 96-bit integer
+        // part of the Decimal. Bits 0-15 (the lower word) of the flags field are
+        // unused and must be zero; bits 16-23 contain must contain a value between
+        // 0 and 28, indicating the power of 10 to divide the 96-bit integer part
+        // by to produce the Decimal value; bits 24-30 are unused and must be zero;
+        // and finally bit 31 indicates the sign of the Decimal value, 0 meaning
+        // positive and 1 meaning negative.
+        readonly struct DecimalData
+        {
+            public readonly uint Flags;
+            public readonly uint Hi;
+            public readonly uint Lo;
+            public readonly uint Mid;
+
+            internal DecimalData(uint flags, uint hi, uint lo, uint mid)
+            {
+                Flags = flags;
+                Hi = hi;
+                Lo = lo;
+                Mid = mid;
+            }
+        }
+
+        private static UTF8Encoding UTF8 = new UTF8Encoding();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static decimal ReadDecimal(ReadOnlySpan<byte> span)
         {
             if (scale > 28)
             {
-                throw new SyntaxErrorException($"Unrepresentable AMQP decimal table field: scale={scale}");
+                ThrowInvalidDecimalScale(scale);
             }
 
-            return new decimal(
-                // The low 32 bits of a 96-bit integer
-                lo: (int)(unsignedMantissa & 0x7FFFFFFF),
-                // The middle 32 bits of a 96-bit integer.
-                mid: 0,
-                // The high 32 bits of a 96-bit integer.
-                hi: 0,
-                isNegative: (unsignedMantissa & 0x80000000) != 0,
-                // A power of 10 ranging from 0 to 28.
-                scale: scale);
+            uint unsignedMantissa = NetworkOrderDeserializer.ReadUInt32(span.Slice(1));
+            var data = new DecimalData(((uint)(scale << 16)) | unsignedMantissa & 0x80000000, 0, unsignedMantissa & 0x7FFFFFFF, 0);
+            return Unsafe.As<DecimalData, decimal>(ref data);
         }
 
         public static void DecimalToAmqp(decimal value, out byte scale, out int mantissa)
@@ -274,11 +296,37 @@ namespace RabbitMQ.Client.Impl
             return byteCount;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#if NETCOREAPP
+        public static int GetByteCount(ReadOnlySpan<char> val) => val.IsEmpty ? 0 : UTF8.GetByteCount(val);
+#else
+        public static int GetByteCount(string val) => string.IsNullOrEmpty(val) ? 0 : UTF8.GetByteCount(val);
+#endif
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteDecimal(Span<byte> span, decimal value)
         {
-            DecimalToAmqp(value, out byte scale, out int mantissa);
-            span[0] = scale;
-            return 1 + WriteLong(span.Slice(1), (uint)mantissa);
+            // Cast the decimal to our struct to avoid the decimal.GetBits allocations.
+            DecimalData data = Unsafe.As<decimal, DecimalData>(ref value);
+            // According to the documentation :-
+            //  - word 0: low-order "mantissa"
+            //  - word 1, word 2: medium- and high-order "mantissa"
+            //  - word 3: mostly reserved; "exponent" and sign bit
+            // In one way, this is broader than AMQP: the mantissa is larger.
+            // In another way, smaller: the exponent ranges 0-28 inclusive.
+            // We need to be careful about the range of word 0, too: we can
+            // only take 31 bits worth of it, since the sign bit needs to
+            // fit in there too.
+            if (data.Mid != 0 || // mantissa extends into middle word
+                data.Hi != 0 || // mantissa extends into top word
+                data.Lo < 0) // mantissa extends beyond 31 bits
+            {
+                return ThrowWireFormattingException(value);
+            }
+
+            span[0] = (byte)((data.Flags >> 16) & 0xFF);
+            WriteLong(span.Slice(1), (data.Flags & 0b1000_0000_0000_0000_0000_0000_0000_0000) | (data.Lo & 0b0111_1111_1111_1111_1111_1111_1111_1111));
+            return 5;
         }
 
         public static int WriteFieldValue(Span<byte> span, object value)
@@ -557,6 +605,31 @@ namespace RabbitMQ.Client.Impl
             // 0-9 is afaict silent on the signedness of the timestamp.
             // See also MethodArgumentReader.ReadTimestamp and AmqpTimestamp itself
             return WriteLonglong(span, (ulong)val.UnixTime);
+        }
+
+        public static int ThrowArgumentOutOfRangeException(int orig, int expected)
+        {
+            throw new ArgumentOutOfRangeException("span", $"Span has not enough space ({orig} instead of {expected})");
+        }
+
+        public static int ThrowArgumentOutOfRangeException(string val, int maxLength)
+        {
+            throw new ArgumentOutOfRangeException(nameof(val), val, $"Value exceeds the maximum allowed length of {maxLength} bytes.");
+        }
+
+        public static int ThrowSyntaxErrorException(uint byteCount)
+        {
+            throw new SyntaxErrorException($"Long string too long; byte length={byteCount}, max={int.MaxValue}");
+        }
+
+        private static int ThrowWireFormattingException(decimal value)
+        {
+            throw new WireFormattingException("Decimal overflow in AMQP encoding", value);
+        }
+
+        private static decimal ThrowInvalidDecimalScale(int scale)
+        {
+            throw new SyntaxErrorException($"Unrepresentable AMQP decimal table field: scale={scale}");
         }
     }
 }
