@@ -68,7 +68,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        private static UTF8Encoding UTF8 = new UTF8Encoding();
+        private static readonly UTF8Encoding UTF8 = new UTF8Encoding();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static decimal ReadDecimal(ReadOnlySpan<byte> span)
@@ -86,14 +86,17 @@ namespace RabbitMQ.Client.Impl
 
         public static IList ReadArray(ReadOnlySpan<byte> span, out int bytesRead)
         {
-            List<object> array = new List<object>();
-            long arrayLength = NetworkOrderDeserializer.ReadUInt32(span);
             bytesRead = 4;
+            long arrayLength = NetworkOrderDeserializer.ReadUInt32(span);
+            if (arrayLength == 0)
+            {
+                return null;
+            }
+            List<object> array = new List<object>();
             while (bytesRead - 4 < arrayLength)
             {
-                object value = ReadFieldValue(span.Slice(bytesRead), out int fieldValueBytesRead);
+                array.Add(ReadFieldValue(span.Slice(bytesRead), out int fieldValueBytesRead));
                 bytesRead += fieldValueBytesRead;
-                array.Add(value);
             }
 
             return array;
@@ -101,59 +104,71 @@ namespace RabbitMQ.Client.Impl
 
         public static object ReadFieldValue(ReadOnlySpan<byte> span, out int bytesRead)
         {
-            bytesRead = 1;
             switch ((char)span[0])
             {
                 case 'S':
-                    bytesRead += ReadLongstr(span.Slice(1), out var bytes);
+                    bytesRead = 1 + ReadLongstr(span.Slice(1), out var bytes);
                     return bytes;
-                case 'I':
-                    bytesRead += 4;
-                    return NetworkOrderDeserializer.ReadInt32(span.Slice(1));
-                case 'i':
-                    bytesRead += 4;
-                    return NetworkOrderDeserializer.ReadUInt32(span.Slice(1));
-                case 'D':
-                    bytesRead += 5;
-                    return ReadDecimal(span.Slice(1));
-                case 'T':
-                    bytesRead += ReadTimestamp(span.Slice(1), out var timestamp);
-                    return timestamp;
-                case 'F':
-                    bytesRead += ReadDictionary(span.Slice(1), out var dictionary);
-                    return dictionary;
-                case 'A':
-                    IList arrayResult = ReadArray(span.Slice(1), out int arrayBytesRead);
-                    bytesRead += arrayBytesRead;
-                    return arrayResult;
-                case 'B':
-                    bytesRead += 1;
-                    return span[1];
-                case 'b':
-                    bytesRead += 1;
-                    return (sbyte)span[1];
-                case 'd':
-                    bytesRead += 8;
-                    return NetworkOrderDeserializer.ReadDouble(span.Slice(1));
-                case 'f':
-                    bytesRead += 4;
-                    return NetworkOrderDeserializer.ReadSingle(span.Slice(1));
-                case 'l':
-                    bytesRead += 8;
-                    return NetworkOrderDeserializer.ReadInt64(span.Slice(1));
-                case 's':
-                    bytesRead += 2;
-                    return NetworkOrderDeserializer.ReadInt16(span.Slice(1));
                 case 't':
-                    bytesRead += 1;
+                    bytesRead = 2;
                     return span[1] != 0;
-                case 'x':
-                    bytesRead += ReadLongstr(span.Slice(1), out var binaryTableResult);
-                    return new BinaryTableValue(binaryTableResult);
+                case 'I':
+                    bytesRead = 5;
+                    return NetworkOrderDeserializer.ReadInt32(span.Slice(1));
                 case 'V':
+                    bytesRead = 1;
                     return null;
                 default:
-                    throw new SyntaxErrorException($"Unrecognised type in table: {(char)span[0]}");
+                    return ReadFieldValueSlow(span, out bytesRead);
+            }
+
+            // Moved out of outer switch to have a shorter main method (improves performance)
+            static object ReadFieldValueSlow(ReadOnlySpan<byte> span, out int bytesRead)
+            {
+                var slice = span.Slice(1);
+                switch ((char)span[0])
+                {
+                    case 'F':
+                        bytesRead = 1 + ReadDictionary(slice, out var dictionary);
+                        return dictionary;
+                    case 'A':
+                        IList arrayResult = ReadArray(slice, out int arrayBytesRead);
+                        bytesRead = 1 + arrayBytesRead;
+                        return arrayResult;
+                    case 'l':
+                        bytesRead = 9;
+                        return NetworkOrderDeserializer.ReadInt64(slice);
+                    case 'i':
+                        bytesRead = 5;
+                        return NetworkOrderDeserializer.ReadUInt32(slice);
+                    case 'D':
+                        bytesRead = 6;
+                        return ReadDecimal(slice);
+                    case 'B':
+                        bytesRead = 2;
+                        return span[1];
+                    case 'b':
+                        bytesRead = 2;
+                        return (sbyte)span[1];
+                    case 'd':
+                        bytesRead = 9;
+                        return NetworkOrderDeserializer.ReadDouble(slice);
+                    case 'f':
+                        bytesRead = 5;
+                        return NetworkOrderDeserializer.ReadSingle(slice);
+                    case 's':
+                        bytesRead = 3;
+                        return NetworkOrderDeserializer.ReadInt16(slice);
+                    case 'T':
+                        bytesRead = 1 + ReadTimestamp(slice, out var timestamp);
+                        return timestamp;
+                    case 'x':
+                        bytesRead = 1 + ReadLongstr(slice, out var binaryTableResult);
+                        return new BinaryTableValue(binaryTableResult);
+                    default:
+                        bytesRead = 0;
+                        return ThrowInvalidTableValue((char)span[0]);
+                }
             }
         }
 
@@ -320,10 +335,8 @@ namespace RabbitMQ.Client.Impl
             while (bytesRead < tableLength)
             {
                 bytesRead += ReadShortstr(span.Slice(bytesRead), out string key);
-                object value = ReadFieldValue(span.Slice(bytesRead), out int valueBytesRead);
+                valueDictionary[key] = ReadFieldValue(span.Slice(bytesRead), out int valueBytesRead);
                 bytesRead += valueBytesRead;
-
-                valueDictionary[key] = value;
             }
 
             return 4 + bytesRead;
@@ -340,7 +353,7 @@ namespace RabbitMQ.Client.Impl
 
         public static int WriteArray(Span<byte> span, IList val)
         {
-            if (val is null)
+            if (val is null || val.Count == 0)
             {
                 NetworkOrderSerializer.WriteUInt32(span, 0);
                 return 4;
@@ -358,15 +371,25 @@ namespace RabbitMQ.Client.Impl
 
         public static int GetArrayByteCount(IList val)
         {
-            int byteCount = 4;
-            if (val is null)
+            if (val is null || val.Count == 0)
             {
-                return byteCount;
+                return 4;
             }
 
-            for (int index = 0; index < val.Count; index++)
+            int byteCount = 4;
+            if (val is List<object> valList)
             {
-                byteCount += GetFieldValueByteCount(val[index]);
+                for (int index = 0; index < valList.Count; index++)
+                {
+                    byteCount += GetFieldValueByteCount(valList[index]);
+                }
+            }
+            else
+            {
+                for (int index = 0; index < val.Count; index++)
+                {
+                    byteCount += GetFieldValueByteCount(val[index]);
+                }
             }
 
             return byteCount;
@@ -407,111 +430,131 @@ namespace RabbitMQ.Client.Impl
 
         public static int WriteFieldValue(Span<byte> span, object value)
         {
-            if (value is null)
-            {
-                span[0] = (byte)'V';
-                return 1;
-            }
-
+            // Order by likelihood of occurrence
             Span<byte> slice = span.Slice(1);
+            ref var type = ref span[0];
             switch (value)
             {
+                case null:
+                    type = (byte)'V';
+                    return 1;
                 case string val:
-                    span[0] = (byte)'S';
+                    type = (byte)'S';
                     return 1 + WriteLongstr(slice, val);
-                case byte[] val:
-                    span[0] = (byte)'S';
-                    return 1 + WriteLongstr(slice, val);
-                case int val:
-                    span[0] = (byte)'I';
-                    NetworkOrderSerializer.WriteInt32(slice, val);
-                    return 5;
-                case uint val:
-                    span[0] = (byte)'i';
-                    NetworkOrderSerializer.WriteUInt32(slice, val);
-                    return 5;
-                case decimal val:
-                    span[0] = (byte)'D';
-                    return 1 + WriteDecimal(slice, val);
-                case AmqpTimestamp val:
-                    span[0] = (byte)'T';
-                    return 1 + WriteTimestamp(slice, val);
-                case IDictionary val:
-                    span[0] = (byte)'F';
-                    return 1 + WriteTable(slice, val);
-                case IList val:
-                    span[0] = (byte)'A';
-                    return 1 + WriteArray(slice, val);
-                case byte val:
-                    span[0] = (byte)'B';
-                    span[1] = val;
-                    return 2;
-                case sbyte val:
-                    span[0] = (byte)'b';
-                    span[1] = (byte)val;
-                    return 2;
-                case double val:
-                    span[0] = (byte)'d';
-                    NetworkOrderSerializer.WriteDouble(slice, val);
-                    return 9;
-                case float val:
-                    span[0] = (byte)'f';
-                    NetworkOrderSerializer.WriteSingle(slice, val);
-                    return 5;
-                case long val:
-                    span[0] = (byte)'l';
-                    NetworkOrderSerializer.WriteInt64(slice, val);
-                    return 9;
-                case short val:
-                    span[0] = (byte)'s';
-                    NetworkOrderSerializer.WriteInt16(slice, val);
-                    return 3;
                 case bool val:
-                    span[0] = (byte)'t';
+                    type = (byte)'t';
                     span[1] = (byte)(val ? 1 : 0);
                     return 2;
-                case BinaryTableValue val:
-                    span[0] = (byte)'x';
-                    return 1 + WriteLongstr(slice, val.Bytes);
+                case int val:
+                    type = (byte)'I';
+                    NetworkOrderSerializer.WriteInt32(slice, val);
+                    return 5;
+                case byte[] val:
+                    type = (byte)'S';
+                    return 1 + WriteLongstr(slice, val);
                 default:
-                    throw new WireFormattingException($"Value of type '{value.GetType().Name}' cannot appear as table value", value);
+                    return WriteFieldValueSlow(span, value);
+            }
+
+            // Moved out of outer switch to have a shorter main method (improves performance)
+            static int WriteFieldValueSlow(Span<byte> span, object value)
+            {
+                // Order by likelihood of occurrence
+                ref var type = ref span[0];
+                Span<byte> slice = span.Slice(1);
+                switch (value)
+                {
+                    case float val:
+                        type = (byte)'f';
+                        NetworkOrderSerializer.WriteSingle(slice, val);
+                        return 5;
+                    case IDictionary<string,object> val:
+                        type = (byte)'F';
+                        return 1 + WriteTable(slice, val);
+                    case IList val:
+                        type = (byte)'A';
+                        return 1 + WriteArray(slice, val);
+                    case AmqpTimestamp val:
+                        type = (byte)'T';
+                        return 1 + WriteTimestamp(slice, val);
+                    case double val:
+                        type = (byte)'d';
+                        NetworkOrderSerializer.WriteDouble(slice, val);
+                        return 9;
+                    case long val:
+                        type = (byte)'l';
+                        NetworkOrderSerializer.WriteInt64(slice, val);
+                        return 9;
+                    case byte val:
+                        type = (byte)'B';
+                        span[1] = val;
+                        return 2;
+                    case sbyte val:
+                        type = (byte)'b';
+                        span[1] = (byte)val;
+                        return 2;
+                    case short val:
+                        type = (byte)'s';
+                        NetworkOrderSerializer.WriteInt16(slice, val);
+                        return 3;
+                    case uint val:
+                        type = (byte)'i';
+                        NetworkOrderSerializer.WriteUInt32(slice, val);
+                        return 5;
+                    case decimal val:
+                        type = (byte)'D';
+                        return 1 + WriteDecimal(slice, val);
+                    case IDictionary val:
+                        type = (byte)'F';
+                        return 1 + WriteTable(slice, val);
+                    case BinaryTableValue val:
+                        type = (byte)'x';
+                        return 1 + WriteLongstr(slice, val.Bytes);
+                    default:
+                        return ThrowInvalidTableValue(value);
+                }
             }
         }
 
         public static int GetFieldValueByteCount(object value)
         {
+            // Order by likelihood of occurrence
             switch (value)
             {
                 case null:
                     return 1;
-                case byte _:
-                case sbyte _:
+                case string val:
+                    return 5 + GetByteCount(val);
                 case bool _:
                     return 2;
-                case short _:
-                    return 3;
                 case int _:
-                case uint _:
                 case float _:
                     return 5;
-                case decimal _:
-                    return 6;
+                case byte[] val:
+                    return 5 + val.Length;
+                case IDictionary<string, object> val:
+                    return 1 + GetTableByteCount(val);
+                case IList val:
+                    return 1 + GetArrayByteCount(val);
                 case AmqpTimestamp _:
                 case double _:
                 case long _:
                     return 9;
-                case string val:
-                    return 5 + GetByteCount(val);
-                case byte[] val:
-                    return 5 + val.Length;
+                case byte _:
+                case sbyte _:
+                    return 2;
+                case short _:
+                    return 3;
+                case uint _:
+                    return 5;
+                case decimal _:
+                    return 6;
                 case IDictionary val:
                     return 1 + GetTableByteCount(val);
-                case IList val:
-                    return 1 + GetArrayByteCount(val);
                 case BinaryTableValue val:
                     return 5 + val.Bytes.Length;
                 default:
-                    throw new WireFormattingException($"Value of type '{value.GetType().Name}' cannot appear as table value", value);
+                    return ThrowInvalidTableValue(value);
             }
         }
 
@@ -539,7 +582,7 @@ namespace RabbitMQ.Client.Impl
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteBits(Span<byte> span, bool val1, bool val2)
         {
-            byte bits = 0;
+            int bits = 0;
             if (val1)
             {
                 bits |= 1 << 0;
@@ -549,14 +592,14 @@ namespace RabbitMQ.Client.Impl
             {
                 bits |= 1 << 1;
             }
-            span[0] = bits;
+            span[0] = (byte)bits;
             return 1;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteBits(Span<byte> span, bool val1, bool val2, bool val3)
         {
-            byte bits = 0;
+            int bits = 0;
             if (val1)
             {
                 bits |= 1 << 0;
@@ -572,14 +615,14 @@ namespace RabbitMQ.Client.Impl
                 bits |= 1 << 2;
             }
 
-            span[0] = bits;
+            span[0] = (byte)bits;
             return 1;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteBits(Span<byte> span, bool val1, bool val2, bool val3, bool val4)
         {
-            byte bits = 0;
+            int bits = 0;
             if (val1)
             {
                 bits |= 1 << 0;
@@ -600,14 +643,14 @@ namespace RabbitMQ.Client.Impl
                 bits |= 1 << 3;
             }
 
-            span[0] = bits;
+            span[0] = (byte)bits;
             return 1;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteBits(Span<byte> span, bool val1, bool val2, bool val3, bool val4, bool val5)
         {
-            byte bits = 0;
+            int bits = 0;
             if (val1)
             {
                 bits |= 1 << 0;
@@ -632,7 +675,7 @@ namespace RabbitMQ.Client.Impl
             {
                 bits |= 1 << 4;
             }
-            span[0] = bits;
+            span[0] = (byte)bits;
             return 1;
         }
 
@@ -642,7 +685,39 @@ namespace RabbitMQ.Client.Impl
             bool val6, bool val7, bool val8, bool val9, bool val10,
             bool val11, bool val12, bool val13, bool val14)
         {
-            byte bits = 0;
+            int bits = 0;
+            if (val9)
+            {
+                bits |= 1 << 7;
+            }
+
+            if (val10)
+            {
+                bits |= 1 << 6;
+            }
+
+            if (val11)
+            {
+                bits |= 1 << 5;
+            }
+
+            if (val12)
+            {
+                bits |= 1 << 4;
+            }
+
+            if (val13)
+            {
+                bits |= 1 << 3;
+            }
+
+            if (val14)
+            {
+                bits |= 1 << 2;
+            }
+            span[1] = (byte)bits;
+
+            bits = 0;
             if (val1)
             {
                 bits |= 1 << 7;
@@ -682,38 +757,7 @@ namespace RabbitMQ.Client.Impl
             {
                 bits |= 1 << 0;
             }
-            span[0] = bits;
-            bits = 0;
-            if (val9)
-            {
-                bits |= 1 << 7;
-            }
-
-            if (val10)
-            {
-                bits |= 1 << 6;
-            }
-
-            if (val11)
-            {
-                bits |= 1 << 5;
-            }
-
-            if (val12)
-            {
-                bits |= 1 << 4;
-            }
-
-            if (val13)
-            {
-                bits |= 1 << 3;
-            }
-
-            if (val14)
-            {
-                bits |= 1 << 2;
-            }
-            span[1] = bits;
+            span[0] = (byte)bits;
             return 2;
         }
 
@@ -858,12 +902,12 @@ namespace RabbitMQ.Client.Impl
 
         public static int GetTableByteCount(IDictionary val)
         {
-            int byteCount = 4;
-            if (val is null)
+            if (val is null || val.Count == 0)
             {
-                return byteCount;
+                return 4;
             }
 
+            int byteCount = 4;
             foreach (DictionaryEntry entry in val)
             {
                 byteCount += GetByteCount(entry.Key.ToString()) + 1;
@@ -875,12 +919,12 @@ namespace RabbitMQ.Client.Impl
 
         public static int GetTableByteCount(IDictionary<string, object> val)
         {
-            int byteCount = 4;
-            if (val is null)
+            if (val is null || val.Count == 0)
             {
-                return byteCount;
+                return 4;
             }
 
+            int byteCount = 4;
             if (val is Dictionary<string, object> dict)
             {
                 foreach (KeyValuePair<string, object> entry in dict)
@@ -910,28 +954,24 @@ namespace RabbitMQ.Client.Impl
         }
 
         public static int ThrowArgumentOutOfRangeException(int orig, int expected)
-        {
-            throw new ArgumentOutOfRangeException("span", $"Span has not enough space ({orig} instead of {expected})");
-        }
+            => throw new ArgumentOutOfRangeException("span", $"Span has not enough space ({orig} instead of {expected})");
 
         public static int ThrowArgumentOutOfRangeException(string val, int maxLength)
-        {
-            throw new ArgumentOutOfRangeException(nameof(val), val, $"Value exceeds the maximum allowed length of {maxLength} bytes.");
-        }
+            => throw new ArgumentOutOfRangeException(nameof(val), val, $"Value exceeds the maximum allowed length of {maxLength} bytes.");
 
         public static int ThrowSyntaxErrorException(uint byteCount)
-        {
-            throw new SyntaxErrorException($"Long string too long; byte length={byteCount}, max={int.MaxValue}");
-        }
+            => throw new SyntaxErrorException($"Long string too long; byte length={byteCount}, max={int.MaxValue}");
 
         private static int ThrowWireFormattingException(decimal value)
-        {
-            throw new WireFormattingException("Decimal overflow in AMQP encoding", value);
-        }
+            => throw new WireFormattingException("Decimal overflow in AMQP encoding", value);
+
+        private static int ThrowInvalidTableValue(char type)
+            => throw new SyntaxErrorException($"Unrecognised type in table: {type}");
+
+        private static int ThrowInvalidTableValue(object value)
+            => throw new WireFormattingException($"Value of type '{value.GetType().Name}' cannot appear as table value", value);
 
         private static decimal ThrowInvalidDecimalScale(int scale)
-        {
-            throw new SyntaxErrorException($"Unrepresentable AMQP decimal table field: scale={scale}");
-        }
+            => throw new SyntaxErrorException($"Unrepresentable AMQP decimal table field: scale={scale}");
     }
 }
