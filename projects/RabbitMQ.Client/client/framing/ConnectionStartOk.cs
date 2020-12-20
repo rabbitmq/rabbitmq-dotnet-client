@@ -81,9 +81,9 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             int bufferSize = 1 + 4 +1; // bytes for length of _mechanism, length of _response, length of _locale
             bufferSize += WireFormatting.GetTableByteCount(_clientProperties); // _clientProperties in bytes
-            bufferSize += Encoding.UTF8.GetByteCount(_mechanism); // _mechanism in bytes
+            bufferSize += WireFormatting.GetByteCount(_mechanism); // _mechanism in bytes
             bufferSize += _response.Length; // _response in bytes
-            bufferSize += Encoding.UTF8.GetByteCount(_locale); // _locale in bytes
+            bufferSize += WireFormatting.GetByteCount(_locale); // _locale in bytes
             return bufferSize;
         }
     }

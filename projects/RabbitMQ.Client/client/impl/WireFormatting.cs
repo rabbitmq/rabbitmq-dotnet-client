@@ -34,6 +34,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
+
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
 
@@ -41,25 +42,46 @@ namespace RabbitMQ.Client.Impl
 {
     internal static class WireFormatting
     {
+        // * DESCRIPTION TAKEN FROM MS REFERENCE SOURCE *
+        // https://github.com/microsoft/referencesource/blob/master/mscorlib/system/decimal.cs
+        // The lo, mid, hi, and flags fields contain the representation of the
+        // Decimal value. The lo, mid, and hi fields contain the 96-bit integer
+        // part of the Decimal. Bits 0-15 (the lower word) of the flags field are
+        // unused and must be zero; bits 16-23 contain must contain a value between
+        // 0 and 28, indicating the power of 10 to divide the 96-bit integer part
+        // by to produce the Decimal value; bits 24-30 are unused and must be zero;
+        // and finally bit 31 indicates the sign of the Decimal value, 0 meaning
+        // positive and 1 meaning negative.
+        readonly struct DecimalData
+        {
+            public readonly uint Flags;
+            public readonly uint Hi;
+            public readonly uint Lo;
+            public readonly uint Mid;
+
+            internal DecimalData(uint flags, uint hi, uint lo, uint mid)
+            {
+                Flags = flags;
+                Hi = hi;
+                Lo = lo;
+                Mid = mid;
+            }
+        }
+
+        private static UTF8Encoding UTF8 = new UTF8Encoding();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static decimal ReadDecimal(ReadOnlySpan<byte> span)
         {
             byte scale = span[0];
             if (scale > 28)
             {
-                throw new SyntaxErrorException($"Unrepresentable AMQP decimal table field: scale={scale}");
+                ThrowInvalidDecimalScale(scale);
             }
 
             uint unsignedMantissa = NetworkOrderDeserializer.ReadUInt32(span.Slice(1));
-            return new decimal(
-                // The low 32 bits of a 96-bit integer
-                lo: (int)(unsignedMantissa & 0x7FFFFFFF),
-                // The middle 32 bits of a 96-bit integer.
-                mid: 0,
-                // The high 32 bits of a 96-bit integer.
-                hi: 0,
-                isNegative: (unsignedMantissa & 0x80000000) != 0,
-                // A power of 10 ranging from 0 to 28.
-                scale: scale);
+            var data = new DecimalData(((uint)(scale << 16)) | unsignedMantissa & 0x80000000, 0, unsignedMantissa & 0x7FFFFFFF, 0);
+            return Unsafe.As<DecimalData, decimal>(ref data);
         }
 
         public static IList ReadArray(ReadOnlySpan<byte> span, out int bytesRead)
@@ -150,7 +172,7 @@ namespace RabbitMQ.Client.Impl
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe int ReadShortstr(ReadOnlySpan<byte> span, out string value)
+        public static int ReadShortstr(ReadOnlySpan<byte> span, out string value)
         {
             int byteCount = span[0];
             if (byteCount == 0)
@@ -162,11 +184,19 @@ namespace RabbitMQ.Client.Impl
             // equals span.Length >= byteCount + 1
             if (span.Length > byteCount)
             {
-                fixed (byte* bytes = &span.Slice(1).GetPinnableReference())
+#if NETCOREAPP
+                value = UTF8.GetString(span.Slice(1, byteCount));
+#else
+                unsafe
                 {
-                    value = Encoding.UTF8.GetString(bytes, byteCount);
-                    return 1 + byteCount;
+                    fixed (byte* bytes = span.Slice(1))
+                    {
+                        value = UTF8.GetString(bytes, byteCount);
+                    }
                 }
+
+#endif
+                return 1 + byteCount;
             }
 
             value = string.Empty;
@@ -229,16 +259,16 @@ namespace RabbitMQ.Client.Impl
             out bool val11, out bool val12, out bool val13, out bool val14)
         {
             byte bits = span[0];
-            val1  = (bits & 0b1000_0000) != 0;
-            val2  = (bits & 0b0100_0000) != 0;
-            val3  = (bits & 0b0010_0000) != 0;
-            val4  = (bits & 0b0001_0000) != 0;
-            val5  = (bits & 0b0000_1000) != 0;
-            val6  = (bits & 0b0000_0100) != 0;
-            val7  = (bits & 0b0000_0010) != 0;
-            val8  = (bits & 0b0000_0001) != 0;
+            val1 = (bits & 0b1000_0000) != 0;
+            val2 = (bits & 0b0100_0000) != 0;
+            val3 = (bits & 0b0010_0000) != 0;
+            val4 = (bits & 0b0001_0000) != 0;
+            val5 = (bits & 0b0000_1000) != 0;
+            val6 = (bits & 0b0000_0100) != 0;
+            val7 = (bits & 0b0000_0010) != 0;
+            val8 = (bits & 0b0000_0001) != 0;
             bits = span[1];
-            val9  = (bits & 0b1000_0000) != 0;
+            val9 = (bits & 0b1000_0000) != 0;
             val10 = (bits & 0b0100_0000) != 0;
             val11 = (bits & 0b0010_0000) != 0;
             val12 = (bits & 0b0001_0000) != 0;
@@ -342,15 +372,18 @@ namespace RabbitMQ.Client.Impl
             return byteCount;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#if NETCOREAPP
+        public static int GetByteCount(ReadOnlySpan<char> val) => val.IsEmpty ? 0 : UTF8.GetByteCount(val);
+#else
+        public static int GetByteCount(string val) => string.IsNullOrEmpty(val) ? 0 : UTF8.GetByteCount(val);
+#endif
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteDecimal(Span<byte> span, decimal value)
         {
-            DecimalToAmqp(value, out byte scale, out int mantissa);
-            span[0] = scale;
-            return 1 + WriteLong(span.Slice(1), (uint)mantissa);
-        }
-
-        private static void DecimalToAmqp(decimal value, out byte scale, out int mantissa)
-        {
+            // Cast the decimal to our struct to avoid the decimal.GetBits allocations.
+            DecimalData data = Unsafe.As<decimal, DecimalData>(ref value);
             // According to the documentation :-
             //  - word 0: low-order "mantissa"
             //  - word 1, word 2: medium- and high-order "mantissa"
@@ -360,16 +393,16 @@ namespace RabbitMQ.Client.Impl
             // We need to be careful about the range of word 0, too: we can
             // only take 31 bits worth of it, since the sign bit needs to
             // fit in there too.
-            int[] bitRepresentation = decimal.GetBits(value);
-            if (bitRepresentation[1] != 0 || // mantissa extends into middle word
-                bitRepresentation[2] != 0 || // mantissa extends into top word
-                bitRepresentation[0] < 0) // mantissa extends beyond 31 bits
+            if (data.Mid != 0 || // mantissa extends into middle word
+                data.Hi != 0 || // mantissa extends into top word
+                data.Lo < 0) // mantissa extends beyond 31 bits
             {
-                throw new WireFormattingException("Decimal overflow in AMQP encoding", value);
+                return ThrowWireFormattingException(value);
             }
-            scale = (byte)((((uint)bitRepresentation[3]) >> 16) & 0xFF);
-            mantissa = (int)((((uint)bitRepresentation[3]) & 0x80000000) |
-                             (((uint)bitRepresentation[0]) & 0x7FFFFFFF));
+
+            span[0] = (byte)((data.Flags >> 16) & 0xFF);
+            WriteLong(span.Slice(1), (data.Flags & 0b1000_0000_0000_0000_0000_0000_0000_0000) | (data.Lo & 0b0111_1111_1111_1111_1111_1111_1111_1111));
+            return 5;
         }
 
         public static int WriteFieldValue(Span<byte> span, object value)
@@ -468,7 +501,7 @@ namespace RabbitMQ.Client.Impl
                 case long _:
                     return 9;
                 case string val:
-                    return 5 + Encoding.UTF8.GetByteCount(val);
+                    return 5 + GetByteCount(val);
                 case byte[] val:
                     return 5 + val.Length;
                 case IDictionary val:
@@ -499,7 +532,7 @@ namespace RabbitMQ.Client.Impl
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteBits(Span<byte> span, bool val)
         {
-            span[0] = val ? (byte) 1 : (byte) 0;
+            span[0] = (byte)(val ? 1 : 0);
             return 1;
         }
 
@@ -700,39 +733,74 @@ namespace RabbitMQ.Client.Impl
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe int WriteShortstr(Span<byte> span, string val)
+        public static int WriteShortstr(Span<byte> span, string val)
         {
-            int maxLength = span.Length - 1;
-            if (maxLength > byte.MaxValue)
+            int bytesWritten = 0;
+            if (!string.IsNullOrEmpty(val))
             {
-                maxLength = byte.MaxValue;
-            }
-            fixed (char* chars = val)
-            fixed (byte* bytes = &span.Slice(1).GetPinnableReference())
-            {
+                int maxLength = span.Length - 1;
+                if (maxLength > byte.MaxValue)
+                {
+                    maxLength = byte.MaxValue;
+                }
+#if NETCOREAPP
                 try
                 {
-                    int bytesWritten = Encoding.UTF8.GetBytes(chars, val.Length, bytes, maxLength);
-                    span[0] = (byte)bytesWritten;
-                    return bytesWritten + 1;
+                    bytesWritten = UTF8.GetBytes(val, span.Slice(1, maxLength));
                 }
                 catch (ArgumentException)
                 {
                     return ThrowArgumentOutOfRangeException(val, maxLength);
                 }
+#else
+                unsafe
+                {
+                    fixed (char* chars = val)
+                    {
+                        try
+                        {
+                            fixed (byte* bytes = span.Slice(1))
+                            {
+                                bytesWritten = UTF8.GetBytes(chars, val.Length, bytes, maxLength);
+                            }
+                        }
+                        catch (ArgumentException)
+                        {
+                            return ThrowArgumentOutOfRangeException(val, maxLength);
+                        }
+                    }
+                }
+#endif
             }
+
+            span[0] = (byte)bytesWritten;
+            return bytesWritten + 1;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe int WriteLongstr(Span<byte> span, string val)
+#if NETCOREAPP
+        public static int WriteLongstr(Span<byte> span, ReadOnlySpan<char> val)
         {
-            fixed (char* chars = val)
-            fixed (byte* bytes = &span.Slice(4).GetPinnableReference())
+            int bytesWritten = val.IsEmpty ? 0 : UTF8.GetBytes(val, span.Slice(4));
+#else
+        public static int WriteLongstr(Span<byte> span, string val)
+        {
+            static int GetBytes(Span<byte> span, string val)
             {
-                int bytesWritten = Encoding.UTF8.GetBytes(chars, val.Length, bytes, span.Length);
-                NetworkOrderSerializer.WriteUInt32(span, (uint)bytesWritten);
-                return bytesWritten + 4;
+                unsafe
+                {
+                    fixed (char* chars = val)
+                    fixed (byte* bytes = span)
+                    {
+                        return UTF8.GetBytes(chars, val.Length, bytes, span.Length);
+                    }
+                }
             }
+
+            int bytesWritten = string.IsNullOrEmpty(val) ? 0 : GetBytes(span.Slice(4), val);
+#endif
+            NetworkOrderSerializer.WriteUInt32(span, (uint)bytesWritten);
+            return bytesWritten + 4;
         }
 
         public static int WriteTable(Span<byte> span, IDictionary val)
@@ -798,7 +866,7 @@ namespace RabbitMQ.Client.Impl
 
             foreach (DictionaryEntry entry in val)
             {
-                byteCount += Encoding.UTF8.GetByteCount(entry.Key.ToString()) + 1;
+                byteCount += GetByteCount(entry.Key.ToString()) + 1;
                 byteCount += GetFieldValueByteCount(entry.Value);
             }
 
@@ -817,7 +885,7 @@ namespace RabbitMQ.Client.Impl
             {
                 foreach (KeyValuePair<string, object> entry in dict)
                 {
-                    byteCount += Encoding.UTF8.GetByteCount(entry.Key) + 1;
+                    byteCount += GetByteCount(entry.Key) + 1;
                     byteCount += GetFieldValueByteCount(entry.Value);
                 }
             }
@@ -825,7 +893,7 @@ namespace RabbitMQ.Client.Impl
             {
                 foreach (KeyValuePair<string, object> entry in val)
                 {
-                    byteCount += Encoding.UTF8.GetByteCount(entry.Key) + 1;
+                    byteCount += GetByteCount(entry.Key) + 1;
                     byteCount += GetFieldValueByteCount(entry.Value);
                 }
             }
@@ -854,6 +922,16 @@ namespace RabbitMQ.Client.Impl
         public static int ThrowSyntaxErrorException(uint byteCount)
         {
             throw new SyntaxErrorException($"Long string too long; byte length={byteCount}, max={int.MaxValue}");
+        }
+
+        private static int ThrowWireFormattingException(decimal value)
+        {
+            throw new WireFormattingException("Decimal overflow in AMQP encoding", value);
+        }
+
+        private static decimal ThrowInvalidDecimalScale(int scale)
+        {
+            throw new SyntaxErrorException($"Unrepresentable AMQP decimal table field: scale={scale}");
         }
     }
 }
