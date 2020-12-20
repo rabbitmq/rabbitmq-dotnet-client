@@ -17,6 +17,25 @@ namespace RabbitMQ.Benchmarks
         public virtual void Setup() { }
     }
 
+    public class PrimitivesBool : PrimitivesBase
+    {
+        public override void Setup() => WireFormatting.WriteBits(_buffer.Span, true, false, true, false, true);
+
+        [Benchmark]
+        public int BoolRead2() => WireFormatting.ReadBits(_buffer.Span, out bool _, out bool _);
+
+        [Benchmark]
+        public int BoolRead5() => WireFormatting.ReadBits(_buffer.Span, out bool _, out bool _, out bool _, out bool _, out bool _);
+
+        [Benchmark]
+        [Arguments(true, false)]
+        public int BoolWrite2(bool param1, bool param2) => WireFormatting.WriteBits(_buffer.Span, param1, param2);
+
+        [Benchmark]
+        [Arguments(true, false)]
+        public int BoolWrite5(bool param1, bool param2) => WireFormatting.WriteBits(_buffer.Span, param1, param2, param1, param2, param1);
+    }
+
     public class PrimitivesDecimal : PrimitivesBase
     {
         public override void Setup() => WireFormatting.WriteDecimal(_buffer.Span, 123.45m);
@@ -36,7 +55,8 @@ namespace RabbitMQ.Benchmarks
         public int LongRead() => WireFormatting.ReadLong(_buffer.Span, out _);
 
         [Benchmark]
-        public int LongWrite() => WireFormatting.WriteLong(_buffer.Span, 12345u);
+        [Arguments(12345u)]
+        public int LongWrite(uint value) => WireFormatting.WriteLong(_buffer.Span, value);
     }
 
     public class PrimitivesLonglong : PrimitivesBase
@@ -47,7 +67,8 @@ namespace RabbitMQ.Benchmarks
         public int LonglongRead() => WireFormatting.ReadLonglong(_buffer.Span, out _);
 
         [Benchmark]
-        public int LonglongWrite() => WireFormatting.WriteLonglong(_buffer.Span, 12345ul);
+        [Arguments(12345ul)]
+        public int LonglongWrite(ulong value) => WireFormatting.WriteLonglong(_buffer.Span, value);
     }
 
     public class PrimitivesShort : PrimitivesBase
@@ -58,7 +79,8 @@ namespace RabbitMQ.Benchmarks
         public int ShortRead() => WireFormatting.ReadShort(_buffer.Span, out _);
 
         [Benchmark]
-        public int ShortWrite() => WireFormatting.WriteShort(_buffer.Span, 12345);
+        [Arguments(12345)]
+        public int ShortWrite(ushort value) => WireFormatting.WriteShort(_buffer.Span, value);
     }
 
     public class PrimitivesTimestamp : PrimitivesBase
