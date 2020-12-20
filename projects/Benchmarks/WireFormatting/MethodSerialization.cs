@@ -39,6 +39,9 @@ namespace RabbitMQ.Benchmarks
 
         [Benchmark]
         public int BasicDeliverWrite() => _basicDeliver.WriteArgumentsTo(_buffer.Span);
+
+        [Benchmark]
+        public int BasicDeliverSize() => _basicDeliver.GetRequiredBufferSize();
     }
 
     public class MethodChannelClose : MethodSerializationBase
@@ -64,5 +67,8 @@ namespace RabbitMQ.Benchmarks
 
         [Benchmark]
         public int BasicPropertiesWrite() => _basicProperties.WritePropertiesTo(_buffer.Span);
+
+        [Benchmark]
+        public int BasicDeliverSize() => _basicProperties.GetRequiredPayloadBufferSize();
     }
 }
