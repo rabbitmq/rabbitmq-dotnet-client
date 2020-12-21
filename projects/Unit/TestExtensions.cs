@@ -30,8 +30,9 @@
 //---------------------------------------------------------------------------
 
 using System;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
+using RabbitMQ.Client.client.impl.Channel;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -39,46 +40,48 @@ namespace RabbitMQ.Client.Unit
     public class TestExtensions : IntegrationFixture
     {
         [Test]
-        public void TestConfirmBarrier()
+        public async Task TestConfirmBarrier()
         {
-            _model.ConfirmSelect();
+            await _channel.ActivatePublishTagsAsync().ConfigureAwait(false);
             for (int i = 0; i < 10; i++)
             {
-                _model.BasicPublish("", string.Empty, null, new byte[] {});
+                await _channel.PublishMessageAsync("", string.Empty, null, new byte[] {}).ConfigureAwait(false);
             }
-            Assert.That(_model.WaitForConfirms(), Is.True);
+            Assert.That(_channel.WaitForConfirms(), Is.True);
         }
 
         [Test]
         public void TestConfirmBeforeWait()
         {
-            Assert.Throws(typeof (InvalidOperationException), () => _model.WaitForConfirms());
+            Assert.Throws(typeof (InvalidOperationException), () => _channel.WaitForConfirms());
         }
 
         [Test]
-        public void TestExchangeBinding()
+        public async Task TestExchangeBinding()
         {
-            _model.ConfirmSelect();
+            await _channel.ActivatePublishTagsAsync().ConfigureAwait(false);
 
-            _model.ExchangeDeclare("src", ExchangeType.Direct, false, false, null);
-            _model.ExchangeDeclare("dest", ExchangeType.Direct, false, false, null);
-            string queue = _model.QueueDeclare();
+            await _channel.DeclareExchangeAsync("src", ExchangeType.Direct, false, false).ConfigureAwait(false);
+            await _channel.DeclareExchangeAsync("dest", ExchangeType.Direct, false, false).ConfigureAwait(false);
+            (string queue, _, _) = await _channel.DeclareQueueAsync().ConfigureAwait(false);
 
-            _model.ExchangeBind("dest", "src", string.Empty);
-            _model.ExchangeBind("dest", "src", string.Empty);
-            _model.QueueBind(queue, "dest", string.Empty);
+            await _channel.BindExchangeAsync("dest", "src", string.Empty).ConfigureAwait(false);
+            await _channel.BindExchangeAsync("dest", "src", string.Empty).ConfigureAwait(false);
+            await _channel.BindQueueAsync(queue, "dest", string.Empty).ConfigureAwait(false);
 
-            _model.BasicPublish("src", string.Empty, null, new byte[] {});
-            _model.WaitForConfirms();
-            Assert.IsNotNull(_model.BasicGet(queue, true));
+            await _channel.PublishMessageAsync("src", string.Empty, null, new byte[] {}).ConfigureAwait(false);
+            _channel.WaitForConfirms();
+            var singleMessage = await _channel.RetrieveSingleMessageAsync(queue, true).ConfigureAwait(false);
+            Assert.IsFalse(singleMessage.IsEmpty);
 
-            _model.ExchangeUnbind("dest", "src", string.Empty);
-            _model.BasicPublish("src", string.Empty, null, new byte[] {});
-            _model.WaitForConfirms();
-            Assert.IsNull(_model.BasicGet(queue, true));
+            await _channel.UnbindExchangeAsync("dest", "src", string.Empty).ConfigureAwait(false);
+            await _channel.PublishMessageAsync("src", string.Empty, null, new byte[] {}).ConfigureAwait(false);
+            _channel.WaitForConfirms();
+            singleMessage = await _channel.RetrieveSingleMessageAsync(queue, true).ConfigureAwait(false);
+            Assert.IsTrue(singleMessage.IsEmpty);
 
-            _model.ExchangeDelete("src");
-            _model.ExchangeDelete("dest");
+            await _channel.DeleteExchangeAsync("src").ConfigureAwait(false);
+            await _channel.DeleteExchangeAsync("dest").ConfigureAwait(false);
         }
     }
 }

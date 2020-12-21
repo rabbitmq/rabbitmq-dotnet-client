@@ -38,12 +38,6 @@ namespace RabbitMQ.Client
     /// 0-8, 0-8qpid, 0-9 and 0-9-1 of AMQP.</summary>
     /// <remarks>
     /// <para>
-    /// The specification code generator provides
-    /// protocol-version-specific implementations of this interface. To
-    /// obtain an implementation of this interface in a
-    /// protocol-version-neutral way, use <see cref="IModel.CreateBasicProperties"/>.
-    /// </para>
-    /// <para>
     /// Each property is readable, writable and clearable: a cleared
     /// property will not be transmitted over the wire. Properties on a
     /// fresh instance are clear by default.

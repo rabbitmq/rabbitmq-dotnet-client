@@ -29,58 +29,29 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Collections.Generic;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using NUnit.Framework;
+using RabbitMQ.Client.client.impl.Channel;
 
-namespace RabbitMQ.Util
+namespace RabbitMQ.Client.Unit
 {
-    internal class SetQueue<T>
+    [TestFixture]
+    internal class TestChannelShutdown : IntegrationFixture
     {
-        private readonly HashSet<T> _members = new HashSet<T>();
-        private readonly LinkedList<T> _queue = new LinkedList<T>();
-
-        public bool Enqueue(T item)
+        [Test]
+        public async Task TestConsumerDispatcherShutdown()
         {
-            if (_members.Contains(item))
-            {
-                return false;
-            }
-            _members.Add(item);
-            _queue.AddLast(item);
-            return true;
-        }
+            var ch = (AutorecoveringChannel)_channel;
+            using var latch = new ManualResetEventSlim(false);
 
-        public T Dequeue()
-        {
-            if (_queue.Count == 0)
-            {
-                return default;
-            }
-            T item = _queue.First.Value;
-            _queue.RemoveFirst();
-            _members.Remove(item);
-            return item;
-        }
+            _channel.Shutdown += args => latch.Set();
 
-        public bool Contains(T item)
-        {
-            return _members.Contains(item);
-        }
-
-        public bool IsEmpty()
-        {
-            return _members.Count == 0;
-        }
-
-        public bool Remove(T item)
-        {
-            _queue.Remove(item);
-            return _members.Remove(item);
-        }
-
-        public void Clear()
-        {
-            _queue.Clear();
-            _members.Clear();
+            Assert.IsFalse(ch.ConsumerDispatcher.IsShutdown, "dispatcher should NOT be shut down before Close");
+            await _channel.CloseAsync().ConfigureAwait(false);
+            Wait(latch, TimeSpan.FromSeconds(3));
+            Assert.IsTrue(ch.ConsumerDispatcher.IsShutdown, "dispatcher should be shut down after Close");
         }
     }
 }

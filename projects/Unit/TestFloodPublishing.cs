@@ -33,10 +33,10 @@ using NUnit.Framework;
 using RabbitMQ.Client.Events;
 using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using RabbitMQ.Client.client.impl.Channel;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -47,9 +47,9 @@ namespace RabbitMQ.Client.Unit
         private readonly TimeSpan _tenSeconds = TimeSpan.FromSeconds(10);
 
         [Test]
-        public void TestUnthrottledFloodPublishing()
+        public async Task TestUnthrottledFloodPublishing()
         {
-            var connFactory = new ConnectionFactory()
+            var connFactory = new ConnectionFactory
             {
                 RequestedHeartbeat = TimeSpan.FromSeconds(60),
                 AutomaticRecoveryEnabled = false
@@ -58,7 +58,7 @@ namespace RabbitMQ.Client.Unit
             var closeWatch = new Stopwatch();
             using (IConnection conn = connFactory.CreateConnection())
             {
-                using (IModel model = conn.CreateModel())
+                await using (IChannel channel = await conn.CreateChannelAsync().ConfigureAwait(false))
                 {
                     conn.ConnectionShutdown += (_, args) =>
                     {
@@ -82,7 +82,7 @@ namespace RabbitMQ.Client.Unit
                                 }
                             }
 
-                            model.BasicPublish("", "", null, _body);
+                            await channel.PublishMessageAsync("", "", null, _body);
                         }
                     }
                     finally
@@ -100,7 +100,7 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestMultithreadFloodPublishing()
+        public async Task TestMultithreadFloodPublishing()
         {
             string testName = TestContext.CurrentContext.Test.FullName;
             string message = string.Format("Hello from test {0}", testName);
@@ -109,7 +109,7 @@ namespace RabbitMQ.Client.Unit
             int receivedCount = 0;
             AutoResetEvent autoResetEvent = new AutoResetEvent(false);
 
-            var cf = new ConnectionFactory()
+            var cf = new ConnectionFactory
             {
                 RequestedHeartbeat = TimeSpan.FromSeconds(60),
                 AutomaticRecoveryEnabled = false
@@ -117,39 +117,37 @@ namespace RabbitMQ.Client.Unit
 
             using (IConnection c = cf.CreateConnection())
             {
-                string queueName = null;
-                using (IModel m = c.CreateModel())
+                string queueName;
+                await using (IChannel channel = await c.CreateChannelAsync().ConfigureAwait(false))
                 {
-                    QueueDeclareOk q = m.QueueDeclare();
-                    queueName = q.QueueName;
+                    (queueName, _, _) = await channel.DeclareQueueAsync().ConfigureAwait(false);
                 }
 
-                Task pub = Task.Run(() =>
+                Task pub = Task.Run(async () =>
                 {
-                    using (IModel m = c.CreateModel())
+                    await using (IChannel channel = await c.CreateChannelAsync().ConfigureAwait(false))
                     {
-                        IBasicProperties bp = m.CreateBasicProperties();
                         for (int i = 0; i < publishCount; i++)
                         {
-                            m.BasicPublish(string.Empty, queueName, bp, sendBody);
+                            await channel.PublishMessageAsync(string.Empty, queueName, null, sendBody).ConfigureAwait(false);
                         }
                     }
                 });
 
-                using (IModel consumerModel = c.CreateModel())
+                await using (IChannel channel = await c.CreateChannelAsync().ConfigureAwait(false))
                 {
-                    var consumer = new EventingBasicConsumer(consumerModel);
+                    var consumer = new EventingBasicConsumer(channel);
                     consumer.Received += (o, a) =>
                     {
                         string receivedMessage = Encoding.UTF8.GetString(a.Body.ToArray());
                         Assert.AreEqual(message, receivedMessage);
-                        Interlocked.Increment(ref receivedCount);
+                        System.Threading.Interlocked.Increment(ref receivedCount);
                         if (receivedCount == publishCount)
                         {
                             autoResetEvent.Set();
                         }
                     };
-                    consumerModel.BasicConsume(queueName, true, consumer);
+                    await channel.ActivateConsumerAsync(consumer, queueName, true).ConfigureAwait(false);
                     Assert.IsTrue(pub.Wait(_tenSeconds));
                     Assert.IsTrue(autoResetEvent.WaitOne(_tenSeconds));
                 }

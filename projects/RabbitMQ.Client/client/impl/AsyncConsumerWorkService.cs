@@ -1,44 +1,44 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using RabbitMQ.Client.Events;
+using RabbitMQ.Client.client.impl.Channel;
+using Channel = System.Threading.Channels.Channel;
 
 namespace RabbitMQ.Client.Impl
 {
     internal sealed class AsyncConsumerWorkService : ConsumerWorkService
     {
-        private readonly ConcurrentDictionary<IModel, WorkPool> _workPools = new ConcurrentDictionary<IModel, WorkPool>();
-        private readonly Func<IModel, WorkPool> _startNewWorkPoolFunc;
+        private readonly ConcurrentDictionary<ChannelBase, WorkPool> _workPools = new ConcurrentDictionary<ChannelBase, WorkPool>();
+        private readonly Func<ChannelBase, WorkPool> _startNewWorkPoolFunc;
 
         public AsyncConsumerWorkService(int concurrency) : base(concurrency)
         {
-            _startNewWorkPoolFunc = model => StartNewWorkPool(model);
+            _startNewWorkPoolFunc = channelBase => StartNewWorkPool(channelBase);
         }
 
-        public void Schedule(IModel model, Work work)
+        public void Schedule(ChannelBase channelBase, Work work)
         {
             /*
              * rabbitmq/rabbitmq-dotnet-client#841
              * https://docs.microsoft.com/en-us/dotnet/api/system.collections.concurrent.concurrentdictionary-2.getoradd
              * Note that the value delegate is not atomic but the Schedule method will not be called concurrently.
              */
-            WorkPool workPool = _workPools.GetOrAdd(model, _startNewWorkPoolFunc);
+            WorkPool workPool = _workPools.GetOrAdd(channelBase, _startNewWorkPoolFunc);
             workPool.Enqueue(work);
         }
 
-        private WorkPool StartNewWorkPool(IModel model)
+        private WorkPool StartNewWorkPool(ChannelBase channelBase)
         {
-            var newWorkPool = new WorkPool(model, _concurrency);
+            var newWorkPool = new WorkPool(channelBase, _concurrency);
             newWorkPool.Start();
             return newWorkPool;
         }
 
-        public Task Stop(IModel model)
+        public Task Stop(ChannelBase channelBase)
         {
-            if (_workPools.TryRemove(model, out WorkPool workPool))
+            if (_workPools.TryRemove(channelBase, out WorkPool workPool))
             {
                 return workPool.Stop();
             }
@@ -49,16 +49,16 @@ namespace RabbitMQ.Client.Impl
         private class WorkPool
         {
             private readonly Channel<Work> _channel;
-            private readonly IModel _model;
+            private readonly ChannelBase _channelBase;
             private Task _worker;
             private readonly int _concurrency;
             private SemaphoreSlim _limiter;
             private CancellationTokenSource _tokenSource;
 
-            public WorkPool(IModel model, int concurrency)
+            public WorkPool(ChannelBase channelBase, int concurrency)
             {
                 _concurrency = concurrency;
-                _model = model;
+                _channelBase = channelBase;
                 _channel = Channel.CreateUnbounded<Work>(new UnboundedChannelOptions { SingleReader = true, SingleWriter = false, AllowSynchronousContinuations = false });
             }
 
@@ -102,17 +102,7 @@ namespace RabbitMQ.Client.Impl
                         }
                         catch (Exception e)
                         {
-                            if (!(_model is ModelBase modelBase))
-                            {
-                                return;
-                            }
-
-                            var details = new Dictionary<string, object>
-                            {
-                                { "consumer", work.Consumer },
-                                { "context", work.Consumer }
-                            };
-                            modelBase.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
+                            _channelBase.OnUnhandledExceptionOccurred(e, work.Context, work.Consumer);
                         }
                         finally
                         {
@@ -136,7 +126,7 @@ namespace RabbitMQ.Client.Impl
                                 await _limiter.WaitAsync(cancellationToken).ConfigureAwait(false);
                             }
 
-                            _ = HandleConcurrent(work, _model, _limiter);
+                            _ = HandleConcurrent(work, _channelBase, _limiter);
                         }
                     }
                 }
@@ -146,7 +136,7 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            private static async Task HandleConcurrent(Work work, IModel model, SemaphoreSlim limiter)
+            private static async Task HandleConcurrent(Work work, ChannelBase channelBase, SemaphoreSlim limiter)
             {
                 try
                 {
@@ -163,17 +153,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (Exception e)
                 {
-                    if (!(model is ModelBase modelBase))
-                    {
-                        return;
-                    }
-
-                    var details = new Dictionary<string, object>
-                    {
-                        { "consumer", work.Consumer },
-                        { "context", work.Consumer }
-                    };
-                    modelBase.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
+                    channelBase.OnUnhandledExceptionOccurred(e, work.Context, work.Consumer);
                 }
                 finally
                 {

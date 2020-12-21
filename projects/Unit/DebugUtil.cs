@@ -34,7 +34,7 @@ using System.Collections;
 using System.IO;
 using System.Reflection;
 
-namespace RabbitMQ.Util
+namespace Unit
 {
     ///<summary>Miscellaneous debugging and development utilities.</summary>
     ///<remarks>
@@ -51,18 +51,18 @@ namespace RabbitMQ.Util
         ///<summary>Print a hex dump of the supplied bytes to the supplied TextWriter.</summary>
         public static void Dump(byte[] bytes, TextWriter writer)
         {
-            int rowlen = 16;
+            const int rowLength = 16;
 
-            for (int count = 0; count < bytes.Length; count += rowlen)
+            for (int count = 0; count < bytes.Length; count += rowLength)
             {
-                int thisRow = Math.Min(bytes.Length - count, rowlen);
+                int thisRow = Math.Min(bytes.Length - count, rowLength);
 
                 writer.Write("{0:X8}: ", count);
                 for (int i = 0; i < thisRow; i++)
                 {
                     writer.Write("{0:X2}", bytes[count + i]);
                 }
-                for (int i = 0; i < (rowlen - thisRow); i++)
+                for (int i = 0; i < (rowLength - thisRow); i++)
                 {
                     writer.Write("  ");
                 }

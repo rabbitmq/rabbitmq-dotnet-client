@@ -38,7 +38,7 @@ namespace RabbitMQ.Client
     /// </summary>
     /// <remarks>
     /// Use the static members of this class as values for the
-    /// "exchangeType" arguments for IModel methods such as
+    /// "exchangeType" arguments for IChannel methods such as
     /// ExchangeDeclare. The broker may be extended with additional
     /// exchange types that do not appear in this class.
     /// </remarks>

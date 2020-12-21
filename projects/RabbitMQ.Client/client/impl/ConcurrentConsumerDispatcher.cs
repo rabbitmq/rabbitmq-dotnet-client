@@ -1,19 +1,18 @@
 ﻿using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using RabbitMQ.Client.Events;
+using RabbitMQ.Client.client.impl.Channel;
 
 namespace RabbitMQ.Client.Impl
 {
     internal sealed class ConcurrentConsumerDispatcher : IConsumerDispatcher
     {
-        private readonly ModelBase _model;
+        private readonly ChannelBase _channelBase;
         private readonly ConsumerWorkService _workService;
 
-        public ConcurrentConsumerDispatcher(ModelBase model, ConsumerWorkService ws)
+        public ConcurrentConsumerDispatcher(ChannelBase channelBase, ConsumerWorkService ws)
         {
-            _model = model;
+            _channelBase = channelBase;
             _workService = ws;
             IsShutdown = false;
         }
@@ -23,9 +22,9 @@ namespace RabbitMQ.Client.Impl
             IsShutdown = true;
         }
 
-        public Task Shutdown(IModel model)
+        public Task Shutdown()
         {
-            return _workService.StopWorkAsync(model);
+            return _workService.StopWorkAsync(_channelBase);
         }
 
         public bool IsShutdown
@@ -45,12 +44,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (Exception e)
                 {
-                    var details = new Dictionary<string, object>
-                    {
-                        {"consumer", consumer},
-                        {"context",  "HandleBasicConsumeOk"}
-                    };
-                    _model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
+                    _channelBase.OnUnhandledExceptionOccurred(e, "HandleBasicConsumeOk", consumer);
                 }
             });
         }
@@ -79,12 +73,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (Exception e)
                 {
-                    var details = new Dictionary<string, object>
-                    {
-                        {"consumer", consumer},
-                        {"context",  "HandleBasicDeliver"}
-                    };
-                    _model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
+                    _channelBase.OnUnhandledExceptionOccurred(e, "HandleBasicDeliver", consumer);
                 }
                 finally
                 {
@@ -103,12 +92,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (Exception e)
                 {
-                    var details = new Dictionary<string, object>
-                    {
-                        {"consumer", consumer},
-                        {"context",  "HandleBasicCancelOk"}
-                    };
-                    _model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
+                    _channelBase.OnUnhandledExceptionOccurred(e, "HandleBasicCancelOk", consumer);
                 }
             });
         }
@@ -123,12 +107,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (Exception e)
                 {
-                    var details = new Dictionary<string, object>
-                    {
-                        {"consumer", consumer},
-                        {"context",  "HandleBasicCancel"}
-                    };
-                    _model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
+                    _channelBase.OnUnhandledExceptionOccurred(e, "HandleBasicCancel", consumer);
                 }
             });
         }
@@ -138,17 +117,12 @@ namespace RabbitMQ.Client.Impl
             // the only case where we ignore the shutdown flag.
             try
             {
-                consumer.HandleModelShutdown(_model, reason);
+                consumer.HandleModelShutdown(_channelBase, reason);
             }
             catch (Exception e)
             {
-                var details = new Dictionary<string, object>
-                    {
-                        {"consumer", consumer},
-                        {"context",  "HandleModelShutdown"}
-                    };
-                _model.OnCallbackException(CallbackExceptionEventArgs.Build(e, details));
-            };
+                _channelBase.OnUnhandledExceptionOccurred(e, "HandleModelShutdown", consumer);
+            }
         }
 
         private void UnlessShuttingDown(Action fn)
@@ -161,7 +135,7 @@ namespace RabbitMQ.Client.Impl
 
         private void Execute(Action fn)
         {
-            _workService.AddWork(_model, fn);
+            _workService.AddWork(_channelBase, fn);
         }
     }
 }

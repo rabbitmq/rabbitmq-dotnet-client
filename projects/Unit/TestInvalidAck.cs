@@ -30,29 +30,29 @@
 //---------------------------------------------------------------------------
 
 using System.Threading;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestInvalidAck : IntegrationFixture {
-
+    public class TestInvalidAck : IntegrationFixture
+    {
         [Test]
-        public void TestAckWithUnknownConsumerTagAndMultipleFalse()
+        public async Task TestAckWithUnknownConsumerTagAndMultipleFalse()
         {
-            object o = new object();
+            using var latch = new ManualResetEventSlim(false);
             bool shutdownFired = false;
             ShutdownEventArgs shutdownArgs = null;
-            _model.ModelShutdown += (s, args) =>
+            _channel.Shutdown += args =>
             {
                 shutdownFired = true;
                 shutdownArgs = args;
-                Monitor.PulseAll(o);
+                latch.Set();
             };
 
-            _model.BasicAck(123456, false);
-            WaitOn(o);
+            await _channel.AckMessageAsync(123456, false).ConfigureAwait(false);
+            Wait(latch);
             Assert.IsTrue(shutdownFired);
             AssertPreconditionFailed(shutdownArgs);
         }

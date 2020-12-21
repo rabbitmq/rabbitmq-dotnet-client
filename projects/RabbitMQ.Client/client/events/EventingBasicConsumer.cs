@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using RabbitMQ.Client.client.impl.Channel;
 
 namespace RabbitMQ.Client.Events
 {
@@ -37,9 +38,8 @@ namespace RabbitMQ.Client.Events
     ///methods as separate events.</summary>
     public class EventingBasicConsumer : DefaultBasicConsumer
     {
-        ///<summary>Constructor which sets the Model property to the
-        ///given value.</summary>
-        public EventingBasicConsumer(IModel model) : base(model)
+        ///<summary>Constructor which sets the channel property to the given value.</summary>
+        public EventingBasicConsumer(IChannel channel) : base(channel)
         {
         }
 
@@ -56,7 +56,7 @@ namespace RabbitMQ.Client.Events
         ///<summary>Fires when the server confirms successful consumer cancelation.</summary>
         public event EventHandler<ConsumerEventArgs> Registered;
 
-        ///<summary>Fires on model (channel) shutdown, both client and server initiated.</summary>
+        ///<summary>Fires on channel shutdown, both client and server initiated.</summary>
         public event EventHandler<ShutdownEventArgs> Shutdown;
 
         ///<summary>Fires when the server confirms successful consumer cancelation.</summary>

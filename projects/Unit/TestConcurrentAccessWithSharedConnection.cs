@@ -36,21 +36,21 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using NUnit.Framework;
+using RabbitMQ.Client.client.impl.Channel;
 
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
     public class TestConcurrentAccessWithSharedConnection : IntegrationFixture
     {
-
         internal const int Threads = 32;
         internal CountdownEvent _latch;
         internal TimeSpan _completionTimeout = TimeSpan.FromSeconds(90);
 
         [SetUp]
-        public override void Init()
+        public override async Task Init()
         {
-            base.Init();
+            await base.Init().ConfigureAwait(false);
             ThreadPool.SetMinThreads(Threads, Threads);
             _latch = new CountdownEvent(Threads);
         }
@@ -143,19 +143,14 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestConcurrentChannelOpenCloseLoop()
         {
-            TestConcurrentChannelOperations((conn) =>
+            TestConcurrentChannelOperations(async conn =>
             {
-                IModel ch = conn.CreateModel();
-                ch.Close();
+                IChannel channel = await conn.CreateChannelAsync().ConfigureAwait(false);
+                await channel.CloseAsync().ConfigureAwait(false);
             }, 50);
         }
 
-        internal void TestConcurrentChannelOpenAndPublishingWithBodyOfSize(int length)
-        {
-            TestConcurrentChannelOpenAndPublishingWithBodyOfSize(length, 30);
-        }
-
-        internal void TestConcurrentChannelOpenAndPublishingWithBodyOfSize(int length, int iterations)
+        internal void TestConcurrentChannelOpenAndPublishingWithBodyOfSize(int length, int iterations = 30)
         {
             string s = "payload";
             if (length > s.Length)
@@ -168,36 +163,35 @@ namespace RabbitMQ.Client.Unit
 
         internal void TestConcurrentChannelOpenAndPublishingWithBody(byte[] body, int iterations)
         {
-            TestConcurrentChannelOperations((conn) =>
+            TestConcurrentChannelOperations(async conn =>
             {
                 // publishing on a shared channel is not supported
                 // and would missing the point of this test anyway
-                IModel ch = _conn.CreateModel();
-                ch.ConfirmSelect();
-                foreach (int j in Enumerable.Range(0, 200))
+                IChannel ch = await _conn.CreateChannelAsync().ConfigureAwait(false);
+                await ch.ActivatePublishTagsAsync().ConfigureAwait(false);
+                for (int i = 0; i < 200; i++)
                 {
-                    ch.BasicPublish(exchange: "", routingKey: "_______", basicProperties: ch.CreateBasicProperties(), body: body);
+                    await ch.PublishMessageAsync("", "_______", null, body).ConfigureAwait(false);
                 }
+
                 ch.WaitForConfirms(TimeSpan.FromSeconds(40));
             }, iterations);
         }
 
-        internal void TestConcurrentChannelOperations(Action<IConnection> actions,
-            int iterations)
+        internal void TestConcurrentChannelOperations(Func<IConnection, Task> actions, int iterations)
         {
             TestConcurrentChannelOperations(actions, iterations, _completionTimeout);
         }
 
-        internal void TestConcurrentChannelOperations(Action<IConnection> actions,
-            int iterations, TimeSpan timeout)
+        internal void TestConcurrentChannelOperations(Func<IConnection, Task> actions, int iterations, TimeSpan timeout)
         {
             Task[] tasks = Enumerable.Range(0, Threads).Select(x =>
             {
-                return Task.Run(() =>
+                return Task.Run(async () =>
                 {
-                    foreach (int j in Enumerable.Range(0, iterations))
+                    for (int i = 0; i < iterations; i++)
                     {
-                        actions(_conn);
+                        await actions(_conn).ConfigureAwait(false);
                     }
 
                     _latch.Signal();

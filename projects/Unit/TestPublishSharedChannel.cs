@@ -33,15 +33,16 @@ using NUnit.Framework;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using RabbitMQ.Client.client.impl.Channel;
 
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestPublishSharedModel
+    public class TestPublishSharedChannel
     {
-        private const string ExchangeName = "TestPublishSharedModel_Ex";
-        private const string QueueName = "TestPublishSharedModel_Queue";
-        private const string PublishKey = "TestPublishSharedModel_RoutePub";
+        private const string ExchangeName = "TestPublishSharedChannel_Ex";
+        private const string QueueName = "TestPublishSharedChannel_Queue";
+        private const string PublishKey = "TestPublishSharedChannel_RoutePub";
         private const int Loops = 20;
         private const int Repeats = 1000;
 
@@ -50,7 +51,7 @@ namespace RabbitMQ.Client.Unit
         private Exception _raisedException;
 
         [Test]
-        public async Task MultiThreadPublishOnSharedModel()
+        public async Task MultiThreadPublishOnSharedChannel()
         {
             // Arrange
             var connFactory = new ConnectionFactory
@@ -69,15 +70,15 @@ namespace RabbitMQ.Client.Unit
                     }
                 };
 
-                using (IModel model = conn.CreateModel())
+                await using (IChannel channel = await conn.CreateChannelAsync().ConfigureAwait(false))
                 {
-                    model.ExchangeDeclare(ExchangeName, "topic", durable: false, autoDelete: true);
-                    model.QueueDeclare(QueueName, false, false, true, null);
-                    model.QueueBind(QueueName, ExchangeName, PublishKey, null);
+                    await channel.DeclareExchangeAsync(ExchangeName, "topic", durable: false, autoDelete: true);
+                    await channel.DeclareQueueWithoutConfirmationAsync(QueueName, false, false, true);
+                    await channel.BindQueueAsync(QueueName, ExchangeName, PublishKey);
 
                     // Act
-                    var pubTask = Task.Run(() => NewFunction(model));
-                    var pubTask2 = Task.Run(() => NewFunction(model));
+                    var pubTask = Task.Run(() => PublishMessagesAsync(channel));
+                    var pubTask2 = Task.Run(() => PublishMessagesAsync(channel));
 
                     await Task.WhenAll(pubTask, pubTask2);
                 }
@@ -86,7 +87,7 @@ namespace RabbitMQ.Client.Unit
             // Assert
             Assert.Null(_raisedException);
 
-            void NewFunction(IModel model)
+            async Task PublishMessagesAsync(IChannel channel)
             {
                 try
                 {
@@ -94,7 +95,7 @@ namespace RabbitMQ.Client.Unit
                     {
                         for (int j = 0; j < Repeats; j++)
                         {
-                            model.BasicPublish(ExchangeName, PublishKey, false, null, _body);
+                            await channel.PublishMessageAsync(ExchangeName, PublishKey, null, _body).ConfigureAwait(false);
                         }
 
                         Thread.Sleep(1);

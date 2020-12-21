@@ -32,7 +32,7 @@
 using System;
 
 using NUnit.Framework;
-
+using RabbitMQ.Client.client.impl.Channel;
 using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Unit
@@ -43,15 +43,13 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestPassiveExchangeDeclareWhenExchangeDoesNotExist()
         {
-            Assert.Throws(Is.InstanceOf<OperationInterruptedException>(),
-                () => _model.ExchangeDeclarePassive(Guid.NewGuid().ToString()));
+            Assert.ThrowsAsync(Is.InstanceOf<OperationInterruptedException>(), () => _channel.DeclareExchangePassiveAsync(Guid.NewGuid().ToString()).AsTask());
         }
 
         [Test]
         public void TestPassiveQueueDeclareWhenQueueDoesNotExist()
         {
-            Assert.Throws(Is.InstanceOf<OperationInterruptedException>(),
-                () => _model.QueueDeclarePassive(Guid.NewGuid().ToString()));
+            Assert.ThrowsAsync(Is.InstanceOf<OperationInterruptedException>(), () => _channel.DeclareQueuePassiveAsync(Guid.NewGuid().ToString()).AsTask());
         }
     }
 }

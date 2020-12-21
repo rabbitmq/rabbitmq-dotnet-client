@@ -36,7 +36,7 @@ using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
 {
-    public class TestEndpointResolver : IEndpointResolver
+    internal class TestEndpointResolver : IEndpointResolver
     {
         private readonly IEnumerable<AmqpTcpEndpoint> _endpoints;
         public TestEndpointResolver (IEnumerable<AmqpTcpEndpoint> endpoints)
@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.Unit
         }
     }
 
-    class TestEndpointException : Exception
+    internal class TestEndpointException : Exception
     {
         public TestEndpointException(string message) : base(message)
         {

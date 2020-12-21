@@ -30,7 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-
+using RabbitMQ.Client.client.impl.Channel;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client
@@ -38,9 +38,6 @@ namespace RabbitMQ.Client
     /// <summary>Consumer interface. Used to
     ///receive messages from a queue by subscription.</summary>
     /// <remarks>
-    /// <para>
-    /// See IModel.BasicConsume, IModel.BasicCancel.
-    /// </para>
     /// <para>
     /// Note that the "Handle*" methods run in the connection's
     /// thread! Consider using <see cref="EventingBasicConsumer"/>, which uses a
@@ -51,10 +48,10 @@ namespace RabbitMQ.Client
     public interface IBasicConsumer
     {
         /// <summary>
-        /// Retrieve the <see cref="IModel"/> this consumer is associated with,
+        /// Retrieve the <see cref="IChannel"/> this consumer is associated with,
         ///  for use in acknowledging received messages, for instance.
         /// </summary>
-        IModel Model { get; }
+        IChannel Channel { get; }
 
         /// <summary>
         /// Signalled when the consumer gets cancelled.
@@ -86,7 +83,7 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <remarks>
         /// Does nothing with the passed in information.
-        /// Note that in particular, some delivered messages may require acknowledgement via <see cref="IModel.BasicAck"/>.
+        /// Note that in particular, some delivered messages may require acknowledgement via <see cref="IChannel.AckMessageAsync"/>.
         /// The implementation of this method in this class does NOT acknowledge such messages.
         /// </remarks>
         void HandleBasicDeliver(string consumerTag,
@@ -98,10 +95,10 @@ namespace RabbitMQ.Client
             ReadOnlyMemory<byte> body);
 
         /// <summary>
-        ///  Called when the model shuts down.
+        ///  Called when the channel shuts down.
         ///  </summary>
-        ///  <param name="model"> Common AMQP model.</param>
-        /// <param name="reason"> Information about the reason why a particular model, session, or connection was destroyed.</param>
+        ///  <param name="model">The channel.</param>
+        /// <param name="reason"> Information about the reason why a particular channel, session, or connection was destroyed.</param>
         void HandleModelShutdown(object model, ShutdownEventArgs reason);
     }
 }

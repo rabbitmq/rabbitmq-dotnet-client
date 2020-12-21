@@ -32,7 +32,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
@@ -42,7 +42,7 @@ namespace RabbitMQ.Client.Unit
 
         [Test]
         [Category("RequireSMP")]
-        public void TestConcurrentQueueDeclare()
+        public Task TestConcurrentQueueDeclare()
         {
             string q = GenerateQueueName();
             Random rnd = new Random();
@@ -58,7 +58,7 @@ namespace RabbitMQ.Client.Unit
                                 // sleep for a random amount of time to increase the chances
                                 // of thread interleaving. MK.
                                 Thread.Sleep(rnd.Next(5, 50));
-                                _model.QueueDeclare(q, false, false, false, null);
+                                _channel.DeclareQueueAsync(q, false, false, false).AsTask().GetAwaiter().GetResult();
                             } catch (System.NotSupportedException e)
                             {
                                 nse = e;
@@ -74,7 +74,7 @@ namespace RabbitMQ.Client.Unit
             }
 
             Assert.IsNull(nse);
-            _model.QueueDelete(q);
+            return _channel.DeleteQueueAsync(q).AsTask();
         }
     }
 }

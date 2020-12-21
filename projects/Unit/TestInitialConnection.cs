@@ -43,7 +43,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestBasicConnectionRecoveryWithHostnameList()
         {
-            Framing.Impl.AutorecoveringConnection c = CreateAutorecoveringConnection(new List<string>() { "127.0.0.1", "localhost" });
+            Framing.Impl.AutorecoveringConnection c = CreateAutorecoveringConnection(new List<string> { "127.0.0.1", "localhost" });
             Assert.IsTrue(c.IsOpen);
             c.Close();
         }
@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestBasicConnectionRecoveryWithHostnameListAndUnreachableHosts()
         {
-            Framing.Impl.AutorecoveringConnection c = CreateAutorecoveringConnection(new List<string>() { "191.72.44.22", "127.0.0.1", "localhost" });
+            Framing.Impl.AutorecoveringConnection c = CreateAutorecoveringConnection(new List<string> { "191.72.44.22", "127.0.0.1", "localhost" });
             Assert.IsTrue(c.IsOpen);
             c.Close();
         }
@@ -60,7 +60,7 @@ namespace RabbitMQ.Client.Unit
         public void TestBasicConnectionRecoveryWithHostnameListWithOnlyUnreachableHosts()
         {
             Assert.Throws<BrokerUnreachableException>(() => {
-                CreateAutorecoveringConnection(new List<string>() {
+                CreateAutorecoveringConnection(new List<string> {
                     "191.72.44.22",
                     "145.23.22.18",
                     "192.255.255.255"

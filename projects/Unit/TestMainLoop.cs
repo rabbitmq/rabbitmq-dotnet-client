@@ -30,20 +30,20 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
-
-using RabbitMQ.Client.Events;
+using RabbitMQ.Client.client.impl.Channel;
 
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestMainLoop : IntegrationFixture {
-
+    public class TestMainLoop : IntegrationFixture
+    {
         private class FaultyConsumer : DefaultBasicConsumer
         {
-            public FaultyConsumer(IModel model) : base(model) {}
+            public FaultyConsumer(IChannel channel) : base(channel) {}
 
             public override void HandleBasicDeliver(string consumerTag,
                                                ulong deliveryTag,
@@ -58,24 +58,25 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestCloseWithFaultyConsumer()
+        public async Task TestCloseWithFaultyConsumer()
         {
             ConnectionFactory connFactory = new ConnectionFactory();
             IConnection c = connFactory.CreateConnection();
-            IModel m = _conn.CreateModel();
-            object o = new object();
+            IChannel ch = await _conn.CreateChannelAsync().ConfigureAwait(false);
+            using var latch = new ManualResetEventSlim(false);
             string q = GenerateQueueName();
-            m.QueueDeclare(q, false, false, false, null);
+            await _channel.DeclareQueueAsync(q, false, false, false);
 
-            CallbackExceptionEventArgs ea = null;
-            m.CallbackException += (_, evt) => {
+            Dictionary<string, object> ea = null;
+            ch.UnhandledExceptionOccurred += (_, evt) => {
                 ea = evt;
                 c.Close();
-                Monitor.PulseAll(o);
+                latch.Set();
             };
-            m.BasicConsume(q, true, new FaultyConsumer(_model));
-            m.BasicPublish("", q, null, _encoding.GetBytes("message"));
-            WaitOn(o);
+
+            await ch.ActivateConsumerAsync(new FaultyConsumer(ch), q, true).ConfigureAwait(false);
+            await ch.PublishMessageAsync("", q, null, _encoding.GetBytes("message")).ConfigureAwait(false);
+            Wait(latch);
 
             Assert.IsNotNull(ea);
             Assert.AreEqual(c.IsOpen, false);

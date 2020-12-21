@@ -29,33 +29,38 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using RabbitMQ.Client.client.impl.Channel;
 
 namespace RabbitMQ.Client.Impl
 {
+    #nullable enable
     internal abstract class RecordedBinding : RecordedEntity
     {
-        public RecordedBinding(AutorecoveringModel model) : base(model)
+        protected RecordedBinding(AutorecoveringChannel channel, string destination, string source, string routingKey, IDictionary<string, object>? arguments)
+            : base(channel)
         {
+            Destination = destination;
+            Source = source;
+            RoutingKey = routingKey;
+            Arguments = arguments;
         }
 
-        public IDictionary<string, object> Arguments { get; protected set; }
+        public IDictionary<string, object>? Arguments { get; }
         public string Destination { get; set; }
-        public string RoutingKey { get; protected set; }
-        public string Source { get; protected set; }
+        public string RoutingKey { get; }
+        public string Source { get; }
 
-        public bool Equals(RecordedBinding other)
+        protected bool Equals(RecordedBinding other)
         {
-            return other != null &&
-                Source.Equals(other.Source) &&
-                Destination.Equals(other.Destination) &&
-                RoutingKey.Equals(other.RoutingKey) &&
-                (Arguments == other.Arguments);
+            return Equals(Arguments, other.Arguments) && Destination == other.Destination && RoutingKey == other.RoutingKey && Source == other.Source;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            if (obj is null)
+            if (ReferenceEquals(null, obj))
             {
                 return false;
             }
@@ -65,76 +70,59 @@ namespace RabbitMQ.Client.Impl
                 return true;
             }
 
-            var other = obj as RecordedBinding;
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
 
-            return Equals(other);
+            return Equals((RecordedBinding) obj);
         }
 
         public override int GetHashCode()
         {
-            return Source.GetHashCode() ^
-                   Destination.GetHashCode() ^
-                   RoutingKey.GetHashCode() ^
-                   (Arguments != null ? Arguments.GetHashCode() : 0);
-        }
-
-        public virtual void Recover()
-        {
+#if NETSTANDARD
+            unchecked
+            {
+                int hashCode = (Arguments != null ? Arguments.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ Destination.GetHashCode();
+                hashCode = (hashCode * 397) ^ RoutingKey.GetHashCode();
+                hashCode = (hashCode * 397) ^ Source.GetHashCode();
+                return hashCode;
+            }
+#else
+            return HashCode.Combine(Arguments, Destination, RoutingKey, Source);
+#endif
         }
 
         public override string ToString()
         {
             return $"{GetType().Name}: source = '{Source}', destination = '{Destination}', routingKey = '{RoutingKey}', arguments = '{Arguments}'";
         }
-
-        public RecordedBinding WithArguments(IDictionary<string, object> value)
-        {
-            Arguments = value;
-            return this;
-        }
-
-        public RecordedBinding WithDestination(string value)
-        {
-            Destination = value;
-            return this;
-        }
-
-        public RecordedBinding WithRoutingKey(string value)
-        {
-            RoutingKey = value;
-            return this;
-        }
-
-        public RecordedBinding WithSource(string value)
-        {
-            Source = value;
-            return this;
-        }
     }
-
 
     internal sealed class RecordedQueueBinding : RecordedBinding
     {
-        public RecordedQueueBinding(AutorecoveringModel model) : base(model)
+        public RecordedQueueBinding(AutorecoveringChannel channel, string destination, string source, string routingKey, IDictionary<string, object>? arguments)
+            : base(channel, destination,  source, routingKey, arguments)
         {
         }
 
-        public override void Recover()
+        public override ValueTask RecoverAsync()
         {
-            ModelDelegate.QueueBind(Destination, Source, RoutingKey, Arguments);
+            return Channel.BindQueueAsync(Destination, Source, RoutingKey, Arguments);
         }
     }
 
-
     internal sealed class RecordedExchangeBinding : RecordedBinding
     {
-        public RecordedExchangeBinding(AutorecoveringModel model) : base(model)
+        public RecordedExchangeBinding(AutorecoveringChannel channel, string destination, string source, string routingKey, IDictionary<string, object>? arguments)
+            : base(channel, destination,  source, routingKey, arguments)
         {
         }
 
-        public override void Recover()
+        public override ValueTask RecoverAsync()
         {
-            ModelDelegate.ExchangeBind(Destination, Source, RoutingKey, Arguments);
+            return Channel.BindExchangeAsync(Destination, Source, RoutingKey, Arguments);
         }
     }
 }

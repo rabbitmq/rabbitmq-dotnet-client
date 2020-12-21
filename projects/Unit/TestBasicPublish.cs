@@ -2,7 +2,9 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using RabbitMQ.Client.client.impl.Channel;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -10,17 +12,17 @@ namespace RabbitMQ.Client.Unit
     public class TestBasicPublish
     {
         [Test]
-        public void TestBasicRoundtripArray()
+        public async Task TestChannelRoundtripArray()
         {
             var cf = new ConnectionFactory();
             using(IConnection c = cf.CreateConnection())
-            using(IModel m = c.CreateModel())
+            await using(IChannel channel = await c.CreateChannelAsync().ConfigureAwait(false))
             {
-                QueueDeclareOk q = m.QueueDeclare();
-                IBasicProperties bp = m.CreateBasicProperties();
+                var q = await channel.DeclareQueueAsync().ConfigureAwait(false);
+                var bp = new BasicProperties();
                 byte[] sendBody = System.Text.Encoding.UTF8.GetBytes("hi");
                 byte[] consumeBody = null;
-                var consumer = new EventingBasicConsumer(m);
+                var consumer = new EventingBasicConsumer(channel);
                 var are = new AutoResetEvent(false);
                 consumer.Received += async (o, a) =>
                 {
@@ -28,11 +30,11 @@ namespace RabbitMQ.Client.Unit
                     are.Set();
                     await Task.Yield();
                 };
-                string tag = m.BasicConsume(q.QueueName, true, consumer);
+                string tag = await channel.ActivateConsumerAsync(consumer, q.QueueName, true).ConfigureAwait(false);
 
-                m.BasicPublish("", q.QueueName, bp, sendBody);
+                await channel.PublishMessageAsync("", q.QueueName, bp, sendBody).ConfigureAwait(false);
                 bool waitResFalse = are.WaitOne(2000);
-                m.BasicCancel(tag);
+                await channel.CancelConsumerAsync(tag).ConfigureAwait(false);
 
                 Assert.IsTrue(waitResFalse);
                 CollectionAssert.AreEqual(sendBody, consumeBody);
@@ -40,46 +42,16 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestBasicRoundtripReadOnlyMemory()
+        public async Task CanNotModifyPayloadAfterPublish()
         {
             var cf = new ConnectionFactory();
             using(IConnection c = cf.CreateConnection())
-            using(IModel m = c.CreateModel())
+            await using(IChannel channel = await c.CreateChannelAsync().ConfigureAwait(false))
             {
-                QueueDeclareOk q = m.QueueDeclare();
-                IBasicProperties bp = m.CreateBasicProperties();
-                byte[] sendBody = System.Text.Encoding.UTF8.GetBytes("hi");
-                byte[] consumeBody = null;
-                var consumer = new EventingBasicConsumer(m);
-                var are = new AutoResetEvent(false);
-                consumer.Received += async (o, a) =>
-                {
-                    consumeBody = a.Body.ToArray();
-                    are.Set();
-                    await Task.Yield();
-                };
-                string tag = m.BasicConsume(q.QueueName, true, consumer);
-
-                m.BasicPublish("", q.QueueName, bp, new ReadOnlyMemory<byte>(sendBody));
-                bool waitResFalse = are.WaitOne(2000);
-                m.BasicCancel(tag);
-
-                Assert.IsTrue(waitResFalse);
-                CollectionAssert.AreEqual(sendBody, consumeBody);
-            }
-        }
-
-        [Test]
-        public void CanNotModifyPayloadAfterPublish()
-        {
-            var cf = new ConnectionFactory();
-            using(IConnection c = cf.CreateConnection())
-            using(IModel m = c.CreateModel())
-            {
-                QueueDeclareOk q = m.QueueDeclare();
-                IBasicProperties bp = m.CreateBasicProperties();
+                var q = await channel.DeclareQueueAsync().ConfigureAwait(false);
+                var bp = new BasicProperties();
                 byte[] sendBody = new byte[1000];
-                var consumer = new EventingBasicConsumer(m);
+                var consumer = new EventingBasicConsumer(channel);
                 var are = new AutoResetEvent(false);
                 bool modified = true;
                 consumer.Received += (o, a) =>
@@ -90,15 +62,15 @@ namespace RabbitMQ.Client.Unit
                     }
                     are.Set();
                 };
-                string tag = m.BasicConsume(q.QueueName, true, consumer);
+                string tag = await channel.ActivateConsumerAsync(consumer, q.QueueName, true).ConfigureAwait(false);
 
-                m.BasicPublish("", q.QueueName, bp, sendBody);
+                await channel.PublishMessageAsync("", q.QueueName, bp, sendBody).ConfigureAwait(false);
                 sendBody.AsSpan().Fill(1);
 
                 Assert.IsTrue(are.WaitOne(2000));
                 Assert.IsFalse(modified, "Payload was modified after the return of BasicPublish");
 
-                m.BasicCancel(tag);
+                await channel.CancelConsumerAsync(tag).ConfigureAwait(false);
             }
         }
     }

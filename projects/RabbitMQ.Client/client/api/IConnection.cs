@@ -33,10 +33,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
-
+using System.Threading.Tasks;
+using RabbitMQ.Client.client.impl.Channel;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
 {
@@ -218,7 +218,7 @@ namespace RabbitMQ.Client
         /// Abort this connection and all its channels.
         /// </summary>
         /// <remarks>
-        /// Note that all active channels, sessions, and models will be closed if this method is called.
+        /// Note that all active channels, sessions, and consumers will be closed if this method is called.
         /// In comparison to normal <see cref="Close()"/> method, <see cref="Abort()"/> will not throw
         /// <see cref="IOException"/> during closing connection.
         ///This method waits infinitely for the in-progress close operation to complete.
@@ -275,7 +275,7 @@ namespace RabbitMQ.Client
         /// Close this connection and all its channels.
         /// </summary>
         /// <remarks>
-        /// Note that all active channels, sessions, and models will be
+        /// Note that all active channels, sessions, and consumers will be
         /// closed if this method is called. It will wait for the in-progress
         /// close operation to complete. This method will not return to the caller
         /// until the shutdown is complete. If the connection is already closed
@@ -304,7 +304,7 @@ namespace RabbitMQ.Client
         /// and wait with a timeout for all the in-progress close operations to complete.
         /// </summary>
         /// <remarks>
-        /// Note that all active channels, sessions, and models will be
+        /// Note that all active channels, sessions, and consumers will be
         /// closed if this method is called. It will wait for the in-progress
         /// close operation to complete with a timeout. If the connection is
         /// already closed (or closing), then this method will do nothing.
@@ -336,9 +336,9 @@ namespace RabbitMQ.Client
         void Close(ushort reasonCode, string reasonText, TimeSpan timeout);
 
         /// <summary>
-        /// Create and return a fresh channel, session, and model.
+        /// Create and return a fresh channel, session.
         /// </summary>
-        IModel CreateModel();
+        ValueTask<IChannel> CreateChannelAsync();
 
         /// <summary>
         /// Handle incoming Connection.Blocked methods.

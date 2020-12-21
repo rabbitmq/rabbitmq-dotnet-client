@@ -73,7 +73,7 @@ namespace RabbitMQ.Client.Impl
         ///</remarks>
         public void Enqueue(IRpcContinuation k)
         {
-            IRpcContinuation result = Interlocked.CompareExchange(ref _outstandingRpc, k, s_tmp);
+            IRpcContinuation result = System.Threading.Interlocked.CompareExchange(ref _outstandingRpc, k, s_tmp);
             if (!(result is EmptyRpcContinuation))
             {
                 throw new NotSupportedException("Pipelining of requests forbidden");
@@ -106,7 +106,7 @@ namespace RabbitMQ.Client.Impl
         ///</remarks>
         public IRpcContinuation Next()
         {
-            return Interlocked.Exchange(ref _outstandingRpc, s_tmp);
+            return System.Threading.Interlocked.Exchange(ref _outstandingRpc, s_tmp);
         }
     }
 }

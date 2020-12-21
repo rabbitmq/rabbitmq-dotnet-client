@@ -30,7 +30,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -40,7 +39,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
+using RabbitMQ.Client.client.impl.Channel;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Impl;
@@ -65,11 +64,11 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private readonly IConnectionFactory _factory;
         private readonly IFrameHandler _frameHandler;
-
-        private Guid _id = Guid.NewGuid();
-        private readonly ModelBase _model0;
-        private volatile bool _running = true;
+        private readonly ConnectionChannel _connectionChannel;
         private readonly MainSession _session0;
+        private readonly Guid _id = Guid.NewGuid();
+
+        private volatile bool _running = true;
         private SessionManager _sessionManager;
 
         //
@@ -94,7 +93,7 @@ namespace RabbitMQ.Client.Framing.Impl
         // errors, otherwise as read timeouts
         public ConsumerWorkService ConsumerWorkService { get; }
 
-        public Connection(IConnectionFactory factory, bool insist, IFrameHandler frameHandler, string clientProvidedName = null)
+        public Connection(IConnectionFactory factory, IFrameHandler frameHandler, string clientProvidedName = null)
         {
             ClientProvidedName = clientProvidedName;
             KnownHosts = null;
@@ -108,10 +107,10 @@ namespace RabbitMQ.Client.Framing.Impl
 
             _sessionManager = new SessionManager(this, 0);
             _session0 = new MainSession(this) { Handler = NotifyReceivedCloseOk };
-            _model0 = (ModelBase)Protocol.CreateModel(_session0);
+            _connectionChannel = new ConnectionChannel(_session0);
 
             StartMainLoop();
-            Open(insist);
+            OpenAsync().GetAwaiter().GetResult();
         }
 
         public Guid Id => _id;
@@ -304,7 +303,7 @@ namespace RabbitMQ.Client.Framing.Impl
 #pragma warning restore 0168
                 catch (IOException ioe)
                 {
-                    if (_model0.CloseReason is null)
+                    if (_connectionChannel.CloseReason is null)
                     {
                         if (!abort)
                         {
@@ -352,7 +351,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             catch (EndOfStreamException eose)
             {
-                if (_model0.CloseReason is null)
+                if (_connectionChannel.CloseReason is null)
                 {
                     LogCloseError("Connection didn't close cleanly. Socket closed unexpectedly", eose);
                 }
@@ -398,8 +397,7 @@ namespace RabbitMQ.Client.Framing.Impl
             MaybeStopHeartbeatTimers();
 
             _frameHandler.Close();
-            _model0.SetCloseReason(_closeReason);
-            _model0.FinishClose();
+            _connectionChannel.FinishClose(_closeReason);
         }
 
         /// <remarks>
@@ -678,28 +676,10 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public void Open(bool insist)
+        public async Task OpenAsync()
         {
-            StartAndTune();
-            _model0.ConnectionOpen(_factory.VirtualHost, string.Empty, false);
-        }
-
-        public void PrettyPrintShutdownReport()
-        {
-            if (ShutdownReport.Count == 0)
-            {
-                Console.Error.WriteLine(
-"No errors reported when closing connection {0}", this);
-            }
-            else
-            {
-                Console.Error.WriteLine(
-"Log of errors while closing connection {0}:", this);
-                for (int index = 0; index < ShutdownReport.Count; index++)
-                {
-                    Console.Error.WriteLine(ShutdownReport[index].ToString());
-                }
-            }
+            await StartAndTuneAsync().ConfigureAwait(false);
+            await _connectionChannel.ConnectionOpenAsync(_factory.VirtualHost, string.Empty, false).ConfigureAwait(false);
         }
 
         ///<summary>
@@ -750,7 +730,7 @@ namespace RabbitMQ.Client.Framing.Impl
             // Now we have all the information we need, and the event
             // flow of the *lower* layers is set up properly for
             // shutdown. Signal channel closure *up* the stack, toward
-            // the model and application.
+            // the channel and application.
             oldSession.Close(pe.ShutdownReason);
 
             // The upper layers have been signalled. Now we can tell
@@ -915,7 +895,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void UpdateSecret(string newSecret, string reason)
         {
-            _model0.UpdateSecret(newSecret, reason);
+            _connectionChannel.UpdateSecretAsync(newSecret, reason).AsTask().GetAwaiter().GetResult();
         }
 
         ///<summary>API-side invocation of connection abort.</summary>
@@ -966,14 +946,13 @@ namespace RabbitMQ.Client.Framing.Impl
             Close(new ShutdownEventArgs(ShutdownInitiator.Application, reasonCode, reasonText), false, timeout);
         }
 
-        public IModel CreateModel()
+        public async ValueTask<IChannel> CreateChannelAsync()
         {
             EnsureIsOpen();
-            ISession session = CreateSession();
-            var model = (IFullModel)Protocol.CreateModel(session, ConsumerWorkService);
-            model.ContinuationTimeout = _factory.ContinuationTimeout;
-            model._Private_ChannelOpen("");
-            return model;
+            var channel = Protocol.CreateChannel(CreateSession(), ConsumerWorkService);
+            channel.ContinuationTimeout = _factory.ContinuationTimeout;
+            await channel.OpenChannelAsync().ConfigureAwait(false);
+            return channel;
         }
 
         public void HandleConnectionBlocked(string reason)
@@ -1027,11 +1006,11 @@ namespace RabbitMQ.Client.Framing.Impl
             return request;
         }
 
-        private void StartAndTune()
+        private async Task StartAndTuneAsync()
         {
             var connectionStartCell = new BlockingCell<ConnectionStartDetails>();
-            _model0.m_connectionStartCell = connectionStartCell;
-            _model0.HandshakeContinuationTimeout = _factory.HandshakeContinuationTimeout;
+            _connectionChannel.ConnectionStartCell = connectionStartCell;
+            _connectionChannel.ContinuationTimeout = _factory.HandshakeContinuationTimeout;
             _frameHandler.ReadTimeout = _factory.HandshakeContinuationTimeout;
             _frameHandler.SendHeader();
 
@@ -1078,14 +1057,11 @@ namespace RabbitMQ.Client.Framing.Impl
                     ConnectionSecureOrTune res;
                     if (challenge is null)
                     {
-                        res = _model0.ConnectionStartOk(ClientProperties,
-                            mechanismFactory.Name,
-                            response,
-                            "en_US");
+                        res = await _connectionChannel.ConnectionStartOkAsync(ClientProperties, mechanismFactory.Name, response, "en_US").ConfigureAwait(false);
                     }
                     else
                     {
-                        res = _model0.ConnectionSecureOk(response);
+                        res = await _connectionChannel.ConnectionSecureOkAsync(response).ConfigureAwait(false);
                     }
 
                     if (res.m_challenge is null)
@@ -1106,24 +1082,20 @@ namespace RabbitMQ.Client.Framing.Impl
                 {
                     throw new AuthenticationFailureException(e.ShutdownReason.ReplyText);
                 }
-                throw new PossibleAuthenticationFailureException(
-                    "Possibly caused by authentication failure", e);
+                throw new PossibleAuthenticationFailureException("Possibly caused by authentication failure", e);
             }
 
-            ushort channelMax = (ushort)NegotiatedMaxValue(_factory.RequestedChannelMax,
-                connectionTune.m_channelMax);
+            ushort channelMax = (ushort)NegotiatedMaxValue(_factory.RequestedChannelMax, connectionTune.m_channelMax);
             _sessionManager = new SessionManager(this, channelMax);
 
-            uint frameMax = NegotiatedMaxValue(_factory.RequestedFrameMax,
-                connectionTune.m_frameMax);
+            uint frameMax = NegotiatedMaxValue(_factory.RequestedFrameMax, connectionTune.m_frameMax);
             FrameMax = frameMax;
 
             TimeSpan requestedHeartbeat = _factory.RequestedHeartbeat;
-            uint heartbeatInSeconds = NegotiatedMaxValue((uint)requestedHeartbeat.TotalSeconds,
-                (uint)connectionTune.m_heartbeatInSeconds);
+            uint heartbeatInSeconds = NegotiatedMaxValue((uint)requestedHeartbeat.TotalSeconds, connectionTune.m_heartbeatInSeconds);
             Heartbeat = TimeSpan.FromSeconds(heartbeatInSeconds);
 
-            _model0.ConnectionTuneOk(channelMax, frameMax, (ushort)Heartbeat.TotalSeconds);
+            await _connectionChannel.ConnectionTuneOkAsync(channelMax, frameMax, (ushort)Heartbeat.TotalSeconds).ConfigureAwait(false);
 
             // now we can start heartbeat timers
             MaybeStartHeartbeatTimers();

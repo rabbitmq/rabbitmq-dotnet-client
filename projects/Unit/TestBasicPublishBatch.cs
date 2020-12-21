@@ -30,64 +30,65 @@
 //---------------------------------------------------------------------------
 
 using System;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
+using RabbitMQ.Client.client.impl.Channel;
 
 namespace RabbitMQ.Client.Unit
 {
     internal class TestBasicPublishBatch : IntegrationFixture
     {
         [Test]
-        public void TestBasicPublishBatchSend()
+        public async Task TestBasicPublishBatchSend()
         {
-            _model.ConfirmSelect();
-            _model.QueueDeclare(queue: "test-message-batch-a", durable: false);
-            _model.QueueDeclare(queue: "test-message-batch-b", durable: false);
-            IBasicPublishBatch batch = _model.CreateBasicPublishBatch();
-            batch.Add("", "test-message-batch-a", false, null, new ReadOnlyMemory<byte>());
-            batch.Add("", "test-message-batch-b", false, null, new ReadOnlyMemory<byte>());
-            batch.Publish();
-            _model.WaitForConfirmsOrDie(TimeSpan.FromSeconds(15));
-            BasicGetResult resultA = _model.BasicGet("test-message-batch-a", true);
-            Assert.NotNull(resultA);
-            BasicGetResult resultB = _model.BasicGet("test-message-batch-b", true);
-            Assert.NotNull(resultB);
+            await _channel.ActivatePublishTagsAsync().ConfigureAwait(false);
+            await _channel.DeclareQueueAsync(queue: "test-message-batch-a", durable: false).ConfigureAwait(false);
+            await _channel.DeclareQueueAsync(queue: "test-message-batch-b", durable: false).ConfigureAwait(false);
+            MessageBatch batch = new MessageBatch();
+            batch.Add("", "test-message-batch-a", null, ReadOnlyMemory<byte>.Empty, false);
+            batch.Add("", "test-message-batch-b", null, ReadOnlyMemory<byte>.Empty, false);
+            await _channel.PublishBatchAsync(batch).ConfigureAwait(false);
+            _channel.WaitForConfirmsOrDie(TimeSpan.FromSeconds(15));
+            SingleMessageRetrieval resultA = await _channel.RetrieveSingleMessageAsync("test-message-batch-a", true).ConfigureAwait(false);
+            Assert.IsFalse(resultA.IsEmpty);
+            SingleMessageRetrieval resultB = await _channel.RetrieveSingleMessageAsync("test-message-batch-b", true).ConfigureAwait(false);
+            Assert.IsFalse(resultB.IsEmpty);
         }
 
         [Test]
-        public void TestBasicPublishBatchSendWithSizeHint()
+        public async Task TestBasicPublishBatchSendWithSizeHint()
         {
-            _model.ConfirmSelect();
-            _model.QueueDeclare(queue: "test-message-batch-a", durable: false);
-            _model.QueueDeclare(queue: "test-message-batch-b", durable: false);
-            IBasicPublishBatch batch = _model.CreateBasicPublishBatch(2);
+            await _channel.ActivatePublishTagsAsync().ConfigureAwait(false);
+            await _channel.DeclareQueueAsync(queue: "test-message-batch-a", durable: false).ConfigureAwait(false);
+            await _channel.DeclareQueueAsync(queue: "test-message-batch-b", durable: false).ConfigureAwait(false);
+            MessageBatch batch = new MessageBatch(2);
             ReadOnlyMemory<byte> bodyAsMemory = new byte [] {};
-            batch.Add("", "test-message-batch-a", false, null, bodyAsMemory);
-            batch.Add("", "test-message-batch-b", false, null, bodyAsMemory);
-            batch.Publish();
-            _model.WaitForConfirmsOrDie(TimeSpan.FromSeconds(15));
-            BasicGetResult resultA = _model.BasicGet("test-message-batch-a", true);
-            Assert.NotNull(resultA);
-            BasicGetResult resultB = _model.BasicGet("test-message-batch-b", true);
-            Assert.NotNull(resultB);
+            batch.Add("", "test-message-batch-a", null, bodyAsMemory, false);
+            batch.Add("", "test-message-batch-b", null, bodyAsMemory, false);
+            await _channel.PublishBatchAsync(batch).ConfigureAwait(false);
+            _channel.WaitForConfirmsOrDie(TimeSpan.FromSeconds(15));
+            SingleMessageRetrieval resultA = await _channel.RetrieveSingleMessageAsync("test-message-batch-a", true).ConfigureAwait(false);
+            Assert.IsFalse(resultA.IsEmpty);
+            SingleMessageRetrieval resultB = await _channel.RetrieveSingleMessageAsync("test-message-batch-b", true).ConfigureAwait(false);
+            Assert.IsFalse(resultB.IsEmpty);
         }
 
         [Test]
-        public void TestBasicPublishBatchSendWithWrongSizeHint()
+        public async Task TestBasicPublishBatchSendWithWrongSizeHint()
         {
-            _model.ConfirmSelect();
-            _model.QueueDeclare(queue: "test-message-batch-a", durable: false);
-            _model.QueueDeclare(queue: "test-message-batch-b", durable: false);
-            IBasicPublishBatch batch = _model.CreateBasicPublishBatch(1);
+            await _channel.ActivatePublishTagsAsync().ConfigureAwait(false);
+            await _channel.DeclareQueueAsync(queue: "test-message-batch-a", durable: false).ConfigureAwait(false);
+            await _channel.DeclareQueueAsync(queue: "test-message-batch-b", durable: false).ConfigureAwait(false);
+            MessageBatch batch = new MessageBatch(1);
             ReadOnlyMemory<byte> bodyAsMemory = new byte [] {};
-            batch.Add("", "test-message-batch-a", false, null, bodyAsMemory);
-            batch.Add("", "test-message-batch-b", false, null, bodyAsMemory);
-            batch.Publish();
-            _model.WaitForConfirmsOrDie(TimeSpan.FromSeconds(15));
-            BasicGetResult resultA = _model.BasicGet("test-message-batch-a", true);
-            Assert.NotNull(resultA);
-            BasicGetResult resultB = _model.BasicGet("test-message-batch-b", true);
-            Assert.NotNull(resultB);
+            batch.Add("", "test-message-batch-a", null, bodyAsMemory, false);
+            batch.Add("", "test-message-batch-b", null, bodyAsMemory, false);
+            await _channel.PublishBatchAsync(batch).ConfigureAwait(false);
+            _channel.WaitForConfirmsOrDie(TimeSpan.FromSeconds(15));
+            SingleMessageRetrieval resultA = await _channel.RetrieveSingleMessageAsync("test-message-batch-a", true).ConfigureAwait(false);
+            Assert.IsFalse(resultA.IsEmpty);
+            SingleMessageRetrieval resultB = await _channel.RetrieveSingleMessageAsync("test-message-batch-b", true).ConfigureAwait(false);
+            Assert.IsFalse(resultB.IsEmpty);
         }
     }
 }

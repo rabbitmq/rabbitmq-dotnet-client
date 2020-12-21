@@ -45,7 +45,7 @@ namespace RabbitMQ.Client.Unit
         [Test, Category("LongRunning"), MaxTimeAttribute(35000)]
         public void TestThatHeartbeatWriterUsesConfigurableInterval()
         {
-            var cf = new ConnectionFactory()
+            var cf = new ConnectionFactory
             {
                 RequestedHeartbeat = _heartbeatTimeout,
                 AutomaticRecoveryEnabled = false
@@ -62,7 +62,7 @@ namespace RabbitMQ.Client.Unit
                 return;
             }
 
-            var cf = new ConnectionFactory()
+            var cf = new ConnectionFactory
             {
                 RequestedHeartbeat = _heartbeatTimeout,
                 AutomaticRecoveryEnabled = false
@@ -85,7 +85,7 @@ namespace RabbitMQ.Client.Unit
             RunSingleConnectionTest(cf);
         }
 
-        [Test, Category("LongRunning"), MaxTimeAttribute(90000)]
+        [Test, Category("LongRunning"), MaxTime(90000)]
         public void TestHundredsOfConnectionsWithRandomHeartbeatInterval()
         {
             var rnd = new Random();
@@ -95,14 +95,13 @@ namespace RabbitMQ.Client.Unit
             for (int i = 0; i < 200; i++)
             {
                 ushort n = Convert.ToUInt16(rnd.Next(2, 6));
-                var cf = new ConnectionFactory()
+                var cf = new ConnectionFactory
                 {
                     RequestedHeartbeat = TimeSpan.FromSeconds(n),
                     AutomaticRecoveryEnabled = false
                 };
                 IConnection conn = cf.CreateConnection();
                 xs.Add(conn);
-                IModel ch = conn.CreateModel();
 
                 conn.ConnectionShutdown += (sender, evt) =>
                     {
@@ -121,7 +120,6 @@ namespace RabbitMQ.Client.Unit
         protected void RunSingleConnectionTest(ConnectionFactory cf)
         {
             IConnection conn = cf.CreateConnection();
-            IModel ch = conn.CreateModel();
             bool wasShutdown = false;
 
             conn.ConnectionShutdown += (sender, evt) =>
@@ -148,14 +146,13 @@ namespace RabbitMQ.Client.Unit
             if (InitiatedByPeerOrLibrary(evt))
             {
                 Console.WriteLine(((Exception)evt.Cause).StackTrace);
-                string s = string.Format("Shutdown: {0}, initiated by: {1}",
-                                      evt, evt.Initiator);
+                string s = $"Shutdown: {evt}, initiated by: {evt.Initiator}";
                 Console.WriteLine(s);
                 Assert.Fail(s);
             }
         }
 
-        private bool LongRunningTestsEnabled()
+        private static bool LongRunningTestsEnabled()
         {
             string s = Environment.GetEnvironmentVariable("RABBITMQ_LONG_RUNNING_TESTS");
             if (s is null || s.Equals(""))

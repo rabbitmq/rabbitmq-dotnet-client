@@ -40,7 +40,7 @@ using RabbitMQ.Util;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    class TestSharedQueue : TimingFixture
+    internal class TestSharedQueue : TimingFixture
     {
         //wrapper to work around C#'s lack of local volatiles
         public class VolatileInt

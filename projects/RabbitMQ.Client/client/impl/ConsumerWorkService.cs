@@ -3,56 +3,58 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using RabbitMQ.Client.client.impl.Channel;
+using Channel = System.Threading.Channels.Channel;
 
 namespace RabbitMQ.Client.Impl
 {
     internal class ConsumerWorkService
     {
-        private readonly ConcurrentDictionary<IModel, WorkPool> _workPools = new ConcurrentDictionary<IModel, WorkPool>();
-        private readonly Func<IModel, WorkPool> _startNewWorkPoolFunc;
+        private readonly ConcurrentDictionary<ChannelBase, WorkPool> _workPools = new ConcurrentDictionary<ChannelBase, WorkPool>();
+        private readonly Func<ChannelBase, WorkPool> _startNewWorkPoolFunc;
         protected readonly int _concurrency;
 
         public ConsumerWorkService(int concurrency)
         {
             _concurrency = concurrency;
 
-            _startNewWorkPoolFunc = model => StartNewWorkPool(model);
+            _startNewWorkPoolFunc = channelBase => StartNewWorkPool(channelBase);
         }
 
-        public void AddWork(IModel model, Action fn)
+        public void AddWork(ChannelBase channelBase, Action fn)
         {
             /*
              * rabbitmq/rabbitmq-dotnet-client#841
              * https://docs.microsoft.com/en-us/dotnet/api/system.collections.concurrent.concurrentdictionary-2.getoradd
              * Note that the value delegate is not atomic but the AddWork method will not be called concurrently.
              */
-            WorkPool workPool = _workPools.GetOrAdd(model, _startNewWorkPoolFunc);
+            WorkPool workPool = _workPools.GetOrAdd(channelBase, _startNewWorkPoolFunc);
             workPool.Enqueue(fn);
         }
 
-        private WorkPool StartNewWorkPool(IModel model)
+        private WorkPool StartNewWorkPool(ChannelBase channelBase)
         {
-            var newWorkPool = new WorkPool(_concurrency);
+            var newWorkPool = new WorkPool(channelBase, _concurrency);
             newWorkPool.Start();
             return newWorkPool;
         }
 
         public void StopWork()
         {
-            foreach (IModel model in _workPools.Keys)
+            foreach (ChannelBase channelBase in _workPools.Keys)
             {
-                StopWork(model);
+                StopWork(channelBase);
             }
         }
 
-        public void StopWork(IModel model)
+        public void StopWork(ChannelBase channelBase)
         {
-            StopWorkAsync(model).GetAwaiter().GetResult();
+            StopWorkAsync(channelBase).GetAwaiter().GetResult();
         }
 
-        internal Task StopWorkAsync(IModel model)
+        internal Task StopWorkAsync(ChannelBase channelBase)
         {
-            if (_workPools.TryRemove(model, out WorkPool workPool))
+            if (_workPools.TryRemove(channelBase, out WorkPool workPool))
             {
                 return workPool.Stop();
             }
@@ -63,13 +65,15 @@ namespace RabbitMQ.Client.Impl
         private class WorkPool
         {
             private readonly Channel<Action> _channel;
+            private readonly ChannelBase _channelBase;
             private readonly int _concurrency;
             private Task _worker;
             private CancellationTokenSource _tokenSource;
             private SemaphoreSlim _limiter;
 
-            public WorkPool(int concurrency)
+            public WorkPool(ChannelBase channelBase, int concurrency)
             {
+                _channelBase = channelBase;
                 _concurrency = concurrency;
                 _channel = Channel.CreateUnbounded<Action>(new UnboundedChannelOptions { SingleReader = true, SingleWriter = false, AllowSynchronousContinuations = false });
             }
@@ -103,9 +107,9 @@ namespace RabbitMQ.Client.Impl
                         {
                             work();
                         }
-                        catch(Exception)
+                        catch(Exception e)
                         {
-                            // ignored
+                            _channelBase.OnUnhandledExceptionOccurred(e, "ConsumerWorkService");
                         }
                     }
                 }
@@ -125,7 +129,7 @@ namespace RabbitMQ.Client.Impl
                                 await _limiter.WaitAsync(cancellationToken).ConfigureAwait(false);
                             }
 
-                            _ = OffloadToWorkerThreadPool(action, _limiter);
+                            _ = OffloadToWorkerThreadPool(action, _channelBase, _limiter);
                         }
                     }
                 }
@@ -135,7 +139,7 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            private static async Task OffloadToWorkerThreadPool(Action action, SemaphoreSlim limiter)
+            private static async Task OffloadToWorkerThreadPool(Action action, ChannelBase channel, SemaphoreSlim limiter)
             {
                 try
                 {
@@ -146,9 +150,9 @@ namespace RabbitMQ.Client.Impl
                     }, action, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default)
                     .ConfigureAwait(false);
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    // ignored
+                    channel.OnUnhandledExceptionOccurred(e, "ConsumerWorkService");
                 }
                 finally
                 {

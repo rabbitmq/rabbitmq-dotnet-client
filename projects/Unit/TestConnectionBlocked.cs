@@ -31,7 +31,7 @@
 
 using System;
 using System.Threading;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 using RabbitMQ.Client.Events;
@@ -49,7 +49,6 @@ namespace RabbitMQ.Client.Unit
             Unblock();
         }
 
-
         public void HandleUnblocked(object sender, EventArgs ea)
         {
             lock (_lockObject)
@@ -65,12 +64,12 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestConnectionBlockedNotification()
+        public async Task TestConnectionBlockedNotification()
         {
             _conn.ConnectionBlocked += HandleBlocked;
             _conn.ConnectionUnblocked += HandleUnblocked;
 
-            Block();
+            await BlockAsync().ConfigureAwait(false);
             lock (_lockObject)
             {
                 if (!_notified)

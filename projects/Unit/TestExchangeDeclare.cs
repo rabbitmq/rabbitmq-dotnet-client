@@ -32,17 +32,17 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestExchangeDeclare : IntegrationFixture {
-
+    public class TestExchangeDeclare : IntegrationFixture
+    {
         [Test]
         [Category("RequireSMP")]
-        public void TestConcurrentExchangeDeclare()
+        public Task TestConcurrentExchangeDeclare()
         {
             string x = GenerateExchangeName();
             Random rnd = new Random();
@@ -58,7 +58,7 @@ namespace RabbitMQ.Client.Unit
                                 // sleep for a random amount of time to increase the chances
                                 // of thread interleaving. MK.
                                 Thread.Sleep(rnd.Next(5, 500));
-                                _model.ExchangeDeclare(x, "fanout", false, false, null);
+                                _channel.DeclareExchangeAsync(x, "fanout", false, false).AsTask().GetAwaiter().GetResult();
                             } catch (System.NotSupportedException e)
                             {
                                 nse = e;
@@ -74,7 +74,7 @@ namespace RabbitMQ.Client.Unit
             }
 
             Assert.IsNull(nse);
-            _model.ExchangeDelete(x);
+            return _channel.DeleteExchangeAsync(x).AsTask();
         }
     }
 }

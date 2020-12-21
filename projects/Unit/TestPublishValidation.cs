@@ -30,20 +30,20 @@
 //---------------------------------------------------------------------------
 
 using System;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
+using RabbitMQ.Client.client.impl.Channel;
 
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
     public class TestPublishValidation : IntegrationFixture
     {
-
         [Test]
-        public void TestNullRoutingKeyIsRejected()
+        public async Task TestNullRoutingKeyIsRejected()
         {
-            IModel ch = _conn.CreateModel();
-            Assert.Throws(typeof(ArgumentNullException), () => ch.BasicPublish("", null, null, _encoding.GetBytes("msg")));
+            IChannel ch = await _conn.CreateChannelAsync().ConfigureAwait(false);
+            Assert.ThrowsAsync(typeof(ArgumentNullException), async () => await ch.PublishMessageAsync("", null, null, _encoding.GetBytes("msg")).ConfigureAwait(false));
         }
     }
 }

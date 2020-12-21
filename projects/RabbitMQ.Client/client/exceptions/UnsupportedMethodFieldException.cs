@@ -33,13 +33,11 @@ using System;
 
 namespace RabbitMQ.Client.Exceptions
 {
-    /// <summary>Thrown when the model cannot transmit a method field
-    /// because the version of the protocol the model is implementing
+    /// <summary>Thrown when the channel cannot transmit a method field
+    /// because the version of the protocol the channel is implementing
     /// does not contain a definition for the field in
     /// question.</summary>
-#if !NETSTANDARD1_5
     [Serializable]
-#endif
     public class UnsupportedMethodFieldException : NotSupportedException
     {
         public UnsupportedMethodFieldException(string methodName, string fieldName)

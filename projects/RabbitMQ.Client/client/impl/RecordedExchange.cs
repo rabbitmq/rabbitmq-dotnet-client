@@ -30,52 +30,37 @@
 //---------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using RabbitMQ.Client.client.impl.Channel;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal class RecordedExchange : RecordedNamedEntity
+    #nullable enable
+    internal sealed class RecordedExchange : RecordedNamedEntity
     {
-        public RecordedExchange(AutorecoveringModel model, string name) : base(model, name)
+        private readonly IDictionary<string, object>? _arguments;
+        private readonly bool _durable;
+        private readonly string _type;
+
+        public bool IsAutoDelete { get; }
+
+        public RecordedExchange(AutorecoveringChannel channel, string name, string type, bool durable, bool isAutoDelete, IDictionary<string, object>? arguments)
+            : base(channel, name)
         {
+            _type = type;
+            _durable = durable;
+            IsAutoDelete = isAutoDelete;
+            _arguments = arguments;
         }
 
-        public IDictionary<string, object> Arguments { get; private set; }
-        public bool Durable { get; private set; }
-        public bool IsAutoDelete { get; private set; }
-        public string Type { get; private set; }
-
-        public void Recover()
+        public override ValueTask RecoverAsync()
         {
-            ModelDelegate.ExchangeDeclare(Name, Type, Durable, IsAutoDelete, Arguments);
+            return Channel.DeclareExchangeAsync(Name, _type, _durable, IsAutoDelete, true, _arguments);
         }
 
         public override string ToString()
         {
-            return $"{GetType().Name}: name = '{Name}', type = '{Type}', durable = {Durable}, autoDelete = {IsAutoDelete}, arguments = '{Arguments}'";
-        }
-
-        public RecordedExchange WithArguments(IDictionary<string, object> value)
-        {
-            Arguments = value;
-            return this;
-        }
-
-        public RecordedExchange WithAutoDelete(bool value)
-        {
-            IsAutoDelete = value;
-            return this;
-        }
-
-        public RecordedExchange WithDurable(bool value)
-        {
-            Durable = value;
-            return this;
-        }
-
-        public RecordedExchange WithType(string value)
-        {
-            Type = value;
-            return this;
+            return $"{GetType().Name}: name = '{Name}', type = '{_type}', durable = {_durable}, autoDelete = {IsAutoDelete}, arguments = '{_arguments}'";
         }
     }
 }

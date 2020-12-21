@@ -33,12 +33,12 @@ using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 
-using RabbitMQ.Util;
+using Unit;
 
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    class TestContentHeaderCodec
+    internal class TestContentHeaderCodec
     {
         public void Check(ReadOnlyMemory<byte> actual, ReadOnlyMemory<byte> expected)
         {

@@ -29,35 +29,39 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestConfirmSelect : IntegrationFixture {
-
+    public class TestConfirmSelect : IntegrationFixture
+    {
         [Test]
-        public void TestConfirmSelectIdempotency()
+        public async Task TestConfirmSelectIdempotency()
         {
-            _model.ConfirmSelect();
-            Assert.AreEqual(1, _model.NextPublishSeqNo);
-            Publish();
-            Assert.AreEqual(2, _model.NextPublishSeqNo);
-            Publish();
-            Assert.AreEqual(3, _model.NextPublishSeqNo);
+            await _channel.ActivatePublishTagsAsync().ConfigureAwait(false);
+            ulong tag = 0;
+            _channel.NewPublishTagUsed += usedTag => tag = usedTag;
+            await PublishAsync().ConfigureAwait(false);
+            Assert.AreEqual(1, tag);
+            await PublishAsync().ConfigureAwait(false);
+            Assert.AreEqual(2, tag);
+            await PublishAsync().ConfigureAwait(false);
+            Assert.AreEqual(3, tag);
 
-            _model.ConfirmSelect();
-            Publish();
-            Assert.AreEqual(4, _model.NextPublishSeqNo);
-            Publish();
-            Assert.AreEqual(5, _model.NextPublishSeqNo);
-            Publish();
-            Assert.AreEqual(6, _model.NextPublishSeqNo);
+            await _channel.ActivatePublishTagsAsync().ConfigureAwait(false);
+            await PublishAsync().ConfigureAwait(false);
+            Assert.AreEqual(4, tag);
+            await PublishAsync().ConfigureAwait(false);
+            Assert.AreEqual(5, tag);
+            await PublishAsync().ConfigureAwait(false);
+            Assert.AreEqual(6, tag);
         }
 
-        protected void Publish()
+        private ValueTask PublishAsync()
         {
-            _model.BasicPublish("", "amq.fanout", null, _encoding.GetBytes("message"));
+            return _channel.PublishMessageAsync("", "amq.fanout", null, _encoding.GetBytes("message"));
         }
     }
 }

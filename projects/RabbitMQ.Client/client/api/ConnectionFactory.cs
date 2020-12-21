@@ -59,11 +59,11 @@ namespace RabbitMQ.Client
     ///     //
     ///     IConnection conn = factory.CreateConnection();
     ///     //
-    ///     IModel ch = conn.CreateModel();
+    ///     IChannel ch = await conn.CreateChannelAsync().ConfigureAwait(false);
     ///     //
-    ///     // ... use ch's IModel methods ...
+    ///     // ... use ch's IChannel methods ...
     ///     //
-    ///     ch.Close(Constants.ReplySuccess, "Closing the channel");
+    ///     await ch.CloseAsync().ConfigureAwait(false);
     ///     conn.Close(Constants.ReplySuccess, "Closing the connection");
     /// </code></example>
     /// <para>
@@ -492,7 +492,7 @@ namespace RabbitMQ.Client
                 else
                 {
                     var protocol = new RabbitMQ.Client.Framing.Protocol();
-                    conn = protocol.CreateConnection(this, false, endpointResolver.SelectOne(CreateFrameHandler), clientProvidedName);
+                    conn = protocol.CreateConnection(this, endpointResolver.SelectOne(CreateFrameHandler), clientProvidedName);
                 }
             }
             catch (Exception e)

@@ -29,13 +29,11 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.Text;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
-
+using RabbitMQ.Client.client.impl.Channel;
 using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Impl;
 using RabbitMQ.Util;
 
 #pragma warning disable 0618
@@ -45,68 +43,48 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestRecoverAfterCancel
     {
-        IConnection _connection;
-        IModel _channel;
-        string _queue;
-        int _callbackCount;
+        private IConnection _connection;
+        private IChannel _channel;
+        private string _queue;
 
-        public int ModelNumber(IModel model)
-        {
-            return ((ModelBase)model).Session.ChannelNumber;
-        }
-
-        [SetUp] public void Connect()
+        [SetUp]
+        public async Task Connect()
         {
             _connection = new ConnectionFactory().CreateConnection();
-            _channel = _connection.CreateModel();
-            _queue = _channel.QueueDeclare("", false, true, false, null);
+            _channel = await _connection.CreateChannelAsync().ConfigureAwait(false);
+            _queue = (await _channel.DeclareQueueAsync("", false, true, false).ConfigureAwait(false)).QueueName;
         }
 
-        [TearDown] public void Disconnect()
+        [TearDown]
+        public void Disconnect()
         {
             _connection.Abort();
         }
 
         [Test]
-        public void TestRecoverAfterCancel_()
+        public async Task TestRecoverAfterCancel_()
         {
-            UTF8Encoding enc = new UTF8Encoding();
-            _channel.BasicPublish("", _queue, null, enc.GetBytes("message"));
+            await _channel.PublishMessageAsync("", _queue, null, Encoding.UTF8.GetBytes("message")).ConfigureAwait(false);
             EventingBasicConsumer Consumer = new EventingBasicConsumer(_channel);
             SharedQueue<(bool Redelivered, byte[] Body)> EventQueue = new SharedQueue<(bool Redelivered, byte[] Body)>();
             // Making sure we copy the delivery body since it could be disposed at any time.
             Consumer.Received += (_, e) => EventQueue.Enqueue((e.Redelivered, e.Body.ToArray()));
 
-            string CTag = _channel.BasicConsume(_queue, false, Consumer);
+            string CTag = await _channel.ActivateConsumerAsync(Consumer, _queue, false).ConfigureAwait(false);
             (bool Redelivered, byte[] Body) Event = EventQueue.Dequeue();
-            _channel.BasicCancel(CTag);
-            _channel.BasicRecover(true);
+            await _channel.CancelConsumerAsync(CTag).ConfigureAwait(false);
+            await _channel.ResendUnackedMessages(true);
 
             EventingBasicConsumer Consumer2 = new EventingBasicConsumer(_channel);
             SharedQueue<(bool Redelivered, byte[] Body)> EventQueue2 = new SharedQueue<(bool Redelivered, byte[] Body)>();
             // Making sure we copy the delivery body since it could be disposed at any time.
             Consumer2.Received += (_, e) => EventQueue2.Enqueue((e.Redelivered, e.Body.ToArray()));
-            _channel.BasicConsume(_queue, false, Consumer2);
+            await _channel.ActivateConsumerAsync(Consumer2, _queue, false).ConfigureAwait(false);
             (bool Redelivered, byte[] Body) Event2 = EventQueue2.Dequeue();
 
             CollectionAssert.AreEqual(Event.Body, Event2.Body);
             Assert.IsFalse(Event.Redelivered);
             Assert.IsTrue(Event2.Redelivered);
         }
-
-        [Test]
-        public void TestRecoverCallback()
-        {
-            _callbackCount = 0;
-            _channel.BasicRecoverOk += IncrCallback;
-            _channel.BasicRecover(true);
-            Assert.AreEqual(1, _callbackCount);
-        }
-
-        void IncrCallback(object sender, EventArgs args)
-        {
-            _callbackCount++;
-        }
-
     }
 }
