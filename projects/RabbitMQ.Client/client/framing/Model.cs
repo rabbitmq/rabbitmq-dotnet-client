@@ -73,6 +73,11 @@ namespace RabbitMQ.Client.Framing.Impl
             ModelSend(new BasicPublish(default, exchange, routingKey, mandatory, default), (BasicProperties) basicProperties, body);
         }
 
+        public override void _Private_BasicPublishMemory(ReadOnlyMemory<byte> exchange, ReadOnlyMemory<byte> routingKey, bool mandatory, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
+        {
+            ModelSend(new BasicPublishMemory(exchange, routingKey, mandatory, default), (BasicProperties) basicProperties, body);
+        }
+
         public override void _Private_BasicRecover(bool requeue)
         {
             ModelSend(new BasicRecover(requeue));
