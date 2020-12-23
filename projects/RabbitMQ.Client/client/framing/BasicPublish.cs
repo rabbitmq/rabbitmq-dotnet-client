@@ -30,7 +30,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Text;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -83,6 +82,43 @@ namespace RabbitMQ.Client.Framing.Impl
             bufferSize += WireFormatting.GetByteCount(_exchange); // _exchange in bytes
             bufferSize += WireFormatting.GetByteCount(_routingKey); // _routingKey in bytes
             return bufferSize;
+        }
+    }
+
+    internal sealed class BasicPublishMemory : Client.Impl.MethodBase
+    {
+        /* unused, therefore commented out
+         * public readonly ushort _reserved1;
+         */
+        public readonly ReadOnlyMemory<byte> _exchange;
+        public readonly ReadOnlyMemory<byte> _routingKey;
+        public readonly bool _mandatory;
+        public readonly bool _immediate;
+
+        public BasicPublishMemory(ReadOnlyMemory<byte> Exchange, ReadOnlyMemory<byte> RoutingKey, bool Mandatory, bool Immediate)
+        {
+            _exchange = Exchange;
+            _routingKey = RoutingKey;
+            _mandatory = Mandatory;
+            _immediate = Immediate;
+        }
+
+        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicPublish;
+        public override string ProtocolMethodName => "basic.publish";
+        public override bool HasContent => true;
+
+        public override int WriteArgumentsTo(Span<byte> span)
+        {
+            int offset = WireFormatting.WriteShort(span, 0);
+            offset += WireFormatting.WriteShortstr(span.Slice(offset), _exchange.Span);
+            offset += WireFormatting.WriteShortstr(span.Slice(offset), _routingKey.Span);
+            return offset + WireFormatting.WriteBits(span.Slice(offset), _mandatory, _immediate);
+        }
+
+        public override int GetRequiredBufferSize()
+        {
+            return 2 + 1 + 1 + 1 + // bytes for _reserved1, length of _exchange, length of _routingKey, bit fields
+                   _exchange.Length + _routingKey.Length;
         }
     }
 }

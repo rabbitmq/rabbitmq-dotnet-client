@@ -766,6 +766,9 @@ namespace RabbitMQ.Client.Impl
                 body);
         }
 
+        public void BasicPublish(CachedString exchange, CachedString routingKey, bool mandatory, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
+            => Delegate.BasicPublish(exchange, routingKey, mandatory, basicProperties, body);
+
         public void BasicQos(uint prefetchSize,
             ushort prefetchCount,
             bool global)

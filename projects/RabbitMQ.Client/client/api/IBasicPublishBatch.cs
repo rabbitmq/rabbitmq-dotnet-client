@@ -36,6 +36,7 @@ namespace RabbitMQ.Client
     public interface IBasicPublishBatch
     {
         void Add(string exchange, string routingKey, bool mandatory, IBasicProperties properties, ReadOnlyMemory<byte> body);
+        void Add(CachedString exchange, CachedString routingKey, bool mandatory, IBasicProperties basicProperties, ReadOnlyMemory<byte> body);
         void Publish();
     }
 }

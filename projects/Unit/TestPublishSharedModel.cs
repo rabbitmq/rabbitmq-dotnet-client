@@ -39,9 +39,9 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestPublishSharedModel
     {
-        private const string ExchangeName = "TestPublishSharedModel_Ex";
         private const string QueueName = "TestPublishSharedModel_Queue";
-        private const string PublishKey = "TestPublishSharedModel_RoutePub";
+        private static readonly CachedString ExchangeName = new CachedString("TestPublishSharedModel_Ex");
+        private static readonly CachedString PublishKey = new CachedString("TestPublishSharedModel_RoutePub");
         private const int Loops = 20;
         private const int Repeats = 1000;
 
@@ -71,9 +71,9 @@ namespace RabbitMQ.Client.Unit
 
                 using (IModel model = conn.CreateModel())
                 {
-                    model.ExchangeDeclare(ExchangeName, "topic", durable: false, autoDelete: true);
+                    model.ExchangeDeclare(ExchangeName.Value, "topic", durable: false, autoDelete: true);
                     model.QueueDeclare(QueueName, false, false, true, null);
-                    model.QueueBind(QueueName, ExchangeName, PublishKey, null);
+                    model.QueueBind(QueueName, ExchangeName.Value, PublishKey.Value, null);
 
                     // Act
                     var pubTask = Task.Run(() => NewFunction(model));

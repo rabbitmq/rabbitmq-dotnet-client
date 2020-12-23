@@ -777,6 +777,20 @@ namespace RabbitMQ.Client.Impl
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int WriteShortstr(Span<byte> span, ReadOnlySpan<byte> value)
+        {
+            var length = value.Length;
+            if (length <= byte.MaxValue)
+            {
+                span[0] = (byte)length;
+                value.CopyTo(span.Slice(1));
+                return length + 1;
+            }
+
+            return ThrowArgumentTooLong(length);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteShortstr(Span<byte> span, string val)
         {
             int bytesWritten = 0;
@@ -952,6 +966,9 @@ namespace RabbitMQ.Client.Impl
             // See also MethodArgumentReader.ReadTimestamp and AmqpTimestamp itself
             return WriteLonglong(span, (ulong)val.UnixTime);
         }
+
+        public static int ThrowArgumentTooLong(int length)
+            => throw new ArgumentOutOfRangeException("value", $"Value exceeds the maximum allowed length of 255 bytes, was {length} long.");
 
         public static int ThrowArgumentOutOfRangeException(int orig, int expected)
             => throw new ArgumentOutOfRangeException("span", $"Span has not enough space ({orig} instead of {expected})");

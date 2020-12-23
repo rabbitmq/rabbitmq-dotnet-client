@@ -1,5 +1,5 @@
 ﻿using System;
-
+using System.Text;
 using BenchmarkDotNet.Attributes;
 
 using RabbitMQ.Client.Framing;
@@ -31,17 +31,33 @@ namespace RabbitMQ.Benchmarks
 
     public class MethodBasicDeliver : MethodSerializationBase
     {
-        private readonly BasicDeliver _basicDeliver = new BasicDeliver(string.Empty, 0, false, string.Empty, string.Empty);
-        public override void SetUp() => _basicDeliver.WriteArgumentsTo(_buffer.Span);
+        private const string StringValue = "Exchange_OR_RoutingKey";
+        private readonly BasicPublish _basicPublish = new BasicPublish(default, StringValue, StringValue, false, false);
+        private readonly BasicPublishMemory _basicPublishMemory = new BasicPublishMemory(Encoding.UTF8.GetBytes(StringValue), Encoding.UTF8.GetBytes(StringValue), false, false);
+
+        public override void SetUp()
+        {
+            int offset = RabbitMQ.Client.Impl.WireFormatting.WriteShortstr(_buffer.Span, string.Empty);
+            offset += RabbitMQ.Client.Impl.WireFormatting.WriteLonglong(_buffer.Slice(offset).Span, 0);
+            offset += RabbitMQ.Client.Impl.WireFormatting.WriteBits(_buffer.Slice(offset).Span, false);
+            offset += RabbitMQ.Client.Impl.WireFormatting.WriteShortstr(_buffer.Slice(offset).Span, string.Empty);
+            RabbitMQ.Client.Impl.WireFormatting.WriteShortstr(_buffer.Slice(offset).Span, string.Empty);
+        }
 
         [Benchmark]
         public object BasicDeliverRead() => new BasicDeliver(_buffer.Span);
 
         [Benchmark]
-        public int BasicDeliverWrite() => _basicDeliver.WriteArgumentsTo(_buffer.Span);
+        public int BasicPublishWrite() => _basicPublish.WriteArgumentsTo(_buffer.Span);
 
         [Benchmark]
-        public int BasicDeliverSize() => _basicDeliver.GetRequiredBufferSize();
+        public int BasicPublishMemoryWrite() => _basicPublishMemory.WriteArgumentsTo(_buffer.Span);
+
+        [Benchmark]
+        public int BasicPublishSize() => _basicPublish.GetRequiredBufferSize();
+
+        [Benchmark]
+        public int BasicPublishMemorySize() => _basicPublishMemory.GetRequiredBufferSize();
     }
 
     public class MethodChannelClose : MethodSerializationBase
