@@ -716,12 +716,6 @@ namespace RabbitMQ.Client.Exceptions
         public ChannelAllocationException(int channel) { }
         public int Channel { get; }
     }
-    public class ChannelErrorException : RabbitMQ.Client.Exceptions.HardProtocolException
-    {
-        public ChannelErrorException(int channel) { }
-        public int Channel { get; }
-        public override ushort ReplyCode { get; }
-    }
     [System.Serializable]
     public class ConnectFailureException : RabbitMQ.Client.Exceptions.ProtocolViolationException
     {
@@ -823,19 +817,6 @@ namespace RabbitMQ.Client.Exceptions
         public ushort MethodId { get; }
         public override ushort ReplyCode { get; }
         public override string ToString() { }
-    }
-    [System.Serializable]
-    public class UnsupportedMethodException : System.NotSupportedException
-    {
-        public UnsupportedMethodException(string methodName) { }
-        public string MethodName { get; }
-    }
-    [System.Serializable]
-    public class UnsupportedMethodFieldException : System.NotSupportedException
-    {
-        public UnsupportedMethodFieldException(string methodName, string fieldName) { }
-        public string FieldName { get; }
-        public string MethodName { get; }
     }
     [System.Serializable]
     public class WireFormattingException : RabbitMQ.Client.Exceptions.ProtocolViolationException

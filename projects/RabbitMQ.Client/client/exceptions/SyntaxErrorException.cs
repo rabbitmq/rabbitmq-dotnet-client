@@ -29,8 +29,6 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using RabbitMQ.Client.Framing;
-
 namespace RabbitMQ.Client.Exceptions
 {
     /// <summary> Thrown when our peer sends a frame that contains
