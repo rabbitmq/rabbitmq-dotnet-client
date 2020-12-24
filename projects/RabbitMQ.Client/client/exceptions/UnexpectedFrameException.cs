@@ -29,7 +29,6 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using RabbitMQ.Client.Framing;
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Exceptions
