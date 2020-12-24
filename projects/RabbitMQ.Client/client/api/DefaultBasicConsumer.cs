@@ -32,8 +32,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
 {
@@ -99,7 +99,12 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Signalled when the consumer gets cancelled.
         /// </summary>
-        public event EventHandler<ConsumerEventArgs> ConsumerCancelled;
+        public event EventHandler<ConsumerEventArgs> ConsumerCancelled
+        {
+            add => _consumerCancelledWrapper.AddHandler(value);
+            remove => _consumerCancelledWrapper.RemoveHandler(value);
+        }
+        private EventingWrapper<ConsumerEventArgs> _consumerCancelledWrapper;
 
         /// <summary>
         /// Retrieve the <see cref="IModel"/> this consumer is associated with,
@@ -179,9 +184,9 @@ namespace RabbitMQ.Client
         public virtual void OnCancel(params string[] consumerTags)
         {
             IsRunning = false;
-            foreach (EventHandler<ConsumerEventArgs> h in ConsumerCancelled?.GetInvocationList() ?? Array.Empty<Delegate>())
+            if (!_consumerCancelledWrapper.IsEmpty)
             {
-                h(this, new ConsumerEventArgs(consumerTags));
+                _consumerCancelledWrapper.Invoke(this, new ConsumerEventArgs(consumerTags));
             }
 
             foreach (string consumerTag in consumerTags)

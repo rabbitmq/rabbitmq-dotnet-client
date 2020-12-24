@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
 {
@@ -58,7 +58,12 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Signalled when the consumer gets cancelled.
         /// </summary>
-        public event AsyncEventHandler<ConsumerEventArgs> ConsumerCancelled;
+        public event AsyncEventHandler<ConsumerEventArgs> ConsumerCancelled
+        {
+            add => _consumerCancelledWrapper.AddHandler(value);
+            remove => _consumerCancelledWrapper.RemoveHandler(value);
+        }
+        private AsyncEventingWrapper<ConsumerEventArgs> _consumerCancelledWrapper;
 
         /// <summary>
         /// Retrieve the <see cref="IModel"/> this consumer is associated with,
@@ -134,13 +139,15 @@ namespace RabbitMQ.Client
         /// Default implementation - overridable in subclasses.</summary>
         /// <param name="consumerTags">The set of consumer tags that where cancelled</param>
         /// <remarks>
-        /// This default implementation simply sets the <see cref="IsRunning"/> 
-        /// property to false, and takes no further action.
+        /// This default implementation simply sets the <see cref="IsRunning"/> property to false, and takes no further action.
         /// </remarks>
         public virtual async Task OnCancel(params string[] consumerTags)
         {
             IsRunning = false;
-            await ConsumerCancelled.InvokeAsync(this, new ConsumerEventArgs(consumerTags)).ConfigureAwait(false);
+            if (!_consumerCancelledWrapper.IsEmpty)
+            {
+                await _consumerCancelledWrapper.InvokeAsync(this, new ConsumerEventArgs(consumerTags)).ConfigureAwait(false);
+            }
             foreach (string consumerTag in consumerTags)
             {
                 _consumerTags.Remove(consumerTag);

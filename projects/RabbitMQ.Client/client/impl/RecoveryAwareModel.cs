@@ -45,8 +45,10 @@ namespace RabbitMQ.Client.Impl
         public ulong ActiveDeliveryTagOffset { get; private set; }
         public ulong MaxSeenDeliveryTag { get; private set; }
 
-        public void InheritOffsetFrom(RecoveryAwareModel other)
+        internal void TakeOver(RecoveryAwareModel other)
         {
+            base.TakeOver(other);
+
             ActiveDeliveryTagOffset = other.ActiveDeliveryTagOffset + other.MaxSeenDeliveryTag;
             MaxSeenDeliveryTag = 0;
         }
