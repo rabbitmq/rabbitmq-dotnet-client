@@ -91,6 +91,17 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// The publication occurs with mandatory=false
         /// </remarks>
+        public static void BasicPublish(this IModel model, CachedString exchange, CachedString routingKey, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
+        {
+            model.BasicPublish(exchange, routingKey, false, basicProperties, body);
+        }
+
+        /// <summary>
+        /// (Extension method) Convenience overload of BasicPublish.
+        /// </summary>
+        /// <remarks>
+        /// The publication occurs with mandatory=false
+        /// </remarks>
         public static void BasicPublish(this IModel model, string exchange, string routingKey, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
         {
             model.BasicPublish(exchange, routingKey, false, basicProperties, body);

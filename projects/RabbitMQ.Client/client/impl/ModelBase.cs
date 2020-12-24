@@ -922,6 +922,12 @@ namespace RabbitMQ.Client.Impl
             IBasicProperties basicProperties,
             ReadOnlyMemory<byte> body);
 
+        public abstract void _Private_BasicPublishMemory(ReadOnlyMemory<byte> exchange,
+            ReadOnlyMemory<byte> routingKey,
+            bool mandatory,
+            IBasicProperties basicProperties,
+            ReadOnlyMemory<byte> body);
+
         public abstract void _Private_BasicRecover(bool requeue);
 
         public abstract void _Private_ChannelClose(ushort replyCode,
@@ -1132,11 +1138,6 @@ namespace RabbitMQ.Client.Impl
                 throw new ArgumentNullException(nameof(routingKey));
             }
 
-            if (basicProperties is null)
-            {
-                basicProperties = _emptyBasicProperties;
-            }
-
             if (NextPublishSeqNo > 0)
             {
                 lock (_confirmLock)
@@ -1157,8 +1158,34 @@ namespace RabbitMQ.Client.Impl
             _Private_BasicPublish(exchange,
                 routingKey,
                 mandatory,
-                basicProperties,
+                basicProperties ?? _emptyBasicProperties,
                 body);
+        }
+
+        public void BasicPublish(CachedString exchange,
+            CachedString routingKey,
+            bool mandatory,
+            IBasicProperties basicProperties,
+            ReadOnlyMemory<byte> body)
+        {
+            if (NextPublishSeqNo > 0)
+            {
+                lock (_confirmLock)
+                {
+                    if (_deliveryTagsCountdown.IsSet)
+                    {
+                        _deliveryTagsCountdown.Reset(1);
+                    }
+                    else
+                    {
+                        _deliveryTagsCountdown.AddCount();
+                    }
+
+                    _pendingDeliveryTags.AddLast(NextPublishSeqNo++);
+                }
+            }
+
+            _Private_BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, basicProperties ?? _emptyBasicProperties, body);
         }
 
         public void UpdateSecret(string newSecret, string reason)

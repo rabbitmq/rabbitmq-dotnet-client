@@ -31,7 +31,6 @@
 
 using System;
 using System.Collections.Generic;
-
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
@@ -61,7 +60,12 @@ namespace RabbitMQ.Client.Impl
                 _routingKey = routingKey,
                 _mandatory = mandatory
             };
+            _commands.Add(new OutgoingCommand(method, (ContentHeaderBase)(basicProperties ?? _model._emptyBasicProperties), body));
+        }
 
+        public void Add(CachedString exchange, CachedString routingKey, bool mandatory, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
+        {
+            var method = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
             _commands.Add(new OutgoingCommand(method, (ContentHeaderBase)(basicProperties ?? _model._emptyBasicProperties), body));
         }
 
