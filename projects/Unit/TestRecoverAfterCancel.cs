@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Concurrent;
 using System.Text;
 
 using NUnit.Framework;
@@ -73,21 +74,21 @@ namespace RabbitMQ.Client.Unit
             UTF8Encoding enc = new UTF8Encoding();
             _channel.BasicPublish("", _queue, null, enc.GetBytes("message"));
             EventingBasicConsumer Consumer = new EventingBasicConsumer(_channel);
-            SharedQueue<(bool Redelivered, byte[] Body)> EventQueue = new SharedQueue<(bool Redelivered, byte[] Body)>();
+            BlockingCollection<(bool Redelivered, byte[] Body)> EventQueue = new BlockingCollection<(bool Redelivered, byte[] Body)>();
             // Making sure we copy the delivery body since it could be disposed at any time.
-            Consumer.Received += (_, e) => EventQueue.Enqueue((e.Redelivered, e.Body.ToArray()));
+            Consumer.Received += (_, e) => EventQueue.Add((e.Redelivered, e.Body.ToArray()));
 
             string CTag = _channel.BasicConsume(_queue, false, Consumer);
-            (bool Redelivered, byte[] Body) Event = EventQueue.Dequeue();
+            (bool Redelivered, byte[] Body) Event = EventQueue.Take();
             _channel.BasicCancel(CTag);
             _channel.BasicRecover(true);
 
             EventingBasicConsumer Consumer2 = new EventingBasicConsumer(_channel);
-            SharedQueue<(bool Redelivered, byte[] Body)> EventQueue2 = new SharedQueue<(bool Redelivered, byte[] Body)>();
+            BlockingCollection<(bool Redelivered, byte[] Body)> EventQueue2 = new BlockingCollection<(bool Redelivered, byte[] Body)>();
             // Making sure we copy the delivery body since it could be disposed at any time.
-            Consumer2.Received += (_, e) => EventQueue2.Enqueue((e.Redelivered, e.Body.ToArray()));
+            Consumer2.Received += (_, e) => EventQueue2.Add((e.Redelivered, e.Body.ToArray()));
             _channel.BasicConsume(_queue, false, Consumer2);
-            (bool Redelivered, byte[] Body) Event2 = EventQueue2.Dequeue();
+            (bool Redelivered, byte[] Body) Event2 = EventQueue2.Take();
 
             CollectionAssert.AreEqual(Event.Body, Event2.Body);
             Assert.IsFalse(Event.Redelivered);

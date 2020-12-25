@@ -30,7 +30,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -246,7 +245,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public IDictionary<string, object> ServerProperties { get; set; }
 
-        public IList<ShutdownReportEntry> ShutdownReport { get; } = new SynchronizedList<ShutdownReportEntry>(new List<ShutdownReportEntry>());
+        public IList<ShutdownReportEntry> ShutdownReport => _shutdownReport;
+        private ShutdownReportEntry[] _shutdownReport = Array.Empty<ShutdownReportEntry>();
 
         ///<summary>Explicit implementation of IConnection.Protocol.</summary>
         IProtocol IConnection.Protocol => Endpoint.Protocol;
@@ -490,7 +490,14 @@ namespace RabbitMQ.Client.Framing.Impl
         public void LogCloseError(string error, Exception ex)
         {
             ESLog.Error(error, ex);
-            ShutdownReport.Add(new ShutdownReportEntry(error, ex));
+
+            lock (_shutdownReport)
+            {
+                var replacement = new ShutdownReportEntry[_shutdownReport.Length + 1];
+                replacement[replacement.Length - 1] = new ShutdownReportEntry(error, ex);
+                _shutdownReport.CopyTo(replacement.AsSpan());
+                _shutdownReport = replacement;
+            }
         }
 
         public void MainLoop()
@@ -662,24 +669,6 @@ namespace RabbitMQ.Client.Framing.Impl
             _model0.ConnectionOpen(_factory.VirtualHost, string.Empty, false);
         }
 
-        public void PrettyPrintShutdownReport()
-        {
-            if (ShutdownReport.Count == 0)
-            {
-                Console.Error.WriteLine(
-"No errors reported when closing connection {0}", this);
-            }
-            else
-            {
-                Console.Error.WriteLine(
-"Log of errors while closing connection {0}:", this);
-                for (int index = 0; index < ShutdownReport.Count; index++)
-                {
-                    Console.Error.WriteLine(ShutdownReport[index].ToString());
-                }
-            }
-        }
-
         ///<summary>
         /// Sets the channel named in the SoftProtocolException into
         /// "quiescing mode", where we issue a channel.close and
@@ -806,12 +795,9 @@ namespace RabbitMQ.Client.Framing.Impl
                     // of the heartbeat setting in setHeartbeat above.
                     if (_missedHeartbeats > 2 * 4)
                     {
-                        string description = string.Format("Heartbeat missing with heartbeat == {0} seconds", _heartbeat);
-                        var eose = new EndOfStreamException(description);
-                        ESLog.Error(description, eose);
-                        ShutdownReport.Add(new ShutdownReportEntry(description, eose));
-                        HandleMainLoopException(
-                            new ShutdownEventArgs(ShutdownInitiator.Library, 0, "End of stream", eose));
+                        var eose = new EndOfStreamException($"Heartbeat missing with heartbeat == {_heartbeat} seconds");
+                        LogCloseError(eose.Message, eose);
+                        HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library, 0, "End of stream", eose));
                         shouldTerminate = true;
                     }
                 }
