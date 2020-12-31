@@ -42,6 +42,9 @@ namespace RabbitMQ.Client.Impl
 {
     internal static class WireFormatting
     {
+        public static readonly object TrueBoolean = true;
+        public static readonly object FalseBoolean = false;
+
         // * DESCRIPTION TAKEN FROM MS REFERENCE SOURCE *
         // https://github.com/microsoft/referencesource/blob/master/mscorlib/system/decimal.cs
         // The lo, mid, hi, and flags fields contain the representation of the
@@ -111,7 +114,7 @@ namespace RabbitMQ.Client.Impl
                     return bytes;
                 case 't':
                     bytesRead = 2;
-                    return span[1] != 0;
+                    return span[1] != 0 ? TrueBoolean : FalseBoolean;
                 case 'I':
                     bytesRead = 5;
                     return NetworkOrderDeserializer.ReadInt32(span.Slice(1));

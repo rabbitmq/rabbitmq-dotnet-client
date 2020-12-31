@@ -239,8 +239,17 @@ namespace RabbitMQ.Client.Impl
 
         public void SendHeader()
         {
-            byte[] headerBytes = new byte[8];
-            Encoding.ASCII.GetBytes("AMQP", 0, 4, headerBytes, 0);
+#if NETSTANDARD
+            var headerBytes = new byte[8];
+#else
+            Span<byte> headerBytes = stackalloc byte[8];
+#endif
+
+            headerBytes[0] = (byte)'A';
+            headerBytes[1] = (byte)'M';
+            headerBytes[2] = (byte)'Q';
+            headerBytes[3] = (byte)'P';
+
             if (Endpoint.Protocol.Revision != 0)
             {
                 headerBytes[4] = 0;
@@ -256,7 +265,11 @@ namespace RabbitMQ.Client.Impl
                 headerBytes[7] = (byte)Endpoint.Protocol.MinorVersion;
             }
 
+#if NETSTANDARD
             _writer.Write(headerBytes, 0, 8);
+#else
+            _writer.Write(headerBytes);
+#endif
             _writer.Flush();
         }
 
@@ -273,7 +286,11 @@ namespace RabbitMQ.Client.Impl
                 while (_channelReader.TryRead(out ReadOnlyMemory<byte> memory))
                 {
                     MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> segment);
+#if NETSTANDARD
                     await _writer.WriteAsync(segment.Array, segment.Offset, segment.Count).ConfigureAwait(false);
+#else
+                    await _writer.WriteAsync(memory).ConfigureAwait(false);
+#endif
                     ArrayPool<byte>.Shared.Return(segment.Array);
                 }
 

@@ -334,9 +334,13 @@ namespace RabbitMQ.Client
             {
                 IAuthMechanismFactory factory = AuthMechanisms[index];
                 string factoryName = factory.Name;
-                if (mechanismNames.Any<string>(x => string.Equals(x, factoryName, StringComparison.OrdinalIgnoreCase)))
+
+                for (int i = 0; i < mechanismNames.Count; i++)
                 {
-                    return factory;
+                    if (string.Equals(mechanismNames[i], factoryName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return factory;
+                    }
                 }
             }
 

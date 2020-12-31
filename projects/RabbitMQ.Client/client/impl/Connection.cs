@@ -39,7 +39,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Impl;
@@ -50,25 +49,21 @@ namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class Connection : IConnection
     {
-        private bool _disposed = false;
+        private bool _disposed;
         private readonly object _eventLock = new object();
 
-        ///<summary>Heartbeat frame for transmission. Reusable across connections.</summary>
-
-        private readonly ManualResetEventSlim _appContinuation = new ManualResetEventSlim(false);
-
-        private volatile ShutdownEventArgs _closeReason = null;
-        private volatile bool _closed = false;
+        private volatile ShutdownEventArgs _closeReason;
+        private volatile bool _closed;
 
         private EventHandler<ShutdownEventArgs> _connectionShutdown;
 
         private readonly IConnectionFactory _factory;
         private readonly IFrameHandler _frameHandler;
+        private readonly ModelBase _model0;
+        private readonly MainSession _session0;
 
         private Guid _id = Guid.NewGuid();
-        private readonly ModelBase _model0;
         private volatile bool _running = true;
-        private readonly MainSession _session0;
         private SessionManager _sessionManager;
 
         //
@@ -253,7 +248,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public static IDictionary<string, object> DefaultClientProperties()
         {
-            IDictionary<string, object> table = new Dictionary<string, object>
+            var table = new Dictionary<string, object>(5)
             {
                 ["product"] = Encoding.UTF8.GetBytes("RabbitMQ"),
                 ["version"] = Encoding.UTF8.GetBytes(s_version),
@@ -343,8 +338,16 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
             }
 
-            bool receivedSignal = _appContinuation.Wait(timeout);
-            if (!receivedSignal)
+            bool closeFrameHandler;
+            try
+            {
+                closeFrameHandler = !_mainLoopTask.Wait(timeout);
+            }
+            catch (AggregateException)
+            {
+                closeFrameHandler = true;
+            }
+            if (closeFrameHandler)
             {
                 _frameHandler.Close();
             }
@@ -502,69 +505,62 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void MainLoop()
         {
+            bool shutdownCleanly = false;
             try
             {
-                bool shutdownCleanly = false;
-                try
+                while (_running)
                 {
-                    while (_running)
-                    {
-                        try
-                        {
-                            MainLoopIteration();
-                        }
-                        catch (SoftProtocolException spe)
-                        {
-                            QuiesceChannel(spe);
-                        }
-                    }
-                    shutdownCleanly = true;
-                }
-                catch (EndOfStreamException eose)
-                {
-                    // Possible heartbeat exception
-                    HandleMainLoopException(new ShutdownEventArgs(
-                        ShutdownInitiator.Library,
-                        0,
-                        "End of stream",
-                        eose));
-                }
-                catch (HardProtocolException hpe)
-                {
-                    shutdownCleanly = HardProtocolExceptionHandler(hpe);
-                }
-                catch (Exception ex)
-                {
-                    HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library,
-                        Constants.InternalError,
-                        "Unexpected Exception",
-                        ex));
-                }
-
-                // If allowed for clean shutdown, run main loop until the
-                // connection closes.
-                if (shutdownCleanly)
-                {
-#pragma warning disable 0168
                     try
                     {
-                        ClosingLoop();
+                        MainLoopIteration();
                     }
-                    catch (SocketException)
+                    catch (SoftProtocolException spe)
                     {
-                        // means that socket was closed when frame handler
-                        // attempted to use it. Since we are shutting down,
-                        // ignore it.
+                        QuiesceChannel(spe);
                     }
-#pragma warning restore 0168
                 }
-
-                FinishClose();
+                shutdownCleanly = true;
             }
-            finally
+            catch (EndOfStreamException eose)
             {
-                _appContinuation.Set();
+                // Possible heartbeat exception
+                HandleMainLoopException(new ShutdownEventArgs(
+                    ShutdownInitiator.Library,
+                    0,
+                    "End of stream",
+                    eose));
             }
+            catch (HardProtocolException hpe)
+            {
+                shutdownCleanly = HardProtocolExceptionHandler(hpe);
+            }
+            catch (Exception ex)
+            {
+                HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library,
+                    Constants.InternalError,
+                    "Unexpected Exception",
+                    ex));
+            }
+
+            // If allowed for clean shutdown, run main loop until the
+            // connection closes.
+            if (shutdownCleanly)
+            {
+#pragma warning disable 0168
+                try
+                {
+                    ClosingLoop();
+                }
+                catch (SocketException)
+                {
+                    // means that socket was closed when frame handler
+                    // attempted to use it. Since we are shutting down,
+                    // ignore it.
+                }
+#pragma warning restore 0168
+            }
+
+            FinishClose();
         }
 
         public void MainLoopIteration()
@@ -747,17 +743,8 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             if (Heartbeat != TimeSpan.Zero)
             {
-                if (_heartbeatWriteTimer is null)
-                {
-                    _heartbeatWriteTimer = new Timer(HeartbeatWriteTimerCallback, null, Timeout.Infinite, Timeout.Infinite);
-                    _heartbeatWriteTimer.Change(200, Timeout.Infinite);
-                }
-
-                if (_heartbeatReadTimer is null)
-                {
-                    _heartbeatReadTimer = new Timer(HeartbeatReadTimerCallback, null, Timeout.Infinite, Timeout.Infinite);
-                    _heartbeatReadTimer.Change(300, Timeout.Infinite);
-                }
+                _heartbeatWriteTimer ??= new Timer(HeartbeatWriteTimerCallback, null, 200, Timeout.Infinite);
+                _heartbeatReadTimer ??= new Timer(HeartbeatReadTimerCallback, null, 300, Timeout.Infinite);
             }
         }
 

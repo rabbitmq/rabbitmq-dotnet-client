@@ -38,18 +38,18 @@ namespace RabbitMQ.Client.Framing.Impl
 {
     internal abstract class ProtocolBase : IProtocol
     {
-        public IDictionary<string, bool> Capabilities;
+        public Dictionary<string, object> Capabilities;
 
-        public ProtocolBase()
+        protected ProtocolBase()
         {
-            Capabilities = new Dictionary<string, bool>
+            Capabilities = new Dictionary<string, object>(6)
             {
-                ["publisher_confirms"] = true,
-                ["exchange_exchange_bindings"] = true,
-                ["basic.nack"] = true,
-                ["consumer_cancel_notify"] = true,
-                ["connection.blocked"] = true,
-                ["authentication_failure_close"] = true
+                ["publisher_confirms"] = WireFormatting.TrueBoolean,
+                ["exchange_exchange_bindings"] = WireFormatting.TrueBoolean,
+                ["basic.nack"] = WireFormatting.TrueBoolean,
+                ["consumer_cancel_notify"] = WireFormatting.TrueBoolean,
+                ["connection.blocked"] = WireFormatting.TrueBoolean,
+                ["authentication_failure_close"] = WireFormatting.TrueBoolean
             };
         }
 

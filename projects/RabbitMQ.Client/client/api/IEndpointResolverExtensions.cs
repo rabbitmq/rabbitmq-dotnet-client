@@ -39,7 +39,7 @@ namespace RabbitMQ.Client
         public static T SelectOne<T>(this IEndpointResolver resolver, Func<AmqpTcpEndpoint, T> selector)
         {
             var t = default(T);
-            var exceptions = new List<Exception>();
+            List<Exception> exceptions = null;
             foreach (AmqpTcpEndpoint ep in resolver.All())
             {
                 try
@@ -52,11 +52,12 @@ namespace RabbitMQ.Client
                 }
                 catch (Exception e)
                 {
+                    exceptions ??= new List<Exception>(1);
                     exceptions.Add(e);
                 }
             }
 
-            if (Object.Equals(t, default(T)) && exceptions.Count > 0)
+            if (Object.Equals(t, default(T)) && exceptions?.Count > 0)
             {
                 throw new AggregateException(exceptions);
             }
