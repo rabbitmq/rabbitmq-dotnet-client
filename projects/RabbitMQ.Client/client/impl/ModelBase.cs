@@ -725,7 +725,7 @@ namespace RabbitMQ.Client.Impl
                 routingKey,
                 messageCount,
                 basicProperties,
-                body);
+                body.ToArray());
             k.HandleCommand(IncomingCommand.Empty); // release the continuation.
         }
 
