@@ -26,7 +26,7 @@ namespace Benchmarks.Networking
 
             for (int i = 0; i < 10; i++)
             {
-                var response = broker.Execute("rabbitmqctl--node rabbit1 await_startup ");
+                var response = broker.Execute("rabbitmqctl --node rabbit1 await_startup");
                 if (response.Success)
                 {
                     break;

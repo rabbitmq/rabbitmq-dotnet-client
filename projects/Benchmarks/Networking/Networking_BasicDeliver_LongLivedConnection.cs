@@ -2,14 +2,18 @@
 using BenchmarkDotNet.Attributes;
 using RabbitMQ.Client;
 using System;
+using System.Text;
 
 namespace Benchmarks.Networking
 {
     [MemoryDiagnoser]
-    public class Networking_BasicDeliver_ExistingConnection
+    public class Networking_BasicDeliver_LongLivedConnection
     {
         private IDisposable _container;
         private IConnection _connection;
+
+        private const int messageCount = 10000;
+        private static byte[] _body = Encoding.UTF8.GetBytes("hello world");
 
         [GlobalSetup]
         public void GlobalSetup()
@@ -30,7 +34,7 @@ namespace Benchmarks.Networking
         [Benchmark(Baseline = true)]
         public async Task Publish_Hello_World()
         {
-            await Networking_BasicDeliver.Publish_Hello_World(_connection);
+            await Networking_BasicDeliver_Commons.Publish_Hello_World(_connection, messageCount, _body);
         }
     }
 }

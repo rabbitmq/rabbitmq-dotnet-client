@@ -1,9 +1,7 @@
 ﻿using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 using System;
 
 namespace Benchmarks.Networking
@@ -40,28 +38,7 @@ namespace Benchmarks.Networking
 
         public static async Task Publish_Hello_World(IConnection connection)
         {
-            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            using (var model = connection.CreateModel())
-            {
-                var queue = model.QueueDeclare();
-                var consumed = 0;
-                var consumer = new EventingBasicConsumer(model);
-                consumer.Received += (s, args) =>
-                {
-                    if (Interlocked.Increment(ref consumed) == messageCount)
-                    {
-                        tcs.SetResult(true);
-                    }
-                };
-                model.BasicConsume(queue.QueueName, true, consumer);
-
-                for (int i = 0; i < messageCount; i++)
-                {
-                    model.BasicPublish("", queue.QueueName, null, _body);
-                }
-
-                await tcs.Task;
-            }
+            await Networking_BasicDeliver_Commons.Publish_Hello_World(connection, messageCount, _body);
         }
     }
 }
