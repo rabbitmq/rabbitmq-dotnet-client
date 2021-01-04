@@ -48,6 +48,8 @@ build/
 [Oo]bj/
 *.lock.json
 
+BenchmarkDotNet.Artifacts/*
+
 APIApproval.Approve.received.txt
 
 # Visual Studio 2015 cache/options directory
