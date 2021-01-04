@@ -17,25 +17,20 @@ namespace Benchmarks.Networking
             var broker = new Builder().UseContainer()
                .UseImage("rabbitmq")
                .ExposePort(5672, 5672)
-               .WaitForPort("5672/tcp", 40000 /*40s*/)
+               .Wait("rabbitmq",  ReadyProbe )
                .ReuseIfExists()
                .WithName("rabbitmq")
                .WithEnvironment("NODENAME=rabbit1")
                .Build()
                .Start();
 
-            for (int i = 0; i < 10; i++)
-            {
-                var response = broker.Execute("rabbitmqctl--node rabbit1 await_startup ");
-                if (response.Success)
-                {
-                    break;
-                }
-
-                Thread.Sleep(1000);
-            }
-
             return new RabbitMQBroker(broker);
+        }
+
+        private static int ReadyProbe(IContainerService containerService, int arg2)
+        {
+            var response = containerService.Execute("rabbitmqctl --node rabbit1 await_startup ");
+            return response.Success ? 0 : 500;
         }
 
         public RabbitMQBroker(IContainerService service)
