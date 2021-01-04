@@ -29,6 +29,11 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <CodeAnalysisRuleSet>RabbitMQ.ruleset</CodeAnalysisRuleSet>
     <LangVersion>latest</LangVersion>
+    <ReleaseVersion>8.0</ReleaseVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AnalysisMode>AllEnabledByDefault</AnalysisMode>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(CONCOURSE_CI_BUILD)' == 'true'">
@@ -58,12 +63,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.3.1" PrivateAssets="All" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" PrivateAssets="All" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
-    <PackageReference Include="MinVer" Version="2.3.0" PrivateAssets="All" />
+    <PackageReference Include="MinVer" Version="2.4.0" PrivateAssets="All" />
     <PackageReference Include="System.Memory" Version="4.5.4" />
-    <PackageReference Include="System.Threading.Channels" Version="4.7.1" />
+    <PackageReference Include="System.Threading.Channels" Version="5.0.0" />
   </ItemGroup>
 
 </Project>

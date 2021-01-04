@@ -12,7 +12,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitMQ.Client", "projects
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Unit", "projects\Unit\Unit.csproj", "{B8FAC024-CC03-4067-9FFC-02846FB8AE48}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Benchmarks", "projects\Benchmarks\Benchmarks.csproj", "{38D72C9A-68E9-4653-B0CE-C7BA9FFD91D0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmarks", "projects\Benchmarks\Benchmarks.csproj", "{38D72C9A-68E9-4653-B0CE-C7BA9FFD91D0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -38,5 +38,11 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3C6A0C44-FA63-4101-BBF9-2598641167D1}
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		Policies = $0
+		$0.DotNetNamingPolicy = $1
+		$1.DirectoryNamespaceAssociation = PrefixedHierarchical
+		version = 8.0
 	EndGlobalSection
 EndGlobal
