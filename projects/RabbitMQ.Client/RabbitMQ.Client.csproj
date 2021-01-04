@@ -27,7 +27,6 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageOutputPath>..\..\packages</PackageOutputPath>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <CodeAnalysisRuleSet>RabbitMQ.ruleset</CodeAnalysisRuleSet>
     <LangVersion>latest</LangVersion>
     <ReleaseVersion>8.0</ReleaseVersion>
   </PropertyGroup>
@@ -68,6 +67,7 @@
     <PackageReference Include="MinVer" Version="2.4.0" PrivateAssets="All" />
     <PackageReference Include="System.Memory" Version="4.5.4" />
     <PackageReference Include="System.Threading.Channels" Version="5.0.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="5.0.1" />
   </ItemGroup>
 
 </Project>
