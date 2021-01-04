@@ -44,7 +44,14 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public Task Approve()
         {
-            string publicApi = typeof(ConnectionFactory).Assembly.GeneratePublicApi(new ApiGeneratorOptions { ExcludeAttributes = new[] { "System.Runtime.Versioning.TargetFrameworkAttribute" } });
+            string publicApi = typeof(ConnectionFactory).Assembly.GeneratePublicApi(new ApiGeneratorOptions
+            {
+                ExcludeAttributes = new[]
+                {
+                    "System.Runtime.Versioning.TargetFrameworkAttribute",
+                    "System.Reflection.AssemblyMetadataAttribute"
+                }
+            });
 
             var settings = new VerifySettings();
             settings.DisableClipboard();

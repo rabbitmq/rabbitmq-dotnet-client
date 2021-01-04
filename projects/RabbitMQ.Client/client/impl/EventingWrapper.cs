@@ -102,7 +102,8 @@ namespace RabbitMQ.Client.Impl
             _handlers = null;
         }
 
-        public async Task InvokeAsync(object sender, T parameter)
+        // Do not make this function async! (This type is a struct that gets copied at the start of an async method => empty _handlers is copied)
+        public Task InvokeAsync(object sender, T parameter)
         {
             var handlers = _handlers;
             if (handlers is null)
@@ -110,11 +111,21 @@ namespace RabbitMQ.Client.Impl
                 handlers = _event?.GetInvocationList();
                 if (handlers is null)
                 {
-                    return;
+                    return Task.CompletedTask;
                 }
 
                 _handlers = handlers;
             }
+
+            if (handlers.Length == 1)
+            {
+                return ((AsyncEventHandler<T>)handlers[0])(sender, parameter);
+            }
+            return InternalInvoke(handlers, sender, parameter);
+        }
+
+        private static async Task InternalInvoke(Delegate[] handlers, object sender, T parameter)
+        {
             foreach (AsyncEventHandler<T> action in handlers)
             {
                 await action(sender, parameter).ConfigureAwait(false);
