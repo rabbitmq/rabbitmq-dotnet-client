@@ -83,6 +83,15 @@ namespace RabbitMQ.Client.Framing.Impl
                                             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
                                             .InformationalVersion;
 
+        public static readonly TimeSpan DefaultConnectionClosureTimeout;
+        public static readonly TimeSpan DefaultConnectionAbortTimeout;
+
+        static Connection()
+        {
+            DefaultConnectionClosureTimeout = TimeSpan.FromSeconds(30);
+            DefaultConnectionAbortTimeout   = TimeSpan.FromSeconds(2);
+        }
+
         // true if we haven't finished connection negotiation.
         // In this state socket exceptions are treated as fatal connection
         // errors, otherwise as read timeouts
@@ -226,6 +235,11 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public AmqpTcpEndpoint[] KnownHosts { get; set; }
 
+        internal IFrameHandler FrameHandler
+        {
+            get { return _frameHandler; }
+        }
+
         public EndPoint LocalEndPoint => _frameHandler.LocalEndPoint;
 
         public int LocalPort => _frameHandler.LocalPort;
@@ -266,7 +280,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void Close(ShutdownEventArgs reason)
         {
-            Close(reason, false, Timeout.InfiniteTimeSpan);
+            Close(reason, false, DefaultConnectionClosureTimeout);
         }
 
         ///<summary>Try to close connection in a graceful way</summary>
@@ -281,7 +295,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///</para>
         ///<para>
         ///Timeout determines how much time internal close operations should be given
-        ///to complete. System.Threading.Timeout.InfiniteTimeSpan value means infinity.
+        ///to complete.
         ///</para>
         ///</remarks>
         public void Close(ShutdownEventArgs reason, bool abort, TimeSpan timeout)
@@ -300,9 +314,12 @@ namespace RabbitMQ.Client.Framing.Impl
 
                 try
                 {
-                    // Try to send connection.close
-                    // Wait for CloseOk in the MainLoop
-                    _session0.Transmit(ConnectionCloseWrapper(reason.ReplyCode, reason.ReplyText));
+                    if(_running && _frameHandler.IsOpen())
+                    {
+                        // Try to send connection.close
+                        // Wait for CloseOk in the MainLoop
+                        _session0.Transmit(ConnectionCloseWrapper(reason.ReplyCode, reason.ReplyText));
+                    }
                 }
                 catch (AlreadyClosedException)
                 {
@@ -349,7 +366,9 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             if (closeFrameHandler)
             {
-                _frameHandler.Close();
+                if(_frameHandler.IsOpen()) {
+                    _frameHandler.Close();
+                }
             }
         }
 
@@ -421,7 +440,10 @@ namespace RabbitMQ.Client.Framing.Impl
             _closed = true;
             MaybeStopHeartbeatTimers();
 
-            _frameHandler.Close();
+            if(_frameHandler.IsOpen())
+            {
+                _frameHandler.Close();
+            }
             _model0.SetCloseReason(_closeReason);
             _model0.FinishClose();
         }
@@ -872,13 +894,13 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection abort.</summary>
         public void Abort()
         {
-            Abort(Timeout.InfiniteTimeSpan);
+            Abort(DefaultConnectionAbortTimeout);
         }
 
         ///<summary>API-side invocation of connection abort.</summary>
         public void Abort(ushort reasonCode, string reasonText)
         {
-            Abort(reasonCode, reasonText, Timeout.InfiniteTimeSpan);
+            Abort(reasonCode, reasonText, DefaultConnectionAbortTimeout);
         }
 
         ///<summary>API-side invocation of connection abort with timeout.</summary>
@@ -896,13 +918,13 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection.close.</summary>
         public void Close()
         {
-            Close(Constants.ReplySuccess, "Goodbye", Timeout.InfiniteTimeSpan);
+            Close(Constants.ReplySuccess, "Goodbye", DefaultConnectionClosureTimeout);
         }
 
         ///<summary>API-side invocation of connection.close.</summary>
         public void Close(ushort reasonCode, string reasonText)
         {
-            Close(reasonCode, reasonText, Timeout.InfiniteTimeSpan);
+            Close(reasonCode, reasonText, DefaultConnectionClosureTimeout);
         }
 
         ///<summary>API-side invocation of connection.close with timeout.</summary>

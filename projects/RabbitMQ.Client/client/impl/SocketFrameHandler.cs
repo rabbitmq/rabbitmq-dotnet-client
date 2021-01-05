@@ -201,6 +201,21 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public bool IsOpen()
+        {
+            if(_closed)
+            {
+                return false;
+            }
+
+            if(_socket == null)
+            {
+                return false;
+            }
+
+            return _socket.Connected;
+        }
+
         public void Close()
         {
             lock (_semaphore)
