@@ -40,7 +40,7 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestAsyncConsumerExceptions : IntegrationFixture
     {
-        private static Exception TestException = new Exception("oops");
+        private static readonly Exception TestException = new Exception("oops");
 
         protected void TestExceptionHandlingWith(IBasicConsumer consumer,
             Action<IModel, string, IBasicConsumer, string> action)
@@ -59,7 +59,7 @@ namespace RabbitMQ.Client.Unit
 
             string tag = _model.BasicConsume(q, true, consumer);
             action(_model, q, consumer, tag);
-            resetEvent.WaitOne();
+            resetEvent.WaitOne(2000);
 
             Assert.IsTrue(notified);
         }

@@ -81,20 +81,11 @@ namespace RabbitMQ.Client.Framing.Impl
         private ShutdownEventArgs _closeReason;
         public ShutdownEventArgs CloseReason => Volatile.Read(ref _closeReason);
 
-        // true if we haven't finished connection negotiation.
-        // In this state socket exceptions are treated as fatal connection
-        // errors, otherwise as read timeouts
-        public ConsumerWorkService ConsumerWorkService { get; }
-
         public Connection(IConnectionFactory factory, IFrameHandler frameHandler, string clientProvidedName = null)
         {
             ClientProvidedName = clientProvidedName;
             _factory = factory;
             _frameHandler = frameHandler;
-
-            ConsumerWorkService = factory.DispatchConsumersAsync
-                ? new AsyncConsumerWorkService(factory.ConsumerDispatchConcurrency)
-                : new ConsumerWorkService(factory.ConsumerDispatchConcurrency);
 
             Action<Exception, string> onException = (exception, context) => OnCallbackException(CallbackExceptionEventArgs.Build(exception, context));
             _callbackExceptionWrapper = new EventingWrapper<CallbackExceptionEventArgs>(string.Empty, (exception, context) => { });
@@ -104,7 +95,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
             _sessionManager = new SessionManager(this, 0);
             _session0 = new MainSession(this) { Handler = NotifyReceivedCloseOk };
-            _model0 = (ModelBase)Protocol.CreateModel(_session0);
+            _model0 = (ModelBase)Protocol.CreateModel(factory, _session0);
 
             StartMainLoop();
             Open();
@@ -791,7 +782,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             EnsureIsOpen();
             ISession session = CreateSession();
-            var model = (ModelBase)Protocol.CreateModel(session, ConsumerWorkService);
+            var model = (ModelBase)Protocol.CreateModel(_factory, session);
             model.ContinuationTimeout = _factory.ContinuationTimeout;
             model._Private_ChannelOpen();
             return model;

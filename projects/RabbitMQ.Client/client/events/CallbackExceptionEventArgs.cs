@@ -37,9 +37,9 @@ namespace RabbitMQ.Client.Events
     public abstract class BaseExceptionEventArgs : EventArgs
     {
         ///<summary>Wrap an exception thrown by a callback.</summary>
-        public BaseExceptionEventArgs(Exception exception)
+        protected BaseExceptionEventArgs(IDictionary<string, object> detail, Exception exception)
         {
-            Detail = new Dictionary<string, object>();
+            Detail = detail;
             Exception = exception;
         }
 
@@ -49,15 +49,6 @@ namespace RabbitMQ.Client.Events
 
         ///<summary>Access the wrapped exception.</summary>
         public Exception Exception { get; }
-
-        public IDictionary<string, object> UpdateDetails(IDictionary<string, object> other)
-        {
-            foreach (KeyValuePair<string, object> pair in other)
-            {
-                Detail[pair.Key] = pair.Value;
-            }
-            return Detail;
-        }
     }
 
 
@@ -83,26 +74,31 @@ namespace RabbitMQ.Client.Events
     ///</remarks>
     public class CallbackExceptionEventArgs : BaseExceptionEventArgs
     {
-        public CallbackExceptionEventArgs(Exception e) : base(e)
+        private const string ContextString = "context";
+        private const string ConsumerString = "consumer";
+
+        public CallbackExceptionEventArgs(IDictionary<string, object> detail, Exception exception)
+            : base(detail, exception)
         {
         }
 
-        public static CallbackExceptionEventArgs Build(Exception e,
-                                                       string context)
+        public static CallbackExceptionEventArgs Build(Exception e, string context)
         {
-            var details = new Dictionary<string, object>
+            var details = new Dictionary<string, object>(1)
             {
-                {"context", context}
+                {ContextString, context}
             };
-            return Build(e, details);
+            return new CallbackExceptionEventArgs(details, e);
         }
 
-        public static CallbackExceptionEventArgs Build(Exception e,
-                                                       IDictionary<string, object> details)
+        public static CallbackExceptionEventArgs Build(Exception e, string context, object consumer)
         {
-            var exnArgs = new CallbackExceptionEventArgs(e);
-            exnArgs.UpdateDetails(details);
-            return exnArgs;
+            var details = new Dictionary<string, object>(2)
+            {
+                {ContextString, context},
+                {ConsumerString, consumer}
+            };
+            return new CallbackExceptionEventArgs(details, e);
         }
     }
 }
