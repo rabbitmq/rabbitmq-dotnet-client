@@ -32,7 +32,6 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -60,7 +59,6 @@ namespace RabbitMQ.Client.Impl
         private readonly object _rpcLock = new object();
         private readonly object _confirmLock = new object();
         private readonly LinkedList<ulong> _pendingDeliveryTags = new LinkedList<ulong>();
-        private readonly CountdownEvent _deliveryTagsCountdown = new CountdownEvent(0);
 
         private bool _onlyAcksReceived = true;
 
@@ -419,7 +417,18 @@ namespace RabbitMQ.Client.Impl
             _continuationQueue.HandleModelShutdown(reason);
             _modelShutdownWrapper.Invoke(this, reason);
             _modelShutdownWrapper.ClearHandlers();
-            _deliveryTagsCountdown.Reset(0);
+            lock (_confirmLock)
+            {
+                if (_confirmsTaskCompletionSources?.Count > 0)
+                {
+                    var exception = new AlreadyClosedException(reason);
+                    foreach (var confirmsTaskCompletionSource in _confirmsTaskCompletionSources)
+                    {
+                        confirmsTaskCompletionSource.TrySetException(exception);
+                    }
+                    _confirmsTaskCompletionSources.Clear();
+                }
+            }
             _flowControlBlock.Set();
         }
 
@@ -536,34 +545,34 @@ namespace RabbitMQ.Client.Impl
                     {
                         if (multiple)
                         {
-                            int count = 0;
                             while (_pendingDeliveryTags.First.Value < deliveryTag)
                             {
                                 _pendingDeliveryTags.RemoveFirst();
-                                count++;
                             }
 
                             if (_pendingDeliveryTags.First.Value == deliveryTag)
                             {
                                 _pendingDeliveryTags.RemoveFirst();
-                                count++;
-                            }
-
-                            if (count > 0)
-                            {
-                                _deliveryTagsCountdown.Signal(count);
                             }
                         }
                         else
                         {
-                            if (_pendingDeliveryTags.Remove(deliveryTag))
-                            {
-                                _deliveryTagsCountdown.Signal();
-                            }
+                            _pendingDeliveryTags.Remove(deliveryTag);
                         }
                     }
 
                     _onlyAcksReceived = _onlyAcksReceived && !isNack;
+
+                    if (_pendingDeliveryTags.Count == 0 && _confirmsTaskCompletionSources.Count > 0)
+                    {
+                        // Done, mark tasks
+                        foreach (var confirmsTaskCompletionSource in _confirmsTaskCompletionSources)
+                        {
+                            confirmsTaskCompletionSource.TrySetResult(_onlyAcksReceived);
+                        }
+                        _confirmsTaskCompletionSources.Clear();
+                        _onlyAcksReceived = true;
+                    }
                 }
             }
         }
@@ -1064,25 +1073,13 @@ namespace RabbitMQ.Client.Impl
             bool multiple,
             bool requeue);
 
-        internal void AllocatePublishSeqNos(int count)
+        private void AllocatePublishSeqNos(int count)
         {
-            if (NextPublishSeqNo > 0)
+            lock (_confirmLock)
             {
-                lock (_confirmLock)
+                for (int i = 0; i < count; i++)
                 {
-                    if (_deliveryTagsCountdown.IsSet)
-                    {
-                        _deliveryTagsCountdown.Reset(count);
-                    }
-                    else
-                    {
-                        _deliveryTagsCountdown.AddCount(count);
-                    }
-
-                    for (int i = 0; i < count; i++)
-                    {
-                        _pendingDeliveryTags.AddLast(NextPublishSeqNo++);
-                    }
+                    _pendingDeliveryTags.AddLast(NextPublishSeqNo++);
                 }
             }
         }
@@ -1102,15 +1099,6 @@ namespace RabbitMQ.Client.Impl
             {
                 lock (_confirmLock)
                 {
-                    if (_deliveryTagsCountdown.IsSet)
-                    {
-                        _deliveryTagsCountdown.Reset(1);
-                    }
-                    else
-                    {
-                        _deliveryTagsCountdown.AddCount();
-                    }
-
                     _pendingDeliveryTags.AddLast(NextPublishSeqNo++);
                 }
             }
@@ -1132,15 +1120,6 @@ namespace RabbitMQ.Client.Impl
             {
                 lock (_confirmLock)
                 {
-                    if (_deliveryTagsCountdown.IsSet)
-                    {
-                        _deliveryTagsCountdown.Reset(1);
-                    }
-                    else
-                    {
-                        _deliveryTagsCountdown.AddCount();
-                    }
-
                     _pendingDeliveryTags.AddLast(NextPublishSeqNo++);
                 }
             }
@@ -1198,6 +1177,7 @@ namespace RabbitMQ.Client.Impl
         {
             if (NextPublishSeqNo == 0UL)
             {
+                _confirmsTaskCompletionSources = new List<TaskCompletionSource<bool>>();
                 NextPublishSeqNo = 1;
             }
 
@@ -1357,86 +1337,96 @@ namespace RabbitMQ.Client.Impl
 
         public abstract void TxSelect();
 
-        public bool WaitForConfirms(TimeSpan timeout, out bool timedOut)
+        private List<TaskCompletionSource<bool>> _confirmsTaskCompletionSources;
+
+        public Task<bool> WaitForConfirmsAsync(CancellationToken token = default)
         {
             if (NextPublishSeqNo == 0UL)
             {
                 throw new InvalidOperationException("Confirms not selected");
             }
-            bool isWaitInfinite = timeout.TotalMilliseconds == Timeout.Infinite;
-            Stopwatch stopwatch = Stopwatch.StartNew();
-            while (true)
+
+            TaskCompletionSource<bool> tcs;
+            lock (_confirmLock)
             {
-                if (!IsOpen)
+                if (_pendingDeliveryTags.Count == 0)
                 {
-                    throw new AlreadyClosedException(CloseReason);
-                }
-
-                if (_deliveryTagsCountdown.IsSet)
-                {
-                    bool aux = _onlyAcksReceived;
-                    _onlyAcksReceived = true;
-                    timedOut = false;
-                    return aux;
-                }
-
-                if (isWaitInfinite)
-                {
-                    _deliveryTagsCountdown.Wait();
-                }
-                else
-                {
-                    TimeSpan elapsed = stopwatch.Elapsed;
-                    if (elapsed > timeout || !_deliveryTagsCountdown.Wait(timeout - elapsed))
+                    if (_onlyAcksReceived == false)
                     {
-                        timedOut = true;
-                        return _onlyAcksReceived;
+                        _onlyAcksReceived = true;
+                        return Task.FromResult(false);
                     }
+                    return Task.FromResult(true);
                 }
+
+                tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                _confirmsTaskCompletionSources.Add(tcs);
+            }
+
+            if (!token.CanBeCanceled)
+            {
+                return tcs.Task;
+            }
+
+            return WaitForConfirmsWithTokenAsync(tcs, token);
+        }
+
+        private async Task<bool> WaitForConfirmsWithTokenAsync(TaskCompletionSource<bool> tcs, CancellationToken token)
+        {
+            CancellationTokenRegistration tokenRegistration =
+#if NETSTANDARD
+                token.Register(
+#else
+                token.UnsafeRegister(
+#endif
+                    state => ((TaskCompletionSource<bool>)state).TrySetCanceled(), tcs);
+
+            try
+            {
+                return await tcs.Task.ConfigureAwait(false);
+            }
+            finally
+            {
+#if NETSTANDARD
+                tokenRegistration.Dispose();
+#else
+                await tokenRegistration.DisposeAsync().ConfigureAwait(false);
+#endif
             }
         }
 
-        public bool WaitForConfirms()
+        public async Task WaitForConfirmsOrDieAsync(CancellationToken token = default)
         {
-            return WaitForConfirms(TimeSpan.FromMilliseconds(Timeout.Infinite), out _);
-        }
-
-        public bool WaitForConfirms(TimeSpan timeout)
-        {
-            return WaitForConfirms(timeout, out _);
-        }
-
-        public void WaitForConfirmsOrDie()
-        {
-            WaitForConfirmsOrDie(TimeSpan.FromMilliseconds(Timeout.Infinite));
-        }
-
-        public void WaitForConfirmsOrDie(TimeSpan timeout)
-        {
-            bool onlyAcksReceived = WaitForConfirms(timeout, out bool timedOut);
-            if (!onlyAcksReceived)
+            try
             {
-                Close(new ShutdownEventArgs(ShutdownInitiator.Application,
-                    Constants.ReplySuccess,
-                    "Nacks Received", new IOException("nack received")),
-                    false).GetAwaiter().GetResult();
-                throw new IOException("Nacks Received");
+                bool onlyAcksReceived = await WaitForConfirmsAsync(token).ConfigureAwait(false);
+                if (onlyAcksReceived)
+                {
+                    return;
+                }
+
+                await Close(
+                    new ShutdownEventArgs(ShutdownInitiator.Application, Constants.ReplySuccess, "Nacks Received",
+                        new IOException("nack received")),
+                    false).ConfigureAwait(false);
             }
-            if (timedOut)
+            catch (TaskCanceledException exception)
             {
-                Close(new ShutdownEventArgs(ShutdownInitiator.Application,
-                    Constants.ReplySuccess,
-                    "Timed out waiting for acks",
-                    new IOException("timed out waiting for acks")),
-                    false).GetAwaiter().GetResult();
-                throw new IOException("Timed out waiting for acks");
+                await Close(new ShutdownEventArgs(ShutdownInitiator.Application,
+                        Constants.ReplySuccess,
+                        "Timed out waiting for acks",
+                        exception),
+                    false).ConfigureAwait(false);
             }
         }
 
         internal void SendCommands(IList<OutgoingCommand> commands)
         {
             _flowControlBlock.Wait();
-            AllocatePublishSeqNos(commands.Count);
+            if (NextPublishSeqNo > 0)
+            {
+                AllocatePublishSeqNos(commands.Count);
+            }
             Session.Transmit(commands);
         }
 

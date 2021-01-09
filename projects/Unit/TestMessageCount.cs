@@ -29,8 +29,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
@@ -38,7 +37,7 @@ namespace RabbitMQ.Client.Unit
     internal class TestMessageCount : IntegrationFixture
     {
         [Test]
-        public void TestMessageCountMethod()
+        public async Task TestMessageCountMethod()
         {
             _model.ConfirmSelect();
             string q = GenerateQueueName();
@@ -46,7 +45,7 @@ namespace RabbitMQ.Client.Unit
             Assert.AreEqual(0, _model.MessageCount(q));
 
             _model.BasicPublish(exchange: "", routingKey: q, basicProperties: null, body: _encoding.GetBytes("msg"));
-            _model.WaitForConfirms(TimeSpan.FromSeconds(2));
+            await _model.WaitForConfirmsAsync().ConfigureAwait(false);
             Assert.AreEqual(1, _model.MessageCount(q));
         }
     }

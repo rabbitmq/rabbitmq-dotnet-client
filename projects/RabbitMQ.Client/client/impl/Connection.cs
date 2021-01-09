@@ -105,7 +105,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _connectionBlockedWrapper = new EventingWrapper<ConnectionBlockedEventArgs>("OnConnectionBlocked", onException);
             _connectionUnblockedWrapper = new EventingWrapper<EventArgs>("OnConnectionUnblocked", onException);
 
-                _sessionManager = new SessionManager(this, 0);
+            _sessionManager = new SessionManager(this, 0);
             _session0 = new MainSession(this) { Handler = NotifyReceivedCloseOk };
             _model0 = (ModelBase)Protocol.CreateModel(_session0);
 
@@ -426,15 +426,6 @@ namespace RabbitMQ.Client.Framing.Impl
             _model0.FinishClose();
         }
 
-        /// <remarks>
-        /// We need to close the socket, otherwise attempting to unload the domain
-        /// could cause a CannotUnloadAppDomainException
-        /// </remarks>
-        public void HandleDomainUnload(object sender, EventArgs ea)
-        {
-            Abort(Constants.InternalError, "Domain Unload");
-        }
-
         public void HandleMainLoopException(ShutdownEventArgs reason)
         {
             if (!SetCloseReason(reason))
@@ -750,7 +741,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void StartMainLoop()
         {
-            _mainLoopTask = Task.Run((Action)MainLoop);
+            _mainLoopTask = Task.Factory.StartNew(MainLoop, TaskCreationOptions.LongRunning);
         }
 
         public void HeartbeatReadTimerCallback(object state)

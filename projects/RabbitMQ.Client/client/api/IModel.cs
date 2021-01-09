@@ -31,7 +31,8 @@
 
 using System;
 using System.Collections.Generic;
-
+using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client
@@ -470,68 +471,29 @@ namespace RabbitMQ.Client
         /// </summary>
         void TxSelect();
 
-        /// <summary>Wait until all published messages have been confirmed.
-        /// </summary>
-        /// <remarks>
-        /// Waits until all messages published since the last call have
-        /// been either ack'd or nack'd by the broker.  Returns whether
-        /// all the messages were ack'd (and none were nack'd). Note,
-        /// throws an exception when called on a non-Confirm channel.
-        /// </remarks>
-        bool WaitForConfirms();
-
         /// <summary>
         /// Wait until all published messages have been confirmed.
         /// </summary>
         /// <returns>True if no nacks were received within the timeout, otherwise false.</returns>
-        /// <param name="timeout">How long to wait (at most) before returning
-        ///whether or not any nacks were returned.
-        /// </param>
+        /// <param name="token">The cancellation token.</param>
         /// <remarks>
         /// Waits until all messages published since the last call have
         /// been either ack'd or nack'd by the broker.  Returns whether
         /// all the messages were ack'd (and none were nack'd). Note,
         /// throws an exception when called on a non-Confirm channel.
         /// </remarks>
-        bool WaitForConfirms(TimeSpan timeout);
+        Task<bool> WaitForConfirmsAsync(CancellationToken token = default);
 
         /// <summary>
         /// Wait until all published messages have been confirmed.
         /// </summary>
-        /// <returns>True if no nacks were received within the timeout, otherwise false.</returns>
-        /// <param name="timeout">How long to wait (at most) before returning
-        /// whether or not any nacks were returned.
-        /// </param>
-        /// <param name="timedOut">True if the method returned because
-        /// the timeout elapsed, not because all messages were ack'd or at least one nack'd.
-        /// </param>
-        /// <remarks>
-        /// Waits until all messages published since the last call have
-        /// been either ack'd or nack'd by the broker.  Returns whether
-        /// all the messages were ack'd (and none were nack'd). Note,
-        /// throws an exception when called on a non-Confirm channel.
-        /// </remarks>
-        bool WaitForConfirms(TimeSpan timeout, out bool timedOut);
-
-        /// <summary>
-        /// Wait until all published messages have been confirmed.
-        /// </summary>
-        /// <remarks>
-        /// Waits until all messages published since the last call have
-        /// been ack'd by the broker.  If a nack is received, throws an
-        /// OperationInterrupedException exception immediately.
-        /// </remarks>
-        void WaitForConfirmsOrDie();
-
-        /// <summary>
-        /// Wait until all published messages have been confirmed.
-        /// </summary>
+        /// <param name="token">The cancellation token.</param>
         /// <remarks>
         /// Waits until all messages published since the last call have
         /// been ack'd by the broker.  If a nack is received or the timeout
         /// elapses, throws an OperationInterrupedException exception immediately.
         /// </remarks>
-        void WaitForConfirmsOrDie(TimeSpan timeout);
+        Task WaitForConfirmsOrDieAsync(CancellationToken token = default);
 
         /// <summary>
         /// Amount of time protocol  operations (e.g. <code>queue.declare</code>) are allowed to take before

@@ -31,7 +31,6 @@
 
 using System;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -42,7 +41,6 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestConcurrentAccessWithSharedConnection : IntegrationFixture
     {
-
         internal const int Threads = 32;
         internal CountdownEvent _latch;
         internal TimeSpan _completionTimeout = TimeSpan.FromSeconds(90);
@@ -64,80 +62,25 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestConcurrentChannelOpenAndPublishingWithBlankMessages()
         {
-            TestConcurrentChannelOpenAndPublishingWithBody(Encoding.ASCII.GetBytes(string.Empty), 30);
+            TestConcurrentChannelOpenAndPublishingWithBody(Array.Empty<byte>(), 30);
         }
 
         [Test]
-        public void TestConcurrentChannelOpenAndPublishingCase1()
+        public void TestConcurrentChannelOpenAndPublishingSize64()
         {
             TestConcurrentChannelOpenAndPublishingWithBodyOfSize(64);
         }
 
         [Test]
-        public void TestConcurrentChannelOpenAndPublishingCase2()
+        public void TestConcurrentChannelOpenAndPublishingSize256()
         {
             TestConcurrentChannelOpenAndPublishingWithBodyOfSize(256);
         }
 
         [Test]
-        public void TestConcurrentChannelOpenAndPublishingCase3()
+        public void TestConcurrentChannelOpenAndPublishingSize1024()
         {
             TestConcurrentChannelOpenAndPublishingWithBodyOfSize(1024);
-        }
-
-        [Test]
-        public void TestConcurrentChannelOpenAndPublishingCase4()
-        {
-            TestConcurrentChannelOpenAndPublishingWithBodyOfSize(8192);
-        }
-
-        [Test]
-        public void TestConcurrentChannelOpenAndPublishingCase5()
-        {
-            TestConcurrentChannelOpenAndPublishingWithBodyOfSize(32768, 20);
-        }
-
-        [Test]
-        public void TestConcurrentChannelOpenAndPublishingCase6()
-        {
-            TestConcurrentChannelOpenAndPublishingWithBodyOfSize(100000, 15);
-        }
-
-        [Test]
-        public void TestConcurrentChannelOpenAndPublishingCase7()
-        {
-            // surpasses default frame size
-            TestConcurrentChannelOpenAndPublishingWithBodyOfSize(131072, 12);
-        }
-
-        [Test]
-        public void TestConcurrentChannelOpenAndPublishingCase8()
-        {
-            TestConcurrentChannelOpenAndPublishingWithBodyOfSize(270000, 10);
-        }
-
-        [Test]
-        public void TestConcurrentChannelOpenAndPublishingCase9()
-        {
-            TestConcurrentChannelOpenAndPublishingWithBodyOfSize(540000, 6);
-        }
-
-        [Test]
-        public void TestConcurrentChannelOpenAndPublishingCase10()
-        {
-            TestConcurrentChannelOpenAndPublishingWithBodyOfSize(1000000, 2);
-        }
-
-        [Test]
-        public void TestConcurrentChannelOpenAndPublishingCase11()
-        {
-            TestConcurrentChannelOpenAndPublishingWithBodyOfSize(1500000, 1);
-        }
-
-        [Test]
-        public void TestConcurrentChannelOpenAndPublishingCase12()
-        {
-            TestConcurrentChannelOpenAndPublishingWithBodyOfSize(128000000, 1);
         }
 
         [Test]
@@ -150,20 +93,9 @@ namespace RabbitMQ.Client.Unit
             }, 50);
         }
 
-        internal void TestConcurrentChannelOpenAndPublishingWithBodyOfSize(int length)
+        internal void TestConcurrentChannelOpenAndPublishingWithBodyOfSize(int length, int iterations = 30)
         {
-            TestConcurrentChannelOpenAndPublishingWithBodyOfSize(length, 30);
-        }
-
-        internal void TestConcurrentChannelOpenAndPublishingWithBodyOfSize(int length, int iterations)
-        {
-            string s = "payload";
-            if (length > s.Length)
-            {
-                s.PadRight(length);
-            }
-
-            TestConcurrentChannelOpenAndPublishingWithBody(Encoding.ASCII.GetBytes(s), iterations);
+            TestConcurrentChannelOpenAndPublishingWithBody(new byte[length], iterations);
         }
 
         internal void TestConcurrentChannelOpenAndPublishingWithBody(byte[] body, int iterations)
@@ -174,11 +106,12 @@ namespace RabbitMQ.Client.Unit
                 // and would missing the point of this test anyway
                 IModel ch = _conn.CreateModel();
                 ch.ConfirmSelect();
-                foreach (int j in Enumerable.Range(0, 200))
+                for(int j = 0; j < 200; j++)
                 {
-                    ch.BasicPublish(exchange: "", routingKey: "_______", basicProperties: ch.CreateBasicProperties(), body: body);
+                    ch.BasicPublish("", "_______", null, body);
                 }
-                ch.WaitForConfirms(TimeSpan.FromSeconds(40));
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(40));
+                ch.WaitForConfirmsAsync(cts.Token).GetAwaiter().GetResult();
             }, iterations);
         }
 
@@ -191,11 +124,11 @@ namespace RabbitMQ.Client.Unit
         internal void TestConcurrentChannelOperations(Action<IConnection> actions,
             int iterations, TimeSpan timeout)
         {
-            Task[] tasks = Enumerable.Range(0, Threads).Select(x =>
+            _ = Enumerable.Range(0, Threads).Select(x =>
             {
                 return Task.Run(() =>
                 {
-                    foreach (int j in Enumerable.Range(0, iterations))
+                    for(int j = 0; j < iterations; j++)
                     {
                         actions(_conn);
                     }
