@@ -31,7 +31,7 @@
 
 using System;
 using System.Collections.Generic;
-
+using System.Threading;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 
@@ -39,12 +39,11 @@ namespace RabbitMQ.Client.Impl
 {
     internal abstract class SessionBase : ISession
     {
-        private readonly object _shutdownLock = new object();
-        private EventHandler<ShutdownEventArgs> _sessionShutdown;
+        private ShutdownEventArgs _closeReason;
+        public ShutdownEventArgs CloseReason => Volatile.Read(ref _closeReason);
 
         protected SessionBase(Connection connection, ushort channelNumber)
         {
-            CloseReason = null;
             Connection = connection;
             ChannelNumber = channelNumber;
             if (channelNumber != 0)
@@ -57,42 +56,28 @@ namespace RabbitMQ.Client.Impl
         {
             add
             {
-                bool ok = false;
                 if (CloseReason is null)
                 {
-                    lock (_shutdownLock)
-                    {
-                        if (CloseReason is null)
-                        {
-                            _sessionShutdown += value;
-                            ok = true;
-                        }
-                    }
+                    _sessionShutdownWrapper.AddHandler(value);
                 }
-                if (!ok)
+                else
                 {
                     value(this, CloseReason);
                 }
             }
             remove
             {
-                lock (_shutdownLock)
-                {
-                    _sessionShutdown -= value;
-                }
+                _sessionShutdownWrapper.RemoveHandler(value);
             }
         }
+        private EventingWrapper<ShutdownEventArgs> _sessionShutdownWrapper;
 
         public ushort ChannelNumber { get; }
 
-        public ShutdownEventArgs CloseReason { get; set; }
         public CommandReceivedAction CommandReceived { get; set; }
         public Connection Connection { get; }
 
-        public bool IsOpen
-        {
-            get { return CloseReason is null; }
-        }
+        public bool IsOpen => CloseReason is null;
 
         public virtual void OnConnectionShutdown(object conn, ShutdownEventArgs reason)
         {
@@ -102,14 +87,8 @@ namespace RabbitMQ.Client.Impl
         public virtual void OnSessionShutdown(ShutdownEventArgs reason)
         {
             Connection.ConnectionShutdown -= OnConnectionShutdown;
-            EventHandler<ShutdownEventArgs> handler;
-            lock (_shutdownLock)
-            {
-                handler = _sessionShutdown;
-                _sessionShutdown = null;
-            }
-
-            handler?.Invoke(this, reason);
+            _sessionShutdownWrapper.Invoke(this, reason);
+            _sessionShutdownWrapper.ClearHandlers();
         }
 
         public override string ToString()
@@ -124,16 +103,7 @@ namespace RabbitMQ.Client.Impl
 
         public void Close(ShutdownEventArgs reason, bool notify)
         {
-            if (CloseReason is null)
-            {
-                lock (_shutdownLock)
-                {
-                    if (CloseReason is null)
-                    {
-                        CloseReason = reason;
-                    }
-                }
-            }
+            Interlocked.CompareExchange(ref _closeReason, reason, null);
             if (notify)
             {
                 OnSessionShutdown(CloseReason);
@@ -146,32 +116,22 @@ namespace RabbitMQ.Client.Impl
         {
             // Ensure that we notify only when session is already closed
             // If not, throw exception, since this is a serious bug in the library
-            if (CloseReason is null)
+            var reason = CloseReason;
+            if (reason != null)
             {
-                lock (_shutdownLock)
-                {
-                    if (CloseReason is null)
-                    {
-                        throw new Exception("Internal Error in Session.Close");
-                    }
-                }
+                OnSessionShutdown(reason);
             }
-            OnSessionShutdown(CloseReason);
+
+            throw new Exception("Internal Error in Session.Close");
         }
 
         public virtual void Transmit(in OutgoingCommand cmd)
         {
             if (CloseReason != null)
             {
-                lock (_shutdownLock)
+                if (!Connection.Protocol.CanSendWhileClosed(cmd.Method))
                 {
-                    if (CloseReason != null)
-                    {
-                        if (!Connection.Protocol.CanSendWhileClosed(cmd.Method))
-                        {
-                            throw new AlreadyClosedException(CloseReason);
-                        }
-                    }
+                    throw new AlreadyClosedException(CloseReason);
                 }
             }
             // We used to transmit *inside* the lock to avoid interleaving

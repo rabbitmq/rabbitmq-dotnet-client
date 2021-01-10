@@ -55,12 +55,14 @@ namespace RabbitMQ.Client.Impl
         private readonly RpcContinuationQueue _continuationQueue = new RpcContinuationQueue();
         private readonly ManualResetEventSlim _flowControlBlock = new ManualResetEventSlim(true);
 
-        private readonly object _shutdownLock = new object();
         private readonly object _rpcLock = new object();
         private readonly object _confirmLock = new object();
         private readonly LinkedList<ulong> _pendingDeliveryTags = new LinkedList<ulong>();
 
         private bool _onlyAcksReceived = true;
+
+        private ShutdownEventArgs _closeReason;
+        public ShutdownEventArgs CloseReason => Volatile.Read(ref _closeReason);
 
         public IConsumerDispatcher ConsumerDispatcher { get; }
 
@@ -93,7 +95,6 @@ namespace RabbitMQ.Client.Impl
 
         protected void Initialise(ISession session)
         {
-            CloseReason = null;
             NextPublishSeqNo = 0;
             Session = session;
             Session.CommandReceived = HandleCommand;
@@ -149,19 +150,11 @@ namespace RabbitMQ.Client.Impl
         {
             add
             {
-                bool ok = false;
                 if (CloseReason is null)
                 {
-                    lock (_shutdownLock)
-                    {
-                        if (CloseReason is null)
-                        {
-                            _modelShutdownWrapper.AddHandler(value);
-                            ok = true;
-                        }
-                    }
+                    _modelShutdownWrapper.AddHandler(value);
                 }
-                if (!ok)
+                else
                 {
                     value(this, CloseReason);
                 }
@@ -184,8 +177,6 @@ namespace RabbitMQ.Client.Impl
 
         public int ChannelNumber => ((Session)Session).ChannelNumber;
 
-        public ShutdownEventArgs CloseReason { get; private set; }
-
         public IBasicConsumer DefaultConsumer { get; set; }
 
         public bool IsClosed => !IsOpen;
@@ -198,6 +189,13 @@ namespace RabbitMQ.Client.Impl
 
         protected void TakeOver(ModelBase other)
         {
+            _basicAcksWrapper.Takeover(other._basicAcksWrapper);
+            _basicNacksWrapper.Takeover(other._basicNacksWrapper);
+            _basicRecoverOkWrapper.Takeover(other._basicRecoverOkWrapper);
+            _basicReturnWrapper.Takeover(other._basicReturnWrapper);
+            _callbackExceptionWrapper.Takeover(other._callbackExceptionWrapper);
+            _flowControlWrapper.Takeover(other._flowControlWrapper);
+            _modelShutdownWrapper.Takeover(other._modelShutdownWrapper);
             _recoveryWrapper.Takeover(other._recoveryWrapper);
         }
 
@@ -320,19 +318,11 @@ namespace RabbitMQ.Client.Impl
 
         public void Enqueue(IRpcContinuation k)
         {
-            bool ok = false;
             if (CloseReason is null)
             {
-                lock (_shutdownLock)
-                {
-                    if (CloseReason is null)
-                    {
-                        _continuationQueue.Enqueue(k);
-                        ok = true;
-                    }
-                }
+                 _continuationQueue.Enqueue(k);
             }
-            if (!ok)
+            else
             {
                 k.HandleModelShutdown(CloseReason);
             }
@@ -340,14 +330,13 @@ namespace RabbitMQ.Client.Impl
 
         public void FinishClose()
         {
-            if (CloseReason != null)
+            var reason = CloseReason;
+            if (reason != null)
             {
-                Session.Close(CloseReason);
+                Session.Close(reason);
             }
-            if (m_connectionStartCell != null)
-            {
-                m_connectionStartCell.ContinueWithValue(null);
-            }
+
+            m_connectionStartCell?.ContinueWithValue(null);
         }
 
         public void HandleCommand(in IncomingCommand cmd)
@@ -449,25 +438,9 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public bool SetCloseReason(ShutdownEventArgs reason)
+        internal bool SetCloseReason(ShutdownEventArgs reason)
         {
-            if (CloseReason is null)
-            {
-                lock (_shutdownLock)
-                {
-                    if (CloseReason is null)
-                    {
-                        CloseReason = reason;
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-            }
-            else
-                return false;
+            return System.Threading.Interlocked.CompareExchange(ref _closeReason, reason, null) is null;
         }
 
         public override string ToString()
