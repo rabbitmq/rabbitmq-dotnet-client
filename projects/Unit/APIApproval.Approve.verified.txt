@@ -429,11 +429,8 @@ namespace RabbitMQ.Client
         void TxCommit();
         void TxRollback();
         void TxSelect();
-        bool WaitForConfirms();
-        bool WaitForConfirms(System.TimeSpan timeout);
-        bool WaitForConfirms(System.TimeSpan timeout, out bool timedOut);
-        void WaitForConfirmsOrDie();
-        void WaitForConfirmsOrDie(System.TimeSpan timeout);
+        System.Threading.Tasks.Task<bool> WaitForConfirmsAsync(System.Threading.CancellationToken token = default);
+        System.Threading.Tasks.Task WaitForConfirmsOrDieAsync(System.Threading.CancellationToken token = default);
     }
     public static class IModelExtensions
     {
