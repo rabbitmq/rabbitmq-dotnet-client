@@ -32,8 +32,8 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Xml.Schema;
-
+using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Framing.Impl;
 
@@ -1023,15 +1023,9 @@ namespace RabbitMQ.Client.Impl
             _usesTransactions = true;
         }
 
-        public bool WaitForConfirms(TimeSpan timeout, out bool timedOut) => Delegate.WaitForConfirms(timeout, out timedOut);
+        public Task<bool> WaitForConfirmsAsync(CancellationToken token = default) => Delegate.WaitForConfirmsAsync(token);
 
-        public bool WaitForConfirms(TimeSpan timeout) => Delegate.WaitForConfirms(timeout);
-
-        public bool WaitForConfirms() => Delegate.WaitForConfirms();
-
-        public void WaitForConfirmsOrDie() => Delegate.WaitForConfirmsOrDie();
-
-        public void WaitForConfirmsOrDie(TimeSpan timeout) => Delegate.WaitForConfirmsOrDie(timeout);
+        public Task WaitForConfirmsOrDieAsync(CancellationToken token = default) => Delegate.WaitForConfirmsOrDieAsync(token);
 
         private void RecoverBasicAckHandlers()
         {

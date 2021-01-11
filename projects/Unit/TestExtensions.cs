@@ -30,7 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
@@ -39,24 +39,24 @@ namespace RabbitMQ.Client.Unit
     public class TestExtensions : IntegrationFixture
     {
         [Test]
-        public void TestConfirmBarrier()
+        public async Task TestConfirmBarrier()
         {
             _model.ConfirmSelect();
             for (int i = 0; i < 10; i++)
             {
                 _model.BasicPublish("", string.Empty, null, new byte[] {});
             }
-            Assert.That(_model.WaitForConfirms(), Is.True);
+            Assert.True(await _model.WaitForConfirmsAsync().ConfigureAwait(false));
         }
 
         [Test]
         public void TestConfirmBeforeWait()
         {
-            Assert.Throws(typeof (InvalidOperationException), () => _model.WaitForConfirms());
+            Assert.Throws(typeof (InvalidOperationException), () => _model.WaitForConfirmsAsync());
         }
 
         [Test]
-        public void TestExchangeBinding()
+        public async Task TestExchangeBinding()
         {
             _model.ConfirmSelect();
 
@@ -69,12 +69,12 @@ namespace RabbitMQ.Client.Unit
             _model.QueueBind(queue, "dest", string.Empty);
 
             _model.BasicPublish("src", string.Empty, null, new byte[] {});
-            _model.WaitForConfirms();
+            await _model.WaitForConfirmsAsync().ConfigureAwait(false);
             Assert.IsNotNull(_model.BasicGet(queue, true));
 
             _model.ExchangeUnbind("dest", "src", string.Empty);
             _model.BasicPublish("src", string.Empty, null, new byte[] {});
-            _model.WaitForConfirms();
+            await _model.WaitForConfirmsAsync().ConfigureAwait(false);
             Assert.IsNull(_model.BasicGet(queue, true));
 
             _model.ExchangeDelete("src");

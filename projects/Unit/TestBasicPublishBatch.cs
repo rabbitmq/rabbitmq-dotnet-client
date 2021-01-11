@@ -30,7 +30,8 @@
 //---------------------------------------------------------------------------
 
 using System;
-
+using System.Threading;
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
@@ -38,7 +39,7 @@ namespace RabbitMQ.Client.Unit
     internal class TestBasicPublishBatch : IntegrationFixture
     {
         [Test]
-        public void TestBasicPublishBatchSend()
+        public async Task TestBasicPublishBatchSend()
         {
             _model.ConfirmSelect();
             _model.QueueDeclare(queue: "test-message-batch-a", durable: false);
@@ -47,7 +48,8 @@ namespace RabbitMQ.Client.Unit
             batch.Add("", "test-message-batch-a", false, null, new ReadOnlyMemory<byte>());
             batch.Add("", "test-message-batch-b", false, null, new ReadOnlyMemory<byte>());
             batch.Publish();
-            _model.WaitForConfirmsOrDie(TimeSpan.FromSeconds(15));
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            await _model.WaitForConfirmsOrDieAsync(cts.Token).ConfigureAwait(false);
             BasicGetResult resultA = _model.BasicGet("test-message-batch-a", true);
             Assert.NotNull(resultA);
             BasicGetResult resultB = _model.BasicGet("test-message-batch-b", true);
@@ -55,7 +57,7 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestBasicPublishBatchSendWithSizeHint()
+        public async Task TestBasicPublishBatchSendWithSizeHint()
         {
             _model.ConfirmSelect();
             _model.QueueDeclare(queue: "test-message-batch-a", durable: false);
@@ -65,7 +67,8 @@ namespace RabbitMQ.Client.Unit
             batch.Add("", "test-message-batch-a", false, null, bodyAsMemory);
             batch.Add("", "test-message-batch-b", false, null, bodyAsMemory);
             batch.Publish();
-            _model.WaitForConfirmsOrDie(TimeSpan.FromSeconds(15));
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            await _model.WaitForConfirmsOrDieAsync(cts.Token).ConfigureAwait(false);
             BasicGetResult resultA = _model.BasicGet("test-message-batch-a", true);
             Assert.NotNull(resultA);
             BasicGetResult resultB = _model.BasicGet("test-message-batch-b", true);
@@ -73,7 +76,7 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        public void TestBasicPublishBatchSendWithWrongSizeHint()
+        public async Task TestBasicPublishBatchSendWithWrongSizeHint()
         {
             _model.ConfirmSelect();
             _model.QueueDeclare(queue: "test-message-batch-a", durable: false);
@@ -83,7 +86,8 @@ namespace RabbitMQ.Client.Unit
             batch.Add("", "test-message-batch-a", false, null, bodyAsMemory);
             batch.Add("", "test-message-batch-b", false, null, bodyAsMemory);
             batch.Publish();
-            _model.WaitForConfirmsOrDie(TimeSpan.FromSeconds(15));
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            await _model.WaitForConfirmsOrDieAsync(cts.Token).ConfigureAwait(false);
             BasicGetResult resultA = _model.BasicGet("test-message-batch-a", true);
             Assert.NotNull(resultA);
             BasicGetResult resultB = _model.BasicGet("test-message-batch-b", true);

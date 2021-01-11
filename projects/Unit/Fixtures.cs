@@ -221,7 +221,8 @@ namespace RabbitMQ.Client.Unit
 
         internal bool WaitForConfirms(IModel m)
         {
-            return m.WaitForConfirms(TimeSpan.FromSeconds(4));
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4));
+            return m.WaitForConfirmsAsync(cts.Token).GetAwaiter().GetResult();
         }
 
         //
