@@ -33,7 +33,7 @@ using System;
 
 namespace RabbitMQ.Client.Events
 {
-    ///<summary>Experimental class exposing an IBasicConsumer's
+    ///<summary>Class exposing an IBasicConsumer's
     ///methods as separate events.</summary>
     public class EventingBasicConsumer : DefaultBasicConsumer
     {
