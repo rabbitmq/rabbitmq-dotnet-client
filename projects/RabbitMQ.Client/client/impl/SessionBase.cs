@@ -88,7 +88,6 @@ namespace RabbitMQ.Client.Impl
         {
             Connection.ConnectionShutdown -= OnConnectionShutdown;
             _sessionShutdownWrapper.Invoke(this, reason);
-            _sessionShutdownWrapper.ClearHandlers();
         }
 
         public override string ToString()

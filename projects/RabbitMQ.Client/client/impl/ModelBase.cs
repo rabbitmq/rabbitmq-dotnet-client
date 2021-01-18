@@ -48,7 +48,7 @@ namespace RabbitMQ.Client.Impl
     {
         ///<summary>Only used to kick-start a connection open
         ///sequence. See <see cref="Connection.Open"/> </summary>
-        public BlockingCell<ConnectionStartDetails> m_connectionStartCell = null;
+        public BlockingCell<ConnectionStartDetails> m_connectionStartCell;
         internal readonly IBasicProperties _emptyBasicProperties;
 
         private readonly Dictionary<string, IBasicConsumer> _consumers = new Dictionary<string, IBasicConsumer>();
@@ -218,6 +218,7 @@ namespace RabbitMQ.Client.Impl
                 {
                     _Private_ChannelClose(reason.ReplyCode, reason.ReplyText, 0, 0);
                 }
+
                 k.Wait(TimeSpan.FromMilliseconds(10000));
                 await ConsumerDispatcher.Shutdown(this).ConfigureAwait(false);
             }
@@ -241,6 +242,10 @@ namespace RabbitMQ.Client.Impl
                 {
                     throw;
                 }
+            }
+            finally
+            {
+                ModelShutdown -= k.OnConnectionShutdown;
             }
         }
 
@@ -405,7 +410,6 @@ namespace RabbitMQ.Client.Impl
         {
             _continuationQueue.HandleModelShutdown(reason);
             _modelShutdownWrapper.Invoke(this, reason);
-            _modelShutdownWrapper.ClearHandlers();
             lock (_confirmLock)
             {
                 if (_confirmsTaskCompletionSources?.Count > 0)
@@ -981,8 +985,6 @@ namespace RabbitMQ.Client.Impl
             {
                 _consumers.Remove(consumerTag);
             }
-
-            ModelShutdown -= k.m_consumer.HandleModelShutdown;
         }
 
         public void BasicCancelNoWait(string consumerTag)

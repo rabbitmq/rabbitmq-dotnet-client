@@ -89,8 +89,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public Connection(IConnectionFactory factory, bool insist, IFrameHandler frameHandler, string clientProvidedName = null)
         {
             ClientProvidedName = clientProvidedName;
-            KnownHosts = null;
-            FrameMax = 0;
             _factory = factory;
             _frameHandler = frameHandler;
 
@@ -613,7 +611,6 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             ThrowIfDisposed();
             _connectionShutdownWrapper.Invoke(this, CloseReason);
-            _connectionShutdownWrapper.ClearHandlers();
         }
 
         public void Open(bool insist)
@@ -915,7 +912,6 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
                 finally
                 {
-                    _connectionShutdownWrapper.ClearHandlers();
                     _disposed = true;
                 }
             }

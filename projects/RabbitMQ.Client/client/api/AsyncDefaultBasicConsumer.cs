@@ -16,9 +16,6 @@ namespace RabbitMQ.Client
         /// </summary>
         public AsyncDefaultBasicConsumer()
         {
-            ShutdownReason = null;
-            Model = null;
-            IsRunning = false;
         }
 
         /// <summary>
@@ -27,8 +24,6 @@ namespace RabbitMQ.Client
         /// <param name="model">Common AMQP model.</param>
         public AsyncDefaultBasicConsumer(IModel model)
         {
-            ShutdownReason = null;
-            IsRunning = false;
             Model = model;
         }
 
