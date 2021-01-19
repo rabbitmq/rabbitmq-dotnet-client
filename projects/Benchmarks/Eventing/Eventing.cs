@@ -24,7 +24,9 @@ namespace Benchmarks.Eventing
 
     public class Eventing_AddRemove : EventingBase
     {
+#pragma warning disable 67 // Required for add / remove
         private event EventHandler<ulong> _event;
+#pragma warning restore 67
 
         [Benchmark(Baseline = true)]
         [ArgumentsSource(nameof(CountSource))]

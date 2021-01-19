@@ -45,9 +45,7 @@ namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class AutorecoveringConnection : IConnection
     {
-        private bool _disposed = false;
-        private readonly object _eventLock = new object();
-
+        private bool _disposed;
         private Connection _delegate;
         private readonly ConnectionFactory _factory;
 
@@ -59,18 +57,11 @@ namespace RabbitMQ.Client.Framing.Impl
         private readonly object _recordedEntitiesLock = new object();
 
         private readonly Dictionary<string, RecordedExchange> _recordedExchanges = new Dictionary<string, RecordedExchange>();
-
         private readonly Dictionary<string, RecordedQueue> _recordedQueues = new Dictionary<string, RecordedQueue>();
-
         private readonly Dictionary<RecordedBinding, byte> _recordedBindings = new Dictionary<RecordedBinding, byte>();
-
         private readonly Dictionary<string, RecordedConsumer> _recordedConsumers = new Dictionary<string, RecordedConsumer>();
 
         private readonly List<AutorecoveringModel> _models = new List<AutorecoveringModel>();
-
-        private EventHandler<ConnectionBlockedEventArgs> _recordedBlockedEventHandlers;
-        private EventHandler<ShutdownEventArgs> _recordedShutdownEventHandlers;
-        private EventHandler<EventArgs> _recordedUnblockedEventHandlers;
 
         public AutorecoveringConnection(ConnectionFactory factory, string clientProvidedName = null)
         {
@@ -102,88 +93,26 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public event EventHandler<CallbackExceptionEventArgs> CallbackException
         {
-            add
-            {
-                ThrowIfDisposed();
-                lock (_eventLock)
-                {
-                    _delegate.CallbackException += value;
-                }
-            }
-            remove
-            {
-                ThrowIfDisposed();
-                lock (_eventLock)
-                {
-                    _delegate.CallbackException -= value;
-                }
-            }
+            add => Delegate.CallbackException += value;
+            remove => Delegate.CallbackException -= value;
         }
 
         public event EventHandler<ConnectionBlockedEventArgs> ConnectionBlocked
         {
-            add
-            {
-                ThrowIfDisposed();
-                lock (_eventLock)
-                {
-                    _recordedBlockedEventHandlers += value;
-                    _delegate.ConnectionBlocked += value;
-                }
-            }
-            remove
-            {
-                ThrowIfDisposed();
-                lock (_eventLock)
-                {
-                    _recordedBlockedEventHandlers -= value;
-                    _delegate.ConnectionBlocked -= value;
-                }
-            }
+            add => Delegate.ConnectionBlocked += value;
+            remove => Delegate.ConnectionBlocked -= value;
         }
 
         public event EventHandler<ShutdownEventArgs> ConnectionShutdown
         {
-            add
-            {
-                ThrowIfDisposed();
-                lock (_eventLock)
-                {
-                    _recordedShutdownEventHandlers += value;
-                    _delegate.ConnectionShutdown += value;
-                }
-            }
-            remove
-            {
-                ThrowIfDisposed();
-                lock (_eventLock)
-                {
-                    _recordedShutdownEventHandlers -= value;
-                    _delegate.ConnectionShutdown -= value;
-                }
-            }
+            add => Delegate.ConnectionShutdown += value;
+            remove => Delegate.ConnectionShutdown -= value;
         }
 
         public event EventHandler<EventArgs> ConnectionUnblocked
         {
-            add
-            {
-                ThrowIfDisposed();
-                lock (_eventLock)
-                {
-                    _recordedUnblockedEventHandlers += value;
-                    _delegate.ConnectionUnblocked += value;
-                }
-            }
-            remove
-            {
-                ThrowIfDisposed();
-                lock (_eventLock)
-                {
-                    _recordedUnblockedEventHandlers -= value;
-                    _delegate.ConnectionUnblocked -= value;
-                }
-            }
+            add => Delegate.ConnectionUnblocked += value;
+            remove => Delegate.ConnectionUnblocked -= value;
         }
 
         public event EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery
@@ -203,8 +132,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public string ClientProvidedName { get; }
 
         public ushort ChannelMax => Delegate.ChannelMax;
-
-        public ConsumerWorkService ConsumerWorkService => Delegate.ConsumerWorkService;
 
         public IDictionary<string, object> ClientProperties => Delegate.ClientProperties;
 
@@ -244,10 +171,6 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 if (TryRecoverConnectionDelegate())
                 {
-                    RecoverConnectionShutdownHandlers();
-                    RecoverConnectionBlockedHandlers();
-                    RecoverConnectionUnblockedHandlers();
-
                     RecoverModels();
                     if (_factory.TopologyRecoveryEnabled)
                     {
@@ -261,10 +184,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
                     return true;
                 }
-                else
-                {
-                    ESLog.Warn("Connection delegate was manually closed. Aborted recovery.");
-                }
+
+                ESLog.Warn("Connection delegate was manually closed. Aborted recovery.");
             }
             catch (Exception e)
             {
@@ -446,23 +367,16 @@ namespace RabbitMQ.Client.Framing.Impl
         private void Init(IFrameHandler fh)
         {
             ThrowIfDisposed();
-            _delegate = new Connection(_factory, false,
-                fh, ClientProvidedName);
-
+            _delegate = new Connection(_factory, false, fh, ClientProvidedName);
             _recoveryTask = Task.Run(MainRecoveryLoop);
 
-            EventHandler<ShutdownEventArgs> recoveryListener = (_, args) =>
+            ConnectionShutdown += (_, args) =>
             {
                 if (ShouldTriggerConnectionRecovery(args))
                 {
                     _recoveryLoopCommandQueue.Writer.TryWrite(RecoveryCommand.BeginAutomaticRecovery);
                 }
             };
-            lock (_eventLock)
-            {
-                ConnectionShutdown += recoveryListener;
-                _recordedShutdownEventHandlers += recoveryListener;
-            }
         }
 
         ///<summary>API-side invocation of updating the secret.</summary>
@@ -622,10 +536,6 @@ namespace RabbitMQ.Client.Framing.Impl
                 {
                     _models.Clear();
                     _delegate = null;
-                    _recordedBlockedEventHandlers = null;
-                    _recordedShutdownEventHandlers = null;
-                    _recordedUnblockedEventHandlers = null;
-
                     _disposed = true;
                 }
             }
@@ -686,22 +596,15 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void RecoverConnectionBlockedHandlers()
-        {
-            ThrowIfDisposed();
-            lock (_eventLock)
-            {
-                _delegate.ConnectionBlocked += _recordedBlockedEventHandlers;
-            }
-        }
-
         private bool TryRecoverConnectionDelegate()
         {
             ThrowIfDisposed();
             try
             {
                 IFrameHandler fh = _endpoints.SelectOne(_factory.CreateFrameHandler);
+                var defunctConnection = _delegate;
                 _delegate = new Connection(_factory, false, fh, ClientProvidedName);
+                _delegate.TakeOver(defunctConnection);
                 return true;
             }
             catch (Exception e)
@@ -716,10 +619,6 @@ namespace RabbitMQ.Client.Framing.Impl
 
             return false;
         }
-
-        private void RecoverConnectionShutdownHandlers() => Delegate.ConnectionShutdown += _recordedShutdownEventHandlers;
-
-        private void RecoverConnectionUnblockedHandlers() => Delegate.ConnectionUnblocked += _recordedUnblockedEventHandlers;
 
         private void RecoverConsumers()
         {

@@ -49,13 +49,12 @@ namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class Connection : IConnection
     {
+        private static readonly string s_version = typeof(Connection).Assembly
+                                            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+                                            .InformationalVersion;
+
         private bool _disposed;
-        private readonly object _eventLock = new object();
-
-        private volatile ShutdownEventArgs _closeReason;
         private volatile bool _closed;
-
-        private EventHandler<ShutdownEventArgs> _connectionShutdown;
 
         private readonly IConnectionFactory _factory;
         private readonly IFrameHandler _frameHandler;
@@ -79,9 +78,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private Task _mainLoopTask;
 
-        private static readonly string s_version = typeof(Connection).Assembly
-                                            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
-                                            .InformationalVersion;
+        private ShutdownEventArgs _closeReason;
+        public ShutdownEventArgs CloseReason => Volatile.Read(ref _closeReason);
 
         // true if we haven't finished connection negotiation.
         // In this state socket exceptions are treated as fatal connection
@@ -91,8 +89,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public Connection(IConnectionFactory factory, bool insist, IFrameHandler frameHandler, string clientProvidedName = null)
         {
             ClientProvidedName = clientProvidedName;
-            KnownHosts = null;
-            FrameMax = 0;
             _factory = factory;
             _frameHandler = frameHandler;
 
@@ -104,6 +100,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _callbackExceptionWrapper = new EventingWrapper<CallbackExceptionEventArgs>(string.Empty, (exception, context) => { });
             _connectionBlockedWrapper = new EventingWrapper<ConnectionBlockedEventArgs>("OnConnectionBlocked", onException);
             _connectionUnblockedWrapper = new EventingWrapper<EventArgs>("OnConnectionUnblocked", onException);
+            _connectionShutdownWrapper = new EventingWrapper<ShutdownEventArgs>("OnShutdown", onException);
 
             _sessionManager = new SessionManager(this, 0);
             _session0 = new MainSession(this) { Handler = NotifyReceivedCloseOk };
@@ -141,29 +138,22 @@ namespace RabbitMQ.Client.Framing.Impl
             add
             {
                 ThrowIfDisposed();
-                bool ok = false;
-                lock (_eventLock)
+                if (CloseReason is null)
                 {
-                    if (_closeReason is null)
-                    {
-                        _connectionShutdown += value;
-                        ok = true;
-                    }
+                    _connectionShutdownWrapper.AddHandler(value);
                 }
-                if (!ok)
+                else
                 {
-                    value(this, _closeReason);
+                    value(this, CloseReason);
                 }
             }
             remove
             {
                 ThrowIfDisposed();
-                lock (_eventLock)
-                {
-                    _connectionShutdown -= value;
-                }
+                _connectionShutdownWrapper.RemoveHandler(value);
             }
         }
+        private EventingWrapper<ShutdownEventArgs> _connectionShutdownWrapper;
 
         /// <summary>
         /// This event is never fired by non-recovering connections but it is a part of the <see cref="IConnection"/> interface.
@@ -202,8 +192,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public ushort ChannelMax => _sessionManager.ChannelMax;
 
         public IDictionary<string, object> ClientProperties { get; set; }
-
-        public ShutdownEventArgs CloseReason => _closeReason;
 
         public AmqpTcpEndpoint Endpoint => _frameHandler.Endpoint;
 
@@ -290,7 +278,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 if (!abort)
                 {
-                    throw new AlreadyClosedException(_closeReason);
+                    throw new AlreadyClosedException(CloseReason);
                 }
             }
             else
@@ -422,7 +410,7 @@ namespace RabbitMQ.Client.Framing.Impl
             MaybeStopHeartbeatTimers();
 
             _frameHandler.Close();
-            _model0.SetCloseReason(_closeReason);
+            _model0.SetCloseReason(CloseReason);
             _model0.FinishClose();
         }
 
@@ -471,7 +459,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 if (_closed)
                 {
-                    throw new AlreadyClosedException(_closeReason);
+                    throw new AlreadyClosedException(CloseReason);
                 }
                 // We are quiescing, but still allow for server-close
             }
@@ -622,32 +610,7 @@ namespace RabbitMQ.Client.Framing.Impl
         public void OnShutdown()
         {
             ThrowIfDisposed();
-            EventHandler<ShutdownEventArgs> handler;
-            ShutdownEventArgs reason;
-            lock (_eventLock)
-            {
-                handler = _connectionShutdown;
-                reason = _closeReason;
-                _connectionShutdown = null;
-            }
-            if (handler != null)
-            {
-                foreach (EventHandler<ShutdownEventArgs> h in handler.GetInvocationList())
-                {
-                    try
-                    {
-                        h(this, reason);
-                    }
-                    catch (Exception e)
-                    {
-                        OnCallbackException(CallbackExceptionEventArgs.Build(e,
-                            new Dictionary<string, object>
-                            {
-                                {"context", "OnShutdown"}
-                            }));
-                    }
-                }
-            }
+            _connectionShutdownWrapper.Invoke(this, CloseReason);
         }
 
         public void Open(bool insist)
@@ -714,20 +677,9 @@ namespace RabbitMQ.Client.Framing.Impl
             newSession.Transmit(ChannelCloseWrapper(pe.ReplyCode, pe.Message));
         }
 
-        public bool SetCloseReason(ShutdownEventArgs reason)
+        private bool SetCloseReason(ShutdownEventArgs reason)
         {
-            lock (_eventLock)
-            {
-                if (_closeReason is null)
-                {
-                    _closeReason = reason;
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
+            return System.Threading.Interlocked.CompareExchange(ref _closeReason, reason, null) is null;
         }
 
         public void MaybeStartHeartbeatTimers()
@@ -960,7 +912,6 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
                 finally
                 {
-                    _connectionShutdown = null;
                     _disposed = true;
                 }
             }
@@ -1090,6 +1041,14 @@ namespace RabbitMQ.Client.Framing.Impl
             return (clientValue == 0 || serverValue == 0) ?
                 Math.Max(clientValue, serverValue) :
                 Math.Min(clientValue, serverValue);
+        }
+
+        public void TakeOver(Connection other)
+        {
+            _callbackExceptionWrapper.Takeover(other._callbackExceptionWrapper);
+            _connectionBlockedWrapper.Takeover(other._connectionBlockedWrapper);
+            _connectionUnblockedWrapper.Takeover(other._connectionUnblockedWrapper);
+            _connectionShutdownWrapper.Takeover(other._connectionShutdownWrapper);
         }
     }
 }

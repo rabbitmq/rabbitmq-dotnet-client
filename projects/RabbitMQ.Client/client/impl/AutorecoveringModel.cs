@@ -41,21 +41,14 @@ namespace RabbitMQ.Client.Impl
 {
     internal sealed class AutorecoveringModel : IFullModel, IRecoverable
     {
-        private bool _disposed = false;
-        private readonly object _eventLock = new object();
+        private bool _disposed;
         private AutorecoveringConnection _connection;
         private RecoveryAwareModel _delegate;
 
-        private EventHandler<BasicAckEventArgs> _recordedBasicAckEventHandlers;
-        private EventHandler<BasicNackEventArgs> _recordedBasicNackEventHandlers;
-        private EventHandler<BasicReturnEventArgs> _recordedBasicReturnEventHandlers;
-        private EventHandler<CallbackExceptionEventArgs> _recordedCallbackExceptionEventHandlers;
-        private EventHandler<ShutdownEventArgs> _recordedShutdownEventHandlers;
-
-        private ushort _prefetchCountConsumer = 0;
-        private ushort _prefetchCountGlobal = 0;
-        private bool _usesPublisherConfirms = false;
-        private bool _usesTransactions = false;
+        private ushort _prefetchCountConsumer;
+        private ushort _prefetchCountGlobal;
+        private bool _usesPublisherConfirms;
+        private bool _usesTransactions;
 
         public IConsumerDispatcher ConsumerDispatcher => !_disposed ? _delegate.ConsumerDispatcher : throw new ObjectDisposedException(GetType().FullName);
 
@@ -73,103 +66,32 @@ namespace RabbitMQ.Client.Impl
 
         public event EventHandler<BasicAckEventArgs> BasicAcks
         {
-            add
-            {
-                ThrowIfDisposed();
-                lock (_eventLock)
-                {
-                    _recordedBasicAckEventHandlers += value;
-                    _delegate.BasicAcks += value;
-                }
-            }
-            remove
-            {
-                ThrowIfDisposed();
-                lock (_eventLock)
-                {
-                    _recordedBasicAckEventHandlers -= value;
-                    _delegate.BasicAcks -= value;
-                }
-            }
+            add => Delegate.BasicAcks += value;
+            remove => Delegate.BasicAcks -= value;
         }
 
         public event EventHandler<BasicNackEventArgs> BasicNacks
         {
-            add
-            {
-                ThrowIfDisposed();
-                lock (_eventLock)
-                {
-                    _recordedBasicNackEventHandlers += value;
-                    _delegate.BasicNacks += value;
-                }
-            }
-            remove
-            {
-                ThrowIfDisposed();
-                lock (_eventLock)
-                {
-                    _recordedBasicNackEventHandlers -= value;
-                    _delegate.BasicNacks -= value;
-                }
-            }
+            add => Delegate.BasicNacks += value;
+            remove => Delegate.BasicNacks -= value;
         }
 
         public event EventHandler<EventArgs> BasicRecoverOk
         {
-            add
-            {
-                // TODO: record and re-add handlers
-                Delegate.BasicRecoverOk += value;
-            }
-            remove
-            {
-                Delegate.BasicRecoverOk -= value;
-            }
+            add => Delegate.BasicRecoverOk += value;
+            remove => Delegate.BasicRecoverOk -= value;
         }
 
         public event EventHandler<BasicReturnEventArgs> BasicReturn
         {
-            add
-            {
-                ThrowIfDisposed();
-                lock (_eventLock)
-                {
-                    _recordedBasicReturnEventHandlers += value;
-                    _delegate.BasicReturn += value;
-                }
-            }
-            remove
-            {
-                ThrowIfDisposed();
-                lock (_eventLock)
-                {
-                    _recordedBasicReturnEventHandlers -= value;
-                    _delegate.BasicReturn -= value;
-                }
-            }
+            add => Delegate.BasicReturn += value;
+            remove => Delegate.BasicReturn -= value;
         }
 
         public event EventHandler<CallbackExceptionEventArgs> CallbackException
         {
-            add
-            {
-                ThrowIfDisposed();
-                lock (_eventLock)
-                {
-                    _recordedCallbackExceptionEventHandlers += value;
-                    _delegate.CallbackException += value;
-                }
-            }
-            remove
-            {
-                ThrowIfDisposed();
-                lock (_eventLock)
-                {
-                    _recordedCallbackExceptionEventHandlers -= value;
-                    _delegate.CallbackException -= value;
-                }
-            }
+            add => Delegate.CallbackException += value;
+            remove => Delegate.CallbackException -= value;
         }
 
         public event EventHandler<FlowControlEventArgs> FlowControl
@@ -180,24 +102,8 @@ namespace RabbitMQ.Client.Impl
 
         public event EventHandler<ShutdownEventArgs> ModelShutdown
         {
-            add
-            {
-                ThrowIfDisposed();
-                lock (_eventLock)
-                {
-                    _recordedShutdownEventHandlers += value;
-                    _delegate.ModelShutdown += value;
-                }
-            }
-            remove
-            {
-                ThrowIfDisposed();
-                lock (_eventLock)
-                {
-                    _recordedShutdownEventHandlers -= value;
-                    _delegate.ModelShutdown -= value;
-                }
-            }
+            add => Delegate.ModelShutdown += value;
+            remove => Delegate.ModelShutdown -= value;
         }
 
         public event EventHandler<EventArgs> Recovery
@@ -219,9 +125,9 @@ namespace RabbitMQ.Client.Impl
         public IModel Delegate => RecoveryAwareDelegate;
         private RecoveryAwareModel RecoveryAwareDelegate => !_disposed ? _delegate : throw new ObjectDisposedException(GetType().FullName);
 
-        public bool IsClosed => _delegate is object && _delegate.IsClosed;
+        public bool IsClosed => _delegate != null && _delegate.IsClosed;
 
-        public bool IsOpen => _delegate is object && _delegate.IsOpen;
+        public bool IsOpen => _delegate != null && _delegate.IsOpen;
 
         public ulong NextPublishSeqNo => Delegate.NextPublishSeqNo;
 
@@ -234,15 +140,9 @@ namespace RabbitMQ.Client.Impl
             _delegate = conn.CreateNonRecoveringModel();
             _delegate.TakeOver(defunctModel);
 
-            RecoverModelShutdownHandlers();
             RecoverState();
 
-            RecoverBasicReturnHandlers();
-            RecoverBasicAckHandlers();
-            RecoverBasicNackHandlers();
-            RecoverCallbackExceptionHandlers();
-
-            RunRecoveryEventHandlers();
+            RecoveryAwareDelegate.RunRecoveryEventHandlers(this);
         }
 
         public void BasicQos(ushort prefetchCount,
@@ -291,12 +191,6 @@ namespace RabbitMQ.Client.Impl
 
                 _connection = null;
                 _delegate = null;
-                _recordedBasicAckEventHandlers = null;
-                _recordedBasicNackEventHandlers = null;
-                _recordedBasicReturnEventHandlers = null;
-                _recordedCallbackExceptionEventHandlers = null;
-                _recordedShutdownEventHandlers = null;
-
                 _disposed = true;
             }
         }
@@ -1027,51 +921,6 @@ namespace RabbitMQ.Client.Impl
 
         public Task WaitForConfirmsOrDieAsync(CancellationToken token = default) => Delegate.WaitForConfirmsOrDieAsync(token);
 
-        private void RecoverBasicAckHandlers()
-        {
-            ThrowIfDisposed();
-            lock (_eventLock)
-            {
-                _delegate.BasicAcks += _recordedBasicAckEventHandlers;
-            }
-        }
-
-        private void RecoverBasicNackHandlers()
-        {
-            ThrowIfDisposed();
-            lock (_eventLock)
-            {
-                _delegate.BasicNacks += _recordedBasicNackEventHandlers;
-            }
-        }
-
-        private void RecoverBasicReturnHandlers()
-        {
-            ThrowIfDisposed();
-            lock (_eventLock)
-            {
-                _delegate.BasicReturn += _recordedBasicReturnEventHandlers;
-            }
-        }
-
-        private void RecoverCallbackExceptionHandlers()
-        {
-            ThrowIfDisposed();
-            lock (_eventLock)
-            {
-                _delegate.CallbackException += _recordedCallbackExceptionEventHandlers;
-            }
-        }
-
-        private void RecoverModelShutdownHandlers()
-        {
-            ThrowIfDisposed();
-            lock (_eventLock)
-            {
-                _delegate.ModelShutdown += _recordedShutdownEventHandlers;
-            }
-        }
-
         private void RecoverState()
         {
             if (_prefetchCountConsumer != 0)
@@ -1093,12 +942,6 @@ namespace RabbitMQ.Client.Impl
             {
                 TxSelect();
             }
-        }
-
-        private void RunRecoveryEventHandlers()
-        {
-            ThrowIfDisposed();
-            _delegate.RunRecoveryEventHandlers(this);
         }
 
         public IBasicPublishBatch CreateBasicPublishBatch() => Delegate.CreateBasicPublishBatch();
