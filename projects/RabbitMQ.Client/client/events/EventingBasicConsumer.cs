@@ -53,7 +53,7 @@ namespace RabbitMQ.Client.Events
         /// </remarks>
         public event EventHandler<BasicDeliverEventArgs> Received;
 
-        ///<summary>Fires when the server confirms successful consumer cancelation.</summary>
+        ///<summary>Fires when the server confirms successful consumer registration.</summary>
         public event EventHandler<ConsumerEventArgs> Registered;
 
         ///<summary>Fires on model (channel) shutdown, both client and server initiated.</summary>
