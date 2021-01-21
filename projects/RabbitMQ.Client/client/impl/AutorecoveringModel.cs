@@ -157,7 +157,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                _connection.UnregisterModel(this);
+                _connection.DeleteRecordedChannel(this);
             }
         }
 
@@ -170,7 +170,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                _connection.UnregisterModel(this);
+                _connection.DeleteRecordedChannel(this);
             }
         }
 
@@ -576,7 +576,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                _connection.UnregisterModel(this);
+                _connection.DeleteRecordedChannel(this);
             }
         }
 
@@ -589,7 +589,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                _connection.UnregisterModel(this);
+                _connection.DeleteRecordedChannel(this);
             }
         }
 
@@ -599,22 +599,14 @@ namespace RabbitMQ.Client.Impl
         public void BasicCancel(string consumerTag)
         {
             ThrowIfDisposed();
-            RecordedConsumer cons = _connection.DeleteRecordedConsumer(consumerTag);
-            if (cons != null)
-            {
-                _connection.MaybeDeleteRecordedAutoDeleteQueue(cons.Queue);
-            }
+            _connection.DeleteRecordedConsumer(consumerTag);
             _delegate.BasicCancel(consumerTag);
         }
 
         public void BasicCancelNoWait(string consumerTag)
         {
             ThrowIfDisposed();
-            RecordedConsumer cons = _connection.DeleteRecordedConsumer(consumerTag);
-            if (cons != null)
-            {
-                _connection.MaybeDeleteRecordedAutoDeleteQueue(cons.Queue);
-            }
+            _connection.DeleteRecordedConsumer(consumerTag);
             _delegate.BasicCancelNoWait(consumerTag);
         }
 
@@ -699,7 +691,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                _connection.UnregisterModel(this);
+                _connection.DeleteRecordedChannel(this);
             }
         }
 
@@ -712,7 +704,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                _connection.UnregisterModel(this);
+                _connection.DeleteRecordedChannel(this);
             }
         }
 
@@ -755,7 +747,7 @@ namespace RabbitMQ.Client.Impl
                 WithArguments(arguments);
             _delegate.ExchangeDeclare(exchange, type, durable,
                 autoDelete, arguments);
-            _connection.RecordExchange(exchange, rx);
+            _connection.RecordExchange(rx);
         }
 
         public void ExchangeDeclareNoWait(string exchange,
@@ -772,7 +764,7 @@ namespace RabbitMQ.Client.Impl
                 WithArguments(arguments);
             _delegate.ExchangeDeclareNoWait(exchange, type, durable,
                 autoDelete, arguments);
-            _connection.RecordExchange(exchange, rx);
+            _connection.RecordExchange(rx);
         }
 
         public void ExchangeDeclarePassive(string exchange) => Delegate.ExchangeDeclarePassive(exchange);
@@ -804,7 +796,7 @@ namespace RabbitMQ.Client.Impl
                 WithArguments(arguments);
             _connection.DeleteRecordedBinding(eb);
             _delegate.ExchangeUnbind(destination, source, routingKey, arguments);
-            _connection.MaybeDeleteRecordedAutoDeleteExchange(source);
+            _connection.DeleteAutoDeleteExchange(source);
         }
 
         public void ExchangeUnbindNoWait(string destination,
@@ -845,7 +837,7 @@ namespace RabbitMQ.Client.Impl
                 AutoDelete(autoDelete).
                 Arguments(arguments).
                 ServerNamed(string.Empty.Equals(queue));
-            _connection.RecordQueue(result.QueueName, rq);
+            _connection.RecordQueue(rq);
             return result;
         }
 
@@ -862,7 +854,7 @@ namespace RabbitMQ.Client.Impl
                 AutoDelete(autoDelete).
                 Arguments(arguments).
                 ServerNamed(string.Empty.Equals(queue));
-            _connection.RecordQueue(queue, rq);
+            _connection.RecordQueue(rq);
         }
 
         public QueueDeclareOk QueueDeclarePassive(string queue) => Delegate.QueueDeclarePassive(queue);
@@ -904,7 +896,7 @@ namespace RabbitMQ.Client.Impl
                 WithArguments(arguments);
             _connection.DeleteRecordedBinding(qb);
             _delegate.QueueUnbind(queue, exchange, routingKey, arguments);
-            _connection.MaybeDeleteRecordedAutoDeleteExchange(exchange);
+            _connection.DeleteAutoDeleteExchange(exchange);
         }
 
         public void TxCommit() => Delegate.TxCommit();
