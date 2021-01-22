@@ -216,5 +216,68 @@ namespace RabbitMQ.Client
         {
             model.QueueUnbind(queue, exchange, routingKey, arguments);
         }
+
+        /// <summary>
+        /// Abort this session.
+        /// </summary>
+        /// <remarks>
+        /// If the session is already closed (or closing), then this
+        /// method does nothing but wait for the in-progress close
+        /// operation to complete. This method will not return to the
+        /// caller until the shutdown is complete.
+        /// In comparison to normal <see cref="Close(IModel)"/> method, <see cref="Abort(IModel)"/> will not throw
+        /// <see cref="Exceptions.AlreadyClosedException"/> or <see cref="System.IO.IOException"/> or any other <see cref="Exception"/> during closing model.
+        /// </remarks>
+        public static void Abort(this IModel model)
+        {
+            model.Close(Constants.ReplySuccess, "Goodbye", true);
+        }
+
+        /// <summary>
+        /// Abort this session.
+        /// </summary>
+        /// <remarks>
+        /// The method behaves in the same way as <see cref="Abort(IModel)"/>, with the only
+        /// difference that the model is closed with the given model close code and message.
+        /// <para>
+        /// The close code (See under "Reply Codes" in the AMQP specification)
+        /// </para>
+        /// <para>
+        /// A message indicating the reason for closing the model
+        /// </para>
+        /// </remarks>
+        public static void Abort(this IModel model, ushort replyCode, string replyText)
+        {
+            model.Close(replyCode, replyText, true);
+        }
+
+        /// <summary>Close this session.</summary>
+        /// <remarks>
+        /// If the session is already closed (or closing), then this
+        /// method does nothing but wait for the in-progress close
+        /// operation to complete. This method will not return to the
+        /// caller until the shutdown is complete.
+        /// </remarks>
+        public static void Close(this IModel model)
+        {
+            model.Close(Constants.ReplySuccess, "Goodbye", false);
+        }
+
+        /// <summary>Close this session.</summary>
+        /// <remarks>
+        /// The method behaves in the same way as Close(), with the only
+        /// difference that the model is closed with the given model
+        /// close code and message.
+        /// <para>
+        /// The close code (See under "Reply Codes" in the AMQP specification)
+        /// </para>
+        /// <para>
+        /// A message indicating the reason for closing the model
+        /// </para>
+        /// </remarks>
+        public static void Close(this IModel model, ushort replyCode, string replyText)
+        {
+            model.Close(replyCode, replyText, false);
+        }
     }
 }

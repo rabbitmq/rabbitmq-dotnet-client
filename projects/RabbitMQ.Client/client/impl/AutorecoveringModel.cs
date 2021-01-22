@@ -161,19 +161,6 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public void Close(ShutdownEventArgs reason, bool abort)
-        {
-            ThrowIfDisposed();
-            try
-            {
-                _delegate.Close(reason, abort).GetAwaiter().GetResult();;
-            }
-            finally
-            {
-                _connection.DeleteRecordedChannel(this);
-            }
-        }
-
         public override string ToString() => Delegate.ToString();
 
         void IDisposable.Dispose() => Dispose(true);
@@ -187,7 +174,7 @@ namespace RabbitMQ.Client.Impl
 
             if (disposing)
             {
-                Abort();
+                this.Abort();
 
                 _connection = null;
                 _delegate = null;
@@ -566,32 +553,6 @@ namespace RabbitMQ.Client.Impl
         public uint _Private_QueueDelete(string queue, bool ifUnused, bool ifEmpty, bool nowait) => RecoveryAwareDelegate._Private_QueueDelete(queue, ifUnused, ifEmpty, nowait);
 
         public uint _Private_QueuePurge(string queue, bool nowait) => RecoveryAwareDelegate._Private_QueuePurge(queue, nowait);
-
-        public void Abort()
-        {
-            ThrowIfDisposed();
-            try
-            {
-                _delegate.Abort();
-            }
-            finally
-            {
-                _connection.DeleteRecordedChannel(this);
-            }
-        }
-
-        public void Abort(ushort replyCode, string replyText)
-        {
-            ThrowIfDisposed();
-            try
-            {
-                _delegate.Abort(replyCode, replyText);
-            }
-            finally
-            {
-                _connection.DeleteRecordedChannel(this);
-            }
-        }
 
         public void BasicAck(ulong deliveryTag,
             bool multiple) => Delegate.BasicAck(deliveryTag, multiple);

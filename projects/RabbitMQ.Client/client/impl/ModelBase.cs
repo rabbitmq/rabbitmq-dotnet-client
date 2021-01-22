@@ -199,14 +199,12 @@ namespace RabbitMQ.Client.Impl
             _recoveryWrapper.Takeover(other._recoveryWrapper);
         }
 
-        public Task Close(ushort replyCode, string replyText, bool abort)
+        public void Close(ushort replyCode, string replyText, bool abort)
         {
-            return Close(new ShutdownEventArgs(ShutdownInitiator.Application,
-                replyCode, replyText),
-                abort);
+            _ = Close(new ShutdownEventArgs(ShutdownInitiator.Application, replyCode, replyText), abort);
         }
 
-        public async Task Close(ShutdownEventArgs reason, bool abort)
+        private async Task Close(ShutdownEventArgs reason, bool abort)
         {
             var k = new ShutdownContinuation();
             ModelShutdown += k.OnConnectionShutdown;
@@ -468,7 +466,7 @@ namespace RabbitMQ.Client.Impl
             if (disposing)
             {
                 // dispose managed resources
-                Abort();
+                this.Abort();
             }
 
             // dispose unmanaged resources
@@ -958,16 +956,6 @@ namespace RabbitMQ.Client.Impl
         public abstract uint _Private_QueuePurge(string queue,
             bool nowait);
 
-        public void Abort()
-        {
-            Abort(Constants.ReplySuccess, "Goodbye");
-        }
-
-        public void Abort(ushort replyCode, string replyText)
-        {
-            Close(replyCode, replyText, true);
-        }
-
         public abstract void BasicAck(ulong deliveryTag, bool multiple);
 
         public void BasicCancel(string consumerTag)
@@ -1137,16 +1125,6 @@ namespace RabbitMQ.Client.Impl
 
         public abstract void BasicReject(ulong deliveryTag,
             bool requeue);
-
-        public void Close()
-        {
-            Close(Constants.ReplySuccess, "Goodbye");
-        }
-
-        public void Close(ushort replyCode, string replyText)
-        {
-            Close(replyCode, replyText, false);
-        }
 
         public void ConfirmSelect()
         {

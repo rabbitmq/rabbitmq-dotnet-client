@@ -144,34 +144,6 @@ namespace RabbitMQ.Client
         event EventHandler<ShutdownEventArgs> ModelShutdown;
 
         /// <summary>
-        /// Abort this session.
-        /// </summary>
-        /// <remarks>
-        /// If the session is already closed (or closing), then this
-        /// method does nothing but wait for the in-progress close
-        /// operation to complete. This method will not return to the
-        /// caller until the shutdown is complete.
-        /// In comparison to normal <see cref="Close()"/> method, <see cref="Abort()"/> will not throw
-        /// <see cref="Exceptions.AlreadyClosedException"/> or <see cref="System.IO.IOException"/> or any other <see cref="Exception"/> during closing model.
-        /// </remarks>
-        void Abort();
-
-        /// <summary>
-        /// Abort this session.
-        /// </summary>
-        /// <remarks>
-        /// The method behaves in the same way as <see cref="Abort()"/>, with the only
-        /// difference that the model is closed with the given model close code and message.
-        /// <para>
-        /// The close code (See under "Reply Codes" in the AMQP specification)
-        /// </para>
-        /// <para>
-        /// A message indicating the reason for closing the model
-        /// </para>
-        /// </remarks>
-        void Abort(ushort replyCode, string replyText);
-
-        /// <summary>
         /// Acknowledge one or more delivered message(s).
         /// </summary>
         void BasicAck(ulong deliveryTag, bool multiple);
@@ -247,27 +219,10 @@ namespace RabbitMQ.Client
         void BasicReject(ulong deliveryTag, bool requeue);
 
         /// <summary>Close this session.</summary>
-        /// <remarks>
-        /// If the session is already closed (or closing), then this
-        /// method does nothing but wait for the in-progress close
-        /// operation to complete. This method will not return to the
-        /// caller until the shutdown is complete.
-        /// </remarks>
-        void Close();
-
-        /// <summary>Close this session.</summary>
-        /// <remarks>
-        /// The method behaves in the same way as Close(), with the only
-        /// difference that the model is closed with the given model
-        /// close code and message.
-        /// <para>
-        /// The close code (See under "Reply Codes" in the AMQP specification)
-        /// </para>
-        /// <para>
-        /// A message indicating the reason for closing the model
-        /// </para>
-        /// </remarks>
-        void Close(ushort replyCode, string replyText);
+        /// <param name="replyCode">The reply code to send for closing (See under "Reply Codes" in the AMQP specification).</param>
+        /// <param name="replyText">The reply text to send for closing.</param>
+        /// <param name="abort">Whether or not the close is an abort (ignoring certain exceptions).</param>
+        void Close(ushort replyCode, string replyText, bool abort);
 
         /// <summary>
         /// Enable publisher acknowledgements.
