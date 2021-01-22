@@ -325,18 +325,22 @@ namespace RabbitMQ.Client
         event System.EventHandler<RabbitMQ.Client.Events.ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery;
         event System.EventHandler<RabbitMQ.Client.Events.QueueNameChangedAfterRecoveryEventArgs> QueueNameChangeAfterRecovery;
         event System.EventHandler<System.EventArgs> RecoverySucceeded;
-        void Abort();
-        void Abort(System.TimeSpan timeout);
-        void Abort(ushort reasonCode, string reasonText);
-        void Abort(ushort reasonCode, string reasonText, System.TimeSpan timeout);
-        void Close();
-        void Close(System.TimeSpan timeout);
-        void Close(ushort reasonCode, string reasonText);
-        void Close(ushort reasonCode, string reasonText, System.TimeSpan timeout);
+        void Close(ushort reasonCode, string reasonText, System.TimeSpan timeout, bool abort);
         RabbitMQ.Client.IModel CreateModel();
         void HandleConnectionBlocked(string reason);
         void HandleConnectionUnblocked();
         void UpdateSecret(string newSecret, string reason);
+    }
+    public static class IConnectionExtensions
+    {
+        public static void Abort(this RabbitMQ.Client.IConnection connection) { }
+        public static void Abort(this RabbitMQ.Client.IConnection connection, System.TimeSpan timeout) { }
+        public static void Abort(this RabbitMQ.Client.IConnection connection, ushort reasonCode, string reasonText) { }
+        public static void Abort(this RabbitMQ.Client.IConnection connection, ushort reasonCode, string reasonText, System.TimeSpan timeout) { }
+        public static void Close(this RabbitMQ.Client.IConnection connection) { }
+        public static void Close(this RabbitMQ.Client.IConnection connection, System.TimeSpan timeout) { }
+        public static void Close(this RabbitMQ.Client.IConnection connection, ushort reasonCode, string reasonText) { }
+        public static void Close(this RabbitMQ.Client.IConnection connection, ushort reasonCode, string reasonText, System.TimeSpan timeout) { }
     }
     public interface IConnectionFactory
     {
@@ -386,8 +390,6 @@ namespace RabbitMQ.Client
         event System.EventHandler<RabbitMQ.Client.Events.CallbackExceptionEventArgs> CallbackException;
         event System.EventHandler<RabbitMQ.Client.Events.FlowControlEventArgs> FlowControl;
         event System.EventHandler<RabbitMQ.Client.ShutdownEventArgs> ModelShutdown;
-        void Abort();
-        void Abort(ushort replyCode, string replyText);
         void BasicAck(ulong deliveryTag, bool multiple);
         void BasicCancel(string consumerTag);
         void BasicCancelNoWait(string consumerTag);
@@ -400,8 +402,7 @@ namespace RabbitMQ.Client
         void BasicRecover(bool requeue);
         void BasicRecoverAsync(bool requeue);
         void BasicReject(ulong deliveryTag, bool requeue);
-        void Close();
-        void Close(ushort replyCode, string replyText);
+        void Close(ushort replyCode, string replyText, bool abort);
         void ConfirmSelect();
         uint ConsumerCount(string queue);
         RabbitMQ.Client.IBasicProperties CreateBasicProperties();
@@ -434,6 +435,8 @@ namespace RabbitMQ.Client
     }
     public static class IModelExtensions
     {
+        public static void Abort(this RabbitMQ.Client.IModel model) { }
+        public static void Abort(this RabbitMQ.Client.IModel model, ushort replyCode, string replyText) { }
         public static string BasicConsume(this RabbitMQ.Client.IModel model, string queue, bool autoAck, RabbitMQ.Client.IBasicConsumer consumer) { }
         public static string BasicConsume(this RabbitMQ.Client.IModel model, string queue, bool autoAck, string consumerTag, RabbitMQ.Client.IBasicConsumer consumer) { }
         public static string BasicConsume(this RabbitMQ.Client.IModel model, string queue, bool autoAck, string consumerTag, System.Collections.Generic.IDictionary<string, object> arguments, RabbitMQ.Client.IBasicConsumer consumer) { }
@@ -442,6 +445,8 @@ namespace RabbitMQ.Client
         public static void BasicPublish(this RabbitMQ.Client.IModel model, RabbitMQ.Client.CachedString exchange, RabbitMQ.Client.CachedString routingKey, RabbitMQ.Client.IBasicProperties basicProperties, System.ReadOnlyMemory<byte> body) { }
         public static void BasicPublish(this RabbitMQ.Client.IModel model, string exchange, string routingKey, RabbitMQ.Client.IBasicProperties basicProperties, System.ReadOnlyMemory<byte> body) { }
         public static void BasicPublish(this RabbitMQ.Client.IModel model, string exchange, string routingKey, bool mandatory = false, RabbitMQ.Client.IBasicProperties basicProperties = null, System.ReadOnlyMemory<byte> body = default) { }
+        public static void Close(this RabbitMQ.Client.IModel model) { }
+        public static void Close(this RabbitMQ.Client.IModel model, ushort replyCode, string replyText) { }
         public static void ExchangeBind(this RabbitMQ.Client.IModel model, string destination, string source, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments = null) { }
         public static void ExchangeBindNoWait(this RabbitMQ.Client.IModel model, string destination, string source, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments = null) { }
         public static void ExchangeDeclare(this RabbitMQ.Client.IModel model, string exchange, string type, bool durable = false, bool autoDelete = false, System.Collections.Generic.IDictionary<string, object> arguments = null) { }
