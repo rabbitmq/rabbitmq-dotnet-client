@@ -31,12 +31,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Threading;
-
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
 {
@@ -215,125 +211,14 @@ namespace RabbitMQ.Client
         void UpdateSecret(string newSecret, string reason);
 
         /// <summary>
-        /// Abort this connection and all its channels.
-        /// </summary>
-        /// <remarks>
-        /// Note that all active channels, sessions, and models will be closed if this method is called.
-        /// In comparison to normal <see cref="Close()"/> method, <see cref="Abort()"/> will not throw
-        /// <see cref="IOException"/> during closing connection.
-        ///This method waits infinitely for the in-progress close operation to complete.
-        /// </remarks>
-        void Abort();
-
-        /// <summary>
-        /// Abort this connection and all its channels.
-        /// </summary>
-        /// <remarks>
-        /// The method behaves in the same way as <see cref="Abort()"/>, with the only
-        /// difference that the connection is closed with the given connection close code and message.
-        /// <para>
-        /// The close code (See under "Reply Codes" in the AMQP 0-9-1 specification)
-        /// </para>
-        /// <para>
-        /// A message indicating the reason for closing the connection
-        /// </para>
-        /// </remarks>
-        void Abort(ushort reasonCode, string reasonText);
-
-        /// <summary>
-        /// Abort this connection and all its channels and wait with a
-        /// timeout for all the in-progress close operations to complete.
-        /// </summary>
-        /// <remarks>
-        /// This method, behaves in a similar way as method <see cref="Abort()"/> with the
-        /// only difference that it explictly specifies a timeout given
-        /// for all the in-progress close operations to complete.
-        /// If timeout is reached and the close operations haven't finished, then socket is forced to close.
-        /// <para>
-        /// To wait infinitely for the close operations to complete use <see cref="Timeout.Infinite"/>.
-        /// </para>
-        /// </remarks>
-        void Abort(TimeSpan timeout);
-
-        /// <summary>
-        /// Abort this connection and all its channels and wait with a
-        /// timeout for all the in-progress close operations to complete.
-        /// </summary>
-        /// <remarks>
-        /// The method behaves in the same way as <see cref="Abort(TimeSpan)"/>, with the only
-        /// difference that the connection is closed with the given connection close code and message.
-        /// <para>
-        /// The close code (See under "Reply Codes" in the AMQP 0-9-1 specification).
-        /// </para>
-        /// <para>
-        /// A message indicating the reason for closing the connection.
-        /// </para>
-        /// </remarks>
-        void Abort(ushort reasonCode, string reasonText, TimeSpan timeout);
-
-        /// <summary>
-        /// Close this connection and all its channels.
-        /// </summary>
-        /// <remarks>
-        /// Note that all active channels, sessions, and models will be
-        /// closed if this method is called. It will wait for the in-progress
-        /// close operation to complete. This method will not return to the caller
-        /// until the shutdown is complete. If the connection is already closed
-        /// (or closing), then this method will do nothing.
-        /// It can also throw <see cref="IOException"/> when socket was closed unexpectedly.
-        /// </remarks>
-        void Close();
-
-        /// <summary>
-        /// Close this connection and all its channels.
-        /// </summary>
-        /// <remarks>
-        /// The method behaves in the same way as <see cref="Close()"/>, with the only
-        /// difference that the connection is closed with the given connection close code and message.
-        /// <para>
-        /// The close code (See under "Reply Codes" in the AMQP specification).
-        /// </para>
-        /// <para>
-        /// A message indicating the reason for closing the connection.
-        /// </para>
-        /// </remarks>
-        void Close(ushort reasonCode, string reasonText);
-
-        /// <summary>
         /// Close this connection and all its channels
         /// and wait with a timeout for all the in-progress close operations to complete.
         /// </summary>
-        /// <remarks>
-        /// Note that all active channels, sessions, and models will be
-        /// closed if this method is called. It will wait for the in-progress
-        /// close operation to complete with a timeout. If the connection is
-        /// already closed (or closing), then this method will do nothing.
-        /// It can also throw <see cref="IOException"/> when socket was closed unexpectedly.
-        /// If timeout is reached and the close operations haven't finished, then socket is forced to close.
-        /// <para>
-        /// To wait infinitely for the close operations to complete use <see cref="System.Threading.Timeout.InfiniteTimeSpan"/>.
-        /// </para>
-        /// </remarks>
-        void Close(TimeSpan timeout);
-
-        /// <summary>
-        /// Close this connection and all its channels
-        /// and wait with a timeout for all the in-progress close operations to complete.
-        /// </summary>
-        /// <remarks>
-        /// The method behaves in the same way as <see cref="Close(TimeSpan)"/>, with the only
-        /// difference that the connection is closed with the given connection close code and message.
-        /// <para>
-        /// The close code (See under "Reply Codes" in the AMQP 0-9-1 specification).
-        /// </para>
-        /// <para>
-        /// A message indicating the reason for closing the connection.
-        /// </para>
-        /// <para>
-        /// Operation timeout.
-        /// </para>
-        /// </remarks>
-        void Close(ushort reasonCode, string reasonText, TimeSpan timeout);
+        /// <param name="reasonCode">The close code (See under "Reply Codes" in the AMQP 0-9-1 specification).</param>
+        /// <param name="reasonText">A message indicating the reason for closing the connection.</param>
+        /// <param name="timeout">Operation timeout.</param>
+        /// <param name="abort">Whether or not this close is an abort (ignores certain exceptions).</param>
+        void Close(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort);
 
         /// <summary>
         /// Create and return a fresh channel, session, and model.

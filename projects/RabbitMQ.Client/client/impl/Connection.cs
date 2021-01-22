@@ -247,16 +247,6 @@ namespace RabbitMQ.Client.Framing.Impl
             return table;
         }
 
-        public void Abort(ushort reasonCode, string reasonText, ShutdownInitiator initiator, TimeSpan timeout)
-        {
-            Close(new ShutdownEventArgs(initiator, reasonCode, reasonText), true, timeout);
-        }
-
-        public void Close(ShutdownEventArgs reason)
-        {
-            Close(reason, false, Timeout.InfiniteTimeSpan);
-        }
-
         ///<summary>Try to close connection in a graceful way</summary>
         ///<remarks>
         ///<para>
@@ -272,7 +262,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///to complete. System.Threading.Timeout.InfiniteTimeSpan value means infinity.
         ///</para>
         ///</remarks>
-        public void Close(ShutdownEventArgs reason, bool abort, TimeSpan timeout)
+        internal void Close(ShutdownEventArgs reason, bool abort, TimeSpan timeout)
         {
             if (!SetCloseReason(reason))
             {
@@ -326,16 +316,14 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
             }
 
-            bool closeFrameHandler;
             try
             {
-                closeFrameHandler = !_mainLoopTask.Wait(timeout);
+                if (!_mainLoopTask.Wait(timeout))
+                {
+                    _frameHandler.Close();
+                }
             }
             catch (AggregateException)
-            {
-                closeFrameHandler = true;
-            }
-            if (closeFrameHandler)
             {
                 _frameHandler.Close();
             }
@@ -799,7 +787,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override string ToString()
         {
-            return string.Format("Connection({0},{1})", _id, Endpoint);
+            return $"Connection({_id},{Endpoint})";
         }
 
         public void Write(ReadOnlyMemory<byte> memory)
@@ -812,52 +800,10 @@ namespace RabbitMQ.Client.Framing.Impl
             _model0.UpdateSecret(newSecret, reason);
         }
 
-        ///<summary>API-side invocation of connection abort.</summary>
-        public void Abort()
-        {
-            Abort(Timeout.InfiniteTimeSpan);
-        }
-
-        ///<summary>API-side invocation of connection abort.</summary>
-        public void Abort(ushort reasonCode, string reasonText)
-        {
-            Abort(reasonCode, reasonText, Timeout.InfiniteTimeSpan);
-        }
-
-        ///<summary>API-side invocation of connection abort with timeout.</summary>
-        public void Abort(TimeSpan timeout)
-        {
-            Abort(Constants.ReplySuccess, "Connection close forced", timeout);
-        }
-
-        ///<summary>API-side invocation of connection abort with timeout.</summary>
-        public void Abort(ushort reasonCode, string reasonText, TimeSpan timeout)
-        {
-            Abort(reasonCode, reasonText, ShutdownInitiator.Application, timeout);
-        }
-
-        ///<summary>API-side invocation of connection.close.</summary>
-        public void Close()
-        {
-            Close(Constants.ReplySuccess, "Goodbye", Timeout.InfiniteTimeSpan);
-        }
-
-        ///<summary>API-side invocation of connection.close.</summary>
-        public void Close(ushort reasonCode, string reasonText)
-        {
-            Close(reasonCode, reasonText, Timeout.InfiniteTimeSpan);
-        }
-
         ///<summary>API-side invocation of connection.close with timeout.</summary>
-        public void Close(TimeSpan timeout)
+        public void Close(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort)
         {
-            Close(Constants.ReplySuccess, "Goodbye", timeout);
-        }
-
-        ///<summary>API-side invocation of connection.close with timeout.</summary>
-        public void Close(ushort reasonCode, string reasonText, TimeSpan timeout)
-        {
-            Close(new ShutdownEventArgs(ShutdownInitiator.Application, reasonCode, reasonText), false, timeout);
+            Close(new ShutdownEventArgs(ShutdownInitiator.Application, reasonCode, reasonText), abort, timeout);
         }
 
         public IModel CreateModel()
@@ -903,7 +849,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 // dispose managed resources
                 try
                 {
-                    Abort();
+                    this.Abort();
                     _mainLoopTask.Wait();
                 }
                 catch (OperationInterruptedException)

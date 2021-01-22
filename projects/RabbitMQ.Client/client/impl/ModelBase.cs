@@ -795,11 +795,8 @@ namespace RabbitMQ.Client.Impl
         {
             if (m_connectionStartCell is null)
             {
-                var reason =
-                    new ShutdownEventArgs(ShutdownInitiator.Library,
-                        Constants.CommandInvalid,
-                        "Unexpected Connection.Start");
-                ((Connection)Session.Connection).Close(reason);
+                var reason = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.CommandInvalid, "Unexpected Connection.Start");
+                Session.Connection.Close(reason, false, Timeout.InfiniteTimeSpan);
             }
             var details = new ConnectionStartDetails
             {
