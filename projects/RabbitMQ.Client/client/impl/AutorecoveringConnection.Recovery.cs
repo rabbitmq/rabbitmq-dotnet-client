@@ -281,7 +281,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
                 try
                 {
-                    string newTag = cons.Recover();
+                    cons.Recover();
+                    string newTag = cons.ConsumerTag;
                     UpdateConsumer(oldTag, newTag, cons);
 
                     if (!_consumerTagChangeAfterRecoveryWrapper.IsEmpty)

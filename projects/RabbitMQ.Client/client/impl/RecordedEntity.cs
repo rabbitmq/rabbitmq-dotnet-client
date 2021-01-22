@@ -31,18 +31,21 @@
 
 namespace RabbitMQ.Client.Impl
 {
+    #nullable enable
     internal abstract class RecordedEntity
     {
-        public RecordedEntity(AutorecoveringModel model)
-        {
-            Model = model;
-        }
+        private readonly AutorecoveringModel _channel;
 
-        public AutorecoveringModel Model { get; protected set; }
+        protected RecordedEntity(AutorecoveringModel channel)
+        {
+            _channel = channel;
+        }
 
         protected IModel ModelDelegate
         {
-            get { return Model.Delegate; }
+            get { return _channel.Delegate; }
         }
+
+        public abstract void Recover();
     }
 }
