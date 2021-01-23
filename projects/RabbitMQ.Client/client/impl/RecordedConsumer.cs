@@ -33,63 +33,30 @@ using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal class RecordedConsumer : RecordedEntity
+    #nullable enable
+    internal sealed class RecordedConsumer : RecordedEntity
     {
-        public RecordedConsumer(AutorecoveringModel model, string queue) : base(model)
+        public RecordedConsumer(AutorecoveringModel channel, IBasicConsumer consumer, string queue, bool autoAck, string consumerTag, bool exclusive, IDictionary<string, object>? arguments)
+            : base(channel)
         {
+            Consumer = consumer;
             Queue = queue;
+            AutoAck = autoAck;
+            ConsumerTag = consumerTag;
+            Exclusive = exclusive;
+            Arguments = arguments;
         }
 
-        public IDictionary<string, object> Arguments { get; set; }
-        public bool AutoAck { get; set; }
-        public IBasicConsumer Consumer { get; set; }
-        public string ConsumerTag { get; set; }
-        public bool Exclusive { get; set; }
+        public IBasicConsumer Consumer { get; }
         public string Queue { get; set; }
+        public bool AutoAck { get; }
+        public string ConsumerTag { get; set; }
+        public bool Exclusive { get; }
+        public IDictionary<string, object>? Arguments { get; }
 
-        public string Recover()
+        public override void Recover()
         {
-            ConsumerTag = ModelDelegate.BasicConsume(Queue, AutoAck,
-                ConsumerTag, false, Exclusive,
-                Arguments, Consumer);
-
-            return ConsumerTag;
-        }
-
-        public RecordedConsumer WithArguments(IDictionary<string, object> value)
-        {
-            Arguments = value;
-            return this;
-        }
-
-        public RecordedConsumer WithAutoAck(bool value)
-        {
-            AutoAck = value;
-            return this;
-        }
-
-        public RecordedConsumer WithConsumer(IBasicConsumer value)
-        {
-            Consumer = value;
-            return this;
-        }
-
-        public RecordedConsumer WithConsumerTag(string value)
-        {
-            ConsumerTag = value;
-            return this;
-        }
-
-        public RecordedConsumer WithExclusive(bool value)
-        {
-            Exclusive = value;
-            return this;
-        }
-
-        public RecordedConsumer WithQueue(string value)
-        {
-            Queue = value;
-            return this;
+            ConsumerTag = ModelDelegate.BasicConsume(Queue, AutoAck, ConsumerTag, false, Exclusive, Arguments, Consumer);
         }
     }
 }

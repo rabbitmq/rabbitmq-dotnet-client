@@ -157,7 +157,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                _connection.UnregisterModel(this);
+                _connection.DeleteRecordedChannel(this);
             }
         }
 
@@ -170,7 +170,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                _connection.UnregisterModel(this);
+                _connection.DeleteRecordedChannel(this);
             }
         }
 
@@ -576,7 +576,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                _connection.UnregisterModel(this);
+                _connection.DeleteRecordedChannel(this);
             }
         }
 
@@ -589,7 +589,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                _connection.UnregisterModel(this);
+                _connection.DeleteRecordedChannel(this);
             }
         }
 
@@ -599,22 +599,14 @@ namespace RabbitMQ.Client.Impl
         public void BasicCancel(string consumerTag)
         {
             ThrowIfDisposed();
-            RecordedConsumer cons = _connection.DeleteRecordedConsumer(consumerTag);
-            if (cons != null)
-            {
-                _connection.MaybeDeleteRecordedAutoDeleteQueue(cons.Queue);
-            }
+            _connection.DeleteRecordedConsumer(consumerTag);
             _delegate.BasicCancel(consumerTag);
         }
 
         public void BasicCancelNoWait(string consumerTag)
         {
             ThrowIfDisposed();
-            RecordedConsumer cons = _connection.DeleteRecordedConsumer(consumerTag);
-            if (cons != null)
-            {
-                _connection.MaybeDeleteRecordedAutoDeleteQueue(cons.Queue);
-            }
+            _connection.DeleteRecordedConsumer(consumerTag);
             _delegate.BasicCancelNoWait(consumerTag);
         }
 
@@ -627,24 +619,17 @@ namespace RabbitMQ.Client.Impl
             IDictionary<string, object> arguments,
             IBasicConsumer consumer)
         {
-            string result = Delegate.BasicConsume(queue, autoAck, consumerTag, noLocal,
-                exclusive, arguments, consumer);
-            RecordedConsumer rc = new RecordedConsumer(this, queue).
-                WithConsumerTag(result).
-                WithConsumer(consumer).
-                WithExclusive(exclusive).
-                WithAutoAck(autoAck).
-                WithArguments(arguments);
+            string result = Delegate.BasicConsume(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer);
+            RecordedConsumer rc = new RecordedConsumer(this, consumer, queue, autoAck, result, exclusive, arguments);
             _connection.RecordConsumer(result, rc);
             return result;
         }
 
-        public BasicGetResult BasicGet(string queue,
-            bool autoAck) => Delegate.BasicGet(queue, autoAck);
+        public BasicGetResult BasicGet(string queue, bool autoAck)
+            => Delegate.BasicGet(queue, autoAck);
 
-        public void BasicNack(ulong deliveryTag,
-            bool multiple,
-            bool requeue) => Delegate.BasicNack(deliveryTag, multiple, requeue);
+        public void BasicNack(ulong deliveryTag, bool multiple, bool requeue)
+            => Delegate.BasicNack(deliveryTag, multiple, requeue);
 
         public void BasicPublish(string exchange,
             string routingKey,
@@ -699,7 +684,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                _connection.UnregisterModel(this);
+                _connection.DeleteRecordedChannel(this);
             }
         }
 
@@ -712,7 +697,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                _connection.UnregisterModel(this);
+                _connection.DeleteRecordedChannel(this);
             }
         }
 
@@ -722,158 +707,102 @@ namespace RabbitMQ.Client.Impl
             _usesPublisherConfirms = true;
         }
 
-        public IBasicProperties CreateBasicProperties() => Delegate.CreateBasicProperties();
+        public IBasicProperties CreateBasicProperties()
+            => Delegate.CreateBasicProperties();
 
-        public void ExchangeBind(string destination,
-            string source,
-            string routingKey,
-            IDictionary<string, object> arguments)
+        public void ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
-            RecordedBinding eb = new RecordedExchangeBinding(this).
-                WithSource(source).
-                WithDestination(destination).
-                WithRoutingKey(routingKey).
-                WithArguments(arguments);
+            RecordedBinding eb = new RecordedExchangeBinding(this, destination, source, routingKey, arguments);
             _connection.RecordBinding(eb);
             _delegate.ExchangeBind(destination, source, routingKey, arguments);
         }
 
-        public void ExchangeBindNoWait(string destination,
-            string source,
-            string routingKey,
-            IDictionary<string, object> arguments) => Delegate.ExchangeBindNoWait(destination, source, routingKey, arguments);
+        public void ExchangeBindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments)
+            => Delegate.ExchangeBindNoWait(destination, source, routingKey, arguments);
 
-        public void ExchangeDeclare(string exchange, string type, bool durable,
-            bool autoDelete, IDictionary<string, object> arguments)
+        public void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
-            RecordedExchange rx = new RecordedExchange(this, exchange).
-                WithType(type).
-                WithDurable(durable).
-                WithAutoDelete(autoDelete).
-                WithArguments(arguments);
-            _delegate.ExchangeDeclare(exchange, type, durable,
-                autoDelete, arguments);
-            _connection.RecordExchange(exchange, rx);
+            _delegate.ExchangeDeclare(exchange, type, durable, autoDelete, arguments);
+            RecordedExchange rx = new RecordedExchange(this, exchange, type, durable, autoDelete, arguments);
+            _connection.RecordExchange(rx);
         }
 
-        public void ExchangeDeclareNoWait(string exchange,
-            string type,
-            bool durable,
-            bool autoDelete,
-            IDictionary<string, object> arguments)
+        public void ExchangeDeclareNoWait(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
-            RecordedExchange rx = new RecordedExchange(this, exchange).
-                WithType(type).
-                WithDurable(durable).
-                WithAutoDelete(autoDelete).
-                WithArguments(arguments);
-            _delegate.ExchangeDeclareNoWait(exchange, type, durable,
-                autoDelete, arguments);
-            _connection.RecordExchange(exchange, rx);
+            _delegate.ExchangeDeclareNoWait(exchange, type, durable, autoDelete, arguments);
+            RecordedExchange rx = new RecordedExchange(this, exchange, type, durable, autoDelete, arguments);
+            _connection.RecordExchange(rx);
         }
 
-        public void ExchangeDeclarePassive(string exchange) => Delegate.ExchangeDeclarePassive(exchange);
+        public void ExchangeDeclarePassive(string exchange)
+            => Delegate.ExchangeDeclarePassive(exchange);
 
-        public void ExchangeDelete(string exchange,
-            bool ifUnused)
+        public void ExchangeDelete(string exchange, bool ifUnused)
         {
             Delegate.ExchangeDelete(exchange, ifUnused);
             _connection.DeleteRecordedExchange(exchange);
         }
 
-        public void ExchangeDeleteNoWait(string exchange,
-            bool ifUnused)
+        public void ExchangeDeleteNoWait(string exchange, bool ifUnused)
         {
             Delegate.ExchangeDeleteNoWait(exchange, ifUnused);
             _connection.DeleteRecordedExchange(exchange);
         }
 
-        public void ExchangeUnbind(string destination,
-            string source,
-            string routingKey,
-            IDictionary<string, object> arguments)
+        public void ExchangeUnbind(string destination, string source, string routingKey, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
-            RecordedBinding eb = new RecordedExchangeBinding(this).
-                WithSource(source).
-                WithDestination(destination).
-                WithRoutingKey(routingKey).
-                WithArguments(arguments);
+            RecordedBinding eb = new RecordedExchangeBinding(this, destination, source, routingKey, arguments);
             _connection.DeleteRecordedBinding(eb);
             _delegate.ExchangeUnbind(destination, source, routingKey, arguments);
-            _connection.MaybeDeleteRecordedAutoDeleteExchange(source);
+            _connection.DeleteAutoDeleteExchange(source);
         }
 
-        public void ExchangeUnbindNoWait(string destination,
-            string source,
-            string routingKey,
-            IDictionary<string, object> arguments) => Delegate.ExchangeUnbind(destination, source, routingKey, arguments);
+        public void ExchangeUnbindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments)
+            => Delegate.ExchangeUnbind(destination, source, routingKey, arguments);
 
-        public void QueueBind(string queue,
-            string exchange,
-            string routingKey,
-            IDictionary<string, object> arguments)
+        public void QueueBind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
-            RecordedBinding qb = new RecordedQueueBinding(this).
-                WithSource(exchange).
-                WithDestination(queue).
-                WithRoutingKey(routingKey).
-                WithArguments(arguments);
+            RecordedBinding qb = new RecordedQueueBinding(this, queue, exchange, routingKey, arguments);
             _connection.RecordBinding(qb);
             _delegate.QueueBind(queue, exchange, routingKey, arguments);
         }
 
-        public void QueueBindNoWait(string queue,
-            string exchange,
-            string routingKey,
-            IDictionary<string, object> arguments) => Delegate.QueueBind(queue, exchange, routingKey, arguments);
+        public void QueueBindNoWait(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
+            => Delegate.QueueBind(queue, exchange, routingKey, arguments);
 
-        public QueueDeclareOk QueueDeclare(string queue, bool durable,
-                                           bool exclusive, bool autoDelete,
-                                           IDictionary<string, object> arguments)
+        public QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
-            QueueDeclareOk result = _delegate.QueueDeclare(queue, durable, exclusive,
-                autoDelete, arguments);
-            RecordedQueue rq = new RecordedQueue(this, result.QueueName).
-                Durable(durable).
-                Exclusive(exclusive).
-                AutoDelete(autoDelete).
-                Arguments(arguments).
-                ServerNamed(string.Empty.Equals(queue));
-            _connection.RecordQueue(result.QueueName, rq);
+            QueueDeclareOk result = _delegate.QueueDeclare(queue, durable, exclusive, autoDelete, arguments);
+            RecordedQueue rq = new RecordedQueue(this, result.QueueName, queue.Length == 0, durable, exclusive, autoDelete, arguments);
+            _connection.RecordQueue(rq);
             return result;
         }
 
-        public void QueueDeclareNoWait(string queue, bool durable,
-                                       bool exclusive, bool autoDelete,
-                                       IDictionary<string, object> arguments)
+        public void QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
             _delegate.QueueDeclareNoWait(queue, durable, exclusive,
                 autoDelete, arguments);
-            RecordedQueue rq = new RecordedQueue(this, queue).
-                Durable(durable).
-                Exclusive(exclusive).
-                AutoDelete(autoDelete).
-                Arguments(arguments).
-                ServerNamed(string.Empty.Equals(queue));
-            _connection.RecordQueue(queue, rq);
+            RecordedQueue rq = new RecordedQueue(this, queue, queue.Length == 0, durable, exclusive, autoDelete, arguments);
+            _connection.RecordQueue(rq);
         }
 
-        public QueueDeclareOk QueueDeclarePassive(string queue) => Delegate.QueueDeclarePassive(queue);
+        public QueueDeclareOk QueueDeclarePassive(string queue)
+            => Delegate.QueueDeclarePassive(queue);
 
-        public uint MessageCount(string queue) => Delegate.MessageCount(queue);
+        public uint MessageCount(string queue)
+            => Delegate.MessageCount(queue);
 
-        public uint ConsumerCount(string queue) => Delegate.ConsumerCount(queue);
+        public uint ConsumerCount(string queue)
+            => Delegate.ConsumerCount(queue);
 
-        public uint QueueDelete(string queue,
-            bool ifUnused,
-            bool ifEmpty)
+        public uint QueueDelete(string queue, bool ifUnused, bool ifEmpty)
         {
             ThrowIfDisposed();
             uint result = _delegate.QueueDelete(queue, ifUnused, ifEmpty);
@@ -881,30 +810,22 @@ namespace RabbitMQ.Client.Impl
             return result;
         }
 
-        public void QueueDeleteNoWait(string queue,
-            bool ifUnused,
-            bool ifEmpty)
+        public void QueueDeleteNoWait(string queue, bool ifUnused, bool ifEmpty)
         {
             Delegate.QueueDeleteNoWait(queue, ifUnused, ifEmpty);
             _connection.DeleteRecordedQueue(queue);
         }
 
-        public uint QueuePurge(string queue) => Delegate.QueuePurge(queue);
+        public uint QueuePurge(string queue)
+            => Delegate.QueuePurge(queue);
 
-        public void QueueUnbind(string queue,
-            string exchange,
-            string routingKey,
-            IDictionary<string, object> arguments)
+        public void QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
-            RecordedBinding qb = new RecordedQueueBinding(this).
-                WithSource(exchange).
-                WithDestination(queue).
-                WithRoutingKey(routingKey).
-                WithArguments(arguments);
+            RecordedBinding qb = new RecordedQueueBinding(this, queue, exchange, routingKey, arguments);
             _connection.DeleteRecordedBinding(qb);
             _delegate.QueueUnbind(queue, exchange, routingKey, arguments);
-            _connection.MaybeDeleteRecordedAutoDeleteExchange(exchange);
+            _connection.DeleteAutoDeleteExchange(exchange);
         }
 
         public void TxCommit() => Delegate.TxCommit();
