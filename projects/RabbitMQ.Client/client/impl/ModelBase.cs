@@ -201,10 +201,10 @@ namespace RabbitMQ.Client.Impl
 
         public void Close(ushort replyCode, string replyText, bool abort)
         {
-            _ = Close(new ShutdownEventArgs(ShutdownInitiator.Application, replyCode, replyText), abort);
+            _ = CloseAsync(new ShutdownEventArgs(ShutdownInitiator.Application, replyCode, replyText), abort);
         }
 
-        private async Task Close(ShutdownEventArgs reason, bool abort)
+        private async Task CloseAsync(ShutdownEventArgs reason, bool abort)
         {
             var k = new ShutdownContinuation();
             ModelShutdown += k.OnConnectionShutdown;
@@ -1355,14 +1355,14 @@ namespace RabbitMQ.Client.Impl
                     return;
                 }
 
-                await Close(
+                await CloseAsync(
                     new ShutdownEventArgs(ShutdownInitiator.Application, Constants.ReplySuccess, "Nacks Received",
                         new IOException("nack received")),
                     false).ConfigureAwait(false);
             }
             catch (TaskCanceledException exception)
             {
-                await Close(new ShutdownEventArgs(ShutdownInitiator.Application,
+                await CloseAsync(new ShutdownEventArgs(ShutdownInitiator.Application,
                         Constants.ReplySuccess,
                         "Timed out waiting for acks",
                         exception),
