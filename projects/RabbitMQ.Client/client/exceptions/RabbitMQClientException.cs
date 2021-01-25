@@ -33,9 +33,7 @@ using System;
 
 namespace RabbitMQ.Client.Exceptions
 {
-#if !NETSTANDARD1_5
     [Serializable]
-#endif
     public abstract class RabbitMQClientException : Exception
     {
         /// <summary>Initializes a new instance of the <see cref="RabbitMQClientException" /> class.</summary>
